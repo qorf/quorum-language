@@ -75,18 +75,23 @@ class CheckDetectOpcode is QuorumOpcode
         Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
         repeat while it:HasNext()
             DetectBlockOpcode det = it:Next()
+
             Iterator<Class> detects = det:GetDetectIterator()
             repeat while detects:HasNext()
                 JavaBytecodeLabel detectStart
                 methodWriter:VisitLabel(detectStart)
                 Class clazz = detects:Next()
-                det:Write()
+
                 ErrorBlockLabels detectLabels
                 detectLabels:left = checkStart
                 detectLabels:middle = checkEnd
                 detectLabels:right = detectStart
                 detectLabels:type = clazz:ConvertStaticKeyToBytecodePath()
-                detectValues:Add(detectLabels)
+                //detectValues:Add(detectLabels)
+                WriteTableRow(detectLabels)
+                det:Write()
+                
+                
 
                 if alwaysBlock not= undefined
                     JavaBytecodeLabel alwaysStart
@@ -100,6 +105,11 @@ class CheckDetectOpcode is QuorumOpcode
                     labels:right = finalAlways
                     labels:type = null
                     alwaysValues:Add(labels)
+                else
+                    //if there isn't another detect or an always, fall through
+                    if it:HasNext() or detects:HasNext()
+                        methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
+                    end
                 end
             end
         end
@@ -138,17 +148,22 @@ class CheckDetectOpcode is QuorumOpcode
 
     private action WriteExceptionTable
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
-        Iterator<ErrorBlockLabels> it = detectValues:GetIterator()
-        repeat while it:HasNext()
-            ErrorBlockLabels labels = it:Next()
-            methodWriter:VisitTryCatchBlock(labels:left, labels:middle, labels:right, labels:type)
-        end
+        Iterator<ErrorBlockLabels> it = undefined //detectValues:GetIterator()
+//        repeat while it:HasNext()
+//            ErrorBlockLabels labels = it:Next()
+//            WriteTableRow(labels)
+//        end
 
         it = alwaysValues:GetIterator()
         repeat while it:HasNext()
             ErrorBlockLabels labels = it:Next()
-            methodWriter:VisitTryCatchBlock(labels:left, labels:middle, labels:right, labels:type)
+            WriteTableRow(labels)
         end
+    end
+
+    private action WriteTableRow(ErrorBlockLabels labels)
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        methodWriter:VisitTryCatchBlock(labels:left, labels:middle, labels:right, labels:type)
     end
 
     action WriteJavaScript returns text

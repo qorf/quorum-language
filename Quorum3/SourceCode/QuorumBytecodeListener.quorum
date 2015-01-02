@@ -536,44 +536,57 @@ class QuorumBytecodeListener is QuorumSourceListener
         Type type
 
         List<QualifiedName> parents = context:parents
-        Iterator<QualifiedName> it = parents:GetIterator()
-        repeat while it:HasNext()
-            QualifiedName name = it:Next()
 
-            //check to make sure this is valid in the current class.
-            Class clazz = currentClass:GetValidUseName(name:GetStaticKey())
-            if clazz = undefined
-                CompilerError error
-                error:SetLocation(context:GetLocation())
-                CompilerErrorType t
-                t:SetCurrentType(t:MISSING_CLASS)
-                error:SetCompilerErrorType(t)
-                error:SetErrorMessage("I could not locate the class named " +
-                    name:GetStaticKey() + ". Did you spell it correctly?")
-                CompilerErrorManager manager = GetCompilerErrorManager()
-                manager:Add(error)
-                return now
-            end
-            
-            //now make sure that this class inherits from Error
-            if not clazz:HasParentClass(type:ERROR_KEY)
-               and clazz:GetStaticKey() not= type:ERROR_KEY
-                CompilerError error
-                error:SetLocation(context:GetLocation())
-                CompilerErrorType t
-                t:SetCurrentType(t:INVALID_ERROR)
-                error:SetCompilerErrorType(t)
-                error:SetErrorMessage("I did find the class named " + clazz:GetStaticKey() +
-                    ", but it does not inherit from Libraries.Language.Errors.Error. " +
-                    "Only classes that inherit from Error can be passed as errors." )
-                CompilerErrorManager manager = GetCompilerErrorManager()
-                manager:Add(error)
-                return now
-            end
+        if parents:IsEmpty()
+            QualifiedName error
+            error:Add("Libraries")
+            error:Add("Language")
+            error:Add("Errors")
+            error:Add("Error")
 
+
+            SymbolTable table = GetSymbolTable()
+            Class clazz = table:GetClass("Libraries.Language.Errors.Error")
             op:AddDetect(clazz)
-        end
+        else
+            Iterator<QualifiedName> it = parents:GetIterator()
+            repeat while it:HasNext()
+                QualifiedName name = it:Next()
 
+                //check to make sure this is valid in the current class.
+                Class clazz = currentClass:GetValidUseName(name:GetStaticKey())
+                if clazz = undefined
+                    CompilerError error
+                    error:SetLocation(context:GetLocation())
+                    CompilerErrorType t
+                    t:SetCurrentType(t:MISSING_CLASS)
+                    error:SetCompilerErrorType(t)
+                    error:SetErrorMessage("I could not locate the class named " +
+                        name:GetStaticKey() + ". Did you spell it correctly?")
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(error)
+                    return now
+                end
+
+                //now make sure that this class inherits from Error
+                if not clazz:HasParentClass(type:ERROR_KEY)
+                   and clazz:GetStaticKey() not= type:ERROR_KEY
+                    CompilerError error
+                    error:SetLocation(context:GetLocation())
+                    CompilerErrorType t
+                    t:SetCurrentType(t:INVALID_ERROR)
+                    error:SetCompilerErrorType(t)
+                    error:SetErrorMessage("I did find the class named " + clazz:GetStaticKey() +
+                        ", but it does not inherit from Libraries.Language.Errors.Error. " +
+                        "Only classes that inherit from Error can be passed as errors." )
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(error)
+                    return now
+                end
+
+                op:AddDetect(clazz)
+            end
+        end
 
         //get the exception variable from the block
         Variable exceptionVariable = recentlyPoppedBlock:GetExceptionVariable()

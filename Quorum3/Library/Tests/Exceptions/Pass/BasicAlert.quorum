@@ -1,21 +1,19 @@
 use Libraries.Language.Errors.Error
 use Libraries.Language.Errors.CastError
+use Libraries.Language.Errors.OutOfBoundsError
 
-class Main 
+class Main
     action Main
-        a = 5
         check
-            b = 10
-            output "Try Block"
-           CastError error
-           alert(error)
-        detect bob is Error
-            c = 12
-            output bob:GetErrorMessage()
-            output "Catch Block"
-        always
-            d = 14
-            output "Always"
+            integer p = cast(integer, "3.7")
+        detect j is CastError
+            check
+                integer z = cast(integer, "2.6")
+             detect er
+                output "caught"
+             end
+        detect q
+            output "shouldn't be here"
         end
     end
 end

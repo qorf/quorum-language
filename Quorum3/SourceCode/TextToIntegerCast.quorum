@@ -12,7 +12,7 @@ class TextToIntegerCast is ExplicitCastOpcode
         if opcodeToCast not= undefined
             opcodeToCast:Write()
         end
-        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "java/lang/Integer", "parseInt",
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Types/Integer", "ParseInteger",
                 "(Ljava/lang/String;)I", false)
     end
     
