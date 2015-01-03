@@ -48,6 +48,13 @@ public class Text {
         return i;
     }
     
+    public static int CompareTo(String left, String right) {
+        if(left != null && right != null) {
+            return left.compareTo(right);
+        } 
+        return - 1;
+    }
+    
     public int ParseInteger() {//throws ParseError{
         try{
             int parseInt = java.lang.Integer.parseInt(text);

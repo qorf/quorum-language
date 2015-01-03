@@ -18,6 +18,14 @@ public class Integer {
     private int integer = -1;
     
     
+    public static int ParseInteger(String value) throws quorum.Libraries.Language.Errors.CastError{
+        try {
+            return java.lang.Integer.parseInt(value);
+        } catch(NumberFormatException e) {
+            throw new quorum.Libraries.Language.Errors.CastError();
+        }
+    }
+    
     public static int ConvertObjectToInteger(Object$Interface object) {
         if(object == null) {
             throw new NullPointerException("Cannot convert an undefined type to an integer.");
