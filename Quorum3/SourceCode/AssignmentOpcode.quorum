@@ -145,7 +145,7 @@ class AssignmentOpcode is QuorumOpcode
                     if opcode2 not= -1
                         methodWriter:VisitInstruction(opcode2)
                     end
-                    methodWriter:VisitVariable(opcode, variable:GetBytecodeLocation() + GetBytecodeOffset())
+                    methodWriter:VisitVariable(opcode, variable:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
                 end
             end
 
@@ -165,7 +165,7 @@ class AssignmentOpcode is QuorumOpcode
             methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
                 path, getterName, methodName, true)
         else
-            methodWriter:VisitVariable(opcodes:GetObjectLoad(), variable:GetBytecodeLocation() + GetBytecodeOffset())
+            methodWriter:VisitVariable(opcodes:GetObjectLoad(), variable:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
         end
 
         rightHandSide:Write()

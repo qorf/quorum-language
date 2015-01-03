@@ -63,7 +63,7 @@ class CreateObjectOpcode is QuorumOpcode
                 methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
                     path, setterName, methodName, false)
             else
-                methodWriter:VisitVariable(opcodes:GetObjectStore(), variable:GetBytecodeLocation() + GetBytecodeOffset())
+                methodWriter:VisitVariable(opcodes:GetObjectStore(), variable:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
             end
             
         end

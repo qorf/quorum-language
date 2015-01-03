@@ -227,7 +227,7 @@ class ActionCallOpcode is QuorumOpcode
                             callingClass:ConvertStaticKeyToBytecodePath(), getterName, methodName, false)
                     end
                 else
-                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), field:GetBytecodeLocation() + GetBytecodeOffset())
+                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), field:GetBytecodeLocation() + CalculateBytecodeOffset(field))
                 end
             end
 
@@ -278,7 +278,7 @@ class ActionCallOpcode is QuorumOpcode
                 
                 Type type = GetCallerType()
                 if not field:IsField()
-                    methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetCallerType()), field:GetBytecodeLocation() + GetBytecodeOffset())
+                    methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetCallerType()), field:GetBytecodeLocation() + CalculateBytecodeOffset(field))
                 else
                     //Now write the getter for the field
                     text path = ""
@@ -300,7 +300,7 @@ class ActionCallOpcode is QuorumOpcode
 
             Type type = GetCallerType()
             if not field:IsField()
-                methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetCallerType()), field:GetBytecodeLocation() + GetBytecodeOffset())
+                methodWriter:VisitVariable(opcodes:ConvertTypeToBytecodeLoadOpcode(GetCallerType()), field:GetBytecodeLocation() + CalculateBytecodeOffset(field))
             else
                 //Now write the getter for the field
                 text path = ""

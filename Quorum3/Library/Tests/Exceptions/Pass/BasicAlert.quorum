@@ -1,19 +1,21 @@
-use Libraries.Language.Errors.Error
 use Libraries.Language.Errors.CastError
-use Libraries.Language.Errors.OutOfBoundsError
-
 class Main
     action Main
+        integer i = 1
         check
-            integer p = cast(integer, "3.7")
-        detect j is CastError
-            check
-                integer z = cast(integer, "2.6")
-             detect er
-                output "caught"
-             end
-        detect q
-            output "shouldn't be here"
+            i = 1
+            CastError er
+            alert(er)
+        detect e is CastError
+            i = 2
+            integer m = 10
+            integer sdf = 11
+            integer sd3f = 12
+        always
+            i = 3
+            integer g = 5
         end
+
+        output i
     end
 end

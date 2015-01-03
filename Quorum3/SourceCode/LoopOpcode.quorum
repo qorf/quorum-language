@@ -84,7 +84,7 @@ class LoopOpcode is QuorumOpcode
             methodWriter:VisitLabel(startLabel)
         else 
             methodWriter:VisitConstant(0)
-            methodWriter:VisitVariable(opcodes:GetIntegerStore(), variable:GetBytecodeLocation() + GetBytecodeOffset())
+            methodWriter:VisitVariable(opcodes:GetIntegerStore(), variable:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
         end
 
         expression:Write()
@@ -98,7 +98,7 @@ class LoopOpcode is QuorumOpcode
             methodWriter:VisitInstruction(opcodes:GetDuplicate())
             
             //then push on the counter variable
-            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), variable:GetBytecodeLocation() + GetBytecodeOffset())
+            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), variable:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
 
             //next compare the counter variable with the value
             methodWriter:VisitJump(opcodes:GetIfIntegerLessThanEquals(), endLabel)
@@ -123,10 +123,10 @@ class LoopOpcode is QuorumOpcode
         block:Write()
 
         if isTimes
-            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), variable:GetBytecodeLocation() + GetBytecodeOffset())
+            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), variable:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
             methodWriter:VisitConstant(1)
             methodWriter:VisitInstruction(opcodes:GetIntegerAdd())
-            methodWriter:VisitVariable(opcodes:GetIntegerStore(), variable:GetBytecodeLocation() + GetBytecodeOffset())
+            methodWriter:VisitVariable(opcodes:GetIntegerStore(), variable:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
         end
 
         methodWriter:VisitJump(opcodes:GetGoto(), startLabel)

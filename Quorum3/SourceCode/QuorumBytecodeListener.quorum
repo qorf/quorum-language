@@ -62,6 +62,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     integer ifCount = 0
     integer checkCount = 0
     boolean outputSpeechCommands = true
+    boolean isInAlwaysBlock = false
 
     action GetClassOpcode returns ClassOpcode
         return currentClassOpcode
@@ -324,6 +325,32 @@ class QuorumBytecodeListener is QuorumSourceListener
         AlertOpcode al
         al:SetOpcode(op)
         al:SetMethodWriter(methodWriter)
+
+        Type type = op:GetType()
+        key = type:GetStaticKey()
+        boolean isText = type:IsText()
+        boolean isErrorType = false
+        //if it isn't text, it better be either Object or a subclass
+
+        SymbolTable table = GetSymbolTable()
+        Class clazz = table:GetClass(key)
+        if clazz not= undefined
+            if clazz:IsError()
+                isErrorType = true
+            end
+        end
+
+        if not isText and not isErrorType
+            CompilerError error
+            error:SetErrorMessage("I noticed the alert was passed type " + key + 
+                ". Alert can only accept text, objects of type Libraries.Language.Errors.Error, or subclasses of Error.")
+            error:SetLocation(context:GetLocation())
+            CompilerErrorType t
+            t:SetCurrentType(t:INCOMPATIBLE_TYPES)
+            error:SetCompilerErrorType(t)
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+        end
         currentBlockOpcode:Add(al)
     end
 
@@ -595,6 +622,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterAlwaysStatement(AlwaysStatementContext context)
+        isInAlwaysBlock = true
     end
 
     action ExitAlwaysStatement(AlwaysStatementContext context) 
@@ -609,6 +637,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         op:SetBlock(recentlyPopped)
 
         checkOp:SetAlwaysBlock(op)
+        isInAlwaysBlock = false
     end
 
     action EnterIfStatement(IfContext context) 
@@ -877,6 +906,11 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now
         end
 
+
+        if isInAlwaysBlock
+            variable:SetDefinedInAlwaysBlock(true)
+        end
+
         Type left = variable:GetType()
         QuorumOpcode right = undefined
         if context:hasRightHandSide = false
@@ -910,25 +944,6 @@ class QuorumBytecodeListener is QuorumSourceListener
                 error:SetErrorMessage(message)
                 CompilerErrorManager manager = GetCompilerErrorManager()
                 manager:Add(error)
-//                Type type = typeOriginal:Copy()
-//                type:SetIsConstant(true)
-//                QuorumConstant const
-//                const:SetMethodWriter(methodWriter)
-//                const:SetType(type)
-//                if type:IsInteger()
-//                    type:SetIntegerConstant(0)
-//                    const:integerValue = 0
-//                elseif type:IsBoolean()
-//                    type:SetBooleanConstant(false)
-//                    const:booleanValue = false
-//                elseif type:IsNumber()
-//                    type:SetNumberConstant(0.0)
-//                    const:numberValue = 0.0
-//                elseif type:IsText()
-//                    type:SetTextConstant("")
-//                    const:textValue = ""
-//                end
-//                opcodeStack:Push(const)
             else 
                 SymbolTable table = me:GetSymbolTable()
                 Class clazz = table:GetClass(left:GetStaticKey())

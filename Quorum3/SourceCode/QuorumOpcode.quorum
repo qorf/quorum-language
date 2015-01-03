@@ -2,6 +2,7 @@ package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Location
+use Libraries.Language.Compile.Symbol.Variable
 
 class QuorumOpcode 
     Type type = undefined
@@ -22,6 +23,13 @@ class QuorumOpcode
         return bytecodeOffset
     end
 
+    action CalculateBytecodeOffset(Variable variable) returns integer
+        if variable:IsDefinedInAlwaysBlock()
+            return GetBytecodeOffset()
+        else
+            return 0
+        end
+    end
 
     blueprint action Write
 

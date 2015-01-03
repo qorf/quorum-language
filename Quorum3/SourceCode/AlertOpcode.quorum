@@ -30,7 +30,21 @@ class AlertOpcode is QuorumOpcode
     action Write
         VisitLineNumber()
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+
+        Type type = opcode:GetType()
+        text error = "quorum/Libraries/Language/Errors/Error"
+        if type:IsText() //wrap this into an Error class
+            methodWriter:VisitType(opcodes:GetNew(), error)
+            methodWriter:VisitInstruction(opcodes:GetDuplicate())
+            methodWriter:VisitInstruction(opcodes:GetDuplicate())
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), error, "<init>", "()V", false)
+        end
+
         opcode:Write()
+
+        if type:IsText()
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), error, "SetErrorMessage", "(Ljava/lang/String;)V", false)
+        end
         methodWriter:VisitInstruction(opcodes:GetObjectThrow())
     end
 

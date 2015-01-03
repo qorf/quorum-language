@@ -17,6 +17,15 @@ class Variable is Symbol
     List<Location> locations
     boolean isVisibileToDebugger = true
     Class parentClass = undefined
+    boolean definedInAlwaysBlock = false
+
+    action IsDefinedInAlwaysBlock returns boolean
+        return definedInAlwaysBlock
+    end
+
+    action SetDefinedInAlwaysBlock(boolean defined)
+        definedInAlwaysBlock = defined
+    end
 
     action GetParentClass returns Class
         return parentClass

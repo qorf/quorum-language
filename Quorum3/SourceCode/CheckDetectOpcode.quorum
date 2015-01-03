@@ -50,7 +50,7 @@ class CheckDetectOpcode is QuorumOpcode
         JavaBytecodeLabel checkEnd
         JavaBytecodeLabel fullEnd
         JavaBytecodeLabel finalAlways
-
+        integer maxDetectBlockSize = 0
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         text null = undefined //workaround
         if block not= undefined
@@ -72,6 +72,7 @@ class CheckDetectOpcode is QuorumOpcode
             methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
         end
 
+        
         Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
         repeat while it:HasNext()
             DetectBlockOpcode det = it:Next()
@@ -89,6 +90,13 @@ class CheckDetectOpcode is QuorumOpcode
                 detectLabels:type = clazz:ConvertStaticKeyToBytecodePath()
                 //detectValues:Add(detectLabels)
                 WriteTableRow(detectLabels)
+
+                BlockOpcode blockOpcode = det:GetBlock()
+                Block block = blockOpcode:GetBlock()
+                integer value = block:GetBytecodeLocation()
+                if value - 1 > maxDetectBlockSize
+                    maxDetectBlockSize = value - 1
+                end
                 det:Write()
                 
                 
@@ -121,7 +129,13 @@ class CheckDetectOpcode is QuorumOpcode
             //get the parent block's final bytecode location and put it in as an offset.
             BlockOpcode bo = alwaysBlock:GetBlock()
             Block b = bo:GetBlock()
-            integer loc = b:GetBytecodeLocation()
+            integer loc = b:GetBytecodeLocation() + GetBytecodeOffset()
+            integer max = maxDetectBlockSize
+            if loc < maxDetectBlockSize + GetBytecodeOffset()
+                loc = max + GetBytecodeOffset()
+                //integer newloc = maxDetectBlockSize
+                //loc = newloc
+            end
 
             //put in the offset. This is somewhat expensive
             alwaysBlock:SetBytecodeWriteOffsetToAllChildren(loc)
