@@ -264,6 +264,18 @@ class Parser is QuorumSourceListener
             type:SetIntegerConstant(0)
             variable:SetType(type)
             currentBlock:Add(variable)
+
+            constant text LOOP_NAME_RESULT = "LoopyResult"
+            Variable variable2
+            variable2:SetParentClass(currentClass)
+            variable2:SetName(loopCounter + LOOP_NAME_RESULT)
+            variable2:SetIsParameter(false)
+            variable2:SetVisibleToDebugger(false)
+            Type type2
+            type2:SetToInteger()
+            type2:SetIntegerConstant(0)
+            variable2:SetType(type2)
+            currentBlock:Add(variable2)
         end
 
         loopCounter = loopCounter + 1

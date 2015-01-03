@@ -50,6 +50,7 @@ class CheckDetectOpcode is QuorumOpcode
         JavaBytecodeLabel checkEnd
         JavaBytecodeLabel fullEnd
         JavaBytecodeLabel finalAlways
+        JavaBytecodeLabel lastDetectEnd = undefined
         integer maxDetectBlockSize = 0
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
 
@@ -130,6 +131,10 @@ class CheckDetectOpcode is QuorumOpcode
                         if it:HasNext() or detects:HasNext()
                             methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
                         end
+                      //      JavaBytecodeLabel detectEnd
+                      //      lastDetectEnd = detectEnd
+                      //      methodWriter:VisitLabel(detectEnd)
+                      //  end
                     end
                 end
             end
@@ -175,6 +180,10 @@ class CheckDetectOpcode is QuorumOpcode
         //now write all the detect values
         WriteExceptionTable()
         methodWriter:VisitLabel(fullEnd)
+
+       // if not isCheckEmpty and alwaysBlock = undefined
+       //     methodWriter:VisitTryCatchBlock(checkStart, lastDetectEnd, fullEnd, null)
+       // end
     end
 
     private action WriteExceptionTable

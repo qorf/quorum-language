@@ -12,7 +12,7 @@ class TextToBooleanCast is ExplicitCastOpcode
         if opcodeToCast not= undefined
             opcodeToCast:Write()
         end
-        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "java/lang/Boolean", "parseBoolean",
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Types/Boolean", "ParseBoolean",
                 "(Ljava/lang/String;)Z", false)
     end
     

@@ -12,7 +12,7 @@ class TextToNumberCast is ExplicitCastOpcode
         if opcodeToCast not= undefined
             opcodeToCast:Write()
         end
-        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "java/lang/Double", "parseDouble",
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Types/Number", "ParseNumber",
                 "(Ljava/lang/String;)D", false)
     end
     

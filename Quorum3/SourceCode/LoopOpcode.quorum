@@ -9,6 +9,7 @@ class LoopOpcode is QuorumOpcode
     boolean isUntil = false
     boolean isTimes = false
     Variable variable = undefined
+    Variable timesResult = undefined
 
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
@@ -25,6 +26,13 @@ class LoopOpcode is QuorumOpcode
         me:variable = field
     end
 
+    action GetVariableTimesResult returns Variable
+        return timesResult
+    end
+
+    action SetVariableTimesResult(Variable field)
+        me:timesResult = field
+    end
     
 
     action SetWhile
@@ -91,11 +99,16 @@ class LoopOpcode is QuorumOpcode
 
         if isTimes //for this one, the answer is guaranteed to be a single
                    //integer 
+
+            //store the value that we here into a temporary variable
+            methodWriter:VisitVariable(opcodes:GetIntegerStore(), timesResult:GetBytecodeLocation() + CalculateBytecodeOffset(timesResult))
+
             //set a label for the jump point here, AFTER the expression has been written
             methodWriter:VisitLabel(startLabel)
 
             //so next we duplicate the integer
-            methodWriter:VisitInstruction(opcodes:GetDuplicate())
+            //methodWriter:VisitInstruction(opcodes:GetDuplicate())
+            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), timesResult:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
             
             //then push on the counter variable
             methodWriter:VisitVariable(opcodes:GetIntegerLoad(), variable:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
@@ -131,9 +144,9 @@ class LoopOpcode is QuorumOpcode
 
         methodWriter:VisitJump(opcodes:GetGoto(), startLabel)
         methodWriter:VisitLabel(endLabel)
-        if isTimes
-            methodWriter:VisitInstruction(opcodes:GetPop())
-        end
+        //if isTimes
+        //    methodWriter:VisitInstruction(opcodes:GetPop())
+        //end
     end
 
     action WriteJavaScript returns text

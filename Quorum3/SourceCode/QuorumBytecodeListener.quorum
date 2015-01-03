@@ -474,9 +474,18 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         if context:isTimes
             constant text LOOP_NAME = "Loopy"
+            constant text LOOP_NAME_RESULT = "LoopyResult"
             Variable variable = undefined
             variable = currentBlock:GetVariable(loopCounter + LOOP_NAME)
             loop:SetVariable(variable)
+
+            Variable variable2 = undefined
+            variable2 = currentBlock:GetVariable(loopCounter + LOOP_NAME_RESULT)
+
+            if variable2 = undefined
+                a = 5
+            end
+            loop:SetVariableTimesResult(variable2)
         end
 
         loopStack:Push(loop)
