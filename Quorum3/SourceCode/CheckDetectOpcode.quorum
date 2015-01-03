@@ -52,16 +52,28 @@ class CheckDetectOpcode is QuorumOpcode
         JavaBytecodeLabel finalAlways
         integer maxDetectBlockSize = 0
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
-        text null = undefined //workaround
+
+        boolean isCheckEmpty = false
         if block not= undefined
+            if block:IsEmpty()
+                isCheckEmpty = true
+            end
+        else
+            alert("Check block is empty. This is a compiler bug.")
+        end
+
+        text null = undefined //workaround
+        if not isCheckEmpty
+            
             methodWriter:VisitLabel(checkStart)
             block:Write()
             methodWriter:VisitLabel(checkEnd)
-
-            if alwaysBlock not= undefined
-                JavaBytecodeLabel alwaysStart
-                methodWriter:VisitLabel(alwaysStart)
-                alwaysBlock:Write()
+        end
+        if alwaysBlock not= undefined
+            JavaBytecodeLabel alwaysStart
+            methodWriter:VisitLabel(alwaysStart)
+            alwaysBlock:Write()
+            if not isCheckEmpty
                 ErrorBlockLabels labels
                 labels:left = checkStart
                 labels:middle = checkEnd
@@ -69,54 +81,55 @@ class CheckDetectOpcode is QuorumOpcode
                 labels:type = null
                 alwaysValues:Add(labels)
             end
-            methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
         end
+        methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
 
-        
-        Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
-        repeat while it:HasNext()
-            DetectBlockOpcode det = it:Next()
 
-            Iterator<Class> detects = det:GetDetectIterator()
-            repeat while detects:HasNext()
-                JavaBytecodeLabel detectStart
-                methodWriter:VisitLabel(detectStart)
-                Class clazz = detects:Next()
+        //If the check block is empty, there's no point in writing detects
+        if not isCheckEmpty
+            Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
+            repeat while it:HasNext()
+                DetectBlockOpcode det = it:Next()
 
-                ErrorBlockLabels detectLabels
-                detectLabels:left = checkStart
-                detectLabels:middle = checkEnd
-                detectLabels:right = detectStart
-                detectLabels:type = clazz:ConvertStaticKeyToBytecodePath()
-                //detectValues:Add(detectLabels)
-                WriteTableRow(detectLabels)
+                Iterator<Class> detects = det:GetDetectIterator()
+                repeat while detects:HasNext()
+                    JavaBytecodeLabel detectStart
+                    methodWriter:VisitLabel(detectStart)
+                    Class clazz = detects:Next()
 
-                BlockOpcode blockOpcode = det:GetBlock()
-                Block block = blockOpcode:GetBlock()
-                integer value = block:GetBytecodeLocation()
-                if value - 1 > maxDetectBlockSize
-                    maxDetectBlockSize = value - 1
-                end
-                det:Write()
-                
-                
+                    ErrorBlockLabels detectLabels
+                    detectLabels:left = checkStart
+                    detectLabels:middle = checkEnd
+                    detectLabels:right = detectStart
+                    detectLabels:type = clazz:ConvertStaticKeyToBytecodePath()
+                    //detectValues:Add(detectLabels)
+                    WriteTableRow(detectLabels)
 
-                if alwaysBlock not= undefined
-                    JavaBytecodeLabel alwaysStart
-                    methodWriter:VisitLabel(alwaysStart)
-                    alwaysBlock:Write()
-                    methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
+                    BlockOpcode blockOpcode = det:GetBlock()
+                    Block block = blockOpcode:GetBlock()
+                    integer value = block:GetBytecodeLocation()
+                    if value - 1 > maxDetectBlockSize
+                        maxDetectBlockSize = value - 1
+                    end
+                    det:Write()
 
-                    ErrorBlockLabels labels
-                    labels:left = detectStart
-                    labels:middle = alwaysStart
-                    labels:right = finalAlways
-                    labels:type = null
-                    alwaysValues:Add(labels)
-                else
-                    //if there isn't another detect or an always, fall through
-                    if it:HasNext() or detects:HasNext()
+                    if alwaysBlock not= undefined
+                        JavaBytecodeLabel alwaysStart
+                        methodWriter:VisitLabel(alwaysStart)
+                        alwaysBlock:Write()
                         methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
+
+                        ErrorBlockLabels labels
+                        labels:left = detectStart
+                        labels:middle = alwaysStart
+                        labels:right = finalAlways
+                        labels:type = null
+                        alwaysValues:Add(labels)
+                    else
+                        //if there isn't another detect or an always, fall through
+                        if it:HasNext() or detects:HasNext()
+                            methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
+                        end
                     end
                 end
             end
@@ -138,15 +151,19 @@ class CheckDetectOpcode is QuorumOpcode
             end
 
             //put in the offset. This is somewhat expensive
-            alwaysBlock:SetBytecodeWriteOffsetToAllChildren(loc)
+            if loc not= 0
+                alwaysBlock:SetBytecodeWriteOffsetToAllChildren(loc)
+            end
             alwaysBlock:WriteExceptionVariable()
             methodWriter:VisitLabel(finalAlwaysEnd)
             alwaysBlock:Write()
             alwaysBlock:Rethrow()
 
             //reset it, in case someone else uses
-            alwaysBlock:SetBytecodeWriteOffsetToAllChildren(0)
-            
+            if loc not= 0
+                alwaysBlock:SetBytecodeWriteOffsetToAllChildren(0)
+            end
+
             ErrorBlockLabels labels
             labels:left = finalAlways
             labels:middle = finalAlwaysEnd
