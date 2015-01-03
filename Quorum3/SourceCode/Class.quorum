@@ -78,14 +78,14 @@ class Class is Symbol
         numberObject:Add("Number")
 
         AddUnresolvedUseStatement(numberObject)
-//
-//        QualifiedName errorObject
-//        errorObject:Add("Libraries")
-//        errorObject:Add("Language")
-//        errorObject:Add("Errors")
-//        errorObject:Add("Error")
-//
-//        AddUnresolvedUseStatement(errorObject)
+
+        QualifiedName errorObject
+        errorObject:Add("Libraries")
+        errorObject:Add("Language")
+        errorObject:Add("Errors")
+        errorObject:Add("Error")
+
+        AddUnresolvedUseStatement(errorObject)
     end
 
     action HasParentGenerics(text key) returns boolean
