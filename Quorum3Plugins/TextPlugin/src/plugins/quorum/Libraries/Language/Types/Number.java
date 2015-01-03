@@ -16,6 +16,14 @@ public class Number {
     public java.lang.Object $me = null;
     private double number = -1;
     
+    public static double ParseNumber(String value) throws quorum.Libraries.Language.Errors.CastError{
+        try {
+            return java.lang.Double.parseDouble(value);
+        } catch(NumberFormatException e) {
+            throw new quorum.Libraries.Language.Errors.CastError();
+        }
+    }
+    
     public static double ConvertObjectToNumber(Object$Interface object) {
         if(object == null) {
             throw new NullPointerException("Cannot convert an undefined type to an integer.");

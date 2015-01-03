@@ -16,6 +16,20 @@ public class Boolean {
     private static final int trueHash = 1231;
     private static final int falseHash = 1237;
     
+    public static boolean ParseBoolean(String value) throws quorum.Libraries.Language.Errors.CastError{
+        if(value == null) {
+            throw new quorum.Libraries.Language.Errors.CastError();
+        }
+        
+        if(value.compareTo("true") == 0) {
+            return true;
+        } else if(value.compareTo("false") == 0) {
+            return false;
+        }
+        
+        throw new quorum.Libraries.Language.Errors.CastError();
+    }
+    
     public static boolean ConvertObjectToBoolean(Object$Interface object) {
         if(object == null) {
             throw new NullPointerException("Cannot convert an undefined type to an integer.");
