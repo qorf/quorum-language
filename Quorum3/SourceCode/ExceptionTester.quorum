@@ -33,7 +33,7 @@ class ExceptionTester
         CheckDetectAlwaysEmptyCheckInElse()
         CheckDetectAlwaysEmptyCheckInElseIf()
         CheckDetectAlwaysEmptyCheckInIf()
-        CheckDetectAlwaysEmptyCheckInIfElse()
+        CheckDetectAlwaysEmptyCheckInIfElseElseIf()
         CheckDetectAlwaysEmptyCheckInRepeatTimes()
         CheckDetectAlwaysEmptyCheckInRepeatUntil()
         CheckDetectAlwaysEmptyCheckInRepeatWhile()
@@ -296,11 +296,11 @@ class ExceptionTester
         suite:TestJavaScript(files, results)
     end
 
-    action CheckDetectAlwaysEmptyCheckInIfElse 
+    action CheckDetectAlwaysEmptyCheckInIfElseElseIf 
         Array<File> files
         Array<text> results
         File main
-        main:SetPath(path + "CheckDetectAlwaysEmptyCheckInIfElse.quorum")
+        main:SetPath(path + "CheckDetectAlwaysEmptyCheckInIfElseElseIf.quorum")
         files:Add(main)
         results:Add(0, "always")
         suite:Test(files, results)
