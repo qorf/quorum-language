@@ -10,6 +10,10 @@ class MeOpcode is QuorumOpcode
     Class this = undefined
     JavaBytecodeOpcodes opcodes
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+    end
+
     action GetThis returns Class
         return this
     end

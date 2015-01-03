@@ -11,6 +11,10 @@ class InputOpcode is QuorumOpcode
         me:SetType(type)
     end
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+    end
+
     action Write
         VisitLineNumber()
         

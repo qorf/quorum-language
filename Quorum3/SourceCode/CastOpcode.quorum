@@ -7,6 +7,11 @@ class CastOpcode is QuorumOpcode
 
     QuorumOpcode opcodeToCast = undefined
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+        opcodeToCast:SetBytecodeWriteOffsetToAllChildren(offset)
+    end
+
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
         opcodeToCast:SetMethodWriterToAllChildren(writer)

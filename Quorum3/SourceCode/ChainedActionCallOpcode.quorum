@@ -40,6 +40,15 @@ class ChainedActionCallOpcode is QuorumOpcode
         SetType(op:GetType())
     end
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+        Iterator<ActionCallOpcode> it = ops:GetIterator()
+        repeat while it:HasNext()
+            ActionCallOpcode op = it:Next()
+            op:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+    end
+
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
         Iterator<ActionCallOpcode> it = ops:GetIterator()

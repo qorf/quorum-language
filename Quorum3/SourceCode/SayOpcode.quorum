@@ -14,6 +14,20 @@ class SayOpcode is QuorumOpcode
     QuorumBytecodeConverter converter
     boolean outputSpeechCommands = true
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+        if opcode not= undefined
+            opcode:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+    end
+
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        if opcode not= undefined
+            opcode:SetMethodWriterToAllChildren(writer)
+        end
+    end
+
     action GetOpcode returns QuorumOpcode
         return opcode
     end

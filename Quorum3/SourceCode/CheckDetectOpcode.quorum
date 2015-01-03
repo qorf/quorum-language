@@ -17,6 +17,41 @@ class CheckDetectOpcode is QuorumOpcode
     List<ErrorBlockLabels> detectValues
     List<ErrorBlockLabels> alwaysValues
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+        if block not= undefined
+            block:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+
+        Iterator<DetectBlockOpcode> detects = detectBlocks:GetIterator()
+        repeat while detects:HasNext()
+            DetectBlockOpcode b = detects:Next()
+            b:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+        
+        if alwaysBlock not= undefined
+            alwaysBlock:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+    end
+
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+
+        if block not= undefined
+            block:SetMethodWriterToAllChildren(writer)
+        end
+
+        Iterator<DetectBlockOpcode> detects = detectBlocks:GetIterator()
+        repeat while detects:HasNext()
+            DetectBlockOpcode b = detects:Next()
+            b:SetMethodWriterToAllChildren(writer)
+        end
+        
+        if alwaysBlock not= undefined
+            alwaysBlock:SetMethodWriterToAllChildren(writer)
+        end
+    end
+
     action AddDetectBlock(DetectBlockOpcode op)
         detectBlocks:Add(op)
     end

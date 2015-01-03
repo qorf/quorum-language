@@ -38,6 +38,10 @@ class ClassOpcode is QuorumOpcode
     File buildFile = undefined
     File buildInterfaceFile = undefined
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+    end
+
     action GetBuildFile returns File
         return buildFile
     end

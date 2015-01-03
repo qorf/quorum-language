@@ -8,6 +8,10 @@ class QuorumConstant is QuorumOpcode
     public boolean booleanValue = false
     public text textValue = ""
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+    end
+
     action WriteJavaScript returns text
         Type type = GetType()
         if type:IsInteger()

@@ -11,9 +11,7 @@ class QuorumOpcode
     Location location = undefined
     integer bytecodeOffset = 0
 
-    action SetBytecodeWriteOffsetToAllChildren(integer offset)
-        bytecodeOffset = offset
-    end
+    blueprint action SetBytecodeWriteOffsetToAllChildren(integer offset)
 
     action SetBytecodeWriteOffset(integer offset)
         bytecodeOffset = offset

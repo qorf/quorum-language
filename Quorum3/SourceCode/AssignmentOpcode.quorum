@@ -91,9 +91,18 @@ class AssignmentOpcode is QuorumOpcode
         opcode2 = op
     end
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+        if rightHandSide not= undefined
+            rightHandSide:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+    end
+
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
-        rightHandSide:SetMethodWriterToAllChildren(writer)
+        if rightHandSide not= undefined
+            rightHandSide:SetMethodWriterToAllChildren(writer)
+        end
     end
 
     action Write 

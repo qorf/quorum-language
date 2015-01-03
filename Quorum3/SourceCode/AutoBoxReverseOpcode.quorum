@@ -4,6 +4,10 @@ use Libraries.Language.Compile.Symbol.Type
 
 class AutoBoxReverseOpcode is QuorumOpcode
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+    end
+
     action Write
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         VisitLineNumber()

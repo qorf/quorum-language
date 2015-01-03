@@ -21,6 +21,17 @@ class BinaryOpcode is QuorumOpcode
         return op
     end
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+        if left not= undefined
+            left:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+
+        if right not= undefined
+            right:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+    end
+
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
         if left not= undefined

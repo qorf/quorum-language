@@ -23,6 +23,15 @@ class ActionOpcode is QuorumOpcode
         return isConstructor
     end
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+        Iterator<QuorumOpcode> it = opcodeList:GetIterator()
+        repeat while it:HasNext()
+            QuorumOpcode op = it:Next()
+            op:SetBytecodeWriteOffset(offset)
+        end
+    end
+
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
         Iterator<QuorumOpcode> it = opcodeList:GetIterator()

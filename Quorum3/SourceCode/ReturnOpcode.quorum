@@ -11,6 +11,16 @@ class ReturnOpcode is QuorumOpcode
     integer opcode = -1
     integer opcode2 = -1
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+        returnValue:SetBytecodeWriteOffsetToAllChildren(offset)
+    end
+
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        returnValue:SetMethodWriterToAllChildren(writer)
+    end
+
     action SetReturnValue(QuorumOpcode op)
         returnValue = op
     end

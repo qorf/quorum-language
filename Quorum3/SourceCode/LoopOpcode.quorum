@@ -11,11 +11,20 @@ class LoopOpcode is QuorumOpcode
     Variable variable = undefined
     Variable timesResult = undefined
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+        if block not= undefined and expression not= undefined
+            block:SetBytecodeWriteOffsetToAllChildren(offset)
+            expression:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+    end
 
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
-        block:SetMethodWriterToAllChildren(writer)
-        expression:SetMethodWriterToAllChildren(writer)
+        if block not= undefined and expression not= undefined
+            block:SetMethodWriterToAllChildren(writer)
+            expression:SetMethodWriterToAllChildren(writer)
+        end
     end
 
     action GetVariable returns Variable

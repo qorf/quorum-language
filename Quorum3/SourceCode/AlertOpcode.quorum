@@ -12,6 +12,13 @@ class AlertOpcode is QuorumOpcode
     JavaBytecodeOpcodes opcodes
     QuorumBytecodeConverter converter
     
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+        if opcode not= undefined
+            opcode:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+    end
+
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
         if opcode not= undefined

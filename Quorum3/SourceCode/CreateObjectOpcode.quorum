@@ -11,6 +11,10 @@ class CreateObjectOpcode is QuorumOpcode
     Class clazz = undefined
     Variable variable = undefined
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+    end
+
     action GetVariable returns Variable
         return variable
     end

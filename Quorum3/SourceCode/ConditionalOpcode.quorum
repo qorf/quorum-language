@@ -15,6 +15,34 @@ class ConditionalOpcode is QuorumOpcode
     JavaBytecodeLabel endLabel = undefined
     JavaBytecodeOpcodes opcodes
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+
+        if expression not= undefined
+            expression:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+
+        if block not= undefined
+            block:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+
+        Iterator<BlockOpcode> it = elseIfBlocks:GetIterator()
+        repeat while it:HasNext()
+            BlockOpcode op = it:Next()
+            op:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+
+        if elseBlock not= undefined
+            elseBlock:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+
+        Iterator<QuorumOpcode> ops = elseIfExpressions:GetIterator()
+        repeat while ops:HasNext()
+            QuorumOpcode op = ops:Next()
+            op:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+    end
+
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
 
@@ -31,7 +59,9 @@ class ConditionalOpcode is QuorumOpcode
             BlockOpcode op = it:Next()
             op:SetMethodWriterToAllChildren(writer)
         end
-        elseBlock:SetMethodWriterToAllChildren(writer)
+        if elseBlock not= undefined
+            elseBlock:SetMethodWriterToAllChildren(writer)
+        end
 
         Iterator<QuorumOpcode> ops = elseIfExpressions:GetIterator()
         repeat while ops:HasNext()

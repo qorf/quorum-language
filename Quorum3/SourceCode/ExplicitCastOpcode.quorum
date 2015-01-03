@@ -6,6 +6,13 @@ class ExplicitCastOpcode is QuorumOpcode
     QuorumOpcode opcodeToCast = undefined
     JavaBytecodeOpcodes opcodes
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+        if opcodeToCast not= undefined
+            opcodeToCast:SetBytecodeWriteOffset(offset)
+        end
+    end
+
     action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
         SetMethodWriter(writer)
         if opcodeToCast not= undefined

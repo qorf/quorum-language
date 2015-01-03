@@ -29,6 +29,45 @@ class ActionCallOpcode is QuorumOpcode
     QuorumOpcode autoBoxing = undefined
     Type callerType = undefined
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+        SetBytecodeWriteOffset(offset)
+
+        integer numParams = 0
+        if parameters not= undefined
+            numParams = parameters:GetSize()
+        end
+
+        i = 0
+        repeat numParams times
+            QuorumOpcode param = parameters:Get(i)
+            param:SetBytecodeWriteOffsetToAllChildren(offset)
+            i = i + 1
+        end
+
+        if autoBoxing not= undefined
+            autoBoxing:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+    end
+
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        integer numParams = 0
+        if parameters not= undefined
+            numParams = parameters:GetSize()
+        end
+
+        i = 0
+        repeat numParams times
+            QuorumOpcode param = parameters:Get(i)
+            param:SetMethodWriterToAllChildren(writer)
+            i = i + 1
+        end
+
+        if autoBoxing not= undefined
+            autoBoxing:SetMethodWriterToAllChildren(writer)
+        end
+    end
+
     action SetVariableToMakeParentCallOn(Variable variable)
         variableToMakeParentCallOn = variable
     end
@@ -147,22 +186,6 @@ class ActionCallOpcode is QuorumOpcode
 
     action SetPushOnMe(boolean this)
         pushOnMe = this
-    end
-
-
-    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
-        SetMethodWriter(writer)
-        integer numParams = 0
-        if parameters not= undefined
-            numParams = parameters:GetSize()
-        end
-
-        i = 0
-        repeat numParams times
-            QuorumOpcode param = parameters:Get(i)
-            param:SetMethodWriterToAllChildren(writer)
-            i = i + 1
-        end
     end
 
     action GetActionCallResolution returns ActionCallResolution
