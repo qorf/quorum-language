@@ -41,7 +41,7 @@ class UseTester
         File main
         main:SetPath(path + "SoloArrayUse.quorum")
         files:Add(main)
-        results:Add(0, "")
+        results:Add(0, "Hello")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

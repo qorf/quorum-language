@@ -7,14 +7,12 @@ class Main
         
         SeparatedValue csvReader
         File csv
-        csv:SetWorkingDirectory("Library/Tests/SeparatedValue/Resources/")
-        csv:SetPath ("airports.csv") // this test file is from http://www.ourairports.com/data/
+        csv:SetPath ("../Library/Tests/SeparatedValue/Resources/airports.csv") // this test file is from http://www.ourairports.com/data/
         csvReader:Read(csv)
 
         output "Rows: " + csvReader:GetNumberOfRows() 
         output "Columns: " + csvReader:GetNumberOfColumns()
         output "IsConsistent: " + csvReader:IsConsistent()
         output "Separator: " + csvReader:GetSeparator()
-
     end
 end

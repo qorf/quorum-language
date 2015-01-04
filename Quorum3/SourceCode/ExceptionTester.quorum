@@ -65,8 +65,6 @@ class ExceptionTester
         IfElseIfInDetectWithAlways()
         IfElseIfInCheck()
         IfElseIfInCheckWithAlways()
-        IfElseIfInDetect()
-        IfElseIfInDetectWithAlways()
         IfInAlways()
         IfInCheck()
         IfInCheckWithAlways()
@@ -74,9 +72,9 @@ class ExceptionTester
         IfInDetectWithAlways()
         MultipleDetects()
         MultipleDetectsWithAlways()
-//        NestedAlwaysWithException()
-//        NestedCatchCastAlertException()
-//        NestedCatchCastException()
+        NestedAlwaysWithException()
+        NestedCatchCastAlertException()
+        NestedCatchCastException()
         NestedCatchSimpleAlertException()
         NestedCheckDetectInAllBlocks()
         RecursiveCallFromAlways()
@@ -103,18 +101,25 @@ class ExceptionTester
 //
 ////FAIL TESTS
 //        path = failPath
-        CastTextToIntegerException()
-        CastTextToNumberException()
+
+        //These tests do actually cause exceptions to be thrown, 
+        //but they are kind of pointless to run in Q3, since the test suite
+        //doesn't account for exceptions thrown around and not caught.
+        //That said, they "could" be convered into pass tests if the exception
+        //string was copied in.
+
+        //CastTextToIntegerException()
+        //CastTextToNumberException()
         //MultipleDetectsWithAlwaysThrowingCastError()
         //NestedUncaughtCastAlertException()
         //NestedUncaughtCastException()
         //NestedUncaughtSimpleAlertException()
-        UncaughtCastAlertException()
-        UncaughtCastException()
-        UncaughtErrorInAlways()
-        UncaughtSimpleAlertException()
-        missingParameters()
-        missingParameters2()
+        //UncaughtCastAlertException()
+        //UncaughtCastException()
+        //UncaughtErrorInAlways()
+        //UncaughtSimpleAlertException()
+        //missingParameters()
+        //missingParameters2()
     end
 
     action GetName returns text
@@ -791,7 +796,7 @@ class ExceptionTester
         File main
         File dependent1
         File dependent2
-        main:SetPath(path + "NestedCatchCastException.quorum")
+        main:SetPath(path + "NestedCatchSimpleAlertException.quorum")
         dependent1:SetPath(path + "A_3.quorum")
         dependent2:SetPath(path + "B_3.quorum")
         files:Add(main)
@@ -810,9 +815,9 @@ class ExceptionTester
         files:Add(main)
         results:Add(0, "A")
         results:Add(1, "C")
-        results:Add(1, "inner always 2")
-        results:Add(1, "outer always")
-        results:Add(1, "D")
+        results:Add(2, "inner always 2")
+        results:Add(3, "outer always")
+        results:Add(4, "D")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -868,10 +873,10 @@ class ExceptionTester
         Array<File> files
         Array<text> results
         File main
-        main:SetPath(path + "IfInDetectWithAlways.quorum")
+        main:SetPath(path + "RepeatTimesInDetect.quorum")
         files:Add(main)
         results:Add(0, "detect")
-        results:Add(1, "always")
+        results:Add(1, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -880,7 +885,7 @@ class ExceptionTester
         Array<File> files
         Array<text> results
         File main
-        main:SetPath(path + "IfInDetectWithAlways.quorum")
+        main:SetPath(path + "RepeatTimesInDetectWithAlways.quorum")
         files:Add(main)
         results:Add(0, "detect")
         results:Add(1, "detect")
@@ -1015,7 +1020,7 @@ class ExceptionTester
         Array<File> files
         Array<text> results
         File main
-        main:SetPath(path + "IfInDetectWithAlways.quorum")
+        main:SetPath(path + "RethrowError.quorum")
         files:Add(main)
         results:Add(0, "alert")
         suite:Test(files, results)
@@ -1026,7 +1031,7 @@ class ExceptionTester
         Array<File> files
         Array<text> results
         File main
-        main:SetPath(path + "IfInDetectWithAlways.quorum")
+        main:SetPath(path + "RethrowErrorWithAlways.quorum")
         files:Add(main)
         results:Add(0, "always")
         results:Add(1, "alert")

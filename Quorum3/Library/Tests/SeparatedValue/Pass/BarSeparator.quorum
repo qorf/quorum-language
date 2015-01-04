@@ -7,8 +7,7 @@ class Main
         
         SeparatedValue csvReader
         File csv
-        csv:SetWorkingDirectory("Library/Tests/SeparatedValue/Resources/")
-        csv:SetPath ("BarSeparator.csv")
+        csv:SetPath ("../Library/Tests/SeparatedValue/Resources/BarSeparator.csv")
         csvReader:SetSeparator("|")
         csvReader:Read(csv)
 
@@ -16,6 +15,5 @@ class Main
         output "Columns: " + csvReader:GetNumberOfColumns()
         output "IsConsistent: " + csvReader:IsConsistent()
         output "Separator: " + csvReader:GetSeparator()
-
     end
 end

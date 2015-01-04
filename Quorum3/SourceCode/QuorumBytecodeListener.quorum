@@ -553,6 +553,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     
     action ExitCheckStatement(CheckContext context) 
         CheckDetectOpcode checkOp = checkStack:Pop()
+        checkOp:SetLocation(context:GetLocation())
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         checkOp:SetBlock(recentlyPopped)
         currentBlockOpcode:Add(checkOp)
@@ -565,6 +566,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitDetectStatement(DetectStatementContext context) 
         CheckDetectOpcode checkOp = checkStack:Peek()
         DetectBlockOpcode op
+        op:SetLocation(context:GetLocation())
         op:SetMethodWriter(methodWriter)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         op:SetBlock(recentlyPopped)
@@ -638,6 +640,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         CheckDetectOpcode checkOp = checkStack:Peek()
 
         DetectBlockOpcode op
+        op:SetLocation(context:GetLocation())
         op:SetMethodWriter(methodWriter)
         op:SetIsAlways(true)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()

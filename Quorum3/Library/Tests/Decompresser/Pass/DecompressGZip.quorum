@@ -6,11 +6,11 @@ class Main
     action Main
         // GZip Decompression Test
         File inputFile
-        inputFile:SetWorkingDirectory("Library/Tests/Decompresser/Resources/")
-        inputFile:SetPath("gzipfile.txt.gz")
+        //inputFile:SetWorkingDirectory("Library/Tests/Decompresser/Resources/")
+        inputFile:SetPath("../Library/Tests/Decompresser/Resources/gzipfile.txt.gz")
 
         File outputFile
-        outputFile:SetWorkingDirectory("Library/Tests/Decompresser/Resources/")
+        outputFile:SetWorkingDirectory("../Library/Tests/Decompresser/Resources/")
         outputFile:SetPath("gzipfile.txt")
 
         Decompresser decompress
@@ -22,5 +22,7 @@ class Main
         else
             output "fail"
         end
+
+        outputFile:Delete()
     end
 end

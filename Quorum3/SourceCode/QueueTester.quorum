@@ -127,7 +127,6 @@ class QueueTester
         main:SetPath(path + "Peek.quorum")
         files:Add(main)
         results:Add(0, "One")
-        results:Add(1, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
