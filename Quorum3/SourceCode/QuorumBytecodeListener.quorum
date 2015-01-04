@@ -2068,6 +2068,38 @@ class QuorumBytecodeListener is QuorumSourceListener
         InputOpcode opcode
         opcode:SetLocation(context:GetLocation())
         opcode:SetMethodWriter(methodWriter)
+
+        Type type
+        type:SetToText()
+        opcode:SetType(type)
+        QuorumOpcode op = opcodeStack:Pop()
+
+        //check if it's either text or undefined
+        Type returnedType = op:GetType()
+        if not (returnedType:IsText() or returnedType:IsUndefined())
+            CompilerError error
+            error:SetLocation(context:GetLocation())
+            error:SetErrorMessage("To use input, you can either pass nothing at all, text, or the value undefined.")
+            CompilerErrorType t
+            t:SetCurrentType(t:INCOMPATIBLE_TYPES)
+            error:SetCompilerErrorType(t)
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+        end
+
+        //set it to the opcode
+        opcode:SetOpcode(op)
+        opcodeStack:Push(opcode)
+    end
+
+    action ExitInputNoParameters(InputContext context) 
+        InputOpcode opcode
+        opcode:SetLocation(context:GetLocation())
+        opcode:SetMethodWriter(methodWriter)
+
+        Type type
+        type:SetToText()
+        opcode:SetType(type)
         opcodeStack:Push(opcode)
     end
 

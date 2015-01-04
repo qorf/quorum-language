@@ -4,20 +4,43 @@ use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Location
 
 class InputOpcode is QuorumOpcode
-
-    on create
-        Type type
-        type:SetToText()
-        me:SetType(type)
-    end
-
+    QuorumOpcode opcode = undefined
+    JavaBytecodeOpcodes opcodes
+    QuorumBytecodeConverter converter
+    
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
         SetBytecodeWriteOffset(offset)
+        if opcode not= undefined
+            opcode:SetBytecodeWriteOffsetToAllChildren(offset)
+        end
+    end
+
+    action SetMethodWriterToAllChildren(JavaBytecodeMethodWriter writer)
+        SetMethodWriter(writer)
+        if opcode not= undefined
+            opcode:SetMethodWriterToAllChildren(writer)
+        end
+    end
+
+    action GetOpcode returns QuorumOpcode
+        return opcode
+    end
+
+    action SetOpcode(QuorumOpcode op)
+        opcode = op
     end
 
     action Write
         VisitLineNumber()
-        
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        if opcode not= undefined
+            opcode:Write()
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/System/Console", "StaticInput",
+            "(Ljava/lang/String;)Ljava/lang/String;", false)
+        else
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/System/Console", "StaticInput",
+            "()Ljava/lang/String;", false)
+        end
     end
 
     action WriteJavaScript returns text
