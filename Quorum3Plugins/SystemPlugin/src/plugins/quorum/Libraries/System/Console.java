@@ -57,7 +57,9 @@ public class Console {
      * @return 
      */
     public static String StaticInput(String text) {
-        System.out.print(text + " " );
+        if(text != null) {
+            System.out.print(text);
+        }
         return StaticInput();
     }
 
