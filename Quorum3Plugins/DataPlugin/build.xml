@@ -10,6 +10,11 @@
 <project name="DataPlugin" default="default" basedir=".">
     <description>Builds, tests, and runs the project DataPlugin.</description>
     <import file="nbproject/build-impl.xml"/>
+    
+    
+    <target name="-post-compile">
+        <copy file="build/classes/plugins/quorum/Libraries/Data/Compression/Decompresser.class" todir="../../Quorum3/Library/Standard/Plugins/plugins/quorum/Libraries/Data/Compression"/>
+    </target>
     <!--
 
     There exist several targets which are by default empty and which can be 
