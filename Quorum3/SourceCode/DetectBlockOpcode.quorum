@@ -71,13 +71,13 @@ class DetectBlockOpcode is QuorumOpcode
         if exceptionVariable not= undefined
             methodWriter:VisitVariable(opcodes:GetObjectStore(), exceptionVariable:GetBytecodeLocation())
         else
-            methodWriter:VisitVariable(opcodes:GetObjectStore(), GetBytecodeOffset() + 1)
+            methodWriter:VisitVariable(opcodes:GetObjectStore(), GetBytecodeOffset())
         end
     end
 
     action Rethrow
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
-        methodWriter:VisitVariable(opcodes:GetObjectLoad(), GetBytecodeOffset() + 1)
+        methodWriter:VisitVariable(opcodes:GetObjectLoad(), GetBytecodeOffset())
         methodWriter:VisitInstruction(opcodes:GetObjectThrow())
     end
 
