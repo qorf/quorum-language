@@ -196,6 +196,7 @@ expression
     |   NULL                                                                                    #Null
     |   ME                                                                                      #Me
     |   INPUT LEFT_PAREN expression RIGHT_PAREN                                                 #Input
+    |   INPUT LEFT_PAREN RIGHT_PAREN                                                            #InputNoParameters
     |   (ME COLON)? action_call (COLON (action_call))*                                          #VariableFunctionCall
     |   ((ME COLON)? (fieldName=ID COLON))? PARENT COLON parent=qualified_name COLON action_call (COLON (action_call))* #ParentVariableFunctionCall
     |   MINUS expression                                                                        #Minus

@@ -186,6 +186,19 @@ public class QuorumBaseListener implements QuorumListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterInputNoParameters(@NotNull QuorumParser.InputNoParametersContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitInputNoParameters(@NotNull QuorumParser.InputNoParametersContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterFormal_parameter(@NotNull QuorumParser.Formal_parameterContext ctx) { }
 	/**
 	 * {@inheritDoc}

@@ -152,6 +152,17 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitVariableFunctionCall(@NotNull QuorumParser.VariableFunctionCallContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link QuorumParser#InputNoParameters}.
+	 * @param ctx the parse tree
+	 */
+	void enterInputNoParameters(@NotNull QuorumParser.InputNoParametersContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuorumParser#InputNoParameters}.
+	 * @param ctx the parse tree
+	 */
+	void exitInputNoParameters(@NotNull QuorumParser.InputNoParametersContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link QuorumParser#formal_parameter}.
 	 * @param ctx the parse tree
 	 */

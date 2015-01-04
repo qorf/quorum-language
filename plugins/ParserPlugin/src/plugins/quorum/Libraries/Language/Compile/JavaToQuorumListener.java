@@ -681,6 +681,22 @@ public class JavaToQuorumListener implements QuorumListener {
         setLocation(ctx, context);
         listener.ExitInput(context);
     }
+    
+    @Override
+    public void enterInputNoParameters(QuorumParser.InputNoParametersContext ctx) {
+        quorum.Libraries.Language.Compile.Context.InputContext context = 
+                new quorum.Libraries.Language.Compile.Context.InputContext();
+        setLocation(ctx, context);
+        listener.EnterInputNoParameters(context);
+    }
+
+    @Override
+    public void exitInputNoParameters(QuorumParser.InputNoParametersContext ctx) {
+        quorum.Libraries.Language.Compile.Context.InputContext context = 
+                new quorum.Libraries.Language.Compile.Context.InputContext();
+        setLocation(ctx, context);
+        listener.ExitInputNoParameters(context);
+    }
 
     @Override
     public void enterMultiplication(QuorumParser.MultiplicationContext ctx) {
