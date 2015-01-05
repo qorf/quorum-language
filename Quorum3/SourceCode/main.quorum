@@ -16,8 +16,6 @@ use Libraries.Language.Errors.OutOfBoundsError
 use Libraries.Language.Compile.Test.CompilerTestSuite
 
 class Main is WebResponder
-    public constant number VERSION = 3.0
-
     public constant text NAME_FLAG = "-name"
     public constant text COMPILE_FLAG = "-compile"
     public constant text WEB_FLAG = "-web"
@@ -134,9 +132,81 @@ class Main is WebResponder
         if flagValues:HasKey(TEST_FLAG)
             if flagValues:GetSize() = 1
                 RunTestSuite()
+                return now
             else
                 output "I noticed a -test flag was issued, but this flag can only be requested on its own, not with other flags."
+                return now
             end
+        end
+
+        text name = "Default"
+        if flagValues:HasKey(NAME_FLAG)
+            Array<text> names = flagValues:GetValue(NAME_FLAG)
+            if names:GetSize() not= 1
+                output "I noticed the name flag was used, but it does not have exactly 1 value."
+                return now
+            end
+        end
+
+        if flagValues:HasKey(COMPILE_FLAG)
+            if flagValues:HasKey(WEB_FLAG)
+                output "I noticed the compile flag and the web flag were both used. Only one can be passed, otherwise I cannot determine how to package the program."
+                return now
+            end
+
+            Array<text> names = flagValues:GetValue(COMPILE_FLAG)
+
+            if names:IsEmpty()
+                output "I noticed you asked for a program to be compiled, but that no files were passed."
+            end
+
+            Compile(name, names, false)
+            return now
+        end
+
+        if flagValues:HasKey(WEB_FLAG)
+            if flagValues:HasKey(COMPILE_FLAG)
+                output "I noticed the compile flag and the web flag were both used. Only one can be passed, otherwise I cannot determine how to package the program."
+                return now
+            end
+
+            Array<text> names = flagValues:GetValue(WEB_FLAG)
+
+            if names:IsEmpty()
+                output "I noticed you asked for a program to be compiled, but that no files were passed."
+            end
+
+            Compile(name, names, true)
+            return now
+        end
+    end
+
+    private action Compile(text name, Array<text> fileNames, boolean isWebApplication)
+        Array<File> files
+        i = 0
+        repeat fileNames:GetSize() times
+            text fileName = fileNames:Get(i)
+            File file
+            file:SetPath(fileName)
+            files:Add(file)
+            i = i + 1
+        end
+
+        Compiler compiler
+        output compiler:GetVersion()
+
+        File main = files:Get(0)
+        compiler:SetMain(main)
+        compiler:SetIsWebApplication(isWebApplication)
+        compiler:Compile(files)
+
+        if compiler:IsCompilationErrorFree()
+            output "Build Successful"
+            if compiler:GetOutputType() = compiler:JAVASCRIPT
+                output compiler:GetCompiledJavaScript()
+            end
+        else
+            output compiler:GetCompilerErrorsAsText()
         end
     end
 
@@ -166,8 +236,9 @@ class Main is WebResponder
     end
 
     private action GetHelpText returns text
+        Compiler compiler
         text help = 
-"Quorum " + VERSION + "
+"Quorum " + compiler:GetVersion() + "
 
 Quorum is a computer programming language, which you can use either " +
 "from the console using flags (the program you just ran) or from a development environment (like NetBeans). " +
