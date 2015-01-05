@@ -409,9 +409,6 @@ class Class is Symbol
         ResolveParents(table, errors)
         ResolveParentLevels(table)
 
-        if GetName() = "HashTableIterator"
-            a = 5
-        end
         //now all parents are resolved. Resolve the generics of those parents
         //first rehash all of the parent uses
         ResolveParentGenerics(table, errors)
@@ -653,32 +650,20 @@ class Class is Symbol
                 
 
             end
-
-
-//            Class parentClass = GetParentClass(parentKey)
-//            integer size = GetNumberGenerics()
-//            if index >=0 and index < size
-//                text gen = GetGeneric(0)
-//                Array<Type> gens = GetParentGenerics(parentKey)
-//                //see if one of them has this name
-//                if gens = undefined //couldn't find a mapping for this parent
-//                    return -1
-//                end
-//                i = 0
-//                repeat gens:GetSize() times
-//                    Type type = gens:Get(i)
-//                    if type:GetMappedGeneric() = gen
-//                        return i
-//                    end
-//                    i = i + 1
-//                end
-//            end
         end
 
         return -1
     end
 
     private action ResolveParentGenerics(SymbolTable table, CompilerErrorManager errors)
+        //before we tackle the generics, lets setup all the parents as valid 
+        //uses.
+        Iterator<Class> myParents = GetParentClasses()
+        repeat while myParents:HasNext()
+            Class c = myParents:Next()
+            AddValidUse(c)
+        end
+
         HashTable<text, Array<Type>> newParentGenerics
         Iterator<text> keys = parentGenerics:GetKeyIterator()
         repeat while keys:HasNext()
@@ -1161,11 +1146,14 @@ class Class is Symbol
 
         if clazz = undefined
             CompilerError error
+            CompilerErrorType t
+            t:SetCurrentType(t:MISSING_USE)
+            error:SetCompilerErrorType(t)
             text a = ""
             a = a:GetDoubleQuote()
             error:SetErrorMessage("The class name " + a + key + a + 
                 " could not be found. Did you forget a use statement?") 
-            //TODO: Add in compiler error line and location.
+            error:SetLocation(me)
             errors:Add(error)
         end
         //if we still have not found the class, then it cannot be found, 
@@ -1338,14 +1326,21 @@ class Class is Symbol
     action AddValidUse(Class clazz) returns CompilerError
         name = clazz:GetName()
         if validUses:HasKey(name)
-            Class defined = validUses:GetValue(name)
-            CompilerError error
-            CompilerErrorType type
-            type:SetCurrentType(type:USE_AMBIGUOUS)
-            error:SetCompilerErrorType(type)
-            error:SetErrorMessage("I do not understand by defining " + name + " as type " + clazz:GetStaticKey() + "." + 
-                " I already defined it as type " + defined:GetStaticKey() + ".")
-            return error
+            //see if we're trying to add the same class. If so, it's just fine
+            //if it's the same name, but a different class, then throw an error
+            Class other = validUses:GetValue(name)
+            if other:GetStaticKey() not= clazz:GetStaticKey()
+                Class defined = validUses:GetValue(name)
+                CompilerError error
+                CompilerErrorType type
+                type:SetCurrentType(type:USE_AMBIGUOUS)
+                error:SetCompilerErrorType(type)
+                error:SetErrorMessage("I do not understand by defining " + name + " as type " + clazz:GetStaticKey() + "." + 
+                    " I already defined it as type " + defined:GetStaticKey() + ".")
+                return error
+            else //it's fine to return undefined, because we just ignored the request
+                return undefined
+            end
         else
             validUses:Add(name, clazz)
             validUsesFullyQualified:Add(clazz:GetStaticKey(), clazz)

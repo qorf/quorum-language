@@ -29,6 +29,22 @@ class QualifiedName is Location
     end
 
     /*
+        This action returns true if this is an all request. For example, 
+        this might take the form of Libraries.Containers.all, which would
+        be a request to include all containers in that package in the symbol
+        table for the current class.
+    */
+    action IsAll returns boolean
+        text name = GetName()
+
+        if name = "all"
+            return true
+        else
+            return false
+        end
+    end
+
+    /*
         This returns the static key for the qualified name. If this
         action contains information about generic types, they are ignored. 
         The reason for this is because generics are not related to the generation
