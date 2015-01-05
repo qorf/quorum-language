@@ -11,14 +11,29 @@ use Libraries.Web.WebRequest
 use Libraries.Containers.Array
 use Libraries.System.Console
 use Libraries.Compute.Math
+use Libraries.Containers.HashTable
 use Libraries.Language.Errors.OutOfBoundsError
+use Libraries.Language.Compile.Test.CompilerTestSuite
 
 class Main is WebResponder
     public constant number VERSION = 3.0
+
+    public constant text NAME_FLAG = "-name"
+    public constant text COMPILE_FLAG = "-compile"
+    public constant text WEB_FLAG = "-web"
+    public constant text JAVASCRIPT_FLAG = "-javascript"
+    public constant text TEST_FLAG = "-test"
+    public constant text HELP_FLAG = "-help"
+    HashTable<text, Array<text>> flagValues
+
     action Main
-        //DoCommandLine()
+        ProcessConsoleFlags()
         //ProfileTest()
         //ProfileWeb()
+        //CompileHardcodedFile()
+    end
+
+    private action CompileHardcodedFile
         Compiler compiler
         output compiler:GetVersion()
         File main
@@ -59,15 +74,148 @@ class Main is WebResponder
         end
     end
 
-    private action DoCommandLine
+    private action ProcessConsoleFlags
         Console console
         Array<text> flags = console:GetConsoleArguments()
+
+        if flags:IsEmpty()
+            output GetHelpText()
+            return now
+        end
+
+        Array<text> values = undefined
         i = 0
         repeat while i < flags:GetSize()
             text flag = flags:Get(i)
-            output flag
+            if flag:GetCharacter(0) = "-" //it's a flag, process commands until next flag.
+                Array<text> v
+                values = v
+                //put this new array in the hash. It's empty, but we can still
+                //add to it.
+
+                //duplicate?
+                if flagValues:HasKey(flag)
+                    output "The flag " + flag + " has two or more values, which I do not understand. Each flag can be used only once."
+                    return now
+                end
+                flagValues:Add(flag, values)
+            else 
+
+                //is this the first one? If it is, they may be trying to compile
+                if i = 0
+                    Array<text> newValues
+                    flagValues:Add(COMPILE_FLAG, newValues)
+                    values = newValues
+                end
+                values:Add(flag)
+            end
             i = i + 1
         end
+        DoFlagActions()
+        //DisplayFlagValues()
+    end
+
+    /*
+        Flags are processed by Quorum in a particular order and within certain
+        constraints. The -help flag overrides everything, so it is requested, 
+        other flags are ignored. If -compile is requested, then -web cannot be. 
+        The converse is also true. If the -test flag is issued, there can be no other flags. 
+        The name flag can be used in combination with either -web or -compile, 
+        but not both.
+    */
+    private action DoFlagActions
+        //first check if the help flag is in there
+        if flagValues:HasKey(HELP_FLAG)
+            output GetHelpText()
+            return now
+        end
+        
+
+        if flagValues:HasKey(TEST_FLAG)
+            if flagValues:GetSize() = 1
+                RunTestSuite()
+            else
+                output "I noticed a -test flag was issued, but this flag can only be requested on its own, not with other flags."
+            end
+        end
+    end
+
+    private action RunTestSuite
+        CompilerTestSuite suite
+        suite:Main()
+    end
+
+    private action DisplayFlagValues
+        Iterator<text> keys = flagValues:GetKeyIterator()
+        repeat while keys:HasNext()
+            text key = keys:Next()
+            Array<text> values = flagValues:GetValue(key)
+            text result = key
+            i = 0
+            repeat values:GetSize() times
+                if i = 0
+                    result = result + ": " + values:Get(i)
+                else
+                    result = result + ", " + values:Get(i)
+                end
+                i = i + 1
+            end
+
+            output result
+        end
+    end
+
+    private action GetHelpText returns text
+        text help = 
+"Quorum " + VERSION + "
+
+Quorum is a computer programming language, which you can use either " +
+"from the console using flags (the program you just ran) or from a development environment (like NetBeans). " +
+"For this version, the commands that Quorum knows take the following format:
+
+    quorum (-flag value*)*
+
+What this means is that you can pass a flag to Quorum combined with any number of values. " +
+"The legal flags are listed as follows:
+    -name This flag tells Quorum to change the name the file is outputs.
+
+    -compile This flag tells Quorum to compile a set of files.
+
+    -web This flag tells Quorum to compile and generate output for use on the web through what " +
+"is called a Tomcat or Glassfish server. These are server technologies designed to serve web pages.
+
+    -test This flag tells Quorum to run its test suite on itself.
+
+    -help This flag tells Quorum to output this help screen. 
+
+
+Here are a few examples of how you can use this program:
+    quorum Hello.quorum 
+
+        This would request that Quorum compiles the source file Hello.quorum.
+
+    quorum -compile Hello.quorum
+
+        This would have the same impact, compiling Hello.quorum
+
+    quorum -web Hello.quorum
+
+        This would have Quorum compile Hello.quorum and package it for the web.
+
+    quorum -name MyProgram -compile Hello.quorum
+
+        This would cause Quorum to compile Hello.quorum and name the output MyProgram.
+
+    quorum -name MyProgram -web Hello.quorum
+
+        This would cause Quorum to compile Hello.quorum and name the output MyProgram.
+
+    quorum Hello.quorum Goodbye.quorum
+
+        This would cause Quorum to Compile two source code files. The first file must have a Main action.
+
+For more information on writing programs in Quorum, visit www.quorumlanguage.com."     
+        return help
     end
 
     private action ProfileWeb
