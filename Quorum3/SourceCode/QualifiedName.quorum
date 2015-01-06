@@ -66,6 +66,25 @@ class QualifiedName is Location
         return key
     end
 
+    action GetStaticKeyNoAll returns text
+        if not IsAll()
+            return GetStaticKey()
+        end
+
+        key = ""
+        i = 0
+        repeat GetSize() - 1 times
+            key = key + names:Get(i)
+
+            if i < GetSize() - 2
+                key = key + "."
+            end
+            i = i + 1
+        end
+
+        return key
+    end
+
     /* This action returns the final value in the qualified name. So, for example,
         if the qualified name is Libraries.Language.Object, this action would
         return object.

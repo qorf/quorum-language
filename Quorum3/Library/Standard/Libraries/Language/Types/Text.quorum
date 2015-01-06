@@ -3,9 +3,9 @@ package Libraries.Language.Types
 use Libraries.Language.Object
 use Libraries.Language.Support.CompareResult
 use Libraries.Containers.Array
-//use Libraries.Language.Errors.InvalidLocationError
-//use Libraries.Language.Errors.UndefinedObjectError
-//use Libraries.Language.Errors.ParseError
+use Libraries.Language.Errors.InvalidLocationError
+use Libraries.Language.Errors.UndefinedObjectError
+use Libraries.Language.Errors.ParseError
 
 /*
 The Text class is the object representation of the primitive type text. 
@@ -146,12 +146,12 @@ class Text is Object
         a:SetValue("hello ")
         a:Append("world.")
     */
-//    action Append(text val)
-//        me:value = me:value + val
-//
-//        // And update the native side.
-//        SetValueNative(me:value)
-//    end
+    action Append(text val)
+        me:value = me:value + val
+
+        // And update the native side.
+        SetValueNative(me:value)
+    end
 
     /*
         This action returns true if the Text value contains the text from the parameter
@@ -166,11 +166,11 @@ class Text is Object
         a:SetValue("hello ")
         boolean result = a:Contains("lo")
     */
-//    action Contains(text val) returns boolean
-//        return ContainsNative(value, val)
-//    end
-//
-//    private system action ContainsNative(text lhv, text rhv) returns boolean
+    action Contains(text val) returns boolean
+        return ContainsNative(value, val)
+    end
+
+    private system action ContainsNative(text lhv, text rhv) returns boolean
 
     /*
         This action returns true if the Text value ends with the given suffix.
@@ -245,12 +245,10 @@ class Text is Object
         if index < size and index >= 0
             return IndexOfNative(value, subText, index)
         else
-            return -1
-//            InvalidLocationError error
-//            error:SetErrorMessage("Text index out of range, " + index)
-//            alert(error)
+            InvalidLocationError error
+            error:SetErrorMessage("Text index out of range, " + index)
+            alert(error)
         end
-        
     end
 
     private system action IndexOfNative(text left, text prefix, integer index) returns integer
@@ -310,10 +308,9 @@ class Text is Object
         if startIndex < size and startIndex >= 0
             return GetSubtextNative(value, startIndex)
         else
-            return ""
-//            InvalidLocationError error
-//            error:SetErrorMessage("Text index out of range, " + startIndex)
-//            alert(error)
+            InvalidLocationError error
+            error:SetErrorMessage("Text index out of range, " + startIndex)
+            alert(error)
         end
     end
 
@@ -533,9 +530,8 @@ class Text is Object
     action GetCharacter(integer index) returns text
         // Index must be in the range 0 <= x < me:GetSize()
         if index < 0 or index >= me:GetSize()
-            return ""
-//            InvalidLocationError e
-//            alert(e)
+            InvalidLocationError e
+            alert(e)
         end
 
         return GetCharacterNative(index)
@@ -570,10 +566,9 @@ class Text is Object
     */
     action GetSubtext(integer startIndex, integer endIndex) returns text
         if startIndex = endIndex or startIndex > endIndex or startIndex < 0 or endIndex < 0 or endIndex >= me:GetSize()
-            return ""
-//            InvalidLocationError e
-//            e:SetErrorMessage("Text index out of range, " + startIndex + " - " + endIndex)
-//            alert(e)
+            InvalidLocationError e
+            e:SetErrorMessage("Text index out of range, " + startIndex + " - " + endIndex)
+            alert(e)
         end
         
         return GetSubstringNative(startIndex, endIndex)

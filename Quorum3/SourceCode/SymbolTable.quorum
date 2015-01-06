@@ -59,16 +59,16 @@ class SymbolTable
         return clazz
     end
 
-    action Add(Action act) returns CompilerError
-        return undefined
-    end
+    /*
+        Returns all classes in a particular package.
+    */
+    action GetClassesInPackage(text packageKey) returns Iterator<Class>
+        HashTable<text, Class> pack = packages:GetValue(packageKey)
+        if pack = undefined
+            return undefined
+        end
 
-    action Add(Block block) returns CompilerError
-        return undefined
-    end
-
-    action EnterClass(text key)
-
+        return pack:GetValueIterator()
     end
 
     action GetClass(text key) returns Class

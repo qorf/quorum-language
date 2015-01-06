@@ -390,18 +390,40 @@ class Class is Symbol
         Iterator<QualifiedName> unresolvedUse = GetUnresolvedUseStatements()
         repeat while unresolvedUse:HasNext()
             QualifiedName name = unresolvedUse:Next()
-            Class clazz = GetClass(name:GetStaticKey(), table, errors)
-            if clazz not= undefined
-                AddValidUse(clazz)
-            else
-                CompilerError error
-                error:SetLocation(name)
-                CompilerErrorType type
-                type:SetCurrentType(type:MISSING_USE)
-                error:SetCompilerErrorType(type)
-                error:SetErrorMessage("I could not locate the use statement named "
-                    +   name:GetStaticKey() + ". Are you sure you spelled it correct?" )
-                errors:Add(error)
+
+            //if this is an all statement, then grab anything in the container
+            if name:IsAll()
+                noAllKey = name:GetStaticKeyNoAll()
+                Iterator<Class> classes = table:GetClassesInPackage(noAllKey)
+                if classes not= undefined
+                    repeat while classes:HasNext()
+                        Class clazz = classes:Next()
+                        AddValidUse(clazz)
+                    end
+                else
+                    CompilerError error
+                    error:SetLocation(name)
+                    CompilerErrorType type
+                    type:SetCurrentType(type:MISSING_USE)
+                    error:SetCompilerErrorType(type)
+                    error:SetErrorMessage("I could not locate the package named "
+                        +  noAllKey + ". Are you sure you spelled it correct?" )
+                    errors:Add(error)
+                end
+            else 
+                Class clazz = GetClass(name:GetStaticKey(), table, errors)
+                if clazz not= undefined
+                    AddValidUse(clazz)
+                else
+                    CompilerError error
+                    error:SetLocation(name)
+                    CompilerErrorType type
+                    type:SetCurrentType(type:MISSING_USE)
+                    error:SetCompilerErrorType(type)
+                    error:SetErrorMessage("I could not locate the use statement named "
+                        +   name:GetStaticKey() + ". Are you sure you spelled it correct?" )
+                    errors:Add(error)
+                end
             end
         end
 

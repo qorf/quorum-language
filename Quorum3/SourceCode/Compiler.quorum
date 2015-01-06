@@ -521,9 +521,62 @@ class Compiler
             HashTable<text, File> unparsed, Class clazz)
         repeat while names:HasNext()
             QualifiedName qn = names:Next()
-            text key = qn:GetStaticKey()
-            ResolveClass(key, clazz, parsed, unparsed)
+            if qn:IsAll()
+                ResolveAllClassesInContainer(qn, parsed, unparsed, clazz)
+            else
+                text key = qn:GetStaticKey()
+                ResolveClass(key, clazz, parsed, unparsed)
+            end
         end
+    end
+
+    private action ResolveAllClassesInContainer(QualifiedName name, 
+            HashTable<text, File> parsed,
+            HashTable<text, File> unparsed, Class clazz)
+        //Get the container name without the "all" at the end
+        File folder = GetStandardLibraryFolderForPackage(name:GetStaticKeyNoAll())
+
+        //check if this is the standard library. If so, load them all into unparsed
+        //if they aren't already in there or in parsed
+        if folder not= undefined
+            Array<File> files = folder:GetDirectoryListing()
+            Iterator<File> it = files:GetIterator()
+            repeat while it:HasNext()
+                File file = it:Next()
+                text path = file:GetAbsolutePath()
+                if not file:IsDirectory() and not parsed:HasKey(path) and not unparsed:HasKey(path)
+                    unparsed:Add(path, file)
+                end
+            end
+        end
+
+    end
+
+    private action GetStandardLibraryFolderForPackage(text key) returns File
+        text loc = standardLibraryFolder:GetWorkingDirectory()
+        text loc2 = standardLibraryFolder:GetAbsolutePath()
+
+        File file
+        file:SetWorkingDirectory(loc2)
+
+        Array<text> values = key:Split("\.")
+
+        text location = "/"
+        Iterator<text> it = values:GetIterator()
+        repeat while it:HasNext()
+            text next = it:Next()
+            location = location + next
+
+            if it:HasNext()
+                location = location + "/"
+            end
+        end
+
+        file:SetPath(location)
+        if file:Exists()
+            return file
+        end
+        return undefined
     end
 
     action GetStandardLibraryFile(text key, text fromPackage) returns File

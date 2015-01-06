@@ -76,9 +76,9 @@ class List <Type> is ListBlueprint<Type>
         node:value = value
 
         if location < 0 or location > size
-//            InvalidLocationError error
-//            error:SetErrorMessage("The location: " + location + " is not valid.")
-//            alert(error)
+            InvalidLocationError error
+            error:SetErrorMessage("The location: " + location + " is not valid.")
+            alert(error)
         elseif location = size //it's just a tail add, do it fast
             AddToEnd(value)
             return now
@@ -216,9 +216,9 @@ class List <Type> is ListBlueprint<Type>
     action Get(integer location) returns Type
         Type result = undefined
         if location < 0 or location >= size
-//            InvalidLocationError error
-//            error:SetErrorMessage("The location: " + location + " is not valid.")
-//            alert(error)
+            InvalidLocationError error
+            error:SetErrorMessage("The location: " + location + " is not valid.")
+            alert(error)
         else
             ListNode<Type> current = head
             //technically, this would be faster if we checked if
@@ -511,9 +511,9 @@ class List <Type> is ListBlueprint<Type>
     private action GetNodeAtLocation(integer location) returns ListNode<Type>
         ListNode<Type> result = undefined
         if location < 0 or location >= size
-//            InvalidLocationError error
-//            error:SetErrorMessage("The location: " + location + " is not valid.")
-//            alert(error)
+            InvalidLocationError error
+            error:SetErrorMessage("The location: " + location + " is not valid.")
+            alert(error)
         else
             ListNode<Type> current = head
             repeat location times
