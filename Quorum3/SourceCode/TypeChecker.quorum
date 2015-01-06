@@ -468,6 +468,15 @@ class TypeChecker
         result:SetQuorumOpcode(assignment)
         results:Add(key, result)
 
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY,
+            constants:UNDEFINED_KEY, undefined, true, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToText()
+        assignment = GetAssignmentOpcode(opcodes:GetObjectStore(), type)
+        result:SetQuorumOpcode(assignment)
+        results:Add(key, result)
+
         //Assign Number Number
         key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY,
             constants:NUMBER_PRIMITIVE_KEY, undefined, true, false)

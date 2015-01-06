@@ -29,6 +29,7 @@ class ExpressionsTester
         AddTextInt()
         AddTextText()
         AndBooleanBoolean()
+        AssignUndefinedToText()
         CastTest()
         CompareTextTextField()
         ComplexExpression()
@@ -267,6 +268,17 @@ class ExpressionsTester
         results:Add(1, "false")
         results:Add(2, "false")
         results:Add(3, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action AssignUndefinedToText
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AssignUndefinedToText.quorum")
+        files:Add(main)
+        results:Add(0, "We did it!")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
