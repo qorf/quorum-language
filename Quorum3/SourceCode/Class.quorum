@@ -385,12 +385,14 @@ class Class is Symbol
         return isTypeResolved
     end
 
-    action ResolveAllTypes(SymbolTable table, CompilerErrorManager errors)
+    action ResolveUseStatements(SymbolTable table, CompilerErrorManager errors)
         //first resolve all use statements
         Iterator<QualifiedName> unresolvedUse = GetUnresolvedUseStatements()
         repeat while unresolvedUse:HasNext()
             QualifiedName name = unresolvedUse:Next()
+            text key = name:GetStaticKey()
 
+            
             //if this is an all statement, then grab anything in the container
             if name:IsAll()
                 noAllKey = name:GetStaticKeyNoAll()
@@ -426,7 +428,9 @@ class Class is Symbol
                 end
             end
         end
+    end
 
+    action ResolveAllTypes(SymbolTable table, CompilerErrorManager errors)
         //next resolve all parents
         ResolveParents(table, errors)
         ResolveParentLevels(table)
@@ -938,7 +942,7 @@ class Class is Symbol
                 t:SetCurrentType(t:MISSING_USE)
                 error:SetCompilerErrorType(t)
                 error:SetErrorMessage("I could not locate a type named "
-                    +  key + ". Are you sure it was spelled it correct?" )
+                    +  key + ". Are you sure you spelled it correctly?" )
                 errors:Add(error)
             end
         end
@@ -980,7 +984,7 @@ class Class is Symbol
                 t:SetCurrentType(t:MISSING_USE)
                 error:SetCompilerErrorType(t)
                 error:SetErrorMessage("I could not locate a type named "
-                    +  key + ". Are you sure it was spelled it correct?" )
+                    +  key + ". Are you sure you spelled it correctly?" )
                 errors:Add(error)
             end
         end
@@ -1035,7 +1039,7 @@ class Class is Symbol
                 t:SetCurrentType(t:MISSING_USE)
                 error:SetCompilerErrorType(t)
                 error:SetErrorMessage("I could not locate a type named "
-                    +  key + ". Are you sure it was spelled it correct?" )
+                    +  key + ". Are you sure you spelled it correctly?" )
                 errors:Add(error)
             end
         end
@@ -1173,6 +1177,7 @@ class Class is Symbol
             error:SetCompilerErrorType(t)
             text a = ""
             a = a:GetDoubleQuote()
+            key  = GetStaticKey()
             error:SetErrorMessage("The class name " + a + key + a + 
                 " could not be found. Did you forget a use statement?") 
             error:SetLocation(me)
@@ -1357,7 +1362,7 @@ class Class is Symbol
                 CompilerErrorType type
                 type:SetCurrentType(type:USE_AMBIGUOUS)
                 error:SetCompilerErrorType(type)
-                error:SetErrorMessage("I do not understand by defining " + name + " as type " + clazz:GetStaticKey() + "." + 
+                error:SetErrorMessage("I do not understand what is meant by defining " + name + " as type " + clazz:GetStaticKey() + "." + 
                     " I already defined it as type " + defined:GetStaticKey() + ".")
                 return error
             else //it's fine to return undefined, because we just ignored the request
@@ -1392,7 +1397,7 @@ class Class is Symbol
     end
 
     action AddUnresolvedUseStatement(QualifiedName name)
-        unresolvedUseStatements:Add(name:GetName(), name)
+        unresolvedUseStatements:Add(name:GetStaticKey(), name)
     end
 
     action GetUnresolvedUseStatement(text key) returns QualifiedName

@@ -326,6 +326,13 @@ class Compiler
         repeat while classes:HasNext()
             Class next = classes:Next()
 
+            next:ResolveUseStatements(symbolTable, compilerErrorManager)
+        end
+
+        classes = symbolTable:GetClasses()
+        repeat while classes:HasNext()
+            Class next = classes:Next()
+
             //because of the way the parent flattening algorithm works,
             //classes may already be resolved
             if not next:IsResolved()
@@ -661,7 +668,8 @@ class Compiler
     end
 
     action GetMainClass returns Class
-        Class c = symbolTable:GetClassInFile(main:GetAbsolutePath())
+        text path = main:GetAbsolutePath()
+        Class c = symbolTable:GetClassInFile(path)
         return c
     end
 

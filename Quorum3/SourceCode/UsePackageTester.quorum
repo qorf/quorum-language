@@ -22,6 +22,7 @@ class UsePackageTester
         DefaultPackageTest()
         GrabAllContainers()
         UseFromInheritSamePackage()
+        AllSubpackageTest()
 
 //FAIL TESTS
         path = failPath
@@ -96,6 +97,24 @@ class UsePackageTester
         files:Add(main)
         files:Add(main2)
         results:Add(0, "Hi")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action AllSubpackageTest
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AllSubpackageTest.quorum")
+        File main2
+        main2:SetPath(path + "Subclass1.quorum")
+        File main3
+        main3:SetPath(path + "Subclass2.quorum")
+        files:Add(main)
+        files:Add(main2)
+        files:Add(main3)
+        results:Add(0, "Hi")
+        results:Add(1, "How are you?")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
