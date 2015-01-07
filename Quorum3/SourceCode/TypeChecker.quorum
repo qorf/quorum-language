@@ -1191,7 +1191,7 @@ class TypeChecker
 
         //autoboxes from Object to various primitives
         //implicit cast from Integer to text
-        op = GetOperation(opConstant:CAST)
+        Operation op = GetOperation(opConstant:CAST)
         key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:OBJECT_KEY, op, false)
         result = GetSubclassNarrowingConvertResult()
         type = result:result
@@ -2008,7 +2008,7 @@ class TypeChecker
         result = GetNoConvertResult()
         type = result:result
         type:SetToObject(staticKey)
-        returnMe = GetReturnOpcode(opcodes:GetObjectReturn(), -1, type)
+        ReturnOpcode returnMe = GetReturnOpcode(opcodes:GetObjectReturn(), -1, type)
         result:SetQuorumOpcode(returnMe)
         results:Add(key, result)
 
@@ -2146,6 +2146,7 @@ class TypeChecker
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
+            TypeConversionPoints points = undefined
 
             //line 1534
             op = undefined
@@ -2153,6 +2154,20 @@ class TypeChecker
                     staticKey, op, true, false)
             result = GetNoConvertResult()
             type = result:result
+            points = result:points
+            points:SetPoints(points:EXACT_AUTOBOX)
+            type:SetToObject(parentKey)
+            assignment = GetAssignmentOpcode(opcodes:GetObjectStore(), type)
+            result:SetQuorumOpcode(assignment)
+            results:Add(key, result)
+
+            op = undefined
+            key = GenerateTypeCheckKey(parentKey,
+                    staticKey, op, true, false)
+            result = GetNoConvertResult()
+            type = result:result
+            points = result:points
+            points:SetPoints(points:SUPER)
             type:SetToObject(parentKey)
             assignment = GetAssignmentOpcode(opcodes:GetObjectStore(), type)
             result:SetQuorumOpcode(assignment)
@@ -2163,6 +2178,8 @@ class TypeChecker
             key = GenerateTypeCheckKey(parentKey, staticKey, op, false)
             result = GetNoConvertResult()
             type = result:result
+            points = result:points
+            points:SetPoints(points:SUPER)
             type:SetToObject(parentKey)
             results:Add(key, result)
 
@@ -2195,6 +2212,8 @@ class TypeChecker
             key = GenerateTypeCheckKey(parentKey, staticKey, op, false)
             result = GetSubclassNarrowingConvertResult()
             type = result:result
+            points = result:points
+            points:SetPoints(points:SUPER)
             ExplicitCastOpcode caster = GetExplicitCastOpcode(type)
             result:SetQuorumOpcode(caster)
             type:SetToObject(parentKey)
@@ -2206,6 +2225,8 @@ class TypeChecker
             result = GetSubclassWideningConvertResult()
             type = result:result
             caster = GetExplicitCastOpcode(type)
+            points = result:points
+            points:SetPoints(points:SUPER)
             result:SetQuorumOpcode(caster)
             type:SetToObject(staticKey)
             results:Add(key, result)
@@ -2219,8 +2240,8 @@ class TypeChecker
             type:SetToObject(staticKey)
             returnMe = GetReturnOpcode(opcodes:GetObjectReturn(), -1, type)
             result:SetQuorumOpcode(returnMe)
-            TypeConversionPoints points = result:points
-            points:SetPoints(points:LOSSLESS_CONVERT)
+            points = result:points
+            points:SetPoints(points:SUPER)
             results:Add(key, result)
         end
     end

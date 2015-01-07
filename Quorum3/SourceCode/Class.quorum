@@ -1625,6 +1625,10 @@ class Class is Symbol
     end
 
     action ResolveAction(ActionCall call) returns ActionCallResolution
+
+        if GetName() = "TypeChecker" and call:name = "Check" and call:variable = undefined
+            a = 5
+        end
         ActionCallResolution resolution
         Array<Type> parameters = call:actualParameters
         TypeChecker checker = call:checker

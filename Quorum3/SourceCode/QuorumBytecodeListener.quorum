@@ -792,7 +792,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         end
 
-        right = opcodeStack:Pop()
+        QuorumOpcode right = opcodeStack:Pop()
 
 
         Operation assign
@@ -862,7 +862,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         Type left = var:GetType()
         
-        right = opcodeStack:Pop()
+        QuorumOpcode right = opcodeStack:Pop()
         Operation assign
         assign:SetOperation(assign:EQUALS)
 
@@ -1343,8 +1343,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
     end
 
-    
-
     action EnterVariableFunctionCall(VariableFunctionCallContext context) 
         isNextVariableReferenceMe = context:hasMe
         Array<ActionCallOpcode> stack
@@ -1388,6 +1386,10 @@ class QuorumBytecodeListener is QuorumSourceListener
         repeat while it:HasNext()
             ActionCallOpcode op = it:Next()
             ops:Add(op)
+        end
+
+        if ops:GetType() = undefined
+            a = 5
         end
 
         //since this is a solo call, there is no assignment statement.
@@ -1527,6 +1529,10 @@ class QuorumBytecodeListener is QuorumSourceListener
             ops:Add(op)
         end
 
+        if ops:GetType() = undefined
+            a = 5
+        end
+
         opcodeStack:Push(ops)
     end
 
@@ -1606,6 +1612,9 @@ class QuorumBytecodeListener is QuorumSourceListener
                 end
             end
 
+            if classToMakeCallOn:GetName() = "TypeChecker" and context:name = "Check"
+                a = 5
+            end
             ComputeInitialParameters(size, actionCall)
             ActionCall call
             call:SetLocation(context:GetLocation())
@@ -1613,7 +1622,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             call:name = context:name
             call:checker = GetTypeChecker()
             call:table = GetSymbolTable()
-
+  
             ActionCallResolution resolved = classToMakeCallOn:ResolveAction(call)
 
             if not resolved:isResolved
@@ -1713,10 +1722,10 @@ class QuorumBytecodeListener is QuorumSourceListener
                 Type type = code:GetType()
                 if not type:IsPrimitive() //if it is, again previous phase will catch this
                     text staticKey = type:GetStaticKey()
-                    clazz = table:GetClass(staticKey)
+                    Class clazz = table:GetClass(staticKey)
                     
                     //get a field.
-                    field = clazz:GetVariable(name)
+                    Variable field = clazz:GetVariable(name)
                     if field not= undefined
                         Type fieldType = field:GetType()
                         actionCall:SetCallerType(fieldType)

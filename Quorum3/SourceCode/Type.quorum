@@ -330,7 +330,7 @@ class Type
     action SetToObject(QualifiedName name)
         if name not= undefined
             QualifiedName val = name:Copy()
-            objectName = val
+            QualifiedName objectName = val
             staticKey = val:GetStaticKey()
         end
     end
