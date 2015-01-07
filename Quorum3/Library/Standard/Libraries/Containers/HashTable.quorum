@@ -110,8 +110,8 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
             repeat until node = undefined
                 if value:Equals(node:value)
                     return node:key
-               end
-               node = node:next
+                end
+                node = node:next
             end
             i = i + 1
         end
@@ -243,6 +243,9 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
     action Empty
         array:Empty()
         size = 0
+        array:SetSize(arraySize)
+        array:SetAutoResize(false)
+        maxItemsBeforeResize = ComputeMaxItemResize()
     end
 
     /*
