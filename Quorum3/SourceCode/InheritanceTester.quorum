@@ -23,6 +23,7 @@ class InheritanceTester
         CallInheritedActionFieldAssignment()
         CallMethodCallingBlueprint()
         CallMethodCallingInheritedBlueprint()
+        CheckCast()
         DerivedCall()
         DogMain()
         InheritedTemplatedMethods()
@@ -157,6 +158,24 @@ class InheritanceTester
         files:Add(dependent2)
         files:Add(dependent3)
         results:Add(0, "grandchild")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action CheckCast
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "CheckCast.quorum")
+        dependent1:SetPath(path + "CastA.quorum")
+        dependent2:SetPath(path + "CastB.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "hi")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

@@ -26,7 +26,7 @@ class ExplicitCastOpcode is QuorumOpcode
             opcodeToCast:Write()
         end
         Type type = GetType()
-        methodWriter:VisitType(opcodes:GetCheckCast(), type:ConvertStaticKeyToBytecodePath())
+        methodWriter:VisitType(opcodes:GetCheckCast(), type:ConvertStaticKeyToBytecodeInterfacePath())
     end
 
     action GetOpcodeToCast returns QuorumOpcode

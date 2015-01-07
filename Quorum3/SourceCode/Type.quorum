@@ -415,6 +415,10 @@ class Type
         return result
     end
 
+    action ConvertStaticKeyToBytecodeInterfacePath() returns text
+        return ConvertStaticKeyToBytecodePath() + "$Interface"
+    end
+
     action ConvertStaticKeyToJavaScriptName() returns text
         text key = GetStaticKey()
         text result = "quorum_" + key:Replace(".", "_")
