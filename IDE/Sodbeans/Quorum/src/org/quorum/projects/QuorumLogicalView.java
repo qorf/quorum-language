@@ -168,18 +168,18 @@ public class QuorumLogicalView implements LogicalViewProvider{
             nodeActions.add(CommonProjectActions.newFileAction());
 
             //build actions
-//            nodeActions.add(null);
-//            nodeActions.add(new SodbeansBuildAction());
-//            nodeActions.add(new SodbeansCleanBuildAction());
-//            nodeActions.add(new SodbeansCleanAction());
-//
-//            //run and debug actions
-//            nodeActions.add(null);
-//            nodeActions.add(new SodbeansRunAction());
-//            nodeActions.add(new SodbeansDebugAction());
-//            if(canDocument) {
-//                nodeActions.add(new SodbeansDocumentAction());
-//            }
+            nodeActions.add(null);
+            nodeActions.add(project.getBuild());
+            nodeActions.add(project.getCleanBuild());
+            nodeActions.add(project.getClean());
+
+            //run and debug actions
+            nodeActions.add(null);
+            nodeActions.add(project.getRun());
+            nodeActions.add(project.getDebug());
+            if(canDocument) {
+                nodeActions.add(project.getDocument());
+            }
             
             //set main project and close
             nodeActions.add(null);

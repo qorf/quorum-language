@@ -27,6 +27,12 @@ import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.Lookups;
+import org.quorum.actions.Build;
+import org.quorum.actions.Clean;
+import org.quorum.actions.CleanBuild;
+import org.quorum.actions.Debug;
+import org.quorum.actions.Document;
+import org.quorum.actions.Run;
 
 /**
  *
@@ -57,6 +63,13 @@ public class QuorumProject implements Project {
     private LogicalViewProvider logicalView = new QuorumLogicalView(this);
     private final ProjectState state;
     private Lookup lookup;
+    
+    private final Document document = new Document(this);
+    private final Debug debug = new Debug(this);
+    private final Build build = new Build(this);
+    private final Clean clean = new Clean(this);
+    private final CleanBuild cleanBuild = new CleanBuild(this);
+    private final Run run = new Run(this);
 
     public QuorumProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
@@ -116,6 +129,48 @@ public class QuorumProject implements Project {
         return properties;
     }
 
+    /**
+     * @return the debug
+     */
+    public Debug getDebug() {
+        return debug;
+    }
+
+    /**
+     * @return the build
+     */
+    public Build getBuild() {
+        return build;
+    }
+
+    /**
+     * @return the clean
+     */
+    public Clean getClean() {
+        return clean;
+    }
+
+    /**
+     * @return the cleanBuild
+     */
+    public CleanBuild getCleanBuild() {
+        return cleanBuild;
+    }
+
+    /**
+     * @return the run
+     */
+    public Run getRun() {
+        return run;
+    }
+
+    /**
+     * @return the document
+     */
+    public Document getDocument() {
+        return document;
+    }
+
     private static class NotifyProperties extends Properties {
         private final ProjectState state;
 
@@ -135,8 +190,7 @@ public class QuorumProject implements Project {
     }
 
     private final class ActionProviderImpl implements ActionProvider {
-
-        private String[] supported = new String[]{
+        private final String[] supported = new String[]{
             ActionProvider.COMMAND_DELETE,
             ActionProvider.COMMAND_COPY,
             ActionProvider.COMMAND_MOVE,
@@ -147,10 +201,12 @@ public class QuorumProject implements Project {
             ActionProvider.COMMAND_DEBUG
         };
 
+        @Override
         public String[] getSupportedActions() {
             return supported;
         }
 
+        @Override
         public void invokeAction(String string, Lookup lookup) throws IllegalArgumentException {
             if (string.equalsIgnoreCase(ActionProvider.COMMAND_DELETE)) {
                 DefaultProjectOperations.performDefaultDeleteOperation(QuorumProject.this);
@@ -162,22 +218,19 @@ public class QuorumProject implements Project {
                 DefaultProjectOperations.performDefaultMoveOperation(QuorumProject.this);
             }
             if (string.equalsIgnoreCase(ActionProvider.COMMAND_DEBUG)) {
-//                debug.actionPerformed(null);
-//                if(debug.wasBuildSuccessful()) {
-//                    debugger.startDebugging();
-//                }
+                getDebug().actionPerformed(null);
             }
             if (string.equalsIgnoreCase(ActionProvider.COMMAND_BUILD)) {
-                //build.actionPerformed(null);
+                getBuild().actionPerformed(null);
             }
             if (string.equalsIgnoreCase(ActionProvider.COMMAND_CLEAN)) {
-                //clean.actionPerformed(null);
+                getClean().actionPerformed(null);
             }
             if (string.equalsIgnoreCase(ActionProvider.COMMAND_REBUILD)) {
-                //rebuild.actionPerformed(null);
+                getCleanBuild().actionPerformed(null);
             }
             if (string.equalsIgnoreCase(ActionProvider.COMMAND_RUN)) {
-                //run.actionPerformed(null);
+                getRun().actionPerformed(null);
             }
         }
 
@@ -192,7 +245,6 @@ public class QuorumProject implements Project {
             } else {
                 return true;
             }
-
         }
     }
 
