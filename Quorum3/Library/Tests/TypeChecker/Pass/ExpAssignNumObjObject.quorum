@@ -1,0 +1,13 @@
+use Libraries.Language.Errors.CastError
+
+class Main
+   action Main
+      check
+        Object o
+        Number n = cast(Number, o)
+      detect e is CastError
+        output "Error detected"
+      end
+   end
+end
+
