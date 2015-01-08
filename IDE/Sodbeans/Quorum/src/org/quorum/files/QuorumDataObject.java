@@ -17,6 +17,7 @@ import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectExistsException;
 import org.openide.loaders.MultiDataObject;
 import org.openide.loaders.MultiFileLoader;
+import org.openide.nodes.Node;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.windows.TopComponent;
@@ -31,7 +32,7 @@ import org.openide.windows.TopComponent;
 )
 @DataObject.Registration(
         mimeType = "text/x-quorum",
-        iconBase = "org/quorum/files/bunny_icon.png",
+        iconBase = "org/quorum/resources/file.png",
         displayName = "#LBL_Quorum_LOADER",
         position = 300
 )
@@ -99,9 +100,14 @@ public class QuorumDataObject extends MultiDataObject {
         return 1;
     }
 
+    @Override
+    protected Node createNodeDelegate() {
+        return new QuorumFileDataNode(this, getLookup());
+    }
+    
     @MultiViewElement.Registration(
             displayName = "#LBL_Quorum_EDITOR",
-            iconBase = "org/quorum/files/bunny_icon.png",
+            iconBase = "org/quorum/resources/file.png",
             mimeType = "text/x-quorum",
             persistenceType = TopComponent.PERSISTENCE_ONLY_OPENED,
             preferredID = "Quorum",

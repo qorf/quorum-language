@@ -19,7 +19,7 @@ import org.openide.windows.TopComponent;
 
 @MultiViewElement.Registration(
         displayName = "#LBL_Quorum_VISUAL",
-        iconBase = "org/quorum/files/bunny_icon.png",
+        iconBase = "org/quorum/resources/file.png",
         mimeType = "text/x-quorum",
         persistenceType = TopComponent.PERSISTENCE_NEVER,
         preferredID = "QuorumVisual",
