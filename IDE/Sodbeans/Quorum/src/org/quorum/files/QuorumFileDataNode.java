@@ -135,21 +135,18 @@ public class QuorumFileDataNode extends DataNode {
     @Override
     public Action[] getActions(boolean popup) {
         Action[] actions = super.getActions(popup);
-        //org.sodbeans.compiler.api.Compiler compiler =
-        //        Lookup.getDefault().lookup(org.sodbeans.compiler.api.Compiler.class);
         Action[] result;
-//        if (compiler != null && actions.length > 0) { //should always be > 0
-//            result = new Action[actions.length + 1];
-//            result[0] = actions[0];
-//            result[1] = new SetMainFileAction();
-//            System.arraycopy(actions, 1, result, 2, actions.length - 1);
-//        } else {
+        if (actions.length > 0) { //should always be > 0
+            result = new Action[actions.length + 1];
+            result[0] = actions[0];
+            result[1] = new SetMainFileAction();
+            System.arraycopy(actions, 1, result, 2, actions.length - 1);
+        } else {
             //Isolated file in the favorites window
             result = actions;
-        //}
+        }
         return result;
     }
-    // Sets the main file.
 
     private final class SetMainFileAction extends AbstractAction {
 
@@ -158,6 +155,7 @@ public class QuorumFileDataNode extends DataNode {
             putValue(Action.NAME, "Set Main File");
         }
 
+        @Override
         public void actionPerformed(ActionEvent ae) {
             MainFileProvider provider = (MainFileProvider) getFromProject(MainFileProvider.class);
             FileObject oldMain = provider.getMainFile();

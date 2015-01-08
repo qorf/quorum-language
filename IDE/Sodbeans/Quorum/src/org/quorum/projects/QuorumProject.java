@@ -32,45 +32,45 @@ import org.openide.util.lookup.Lookups;
  *
  * @author stefika
  */
-public class QuorumProject implements Project{
+public class QuorumProject implements Project {
+
     public static final String SOURCES_DIR = "SourceCode";
     public static final String QUORUM_PROJECT_KEY = "Quorum_Project_Keycode";
     public static final String KEY_MAINFILE = "main.file";
     public static final String QUORUM_PROJECT_TYPE = "Quorum_Project_Type";
     public static final String QUORUM_TOMCAT_LOCATION = "Quorum_Tomcat_Location";
-    
+
     public static final String QUORUM_CONSOLE_PROJECT = "Quorum_Console_Project";
     public static final String QUORUM_WEB_PROJECT = "Quorum_Web_Project";
     public static final String QUORUM_COMPILED_WEB_PROJECT = "Quorum_Compiled_Web_Project";
 
     public static final String QUORUM_PROJECT_ICON = "org/quorum/resources/project.png";
     public static final String QUORUM_FILE_ICON = "org/quorum/resources/file.png";
-    
+
     public static final String SOURCE_CODE_DIRECTORY = "SourceCode";
     public static final String PROJET_PROPERTIES_DIRECTORY = "Project";
     public static final String BUILD_DIRECTORY = "Build";
     public static final String DISTRIBUTION_DIRECTORY = "Run";
     public static final String DOCUMENTS_DIRECTORY = "Documentation";
-    
+
     private final FileObject projectDir;
     private LogicalViewProvider logicalView = new QuorumLogicalView(this);
     private final ProjectState state;
     private Lookup lookup;
-    
+
     public QuorumProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
         this.state = state;
     }
-    
-    
+
     @Override
     public FileObject getProjectDirectory() {
         return projectDir;
     }
 
     public FileObject getSources(boolean create) {
-        FileObject result =
-            projectDir.getFileObject(SOURCES_DIR);
+        FileObject result
+                = projectDir.getFileObject(SOURCES_DIR);
 
         if (result == null && create) {
             try {
@@ -85,26 +85,26 @@ public class QuorumProject implements Project{
     @Override
     public Lookup getLookup() {
         if (lookup == null) {
-            lookup = Lookups.fixed(new Object[] {
-                this,           //Project spec requires a project be in its own lookup
-                state,          //Allow outside code to mark the project as needing saving
+            lookup = Lookups.fixed(new Object[]{
+                this, //Project spec requires a project be in its own lookup
+                state, //Allow outside code to mark the project as needing saving
                 new ActionProviderImpl(), //Provides standard actions like Build and Clean
                 new QuorumDeleteOperation(),
                 new QuorumCopyOperation(this),
-                loadProperties(),   //The project properties
-                new Info(),     //Project information implementation
-                logicalView,    //Logical view of project implementation
-                new MainFileProvider(this),
-                //new QuorumPrivilegedTemplates(),
-                //new QuorumCustomizer(this),
+                loadProperties(), //The project properties
+                new Info(), //Project information implementation
+                logicalView, //Logical view of project implementation
+                new MainFileProvider(this), 
+                new QuorumPrivilegedTemplates(),
+                new QuorumCustomizer(this),
             });
         }
         return lookup;
     }
-    
+
     private Properties loadProperties() {
-        FileObject fob = projectDir.getFileObject(QuorumProjectFactory.PROJECT_DIR +
-             "/" + QuorumProjectFactory.PROJECT_PROPFILE);
+        FileObject fob = projectDir.getFileObject(QuorumProjectFactory.PROJECT_DIR
+                + "/" + QuorumProjectFactory.PROJECT_PROPFILE);
         Properties properties = new NotifyProperties(state);
         if (fob != null) {
             try {
@@ -115,25 +115,27 @@ public class QuorumProject implements Project{
         }
         return properties;
     }
-    
+
     private static class NotifyProperties extends Properties {
         private final ProjectState state;
-        NotifyProperties (ProjectState state) {
+
+        NotifyProperties(ProjectState state) {
             this.state = state;
         }
 
         @Override
         public Object put(Object key, Object val) {
             Object result = super.put(key, val);
-            if (((result == null) != (val == null)) || (result != null &&
-                val != null && !val.equals(result))) {
+            if (((result == null) != (val == null)) || (result != null
+                    && val != null && !val.equals(result))) {
                 state.markModified();
             }
             return result;
         }
     }
-    
+
     private final class ActionProviderImpl implements ActionProvider {
+
         private String[] supported = new String[]{
             ActionProvider.COMMAND_DELETE,
             ActionProvider.COMMAND_COPY,
@@ -145,7 +147,6 @@ public class QuorumProject implements Project{
             ActionProvider.COMMAND_DEBUG
         };
 
-        
         public String[] getSupportedActions() {
             return supported;
         }
@@ -180,6 +181,7 @@ public class QuorumProject implements Project{
             }
         }
 
+        @Override
         public boolean isActionEnabled(String command, Lookup lookup) throws IllegalArgumentException {
             if ((command.equals(ActionProvider.COMMAND_DELETE))) {
                 return true;
@@ -194,19 +196,23 @@ public class QuorumProject implements Project{
         }
     }
 
-        private final class QuorumDeleteOperation implements DeleteOperationImplementation {
+    private final class QuorumDeleteOperation implements DeleteOperationImplementation {
 
+        @Override
         public void notifyDeleting() throws IOException {
         }
 
+        @Override
         public void notifyDeleted() throws IOException {
         }
 
+        @Override
         public List<FileObject> getMetadataFiles() {
             List<FileObject> dataFiles = new ArrayList<FileObject>();
             return dataFiles;
         }
 
+        @Override
         public List<FileObject> getDataFiles() {
             List<FileObject> dataFiles = new ArrayList<FileObject>();
             return dataFiles;
@@ -223,26 +229,33 @@ public class QuorumProject implements Project{
             this.projectDir = project.getProjectDirectory();
         }
 
+        @Override
         public List<FileObject> getMetadataFiles() {
             return Collections.EMPTY_LIST;
         }
 
+        @Override
         public List<FileObject> getDataFiles() {
             return Collections.EMPTY_LIST;
         }
 
+        @Override
         public void notifyCopying() throws IOException {
         }
 
+        @Override
         public void notifyCopied(Project arg0, File arg1, String arg2) throws IOException {
         }
     }
-    
-    /** Implementation of project system's ProjectInformation class */
+
+    /**
+     * Implementation of project system's ProjectInformation class
+     */
     private final class Info implements ProjectInformation {
+
         @Override
         public Icon getIcon() {
-            return new ImageIcon (ImageUtilities.loadImage(
+            return new ImageIcon(ImageUtilities.loadImage(
                     QUORUM_PROJECT_ICON));
         }
 
@@ -257,12 +270,12 @@ public class QuorumProject implements Project{
         }
 
         @Override
-        public void addPropertyChangeListener (PropertyChangeListener pcl) {
+        public void addPropertyChangeListener(PropertyChangeListener pcl) {
             //do nothing, won't change
         }
 
         @Override
-        public void removePropertyChangeListener (PropertyChangeListener pcl) {
+        public void removePropertyChangeListener(PropertyChangeListener pcl) {
             //do nothing, won't change
         }
 
