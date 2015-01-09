@@ -23,6 +23,7 @@ import org.netbeans.spi.project.ProjectState;
 import org.netbeans.spi.project.ui.LogicalViewProvider;
 import org.netbeans.spi.project.ui.support.DefaultProjectOperations;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
@@ -70,10 +71,15 @@ public class QuorumProject implements Project {
     private final Clean clean = new Clean(this);
     private final CleanBuild cleanBuild = new CleanBuild(this);
     private final Run run = new Run(this);
+    private final quorum.Libraries.Language.Compile.Compiler compiler = 
+            new quorum.Libraries.Language.Compile.Compiler();
 
     public QuorumProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
         this.state = state;
+        File toFile = FileUtil.toFile(projectDir);
+        toFile.getAbsolutePath();
+        
     }
 
     @Override
@@ -110,6 +116,7 @@ public class QuorumProject implements Project {
                 new MainFileProvider(this), 
                 new QuorumPrivilegedTemplates(),
                 new QuorumCustomizer(this),
+                compiler
             });
         }
         return lookup;
