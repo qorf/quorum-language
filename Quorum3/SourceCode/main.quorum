@@ -34,7 +34,26 @@ class Main is WebResponder
         //ProfileWeb()
         //CompileHardcodedFile()
         //CompileCompiler()
+        //CompileSingleTest()
         EndTime()
+    end
+
+    private action CompileSingleTest
+        Compiler compiler
+        output compiler:GetVersion()
+
+        File fake
+        fake:SetPath("FakeFile.quorum")
+        compiler:ParseSingle("output 5", fake)
+
+        if compiler:IsCompilationErrorFree()
+            output "Build Successful"
+            if compiler:GetOutputType() = compiler:JAVASCRIPT
+                output compiler:GetCompiledJavaScript()
+            end
+        else
+            output compiler:GetCompilerErrorsAsText()
+        end
     end
 
     private action StartTime

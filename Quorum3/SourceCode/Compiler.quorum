@@ -229,6 +229,32 @@ class Compiler
         compilerErrorManager:Add(error)
     end
 
+    /*
+        This action parses a single source file at a particular location
+    */ 
+    action ParseSingle(text source, File file)
+        Parser parser
+        parser:SetFile(file)
+        compilerErrorManager:RemoveErrorsAtKey(file:GetAbsolutePath())
+        Parse(source, parser)
+        
+        //This array will contain all files that must be built, 
+        //including potentially some from the standard library
+        //in order to build the requested files
+        Array<File> allFiles = undefined
+        if compilerErrorManager:IsCompilationErrorFree()
+            allFiles = GetAllRequiredFiles()
+        else 
+            return now
+        end
+
+        if compilerErrorManager:IsCompilationErrorFree()
+            TypeResolution()
+        else 
+            return now
+        end
+    end
+
     action CompileSingle(text source)
         Parser parser
         File fakeLocation //set a default. It doesn't matter what it is.
@@ -351,6 +377,10 @@ class Compiler
 
     action IsCompilationErrorFree returns boolean
         return compilerErrorManager:IsCompilationErrorFree()
+    end
+
+    action GetCompilerErrorManager returns CompilerErrorManager
+        return compilerErrorManager
     end
 
     action GetCompilerErrorsAsText returns text
