@@ -56,7 +56,7 @@ public class QuorumJarGenerator {
             
             stream = new FileOutputStream(writeLocation);
             target = new JarOutputStream(stream, manifest);
-            File$Interface build = compiler.GetRootFolder();
+            File$Interface build = compiler.GetOutputFolder();
             buildDirectory = build.GetAbsolutePath();
             Iterator$Interface dependencies = compiler.GetDependencies();
             while(dependencies.HasNext()) {
