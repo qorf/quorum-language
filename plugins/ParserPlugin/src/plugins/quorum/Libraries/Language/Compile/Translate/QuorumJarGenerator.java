@@ -19,10 +19,8 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 import quorum.Libraries.Containers.Blueprints.Iterator$Interface;
 import quorum.Libraries.Language.Compile.Dependency;
-import quorum.Libraries.Language.Object$Interface;
 import quorum.Libraries.System.File$Interface;
 
 /**
