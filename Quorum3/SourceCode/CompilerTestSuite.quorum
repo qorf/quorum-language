@@ -186,13 +186,22 @@ class CompilerTestSuite
         Add(result)
     end
 
-    action RunTestFile (Array<File> files) returns CompilerTestResult
-        CompilerTestResult result = undefined
+    private action GetDefaultCompiler returns Compiler
         Compiler compiler
         File root
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         compiler:SetOutputSpeech(false) //don't speak while in test mode
+
+        standardLibraryFolder = compiler:GetStandardLibraryFolder()
+        compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        return compiler
+    end
+
+    action RunTestFile (Array<File> files) returns CompilerTestResult
+        CompilerTestResult result = undefined
+        Compiler compiler = GetDefaultCompiler()
+        
         File testFile 
         testFile = files:Get(0)
         compiler:SetMain(testFile)
@@ -241,11 +250,8 @@ class CompilerTestSuite
 
     action RunJavaScriptTestFile(Array<File> files) returns CompilerTestResult
         CompilerTestResult result = undefined
-        Compiler compiler
-        File root
-        root:SetPath("Output")
-        compiler:SetOutputFolder(root)
-        compiler:SetOutputSpeech(false) //don't speak while in test mode
+        Compiler compiler  = GetDefaultCompiler()
+        
         File testFile 
         testFile = files:Get(0)
         compiler:SetMain(testFile)
@@ -268,10 +274,8 @@ class CompilerTestSuite
         if testBytecode = false
             return now
         end
-        Compiler compiler
-        File root
-        root:SetPath("Output")
-        compiler:SetOutputFolder(root)
+        Compiler compiler = GetDefaultCompiler()
+        
         CompilerTestResult result
         File testFile
         testFile = files:Get(0)
@@ -293,11 +297,8 @@ class CompilerTestSuite
         if testJavaScript = false
             return now
         end
-        Compiler compiler
-        File root
-        root:SetPath("Output")
-        compiler:SetOutputFolder(root)
-        compiler:SetOutputSpeech(false) //don't speak while in test mode
+        Compiler compiler = GetDefaultCompiler()
+        
         CompilerTestResult result
         File testFile 
         testFile = files:Get(0)
@@ -385,11 +386,8 @@ class CompilerTestSuite
 
     action RunTest(text source) returns CompilerTestResult
         CompilerTestResult result = undefined
-        Compiler compiler
-        File root
-        root:SetPath("Output")
-        compiler:SetOutputFolder(root)
-        compiler:SetOutputSpeech(false) //don't speak while in test mode
+        Compiler compiler = GetDefaultCompiler()
+        
         File file
         file:SetPath(source)
         compiler:SetMain(file)
@@ -538,10 +536,8 @@ class CompilerTestSuite
         CompilerTestResult result = undefined
         text quote = ""
         quote = quote:GetDoubleQuote()
-        Compiler compiler
-        File root
-        root:SetPath("Output")
-        compiler:SetOutputFolder(root)
+        Compiler compiler = GetDefaultCompiler()
+        
         File file
         file:SetPath(source)
         compiler:SetMain(file)

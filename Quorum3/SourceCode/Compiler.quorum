@@ -36,13 +36,7 @@ class Compiler
     integer currentOutputType = 0
     boolean outputSpeechCommands = true
 
-    on create //load default dependencies
-        standardLibraryFolder = GetStandardLibraryFolder()
-        SetStandardLibraryFolder(standardLibraryFolder)
-        //LoadDependency("/" + DEFAULT_BUILD_FOLDER + "/quorum", "/quorum")
-        //LoadDependency("/Library/Standard/Plugins/plugins", "/plugins")
-        //LoadDependency("/Library/Standard/Plugins/org", "/org")
-        //LoadDependency("/asm", "/asm")
+    on create
     end
 
     action SetOutputSpeech(boolean doSay)

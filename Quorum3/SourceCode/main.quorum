@@ -29,10 +29,10 @@ class Main is WebResponder
 
     action Main
         StartTime()
-        //ProcessConsoleFlags()
+        ProcessConsoleFlags()
         //ProfileTest()
         //ProfileWeb()
-        CompileHardcodedFile()
+        //CompileHardcodedFile()
         //CompileCompiler()
         //CompileSingleTest()
         EndTime()
@@ -78,6 +78,8 @@ class Main is WebResponder
         output compiler:GetVersion() + ", Compile the compiler."
         File main
         main:SetPath("SourceCode")
+        standardLibraryFolder = compiler:GetStandardLibraryFolder()
+        compiler:SetStandardLibraryFolder(standardLibraryFolder)
         Array<File> files = main:GetDirectoryListing()
 
         File actualMain
@@ -96,6 +98,8 @@ class Main is WebResponder
 
     private action CompileHardcodedFile
         Compiler compiler
+        standardLibraryFolder = compiler:GetStandardLibraryFolder()
+        compiler:SetStandardLibraryFolder(standardLibraryFolder)
         output compiler:GetVersion()
         File root
         root:SetPath("Output")
