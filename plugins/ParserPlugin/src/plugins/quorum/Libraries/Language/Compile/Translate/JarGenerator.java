@@ -25,7 +25,7 @@ import quorum.Libraries.System.File$Interface;
  *
  * @author Andreas Stefik
  */
-public class QuorumJarGenerator {
+public class JarGenerator {
 
     public java.lang.Object $me = null;
     private final String ENCODING = "UTF-8";
@@ -36,8 +36,8 @@ public class QuorumJarGenerator {
     
     public void Open(quorum.Libraries.System.File$Interface location) {
         try {
-            quorum.Libraries.Language.Compile.Translate.QuorumJarGenerator generator
-                    = (quorum.Libraries.Language.Compile.Translate.QuorumJarGenerator) $me;
+            quorum.Libraries.Language.Compile.Translate.JarGenerator generator
+                    = (quorum.Libraries.Language.Compile.Translate.JarGenerator) $me;
             String manifestValue = generator.GetManifest();
             Manifest manifest = CreateManifest(manifestValue);
             File writeLocation = new File(location.GetAbsolutePath());
@@ -48,9 +48,9 @@ public class QuorumJarGenerator {
             stream = new FileOutputStream(writeLocation);
             target = new JarOutputStream(stream, manifest);
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JarGenerator.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JarGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -58,12 +58,12 @@ public class QuorumJarGenerator {
         try {
             target.close();
         } catch (IOException ex) {
-            Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JarGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
             stream.close();
         } catch (IOException ex) {
-            Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JarGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -87,7 +87,7 @@ public class QuorumJarGenerator {
             }
             target.closeEntry();
         } catch (IOException ex) {
-            Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JarGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -98,7 +98,7 @@ public class QuorumJarGenerator {
             manifest.read(stream);
             return manifest;
         } catch (IOException ex) {
-            Logger.getLogger(QuorumJarGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JarGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
