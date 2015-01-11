@@ -28,6 +28,10 @@ class QualifiedName is Location
         return names:GetSize()
     end
 
+    action IsEmpty returns boolean
+        return names:IsEmpty()
+    end
+
     /*
         This action returns true if this is an all request. For example, 
         this might take the form of Libraries.Containers.all, which would

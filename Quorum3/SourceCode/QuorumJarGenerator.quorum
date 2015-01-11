@@ -1,49 +1,22 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.System.File
-use Libraries.Language.Compile.Compiler
-use Libraries.Language.Compile.Symbol.Class
 
 class QuorumJarGenerator
-    Compiler compiler = undefined
-
-    action Write
-        WriteNative()
-    end
-
-    private system action WriteNative
-    
-    
+    text manifest = ""
 
     action GetManifest returns text
-        text version = GetManifestVersion() + ": 1.0"
-        line = version:GetCarriageReturn() + version:GetLineFeed()
-        version = version + line
-        
-        
-        text created = "Created-By: " + compiler:GetVersion()
-        created = created + line
-
-        text main = GetManifestMainClass()
-
-        File mainFile = compiler:GetMain()
-        Class mainClass = compiler:GetMainClass()
-        text classKey = "quorum." + mainClass:GetStaticKey()
-        main = main + ": " + classKey
-        main = main + line
-        total = version + created + main + line
-        return total
+        return manifest
     end
 
-    private system action GetManifestVersion returns text
-    private system action GetManifestMainClass returns text
-    private system action GetManifestClassPath returns text
-
-    action GetCompiler returns Compiler
-        return compiler
+    action SetManifest(text man)
+        manifest = man
     end
 
-    action SetCompiler(Compiler compiler)
-        me:compiler = compiler
-    end
+    system action Open(File location)
+    system action Add(File file)
+    system action Close
+    system action GetManifestVersion returns text
+    system action GetManifestMainClass returns text
+    system action GetManifestClassPath returns text
 end

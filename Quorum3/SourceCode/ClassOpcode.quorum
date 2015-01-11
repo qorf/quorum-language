@@ -33,8 +33,9 @@ class ClassOpcode is QuorumOpcode
     constant text CONSTRUCTOR_JAVA_NAME = "<init>"
     constant integer ME = 0
     constant text QUORUM = "quorum"
-    text buildPath = ""
-    text runPath = ""
+    File buildFolder = undefined
+    //text buildPath = ""
+    //text runPath = ""
     File buildFile = undefined
     File buildInterfaceFile = undefined
 
@@ -50,21 +51,29 @@ class ClassOpcode is QuorumOpcode
         return buildInterfaceFile
     end
 
-    action GetBuildPath returns text
-        return buildPath
+    action GetBuildFolder returns File
+        return buildFolder
     end
 
-    action GetRunPath returns text
-        return runPath
+    action SetBuild(File file)
+        buildFolder = file
     end
 
-    action SetBuildPath(text build)
-        buildPath = build
-    end
-
-    action SetRunPath(text build)
-        runPath = build
-    end
+//    action GetBuildPath returns text
+//        return buildPath
+//    end
+//
+//    action GetRunPath returns text
+//        return runPath
+//    end
+//
+//    action SetBuildPath(text build)
+//        buildPath = build
+//    end
+//
+//    action SetRunPath(text build)
+//        runPath = build
+//    end
 
     action GetStaticKey returns text
         return staticKey
@@ -299,7 +308,19 @@ class ClassOpcode is QuorumOpcode
 
     private action WriteBytecodeToDisk 
         File classFile
-        text path = buildPath + "/" + QUORUM + "/" + packageValue:GetPath() 
+        text path = buildFolder:GetPath()
+        if not buildFolder:Exists()
+            buildFolder:CreateDirectories()
+        end
+
+        classFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+        if not packageValue:IsEmpty()
+            packagePath = packageValue:GetPath() 
+            path = QUORUM + "/" + packagePath
+        else
+            path = QUORUM 
+        end
+        
         classFile:SetPath(path)
         classFile:CreateDirectories()
         classFile:SetPath(path + "/" + clazz:GetName() + ".class")
@@ -308,7 +329,13 @@ class ClassOpcode is QuorumOpcode
 
         if not clazz:IsError()
             File interfaceFile
-            path = buildPath + "/" + QUORUM + "/" + packageValue:GetPath()
+            interfaceFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+            if not packageValue:IsEmpty()
+                packagePath = packageValue:GetPath() 
+                path = QUORUM + "/" + packagePath
+            else
+                path = QUORUM 
+            end
 
             interfaceFile:SetPath(path + "/" + clazz:GetInterfaceName() + ".class")
             interfaceWriter:Write(interfaceFile)

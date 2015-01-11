@@ -29,10 +29,10 @@ class Main is WebResponder
 
     action Main
         StartTime()
-        ProcessConsoleFlags()
+        //ProcessConsoleFlags()
         //ProfileTest()
         //ProfileWeb()
-        //CompileHardcodedFile()
+        CompileHardcodedFile()
         //CompileCompiler()
         //CompileSingleTest()
         EndTime()
@@ -97,6 +97,9 @@ class Main is WebResponder
     private action CompileHardcodedFile
         Compiler compiler
         output compiler:GetVersion()
+        File root
+        root:SetPath("Output")
+        compiler:SetOutputFolder(root)
         File main
         main:SetPath("Library/Tests/Inheritance/Pass/CheckCast.quorum")
 

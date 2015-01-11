@@ -12,9 +12,13 @@ use Libraries.Language.Compile.Translate.ClassOpcode
 class Compiler
     public constant number VERSION = 3.0
     File main = undefined
-    constant text DEFAULT_BUILD_FOLDER = "TestBuild"
-    constant text DEFAULT_RUN_FOLDER = "TestRun"
+    File outputFolder = undefined
+    File pluginFolder = undefined
+    File dependencyFolder = undefined
+    constant text DEFAULT_BUILD_FOLDER = "Build"
+    constant text DEFAULT_RUN_FOLDER = "Run"
     constant text DEFAULT_STANDARD_LIBRARY_FOLDER = "Library/Standard"
+    constant text WAR_CLASS_DIRECTORY = "WEB-INF/classes"
     constant text OBJECT = "Libraries.Language.Object"
     File buildFolder = undefined
     File runFolder = undefined
@@ -34,9 +38,10 @@ class Compiler
 
     on create //load default dependencies
         standardLibraryFolder = GetStandardLibraryFolder()
-        LoadDependency("/" + DEFAULT_BUILD_FOLDER + "/quorum", "/quorum")
-        LoadDependency("/Library/Standard/Plugins/plugins", "/plugins")
-        LoadDependency("/Library/Standard/Plugins/org", "/org")
+        SetStandardLibraryFolder(standardLibraryFolder)
+        //LoadDependency("/" + DEFAULT_BUILD_FOLDER + "/quorum", "/quorum")
+        //LoadDependency("/Library/Standard/Plugins/plugins", "/plugins")
+        //LoadDependency("/Library/Standard/Plugins/org", "/org")
         //LoadDependency("/asm", "/asm")
     end
 
@@ -147,6 +152,7 @@ class Compiler
 
                 Parse(file, listener)
                 ClassOpcode op = listener:GetClassOpcode()
+                op:SetBuild(buildFolder)
                 classOpcodes:Add(op)
                 i = i + 1
             end
@@ -157,21 +163,48 @@ class Compiler
         File starter = files:Get(0)
         CheckMain(starter)
         
+        //at this point, if the build is compilation free, it 
+        //is guaranteed to not have compile errors, as no errors
+        //can be issues in the bytecode writing stage.
+        //if an error is issued, it is a bug in the compiler and not
+        //an intentional design decision.
         if compilerErrorManager:IsCompilationErrorFree()
             if currentOutputType = JAVA_BYTECODE
+                
+                //open up and begin filling the Jar
+                QuorumJarGenerator generator
+                text manifest = GetManifest(generator)
+                File jar = GetDistributionFile()
+                generator:SetManifest(manifest)
+                generator:Open(jar)
+
                 //iterate over all the class opcodes and write them to disk
                 Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
                 repeat while codes:HasNext()
                     ClassOpcode code = codes:Next()
                     code:Write()
+
+                    File build = code:GetBuildFile()
+                    File buildInterface = code:GetBuildInterfaceFile()
+
+                    text key = code:GetStaticKey()
+                    if key = "Main"
+                        a = 5
+                    end
+                    if build not= undefined
+                        generator:Add(build)
+                    end
+
+                    if buildInterface not= undefined
+                        generator:Add(buildInterface)
+                    end
                 end
 
-                if compilerErrorManager:IsCompilationErrorFree()
-                    QuorumJarGenerator generator
-                    File jar = GetDistributionFile()
-                    generator:SetCompiler(me)
-                    generator:Write()
-                end
+                //ok all of the classes are written in the jar. Now fill it up
+                //with any dependencies that are necessary.
+                WriteDependencies(generator)
+                generator:Close()
+                
             elseif currentOutputType = JAVASCRIPT
                 text result = ""
                 Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
@@ -190,6 +223,96 @@ class Compiler
                 convertedJavaScript = result
             end
         end
+    end
+
+
+    //LoadDependency("/Library/Standard/Plugins/plugins", "/plugins")
+    //LoadDependency("/Library/Standard/Plugins/org", "/org")
+    private action WriteDependencies(QuorumJarGenerator generator)
+        //first add all of the plugins folders
+        
+        WritePlugins(generator, pluginFolder)
+        
+        File file
+        file:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+        file:SetPath("org")
+        WriteCompilerDependency(generator, file, file)
+        a = 5
+    end
+
+    private action WriteCompilerDependency(QuorumJarGenerator generator, File file, File originalLocation)
+        if file:IsDirectory()
+            Array<File> files = file:GetDirectoryListing()
+            Iterator<File> it = files:GetIterator()
+
+            repeat while it:HasNext()
+                File f = it:Next()
+                WritePlugins(generator, f)
+            end
+        else
+            text pluginPath = originalLocation:GetWorkingDirectory()
+            text path = file:GetAbsolutePath()
+            path = path:GetSubtext(pluginPath:GetSize())
+            text wd = file:GetAbsolutePath()
+            wd = wd:GetSubtext(0, pluginPath:GetSize() - 1)
+
+            File f
+            f:SetWorkingDirectory(wd)
+            f:SetPath(path)
+            
+            //TODO: Optimize this to reduce the amount of copying that goes on
+            generator:Add(f)
+        end
+    end
+
+    private action WritePlugins(QuorumJarGenerator generator, File file)
+        if file:IsDirectory()
+            Array<File> files = file:GetDirectoryListing()
+            Iterator<File> it = files:GetIterator()
+
+            repeat while it:HasNext()
+                File f = it:Next()
+                WritePlugins(generator, f)
+            end
+        else
+            text pluginPath = pluginFolder:GetWorkingDirectory()
+            text path = file:GetAbsolutePath()
+            path = path:GetSubtext(pluginPath:GetSize())
+            text wd = file:GetAbsolutePath()
+            wd = wd:GetSubtext(0, pluginPath:GetSize() - 1)
+
+            File f
+            f:SetWorkingDirectory(wd)
+            f:SetPath(path)
+            
+            //TODO: Optimize this to reduce the amount of copying that goes on
+            generator:Add(f)
+        end
+    end
+
+    /*
+        This action generates a default manifest file for the compiler, if 
+        we are in bytecode format. This separates the logic from the jar 
+        writer.
+    */
+    private action GetManifest(QuorumJarGenerator jar) returns text
+        text version = jar:GetManifestVersion() + ": 1.0"
+        line = version:GetCarriageReturn() + version:GetLineFeed()
+        version = version + line
+        
+        
+        text created = "Created-By: " + me:GetVersion()
+        created = created + line
+
+        text main = jar:GetManifestMainClass()
+
+        File mainFile = me:GetMain()
+        Class mainClass = me:GetMainClass()
+        text classKey = "quorum." + mainClass:GetStaticKey()
+        main = main + ": " + classKey
+        main = main + line
+        total = version + created + main + line
+        return total
     end
 
     private action CheckMain(File starter)
@@ -320,8 +443,8 @@ class Compiler
                 if compilerErrorManager:IsCompilationErrorFree()
                     QuorumJarGenerator generator
                     File jar = GetDistributionFile()
-                    generator:SetCompiler(me)
-                    generator:Write()
+                    //generator:SetCompiler(me)
+                    //generator:Write()
                 end
             elseif currentOutputType = JAVASCRIPT
                 text result = ""
@@ -711,18 +834,31 @@ class Compiler
         return "Quorum " + VERSION
     end
 
-    action GetBuildFolder returns File
-        if buildFolder = undefined
-            File build
-            build:SetPath(DEFAULT_BUILD_FOLDER)
-            buildFolder = build
-        end
-        return buildFolder
+    action GetOutputFolder returns File
+        return outputFolder
     end
 
-    action GetRootFolder returns File
-        File root
-        return root
+    action SetOutputFolder(File file)
+        if file not= undefined
+            outputFolder = file
+            text path = file:GetAbsolutePath()
+            File build
+            build:SetWorkingDirectory(path)
+            build:SetPath(DEFAULT_BUILD_FOLDER)
+            buildFolder = build
+
+            File run 
+            run:SetWorkingDirectory(path)
+            run:SetPath(DEFAULT_RUN_FOLDER)
+            me:runFolder = run
+        else
+            File root
+            outputFolder = root
+        end
+    end
+
+    action GetBuildFolder returns File
+        return buildFolder
     end
 
     action GetStandardLibraryFolder returns File
@@ -736,32 +872,28 @@ class Compiler
 
     action SetStandardLibraryFolder(File file)
         standardLibraryFolder = file
+        File f
+        f:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+        f:SetPath("plugins")
+        pluginFolder = f
+
+        File f2
+        f2:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+        f2:SetPath("org")
+        dependencyFolder = f2
     end
 
     action GetDistributionFile returns File
         File run = GetRunFolder()
         text path = run:GetPath() + "/"
         File newRun
-        
+        newRun:SetWorkingDirectory(run:GetWorkingDirectory())
         newRun:SetPath(path + GetNameWithExtension())
         return newRun
     end
 
-    action SetBuildFolder(File file)
-        buildFolder = file
-    end
-
     action GetRunFolder returns File
-        if runFolder = undefined
-            File run
-            run:SetPath(DEFAULT_RUN_FOLDER)
-            runFolder = run
-        end
         return runFolder
-    end
-
-    action SetRunFolder(File file)
-        runFolder = file
     end
 
     action IsWebApplication returns boolean
