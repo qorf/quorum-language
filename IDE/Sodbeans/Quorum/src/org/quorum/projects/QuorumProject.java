@@ -8,6 +8,8 @@ package org.quorum.projects;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +26,7 @@ import org.netbeans.spi.project.ui.LogicalViewProvider;
 import org.netbeans.spi.project.ui.support.DefaultProjectOperations;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import org.openide.modules.InstalledFileLocator;
 import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
@@ -77,9 +80,26 @@ public class QuorumProject implements Project {
     public QuorumProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
         this.state = state;
-        File toFile = FileUtil.toFile(projectDir);
-        toFile.getAbsolutePath();
+        File projectDirectory = FileUtil.toFile(projectDir);
+        projectDirectory.getAbsolutePath();
         
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        //InputStream inp = classLoader.getResourceAsStream("org/quorum/parser/Quorum.tokens");
+        InstalledFileLocator locator = InstalledFileLocator.getDefault();
+        File standardInNB = locator.locate("modules/Library", "org.quorum", false);
+        
+        
+        quorum.Libraries.System.File standardLibrary = new quorum.Libraries.System.File();
+        standardLibrary.SetWorkingDirectory(standardInNB.getAbsolutePath());
+        standardLibrary.SetPath("Standard");
+        
+        
+        quorum.Libraries.System.File outputFolder = new quorum.Libraries.System.File();
+        outputFolder.SetWorkingDirectory(projectDirectory.getParent());
+        outputFolder.SetPath(projectDirectory.getName());
+        
+        compiler.SetStandardLibraryFolder(standardLibrary);
+        compiler.SetOutputFolder(outputFolder);
     }
 
     @Override
