@@ -5,7 +5,7 @@ use Libraries.Language.Compile.Symbol.all
 use Libraries.Containers.HashTable
 use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
-use Libraries.Language.Compile.Translate.QuorumJarGenerator
+use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.Containers.List
 use Libraries.Language.Compile.Translate.ClassOpcode
 
@@ -172,7 +172,7 @@ class Compiler
             if currentOutputType = JAVA_BYTECODE
                 
                 //open up and begin filling the Jar
-                QuorumJarGenerator generator
+                JarGenerator generator
                 text manifest = GetManifest(generator)
                 File jar = GetDistributionFile()
                 generator:SetManifest(manifest)
@@ -228,7 +228,7 @@ class Compiler
 
     //LoadDependency("/Library/Standard/Plugins/plugins", "/plugins")
     //LoadDependency("/Library/Standard/Plugins/org", "/org")
-    private action WriteDependencies(QuorumJarGenerator generator)
+    private action WriteDependencies(JarGenerator generator)
         //first add all of the plugins folders
         
         WritePlugins(generator, pluginFolder)
@@ -240,7 +240,7 @@ class Compiler
         a = 5
     end
 
-    private action WriteCompilerDependency(QuorumJarGenerator generator, File file, File originalLocation)
+    private action WriteCompilerDependency(JarGenerator generator, File file, File originalLocation)
         if file:IsDirectory()
             Array<File> files = file:GetDirectoryListing()
             Iterator<File> it = files:GetIterator()
@@ -265,7 +265,7 @@ class Compiler
         end
     end
 
-    private action WritePlugins(QuorumJarGenerator generator, File file)
+    private action WritePlugins(JarGenerator generator, File file)
         if file:IsDirectory()
             Array<File> files = file:GetDirectoryListing()
             Iterator<File> it = files:GetIterator()
@@ -295,7 +295,7 @@ class Compiler
         we are in bytecode format. This separates the logic from the jar 
         writer.
     */
-    private action GetManifest(QuorumJarGenerator jar) returns text
+    private action GetManifest(JarGenerator jar) returns text
         text version = jar:GetManifestVersion() + ": 1.0"
         line = version:GetCarriageReturn() + version:GetLineFeed()
         version = version + line
@@ -441,7 +441,7 @@ class Compiler
                 end
 
                 if compilerErrorManager:IsCompilationErrorFree()
-                    QuorumJarGenerator generator
+                    JarGenerator generator
                     File jar = GetDistributionFile()
                     //generator:SetCompiler(me)
                     //generator:Write()
