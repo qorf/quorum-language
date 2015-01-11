@@ -7,6 +7,7 @@ package org.quorum.actions;
 
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.util.HashMap;
 import javax.swing.Action;
 import org.quorum.projects.QuorumProject;
@@ -57,5 +58,13 @@ public abstract class QuorumAction implements Action{
 
     @Override
     public void actionPerformed(ActionEvent e) {
+    }
+    
+    public quorum.Libraries.System.File getQuorumFile(File file) {
+        quorum.Libraries.System.File quorumFile = new quorum.Libraries.System.File();
+        quorumFile.SetWorkingDirectory(file.getParent());
+        quorumFile.SetPath(file.getName());
+        
+        return quorumFile;
     }
 }
