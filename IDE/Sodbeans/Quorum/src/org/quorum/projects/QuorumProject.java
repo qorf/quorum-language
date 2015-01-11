@@ -82,17 +82,12 @@ public class QuorumProject implements Project {
         this.state = state;
         File projectDirectory = FileUtil.toFile(projectDir);
         projectDirectory.getAbsolutePath();
-        
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        //InputStream inp = classLoader.getResourceAsStream("org/quorum/parser/Quorum.tokens");
         InstalledFileLocator locator = InstalledFileLocator.getDefault();
         File standardInNB = locator.locate("modules/Library", "org.quorum", false);
-        
         
         quorum.Libraries.System.File standardLibrary = new quorum.Libraries.System.File();
         standardLibrary.SetWorkingDirectory(standardInNB.getAbsolutePath());
         standardLibrary.SetPath("Standard");
-        
         
         quorum.Libraries.System.File outputFolder = new quorum.Libraries.System.File();
         outputFolder.SetWorkingDirectory(projectDirectory.getParent());
