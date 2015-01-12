@@ -24,6 +24,7 @@ class CompilerTestSuite
     boolean testBytecode = true
     boolean testJavaScript = false
   
+    CompilerProfiler summaryProfiler
     Math math
     ExpressionsTester expressions
     TypeCheckTester typeChecks
@@ -152,6 +153,9 @@ class CompilerTestSuite
 
         number percent = math:Round((passed  * 100.0) / (total * 1.0), 3) //known bug workaround. This value should be 2, not three
         output "Total Percentage: " + percent + "%"
+
+        output "Total Profiling Data per phase:"
+        summaryProfiler:OutputSummaryTimes()
     end
 
     action Test(Array<File> files, Array<text> reply)
@@ -206,6 +210,8 @@ class CompilerTestSuite
         testFile = files:Get(0)
         compiler:SetMain(testFile)
         compiler:Compile(files)
+        CompilerProfiler profiler = compiler:GetCompilerProfiler()
+        summaryProfiler:Add(profiler)
 
         if compiler:IsCompilationErrorFree()
             File jar = compiler:GetDistributionFile()
@@ -257,6 +263,8 @@ class CompilerTestSuite
         compiler:SetMain(testFile)
         compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:Compile(files)
+        CompilerProfiler profiler = compiler:GetCompilerProfiler()
+        summaryProfiler:Add(profiler)
 
         if compiler:IsCompilationErrorFree() //run the program
             text convertedJavaScript = compiler:GetCompiledJavaScript()
@@ -283,6 +291,8 @@ class CompilerTestSuite
         result:isBytecodeTest = true
         compiler:SetMain(testFile)
         compiler:Compile(files)        
+        CompilerProfiler profiler = compiler:GetCompilerProfiler()
+        summaryProfiler:Add(profiler)
 
         if compiler:IsCompilationErrorFree()
             result:passed = false
@@ -307,6 +317,8 @@ class CompilerTestSuite
         compiler:SetMain(testFile)
         compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:Compile(files)
+        CompilerProfiler profiler = compiler:GetCompilerProfiler()
+        summaryProfiler:Add(profiler)
 
         if compiler:IsCompilationErrorFree()
             result:passed = false
@@ -395,6 +407,8 @@ class CompilerTestSuite
         Array<File> files
         files:Add(file)
         compiler:Compile(files)
+        CompilerProfiler profiler = compiler:GetCompilerProfiler()
+        summaryProfiler:Add(profiler)
         
         if compiler:IsCompilationErrorFree()
             File jar = compiler:GetDistributionFile()
@@ -547,6 +561,9 @@ class CompilerTestSuite
 
         compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:Compile(files)
+        CompilerProfiler profiler = compiler:GetCompilerProfiler()
+        summaryProfiler:Add(profiler)
+
         if compiler:IsCompilationErrorFree() //run the program
             text convertedJavaScript = compiler:GetCompiledJavaScript()
             result = RunJavaScript(convertedJavaScript)

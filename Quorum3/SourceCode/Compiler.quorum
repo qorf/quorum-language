@@ -8,6 +8,7 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.Containers.List
 use Libraries.Language.Compile.Translate.ClassOpcode
+use Libraries.System.DateTime
 
 class Compiler
     public constant number VERSION = 3.0
@@ -35,9 +36,7 @@ class Compiler
     public constant integer JAVASCRIPT = 1
     integer currentOutputType = 0
     boolean outputSpeechCommands = true
-
-    on create
-    end
+    CompilerProfiler profiler
 
     action SetOutputSpeech(boolean doSay)
         outputSpeechCommands = doSay
@@ -83,6 +82,9 @@ class Compiler
         Build.
     */
     action Compile(Array<File> files)
+        DateTime time
+        profiler:Empty()
+        profiler:Add(time:GetEpochTime())
         boolean isInvalidCompile = false
         if files = undefined
             isInvalidCompile = true
@@ -117,7 +119,8 @@ class Compiler
             Parse(file, listener)
             i = i + 1
         end
-        
+        profiler:Add(time:GetEpochTime())
+
         //This array will contain all files that must be built, 
         //including potentially some from the standard library
         //in order to build the requested files
@@ -127,12 +130,14 @@ class Compiler
         else 
             return now
         end
+        profiler:Add(time:GetEpochTime())
 
         if compilerErrorManager:IsCompilationErrorFree()
             TypeResolution()
         else 
             return now
         end
+        profiler:Add(time:GetEpochTime())
 
         Array<ClassOpcode> classOpcodes
         if compilerErrorManager:IsCompilationErrorFree()
@@ -153,6 +158,7 @@ class Compiler
         else 
             return now
         end
+        profiler:Add(time:GetEpochTime())
 
         File starter = files:Get(0)
         CheckMain(starter)
@@ -193,11 +199,13 @@ class Compiler
                         generator:Add(buildInterface)
                     end
                 end
+                profiler:Add(time:GetEpochTime())
 
                 //ok all of the classes are written in the jar. Now fill it up
                 //with any dependencies that are necessary.
                 WriteDependencies(generator)
                 generator:Close()
+                profiler:Add(time:GetEpochTime())
                 
             elseif currentOutputType = JAVASCRIPT
                 text result = ""
@@ -219,12 +227,15 @@ class Compiler
         end
     end
 
+    /*
+        This action returns a profiler that has tracked information about 
+        each phase of a compile as it goes. 
+    */
+    action GetCompilerProfiler returns CompilerProfiler
+        return profiler
+    end
 
-    //LoadDependency("/Library/Standard/Plugins/plugins", "/plugins")
-    //LoadDependency("/Library/Standard/Plugins/org", "/org")
     private action WriteDependencies(JarGenerator generator)
-        //first add all of the plugins folders
-        
         WritePlugins(generator, pluginFolder)
         
         File file
