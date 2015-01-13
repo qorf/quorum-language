@@ -1,5 +1,11 @@
-Integer i
-i:SetValue(5)
-Object o = cast(Object, i)
-Integer a = cast(Integer, o)
-output a:GetValue()
+class Main
+    action Main
+        Integer i
+        Object o        
+        i:SetValue(5.0)
+        o = cast(Object, i)
+        if o:Equals(i)
+            output "passed"
+        end
+    end
+end

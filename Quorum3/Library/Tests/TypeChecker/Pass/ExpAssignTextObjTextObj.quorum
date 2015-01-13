@@ -1,5 +1,11 @@
-Text t
-t:SetValue("text")
-Text txt = cast(Text, t)
-text x = txt:GetValue()
-output x
+class Main
+    action main
+        Text t
+        Text txt
+        t:SetValue("text")
+        txt = cast(Text, t)
+        if txt:GetValue() = "text"
+            output "passed"
+        end
+    end
+end

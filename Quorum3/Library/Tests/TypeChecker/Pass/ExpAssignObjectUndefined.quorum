@@ -1,6 +1,9 @@
-Object x = undefined
-Object o = cast(Object, x)
-
-if o = undefined
-    output "success"
+class Main
+    action Main
+        Object obj
+        obj = cast(Object, undefined)
+        if obj = undefined
+            output "passed"
+        end
+    end
 end

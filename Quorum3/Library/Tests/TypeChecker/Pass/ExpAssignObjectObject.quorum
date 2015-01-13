@@ -1,6 +1,10 @@
-Boolean b
-b:SetValue(true)
-Object o = cast(Object, b)
-Object x = cast(Object, o)
-Boolean a = cast(Boolean, x)
-output a:GetValue()
+class Main
+    action Main
+        Object x
+        Object o        
+        o = cast(Object, x)
+        if o:Equals(x)
+            output "passed"
+        end
+    end
+end

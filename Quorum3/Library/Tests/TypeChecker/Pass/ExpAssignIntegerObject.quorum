@@ -1,13 +1,12 @@
-use Libraries.Language.Errors.CastError
-
 class Main
-   action Main
-      check
+    action Main
+        Integer i
         Object o
-        integer i = cast(integer, o)
-      detect e is CastError
-        output "Error detected"
-      end
-   end
+        i:SetValue(5)
+        o = cast(Object, b)
+        integer int = cast(integer, o)
+        if int:GetValue() = 5
+            output "passed"
+        end
+    end
 end
-

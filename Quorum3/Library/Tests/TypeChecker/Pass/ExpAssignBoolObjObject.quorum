@@ -1,13 +1,12 @@
-use Libraries.Language.Errors.CastError
-
 class Main
-   action Main
-      check
+    action Main
+        Boolean b
         Object o
-        boolean bool = cast(boolean, o)
-      detect e is CastError
-        output "Error detected"
-      end
-   end
+        b:SetValue(true)
+        o = cast(Object, b)
+        Boolean bool = cast(Boolean, o)
+        if bool:GetValue() = true
+            output "passed"
+        end
+    end
 end
-

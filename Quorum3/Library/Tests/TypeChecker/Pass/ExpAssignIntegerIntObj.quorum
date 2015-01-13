@@ -1,4 +1,11 @@
-Integer int
-int:SetValue(5)
-integer i = cast(integer, int)
-output i
+class Main
+    Integer i
+    action Main
+        integer int
+        i:SetValue(5)
+        int = cast(integer, i)
+        if int = 5
+            output "passed"
+        end
+    end
+end

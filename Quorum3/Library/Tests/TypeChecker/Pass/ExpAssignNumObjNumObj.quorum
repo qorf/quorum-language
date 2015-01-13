@@ -1,5 +1,11 @@
-Number num
-num:SetValue(7.5)
-Number n = cast(Number, num)
-number x = n:GetValue()
-output x
+class Main
+    action Main
+        Number n
+        number num
+        n:SetValue(7.5)
+        num = cast(number, n)
+        if num:GetValue() = 7.5
+            output "passed"
+        end
+    end
+end

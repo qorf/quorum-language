@@ -1,4 +1,11 @@
-Boolean b
-b:SetValue(true)
-boolean bool = cast(boolean, b)
-output bool
+class Main
+    action Main
+        Boolean b
+        boolean bool
+        b:SetValue(true)
+        bool = cast(boolean, b)
+        if bool = true
+            output "passed"
+        end
+    end
+end

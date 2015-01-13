@@ -1,3 +1,9 @@
-Boolean bool = cast(Boolean, true)
-boolean x = bool:GetValue()
-output x
+class Main
+    action Main
+        Boolean bool
+        bool = cast(boolean, true)
+        if bool:GetValue() = true
+            output "passed"
+        end
+    end
+end

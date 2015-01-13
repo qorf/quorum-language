@@ -1,0 +1,11 @@
+class Main
+    Boolean b
+    Boolean bool
+    action Main
+        b:SetValue(true)
+        bool = cast(Boolean, b)
+        if bool:GetValue() = true
+            output "passed"
+        end
+    end
+end

@@ -1,2 +1,9 @@
-Text t = cast(Text, "text")
-output t:GetValue()
+class Main
+    action main
+        Text txt
+        txt = cast(Text, "text")
+        if txt:GetValue() = "text"
+            output "passed"
+        end
+    end
+end

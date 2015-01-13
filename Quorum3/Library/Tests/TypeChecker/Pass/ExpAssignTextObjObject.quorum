@@ -1,13 +1,12 @@
-use Libraries.Language.Errors.CastError
-
 class Main
-   action Main
-      check
+    action Main
+        Text t
         Object o
-        Text n = cast(text, o)
-      detect e is CastError
-        output "Error detected"
-      end
-   end
+        t:SetValue("text")
+        o = cast(Object, t)
+        Text txt = cast(Text, o)
+        if txt:GetValue() = "text"
+            output "passed"
+        end
+    end
 end
-
