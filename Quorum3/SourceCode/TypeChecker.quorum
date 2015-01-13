@@ -1219,7 +1219,7 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:BOOLEAN_PRIMITIVE_KEY, constants:OBJECT_KEY, op, false)
         result = GetSubclassNarrowingConvertResult()
         type = result:result
-        type:SetToInteger()
+        type:SetToBoolean()
         points = result:points
         points:SetPoints(points:PARENT_AUTOBOX)
         ObjectToPrimitiveBooleanCast objectToPrimitiveBooleanCast
@@ -1231,7 +1231,7 @@ class TypeChecker
         key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:OBJECT_KEY, op, false)
         result = GetSubclassNarrowingConvertResult()
         type = result:result
-        type:SetToInteger()
+        type:SetToNumber()
         points = result:points
         points:SetPoints(points:PARENT_AUTOBOX)
         ObjectToPrimitiveNumberCast objectToPrimitiveNumberCast
