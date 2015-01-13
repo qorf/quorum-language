@@ -2142,6 +2142,13 @@ class TypeChecker
         type:SetToObject(staticKey)
         results:Add(key, result)
 
+        op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(staticKey, constants:UNDEFINED_KEY, op, false)
+        result = GetNoConvertResult()
+        type = result:result
+        type:SetToObject(staticKey)
+        results:Add(key, result)
+
         Iterator<Class> parents = clazz:GetParentClasses()
         repeat while parents:HasNext()
             Class p = parents:Next()
