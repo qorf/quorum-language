@@ -60,23 +60,17 @@ class TypeCheckTester
         ExpAssignBooleanText()
         ExpAssignIntObjIntObj()
         ExpAssignIntObjInteger()
-        ExpAssignIntObjNumObj()
-        ExpAssignIntObjNumber()
         ExpAssignIntObjObject()
         ExpAssignIntObjUndefined()
         ExpAssignIntegerIntObj()
         ExpAssignIntegerInteger()
-        ExpAssignIntegerNumObj()
         ExpAssignIntegerNumber()
         ExpAssignIntegerObject()
         ExpAssignIntegerText()
-        ExpAssignNumObjIntObj()
-        ExpAssignNumObjInteger()
         ExpAssignNumObjNumObj()
         ExpAssignNumObjNumber()
         ExpAssignNumObjObject()
         ExpAssignNumObjUndefined()
-        ExpAssignNumberIntObj()
         ExpAssignNumberInteger()
         ExpAssignNumberNumObj()
         ExpAssignNumberNumber()
@@ -113,23 +107,17 @@ class TypeCheckTester
         ExpAssignBooleanTextField()
         ExpAssignIntObjIntObjField()
         ExpAssignIntObjIntegerField()
-        ExpAssignIntObjNumObjField()
-        ExpAssignIntObjNumberField()
         ExpAssignIntObjObjectField()
         ExpAssignIntObjUndefinedField()
         ExpAssignIntegerIntObjField()
         ExpAssignIntegerIntegerField()
-        ExpAssignIntegerNumObjField()
         ExpAssignIntegerNumberField()
         ExpAssignIntegerObjectField()
         ExpAssignIntegerTextField()
-        ExpAssignNumObjIntObjField()
-        ExpAssignNumObjIntegerField()
         ExpAssignNumObjNumObjField()
         ExpAssignNumObjNumberField()
         ExpAssignNumObjObjectField()
         ExpAssignNumObjUndefinedField()
-        ExpAssignNumberIntObjField()
         ExpAssignNumberIntegerField()
         ExpAssignNumberNumObjField()
         ExpAssignNumberNumberField()
@@ -276,6 +264,10 @@ class TypeCheckTester
         ExpAssignIntObjBoolObjField()
         ExpAssignIntObjBoolean()
         ExpAssignIntObjBooleanField()
+        ExpAssignIntObjNumObj()
+        ExpAssignIntObjNumObjField()
+        ExpAssignIntObjNumber()
+        ExpAssignIntObjNumberField()
         ExpAssignIntObjText()
         ExpAssignIntObjTextField()
         ExpAssignIntObjTextObj()
@@ -284,6 +276,8 @@ class TypeCheckTester
         ExpAssignIntegerBoolObjField()
         ExpAssignIntegerBoolean()
         ExpAssignIntegerBooleanField()
+        ExpAssignIntegerNumObj()
+        ExpAssignIntegerNumObjField()
         ExpAssignIntegerTextObj()
         ExpAssignIntegerTextObjField()
         ExpAssignIntegerUndefined()
@@ -292,6 +286,10 @@ class TypeCheckTester
         ExpAssignNumObjBoolObjField()
         ExpAssignNumObjBoolean()
         ExpAssignNumObjBooleanField()
+        ExpAssignNumObjIntObj()
+        ExpAssignNumObjIntObjField()
+        ExpAssignNumObjInteger()
+        ExpAssignNumObjIntegerField()
         ExpAssignNumObjText()
         ExpAssignNumObjTextField()
         ExpAssignNumObjTextObj()
@@ -300,6 +298,8 @@ class TypeCheckTester
         ExpAssignNumberBoolObjField()
         ExpAssignNumberBoolean()
         ExpAssignNumberBooleanField()
+        ExpAssignNumberIntObj()
+        ExpAssignNumberIntObjField()
         ExpAssignNumberTextObj()
         ExpAssignNumberTextObjField()
         ExpAssignNumberUndefined()
@@ -958,28 +958,6 @@ action AutoBoxingAndMethodOverloadingNum
         suite:TestJavaScript(files, results)
     end
 
-    action ExpAssignIntObjNumObj
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "ExpAssignIntObjNumObj.quorum")
-        files:Add(main)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action ExpAssignIntObjNumber
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "ExpAssignIntObjNumber.quorum")
-        files:Add(main)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
     action ExpAssignIntObjObject
         Array<File> files
         Array<text> results
@@ -1024,17 +1002,6 @@ action AutoBoxingAndMethodOverloadingNum
         suite:TestJavaScript(files, results)
     end
 
-    action ExpAssignIntegerNumObj
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "ExpAssignIntegerNumObj.quorum")
-        files:Add(main)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
     action ExpAssignIntegerNumber
         Array<File> files
         Array<text> results
@@ -1062,28 +1029,6 @@ action AutoBoxingAndMethodOverloadingNum
         Array<text> results
         File main
         main:SetPath(path + "ExpAssignIntegerText.quorum")
-        files:Add(main)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action ExpAssignNumObjIntObj
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "ExpAssignNumObjIntObj.quorum")
-        files:Add(main)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action ExpAssignNumObjInteger
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "ExpAssignNumObjInteger.quorum")
         files:Add(main)
         results:Add(0, "passed")
         suite:Test(files, results)
@@ -1128,17 +1073,6 @@ action AutoBoxingAndMethodOverloadingNum
         Array<text> results
         File main
         main:SetPath(path + "ExpAssignNumObjUndefined.quorum")
-        files:Add(main)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action ExpAssignNumberIntObj
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "ExpAssignNumberIntObj.quorum")
         files:Add(main)
         results:Add(0, "passed")
         suite:Test(files, results)
@@ -1541,28 +1475,6 @@ action AutoBoxingAndMethodOverloadingNum
         suite:TestJavaScript(files, results)
     end
 
-    action ExpAssignIntObjNumObjField
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "ExpAssignIntObjNumObjField.quorum")
-        files:Add(main)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action ExpAssignIntObjNumberField
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "ExpAssignIntObjNumberField.quorum")
-        files:Add(main)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
     action ExpAssignIntObjObjectField
         Array<File> files
         Array<text> results
@@ -1607,17 +1519,6 @@ action AutoBoxingAndMethodOverloadingNum
         suite:TestJavaScript(files, results)
     end
 
-    action ExpAssignIntegerNumObjField
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "ExpAssignIntegerNumObjField.quorum")
-        files:Add(main)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
     action ExpAssignIntegerNumberField
         Array<File> files
         Array<text> results
@@ -1645,28 +1546,6 @@ action AutoBoxingAndMethodOverloadingNum
         Array<text> results
         File main
         main:SetPath(path + "ExpAssignIntegerTextField.quorum")
-        files:Add(main)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action ExpAssignNumObjIntObjField
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "ExpAssignNumObjIntObjField.quorum")
-        files:Add(main)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action ExpAssignNumObjIntegerField
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "ExpAssignNumObjIntegerField.quorum")
         files:Add(main)
         results:Add(0, "passed")
         suite:Test(files, results)
@@ -1711,17 +1590,6 @@ action AutoBoxingAndMethodOverloadingNum
         Array<text> results
         File main
         main:SetPath(path + "ExpAssignNumObjUndefinedField.quorum")
-        files:Add(main)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action ExpAssignNumberIntObjField
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "ExpAssignNumberIntObjField.quorum")
         files:Add(main)
         results:Add(0, "passed")
         suite:Test(files, results)
@@ -3303,6 +3171,42 @@ action AutoBoxingAndMethodOverloadingNum
         suite:TestJavaScriptFail(files)
     end
 
+    action ExpAssignIntObjNumObj
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignIntObjNumObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ExpAssignIntObjNumObjField
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignIntObjNumObjField.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ExpAssignIntObjNumber
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignIntObjNumber.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ExpAssignIntObjNumberField
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignIntObjNumberField.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
     action ExpAssignIntObjText
         Array<File> files
         File main
@@ -3352,6 +3256,24 @@ action AutoBoxingAndMethodOverloadingNum
         Array<File> files
         File main
         main:SetPath(path + "ExpAssignIntegerBoolObjField.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+    
+    action ExpAssignIntegerNumObj
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignIntegerNumObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ExpAssignIntegerNumObjField
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignIntegerNumObjField.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
@@ -3447,6 +3369,42 @@ action AutoBoxingAndMethodOverloadingNum
         suite:TestJavaScriptFail(files)
     end
 
+    action ExpAssignNumObjIntObj
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignNumObjIntObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ExpAssignNumObjIntObjField
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignNumObjIntObjField.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ExpAssignNumObjInteger
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignNumObjInteger.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ExpAssignNumObjIntegerField
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignNumObjIntegerField.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
     action ExpAssignNumObjText
         Array<File> files
         File main
@@ -3514,6 +3472,24 @@ action AutoBoxingAndMethodOverloadingNum
         Array<File> files
         File main
         main:SetPath(path + "ExpAssignNumberBooleanField.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ExpAssignNumberIntObj
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignNumberIntObj.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ExpAssignNumberIntObjField
+        Array<File> files
+        File main
+        main:SetPath(path + "ExpAssignNumberIntObjField.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
