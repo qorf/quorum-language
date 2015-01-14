@@ -2,9 +2,10 @@ class Main
     action Main
         Integer i
         Object o
+        integer int = 0
         i:SetValue(5)
         o = cast(Object, b)
-        integer int = cast(integer, o)
+        int = cast(integer, o)
         if int:GetValue() = 5
             output "passed"
         end

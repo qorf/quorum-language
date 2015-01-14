@@ -1,10 +1,11 @@
 class Main
+    Boolean b
+    Object o
+    boolean bool = false
     action Main
-        Boolean b
-        Object o
         b:SetValue(true)
         o = cast(Object, b)
-        boolean bool = cast(boolean, o)
+        bool = cast(boolean, o)
         if bool = true
             output "passed"
         end

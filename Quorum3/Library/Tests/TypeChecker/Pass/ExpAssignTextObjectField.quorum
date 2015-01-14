@@ -1,10 +1,11 @@
 class Main
     Text t
     Object o
+    text txt = ""
     action Main
         t:SetValue("text")
         o = cast(Object, t)
-        text txt = cast(text, o)
+        txt = cast(text, o)
         if txt = "text"
             output "passed"
         end
