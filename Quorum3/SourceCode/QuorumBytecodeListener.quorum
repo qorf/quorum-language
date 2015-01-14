@@ -392,23 +392,47 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action ExitOutputStatement(OutputContext context)
         QuorumOpcode op = opcodeStack:Pop()
-        OutputOpcode out
-        out:SetOpcode(op)
-        out:SetMethodWriter(methodWriter)
-        currentBlockOpcode:Add(out)
+        Type type = op:GetType()
+        if type:IsPrimitive()
+            OutputOpcode out
+            out:SetOpcode(op)
+            out:SetMethodWriter(methodWriter)
+            currentBlockOpcode:Add(out)
+        else
+            CompilerError error
+            error:SetLocation(context:GetLocation())
+            error:SetErrorMessage("Output statements can only output primitive types (e.g., integer, text, number, and boolean).")
+            CompilerErrorType t
+            t:SetCurrentType(t:INCOMPATIBLE_TYPES)
+            error:SetCompilerErrorType(t)
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+        end
     end
 
     action ExitSayStatement(SayContext context)
         QuorumOpcode op = opcodeStack:Pop()
-        SayOpcode out
+        Type type = op:GetType()
+        if type:IsPrimitive()
+            SayOpcode out
 
-        if not outputSpeechCommands
-            out:SetOutputSpeech(outputSpeechCommands)
+            if not outputSpeechCommands
+                out:SetOutputSpeech(outputSpeechCommands)
+            end
+
+            out:SetOpcode(op)
+            out:SetMethodWriter(methodWriter)
+            currentBlockOpcode:Add(out)
+        else
+            CompilerError error
+            error:SetLocation(context:GetLocation())
+            error:SetErrorMessage("Say statements can only output primitive types (e.g., integer, text, number, and boolean).")
+            CompilerErrorType t
+            t:SetCurrentType(t:INCOMPATIBLE_TYPES)
+            error:SetCompilerErrorType(t)
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
         end
-
-        out:SetOpcode(op)
-        out:SetMethodWriter(methodWriter)
-        currentBlockOpcode:Add(out)
     end
 
     action EnterBlock(BlockContext context)
