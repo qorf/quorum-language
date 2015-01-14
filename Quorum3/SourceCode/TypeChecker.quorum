@@ -961,6 +961,13 @@ class TypeChecker
         results:Add(key, result)
 
         op = GetOperation(opConstant:CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:UNDEFINED_KEY, op, false)
+        result = GetNarrowingConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:CAST)
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
         type = result:result
@@ -1118,6 +1125,13 @@ class TypeChecker
         results:Add(key, result)
 
         op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:UNDEFINED_KEY, op, false)
+        result = GetNarrowingConvertResult()
+        type = result:result
+        type:SetToText()
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:IMPLICIT_CAST)
         key = GenerateTypeCheckKey(constants:INTEGER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetNoConvertResult()
         type = result:result
@@ -1131,35 +1145,33 @@ class TypeChecker
         type:SetToNumber()
         results:Add(key, result)
 
-        op = GetOperation(opConstant:IMPLICIT_CAST)
-        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
-        result = GetWideningConvertResult()
-        points = result:points
-        points:SetPoints(points:LOSSLESS_CONVERT)
-        type = result:result
-        type:SetToText()
-        result:SetQuorumOpcode(integerToTextCast)
-        results:Add(key, result)
+//        op = GetOperation(opConstant:IMPLICIT_CAST)
+//        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+//        result = GetWideningConvertResult()
+//        points = result:points
+//        points:SetPoints(points:LOSSLESS_CONVERT)
+//        type = result:result
+//        type:SetToText()
+//        result:SetQuorumOpcode(integerToTextCast)
+//        results:Add(key, result)
 
-        op = GetOperation(opConstant:IMPLICIT_CAST)
-        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
-        result = GetWideningConvertResult()
-        points = result:points
-        points:SetPoints(points:LOSSLESS_CONVERT)
-        type = result:result
-        type:SetToText()
-        result:SetQuorumOpcode(numberToTextCast)
-        results:Add(key, result)
+//        op = GetOperation(opConstant:IMPLICIT_CAST)
+//        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+//        result = GetWideningConvertResult()
+//        points = result:points
+//        points:SetPoints(points:LOSSLESS_CONVERT)
+//        type = result:result
+//        type:SetToText()
+//        result:SetQuorumOpcode(numberToTextCast)
+//        results:Add(key, result)
 
         op = GetOperation(opConstant:IMPLICIT_CAST)
         key = GenerateTypeCheckKey(constants:NUMBER_PRIMITIVE_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetWideningConvertResult()
         points = result:points
         points:SetPoints(points:LOSSLESS_CONVERT)
-        //caster = GetImplicitCastOpcode(opcodes:GetIntegerToDouble())
         type = result:result
         type:SetToNumber()
-        //result:SetQuorumOpcode(caster)
         result:SetQuorumOpcode(integerToNumberCast)
         results:Add(key, result)
         
@@ -1170,15 +1182,15 @@ class TypeChecker
         type:SetToBoolean()
         results:Add(key, result)
 
-        op = GetOperation(opConstant:IMPLICIT_CAST)
-        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
-        result = GetWideningConvertResult()
-        points = result:points
-        points:SetPoints(points:LOSSLESS_CONVERT)
-        type = result:result
-        type:SetToText()
-        result:SetQuorumOpcode(booleanToTextCast)
-        results:Add(key, result)
+//        op = GetOperation(opConstant:IMPLICIT_CAST)
+//        key = GenerateTypeCheckKey(constants:TEXT_PRIMITIVE_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+//        result = GetWideningConvertResult()
+//        points = result:points
+//        points:SetPoints(points:LOSSLESS_CONVERT)
+//        type = result:result
+//        type:SetToText()
+//        result:SetQuorumOpcode(booleanToTextCast)
+//        results:Add(key, result)
 
         AddAutoBoxedTypes()
     end
@@ -1243,7 +1255,7 @@ class TypeChecker
         //autoboxes from primitives to object
 
         //implicit cast from integer to object
-        op = GetOperation(opConstant:IMPLICIT_CAST)
+        op = GetOperation(opConstant:CAST)
         key = GenerateTypeCheckKey(constants:OBJECT_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
         result = GetSubclassWideningConvertResult()
         type = result:result
@@ -1256,7 +1268,7 @@ class TypeChecker
         results:Add(key, result)
 
         //explicit cast from Integer to boolean 1739
-        op = GetOperation(opConstant:IMPLICIT_CAST)
+        op = GetOperation(opConstant:CAST)
         key = GenerateTypeCheckKey(constants:OBJECT_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
         result = GetSubclassNarrowingConvertResult()
         type = result:result
@@ -1268,7 +1280,7 @@ class TypeChecker
         result:SetQuorumOpcode(numberPrimitiveToObjectCast)
         results:Add(key, result)
 
-        op = GetOperation(opConstant:IMPLICIT_CAST)
+        op = GetOperation(opConstant:CAST)
         key = GenerateTypeCheckKey(constants:OBJECT_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
         result = GetSubclassNarrowingConvertResult()
         type = result:result
@@ -1280,7 +1292,7 @@ class TypeChecker
         result:SetQuorumOpcode(booleanPrimitiveToObjectCast)
         results:Add(key, result)
 
-        op = GetOperation(opConstant:IMPLICIT_CAST)
+        op = GetOperation(opConstant:CAST)
         key = GenerateTypeCheckKey(constants:OBJECT_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
         result = GetSubclassNarrowingConvertResult()
         type = result:result
@@ -1292,7 +1304,54 @@ class TypeChecker
         result:SetQuorumOpcode(textPrimitiveToObjectCast)
         results:Add(key, result)
 
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:OBJECT_KEY, constants:INTEGER_PRIMITIVE_KEY, op, false)
+        result = GetSubclassWideningConvertResult()
+        type = result:result
+        type:SetToObject(type:OBJECT_KEY)
+        points = result:points
+        points:SetPoints(points:PARENT_AUTOBOX)
+        IntegerPrimitiveToObjectCast integerPrimitiveToObjectCast2
+        integerPrimitiveToObjectCast2:SetType(type)
+        result:SetQuorumOpcode(integerPrimitiveToObjectCast2)
+        results:Add(key, result)
 
+        //explicit cast from Integer to boolean 1739
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:OBJECT_KEY, constants:NUMBER_PRIMITIVE_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToObject(type:OBJECT_KEY)
+        points = result:points
+        points:SetPoints(points:PARENT_AUTOBOX)
+        NumberPrimitiveToObjectCast numberPrimitiveToObjectCast2
+        numberPrimitiveToObjectCast2:SetType(type)
+        result:SetQuorumOpcode(numberPrimitiveToObjectCast2)
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:OBJECT_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToObject(type:OBJECT_KEY)
+        points = result:points
+        points:SetPoints(points:PARENT_AUTOBOX)
+        BooleanPrimitiveToObjectCast booleanPrimitiveToObjectCast2
+        booleanPrimitiveToObjectCast2:SetType(type)
+        result:SetQuorumOpcode(booleanPrimitiveToObjectCast2)
+        results:Add(key, result)
+
+        op = GetOperation(opConstant:IMPLICIT_CAST)
+        key = GenerateTypeCheckKey(constants:OBJECT_KEY, constants:TEXT_PRIMITIVE_KEY, op, false)
+        result = GetSubclassNarrowingConvertResult()
+        type = result:result
+        type:SetToObject(type:OBJECT_KEY)
+        points = result:points
+        points:SetPoints(points:PARENT_AUTOBOX)
+        TextPrimitiveToObjectCast textPrimitiveToObjectCast2
+        textPrimitiveToObjectCast2:SetType(type)
+        result:SetQuorumOpcode(textPrimitiveToObjectCast2)
+        results:Add(key, result)
 
 
         //Various integer autoboxes
