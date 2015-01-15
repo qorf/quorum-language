@@ -2444,6 +2444,8 @@ class TypeChecker
     private action RecursiveCanInfer(QuorumOpcode opcode) returns boolean
         if opcode is QuorumConstant
             return true
+        elseif opcode is ExplicitCastOpcode
+            return true
         elseif opcode is ChainedActionCallOpcode
             return true
         elseif opcode is UnaryOpcode
