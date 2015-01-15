@@ -94,6 +94,7 @@ class ChainedActionCallOpcode is QuorumOpcode
 
     action GetTemplateCopy returns QuorumOpcode
         ChainedActionCallOpcode op
+        op:SetType(me:GetType())
         return op
     end
 end
