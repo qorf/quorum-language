@@ -393,6 +393,10 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitOutputStatement(OutputContext context)
         QuorumOpcode op = opcodeStack:Pop()
         Type type = op:GetType()
+
+        if type = undefined
+            return now //This cannot be determined, but the error has been issued already.
+        end
         if type:IsPrimitive()
             OutputOpcode out
             out:SetOpcode(op)
@@ -413,6 +417,11 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitSayStatement(SayContext context)
         QuorumOpcode op = opcodeStack:Pop()
         Type type = op:GetType()
+
+        if type = undefined
+            return now //This cannot be determined, but the error has been issued already.
+        end
+
         if type:IsPrimitive()
             SayOpcode out
 
@@ -1816,6 +1825,10 @@ class QuorumBytecodeListener is QuorumSourceListener
         Type left = context:type //this has to be resolved
         currentClass:ResolveType(context:GetLocation(), left, GetSymbolTable(), GetCompilerErrorManager())
 
+        Location location = context:GetLocation()
+        if location:GetLineNumber() = 1
+            a = 5
+        end
 
         TypeCheckResult result = checker:Check(left, right:GetType(), op)
         CompilerError error = result:GetCompilerError(context:GetLocation())
