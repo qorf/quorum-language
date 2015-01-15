@@ -70,24 +70,39 @@ public class JarGenerator {
     public void Add(File$Interface source) {
         BufferedInputStream in = null;
         try {
-            String name = source.GetPath();
+            String name = source.GetPath().replace("\\", "/");
+            
+            if(source.IsDirectory() && !name.endsWith("/")) {
+                name = name + "/";
+            }
             JarEntry entry = new JarEntry(name);
             entry.setTime((long) source.GetLastModifiedNative());
             target.putNextEntry(entry);
-            File file = new File(source.GetAbsolutePath());
-            in = new BufferedInputStream(new FileInputStream(file));
+            
+            if(!source.IsDirectory()) {
+                File file = new File(source.GetAbsolutePath());
+                in = new BufferedInputStream(new FileInputStream(file));
 
-            byte[] buffer = new byte[1024];
-            while (true) {
-                int count = in.read(buffer);
-                if (count == -1) {
-                    break;
+                byte[] buffer = new byte[1024];
+                while (true) {
+                    int count = in.read(buffer);
+                    if (count == -1) {
+                        break;
+                    }
+                    target.write(buffer, 0, count);
                 }
-                target.write(buffer, 0, count);
             }
             target.closeEntry();
         } catch (IOException ex) {
             Logger.getLogger(JarGenerator.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            if(in != null) {
+                try {
+                    in.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(JarGenerator.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }
     }
 
