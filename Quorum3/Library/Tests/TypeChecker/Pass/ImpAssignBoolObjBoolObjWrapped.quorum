@@ -1,8 +1,13 @@
 class Main
+    Boolean v
     action Main
-        Boolean b
-        b:SetValue(true)
-        Boolean bool = b
-        output bool:GetValue()
+        v:SetValue(true)
+        Test(v)
+    end
+
+    action Test(Boolean var)
+        if var:GetValue() = true
+            output "passed"
+        end
     end
 end
