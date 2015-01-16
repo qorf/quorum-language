@@ -1,12 +1,11 @@
 class Main
+    Boolean v = undefined
     action Main
-        Boolean v
-        v:SetValue(true)
         Test(v)
     end
 
     action Test(Boolean var)
-        if var:GetValue() = true
+        if var = undefined
             output "passed"
         end
     end
