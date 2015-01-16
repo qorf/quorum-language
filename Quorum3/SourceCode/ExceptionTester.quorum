@@ -95,6 +95,7 @@ class ExceptionTester
         RepeatWhileInDetectWithAlways()
         RethrowError()
         RethrowErrorWithAlways()
+        RuntimeCastError()
         TriplyNestedCheckDetect()
         TriplyNestedCheckDetectAlways()
         TriplyNestedCheckDetectSomeAlways()
@@ -1035,6 +1036,17 @@ class ExceptionTester
         files:Add(main)
         results:Add(0, "always")
         results:Add(1, "alert")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action RuntimeCastError 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RuntimeCastError.quorum")
+        files:Add(main)
+        results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
