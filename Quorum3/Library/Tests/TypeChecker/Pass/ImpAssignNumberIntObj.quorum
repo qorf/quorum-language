@@ -1,4 +1,13 @@
-Integer int
-int:SetValue(5)
-number n = int
-output n
+class Main
+    action Main
+        Integer v
+        v:SetValue(5)
+        Test(v)
+    end
+
+    action Test(number var)
+        if var = 5.0
+            output "passed"
+        end
+    end
+end

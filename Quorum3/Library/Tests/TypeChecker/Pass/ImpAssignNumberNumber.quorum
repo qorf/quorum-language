@@ -1,2 +1,12 @@
-number n = 7.5
-output n
+class Main
+    action Main
+        number v = 5
+        Test(v)
+    end
+
+    action Test(number var)
+        if var = 5.0
+            output "passed"
+        end
+    end
+end

@@ -1,12 +1,12 @@
 class Main
+    Boolean v
     action Main
-        Integer v
-        v:SetValue(5)
+        v:SetValue(true)
         Test(v)
     end
 
-    action Test(Integer var)
-        if var:GetValue() = 5
+    action Test(boolean var)
+        if var = true
             output "passed"
         end
     end

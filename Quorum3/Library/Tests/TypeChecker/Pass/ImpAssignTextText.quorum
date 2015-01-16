@@ -1,2 +1,12 @@
-text t = "t"
-output t
+class Main
+    action Main
+        text v = "text"
+        Test(v)
+    end
+
+    action Test(text var)
+        if var = "text"
+            output "passed"
+        end
+    end
+end

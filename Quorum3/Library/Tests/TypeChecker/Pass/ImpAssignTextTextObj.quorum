@@ -1,4 +1,13 @@
-Text t
-t:SetValue("t")
-text txt = t
-output txt
+class Main
+    action Main
+        Text v
+        v:SetValue("text")
+        Test(v)
+    end
+
+    action Test(text var)
+        if var = "text"
+            output "passed"
+        end
+    end
+end

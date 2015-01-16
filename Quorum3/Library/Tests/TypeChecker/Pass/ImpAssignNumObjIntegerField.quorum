@@ -1,12 +1,11 @@
 class Main
+    integer v = 5
     action Main
-        Integer v
-        v:SetValue(5)
         Test(v)
     end
 
-    action Test(Integer var)
-        if var:GetValue() = 5
+    action Test(Number var)
+        if var:GetValue() = 5.0
             output "passed"
         end
     end

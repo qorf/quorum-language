@@ -5,8 +5,9 @@ class Main
         Test(v)
     end
 
-    action Test(boolean var)
-        if var = true
+    action Test(Object var)
+        Boolean value = cast(Boolean, var)
+        if value:GetValue() = true
             output "passed"
         end
     end

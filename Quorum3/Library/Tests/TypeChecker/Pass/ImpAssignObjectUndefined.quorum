@@ -1,12 +1,11 @@
 class Main
     action Main
-        Integer v
-        v:SetValue(5)
+        Object v = undefined
         Test(v)
     end
 
-    action Test(Integer var)
-        if var:GetValue() = 5
+    action Test(Object var)
+        if value = undefined
             output "passed"
         end
     end

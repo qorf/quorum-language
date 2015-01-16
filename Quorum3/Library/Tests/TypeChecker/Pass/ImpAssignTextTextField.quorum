@@ -1,11 +1,11 @@
 class Main
+    text v = "text"
     action Main
-        boolean v = true
         Test(v)
     end
 
-    action Test(boolean var)
-        if var = true
+    action Test(text var)
+        if var = "text"
             output "passed"
         end
     end

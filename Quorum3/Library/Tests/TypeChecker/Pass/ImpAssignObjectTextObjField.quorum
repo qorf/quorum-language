@@ -1,12 +1,13 @@
 class Main
+    Text v
     action Main
-        Text v
         v:SetValue("text")
         Test(v)
     end
 
-    action Test(Text var)
-        if var:GetValue() = "text"
+    action Test(Object var)
+        Text value = cast(Text, var)
+        if value:GetValue() = "text"
             output "passed"
         end
     end

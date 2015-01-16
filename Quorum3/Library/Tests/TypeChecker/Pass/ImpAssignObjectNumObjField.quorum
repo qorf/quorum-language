@@ -1,12 +1,13 @@
 class Main
+    Number v
     action Main
-        Number v
         v:SetValue(5.0)
         Test(v)
     end
 
-    action Test(Number var)
-        if var:GetValue() = 5.0
+    action Test(Object var)
+        Number value = cast(Number, var)
+        if value:GetValue() = 5.0
             output "passed"
         end
     end

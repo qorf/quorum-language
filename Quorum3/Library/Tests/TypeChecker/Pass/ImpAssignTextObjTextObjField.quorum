@@ -1,12 +1,12 @@
 class Main
+    Text v
     action Main
-        Integer v
-        v:SetValue(5)
+        v:SetValue("text")
         Test(v)
     end
 
-    action Test(Integer var)
-        if var:GetValue() = 5
+    action Test(Text var)
+        if var:GetValue() = "text"
             output "passed"
         end
     end

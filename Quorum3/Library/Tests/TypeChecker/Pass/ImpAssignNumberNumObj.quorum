@@ -1,4 +1,13 @@
-Number num
-num:SetValue(7.5)
-number n = num
-output n
+class Main
+    action Main
+        Number v
+        v:SetValue(5.0)
+        Test(v)
+    end
+
+    action Test(number var)
+        if var = 5.0
+            output "passed"
+        end
+    end
+end
