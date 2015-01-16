@@ -1189,6 +1189,10 @@ class QuorumBytecodeListener is QuorumSourceListener
         SymbolTable table = GetSymbolTable()
         Type fieldType = undefined
         Class fieldClass = undefined
+
+        if currentClass:GetName() = "Main"
+            a = 5
+        end
         if isObjectCall = true and variable = undefined
             CompilerError classNotFoundError
             classNotFoundError:SetLocation(context:GetLocation())
@@ -1201,6 +1205,20 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now
         elseif isObjectCall = true and variable not= undefined
             fieldType = variable:GetType()
+            if fieldType:IsPrimitive()
+                text name = context:name
+                if name = "SetValue" or name = "SetValueNative" or name = "GetValue" or name = "GetValueNative"//these calls aren't allowed on primitives
+                    CompilerError error
+                    error:SetLocation(context:GetLocation())
+                    error:SetErrorMessage("I found a call to the primitive calling the action " + name + ", but this cannot be called on a primitive.")
+                    CompilerErrorType errorType
+                    errorType:SetCurrentType(errorType:PRIMITIVE_INVALID_ACTION_CALL)
+                    error:SetCompilerErrorType(errorType)
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(error)
+                    return now
+                end
+            end
             fieldClass= table:GetClass(fieldType:ConvertToNonPrimitiveStaticKey())
             
             if fieldClass = undefined
@@ -1664,9 +1682,6 @@ class QuorumBytecodeListener is QuorumSourceListener
 
             if isPrimitive //make sure the call is allowed and inform the writer
                 Action act = resolved:resolvedAction
-                if act = undefined
-                    a = 5
-                end
                 
                 text name = act:GetName()
                 if name = "SetValue" or name = "SetValueNative" or name = "GetValue" or name = "GetValueNative"//these calls aren't allowed on primitives
