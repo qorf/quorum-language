@@ -4,6 +4,8 @@
  */
 package plugins.quorum.Libraries.Language.Errors;
 
+import quorum.Libraries.Language.Errors.*;
+
 /**
  *
  * @author Andreas Stefik
@@ -13,6 +15,22 @@ public class Error {
     private StackTraceElement[] stackTrace;
     
     public Error() {
+    }
+    
+    
+    public static quorum.Libraries.Language.Errors.Error ConvertToQuorumError(Throwable throwable) {
+        if(throwable instanceof NullPointerException) {
+            UndefinedObjectError error = new UndefinedObjectError();
+            return error;
+        } else if(throwable instanceof ClassCastException) {
+            CastError error = new CastError();
+            return error;
+        } else if(throwable instanceof quorum.Libraries.Language.Errors.Error) {
+            return (quorum.Libraries.Language.Errors.Error) throwable;
+        } else {
+            quorum.Libraries.Language.Errors.Error error = new quorum.Libraries.Language.Errors.Error();
+            return error;
+        }
     }
     
     /**
