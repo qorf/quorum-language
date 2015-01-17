@@ -377,6 +377,19 @@ class QuorumBytecodeListener is QuorumSourceListener
             if result:errorType = undefined
                 IsOpcode opcode = cast(IsOpcode, result:GetQuorumOpcode())
                 opcode:SetCastTo(right)
+
+                if currentClass:GetName() = "Main"
+                    a = 5
+                end
+                text newKey = right:GetStaticKey()
+                SymbolTable table = GetSymbolTable()
+                Class cl = table:GetClass(newKey)
+                if cl not= undefined
+                    if cl:IsError()
+                        opcode:SetIsErrorCast(true)
+                    end
+                end //should this be an error, or is it already caught?
+
                 opcode:SetOpcode(op)
                 opcode:SetMethodWriter(methodWriter)
                 opcodeStack:Push(opcode)

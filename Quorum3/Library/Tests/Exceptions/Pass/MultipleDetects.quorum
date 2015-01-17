@@ -10,6 +10,7 @@ use Libraries.Language.Errors.OutOfBoundsError
 class Main
     action Main
         check
+            integer a = 0
             alert("error")
         detect e is OutOfBoundsError
             output "OutOfBoundsError"

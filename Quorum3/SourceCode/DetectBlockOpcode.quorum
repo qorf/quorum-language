@@ -57,9 +57,9 @@ class DetectBlockOpcode is QuorumOpcode
     action Write 
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
 
-        if not isAlways
-            WriteExceptionVariable()
-        end
+//        if not isAlways
+//            WriteExceptionVariable()
+//        end
 
         if block not= undefined
             block:Write()
@@ -68,6 +68,7 @@ class DetectBlockOpcode is QuorumOpcode
 
     action WriteExceptionVariable
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        
         if exceptionVariable not= undefined
             methodWriter:VisitVariable(opcodes:GetObjectStore(), exceptionVariable:GetBytecodeLocation())
         else

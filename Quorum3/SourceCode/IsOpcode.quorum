@@ -6,6 +6,15 @@ class IsOpcode is QuorumOpcode
     QuorumOpcode opcode = undefined
     JavaBytecodeOpcodes opcodes
     Type castTo = undefined
+    boolean isErrorCast = false
+
+    action SetIsErrorCast(boolean isError)
+        isErrorCast = isError
+    end
+
+    action IsErrorCast returns boolean
+        return isErrorCast
+    end
 
     action SetCastTo(Type type)
         castTo = type
@@ -42,8 +51,12 @@ class IsOpcode is QuorumOpcode
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         Type type = opcode:GetType()
         opcode:Write()
-        //methodVisitor.visitTypeInsn(INSTANCEOF, QuorumConverter.convertClassNameToInterfaceName(bytecodePath));
-        methodWriter:VisitType(opcodes:GetInstanceOf(), castTo:ConvertTypeToBytecodeSignatureInterface())
+
+        if isErrorCast
+            methodWriter:VisitType(opcodes:GetInstanceOf(), castTo:ConvertTypeToBytecodeSignature())
+        else
+            methodWriter:VisitType(opcodes:GetInstanceOf(), castTo:ConvertTypeToBytecodeSignatureInterface())
+        end
     end
 
     action WriteJavaScript returns text
