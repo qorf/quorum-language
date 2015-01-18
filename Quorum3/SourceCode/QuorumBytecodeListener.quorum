@@ -1203,9 +1203,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         Type fieldType = undefined
         Class fieldClass = undefined
 
-        if currentClass:GetName() = "Main"
-            a = 5
-        end
         if isObjectCall = true and variable = undefined
             CompilerError classNotFoundError
             classNotFoundError:SetLocation(context:GetLocation())

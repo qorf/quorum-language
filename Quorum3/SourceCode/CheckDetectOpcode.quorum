@@ -87,6 +87,7 @@ class CheckDetectOpcode is QuorumOpcode
         JavaBytecodeLabel checkEnd
         JavaBytecodeLabel fullEnd
         JavaBytecodeLabel finalAlways
+        
         JavaBytecodeLabel lastDetectEnd = undefined
         integer maxDetectBlockSize = 0
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
@@ -142,7 +143,8 @@ class CheckDetectOpcode is QuorumOpcode
             detectBlockExceptionLocation = except:GetBytecodeLocation()
             methodWriter:VisitVariable(opcodes:GetObjectStore(), except:GetBytecodeLocation())
         end
-
+        JavaBytecodeLabel alwaysStart
+        boolean hasCatchAll = false
         if not isCheckEmpty
             Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
             repeat while it:HasNext()
@@ -151,6 +153,10 @@ class CheckDetectOpcode is QuorumOpcode
                 Iterator<Class> detects = det:GetDetectIterator()
                 repeat while detects:HasNext()
                     Class clazz = detects:Next()
+                    //JavaBytecodeLabel thisBlockEnd
+                    if clazz:GetStaticKey() = "Libraries.Language.Errors.Error"
+                        hasCatchAll = true
+                    end
                     BlockOpcode blockOpcode = det:GetBlock()
                     JavaBytecodeLabel detectBlockEnd
 
@@ -172,13 +178,21 @@ class CheckDetectOpcode is QuorumOpcode
                     end
                     if alwaysBlock = undefined
                         methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
+                    else 
+                        methodWriter:VisitJump(opcodes:GetGoto(), alwaysStart)
                     end
                     methodWriter:VisitLabel(detectBlockEnd)
                 end
             end
 
+            if not hasCatchAll
+                //methodWriter:VisitLabel(detectBlockEnd)
+                methodWriter:VisitVariable(opcodes:GetObjectLoad(), detectBlockExceptionLocation)
+                methodWriter:VisitInstruction(opcodes:GetObjectThrow())
+            end
+
             if alwaysBlock not= undefined
-                JavaBytecodeLabel alwaysStart
+                
                 methodWriter:VisitLabel(alwaysStart)
                 alwaysBlock:Write()
                 methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
