@@ -133,7 +133,7 @@ class Error
     private system action GetStackSize() returns integer
 
     /*
-        This action prints the errors stack trace to the sodbeans output
+        This action outputs the errors stack trace to the sodbeans output
         window. 
 
         Attribute: Example
@@ -141,19 +141,35 @@ class Error
         Error error
         error:PrintStackTrace()
     */
-    action PrintStackTrace()
-        text str = errorMessage
+    action OutputStackTrace()
+        output GetStackTraceMessage()
+    end
+
+    /*
+        This action puts the error stack trace into a text value and returns it.
+
+        Attribute: Example
+        use Libraries.Language.Errors.Error
+        Error error
+        error:PrintStackTrace()
+    */
+    action GetStackTraceMessage returns text
+        text str = "Error: " + errorMessage 
+        str = str + str:GetLineFeed()
         integer size = stackTrace:GetSize()
         integer i = 0
         repeat while i < size
             StackTraceItem item = stackTrace:Get(i)
-            str = str + " " + item:GetFileName()
+            str = str + "   " + item:GetFileName()
             str = str + " " + item:GetClassName()
             str = str + " " + item:GetMethodName()
-            str = str + " [" + item:GetLineNumber() + "] "
+            str = str + " [line " + item:GetLineNumber() + "] "
             i = i + 1
+            if i < size
+                str = str + str:GetLineFeed()
+            end
         end
-        output str
+        return str
     end
 
     private action GetStackTraceItem(integer index) returns StackTraceItem

@@ -101,7 +101,7 @@ class LoopOpcode is QuorumOpcode
             methodWriter:VisitLabel(startLabel)
         else 
             methodWriter:VisitConstant(0)
-            methodWriter:VisitVariable(opcodes:GetIntegerStore(), variable:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
+            methodWriter:VisitVariable(opcodes:GetIntegerStore(), variable:GetBytecodeLocation() + GetBytecodeOffset())
         end
 
         expression:Write()
@@ -110,17 +110,16 @@ class LoopOpcode is QuorumOpcode
                    //integer 
 
             //store the value that we here into a temporary variable
-            methodWriter:VisitVariable(opcodes:GetIntegerStore(), timesResult:GetBytecodeLocation() + CalculateBytecodeOffset(timesResult))
+            methodWriter:VisitVariable(opcodes:GetIntegerStore(), timesResult:GetBytecodeLocation() + GetBytecodeOffset())
 
             //set a label for the jump point here, AFTER the expression has been written
             methodWriter:VisitLabel(startLabel)
 
             //so next we duplicate the integer
-            //methodWriter:VisitInstruction(opcodes:GetDuplicate())
-            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), timesResult:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
+            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), timesResult:GetBytecodeLocation() + GetBytecodeOffset())
             
             //then push on the counter variable
-            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), variable:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
+            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), variable:GetBytecodeLocation() + GetBytecodeOffset())
 
             //next compare the counter variable with the value
             methodWriter:VisitJump(opcodes:GetIfIntegerLessThanEquals(), endLabel)
@@ -145,10 +144,10 @@ class LoopOpcode is QuorumOpcode
         block:Write()
 
         if isTimes
-            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), variable:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
+            methodWriter:VisitVariable(opcodes:GetIntegerLoad(), variable:GetBytecodeLocation() + GetBytecodeOffset())
             methodWriter:VisitConstant(1)
             methodWriter:VisitInstruction(opcodes:GetIntegerAdd())
-            methodWriter:VisitVariable(opcodes:GetIntegerStore(), variable:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
+            methodWriter:VisitVariable(opcodes:GetIntegerStore(), variable:GetBytecodeLocation() + GetBytecodeOffset())
         end
 
         methodWriter:VisitJump(opcodes:GetGoto(), startLabel)
