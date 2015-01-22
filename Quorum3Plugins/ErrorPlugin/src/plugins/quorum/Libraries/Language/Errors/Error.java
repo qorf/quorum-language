@@ -4,7 +4,9 @@
  */
 package plugins.quorum.Libraries.Language.Errors;
 
+import quorum.Libraries.Containers.Array;
 import quorum.Libraries.Language.Errors.*;
+import quorum.Libraries.System.StackTraceItem;
 
 /**
  *
@@ -12,7 +14,6 @@ import quorum.Libraries.Language.Errors.*;
  */
 public class Error {
     public java.lang.Object $me = null;
-    private StackTraceElement[] stackTrace;
     
     public Error() {
     }
@@ -21,108 +22,51 @@ public class Error {
     public static quorum.Libraries.Language.Errors.Error ConvertToQuorumError(Throwable throwable) {
         if(throwable instanceof NullPointerException) {
             UndefinedObjectError error = new UndefinedObjectError();
+            CaptureThrowableTrace(throwable.getStackTrace(), error);
             return error;
         } else if(throwable instanceof ClassCastException) {
             CastError error = new CastError();
+            CaptureThrowableTrace(throwable.getStackTrace(), error);
             return error;
         } else if(throwable instanceof quorum.Libraries.Language.Errors.Error) {
-            return (quorum.Libraries.Language.Errors.Error) throwable;
+            quorum.Libraries.Language.Errors.Error error = (quorum.Libraries.Language.Errors.Error) throwable;
+            if(error.stackTrace == null) {
+                CaptureThrowableTrace(Thread.currentThread().getStackTrace(), error);
+            }
+            return error;
         } else {
             quorum.Libraries.Language.Errors.Error error = new quorum.Libraries.Language.Errors.Error();
+            CaptureThrowableTrace(Thread.currentThread().getStackTrace(), error);
             return error;
         }
     }
     
-    /**
-     * This may not need to actually be implemented, since this is used for
-     * setting data inside the Quorum virtual machine.
-     * 
-     * @param message 
-     */
-    public void SystemSetMessage(String message) {
-    }
-    
-    public String GetClassName(int index) {
-        String className = "";
-        
-        if (index > stackTrace.length) {
-            className = "Unknown class name";
-        }
-        else {
-            className = stackTrace[index].getClassName();
-            if(className == null){
-                className = "Unknown class.";
+    public static void CaptureThrowableTrace(StackTraceElement[] trace, quorum.Libraries.Language.Errors.Error error) {
+        quorum.Libraries.Containers.Array array = new quorum.Libraries.Containers.Array();
+        for(int i = 0; i < trace.length; i++) {
+            StackTraceElement e = trace[i];
+            String fileName = e.getFileName();
+            String className = e.getClassName();
+            String quorumDot = "quorum.";
+            boolean isQuorumClass = false;
+            if(className.startsWith(quorumDot)) {
+                className = className.substring(quorumDot.length());
+                isQuorumClass = true;
+            }
+            int lineNumber = e.getLineNumber();
+            String methodName = e.getMethodName();
+            //only put in the quorum errors
+            if((isQuorumClass || className.startsWith("plugins.quorum"))
+               && !(methodName.startsWith("main") && lineNumber == -1)
+               && !(className.startsWith("plugins.quorum.Libraries.Language.Errors.Error"))) {
+                StackTraceItem item = new StackTraceItem();
+                item.Set$Libraries$System$StackTraceItem$className(className);
+                item.Set$Libraries$System$StackTraceItem$fileName(fileName);
+                item.Set$Libraries$System$StackTraceItem$lineNumber(lineNumber);
+                item.Set$Libraries$System$StackTraceItem$methodName(methodName);
+                array.Add(item);
             }
         }
-        
-        return className;
-    }
-    
-    public String GetMethodName(int index) {
-        String methodName = "";
-        
-        if (index > stackTrace.length) {
-            methodName = "Unknown action.";
-        }
-        else {
-            methodName = stackTrace[index].getMethodName();
-            if(methodName == null){
-                methodName = "Unknown action.";
-            }
-        }
-        
-        return methodName;
-    }
-    
-    public String GetFileName(int index) {
-        String fileName;
-        
-        if (index > stackTrace.length) {
-            fileName = "Unknown file.";
-        }
-        else {
-            fileName = stackTrace[index].getFileName();
-            if(fileName == null){
-                fileName = "Unknown file.";
-            }
-        }
-        
-        return fileName;
-    }
-    
-    public int GetLineNumber(int index) {
-        int number;
-        
-        if (index > stackTrace.length - 1) {
-            number = -1;
-        }
-        else {
-            number = stackTrace[index].getLineNumber();
-        }
-        
-        return number;
-    }
-    
-    /**
-     * Get the stack trace.
-     * 
-     * Note: This may be including the "Error" class itself, which we don't want,
-     * so this may need to be modified later to have a certain offset.
-     */
-    public void InitStackTraceFromError() {
-        stackTrace = Thread.currentThread().getStackTrace();
-        int a = 0;
-    }
-    
-    /**
-     * TODO: This should return the last runtime error, if possible...
-     * @return 
-     */
-    public String InitMessage() {
-        return "An Error has occurred.";
-    }
-    
-    public int GetStackSize() {
-        return stackTrace.length;
+        error.SetStackTrace(array);
     }
 }
