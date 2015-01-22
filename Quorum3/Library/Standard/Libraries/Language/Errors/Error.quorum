@@ -22,31 +22,8 @@ class Main
 end
 */
 class Error
-    private Array<StackTraceItem> stackTrace
+    private Array<StackTraceItem> stackTrace = undefined
     private text errorMessage = "An Error has occurred."
-
-    on create  
-        InitStackTraceFromError()
-
-        integer size = GetStackSize()
-
-        //set the size of the stack trace
-        if size > 20
-            size = 20
-        end
-
-        //fill the stack trace with items
-        integer i = stackTrace:GetSize()
-        integer j = 0
-        repeat while j < size
-            StackTraceItem item = GetStackTraceItem(j)
-            stackTrace:AddToFront(item)
-            i = i - 1
-            j = j + 1
-        end
-
-        errorMessage = InitMessage()
-    end
 
     /*
         This action sets the stack trace of an error. 
@@ -62,13 +39,7 @@ class Error
         error:SetStackTrace(callStack)
     */ 
     action SetStackTrace(Array<StackTraceItem> trace)
-        integer size = trace:GetSize()
-        integer i = 0
-        stackTrace:SetSize(size)
-        repeat while i < size
-            stackTrace:Set(i,trace:Get(i))
-            i = i + 1
-        end
+        stackTrace = trace
     end
 
     /*
@@ -101,7 +72,6 @@ class Error
     */
     action SetErrorMessage(text message)
         errorMessage = message
-        SystemSetMessage(errorMessage)
     end
 
     /*
@@ -120,26 +90,21 @@ class Error
     end
 
     /*
-        This action gets the stack trace size. 
-
-        Attribute: Returns The size of the stack trace.
-
-        Attribute: Example
-
-        use Libraries.Language.Errors.Error
-        Error error
-        integer size = error:GetStackSize()
-    */
-    private system action GetStackSize() returns integer
-
-    /*
         This action outputs the errors stack trace to the sodbeans output
         window. 
 
         Attribute: Example
-        use Libraries.Language.Errors.Error
-        Error error
-        error:PrintStackTrace()
+        class Main
+            action Main
+                check
+                    //intentionally throw an undefined error
+                    Object o = undefined
+                    o:Compare(o)
+                detect e
+                    e:OutputStackTrace()
+                end
+            end
+        end
     */
     action OutputStackTrace()
         output GetStackTraceMessage()
@@ -148,10 +113,18 @@ class Error
     /*
         This action puts the error stack trace into a text value and returns it.
 
-        Attribute: Example
-        use Libraries.Language.Errors.Error
-        Error error
-        error:PrintStackTrace()
+        class Main
+            action Main
+                check
+                    //intentionally throw an undefined error
+                    Object o = undefined
+                    o:Compare(o)
+                detect e
+                    text message = e:GetStackTraceMessage()
+                    output message
+                end
+            end
+        end
     */
     action GetStackTraceMessage returns text
         text str = "Error: " + errorMessage 
@@ -160,10 +133,10 @@ class Error
         integer i = 0
         repeat while i < size
             StackTraceItem item = stackTrace:Get(i)
-            str = str + "   " + item:GetFileName()
-            str = str + " " + item:GetClassName()
-            str = str + " " + item:GetMethodName()
-            str = str + " [line " + item:GetLineNumber() + "] "
+            str = str + "   file: " + item:GetFileName() + ", "
+            str = str + " class: " + item:GetClassName() + ", "
+            str = str + " action: " + item:GetMethodName() + ", "
+            str = str + " line: " + item:GetLineNumber() + " "
             i = i + 1
             if i < size
                 str = str + str:GetLineFeed()
@@ -171,19 +144,4 @@ class Error
         end
         return str
     end
-
-    private action GetStackTraceItem(integer index) returns StackTraceItem
-        StackTraceItem item
-        item:Init(GetClassName(index), GetMethodName(index), GetFileName(index), GetLineNumber(index))
-        return item
-    end
-
-    private system action SystemSetMessage(text message)
-    private system action GetClassName(integer index) returns text
-    private system action GetMethodName(integer index) returns text
-    private system action GetFileName(integer index) returns text
-    private system action GetLineNumber(integer index) returns integer
-    private system action InitStackTraceFromError()
-    private system action InitMessage() returns text
-
 end

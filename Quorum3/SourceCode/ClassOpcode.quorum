@@ -473,7 +473,15 @@ class ClassOpcode is QuorumOpcode
         methodWriter:VisitField(opcodes:PutStaticField(), "plugins/quorum/Libraries/System/Console", "commandLineArguments", "[Ljava/lang/String;")
         text key = clazz:GetStaticKey()
         text bytecode = converter:ConvertStaticKeyToBytecodePath(key)
+        
+        //wrap this in a check detect block
+        JavaBytecodeLabel checkStart
+        JavaBytecodeLabel checkEnd
+        JavaBytecodeLabel detectStart
+        JavaBytecodeLabel fullEnd
+        constant text THROWABLE = "java/lang/Throwable"
 
+        methodWriter:VisitLabel(checkStart)
         //create the new object and place it on the stack
         methodWriter:VisitType(opcodes:GetNew(), bytecode)
         methodWriter:VisitInstruction(opcodes:GetDuplicate())
@@ -487,6 +495,21 @@ class ClassOpcode is QuorumOpcode
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), bytecode,
             "Main", "()V", false)
 
+        //end the check detect block
+        methodWriter:VisitLabel(checkEnd)
+        methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
+        methodWriter:VisitLabel(detectStart)
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Errors/Error", "ConvertToQuorumError",
+            "(Ljava/lang/Throwable;)Lquorum/Libraries/Language/Errors/Error;", false)
+        
+        //output the stack trace
+        methodWriter:VisitVariable(opcodes:GetObjectStore(), 2)
+        methodWriter:VisitVariable(opcodes:GetObjectLoad(), 2)
+        methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), "quorum/Libraries/Language/Errors/Error", "OutputStackTrace",
+            "()V", false)
+        methodWriter:VisitTryCatchBlock(checkStart, checkEnd, detectStart, THROWABLE)
+
+        methodWriter:VisitLabel(fullEnd)
         //close out the main method
         methodWriter:VisitInstruction(opcodes:GetReturn())
         methodWriter:VisitMaxSize(2,2)
