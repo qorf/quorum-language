@@ -102,14 +102,17 @@ class ExceptionTester
         UndefinedErrorInCheck()
 //
 ////FAIL TESTS
-//        path = failPath
+        path = failPath
 
         //These tests do actually cause exceptions to be thrown, 
         //but they are kind of pointless to run in Q3, since the test suite
         //doesn't account for exceptions thrown around and not caught.
         //That said, they "could" be convered into pass tests if the exception
         //string was copied in.
-
+        MultipleCatchAllClauses()
+        MultipleDetectsSameType()
+        MultipleDetectsMixedError()
+        MultipleDetectsMixedError2()
         //CastTextToIntegerException()
         //CastTextToNumberException()
         //MultipleDetectsWithAlwaysThrowingCastError()
@@ -1109,6 +1112,42 @@ class ExceptionTester
     end
 
 //FAIL TESTS
+    action MultipleCatchAllClauses 
+        Array<File> files
+        File main
+        main:SetPath(path + "MultipleCatchAllClauses.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MultipleDetectsSameType 
+        Array<File> files
+        File main
+        main:SetPath(path + "MultipleDetectsSameType.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MultipleDetectsMixedError 
+        Array<File> files
+        File main
+        main:SetPath(path + "MultipleDetectsMixedError.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MultipleDetectsMixedError2
+        Array<File> files
+        File main
+        main:SetPath(path + "MultipleDetectsMixedError2.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
     action CastTextToIntegerException 
         Array<File> files
         File main

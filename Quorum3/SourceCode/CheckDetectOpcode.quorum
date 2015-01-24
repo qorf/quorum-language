@@ -8,6 +8,7 @@ use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Containers.HashTable
 
 class CheckDetectOpcode is QuorumOpcode
     BlockOpcode block = undefined
@@ -18,6 +19,37 @@ class CheckDetectOpcode is QuorumOpcode
     public constant text THROWABLE = "java/lang/Throwable"
     List<ErrorBlockLabels> detectValues
     List<ErrorBlockLabels> alwaysValues
+    DetectBlockOpcode errorBlock = undefined
+    HashTable<text, DetectBlockOpcode> types
+
+
+    action AddDetectBlockType(text type, DetectBlockOpcode block)
+        types:Add(type, block)
+    end
+
+    action HasDetectBlockType(text type) returns boolean
+        return types:HasKey(type)
+    end
+
+    /*
+        If this check detect block has a catch-all Error block, for any kind
+        of error that is thrown.
+    */
+    action GetErrorDetectBlock returns DetectBlockOpcode
+        return errorBlock
+    end
+
+    /*
+        Sets the error detection catch all block to a particular detect block.
+        This block contains the class Error somewhere in its iterator.
+    */
+    action SetErrorDetectBlock(DetectBlockOpcode block)
+        errorBlock = block
+    end
+
+    action HasErrorDetectBlock returns boolean
+        return errorBlock not= undefined
+    end
 
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
         SetBytecodeWriteOffset(offset)

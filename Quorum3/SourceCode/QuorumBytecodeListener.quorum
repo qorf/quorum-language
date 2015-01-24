@@ -630,8 +630,26 @@ class QuorumBytecodeListener is QuorumSourceListener
             SymbolTable table = GetSymbolTable()
             Class clazz = table:GetClass("Libraries.Language.Errors.Error")
             op:AddDetect(clazz)
+
+            boolean hasError = checkOp:HasErrorDetectBlock()
+            if not hasError
+                checkOp:AddDetectBlockType(error:GetStaticKey(), op)
+                checkOp:SetErrorDetectBlock(op)
+            else
+                CompilerError e
+                e:SetErrorMessage("I noticed that there are two places where " +
+                    "Libraries.Language.Errors.Error is detected. I cannot allow this because there is no " +
+                    "way for me to determine where the program would jump to if this type of error happened.")
+                CompilerErrorType t
+                t:SetCurrentType(t:INVALID_ERROR)
+                e:SetCompilerErrorType(t)
+                e:SetLocation(context:GetLocation())
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(e)
+            end
         else
             Iterator<QualifiedName> it = parents:GetIterator()
+            boolean hasError = false
             repeat while it:HasNext()
                 QualifiedName name = it:Next()
 
@@ -666,7 +684,33 @@ class QuorumBytecodeListener is QuorumSourceListener
                     return now
                 end
 
+                //and now check that this class's key isn't already in the check
+                //block
+                if checkOp:HasDetectBlockType(clazz:GetStaticKey())
+                    CompilerError error
+                    error:SetLocation(context:GetLocation())
+                    CompilerErrorType t
+                    t:SetCurrentType(t:INVALID_ERROR)
+                    error:SetCompilerErrorType(t)
+                    error:SetErrorMessage("I noticed that there are two places where " +
+                    clazz:GetStaticKey() + " is detected. I cannot allow this because there is no " +
+                    "way for me to determine where the program would jump to if this type of error happened.")
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(error)
+                    return now
+                end
+
+                //this detect block has a generic error. Take note of that.
+                if clazz:GetStaticKey() = "Libraries.Language.Errors.Error"
+                    hasError = true
+                end
+
+                checkOp:AddDetectBlockType(clazz:GetStaticKey(), op)
                 op:AddDetect(clazz)
+
+                if hasError
+                    checkOp:SetErrorDetectBlock(op)
+                end
             end
         end
 
