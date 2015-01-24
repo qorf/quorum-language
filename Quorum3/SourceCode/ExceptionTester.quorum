@@ -100,7 +100,9 @@ class ExceptionTester
         TriplyNestedCheckDetectAlways()
         TriplyNestedCheckDetectSomeAlways()
         UndefinedErrorInCheck()
-//
+        DetectAllReorder()
+        DetectAllReorder2()
+
 ////FAIL TESTS
         path = failPath
 
@@ -1107,6 +1109,28 @@ class ExceptionTester
         main:SetPath(path + "UndefinedErrorInCheck.quorum")
         files:Add(main)
         results:Add(0, "Success!")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action DetectAllReorder 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "DetectAllReorder.quorum")
+        files:Add(main)
+        results:Add(0, "This test reordered the detect all")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action DetectAllReorder2 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "DetectAllReorder2.quorum")
+        files:Add(main)
+        results:Add(0, "This test reordered the detect all")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

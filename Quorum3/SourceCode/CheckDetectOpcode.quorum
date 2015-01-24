@@ -21,7 +21,15 @@ class CheckDetectOpcode is QuorumOpcode
     List<ErrorBlockLabels> alwaysValues
     DetectBlockOpcode errorBlock = undefined
     HashTable<text, DetectBlockOpcode> types
+    Class errorClass = undefined
 
+    action SetErrorClass(Class clazz)
+        errorClass = clazz
+    end
+
+    action GetErrorClass returns Class
+        return errorClass
+    end
 
     action AddDetectBlockType(text type, DetectBlockOpcode block)
         types:Add(type, block)
@@ -175,6 +183,7 @@ class CheckDetectOpcode is QuorumOpcode
             detectBlockExceptionLocation = except:GetBytecodeLocation()
             methodWriter:VisitVariable(opcodes:GetObjectStore(), except:GetBytecodeLocation())
         end
+
         JavaBytecodeLabel alwaysStart
         boolean hasCatchAll = false
         if not isCheckEmpty
@@ -182,39 +191,22 @@ class CheckDetectOpcode is QuorumOpcode
             repeat while it:HasNext()
                 DetectBlockOpcode det = it:Next()
 
-                Iterator<Class> detects = det:GetDetectIterator()
-                repeat while detects:HasNext()
-                    Class clazz = detects:Next()
-                    //JavaBytecodeLabel thisBlockEnd
-                    if clazz:GetStaticKey() = "Libraries.Language.Errors.Error"
-                        hasCatchAll = true
+                //if it is the detect block with an error clause in it, don't write
+                //it until the end. That way, we can ensure it is a catch all,
+                //since it will always be true, for any kind of Quorum error.
+                if errorBlock not= det
+                    Iterator<Class> detects = det:GetDetectIterator()
+                    repeat while detects:HasNext()
+                        Class clazz = detects:Next()
+                        WriteDetectBlock(det, clazz, fullEnd, alwaysStart)
                     end
-                    BlockOpcode blockOpcode = det:GetBlock()
-                    JavaBytecodeLabel detectBlockEnd
-
-                    //first push the variable on
-                    Variable except = det:GetExceptionVariable()
-                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), except:GetBytecodeLocation())
-
-                    //check to see if it is the declared class type
-                    methodWriter:VisitType(opcodes:GetInstanceOf(), clazz:ConvertStaticKeyToBytecodePath())
-
-                    //if not, jump to the next block. If so, fall through
-                    methodWriter:VisitJump(opcodes:GetIfEquals(), detectBlockEnd)
-                    det:Write()
-                    
-                    Block block = blockOpcode:GetBlock()
-                    integer value = block:GetBytecodeLocation()
-                    if value - 1 > maxDetectBlockSize
-                        maxDetectBlockSize = value - 1
-                    end
-                    if alwaysBlock = undefined
-                        methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
-                    else 
-                        methodWriter:VisitJump(opcodes:GetGoto(), alwaysStart)
-                    end
-                    methodWriter:VisitLabel(detectBlockEnd)
                 end
+            end
+
+            //if we have an error block with a catch-all that has been reordered
+            //write it now.
+            if errorBlock not= undefined
+                WriteDetectBlock(errorBlock, errorClass, fullEnd, alwaysStart)
             end
 
             if not hasCatchAll
@@ -242,15 +234,6 @@ class CheckDetectOpcode is QuorumOpcode
             JavaBytecodeLabel finalAlwaysEnd
             methodWriter:VisitLabel(finalAlways)
 
-            //get the parent block's final bytecode location and put it in as an offset.
-//            BlockOpcode bo = alwaysBlock:GetBlock()
-//            Block b = bo:GetBlock()
-//            integer loc = b:GetBytecodeLocation() + GetBytecodeOffset()
-//            integer max = maxDetectBlockSize
-//            if loc < maxDetectBlockSize + GetBytecodeOffset()
-//                loc = max + GetBytecodeOffset()
-//            end
-
             alwaysBlock:SetBytecodeWriteOffsetToAllChildren(detectBlockExceptionLocation + 1)
             alwaysBlock:WriteExceptionVariable()
             methodWriter:VisitLabel(finalAlwaysEnd)
@@ -268,6 +251,32 @@ class CheckDetectOpcode is QuorumOpcode
 
         WriteExceptionTable()
         methodWriter:VisitLabel(fullEnd)
+    end
+
+    private action WriteDetectBlock(DetectBlockOpcode det, Class clazz, JavaBytecodeLabel fullEnd, JavaBytecodeLabel alwaysStart)
+        BlockOpcode blockOpcode = det:GetBlock()
+        JavaBytecodeLabel detectBlockEnd
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+
+        //first push the variable on
+        Variable except = det:GetExceptionVariable()
+        methodWriter:VisitVariable(opcodes:GetObjectLoad(), except:GetBytecodeLocation())
+
+        //check to see if it is the declared class type
+        methodWriter:VisitType(opcodes:GetInstanceOf(), clazz:ConvertStaticKeyToBytecodePath())
+
+        //if not, jump to the next block. If so, fall through
+        methodWriter:VisitJump(opcodes:GetIfEquals(), detectBlockEnd)
+        det:Write()
+
+        Block block = blockOpcode:GetBlock()
+        integer value = block:GetBytecodeLocation()
+        if alwaysBlock = undefined
+            methodWriter:VisitJump(opcodes:GetGoto(), fullEnd)
+        else 
+            methodWriter:VisitJump(opcodes:GetGoto(), alwaysStart)
+        end
+        methodWriter:VisitLabel(detectBlockEnd)
     end
 
     private action WriteExceptionTable

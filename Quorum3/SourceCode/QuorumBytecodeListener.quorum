@@ -630,6 +630,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             SymbolTable table = GetSymbolTable()
             Class clazz = table:GetClass("Libraries.Language.Errors.Error")
             op:AddDetect(clazz)
+            checkOp:SetErrorClass(clazz)
 
             boolean hasError = checkOp:HasErrorDetectBlock()
             if not hasError
@@ -702,6 +703,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
                 //this detect block has a generic error. Take note of that.
                 if clazz:GetStaticKey() = "Libraries.Language.Errors.Error"
+                    checkOp:SetErrorClass(clazz)
                     hasError = true
                 end
 
