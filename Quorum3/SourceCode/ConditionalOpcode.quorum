@@ -10,10 +10,14 @@ class ConditionalOpcode is QuorumOpcode
     integer whichIf = 0
     Array<QuorumOpcode> elseIfExpressions
     Array<BlockOpcode> elseIfBlocks
-    BlockOpcode elseBlock
+    BlockOpcode elseBlock = undefined
 
     JavaBytecodeLabel endLabel = undefined
     JavaBytecodeOpcodes opcodes
+
+    action GetElseIfBlockIterator returns Iterator<BlockOpcode>
+        return elseIfBlocks:GetIterator()
+    end
 
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
         SetBytecodeWriteOffset(offset)

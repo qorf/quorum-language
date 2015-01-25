@@ -18,6 +18,86 @@ class Block
     integer bytecodeLocationStartOfBlock = 0
     Variable exceptionVariable = undefined
     Array<Variable> orderedVariables
+    boolean hasReturnThisBlock = false
+    boolean hasIssuedReturnError = false
+    boolean isReturnSatisfied = true
+
+    action IsReturnSatisfied returns boolean
+        return isReturnSatisfied
+    end
+
+    action SetIsReturnSatisfied(boolean isSatisfied) 
+        isReturnSatisfied = isSatisfied
+    end
+
+    /*
+        Determines whether an error has already been issued from this block 
+        from statements that cannot be executed. An example of this would
+        issuing a return now from an action then trying to assign to a variable.
+    */
+    action HasIssuedReturnError returns boolean
+        return hasIssuedReturnError
+    end
+
+    /*
+        Sets whether an error has already been issued from this block 
+        from statements that cannot be executed. An example of this would
+        issuing a return now from an action then trying to assign to a variable.
+    */
+    action SetIssuedReturnError(boolean error)
+        hasIssuedReturnError = error
+    end
+
+    /*
+        Determines whether this block has a return value. This value is set
+        during the parsing phase.
+    */
+    action HasReturnThisBlock returns boolean
+        return hasReturnThisBlock
+    end
+
+    /*
+        Sets whether this block has a return value. This value is set
+        during the parsing phase and should not be adjusted afterward.
+    */
+    action SetReturnThisBlock(boolean hasReturn)
+        hasReturnThisBlock = hasReturn
+    end
+
+    /*
+        This action determines whether this block has a valid return statement
+        at some point within it. If this block does have a return, it checks
+        its subblocks. If all of its subblocks have a return, this action 
+        returns true as well.
+
+        Note that the semantics of this action require separate processing
+        in the semantic analysis layer before it can compute the correct value.
+        The reason is because any given subblock may be within some structure,
+        like an if statement, loop, or the like, and these statements can
+        choose has they define satisfaction of a return in any mathematically 
+        sensible way they choose, according to their meaning.
+    */
+    action ComputeSubblockReturnSatisfied returns boolean
+        if hasReturnThisBlock
+            return true
+        else
+            i = 0
+            boolean fullySatisfied = true
+            if blocks:IsEmpty()
+                return false
+            end
+
+            repeat while i < blocks:GetSize()
+                Block b = blocks:Get(i)
+                boolean satisfied = b:IsReturnSatisfied()
+                if not satisfied
+                    fullySatisfied = false
+                end
+                i = i + 1
+            end
+            return fullySatisfied
+        end
+    end
 
     action Add(Variable variable) returns CompilerError
         if variables:HasKey(variable:GetStaticKey())

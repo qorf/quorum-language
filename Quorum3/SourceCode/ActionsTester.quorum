@@ -37,7 +37,7 @@ class ActionsTester
         HourOfCodePart4()
         HourOfCodePart5()
         HourOfCodePart6()
-        //MultipleClassManyReturnsAndNested()
+        MultipleClassManyReturnsAndNested()
         MultipleClassNestedCallsAndReturns()
         MultipleClassReturnMixedTypes()
         MultipleNestedFunctionCalls()
@@ -49,6 +49,7 @@ class ActionsTester
         NestedConditionalRepeat2()
         NestedFunctionCall()
         NestedFunctionCallDouble()
+        NoMissingReturnTest()
         NonParallelNestedReturn()
         RepeatTextCall()
         Return2ActionsBool()
@@ -92,45 +93,52 @@ class ActionsTester
         SimpleOneActionNoParamsReturnText()
         SimpleOneActionTwoParamsReturnInt()
         TwoActionsDifferentParameters()
-        //VTableObjectTest()
+        VTableObjectTest()
         VTableCompareTest()
         SetterAfterUse()
-//        SetterBeforeUse()
+        SetterBeforeUse()
         SubtextTest()
 //FAIL TESTS
         path = failPath
-//        ActionLetter()
-//        ActionOutside()
-//        HOCUndefinedVariable()
-//        HOCReturnIntFromMain()
-//        HOCReturnIntFromMainDeclared()
-//        HOCReturnIntFromCalledProcedure()
-//        HOCReturnIntFromCalledProcedureWrongType1()
-//        HOCReturnIntFromCalledProcedureWrongType2()
-//        HOCUndeclaredVarToUndeclaredVar()
-//        HOCUndeclaredFunction()
+        ActionLetter()
+        ActionOutside()
+        HOCUndefinedVariable()
+        HOCReturnIntFromMain()
+        HOCReturnIntFromMainDeclared()
+        HOCReturnIntFromCalledProcedure()
+        HOCReturnIntFromCalledProcedureWrongType1()
+        HOCReturnIntFromCalledProcedureWrongType2()
+        HOCUndeclaredVarToUndeclaredVar()
+        HOCUndeclaredFunction()
         IncorrectAssignment()
-//        InvalidActionNumber()
-//        InvalidActionSymbol1()
-//        InvalidActionSymbol2()
-//        InvalidVarName1()
-//        InvalidVarName2()
-//        InvalidVarName3()
-//        InvalidVarName4()
-//        InvalidVarName5()
-//        InvalidVarName6()
-//        MissingEnd()
+        InvalidActionNumber()
+        InvalidActionSymbol1()
+        InvalidActionSymbol2()
+        InvalidVarName1()
+        InvalidVarName2()
+        InvalidVarName3()
+        InvalidVarName4()
+        InvalidVarName5()
+        InvalidVarName6()
+        MissingEnd()
         MissingMain()
         MissingParen()
         MissingReturn1()
         MissingReturn2()
         MissingReturn3()
-        //MissingReturn4()
+        MissingReturn4()
+        MissingReturn5()
+        MissingReturn6()
+        MissingReturn7()
+        MissingReturn8()
+        MissingReturn9()
+        MissingReturn10()
         ReturnCast2ActionsInt()
         SetterBeforeUseFail()
         TextJunk1()
         TextJunk2()
         InvalidActionName()
+        AssignmentAfterReturn()
     end
 
     action GetName returns text
@@ -581,6 +589,18 @@ class ActionsTester
         results:Add(0, "300.0")
         suite:Test(files, results)
         results:Set(0, "300")
+        suite:TestJavaScript(files, results)
+    end
+
+    //NoMissingReturnTest
+    action NoMissingReturnTest
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NoMissingReturnTest.quorum")
+        files:Add(main)
+        results:Add(0, "no missing return here")
+        suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
 
@@ -1375,6 +1395,60 @@ class ActionsTester
         suite:TestJavaScriptFail(files)
     end
 
+    action MissingReturn5
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingReturn5.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingReturn6
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingReturn6.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingReturn7
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingReturn7.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingReturn8
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingReturn8.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingReturn9
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingReturn9.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingReturn10
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingReturn10.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
     action ReturnCast2ActionsInt
         Array<File> files
         File main
@@ -1415,6 +1489,15 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "InvalidActionName.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action AssignmentAfterReturn
+        Array<File> files
+        File main
+        main:SetPath(path + "AssignmentAfterReturn.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

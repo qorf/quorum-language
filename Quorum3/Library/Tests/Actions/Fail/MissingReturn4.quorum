@@ -18,9 +18,9 @@ class Main
                 return "Odd"
             end
         elseif a = 2
-            return even(bar(a))
+            return "" + even(bar(a))
         elseif a = 3
-            return even(bar(bar(a)))
+            return "" + even(bar(bar(a)))
         else
             if bar(bar(a)) >= 4
                 return "StackOverflow"

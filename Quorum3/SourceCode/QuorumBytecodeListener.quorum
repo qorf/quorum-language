@@ -63,6 +63,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     integer checkCount = 0
     boolean outputSpeechCommands = true
     boolean isInAlwaysBlock = false
+    boolean recentStatementWasReturn = false
 
     action GetClassOpcode returns ClassOpcode
         return currentClassOpcode
@@ -316,9 +317,28 @@ class QuorumBytecodeListener is QuorumSourceListener
             end
         end
         isInAction = false
+
+        Block block = currentAction:GetBlock()
+
+        boolean satisfied = block:HasReturnThisBlock()
+        Type returnType = currentAction:GetReturnType()
+        //if we don't have a void function, make sure that there is a return
+        //either in a top level block or all appropriate sub-blocks
+        if not returnType:IsVoid() and not satisfied
+            CompilerError e
+            e:SetErrorMessage("I found that the action " + currentAction:GetStaticKey() +
+                " is a missing return statement.")
+            CompilerErrorType t
+            t:SetCurrentType(t:MISSING_RETURN)
+            e:SetCompilerErrorType(t)
+            e:SetLocation(context:GetLocation())
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(e)
+        end
     end
 
     action ExitAlertStatement(AlertContext context) 
+        recentStatementWasReturn = true
         QuorumOpcode op = opcodeStack:Pop()
         AlertOpcode al
         al:SetOpcode(op)
@@ -786,7 +806,45 @@ class QuorumBytecodeListener is QuorumSourceListener
         conditional:SetExpression(qop)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         conditional:SetBlock(recentlyPopped)
-        
+
+        Type t = currentAction:GetReturnType()
+        if not t:IsVoid()
+            boolean isFullySatisfied = true
+            //is the return condition satisfied for all of the if statement?
+            //for this to be true, it must have an else, and all if-else combos
+            //must also have a return
+
+            //check all my blocks to make sure we satisfy a return
+            Block ifBlock = recentlyPopped:GetBlock()
+            if not ifBlock:HasReturnThisBlock()
+                isFullySatisfied = false
+            end
+
+            //get all of the elseif blocks and check them too
+            Iterator<BlockOpcode> ops = conditional:GetElseIfBlockIterator()
+            repeat while ops:HasNext()
+                BlockOpcode op = ops:Next()
+                Block elseIfBlock = op:GetBlock()
+                if not elseIfBlock:HasReturnThisBlock()
+                    isFullySatisfied = false
+                end
+            end
+
+            BlockOpcode elseOp = conditional:GetElseBlock()
+            if elseOp = undefined
+                isFullySatisfied = false
+            else
+                Block elseBlock = elseOp:GetBlock()
+                if not elseBlock:HasReturnThisBlock()
+                    isFullySatisfied = false
+                end
+            end
+            if isFullySatisfied //we can't do anything past this point.
+                //currentBlock:SetReturnThisBlock(true)
+                recentStatementWasReturn = true
+            end
+        end
+
         currentBlockOpcode:Add(conditional)
     end
 
@@ -1857,6 +1915,10 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitReturnStatement(ReturnContext context) 
+        if currentClass:GetName() = "StackTraceItem" and currentAction:GetName() = "Equals"
+            a = 5
+        end
+        recentStatementWasReturn = true
         Type type = currentAction:GetReturnType()
         if not type:IsVoid() //if this is not a void method, handle the return
             QuorumOpcode right = opcodeStack:Pop()
@@ -1884,6 +1946,34 @@ class QuorumBytecodeListener is QuorumSourceListener
             opcode:SetType(type)
             opcode:SetMethodWriter(methodWriter)
             currentBlockOpcode:Add(opcode)
+        end
+    end
+
+    action ExitStatement(StatementContext context) 
+        if recentStatementWasReturn
+            currentBlock:SetReturnThisBlock(true)
+            recentStatementWasReturn = false
+        else
+            HasAlreadyReturnedFromBlock(context:GetLocation())
+        end
+    end
+
+    private action HasAlreadyReturnedFromBlock(Location location)
+        if currentBlock:HasReturnThisBlock()
+            //first check if we've already issued an error.
+            //if we already have, there's no need to issue another one.
+            //if we haven't, issue the error and then set the value in the block
+            if not currentBlock:HasIssuedReturnError()
+                CompilerError e
+                e:SetErrorMessage("I cannot execute this statement, as we have already returned from this action.")
+                CompilerErrorType t
+                t:SetCurrentType(t:UNREACHABLE)
+                e:SetCompilerErrorType(t)
+                e:SetLocation(location)
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(e)
+                currentBlock:SetIssuedReturnError(true)
+            end
         end
     end
 
