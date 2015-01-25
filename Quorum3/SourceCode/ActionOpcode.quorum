@@ -7,6 +7,7 @@ use Libraries.Language.Compile.Symbol.Action
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Symbol.Variable
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
+use Libraries.Language.Compile.Symbol.Block
 
 class ActionOpcode is QuorumOpcode
     List<QuorumOpcode> opcodeList
@@ -128,26 +129,14 @@ class ActionOpcode is QuorumOpcode
 
             Type type = method:GetReturnType()
 
-            if type:IsBoolean()
-                methodWriter:VisitInstruction(opcodes:GetBooleanReturn())
-            elseif type:IsInteger()
-                methodWriter:VisitInstruction(opcodes:GetIntegerReturn())
-            elseif type:IsNumber()
-                methodWriter:VisitInstruction(opcodes:GetDoubleReturn())
-            elseif type:IsText()
-                methodWriter:VisitInstruction(opcodes:GetObjectReturn())
-            elseif type:IsVoid()
+            //check to see if this is a void action and there is no return.
+            //if so, implicitly create one. If not, it was supposed to have been
+            //checked in a previous phase, which makes this a compiler bug.
+            Block block = method:GetBlock()
+            if not block:HasReturnThisBlock() and type:IsVoid()
                 methodWriter:VisitInstruction(opcodes:GetReturn())
-            else //assume it is an object otherwise
-                methodWriter:VisitInstruction(opcodes:GetObjectReturn())
             end
         end
-
-//        output me:clazz:GetStaticKey() + ", " + method:GetStaticKey()
-//        
-//        if me:clazz:GetStaticKey() = "A_1" and method:GetName() = "test"
-//            a = 5
-//        end
         
         methodWriter:VisitMaxSize(0,0)
         methodWriter:VisitEnd()
