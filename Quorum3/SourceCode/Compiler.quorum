@@ -238,11 +238,22 @@ class Compiler
     private action WriteDependencies(JarGenerator generator)
         WritePlugins(generator, pluginFolder)
         
-        File file
-        file:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-        file:SetPath("org")
-        WriteCompilerDependency(generator, file, file)
-        a = 5
+        //check the symbol table to see if the user generated any code
+        //used in the compiler
+        boolean hasCompiler = symbolTable:HasClass("Libraries.Language.Compile.Compiler")
+        boolean hasTester = symbolTable:HasClass("Libraries.Language.Compile.Test.CompilerTestSuite")
+        boolean hasClassWriter = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeClassWriter")
+        boolean hasMethodWriter = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter")
+        boolean hasfieldWriter = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeFieldWriter")
+        boolean hasLabel = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeLabel")
+
+        if hasCompiler or hasTester or hasClassWriter or hasMethodWriter or hasfieldWriter
+            or hasLabel
+            File file
+            file:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+            file:SetPath("org")
+            WriteCompilerDependency(generator, file, file)
+        end
     end
 
     private action WriteCompilerDependency(JarGenerator generator, File file, File originalLocation)
