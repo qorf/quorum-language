@@ -7,7 +7,7 @@ class Main
         
         SeparatedValue csvReader
         File csv
-        csv:SetPath ("../Library/Tests/SeparatedValue/Resources/airports.csv") // this test file is from http://www.ourairports.com/data/
+        csv:SetPath ("../../Library/Tests/SeparatedValue/Resources/airports.csv") // this test file is from http://www.ourairports.com/data/
         csvReader:Read(csv)
 
         output "Rows: " + csvReader:GetNumberOfRows() 

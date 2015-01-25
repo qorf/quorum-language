@@ -5,14 +5,14 @@ class Main
     action Main
         // Zip Decompression Test
         File inputFile
-        inputFile:SetWorkingDirectory("../Library/Tests/Decompresser/Resources/")
+        inputFile:SetWorkingDirectory("../../Library/Tests/Decompresser/Resources/")
         inputFile:SetPath("zipfile.zip")
 
         Decompresser decompress
         decompress:DecompressZip(inputFile)
 
         File outputFile
-        outputFile:SetWorkingDirectory("../Library/Tests/Decompresser/Resources/")
+        outputFile:SetWorkingDirectory("../../Library/Tests/Decompresser/Resources/")
         outputFile:SetPath("zipfile.txt")
         
         text a = outputFile:Read()
