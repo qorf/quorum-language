@@ -70,7 +70,7 @@ class TableData is WebTag
         
     */
     action SetColumnSpan(integer value)
-        AddAttribute(colspan, value)
+        AddAttribute(colspan, "" + value)
     end
 
     /*
@@ -109,7 +109,7 @@ class TableData is WebTag
         
     */
     action SetRowSpan(integer value)
-        AddAttribute(rowspan, value)
+        AddAttribute(rowspan, "" + value)
     end
 
     /*

@@ -250,7 +250,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
     */
     action SetChecked(boolean value)
         if value
-            AddAttribute(checked, value)
+            AddAttribute(checked, "" + value)
         else
             RemoveAttribute(checked)
         end
@@ -472,7 +472,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
     */
     action SetFormNovalidate(boolean value)
         if value
-            AddAttribute(formNovalidate, value)
+            AddAttribute(formNovalidate, "" + value)
         else
             RemoveAttribute(formNovalidate)
         end
@@ -730,7 +730,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
     */
     action SetMultiple(boolean value)
         if value
-            AddAttribute(multiple, value)
+            AddAttribute(multiple, "" + value)
         else
             RemoveAttribute(multiple)
         end
@@ -876,7 +876,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
     */
     action SetReadOnly(boolean value)
         if value
-            AddAttribute(readOnly, value)
+            AddAttribute(readOnly, "" + value)
         else
             RemoveAttribute(readOnly)
         end
@@ -912,7 +912,7 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
     */
     action SetRequired(boolean value)
         if value
-            AddAttribute(required, value)
+            AddAttribute(required, "" + value)
         else
             RemoveAttribute(required)
         end

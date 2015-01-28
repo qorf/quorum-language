@@ -729,6 +729,11 @@ class Compiler
     end
 
     private action GetStandardLibraryFolderForPackage(text key) returns File
+        if standardLibraryFolder = undefined
+            File build
+            build:SetPath(DEFAULT_STANDARD_LIBRARY_FOLDER)
+            standardLibraryFolder = build
+        end
         text loc = standardLibraryFolder:GetWorkingDirectory()
         text loc2 = standardLibraryFolder:GetAbsolutePath()
 
@@ -757,6 +762,11 @@ class Compiler
 
     action GetStandardLibraryFile(text key, text fromPackage) returns File
         Array<text> values = key:Split("\.")
+        if standardLibraryFolder = undefined
+            File build
+            build:SetPath(DEFAULT_STANDARD_LIBRARY_FOLDER)
+            standardLibraryFolder = build
+        end
         text loc = standardLibraryFolder:GetWorkingDirectory()
         text loc2 = standardLibraryFolder:GetAbsolutePath()
 

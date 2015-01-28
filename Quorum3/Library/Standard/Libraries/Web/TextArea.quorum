@@ -120,7 +120,7 @@ class TextArea is WebTag
         
     */
     action SetWidth(integer value)
-        AddAttribute(me:width, value)
+        AddAttribute(me:width, "" + value)
     end
 
     /*
@@ -236,7 +236,7 @@ class TextArea is WebTag
         
     */
     action SetMaxLength(integer value)
-        AddAttribute(maxLength,value)
+        AddAttribute(maxLength, "" + value)
     end
     
     /*
@@ -438,7 +438,7 @@ class TextArea is WebTag
         
     */
     action SetHeight(integer value)
-        AddAttribute(height,value)
+        AddAttribute(height, "" + value)
     end
     
      /*

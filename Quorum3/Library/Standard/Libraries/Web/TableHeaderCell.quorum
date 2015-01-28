@@ -71,7 +71,7 @@ class TableHeaderCell is WebTag
         
     */
     action SetColumnSpan(integer value)
-        AddAttribute(columnSpan, value)
+        AddAttribute(columnSpan, "" + value)
     end
 
     /*
@@ -110,7 +110,7 @@ class TableHeaderCell is WebTag
         
     */
     action SetRowSpan(integer value)
-        AddAttribute(rowSpan, value)
+        AddAttribute(rowSpan, "" + value)
     end
 
     /*

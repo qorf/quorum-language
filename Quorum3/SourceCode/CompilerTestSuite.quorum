@@ -197,7 +197,7 @@ class CompilerTestSuite
         compiler:SetOutputFolder(root)
         compiler:SetOutputSpeech(false) //don't speak while in test mode
 
-        standardLibraryFolder = compiler:GetStandardLibraryFolder()
+        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
         compiler:SetStandardLibraryFolder(standardLibraryFolder)
         return compiler
     end

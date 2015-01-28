@@ -25,10 +25,10 @@ class Main is WebResponder
     HashTable<text, Array<text>> flagValues
 
     action Main
-        //ProcessConsoleFlags()
+        ProcessConsoleFlags()
         //ProfileTest()
         //ProfileWeb()
-        CompileHardcodedFile()
+        //CompileHardcodedFile()
         //CompileCompiler()
         //CompileSingleTest()
     end
@@ -62,7 +62,11 @@ class Main is WebResponder
         output compiler:GetVersion() + ", Compile the compiler."
         File main
         main:SetPath("SourceCode")
-        standardLibraryFolder = compiler:GetStandardLibraryFolder()
+
+        File root
+        root:SetPath("Output")
+        compiler:SetOutputFolder(root)
+        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
         compiler:SetStandardLibraryFolder(standardLibraryFolder)
         Array<File> files = main:GetDirectoryListing()
 
@@ -82,7 +86,7 @@ class Main is WebResponder
 
     private action CompileHardcodedFile
         Compiler compiler
-        standardLibraryFolder = compiler:GetStandardLibraryFolder()
+        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
         compiler:SetStandardLibraryFolder(standardLibraryFolder)
         output compiler:GetVersion()
         File root

@@ -395,7 +395,7 @@ class GlobalAttributeAccepter is AttributeAccepter
         accept:SetDraggable(true)
     */
     action SetDraggable(boolean value)
-        AddAttribute(draggable, value)
+        AddAttribute(draggable, "" + value)
     end
 
     /*
@@ -431,7 +431,7 @@ class GlobalAttributeAccepter is AttributeAccepter
         accept:SetHidden(false)
     */
     action SetHidden(boolean value)
-        AddAttribute(hidden, value)
+        AddAttribute(hidden, "" + value)
     end
 
     /*
@@ -485,7 +485,7 @@ class GlobalAttributeAccepter is AttributeAccepter
         accept:SetSpellcheck(true)
     */
     action SetSpellcheck(boolean value)
-        AddAttribute(spellcheck, value)
+        AddAttribute(spellcheck, "" + value)
     end
 
     /*
