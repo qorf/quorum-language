@@ -188,9 +188,6 @@ class Compiler
                     File buildInterface = code:GetBuildInterfaceFile()
 
                     text key = code:GetStaticKey()
-                    if key = "Main"
-                        a = 5
-                    end
                     if build not= undefined
                         generator:Add(build)
                     end
@@ -725,7 +722,6 @@ class Compiler
                 end
             end
         end
-
     end
 
     private action GetStandardLibraryFolderForPackage(text key) returns File

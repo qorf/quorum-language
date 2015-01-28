@@ -203,6 +203,8 @@ class Main is WebResponder
             if names:GetSize() not= 1
                 output "I noticed the name flag was used, but it does not have exactly 1 value."
                 return now
+            else
+                name = names:Get(0)
             end
         end
 
@@ -251,6 +253,7 @@ class Main is WebResponder
         end
 
         Compiler compiler
+        compiler:SetName(name)
         File root
         root:SetPath("")
         compiler:SetOutputFolder(root)
