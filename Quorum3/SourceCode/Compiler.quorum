@@ -868,6 +868,11 @@ class Compiler
         if file not= undefined
             outputFolder = file
             text path = file:GetAbsolutePath()
+
+            if not file:Exists()
+                file:CreateDirectories()
+            end
+
             File build
             build:SetWorkingDirectory(path)
             build:SetPath(DEFAULT_BUILD_FOLDER)

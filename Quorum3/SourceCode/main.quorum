@@ -251,6 +251,12 @@ class Main is WebResponder
         end
 
         Compiler compiler
+        File root
+        root:SetPath("")
+        compiler:SetOutputFolder(root)
+
+        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
+        compiler:SetStandardLibraryFolder(standardLibraryFolder)
         output compiler:GetVersion()
 
         File main = files:Get(0)
