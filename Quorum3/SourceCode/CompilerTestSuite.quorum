@@ -28,6 +28,7 @@ class CompilerTestSuite
     Math math
     ExpressionsTester expressions
     TypeCheckTester typeChecks
+    TypeCheckTesterGenerated typeChecksGenerated
     IfStatementTester ifStatementChecks
     LoopsTester loopsChecks
     ActionsTester actionsChecks
@@ -49,6 +50,7 @@ class CompilerTestSuite
     on create
         expressions:SetCompilerTestSuite(me)
         typeChecks:SetCompilerTestSuite(me)
+        typeChecksGenerated:SetCompilerTestSuite(me)
         ifStatementChecks:SetCompilerTestSuite(me)
         loopsChecks:SetCompilerTestSuite(me)
         actionsChecks:SetCompilerTestSuite(me)
@@ -79,6 +81,9 @@ class CompilerTestSuite
         output ""
         output typeChecks:GetName()
         typeChecks:Test()
+        output ""
+        output typeChecksGenerated:GetName()
+        typeChecksGenerated:Test()
         output ""
         output ifStatementChecks:GetName()
         ifStatementChecks:Test()
