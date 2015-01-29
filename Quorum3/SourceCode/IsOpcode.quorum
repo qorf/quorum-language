@@ -53,9 +53,9 @@ class IsOpcode is QuorumOpcode
         opcode:Write()
 
         if isErrorCast
-            methodWriter:VisitType(opcodes:GetInstanceOf(), castTo:ConvertTypeToBytecodeSignature())
+            methodWriter:VisitType(opcodes:GetInstanceOf(), castTo:ConvertStaticKeyToBytecodePath())
         else
-            methodWriter:VisitType(opcodes:GetInstanceOf(), castTo:ConvertTypeToBytecodeSignatureInterface())
+            methodWriter:VisitType(opcodes:GetInstanceOf(), castTo:ConvertStaticKeyToBytecodeInterfacePath())
         end
     end
 
