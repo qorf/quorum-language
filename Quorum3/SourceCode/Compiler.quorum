@@ -38,6 +38,23 @@ class Compiler
     boolean outputSpeechCommands = true
     CompilerProfiler profiler
 
+    /*
+        This action clears out any existing information in the compiler. By
+        default it removes only parse information, but does not alter
+        any parameters (e.g., project directory).
+    */
+    action Empty
+        SymbolTable symbolTable2
+        CompilerErrorManager compilerErrorManager2
+        TypeChecker checker2
+        CompilerProfiler profiler2
+
+        symbolTable = symbolTable2
+        compilerErrorManager = compilerErrorManager2
+        checker = checker2
+        profiler = profiler2
+    end
+
     action SetOutputSpeech(boolean doSay)
         outputSpeechCommands = doSay
     end
