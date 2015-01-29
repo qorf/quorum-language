@@ -188,9 +188,6 @@ class Compiler
                     File buildInterface = code:GetBuildInterfaceFile()
 
                     text key = code:GetStaticKey()
-                    if key = "Main"
-                        a = 5
-                    end
                     if build not= undefined
                         generator:Add(build)
                     end
@@ -725,10 +722,14 @@ class Compiler
                 end
             end
         end
-
     end
 
     private action GetStandardLibraryFolderForPackage(text key) returns File
+        if standardLibraryFolder = undefined
+            File build
+            build:SetPath(DEFAULT_STANDARD_LIBRARY_FOLDER)
+            standardLibraryFolder = build
+        end
         text loc = standardLibraryFolder:GetWorkingDirectory()
         text loc2 = standardLibraryFolder:GetAbsolutePath()
 
@@ -757,6 +758,11 @@ class Compiler
 
     action GetStandardLibraryFile(text key, text fromPackage) returns File
         Array<text> values = key:Split("\.")
+        if standardLibraryFolder = undefined
+            File build
+            build:SetPath(DEFAULT_STANDARD_LIBRARY_FOLDER)
+            standardLibraryFolder = build
+        end
         text loc = standardLibraryFolder:GetWorkingDirectory()
         text loc2 = standardLibraryFolder:GetAbsolutePath()
 
@@ -858,6 +864,11 @@ class Compiler
         if file not= undefined
             outputFolder = file
             text path = file:GetAbsolutePath()
+
+            if not file:Exists()
+                file:CreateDirectories()
+            end
+
             File build
             build:SetWorkingDirectory(path)
             build:SetPath(DEFAULT_BUILD_FOLDER)

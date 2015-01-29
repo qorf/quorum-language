@@ -49,9 +49,9 @@ class Command is WebTag
     */
     action SetDisabledCommand(boolean value)
         if value
-            AddAttribute(disabled, disabled)
+            AddAttribute(disabled, "" + value)
         else
-            RemoveAttribute(value)
+            RemoveAttribute(disabled)
         end
     end
 

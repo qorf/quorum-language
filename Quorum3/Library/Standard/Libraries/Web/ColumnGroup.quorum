@@ -67,7 +67,7 @@ class ColumnGroup is WebTag
         
     */
     action SetSpan(integer value)
-        me:AddAttribute(span, value)
+        me:AddAttribute(span, "" + value)
     end
         
     action Generate returns text
