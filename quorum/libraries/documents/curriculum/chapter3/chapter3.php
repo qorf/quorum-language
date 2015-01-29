@@ -25,14 +25,14 @@ integer a = 6
 if a &lt; 4 then
    a = a - 1
 end
-else if a &gt; 4 then
+elseif a &gt; 4 then
    a = a + 1
 end
 </code></pre></p>
 <ol start="4"><li>What are the differences between the three conditional clauses?
 </li><li>What are nesting conditionals?  Give an example of the nesting conditionals in Quorum.
-</li><li>Why should the <code>else if</code> statements be used over nesting conditionals?
-</li><li>How many <code>else if</code> statements can we have?
+</li><li>Why should the <code>elseif</code> statements be used over nesting conditionals?
+</li><li>How many <code>elseif</code> statements can we have?
 </li><li>List four kinds of loops and explain what they are used for.
 </li><li>What is an infinite loop?
 </li><li>What is lexical scoping?
