@@ -15,8 +15,7 @@ class ActionContext is ParseContext
         key = key + actionName
         Iterator<Variable> it = parameters:GetIterator()
         repeat while it:HasNext()
-            //https://quorum.atlassian.net/browse/QUOR-99
-            Variable var = cast(Variable, it:Next()) //workaround to Bug #99
+            Variable var = it:Next()
             Type type = var:GetType()
             key = key + ":" + type:GetStaticKey()
         end
