@@ -1,0 +1,1098 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.JarGenerator
+use Libraries.System.StackTraceItem
+
+class TypeCheckTesterGenerated
+    CompilerTestSuite suite = undefined
+    text path = "Library/Tests/TypeChecker/"
+
+    action Test
+        //PASS TESTS
+        ImpAssignBoolObjBoolObj()
+        ImpAssignBoolObjBoolean()
+        ImpAssignBoolObjUndefined()
+        ImpAssignBooleanBoolObj()
+        ImpAssignBooleanBoolean()
+        ImpAssignIntObjIntObj()
+        ImpAssignIntObjInteger()
+        ImpAssignIntObjUndefined()
+        ImpAssignIntegerIntObj()
+        ImpAssignIntegerInteger()
+        ImpAssignNumObjIntObj()
+        ImpAssignNumObjInteger()
+        ImpAssignNumObjNumObj()
+        ImpAssignNumObjNumber()
+        ImpAssignNumObjUndefined()
+        ImpAssignNumberIntObj()
+        ImpAssignNumberInteger()
+        ImpAssignNumberNumObj()
+        ImpAssignNumberNumber()
+        ImpAssignObjectBoolObj()
+        ImpAssignObjectIntObj()
+        ImpAssignObjectNumObj()
+        ImpAssignObjectObject()
+        ImpAssignObjectTextObj()
+        ImpAssignObjectUndefined()
+        ImpAssignTextText()
+        ImpAssignTextTextObj()
+        ImpAssignTextUndefined()
+        ImpAssignTextObjText()
+        ImpAssignTextObjTextObj()
+        ImpAssignTextObjUndefined()
+
+        //FAIL TESTS
+        ImpAssignBoolObjIntObj()
+        ImpAssignBoolObjInteger()
+        ImpAssignBoolObjNumObj()
+        ImpAssignBoolObjNumber()
+        ImpAssignBoolObjObject()
+        ImpAssignBoolObjText()
+        ImpAssignBoolObjTextObj()
+        ImpAssignBooleanIntObj()
+        ImpAssignBooleanInteger()
+        ImpAssignBooleanNumObj()
+        ImpAssignBooleanNumber()
+        ImpAssignBooleanObject()
+        ImpAssignBooleanText()
+        ImpAssignBooleanTextObj()
+        ImpAssignBooleanUndefined()
+        ImpAssignIntObjBoolObj()
+        ImpAssignIntObjBoolean()
+        ImpAssignIntObjNumObj()
+        ImpAssignIntObjNumber()
+        ImpAssignIntObjObject()
+        ImpAssignIntObjText()
+        ImpAssignIntObjTextObj()
+        ImpAssignIntegerBoolObj()
+        ImpAssignIntegerBoolean()
+        ImpAssignIntegerNumObj()
+        ImpAssignIntegerNumber()
+        ImpAssignIntegerObject()
+        ImpAssignIntegerText()
+        ImpAssignIntegerTextObj()
+        ImpAssignIntegerUndefined()
+        ImpAssignNumObjBoolObj()
+        ImpAssignNumObjBoolean()
+        ImpAssignNumObjObject()
+        ImpAssignNumObjText()
+        ImpAssignNumObjTextObj()
+        ImpAssignNumberBoolObj()
+        ImpAssignNumberBoolean()
+        ImpAssignNumberObject()
+        ImpAssignNumberText()
+        ImpAssignNumberTextObj()
+        ImpAssignNumberUndefined()
+        ImpAssignObjectBoolean()
+        ImpAssignObjectInteger()
+        ImpAssignObjectNumber()
+        ImpAssignObjectText()
+        ImpAssignTextBoolObj()
+        ImpAssignTextBoolean()
+        ImpAssignTextIntObj()
+        ImpAssignTextInteger()
+        ImpAssignTextNumObj()
+        ImpAssignTextNumber()
+        ImpAssignTextObject()
+        ImpAssignTextObjBoolObj()
+        ImpAssignTextObjBoolean()
+        ImpAssignTextObjIntObj()
+        ImpAssignTextObjInteger()
+        ImpAssignTextObjNumObj()
+        ImpAssignTextObjNumber()
+        ImpAssignTextObjObject()
+        ImpAssignObject()
+
+    end
+
+    action GetName returns text
+        return "Type Check Tests"
+    end
+    
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+    
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+    action ImpAssignBoolObjBoolObj
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignBoolObjBoolObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignBoolObjBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignBoolObjBoolean.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignBoolObjIntObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBoolObjIntObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignBoolObjInteger
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBoolObjInteger.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignBoolObjNumObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBoolObjNumObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignBoolObjNumber
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBoolObjNumber.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignBoolObjObject
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBoolObjObject.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignBoolObjText
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBoolObjText.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignBoolObjTextObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBoolObjTextObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignBoolObjUndefined
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignBoolObjUndefined.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignBooleanBoolObj
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignBooleanBoolObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignBooleanBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignBooleanBoolean.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignBooleanIntObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBooleanIntObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignBooleanInteger
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBooleanInteger.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignBooleanNumObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBooleanNumObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignBooleanNumber
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBooleanNumber.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignBooleanObject
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBooleanObject.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignBooleanText
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBooleanText.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignBooleanTextObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBooleanTextObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignBooleanUndefined
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignBooleanUndefined.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntObjBoolObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntObjBoolObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntObjBoolean
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntObjBoolean.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntObjIntObj
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignIntObjIntObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignIntObjInteger
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignIntObjInteger.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignIntObjNumObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntObjNumObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntObjNumber
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntObjNumber.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntObjObject
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntObjObject.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntObjText
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntObjText.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntObjTextObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntObjTextObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntObjUndefined
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignIntObjUndefined.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignIntegerBoolObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntegerBoolObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntegerBoolean
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntegerBoolean.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntegerIntObj
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignIntegerIntObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignIntegerInteger
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignIntegerInteger.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignIntegerNumObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntegerNumObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntegerNumber
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntegerNumber.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntegerObject
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntegerObject.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntegerText
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntegerText.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntegerTextObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntegerTextObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignIntegerUndefined
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignIntegerUndefined.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignNumObjBoolObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignNumObjBoolObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignNumObjBoolean
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignNumObjBoolean.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignNumObjIntObj
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignNumObjIntObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignNumObjInteger
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignNumObjInteger.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignNumObjNumObj
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignNumObjNumObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignNumObjNumber
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignNumObjNumber.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignNumObjObject
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignNumObjObject.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignNumObjText
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignNumObjText.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignNumObjTextObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignNumObjTextObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignNumObjUndefined
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignNumObjUndefined.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignNumberBoolObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignNumberBoolObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignNumberBoolean
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignNumberBoolean.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignNumberIntObj
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignNumberIntObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignNumberInteger
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignNumberInteger.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignNumberNumObj
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignNumberNumObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignNumberNumber
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignNumberNumber.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignNumberObject
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignNumberObject.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignNumberText
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignNumberText.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignNumberTextObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignNumberTextObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignNumberUndefined
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignNumberUndefined.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignObjectBoolObj
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignObjectBoolObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignObjectBoolean
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignObjectBoolean.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignObjectIntObj
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignObjectIntObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignObjectInteger
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignObjectInteger.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignObjectNumObj
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignObjectNumObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignObjectNumber
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignObjectNumber.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignObjectObject
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignObjectObject.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignObjectText
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignObjectText.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignObjectTextObj
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignObjectTextObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignObjectUndefined
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignObjectUndefined.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignTextBoolObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignTextBoolObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignTextBoolean
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignTextBoolean.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignTextIntObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignTextIntObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignTextInteger
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignTextInteger.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignTextNumObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignTextNumObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignTextNumber
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignTextNumber.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignTextObject
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignTextObject.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignTextText
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignTextText.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignTextTextObj
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignTextTextObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignTextUndefined
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignTextUndefined.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignTextObjBoolObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignTextObjBoolObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignTextObjBoolean
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignTextObjBoolean.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignTextObjIntObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignTextObjIntObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignTextObjInteger
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignTextObjInteger.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignTextObjNumObj
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignTextObjNumObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignTextObjNumber
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignTextObjNumber.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignTextObjObject
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignTextObjObject.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ImpAssignTextObjText
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignTextObjText.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignTextObjTextObj
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignTextObjTextObj.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignTextObjUndefined
+        Array<File> files
+        Array<text> results
+        File main
+        test = path + "Pass/ImpAssignTextObjUndefined.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignObject
+        Array<File> files
+        File main
+        test = path + "Fail/ImpAssignObject.quorum"
+        main:SetPath(test)
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+end
