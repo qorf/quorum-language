@@ -7,9 +7,7 @@ package org.quorum.actions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeListener;
 import java.io.File;
-import javax.swing.Action;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
@@ -37,6 +35,9 @@ public class Build extends QuorumAction implements ActionListener{
         File file = new File(directory.getAbsolutePath() + "/SourceCode");
         quorum.Libraries.System.File quorumFile = getQuorumFile(file);
         Array$Interface listing = quorumFile.GetDirectoryListing();
+        compiler.Empty();
+        quorum.Libraries.System.File f = (quorum.Libraries.System.File)listing.Get(0);
+        compiler.SetMain(f);
         compiler.Compile(listing);
         int a = 5;
     }
