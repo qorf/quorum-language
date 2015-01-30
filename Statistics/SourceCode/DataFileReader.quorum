@@ -16,8 +16,8 @@ class DataFileReader
     end
 
   /*
-   * Code mostly copied from SeparatedValue because I don't want Table<text> to be encapsulated
-   */
+    Code similar to Libraries.Data.SeparatedValue
+  */
   action Read(File file) returns ColumnTable
         ColumnTable table
         SeparatedValueFileReader reader
@@ -56,7 +56,10 @@ class DataFileReader
         return table
     end
 
-private action ReadLine(text line) returns Array<text>
+  /*
+    Code from Libraries.Data.SeparatedValue
+  */
+  private action ReadLine(text line) returns Array<text>
         //process every character, using double quotes and the delimiter 
         //as a guide for determining cells.
         Array<text> row
