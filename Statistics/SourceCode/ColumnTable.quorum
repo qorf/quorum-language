@@ -1,0 +1,40 @@
+use Libraries.Containers.Array
+use Libraries.Containers.Table
+
+/*
+  This class represents data in a column centric fashion as is common in 
+  statistical software.
+*/
+
+// TODO: Add all needed methods for extracting information etc
+class ColumnTable 
+    Array<Column> table
+
+    action AddRow(Array<text> row)
+        EnlargeToSize(row:GetSize())
+
+        integer i = 0
+        repeat row:GetSize() times
+            Column c = table:Get(i)
+            c:Add(row:Get(i))
+            i = i + 1
+        end
+    end
+    
+    action EnlargeToSize(integer size)
+        repeat until table:GetSize() >= size
+            Column c
+            table:Add(c)
+        end
+    end
+
+    action Get(integer row, integer column) returns number
+        Column col = table:Get(column)
+        return col:Get(row)
+    end
+
+    action GetColumn(integer column) returns Column
+        return table:Get(column)
+    end
+   
+end
