@@ -21,7 +21,8 @@ public class CleanBuild extends QuorumAction implements ActionListener{
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        
+        clean();
+        build();
     }
     
     @Override
