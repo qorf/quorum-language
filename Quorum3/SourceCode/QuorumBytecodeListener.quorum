@@ -921,6 +921,21 @@ class QuorumBytecodeListener is QuorumSourceListener
 
                     //get a field. It has to be there, otherwise a previous phase would have complained
                     field = clazz:GetVariable(name)
+
+                    if field not= undefined
+                        if field:IsConstant() //issue an error, this is not allowed.
+                            CompilerError error
+                            error:SetLocation(context:GetLocation())
+                            CompilerErrorType errorType
+                            errorType:SetCurrentType(errorType:CONSTANT_REASSIGNMENT)
+                            error:SetCompilerErrorType(errorType)
+                            error:SetErrorMessage("I noticed that the code says you want to modify the "
+                                + "variable " + field:GetName() + ", in the parent "
+                                + fieldHolder:GetStaticKey() + " but that variable is a constant.")
+                            CompilerErrorManager manager = GetCompilerErrorManager()
+                            manager:Add(error)
+                        end
+                    end
                 else  
                     CompilerError error
                     error:SetLocation(variable)
@@ -1002,6 +1017,20 @@ class QuorumBytecodeListener is QuorumSourceListener
             error:SetErrorMessage(message)
             manager:Add(error)
             return now
+        end
+
+        if var not= undefined
+            if var:IsConstant() //issue an error, this is not allowed.
+                CompilerError error
+                error:SetLocation(context:GetLocation())
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:CONSTANT_REASSIGNMENT)
+                error:SetCompilerErrorType(errorType)
+                error:SetErrorMessage("I noticed that the code says you want to modify the "
+                    + "variable " + var:GetName() + ", in the parent "
+                    + parentClass:GetStaticKey() + " but that variable is a constant.")
+                manager:Add(error)
+            end
         end
 
         Type left = var:GetType()
@@ -1174,6 +1203,19 @@ class QuorumBytecodeListener is QuorumSourceListener
             variable = currentBlock:GetVariable(name)
         end
 
+        if variable not= undefined
+            if variable:IsConstant() //issue an error, this is not allowed.
+                CompilerError error
+                error:SetLocation(context:GetLocation())
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:CONSTANT_REASSIGNMENT)
+                error:SetCompilerErrorType(errorType)
+                error:SetErrorMessage("I noticed that the code says you want to modify the "
+                    + "variable " + variable:GetName() + ", but that variable is a constant.")
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(error)
+            end
+        end
         Type left = variable:GetType()
 
         QuorumOpcode right = opcodeStack:Pop()

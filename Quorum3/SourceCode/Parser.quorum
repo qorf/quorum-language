@@ -338,37 +338,12 @@ class Parser is QuorumSourceListener
     end
 
     action ExitAction(ActionContext context) 
-//        if not currentAction:IsBlueprint() and not currentAction:IsSystem()
-//            Block block = currentAction:GetBlock()
-//
-//            boolean satisfied = block:IsReturnSatisfied()
-//            Type returnType = currentAction:GetReturnType()
-//            //if we don't have a void function, make sure that there is a return
-//            //either in a top level block or all appropriate sub-blocks
-//            if not returnType:IsVoid() and not satisfied
-//                CompilerError e
-//                e:SetErrorMessage("I found that the action " + currentAction:GetStaticKey() +
-//                    " is a missing return statement.")
-//                CompilerErrorType t
-//                t:SetCurrentType(t:MISSING_RETURN)
-//                e:SetCompilerErrorType(t)
-//                e:SetLocation(context:GetLocation())
-//                CompilerErrorManager manager = GetCompilerErrorManager()
-//                manager:Add(e)
-//            end
-//        end
     end
 
     action ExitReturnStatement(ReturnContext context)
     end
 
     action ExitStatement(StatementContext context) 
-//        if recentStatementWasReturn
-//            currentBlock:SetReturnThisBlock(true)
-//            recentStatementWasReturn = false
-//        else
-//            HasAlreadyReturnedFromBlock(context:GetLocation())
-//        end
     end
 
     action ExitNormalAssignment(NormalAssignmentContext context)
@@ -377,6 +352,14 @@ class Parser is QuorumSourceListener
         variable:SetLocation(context:GetLocation())
         if context:isPublic
             variable:SetPublic()
+        end
+
+        if context:isPrivate
+            variable:SetPrivate()
+        end
+
+        if context:isConstant
+            variable:SetConstant(true)
         end
 
         variable:SetHasExplicitModifier(context:hasModifier)

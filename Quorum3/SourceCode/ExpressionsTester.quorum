@@ -105,6 +105,8 @@ class ExpressionsTester
         SubIntInt()
 // FAIL TESTS
         path = failPath
+        ChangeConstant()
+        ChangeConstantField()
         MainNotCapitalized()
         NoVariable()
         InvalidExpression()
@@ -1182,6 +1184,23 @@ class ExpressionsTester
     end
 
 //FAIL TESTS
+    action ChangeConstant
+        Array<File> files
+        File main
+        main:SetPath(path + "ChangeConstant.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ChangeConstantField
+        Array<File> files
+        File main
+        main:SetPath(path + "ChangeConstantField.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
 
     action MainNotCapitalized
         Array<File> files
