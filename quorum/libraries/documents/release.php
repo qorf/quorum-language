@@ -10,16 +10,20 @@
 <h2>Quorum 3.0 TBD 2015 (Beta 1 February 2nd, 2015)</h2>    
 <p>Quorum 3.0 represents the most significant change to the Quorum programming
 language since its inception and is a near-complete rewrite. When the Quorum project
-first began, it was written in Java, was interpreted, and was created as a toy 
-language as part of a National Science Foundation project for blind individuals. 
-As of 3.0, we have finally hit a major milestone: Quorum is now faster, robust, 
-and written in itself. There's always more work to do, but the language is 
-increasingly mature. Now that this major undertaking is coming to a close, the team's
-goals are shifting to improving library and development environment support.</p>
+first began, it was written in Java, was interpreted, and we were really just trying 
+to make programming a little easier. As of 3.0, the project has gone further than we ever imagined: 
+Quorum is now faster, robust, and <strong>written in itself</strong>. As is a long
+tradition in programming language design, once a language is sufficiently powerful 
+to write the next version in itself, so-called self-hosting, it is a sign that 
+the language is becoming increasingly mature. On Quorum, we have finally reached
+this milestone and will now be shifting our attention to improved library and 
+development environment support. Library requests to the team, or contributions, 
+are welcome.</p>
 
 <p>We had a number of technical goals in mind for the Quorum 3.0 release. We highlight 
 some of the most significant alterations below:</p>
-<ul> <p>Major language changes</p>
+<h4>Major language changes</h4>
+<ul> 
     <li>Quorum now uses an ANTLR 4 backend. Compiler phases in the language
         are now considerably faster, thanks largely to Terence Parr's clever work.</li>
     <li>Quorum's type system has been significantly revised, removing
@@ -58,7 +62,8 @@ some of the most significant alterations below:</p>
         but it's a potential improvement until more or better evidence is found.
     </li>
 </ul>
-<ul> <p>Type system/variable changes</p>
+<h4>Type system/variable changes</h4>
+<ul> 
     <li>Removed a number of cases where Quorum was being slightly "too flexible" 
     in its conversions between various types, especially in regard to auto-boxing.</li>
     <li>Fixed several issues where Quorum was making strange decisions in what it
@@ -83,7 +88,8 @@ some of the most significant alterations below:</p>
     we can regenerate the entire suite if a change to the type system is made 
     (hopefully with corresponding evidence).</li>
 </ul>
-<ul> <p>Exceptions (Error) system changes</p>
+<h3>Exceptions (Error) system changes</h3>
+<ul> 
     <li>This system has been fully redesigned.</li>
     <li>In the new system, Quorum Error classes, must inherit from Error, and only Error. 
         The reason is due to a quirk in Quorum's inheritance system. This is a potential
@@ -120,7 +126,8 @@ some of the most significant alterations below:</p>
     other Quorum classes in bytecode. The reason is because of the way Java handles
     exceptions in regard to its inheritance hierarchy (e.g., Throwable and below).</li>
 </ul>
-<ul> <p>Control Structure changes</p>
+<h4>Control Structure changes</h4>
+<ul> 
     <li>If statements now properly short circuit. This was previously a bug.</li>
     <li>Included a number of optimizations at various points in the control
     structure pipeline.</li>
@@ -131,7 +138,8 @@ some of the most significant alterations below:</p>
     have chosen to include it because we had intended it to be in the original spec to begin with.</li>
     <li>Added a number of helper actions to the plugins for primitive calls.</li>
 </ul>
-<ul> <p>Compiler Support</p>
+<h4>Compiler Support</h4>
+<ul> 
     <li>Added preliminary support for the ASM bytecode library to Quorum. This initial
     version is somewhat bare bones in this first release, but still is sufficient
     to implement much of a modern compiler built on JDK 7 or 8. Teams interested
@@ -150,7 +158,8 @@ some of the most significant alterations below:</p>
     of cross-compiled Quorum programs. Currently, the system supports programs converted 
     from Quorum to Java Bytecode and JavaScript.</li>
 </ul>
-<ul> <p>Other changes</p>
+<h4>Other changes</h4>
+<ul> 
     <li>Fixed a host of minor bugs throughout the language.</li>
     <li>Considerably improved Quorum's automated test suite generally, giving us increasing
     confidence that we are properly exercising each system. There's always more work 
