@@ -9,6 +9,8 @@ class ActionContext is ParseContext
     public List<Variable> parameters
     public text actionName = ""
     public Type returnType = undefined
+    public boolean isPublic = true
+    public boolean isPrivate = false
 
     action GetStaticKey returns text
         text key = ""

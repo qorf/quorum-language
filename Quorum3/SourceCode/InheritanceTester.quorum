@@ -47,6 +47,10 @@ class InheritanceTester
         MultipleInheritanceAmbiguousMethod()
         CircularInheritance()
         BadTemplate()
+        OutputPrivateParentValue()
+        UsePrivateVariable()
+        UsePrivateAction()
+        UsePrivateActionSoloCall()
     end
 
     action GetName returns text
@@ -461,6 +465,64 @@ class InheritanceTester
         files:Add(dependent1)
         files:Add(dependent2)
         files:Add(dependent3)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action OutputPrivateParentValue() 
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "OutputPrivateParentValue.quorum")
+        dependent1:SetPath(path + "Test1.quorum")
+        dependent2:SetPath(path + "Test2.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action UsePrivateVariable
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "UsePrivateVariable.quorum")
+        dependent2:SetPath(path + "Test2.quorum")
+        files:Add(main)
+        files:Add(dependent2)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action UsePrivateAction
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "UsePrivateAction.quorum")
+        dependent2:SetPath(path + "Test2.quorum")
+        files:Add(main)
+        files:Add(dependent2)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action UsePrivateActionSoloCall
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "UsePrivateActionSoloCall.quorum")
+        dependent2:SetPath(path + "Test2.quorum")
+        files:Add(main)
+        files:Add(dependent2)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
     end
