@@ -44,16 +44,15 @@ access_modifier
 	;	
 class_stmnts
 	:
-	assignment_statement
-	|	access_modifier?
-	 method_declaration
+            assignment_statement
+        |   method_declaration
 	;
 
 method_declaration
-	:	method_shared block END     #Action
-	|	BLUEPRINT method_shared     #BlueprintAction
-	|	NATIVE method_shared        #NativeAction
-	| ON CREATE block END               #Constructor
+	:	modifier = access_modifier? method_shared block END     #Action
+	|	modifier = access_modifier? BLUEPRINT method_shared     #BlueprintAction
+	|	modifier = access_modifier? NATIVE method_shared        #NativeAction
+	| ON CREATE block END                                           #Constructor
 	;
 
 method_shared returns [quorum.Libraries.Language.Compile.Context.ActionContext actionContext]
