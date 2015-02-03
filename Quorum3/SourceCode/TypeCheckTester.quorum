@@ -151,9 +151,9 @@ class TypeCheckTester
         InstanceTypeChildOfChild()
         InstanceTypeCurrent()
         InstanceTypeDirectChild()
-//        InstanceTypeDirectParent()
-//        InstanceTypeObject()
-//        InstanceTypeParentOfParent()
+        InstanceTypeDirectParent()
+        InstanceTypeObject()
+        InstanceTypeParentOfParent()
         IntegerBitCount()
         IntegerCompare()
         IntegerEquals()
@@ -1835,13 +1835,15 @@ action AutoBoxingAndMethodOverloadingNum
         File main
         File dependent1
         File dependent2
+        File dependent3
         main:SetPath(path + "InstanceTypeDirectParent.quorum")
-        files:Add(main)
-        dependent1:SetPath(path + "B.quorum")
-        dependent2:SetPath(path + "C.quorum")
+        dependent1:SetPath(path + "A.quorum")
+        dependent2:SetPath(path + "B.quorum")
+        dependent3:SetPath(path + "C.quorum")
         files:Add(main)
         files:Add(dependent1)
         files:Add(dependent2)
+        files:Add(dependent3)
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -1851,8 +1853,17 @@ action AutoBoxingAndMethodOverloadingNum
         Array<File> files
         Array<text> results
         File main
+        File dependent1
+        File dependent2
+        File dependent3
         main:SetPath(path + "InstanceTypeObject.quorum")
+        dependent1:SetPath(path + "A.quorum")
+        dependent2:SetPath(path + "B.quorum")
+        dependent3:SetPath(path + "C.quorum")
         files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
@@ -2228,8 +2239,8 @@ action AutoBoxingAndMethodOverloadingNum
         File main
         main:SetPath(path + "TextGetSubtext.quorum")
         files:Add(main)
-        results:Add(0, "he")
-        results:Add(1, "he")
+        results:Add(0, "llo")
+        results:Add(1, "llo")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
