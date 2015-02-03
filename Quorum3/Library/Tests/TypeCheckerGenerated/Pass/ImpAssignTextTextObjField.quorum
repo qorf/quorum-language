@@ -1,0 +1,13 @@
+class Main
+    Text v
+    v:SetValue(text)
+    action Main
+        Test(v)
+    end
+
+    action Test(text var)
+        if var = text
+            output "passed"
+        end
+    end
+end
