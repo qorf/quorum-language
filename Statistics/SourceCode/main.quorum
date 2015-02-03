@@ -1,0 +1,57 @@
+use Libraries.Containers.List
+use Libraries.Containers.Table
+use Libraries.Compute.Math
+
+class Statistics
+
+    action Main
+        DataFileReader reader
+        ColumnTable data = reader:ReadFile("./SourceCode/data.csv")
+        
+        Column numbers = data:GetColumn(0)
+
+        number min = numbers:Min()
+        number max = numbers:Max()
+        number upper = numbers:Quantiles(0.75)
+        number lower = numbers:Quantiles(0.25)
+        number variance = numbers:Variance()
+        number mean = numbers:Mean()
+        number median = numbers:Median()
+        number sd = numbers:StandardDeviation()
+        number skew = numbers:Skew()
+        number kurtosis = numbers:Kurtosis()
+
+        Math math
+        
+        AssertEquals(1, min)
+        AssertEquals(45, max)
+        AssertEquals(17.5, mean)
+        AssertEquals(11.5, median)
+        AssertEquals(294, variance)
+        AssertEquals(3.5, lower)
+        AssertEquals(29.75, upper)
+        AssertEquals(17.14643, math:Round(sd,5))
+        AssertEquals(0.464189, math:Round(skew,6))
+        AssertEquals(-1.655207, math:Round(kurtosis,6))
+
+    end
+
+    action AssertEquals (number expected, number actual) returns boolean
+        if expected = actual
+            output "[SUCCESS] " + expected + " equals " + actual
+            return true
+        end
+        output "[FAILURE] " + expected + " does not equal " + actual
+        return false
+    end
+
+    action AssertEquals (integer expected, integer actual) returns boolean
+        if expected = actual
+            output "[SUCCESS] " + expected + " equals " + actual
+            return true
+        end
+        output "[FAILURE] " + expected + " does not equal " + actual
+        return false
+    end
+
+end

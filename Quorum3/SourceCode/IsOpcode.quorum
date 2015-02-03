@@ -52,11 +52,13 @@ class IsOpcode is QuorumOpcode
         Type type = opcode:GetType()
         opcode:Write()
 
+        text theType = ""
         if isErrorCast
-            methodWriter:VisitType(opcodes:GetInstanceOf(), castTo:ConvertTypeToBytecodeSignature())
+            theType = castTo:ConvertStaticKeyToBytecodePath()
         else
-            methodWriter:VisitType(opcodes:GetInstanceOf(), castTo:ConvertTypeToBytecodeSignatureInterface())
+            theType = castTo:ConvertStaticKeyToBytecodeInterfacePath()
         end
+        methodWriter:VisitType(opcodes:GetInstanceOf(), theType)
     end
 
     action WriteJavaScript returns text

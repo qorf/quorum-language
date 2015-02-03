@@ -1625,10 +1625,6 @@ class Class is Symbol
     end
 
     action ResolveAction(ActionCall call) returns ActionCallResolution
-
-        if GetName() = "TypeChecker" and call:name = "Check" and call:variable = undefined
-            a = 5
-        end
         ActionCallResolution resolution
         Array<Type> parameters = call:actualParameters
         TypeChecker checker = call:checker
@@ -1805,8 +1801,7 @@ class Class is Symbol
 
                 i = i + 1
             end
-
-
+            
             resolution:isResolved = true
         elseif finalMatches:GetSize() > 1 //check all of the scores
             resolution:resolvedAction = undefined

@@ -921,6 +921,21 @@ class QuorumBytecodeListener is QuorumSourceListener
 
                     //get a field. It has to be there, otherwise a previous phase would have complained
                     field = clazz:GetVariable(name)
+
+                    if field not= undefined
+                        if field:IsConstant() //issue an error, this is not allowed.
+                            CompilerError error
+                            error:SetLocation(context:GetLocation())
+                            CompilerErrorType errorType
+                            errorType:SetCurrentType(errorType:CONSTANT_REASSIGNMENT)
+                            error:SetCompilerErrorType(errorType)
+                            error:SetErrorMessage("I noticed that the code says you want to modify the "
+                                + "variable " + field:GetName() + ", in the parent "
+                                + fieldHolder:GetStaticKey() + " but that variable is a constant.")
+                            CompilerErrorManager manager = GetCompilerErrorManager()
+                            manager:Add(error)
+                        end
+                    end
                 else  
                     CompilerError error
                     error:SetLocation(variable)
@@ -1002,6 +1017,20 @@ class QuorumBytecodeListener is QuorumSourceListener
             error:SetErrorMessage(message)
             manager:Add(error)
             return now
+        end
+
+        if var not= undefined
+            if var:IsConstant() //issue an error, this is not allowed.
+                CompilerError error
+                error:SetLocation(context:GetLocation())
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:CONSTANT_REASSIGNMENT)
+                error:SetCompilerErrorType(errorType)
+                error:SetErrorMessage("I noticed that the code says you want to modify the "
+                    + "variable " + var:GetName() + ", in the parent "
+                    + parentClass:GetStaticKey() + " but that variable is a constant.")
+                manager:Add(error)
+            end
         end
 
         Type left = var:GetType()
@@ -1174,6 +1203,19 @@ class QuorumBytecodeListener is QuorumSourceListener
             variable = currentBlock:GetVariable(name)
         end
 
+        if variable not= undefined
+            if variable:IsConstant() //issue an error, this is not allowed.
+                CompilerError error
+                error:SetLocation(context:GetLocation())
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:CONSTANT_REASSIGNMENT)
+                error:SetCompilerErrorType(errorType)
+                error:SetErrorMessage("I noticed that the code says you want to modify the "
+                    + "variable " + variable:GetName() + ", but that variable is a constant.")
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(error)
+            end
+        end
         Type left = variable:GetType()
 
         QuorumOpcode right = opcodeStack:Pop()
@@ -1419,16 +1461,25 @@ class QuorumBytecodeListener is QuorumSourceListener
             actionCall:SetActionCallResolution(resolved)
 
             Action act = resolved:resolvedAction
+            Class classToMakeCallOn = resolved:classToMakeCallOn
+            if classToMakeCallOn:GetStaticKey() not= currentClass:GetStaticKey()
+                and act:IsPrivate()
+                //this action is private and in another class.
+                CompilerError error
+                error:SetLocation(actionCall:GetLocation())
+                error:SetErrorMessage("I found a call to " + act:GetName()
+                    + ", which is private"
+                    + ". This means it cannot be accessed from class "
+                    + currentClass:GetStaticKey() + " unless " + act:GetName() + " is made public.")
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:OTHER)
+                error:SetCompilerErrorType(errorType)
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(error)
+                return now
+            end
             
             actionCall:SetParameters(ComputeFinalParameters(actionCall:GetParameters(), resolved:converter))
-
-            //check to see if the return type needs to be auto-boxed back
-            //into another type.
-
-//            if currentClass:GetStaticKey() = "Main"
-//                a = 5
-//            end
-            
             Type returnType = act:GetReturnType()
             if not actionCall:GetPushOnMe() //if it's a me call, it doesn't matter
                 if returnType:IsMappedToGeneric() //it is mapped to a generic, so find the variable it is mapped to
@@ -1646,9 +1697,6 @@ class QuorumBytecodeListener is QuorumSourceListener
 
             return actionCall
         else //this parent call does not have a field variable
-
-            
-
             Type resolvedType
             resolvedType:SetToObject(parentName:GetStaticKey())
             currentClass:ResolveType(context:GetLocation(), resolvedType, GetSymbolTable(), GetCompilerErrorManager())
@@ -1671,8 +1719,6 @@ class QuorumBytecodeListener is QuorumSourceListener
             return actionCall
 
         end
-        
-        
     end
 
 
@@ -1771,9 +1817,6 @@ class QuorumBytecodeListener is QuorumSourceListener
                 end
             end
 
-            if classToMakeCallOn:GetName() = "TypeChecker" and context:name = "Check"
-                a = 5
-            end
             ComputeInitialParameters(size, actionCall)
             ActionCall call
             call:SetLocation(context:GetLocation())
@@ -1826,12 +1869,30 @@ class QuorumBytecodeListener is QuorumSourceListener
                 elseif actionCall:IsParentCall()
                     Class parentClass = actionCall:GetParentToCallOn()
 
+                    text callingName = ""
                     if parentClass not= undefined //it's not in the current class
                         variable = parentClass:GetVariable(name)
+                        callingName = parentClass:GetStaticKey()
                     else
                         variable = currentClass:GetVariable(name)
+                        callingName = currentClass:GetStaticKey()
                     end
 
+                    if variable not= undefined and parentClass not= undefined 
+                        if variable:IsPrivate()
+                            CompilerError error
+                            error:SetLocation(context:GetLocation())
+                            error:SetErrorMessage("I found the variable " + name 
+                                + ", but it is private in parent class "
+                                + callingName + ".")
+                            CompilerErrorType errorType
+                            errorType:SetCurrentType(errorType:OTHER)
+                            error:SetCompilerErrorType(errorType)
+                            CompilerErrorManager manager = GetCompilerErrorManager()
+                            manager:Add(error)
+                            return now
+                        end
+                    end
                     isNextVariableReferenceMe = false
                 else 
                     variable = currentBlock:GetVariable(name)
@@ -1853,7 +1914,6 @@ class QuorumBytecodeListener is QuorumSourceListener
                         manager:Add(error)
                         return now
                     end
-
 
                     actionCall:SetPushOnMe(true)
                     actionCall:SetCallerType(type)
@@ -1883,6 +1943,25 @@ class QuorumBytecodeListener is QuorumSourceListener
                     //get a field.
                     Variable field = clazz:GetVariable(name)
                     if field not= undefined
+                    
+                        //if the field is in another class, make sure that it is public
+                        if currentClass:GetStaticKey() not= clazz:GetStaticKey()
+                           and field:IsPrivate() 
+                           //we are trying to access a private member in another class, 
+                           //throw a compiler error.
+                            CompilerError error
+                            error:SetLocation(context:GetLocation())
+                            error:SetErrorMessage("I found a call to " + staticKey + ":" + name 
+                                + ", which is private"
+                                + ". This means it cannot be accessed from class "
+                                + currentClass:GetStaticKey() + " unless " + name + " is made public.")
+                            CompilerErrorType errorType
+                            errorType:SetCurrentType(errorType:OTHER)
+                            error:SetCompilerErrorType(errorType)
+                            CompilerErrorManager manager = GetCompilerErrorManager()
+                            manager:Add(error)
+                            return now
+                        end
                         Type fieldType = field:GetType()
                         actionCall:SetCallerType(fieldType)
                         actionCall:SetType(fieldType)

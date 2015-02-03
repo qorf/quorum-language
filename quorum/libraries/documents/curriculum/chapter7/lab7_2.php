@@ -36,7 +36,21 @@
 </ul>
 <h2>Overview</h2>
 <p>
-    In this lab, you will learn how the data structures arrays and lists differ from each other. Both data structures are able to hold large amounts of data, including multiple types of values such as integer, number, and text. Recall to <a href="lab2_1.php">lab 7_1</a>, where an array was described as a 1D table, where each "cell" in the table held a value. In <a href="lab2_1.php">lab 7_1</a>, the arrays never had more than 20 "cells." As was mentioned in <a href="lab2_1.php">lab 7_1</a>, arrays are defaulted to a size of 10, and if they go over that, then quorum automatically re-sizes the array to hold more. This has to be done because arrays hold values that are contiguous in memory. The list structure differs because it stores items in nodes. Each of these nodes stores an item and a reference to the next and previous node in the sequence. This is known as a doubly-linked list, which is how all lists in quorum are created. Because of this, the list data structure does not need to re-size itself like an array would when the structure is filled. An array can be visualized like this:
+    In this lab, you will learn how the data structures arrays and lists differ 
+    from each other. Both data structures are able to hold large amounts of data, 
+    including multiple types of values such as integer, number, and text. Recall 
+    to <a href="lab7_1.php">lab 7_1</a>, where an array was described as a 1D 
+    table, where each "cell" in the table held a value. In 
+    <a href="lab7_1.php">lab 7_1</a>, the arrays never had more than 20 "cells." 
+    As was mentioned in <a href="lab7_1.php">lab 7_1</a>, arrays are defaulted 
+    to a size of 10, and if they go over that, then quorum automatically re-sizes 
+    the array to hold more. This has to be done because arrays hold values that 
+    are contiguous in memory. The list structure differs because it stores 
+    items in nodes. Each of these nodes stores an item and a reference to the 
+    next and previous node in the sequence. This is known as a doubly-linked 
+    list, which is how all lists in quorum are created. Because of this, the 
+    list data structure does not need to re-size itself like an array would 
+    when the structure is filled. An array can be visualized like this:
 </p>
 <table class="table">
     <tr>
@@ -161,10 +175,23 @@
     </tr>
 </table>
 <p>
-    As seen above, each node in a list contains a reference to the node before it and after it, with the exception of the end cases. One downside to lists is that each node can only be accessed through the first or last nodes, since lists are not held contiguous in memory, there's no way to access any specific node without accessing the first or last one. In order to better understand the differences between lists and arrays, you're going to build a program that populates both an array and a list with random integers, replaces a portion of those integers, and then deletes each item in the structures. You will be using the <code>Libraries.System.DateTime</code> to time how long it takes each structure complete the before-mentioned tasks, and then output the time for each to the user.
+    As seen above, each node in a list contains a reference to the node before 
+    it and after it, with the exception of the end cases. One downside to lists 
+    is that each node can only be accessed through the first or last nodes, 
+    since lists are not held contiguous in memory, there's no way to access any 
+    specific node without accessing the first or last one. In order to better 
+    understand the differences between lists and arrays, you're going to build 
+    a program that populates both an array and a list with random integers, 
+    replaces a portion of those integers, and then deletes each item in the 
+    structures. You will be using the <code>Libraries.System.DateTime</code> 
+    to time how long it takes each structure complete the before-mentioned 
+    tasks, and then output the time for each to the user.
+    
 </p>
 <p>
-    Start Sodbeans. Create a new “Quorum Application” project, and name it <b>Lab7_2</b>. Create a second class called <code>Compute</code>. You will need to use the following libraries for this lab:
+    Start Sodbeans. Create a new “Quorum Application” project, and name it 
+    <b>Lab7_2</b>. Create a second class called <code>Compute</code>. You will 
+    need to use the following libraries for this lab:
 </p>
 <pre class="code">
     use Libraries.Containers.List

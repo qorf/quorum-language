@@ -1106,6 +1106,19 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterNativeAction(QuorumParser.NativeActionContext ctx) {
         ActionContext context = new ActionContext();
         setLocation(ctx, context);
+        
+        if(ctx.modifier != null) {
+            TerminalNode PUBLIC = ctx.modifier.PUBLIC();
+            if(PUBLIC != null) {
+                context.isPublic = true;
+                context.isPrivate = false;
+            }
+            TerminalNode PRIVATE = ctx.modifier.PRIVATE();
+            if(PRIVATE != null) {
+                context.isPublic = false;
+                context.isPrivate = true;
+            }
+        }
         listener.EnterSystemAction(context);
     }
 
@@ -1113,6 +1126,19 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitNativeAction(QuorumParser.NativeActionContext ctx) {
         ActionContext context = new ActionContext();
         setLocation(ctx, context);
+        
+        if(ctx.modifier != null) {
+            TerminalNode PUBLIC = ctx.modifier.PUBLIC();
+            if(PUBLIC != null) {
+                context.isPublic = true;
+                context.isPrivate = false;
+            }
+            TerminalNode PRIVATE = ctx.modifier.PRIVATE();
+            if(PRIVATE != null) {
+                context.isPublic = false;
+                context.isPrivate = true;
+            }
+        }
         listener.ExitSystemAction(context);
     }
 
@@ -1120,6 +1146,18 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterAction(QuorumParser.ActionContext ctx) {
         ActionContext context = new ActionContext();
         setLocation(ctx, context);
+        if(ctx.modifier != null) {
+            TerminalNode PUBLIC = ctx.modifier.PUBLIC();
+            if(PUBLIC != null) {
+                context.isPublic = true;
+                context.isPrivate = false;
+            }
+            TerminalNode PRIVATE = ctx.modifier.PRIVATE();
+            if(PRIVATE != null) {
+                context.isPublic = false;
+                context.isPrivate = true;
+            }
+        }
         listener.EnterAction(context);
     }
 
@@ -1127,6 +1165,19 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitAction(QuorumParser.ActionContext ctx) {
         ActionContext context = new ActionContext();
         setLocation(ctx, context);
+        
+        if(ctx.modifier != null) {
+            TerminalNode PUBLIC = ctx.modifier.PUBLIC();
+            if(PUBLIC != null) {
+                context.isPublic = true;
+                context.isPrivate = false;
+            }
+            TerminalNode PRIVATE = ctx.modifier.PRIVATE();
+            if(PRIVATE != null) {
+                context.isPublic = false;
+                context.isPrivate = true;
+            }
+        }
         listener.ExitAction(context);
     }
 
@@ -1134,6 +1185,19 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterBlueprintAction(QuorumParser.BlueprintActionContext ctx) {
         ActionContext context = new ActionContext();
         setLocation(ctx, context);
+        
+        if(ctx.modifier != null) {
+            TerminalNode PUBLIC = ctx.modifier.PUBLIC();
+            if(PUBLIC != null) {
+                context.isPublic = true;
+                context.isPrivate = false;
+            }
+            TerminalNode PRIVATE = ctx.modifier.PRIVATE();
+            if(PRIVATE != null) {
+                context.isPublic = false;
+                context.isPrivate = true;
+            }
+        }
         listener.EnterBlueprintAction(context);
     }
 
@@ -1141,6 +1205,19 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitBlueprintAction(QuorumParser.BlueprintActionContext ctx) {
         ActionContext context = new ActionContext();
         setLocation(ctx, context);
+        
+        if(ctx.modifier != null) {
+            TerminalNode PUBLIC = ctx.modifier.PUBLIC();
+            if(PUBLIC != null) {
+                context.isPublic = true;
+                context.isPrivate = false;
+            }
+            TerminalNode PRIVATE = ctx.modifier.PRIVATE();
+            if(PRIVATE != null) {
+                context.isPublic = false;
+                context.isPrivate = true;
+            }
+        }
         listener.ExitBlueprintAction(context);
     }
 

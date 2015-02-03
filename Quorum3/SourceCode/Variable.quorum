@@ -9,6 +9,7 @@ class Variable is Symbol
     Type type = undefined
     boolean isPrivate = true
     boolean isPublic = false
+    boolean isConstant = false
     boolean hasModifier = false
     boolean isDefined = false
     boolean isField = false
@@ -101,12 +102,20 @@ class Variable is Symbol
     end
 
     action IsPrivate returns boolean
-        return isPublic
+        return isPrivate
     end
 
     action SetPrivate
         isPublic = false
         isPrivate = true
+    end
+
+    action IsConstant returns boolean
+        return isConstant
+    end
+
+    action SetConstant(boolean bool)
+        isConstant = bool
     end
 
     action HasExplicitModifier returns boolean
