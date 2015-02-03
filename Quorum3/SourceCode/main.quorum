@@ -25,10 +25,10 @@ class Main is WebResponder
     HashTable<text, Array<text>> flagValues
 
     action Main
-        ProcessConsoleFlags()
+        //ProcessConsoleFlags()
         //ProfileTest()
         //ProfileWeb()
-        //CompileHardcodedFile()
+        CompileHardcodedFile()
         //CompileCompiler()
         //CompileSingleTest()
     end
@@ -93,23 +93,23 @@ class Main is WebResponder
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
-        main:SetPath("Library/Tests/Inheritance/Fail/UsePrivateActionSoloCall.quorum")
+        main:SetPath("Library/Tests/TypeChecker/Pass/TextGetSubtextWithEnd.quorum")
 
         File class2
-        class2:SetPath("Library/Tests/Inheritance/Fail/Test2.quorum")
+        class2:SetPath("Library/Tests/TypeChecker/Pass/A.quorum")
 
         File class3
-        class3:SetPath("Library/Tests/Inheritance/Fail/Test2.quorum")
+        class3:SetPath("Library/Tests/TypeChecker/Pass/B.quorum")
 
         File class4
-        class4:SetPath("Library/Tests/Inheritance/Pass/Truck.quorum")
+        class4:SetPath("Library/Tests/TypeChecker/Pass/C.quorum")
 
         File class5
         class5:SetPath("Library/Tests/Inheritance/Pass/GrandChildWithMultiple.quorum")
         Array<File> files
 
         files:Add(main)
-        files:Add(class2)
+        //files:Add(class2)
         //files:Add(class3)
         //files:Add(class4)
         //files:Add(class5)
