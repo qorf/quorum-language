@@ -6,7 +6,8 @@ class Main
     end
 
     action Test(Object var)
-        if var:GetValue() = 5.0
+        Number v = cast(Number, var)
+        if v:GetValue() = 5.0
             output "passed"
         end
     end

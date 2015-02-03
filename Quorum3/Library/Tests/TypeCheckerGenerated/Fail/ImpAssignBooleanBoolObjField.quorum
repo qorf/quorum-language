@@ -1,13 +1,10 @@
 class Main
+    Boolean v
     action Main
-        Boolean v
         v:SetValue(true)
         Test(v)
     end
 
     action Test(boolean var)
-        if var = true
-            output "passed"
-        end
     end
 end

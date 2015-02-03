@@ -1,11 +1,11 @@
 class Main
-    text v = text
+    text v = "text"
     action Main
         Test(v)
     end
 
     action Test(text var)
-        if var = text
+        if var = "text"
             output "passed"
         end
     end
