@@ -1218,6 +1218,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
         Type left = variable:GetType()
 
+        if name = "c"
+            a = 5
+        end
         QuorumOpcode right = opcodeStack:Pop()
         if left = undefined //if the type is undefined, it might be possible to infer it
             InferenceResult infer = checker:CanInfer(right)
@@ -1244,8 +1247,10 @@ class QuorumBytecodeListener is QuorumSourceListener
                             "right hand side of this expression assigning to the " +
                             " variable " + variable:GetName() + ".")
                     end
+                    
+                end
 
-                else
+                if right = undefined
                     error:SetErrorMessage("I will not infer the type of the " + 
                         "right hand side of this expression automatically, as the right hand side of this expression's type is undefined.")
                 end
