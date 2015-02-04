@@ -175,7 +175,6 @@ class TypeCheckTester
         NumberIsInfinite()
         NumberIsNotANumber()
         ReturningIntegerInPlaceOfNumber()
-        TextAppend()
         TextCompare()
         TextContains()
         TextEndsWith()
@@ -200,13 +199,13 @@ class TypeCheckTester
         TypeInferenceNestedFunctionCalls()
         TypeInferenceNumber()
         TypeInferenceReturnTypesInt()
-        TypeInferenceReturnTypesIntNum()
         TypeInferenceReturnTypesNum()
         TypeInferenceText()
 
 //FAIL TESTS
         path = failPath
         
+        TypeInferenceReturnTypesIntNum()
         ExpAssignBoolObjIntObj()
         ExpAssignBoolObjIntObjField()
         ExpAssignBoolObjInteger()
@@ -1878,8 +1877,8 @@ action AutoBoxingAndMethodOverloadingNum
         File dependent3
         main:SetPath(path + "InstanceTypeParentOfParent.quorum")
         dependent1:SetPath(path + "A.quorum")
-        dependent1:SetPath(path + "B.quorum")
-        dependent1:SetPath(path + "C.quorum")
+        dependent2:SetPath(path + "B.quorum")
+        dependent3:SetPath(path + "C.quorum")
         files:Add(main)
         files:Add(dependent1)
         files:Add(dependent2)
@@ -2138,18 +2137,6 @@ action AutoBoxingAndMethodOverloadingNum
         suite:TestJavaScript(files, results)
     end
 
-    action TextAppend
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "TextAppend.quorum")
-        files:Add(main)
-        results:Add(0, "hello5")
-        results:Add(1, "hello5")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
     action TextCompare
         Array<File> files
         Array<text> results
@@ -2251,8 +2238,8 @@ action AutoBoxingAndMethodOverloadingNum
         File main
         main:SetPath(path + "TextGetSubtextWithEnd.quorum")
         files:Add(main)
-        results:Add(0, "lo")
-        results:Add(1, "lo")
+        results:Add(0, "o")
+        results:Add(1, "o")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -2298,8 +2285,8 @@ action AutoBoxingAndMethodOverloadingNum
         File main
         main:SetPath(path + "TextStartsWith.quorum")
         files:Add(main)
-        results:Add(0, "he")
-        results:Add(1, "he")
+        results:Add(0, "true")
+        results:Add(1, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -2431,17 +2418,6 @@ action AutoBoxingAndMethodOverloadingNum
         suite:TestJavaScript(files, results)
     end
 
-    action TypeInferenceReturnTypesIntNum
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "TypeInferenceReturnTypesIntNum.quorum")
-        files:Add(main)
-        results:Add(0, "3.4")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
     action TypeInferenceReturnTypesNum
         Array<File> files
         Array<text> results
@@ -2465,6 +2441,17 @@ action AutoBoxingAndMethodOverloadingNum
     end
 
     //FAIL TESTS
+
+    action TypeInferenceReturnTypesIntNum
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TypeInferenceReturnTypesIntNum.quorum")
+        files:Add(main)
+        results:Add(0, "3.4")
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
 
     action ExpAssignBoolObjIntObj
         Array<File> files

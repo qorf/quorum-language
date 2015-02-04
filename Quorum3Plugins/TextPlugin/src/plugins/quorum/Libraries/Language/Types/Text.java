@@ -5,6 +5,8 @@
 package plugins.quorum.Libraries.Language.Types;
 
 import quorum.Libraries.Containers.Array$Interface;
+import quorum.Libraries.Language.Errors.InvalidLocationError;
+import quorum.Libraries.Language.Errors.UndefinedObjectError;
 //import quorum.Libraries.Language.Errors.Error;
 //import quorum.Libraries.Language.Errors.InvalidLocationError;
 //import quorum.Libraries.Language.Errors.ParseError;
@@ -104,9 +106,9 @@ public class Text {
         return ret;
     }
     
-    public String GetSubstringNative(int startIndex, int endIndex) {
-        return text.substring(startIndex, endIndex);
-    }
+//    public String GetSubstringNative(int startIndex, int endIndex) {
+//        return text.substring(startIndex, endIndex);
+//    }
     
     public int CompareInt(String left, String right, boolean isIgnoringCase) {
         if(isIgnoringCase){
@@ -449,39 +451,15 @@ public class Text {
         return self.replace(old, replacement);
     }
     
-    public static String PrimitiveGetSubtext(String self, int startIndex, int endIndex) {//throws quorum.Libraries.Language.Errors.Error{
-        if(self == null){
-            throw(new RuntimeException());
-//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-//            error.SetErrorMessage("Text variable is undefined.");
-//            throw(error);
-        }
-        
-        int length = self.length();
-        if(startIndex < 0 || startIndex >= length || endIndex < startIndex || endIndex >= length){
-            throw(new RuntimeException());
-//            quorum.Libraries.Language.Errors.Error error = new InvalidLocationError();
-//            error.SetErrorMessage("Text index out of range, " + startIndex + " - " + endIndex);
-//            throw(error);
-        }
+    public static String PrimitiveGetSubtext(String self, int startIndex, int endIndex) {
         return self.substring(startIndex, endIndex);
     }
     
-    public static String PrimitiveGetSubtext(String self, int startIndex) {//throws Error{
-        if(self == null){
-            throw(new RuntimeException());
-//            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
-//            error.SetErrorMessage("Text variable is undefined.");
-//            throw(error);
-        }
-        
-        int length = self.length();
-        if(startIndex < 0 || startIndex >= length){
-            throw(new RuntimeException());
-//            quorum.Libraries.Language.Errors.Error error = new InvalidLocationError();
-//            error.SetErrorMessage("Text index out of range, " + startIndex);
-//            throw(error);
-        }
+    public String GetSubtext(int startIndex, int endIndex) {
+        return text.substring(startIndex);
+    }
+    
+    public static String PrimitiveGetSubtext(String self, int startIndex) {
         return self.substring(startIndex);
     }
     

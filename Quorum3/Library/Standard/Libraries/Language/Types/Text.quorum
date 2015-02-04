@@ -137,23 +137,6 @@ class Text is Object
     system action GetUnicodeValue(integer twosCompliment) returns text
 
     /*
-        This action appends the given text value to the value in this object.
-
-        Attribute: Parameter value The value to append.
-
-        Attribute: Example
-        Text a
-        a:SetValue("hello ")
-        a:Append("world.")
-    */
-    action Append(text val)
-        me:value = me:value + val
-
-        // And update the native side.
-        SetValueNative(me:value)
-    end
-
-    /*
         This action returns true if the Text value contains the text from the parameter
         or if the parameter is a substring in the text variable.
 
@@ -564,15 +547,7 @@ class Text is Object
         a:SetValue("hello world")
         output a:GetSubtext(0, 5)
     */
-    action GetSubtext(integer startIndex, integer endIndex) returns text
-        if startIndex = endIndex or startIndex > endIndex or startIndex < 0 or endIndex < 0 or endIndex >= me:GetSize()
-            InvalidLocationError e
-            e:SetErrorMessage("Text index out of range, " + startIndex + " - " + endIndex)
-            alert(e)
-        end
-        
-        return GetSubstringNative(startIndex, endIndex)
-    end
+    system action GetSubtext(integer startIndex, integer endIndex) returns text
 
     /*
         This action splits the string based on the given non-empty delimiter.
