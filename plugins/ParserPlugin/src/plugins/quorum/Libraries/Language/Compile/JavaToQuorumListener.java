@@ -1465,12 +1465,31 @@ public class JavaToQuorumListener implements QuorumListener {
     }
 
     @Override
+    public void enterSolo_method_required_method_part(QuorumParser.Solo_method_required_method_partContext ctx) {
+        ActionCallContext context = new ActionCallContext();
+        setLocation(ctx, context);
+        listener.EnterActionCall(context);
+    }
+
+    @Override
+    public void exitSolo_method_required_method_part(QuorumParser.Solo_method_required_method_partContext ctx) {
+        ActionCallContext context = new ActionCallContext();
+        setLocation(ctx, context);
+        String name = ctx.var.getText();
+        boolean isActionCall = ctx.LEFT_PAREN() != null;
+        context.name = name;
+        context.isActionCall = isActionCall;
+
+        listener.ExitActionCall(context);
+    }
+    
+    @Override
     public void enterVariableSoloFunctionCall(QuorumParser.VariableSoloFunctionCallContext ctx) {
         VariableFunctionCallContext context = new VariableFunctionCallContext();
         setLocation(ctx, context);
         boolean hasMe = ctx.ME() != null;
         context.hasMe = hasMe;
-        context.name = ctx.var.getText();
+//        context.name = ctx.var.getText();
         if(ctx.object != null) {
             context.objectName = ctx.object.getText();
         }
@@ -1483,7 +1502,7 @@ public class JavaToQuorumListener implements QuorumListener {
         setLocation(ctx, context);
         boolean hasMe = ctx.ME() != null;
         context.hasMe = hasMe;
-        context.name = ctx.var.getText();
+//        context.name = ctx.var.getText();
         if(ctx.object != null) {
             context.objectName = ctx.object.getText();
         }

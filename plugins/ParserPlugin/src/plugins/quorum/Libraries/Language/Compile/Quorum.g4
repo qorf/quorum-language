@@ -84,9 +84,16 @@ statement:
 
 solo_method_call 
 	:
-            (ME COLON)? (object=ID COLON)? var=ID LEFT_PAREN function_expression_list RIGHT_PAREN (COLON action_call)*                              #VariableSoloFunctionCall   
-        |   ((ME COLON)? (fieldName=ID COLON))? PARENT COLON parent=qualified_name COLON action_call (COLON (action_call))* #ParentVariableSoloFunctionCall
+            (ME COLON)? (object=ID COLON)? solo_method_required_method_part RIGHT_PAREN (COLON action_call)* #VariableSoloFunctionCall   
+        |   ((ME COLON)? (fieldName=ID COLON))? PARENT COLON parent=qualified_name 
+                COLON action_call (COLON (action_call))* #ParentVariableSoloFunctionCall
 	;
+
+solo_method_required_method_part
+    :
+        var=ID LEFT_PAREN function_expression_list
+    ;
+
 alert_statement 
 	:	ALERT LEFT_PAREN expression RIGHT_PAREN
 	;

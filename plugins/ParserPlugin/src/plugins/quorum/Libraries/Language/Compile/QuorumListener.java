@@ -383,6 +383,17 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitMethod_shared(@NotNull QuorumParser.Method_sharedContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link QuorumParser#solo_method_required_method_part}.
+	 * @param ctx the parse tree
+	 */
+	void enterSolo_method_required_method_part(@NotNull QuorumParser.Solo_method_required_method_partContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuorumParser#solo_method_required_method_part}.
+	 * @param ctx the parse tree
+	 */
+	void exitSolo_method_required_method_part(@NotNull QuorumParser.Solo_method_required_method_partContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link QuorumParser#else_statement}.
 	 * @param ctx the parse tree
 	 */
@@ -548,6 +559,17 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitReturn_statement(@NotNull QuorumParser.Return_statementContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link QuorumParser#Input}.
+	 * @param ctx the parse tree
+	 */
+	void enterInput(@NotNull QuorumParser.InputContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuorumParser#Input}.
+	 * @param ctx the parse tree
+	 */
+	void exitInput(@NotNull QuorumParser.InputContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link QuorumParser#ObjectAssignment}.
 	 * @param ctx the parse tree
 	 */
@@ -568,17 +590,6 @@ public interface QuorumListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitMultiplication(@NotNull QuorumParser.MultiplicationContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link QuorumParser#Input}.
-	 * @param ctx the parse tree
-	 */
-	void enterInput(@NotNull QuorumParser.InputContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#Input}.
-	 * @param ctx the parse tree
-	 */
-	void exitInput(@NotNull QuorumParser.InputContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#Minus}.
