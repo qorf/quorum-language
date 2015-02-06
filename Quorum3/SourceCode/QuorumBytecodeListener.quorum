@@ -1295,12 +1295,14 @@ class QuorumBytecodeListener is QuorumSourceListener
         actionCallStacks:Add(me:currentActionStack, stack)
         currentActionStack = currentActionStack + 1
 
-
-        ActionCallOpcode actionCall
-        actionCall:SetLocation(context:GetLocation())
-        actionCall:SetMethodWriter(methodWriter)
-        actionCall:SetIsActionCall(true)
-        stack:Add(actionCall)
+        text object = context:objectName
+        if not (object = undefined)
+            ActionCallContext ac
+            ac:isActionCall = false
+            ac:name = object
+            EnterActionCall(ac)
+            ExitActionCall(ac)
+        end
     end
 
     private action ComputeInitialParameters(integer size, ActionCallOpcode actionCall)
@@ -1325,92 +1327,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitVariableSoloFunctionCall(VariableFunctionCallContext context)
-        Array<ActionCallOpcode> actionArray = actionCallStacks:GetValue(0)
-        ActionCallOpcode actionCall = actionArray:Get(0)
-        actionCall:SetPushOnMe(true)
-        ActionExpressionListContext params =  actionCallParameterStack:Pop()
-        size = params:size
-
-        ComputeInitialParameters(size, actionCall)
-
-        //check if this is an object call
-        text object = context:objectName
-        Variable variable = undefined
-        boolean isObjectCall = false
-        if object not= "" //this is a call to a field.
-            if isInAction 
-                variable = currentBlock:GetVariable(object)
-            else //must be a field
-                variable = currentClass:GetVariable(object)
-            end
-            isObjectCall = true
-        end
-
-        SymbolTable table = GetSymbolTable()
-        Type fieldType = undefined
-        Class fieldClass = undefined
-
-        if isObjectCall = true and variable = undefined
-            CompilerError classNotFoundError
-            classNotFoundError:SetLocation(context:GetLocation())
-            classNotFoundError:SetErrorMessage("I could not locate the variable " + object + ". Is it correctly?")
-            CompilerErrorType errorType
-            errorType:SetCurrentType(errorType:MISSING_VARIABLE)
-            classNotFoundError:SetCompilerErrorType(errorType)
-            CompilerErrorManager manager = GetCompilerErrorManager()
-            manager:Add(classNotFoundError)
-            return now
-        elseif isObjectCall = true and variable not= undefined
-            fieldType = variable:GetType()
-            if fieldType:IsPrimitive()
-                text name = context:name
-                if name = "SetValue" or name = "SetValueNative" or name = "GetValue" or name = "GetValueNative"//these calls aren't allowed on primitives
-                    CompilerError error
-                    error:SetLocation(context:GetLocation())
-                    error:SetErrorMessage("I found a call to the primitive calling the action " + name + ", but this cannot be called on a primitive.")
-                    CompilerErrorType errorType
-                    errorType:SetCurrentType(errorType:PRIMITIVE_INVALID_ACTION_CALL)
-                    error:SetCompilerErrorType(errorType)
-                    CompilerErrorManager manager = GetCompilerErrorManager()
-                    manager:Add(error)
-                    return now
-                end
-            end
-            fieldClass= table:GetClass(fieldType:ConvertToNonPrimitiveStaticKey())
-            
-            if fieldClass = undefined
-                CompilerError classNotFoundError
-                classNotFoundError:SetLocation(context:GetLocation())
-                classNotFoundError:SetErrorMessage("I could not locate the Class " + fieldType:GetStaticKey() + ".")
-                CompilerErrorType errorType
-                errorType:SetCurrentType(errorType:MISSING_CLASS)
-                classNotFoundError:SetCompilerErrorType(errorType)
-                CompilerErrorManager manager = GetCompilerErrorManager()
-                manager:Add(classNotFoundError)
-                return now
-            end
-
-        end
-
-        Class testMe = undefined
-
-        ActionCall call
-        call:SetLocation(context:GetLocation())
-        if isObjectCall
-            testMe = fieldClass
-        else
-            testMe = currentClass
-        end
-        
-        call:actualParameters = actionCall:GetParameterTypes()
-        call:name = context:name
-        call:checker = GetTypeChecker()
-        call:table = table
-
-        ActionCallResolution resolved = ResolveActionCall(testMe, isObjectCall, fieldClass, variable, call, actionCall)
-        resolved:location = context:GetLocation()
-
-        isNextVariableReferenceMe = false
         Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
         currentActionStack = currentActionStack - 1
 
@@ -1422,6 +1338,14 @@ class QuorumBytecodeListener is QuorumSourceListener
         repeat while it:HasNext()
             ActionCallOpcode op = it:Next()
             ops:Add(op)
+        end
+
+        //if the stack is empty, no valid action calls were created,
+        //likely due to a compiler error somewhere else, which would 
+        //have already been thrown. As such, ignore the call
+        //and don't add it to the block.
+        if stack:IsEmpty()
+            return now
         end
 
         //since this is a solo call, there is no assignment statement.
@@ -1772,6 +1696,10 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitActionCall(ActionCallContext context)
+
+        if currentClass:GetName() = "Main"
+            a = 5
+        end
         ActionCallOpcode actionCall
         actionCall:SetLocation(context:GetLocation())
         actionCall:SetMethodWriter(methodWriter)
@@ -1800,6 +1728,9 @@ class QuorumBytecodeListener is QuorumSourceListener
                 ActionCallOpcode op = stack:GetFromEnd()
                 Type t = op:GetType()
                 calledType = t
+                if t = undefined
+                    a = 5
+                end
                 if t:IsPrimitive()
                     isPrimitive = true
                 end
