@@ -1,0 +1,14 @@
+class Main
+    Main m
+    Integer v = me:m:Obj():GetInteger()
+    action Main
+        if v:GetValue() = 66
+            output "passed"
+        end
+    end
+
+    action Obj() returns Yoda
+        Yoda yoda
+        return yoda
+    end
+end

@@ -1,0 +1,14 @@
+class Main
+    Main m
+    number v = me:m:Var()
+    action Main
+        if v = 900.0
+            output "passed"
+        end
+    end
+
+    action Var() returns number
+        number val =900.0
+        return val
+    end
+end

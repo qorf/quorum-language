@@ -1,0 +1,14 @@
+class Main
+    Main m
+    action Main
+        Text v = m:Obj():GetYoda():GetText()
+        if v:GetValue() = "green"
+            output "passed"
+        end
+    end
+
+    action Obj() returns Yoda
+        Yoda yoda
+        return yoda
+    end
+end

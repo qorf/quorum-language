@@ -1,0 +1,15 @@
+class Main
+    Main m
+    Text v = me:m:Var()
+    action Main
+        if v = "green"
+            output "passed"
+        end
+    end
+
+    action Var() returns Text
+        Text val
+        val:SetValue("green")
+        return val
+    end
+end

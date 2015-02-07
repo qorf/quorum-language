@@ -1,0 +1,14 @@
+class Main
+    Main m
+    integer v = me:m:Var()
+    action Main
+        if v = 66
+            output "passed"
+        end
+    end
+
+    action Var() returns integer
+        integer val =66
+        return val
+    end
+end

@@ -1,0 +1,15 @@
+class Main
+    Main m
+    action Main
+        Object v = me:m:Var()
+        if v = 
+            output "passed"
+        end
+    end
+
+    action Var() returns Object
+        Object val
+        val:SetValue()
+        return val
+    end
+end

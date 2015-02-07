@@ -1,0 +1,14 @@
+class Main
+    Main m
+    boolean v = me:m:Obj():Getboolean()
+    action Main
+        if v:GetValue() = true
+            output "passed"
+        end
+    end
+
+    action Obj() returns Yoda
+        Yoda yoda
+        return yoda
+    end
+end

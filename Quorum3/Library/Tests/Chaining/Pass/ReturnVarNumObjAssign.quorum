@@ -1,0 +1,15 @@
+class Main
+    Main m
+    action Main
+        Number v = m:Var()
+        if v = 900.0
+            output "passed"
+        end
+    end
+
+    action Var() returns Number
+        Number val
+        val:SetValue(900.0)
+        return val
+    end
+end

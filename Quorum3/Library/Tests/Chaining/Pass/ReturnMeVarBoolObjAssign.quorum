@@ -1,0 +1,15 @@
+class Main
+    Main m
+    action Main
+        Boolean v = me:m:Var()
+        if v = true
+            output "passed"
+        end
+    end
+
+    action Var() returns Boolean
+        Boolean val
+        val:SetValue(true)
+        return val
+    end
+end
