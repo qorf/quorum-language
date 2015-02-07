@@ -29,6 +29,7 @@ class CompilerTestSuite
     ExpressionsTester expressions
     TypeCheckTester typeChecks
     TypeCheckTesterGenerated typeChecksGenerated
+    ChainingTester chainingChecks
     IfStatementTester ifStatementChecks
     LoopsTester loopsChecks
     ActionsTester actionsChecks
@@ -51,6 +52,7 @@ class CompilerTestSuite
         expressions:SetCompilerTestSuite(me)
         typeChecks:SetCompilerTestSuite(me)
         typeChecksGenerated:SetCompilerTestSuite(me)
+        chainingChecks:SetCompilerTestSuite(me)
         ifStatementChecks:SetCompilerTestSuite(me)
         loopsChecks:SetCompilerTestSuite(me)
         actionsChecks:SetCompilerTestSuite(me)
@@ -84,6 +86,9 @@ class CompilerTestSuite
         output ""
         output typeChecksGenerated:GetName()
         typeChecksGenerated:Test()
+        output ""
+        output chainingChecks:GetName()
+        chainingChecks:Test()
         output ""
         output ifStatementChecks:GetName()
         ifStatementChecks:Test()
