@@ -1,8 +1,7 @@
 class Main
     Main m
     action Main
-        Integer v = me:m:Obj():GetInteger()
-        if v:GetValue() = 66
+        if me:m:Obj():GetInteger():GetValue() = 66
             output "passed"
         end
     end

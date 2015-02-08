@@ -2,7 +2,7 @@ class Main
     Main m
     Text v = m:Var()
     action Main
-        if v = "green"
+        if v:GetValue() = "green"
             output "passed"
         end
     end

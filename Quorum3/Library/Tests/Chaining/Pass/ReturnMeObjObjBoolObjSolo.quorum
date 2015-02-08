@@ -1,8 +1,7 @@
 class Main
     Main m
     action Main
-        Boolean v = m:Obj():GetYoda():GetBoolean()
-        if v:GetValue() = true
+        if me:m:Obj():GetYoda():GetBoolean():GetValue() = true
             output "passed"
         end
     end

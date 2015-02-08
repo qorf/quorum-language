@@ -2,7 +2,7 @@ class Main
     Main m
     Boolean v = me:m:Var()
     action Main
-        if v = true
+        if v:GetValue() = true
             output "passed"
         end
     end

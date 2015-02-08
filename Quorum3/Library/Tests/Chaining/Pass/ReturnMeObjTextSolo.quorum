@@ -1,8 +1,7 @@
 class Main
     Main m
     action Main
-        text v = me:m:Obj():Gettext()
-        if v:GetValue() = "green"
+        if me:m:Obj():Gettext() = "green"
             output "passed"
         end
     end

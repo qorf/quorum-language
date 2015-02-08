@@ -1,8 +1,7 @@
 class Main
     Main m
     action Main
-        Number v = m:Obj():GetYoda():GetNumber()
-        if v:GetValue() = 900.0
+        if m:Obj():GetYoda():GetNumber():GetValue() = 900.0
             output "passed"
         end
     end

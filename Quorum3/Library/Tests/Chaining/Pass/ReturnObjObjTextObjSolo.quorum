@@ -1,8 +1,7 @@
 class Main
     Main m
     action Main
-        Text v = m:Obj():GetYoda():GetText()
-        if v:GetValue() = "green"
+        if m:Obj():GetYoda():GetText():GetValue() = "green"
             output "passed"
         end
     end

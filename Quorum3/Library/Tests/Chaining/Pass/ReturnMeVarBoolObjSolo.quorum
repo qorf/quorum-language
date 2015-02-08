@@ -1,8 +1,7 @@
 class Main
     Main m
     action Main
-        Boolean v = me:m:Var()
-        if v = true
+        if me:m:Var():GetValue() = true
             output "passed"
         end
     end

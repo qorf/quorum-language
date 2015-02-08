@@ -1,8 +1,8 @@
 class Main
     Main m
-    integer v = m:Obj():GetYoda():Getinteger()
+    integer v = me:m:Obj():GetYoda():Getinteger()
     action Main
-        if v:GetValue() = 66
+        if v = 66
             output "passed"
         end
     end
