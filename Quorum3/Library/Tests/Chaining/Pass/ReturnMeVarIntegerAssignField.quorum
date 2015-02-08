@@ -1,7 +1,10 @@
 class Main
-    Main m
-    integer v = me:m:Var()
+    Main m = undefined
+    integer v = 66
     action Main
+        Main main
+        m = main
+        v = me:m:Var()
         if v = 66
             output "passed"
         end

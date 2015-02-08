@@ -1,7 +1,10 @@
 class Main
-    Main m
-    number v = me:m:Obj():GetYoda():Getnumber()
+    Main m = undefined
+    number v = 900.0
     action Main
+        Main main
+        m = main
+        v = me:m:Obj():GetYoda():Getnumber()
         if v = 900.0
             output "passed"
         end

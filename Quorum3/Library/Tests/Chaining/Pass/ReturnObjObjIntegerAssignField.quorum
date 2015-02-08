@@ -1,7 +1,10 @@
 class Main
-    Main m
-    integer v = m:Obj():GetYoda():Getinteger()
+    Main m = undefined
+    integer v = 66
     action Main
+        Main main
+        m = main
+        v = m:Obj():GetYoda():Getinteger()
         if v = 66
             output "passed"
         end

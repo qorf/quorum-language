@@ -1,7 +1,10 @@
 class Main
-    Main m
-    Number v = m:Obj():GetNumber()
+    Main m = undefined
+    Number v 
     action Main
+        Main main
+        m = main
+        v = m:Obj():GetNumber()
         if v:GetValue() = 900.0
             output "passed"
         end

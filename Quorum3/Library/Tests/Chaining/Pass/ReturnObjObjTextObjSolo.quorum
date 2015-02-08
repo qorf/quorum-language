@@ -1,6 +1,8 @@
 class Main
-    Main m
+    Main m = undefined
     action Main
+        Main main
+        m = main
         if m:Obj():GetYoda():GetText():GetValue() = "green"
             output "passed"
         end

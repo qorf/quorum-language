@@ -1,7 +1,10 @@
 class Main
-    Main m
-    text v = m:Obj():GetYoda():Gettext()
+    Main m = undefined
+    text v = "green"
     action Main
+        Main main
+        m = main
+        v = m:Obj():GetYoda():Gettext()
         if v = "green"
             output "passed"
         end

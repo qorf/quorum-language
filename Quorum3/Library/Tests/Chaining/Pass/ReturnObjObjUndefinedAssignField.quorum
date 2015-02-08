@@ -1,7 +1,10 @@
 class Main
-    Main m
-        Object v = undefined
+    Main m = undefined
+    Object v
     action Main
+        Main main
+        m = main
+        v = m:Obj():GetYoda():Getundefined()
         if v = undefined
             output "passed"
         end

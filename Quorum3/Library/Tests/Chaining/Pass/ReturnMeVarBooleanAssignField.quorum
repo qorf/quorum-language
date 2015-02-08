@@ -1,7 +1,10 @@
 class Main
-    Main m
-    boolean v = me:m:Var()
+    Main m = undefined
+    boolean v = true
     action Main
+        Main main
+        m = main
+        v = me:m:Var()
         if v = true
             output "passed"
         end

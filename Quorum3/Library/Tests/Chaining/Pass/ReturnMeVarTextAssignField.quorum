@@ -1,7 +1,10 @@
 class Main
-    Main m
-    text v = me:m:Var()
+    Main m = undefined
+    text v = "green"
     action Main
+        Main main
+        m = main
+        v = me:m:Var()
         if v = "green"
             output "passed"
         end

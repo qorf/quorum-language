@@ -1,10 +1,11 @@
 class Main
-    Main m
-    Object v = me:m:Obj():GetObject()
+    Main m = undefined
+    Object v 
     action Main
-        if v:GetValue() = 
-            output "passed"
-        end
+        Main main
+        m = main
+        v = me:m:Obj():GetObject()
+        output "passed"
     end
 
     action Obj() returns Yoda

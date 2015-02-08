@@ -1,7 +1,10 @@
 class Main
-    Main m
-    Integer v = m:Var()
+    Main m = undefined
+    Integer v 
     action Main
+        Main main
+        m = main
+        v = m:Var()
         if v:GetValue() = 66
             output "passed"
         end

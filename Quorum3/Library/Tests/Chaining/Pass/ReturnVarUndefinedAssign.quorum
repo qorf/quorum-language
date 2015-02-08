@@ -1,14 +1,16 @@
 class Main
-    Main m
+    Main m = undefined
     action Main
-        Object v = undefined
+        Main main
+        m = main
+        Object v = m:Var()
         if v = undefined
             output "passed"
         end
     end
 
-    action Var() returns undefined
-        undefined val =undefined
+    action Var() returns Object
+        Object val = undefined
         return val
     end
 end

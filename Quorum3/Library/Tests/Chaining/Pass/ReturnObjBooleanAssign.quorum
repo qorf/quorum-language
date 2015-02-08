@@ -1,6 +1,8 @@
 class Main
-    Main m
+    Main m = undefined
     action Main
+        Main main
+        m = main
         boolean v = m:Obj():Getboolean()
         if v = true
             output "passed"

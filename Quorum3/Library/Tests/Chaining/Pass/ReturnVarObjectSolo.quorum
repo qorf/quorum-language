@@ -1,14 +1,14 @@
 class Main
-    Main m
+    Main m = undefined
     action Main
-        if m:Var():GetValue() = 
-            output "passed"
-        end
+        Main main
+        m = main
+        m:Var()
+        output "passed"
     end
 
     action Var() returns Object
         Object val
-        val:SetValue()
         return val
     end
 end
