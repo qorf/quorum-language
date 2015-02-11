@@ -35,6 +35,7 @@ class CompilerTestSuite
     ActionsTester actionsChecks
     InheritanceTester inheritanceChecks
     TemplatingTester templatingChecks
+    TemplatingTesterGenerated templatingChecksGenerated
     ExceptionTester exceptionChecks
     ArrayTester arrayChecks
     StackTester stackChecks
@@ -58,6 +59,7 @@ class CompilerTestSuite
         actionsChecks:SetCompilerTestSuite(me)
         inheritanceChecks:SetCompilerTestSuite(me)
         templatingChecks:SetCompilerTestSuite(me)
+        templatingChecksGenerated:SetCompilerTestSuite(me)
         exceptionChecks:SetCompilerTestSuite(me)
         arrayChecks:SetCompilerTestSuite(me)
         stackChecks:SetCompilerTestSuite(me)
@@ -104,6 +106,9 @@ class CompilerTestSuite
         output ""
         output templatingChecks:GetName()
         templatingChecks:Test()
+        output ""
+        output templatingChecksGenerated:GetName()
+        templatingChecksGenerated:Test()
         output ""
         output exceptionChecks:GetName()
         exceptionChecks:Test()
