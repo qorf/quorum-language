@@ -1,0 +1,1956 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.JarGenerator
+use Libraries.System.StackTraceItem
+
+class TemplatingTesterGenerated
+    CompilerTestSuite suite = undefined
+    text path = "Library/Tests/TemplatingGenerated/"
+
+    action Test
+        //PASS TESTS
+        TwoTypeObjObjBoolObjRetBoolean()
+        TwoTypeObjObjBoolObjRetInteger()
+        TwoTypeObjObjBoolObjRetRetText()
+        TwoTypeObjObjBooleanRetBoolean()
+        TwoTypeObjObjBooleanRetInteger()
+        TwoTypeObjObjBooleanRetRetText()
+        TwoTypeObjObjIntObjRetBoolean()
+        TwoTypeObjObjIntObjRetInteger()
+        TwoTypeObjObjIntObjRetRetText()
+        TwoTypeObjObjIntegerRetBoolean()
+        TwoTypeObjObjIntegerRetInteger()
+        TwoTypeObjObjRetTextRetRetText()
+        TwoTypeObjObjNumObjRetBoolean()
+        TwoTypeObjObjNumObjRetInteger()
+        TwoTypeObjObjNumObjRetRetText()
+        TwoTypeObjObjNumberRetBoolean()
+        TwoTypeObjObjNumberRetInteger()
+        TwoTypeObjObjNumberRetRetText()
+        TwoTypeObjObjObjectRetBoolean()
+        TwoTypeObjObjObjectRetInteger()
+        TwoTypeObjObjObjectRetRetText()
+        TwoTypeObjObjTextRetBoolean()
+        TwoTypeObjObjTextRetInteger()
+        TwoTypeObjObjTextRetRetText()
+        TwoTypeObjObjTextObjRetBoolean()
+        TwoTypeObjObjTextObjRetInteger()
+        TwoTypeObjObjTextObjRetRetText()
+        TwoTypeObjObjUndefinedRetBoolean()
+        TwoTypeObjObjUndefinedRetInteger()
+        TwoTypeObjObjUndefinedRetRetText()
+        TwoTypePriObjIntObjRetBoolean()
+        TwoTypePriObjIntObjRetInteger()
+        TwoTypePriObjIntObjRetRetText()
+        TwoTypePriObjIntegerRetBoolean()
+        TwoTypePriObjIntegerRetInteger()
+        TwoTypePriObjRetTextRetRetText()
+        TwoTypePriObjNumObjRetBoolean()
+        TwoTypePriObjNumObjRetInteger()
+        TwoTypePriObjNumObjRetRetText()
+        TwoTypePriObjNumberRetBoolean()
+        TwoTypePriObjNumberRetInteger()
+        TwoTypePriObjNumberRetRetText()
+        TwoTypePriObjObjectRetBoolean()
+        TwoTypePriObjObjectRetInteger()
+        TwoTypePriObjObjectRetRetText()
+        TwoTypePriObjTextRetBoolean()
+        TwoTypePriObjTextRetInteger()
+        TwoTypePriObjTextRetRetText()
+        TwoTypePriObjTextObjRetBoolean()
+        TwoTypePriObjTextObjRetInteger()
+        TwoTypePriObjTextObjRetRetText()
+        TwoTypePriObjUndefinedRetBoolean()
+        TwoTypePriObjUndefinedRetInteger()
+        TwoTypePriObjUndefinedRetRetText()
+        TwoTypePriPriBoolObjRetBoolean()
+        TwoTypePriPriBoolObjRetInteger()
+        TwoTypePriPriBoolObjRetRetText()
+        TwoTypePriPriBooleanRetBoolean()
+        TwoTypePriPriBooleanRetInteger()
+        TwoTypePriPriBooleanRetRetText()
+
+        //FAIL TESTS
+        TwoTypeObjPriBoolObjRetBooleanFail()
+        TwoTypeObjPriBoolObjRetIntegerFail()
+        TwoTypeObjPriBoolObjRetRetTextFail()
+        TwoTypeObjPriBooleanRetBooleanFail()
+        TwoTypeObjPriBooleanRetIntegerFail()
+        TwoTypeObjPriBooleanRetRetTextFail()
+        TwoTypeObjPriIntObjRetBooleanFail()
+        TwoTypeObjPriIntObjRetIntegerFail()
+        TwoTypeObjPriIntObjRetRetTextFail()
+        TwoTypeObjPriIntegerRetBooleanFail()
+        TwoTypeObjPriIntegerRetIntegerFail()
+        TwoTypeObjPriRetTextRetRetTextFail()
+        TwoTypeObjPriNumObjRetBooleanFail()
+        TwoTypeObjPriNumObjRetIntegerFail()
+        TwoTypeObjPriNumObjRetRetTextFail()
+        TwoTypeObjPriNumberRetBooleanFail()
+        TwoTypeObjPriNumberRetIntegerFail()
+        TwoTypeObjPriNumberRetRetTextFail()
+        TwoTypeObjPriObjectRetBooleanFail()
+        TwoTypeObjPriObjectRetIntegerFail()
+        TwoTypeObjPriObjectRetRetTextFail()
+        TwoTypeObjPriTextRetBooleanFail()
+        TwoTypeObjPriTextRetIntegerFail()
+        TwoTypeObjPriTextRetRetTextFail()
+        TwoTypeObjPriTextObjRetBooleanFail()
+        TwoTypeObjPriTextObjRetIntegerFail()
+        TwoTypeObjPriTextObjRetRetTextFail()
+        TwoTypeObjPriUndefinedRetBooleanFail()
+        TwoTypeObjPriUndefinedRetIntegerFail()
+        TwoTypeObjPriUndefinedRetRetTextFail()
+        TwoTypePriObjBoolObjRetBooleanFail()
+        TwoTypePriObjBoolObjRetIntegerFail()
+        TwoTypePriObjBoolObjRetRetTextFail()
+        TwoTypePriObjBooleanRetBooleanFail()
+        TwoTypePriObjBooleanRetIntegerFail()
+        TwoTypePriObjBooleanRetRetTextFail()
+        TwoTypePriPriIntObjRetBooleanFail()
+        TwoTypePriPriIntObjRetIntegerFail()
+        TwoTypePriPriIntObjRetRetTextFail()
+        TwoTypePriPriIntegerRetBooleanFail()
+        TwoTypePriPriIntegerRetIntegerFail()
+        TwoTypePriPriRetTextRetRetTextFail()
+        TwoTypePriPriNumObjRetBooleanFail()
+        TwoTypePriPriNumObjRetIntegerFail()
+        TwoTypePriPriNumObjRetRetTextFail()
+        TwoTypePriPriNumberRetBooleanFail()
+        TwoTypePriPriNumberRetIntegerFail()
+        TwoTypePriPriNumberRetRetTextFail()
+        TwoTypePriPriObjectRetBooleanFail()
+        TwoTypePriPriObjectRetIntegerFail()
+        TwoTypePriPriObjectRetRetTextFail()
+        TwoTypePriPriTextRetBooleanFail()
+        TwoTypePriPriTextRetIntegerFail()
+        TwoTypePriPriTextRetRetTextFail()
+        TwoTypePriPriTextObjRetBooleanFail()
+        TwoTypePriPriTextObjRetIntegerFail()
+        TwoTypePriPriTextObjRetRetTextFail()
+        TwoTypePriPriUndefinedRetBooleanFail()
+        TwoTypePriPriUndefinedRetIntegerFail()
+        TwoTypePriPriUndefinedRetRetTextFail()
+
+    end
+
+    action GetName returns text
+        return "Templating Generated Tests"
+    end
+    
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+    
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+
+    action TwoTypeObjObjBoolObjRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjBoolObjRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjBoolObjRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjBoolObjRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjBoolObjRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjBoolObjRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjBooleanRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjBooleanRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjBooleanRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjBooleanRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjBooleanRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjBooleanRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjIntObjRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjIntObjRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjIntObjRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjIntObjRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjIntObjRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjIntObjRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjIntegerRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjIntegerRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjIntegerRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjIntegerRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjRetTextRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjRetTextRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjNumObjRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjNumObjRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjNumObjRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjNumObjRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjNumObjRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjNumObjRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjNumberRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjNumberRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjNumberRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjNumberRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjNumberRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjNumberRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjObjectRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjObjectRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjObjectRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjObjectRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjObjectRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjObjectRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjTextRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjTextRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjTextRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjTextRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjTextRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjTextRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjTextObjRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjTextObjRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjTextObjRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjTextObjRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjTextObjRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjTextObjRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjUndefinedRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjUndefinedRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjUndefinedRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjUndefinedRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjObjUndefinedRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypeObjObjUndefinedRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypeObjPriBoolObjRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriBoolObjRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriBoolObjRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriBoolObjRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriBoolObjRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriBoolObjRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriBooleanRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriBooleanRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriBooleanRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriBooleanRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriBooleanRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriBooleanRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriIntObjRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriIntObjRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriIntObjRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriIntObjRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriIntObjRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriIntObjRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriIntegerRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriIntegerRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriIntegerRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriIntegerRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriRetTextRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriRetTextRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriNumObjRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriNumObjRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriNumObjRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriNumObjRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriNumObjRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriNumObjRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriNumberRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriNumberRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriNumberRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriNumberRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriNumberRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriNumberRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriObjectRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriObjectRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriObjectRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriObjectRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriObjectRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriObjectRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriTextRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriTextRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriTextRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriTextRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriTextRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriTextRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriTextObjRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriTextObjRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriTextObjRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriTextObjRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriTextObjRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriTextObjRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriUndefinedRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriUndefinedRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriUndefinedRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriUndefinedRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypeObjPriUndefinedRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypeObjPriUndefinedRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriObjBoolObjRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriObjBoolObjRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriObjBoolObjRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriObjBoolObjRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriObjBoolObjRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriObjBoolObjRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriObjBooleanRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriObjBooleanRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriObjBooleanRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriObjBooleanRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriObjBooleanRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriObjBooleanRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriObjIntObjRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjIntObjRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjIntObjRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjIntObjRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjIntObjRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjIntObjRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjIntegerRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjIntegerRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjIntegerRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjIntegerRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjRetTextRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjRetTextRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjNumObjRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjNumObjRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjNumObjRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjNumObjRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjNumObjRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjNumObjRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjNumberRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjNumberRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjNumberRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjNumberRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjNumberRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjNumberRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjObjectRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjObjectRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjObjectRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjObjectRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjObjectRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjObjectRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjTextRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjTextRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjTextRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjTextRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjTextRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjTextRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjTextObjRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjTextObjRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjTextObjRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjTextObjRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjTextObjRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjTextObjRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjUndefinedRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjUndefinedRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjUndefinedRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjUndefinedRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriObjUndefinedRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriObjUndefinedRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriPriBoolObjRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriPriBoolObjRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriPriBoolObjRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriPriBoolObjRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriPriBoolObjRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriPriBoolObjRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriPriBooleanRetBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriPriBooleanRetBoolean.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriPriBooleanRetInteger
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriPriBooleanRetInteger.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriPriBooleanRetRetText
+        Array<File> files
+        Array<text> results
+        File main
+        File yoda
+        test = path + "Pass/TwoTypePriPriBooleanRetRetText.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TwoTypePriPriIntObjRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriIntObjRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriIntObjRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriIntObjRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriIntObjRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriIntObjRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriIntegerRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriIntegerRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriIntegerRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriIntegerRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriRetTextRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriRetTextRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriNumObjRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriNumObjRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriNumObjRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriNumObjRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriNumObjRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriNumObjRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriNumberRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriNumberRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriNumberRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriNumberRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriNumberRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriNumberRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriObjectRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriObjectRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriObjectRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriObjectRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriObjectRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriObjectRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriTextRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriTextRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriTextRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriTextRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriTextRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriTextRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriTextObjRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriTextObjRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriTextObjRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriTextObjRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriTextObjRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriTextObjRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriUndefinedRetBooleanFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriUndefinedRetBooleanFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriUndefinedRetIntegerFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriUndefinedRetIntegerFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action TwoTypePriPriUndefinedRetRetTextFail
+        Array<File> files
+        File main
+        File yoda
+        test = path + "Fail/TwoTypePriPriUndefinedRetRetTextFail.quorum"
+        yodaPath = path + "Classes/yoda.quorum"
+        main:SetPath(test)
+        yoda:SetPath(yodaPath)
+        files:Add(main)
+        files:Add(yoda)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+end
