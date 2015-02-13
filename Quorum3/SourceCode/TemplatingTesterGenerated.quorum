@@ -42,9 +42,6 @@ class TemplatingTesterGenerated
         TwoTypeObjObjBooleanRetTextObj()
         TwoTypeObjObjIntegerRetTextObj()
         TwoTypeObjObjTextRetTextObj()
-        TwoTypeObjObjBooleanRetundefined()
-        TwoTypeObjObjIntegerRetundefined()
-        TwoTypeObjObjTextRetundefined()
         TwoTypeObjPriBooleanRetBoolObj()
         TwoTypeObjPriIntegerRetBoolObj()
         TwoTypeObjPriTextRetBoolObj()
@@ -72,9 +69,6 @@ class TemplatingTesterGenerated
         TwoTypeObjPriBooleanRetTextObj()
         TwoTypeObjPriIntegerRetTextObj()
         TwoTypeObjPriTextRetTextObj()
-        TwoTypeObjPriBooleanRetundefined()
-        TwoTypeObjPriIntegerRetundefined()
-        TwoTypeObjPriTextRetundefined()
         TwoTypePriObjBooleanRetBoolObj()
         TwoTypePriObjIntegerRetBoolObj()
         TwoTypePriObjTextRetBoolObj()
@@ -102,9 +96,6 @@ class TemplatingTesterGenerated
         TwoTypePriObjBooleanRetTextObj()
         TwoTypePriObjIntegerRetTextObj()
         TwoTypePriObjTextRetTextObj()
-        TwoTypePriObjBooleanRetundefined()
-        TwoTypePriObjIntegerRetundefined()
-        TwoTypePriObjTextRetundefined()
         TwoTypePriPriBooleanRetBoolObj()
         TwoTypePriPriIntegerRetBoolObj()
         TwoTypePriPriTextRetBoolObj()
@@ -132,9 +123,6 @@ class TemplatingTesterGenerated
         TwoTypePriPriBooleanRetTextObj()
         TwoTypePriPriIntegerRetTextObj()
         TwoTypePriPriTextRetTextObj()
-        TwoTypePriPriBooleanRetundefined()
-        TwoTypePriPriIntegerRetundefined()
-        TwoTypePriPriTextRetundefined()
 
         //FAIL TESTS
         TwoTypeObjObjBooleanRetBoolObjFail()
@@ -695,54 +683,6 @@ class TemplatingTesterGenerated
         File main
         File yoda
         test = path + "Pass/TwoTypeObjObjTextRetTextObj.quorum"
-        yodaPath = path + "Classes/yoda.quorum"
-        main:SetPath(test)
-        yoda:SetPath(yodaPath)
-        files:Add(main)
-        files:Add(yoda)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action TwoTypeObjObjBooleanRetundefined
-        Array<File> files
-        Array<text> results
-        File main
-        File yoda
-        test = path + "Pass/TwoTypeObjObjBooleanRetundefined.quorum"
-        yodaPath = path + "Classes/yoda.quorum"
-        main:SetPath(test)
-        yoda:SetPath(yodaPath)
-        files:Add(main)
-        files:Add(yoda)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action TwoTypeObjObjIntegerRetundefined
-        Array<File> files
-        Array<text> results
-        File main
-        File yoda
-        test = path + "Pass/TwoTypeObjObjIntegerRetundefined.quorum"
-        yodaPath = path + "Classes/yoda.quorum"
-        main:SetPath(test)
-        yoda:SetPath(yodaPath)
-        files:Add(main)
-        files:Add(yoda)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action TwoTypeObjObjTextRetundefined
-        Array<File> files
-        Array<text> results
-        File main
-        File yoda
-        test = path + "Pass/TwoTypeObjObjTextRetundefined.quorum"
         yodaPath = path + "Classes/yoda.quorum"
         main:SetPath(test)
         yoda:SetPath(yodaPath)
@@ -1605,54 +1545,6 @@ class TemplatingTesterGenerated
         suite:TestJavaScript(files, results)
     end
 
-    action TwoTypeObjPriBooleanRetundefined
-        Array<File> files
-        Array<text> results
-        File main
-        File yoda
-        test = path + "Pass/TwoTypeObjPriBooleanRetundefined.quorum"
-        yodaPath = path + "Classes/yoda.quorum"
-        main:SetPath(test)
-        yoda:SetPath(yodaPath)
-        files:Add(main)
-        files:Add(yoda)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action TwoTypeObjPriIntegerRetundefined
-        Array<File> files
-        Array<text> results
-        File main
-        File yoda
-        test = path + "Pass/TwoTypeObjPriIntegerRetundefined.quorum"
-        yodaPath = path + "Classes/yoda.quorum"
-        main:SetPath(test)
-        yoda:SetPath(yodaPath)
-        files:Add(main)
-        files:Add(yoda)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action TwoTypeObjPriTextRetundefined
-        Array<File> files
-        Array<text> results
-        File main
-        File yoda
-        test = path + "Pass/TwoTypeObjPriTextRetundefined.quorum"
-        yodaPath = path + "Classes/yoda.quorum"
-        main:SetPath(test)
-        yoda:SetPath(yodaPath)
-        files:Add(main)
-        files:Add(yoda)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
     action TwoTypeObjPriBooleanRetBoolObjFail
         Array<File> files
         File main
@@ -2505,54 +2397,6 @@ class TemplatingTesterGenerated
         suite:TestJavaScript(files, results)
     end
 
-    action TwoTypePriObjBooleanRetundefined
-        Array<File> files
-        Array<text> results
-        File main
-        File yoda
-        test = path + "Pass/TwoTypePriObjBooleanRetundefined.quorum"
-        yodaPath = path + "Classes/yoda.quorum"
-        main:SetPath(test)
-        yoda:SetPath(yodaPath)
-        files:Add(main)
-        files:Add(yoda)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action TwoTypePriObjIntegerRetundefined
-        Array<File> files
-        Array<text> results
-        File main
-        File yoda
-        test = path + "Pass/TwoTypePriObjIntegerRetundefined.quorum"
-        yodaPath = path + "Classes/yoda.quorum"
-        main:SetPath(test)
-        yoda:SetPath(yodaPath)
-        files:Add(main)
-        files:Add(yoda)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action TwoTypePriObjTextRetundefined
-        Array<File> files
-        Array<text> results
-        File main
-        File yoda
-        test = path + "Pass/TwoTypePriObjTextRetundefined.quorum"
-        yodaPath = path + "Classes/yoda.quorum"
-        main:SetPath(test)
-        yoda:SetPath(yodaPath)
-        files:Add(main)
-        files:Add(yoda)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
     action TwoTypePriObjBooleanRetBoolObjFail
         Array<File> files
         File main
@@ -3395,54 +3239,6 @@ class TemplatingTesterGenerated
         File main
         File yoda
         test = path + "Pass/TwoTypePriPriTextRetTextObj.quorum"
-        yodaPath = path + "Classes/yoda.quorum"
-        main:SetPath(test)
-        yoda:SetPath(yodaPath)
-        files:Add(main)
-        files:Add(yoda)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action TwoTypePriPriBooleanRetundefined
-        Array<File> files
-        Array<text> results
-        File main
-        File yoda
-        test = path + "Pass/TwoTypePriPriBooleanRetundefined.quorum"
-        yodaPath = path + "Classes/yoda.quorum"
-        main:SetPath(test)
-        yoda:SetPath(yodaPath)
-        files:Add(main)
-        files:Add(yoda)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action TwoTypePriPriIntegerRetundefined
-        Array<File> files
-        Array<text> results
-        File main
-        File yoda
-        test = path + "Pass/TwoTypePriPriIntegerRetundefined.quorum"
-        yodaPath = path + "Classes/yoda.quorum"
-        main:SetPath(test)
-        yoda:SetPath(yodaPath)
-        files:Add(main)
-        files:Add(yoda)
-        results:Add(0, "passed")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
-    end
-
-    action TwoTypePriPriTextRetundefined
-        Array<File> files
-        Array<text> results
-        File main
-        File yoda
-        test = path + "Pass/TwoTypePriPriTextRetundefined.quorum"
         yodaPath = path + "Classes/yoda.quorum"
         main:SetPath(test)
         yoda:SetPath(yodaPath)
