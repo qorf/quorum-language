@@ -1652,8 +1652,34 @@ class Class is Symbol
             CompilerErrorType errorType
             errorType:SetCurrentType(errorType:MISSING_METHOD)
             error:SetCompilerErrorType(errorType)
-            error:SetErrorMessage("I could not find an action named '" + 
-                call:name + "' in the class '" + me:GetStaticKey() + "'")
+
+            text message = "I could not find an action named '" + 
+                call:name + "' in the class '" + me:GetStaticKey() + "'" 
+            
+            if parameters:IsEmpty()
+                message = message + " without parameters."
+            else
+                text params = " with the "
+                if parameters:GetSize() = 1
+                    params = params + "parameter "
+                else
+                    params = params + "parameters "
+                end
+
+                i = 0
+                repeat parameters:GetSize() times
+                    Type type = parameters:Get(i)
+                    params = params + type:GetStaticKey()
+                    i = i + 1
+
+                    if i < parameters:GetSize()
+                        params = params + ", "
+                    end
+                end
+                message = message + params
+            end
+
+            error:SetErrorMessage(message)
             error:SetLocation(call)
             resolution:error = error
             return resolution
@@ -1673,9 +1699,10 @@ class Class is Symbol
                 Variable formalParameter = variables:Next()
                 Type formalParameterType = formalParameter:GetType()
                 Type actualParameterType = parameters:Get(i)
-                
+                GenericResolution generic = ResolveGenericParameter(act, call, formalParameterType)
+
                 //Check the types to make sure that they are compatible
-                TypeCheckResult result = checker:Check(formalParameterType, actualParameterType, implicit, false)
+                TypeCheckResult result = CheckTypeWithGeneric(generic, checker, formalParameterType, actualParameterType)
                 CompilerError error = result:GetCompilerError(call)
                 if error not= undefined //this action is not a match. We can break out
                     isMatch = false
@@ -1724,62 +1751,17 @@ class Class is Symbol
                 Variable var = variables:Next()
                 Type formal = var:GetType()
                 text formalText = formal:GetStaticKey()
+                GenericResolution generic = ResolveGenericParameter(final, call, formal)
 
-                //if the formal parameter is a generic, check its declared type
-                //then check if there is a conversion from the actual parameter
-                //to that type
-                if formal:IsMappedToGeneric()
-                    Type mappedType
-                    Action act = resolution:resolvedAction
-                    Variable classInstance = call:variable
-
-                    
-
-                    //if this is null, it's a compiler bug, or a compiler error?
-                    if classInstance = undefined
-                        //alert("When resolving a generic, we must have a specific variable with a tangible type")
-                    else
-                        Type declaredGenericFormal = classInstance:GetType()
-                        text mappedName = formal:GetMappedGeneric()
-
-                        if HasGeneric(mappedName)
-                            integer index = GetIndexOfGeneric(mappedName)
-                            integer numGenerics = declaredGenericFormal:GetNumberGenerics()
-                            if index not= -1
-
-                                if index >= numGenerics //the user created an object with the wrong generics and it wasn't caught somewhere else
-                                    resolution:isResolved = false
-                                    CompilerError error
-                                    error:SetLocation(call)
-                                    CompilerErrorType errorType
-                                    errorType:SetCurrentType(errorType:MISMATCHED_TEMPLATES)
-                                    error:SetCompilerErrorType(errorType)
-                                    error:SetErrorMessage("I found an action with a declared generic of " +
-                                        mappedName + ", which is at position " + index + 
-                                        " in the class " + declaredGenericFormal:GetStaticKey() + "." +
-                                        " However, no generic was declared in the variable " + 
-                                        classInstance:GetName() + ".")
-                                    error:SetLocation(call)
-                                    resolution:error = error
-                                    return resolution
-                                else
-                                    Type gen = declaredGenericFormal:GetGeneric(index)
-                                    if gen:IsPrimitive()
-                                        Type boxed = gen:Copy()
-                                        boxed:SetToObject(boxed:ConvertToNonPrimitiveStaticKey())
-                                        gen = boxed
-                                        formal = boxed
-                                    else //in the case where the generic is an object, do more searching 
-
-                                    end
-                                end
-                            end
-                        end
-                    end
+                if generic:hasGeneric and generic:error not= undefined
+                    resolution:isResolved = false
+                    resolution:error = generic:error
+                    return resolution
                 end
 
+                //Check the types to make sure that they are compatible
+                TypeCheckResult result = CheckTypeWithGeneric(generic, checker, formal, actual)
 
-                TypeCheckResult result = checker:Check(formal, actual, implicit, false)
                 //If this throws an error, it means that there was a generic
                 //type that was mismatched.
 
@@ -1836,12 +1818,124 @@ class Class is Symbol
             CompilerErrorType errorType
             errorType:SetCurrentType(errorType:MISSING_METHOD)
             error:SetCompilerErrorType(errorType)
-            error:SetErrorMessage("I could not find an action named '" + 
-                call:name + "' in the class '" + me:GetStaticKey() + "'")
+            text message = "I could not find an action named '" + 
+                call:name + "' in the class '" + me:GetStaticKey() + "'" 
+            
+            if parameters:IsEmpty()
+                message = message + " without parameters."
+            else
+                text params = " with the "
+                if parameters:GetSize() = 1
+                    params = params + "parameter "
+                end
+
+                if parameters:GetSize() > 1
+                    params = params + "parameters "
+                end
+
+                i = 0
+                repeat parameters:GetSize() times
+                    Type type = parameters:Get(i)
+                    params = params + type:GetStaticKey()
+                    i = i + 1
+
+                    if i < parameters:GetSize()
+                        params = params + ", "
+                    end
+                end
+                message = message + params
+            end
+
+            error:SetErrorMessage(message)
             resolution:error = error
         end
 
         return resolution
+    end
+
+
+    private action CheckTypeWithGeneric(GenericResolution generic, TypeChecker checker, Type formal, Type actual) returns TypeCheckResult
+        TypeCheckResult result = undefined
+        Operation implicit
+        implicit:SetOperation(implicit:IMPLICIT_CAST)
+        if generic:hasGeneric
+            //ResolveGenericParameter(act, call, formalParameterType)
+            Type resolved = generic:resolvedType //this may be null
+
+            if resolved = undefined
+                resolved = actual //temporary hack to prevent crashing while the templating system is finished.
+            end
+            if actual:IsPrimitive()
+                //if we have a primitive type that we're calling to, 
+                //we need to do something special to ensure the generic
+                //is correct.
+                Type upCastResolved
+                upCastResolved:SetToObject(resolved:ConvertToNonPrimitiveStaticKey())
+                Operation genericCast
+                genericCast:SetOperation(genericCast:GENERIC_CAST)
+                result = checker:Check(upCastResolved, actual, genericCast, false)
+            else
+                result = checker:Check(formal, actual, implicit, false)
+            end
+
+        else
+            result = checker:Check(formal, actual, implicit, false)
+        end
+        return result
+    end
+
+    /*
+        This action returns a type resolution for the generic in this passed
+        formal parameter. If the generic type is invalid, at the wrong index, 
+        or otherwise detected as incorrect, an error is returned in the
+        GenericResolution class. If the generic is correct, a Type is returned
+        in the GenericResolution that matches the declared generic.
+    */
+    private action ResolveGenericParameter(Action act, ActionCall call, Type formal) returns GenericResolution
+        GenericResolution generic
+        if formal:IsMappedToGeneric()
+            generic:hasGeneric = true
+            Type mappedType
+            //Variable classInstance = call:variable
+            Type classInstance = call:calledOnType
+            
+            //if this is null, it's a compiler bug, or a compiler error?
+            if classInstance = undefined
+                Type type
+                type:SetToObject(type:OBJECT_KEY)
+                generic:resolvedType = type
+            else
+                Type declaredGenericFormal = classInstance//:GetType()
+                text mappedName = formal:GetMappedGeneric()
+
+                if HasGeneric(mappedName)
+                    integer index = GetIndexOfGeneric(mappedName)
+                    integer numGenerics = declaredGenericFormal:GetNumberGenerics()
+                    if index not= -1
+                        if index >= numGenerics 
+                            CompilerError error
+                            error:SetLocation(call)
+                            CompilerErrorType errorType
+                            errorType:SetCurrentType(errorType:MISMATCHED_TEMPLATES)
+                            error:SetCompilerErrorType(errorType)
+                            error:SetErrorMessage("I found an action with a declared generic of " +
+                                mappedName + ", which is at position " + index + 
+                                " in the class " + declaredGenericFormal:GetStaticKey() + "." +
+                                " However, no generic was declared in the variable " + 
+                                classInstance:GetStaticKey() + ".")
+                            error:SetLocation(call)
+                            generic:error = error
+                        else
+                            Type gen = declaredGenericFormal:GetGeneric(index)
+                            generic:resolvedType = gen                            
+                        end
+                    end
+                end
+            end
+        else
+            
+        end
+        return generic
     end
 
     action SetPackage(QualifiedName pack)

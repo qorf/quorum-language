@@ -20,6 +20,7 @@ class Operation
     public constant integer IMPLICIT_CAST = 16
     public constant integer AUTOBOX_CAST = 17
     public constant integer IS = 18
+    public constant integer GENERIC_CAST = 19
 
     integer current = -1
 
@@ -28,7 +29,7 @@ class Operation
     end
 
     action SetOperation(integer value)
-        if value < PLUS or value > IS
+        if value < PLUS or value > GENERIC_CAST
             alert("This is a bug in the compiler, caused by trying to create an invalid operation.")
         end
 
@@ -74,6 +75,8 @@ class Operation
             return "autoboxCast"
         elseif current = IS
             return "is"
+        elseif current = GENERIC_CAST
+            return "genericCast"
         end
 
          alert("Called GetText for an operation that does not exist.")

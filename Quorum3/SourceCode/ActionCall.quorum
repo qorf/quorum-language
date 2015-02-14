@@ -15,6 +15,7 @@ class ActionCall is Location
     public Variable variable = undefined
     public SymbolTable table = undefined
     public TypeChecker checker = undefined
+    public Type calledOnType = undefined
 
     action GetSignature returns text
         text sig = name 

@@ -1360,27 +1360,27 @@ class QuorumBytecodeListener is QuorumSourceListener
         currentBlockOpcode:Add(ops)
     end
 
-    private action ResolveActionCall(Class testMe, boolean isObjectCall, 
-        Class fieldClass, Variable variable, ActionCall call, ActionCallOpcode actionCall) returns ActionCallResolution
-        call:variable = variable
-        ActionCallResolution resolved = testMe:ResolveAction(call)
-
-        if isObjectCall
-            resolved:classToMakeCallOn = fieldClass
-            resolved:callingClass = currentClass
-            actionCall:SetFieldHolder(currentClass)
-            actionCall:SetPushOnMe(false)
-            actionCall:SetField(variable)
-            actionCall:SetIsSoloObjectCall(true)
-            resolved:typeToMakeCallOn = variable:GetType()
-        else
-            resolved:classToMakeCallOn = currentClass
-        end
-
-        
-        FinishActionResolution(actionCall, resolved)
-        return resolved
-    end
+//    private action ResolveActionCall(Class testMe, boolean isObjectCall, 
+//        Class fieldClass, Variable variable, ActionCall call, ActionCallOpcode actionCall) returns ActionCallResolution
+//        call:variable = variable
+//        ActionCallResolution resolved = testMe:ResolveAction(call)
+//
+//        if isObjectCall
+//            resolved:classToMakeCallOn = fieldClass
+//            resolved:callingClass = currentClass
+//            actionCall:SetFieldHolder(currentClass)
+//            actionCall:SetPushOnMe(false)
+//            actionCall:SetField(variable)
+//            actionCall:SetIsSoloObjectCall(true)
+//            resolved:typeToMakeCallOn = variable:GetType()
+//        else
+//            resolved:classToMakeCallOn = currentClass
+//        end
+//
+//        
+//        FinishActionResolution(actionCall, resolved)
+//        return resolved
+//    end
 
     action FinishActionResolution(ActionCallOpcode actionCall, ActionCallResolution resolved)
         if resolved not= undefined and resolved:isResolved
@@ -1696,10 +1696,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitActionCall(ActionCallContext context)
-
-        if currentClass:GetName() = "Main"
-            a = 5
-        end
         ActionCallOpcode actionCall
         actionCall:SetLocation(context:GetLocation())
         actionCall:SetMethodWriter(methodWriter)
@@ -1728,9 +1724,6 @@ class QuorumBytecodeListener is QuorumSourceListener
                 ActionCallOpcode op = stack:GetFromEnd()
                 Type t = op:GetType()
                 calledType = t
-                if t = undefined
-                    a = 5
-                end
                 if t:IsPrimitive()
                     isPrimitive = true
                 end
@@ -1760,7 +1753,8 @@ class QuorumBytecodeListener is QuorumSourceListener
             call:name = context:name
             call:checker = GetTypeChecker()
             call:table = GetSymbolTable()
-  
+            call:calledOnType = calledType
+
             ActionCallResolution resolved = classToMakeCallOn:ResolveAction(call)
 
             if not resolved:isResolved
