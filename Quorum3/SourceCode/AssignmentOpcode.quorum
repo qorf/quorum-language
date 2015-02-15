@@ -5,11 +5,10 @@ use Libraries.Language.Compile.Symbol.Variable
 use Libraries.Language.Compile.Symbol.Class
 
 class AssignmentOpcode is QuorumOpcode
-    //integer bytecodeLocation = -1
     integer opcode = -1
     integer opcode2 = -1
-    //JavaBytecodeMethodWriter methodWriter = undefined
     QuorumOpcode rightHandSide = undefined
+    QuorumOpcode implicitCast = undefined
     Variable variable = undefined
     JavaBytecodeOpcodes opcodes
     constant integer ME = 0
@@ -18,6 +17,14 @@ class AssignmentOpcode is QuorumOpcode
     Variable field = undefined
     Class fieldHolder = undefined
     Class parentWithField = undefined
+
+    action GetImplicitCast returns QuorumOpcode
+        return implicitCast
+    end
+
+    action SetImplicitCast(QuorumOpcode opcode)
+        implicitCast = opcode
+    end
 
     action SetParentWithField(Class myParent)
         parentWithField = myParent
@@ -105,6 +112,12 @@ class AssignmentOpcode is QuorumOpcode
         end
     end
 
+    private action WriteImplicitIfExists
+        if implicitCast not= undefined
+            implicitCast:Write()
+        end
+    end
+
     action Write 
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         VisitLineNumber()
@@ -121,12 +134,14 @@ class AssignmentOpcode is QuorumOpcode
 
             //write the right hand side
             rightHandSide:Write()
-
+            
             //push any opcodes listed for assignment
             if opcode2 not= -1
                 methodWriter:VisitInstruction(opcode2)
             end
             
+            WriteImplicitIfExists()
+
             //do final assignment. This is guaranteed to be a field
             Type type = variable:GetType()
             path = parentWithField:ConvertStaticKeyToBytecodeInterfacePath()
@@ -146,6 +161,7 @@ class AssignmentOpcode is QuorumOpcode
                     if opcode2 not= -1
                         methodWriter:VisitInstruction(opcode2)
                     end
+                    WriteImplicitIfExists()
                     methodWriter:VisitField(opcodes:GetPutField(), 
                         clazz:ConvertStaticKeyToBytecodePath(), variable:GetName(), 
                         type:ConvertTypeToBytecodeSignatureInterface())
@@ -154,6 +170,7 @@ class AssignmentOpcode is QuorumOpcode
                     if opcode2 not= -1
                         methodWriter:VisitInstruction(opcode2)
                     end
+                    WriteImplicitIfExists()
                     methodWriter:VisitVariable(opcode, variable:GetBytecodeLocation() + CalculateBytecodeOffset(variable))
                 end
             end
@@ -184,6 +201,8 @@ class AssignmentOpcode is QuorumOpcode
         if opcode2 not= -1
             methodWriter:VisitInstruction(opcode2)
         end
+
+        WriteImplicitIfExists()
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
             path, setterName, methodName, true)
     end

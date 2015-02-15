@@ -894,7 +894,8 @@ class QuorumBytecodeListener is QuorumSourceListener
         text name = context:name
         text object = context:object
         QualifiedName theParent = context:parentName
-        
+        CompilerErrorManager manager = GetCompilerErrorManager()
+
         Variable variable = undefined
         Variable field = undefined
         Class clazz = undefined
@@ -932,7 +933,6 @@ class QuorumBytecodeListener is QuorumSourceListener
                             error:SetErrorMessage("I noticed that the code says you want to modify the "
                                 + "variable " + field:GetName() + ", in the parent "
                                 + fieldHolder:GetStaticKey() + " but that variable is a constant.")
-                            CompilerErrorManager manager = GetCompilerErrorManager()
                             manager:Add(error)
                         end
                     end
@@ -944,7 +944,6 @@ class QuorumBytecodeListener is QuorumSourceListener
                     error:SetCompilerErrorType(errorType)
                     error:SetErrorMessage("I cannot assign a value to a variable " +
                         "named " + variable:GetName() + " because it is of type " + type:GetStaticKey() + ", which is a primitive")
-                    CompilerErrorManager manager = GetCompilerErrorManager()
                     manager:Add(error)
                 end
             end
@@ -952,21 +951,80 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
 
         QuorumOpcode right = opcodeStack:Pop()
-
+        QuorumOpcode implicitCast = undefined
+        QuorumOpcode right2 = right
 
         Operation assign
         assign:SetOperation(assign:EQUALS)
 
         TypeChecker checker = GetTypeChecker()
-        TypeCheckResult result = checker:Check(field:GetType(), right:GetType(), undefined, true) 
+
+        Type fieldType = field:GetType()
+        if fieldType:IsMappedToGeneric()
+            text map = fieldType:GetMappedGeneric()
+            index = fieldHolder:GetIndexOfGeneric(map)
+            Type type = variable:GetType()
+            
+            if index not= -1
+                Type generic = type:GetGeneric(index)
+
+                Operation op
+                TypeCheckResult result = undefined
+                if generic:IsPrimitive()
+                    op:SetOperation(op:GENERIC_CAST)
+                    Type newGeneric
+                    newGeneric:SetToObject(generic:ConvertToNonPrimitiveStaticKey())
+                    result = checker:Check(newGeneric, right:GetType(), op, false) 
+                else
+                    op:SetOperation(op:IMPLICIT_CAST)
+                    result = checker:Check(field:GetType(), right:GetType(), op, false) 
+                end
+                
+                CompilerError error = result:GetCompilerError(context:GetLocation())
+                if error not= undefined
+                    manager:Add(error)
+                    return now
+                end
+
+                QuorumOpcode opcode = result:GetQuorumOpcode()
+                opcode:SetLocation(context:GetLocation())
+                opcode:SetMethodWriter(methodWriter)
+
+                implicitCast = opcode
+                right2 = implicitCast
+            else
+                CompilerError error
+                error:SetLocation(variable)
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:MISMATCHED_TEMPLATES)
+                error:SetCompilerErrorType(errorType)
+                error:SetErrorMessage("I cannot assign a value to a variable " +
+                    "to the variable " + variable:GetName() + " because I cannot find a matching generic type.")
+                manager:Add(error)
+            end
+        end
+
+        TypeCheckResult result = checker:Check(field:GetType(), right2:GetType(), undefined, true) 
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+
+        if error not= undefined
+            manager:Add(error)
+            return now
+        end
 
         integer location = variable:GetBytecodeLocation()
         Type value = result:result
         QuorumOpcode qop = result:GetQuorumOpcode()
         AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+
+        if assignment = undefined
+            a = 5
+        end
+
         assignment:SetLocation(context:GetLocation())
         assignment:SetClass(currentClass)
         assignment:SetRightHandSide(right)
+        assignment:SetImplicitCast(implicitCast)
         assignment:SetFieldHolder(fieldHolder)
         assignment:SetType(value)
         assignment:SetMethodWriter(methodWriter)

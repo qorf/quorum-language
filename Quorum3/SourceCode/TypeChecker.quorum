@@ -1278,7 +1278,7 @@ class TypeChecker
         result:SetQuorumOpcode(objectToPrimitiveBooleanCast)
         results:Add(key, result)
 
-        op = GetOperation(opConstant:CAST)
+        op = GetOperation(opConstant:GENERIC_CAST)
         key = GenerateTypeCheckKey(constants:BOOLEAN_OBJECT_KEY, constants:BOOLEAN_PRIMITIVE_KEY, op, false)
         result = GetSubclassNarrowingConvertResult()
         type = result:result

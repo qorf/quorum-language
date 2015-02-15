@@ -953,6 +953,10 @@ class Class is Symbol
             text key = type:GetStaticKey()
             Class clazz = GetClass(key, table, errors)
             if clazz not= undefined
+                //if the name of the object is a generic
+                if HasGeneric(type:GetStaticKey())
+                    type:MapToGeneric(type:GetStaticKey())
+                end
                 type:SetToObject(clazz:GetStaticKey())
                 if type:HasGenerics()
                     //check to see if the number of generics matches with the class
@@ -1628,6 +1632,10 @@ class Class is Symbol
         ActionCallResolution resolution
         Array<Type> parameters = call:actualParameters
         TypeChecker checker = call:checker
+
+        if call:name = "setSomething"
+            a = 5
+        end
 
         Array<Action> named //actions with the right name
         Array<integer> scores
