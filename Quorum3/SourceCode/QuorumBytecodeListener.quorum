@@ -987,11 +987,13 @@ class QuorumBytecodeListener is QuorumSourceListener
                 end
 
                 QuorumOpcode opcode = result:GetQuorumOpcode()
-                opcode:SetLocation(context:GetLocation())
-                opcode:SetMethodWriter(methodWriter)
+                if opcode not= undefined
+                    opcode:SetLocation(context:GetLocation())
+                    opcode:SetMethodWriter(methodWriter)
 
-                implicitCast = opcode
-                right2 = implicitCast
+                    implicitCast = opcode
+                    right2 = implicitCast
+                end
             else
                 CompilerError error
                 error:SetLocation(variable)

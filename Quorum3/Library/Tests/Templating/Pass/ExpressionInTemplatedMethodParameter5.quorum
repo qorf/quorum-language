@@ -7,7 +7,7 @@ class Main
         Returner<integer> r
         integer i = 1
         repeat 5 times
-            r:MixTemplateAndNoTemplate(i + 1, r:NoTemplate(One() + Two()))
+            r:MixTemplateAndNonTemplate(i + 1, r:NoTemplatedParam(One() + Two()))
             i = i + 1
         end
         output "passed"

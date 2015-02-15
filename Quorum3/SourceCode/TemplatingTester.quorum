@@ -367,7 +367,7 @@ class TemplatingTester
         dependent1:SetPath(path + "Node_8.quorum")
         files:Add(main)
         files:Add(dependent1)
-        results:Add(0, "")
+        results:Add(0, "passed")
 
         suite:Test(files, results)
         //suite:TestJavaScript(files, results)
@@ -409,8 +409,8 @@ class TemplatingTester
         files:Add(dependent2)
         files:Add(dependent3)
         results:Add(0, "1")
-        results:Add(0, "Slattery")
-        results:Add(0, "Stefik")
+        results:Add(1, "Slattery")
+        results:Add(2, "Stefik")
 
         suite:Test(files, results)
         //suite:TestJavaScript(files, results)

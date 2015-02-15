@@ -1633,7 +1633,8 @@ class Class is Symbol
         Array<Type> parameters = call:actualParameters
         TypeChecker checker = call:checker
 
-        if call:name = "setSomething"
+        Location location = call
+        if call:name = "Set" and location:GetLineNumber() = 6
             a = 5
         end
 
@@ -1883,7 +1884,17 @@ class Class is Symbol
                 genericCast:SetOperation(genericCast:GENERIC_CAST)
                 result = checker:Check(upCastResolved, actual, genericCast, false)
             else
-                result = checker:Check(formal, actual, implicit, false)
+                //if resolved is a primitive, check if the actual type is compatible
+                //with the type of primitive. If resolved is not a primitive
+                //then just compare the resolved type to the actual type.
+                //So long as it's a subclass, we're cool.
+                if resolved:IsPrimitive()
+                    Type upCastResolved
+                    upCastResolved:SetToObject(resolved:ConvertToNonPrimitiveStaticKey())
+                    resolved = upCastResolved
+                end
+
+                result = checker:Check(resolved, actual, implicit, false)
             end
 
         else

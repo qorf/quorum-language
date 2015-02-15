@@ -77,6 +77,6 @@ class DoubleNodeList<Type, Type2>
             curr = curr:getNext()
             i = i + 1
         end
-        return curr
+        return cast(DoubleNode, curr)
     end
 end
