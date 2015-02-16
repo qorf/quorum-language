@@ -1,0 +1,33 @@
+Quorum 3.0 Beta 1:
+
+This is the first beta test file for the Quorum 3.0 compiler. Given that this is a 
+public beta, there are several features the team is still working on. Here is a 
+list of known issues.
+
+1. Text-to-speech is disabled in Quorum 3 beta 1. The reason is because we are 
+still finishing up a patch for newer versions of Mac OS X. We are waiting to 
+integrate until that work is finished. This includes both the "say" command
+and the Speech library.
+
+2. Several unit tests still fail. The reason is because the team is not yet finished
+porting over Quorum 2's test suite and we are generating new ones to account 
+for design changes in Q3. We are almost finished with this process.
+
+3. The templating/generics/type system still needs some testing.
+
+4. The -web flag, the flag that asks Quorum to generate a .war file,
+has not been tested for the beta. We plan to finish this up for the final release.
+
+5. The exceptions system, under some rare conditions, outputs a rather cryptic message,
+which was a holdover from Quorum 2. If an exception is thrown, under any condition, 
+and it does not have a corresponding stack trace come out, it's a bug and should
+be reported.
+
+6. Assignment on an object parent call is currently disabled (e.g., test:parent:Class:variable = ...).
+
+7. There is no support for development environments yet (e.g., NetBeans).
+
+As always, given that this is a beta compiler, users that find any issues at all 
+should feel free to file a bug report. As we go through this process, we will be paying
+attention to the database looking for anything users report is not working
+as expected.

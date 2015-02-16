@@ -505,9 +505,34 @@ class Class is Symbol
         return false
     end
 
+    action ValidateGenerics(CompilerErrorManager compilerErrorManager)
+
+        if GetName() = "HashTableIterator"
+            a = 5
+        end
+
+        Iterator<text> values = genericHash:GetKeyIterator()
+        repeat while values:HasNext()
+            text generic = values:Next()
+
+            a = 5
+//            CompilerError error
+//            error:SetLocation(me)
+//            CompilerErrorType t
+//            t:SetCurrentType(t:MISMATCHED_TEMPLATES)
+//            error:SetCompilerErrorType(t)
+//            text message = "The class " + GetStaticKey() + " defines generics "
+//            message = message + "that lead to its parent class " + nextParent + 
+//                " having two different definitions."
+//            error:SetErrorMessage(message)
+//            compilerErrorManager:Add(error)
+        end
+    end
+
     action ComputeGenericsTables(CompilerErrorManager compilerErrorManager)
         Iterator<text> it = parentGenericMap:GetKeyIterator()
         HashTable<text, HashTable<integer, integer>> tempParentMap
+        HashTable<integer, HashTable<text, integer>> circularMap
         
         HashTable<text, HashTable<integer, integer>> finalParentMap
         repeat while it:HasNext()
@@ -555,7 +580,7 @@ class Class is Symbol
                                 end
                             else
                                 boolean test = CheckHashTableConsistency(
-                                    compilerErrorManager, values, 
+                                    compilerErrorManager, directParentMap, 
                                     myValues, next, nextParent)
                                 
                                 //I don't think anything needs to be done with this value
@@ -665,7 +690,6 @@ class Class is Symbol
 
     action MapParentGenericToMe(text parentKey, integer index) returns integer
         if HasParentClass(parentKey)
-
             //do we have a map for this generic?
             HashTable<integer, integer> map = parentGenericMap:GetValue(parentKey)
             if map not= undefined
@@ -689,7 +713,7 @@ class Class is Symbol
             Class c = myParents:Next()
             AddValidUse(c)
         end
-
+        
         HashTable<text, Array<Type>> newParentGenerics
         Iterator<text> keys = parentGenerics:GetKeyIterator()
         repeat while keys:HasNext()
@@ -715,7 +739,6 @@ class Class is Symbol
             end
         end
         parentGenerics = newParentGenerics
-
 
         Iterator<Class> parentIterator = parents:GetValueIterator()
         repeat while parentIterator:HasNext()
@@ -772,6 +795,54 @@ class Class is Symbol
                             Type baseType = types:Get(i)
                             //resolve this type. If there are no errors, we're good.
                             ResolveType(me, baseType, table, errors)
+
+                            //now we've resolved it, but we really only want to
+                            //check to make sure this is either a propogation
+                            //of types up the chain, but not a remapping,
+                            //as I am suspicious this would get confusing to
+                            //people
+
+                            //add a compiler error if it's a primitie or a type
+                            //other than a valid name
+                            if baseType:IsPrimitive() or (not baseType:IsPrimitive() and baseType:GetStaticKey() not= baseType:OBJECT_KEY)
+                                CompilerError error
+                                error:SetLocation(me)
+                                CompilerErrorType t
+                                t:SetCurrentType(t:MISMATCHED_TEMPLATES)
+                                error:SetCompilerErrorType(t)
+                                text message = "I noticed that there was generic defined in the class " + GetStaticKey() 
+                                    + " for the parent " + key + " that is defined as " + baseType:GetStaticKey()
+                                    + ". "
+
+                                if generics:GetSize() = 1
+                                    message = message + "The only allowed types that I know of is "
+                                elseif generics:IsEmpty()
+                                    message = message + " No generics are defined in " +  GetStaticKey() + " so none can be defined here."
+                                else
+                                    message = message + "The only allowed types that I know of are "
+                                end
+
+                                text genericList = ""
+                                Iterator<text> gens = generics:GetIterator()
+                                i = 0 
+                                repeat while gens:HasNext()
+                                    genericList = genericList + gens:Next()
+                                    boolean hasNext = gens:HasNext() 
+                                    boolean isLast = i = generics:GetSize() - 2
+                                    if hasNext and not isLast
+                                        genericList = genericList + ", "
+                                    elseif hasNext and isLast and generics:GetSize() > 3
+                                        genericList = genericList + ", and "
+                                    elseif hasNext and isLast and generics:GetSize() = 2
+                                        genericList = genericList + " and "
+                                    end
+                                    i = i + 1
+                                end
+
+                                message = message + genericList + "."
+                                error:SetErrorMessage(message)
+                                errors:Add(error)
+                            end
                             i = i + 1
                         end
                     end

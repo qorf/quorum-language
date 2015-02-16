@@ -523,7 +523,12 @@ class Compiler
         repeat while classes:HasNext()
             Class next = classes:Next()
             next:ComputeVirtualActionTable(compilerErrorManager)
+
+            if next:GetName() = "D"
+                a = 5
+            end
             next:ComputeGenericsTables(compilerErrorManager)
+            next:ValidateGenerics(compilerErrorManager)
             checker:Add(next)
         end
     end

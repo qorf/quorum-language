@@ -1,9 +1,10 @@
 use Libraries.Containers.Array
-class Main is Array<integer>
+class Main<Type> is Array<Type>
     action Main
-        me:SetSize(1)
-        me:Set(0, 1)
-        integer i = me:Get(0)
+        Main<integer> main
+        main:SetSize(1)
+        main:Set(0, 1)
+        integer i = main:Get(0)
         output i
     end
 end

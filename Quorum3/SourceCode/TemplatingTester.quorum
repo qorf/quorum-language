@@ -50,6 +50,7 @@ class TemplatingTester
         ArrayFilledWithWrongType()
         DefineTypeOfUntemplatedClass_10()
         DiamondProblemWithTwoTypes_9()
+        DiamondProblemWithTwoTypes_10()
         PassBooleanTakesInteger_1()
         PassBooleanTakesNumber_7()
         PassIntegerTakesBoolean_4()
@@ -518,6 +519,27 @@ class TemplatingTester
         dependent2:SetPath(path + "B_9.quorum")
         dependent3:SetPath(path + "C_9.quorum")
         dependent4:SetPath(path + "D_9.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        files:Add(dependent4)
+
+        suite:TestFail(files)
+    end
+
+    action DiamondProblemWithTwoTypes_10()
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        File dependent4
+        main:SetPath(path + "DiamondProblemWithTwoTypes_10.quorum")
+        dependent1:SetPath(path + "A_9.quorum")
+        dependent2:SetPath(path + "B_9.quorum")
+        dependent3:SetPath(path + "C_9.quorum")
+        dependent4:SetPath(path + "D_8.quorum")
         files:Add(main)
         files:Add(dependent1)
         files:Add(dependent2)
