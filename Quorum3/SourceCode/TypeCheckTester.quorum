@@ -146,6 +146,7 @@ class TypeCheckTester
         ExpAssignTextObjTextObjField()
         ExpAssignTextObjUndefinedField()
 
+        ImpAssignTextUndefinedDirect()
         IndexOfPrefix()
         IndexOfPrefixIndex()
         InstanceTypeChildOfChild()
@@ -1761,6 +1762,17 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         results:Add(0, "2")
         results:Add(1, "2")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ImpAssignTextUndefinedDirect
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ImpAssignTextUndefinedDirect.quorum")
+        files:Add(main)
+        results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
