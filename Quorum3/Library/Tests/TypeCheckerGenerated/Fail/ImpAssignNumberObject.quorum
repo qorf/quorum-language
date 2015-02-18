@@ -1,14 +1,11 @@
 class Main
     action Main
         Object v
-        number t = 5.0
-        v = cast(Object, t)
+    number t = 5.0
+        v:SetValue(5.0)
         Test(v)
     end
 
     action Test(number var)
-        if var = 5.0
-            output "passed"
-        end
     end
 end

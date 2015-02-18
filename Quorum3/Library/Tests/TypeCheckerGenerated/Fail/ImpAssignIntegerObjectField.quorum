@@ -2,13 +2,10 @@ class Main
     Object v
     integer t = 5
     action Main
-        v = cast(Object, t)
+        v:SetValue(5)
         Test(v)
     end
 
     action Test(integer var)
-        if var = 5
-            output "passed"
-        end
     end
 end

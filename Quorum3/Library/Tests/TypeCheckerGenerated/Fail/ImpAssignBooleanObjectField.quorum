@@ -2,13 +2,10 @@ class Main
     Object v
     boolean t = true
     action Main
-        v = cast(Object, t)
+        v:SetValue(true)
         Test(v)
     end
 
     action Test(boolean var)
-        if var = true
-            output "passed"
-        end
     end
 end

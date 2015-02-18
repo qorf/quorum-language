@@ -5,7 +5,8 @@ class Main
     end
 
     action Test(Object var)
-        if var:GetValue() = true
+        boolean v = cast(boolean, var)
+        if v = true
             output "passed"
         end
     end

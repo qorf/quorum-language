@@ -2,13 +2,10 @@ class Main
     Object v
     text t = "text"
     action Main
-        v = cast(Object, t)
+        v:SetValue("text")
         Test(v)
     end
 
     action Test(text var)
-        if var = "text"
-            output "passed"
-        end
     end
 end
