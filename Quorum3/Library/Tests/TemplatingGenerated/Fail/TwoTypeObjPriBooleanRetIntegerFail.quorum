@@ -1,6 +1,9 @@
 class Main
     action Main
-        Yoda<Integer, Integer, boolean> yoda
-        integer y = yoda(66, 66, 66)
+        Boolean one
+        one:SetValue(true)
+        boolean two = true
+        Yoda<Boolean, boolean, integer> yoda
+        boolean wrongRet = yoda(one, two)
      end
 end

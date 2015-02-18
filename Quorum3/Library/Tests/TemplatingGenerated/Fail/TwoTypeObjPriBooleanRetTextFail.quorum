@@ -1,6 +1,9 @@
 class Main
     action Main
-        Yoda<Text, Text, boolean> yoda
-        integer y = yoda("green", "green", 66)
+        Boolean one
+        one:SetValue(true)
+        boolean two = true
+        Yoda<Boolean, boolean, text> yoda
+        boolean wrongRet = yoda(one, two)
      end
 end
