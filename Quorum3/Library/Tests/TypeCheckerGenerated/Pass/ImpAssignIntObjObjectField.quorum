@@ -1,0 +1,15 @@
+class Main
+    Object v
+    Integer t
+    action Main
+        t:SetValue(5)
+        v = cast(Object, t)
+        Test(v)
+    end
+
+    action Test(Integer var)
+        if var:GetValue() = 5
+            output "passed"
+        end
+    end
+end

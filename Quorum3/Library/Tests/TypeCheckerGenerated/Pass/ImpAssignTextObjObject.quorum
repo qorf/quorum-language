@@ -1,0 +1,15 @@
+class Main
+    action Main
+        Object v
+        Text t
+        t:SetValue("text")
+        v = cast(Object, t)
+        Test(v)
+    end
+
+    action Test(Text var)
+        if var:GetValue() = "text"
+            output "passed"
+        end
+    end
+end

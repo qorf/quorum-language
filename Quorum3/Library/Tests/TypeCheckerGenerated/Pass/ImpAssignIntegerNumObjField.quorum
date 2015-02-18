@@ -1,10 +1,13 @@
 class Main
+    Number v
     action Main
-        Object v
-        v:SetValue()
+        v:SetValue(5)
         Test(v)
     end
 
     action Test(integer var)
+        if var = 5
+            output "passed"
+        end
     end
 end

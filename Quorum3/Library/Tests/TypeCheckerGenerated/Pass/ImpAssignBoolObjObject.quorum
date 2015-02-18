@@ -1,0 +1,15 @@
+class Main
+    action Main
+        Object v
+        Boolean t
+        t:SetValue(true)
+        v = cast(Object, t)
+        Test(v)
+    end
+
+    action Test(Boolean var)
+        if var:GetValue() = true
+            output "passed"
+        end
+    end
+end

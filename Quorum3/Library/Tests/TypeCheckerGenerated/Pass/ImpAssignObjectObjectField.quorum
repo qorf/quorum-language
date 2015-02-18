@@ -1,6 +1,9 @@
 class Main
     Object v
+    Object t
     action Main
+        t:SetValue()
+        v = cast(Object, t)
         Test(v)
     end
 

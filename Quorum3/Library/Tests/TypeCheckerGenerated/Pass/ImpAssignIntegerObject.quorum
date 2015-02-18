@@ -1,13 +1,14 @@
 class Main
     action Main
         Object v
-        Object t
-        t:SetValue()
+        integer t = 5
         v = cast(Object, t)
         Test(v)
     end
 
-    action Test(Object var)
-        output "passed"
+    action Test(integer var)
+        if var = 5
+            output "passed"
+        end
     end
 end

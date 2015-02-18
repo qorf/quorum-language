@@ -1,0 +1,14 @@
+class Main
+    action Main
+        Object v
+        text t = "text"
+        v = cast(Object, t)
+        Test(v)
+    end
+
+    action Test(text var)
+        if var = "text"
+            output "passed"
+        end
+    end
+end
