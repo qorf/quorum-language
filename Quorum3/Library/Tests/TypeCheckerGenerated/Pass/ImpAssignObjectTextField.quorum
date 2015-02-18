@@ -1,9 +1,12 @@
 class Main
+    text v = "text"
     action Main
-        text v = "text"
         Test(v)
     end
 
     action Test(Object var)
+        if var:GetValue() = "text"
+            output "passed"
+        end
     end
 end
