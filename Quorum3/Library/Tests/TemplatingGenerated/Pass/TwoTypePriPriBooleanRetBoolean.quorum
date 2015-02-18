@@ -1,7 +1,12 @@
 class Main
     action Main
-        Yoda<Boolean, Boolean, boolean> yoda
-        boolean y = yoda:useForce(true, true)
-        output "passed"
+        boolean one = true
+        boolean two = true
+        Yoda<boolean, boolean, boolean> yoda
+        check
+            boolean ret = yoda:useForce(one, two)
+        detect e
+            output "passed"
+        end
      end
 end

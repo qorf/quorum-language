@@ -1,7 +1,13 @@
 class Main
     action Main
-        Yoda<Text, Text, text> yoda
-        text y = yoda:useForce("green", "green")
-        output "passed"
+        text one = "green"
+        Text two
+        two:SetValue("green")
+        Yoda<text, Text, text> yoda
+        check
+            text ret = yoda:useForce(one, two)
+        detect e
+            output "passed"
+        end
      end
 end
