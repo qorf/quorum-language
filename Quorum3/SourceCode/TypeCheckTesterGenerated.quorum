@@ -17,16 +17,22 @@ class TypeCheckTesterGenerated
         //PASS TESTS
         ImpAssignBoolObjBoolObj()
         ImpAssignBoolObjBoolObjField()
+        ImpAssignBoolObjBoolean()
+        ImpAssignBoolObjBooleanField()
         ImpAssignBoolObjObject()
         ImpAssignBoolObjObjectField()
         ImpAssignBoolObjUndefined()
         ImpAssignBoolObjUndefinedField()
+        ImpAssignBooleanBoolObj()
+        ImpAssignBooleanBoolObjField()
         ImpAssignBooleanBoolean()
         ImpAssignBooleanBooleanField()
         ImpAssignBooleanObject()
         ImpAssignBooleanObjectField()
         ImpAssignIntObjIntObj()
         ImpAssignIntObjIntObjField()
+        ImpAssignIntObjInteger()
+        ImpAssignIntObjIntegerField()
         ImpAssignIntObjObject()
         ImpAssignIntObjObjectField()
         ImpAssignIntObjUndefined()
@@ -41,6 +47,8 @@ class TypeCheckTesterGenerated
         ImpAssignIntegerObjectField()
         ImpAssignNumObjNumObj()
         ImpAssignNumObjNumObjField()
+        ImpAssignNumObjNumber()
+        ImpAssignNumObjNumberField()
         ImpAssignNumObjObject()
         ImpAssignNumObjObjectField()
         ImpAssignNumObjUndefined()
@@ -55,12 +63,20 @@ class TypeCheckTesterGenerated
         ImpAssignNumberObjectField()
         ImpAssignObjectBoolObj()
         ImpAssignObjectBoolObjField()
+        ImpAssignObjectBoolean()
+        ImpAssignObjectBooleanField()
         ImpAssignObjectIntObj()
         ImpAssignObjectIntObjField()
+        ImpAssignObjectInteger()
+        ImpAssignObjectIntegerField()
         ImpAssignObjectNumObj()
         ImpAssignObjectNumObjField()
+        ImpAssignObjectNumber()
+        ImpAssignObjectNumberField()
         ImpAssignObjectObject()
         ImpAssignObjectObjectField()
+        ImpAssignObjectText()
+        ImpAssignObjectTextField()
         ImpAssignObjectTextObj()
         ImpAssignObjectTextObjField()
         ImpAssignObjectUndefined()
@@ -75,6 +91,8 @@ class TypeCheckTesterGenerated
         ImpAssignTextUndefinedField()
         ImpAssignTextObjObject()
         ImpAssignTextObjObjectField()
+        ImpAssignTextObjText()
+        ImpAssignTextObjTextField()
         ImpAssignTextObjTextObj()
         ImpAssignTextObjTextObjField()
         ImpAssignTextObjUndefined()
@@ -121,8 +139,6 @@ class TypeCheckTesterGenerated
         RetAssignTextObjUndefinedField()
 
         //FAIL TESTS
-        ImpAssignBoolObjBoolean()
-        ImpAssignBoolObjBooleanField()
         ImpAssignBoolObjIntObj()
         ImpAssignBoolObjIntObjField()
         ImpAssignBoolObjInteger()
@@ -135,8 +151,6 @@ class TypeCheckTesterGenerated
         ImpAssignBoolObjTextField()
         ImpAssignBoolObjTextObj()
         ImpAssignBoolObjTextObjField()
-        ImpAssignBooleanBoolObj()
-        ImpAssignBooleanBoolObjField()
         ImpAssignBooleanIntObj()
         ImpAssignBooleanIntObjField()
         ImpAssignBooleanInteger()
@@ -155,8 +169,6 @@ class TypeCheckTesterGenerated
         ImpAssignIntObjBoolObjField()
         ImpAssignIntObjBoolean()
         ImpAssignIntObjBooleanField()
-        ImpAssignIntObjInteger()
-        ImpAssignIntObjIntegerField()
         ImpAssignIntObjNumObj()
         ImpAssignIntObjNumObjField()
         ImpAssignIntObjNumber()
@@ -185,8 +197,6 @@ class TypeCheckTesterGenerated
         ImpAssignNumObjIntObjField()
         ImpAssignNumObjInteger()
         ImpAssignNumObjIntegerField()
-        ImpAssignNumObjNumber()
-        ImpAssignNumObjNumberField()
         ImpAssignNumObjText()
         ImpAssignNumObjTextField()
         ImpAssignNumObjTextObj()
@@ -203,14 +213,6 @@ class TypeCheckTesterGenerated
         ImpAssignNumberTextObjField()
         ImpAssignNumberUndefined()
         ImpAssignNumberUndefinedField()
-        ImpAssignObjectBoolean()
-        ImpAssignObjectBooleanField()
-        ImpAssignObjectInteger()
-        ImpAssignObjectIntegerField()
-        ImpAssignObjectNumber()
-        ImpAssignObjectNumberField()
-        ImpAssignObjectText()
-        ImpAssignObjectTextField()
         ImpAssignTextBoolObj()
         ImpAssignTextBoolObjField()
         ImpAssignTextBoolean()
@@ -235,8 +237,6 @@ class TypeCheckTesterGenerated
         ImpAssignTextObjNumObjField()
         ImpAssignTextObjNumber()
         ImpAssignTextObjNumberField()
-        ImpAssignTextObjText()
-        ImpAssignTextObjTextField()
         ImpAssignObject()
         ImpAssignObjectField()
         RetAssignBoolObjBoolean()
@@ -423,22 +423,26 @@ class TypeCheckTesterGenerated
 
     action ImpAssignBoolObjBoolean
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignBoolObjBoolean.quorum"
+        test = path + "Pass/ImpAssignBoolObjBoolean.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignBoolObjBooleanField
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignBoolObjBooleanField.quorum"
+        test = path + "Pass/ImpAssignBoolObjBooleanField.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignBoolObjIntObj
@@ -611,22 +615,26 @@ class TypeCheckTesterGenerated
 
     action ImpAssignBooleanBoolObj
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignBooleanBoolObj.quorum"
+        test = path + "Pass/ImpAssignBooleanBoolObj.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignBooleanBoolObjField
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignBooleanBoolObjField.quorum"
+        test = path + "Pass/ImpAssignBooleanBoolObjField.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignBooleanBoolean
@@ -883,22 +891,26 @@ class TypeCheckTesterGenerated
 
     action ImpAssignIntObjInteger
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignIntObjInteger.quorum"
+        test = path + "Pass/ImpAssignIntObjInteger.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignIntObjIntegerField
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignIntObjIntegerField.quorum"
+        test = path + "Pass/ImpAssignIntObjIntegerField.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignIntObjNumObj
@@ -1351,22 +1363,26 @@ class TypeCheckTesterGenerated
 
     action ImpAssignNumObjNumber
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignNumObjNumber.quorum"
+        test = path + "Pass/ImpAssignNumObjNumber.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignNumObjNumberField
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignNumObjNumberField.quorum"
+        test = path + "Pass/ImpAssignNumObjNumberField.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignNumObjObject
@@ -1699,22 +1715,26 @@ class TypeCheckTesterGenerated
 
     action ImpAssignObjectBoolean
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignObjectBoolean.quorum"
+        test = path + "Pass/ImpAssignObjectBoolean.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignObjectBooleanField
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignObjectBooleanField.quorum"
+        test = path + "Pass/ImpAssignObjectBooleanField.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignObjectIntObj
@@ -1743,22 +1763,26 @@ class TypeCheckTesterGenerated
 
     action ImpAssignObjectInteger
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignObjectInteger.quorum"
+        test = path + "Pass/ImpAssignObjectInteger.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignObjectIntegerField
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignObjectIntegerField.quorum"
+        test = path + "Pass/ImpAssignObjectIntegerField.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignObjectNumObj
@@ -1787,22 +1811,26 @@ class TypeCheckTesterGenerated
 
     action ImpAssignObjectNumber
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignObjectNumber.quorum"
+        test = path + "Pass/ImpAssignObjectNumber.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignObjectNumberField
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignObjectNumberField.quorum"
+        test = path + "Pass/ImpAssignObjectNumberField.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignObjectObject
@@ -1831,22 +1859,26 @@ class TypeCheckTesterGenerated
 
     action ImpAssignObjectText
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignObjectText.quorum"
+        test = path + "Pass/ImpAssignObjectText.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignObjectTextField
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignObjectTextField.quorum"
+        test = path + "Pass/ImpAssignObjectTextField.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignObjectTextObj
@@ -2259,22 +2291,26 @@ class TypeCheckTesterGenerated
 
     action ImpAssignTextObjText
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignTextObjText.quorum"
+        test = path + "Pass/ImpAssignTextObjText.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignTextObjTextField
         Array<File> files
+        Array<text> results
         File main
-        test = path + "Fail/ImpAssignTextObjTextField.quorum"
+        test = path + "Pass/ImpAssignTextObjTextField.quorum"
         main:SetPath(test)
         files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ImpAssignTextObjTextObj
