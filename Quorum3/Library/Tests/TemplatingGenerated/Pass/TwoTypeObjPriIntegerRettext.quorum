@@ -4,7 +4,10 @@ class Main
         one:SetValue(66)
         integer two = 66
         Yoda<Integer, integer, text> yoda
-        text ret = yoda:useForce(one, two)
-        output "passed"
+        check
+            text ret = yoda:useForce(one, two)
+        detect e
+            output "passed"
+        end
      end
 end
