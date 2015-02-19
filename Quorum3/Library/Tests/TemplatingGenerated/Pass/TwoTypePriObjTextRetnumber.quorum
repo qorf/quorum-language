@@ -4,7 +4,10 @@ class Main
         Text two
         two:SetValue("green")
         Yoda<text, Text, number> yoda
-        number ret = yoda:useForce(one, two)
-        output "passed"
+        check
+            number ret = yoda:useForce(one, two)
+        detect e
+            output "passed"
+        end
      end
 end
