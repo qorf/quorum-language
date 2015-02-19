@@ -5,10 +5,7 @@ class Main
         Text two
         two:SetValue("green")
         Yoda<Text, Text, boolean> yoda
-        check
-            boolean ret = yoda:useForce(one, two)
-        detect e
-            output "passed"
-        end
+        boolean ret = yoda:useForce(one, two)
+        output "passed"
      end
 end

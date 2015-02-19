@@ -4,10 +4,7 @@ class Main
         one:SetValue("green")
         text two = "green"
         Yoda<Text, text, boolean> yoda
-        check
-            boolean ret = yoda:useForce(one, two)
-        detect e
-            output "passed"
-        end
+        boolean ret = yoda:useForce(one, two)
+        output "passed"
      end
 end

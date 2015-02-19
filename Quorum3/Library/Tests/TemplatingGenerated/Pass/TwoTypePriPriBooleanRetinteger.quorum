@@ -3,10 +3,7 @@ class Main
         boolean one = true
         boolean two = true
         Yoda<boolean, boolean, integer> yoda
-        check
-            integer ret = yoda:useForce(one, two)
-        detect e
-            output "passed"
-        end
+        integer ret = yoda:useForce(one, two)
+        output "passed"
      end
 end
