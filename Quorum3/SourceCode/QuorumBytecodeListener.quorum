@@ -64,6 +64,14 @@ class QuorumBytecodeListener is QuorumSourceListener
     boolean outputSpeechCommands = true
     boolean isInAlwaysBlock = false
     boolean recentStatementWasReturn = false
+    boolean hasSayStatement = false
+
+    /*
+        This returns true if a say statement exists within this class.
+    */
+    action HasSayStatementInClass returns boolean
+        return hasSayStatement
+    end
 
     action GetClassOpcode returns ClassOpcode
         return currentClassOpcode
@@ -453,7 +461,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         if type:IsPrimitive()
             SayOpcode out
-
+            hasSayStatement = true
             if not outputSpeechCommands
                 out:SetOutputSpeech(outputSpeechCommands)
             end

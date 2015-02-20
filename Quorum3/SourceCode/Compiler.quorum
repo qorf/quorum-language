@@ -36,7 +36,12 @@ class Compiler
     public constant integer JAVASCRIPT = 1
     integer currentOutputType = 0
     boolean outputSpeechCommands = true
+    boolean containsSpeechCommandInCompile = false
     CompilerProfiler profiler
+    
+    action HasSpeechCallInCompile returns boolean
+        return containsSpeechCommandInCompile
+    end
 
     /*
         This action clears out any existing information in the compiler. By
@@ -167,6 +172,10 @@ class Compiler
                 end
 
                 Parse(file, listener)
+
+                if listener:HasSayStatementInClass()
+                    containsSpeechCommandInCompile = true
+                end
                 ClassOpcode op = listener:GetClassOpcode()
                 op:SetBuild(buildFolder)
                 classOpcodes:Add(op)
@@ -260,13 +269,44 @@ class Compiler
         boolean hasMethodWriter = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter")
         boolean hasfieldWriter = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeFieldWriter")
         boolean hasLabel = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeLabel")
+        boolean hasSpeech = symbolTable:HasClass("Libraries.Sound.Speech")
 
         if hasCompiler or hasTester or hasClassWriter or hasMethodWriter or hasfieldWriter
             or hasLabel
-            File file
-            file:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            file:SetPath("org")
-            WriteCompilerDependency(generator, file, file)
+            File to
+            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+            to:SetPath("org")
+
+            File antlr
+            antlr:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+            antlr:SetPath("org/antlr")
+            WriteCompilerDependency(generator, antlr, to)
+
+            File abego
+            abego:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+            abego:SetPath("org/abego")
+            WriteCompilerDependency(generator, abego, to)
+
+            File objectWeb
+            objectWeb:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+            objectWeb:SetPath("org/objectweb")
+            WriteCompilerDependency(generator, objectWeb, to)
+        end
+
+        if hasSpeech or HasSpeechCallInCompile()
+            File to
+            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+            to:SetPath("org")
+
+            File sapi
+            sapi:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+            sapi:SetPath("org/sapi")
+            WriteCompilerDependency(generator, sapi, to)
+
+            File speech
+            speech:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+            speech:SetPath("org/sodbeans")
+            WriteCompilerDependency(generator, speech, to)
         end
     end
 
@@ -441,6 +481,10 @@ class Compiler
             repeat while i < allFiles:GetSize()
                 File file = allFiles:Get(i)
                 QuorumBytecodeListener listener
+
+                if listener:HasSayStatementInClass()
+                    containsSpeechCommandInCompile = true
+                end
 
                 if not outputSpeechCommands
                     listener:SetOutputSpeech(outputSpeechCommands)
