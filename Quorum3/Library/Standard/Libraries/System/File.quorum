@@ -691,6 +691,33 @@ class File
     system action Move(text newPath) returns boolean
 
     /*
+        Copy the file (or directory) specified to the new location specified.
+        The behavior of this action is highly dependent on the platform
+        and file system; always check the return value to ensure success.
+
+        Attribute: Parameter copy the new location to copy the file to. Must be a valid file.
+
+        Attribute: Returns True if the move succeeds; false otherwise.
+
+        Attribute: Example
+        use Libraries.System.File
+
+        // Move a file from one directory to another.
+        File f
+        f:SetPath("Untitled.mp3")
+
+        File copy
+        copy:SetPath("Jeff.mp3")
+        boolean moveSucceeded = f:Copy(copy)
+        if moveSucceeded
+            output "Copy succeeded."
+        else
+            output "Copy failed."
+        end
+     */
+    system action Copy(File copy) returns boolean
+
+    /*
         Open this file for sequential reading. See the documentation of
         FileReaderBlueprint for more information on sequential reading.
 
