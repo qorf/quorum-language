@@ -37,6 +37,7 @@ class InheritanceTester
         SimpleCast()
         SystemActionInherit()
         TruckMain()
+        ParentActionTest2()
         //InheritanceOverloading()
 //Tests in InheritanceTester.java that need to be implemented
 //MultipleInheritanceBlueprints
@@ -410,6 +411,24 @@ class InheritanceTester
         files:Add(dependent3)
         results:Add(0, "Number of wheels: 4")
         results:Add(1, "Size of gas tank (gallons): 20")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ParentActionTest2 
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "ParentActionTest2.quorum")
+        dependent1:SetPath(path + "A2.quorum")
+        dependent2:SetPath(path + "B2.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "x = 1")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
