@@ -7,6 +7,8 @@ package plugins.quorum.Libraries.System;
 import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import quorum.Libraries.Language.Errors.*;
@@ -115,6 +117,20 @@ public class File {
     
     public boolean Move(String newPath) {
         return inst.Move(newPath);
+    }
+    
+    public boolean Copy(quorum.Libraries.System.File$Interface file) {
+        String pathOriginal = inst.getAbsolutePathNative();
+        java.io.File original = new java.io.File(pathOriginal);
+        
+        String pathCopy = file.GetAbsolutePath();
+        java.io.File copy = new java.io.File(pathCopy);
+        try {
+            Files.copy(original.toPath(), copy.toPath(), REPLACE_EXISTING);
+            return true;
+        } catch (IOException ex) {
+            return false;
+        }
     }
     
     public String GetWorkingDirectoryFromPath(String path) {
