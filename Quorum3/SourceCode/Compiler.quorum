@@ -307,6 +307,47 @@ class Compiler
             speech:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
             speech:SetPath("org/sodbeans")
             WriteCompilerDependency(generator, speech, to)
+
+            File speechNative
+            speechNative:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Native/")
+            speechNative:SetPath("Libraries.Sound.Speech")
+
+            //copy this to the distribution directory
+            File nativeCopy
+            File run = GetRunFolder()
+            nativeCopy:SetWorkingDirectory(run:GetAbsolutePath())
+            nativeCopy:SetPath("jni")
+
+            if not nativeCopy:Exists()
+                nativeCopy:CreateDirectories()
+            end
+            
+            //get all the files in this folder and copy them over
+            Array<File> files = speechNative:GetDirectoryListing()
+            Iterator<File> it = files:GetIterator()
+            repeat while it:HasNext()
+                File file = it:Next()
+                if not file:IsHidden()
+                    if file:IsFile()
+                        File next
+                        next:SetWorkingDirectory(nativeCopy:GetAbsolutePath() + "/")
+                        next:SetPath(file:GetPath())
+
+                        DateTime fileTime = file:GetLastModifiedDate()//1.424560750484E12
+                        DateTime nextTime = next:GetLastModifiedDate()//1.424560741363E12
+
+                        //if it doesn't exist, copy the file
+                        if not next:Exists()
+                            file:Copy(next)
+                        else
+                            //if it does exist
+                            if fileTime:GetEpochTime() > nextTime:GetEpochTime()
+                                file:Copy(next)
+                            end
+                        end
+                    end
+                end
+            end
         end
     end
 
