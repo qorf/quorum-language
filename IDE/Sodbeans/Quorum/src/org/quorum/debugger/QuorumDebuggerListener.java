@@ -52,18 +52,18 @@ import org.openide.util.Lookup;
  */
 public class QuorumDebuggerListener implements DebuggerListener{
     private QuorumDebuggerEngineProvider engine = null;
-    QuorumSupport support = new QuorumSupport();
+    private QuorumSupport support = new QuorumSupport();
     private quorum.Libraries.Language.Compile.Compiler compiler;
     private Debugger debugger;
     private Cancellable cancel;
 //    private SodbeansStopDebuggerAction kill = null;
-//    private QuorumAnnotationUpdater annotationUpdater = null;
+    private QuorumAnnotationUpdater annotationUpdater = null;
 //    private TextToSpeech speech = TextToSpeechFactory.getDefaultTextToSpeech();
 //    private CommandLine console = Lookup.getDefault().lookup(CommandLine.class);
     
     @Override
     public void accept(DebuggerStartEvent event) {
-        support.refreshBreakpoints();
+        getSupport().refreshBreakpoints();
     }
 
     @Override
@@ -75,7 +75,7 @@ public class QuorumDebuggerListener implements DebuggerListener{
     public void accept(DebuggerStepEvent event) {
         String fullyQualifiedClassName = event.getSource();
         int lineNumber = event.getLine();
-//        annotationUpdater.update(fullyQualifiedClassName, lineNumber);
+        annotationUpdater.update(fullyQualifiedClassName, lineNumber);
         QuorumVariablesModel.update();
         QuorumCallStack.update();
         QuorumWatchModel.update();
@@ -91,7 +91,7 @@ public class QuorumDebuggerListener implements DebuggerListener{
     public void accept(DebuggerBreakpointEvent event) {
         String fullyQualifiedClassName = event.getSource();
         int lineNumber = event.getLine();
-//        annotationUpdater.update(fullyQualifiedClassName, lineNumber);
+        annotationUpdater.update(fullyQualifiedClassName, lineNumber);
         QuorumVariablesModel.update();
         QuorumCallStack.update();
         QuorumWatchModel.update();
@@ -148,7 +148,7 @@ public class QuorumDebuggerListener implements DebuggerListener{
 //        } catch(Exception e) {
 //        }
         engine.getDestructor().killEngine();
-//        annotationUpdater.removeAnnotation();
+        annotationUpdater.removeAnnotation();
     }
     
     @Override
@@ -182,7 +182,7 @@ public class QuorumDebuggerListener implements DebuggerListener{
      */
     public void setCompiler(quorum.Libraries.Language.Compile.Compiler compiler) {
         this.compiler = compiler;
-        support.setCompiler(compiler);
+        getSupport().setCompiler(compiler);
     }
 
     /**
@@ -197,7 +197,7 @@ public class QuorumDebuggerListener implements DebuggerListener{
      */
     public void setDebugger(Debugger debugger) {
         this.debugger = debugger;
-        support.setDebugger(debugger);
+        getSupport().setDebugger(debugger);
     }
 
     /**
@@ -212,6 +212,20 @@ public class QuorumDebuggerListener implements DebuggerListener{
      */
     public void setCancel(Cancellable cancel) {
         this.cancel = cancel;
+    }
+
+    /**
+     * @return the support
+     */
+    public QuorumSupport getSupport() {
+        return support;
+    }
+
+    /**
+     * @param support the support to set
+     */
+    public void setSupport(QuorumSupport support) {
+        this.support = support;
     }
 
 //    /**
@@ -231,14 +245,15 @@ public class QuorumDebuggerListener implements DebuggerListener{
     /**
      * @return the annotationProvider
      */
-//    public QuorumAnnotationUpdater getAnnotationUpdater() {
-//        return annotationUpdater;
-//    }
-//
-//    /**
-//     * @param annotationProvider the annotationProvider to set
-//     */
-//    public void setAnnotationUpdater(QuorumAnnotationUpdater annotationProvider) {
-//        this.annotationUpdater = annotationProvider;
-//    }
+    public QuorumAnnotationUpdater getAnnotationUpdater() {
+        return annotationUpdater;
+    }
+
+    /**
+     * @param annotationProvider the annotationProvider to set
+     */
+    public void setAnnotationUpdater(QuorumAnnotationUpdater annotationProvider) {
+        this.annotationUpdater = annotationProvider;
+        this.annotationUpdater.setSupport(support);
+    }
 }

@@ -201,7 +201,7 @@ public class QuorumSupport {
         String[] split = dot.split("\\.");
         if(split.length == 2) { //this class is in Quorum's default package
                                 //so prepend a dot, like .Main
-            return "." + split[1];
+            return split[1];
         } else if (split.length > 2) {
             String result = "";
             for(int i = 1; i < split.length; i++) {

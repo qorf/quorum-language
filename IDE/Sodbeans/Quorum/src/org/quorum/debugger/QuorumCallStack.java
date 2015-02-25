@@ -30,11 +30,13 @@ package org.quorum.debugger;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import javax.swing.Action;
 import org.debugger.CallStackModel;
 import org.debugger.Debugger;
 import org.debugger.StackFrame;
 import org.debugger.VariableColumns;
+import org.netbeans.spi.debugger.ContextProvider;
 import org.netbeans.spi.viewmodel.ModelListener;
 import org.netbeans.spi.viewmodel.Models;
 import org.netbeans.spi.viewmodel.NodeActionsProvider;
@@ -52,7 +54,7 @@ import org.quorum.debugger.DebuggerFactory;
  */
 public class QuorumCallStack implements TreeModel, NodeModel, TableModel, NodeActionsProvider {
 
-    private final Debugger debugger = DebuggerFactory.getQuorumDebugger();
+    private Debugger debugger;// = DebuggerFactory.getQuorumDebugger();
     private CallStackModel model;
 
     public static final String CALL_STACK
@@ -65,6 +67,11 @@ public class QuorumCallStack implements TreeModel, NodeModel, TableModel, NodeAc
 
     private static LinkedList<ModelListener> listeners = new LinkedList<ModelListener>();
 
+    public QuorumCallStack(ContextProvider contextProvider) {
+        List<? extends QuorumDebuggerCookie> lookup = contextProvider.lookup("", QuorumDebuggerCookie.class);
+        QuorumDebuggerCookie cookie = lookup.get(0);
+        debugger = cookie.getDebugger();
+    }
     /**
      * This method fires a change event to the tree model, causing it to refresh
      * all of its values. As this "can" be expensive, it should be used

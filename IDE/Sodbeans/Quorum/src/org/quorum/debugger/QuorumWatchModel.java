@@ -32,6 +32,7 @@ import java.awt.datatransfer.Transferable;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import javax.swing.Action;
 import javax.swing.JFrame;
 import javax.swing.KeyStroke;
@@ -63,7 +64,7 @@ import org.quorum.debugger.DebuggerFactory;
  */
 public class QuorumWatchModel implements TreeModel, ExtendedNodeModel, TableModel, NodeActionsProviderFilter {
 
-    private final Debugger debugger = DebuggerFactory.getQuorumDebugger();
+    private final Debugger debugger;// = DebuggerFactory.getQuorumDebugger();
     private VariablesModel model = null;
     private static final LinkedList<ModelListener> listeners = new LinkedList<ModelListener>();
     public static final String WATCH_TYPE = "WatchType";
@@ -85,6 +86,9 @@ public class QuorumWatchModel implements TreeModel, ExtendedNodeModel, TableMode
             = "org/netbeans/modules/debugger/resources/watchesView/Field.gif";
     
     public QuorumWatchModel(ContextProvider contextProvider) {
+        List<? extends QuorumDebuggerCookie> lookup = contextProvider.lookup("", QuorumDebuggerCookie.class);
+        QuorumDebuggerCookie cookie = lookup.get(0);
+        debugger = cookie.getDebugger();
         model = debugger.getVariablesModel();
     }
 

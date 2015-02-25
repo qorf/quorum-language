@@ -142,7 +142,7 @@ public class QuorumDebugger extends ActionsProviderSupport {
 //    private static final ProgramCounterAnnotationUpdater programCounterAnnotationUpdater
 //            = new ProgramCounterAnnotationUpdater();
 //
-//    private static QuorumAnnotationUpdater annotationProvider = new QuorumAnnotationUpdater();
+    private static QuorumAnnotationUpdater annotationProvider = new QuorumAnnotationUpdater();
     private static boolean firstTODRun = true;
 
     public QuorumDebugger(ContextProvider contextProvider) {
@@ -163,7 +163,7 @@ public class QuorumDebugger extends ActionsProviderSupport {
         listener.setDebugger(debugger);
         listener.setCancel(cancel);
 //        //listener.setKill(kill);
-//        //listener.setAnnotationUpdater(annotationProvider);
+        listener.setAnnotationUpdater(annotationProvider);
         debugger.add(listener);
     }
     
@@ -239,6 +239,7 @@ public class QuorumDebugger extends ActionsProviderSupport {
         debugger.stop();
         engineProvider.getDestructor().killEngine();
         cancel.cancel();
+        annotationProvider.removeAnnotation();
     }
 
     @Override

@@ -30,6 +30,7 @@ package org.quorum.debugger;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import org.debugger.Debugger;
 import org.debugger.Variable;
 import org.debugger.VariableColumns;
@@ -49,7 +50,7 @@ import org.quorum.debugger.DebuggerFactory;
  */
 public class QuorumVariablesModel implements TreeModel, NodeModel, TableModel {
 
-    private final Debugger debugger = DebuggerFactory.getQuorumDebugger();
+    private final Debugger debugger;// = DebuggerFactory.getQuorumDebugger();
     private VariablesModel model = null;
     private static final LinkedList<ModelListener> listeners = new LinkedList<ModelListener>();
     public static final String LOCALS_TYPE = "LocalsType";
@@ -67,7 +68,9 @@ public class QuorumVariablesModel implements TreeModel, NodeModel, TableModel {
             = "org/netbeans/modules/debugger/resources/watchesView/Field";
 
     public QuorumVariablesModel(ContextProvider contextProvider) {
-
+        List<? extends QuorumDebuggerCookie> lookup = contextProvider.lookup("", QuorumDebuggerCookie.class);
+        QuorumDebuggerCookie cookie = lookup.get(0);
+        debugger = cookie.getDebugger();
     }
 
     /**
