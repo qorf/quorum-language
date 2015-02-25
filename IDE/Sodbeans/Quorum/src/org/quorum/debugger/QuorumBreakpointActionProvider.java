@@ -70,14 +70,14 @@ public class QuorumBreakpointActionProvider extends ActionsProviderSupport {
 //                            if (TextToSpeechOptions.isScreenReading()) {
 //                                speech.speak("Removed breakpoint at line " + (line.getLineNumber() + 1) + " in " + fo.getNameExt(), SpeechPriority.MEDIUM);
 //                            }
-//                            DebuggerManager.getDebuggerManager().removeBreakpoint(bp);
+                            DebuggerManager.getDebuggerManager().removeBreakpoint(bp);
 //                        }
 //
 //                        break;
                     }
                 }
                 if (i == k) { //add a breakpoint
-                    //QuorumBreakpoint bp = DebuggerUtils.getBreakpointAtLine();
+                    QuorumBreakpoint bp = DebuggerUtils.getBreakpointAtLine();
 //                    if (!TODUtils.isTODEnabled()) {
 ////                        if (compiler != null) {
 ////                            compiler.toggleBreakpoint(bp.getLine().getLineNumber() + 1, bp.getFileObject());
@@ -86,7 +86,7 @@ public class QuorumBreakpointActionProvider extends ActionsProviderSupport {
 //                        if (TextToSpeechOptions.isScreenReading()) {
 //                            speech.speak("Added Breakpoint at line " + (line.getLineNumber() + 1) + " in " + fo.getNameExt(), SpeechPriority.MEDIUM);
 //                        }
-//                        DebuggerManager.getDebuggerManager().addBreakpoint(bp);
+                        DebuggerManager.getDebuggerManager().addBreakpoint(bp);
 //                    }
                 }
             }

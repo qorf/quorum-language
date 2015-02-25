@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Properties;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import org.debugger.Debugger;
+import org.debugger.jdi.JDIDebugger;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectInformation;
 import org.netbeans.spi.project.ActionProvider;
@@ -37,6 +39,8 @@ import org.quorum.actions.CleanBuild;
 import org.quorum.actions.Debug;
 import org.quorum.actions.Document;
 import org.quorum.actions.Run;
+import org.quorum.actions.Stop;
+import quorum.Libraries.System.File$Interface;
 
 /**
  *
@@ -68,6 +72,7 @@ public class QuorumProject implements Project {
     private final ProjectState state;
     private Lookup lookup;
     
+    private final Debugger debugger = new JDIDebugger();
     private final Document document = new Document(this);
     private final Debug debug = new Debug(this);
     private final Build build = new Build(this);
@@ -131,12 +136,20 @@ public class QuorumProject implements Project {
                 new MainFileProvider(this), 
                 new QuorumPrivilegedTemplates(),
                 new QuorumCustomizer(this),
-                compiler
+                compiler,
+                debugger
             });
         }
         return lookup;
     }
 
+    public String getExecutableLocation() {
+        File$Interface output = compiler.GetRunFolder();
+        String path = output.GetAbsolutePath();
+        
+        return path + "/" + compiler.GetName() + compiler.GetFileExtension();
+    }
+    
     private Properties loadProperties() {
         FileObject fob = projectDir.getFileObject(QuorumProjectFactory.PROJECT_DIR
                 + "/" + QuorumProjectFactory.PROJECT_PROPFILE);

@@ -7,8 +7,11 @@ package org.quorum.actions;
 
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import javax.swing.Action;
 import org.netbeans.api.progress.ProgressHandle;
@@ -204,4 +207,63 @@ public abstract class QuorumAction implements Action{
         
         return quorumFile;
     }
+    
+    /**
+     * This private class watches the process running in the debugger and 
+     * outputs any information it dumps to standard out to the console.
+     */
+    private class QuorumProcessWatcher implements Runnable {
+        private BufferedReader bufferedReader = null;
+        private Thread blinker = null;
+        private boolean running = false;
+        public ProgressHandle progress;
+        
+        public QuorumProcessWatcher(InputStream in) {
+            bufferedReader = new BufferedReader(new InputStreamReader(in));
+        }
+
+        public void start() {
+            if (!running) {
+                blinker = new Thread(this);
+                blinker.setDaemon(true);
+                blinker.setName("Quorum Process Watcher");
+                blinker.start();
+            }
+        }
+
+        public void run() {
+            Thread thisThread = Thread.currentThread();
+            running = true;
+            // Watch the input stream, send its output to the console.
+            while (thisThread == blinker) {
+                try {
+                    String line = bufferedReader.readLine();
+                    // If the line is null, the end of the input has been reached.
+                    if (line == null) {
+                        return;
+                    }
+                    //console.post(line);
+                    Thread.sleep(0);
+                } catch (IOException ex) {
+                    return;
+                } catch (InterruptedException ex) {
+                    return;
+                }
+            }
+            if(progress != null) {
+                progress.finish();
+            }
+        }
+    }
+    
+    class MyCancel implements Cancellable {
+        public ProgressHandle progress;
+        public boolean cancel() {
+            //currentThread.interrupt();
+            if(progress != null) {
+                progress.finish();
+            }
+            return true;
+        }
+    };
 }

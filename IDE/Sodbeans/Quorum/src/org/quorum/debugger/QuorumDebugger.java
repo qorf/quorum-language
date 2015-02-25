@@ -6,6 +6,7 @@ package org.quorum.debugger;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -14,8 +15,10 @@ import org.netbeans.spi.debugger.ActionsProviderSupport;
 import org.netbeans.spi.debugger.ContextProvider;
 import org.netbeans.spi.debugger.DebuggerEngineProvider;
 import org.netbeans.spi.viewmodel.TreeModel;
+import org.openide.util.Cancellable;
 import org.openide.util.Lookup;
 import org.quorum.debugger.DebuggerFactory;
+import org.quorum.projects.QuorumProject;
 //import org.sodbeans.actions.*;
 
 /**
@@ -29,7 +32,7 @@ public class QuorumDebugger extends ActionsProviderSupport {
 //    private org.sodbeans.compiler.api.Compiler compiler
 //            = Lookup.getDefault().lookup(org.sodbeans.compiler.api.Compiler.class);
     private static final Logger logger = Logger.getLogger(QuorumDebugger.class.getName());
-    private Debugger debugger = DebuggerFactory.getQuorumDebugger();
+    private Debugger debugger;// = //DebuggerFactory.getQuorumDebugger();
     
     /**
      * Action constant for Step Over Action.
@@ -133,7 +136,9 @@ public class QuorumDebugger extends ActionsProviderSupport {
 //    private final SodbeansStepOverAction stepOver = new SodbeansStepOverAction();
 //    private final SodbeansStepOutAction stepOut = new SodbeansStepOutAction();
 //    private final SodbeansRunToCursorAction runToCursor = new SodbeansRunToCursorAction();
-//    private QuorumDebuggerEngineProvider engineProvider;
+    private QuorumDebuggerEngineProvider engineProvider;
+    private QuorumProject project;
+    private Cancellable cancel;
 //    private static final ProgramCounterAnnotationUpdater programCounterAnnotationUpdater
 //            = new ProgramCounterAnnotationUpdater();
 //
@@ -141,15 +146,22 @@ public class QuorumDebugger extends ActionsProviderSupport {
     private static boolean firstTODRun = true;
 
     public QuorumDebugger(ContextProvider contextProvider) {
-//        engineProvider = (QuorumDebuggerEngineProvider) contextProvider.lookupFirst(null, DebuggerEngineProvider.class);
-//        for (Iterator it = actions.iterator(); it.hasNext();) {
-//            setEnabled(it.next(), true);
-//        }
-//        QuorumDebuggerListener listener = new QuorumDebuggerListener();
-//        listener.setEngine(engineProvider);
-//        listener.setKill(kill);
-//        listener.setAnnotationUpdater(annotationProvider);
-//        debugger.add(listener);
+        List<? extends QuorumDebuggerCookie> lookup = contextProvider.lookup("", QuorumDebuggerCookie.class);
+        QuorumDebuggerCookie cookie = lookup.get(0);
+        debugger = cookie.getDebugger();
+        project = cookie.getProject();
+        cancel = cookie.getCancel();
+        
+        int a = 5;
+        engineProvider = (QuorumDebuggerEngineProvider) contextProvider.lookupFirst(null, DebuggerEngineProvider.class);
+        for (Iterator it = actions.iterator(); it.hasNext();) {
+            setEnabled(it.next(), true);
+        }
+        QuorumDebuggerListener listener = new QuorumDebuggerListener();
+        listener.setEngine(engineProvider);
+//        //listener.setKill(kill);
+//        //listener.setAnnotationUpdater(annotationProvider);
+        debugger.add(listener);
     }
     
     /**
@@ -178,35 +190,45 @@ public class QuorumDebugger extends ActionsProviderSupport {
     public void doAction(Object action) {
         int a = 5;
 //        try {
-//            if (action.equals(ACTION_RUN_BACK_TO_CURSOR)) {
-//                backToCursor.actionPerformed(null);
-//            } else if (action.equals(ACTION_STEP_BACK_INTO)) {
-//                stepBackInto.actionPerformed(null);
-//            } else if (action.equals(ACTION_STEP_BACK_OVER)) {
-//                stepBackOver.actionPerformed(null);
-//            } else if (action.equals(ACTION_REWIND)) {
-//                rewind.actionPerformed(null);
-//            } else if (action.equals(ACTION_REWIND_START)) {
-//                rewindToStart.actionPerformed(null);
-//            } else if (action.equals(ACTION_KILL)) {
+            if (action.equals(ACTION_RUN_BACK_TO_CURSOR)) {
+                //backToCursor.actionPerformed(null);
+            } else if (action.equals(ACTION_STEP_BACK_INTO)) {
+                //stepBackInto.actionPerformed(null);
+            } else if (action.equals(ACTION_STEP_BACK_OVER)) {
+                //stepBackOver.actionPerformed(null);
+            } else if (action.equals(ACTION_REWIND)) {
+                //rewind.actionPerformed(null);
+            } else if (action.equals(ACTION_REWIND_START)) {
+                //rewindToStart.actionPerformed(null);
+            } else if (action.equals(ACTION_KILL)) {
+                debugger.stop();
+                engineProvider.getDestructor().killEngine();
+                cancel.cancel();
+                
 //                kill.actionPerformed(null);
 //                engineProvider.getDestructor().killEngine();
 //                annotationProvider.removeAnnotation();
-//            } else if (action.equals(ACTION_PAUSE)) {
-//                pause.actionPerformed(null);
-//            } else if (action.equals(ACTION_CONTINUE)) {
+            } else if (action.equals(ACTION_PAUSE)) {
+                debugger.pause();
+                //pause.actionPerformed(null);
+            } else if (action.equals(ACTION_CONTINUE)) {
+                debugger.forward();
 //                continueAction.actionPerformed(null);
 //                annotationProvider.removeAnnotation();
-//            } else if (action.equals(ACTION_START)) {
-//            } else if (action.equals(ACTION_STEP_INTO)) {
-//                stepInto.actionPerformed(null);
-//            } else if (action.equals(ACTION_STEP_OVER)) {
-//                stepOver.actionPerformed(null);
-//            } else if (action.equals(ACTION_STEP_OUT)) {
-//                stepOut.actionPerformed(null);
-//            }else if (action.equals(ACTION_RUN_TO_CURSOR)) {
-//                runToCursor.actionPerformed(null);
-//            }
+            } else if (action.equals(ACTION_START)) {
+            } else if (action.equals(ACTION_STEP_INTO)) {
+                debugger.stepInto();
+                //stepInto.actionPerformed(null);
+            } else if (action.equals(ACTION_STEP_OVER)) {
+                debugger.stepOver();
+                //stepOver.actionPerformed(null);
+            } else if (action.equals(ACTION_STEP_OUT)) {
+                debugger.stepOut();
+                //stepOut.actionPerformed(null);
+            }else if (action.equals(ACTION_RUN_TO_CURSOR)) {
+                //debugger.r
+                //runToCursor.actionPerformed(null);
+            }
 //        } catch (Exception exception) {
 //            logger.log(Level.INFO, "An exception was thrown when trying to execute a debugger action.", exception);
 //        }
