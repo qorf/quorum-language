@@ -159,6 +159,9 @@ public class QuorumDebugger extends ActionsProviderSupport {
         }
         QuorumDebuggerListener listener = new QuorumDebuggerListener();
         listener.setEngine(engineProvider);
+        listener.setCompiler(project.getLookup().lookup(quorum.Libraries.Language.Compile.Compiler.class));
+        listener.setDebugger(debugger);
+        listener.setCancel(cancel);
 //        //listener.setKill(kill);
 //        //listener.setAnnotationUpdater(annotationProvider);
         debugger.add(listener);
@@ -201,9 +204,7 @@ public class QuorumDebugger extends ActionsProviderSupport {
             } else if (action.equals(ACTION_REWIND_START)) {
                 //rewindToStart.actionPerformed(null);
             } else if (action.equals(ACTION_KILL)) {
-                debugger.stop();
-                engineProvider.getDestructor().killEngine();
-                cancel.cancel();
+                stop();
                 
 //                kill.actionPerformed(null);
 //                engineProvider.getDestructor().killEngine();
@@ -232,6 +233,12 @@ public class QuorumDebugger extends ActionsProviderSupport {
 //        } catch (Exception exception) {
 //            logger.log(Level.INFO, "An exception was thrown when trying to execute a debugger action.", exception);
 //        }
+    }
+    
+    public void stop() {
+        debugger.stop();
+        engineProvider.getDestructor().killEngine();
+        cancel.cancel();
     }
 
     @Override

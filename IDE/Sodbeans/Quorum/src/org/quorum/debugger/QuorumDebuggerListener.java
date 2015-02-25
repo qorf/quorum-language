@@ -28,6 +28,7 @@
  */
 package org.quorum.debugger;
 
+import org.debugger.Debugger;
 import org.debugger.DebuggerListener;
 import org.debugger.events.DebuggerBreakpointEvent;
 import org.debugger.events.DebuggerExceptionEvent;
@@ -35,6 +36,7 @@ import org.debugger.events.DebuggerLocationEvent;
 import org.debugger.events.DebuggerStartEvent;
 import org.debugger.events.DebuggerStepEvent;
 import org.debugger.events.DebuggerStopEvent;
+import org.openide.util.Cancellable;
 import org.openide.util.Lookup;
 //import org.sodbeans.actions.SodbeansStopDebuggerAction;
 //import org.sodbeans.io.CommandLine;
@@ -50,6 +52,10 @@ import org.openide.util.Lookup;
  */
 public class QuorumDebuggerListener implements DebuggerListener{
     private QuorumDebuggerEngineProvider engine = null;
+    QuorumSupport support = new QuorumSupport();
+    private quorum.Libraries.Language.Compile.Compiler compiler;
+    private Debugger debugger;
+    private Cancellable cancel;
 //    private SodbeansStopDebuggerAction kill = null;
 //    private QuorumAnnotationUpdater annotationUpdater = null;
 //    private TextToSpeech speech = TextToSpeechFactory.getDefaultTextToSpeech();
@@ -57,7 +63,7 @@ public class QuorumDebuggerListener implements DebuggerListener{
     
     @Override
     public void accept(DebuggerStartEvent event) {
-//        QuorumSupport.refreshBreakpoints();
+        support.refreshBreakpoints();
     }
 
     @Override
@@ -134,6 +140,9 @@ public class QuorumDebuggerListener implements DebuggerListener{
     }
 
     private void stop() {
+        debugger.stop();
+        engine.getDestructor().killEngine();
+        cancel.cancel();
 //        try {
 //            kill.actionPerformed(null);
 //        } catch(Exception e) {
@@ -159,6 +168,50 @@ public class QuorumDebuggerListener implements DebuggerListener{
      */
     public void setEngine(QuorumDebuggerEngineProvider engine) {
         this.engine = engine;
+    }
+
+    /**
+     * @return the compiler
+     */
+    public quorum.Libraries.Language.Compile.Compiler getCompiler() {
+        return compiler;
+    }
+
+    /**
+     * @param compiler the compiler to set
+     */
+    public void setCompiler(quorum.Libraries.Language.Compile.Compiler compiler) {
+        this.compiler = compiler;
+        support.setCompiler(compiler);
+    }
+
+    /**
+     * @return the debugger
+     */
+    public Debugger getDebugger() {
+        return debugger;
+    }
+
+    /**
+     * @param debugger the debugger to set
+     */
+    public void setDebugger(Debugger debugger) {
+        this.debugger = debugger;
+        support.setDebugger(debugger);
+    }
+
+    /**
+     * @return the cancel
+     */
+    public Cancellable getCancel() {
+        return cancel;
+    }
+
+    /**
+     * @param cancel the cancel to set
+     */
+    public void setCancel(Cancellable cancel) {
+        this.cancel = cancel;
     }
 
 //    /**

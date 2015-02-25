@@ -59,28 +59,30 @@ public class Debug extends QuorumAction implements ActionListener{
         cookie.setCancel(cancel);
         DebuggerManager manager = DebuggerManager.getDebuggerManager();
         DebuggerInfo info = DebuggerInfo.create(QUORUM_DEBUGGER_INFO,
-                new Object[]{
-                    new SessionProvider() {
+            new Object[]{
+                new SessionProvider() {
 
-                        @Override
-                        public String getSessionName() {
-                            return "Quorum Program";
-                        }
+                    @Override
+                    public String getSessionName() {
+                        return "Quorum Program";
+                    }
 
-                        @Override
-                        public String getLocationName() {
-                            return "localhost";
-                        }
+                    @Override
+                    public String getLocationName() {
+                        return "localhost";
+                    }
 
-                        public String getTypeID() {
-                            return QUORUM_SESSION;
-                        }
+                    @Override
+                    public String getTypeID() {
+                        return QUORUM_SESSION;
+                    }
 
-                        public Object[] getServices() {
-                            return new Object[]{};
-                        }
-                    }, cookie
-                });
+                    @Override
+                    public Object[] getServices() {
+                        return new Object[]{};
+                    }
+                }, cookie
+            });
 
         manager.startDebugging(info);
     }
@@ -88,6 +90,4 @@ public class Debug extends QuorumAction implements ActionListener{
     protected String getDisplayName() {
         return "Debug";
     }
-    
-    
 }
