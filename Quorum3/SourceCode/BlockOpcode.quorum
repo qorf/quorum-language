@@ -2,6 +2,7 @@ package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Symbol.Block
+use Libraries.Language.Compile.Symbol.Variable
 use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
 
@@ -37,10 +38,33 @@ class BlockOpcode is QuorumOpcode
     end
 
     action Write
+        JavaBytecodeLabel start
+        JavaBytecodeLabel finish
+        JavaBytecodeMethodWriter writer = GetMethodWriter()
+
+        writer:VisitLabel(start)
         Iterator<QuorumOpcode> iterator = opcodes:GetIterator()
         repeat while iterator:HasNext()
             QuorumOpcode opcode = iterator:Next()
             opcode:Write()
+        end
+        writer:VisitLabel(finish)
+
+        //now get all the variables in this block and write the debugging
+        //table
+        Iterator<Variable> variables = block:GetVariables()
+        repeat while variables:HasNext()
+            Variable variable = variables:Next()
+
+            if not variable:IsField() and variable:IsVisibleToDebugger()
+                Type type = variable:GetType()
+
+                text description = type:ConvertTypeToBytecodeSignatureInterface()
+                text signature = type:ConvertTypeToBytecodeSignatureInterface()
+                integer location = variable:GetBytecodeLocation()
+                writer:VisitLocalVariable(variable:GetName(), description,
+                    signature, start, finish, location)
+            end
         end
     end
 

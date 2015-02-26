@@ -499,10 +499,12 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         if currentBlockOpcode = undefined
             BlockOpcode block
+            block:SetMethodWriter(methodWriter)
             currentBlockOpcode = block
             currentBlocks:Push(block)
         else
             BlockOpcode block
+            block:SetMethodWriter(methodWriter)
             block:SetParentBlock(currentBlockOpcode)
             currentBlockOpcode = block
             currentBlocks:Push(block)

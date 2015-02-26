@@ -18,4 +18,6 @@ class JavaBytecodeMethodWriter
     system action VisitJump(integer opcode, JavaBytecodeLabel label)
     system action VisitTryCatchBlock(JavaBytecodeLabel tryStart, JavaBytecodeLabel tryEnd, JavaBytecodeLabel catchStart, text type)
     system action VisitLine(integer line, JavaBytecodeLabel label)
+    system action VisitLocalVariable(text name, text description, text signature, 
+            JavaBytecodeLabel start, JavaBytecodeLabel finish, integer index)
 end
