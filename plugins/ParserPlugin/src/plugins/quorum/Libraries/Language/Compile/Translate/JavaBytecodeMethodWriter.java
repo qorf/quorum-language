@@ -126,6 +126,15 @@ public class JavaBytecodeMethodWriter {
         methodVisitor.visitLdcInsn(v);
     }
     
+    public void VisitLocalVariable(String name, String description, String signature, 
+            quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface start,
+            quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface finish,
+            int index) {
+        Label startLabel = getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel) start);
+        Label finishLabel = getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel) finish);
+        methodVisitor.visitLocalVariable(name, description, signature, startLabel, finishLabel, index);
+    }
+    
     public void VisitUndefinedConstant() {
         methodVisitor.visitInsn(ACONST_NULL);
     }
