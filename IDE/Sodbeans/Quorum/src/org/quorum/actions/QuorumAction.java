@@ -12,6 +12,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import javax.swing.Action;
 import org.netbeans.api.progress.ProgressHandle;
@@ -22,8 +25,12 @@ import org.openide.util.Cancellable;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.RequestProcessor;
+import org.openide.windows.*;
 import org.quorum.projects.QuorumProject;
+import org.quorum.windows.CompilerErrorTopComponent;
 import quorum.Libraries.Containers.Array$Interface;
+import quorum.Libraries.Containers.Blueprints.Iterator$Interface;
+import quorum.Libraries.Language.Compile.CompilerErrorManager$Interface;
 
 /**
  *
@@ -67,6 +74,25 @@ public abstract class QuorumAction implements Action{
         quorum.Libraries.System.File f = (quorum.Libraries.System.File)listing.Get(0);
         compiler.SetMain(f);
         compiler.Compile(listing);
+        
+        CompilerErrorTopComponent errors = (CompilerErrorTopComponent) WindowManager.getDefault().findTopComponent("CompilerErrorTopComponent");
+        if(!compiler.IsCompilationErrorFree()) {
+            CompilerErrorManager$Interface manager = compiler.GetCompilerErrorManager();
+            errors.resetErrors(manager);
+            errors.requestActive();
+        } else {
+            errors.clear();
+            InputOutput io = IOProvider.getDefault().getIO(project.getProjectDirectory().getName(), false);
+            io.select();
+            
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+	    Date date = new Date();
+	    System.out.println();
+            
+            io.getOut().println ("Build Successful at " + dateFormat.format(date) + ".");
+            io.setInputVisible(true);
+            io.getOut().close();
+        }
     }
     
     public void debugContinue() {
