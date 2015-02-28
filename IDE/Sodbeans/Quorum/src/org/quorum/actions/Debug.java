@@ -42,14 +42,16 @@ public class Debug extends QuorumAction implements ActionListener{
         debugger.launch();
         String taskName = project.getProjectDirectory().getName() + " (run)";
         
-        
-        
-        
         final ProgressHandle progress = ProgressHandleFactory.createHandle(taskName, cancel);
         cancel.progress = progress;
-        progress.start();
         
+        
+        QuorumProcessWatcher watch = new QuorumProcessWatcher(debugger.getInputStream());
+        watch.start();
+        cancel.watcher = watch;
+        progress.start();
         debugger.forward();
+        
     }
     
     public void makeVisualDebuggerControls(Cancellable cancel) {

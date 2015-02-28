@@ -79,7 +79,14 @@ public abstract class QuorumAction implements Action{
         if(!compiler.IsCompilationErrorFree()) {
             CompilerErrorManager$Interface manager = compiler.GetCompilerErrorManager();
             errors.resetErrors(manager);
-            errors.requestActive();
+            
+            boolean open = errors.isOpened();
+            if(open) {
+                errors.requestActive();
+            } else {
+                errors.open();
+                errors.requestActive();
+            }
         } else {
             errors.clear();
             InputOutput io = IOProvider.getDefault().getIO(project.getProjectDirectory().getName(), false);
@@ -238,11 +245,10 @@ public abstract class QuorumAction implements Action{
      * This private class watches the process running in the debugger and 
      * outputs any information it dumps to standard out to the console.
      */
-    private class QuorumProcessWatcher implements Runnable {
+    protected class QuorumProcessWatcher implements Runnable {
         private BufferedReader bufferedReader = null;
         private Thread blinker = null;
-        private boolean running = false;
-        public ProgressHandle progress;
+        public boolean running = false;
         
         public QuorumProcessWatcher(InputStream in) {
             bufferedReader = new BufferedReader(new InputStreamReader(in));
@@ -251,17 +257,17 @@ public abstract class QuorumAction implements Action{
         public void start() {
             if (!running) {
                 blinker = new Thread(this);
-                blinker.setDaemon(true);
                 blinker.setName("Quorum Process Watcher");
                 blinker.start();
             }
         }
 
+        @Override
         public void run() {
             Thread thisThread = Thread.currentThread();
             running = true;
             // Watch the input stream, send its output to the console.
-            while (thisThread == blinker) {
+            while (thisThread == blinker && running) {
                 try {
                     String line = bufferedReader.readLine();
                     // If the line is null, the end of the input has been reached.
@@ -269,6 +275,11 @@ public abstract class QuorumAction implements Action{
                         return;
                     }
                     //console.post(line);
+                    InputOutput io = IOProvider.getDefault().getIO(project.getProjectDirectory().getName(), false);
+                    
+
+                    io.getOut().println (line);
+                    io.getOut().close();
                     Thread.sleep(0);
                 } catch (IOException ex) {
                     return;
@@ -276,18 +287,19 @@ public abstract class QuorumAction implements Action{
                     return;
                 }
             }
-            if(progress != null) {
-                progress.finish();
-            }
         }
     }
     
     class MyCancel implements Cancellable {
         public ProgressHandle progress;
+        public QuorumProcessWatcher watcher;
         public boolean cancel() {
             //currentThread.interrupt();
             if(progress != null) {
                 progress.finish();
+            }
+            if(watcher != null) {
+                watcher.running = false;
             }
             return true;
         }

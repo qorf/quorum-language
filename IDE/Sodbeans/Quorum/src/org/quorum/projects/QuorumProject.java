@@ -67,6 +67,7 @@ public class QuorumProject implements Project {
     public static final String DISTRIBUTION_DIRECTORY = "Run";
     public static final String DOCUMENTS_DIRECTORY = "Documentation";
 
+    public static final String MIME_TYPE = "text/x-quorum";
     private final FileObject projectDir;
     private LogicalViewProvider logicalView = new QuorumLogicalView(this);
     private final ProjectState state;
