@@ -80,6 +80,18 @@ public class QuorumSupport {
     }
 
     /**
+     * Add a breakpoint to the debugger.
+     * 
+     * @param bp 
+     */
+    public void addLineBreakpoint(QuorumBreakpoint bp) {
+        Breakpoint breakpoint = getBreakpoint(bp);
+        if(breakpoint != null) {
+            getDebugger().add(breakpoint);
+        }
+    }
+    
+    /**
      * This method converts a name and target into a breakpoint object that can
      * be used by the virtual machine.
      *
@@ -96,6 +108,30 @@ public class QuorumSupport {
         point.setClassInformation(info);
         return point;
     }
+    
+    /**
+     * This is a helper function for converting breakpoints in the IDE
+     * into something the debugger understands.
+     * 
+     * @param bp
+     * @return 
+     */
+    public Breakpoint getBreakpoint(QuorumBreakpoint bp) {
+        JDIBreakpoint point = null;
+        Line line = bp.getLine();
+        FileObject fo = bp.getFileObject();
+        int targetLine = line.getLineNumber() + 1;
+        String name = findJVMClassName(fo, targetLine);
+        if (name != null) {
+            point = new JDIBreakpoint();
+            point.setLine(targetLine);
+
+            JDIClassInformation info = new JDIClassInformation();
+            info.setClassName(name);
+            point.setClassInformation(info);
+        }
+        return point;
+    }
 
     /**
      * This method removes a breakpoint from the debugger.
@@ -106,6 +142,18 @@ public class QuorumSupport {
     public void removeLineBreakpoint(String name, int targetLine) {
         Breakpoint breakpoint = getBreakpoint(name, targetLine);
         getDebugger().remove(breakpoint);
+    }
+    
+    /**
+     * This method removes a breakpoint from the debugger.
+     * 
+     * @param bp 
+     */
+    public void removeLineBreakpoint(QuorumBreakpoint bp) {
+        Breakpoint breakpoint = getBreakpoint(bp);
+        if(breakpoint != null) {
+            getDebugger().remove(breakpoint);
+        }
     }
 
     /**

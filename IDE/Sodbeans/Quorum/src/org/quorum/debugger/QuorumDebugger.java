@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.debugger.Debugger;
+import org.netbeans.api.debugger.ActionsManager;
 import org.netbeans.spi.debugger.ActionsProviderSupport;
 import org.netbeans.spi.debugger.ContextProvider;
 import org.netbeans.spi.debugger.DebuggerEngineProvider;
@@ -27,7 +28,7 @@ import org.quorum.projects.QuorumProject;
  *
  * @author Andreas Stefik
  */
-public class QuorumDebugger extends ActionsProviderSupport {
+public class QuorumDebugger extends ActionsProviderSupport implements BreakpointListener{
 
 //    private org.sodbeans.compiler.api.Compiler compiler
 //            = Lookup.getDefault().lookup(org.sodbeans.compiler.api.Compiler.class);
@@ -139,6 +140,7 @@ public class QuorumDebugger extends ActionsProviderSupport {
     private QuorumDebuggerEngineProvider engineProvider;
     private QuorumProject project;
     private Cancellable cancel;
+    private QuorumSupport support = new QuorumSupport();
 //    private static final ProgramCounterAnnotationUpdater programCounterAnnotationUpdater
 //            = new ProgramCounterAnnotationUpdater();
 //
@@ -152,7 +154,9 @@ public class QuorumDebugger extends ActionsProviderSupport {
         project = cookie.getProject();
         cancel = cookie.getCancel();
         
-        int a = 5;
+        support.setDebugger(debugger);
+        support.setCompiler(project.getLookup().lookup(quorum.Libraries.Language.Compile.Compiler.class));
+        
         engineProvider = (QuorumDebuggerEngineProvider) contextProvider.lookupFirst(null, DebuggerEngineProvider.class);
         for (Iterator it = actions.iterator(); it.hasNext();) {
             setEnabled(it.next(), true);
@@ -162,9 +166,10 @@ public class QuorumDebugger extends ActionsProviderSupport {
         listener.setCompiler(project.getLookup().lookup(quorum.Libraries.Language.Compile.Compiler.class));
         listener.setDebugger(debugger);
         listener.setCancel(cancel);
-//        //listener.setKill(kill);
         listener.setAnnotationUpdater(annotationProvider);
+        listener.setQuorumDebugger(this);
         debugger.add(listener);
+        QuorumBreakpointActionProvider.addListener(this);
     }
     
     /**
@@ -205,10 +210,6 @@ public class QuorumDebugger extends ActionsProviderSupport {
                 //rewindToStart.actionPerformed(null);
             } else if (action.equals(ACTION_KILL)) {
                 stop();
-                
-//                kill.actionPerformed(null);
-//                engineProvider.getDestructor().killEngine();
-//                annotationProvider.removeAnnotation();
             } else if (action.equals(ACTION_PAUSE)) {
                 debugger.pause();
                 //pause.actionPerformed(null);
@@ -240,10 +241,21 @@ public class QuorumDebugger extends ActionsProviderSupport {
         engineProvider.getDestructor().killEngine();
         cancel.cancel();
         annotationProvider.removeAnnotation();
+        QuorumBreakpointActionProvider.removeListener(this);
     }
 
     @Override
     public Set getActions() {
         return actions;
+    }
+
+    @Override
+    public void addLineBreakpoint(QuorumBreakpoint b) {
+        support.addLineBreakpoint(b);
+    }
+
+    @Override
+    public void removeLineBreakpoint(QuorumBreakpoint b) {
+        support.removeLineBreakpoint(b);
     }
 }

@@ -4,7 +4,9 @@
  */
 package org.quorum.debugger;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 import org.netbeans.api.debugger.ActionsManager;
 import org.netbeans.api.debugger.Breakpoint;
@@ -21,6 +23,16 @@ import org.openide.text.Line;
 public class QuorumBreakpointActionProvider extends ActionsProviderSupport  {
     private final static Set ACTIONS = Collections.singleton(
             ActionsManager.ACTION_TOGGLE_BREAKPOINT);
+    private static ArrayList<BreakpointListener> listeners = new ArrayList<BreakpointListener>();
+    
+    public static void addListener(BreakpointListener listener) {
+        listeners.add(listener);
+    }
+    
+    public static void removeListener(BreakpointListener listener) {
+        listeners.remove(listener);
+    }
+    
 //    private TextToSpeech speech = TextToSpeechFactory.getDefaultTextToSpeech();
 
     public QuorumBreakpointActionProvider() {
@@ -54,6 +66,11 @@ public class QuorumBreakpointActionProvider extends ActionsProviderSupport  {
 //                                speech.speak("Removed breakpoint at line " + (line.getLineNumber() + 1) + " in " + fo.getNameExt(), SpeechPriority.MEDIUM);
 //                            }
                         DebuggerManager.getDebuggerManager().removeBreakpoint(bp);
+                        Iterator<BreakpointListener> iterator = listeners.iterator();
+                        while(iterator.hasNext()) {
+                            BreakpointListener next = iterator.next();
+                            next.removeLineBreakpoint(bp);
+                        }
                         break;
                     }
                 }
@@ -65,6 +82,11 @@ public class QuorumBreakpointActionProvider extends ActionsProviderSupport  {
 //                            speech.speak("Added Breakpoint at line " + (line.getLineNumber() + 1) + " in " + fo.getNameExt(), SpeechPriority.MEDIUM);
 //                        }
                     DebuggerManager.getDebuggerManager().addBreakpoint(bp);
+                    Iterator<BreakpointListener> iterator = listeners.iterator();
+                    while(iterator.hasNext()) {
+                        BreakpointListener next = iterator.next();
+                        next.addLineBreakpoint(bp);
+                    }
                 }
             }
         });

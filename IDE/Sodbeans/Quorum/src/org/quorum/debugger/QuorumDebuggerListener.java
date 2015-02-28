@@ -55,6 +55,7 @@ public class QuorumDebuggerListener implements DebuggerListener{
     private QuorumSupport support = new QuorumSupport();
     private quorum.Libraries.Language.Compile.Compiler compiler;
     private Debugger debugger;
+    private QuorumDebugger quorumDebugger;
     private Cancellable cancel;
 //    private SodbeansStopDebuggerAction kill = null;
     private QuorumAnnotationUpdater annotationUpdater = null;
@@ -143,12 +144,8 @@ public class QuorumDebuggerListener implements DebuggerListener{
         debugger.stop();
         engine.getDestructor().killEngine();
         cancel.cancel();
-//        try {
-//            kill.actionPerformed(null);
-//        } catch(Exception e) {
-//        }
-        engine.getDestructor().killEngine();
         annotationUpdater.removeAnnotation();
+        QuorumBreakpointActionProvider.removeListener(quorumDebugger);
     }
     
     @Override
@@ -255,5 +252,19 @@ public class QuorumDebuggerListener implements DebuggerListener{
     public void setAnnotationUpdater(QuorumAnnotationUpdater annotationProvider) {
         this.annotationUpdater = annotationProvider;
         this.annotationUpdater.setSupport(support);
+    }
+
+    /**
+     * @return the quorumDebugger
+     */
+    public QuorumDebugger getQuorumDebugger() {
+        return quorumDebugger;
+    }
+
+    /**
+     * @param quorumDebugger the quorumDebugger to set
+     */
+    public void setQuorumDebugger(QuorumDebugger quorumDebugger) {
+        this.quorumDebugger = quorumDebugger;
     }
 }
