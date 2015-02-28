@@ -32,7 +32,7 @@ public class QuorumProjectFactory implements ProjectFactory2{
     private final ImageIcon icon = new ImageIcon (ImageUtilities.loadImage(
                     QuorumProject.QUORUM_PROJECT_ICON));
     
-    //@Override
+    @Override
     public ProjectManager.Result isProject2(FileObject projectDirectory) {
         boolean test = projectDirectory.getFileObject(PROJECT_DIR) != null;
         if(test) {
