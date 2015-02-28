@@ -34,8 +34,13 @@ public class QuorumProjectFactory implements ProjectFactory2{
     
     //@Override
     public ProjectManager.Result isProject2(FileObject projectDirectory) {
-        ProjectManager.Result result = new ProjectManager.Result("Quorum Project", "Quorum Project", icon);
-        return result;
+        boolean test = projectDirectory.getFileObject(PROJECT_DIR) != null;
+        if(test) {
+            ProjectManager.Result result = new ProjectManager.Result("Quorum Project", "Quorum Project", icon);
+            return result;
+        } else {
+            return null;
+        }
     }
 
     @Override
