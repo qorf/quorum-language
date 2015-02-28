@@ -266,6 +266,7 @@ public abstract class QuorumAction implements Action{
         public void run() {
             Thread thisThread = Thread.currentThread();
             running = true;
+            InputOutput io = IOProvider.getDefault().getIO(project.getProjectDirectory().getName(), false);
             // Watch the input stream, send its output to the console.
             while (thisThread == blinker && running) {
                 try {
@@ -275,18 +276,19 @@ public abstract class QuorumAction implements Action{
                         return;
                     }
                     //console.post(line);
-                    InputOutput io = IOProvider.getDefault().getIO(project.getProjectDirectory().getName(), false);
+                    
                     
 
                     io.getOut().println (line);
-                    io.getOut().close();
+                    
                     Thread.sleep(0);
                 } catch (IOException ex) {
-                    return;
+                    running = false;
                 } catch (InterruptedException ex) {
-                    return;
+                    running = false;
                 }
             }
+            io.getOut().close();
         }
     }
     
