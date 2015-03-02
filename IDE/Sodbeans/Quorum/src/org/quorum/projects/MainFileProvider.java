@@ -5,10 +5,14 @@
  */
 package org.quorum.projects;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
+import quorum.Libraries.Language.Compile.Compiler;
+import org.quorum.support.Utility;
 
 /**
  *
@@ -114,6 +118,8 @@ public class MainFileProvider {
 
     public void setMainFile(FileObject file) {
         String projPath = project.getProjectDirectory().getPath();
+        
+        
         assert file == null ||
                 file.getPath().startsWith(projPath) :
                 "Main file not under project";
@@ -131,6 +137,11 @@ public class MainFileProvider {
             //Store the relative path from the project root as the main file
             String relPath = file.getPath().substring(projPath.length());
             props.put(QuorumProject.KEY_MAINFILE, relPath);
+            Compiler compiler = project.getCompiler();
+            if(compiler != null) {
+                File toFile = FileUtil.toFile(file);
+                compiler.SetMain(Utility.toQuorumFile(toFile));
+            }
         }
     }
 }

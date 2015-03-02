@@ -71,8 +71,8 @@ public abstract class QuorumAction implements Action{
         quorum.Libraries.System.File quorumFile = getQuorumFile(file);
         Array$Interface listing = quorumFile.GetDirectoryListing();
         compiler.Empty();
-        quorum.Libraries.System.File f = (quorum.Libraries.System.File)listing.Get(0);
-        compiler.SetMain(f);
+        //quorum.Libraries.System.File f = (quorum.Libraries.System.File)listing.Get(0);
+        //compiler.SetMain(f);
         compiler.Compile(listing);
         
         CompilerErrorTopComponent errors = (CompilerErrorTopComponent) WindowManager.getDefault().findTopComponent("CompilerErrorTopComponent");

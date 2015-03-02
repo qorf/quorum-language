@@ -136,8 +136,7 @@ public class QuorumProject implements Project {
                 logicalView, //Logical view of project implementation
                 new MainFileProvider(this), 
                 new QuorumPrivilegedTemplates(),
-                new QuorumCustomizer(this),
-                compiler,
+                new QuorumCustomizer(this), getCompiler(),
                 debugger
             });
         }
@@ -145,10 +144,10 @@ public class QuorumProject implements Project {
     }
 
     public String getExecutableLocation() {
-        File$Interface output = compiler.GetRunFolder();
+        File$Interface output = getCompiler().GetRunFolder();
         String path = output.GetAbsolutePath();
         
-        return path + "/" + compiler.GetName() + compiler.GetFileExtension();
+        return path + "/" + getCompiler().GetName() + getCompiler().GetFileExtension();
     }
     
     private Properties loadProperties() {
@@ -205,6 +204,13 @@ public class QuorumProject implements Project {
      */
     public Document getDocument() {
         return document;
+    }
+
+    /**
+     * @return the compiler
+     */
+    public quorum.Libraries.Language.Compile.Compiler getCompiler() {
+        return compiler;
     }
 
     private static class NotifyProperties extends Properties {
