@@ -82,7 +82,8 @@ public class QuorumProject implements Project {
     private final Run run = new Run(this);
     private final quorum.Libraries.Language.Compile.Compiler compiler = 
             new quorum.Libraries.Language.Compile.Compiler();
-
+    private MainFileProvider mainFileProvider = new MainFileProvider(this);
+    
     public QuorumProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
         this.state = state;
@@ -134,7 +135,7 @@ public class QuorumProject implements Project {
                 loadProperties(), //The project properties
                 new Info(), //Project information implementation
                 logicalView, //Logical view of project implementation
-                new MainFileProvider(this), 
+                mainFileProvider, 
                 new QuorumPrivilegedTemplates(),
                 new QuorumCustomizer(this), getCompiler(),
                 debugger
@@ -160,6 +161,13 @@ public class QuorumProject implements Project {
             } catch (Exception e) {
                 Exceptions.printStackTrace(e);
             }
+        }
+        
+        String key = properties.getProperty(KEY_MAINFILE);
+        if(key != null) {
+            FileObject directory = this.getProjectDirectory();
+            FileObject mainFile = directory.getFileObject(key);
+            mainFileProvider.setMainFile(mainFile);
         }
         return properties;
     }
