@@ -8,19 +8,21 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JEditorPane;
+import javax.swing.SwingUtilities;
 import org.debugger.Debugger;
-import org.netbeans.api.debugger.ActionsManager;
+import org.netbeans.modules.editor.NbEditorUtilities;
 import org.netbeans.spi.debugger.ActionsProviderSupport;
 import org.netbeans.spi.debugger.ContextProvider;
 import org.netbeans.spi.debugger.DebuggerEngineProvider;
-import org.netbeans.spi.viewmodel.TreeModel;
+import org.openide.cookies.EditorCookie;
+import org.openide.filesystems.FileObject;
+import org.openide.nodes.Node;
+import org.openide.text.Line;
 import org.openide.util.Cancellable;
-import org.openide.util.Lookup;
-import org.quorum.debugger.DebuggerFactory;
+import org.openide.windows.TopComponent;
 import org.quorum.projects.QuorumProject;
-//import org.sodbeans.actions.*;
 
 /**
  * Provides an interface for an omniscient debugger in the Quorum Programming
@@ -29,11 +31,8 @@ import org.quorum.projects.QuorumProject;
  * @author Andreas Stefik
  */
 public class QuorumDebugger extends ActionsProviderSupport implements BreakpointListener{
-
-//    private org.sodbeans.compiler.api.Compiler compiler
-//            = Lookup.getDefault().lookup(org.sodbeans.compiler.api.Compiler.class);
     private static final Logger logger = Logger.getLogger(QuorumDebugger.class.getName());
-    private Debugger debugger;// = //DebuggerFactory.getQuorumDebugger();
+    private final Debugger debugger;
     
     /**
      * Action constant for Step Over Action.
@@ -125,27 +124,11 @@ public class QuorumDebugger extends ActionsProviderSupport implements Breakpoint
      * @since 1.24
      */
     public static final Object ACTION_NEW_WATCH = "newWatch";
-//    private final SodbeansRunBackToCursorAction backToCursor = new SodbeansRunBackToCursorAction();
-//    private final SodbeansStepBackIntoAction stepBackInto = new SodbeansStepBackIntoAction();
-//    private final SodbeansStepBackOverAction stepBackOver = new SodbeansStepBackOverAction();
-//    private final SodbeansRewindDebuggerAction rewind = new SodbeansRewindDebuggerAction();
-//    private final SodbeansRewindStartDebuggerAction rewindToStart = new SodbeansRewindStartDebuggerAction();
-//    private final SodbeansStopDebuggerAction kill = new SodbeansStopDebuggerAction();
-//    private final SodbeansPauseDebuggerAction pause = new SodbeansPauseDebuggerAction();
-//    private final SodbeansContinueAction continueAction = new SodbeansContinueAction();
-//    private final SodbeansStepIntoAction stepInto = new SodbeansStepIntoAction();
-//    private final SodbeansStepOverAction stepOver = new SodbeansStepOverAction();
-//    private final SodbeansStepOutAction stepOut = new SodbeansStepOutAction();
-//    private final SodbeansRunToCursorAction runToCursor = new SodbeansRunToCursorAction();
-    private QuorumDebuggerEngineProvider engineProvider;
-    private QuorumProject project;
-    private Cancellable cancel;
-    private QuorumSupport support = new QuorumSupport();
-//    private static final ProgramCounterAnnotationUpdater programCounterAnnotationUpdater
-//            = new ProgramCounterAnnotationUpdater();
-//
-    private static QuorumAnnotationUpdater annotationProvider = new QuorumAnnotationUpdater();
-    private static boolean firstTODRun = true;
+    private final QuorumDebuggerEngineProvider engineProvider;
+    private final QuorumProject project;
+    private final Cancellable cancel;
+    private final QuorumSupport support = new QuorumSupport();
+    private static final QuorumAnnotationUpdater annotationProvider = new QuorumAnnotationUpdater();
 
     public QuorumDebugger(ContextProvider contextProvider) {
         List<? extends QuorumDebuggerCookie> lookup = contextProvider.lookup("", QuorumDebuggerCookie.class);
@@ -230,10 +213,33 @@ public class QuorumDebugger extends ActionsProviderSupport implements Breakpoint
             }else if (action.equals(ACTION_RUN_TO_CURSOR)) {
                 //debugger.r
                 //runToCursor.actionPerformed(null);
+                runToCursor();
             }
 //        } catch (Exception exception) {
 //            logger.log(Level.INFO, "An exception was thrown when trying to execute a debugger action.", exception);
 //        }
+    }
+    
+    public void runToCursor() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                Node[] n = TopComponent.getRegistry().getActivatedNodes();
+                if (n.length == 1) {
+                    EditorCookie ec = n[0].getCookie(EditorCookie.class);
+                    if (ec != null) {
+                        JEditorPane[] panes = ec.getOpenedPanes();
+                        if (panes.length > 0) {
+                            int cursor = panes[0].getCaret().getDot();
+                            Line line = NbEditorUtilities.getLine(panes[0].getDocument(), cursor, true);
+                            FileObject fo = NbEditorUtilities.getFileObject(panes[0].getDocument());
+                            String jvmName = support.findJVMClassName(fo, line.getLineNumber() + 1);
+                            debugger.runForwardToLine(jvmName, line.getLineNumber() + 1);
+                        }
+                    }
+                }
+            }
+        });
     }
     
     public void stop() {

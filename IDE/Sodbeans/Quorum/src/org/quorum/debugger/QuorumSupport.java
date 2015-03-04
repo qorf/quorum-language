@@ -29,7 +29,6 @@
 package org.quorum.debugger;
 
 import java.io.File;
-import java.util.Iterator;
 import javax.swing.JEditorPane;
 import javax.swing.text.Element;
 import javax.swing.text.StyledDocument;
@@ -46,13 +45,9 @@ import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.text.Line;
-import org.openide.util.Lookup;
 import quorum.Libraries.Language.Compile.Symbol.Class$Interface;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable$Interface;
 import quorum.Libraries.System.File$Interface;
-//import org.quorum.debugger.DebuggerFactory;
-//import org.sodbeans.compiler.api.descriptors.CompilerClassDescriptor;
-//import org.sodbeans.compiler.api.descriptors.CompilerFileDescriptor;
 
 /**
  *
@@ -64,9 +59,6 @@ import quorum.Libraries.System.File$Interface;
 public class QuorumSupport {
     private Debugger debugger;
     private quorum.Libraries.Language.Compile.Compiler compiler;
-//    private static org.sodbeans.compiler.api.Compiler compiler
-//            = Lookup.getDefault().lookup(org.sodbeans.compiler.api.Compiler.class);
-
     /**
      * This method adds a breakpoint to the virtual machine running a Quorum
      * program.
@@ -196,14 +188,6 @@ public class QuorumSupport {
         }
         
         return null;
-//        Iterator<CompilerClassDescriptor> classes = fileDescriptor.getClasses();
-//        while (classes.hasNext()) {
-//            CompilerClassDescriptor next = classes.next();
-//            if (targetLine >= next.getLine()) {
-//                return staticKeyToJVMName(next.getStaticKey());
-//            }
-//        }
-//        return null;
     }
 
     /**
