@@ -151,6 +151,15 @@ public class QuorumProject implements Project {
         return path + "/" + getCompiler().GetName() + getCompiler().GetFileExtension();
     }
     
+    public String getExecutableName() {
+        return getCompiler().GetName() + getCompiler().GetFileExtension();
+    }
+    
+    public File getRunDirectory() {
+        File$Interface output = getCompiler().GetRunFolder();
+        return org.quorum.support.Utility.toQuorumFile(output);
+    }
+    
     private Properties loadProperties() {
         FileObject fob = projectDir.getFileObject(QuorumProjectFactory.PROJECT_DIR
                 + "/" + QuorumProjectFactory.PROJECT_PROPFILE);

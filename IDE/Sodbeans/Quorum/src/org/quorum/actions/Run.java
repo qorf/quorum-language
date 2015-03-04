@@ -29,18 +29,17 @@ public class Run extends QuorumAction implements ActionListener{
         build();
         //run();
         MyCancel cancel = new MyCancel();
-        String location = project.getExecutableLocation();
         String taskName = project.getProjectDirectory().getName() + " (run)";
         
         final ProgressHandle progress = ProgressHandleFactory.createHandle(taskName, cancel);
         cancel.progress = progress;
         
         // Compute the location of the project's root directory.
-        File projectDirectory = new File(project.getProjectDirectory().getPath());
+        File runDirectory = project.getRunDirectory();
 
         // Spawn a new Java process that will run "Default.jar" from the project directory.
-        ProcessBuilder builder = new ProcessBuilder("java", "-Dsodbeans=1", "-jar", "Run/Default.jar");
-        builder.directory(projectDirectory);
+        ProcessBuilder builder = new ProcessBuilder("java", "-Dsodbeans=1", "-jar", project.getExecutableName());
+        builder.directory(runDirectory);
 
         // Start the process.
         Process process;
