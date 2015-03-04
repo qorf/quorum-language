@@ -226,7 +226,7 @@ public class QuorumDebugger extends ActionsProviderSupport implements Breakpoint
             public void run() {
                 Node[] n = TopComponent.getRegistry().getActivatedNodes();
                 if (n.length == 1) {
-                    EditorCookie ec = n[0].getCookie(EditorCookie.class);
+                    EditorCookie ec = n[0].getLookup().lookup(EditorCookie.class);
                     if (ec != null) {
                         JEditorPane[] panes = ec.getOpenedPanes();
                         if (panes.length > 0) {
