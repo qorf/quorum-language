@@ -48,14 +48,17 @@ public abstract class QuorumAction implements Action{
     }
 
     public void clean() {
-        Lookup lookup = project.getLookup();
         FileObject projectDirectory = project.getProjectDirectory();
         FileObject build = projectDirectory.getFileObject(QuorumProject.BUILD_DIRECTORY);
         FileObject run = projectDirectory.getFileObject(QuorumProject.DISTRIBUTION_DIRECTORY);
         
         try {
-            build.delete();
-            run.delete();
+            if(build != null && build.isValid()) {
+                build.delete();
+            }
+            if(build != null && run.isValid()) {
+                run.delete();
+            }
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
         }

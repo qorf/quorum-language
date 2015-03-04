@@ -27,7 +27,6 @@ public class Run extends QuorumAction implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         build();
-        //run();
         MyCancel cancel = new MyCancel();
         String taskName = project.getProjectDirectory().getName() + " (run)";
         
