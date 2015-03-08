@@ -22,6 +22,7 @@ import org.openide.nodes.Node;
 import org.openide.text.Line;
 import org.openide.util.Cancellable;
 import org.openide.windows.TopComponent;
+import org.quorum.actions.QuorumAction.ProcessCancel;
 import org.quorum.projects.QuorumProject;
 
 /**
@@ -126,7 +127,7 @@ public class QuorumDebugger extends ActionsProviderSupport implements Breakpoint
     public static final Object ACTION_NEW_WATCH = "newWatch";
     private final QuorumDebuggerEngineProvider engineProvider;
     private final QuorumProject project;
-    private final Cancellable cancel;
+    private final ProcessCancel cancel;
     private final QuorumSupport support = new QuorumSupport();
     private static final QuorumAnnotationUpdater annotationProvider = new QuorumAnnotationUpdater();
 
@@ -135,7 +136,8 @@ public class QuorumDebugger extends ActionsProviderSupport implements Breakpoint
         QuorumDebuggerCookie cookie = lookup.get(0);
         debugger = cookie.getDebugger();
         project = cookie.getProject();
-        cancel = cookie.getCancel();
+        cancel = (ProcessCancel) cookie.getCancel();
+        cancel.debugger = this;
         
         support.setDebugger(debugger);
         support.setCompiler(project.getLookup().lookup(quorum.Libraries.Language.Compile.Compiler.class));
@@ -179,45 +181,27 @@ public class QuorumDebugger extends ActionsProviderSupport implements Breakpoint
 
     @Override
     public void doAction(Object action) {
-        int a = 5;
-//        try {
-            if (action.equals(ACTION_RUN_BACK_TO_CURSOR)) {
-                //backToCursor.actionPerformed(null);
-            } else if (action.equals(ACTION_STEP_BACK_INTO)) {
-                //stepBackInto.actionPerformed(null);
-            } else if (action.equals(ACTION_STEP_BACK_OVER)) {
-                //stepBackOver.actionPerformed(null);
-            } else if (action.equals(ACTION_REWIND)) {
-                //rewind.actionPerformed(null);
-            } else if (action.equals(ACTION_REWIND_START)) {
-                //rewindToStart.actionPerformed(null);
-            } else if (action.equals(ACTION_KILL)) {
-                stop();
-            } else if (action.equals(ACTION_PAUSE)) {
-                debugger.pause();
-                //pause.actionPerformed(null);
-            } else if (action.equals(ACTION_CONTINUE)) {
-                debugger.forward();
-//                continueAction.actionPerformed(null);
-//                annotationProvider.removeAnnotation();
-            } else if (action.equals(ACTION_START)) {
-            } else if (action.equals(ACTION_STEP_INTO)) {
-                debugger.stepInto();
-                //stepInto.actionPerformed(null);
-            } else if (action.equals(ACTION_STEP_OVER)) {
-                debugger.stepOver();
-                //stepOver.actionPerformed(null);
-            } else if (action.equals(ACTION_STEP_OUT)) {
-                debugger.stepOut();
-                //stepOut.actionPerformed(null);
-            }else if (action.equals(ACTION_RUN_TO_CURSOR)) {
-                //debugger.r
-                //runToCursor.actionPerformed(null);
-                runToCursor();
-            }
-//        } catch (Exception exception) {
-//            logger.log(Level.INFO, "An exception was thrown when trying to execute a debugger action.", exception);
-//        }
+        if (action.equals(ACTION_RUN_BACK_TO_CURSOR)) {
+        } else if (action.equals(ACTION_STEP_BACK_INTO)) {
+        } else if (action.equals(ACTION_STEP_BACK_OVER)) {
+        } else if (action.equals(ACTION_REWIND)) {
+        } else if (action.equals(ACTION_REWIND_START)) {
+        } else if (action.equals(ACTION_KILL)) {
+            stop(false);
+        } else if (action.equals(ACTION_PAUSE)) {
+            debugger.pause();
+        } else if (action.equals(ACTION_CONTINUE)) {
+            debugger.forward();
+        } else if (action.equals(ACTION_START)) {
+        } else if (action.equals(ACTION_STEP_INTO)) {
+            debugger.stepInto();
+        } else if (action.equals(ACTION_STEP_OVER)) {
+            debugger.stepOver();
+        } else if (action.equals(ACTION_STEP_OUT)) {
+            debugger.stepOut();
+        }else if (action.equals(ACTION_RUN_TO_CURSOR)) {
+            runToCursor();
+        }
     }
     
     public void runToCursor() {
@@ -242,9 +226,13 @@ public class QuorumDebugger extends ActionsProviderSupport implements Breakpoint
         });
     }
     
-    public void stop() {
+    public void stop(boolean isAtEnd) {
         debugger.stop();
         engineProvider.getDestructor().killEngine();
+        cancel.flush = isAtEnd;
+        if(isAtEnd) {
+            cancel.debugger = null;
+        }
         cancel.cancel();
         annotationProvider.removeAnnotation();
         QuorumBreakpointActionProvider.removeListener(this);

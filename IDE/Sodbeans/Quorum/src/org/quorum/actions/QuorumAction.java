@@ -31,6 +31,7 @@ import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.RequestProcessor;
 import org.openide.windows.*;
+import org.quorum.debugger.QuorumDebugger;
 import org.quorum.projects.QuorumProject;
 import org.quorum.windows.CompilerErrorTopComponent;
 import quorum.Libraries.Containers.Array$Interface;
@@ -369,20 +370,32 @@ public abstract class QuorumAction implements Action {
         }
     }
 
-    class MyCancel implements Cancellable {
+    public class ProcessCancel implements Cancellable {
 
         public ProgressHandle progress;
         public QuorumProcessWatcher watcher;
         public Process process;
+        public QuorumDebugger debugger;
+        public boolean flush = false;
 
+        @Override
         public boolean cancel() {
-            //currentThread.interrupt();
+            if(debugger != null) {
+                QuorumDebugger debug2 = debugger;
+                debugger = null;
+                debug2.stop(false);
+                return true;
+            }
             if (progress != null) {
                 progress.finish();
             }
             if (watcher != null) {
                 watcher.running = false;
                 watcher.cancelled = true;
+            }
+            
+            if(flush) {
+                watcher.flush();
             }
             if (process != null) {
                 process.destroy();

@@ -69,7 +69,7 @@ public class QuorumDebuggerListener implements DebuggerListener{
 
     @Override
     public void accept(DebuggerStopEvent event) {
-        stop();
+        quorumDebugger.stop(true);
     }
 
     @Override
@@ -141,11 +141,12 @@ public class QuorumDebuggerListener implements DebuggerListener{
     }
 
     private void stop() {
-        debugger.stop();
-        engine.getDestructor().killEngine();
-        cancel.cancel();
-        annotationUpdater.removeAnnotation();
-        QuorumBreakpointActionProvider.removeListener(quorumDebugger);
+        
+//        debugger.stop();
+//        engine.getDestructor().killEngine();
+//        cancel.cancel();
+//        annotationUpdater.removeAnnotation();
+//        QuorumBreakpointActionProvider.removeListener(quorumDebugger);
     }
     
     @Override

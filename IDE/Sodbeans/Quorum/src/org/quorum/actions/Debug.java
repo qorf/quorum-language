@@ -47,7 +47,7 @@ public class Debug extends QuorumAction implements ActionListener{
                 return;
             }
             debugger = project.getLookup().lookup(Debugger.class);
-            MyCancel cancel = new MyCancel();
+            ProcessCancel cancel = new ProcessCancel();
             makeVisualDebuggerControls(cancel);
 
             String location = project.getExecutableLocation();

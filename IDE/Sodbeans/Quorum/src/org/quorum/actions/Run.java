@@ -43,7 +43,7 @@ public class Run extends QuorumAction implements ActionListener {
             if(!success) {
                 return;
             }
-            MyCancel cancel = new MyCancel();
+            ProcessCancel cancel = new ProcessCancel();
             String taskName = project.getProjectDirectory().getName() + " (run)";
 
             final ProgressHandle progress = ProgressHandleFactory.createHandle(taskName, cancel);
