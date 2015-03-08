@@ -21,9 +21,18 @@ public class Build extends QuorumAction implements ActionListener{
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        build();
+        QuorumBuilder runner = new QuorumBuilder();
+        Thread thread = new Thread(runner);
+        thread.start();
     }
 
+    private class QuorumBuilder implements Runnable {
+        @Override
+        public void run() {
+            build();
+        }
+    }
+    
     @Override
     protected String getDisplayName() {
         return "Build";

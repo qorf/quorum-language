@@ -21,7 +21,16 @@ public class Clean extends QuorumAction implements ActionListener{
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        clean();
+        QuorumCleaner runner = new QuorumCleaner();
+        Thread thread = new Thread(runner);
+        thread.start();
+    }
+    
+    private class QuorumCleaner implements Runnable {
+        @Override
+        public void run() {
+            clean();
+        }
     }
     
     @Override

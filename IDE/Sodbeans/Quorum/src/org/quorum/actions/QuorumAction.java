@@ -16,7 +16,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -29,13 +28,11 @@ import org.openide.filesystems.FileUtil;
 import org.openide.util.Cancellable;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
-import org.openide.util.RequestProcessor;
 import org.openide.windows.*;
 import org.quorum.debugger.QuorumDebugger;
 import org.quorum.projects.QuorumProject;
 import org.quorum.windows.CompilerErrorTopComponent;
 import quorum.Libraries.Containers.Array$Interface;
-import quorum.Libraries.Containers.Blueprints.Iterator$Interface;
 import quorum.Libraries.Language.Compile.CompilerErrorManager$Interface;
 
 /**
@@ -43,7 +40,6 @@ import quorum.Libraries.Language.Compile.CompilerErrorManager$Interface;
  * @author stefika
  */
 public abstract class QuorumAction implements Action {
-
     protected QuorumProject project;
     protected boolean enabled = true;
     private HashMap<String, Object> values = new HashMap<String, Object>();
@@ -56,7 +52,7 @@ public abstract class QuorumAction implements Action {
         io = IOProvider.getDefault().getIO(project.getProjectDirectory().getName(), false);
     }
 
-    public void clean() {
+    public synchronized void clean() {
         FileObject projectDirectory = project.getProjectDirectory();
         FileObject build = projectDirectory.getFileObject(QuorumProject.BUILD_DIRECTORY);
         FileObject run = projectDirectory.getFileObject(QuorumProject.DISTRIBUTION_DIRECTORY);
@@ -123,104 +119,6 @@ public abstract class QuorumAction implements Action {
             }
         });
         return compiler.IsCompilationErrorFree();
-    }
-
-    public void debugContinue() {
-
-    }
-
-    public void debug() {
-
-    }
-
-    public void run() {
-        // Create a new "task" to be run by the process API. This task does
-        // the following:
-        //
-        // 1. Spawns a new 'java' process.
-        // 2. Spawns two threads to watch the output streams of this 'java' process (stdout and stderr).
-        // 3. Waits for the 'java' process to exit (successfully or unsuccessfully). When the process exits, the thread terminates.
-        //
-        // This spawned process will catch the InterruptedException exception. When it does, the thread will terminate.
-        QuorumRunnable runner = new QuorumRunnable();
-        runner.taskName = project.toString();
-        RequestProcessor requestProcessor = new RequestProcessor(runner.taskName, 1, true);
-        RequestProcessor.Task processTask = requestProcessor.create(runner);
-        processTask.schedule(0);
-    }
-
-    public class QuorumRunnable implements Runnable {
-
-        public String taskName = "";
-
-        @Override
-        public void run() {
-            //final Thread currentThread = Thread.currentThread();
-            final ProgressHandle progress = ProgressHandleFactory.createHandle(taskName, new Cancellable() {
-                public boolean cancel() {
-                    //currentThread.interrupt();
-                    if (process != null) {
-                        process.destroy();
-                    }
-                    return true;
-                }
-            });
-            try {
-                progress.start();
-
-                // Compute the location of the project's root directory.
-                File projectDirectory = new File(project.getProjectDirectory().getPath());
-
-                // Spawn a new Java process that will run "Default.jar" from the project directory.
-                ProcessBuilder builder = new ProcessBuilder("java", "-Dsodbeans=1", "-jar", "Run/Default.jar");
-                builder.directory(projectDirectory);
-
-                // Start the process.
-                process = builder.start();
-
-                // Spawn a new thread to run QuorumRunner in.
-                //            stdoutWatcher = new QuorumWatcher(process.getInputStream());
-                //            stderrWatcher = new QuorumWatcher(process.getErrorStream());
-                //            stdoutWatcher.start();
-                //            stderrWatcher.start();
-                // Wait for the process to exit.
-                process.waitFor();
-            } catch (InterruptedException ex) {
-                // thread interrupt indicates cancelling of task
-            } catch (IOException ex) {
-                // error spawning Quorum process
-            } finally {
-                process.destroy();
-
-    //            if (stdoutWatcher != null)
-                //                stdoutWatcher.close();
-                //
-                //            if (stderrWatcher != null)
-                //                stderrWatcher.close();
-                progress.finish();
-            }
-        }
-
-    }
-
-    public void runToCursor() {
-
-    }
-
-    public void stepInto() {
-
-    }
-
-    public void stepOut() {
-
-    }
-
-    public void stepOver() {
-
-    }
-
-    public void stop() {
-
     }
 
     @Override
