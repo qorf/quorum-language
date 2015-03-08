@@ -309,6 +309,8 @@ public class QuorumProject implements Project {
                 return true;
             } else if ((command.equals(ActionProvider.COMMAND_MOVE))) {
                 return true;
+            } else if ((command.equals(ActionProvider.COMMAND_RUN))) {
+                return true;
             } else {
                 return true;
             }

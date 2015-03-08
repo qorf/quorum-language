@@ -19,25 +19,26 @@ import org.quorum.projects.QuorumProject;
  *
  * @author stefika
  */
-public class Run extends QuorumAction implements ActionListener{
-
+public class Run extends QuorumAction implements ActionListener {
+    private boolean isRunning = false;
     public Run(QuorumProject project) {
         super(project);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        
-        QuorumRunner runner = new QuorumRunner();
-        Thread thread = new Thread(runner);
-        thread.start();
-        
+        if(!isRunning) {
+            QuorumRunner runner = new QuorumRunner();
+            Thread thread = new Thread(runner);
+            thread.start();
+        }
     }
     
     private class QuorumRunner implements Runnable {
 
         @Override
         public void run() {
+            isRunning = true;
             boolean success = build();
             if(!success) {
                 return;
@@ -77,8 +78,8 @@ public class Run extends QuorumAction implements ActionListener{
             } catch (InterruptedException ex) {
                 Exceptions.printStackTrace(ex);
             }
+            isRunning = false;
         }
-        
     }
     @Override
     protected String getDisplayName() {

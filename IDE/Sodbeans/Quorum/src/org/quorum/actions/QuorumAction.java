@@ -78,7 +78,7 @@ public abstract class QuorumAction implements Action {
      *
      * @return
      */
-    public boolean build() {
+    public synchronized boolean build() {
         Lookup lookup = project.getLookup();
         final quorum.Libraries.Language.Compile.Compiler compiler = lookup.lookup(quorum.Libraries.Language.Compile.Compiler.class);
         FileObject projectDirectory = project.getProjectDirectory();
@@ -299,12 +299,6 @@ public abstract class QuorumAction implements Action {
             try {
                 while (bufferedReader.ready()) {
                     final String line = bufferedReader.readLine();
-                    // If the line is null, the end of the input has been reached.
-                    if (line == null) {
-                        io.getOut().flush();
-                        io.getOut().close();
-                        return;
-                    }
                     SwingUtilities.invokeLater(new Runnable() {
                         @Override
                         public void run() {
@@ -313,15 +307,19 @@ public abstract class QuorumAction implements Action {
                         }
                     });
                 }
-                io.getOut().close();
+                
             } catch (IOException ex) {
-                Exceptions.printStackTrace(ex);
             }
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    io.getOut().close();
+                }
+            });
         }
 
         @Override
         public void run() {
-            Thread thisThread = Thread.currentThread();
             running = true;
 
             //io.setInputVisible(true);
@@ -332,14 +330,7 @@ public abstract class QuorumAction implements Action {
 
                     if (bufferedReader.ready()) {
                         final String line = bufferedReader.readLine();
-                        // If the line is null, the end of the input has been reached.
-                        if (line == null) {
-                            io.getOut().flush();
-                            io.getOut().close();
-                            return;
-                        }
                         SwingUtilities.invokeAndWait(new Runnable() {
-
                             @Override
                             public void run() {
                                 io.getOut().println(line);
@@ -349,16 +340,16 @@ public abstract class QuorumAction implements Action {
                     }
                     Thread.sleep(0);
                 } catch (IOException ex) {
-                    running = false;
                 } catch (InterruptedException ex) {
-                    running = false;
                 } catch (InvocationTargetException ex) {
-                    Exceptions.printStackTrace(ex);
                 }
             }
-
-            io.getOut().close();
-            //io.setInputVisible(false);
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    io.getOut().close();
+                }
+            });
         }
 
         /**
