@@ -73,13 +73,13 @@ public class QuorumProject implements Project {
     private final ProjectState state;
     private Lookup lookup;
     
-    private final Debugger debugger = new JDIDebugger();
-    private final Document document = new Document(this);
-    private final Debug debug = new Debug(this);
-    private final Build build = new Build(this);
-    private final Clean clean = new Clean(this);
-    private final CleanBuild cleanBuild = new CleanBuild(this);
-    private final Run run = new Run(this);
+    private Debugger debugger;
+    private Document document;
+    private Debug debug;
+    private Build build;
+    private Clean clean;
+    private CleanBuild cleanBuild;
+    private Run run;
     private final quorum.Libraries.Language.Compile.Compiler compiler = 
             new quorum.Libraries.Language.Compile.Compiler();
     private MainFileProvider mainFileProvider = new MainFileProvider(this);
@@ -102,6 +102,14 @@ public class QuorumProject implements Project {
         
         compiler.SetStandardLibraryFolder(standardLibrary);
         compiler.SetOutputFolder(outputFolder);
+        
+        debugger = new JDIDebugger();
+        document = new Document(this);
+        debug = new Debug(this);
+        build = new Build(this);
+        clean = new Clean(this);
+        cleanBuild = new CleanBuild(this);
+        run = new Run(this);
     }
 
     @Override

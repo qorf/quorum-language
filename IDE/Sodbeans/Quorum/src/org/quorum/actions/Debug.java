@@ -7,6 +7,7 @@ package org.quorum.actions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.OutputStream;
 import org.debugger.Debugger;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
@@ -32,26 +33,40 @@ public class Debug extends QuorumAction implements ActionListener{
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        build();
-        debugger = project.getLookup().lookup(Debugger.class);
-        MyCancel cancel = new MyCancel();
-        makeVisualDebuggerControls(cancel);
-        
-        String location = project.getExecutableLocation();
-        debugger.setExecutable(location);
-        debugger.launch();
-        String taskName = project.getProjectDirectory().getName() + " (run)";
-        
-        final ProgressHandle progress = ProgressHandleFactory.createHandle(taskName, cancel);
-        cancel.progress = progress;
-        
-        
-        QuorumProcessWatcher watch = new QuorumProcessWatcher(debugger.getInputStream());
-        watch.start();
-        cancel.watcher = watch;
-        progress.start();
-        debugger.forward();
-        
+        QuorumDebugger runner = new QuorumDebugger();
+        Thread thread = new Thread(runner);
+        thread.start();
+    }
+    
+    private class QuorumDebugger implements Runnable {
+
+        @Override
+        public void run() {
+            boolean success = build();
+            if(!success) {
+                return;
+            }
+            debugger = project.getLookup().lookup(Debugger.class);
+            MyCancel cancel = new MyCancel();
+            makeVisualDebuggerControls(cancel);
+
+            String location = project.getExecutableLocation();
+            debugger.setExecutable(location);
+            debugger.launch();
+            String taskName = project.getProjectDirectory().getName() + " (run)";
+
+            final ProgressHandle progress = ProgressHandleFactory.createHandle(taskName, cancel);
+            cancel.progress = progress;
+
+
+            QuorumProcessWatcher watch = new QuorumProcessWatcher(debugger.getInputStream());
+            OutputStream outputStream = debugger.getOutputStream();
+            watch.setStream(outputStream);
+            watch.start();
+            cancel.watcher = watch;
+            progress.start();
+            debugger.forward();
+        }
     }
     
     public void makeVisualDebuggerControls(Cancellable cancel) {
