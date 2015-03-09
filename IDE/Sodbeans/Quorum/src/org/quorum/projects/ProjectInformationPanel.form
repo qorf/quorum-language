@@ -9,6 +9,12 @@
         <Property name="text" type="java.lang.String" value="jRadioButton1"/>
       </Properties>
     </Component>
+    <Component class="javax.swing.JFileChooser" name="fileChooser">
+      <Properties>
+        <Property name="fileHidingEnabled" type="boolean" value="false"/>
+        <Property name="fileSelectionMode" type="int" value="1"/>
+      </Properties>
+    </Component>
   </NonVisualComponents>
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
@@ -25,25 +31,94 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Component id="jLabel2" alignment="1" pref="405" max="32767" attributes="0"/>
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="jLabel1" max="32767" attributes="0"/>
+                      <EmptySpace min="-2" pref="117" max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="jScrollPane2" min="-2" pref="380" max="-2" attributes="0"/>
+                          <Component id="jScrollPane1" min="-2" pref="380" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="addPlugin" alignment="1" max="32767" attributes="0"/>
+                          <Component id="removePlugin" alignment="0" max="32767" attributes="0"/>
+                          <Component id="addJar" alignment="0" max="32767" attributes="0"/>
+                          <Component id="removeJar" alignment="0" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+          </Group>
           <Group type="102" attributes="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="projectRadioButton" alignment="0" min="-2" max="-2" attributes="0"/>
-                  <Component id="compiledWebProjectRadioButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="jLabel4" alignment="0" min="-2" pref="114" max="-2" attributes="0"/>
+                          <Component id="jLabel2" alignment="0" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" attributes="0">
+                              <Component id="projectRadioButton" min="-2" pref="152" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="compiledWebProjectRadioButton" min="-2" pref="174" max="-2" attributes="0"/>
+                          </Group>
+                          <Component id="jTextField1" min="-2" pref="320" max="-2" attributes="0"/>
+                      </Group>
+                  </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jLabel3" max="32767" attributes="0"/>
+                  </Group>
               </Group>
-              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
-              <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="9" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jTextField1" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jLabel4" alignment="3" min="-2" pref="16" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="projectRadioButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="compiledWebProjectRadioButton" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="jScrollPane1" min="-2" pref="160" max="-2" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <Component id="addPlugin" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="removePlugin" min="-2" max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="jLabel3" min="-2" pref="16" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="projectRadioButton" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
-              <Component id="compiledWebProjectRadioButton" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="0" pref="226" max="32767" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="jScrollPane2" min="-2" pref="160" max="-2" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <Component id="addJar" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="removeJar" min="-2" max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+              <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -51,7 +126,7 @@
   <SubComponents>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Select the type of Quorum project you would like"/>
+        <Property name="text" type="java.lang.String" value="Select Project Type:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JRadioButton" name="projectRadioButton">
@@ -70,6 +145,81 @@
         </Property>
         <Property name="text" type="java.lang.String" value="Quorum Web Project"/>
         <Property name="toolTipText" type="java.lang.String" value="Use this option if you want to compile your Quorum code for use in a Java Web Server, like Tomcat or Glassfish"/>
+      </Properties>
+    </Component>
+    <Container class="javax.swing.JScrollPane" name="jScrollPane1">
+      <AuxValues>
+        <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
+      </AuxValues>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+      <SubComponents>
+        <Component class="javax.swing.JList" name="pluginList">
+          <Properties>
+            <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.editors2.ListModelEditor">
+              <StringArray count="0"/>
+            </Property>
+          </Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Component class="javax.swing.JButton" name="addPlugin">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Add"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="addPluginActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="removePlugin">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Remove"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel1">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Additional Quorum Plugin Folders"/>
+      </Properties>
+    </Component>
+    <Container class="javax.swing.JScrollPane" name="jScrollPane2">
+      <AuxValues>
+        <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
+      </AuxValues>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+      <SubComponents>
+        <Component class="javax.swing.JList" name="jarList">
+          <Properties>
+            <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.editors2.ListModelEditor">
+              <StringArray count="0"/>
+            </Property>
+          </Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Component class="javax.swing.JButton" name="addJar">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Add"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="removeJar">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Remove"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel3">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Additional Java Jar Libraries"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="jTextField1">
+      <Properties>
+        <Property name="toolTipText" type="java.lang.String" value="This field indicates the name the Quorum compiler will use for the program"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel4">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Program Name:"/>
       </Properties>
     </Component>
   </SubComponents>

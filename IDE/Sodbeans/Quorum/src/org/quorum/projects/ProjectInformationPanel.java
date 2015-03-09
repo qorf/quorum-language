@@ -7,7 +7,9 @@ package org.quorum.projects;
 
 import java.io.File;
 import java.util.Properties;
+import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
+import javax.swing.ListModel;
 import org.netbeans.api.project.Project;
 
 /**
@@ -62,13 +64,29 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
 
         projectTypeButtonGroup = new javax.swing.ButtonGroup();
         jRadioButton1 = new javax.swing.JRadioButton();
+        fileChooser = new javax.swing.JFileChooser();
         jLabel2 = new javax.swing.JLabel();
         projectRadioButton = new javax.swing.JRadioButton();
         compiledWebProjectRadioButton = new javax.swing.JRadioButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        pluginList = new javax.swing.JList();
+        addPlugin = new javax.swing.JButton();
+        removePlugin = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jarList = new javax.swing.JList();
+        addJar = new javax.swing.JButton();
+        removeJar = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        jTextField1 = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
 
         jRadioButton1.setText("jRadioButton1");
 
-        jLabel2.setText("Select the type of Quorum project you would like");
+        fileChooser.setFileHidingEnabled(false);
+        fileChooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
+
+        jLabel2.setText("Select Project Type:");
 
         projectTypeButtonGroup.add(projectRadioButton);
         projectRadioButton.setText("Quorum Project");
@@ -78,34 +96,143 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         compiledWebProjectRadioButton.setText("Quorum Web Project");
         compiledWebProjectRadioButton.setToolTipText("Use this option if you want to compile your Quorum code for use in a Java Web Server, like Tomcat or Glassfish");
 
+        jScrollPane1.setViewportView(pluginList);
+
+        addPlugin.setText("Add");
+        addPlugin.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addPluginActionPerformed(evt);
+            }
+        });
+
+        removePlugin.setText("Remove");
+
+        jLabel1.setText("Additional Quorum Plugin Folders");
+
+        jScrollPane2.setViewportView(jarList);
+
+        addJar.setText("Add");
+
+        removeJar.setText("Remove");
+
+        jLabel3.setText("Additional Java Jar Libraries");
+
+        jTextField1.setToolTipText("This field indicates the name the Quorum compiler will use for the program");
+
+        jLabel4.setText("Program Name:");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 405, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(117, 117, 117))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 380, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 380, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(addPlugin, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(removePlugin, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(addJar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(removeJar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addContainerGap())))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(projectRadioButton)
-                    .addComponent(compiledWebProjectRadioButton))
-                .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 114, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(projectRadioButton, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(compiledWebProjectRadioButton, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 320, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel2)
+                .addGap(9, 9, 9)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(projectRadioButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(projectRadioButton)
+                    .addComponent(compiledWebProjectRadioButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(compiledWebProjectRadioButton)
-                .addGap(0, 226, Short.MAX_VALUE))
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(addPlugin)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(removePlugin)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(addJar)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(removeJar)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void addPluginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPluginActionPerformed
+        File home = new File(System.getProperty("user.home"));
+        int returnVal = fileChooser.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            if(file != null && file.isDirectory()) {
+                String path = getPathRelativeToProject(file);
+                ListModel model = pluginList.getModel();
+                //model.addElement(path);
+                int a = 5;
+            }
+        }
+    }//GEN-LAST:event_addPluginActionPerformed
+
+    
+    public String getPathRelativeToProject(File file) {
+        String absolutePath = file.getAbsolutePath();
+        return absolutePath;
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addJar;
+    private javax.swing.JButton addPlugin;
     private javax.swing.JRadioButton compiledWebProjectRadioButton;
+    private javax.swing.JFileChooser fileChooser;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JRadioButton jRadioButton1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTextField jTextField1;
+    private javax.swing.JList jarList;
+    private javax.swing.JList pluginList;
     private javax.swing.JRadioButton projectRadioButton;
     private javax.swing.ButtonGroup projectTypeButtonGroup;
+    private javax.swing.JButton removeJar;
+    private javax.swing.JButton removePlugin;
     // End of variables declaration//GEN-END:variables
 }

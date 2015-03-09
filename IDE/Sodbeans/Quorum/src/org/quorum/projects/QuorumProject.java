@@ -8,8 +8,6 @@ package org.quorum.projects;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +37,6 @@ import org.quorum.actions.CleanBuild;
 import org.quorum.actions.Debug;
 import org.quorum.actions.Document;
 import org.quorum.actions.Run;
-import org.quorum.actions.Stop;
 import quorum.Libraries.System.File$Interface;
 
 /**
@@ -57,6 +54,11 @@ public class QuorumProject implements Project {
     public static final String QUORUM_CONSOLE_PROJECT = "Quorum_Console_Project";
     public static final String QUORUM_WEB_PROJECT = "Quorum_Web_Project";
     public static final String QUORUM_COMPILED_WEB_PROJECT = "Quorum_Compiled_Web_Project";
+    
+    public static final String QUORUM_EXECUTABLE_NAME = "Quorum_Executable_Name";
+    public static final String ADDITIONAL_PLUGIN_FOLDERS = "Additional_Plugin_Folders";
+    public static final String ADDITIONAL_JARS = "Additional_Jars";
+    
 
     public static final String QUORUM_PROJECT_ICON = "org/quorum/resources/project.png";
     public static final String QUORUM_FILE_ICON = "org/quorum/resources/file.png";

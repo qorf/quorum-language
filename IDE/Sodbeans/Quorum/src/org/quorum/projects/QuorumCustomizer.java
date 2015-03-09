@@ -54,6 +54,7 @@ public class QuorumCustomizer implements CustomizerProvider{
     }
     
     
+    @Override
     public void showCustomizer() {
         init();
         OptionListener listener = new OptionListener(project);
@@ -72,6 +73,7 @@ public class QuorumCustomizer implements CustomizerProvider{
             this.panels = panels;
         }
         
+        @Override
         public JComponent create(ProjectCustomizer.Category category) {
             JComponent panel = (JComponent) panels.get(category.getName());
             return panel == null ? EMPTY_PANEL : panel;
