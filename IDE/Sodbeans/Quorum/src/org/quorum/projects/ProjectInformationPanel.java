@@ -6,11 +6,17 @@
 package org.quorum.projects;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
-import javax.swing.ListModel;
+import javax.swing.JList;
 import org.netbeans.api.project.Project;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+import org.openide.util.Lookup;
+import quorum.Libraries.Language.Compile.Compiler;
 
 /**
  *
@@ -27,6 +33,7 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
     }
     
     private void loadProperties() {
+        Lookup lookup = project.getLookup();
         Properties properties = project.getLookup().lookup(Properties.class);
         String property = properties.getProperty(QuorumProject.QUORUM_PROJECT_TYPE);
         if(property == null || property.compareTo(QuorumProject.QUORUM_CONSOLE_PROJECT) == 0) {
@@ -34,7 +41,33 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         } else if(property.compareTo(QuorumProject.QUORUM_COMPILED_WEB_PROJECT) == 0) {
             compiledWebProjectRadioButton.setSelected(true);
         }
+        
+        property = properties.getProperty(QuorumProject.QUORUM_EXECUTABLE_NAME);
+        if(property != null) {
+            nameTextField.setText(property);
+        } else {
+            Compiler compiler = lookup.lookup(quorum.Libraries.Language.Compile.Compiler.class);
+            nameTextField.setText(compiler.GetName());
+        }
+        
+        property = properties.getProperty(QuorumProject.ADDITIONAL_PLUGIN_FOLDERS);
+        if(property != null) {
+            addItemsToJList(pluginList, property);
+        }
+        property = properties.getProperty(QuorumProject.ADDITIONAL_JARS);
+        if(property != null) {
+            addItemsToJList(jarList, property);
+        }
     }
+    
+    public void addItemsToJList(JList list, String string) {
+        String[] split = string.split(";");
+        for(int i = 0; i < split.length; i++) {
+            String val = split[i];
+            DefaultListModel model = (DefaultListModel) list.getModel();
+            model.addElement(val);
+        }
+    } 
     
     public Project getProject() {
         return project;
@@ -53,6 +86,42 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         }
     }
     
+    public String getJarList() {
+        DefaultListModel model = (DefaultListModel) jarList.getModel();
+        return getPathsFromModel(model);
+    }
+    
+    public String getPluginList() {
+        DefaultListModel model = (DefaultListModel) pluginList.getModel();
+        return getPathsFromModel(model);
+    }
+    
+    public String getExecutableName() {
+        String text = nameTextField.getText();
+        if(text == null || text.isEmpty()) {
+            return null;
+        } else {
+            return text;
+        }
+    }
+    
+    public String getPathsFromModel(DefaultListModel model) {
+        String returnMe = "";
+        
+        for(int i = 0; i < model.size(); i++) {
+            String string = (String) model.get(i);
+            if(i == 0) {
+                returnMe = string;
+            } else {
+                returnMe = returnMe + ";" + string;
+            }
+        }
+        if(returnMe.isEmpty()) {
+            return null;
+        } else {
+            return returnMe;
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -64,7 +133,8 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
 
         projectTypeButtonGroup = new javax.swing.ButtonGroup();
         jRadioButton1 = new javax.swing.JRadioButton();
-        fileChooser = new javax.swing.JFileChooser();
+        pluginFolderChooser = new javax.swing.JFileChooser();
+        jarFileChooser = new javax.swing.JFileChooser();
         jLabel2 = new javax.swing.JLabel();
         projectRadioButton = new javax.swing.JRadioButton();
         compiledWebProjectRadioButton = new javax.swing.JRadioButton();
@@ -78,13 +148,17 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         addJar = new javax.swing.JButton();
         removeJar = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        nameTextField = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
+        pluginClearButton = new javax.swing.JButton();
+        jarClearButton = new javax.swing.JButton();
 
         jRadioButton1.setText("jRadioButton1");
 
-        fileChooser.setFileHidingEnabled(false);
-        fileChooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
+        pluginFolderChooser.setDialogTitle("");
+        pluginFolderChooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
+
+        jarFileChooser.setFileFilter(null);
 
         jLabel2.setText("Select Project Type:");
 
@@ -96,6 +170,7 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         compiledWebProjectRadioButton.setText("Quorum Web Project");
         compiledWebProjectRadioButton.setToolTipText("Use this option if you want to compile your Quorum code for use in a Java Web Server, like Tomcat or Glassfish");
 
+        pluginList.setModel(new DefaultListModel());
         jScrollPane1.setViewportView(pluginList);
 
         addPlugin.setText("Add");
@@ -106,20 +181,50 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         });
 
         removePlugin.setText("Remove");
+        removePlugin.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removePluginActionPerformed(evt);
+            }
+        });
 
         jLabel1.setText("Additional Quorum Plugin Folders");
 
+        jarList.setModel(new DefaultListModel());
         jScrollPane2.setViewportView(jarList);
 
         addJar.setText("Add");
+        addJar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addJarActionPerformed(evt);
+            }
+        });
 
         removeJar.setText("Remove");
+        removeJar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeJarActionPerformed(evt);
+            }
+        });
 
         jLabel3.setText("Additional Java Jar Libraries");
 
-        jTextField1.setToolTipText("This field indicates the name the Quorum compiler will use for the program");
+        nameTextField.setToolTipText("This field indicates the name the Quorum compiler will use for the program");
 
         jLabel4.setText("Program Name:");
+
+        pluginClearButton.setText("Clear");
+        pluginClearButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pluginClearButtonActionPerformed(evt);
+            }
+        });
+
+        jarClearButton.setText("Clear");
+        jarClearButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jarClearButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -139,9 +244,11 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(addPlugin, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(removePlugin, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(removePlugin, javax.swing.GroupLayout.DEFAULT_SIZE, 103, Short.MAX_VALUE)
                             .addComponent(addJar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(removeJar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(removeJar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(pluginClearButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jarClearButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addContainerGap())))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -156,7 +263,7 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
                                 .addComponent(projectRadioButton, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(compiledWebProjectRadioButton, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 320, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 320, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
@@ -167,7 +274,7 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGap(9, 9, 9)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -182,7 +289,9 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(addPlugin)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(removePlugin)))
+                        .addComponent(removePlugin)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(pluginClearButton)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -191,35 +300,88 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(addJar)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(removeJar)))
+                        .addComponent(removeJar)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jarClearButton)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void addPluginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPluginActionPerformed
         File home = new File(System.getProperty("user.home"));
-        int returnVal = fileChooser.showOpenDialog(this);
+        int returnVal = pluginFolderChooser.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
+            File file = pluginFolderChooser.getSelectedFile();
             if(file != null && file.isDirectory()) {
                 String path = getPathRelativeToProject(file);
-                ListModel model = pluginList.getModel();
-                //model.addElement(path);
-                int a = 5;
+                DefaultListModel model = (DefaultListModel) pluginList.getModel();
+                if(!model.contains(path) && path != null && !path.isEmpty()) {
+                    model.addElement(path);
+                }
             }
         }
     }//GEN-LAST:event_addPluginActionPerformed
 
+    private void removePluginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removePluginActionPerformed
+        DefaultListModel model = (DefaultListModel) pluginList.getModel();
+        int index = pluginList.getSelectedIndex();
+        model.remove(index);
+    }//GEN-LAST:event_removePluginActionPerformed
+
+    private void addJarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addJarActionPerformed
+        File home = new File(System.getProperty("user.home"));
+        int returnVal = jarFileChooser.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = jarFileChooser.getSelectedFile();
+            if(file != null && file.isFile()) {
+                String absolutePath = file.getAbsolutePath();
+                if (absolutePath.length() > 4) {
+                    String extension = absolutePath.substring(absolutePath.length() - 4);
+                    if(extension.compareTo(".jar") == 0) {
+                        String path = getPathRelativeToProject(file);
+                        DefaultListModel model = (DefaultListModel) jarList.getModel();
+                        if(!model.contains(path) && path != null && !path.isEmpty()) {
+                            model.addElement(path);
+                        }
+                    }
+                }
+            }
+        }
+    }//GEN-LAST:event_addJarActionPerformed
+
+    private void removeJarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeJarActionPerformed
+        DefaultListModel model = (DefaultListModel) jarList.getModel();
+        int index = jarList.getSelectedIndex();
+        model.remove(index);
+    }//GEN-LAST:event_removeJarActionPerformed
+
+    private void pluginClearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pluginClearButtonActionPerformed
+        DefaultListModel model = (DefaultListModel) pluginList.getModel();
+        model.clear();
+    }//GEN-LAST:event_pluginClearButtonActionPerformed
+
+    private void jarClearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jarClearButtonActionPerformed
+        DefaultListModel model = (DefaultListModel) jarList.getModel();
+        model.clear();
+    }//GEN-LAST:event_jarClearButtonActionPerformed
+
     
     public String getPathRelativeToProject(File file) {
         String absolutePath = file.getAbsolutePath();
-        return absolutePath;
+        QuorumProject proj = (QuorumProject) project;
+        FileObject directory = proj.getProjectDirectory();
+        String projectPath = FileUtil.toFile(directory).getAbsolutePath();
+        Path sourceFile = Paths.get(projectPath);
+        Path targetFile = Paths.get(absolutePath); 
+        Path relativePath = sourceFile.relativize(targetFile);
+
+
+        return relativePath.toString();
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addJar;
     private javax.swing.JButton addPlugin;
     private javax.swing.JRadioButton compiledWebProjectRadioButton;
-    private javax.swing.JFileChooser fileChooser;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -227,8 +389,12 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
     private javax.swing.JRadioButton jRadioButton1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JButton jarClearButton;
+    private javax.swing.JFileChooser jarFileChooser;
     private javax.swing.JList jarList;
+    private javax.swing.JTextField nameTextField;
+    private javax.swing.JButton pluginClearButton;
+    private javax.swing.JFileChooser pluginFolderChooser;
     private javax.swing.JList pluginList;
     private javax.swing.JRadioButton projectRadioButton;
     private javax.swing.ButtonGroup projectTypeButtonGroup;

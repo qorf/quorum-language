@@ -91,6 +91,29 @@ public class QuorumCustomizer implements CustomizerProvider{
             Properties properties = project.getLookup().lookup(Properties.class);
             String type = infoPanel.getQuorumProjectType();
             properties.setProperty(QuorumProject.QUORUM_PROJECT_TYPE, type);
+            
+            String jarList = infoPanel.getJarList();
+            
+            if(jarList != null) {
+                properties.setProperty(QuorumProject.ADDITIONAL_JARS, jarList);
+            } else {
+                properties.remove(QuorumProject.ADDITIONAL_JARS);
+            }
+            
+            String pluginList = infoPanel.getPluginList();
+            
+            if(pluginList != null) {
+                properties.setProperty(QuorumProject.ADDITIONAL_PLUGIN_FOLDERS, pluginList);
+            } else {
+                properties.remove(QuorumProject.ADDITIONAL_PLUGIN_FOLDERS);
+            }
+            String name = infoPanel.getExecutableName();
+            
+            if(name != null) {
+                properties.setProperty(QuorumProject.QUORUM_EXECUTABLE_NAME, name);
+            } else {
+                properties.remove(QuorumProject.QUORUM_EXECUTABLE_NAME);
+            }
         }
 
         @Override

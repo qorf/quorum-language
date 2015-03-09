@@ -9,10 +9,17 @@
         <Property name="text" type="java.lang.String" value="jRadioButton1"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JFileChooser" name="fileChooser">
+    <Component class="javax.swing.JFileChooser" name="pluginFolderChooser">
       <Properties>
-        <Property name="fileHidingEnabled" type="boolean" value="false"/>
+        <Property name="dialogTitle" type="java.lang.String" value=""/>
         <Property name="fileSelectionMode" type="int" value="1"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JFileChooser" name="jarFileChooser">
+      <Properties>
+        <Property name="fileFilter" type="javax.swing.filechooser.FileFilter" editor="org.netbeans.modules.form.ComponentChooserEditor">
+          <ComponentRef name="null"/>
+        </Property>
       </Properties>
     </Component>
   </NonVisualComponents>
@@ -47,9 +54,11 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="addPlugin" alignment="1" max="32767" attributes="0"/>
-                          <Component id="removePlugin" alignment="0" max="32767" attributes="0"/>
+                          <Component id="removePlugin" alignment="0" pref="103" max="32767" attributes="0"/>
                           <Component id="addJar" alignment="0" max="32767" attributes="0"/>
                           <Component id="removeJar" alignment="0" max="32767" attributes="0"/>
+                          <Component id="pluginClearButton" alignment="0" max="32767" attributes="0"/>
+                          <Component id="jarClearButton" alignment="1" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
@@ -70,7 +79,7 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="compiledWebProjectRadioButton" min="-2" pref="174" max="-2" attributes="0"/>
                           </Group>
-                          <Component id="jTextField1" min="-2" pref="320" max="-2" attributes="0"/>
+                          <Component id="nameTextField" min="-2" pref="320" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
@@ -87,7 +96,7 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace min="-2" pref="9" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="jTextField1" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="nameTextField" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel4" alignment="3" min="-2" pref="16" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -105,6 +114,8 @@
                       <Component id="addPlugin" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="removePlugin" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="pluginClearButton" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
@@ -116,6 +127,8 @@
                       <Component id="addJar" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="removeJar" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jarClearButton" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
@@ -156,8 +169,8 @@
       <SubComponents>
         <Component class="javax.swing.JList" name="pluginList">
           <Properties>
-            <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.editors2.ListModelEditor">
-              <StringArray count="0"/>
+            <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="new DefaultListModel()" type="code"/>
             </Property>
           </Properties>
         </Component>
@@ -175,6 +188,9 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Remove"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="removePluginActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>
@@ -190,8 +206,8 @@
       <SubComponents>
         <Component class="javax.swing.JList" name="jarList">
           <Properties>
-            <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.editors2.ListModelEditor">
-              <StringArray count="0"/>
+            <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="new DefaultListModel()" type="code"/>
             </Property>
           </Properties>
         </Component>
@@ -201,18 +217,24 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Add"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="addJarActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="removeJar">
       <Properties>
         <Property name="text" type="java.lang.String" value="Remove"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="removeJarActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel3">
       <Properties>
         <Property name="text" type="java.lang.String" value="Additional Java Jar Libraries"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JTextField" name="jTextField1">
+    <Component class="javax.swing.JTextField" name="nameTextField">
       <Properties>
         <Property name="toolTipText" type="java.lang.String" value="This field indicates the name the Quorum compiler will use for the program"/>
       </Properties>
@@ -221,6 +243,22 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Program Name:"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="pluginClearButton">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Clear"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="pluginClearButtonActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="jarClearButton">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Clear"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jarClearButtonActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>
