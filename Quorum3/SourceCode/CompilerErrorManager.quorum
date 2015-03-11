@@ -39,6 +39,14 @@ class CompilerErrorManager
         end
     end
 
+    action HasErrorsAtKey(text key) returns boolean
+        if errorsPerFile:HasKey(key)
+            return true
+        end
+
+        return false
+    end
+
     action IsCompilationErrorFree returns boolean
         return numberOfErrors = 0
     end

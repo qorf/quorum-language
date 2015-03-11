@@ -29,7 +29,7 @@ class Math
     private system action Ceiling(number value) returns number
 
     /*
-    This action calculates the sine of a number and returns the result.
+    This action calculates the sine of a number in radians and returns the result.
 
     Attribute: Parameter value The value that the sine will be calculated from.
 
@@ -44,7 +44,7 @@ class Math
     system action Sine(number value) returns number
 
     /*
-    This action calculates the cosine of a number and returns the result.
+    This action calculates the cosine of a number in radians and returns the result.
 
     Attribute: Parameter value The value that the cosine will be calculated from.
 
@@ -59,7 +59,7 @@ class Math
     system action Cosine(number value) returns number
 
     /*
-    This action calculates the tangent of a number and returns the result.
+    This action calculates the tangent of a number in radians and returns the result.
 
     Attribute: Parameter value The value that the tangent will be calculated from.
 
@@ -74,7 +74,7 @@ class Math
     system action Tangent(number value) returns number
 
     /*
-    This action calculates the hyperbolic sine of a number value.
+    This action calculates the hyperbolic sine of a number value in radians.
 
     Attribute: Parameter value The value to take the hyperbolic sine of.
 
@@ -89,7 +89,7 @@ class Math
     system action HyperbolicSine(number value) returns number
 
     /*
-    This action calculates the hyperbolic cosine of a number value.
+    This action calculates the hyperbolic cosine of a number value in radians.
 
     Attribute: Parameter value The value to take the hyperbolic cosine of.
 
@@ -104,7 +104,7 @@ class Math
     system action HyperbolicCosine(number value) returns number
 
     /*
-    This action calculates the hyperbolic tangent of a number value.
+    This action calculates the hyperbolic tangent of a number value in radians.
 
     Attribute: Parameter value The value to take the hyperbolic tangent of.
 
@@ -119,7 +119,7 @@ class Math
     system action HyperbolicTangent(number value) returns number
 
     /*
-    This action calculates the inverse sine of a number value.
+    This action calculates the inverse sine of a number value in radians.
 
     Attribute: Parameter value The value to take the inverse sine of.
 
@@ -134,7 +134,7 @@ class Math
     system action InverseSine(number value) returns number
 
     /*
-    This action calculates the inverse cosine of a number value.
+    This action calculates the inverse cosine of a number value in radians.
 
     Attribute: Parameter value The value to take the inverse cosine of.
 
@@ -149,7 +149,7 @@ class Math
     system action InverseCosine(number value) returns number
 
     /*
-    This action calculates the inverse tangent of a number value.
+    This action calculates the inverse tangent of a number value in radians.
 
     Attribute: Parameter value The value to take the inverse tangent of.
 
@@ -164,7 +164,23 @@ class Math
     system action InverseTangent(number value) returns number
 
     /*
-    This action calculates the inverse hyperbolic sine of a number value.
+    This action calculates the inverse tangent of a cartesian point, where its coordinates are of the form (x, y).
+
+    Attribute: Parameter x The x value of the cartesian point.
+    Attribute: Parameter y The y value of the cartesian point.
+
+    Attribute: Returns Returns the inverse tangent of the point as a number in radians.
+
+    Attribute: Example
+    use Libraries.Compute.Math
+    Math math
+    number result = math:InverseTangent(0.8, 2)
+
+    */
+    system action InverseTangent(number x, number y) returns number
+
+    /*
+    This action calculates the inverse hyperbolic sine of a number value in radians.
 
     Attribute: Parameter value The value to take the inverse hyperbolic sine of.
 
@@ -179,7 +195,7 @@ class Math
     system action InverseHyperbolicSine(number value) returns number
 
     /*
-    This action calculates the inverse hyperbolic cosine of a number value.
+    This action calculates the inverse hyperbolic cosine of a number value in radians.
 
     Attribute: Parameter value The value to take the inverse hyperbolic cosine of.
 
@@ -194,7 +210,7 @@ class Math
     system action InverseHyperbolicCosine(number value) returns number
 
     /*
-    This action calculates the inverse hyperbolic tangent of a number value.
+    This action calculates the inverse hyperbolic tangent of a number value in radians.
 
     Attribute: Parameter value The value to take the inverse hyperbolic tangent of.
 
@@ -425,5 +441,35 @@ class Math
             return value
         end
     end
+
+    /*
+    This action converts a number from a value in degrees to a value in radians.
+
+    Attribute: Parameter degrees The number of degrees to convert to radians.
+
+    Attribute: Returns Returns the value of the given number as radians.
+
+    Attribute: Example
+    use Libraries.Compute.Math
+    Math math
+    number radians = math:DegreesToRadians(75.4)
+
+    */
+    system action DegreesToRadians(number degrees)returns number
+
+    /*
+    This action converts a number from a value in radians to a value in degrees.
+
+    Attribute: Parameter degrees The number of radians to convert to degrees.
+
+    Attribute: Returns Returns the value of the given number as degrees.
+
+    Attribute: Example
+    use Libraries.Compute.Math
+    Math math
+    number degrees = math:RadiansToDegrees(2.8)
+
+    */
+    system action RadiansToDegrees(number radians)returns number
 
 end

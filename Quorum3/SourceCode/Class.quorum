@@ -1945,6 +1945,10 @@ class Class is Symbol
             if resolved = undefined
                 resolved = actual //temporary hack to prevent crashing while the templating system is finished.
             end
+
+            if actual = undefined
+                a = 5
+            end
             if actual:IsPrimitive()
                 //if we have a primitive type that we're calling to, 
                 //we need to do something special to ensure the generic

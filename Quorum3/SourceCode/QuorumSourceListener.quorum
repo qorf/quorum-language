@@ -232,6 +232,9 @@ class QuorumSourceListener
     action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) end
     action ExitParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) end
 
+    action EnterInitialParentActionCall(ActionCallContext ctx) end
+    action ExitInitialParentActionCall(ActionCallContext ctx) end
+
     action EnterVariableFunctionCall(VariableFunctionCallContext context) end
     action ExitVariableFunctionCall(VariableFunctionCallContext context) end
 

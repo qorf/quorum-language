@@ -38,6 +38,8 @@ class Compiler
     boolean outputSpeechCommands = true
     boolean containsSpeechCommandInCompile = false
     CompilerProfiler profiler
+    Array<File> additionalPluginFolders
+    Array<File> additionalJarFiles
     
     action HasSpeechCallInCompile returns boolean
         return containsSpeechCommandInCompile
@@ -258,9 +260,44 @@ class Compiler
         return profiler
     end
 
+    /*
+        This action adds a directory of plugins to be written to the output jar
+    */ 
+    action AddPluginFolder(File file)
+        if file:IsDirectory()
+            additionalPluginFolders:Add(file)
+        end
+    end
+
+    action EmptyAdditionalPluginFolders
+        additionalPluginFolders:Empty()
+    end
+
+    action EmptyAdditionalJars
+        additionalJarFiles:Empty()
+    end
+
+    /*
+        This action checks if this is a jar file and then adds it as a dependency.
+    */
+    action AddJar(File file)
+        text extension = file:GetFileExtension()
+        if extension = "jar"
+            additionalJarFiles:Add(file)
+        end
+    end
+
     private action WriteDependencies(JarGenerator generator)
         WritePlugins(generator, pluginFolder)
-        
+
+        if not additionalPluginFolders:IsEmpty()
+            Iterator<File> it = additionalPluginFolders:GetIterator()
+            repeat while it:HasNext()
+                File folder = it:Next()
+                WritePlugins(generator, folder)
+            end
+        end
+
         //check the symbol table to see if the user generated any code
         //used in the compiler
         boolean hasCompiler = symbolTable:HasClass("Libraries.Language.Compile.Compiler")

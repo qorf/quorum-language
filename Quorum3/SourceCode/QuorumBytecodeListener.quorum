@@ -66,6 +66,19 @@ class QuorumBytecodeListener is QuorumSourceListener
     boolean recentStatementWasReturn = false
     boolean hasSayStatement = false
 
+    private action HasErrors returns boolean
+        CompilerErrorManager manager = GetCompilerErrorManager()
+        key = currentClass:GetStaticKey()
+
+        if key = "Libraries.Games.Graphics.Sprite" and not manager:IsCompilationErrorFree()
+            a = 5
+        end
+        if manager:HasErrorsAtKey(key)
+            return true
+        end
+        return false
+    end
+
     /*
         This returns true if a say statement exists within this class.
     */
@@ -345,7 +358,10 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
     end
 
-    action ExitAlertStatement(AlertContext context) 
+    action ExitAlertStatement(AlertContext context)
+        if HasErrors() 
+            return now
+        end
         recentStatementWasReturn = true
         QuorumOpcode op = opcodeStack:Pop()
         AlertOpcode al
@@ -381,6 +397,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitIs(IsContext context) 
+        if HasErrors() 
+            return now
+        end
         QualifiedName name = context:name
         //now resolve the name from the current class
         key = name:GetStaticKey()
@@ -428,6 +447,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitOutputStatement(OutputContext context)
+        if HasErrors() 
+            return now
+        end
         QuorumOpcode op = opcodeStack:Pop()
         Type type = op:GetType()
 
@@ -452,6 +474,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitSayStatement(SayContext context)
+        if HasErrors() 
+            return now
+        end
         QuorumOpcode op = opcodeStack:Pop()
         Type type = op:GetType()
 
@@ -552,9 +577,6 @@ class QuorumBytecodeListener is QuorumSourceListener
             Variable variable2 = undefined
             variable2 = currentBlock:GetVariable(loopCounter + LOOP_NAME_RESULT)
 
-            if variable2 = undefined
-                a = 5
-            end
             loop:SetVariableTimesResult(variable2)
         end
 
@@ -563,6 +585,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitLoopStatement(LoopContext context) 
+        if HasErrors() 
+            return now
+        end
         LoopOpcode loop = loopStack:Pop()
         QuorumOpcode qop = opcodeStack:Pop()
         qop:SetIsIfExpression(true)
@@ -753,6 +778,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitAlwaysStatement(AlwaysStatementContext context) 
+        if HasErrors() 
+            return now
+        end
         CheckDetectOpcode checkOp = checkStack:Peek()
 
         DetectBlockOpcode op
@@ -779,6 +807,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     
 
     action ExitIfStatement(IfContext context) 
+        if HasErrors() 
+            return now
+        end
         ConditionalOpcode conditional = ifStack:Pop()
         QuorumOpcode qop = opcodeStack:Pop()
 
@@ -856,6 +887,9 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action EnterElseIfStatement(IfContext context) end
     action ExitElseIfStatement(IfContext context) 
+        if HasErrors() 
+            return now
+        end
         ConditionalOpcode conditional = ifStack:Peek()
         QuorumOpcode qop = opcodeStack:Pop()
 
@@ -892,6 +926,9 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action EnterElseStatement(IfContext context) end
     action ExitElseStatement(IfContext context) 
+        if HasErrors() 
+            return now
+        end
         ConditionalOpcode conditional = ifStack:Peek()
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         conditional:SetElseBlock(recentlyPopped)
@@ -901,6 +938,9 @@ class QuorumBytecodeListener is QuorumSourceListener
 
 
     action ExitObjectAssignment(ObjectAssignmentContext context) 
+        if HasErrors() 
+            return now
+        end
         text name = context:name
         text object = context:object
         QualifiedName theParent = context:parentName
@@ -1263,6 +1303,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         a = 5
     end
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
+        if HasErrors() 
+            return now
+        end
         text name = context:name
         Variable variable = undefined
         TypeChecker checker = GetTypeChecker()
@@ -1360,6 +1403,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
     
     action EnterVariableSoloFunctionCall(VariableFunctionCallContext context) 
+        if HasErrors() 
+            return now
+        end
         isNextVariableReferenceMe = context:hasMe
         Array<ActionCallOpcode> stack
         actionCallStacks:Add(me:currentActionStack, stack)
@@ -1387,6 +1433,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         i = size - 1
         repeat size times
             QuorumOpcode op = parametersBackward:Get(i)
+            if op = undefined
+                a = 5
+            end
             parameters:Add(op:GetType())
             parameterOpcodes:Add(op)
             i = i - 1
@@ -1397,6 +1446,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitVariableSoloFunctionCall(VariableFunctionCallContext context)
+        if HasErrors() 
+            return now
+        end
         Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
         currentActionStack = currentActionStack - 1
 
@@ -1429,28 +1481,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
         currentBlockOpcode:Add(ops)
     end
-
-//    private action ResolveActionCall(Class testMe, boolean isObjectCall, 
-//        Class fieldClass, Variable variable, ActionCall call, ActionCallOpcode actionCall) returns ActionCallResolution
-//        call:variable = variable
-//        ActionCallResolution resolved = testMe:ResolveAction(call)
-//
-//        if isObjectCall
-//            resolved:classToMakeCallOn = fieldClass
-//            resolved:callingClass = currentClass
-//            actionCall:SetFieldHolder(currentClass)
-//            actionCall:SetPushOnMe(false)
-//            actionCall:SetField(variable)
-//            actionCall:SetIsSoloObjectCall(true)
-//            resolved:typeToMakeCallOn = variable:GetType()
-//        else
-//            resolved:classToMakeCallOn = currentClass
-//        end
-//
-//        
-//        FinishActionResolution(actionCall, resolved)
-//        return resolved
-//    end
 
     action FinishActionResolution(ActionCallOpcode actionCall, ActionCallResolution resolved)
         if resolved not= undefined and resolved:isResolved
@@ -1553,6 +1583,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterVariableFunctionCall(VariableFunctionCallContext context) 
+        if HasErrors() 
+            return now
+        end
         isNextVariableReferenceMe = context:hasMe
         Array<ActionCallOpcode> stack
         actionCallStacks:Add(me:currentActionStack, stack)
@@ -1560,6 +1593,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitVariableFunctionCall(VariableFunctionCallContext context) 
+        if HasErrors() 
+            return now
+        end
         isNextVariableReferenceMe = false
         Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
         currentActionStack = currentActionStack - 1
@@ -1576,6 +1612,10 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) 
+        if HasErrors() 
+            return now
+        end
+
         isNextVariableReferenceMe = context:hasMe
         Array<ActionCallOpcode> stack
         actionCallStacks:Add(me:currentActionStack, stack)
@@ -1585,6 +1625,10 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) 
+        if HasErrors() 
+            return now
+        end
+
         Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
         currentActionStack = currentActionStack - 1
 
@@ -1614,6 +1658,14 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context)
+        if HasErrors() 
+            return now
+        end
+
+        Location loc = context:GetLocation()
+        if currentClass:GetName() = "Sprite" and loc:GetLineNumber() = 91
+            a = 5
+        end
         isNextVariableReferenceMe = context:hasMe
         Array<ActionCallOpcode> stack
         actionCallStacks:Add(me:currentActionStack, stack)
@@ -1722,6 +1774,13 @@ class QuorumBytecodeListener is QuorumSourceListener
 
 
     action ExitParentVariableFunctionCall(ParentVariableFunctionCallContext context)
+        if HasErrors() 
+            return now
+        end
+        Location loc = context:GetLocation()
+        if currentClass:GetName() = "Sprite" and loc:GetLineNumber() = 91
+            a = 5
+        end
         Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
         currentActionStack = currentActionStack - 1
 
@@ -1765,14 +1824,35 @@ class QuorumBytecodeListener is QuorumSourceListener
         return finalResolvedParameters
     end
 
+    action EnterInitialParentActionCall(ActionCallContext ctx) 
+        a = 5
+
+    end
+
+
+    action ExitInitialParentActionCall(ActionCallContext ctx) 
+        a = 5
+        if not parentCallStack:IsEmpty()
+            ParentVariableFunctionCallContext parentContext = parentCallStack:Peek()
+            parentContext:pop = true
+        end
+        ExitActionCall(ctx)
+    end
+
     action ExitActionCall(ActionCallContext context)
+        if HasErrors() 
+            return now
+        end
         ActionCallOpcode actionCall
         actionCall:SetLocation(context:GetLocation())
         actionCall:SetMethodWriter(methodWriter)
 
         if not parentCallStack:IsEmpty()
-            ParentVariableFunctionCallContext parentContext = parentCallStack:Pop()
-            AdaptToParentActionCall(parentContext, actionCall)
+            ParentVariableFunctionCallContext parentContext = parentCallStack:Peek()
+            if parentContext:pop = true
+                parentCallStack:Pop()
+                AdaptToParentActionCall(parentContext, actionCall)
+            end
         end
 
         SymbolTable table = GetSymbolTable()
@@ -1926,7 +2006,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                     error:SetLocation(context:GetLocation())
                     error:SetErrorMessage("I could not locate the variable named " + name)
                     CompilerErrorType errorType
-                    errorType:SetCurrentType(errorType:MISSING_CLASS)
+                    errorType:SetCurrentType(errorType:MISSING_VARIABLE)
                     error:SetCompilerErrorType(errorType)
                     CompilerErrorManager manager = GetCompilerErrorManager()
                     manager:Add(error)
@@ -1990,8 +2070,8 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitReturnStatement(ReturnContext context) 
-        if currentClass:GetName() = "StackTraceItem" and currentAction:GetName() = "Equals"
-            a = 5
+        if HasErrors() 
+            return now
         end
         recentStatementWasReturn = true
         Type type = currentAction:GetReturnType()
@@ -2053,6 +2133,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitCast(CastContext context) 
+        if HasErrors() 
+            return now
+        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Peek()
         Operation op
@@ -2088,6 +2171,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     
 
     action ExitInequality(InequalityContext context) 
+        if HasErrors() 
+            return now
+        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()
         QuorumOpcode left = opcodeStack:Pop()
@@ -2121,6 +2207,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitEquals (EqualsContext context)
+        if HasErrors() 
+            return now
+        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()
         QuorumOpcode left = opcodeStack:Pop()
@@ -2159,6 +2248,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action DoAndOr(AndOrContext context)
+        if HasErrors() 
+            return now
+        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()
         QuorumOpcode left = opcodeStack:Pop()
@@ -2213,6 +2305,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitMultiplication(MultiplicationContext context) 
+        if HasErrors() 
+            return now
+        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()
         QuorumOpcode left = opcodeStack:Pop()
@@ -2248,6 +2343,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitAddition(AdditionContext addition) 
+        if HasErrors() 
+            return now
+        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()
         QuorumOpcode left = opcodeStack:Pop()
@@ -2281,6 +2379,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitMinus(UnaryMinusContext context) 
+        if HasErrors() 
+            return now
+        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode left = opcodeStack:Pop()
 
@@ -2309,6 +2410,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitNot(NotContext context) 
+        if HasErrors() 
+            return now
+        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode left = opcodeStack:Pop()
 
@@ -2337,6 +2441,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitMe(MeContext context) 
+        if HasErrors() 
+            return now
+        end
         MeOpcode opcode
         opcode:SetLocation(context:GetLocation())
         opcode:SetMethodWriter(methodWriter)
@@ -2345,6 +2452,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitInput(InputContext context) 
+        if HasErrors() 
+            return now
+        end
         InputOpcode opcode
         opcode:SetLocation(context:GetLocation())
         opcode:SetMethodWriter(methodWriter)
@@ -2373,6 +2483,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitInputNoParameters(InputContext context) 
+        if HasErrors() 
+            return now
+        end
         InputOpcode opcode
         opcode:SetLocation(context:GetLocation())
         opcode:SetMethodWriter(methodWriter)
@@ -2384,6 +2497,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitUndefined(UndefinedContext context) 
+        if HasErrors() 
+            return now
+        end
         Type type
         type:SetIsConstant(true)
         type:SetToUndefined()
@@ -2396,6 +2512,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitInteger(IntegerContext context) 
+        if HasErrors() 
+            return now
+        end
         Type type
         type:SetIsConstant(true)
         type:SetIntegerConstant(context:value)

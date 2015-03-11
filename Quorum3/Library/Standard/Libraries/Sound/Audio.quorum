@@ -1,15 +1,16 @@
 package Libraries.Sound
 
-
 use Libraries.System.File
 
 /*
-The Audio class provides basic functionality for both playing and recording
-sound files on the system. To use the audio class, we must first instantiate an
-object of type Audio, then call SetFile, with either a valid file for playback
-or the location of a new file for recording. If this file or location is valid,
-we can then call actions to either start playback or recording. The the file or
-location is not valid, a generic runtime Error will be thrown.
+The Audio class can be used to play sound files and change how they are played.
+Before playing audio, a file must be loaded first. For most audio, this is done
+with a normal Load action. If you want to load a long audio file, like a song or
+music, you can use the advanced LoadToStream action instead. The Audio class
+will support audio files with the .wav or .ogg extensions. If you try to load a
+different file type, or try to play audio before you've loaded a file, a generic
+runtime Error will be thrown. After you're done with the Audio, you should call
+Dispose() to let the system know you're done with the file.
 
 
 Attribute: Example
@@ -17,28 +18,27 @@ Attribute: Example
 use Libraries.Sound.Audio
 use Libraries.System.File
 
-//first create audio and File objects
+// We need to first create Audio and File objects to use.
 Audio audio
 File file
 
-//set the path to the file you want to play back
-//in this case, test.wav should be replaced with your file.
+// We have to set our file so its path is the file we want to use for Audio.
+// When writing your own code, test.wav should be replaced with your file.
 file:SetPath("test.wav")
 
-//tell the audio playback library what file you want to play
-audio:SetFile(file)
+// Now that our file is set up, we can load that file as audio.
+audio:Load(file)
 
-//playback the file. By default, this is a non-blocking call.
+// After we load the file, we can play it with a simple call to Play().
 audio:Play()
 
 */
 class Audio
-
-    File file = undefined
-
+    
     /*
-    The Play action plays a sound file. Before we can call this action, we must
-    call the SetFile action. This file must point to a valid sound file.
+    The Load action will retrieve an audio file to be used by the Audio class. 
+    After we've loaded the file, we can play and stop audio, or change how it's
+    played.
 
 
     Attribute: Example
@@ -46,30 +46,63 @@ class Audio
     use Libraries.Sound.Audio
     use Libraries.System.File
 
-    //first create audio and File objects
+    // To use audio, we'll first need to create an object for it.
     Audio audio
+
+    // To load from a file, we'll also need to create one of those.
     File file
 
-    //set the path to the file you want to play back
-    //in this case, test.wav should be replaced with your file.
-    file:SetPath("test.wav")
+    // In this example, we'll load a file called "beep.ogg" from a folder called
+    // "Sounds" in our project.
+    file:SetPath("Sounds/beep.ogg")
 
-    //tell the audio playback library what file you want to play
-    audio:SetFile(file)
+    // Now that our file is set up, we can load that file as audio.
+    audio:Load(file)
 
-    //playback the file. By default, this is a non-blocking call.
+    // After we load the file, we can play it with a simple call to Play().
     audio:Play()
 
     */
-    action Play() 
-        Play(false)
-    end
+    system action Load(File file)
+
 
     /*
-    The Play action plays a sound file. Before we can call this action, we must
-    call the SetFile action. This file must point to a valid sound file. This 
-    version of the Play action allows us to pass a parameter. If this is true, 
-    this action will not return until the sound file has finished playing.
+    For convenience, Load can also be called using just a file name. This is the
+    same as making a file, calling SetPath, and calling Load with that file.
+    Compare the below example to the example for Load when using a file.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // To load a file that is directly accessible from our project folder, we
+    // can skip making a file and just pass the fle location directly to the
+    // Load action.
+    // This will load the same "beep.ogg" file as in the previous example.
+    audio:Load("Sounds/beep.ogg")
+
+    // After we load the file, we can play it with a simple call to Play().
+    audio:Play()
+
+    */
+    action Load(text filePath)
+        File file
+        file:SetPath(filePath)
+        Load(file)
+    end
+
+
+    /*
+    The LoadToStream action will prepare an audio file to be streamed. While a
+    normal Load action makes a copy of the sound so it can be played all at
+    once, the LoadToStream action gets sound data in small chunks without making
+    a copy of the entire thing. To play the next "chunk" of data, use the Stream
+    action. This is useful for long sounds or music, where it could take a long
+    time to copy the entire audio file.
 
 
     Attribute: Example
@@ -77,158 +110,368 @@ class Audio
     use Libraries.Sound.Audio
     use Libraries.System.File
 
-    //first create audio and File objects
+    // To use audio, we'll first need to create an object for it.
     Audio audio
+
+    // To load from a file, we'll also need to create one of those.
     File file
 
-    //set the path to the file you want to play back
-    //in this case, test.wav should be replaced with your file.
-    file:SetPath("test.wav")
+    // In this example, we'll load a file called "LongSong.ogg" from a folder 
+    // called "Sounds" in our project.
+    file:SetPath("Sounds/LongSong.ogg")
 
-    //tell the audio playback library what file you want to play
-    audio:SetFile(file)
+    // Since our audio file is large, it makes sense to load it for streaming.
+    audio:LoadToStream(file)
 
-    //playback the file. By default, this is a non-blocking call.
+    // After we load the file, we can begin playing it with Play(). This will
+    // play the first "chunk" of data we loaded from the stream.
     audio:Play()
 
-    */
-    action Play(boolean block) 
-        if file = undefined
-            alert("A file must be specified before recording can begin, but file variable in the Audio class was undefined.  Call the SetFile(File file) action before calling Play.")
-        end
+    // To play the whole song, we will need to keep loading chunks of data until
+    // the song is finished. To do this, we will use the repeat structure.
 
-
-        text path = file:GetAbsolutePath()
-        PlayNative(path, block)
+    // This will continuously call our code until we have played the whole song.
+    repeat while audio:IsPlaying()
+        // This will load and play the next chunk of sound data.
+        audio:Stream()
     end
 
-    private system action PlayNative(text path, boolean block)
+    */
+    system action LoadToStream(File file)
 
 
     /*
-        This action stops the system from playing a sound file. It is only relevant
-        if it is called from a non-blocking call to Play, which is either Play(false)
-        or Play().
+    The LoadToStream action can also be called using just a path to where a file
+    is located for convenience. This is the same as making a file, calling 
+    SetPath, and calling LoadToStream with that file.
 
-        Attribute: Example
 
-        use Libraries.Sound.Audio
-        use Libraries.System.File
+    Attribute: Example
 
-        //first create audio and File objects
-        Audio audio
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // In this example, we'll load a file called "LongSong.ogg" from a folder 
+    // called "Sounds" in our project.
+    // Since our audio file is large, it makes sense to load it for streaming.
+    audio:LoadToStream("Sounds/LongSong.ogg")
+
+    // After we load the file, we can begin playing it with Play(). This will
+    // play the first "chunk" of data we loaded from the stream.
+    audio:Play()
+
+    // To play the whole song, we will need to keep loading chunks of data until
+    // the song is finished. To do this, we will use the repeat structure.
+
+    // This will continuously call our code until we have played the whole song.
+    repeat while audio:IsPlaying()
+        // This will load and play the next chunk of sound data.
+        audio:Stream()
+    end
+
+    */
+    action LoadToStream(text filePath)
         File file
-
-        //set the path to the file you want to play back
-        //in this case, test.wav should be replaced with your file.
-        file:SetPath("test.wav")
-
-        //tell the audio playback library what file you want to play
-        audio:SetFile(file)
-
-        //playback the file. By default, this is a non-blocking call.
-        audio:Play()
-
-        //now stop the playback. In this case, no sound will be heard (or very little)
-        //because playback begins immediately before stopping
-        audio:StopPlaying()
-    */
-    action StopPlaying
-        StopPlayingNative()
+        file:SetPath(filePath)
+        LoadToStream(file)
     end
-
-    private system action StopPlayingNative
-
-    /*
-        This action tells the system to record from its default recording device.
-        On most systems, this will be set by the operating system, and will 
-        include a microphone or other device. On systems where no such device exists
-        this action will return and do nothing. The record action always
-        records in the background, and as such, calling Record() and then immediately
-        StopRecording() will do nothing.
-
-        Attribute: Example
-
-        use Libraries.Sound.Audio
-        use Libraries.System.File
-
-        //first create audio and File objects
-        Audio audio
-        File file
-
-        //set the path to the file you want to play back
-        //in this case, test.wav should be replaced with your file.
-        file:SetPath("test.wav")
-
-        //tell the audio system where the data from the microphone should be
-        //stored.
-        audio:SetFile(file)
-
-        //Start recording. This call is always non-blocking.
-        audio:Record()
-    */
-    action Record()
-        if file = undefined
-            alert("A file must be specified before recording can begin, but file variable in the Audio class was undefined. Call the SetFile(File file) action before calling Record.")
-        end
-
-        text path = file:GetAbsolutePath()
-        RecordNative(path)
-    end
-
-    private system action RecordNative(text path)
 
 
     /*
-        This action tells this Audio object to stop recording. If the system is not
-        currently recording, it does nothing.
+    Once we've prepared our audio file with either the Load or LoadToStream
+    actions, we can play the file. If we prepared the file with Load, using the
+    Play action will play the entire song. If we prepared it with LoadToStream,
+    we use Play to start the sound, then we call Stream() repeatedly to play the
+    rest of the sound.
 
-        Attribute: Example
 
-        use Libraries.Sound.Audio
-        use Libraries.System.File
+    Attribute: Example
 
-        //first create audio and File objects
-        Audio audio
-        File file
+    use Libraries.Sound.Audio
 
-        //set the path to the file you want to play back
-        //in this case, test.wav should be replaced with your file.
-        file:SetPath("test.wav")
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
 
-        //tell the audio system where the data from the microphone should be
-        //stored.
-        audio:SetFile(file)
+    // We will first load a sound normally with the Load command. Most sounds
+    // should be loaded this way.
+    audio:Load("ShortSound.wav")
 
-        //Start recording. This call is always non-blocking.
-        //perhaps we let it go for a while or put this in a user interface
-        audio:Record()
+    // After we load the file, we can play it with a simple call to Play().
+    audio:Play()
 
-        //Stop recording. In this example, very little would be recorded,
-        //as we are telling the system to stop immediately after we start.
-        audio:StopRecording()
-    */
-    action StopRecording()
-        StopRecordingNative()
+    // We can also use the Play action with streamed audio.
+    Audio longAudio
+    longAudio:LoadToStream("LongSound.wav")
+    
+    // Using Play() on longAudio will start the stream. We will have to keep
+    // calling Stream() to play the whole sound.
+
+    longAudio:Play()
+
+    repeat while longAudio:IsPlaying()
+        longAudio:Stream()
     end
 
-    private system action StopRecordingNative
+    */
+    system action Play
+
+    
+    /*
+    The Stop action will stop audio if it is currently playing. If it is not
+    playing, it will do nothing.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We always have to load a sound before use.
+    audio:Load("ding.wav")
+
+    // After we load the file, we can play it with a simple call to Play().
+    audio:Play()
+
+    // Now that audio is playing, we can stop it at any time by calling Stop().
+    audio:Stop()
+
+    */
+    system action Stop
+
 
     /*
-        This action sets the file that will be used by the system for recording
-        or playback. If used for playback, this must be a valid file. If this
-        is used for recording, a new file will be created.
+    The Pause action will temporarily stop playing a sound, and remember where
+    the sound was during its playback. Calling Resume will make the sound play
+    again from where it was paused.
+
+
     */
-    action GetFile() returns File
-        return file
-    end
+    system action Pause
 
     /*
-        This action sets the file that will be used by the system for recording
-        or playback. If used for playback, this must be a valid file. If this
-        is used for recording, a new file will be created.
+    The Resume action will resume playing an audio file that was paused. If the
+    audio was not paused, this action will have no effect.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We always have to load a sound before use.
+    audio:Load("ding.wav")
+
+    // After we load the file, we can play it with a simple call to Play().
+    audio:Play()
+
+    // Now that audio is playing, we can pause it at any time by calling Pause.
+    audio:Pause()
+
+    // We can also resume the audio at any time by calling Resume.
+    audio:Resume()
+
     */
-    action SetFile(File file) 
-        me:file = file
+    system action Resume
+
+    /*
+    IsPlaying returns a boolean based on the sound's current state. It will 
+    return true if the sound is currently playing, or return false if it is not.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We always have to load a sound before use.
+    audio:Load("example.ogg")
+
+    // After we load the file, we can play it with a simple call to Play().
+    audio:Play()
+
+    // Because we just told the sound to play, IsPlaying() should return true,
+    // so we will enter this conditional statement.
+    if audio:IsPlaying()
+        output "The audio is playing!"
     end
+
+    */
+    system action IsPlaying returns boolean
+
+    /*
+    EnableLooping will set the audio to continuously repeat itself when reaching
+    the end of the audio instead of stopping.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We need to load our audio before we change whether or not it will loop.
+    audio:Load("test.wav")
+    
+    // We now enable looping. This will make the sound repeat forever until we
+    // stop it or call "audio:DisableLooping()".
+    audio:EnableLooping()
+
+    */
+    system action EnableLooping
+
+    
+    /*
+    DisableLooping will ensure that an audio file stops playing when it reaches
+    the end of the sound, instead of repeating. This is the default behavior, so
+    it is only necessary to call this if there was a call to EnableLooping
+    earlier in the program.
+
+
+    */
+    system action DisableLooping
+
+    
+    /*
+    The Dispose action will stop a sound if it is playing and then free the 
+    memory that is in use by the computer. You should always use Dispose after
+    you are finished with a sound or at the end of your program to let the
+    computer know you are done with the audio file. After calling Dispose from
+    an audio object, you can then load a new audio file into it.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // In this example, we'll use LoadToStream, but Dispose can also be called
+    // on audio files prepared using Load!
+    audio:LoadToStream("Sounds/LongSong.ogg")
+
+    audio:Play()
+
+    repeat while audio:IsPlaying()
+        audio:Stream()
+    end
+
+    // At this point, the entire song will be done playing, so we can Dispose
+    // the audio to let the system know we're done playing that audio file.
+    audio:Dispose()
+
+    */
+    system action Dispose
+
+    // Sets the pitch of the sound. A standard pitch is at value 1.0, or 100% of
+    // normal pitch value. To increase pitch by 20%, pass a value of 1.2.
+    system action SetPitch(number pitch)
+
+    /*
+    The SetVolume action adjusts the volume of a sound. It takes a number value
+    to set the volume to a percentage of the original sound volume. A value of
+    1.0 will play the sound at 100% of standard volume. To reduce the sound by
+    25%, for example, you would provide the number 0.75, or 75% volume.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We always have to load a sound before use.
+    audio:Load("ding.wav")
+
+    // For this example, we will set the audio to 50%, or half, volume.
+    audio:SetVolume(0.5)
+
+    // After we load the file, we can play it with a simple call to Play().
+    audio:Play()
+
+    // Once we're finished with an audio file, we need to let the computer know.
+    audio:Dispose()
+
+    */
+    system action SetVolume(number volume)
+
+    
+    /*
+    SetHorizontalPosition will change how the sound is played through stereo
+    speakers or headphones. Values passed to this should always be between -1
+    and 1. A value of -1 will make the sound play through only the left speaker.
+    A value of 1 will play the sound only through the right speaker. A value of
+    0 will play the sound equally through both speakers.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We always have to load a sound before use.
+    audio:Load("noise.ogg")
+
+    // For this example, we will set the position with the value -1. This will
+    // make the sound play through only the left speaker.
+    audio:SetHorizontalPosition(-1)
+
+    // After we load the file, we can play it with a simple call to Play().
+    audio:Play()
+
+    // Once we're finished with an audio file, we need to let the computer know.
+    audio:Dispose()
+
+    */
+    system action SetHorizontalPosition(number position)
+
+
+    /*
+    The Stream action is used to load and play the next chunk of data for a file
+    that was prepared using LoadToStream. To play an audio file smoothly this
+    way, Stream should be called in a loop. When the entire audio file has been
+    played, if looping is disabled it will stop playing. If looping is enabled,
+    it will continue playing.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // In this example, we'll load a file called "LongSong.ogg" from a folder 
+    // called "Sounds" in our project.
+    // Since our audio file is large, it makes sense to load it for streaming.
+    audio:LoadToStream("Sounds/LongSong.ogg")
+
+    // After we load the file, we can begin playing it with Play(). This will
+    // play the first "chunk" of data we loaded from the stream.
+    audio:Play()
+
+    // To play the whole song, we will need to keep loading chunks of data until
+    // the song is finished. To do this, we will use the repeat structure.
+
+    // This will continuously call our code until we have played the whole song.
+    repeat while audio:IsPlaying()
+        // This will load and play the next chunk of sound data.
+        audio:Stream()
+    end
+
+    */
+    system action Stream()
+    
 end

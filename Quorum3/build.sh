@@ -31,7 +31,7 @@ echo "Copying to NetBeans Installation"
 cp Run/Quorum.jar ../../IDE/Sodbeans/Quorum/release/modules/ext/Quorum.jar
 
 #rm -r ../../IDE/Sodbeans/Quorum/release/modules/
-cp -r Library ../../IDE/Sodbeans/Quorum/release/modules/Library
+cp -r Library ../../IDE/Sodbeans/Quorum/release/modules
 
 echo "Copying Quorum to its final form."
 mkdir ../Quorum
@@ -41,7 +41,7 @@ cp Run/Quorum.jar ../Quorum/Quorum.jar
 cp -r Library ../Quorum/Library
 
 echo "Running test suite"
-java -jar Quorum.jar -test
+#java -jar Quorum.jar -test
 
 echo "Cleaning up Temporary Folders"
 cd ..

@@ -373,6 +373,10 @@ class Parser is QuorumSourceListener
         //parser anyway, because we can't type check in the first pass
         CompilerError error = undefined
         if currentBlock = undefined //we're in a field initiatlization block
+            if currentClass = undefined
+                //this is an error and has already been caught.
+                return now
+            end
             error = currentClass:Add(variable)
         else //we're in the block of an action
             error = currentBlock:Add(variable)
