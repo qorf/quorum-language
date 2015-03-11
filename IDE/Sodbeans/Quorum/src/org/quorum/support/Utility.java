@@ -5,6 +5,9 @@
  */
 package org.quorum.support;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Iterator;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 
@@ -29,9 +32,31 @@ public class Utility {
         String parent = file.getParent();
         String name = file.getName();
         
-        f.SetWorkingDirectory(parent);
+        f.SetWorkingDirectory(parent + "/");
         f.SetPath(name);
         return f;
+    }
+    
+    /**
+     * Computes a relative path, val, compared to an absolute file, file.
+     * @param file
+     * @param val
+     * @return 
+     */
+    public static java.io.File computeRelativePath(java.io.File file, String val) {
+        java.io.File directory = new java.io.File(file.getAbsolutePath());
+        Path targetFile = Paths.get(val);
+        Iterator<Path> iterator = targetFile.iterator();
+        while(iterator.hasNext()) {
+            Path next = iterator.next();
+            String s = next.toString();
+            if(s.compareTo("..")==0) {
+                directory = directory.getParentFile();
+            } else {
+                directory = new java.io.File(directory.getAbsolutePath() + "/" + s);
+            }
+        }
+        return directory;
     }
     
     /**

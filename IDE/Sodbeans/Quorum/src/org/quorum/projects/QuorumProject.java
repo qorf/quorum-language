@@ -8,8 +8,11 @@ package org.quorum.projects;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import javax.swing.Icon;
@@ -37,6 +40,7 @@ import org.quorum.actions.CleanBuild;
 import org.quorum.actions.Debug;
 import org.quorum.actions.Document;
 import org.quorum.actions.Run;
+import org.quorum.support.Utility;
 import quorum.Libraries.System.File$Interface;
 
 /**
@@ -188,9 +192,41 @@ public class QuorumProject implements Project {
             FileObject mainFile = directory.getFileObject(key);
             mainFileProvider.setMainFile(mainFile);
         }
+        
+        File directory = FileUtil.toFile(this.getProjectDirectory());
+        String plugins = properties.getProperty(QuorumProject.ADDITIONAL_PLUGIN_FOLDERS);
+        if(plugins != null) {
+            compiler.EmptyAdditionalPluginFolders();
+            String[] split = plugins.split(";");
+            for(int i = 0; i < split.length; i++) {
+                String val = split[i];
+                File path = Utility.computeRelativePath(directory, val);
+                
+                quorum.Libraries.System.File toQuorumFile = Utility.toQuorumFile(path);
+                compiler.AddPluginFolder(toQuorumFile);
+            }
+        }
+        String jars = properties.getProperty(QuorumProject.ADDITIONAL_JARS);
+        if(jars != null) {
+            compiler.EmptyAdditionalJars();
+            String[] split = jars.split(";");
+            for(int i = 0; i < split.length; i++) {
+                String val = split[i];
+                File path = Utility.computeRelativePath(directory, val);
+                
+                quorum.Libraries.System.File toQuorumFile = Utility.toQuorumFile(path);
+                compiler.AddJar(toQuorumFile);
+            }
+        }
+        
+        String name = properties.getProperty(QuorumProject.QUORUM_EXECUTABLE_NAME);
+        if(name != null) {
+            compiler.SetName(name);
+        }
+        
         return properties;
     }
-
+    
     /**
      * @return the debug
      */
