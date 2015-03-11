@@ -186,6 +186,19 @@ public class QuorumBaseListener implements QuorumListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterInitial_parent_action_call(@NotNull QuorumParser.Initial_parent_action_callContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitInitial_parent_action_call(@NotNull QuorumParser.Initial_parent_action_callContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterInputNoParameters(@NotNull QuorumParser.InputNoParametersContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -680,19 +693,6 @@ public class QuorumBaseListener implements QuorumListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterObjectAssignment(@NotNull QuorumParser.ObjectAssignmentContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitObjectAssignment(@NotNull QuorumParser.ObjectAssignmentContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterMultiplication(@NotNull QuorumParser.MultiplicationContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -700,6 +700,19 @@ public class QuorumBaseListener implements QuorumListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitMultiplication(@NotNull QuorumParser.MultiplicationContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterObjectAssignment(@NotNull QuorumParser.ObjectAssignmentContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitObjectAssignment(@NotNull QuorumParser.ObjectAssignmentContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

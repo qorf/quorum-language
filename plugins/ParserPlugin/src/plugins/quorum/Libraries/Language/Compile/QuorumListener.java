@@ -152,6 +152,17 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitVariableFunctionCall(@NotNull QuorumParser.VariableFunctionCallContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link QuorumParser#initial_parent_action_call}.
+	 * @param ctx the parse tree
+	 */
+	void enterInitial_parent_action_call(@NotNull QuorumParser.Initial_parent_action_callContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuorumParser#initial_parent_action_call}.
+	 * @param ctx the parse tree
+	 */
+	void exitInitial_parent_action_call(@NotNull QuorumParser.Initial_parent_action_callContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link QuorumParser#InputNoParameters}.
 	 * @param ctx the parse tree
 	 */
@@ -570,17 +581,6 @@ public interface QuorumListener extends ParseTreeListener {
 	void exitInput(@NotNull QuorumParser.InputContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link QuorumParser#ObjectAssignment}.
-	 * @param ctx the parse tree
-	 */
-	void enterObjectAssignment(@NotNull QuorumParser.ObjectAssignmentContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link QuorumParser#ObjectAssignment}.
-	 * @param ctx the parse tree
-	 */
-	void exitObjectAssignment(@NotNull QuorumParser.ObjectAssignmentContext ctx);
-
-	/**
 	 * Enter a parse tree produced by {@link QuorumParser#Multiplication}.
 	 * @param ctx the parse tree
 	 */
@@ -590,6 +590,17 @@ public interface QuorumListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitMultiplication(@NotNull QuorumParser.MultiplicationContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link QuorumParser#ObjectAssignment}.
+	 * @param ctx the parse tree
+	 */
+	void enterObjectAssignment(@NotNull QuorumParser.ObjectAssignmentContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuorumParser#ObjectAssignment}.
+	 * @param ctx the parse tree
+	 */
+	void exitObjectAssignment(@NotNull QuorumParser.ObjectAssignmentContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link QuorumParser#Minus}.

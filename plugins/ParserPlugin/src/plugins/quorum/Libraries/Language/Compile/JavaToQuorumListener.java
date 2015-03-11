@@ -1628,6 +1628,25 @@ public class JavaToQuorumListener implements QuorumListener {
 
         listener.ExitActionCall(context);
     }
+    
+    @Override 
+    public void enterInitial_parent_action_call(@NotNull QuorumParser.Initial_parent_action_callContext ctx) {
+        ActionCallContext context = new ActionCallContext();
+        setLocation(ctx, context);
+        listener.EnterInitialParentActionCall(context);
+    }
+
+    @Override 
+    public void exitInitial_parent_action_call(@NotNull QuorumParser.Initial_parent_action_callContext ctx) {
+        ActionCallContext context = new ActionCallContext();
+        setLocation(ctx, context);
+        String name = ctx.var.getText();
+        boolean isActionCall = ctx.LEFT_PAREN() != null;
+        context.name = name;
+        context.isActionCall = isActionCall;
+
+        listener.ExitInitialParentActionCall(context);
+    }
 
     @Override
     public void enterNoActionsNoClass(QuorumParser.NoActionsNoClassContext ctx) {
