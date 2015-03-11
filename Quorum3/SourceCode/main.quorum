@@ -46,6 +46,18 @@ class Main is WebResponder
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
 
+        //write in the jar file
+        File opengl
+        opengl:SetWorkingDirectory("/Users/stefika/Repositories/quorum-libgdx")
+        opengl:SetPath("LibGDXPlugins/libs/lwjgl.jar")
+        compiler:AddJar(opengl)
+
+        //write in the extra plugin directory
+        File extraPlugins
+        extraPlugins:SetWorkingDirectory("/Users/stefika/Repositories/quorum-libgdx/LibGDXPlugins/build/")
+        extraPlugins:SetPath("classes")
+        compiler:AddPluginFolder(extraPlugins)
+
         File main
         main:SetWorkingDirectory("/Users/stefika/Repositories/quorum-libgdx/QuorumRainDrop")
         main:SetPath("SourceCode")

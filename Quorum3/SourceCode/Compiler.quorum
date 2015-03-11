@@ -21,6 +21,7 @@ class Compiler
     constant text DEFAULT_STANDARD_LIBRARY_FOLDER = "Library/Standard"
     constant text WAR_CLASS_DIRECTORY = "WEB-INF/classes"
     constant text OBJECT = "Libraries.Language.Object"
+    constant text JAR_DEPENDENCY_FOLDER = "libraries"
     File buildFolder = undefined
     File runFolder = undefined
     File standardLibraryFolder = undefined
@@ -288,13 +289,44 @@ class Compiler
     end
 
     private action WriteDependencies(JarGenerator generator)
-        WritePlugins(generator, pluginFolder)
+        WritePlugins(generator, pluginFolder, pluginFolder)
 
         if not additionalPluginFolders:IsEmpty()
             Iterator<File> it = additionalPluginFolders:GetIterator()
             repeat while it:HasNext()
                 File folder = it:Next()
-                WritePlugins(generator, folder)
+                WritePlugins(generator, folder, folder)
+            end
+        end
+
+        //copy any jar files that are dependencies to disk
+        if not additionalJarFiles:IsEmpty()
+            Iterator<File> jars = additionalJarFiles:GetIterator()
+            repeat while jars:HasNext()
+                File file = jars:Next()
+                
+                File copyLocation
+                File run = GetRunFolder()
+                copyLocation:SetWorkingDirectory(run:GetWorkingDirectory())
+                copyLocation:SetPath(run:GetPath() + "/" + JAR_DEPENDENCY_FOLDER + "/")
+                
+
+                if not copyLocation:Exists()
+                    copyLocation:CreateDirectories()
+                end
+
+                copyLocation:SetPath(run:GetPath() + "/" + JAR_DEPENDENCY_FOLDER + "/" + file:GetFileName())
+                //check if the jar already exists. If the old file is newer
+                //copy it. If not, ignore it.
+                if not copyLocation:Exists()
+                    file:Copy(copyLocation)
+                else 
+                    DateTime original = file:GetLastModifiedDate()
+                    DateTime copy = copyLocation:GetLastModifiedDate()
+                    if copyLocation:Exists() and (original:GetEpochTime() > copy:GetEpochTime())
+                        file:Copy(copyLocation)
+                    end
+                end
             end
         end
 
@@ -395,7 +427,7 @@ class Compiler
 
             repeat while it:HasNext()
                 File f = it:Next()
-                WritePlugins(generator, f)
+                WritePlugins(generator, f, originalLocation)
             end
         else
             text pluginPath = originalLocation:GetWorkingDirectory()
@@ -413,17 +445,19 @@ class Compiler
         end
     end
 
-    private action WritePlugins(JarGenerator generator, File file)
+    private action WritePlugins(JarGenerator generator, File file, File originalLocation)
         if file:IsDirectory()
             Array<File> files = file:GetDirectoryListing()
             Iterator<File> it = files:GetIterator()
 
             repeat while it:HasNext()
                 File f = it:Next()
-                WritePlugins(generator, f)
+                if not f:IsHidden() and not (f:GetFileExtension() = "DS_Store")
+                    WritePlugins(generator, f, originalLocation)
+                end
             end
         else
-            text pluginPath = pluginFolder:GetWorkingDirectory()
+            text pluginPath = originalLocation:GetWorkingDirectory()
             text path = file:GetAbsolutePath()
             path = path:GetSubtext(pluginPath:GetSize())
             text wd = file:GetAbsolutePath()
@@ -459,6 +493,19 @@ class Compiler
         text classKey = "quorum." + mainClass:GetStaticKey()
         main = main + ": " + classKey
         main = main + line
+
+        //now write any jar dependencies into the manifest
+        if not additionalJarFiles:IsEmpty()
+            Iterator<File> jars = additionalJarFiles:GetIterator()
+            text classpath = "Class-Path: "
+            text libraries = JAR_DEPENDENCY_FOLDER
+            repeat while jars:HasNext()
+                File file = jars:Next()
+                classpath = classpath + libraries + "/" + file:GetFileName()
+            end
+            main = main + classpath + line
+        end
+
         total = version + created + main + line
         return total
     end
