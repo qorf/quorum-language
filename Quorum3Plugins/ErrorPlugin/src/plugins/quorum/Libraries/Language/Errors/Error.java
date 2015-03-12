@@ -4,7 +4,6 @@
  */
 package plugins.quorum.Libraries.Language.Errors;
 
-import quorum.Libraries.Containers.Array;
 import quorum.Libraries.Language.Errors.*;
 import quorum.Libraries.System.StackTraceItem;
 
@@ -20,6 +19,7 @@ public class Error {
     
     
     public static quorum.Libraries.Language.Errors.Error ConvertToQuorumError(Throwable throwable) {
+        
         if(throwable instanceof NullPointerException) {
             UndefinedObjectError error = new UndefinedObjectError();
             CaptureThrowableTrace(throwable.getStackTrace(), error);
@@ -37,6 +37,7 @@ public class Error {
         } else {
             quorum.Libraries.Language.Errors.Error error = new quorum.Libraries.Language.Errors.Error();
             CaptureThrowableTrace(Thread.currentThread().getStackTrace(), error);
+            error.SetErrorMessage(throwable.getClass().toString() + ", " + throwable.getMessage());
             return error;
         }
     }
@@ -66,6 +67,18 @@ public class Error {
                 item.Set$Libraries$System$StackTraceItem$methodName(methodName);
                 array.Add(item);
             }
+        }
+        
+        //There was no useful stack trace, because we never even made it into the program
+        //as such, craft a reasonable one.
+        if(array.IsEmpty()) {
+            StackTraceElement e = trace[trace.length - 1];
+            StackTraceItem item = new StackTraceItem();
+            item.Set$Libraries$System$StackTraceItem$className(e.getClassName());
+            item.Set$Libraries$System$StackTraceItem$fileName(e.getFileName());
+            item.Set$Libraries$System$StackTraceItem$lineNumber(e.getLineNumber());
+            item.Set$Libraries$System$StackTraceItem$methodName("Main");
+            array.Add(item);
         }
         error.SetStackTrace(array);
     }
