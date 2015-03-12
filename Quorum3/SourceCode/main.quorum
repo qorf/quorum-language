@@ -54,8 +54,8 @@ class Main is WebResponder
 
         //write in the extra plugin directory
         File extraPlugins
-        extraPlugins:SetWorkingDirectory("/Users/stefika/Repositories/quorum-libgdx/LibGDXPlugins/build/")
-        extraPlugins:SetPath("classes")
+        extraPlugins:SetWorkingDirectory("/Users/stefika/Repositories/quorum-libgdx/LibGDXPlugins/build/classes/")
+        extraPlugins:SetPath("plugins")
         compiler:AddPluginFolder(extraPlugins)
 
         File main
