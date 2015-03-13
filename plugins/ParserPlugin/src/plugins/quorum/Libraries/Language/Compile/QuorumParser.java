@@ -2730,21 +2730,20 @@ public class QuorumParser extends Parser {
 	public final Initial_parent_action_callContext initial_parent_action_call() throws RecognitionException {
 		Initial_parent_action_callContext _localctx = new Initial_parent_action_callContext(_ctx, getState());
 		enterRule(_localctx, 66, RULE_initial_parent_action_call);
-		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(427); ((Initial_parent_action_callContext)_localctx).var = match(ID);
 			setState(432);
-			_la = _input.LA(1);
-			if (_la==LEFT_PAREN) {
+			switch ( getInterpreter().adaptivePredict(_input,52,_ctx) ) {
+			case 1:
 				{
 				setState(428); match(LEFT_PAREN);
 				setState(429); function_expression_list();
 				setState(430); match(RIGHT_PAREN);
 				}
+				break;
 			}
-
 			}
 		}
 		catch (RecognitionException re) {
@@ -2921,6 +2920,9 @@ public class QuorumParser extends Parser {
 			return getToken(QuorumParser.COLON, i);
 		}
 		public TerminalNode ME() { return getToken(QuorumParser.ME, 0); }
+		public Initial_parent_action_callContext initial_parent_action_call() {
+			return getRuleContext(Initial_parent_action_callContext.class,0);
+		}
 		public TerminalNode PARENT() { return getToken(QuorumParser.PARENT, 0); }
 		public List<TerminalNode> COLON() { return getTokens(QuorumParser.COLON); }
 		public Action_callContext action_call(int i) {
@@ -3370,7 +3372,7 @@ public class QuorumParser extends Parser {
 				setState(485); match(COLON);
 				setState(486); ((ParentVariableFunctionCallContext)_localctx).parent = qualified_name();
 				setState(487); match(COLON);
-				setState(488); action_call();
+				setState(488); initial_parent_action_call();
 				setState(493);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,58,_ctx);
@@ -3807,7 +3809,7 @@ public class QuorumParser extends Parser {
 		"\2\2\u01e0\u01de\3\2\2\2\u01e0\u01e1\3\2\2\2\u01e1\u01e2\3\2\2\2\u01e2"+
 		"\u01e3\7B\2\2\u01e3\u01e5\7#\2\2\u01e4\u01e0\3\2\2\2\u01e4\u01e5\3\2\2"+
 		"\2\u01e5\u01e6\3\2\2\2\u01e6\u01e7\7\20\2\2\u01e7\u01e8\7#\2\2\u01e8\u01e9"+
-		"\5\32\16\2\u01e9\u01ea\7#\2\2\u01ea\u01ef\5F$\2\u01eb\u01ec\7#\2\2\u01ec"+
+		"\5\32\16\2\u01e9\u01ea\7#\2\2\u01ea\u01ef\5D#\2\u01eb\u01ec\7#\2\2\u01ec"+
 		"\u01ee\5F$\2\u01ed\u01eb\3\2\2\2\u01ee\u01f1\3\2\2\2\u01ef\u01ed\3\2\2"+
 		"\2\u01ef\u01f0\3\2\2\2\u01f0\u01fa\3\2\2\2\u01f1\u01ef\3\2\2\2\u01f2\u01f3"+
 		"\7\24\2\2\u01f3\u01f4\79\2\2\u01f4\u01f5\58\35\2\u01f5\u01f6\7,\2\2\u01f6"+
