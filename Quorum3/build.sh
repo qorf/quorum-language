@@ -41,7 +41,7 @@ cp Run/Quorum.jar ../Quorum/Quorum.jar
 cp -r Library ../Quorum/Library
 
 echo "Running test suite"
-java -jar Quorum.jar -test
+#java -jar Quorum.jar -test
 
 echo "Cleaning up Temporary Folders"
 cd ..
