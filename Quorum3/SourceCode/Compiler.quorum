@@ -909,6 +909,7 @@ class Compiler
                 File file = it:Next()
                 text path = file:GetAbsolutePath()
                 if not file:IsDirectory() and not parsed:HasKey(path) and not unparsed:HasKey(path)
+                    and file:GetFileExtension() = "quorum"
                     unparsed:Add(path, file)
                 end
             end

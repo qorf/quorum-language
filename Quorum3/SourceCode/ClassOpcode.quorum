@@ -261,6 +261,72 @@ class ClassOpcode is QuorumOpcode
                     parentWriterInterface:VisitEnd()
             end
         end
+
+        //now that all of the parents have been written as actions, write
+        //all of the parent's fields as actions
+        
+        if not clazz:IsError() //errors are special, don't write these
+            parents = clazz:GetParentClasses()
+            classBytecodeName = converter:ConvertStaticKeyToBytecodePath(staticKey)
+            repeat while parents:HasNext()
+                Class p = parents:Next()
+                text parentKey = p:GetStaticKey()
+                Iterator<Variable> fieldIterator = p:GetVariables()
+
+                repeat while fieldIterator:HasNext()
+                    Variable variable = fieldIterator:Next()
+
+                    Type type = variable:GetType()
+                    text getter = p:ConvertToActionNameFromField(variable, true)
+                    text setter = p:ConvertToActionNameFromField(variable, false)
+
+                    text null = undefined
+
+                    //write the getter for this parent's variable
+                    JavaBytecodeMethodWriter parentWriter = classWriter:VisitMethod(opcodes:GetPublic(), 
+                        getter, "()" + type:ConvertTypeToBytecodeSignatureInterface(), null, undefined)
+                    parentWriter:VisitCode()
+                    //load the ME pointer
+                    parentWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+                    //get the parent by calling the appropriate method
+                    parentWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+                        clazz:ConvertStaticKeyToBytecodePath(), p:ConvertStaticKeyToParentActionName(), 
+                        "()" + p:ConvertStaticKeyToBytecodePathTypeName(), false)
+                    //now call the getter for the field
+                    parentWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(),
+                        p:ConvertStaticKeyToBytecodePath(), getter, 
+                        "()" + type:ConvertTypeToBytecodeSignatureInterface(), false)
+                    //now return the value
+                    parentWriter:VisitInstruction(opcodes:GetReturnOpcode(type))
+                    parentWriter:VisitMaxSize(0,0)
+                    parentWriter:VisitEnd()
+
+                    //write the setter for this parent's variable
+                    parentWriter = classWriter:VisitMethod(opcodes:GetPublic(), 
+                        setter, "(" + type:ConvertTypeToBytecodeSignatureInterface() + ")V", null, undefined)
+                    parentWriter:VisitCode()
+                    //load the ME pointer
+                    parentWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+                    //get the parent by calling the appropriate method
+                    parentWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+                        clazz:ConvertStaticKeyToBytecodePath(), p:ConvertStaticKeyToParentActionName(), 
+                        "()" + p:ConvertStaticKeyToBytecodePathTypeName(), false)
+
+                    //now push the parameter onto the stack
+                    parentWriter:VisitVariable(opcodes:GetLoadOpcode(type), 1)
+                    //now call the setter for the field
+                    parentWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(),
+                        p:ConvertStaticKeyToBytecodePath(), setter, 
+                        "(" + type:ConvertTypeToBytecodeSignatureInterface() + ")V", false)
+                    parentWriter:VisitInstruction(opcodes:GetReturn())
+
+                    parentWriter:VisitMaxSize(0,0)
+                    parentWriter:VisitEnd()
+                    a = 5
+                end
+                
+            end
+        end
     end
 
     private action WriteParentActionBytecode(Action act)

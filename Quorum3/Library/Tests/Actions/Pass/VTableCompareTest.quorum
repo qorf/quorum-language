@@ -5,6 +5,8 @@ class Main
         Main m
         Main t
         CompareResult result = t:Compare(m)
-        output result:result
+        if result:result not= 0
+            output "passed"
+        end
     end 
 end

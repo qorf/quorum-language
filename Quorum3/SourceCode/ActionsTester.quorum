@@ -1113,7 +1113,7 @@ class ActionsTester
         File main
         main:SetPath(path + "VTableCompareTest.quorum")
         files:Add(main)
-        results:Add(0, "1")
+        results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
