@@ -461,7 +461,13 @@ class Compiler
             text path = file:GetAbsolutePath()
             path = path:GetSubtext(pluginPath:GetSize())
             text wd = file:GetAbsolutePath()
-            wd = wd:GetSubtext(0, pluginPath:GetSize() - 1)
+
+            //if there's a slash at the end of the path, ignore it.
+            if pluginPath:GetCharacter(pluginPath:GetSize() - 1) = "/"
+                wd = wd:GetSubtext(0, pluginPath:GetSize() - 1)
+            else
+                wd = wd:GetSubtext(0, pluginPath:GetSize())
+            end
 
             File f
             f:SetWorkingDirectory(wd)
