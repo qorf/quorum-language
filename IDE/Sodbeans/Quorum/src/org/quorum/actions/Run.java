@@ -39,15 +39,18 @@ public class Run extends QuorumAction implements ActionListener {
         @Override
         public void run() {
             isRunning = true;
-            boolean success = build();
-            if(!success) {
-                return;
-            }
             ProcessCancel cancel = new ProcessCancel();
             String taskName = project.getProjectDirectory().getName() + " (run)";
 
             final ProgressHandle progress = ProgressHandleFactory.createHandle(taskName, cancel);
             cancel.progress = progress;
+            progress.start();
+            boolean success = build();
+            if(!success) {
+                progress.finish();
+                return;
+            }
+            
 
             // Compute the location of the project's root directory.
             File runDirectory = project.getRunDirectory();
@@ -66,7 +69,6 @@ public class Run extends QuorumAction implements ActionListener {
                 watch.start();
                 cancel.process = process;
                 cancel.watcher = watch;
-                progress.start();
                 process.waitFor();
                 watch.wasDestroyed = true;
                 watch.cancelled = true;

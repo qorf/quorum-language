@@ -69,26 +69,26 @@ public class QuorumParser extends Parser{
                     quorumFile.SetPath(finalPath);
                    
                     String totalPath = quorumFile.GetAbsolutePath();
-                    compiler.ParseSingle(string, quorumFile);
-                    fileErrors.clear();
-                    
-                    CompilerErrorManager$Interface errors = compiler.GetCompilerErrorManager();
-                    Iterator$Interface it = errors.GetIterator();
-                    while(it.HasNext()) {
-                        CompilerError$Interface next = (CompilerError$Interface) it.Next();
-                        String displayName = next.GetDisplayName();
-                        String description = next.GetErrorMessage();
-                        String key = next.GetDisplayName();
-                        String path = next.GetAbsolutePath();
-                        File file = new File(path);
-                        FileObject fo2 = FileUtil.toFileObject(file);
-                        int start = next.GetIndex();
-                        int end = next.GetIndexEnd();
-                        Severity severity = Severity.ERROR;
-                        QuorumError error = new QuorumError(displayName, description, key, fo2, start, end, severity);
-                        fileErrors.add(error);
-                        
-                    }
+//                    compiler.ParseSingle(string, quorumFile);
+//                    fileErrors.clear();
+//                    
+//                    CompilerErrorManager$Interface errors = compiler.GetCompilerErrorManager();
+//                    Iterator$Interface it = errors.GetIterator();
+//                    while(it.HasNext()) {
+//                        CompilerError$Interface next = (CompilerError$Interface) it.Next();
+//                        String displayName = next.GetDisplayName();
+//                        String description = next.GetErrorMessage();
+//                        String key = next.GetDisplayName();
+//                        String path = next.GetAbsolutePath();
+//                        File file = new File(path);
+//                        FileObject fo2 = FileUtil.toFileObject(file);
+//                        int start = next.GetIndex();
+//                        int end = next.GetIndexEnd();
+//                        Severity severity = Severity.ERROR;
+//                        QuorumError error = new QuorumError(displayName, description, key, fo2, start, end, severity);
+//                        fileErrors.add(error);
+//                        
+//                    }
                 } catch (RuntimeException exc) {
                     exc.printStackTrace();
                 }

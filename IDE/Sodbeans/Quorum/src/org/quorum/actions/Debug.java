@@ -42,29 +42,32 @@ public class Debug extends QuorumAction implements ActionListener{
 
         @Override
         public void run() {
-            boolean success = build();
-            if(!success) {
-                return;
-            }
             debugger = project.getLookup().lookup(Debugger.class);
             ProcessCancel cancel = new ProcessCancel();
             makeVisualDebuggerControls(cancel);
+            String taskName = project.getProjectDirectory().getName() + " (debug)";
+            final ProgressHandle progress = ProgressHandleFactory.createHandle(taskName, cancel);
+            cancel.progress = progress;
+            progress.start();
+            
+            boolean success = build();
+            if(!success) {
+                progress.finish();
+                return;
+            }
+            
 
             String location = project.getExecutableLocation();
             debugger.setExecutable(location);
+            debugger.setWorkingDirectory(project.getRunDirectory().getAbsolutePath());
             debugger.launch();
-            String taskName = project.getProjectDirectory().getName() + " (run)";
-
-            final ProgressHandle progress = ProgressHandleFactory.createHandle(taskName, cancel);
-            cancel.progress = progress;
-
 
             QuorumProcessWatcher watch = new QuorumProcessWatcher(debugger.getInputStream());
             OutputStream outputStream = debugger.getOutputStream();
             watch.setStream(outputStream);
             watch.start();
             cancel.watcher = watch;
-            progress.start();
+            
             debugger.forward();
         }
     }

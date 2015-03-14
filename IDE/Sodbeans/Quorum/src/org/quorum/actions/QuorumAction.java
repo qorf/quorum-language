@@ -22,7 +22,6 @@ import java.util.HashMap;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
 import org.netbeans.api.progress.ProgressHandle;
-import org.netbeans.api.progress.ProgressHandleFactory;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Cancellable;
@@ -40,6 +39,7 @@ import quorum.Libraries.Language.Compile.CompilerErrorManager$Interface;
  * @author stefika
  */
 public abstract class QuorumAction implements Action {
+    private boolean logExceptionsToConsoleOutput = true; 
     protected QuorumProject project;
     protected boolean enabled = true;
     private HashMap<String, Object> values = new HashMap<String, Object>();
@@ -87,7 +87,32 @@ public abstract class QuorumAction implements Action {
         compiler.Empty();
         //quorum.Libraries.System.File f = (quorum.Libraries.System.File)listing.Get(0);
         //compiler.SetMain(f);
-        compiler.Compile(listing);
+        try {
+            compiler.Compile(listing);
+        } catch (final Exception e) {
+            if(logExceptionsToConsoleOutput) {
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        io.select();
+
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+                        Date date = new Date();
+                        String format = dateFormat.format(date);
+
+                        io.getOut().println("Quorum Compiler Threw Error at " + dateFormat.format(date) + " (This is a bug, please report it at https://quorum.atlassian.net).");
+                        io.getOut().println(e.toString());
+                        StackTraceElement[] stackTrace = e.getStackTrace();
+                        for (int i = 0; i < stackTrace.length; i++) {
+                            io.getOut().println(stackTrace[i].toString());
+                        }
+                        io.setInputVisible(true);
+                        io.getOut().close();
+                    }
+                });
+            }
+            return false;
+        }
 
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -110,7 +135,6 @@ public abstract class QuorumAction implements Action {
 
                     SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
                     Date date = new Date();
-                    System.out.println();
 
                     io.getOut().println("Build Successful at " + dateFormat.format(date) + ".");
                     io.setInputVisible(true);
@@ -206,7 +230,7 @@ public abstract class QuorumAction implements Action {
                         }
                     });
                 }
-                
+
             } catch (IOException ex) {
             }
             SwingUtilities.invokeLater(new Runnable() {
@@ -278,7 +302,7 @@ public abstract class QuorumAction implements Action {
 
         @Override
         public boolean cancel() {
-            if(debugger != null) {
+            if (debugger != null) {
                 QuorumDebugger debug2 = debugger;
                 debugger = null;
                 debug2.stop(false);
@@ -291,8 +315,8 @@ public abstract class QuorumAction implements Action {
                 watcher.running = false;
                 watcher.cancelled = true;
             }
-            
-            if(flush) {
+
+            if (flush) {
                 watcher.flush();
             }
             if (process != null) {

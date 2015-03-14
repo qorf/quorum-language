@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Properties;
 import javax.swing.JComponent;
@@ -18,6 +19,8 @@ import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.spi.project.ui.CustomizerProvider;
 import org.netbeans.spi.project.ui.support.ProjectCustomizer;
+import org.openide.filesystems.FileUtil;
+import org.quorum.support.Utility;
 
 /**
  *
@@ -114,6 +117,12 @@ public class QuorumCustomizer implements CustomizerProvider{
             } else {
                 properties.remove(QuorumProject.QUORUM_EXECUTABLE_NAME);
             }
+            
+            String plugins = properties.getProperty(QuorumProject.ADDITIONAL_PLUGIN_FOLDERS);
+            ((QuorumProject) project).resetPluginFolder(plugins);
+            
+            String jars = properties.getProperty(QuorumProject.ADDITIONAL_JARS);
+            ((QuorumProject) project).resetJars(jars);
         }
 
         @Override

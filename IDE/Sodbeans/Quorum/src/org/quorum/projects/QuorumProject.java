@@ -193,20 +193,22 @@ public class QuorumProject implements Project {
             mainFileProvider.setMainFile(mainFile);
         }
         
-        File directory = FileUtil.toFile(this.getProjectDirectory());
         String plugins = properties.getProperty(QuorumProject.ADDITIONAL_PLUGIN_FOLDERS);
-        if(plugins != null) {
-            compiler.EmptyAdditionalPluginFolders();
-            String[] split = plugins.split(";");
-            for(int i = 0; i < split.length; i++) {
-                String val = split[i];
-                File path = Utility.computeRelativePath(directory, val);
-                
-                quorum.Libraries.System.File toQuorumFile = Utility.toQuorumFile(path);
-                compiler.AddPluginFolder(toQuorumFile);
-            }
-        }
+        resetPluginFolder(plugins);
+        
         String jars = properties.getProperty(QuorumProject.ADDITIONAL_JARS);
+        resetJars(jars);
+        
+        String name = properties.getProperty(QuorumProject.QUORUM_EXECUTABLE_NAME);
+        if(name != null) {
+            compiler.SetName(name);
+        }
+        
+        return properties;
+    }
+    
+    public void resetJars(String jars) {
+        File directory = FileUtil.toFile(this.getProjectDirectory());
         if(jars != null) {
             compiler.EmptyAdditionalJars();
             String[] split = jars.split(";");
@@ -218,15 +220,21 @@ public class QuorumProject implements Project {
                 compiler.AddJar(toQuorumFile);
             }
         }
-        
-        String name = properties.getProperty(QuorumProject.QUORUM_EXECUTABLE_NAME);
-        if(name != null) {
-            compiler.SetName(name);
-        }
-        
-        return properties;
     }
-    
+    public void resetPluginFolder(String plugins) {
+        File directory = FileUtil.toFile(this.getProjectDirectory());
+        if(plugins != null) {
+            compiler.EmptyAdditionalPluginFolders();
+            String[] split = plugins.split(";");
+            for(int i = 0; i < split.length; i++) {
+                String val = split[i];
+                File path = Utility.computeRelativePath(directory, val);
+                
+                quorum.Libraries.System.File toQuorumFile = Utility.toQuorumFile(path);
+                compiler.AddPluginFolder(toQuorumFile);
+            }
+        }
+    }
     /**
      * @return the debug
      */

@@ -7,6 +7,8 @@ package org.quorum.actions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import org.netbeans.api.progress.ProgressHandle;
+import org.netbeans.api.progress.ProgressHandleFactory;
 import org.quorum.projects.QuorumProject;
 
 /**
@@ -29,7 +31,13 @@ public class Clean extends QuorumAction implements ActionListener{
     private class QuorumCleaner implements Runnable {
         @Override
         public void run() {
+            ProcessCancel cancel = new ProcessCancel();
+            String taskName = project.getProjectDirectory().getName() + " (clean)";
+
+            final ProgressHandle progress = ProgressHandleFactory.createHandle(taskName, cancel);
+            progress.start();
             clean();
+            progress.finish();
         }
     }
     
