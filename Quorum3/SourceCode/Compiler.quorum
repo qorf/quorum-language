@@ -585,7 +585,7 @@ class Compiler
         parser:SetTypeChecker(types)
         parser:SetFile(loc)
 
-        ParseNative(loc, parser)
+        ParseNative(source, parser)
 
         CompilerResult result
         result:compilerErrorManager = errors
