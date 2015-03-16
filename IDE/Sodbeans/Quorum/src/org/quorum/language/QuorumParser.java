@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.api.project.ui.OpenProjects;
-import org.netbeans.api.project.ui.ProjectGroup;
 import org.netbeans.modules.csl.api.Severity;
 import org.netbeans.modules.parsing.api.Snapshot;
 import org.netbeans.modules.parsing.api.Task;
@@ -21,10 +19,13 @@ import org.netbeans.modules.parsing.spi.SourceModificationEvent;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
+import org.quorum.projects.QuorumProject;
+import org.quorum.support.Utility;
+import quorum.Libraries.Containers.Array$Interface;
 import quorum.Libraries.Containers.Blueprints.Iterator$Interface;
 import quorum.Libraries.Language.Compile.CompilerErrorManager$Interface;
-import quorum.Libraries.Language.Object$Interface;
 import quorum.Libraries.Language.Compile.CompilerError$Interface;
+import quorum.Libraries.Language.Compile.CompilerResult$Interface;
 /**
  *
  * @author stefika
@@ -34,6 +35,8 @@ public class QuorumParser extends Parser{
     Task task;
     SourceModificationEvent sme;
     private ArrayList<QuorumError> fileErrors = new ArrayList<QuorumError>();
+    quorum.Libraries.Language.Compile.ProjectInformation info = new quorum.Libraries.Language.Compile.ProjectInformation();
+    
     @Override
     public void parse(Snapshot snapshot, Task task, SourceModificationEvent sme) throws ParseException {
         this.snapshot = snapshot;
@@ -64,40 +67,43 @@ public class QuorumParser extends Parser{
                     String workingPath = working.getAbsolutePath();
                     String finalPath = absp.substring(workingPath.length());
                     quorumFile.SetWorkingDirectory(workingPath);
-                    
-                    
                     quorumFile.SetPath(finalPath);
-                   
-                    String totalPath = quorumFile.GetAbsolutePath();
-//                    compiler.ParseSingle(string, quorumFile);
-//                    fileErrors.clear();
-//                    
-//                    CompilerErrorManager$Interface errors = compiler.GetCompilerErrorManager();
-//                    Iterator$Interface it = errors.GetIterator();
-//                    while(it.HasNext()) {
-//                        CompilerError$Interface next = (CompilerError$Interface) it.Next();
-//                        String displayName = next.GetDisplayName();
-//                        String description = next.GetErrorMessage();
-//                        String key = next.GetDisplayName();
-//                        String path = next.GetAbsolutePath();
-//                        File file = new File(path);
-//                        FileObject fo2 = FileUtil.toFileObject(file);
-//                        int start = next.GetIndex();
-//                        int end = next.GetIndexEnd();
-//                        Severity severity = Severity.ERROR;
-//                        QuorumError error = new QuorumError(displayName, description, key, fo2, start, end, severity);
-//                        fileErrors.add(error);
-//                        
-//                    }
+                    
+                    FileObject projectDirectory = project.getProjectDirectory();
+                    File directory = FileUtil.toFile(projectDirectory);
+                    File file = new File(directory.getAbsolutePath() + "/" + QuorumProject.SOURCES_DIR);
+                    quorum.Libraries.System.File sourceFolder = Utility.toQuorumFile(file);
+                    Array$Interface listing = sourceFolder.GetDirectoryListing();
+                    
+                    info.Set$Libraries$Language$Compile$ProjectInformation$source(string);
+                    info.Set$Libraries$Language$Compile$ProjectInformation$sourceLocation(quorumFile);
+                    info.Set$Libraries$Language$Compile$ProjectInformation$projectFiles(listing);
+                    CompilerResult$Interface result = compiler.ParseRepeat(info);
+                    
+                    CompilerErrorManager$Interface errors = result.Get$Libraries$Language$Compile$CompilerResult$compilerErrorManager();
+                    if(errors.IsCompilationErrorFree()) {
+                        fileErrors.clear();
+                    } else {
+                        Iterator$Interface it = errors.GetIterator();
+                        while(it.HasNext()) {
+                            CompilerError$Interface next = (CompilerError$Interface) it.Next();
+                            String displayName = next.GetDisplayName();
+                            String description = next.GetErrorMessage();
+                            String key = next.GetDisplayName();
+                            String path = next.GetAbsolutePath();
+                            File file2 = new File(path);
+                            FileObject fo2 = FileUtil.toFileObject(file2);
+                            int start = next.GetIndex();
+                            int end = next.GetIndexEnd();
+                            Severity severity = Severity.ERROR;
+                            QuorumError error = new QuorumError(displayName, description, key, fo2, start, end, severity);
+                            fileErrors.add(error);
+                        }
+                    }
                 } catch (RuntimeException exc) {
                     exc.printStackTrace();
                 }
-                
-                int a = 5;
             }
-            
-            //if this object is not null, 
-            
         }
     }
 
