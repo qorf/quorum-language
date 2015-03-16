@@ -16,7 +16,6 @@ import quorum.Libraries.Language.Compile.Context.*;
 import quorum.Libraries.Language.Compile.QualifiedName;
 import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
 import quorum.Libraries.Language.Compile.Symbol.Type;
-import quorum.Libraries.Language.Compile.Symbol.Type$Interface;
 import quorum.Libraries.Language.Compile.Symbol.Variable;
 import quorum.Libraries.Language.Types.Text;
 import quorum.Libraries.System.File$Interface;
@@ -952,8 +951,9 @@ public class JavaToQuorumListener implements QuorumListener {
         if(stop != null) {
             location.SetLineNumberEnd(stop.getLine());
             location.SetColumnNumberEnd(stop.getCharPositionInLine());
-            location.SetIndex(stop.getStartIndex());
+            location.SetIndexEnd(stop.getStopIndex());
         }
+        
         location.SetFile(file);
     }
 
