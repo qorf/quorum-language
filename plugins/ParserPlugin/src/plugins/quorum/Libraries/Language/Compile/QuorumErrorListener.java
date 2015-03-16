@@ -13,6 +13,7 @@ import org.antlr.v4.runtime.LexerNoViableAltException;
 import org.antlr.v4.runtime.NoViableAltException;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.Token;
 import quorum.Libraries.Language.Compile.CompilerError;
 import quorum.Libraries.Language.Compile.CompilerErrorType;
 import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
@@ -65,6 +66,13 @@ public class QuorumErrorListener extends BaseErrorListener{
         error.SetColumnNumber(charPositionInLine);
         CompilerErrorType type = new CompilerErrorType();
         
+        Token offense = rec.getOffendingToken();
+        if(offense != null) {
+            error.SetIndex(offense.getStartIndex());
+            error.SetIndexEnd(offense.getStopIndex());
+        } else {
+        }
+        
         //keep this in for now. We may do more with it later.
         if(rec != null) {
             if(rec instanceof FailedPredicateException) {
@@ -73,6 +81,16 @@ public class QuorumErrorListener extends BaseErrorListener{
                 type.SetCurrentType(type.INPUT_MISMATCH);
             } else if(rec instanceof LexerNoViableAltException) {
                 type.SetCurrentType(type.LEXER_NO_VIABLE_ALTERNATIVE);
+                LexerNoViableAltException lex = (LexerNoViableAltException) rec;
+                error.SetIndex(lex.getStartIndex());
+                
+                if(offendingSymbol != null && offendingSymbol instanceof String) {
+                    String str = (String) offendingSymbol;
+                    int length = str.length();
+                    error.SetIndexEnd(lex.getStartIndex() + length);
+                } else {
+                    error.SetIndexEnd(lex.getStartIndex());
+                }
             } else if(rec instanceof NoViableAltException) {
                 type.SetCurrentType(type.PARSER_NO_VIABLE_ALTERNATIVE);
             } else {
