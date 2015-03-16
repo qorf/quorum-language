@@ -1938,9 +1938,6 @@ class QuorumBytecodeListener is QuorumSourceListener
             actionCall:SetIsActionCall(false)
             name = context:name
 
-            if name = "dog"
-                a = 5
-            end
             Variable variable = undefined
 
             Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
