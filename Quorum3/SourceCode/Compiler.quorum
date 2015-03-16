@@ -41,6 +41,7 @@ class Compiler
     CompilerProfiler profiler
     Array<File> additionalPluginFolders
     Array<File> additionalJarFiles
+    boolean hasBeenCompiled = false
     
     action HasSpeechCallInCompile returns boolean
         return containsSpeechCommandInCompile
@@ -107,6 +108,7 @@ class Compiler
         Build.
     */
     action Compile(Array<File> files)
+        hasBeenCompiled = true
         DateTime time
         profiler:Empty()
         profiler:Add(time:GetEpochTime())
@@ -461,19 +463,21 @@ class Compiler
             text path = file:GetAbsolutePath()
             path = path:GetSubtext(pluginPath:GetSize())
             text wd = file:GetAbsolutePath()
+            boolean finished = true
 
             //if there's a slash at the end of the path, ignore it.
             if pluginPath:GetCharacter(pluginPath:GetSize() - 1) = "/"
                 wd = wd:GetSubtext(0, pluginPath:GetSize() - 1)
-            else
+                finished = false
+            end
+
+            if finished
                 wd = wd:GetSubtext(0, pluginPath:GetSize())
             end
 
             File f
             f:SetWorkingDirectory(wd)
             f:SetPath(path)
-            
-            //TODO: Optimize this to reduce the amount of copying that goes on
             generator:Add(f)
         end
     end
@@ -551,6 +555,41 @@ class Compiler
         error:SetColumnNumber(1)
         error:SetColumnNumberEnd(1)
         compilerErrorManager:Add(error)
+    end
+
+    /*
+        This action calls the parsing commands regularly, for example from
+        within in an IDE, in a specialized way. Specifically, it first tries
+        to parse the text passed in. The single file passed in is the file
+        to be parsed, usually stored in memory (not disk). The file location
+        of this text is the location on disk, but its current contents may
+        not be written, so this should be used as a key, not a store.
+    */
+    action ParseRepeat(ProjectInformation information) returns CompilerResult
+        text source = information:source
+        Array<File> files = information:projectFiles
+        if not hasBeenCompiled
+            Compile(files)
+        end
+
+        Parser parser
+        
+        //sandboxed values
+        SymbolTable table
+        CompilerErrorManager errors
+        TypeChecker types
+        File loc = information:sourceLocation
+        
+        parser:SetSymbolTable(table)
+        parser:SetCompilerErrorManager(errors)
+        parser:SetTypeChecker(types)
+        parser:SetFile(loc)
+
+        ParseNative(loc, parser)
+
+        CompilerResult result
+        result:compilerErrorManager = errors
+        return result
     end
 
     /*

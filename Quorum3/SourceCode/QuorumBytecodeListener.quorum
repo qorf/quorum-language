@@ -68,11 +68,9 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     private action HasErrors returns boolean
         CompilerErrorManager manager = GetCompilerErrorManager()
-        key = currentClass:GetStaticKey()
+        File file = currentClass:GetFile()
+        key = file:GetAbsolutePath()
 
-        if key = "Libraries.Games.Graphics.Sprite" and not manager:IsCompilationErrorFree()
-            a = 5
-        end
         if manager:HasErrorsAtKey(key)
             return true
         end
@@ -1939,6 +1937,10 @@ class QuorumBytecodeListener is QuorumSourceListener
         else //push the variable
             actionCall:SetIsActionCall(false)
             name = context:name
+
+            if name = "dog"
+                a = 5
+            end
             Variable variable = undefined
 
             Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
