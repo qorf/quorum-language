@@ -583,6 +583,10 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitLoopStatement(LoopContext context) 
+
+        if currentClass:GetName() = "AverageOfFiveNumbers"
+            a = 5
+        end
         if HasErrors() 
             return now
         end
@@ -2006,6 +2010,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                     error:SetErrorMessage("I could not locate the variable named " + name)
                     CompilerErrorType errorType
                     errorType:SetCurrentType(errorType:MISSING_VARIABLE)
+                    error:SetFile(GetFile())
                     error:SetCompilerErrorType(errorType)
                     CompilerErrorManager manager = GetCompilerErrorManager()
                     manager:Add(error)
@@ -2037,6 +2042,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                             CompilerErrorType errorType
                             errorType:SetCurrentType(errorType:OTHER)
                             error:SetCompilerErrorType(errorType)
+                            error:SetFile(GetFile())
                             CompilerErrorManager manager = GetCompilerErrorManager()
                             manager:Add(error)
                             return now
@@ -2056,6 +2062,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                         CompilerErrorType errorType
                         errorType:SetCurrentType(errorType:MISSING_CLASS)
                         error:SetCompilerErrorType(errorType)
+                        error:SetFile(GetFile())
                         CompilerErrorManager manager = GetCompilerErrorManager()
                         manager:Add(error)
                         return now
@@ -2471,6 +2478,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             error:SetErrorMessage("To use input, you can either pass nothing at all, text, or the value undefined.")
             CompilerErrorType t
             t:SetCurrentType(t:INCOMPATIBLE_TYPES)
+            error:SetFile(GetFile())
             error:SetCompilerErrorType(t)
             CompilerErrorManager manager = GetCompilerErrorManager()
             manager:Add(error)

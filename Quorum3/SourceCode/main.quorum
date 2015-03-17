@@ -26,12 +26,52 @@ class Main is WebResponder
 
     action Main
         ProcessConsoleFlags()
+        //CompileRepeatTest()
         //ProfileTest()
         //ProfileWeb()
         //CompileHardcodedFile()
         //CompileCompiler()
         //CompileSingleTest()
         //CompileGameEngine()
+    end
+
+    action CompileRepeatTest
+        Compiler compiler
+        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
+        compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        output compiler:GetVersion()
+        File root
+        root:SetPath("Output")
+        compiler:SetOutputFolder(root)
+        File main
+        main:SetPath("Library/Tests/Actions/Pass/AverageOfFiveNumbers.quorum")
+
+        Array<File> files
+
+        files:Add(main)
+
+        compiler:SetOutputSpeech(false) //don't speak while in test mode
+        //compiler:SetOutputType(compiler:JAVASCRIPT)
+        compiler:SetMain(main)
+        
+        ProjectInformation info
+        info:projectFiles = files
+        info:sourceLocation = main
+        info:source = main:Read()
+
+        repeat 10 times
+            CompilerResult result = compiler:ParseRepeat(info)
+
+            CompilerErrorManager manager = result:compilerErrorManager
+            if manager:IsCompilationErrorFree()
+                output "Build Successful in " + result:time + " seconds."
+                if compiler:GetOutputType() = compiler:JAVASCRIPT
+                    output compiler:GetCompiledJavaScript()
+                end
+            else
+                output "Compiler Error Found in " + result:time + " seconds."
+            end
+        end
     end
 
     action CompileGameEngine

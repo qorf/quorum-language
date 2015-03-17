@@ -102,6 +102,134 @@ class Compiler
     end
 
     /*
+        This action calls the parsing commands regularly, for example from
+        within in an IDE, in a specialized way. Specifically, it first tries
+        to parse the text passed in. The single file passed in is the file
+        to be parsed, usually stored in memory (not disk). The file location
+        of this text is the location on disk, but its current contents may
+        not be written, so this should be used as a key, not a store.
+    */
+    action ParseRepeat(ProjectInformation information) returns CompilerResult
+        CompilerProfiler sandboxedProfiler
+        SymbolTable table
+        CompilerErrorManager errors
+        TypeChecker types
+
+        CompilerResult result
+        result:compilerErrorManager = errors
+
+        DateTime time
+        start = time:GetEpochTime()
+        sandboxedProfiler:Add(time:GetEpochTime())
+
+        text source = information:source
+        File loc = information:sourceLocation
+        text locPath = loc:GetAbsolutePath()
+        Array<File> files = information:projectFiles
+
+        boolean isInvalidCompile = false
+        if files = undefined
+            isInvalidCompile = true
+        elseif files:IsEmpty()
+            isInvalidCompile = true
+        end
+
+        if isInvalidCompile
+            CompilerError error
+            text message = ""
+            if files = undefined
+                message = "I cannot compile an array of files that is passed to me undefined"
+            elseif files:IsEmpty()
+                message = "I cannot compile an arry of files that is empty. Please specify which files you would like compiled."
+            end
+            error:SetErrorMessage(message)
+            CompilerErrorType t
+            t:SetCurrentType(t:MISSING_FILE)
+            error:SetCompilerErrorType(t)
+            error:SetLineNumber(1)
+            error:SetLineNumberEnd(1)
+            error:SetColumnNumber(1)
+            error:SetColumnNumberEnd(1)
+            compilerErrorManager:Add(error)
+            return result
+        end
+
+        text null = undefined
+        i = 0
+        repeat while i < files:GetSize()
+            File file = files:Get(i)
+            Parser listener
+            if file:GetAbsolutePath() = locPath
+                ParseSandbox(source, listener, table, errors, types, file)
+            else 
+                ParseSandbox(null, listener, table, errors, types, file)
+            end
+
+            i = i + 1
+        end
+        sandboxedProfiler:Add(time:GetEpochTime())
+
+        //This array will contain all files that must be built, 
+        //including potentially some from the standard library
+        //in order to build the requested files
+        Array<File> allFiles = undefined
+        if compilerErrorManager:IsCompilationErrorFree()
+            allFiles = GetAllRequiredFiles(table, types, errors)
+        else 
+            return result
+        end
+        sandboxedProfiler:Add(time:GetEpochTime())
+
+        if compilerErrorManager:IsCompilationErrorFree()
+            TypeResolution(table, types, errors)
+        else 
+            return result
+        end
+        sandboxedProfiler:Add(time:GetEpochTime())
+
+        Array<ClassOpcode> classOpcodes
+        if compilerErrorManager:IsCompilationErrorFree()
+            i = 0
+            repeat while i < allFiles:GetSize()
+                File file = allFiles:Get(i)
+                QuorumBytecodeListener listener
+
+                if file:GetAbsolutePath() = locPath
+                    ParseSandbox(source, listener, table, errors, types, file)
+                else 
+                    ParseSandbox(null, listener, table, errors, types, file)
+                end
+
+                i = i + 1
+            end
+        else 
+            return result
+        end
+        sandboxedProfiler:Add(time:GetEpochTime()) 
+        
+        DateTime time2
+        finish = time2:GetEpochTime()
+        total = (finish - start) / 1000.0
+        result:time = total
+        return result
+    end
+
+    private action ParseSandbox(text source, QuorumSourceListener listener, SymbolTable table, CompilerErrorManager errors,
+        TypeChecker types, File loc)
+        listener:SetSymbolTable(table)
+        listener:SetCompilerErrorManager(errors)
+        listener:SetTypeChecker(types)
+        listener:SetFile(loc)
+
+        if not (source = undefined)
+            ParseNative(source, listener)
+        else 
+            ParseNative(loc, listener)
+        end
+        
+    end
+    
+    /*
         This action compiles the array of files to Java Bytecode, which
         it writes to disk. By default, it generates a .jar file into the 
         folder named Run and the class files into the folder labeled
@@ -153,14 +281,14 @@ class Compiler
         //in order to build the requested files
         Array<File> allFiles = undefined
         if compilerErrorManager:IsCompilationErrorFree()
-            allFiles = GetAllRequiredFiles()
+            allFiles = GetAllRequiredFiles(symbolTable, checker, compilerErrorManager)
         else 
             return now
         end
         profiler:Add(time:GetEpochTime())
 
         if compilerErrorManager:IsCompilationErrorFree()
-            TypeResolution()
+            TypeResolution(symbolTable, checker, compilerErrorManager)
         else 
             return now
         end
@@ -558,41 +686,6 @@ class Compiler
     end
 
     /*
-        This action calls the parsing commands regularly, for example from
-        within in an IDE, in a specialized way. Specifically, it first tries
-        to parse the text passed in. The single file passed in is the file
-        to be parsed, usually stored in memory (not disk). The file location
-        of this text is the location on disk, but its current contents may
-        not be written, so this should be used as a key, not a store.
-    */
-    action ParseRepeat(ProjectInformation information) returns CompilerResult
-        text source = information:source
-        Array<File> files = information:projectFiles
-        if not hasBeenCompiled
-            Compile(files)
-        end
-
-        Parser parser
-        
-        //sandboxed values
-        SymbolTable table
-        CompilerErrorManager errors
-        TypeChecker types
-        File loc = information:sourceLocation
-        
-        parser:SetSymbolTable(table)
-        parser:SetCompilerErrorManager(errors)
-        parser:SetTypeChecker(types)
-        parser:SetFile(loc)
-
-        ParseNative(source, parser)
-
-        CompilerResult result
-        result:compilerErrorManager = errors
-        return result
-    end
-
-    /*
         This action parses a single source file at a particular location
     */ 
     action ParseSingle(text source, File file)
@@ -606,13 +699,13 @@ class Compiler
         //in order to build the requested files
         Array<File> allFiles = undefined
         if compilerErrorManager:IsCompilationErrorFree()
-            allFiles = GetAllRequiredFiles()
+            allFiles = GetAllRequiredFiles(symbolTable, checker, compilerErrorManager)
         else 
             return now
         end
 
         if compilerErrorManager:IsCompilationErrorFree()
-            TypeResolution()
+            TypeResolution(symbolTable, checker, compilerErrorManager)
         else 
             return now
         end
@@ -632,13 +725,13 @@ class Compiler
         //in order to build the requested files
         Array<File> allFiles = undefined
         if compilerErrorManager:IsCompilationErrorFree()
-            allFiles = GetAllRequiredFiles()
+            allFiles = GetAllRequiredFiles(symbolTable, checker, compilerErrorManager)
         else 
             return now
         end
 
         if compilerErrorManager:IsCompilationErrorFree()
-            TypeResolution()
+            TypeResolution(symbolTable, checker, compilerErrorManager)
         else 
             return now
         end
@@ -714,36 +807,31 @@ class Compiler
         return convertedJavaScript
     end
 
-    action TypeResolution
-        Iterator<Class> classes = symbolTable:GetClasses()
+    action TypeResolution(SymbolTable table, TypeChecker types, CompilerErrorManager errors)
+        Iterator<Class> classes = table:GetClasses()
         repeat while classes:HasNext()
             Class next = classes:Next()
-
-            next:ResolveUseStatements(symbolTable, compilerErrorManager)
+            next:ResolveUseStatements(table, errors)
         end
 
-        classes = symbolTable:GetClasses()
+        classes = table:GetClasses()
         repeat while classes:HasNext()
             Class next = classes:Next()
 
             //because of the way the parent flattening algorithm works,
             //classes may already be resolved
             if not next:IsResolved()
-                next:ResolveAllTypes(symbolTable, compilerErrorManager)
+                next:ResolveAllTypes(table, errors)
             end
         end
 
-        classes = symbolTable:GetClasses()
+        classes = table:GetClasses()
         repeat while classes:HasNext()
             Class next = classes:Next()
-            next:ComputeVirtualActionTable(compilerErrorManager)
-
-            if next:GetName() = "D"
-                a = 5
-            end
-            next:ComputeGenericsTables(compilerErrorManager)
-            next:ValidateGenerics(compilerErrorManager)
-            checker:Add(next)
+            next:ComputeVirtualActionTable(errors)
+            next:ComputeGenericsTables(errors)
+            next:ValidateGenerics(errors)
+            types:Add(next)
         end
     end
 
@@ -785,13 +873,13 @@ class Compiler
         This action is called after the parsing phase, returning an array
         of all files were required for building the project.
     */
-    action GetAllRequiredFiles returns Array<File>
+    action GetAllRequiredFiles(SymbolTable table, TypeChecker types, CompilerErrorManager errors) returns Array<File>
         Array<File> files
 
         HashTable<text, File> parsed
         HashTable<text, File> unparsed
 
-        Iterator<Class> classes = symbolTable:GetClasses()
+        Iterator<Class> classes = table:GetClasses()
         repeat while classes:HasNext()
             //gather up all the classes on the system and check their
             //use statements for classes we don't know about
@@ -804,12 +892,12 @@ class Compiler
                     parsed:Add(path, clazz:GetFile())
                 end
                 Iterator<QualifiedName> names = clazz:GetUnresolvedUseStatements()
-                ResolveQualifiedNames(names, parsed, unparsed, clazz)
+                ResolveQualifiedNames(table, names, parsed, unparsed, clazz)
 
                 Iterator<QualifiedName> parents = clazz:GetUnresolvedParents()
-                ResolveParents(parents, parsed, unparsed, clazz)
+                ResolveParents(table, parents, parsed, unparsed, clazz)
 
-                ResolveBlocks(parsed, unparsed, clazz)
+                ResolveBlocks(table, parsed, unparsed, clazz)
             end
 
             //make list of any new classes that need to be analyzed
@@ -820,7 +908,8 @@ class Compiler
             repeat while mustParse:HasNext()
                 File next = mustParse:Next()
                 Parser listener
-                Parse(next, listener)
+                text null = undefined
+                ParseSandbox(null, listener, table, errors, types, next)
                 parsed:Add(next:GetAbsolutePath(), next)
 
                 Iterator<Class> parsedClasses = listener:GetClassesIterator()
@@ -838,7 +927,7 @@ class Compiler
         return parsed:CopyToValueArray()
     end
 
-    private action ResolveBlocks(HashTable<text, File> parsed,
+    private action ResolveBlocks(SymbolTable table, HashTable<text, File> parsed,
         HashTable<text, File> unparsed, Class clazz)
         
         Iterator<Action> actions = clazz:GetActions()
@@ -849,7 +938,7 @@ class Compiler
             repeat while parameters:HasNext()
                 Variable parameter = parameters:Next()
                 Type type = parameter:GetType()
-                ResolveClass(type:GetStaticKey(), clazz, parsed, unparsed)
+                ResolveClass(table, type:GetStaticKey(), clazz, parsed, unparsed)
             end
         end
     end
@@ -862,7 +951,7 @@ class Compiler
         it is in the standard library and has not yet been parsed. As such,
         returning undefined is not necessarily a compiler error.
     */
-    private action ResolveClass(text key, Class clazz, HashTable<text, File> parsed,
+    private action ResolveClass(SymbolTable table, text key, Class clazz, HashTable<text, File> parsed,
         HashTable<text, File> unparsed)
         boolean done = false
         Class c = undefined
@@ -877,7 +966,7 @@ class Compiler
 
         //first check if it's already valid by looking at the symbol
         //table
-        c = symbolTable:GetClass(key)
+        c = table:GetClass(key)
 
         //if it isn't there, check our use table
         if c = undefined
@@ -914,17 +1003,18 @@ class Compiler
         end
     end
 
-    private action ResolveParents(Iterator<QualifiedName> names, 
+    private action ResolveParents(SymbolTable table, Iterator<QualifiedName> names, 
             HashTable<text, File> parsed,
             HashTable<text, File> unparsed, Class clazz)
         repeat while names:HasNext()
             QualifiedName qn = names:Next()
             text key = qn:GetStaticKey()
-            ResolveClass(key, clazz, parsed, unparsed)
+            ResolveClass(table, key, clazz, parsed, unparsed)
         end
     end
 
     private action ResolveQualifiedNames(
+            SymbolTable table, 
             Iterator<QualifiedName> names, 
             HashTable<text, File> parsed,
             HashTable<text, File> unparsed, Class clazz)
@@ -934,7 +1024,7 @@ class Compiler
                 ResolveAllClassesInContainer(qn, parsed, unparsed, clazz)
             else
                 text key = qn:GetStaticKey()
-                ResolveClass(key, clazz, parsed, unparsed)
+                ResolveClass(table, key, clazz, parsed, unparsed)
             end
         end
     end
