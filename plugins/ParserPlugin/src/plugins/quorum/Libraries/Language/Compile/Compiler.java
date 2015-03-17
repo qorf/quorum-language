@@ -78,6 +78,8 @@ public class Compiler {
         JavaToQuorumListener javaToQuorumListener = new JavaToQuorumListener();
         QuorumErrorListener javaToQuorumErrorListener = new QuorumErrorListener();
         javaToQuorumListener.setListener(listener);
+        javaToQuorumListener.setFile(listener.GetFile());
+        javaToQuorumErrorListener.setFile(listener.GetFile());
         javaToQuorumErrorListener.setListener(listener);
             
         ANTLRInputStream stream = new ANTLRInputStream(source);
