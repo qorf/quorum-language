@@ -66,15 +66,14 @@ public class QuorumErrorListener extends BaseErrorListener{
         error.SetColumnNumber(charPositionInLine);
         CompilerErrorType type = new CompilerErrorType();
         
-        Token offense = rec.getOffendingToken();
-        if(offense != null) {
-            error.SetIndex(offense.getStartIndex());
-            error.SetIndexEnd(offense.getStopIndex());
-        } else {
-        }
-        
         //keep this in for now. We may do more with it later.
         if(rec != null) {
+            Token offense = rec.getOffendingToken();
+            if(offense != null) {
+                error.SetIndex(offense.getStartIndex());
+                error.SetIndexEnd(offense.getStopIndex());
+            }
+            
             if(rec instanceof FailedPredicateException) {
                 type.SetCurrentType(type.FAILED_PREDICATE);
             } else if(rec instanceof InputMismatchException) {
