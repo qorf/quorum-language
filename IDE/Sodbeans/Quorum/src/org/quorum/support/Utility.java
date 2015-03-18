@@ -38,6 +38,17 @@ public class Utility {
     }
     
     /**
+     * Returns a NetBeans FileObject from a quorum file.
+     * 
+     * @param file
+     * @return 
+     */
+    public static FileObject toFileObject(quorum.Libraries.System.File$Interface file) {
+        java.io.File f = new java.io.File(file.GetAbsolutePath());
+        return FileUtil.toFileObject(f);
+    }
+    
+    /**
      * Computes a relative path, val, compared to an absolute file, file.
      * @param file
      * @param val

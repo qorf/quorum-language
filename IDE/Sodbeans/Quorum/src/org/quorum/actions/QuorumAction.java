@@ -22,8 +22,11 @@ import java.util.HashMap;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
 import org.netbeans.api.progress.ProgressHandle;
+import org.openide.cookies.SaveCookie;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import org.openide.loaders.DataObject;
+import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.Cancellable;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
@@ -32,7 +35,9 @@ import org.quorum.debugger.QuorumDebugger;
 import org.quorum.projects.QuorumProject;
 import org.quorum.windows.CompilerErrorTopComponent;
 import quorum.Libraries.Containers.Array$Interface;
+import quorum.Libraries.Containers.Blueprints.Iterator$Interface;
 import quorum.Libraries.Language.Compile.CompilerErrorManager$Interface;
+import quorum.Libraries.Language.Object$Interface;
 
 /**
  *
@@ -84,6 +89,28 @@ public abstract class QuorumAction implements Action {
         File file = new File(directory.getAbsolutePath() + "/" + QuorumProject.SOURCES_DIR);
         quorum.Libraries.System.File quorumFile = getQuorumFile(file);
         Array$Interface listing = quorumFile.GetDirectoryListing();
+        
+        
+        Iterator$Interface it = listing.GetIterator();
+        while(it.HasNext()) {
+            quorum.Libraries.System.File$Interface next = (quorum.Libraries.System.File$Interface) it.Next();
+            FileObject fo = org.quorum.support.Utility.toFileObject(next);
+            try {
+                DataObject dataObj = DataObject.find(fo);
+                if (dataObj != null) {
+                    SaveCookie cookie = dataObj.getLookup().lookup(SaveCookie.class);
+                    if (cookie != null) {
+                        cookie.save();
+                    }
+                }
+            } catch (DataObjectNotFoundException ex) {
+                Exceptions.printStackTrace(ex);
+            } catch (IOException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+        
+        
         compiler.Empty();
         //quorum.Libraries.System.File f = (quorum.Libraries.System.File)listing.Get(0);
         //compiler.SetMain(f);

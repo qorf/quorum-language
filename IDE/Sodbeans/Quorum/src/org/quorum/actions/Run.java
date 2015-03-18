@@ -20,25 +20,20 @@ import org.quorum.projects.QuorumProject;
  * @author stefika
  */
 public class Run extends QuorumAction implements ActionListener {
-    private boolean isRunning = false;
     public Run(QuorumProject project) {
         super(project);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(!isRunning) {
             QuorumRunner runner = new QuorumRunner();
             Thread thread = new Thread(runner);
             thread.start();
-        }
     }
     
     private class QuorumRunner implements Runnable {
-
         @Override
         public void run() {
-            isRunning = true;
             ProcessCancel cancel = new ProcessCancel();
             String taskName = project.getProjectDirectory().getName() + " (run)";
 
@@ -50,7 +45,6 @@ public class Run extends QuorumAction implements ActionListener {
                 progress.finish();
                 return;
             }
-            
 
             // Compute the location of the project's root directory.
             File runDirectory = project.getRunDirectory();
@@ -80,7 +74,6 @@ public class Run extends QuorumAction implements ActionListener {
             } catch (InterruptedException ex) {
                 Exceptions.printStackTrace(ex);
             }
-            isRunning = false;
         }
     }
     @Override
