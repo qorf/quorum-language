@@ -5,6 +5,7 @@
  */
 package org.quorum.language;
 
+import org.netbeans.modules.csl.api.CodeCompletionHandler;
 import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
 import org.netbeans.modules.csl.spi.LanguageRegistration;
 import org.netbeans.modules.parsing.spi.Parser;
@@ -19,7 +20,8 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     QuorumParser parser = new QuorumParser();
     QuorumLanguageHierarchy language = new QuorumLanguageHierarchy();
     org.netbeans.api.lexer.Language lexerLanguage = language.language();
-            
+    QuorumCodeCompletionHandler completion = new QuorumCodeCompletionHandler();
+    
     @Override
     public org.netbeans.api.lexer.Language getLexerLanguage() {
         return null;
@@ -29,6 +31,11 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     @Override
     public Parser getParser() {
         return parser;
+    }
+
+    @Override
+    public CodeCompletionHandler getCompletionHandler() {
+        return completion;
     }
     
     @Override
