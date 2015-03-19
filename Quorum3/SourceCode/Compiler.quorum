@@ -229,6 +229,12 @@ class Compiler
         
     end
     
+    action Request(CodeCompletionRequest request) returns CodeCompletionResult
+        CodeCompletionResult result
+
+        return result
+    end
+
     /*
         This action compiles the array of files to Java Bytecode, which
         it writes to disk. By default, it generates a .jar file into the 
