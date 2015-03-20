@@ -232,9 +232,32 @@ class Compiler
     action Request(CodeCompletionRequest request) returns CodeCompletionResult
         CodeCompletionResult result
 
+        text line = request:line
+        text trimmed = line:Trim()
+
+        text sub = line:GetSubtext(0, request:startOffset)
+        boolean isDot = false
+
+        if sub:GetSize() > 0
+            text index = sub:GetCharacter(sub:GetSize() - 1)
+            if index = "."
+                isDot = true
+            end
+        end
+        
+        boolean isUse = trimmed:StartsWith("use")
+        boolean isPackage = trimmed:StartsWith("package")
+
+        if isUse
+            AddUseResults(request, result, isUse)
+        end
+
         return result
     end
 
+    private action AddUseResults(CodeCompletionRequest request, CodeCompletionResult result, boolean isUse)
+
+    end
     /*
         This action compiles the array of files to Java Bytecode, which
         it writes to disk. By default, it generates a .jar file into the 

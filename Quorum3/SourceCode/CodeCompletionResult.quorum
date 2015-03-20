@@ -1,7 +1,19 @@
 package Libraries.Language.Compile
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
 
 class CodeCompletionResult 
-    action Main
-        
+    List<CodeCompletionItem> items
+
+    action Add(CodeCompletionItem item)
+        items:Add(item)
+    end
+
+    action GetIterator returns Iterator<CodeCompletionItem>
+        return items:GetIterator()
+    end
+
+    action GetSize returns integer
+        return items:GetSize()
     end
 end

@@ -1,7 +1,9 @@
 package Libraries.Language.Compile
 
 class CodeCompletionRequest 
-    action Main
-        
-    end
+    public text fileKey = ""
+    public integer startOffset = 0
+    public integer endOffset = 0
+    public text line = ""
+    public integer lineNumber = 0
 end
