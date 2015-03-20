@@ -84,6 +84,7 @@ public class QuorumParser extends Parser{
                     if(errors.IsCompilationErrorFree()) {
                         fileErrors.clear();
                     } else {
+                        fileErrors.clear();
                         Iterator$Interface it = errors.GetIterator();
                         while(it.HasNext()) {
                             CompilerError$Interface next = (CompilerError$Interface) it.Next();
