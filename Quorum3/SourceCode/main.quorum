@@ -37,34 +37,50 @@ class Main is WebResponder
 
     action CompileRepeatTest
         Compiler compiler
-        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
-        compiler:SetStandardLibraryFolder(standardLibraryFolder)
-        output compiler:GetVersion()
+        output compiler:GetVersion() + ", Compile the compiler."
+        File main
+        main:SetPath("SourceCode")
+
         File root
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
-        File main
-        main:SetPath("Library/Tests/Actions/Pass/AverageOfFiveNumbers.quorum")
+        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
+        compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        Array<File> files = main:GetDirectoryListing()
 
-        Array<File> files
-
-        files:Add(main)
-
-        compiler:SetOutputSpeech(false) //don't speak while in test mode
-        //compiler:SetOutputType(compiler:JAVASCRIPT)
-        compiler:SetMain(main)
+        File actualMain
+        actualMain:SetPath("SourceCode/main.quorum")
+        compiler:SetMain(actualMain)
+        //compiler:Compile(files)
+//        Compiler compiler
+//        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
+//        compiler:SetStandardLibraryFolder(standardLibraryFolder)
+//        output compiler:GetVersion()
+//        File root
+//        root:SetPath("Output")
+//        compiler:SetOutputFolder(root)
+//        File main
+//        main:SetPath("Library/Tests/Actions/Pass/AverageOfFiveNumbers.quorum")
+//
+//        Array<File> files
+//
+//        files:Add(main)
+//
+//        compiler:SetOutputSpeech(false) //don't speak while in test mode
+//        //compiler:SetOutputType(compiler:JAVASCRIPT)
+//        compiler:SetMain(main)
         
         ProjectInformation info
         info:projectFiles = files
-        info:sourceLocation = main
-        info:source = main:Read()
+        info:sourceLocation = actualMain
+        info:source = actualMain:Read()
 
-        repeat 10 times
+        repeat 200 times
             CompilerResult result = compiler:ParseRepeat(info)
 
             CompilerErrorManager manager = result:compilerErrorManager
             if manager:IsCompilationErrorFree()
-                output "Build Successful in " + result:time + " seconds."
+                output result:time
                 if compiler:GetOutputType() = compiler:JAVASCRIPT
                     output compiler:GetCompiledJavaScript()
                 end

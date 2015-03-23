@@ -121,6 +121,7 @@ class Compiler
         CompilerProfiler sandboxedProfiler
         CompilerResult result
         result:compilerErrorManager = sandboxCompilerErrorManager
+        sandboxCompilerErrorManager:Empty()
 
         DateTime time
         start = time:GetEpochTime()
@@ -197,7 +198,19 @@ class Compiler
         sandboxedProfiler:Add(time:GetEpochTime())
 
         if compilerErrorManager:IsCompilationErrorFree()
-            TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
+            if inFile = undefined
+                TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
+            else
+                Class newParse = sandboxSymbolTable:GetClassInFile(locPath)
+                if newParse not= undefined
+                    newParse:ResolveUseStatements(sandboxSymbolTable, sandboxCompilerErrorManager)
+                    newParse:ResolveAllTypes(sandboxSymbolTable, sandboxCompilerErrorManager)
+                    newParse:ComputeVirtualActionTable(sandboxCompilerErrorManager)
+                    newParse:ComputeGenericsTables(sandboxCompilerErrorManager)
+                    newParse:ValidateGenerics(sandboxCompilerErrorManager)
+                    sandboxTypeChecker:Add(newParse)
+                end
+            end
         else 
             return result
         end
@@ -992,6 +1005,16 @@ class Compiler
         HashTable<text, File> unparsed
 
         Iterator<Class> classes = table:GetClasses()
+//        repeat while classes:HasNext()
+//            Class clazz = classes:Next()
+//            File classFile = clazz:GetFile()
+//            text path = classFile:GetAbsolutePath()
+//            if not parsed:HasKey(path)
+//                parsed:Add(path, clazz:GetFile())
+//            end
+//        end
+//
+//        classes = table:GetClasses()
         repeat while classes:HasNext()
             //gather up all the classes on the system and check their
             //use statements for classes we don't know about
@@ -1133,7 +1156,7 @@ class Compiler
         repeat while names:HasNext()
             QualifiedName qn = names:Next()
             if qn:IsAll()
-                ResolveAllClassesInContainer(qn, parsed, unparsed, clazz)
+                ResolveAllClassesInContainer(table, qn, parsed, unparsed, clazz)
             else
                 text key = qn:GetStaticKey()
                 ResolveClass(table, key, clazz, parsed, unparsed)
@@ -1141,7 +1164,8 @@ class Compiler
         end
     end
 
-    private action ResolveAllClassesInContainer(QualifiedName name, 
+    private action ResolveAllClassesInContainer(SymbolTable table,
+            QualifiedName name, 
             HashTable<text, File> parsed,
             HashTable<text, File> unparsed, Class clazz)
         //Get the container name without the "all" at the end
@@ -1156,7 +1180,7 @@ class Compiler
                 File file = it:Next()
                 text path = file:GetAbsolutePath()
                 if not file:IsDirectory() and not parsed:HasKey(path) and not unparsed:HasKey(path)
-                    and file:GetFileExtension() = "quorum"
+                    and file:GetFileExtension() = "quorum" and not table:HasFile(file:GetAbsolutePath())
                     unparsed:Add(path, file)
                 end
             end
