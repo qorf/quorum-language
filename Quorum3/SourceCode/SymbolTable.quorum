@@ -84,6 +84,48 @@ class SymbolTable
     end
 
     /*
+        Returns whether or not the symbol table has a file
+    */
+    action HasFile(text absolutePath) returns boolean
+        return files:HasKey(absolutePath)
+    end
+
+    /*
+        Removes a file, and any associated classes, from the system.
+    */
+    action RemoveFile(text absolutePath)
+        Class inFile = GetClassInFile(absolutePath)
+        if inFile not= undefined
+            RemoveClass(inFile:GetStaticKey())
+        end
+    end
+
+    /*
+        Removes a class with a static key from the symbol table.
+    */
+    action RemoveClass(text key)
+        if classes:HasKey(key)
+            Class current = classes:GetValue(key)
+            classes:RemoveKey(key)
+
+            File f = current:GetFile()
+            if f not= undefined
+                text path = f:GetAbsolutePath()
+                files:RemoveKey(path)
+            end
+            
+            text packageName = current:GetPackageKey()
+            HashTable<text, Class> classesInPackage = packages:GetValue(packageName)
+            if classesInPackage not= undefined
+                if classesInPackage:HasKey(current:GetName())
+                    classesInPackage:RemoveKey(current:GetName())
+                end
+            end
+
+        end
+    end
+
+    /*
         This action returns the first class in the file
         with the designated key.
     */

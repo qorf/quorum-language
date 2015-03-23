@@ -178,7 +178,7 @@ class Main is WebResponder
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
-        main:SetPath("Library/Tests/Actions/Fail/BadVariableInParameter.quorum")
+        main:SetPath("Library/Tests/Use/Pass/GrabAllContainers.quorum")
 
         File class2
         class2:SetPath("Library/Tests/Inheritance/Pass/Test1.quorum")
@@ -204,6 +204,14 @@ class Main is WebResponder
         compiler:SetMain(main)
         //compiler:CompileSingle("a = b")
         compiler:Compile(files)
+
+        CodeCompletionRequest request
+        request:line = "use Libraries.Containers.all"
+        request:lineNumber = 1
+        request:fileKey = main:GetAbsolutePath()
+        request:startOffset = 5
+        CodeCompletionResult result = compiler:Request(request)
+
 
         if compiler:IsCompilationErrorFree()
             output "Build Successful"

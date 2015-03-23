@@ -33,6 +33,12 @@ class Compiler
     SymbolTable symbolTable
     CompilerErrorManager compilerErrorManager
     TypeChecker checker
+
+
+    //Sandbox classes for the parser
+    SymbolTable sandboxSymbolTable
+    CompilerErrorManager sandboxCompilerErrorManager
+    TypeChecker sandboxTypeChecker
     public constant integer JAVA_BYTECODE = 0
     public constant integer JAVASCRIPT = 1
     integer currentOutputType = 0
@@ -42,7 +48,9 @@ class Compiler
     Array<File> additionalPluginFolders
     Array<File> additionalJarFiles
     boolean hasBeenCompiled = false
-    
+    constant text USE = "use"
+    constant text PACKAGE = "package"
+
     action HasSpeechCallInCompile returns boolean
         return containsSpeechCommandInCompile
     end
@@ -111,12 +119,8 @@ class Compiler
     */
     action ParseRepeat(ProjectInformation information) returns CompilerResult
         CompilerProfiler sandboxedProfiler
-        SymbolTable table
-        CompilerErrorManager errors
-        TypeChecker types
-
         CompilerResult result
-        result:compilerErrorManager = errors
+        result:compilerErrorManager = sandboxCompilerErrorManager
 
         DateTime time
         start = time:GetEpochTime()
@@ -125,6 +129,13 @@ class Compiler
         text source = information:source
         File loc = information:sourceLocation
         text locPath = loc:GetAbsolutePath()
+
+        //Check if this class is already in there. If so, remove it
+        Class inFile = sandboxSymbolTable:GetClassInFile(locPath)
+        if inFile not= undefined
+            sandboxSymbolTable:RemoveClass(inFile:GetStaticKey())
+        end
+        
         Array<File> files = information:projectFiles
 
         boolean isInvalidCompile = false
@@ -155,17 +166,22 @@ class Compiler
         end
 
         text null = undefined
-        i = 0
-        repeat while i < files:GetSize()
-            File file = files:Get(i)
-            Parser listener
-            if file:GetAbsolutePath() = locPath
-                ParseSandbox(source, listener, table, errors, types, file)
-            else 
-                ParseSandbox(null, listener, table, errors, types, file)
-            end
 
-            i = i + 1
+        if inFile = undefined
+            i = 0
+            repeat while i < files:GetSize()
+                File file = files:Get(i)
+                Parser listener
+                if file:GetAbsolutePath() = locPath
+                    ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+                else 
+                    ParseSandbox(null, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+                end
+                i = i + 1
+            end
+        else
+            Parser listener
+            ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, loc)
         end
         sandboxedProfiler:Add(time:GetEpochTime())
 
@@ -174,14 +190,14 @@ class Compiler
         //in order to build the requested files
         Array<File> allFiles = undefined
         if compilerErrorManager:IsCompilationErrorFree()
-            allFiles = GetAllRequiredFiles(table, types, errors)
+            allFiles = GetAllRequiredFiles(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
         else 
             return result
         end
         sandboxedProfiler:Add(time:GetEpochTime())
 
         if compilerErrorManager:IsCompilationErrorFree()
-            TypeResolution(table, types, errors)
+            TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
         else 
             return result
         end
@@ -189,18 +205,22 @@ class Compiler
 
         Array<ClassOpcode> classOpcodes
         if compilerErrorManager:IsCompilationErrorFree()
-            i = 0
-            repeat while i < allFiles:GetSize()
-                File file = allFiles:Get(i)
-                QuorumBytecodeListener listener
+            if inFile = undefined
+                i = 0
+                repeat while i < allFiles:GetSize()
+                    File file = allFiles:Get(i)
+                    QuorumBytecodeListener listener
 
-                if file:GetAbsolutePath() = locPath
-                    ParseSandbox(source, listener, table, errors, types, file)
-                else 
-                    ParseSandbox(null, listener, table, errors, types, file)
+                    if file:GetAbsolutePath() = locPath
+                        ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+                    else 
+                        ParseSandbox(null, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+                    end
+                    i = i + 1
                 end
-
-                i = i + 1
+            else
+                QuorumBytecodeListener listener
+                ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, loc)
             end
         else 
             return result
@@ -235,7 +255,7 @@ class Compiler
         text line = request:line
         text trimmed = line:Trim()
 
-        text sub = line:GetSubtext(0, request:startOffset)
+        text sub = line:GetSubtext(0, request:startOffset - 1)
         boolean isDot = false
 
         if sub:GetSize() > 0
@@ -256,7 +276,70 @@ class Compiler
     end
 
     private action AddUseResults(CodeCompletionRequest request, CodeCompletionResult result, boolean isUse)
+        text trim = request:line
+        trim = trim:Trim()
+        if isUse
+            trim = trim:GetSubtext(USE:GetSize())
+        else
+            trim = trim:GetSubtext(PACKAGE:GetSize())
+        end
 
+        trim = trim:Trim()
+        Array<text> values = trim:Split("\.")
+
+        if not values:IsEmpty() and not trim:IsEmpty()
+            if trim:GetCharacter(trim:GetSize() - 1) = "."
+                result:filter = ""
+            else
+                result:filter = values:Get(values:GetSize() - 1)
+            end
+        end
+
+        constant text root = "Libraries"
+        if values:GetSize() = 1
+            text left = values:Get(0)
+            
+
+        end
+
+//        final String root = this.standardLibrary.getStandardLibraryRootName();
+//        if (split.length == 1) {
+//            String left = split[0];
+//            if (left.matches("\\s*") || result.getFilter().length() != 0) {
+//                CodeCompletionItem item = new CodeCompletionItem();
+//                item.setCodeCompletionType(CodeCompletionType.PACKAGE);
+//                item.setCompletion(root);
+//                item.setDisplayName(root);
+//                result.add(item);
+//                addCustomClasses(result, request, root);
+//
+//            } else if (left.equals(root)) {
+//                addSubpackagesAndClasses(result, standardLibrary.getStandardLibraryRootName());
+//                addCustomClasses(result, request, standardLibrary.getStandardLibraryRootName());
+//            }
+//        } 
+
+//        if (split.length > 0 && line.length() != 0) {
+//            if (line.charAt(line.length() - 1) == '.') {
+//                result.setFilter("");
+//            } else {
+//                result.setFilter(split[split.length - 1]);
+//            }
+//        }
+
+        a = 5
+    end
+
+
+    private action IsWhiteSpace(text value) returns boolean
+        i = 0
+        repeat while i < value:GetSize()
+            text val = value:GetCharacter(i)
+
+            return true
+        end
+
+        return true
     end
     /*
         This action compiles the array of files to Java Bytecode, which
