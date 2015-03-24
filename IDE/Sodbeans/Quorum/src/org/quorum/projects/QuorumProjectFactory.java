@@ -45,12 +45,17 @@ public class QuorumProjectFactory implements ProjectFactory2{
 
     @Override
     public boolean isProject(FileObject projectDirectory) {
-        return projectDirectory.getFileObject(PROJECT_DIR) != null;
+        return projectDirectory.getFileObject(PROJECT_DIR  + "/" + PROJECT_PROPFILE) != null;
     }
 
     @Override
     public Project loadProject(FileObject dir, ProjectState state) throws IOException {
-        return isProject (dir) ? new QuorumProject(dir, state) : null;
+        boolean isProject = isProject (dir);
+        if(isProject) {
+            return new QuorumProject(dir, state);
+        } else {
+            return null;
+        }
     }
 
     @Override

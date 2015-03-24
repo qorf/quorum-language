@@ -59,7 +59,7 @@ public class Debug extends QuorumAction implements ActionListener{
 
             String location = project.getExecutableLocation();
             debugger.setExecutable(location);
-            debugger.setWorkingDirectory(project.getRunDirectory().getAbsolutePath());
+            debugger.setWorkingDirectory(project.getRunDirectory().getParentFile().getAbsolutePath());
             debugger.launch();
 
             QuorumProcessWatcher watch = new QuorumProcessWatcher(debugger.getInputStream());
