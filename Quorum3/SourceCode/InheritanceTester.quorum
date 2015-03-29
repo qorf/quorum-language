@@ -49,6 +49,7 @@ class InheritanceTester
         CircularInheritance()
         BadTemplate()
         OutputPrivateParentValue()
+        UseInvalidVariable()
         UsePrivateVariable()
         UsePrivateAction()
         UsePrivateActionSoloCall()
@@ -499,6 +500,20 @@ class InheritanceTester
         dependent2:SetPath(path + "Test2.quorum")
         files:Add(main)
         files:Add(dependent1)
+        files:Add(dependent2)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action UseInvalidVariable
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "UseInvalidVariable.quorum")
+        dependent2:SetPath(path + "InvalidVariableName.quorum")
+        files:Add(main)
         files:Add(dependent2)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

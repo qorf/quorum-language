@@ -986,7 +986,18 @@ class QuorumBytecodeListener is QuorumSourceListener
                                 + "variable " + field:GetName() + ", in the parent "
                                 + fieldHolder:GetStaticKey() + " but that variable is a constant.")
                             manager:Add(error)
+                            return now
                         end
+                    else
+                        CompilerError error
+                        error:SetLocation(context:GetLocation())
+                        CompilerErrorType errorType
+                        errorType:SetCurrentType(errorType:MISSING_VARIABLE)
+                        error:SetCompilerErrorType(errorType)
+                        error:SetErrorMessage("I could not find a variable named " +
+                        object + " to assign to in the class " + type:GetStaticKey() + ".")
+                        manager:Add(error)
+                        return now
                     end
                 else  
                     CompilerError error
