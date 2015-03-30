@@ -1426,7 +1426,8 @@ public class JavaToQuorumListener implements QuorumListener {
         setLocation(ctx, context);
         context.object = ctx.object.getText();
         if(ctx.parent != null) {
-            context.parentName = ctx.parent.qualifiedName;
+            QualifiedName name = Convert(ctx.parent);
+            context.parentName = name;
         }
         context.name = ctx.name.getText();
         listener.EnterObjectAssignment(context);
@@ -1438,7 +1439,8 @@ public class JavaToQuorumListener implements QuorumListener {
         setLocation(ctx, context);
         context.object = ctx.object.getText();
         if(ctx.parent != null) {
-            context.parentName = ctx.parent.qualifiedName;
+            QualifiedName name = Convert(ctx.parent);
+            context.parentName = name;
         }
         context.name = ctx.name.getText();
         listener.ExitObjectAssignment(context);
