@@ -944,6 +944,10 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now
         end
         text name = context:name
+
+        if name = "y"
+            a = 5
+        end
         text object = context:object
         QualifiedName theParent = context:parentName
         CompilerErrorManager manager = GetCompilerErrorManager()
@@ -959,10 +963,99 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
 
         
-        //this is not a call to a parent field.
+        //this is an assignment to a field in a parent
         if theParent not= undefined
-            //now get the field from that object
+            //get the full static key of the parent
+            Type type = variable:GetType()
+            text staticKey = type:GetStaticKey()
+            SymbolTable table = GetSymbolTable()
+            TypeChecker checker = GetTypeChecker()
+            Class baseClass = table:GetClass(staticKey)
 
+            //this class exists, otherwise we would have thrown an error already
+            //now get the resolved static key of the parent
+            
+
+            Type resolvedType
+            resolvedType:SetToObject(theParent:GetStaticKey())
+            currentClass:ResolveType(context:GetLocation(), resolvedType, table, manager)
+
+            hasParent = baseClass:HasParentClass(resolvedType:GetStaticKey())
+            if not hasParent
+                CompilerError error
+                error:SetLocation(context:GetLocation())
+                CompilerErrorType t
+                t:SetCurrentType(t:MISSING_PARENT)
+                error:SetCompilerErrorType(t)
+                text message = "I could not locate a parent class named " + resolvedType:GetStaticKey() + "."
+                error:SetErrorMessage(message)
+                manager:Add(error)
+                return now
+            end
+            Class parentClass = baseClass:GetParentClass(resolvedType:GetStaticKey())
+            Variable var = parentClass:GetVariable(name)
+            if var = undefined
+                CompilerError error
+                error:SetLocation(context:GetLocation())
+                CompilerErrorType t
+                t:SetCurrentType(t:MISSING_VARIABLE)
+                error:SetCompilerErrorType(t)
+                text message = "I could not locate a variable named " + name + " in class " + parentClass:GetStaticKey()
+                error:SetErrorMessage(message)
+                manager:Add(error)
+                return now
+            end
+
+            if var not= undefined
+                if var:IsConstant() //issue an error, this is not allowed.
+                    CompilerError error
+                    error:SetLocation(context:GetLocation())
+                    CompilerErrorType errorType
+                    errorType:SetCurrentType(errorType:CONSTANT_REASSIGNMENT)
+                    error:SetCompilerErrorType(errorType)
+                    error:SetErrorMessage("I noticed that the code says you want to modify the "
+                        + "variable " + var:GetName() + ", in the parent "
+                        + parentClass:GetStaticKey() + " but that variable is a constant.")
+                    manager:Add(error)
+                end
+            end
+
+            Type left = var:GetType()
+
+            QuorumOpcode right = opcodeStack:Pop()
+            Operation assign
+            assign:SetOperation(assign:EQUALS)
+
+            if right = undefined //the system should have already output an error, so return
+                return now
+            end
+
+            TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
+            CompilerError error = result:GetCompilerError(context:GetLocation())
+
+            if error not= undefined
+                manager:Add(error)
+                return now
+            end
+
+            Type value = result:result
+            QuorumOpcode qop = result:GetQuorumOpcode()
+            AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+            assignment:SetLocation(context:GetLocation())
+            assignment:SetClass(currentClass)
+            assignment:SetRightHandSide(right)
+            assignment:SetType(value)
+            assignment:SetMethodWriter(methodWriter)
+            assignment:SetVariable(var)
+            assignment:SetField(variable)
+            assignment:SetParentWithField(parentClass)
+
+            if isInAction
+                currentBlockOpcode:Add(assignment)
+            else //add the opcode to the field calculator
+                currentClassOpcode:AddField(assignment)
+            end
+            return now
         else
             if variable not= undefined //if it is, it should have been caught in a previous phase
                 Type type = variable:GetType()

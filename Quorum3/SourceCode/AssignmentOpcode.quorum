@@ -126,12 +126,21 @@ class AssignmentOpcode is QuorumOpcode
             //push on me
             methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
 
-            //push on the parent
-            text owner = clazz:ConvertStaticKeyToBytecodePath()
-            text name = parentWithField:ConvertStaticKeyToParentFieldName()
-            text description = parentWithField:ConvertStaticKeyToBytecodePathTypeName()
-            methodWriter:VisitField(opcodes:GetField(), owner, name, description)
+            //check to see if this is a call to push on a field from a parent variable
+            if field not= undefined
+                text owner = clazz:ConvertStaticKeyToBytecodePath()
+                text name = field:GetName()
 
+                Type type = field:GetType()
+                text description = type:ConvertTypeToBytecodeSignatureInterface() //:ConvertStaticKeyToBytecodePathTypeName()
+                methodWriter:VisitField(opcodes:GetField(), owner, name, description)
+            else
+                //push on the parent
+                text owner = clazz:ConvertStaticKeyToBytecodePath()
+                text name = parentWithField:ConvertStaticKeyToParentFieldName()
+                text description = parentWithField:ConvertStaticKeyToBytecodePathTypeName()
+                methodWriter:VisitField(opcodes:GetField(), owner, name, description)
+            end
             //write the right hand side
             rightHandSide:Write()
             

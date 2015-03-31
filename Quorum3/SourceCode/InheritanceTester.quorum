@@ -18,6 +18,7 @@ class InheritanceTester
     action Test
 //PASS TESTS
         path = passPath
+        AssignmentParentVariable()
         AssignToParentsVariable()
         CallInheritedAction()
         CallInheritedActionFieldAssignment()
@@ -65,6 +66,24 @@ class InheritanceTester
 
     action SetCompilerTestSuite(CompilerTestSuite suite)
         me:suite = suite
+    end
+
+    action AssignmentParentVariable
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        main:SetPath(path + "AssignmentParentVariable.quorum")
+        dependent1:SetPath(path + "Test1.quorum")
+        dependent2:SetPath(path + "Test2.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "5")
+        results:Add(1, "12")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action AssignToParentsVariable 
