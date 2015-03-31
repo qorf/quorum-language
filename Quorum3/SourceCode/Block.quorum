@@ -120,6 +120,9 @@ class Block
             error:SetErrorMessage("Variable " + variable:GetDisplayName() + " has already been defined.")
             return error
         end
+
+        //this is an exception variable, so it is always defined
+        variable:SetIsDefined(true)
         exceptionVariable = variable
         variables:Add(variable:GetStaticKey(), variable)
         return undefined

@@ -944,10 +944,6 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now
         end
         text name = context:name
-
-        if name = "y"
-            a = 5
-        end
         text object = context:object
         QualifiedName theParent = context:parentName
         CompilerErrorManager manager = GetCompilerErrorManager()
@@ -1020,6 +1016,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 end
             end
 
+            var:SetIsDefined(true)
             Type left = var:GetType()
 
             QuorumOpcode right = opcodeStack:Pop()
@@ -1103,7 +1100,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                     manager:Add(error)
                 end
             end
-
+            variable:SetIsDefined(true)
         end
 
         QuorumOpcode right = opcodeStack:Pop()
@@ -1247,6 +1244,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                     + parentClass:GetStaticKey() + " but that variable is a constant.")
                 manager:Add(error)
             end
+            var:SetIsDefined(true)
         end
 
         Type left = var:GetType()
@@ -1307,7 +1305,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now
         end
 
-
+        variable:SetIsDefined(true)
         if isInAlwaysBlock
             variable:SetDefinedInAlwaysBlock(true)
         end
@@ -1435,6 +1433,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 manager:Add(error)
             end
         end
+        variable:SetIsDefined(true)
         Type left = variable:GetType()
 
         if name = "c"
@@ -1661,17 +1660,6 @@ class QuorumBytecodeListener is QuorumSourceListener
 
                         a = 5
                     else //this generic doesn't exist, throw an error
-//                        CompilerError error
-//                        error:SetLocation(resolved:location)
-//                        error:SetErrorMessage("I found a return with the value " + t:GetStaticKey() + 
-//                            ", but could find no definition for " + " the generic " +
-//                            "in the class " + c:GetStaticKey())
-//                        CompilerErrorType errorType
-//                        errorType:SetCurrentType(errorType:MISSING_CLASS)
-//                        error:SetCompilerErrorType(errorType)
-//                        CompilerErrorManager manager = GetCompilerErrorManager()
-//                        manager:Add(error)
-//                        return now
                     end
 
                     a = 5
@@ -1745,10 +1733,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         repeat while it:HasNext()
             ActionCallOpcode op = it:Next()
             ops:Add(op)
-        end
-
-        if ops:GetType() = undefined
-            a = 5
         end
 
         //since this is a solo call, there is no assignment statement.
@@ -1883,10 +1867,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         if HasErrors() 
             return now
         end
-        Location loc = context:GetLocation()
-        if currentClass:GetName() = "Sprite" and loc:GetLineNumber() = 91
-            a = 5
-        end
         Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
         currentActionStack = currentActionStack - 1
 
@@ -1931,13 +1911,10 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterInitialParentActionCall(ActionCallContext ctx) 
-        a = 5
-
     end
 
 
     action ExitInitialParentActionCall(ActionCallContext ctx) 
-        a = 5
         if not parentCallStack:IsEmpty()
             ParentVariableFunctionCallContext parentContext = parentCallStack:Peek()
             parentContext:pop = true
@@ -2046,6 +2023,9 @@ class QuorumBytecodeListener is QuorumSourceListener
             actionCall:SetIsActionCall(false)
             name = context:name
 
+            if name = "a" and currentClass:GetName() = "Main"
+                a = 5
+            end
             Variable variable = undefined
 
             Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
@@ -2079,6 +2059,18 @@ class QuorumBytecodeListener is QuorumSourceListener
                             manager:Add(error)
                             return now
                         end
+
+                        if not variable:IsDefined()
+                            CompilerError error
+                            error:SetLocation(context:GetLocation())
+                            error:SetErrorMessage("I found the variable " + name + ", but it cannot be used before it is defined.")
+                            CompilerErrorType errorType
+                            errorType:SetCurrentType(errorType:VARIABLE_INFERENCE)
+                            error:SetCompilerErrorType(errorType)
+                            CompilerErrorManager manager = GetCompilerErrorManager()
+                            manager:Add(error)
+                            return now
+                        end
                     end
                     isNextVariableReferenceMe = false
                 else 
@@ -2093,9 +2085,23 @@ class QuorumBytecodeListener is QuorumSourceListener
                     if type = undefined
                         CompilerError error
                         error:SetLocation(context:GetLocation())
-                        error:SetErrorMessage("I found the variable " + name + ", but it cannot be used before it is defined.")
+                        error:SetErrorMessage("I found the variable " + name + ", but I did not infer its type in this instance. Try setting it to a value before using it.")
                         CompilerErrorType errorType
                         errorType:SetCurrentType(errorType:MISSING_CLASS)
+                        error:SetCompilerErrorType(errorType)
+                        CompilerErrorManager manager = GetCompilerErrorManager()
+                        manager:Add(error)
+                        return now
+                    end
+
+                    //check if this variable has been defined.
+                    //if it hasn't, it is an error
+                    if not variable:IsDefined()
+                        CompilerError error
+                        error:SetLocation(context:GetLocation())
+                        error:SetErrorMessage("I found the variable " + name + ", but it cannot be used before it is defined.")
+                        CompilerErrorType errorType
+                        errorType:SetCurrentType(errorType:VARIABLE_INFERENCE)
                         error:SetCompilerErrorType(errorType)
                         CompilerErrorManager manager = GetCompilerErrorManager()
                         manager:Add(error)
@@ -2147,6 +2153,18 @@ class QuorumBytecodeListener is QuorumSourceListener
                             errorType:SetCurrentType(errorType:OTHER)
                             error:SetCompilerErrorType(errorType)
                             error:SetFile(GetFile())
+                            CompilerErrorManager manager = GetCompilerErrorManager()
+                            manager:Add(error)
+                            return now
+                        end
+
+                        if not field:IsDefined()
+                            CompilerError error
+                            error:SetLocation(context:GetLocation())
+                            error:SetErrorMessage("I found the variable " + name + ", but it cannot be used before it is defined.")
+                            CompilerErrorType errorType
+                            errorType:SetCurrentType(errorType:VARIABLE_INFERENCE)
+                            error:SetCompilerErrorType(errorType)
                             CompilerErrorManager manager = GetCompilerErrorManager()
                             manager:Add(error)
                             return now

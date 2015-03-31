@@ -66,6 +66,11 @@ class Variable is Symbol
 
     action SetIsField(boolean field)
         isField = field
+
+        //fields require a right hand side, therefore this is always true
+        if field
+            isDefined = true
+        end
     end
 
     action IsParameter returns boolean
@@ -74,6 +79,11 @@ class Variable is Symbol
 
     action SetIsParameter(boolean isParameter)
         me:isParameter = isParameter
+        //because parameters are required to have a value, they are always defined
+        //by definition
+        if isParameter
+            isDefined = true
+        end
     end
 
     action GetType returns Type
