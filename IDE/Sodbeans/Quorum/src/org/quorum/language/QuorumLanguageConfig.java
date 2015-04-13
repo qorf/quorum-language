@@ -33,10 +33,10 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
         return parser;
     }
 
-//    @Override
-//    public CodeCompletionHandler getCompletionHandler() {
-//        return completion;
-//    }
+    @Override
+    public CodeCompletionHandler getCompletionHandler() {
+        return completion;
+    }
     
     @Override
     public String getLineCommentPrefix() {

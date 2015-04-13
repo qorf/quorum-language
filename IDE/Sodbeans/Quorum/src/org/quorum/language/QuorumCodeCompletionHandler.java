@@ -23,6 +23,10 @@ import org.netbeans.modules.csl.api.ElementHandle;
 import org.netbeans.modules.csl.api.ParameterInfo;
 import org.netbeans.modules.csl.spi.ParserResult;
 import org.netbeans.modules.parsing.api.Source;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+import quorum.Libraries.Language.Compile.CodeCompletionRequest;
+import quorum.Libraries.Language.Compile.CodeCompletionResult$Interface;
 
 /**
  *
@@ -43,11 +47,18 @@ public class QuorumCodeCompletionHandler implements CodeCompletionHandler2{
         Source source = parserResult.getSnapshot().getSource();
         Project project = FileOwnerQuery.getOwner(source.getFileObject());
         if(project != null) {
-                Lookup lookup = project.getLookup();
-                quorum.Libraries.Language.Compile.Compiler compiler = lookup.lookup(quorum.Libraries.Language.Compile.Compiler.class);
+            Lookup lookup = project.getLookup();
+            quorum.Libraries.Language.Compile.Compiler compiler = lookup.lookup(quorum.Libraries.Language.Compile.Compiler.class);
 
-                String string = parserResult.getSnapshot().getText().toString();
+            String string = parserResult.getSnapshot().getText().toString();
+            CodeCompletionRequest request = new CodeCompletionRequest();
+            FileObject fileObject = parserResult.getSnapshot().getSource().getFileObject();
+            request.Set$Libraries$Language$Compile$CodeCompletionRequest$fileKey(FileUtil.toFile(fileObject).getAbsolutePath());
+            int caretOffset = context.getCaretOffset();
+            String prefix = context.getPrefix();
+            boolean caseSensitive = context.isCaseSensitive();
                 
+            CodeCompletionResult$Interface Request = compiler.Request(request);
         }
         return result;
     }
