@@ -24,8 +24,7 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     
     @Override
     public org.netbeans.api.lexer.Language getLexerLanguage() {
-        return null;
-        //return lexerLanguage;
+        return lexerLanguage;
     }
     
     @Override

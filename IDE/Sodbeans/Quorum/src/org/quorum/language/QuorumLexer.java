@@ -5,6 +5,7 @@
  */
 package org.quorum.language;
 
+import org.antlr.v4.runtime.ANTLRInputStream;
 import org.netbeans.api.lexer.PartType;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenHierarchy;
@@ -19,17 +20,37 @@ import org.netbeans.spi.lexer.LexerRestartInfo;
 public class QuorumLexer implements Lexer<QuorumTokenId> {
 
     private LexerRestartInfo<QuorumTokenId> info;
-
+    private plugins.quorum.Libraries.Language.Compile.QuorumLexer lexer;
     QuorumLexer(LexerRestartInfo<QuorumTokenId> info) {
         this.info = info;
         LexerInput input = info.input();
         
+        //String value = input.readText().toString();
+       // ANTLRInputStream stream = new ANTLRInputStream(value);
+        AntlrCharStream stream = new AntlrCharStream(input, "QuorumEditor");
+        
+        lexer = new plugins.quorum.Libraries.Language.Compile.QuorumLexer(stream);
+        
+        
+        int a = 5;
     }
     @Override
     public Token<QuorumTokenId> nextToken() {
-        QuorumTokenId id = new QuorumTokenId("ID", "keyword", 0);
-        org.netbeans.api.lexer.Token<QuorumTokenId> token = info.tokenFactory().createToken(id);
-        return token;
+        org.antlr.v4.runtime.Token token = lexer.nextToken();
+        //String text = token.getText();
+        if (info.input().readLength() < 1) {
+            return null;
+        } else if (token.getType() == -1) {
+            QuorumTokenId id = new QuorumTokenId(plugins.quorum.Libraries.Language.Compile.QuorumLexer.tokenNames[1], "", 1);
+            org.netbeans.api.lexer.Token<QuorumTokenId> toke = info.tokenFactory().createToken(id);
+            return toke;
+            //return info.tokenFactory().createToken(QuorumLanguageHierarchy.getToken(10));
+        }
+        
+        
+        QuorumTokenId id = new QuorumTokenId(plugins.quorum.Libraries.Language.Compile.QuorumLexer.tokenNames[token.getType()], "", token.getType());
+        org.netbeans.api.lexer.Token<QuorumTokenId> toke = info.tokenFactory().createToken(id);
+        return toke;
     }
 
     @Override
@@ -39,6 +60,7 @@ public class QuorumLexer implements Lexer<QuorumTokenId> {
 
     @Override
     public void release() {
+        int a = 5;
     }
     
 }
