@@ -122,7 +122,7 @@ class Compiler
         CompilerResult result
         result:compilerErrorManager = sandboxCompilerErrorManager
         sandboxCompilerErrorManager:Empty()
-
+        result:symbolTable = sandboxSymbolTable
         DateTime time
         start = time:GetEpochTime()
         sandboxedProfiler:Add(time:GetEpochTime())
@@ -265,25 +265,25 @@ class Compiler
     action Request(CodeCompletionRequest request) returns CodeCompletionResult
         CodeCompletionResult result
 
-        text line = request:line
-        text trimmed = line:Trim()
-
-        text sub = line:GetSubtext(0, request:startOffset - 1)
-        boolean isDot = false
-
-        if sub:GetSize() > 0
-            text index = sub:GetCharacter(sub:GetSize() - 1)
-            if index = "."
-                isDot = true
-            end
-        end
-        
-        boolean isUse = trimmed:StartsWith("use")
-        boolean isPackage = trimmed:StartsWith("package")
-
-        if isUse
-            AddUseResults(request, result, isUse)
-        end
+//        text line = request:line
+//        text trimmed = line:Trim()
+//
+//        text sub = line:GetSubtext(0, request:startOffset - 1)
+//        boolean isDot = false
+//
+//        if sub:GetSize() > 0
+//            text index = sub:GetCharacter(sub:GetSize() - 1)
+//            if index = "."
+//                isDot = true
+//            end
+//        end
+//        
+//        boolean isUse = trimmed:StartsWith("use")
+//        boolean isPackage = trimmed:StartsWith("package")
+//
+//        if isUse
+//            AddUseResults(request, result, isUse)
+//        end
 
         return result
     end

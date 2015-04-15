@@ -1,7 +1,10 @@
 package Libraries.Language.Compile
 
+use Libraries.Language.Compile.Symbol.SymbolTable
+
 class CompilerResult
-    public CompilerErrorManager compilerErrorManager
+    public CompilerErrorManager compilerErrorManager = undefined
+    public SymbolTable symbolTable = undefined
     public number time = 0.0
 
 end
