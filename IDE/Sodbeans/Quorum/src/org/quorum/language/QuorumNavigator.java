@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.spi.navigator.NavigatorPanel;
@@ -138,9 +139,14 @@ public class QuorumNavigator implements NavigatorPanel{
         }
     }
     
-    private void setToClass(quorum.Libraries.Language.Compile.Symbol.Class$Interface clazz) {
-        QuorumClassNode node = new QuorumClassNode(clazz);
-        panelUI.setRoot(node);
+    private void setToClass(final quorum.Libraries.Language.Compile.Symbol.Class$Interface clazz) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                QuorumClassNode node = new QuorumClassNode(clazz);
+                panelUI.setRoot(node);
+            }
+        });
     }
     
     /** Accessor for listener to context */

@@ -5,11 +5,14 @@
  */
 package org.quorum.windows.nodes;
 
+import java.awt.Image;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
+import org.openide.util.ImageUtilities;
+import org.openide.util.Utilities;
 import org.openide.util.lookup.Lookups;
 
 /**
@@ -19,34 +22,10 @@ import org.openide.util.lookup.Lookups;
 public class QuorumClassNode extends AbstractNode{
     private quorum.Libraries.Language.Compile.Symbol.Class$Interface clazz = null;
 
-    public QuorumClassNode(final quorum.Libraries.Language.Compile.Symbol.Class$Interface clazz) {
-        super(Children.createLazy(new Callable<Children>() {
-            @Override
-            public Children call() throws Exception {
-                return getClassActions(clazz);
-            }
-        }), Lookups.fixed( new Object[] {clazz}));
+    public QuorumClassNode(quorum.Libraries.Language.Compile.Symbol.Class$Interface clazz) {
+        super(new ClassChildren(clazz), Lookups.fixed( new Object[] {clazz}));
         this.clazz = clazz;
         computeName();
-    }
-    
-    public static Children getClassActions(quorum.Libraries.Language.Compile.Symbol.Class$Interface c) {
-        Children children = new Children.SortedArray();
-        
-        ArrayList<Node> n = new ArrayList<>();
-        
-        quorum.Libraries.Containers.Blueprints.Iterator$Interface actions = c.GetActions();
-        while(actions.HasNext()) {
-            quorum.Libraries.Language.Compile.Symbol.Action$Interface next = (quorum.Libraries.Language.Compile.Symbol.Action$Interface) actions.Next();
-            QuorumActionNode node = new QuorumActionNode(next);
-            n.add(node);
-        }
-        Node[] nodes = new Node[n.size()];
-        for(int i = 0; i < nodes.length; i++) {
-            nodes[i] = n.get(i);
-        }
-        children.add(nodes);
-        return children;
     }
     
     public void computeName() {
@@ -66,6 +45,16 @@ public class QuorumClassNode extends AbstractNode{
         setDisplayName(name);
     }
 
+    @Override
+    public Image getIcon(int type) {
+        return ImageUtilities.loadImage("org/quorum/resources/class.png");
+    }
+    
+    @Override
+    public Image getOpenedIcon(int type) {
+        return getIcon(type);
+    }
+    
     /**
      * @return the clazz
      */
