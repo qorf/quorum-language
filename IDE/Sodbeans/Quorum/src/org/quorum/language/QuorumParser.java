@@ -26,6 +26,7 @@ import quorum.Libraries.Containers.Blueprints.Iterator$Interface;
 import quorum.Libraries.Language.Compile.CompilerErrorManager$Interface;
 import quorum.Libraries.Language.Compile.CompilerError$Interface;
 import quorum.Libraries.Language.Compile.CompilerResult$Interface;
+import quorum.Libraries.Language.Compile.Symbol.SymbolTable$Interface;
 /**
  *
  * @author stefika
@@ -78,11 +79,16 @@ public class QuorumParser extends Parser{
                     info.Set$Libraries$Language$Compile$ProjectInformation$source(string);
                     info.Set$Libraries$Language$Compile$ProjectInformation$sourceLocation(quorumFile);
                     info.Set$Libraries$Language$Compile$ProjectInformation$projectFiles(listing);
-                    CompilerResult$Interface result = compiler.ParseRepeat(info);
+                    CompilerResult$Interface result = compiler.ParseRepeat(info);                 
                     
                     CompilerErrorManager$Interface errors = result.Get$Libraries$Language$Compile$CompilerResult$compilerErrorManager();
                     if(errors.IsCompilationErrorFree()) {
                         fileErrors.clear();
+                        if(result != null && project instanceof QuorumProject) {
+                            QuorumProject qp = (QuorumProject) project;
+                            qp.setSandboxCompilerResult(result);
+                        }
+                        
                     } else {
                         fileErrors.clear();
                         Iterator$Interface it = errors.GetIterator();

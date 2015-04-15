@@ -42,6 +42,7 @@ import org.quorum.actions.Document;
 import org.quorum.actions.Run;
 import org.quorum.support.Utility;
 import quorum.Libraries.System.File$Interface;
+//import CompilerResult$Interface;
 
 /**
  *
@@ -89,6 +90,7 @@ public class QuorumProject implements Project {
     private final quorum.Libraries.Language.Compile.Compiler compiler = 
             new quorum.Libraries.Language.Compile.Compiler();
     private MainFileProvider mainFileProvider = new MainFileProvider(this);
+    private quorum.Libraries.Language.Compile.CompilerResult$Interface sandboxResult = null;
     
     public QuorumProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
@@ -118,6 +120,14 @@ public class QuorumProject implements Project {
         run = new Run(this);
     }
 
+    public quorum.Libraries.Language.Compile.CompilerResult$Interface getSandboxCompilerResult() {
+        return sandboxResult;
+    }
+    
+    public void setSandboxCompilerResult(quorum.Libraries.Language.Compile.CompilerResult$Interface result) {
+        sandboxResult = result;
+    }
+    
     @Override
     public FileObject getProjectDirectory() {
         return projectDir;
