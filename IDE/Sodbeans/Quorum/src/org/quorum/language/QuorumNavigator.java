@@ -21,8 +21,6 @@ package org.quorum.language;
 import java.util.Collection;
 import java.util.Iterator;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.spi.navigator.NavigatorPanel;
@@ -31,12 +29,10 @@ import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
 import org.quorum.files.QuorumDataObject;
-//import org.quorum.projects.QuorumProject;
 import org.quorum.windows.QuorumNavigatorPanel;
 import org.quorum.windows.nodes.QuorumClassNode;
 import quorum.Libraries.Language.Compile.CompilerResult$Interface;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable$Interface;
-import quorum.Libraries.Language.Compile.Symbol.Action$Interface;
 
 /**
  *
@@ -107,46 +103,49 @@ public class QuorumNavigator implements NavigatorPanel{
     
     /************* non - public part ************/
     
-    private void setNewContent (Collection newData) {
+    private void setNewContent (final Collection newData) {
         // put your code here that grabs information you need from given
         // collection of data, recompute UI of your panel and show it.
         // Note - be sure to compute the content OUTSIDE event dispatch thread,
         // just final repainting of UI should be done in event dispatch thread.
         // Please use RequestProcessor and Swing.invokeLater to achieve this.
-        Iterator it = newData.iterator();
-        while(it.hasNext()) {
-            Object o = it.next();
-            if(o instanceof QuorumDataObject) {
-                //panelUI.setCurrentFileInEditor((FileObject)o);
-                QuorumDataObject data = (QuorumDataObject) o;
-                FileObject fileObject = data.getPrimaryFile();
-                String path = fileObject.getPath();
-                
-                //now ask the compiler for the most recent version.
-                Project project = FileOwnerQuery.getOwner(fileObject);
-                if(project instanceof org.quorum.projects.QuorumProject) {
-                    org.quorum.projects.QuorumProject qp = (org.quorum.projects.QuorumProject) project;
-                    CompilerResult$Interface result = qp.getSandboxCompilerResult();
-                    if(result != null) {
-                        SymbolTable$Interface table = result.Get$Libraries$Language$Compile$CompilerResult$symbolTable();
-                        quorum.Libraries.Language.Compile.Symbol.Class$Interface clazz = table.GetClassInFile(path);
-                        if(clazz != null) {
-                            setToClass(clazz);
+        Runnable runner = new Runnable() {
+            @Override
+            public void run() {
+                Iterator it = newData.iterator();
+                while(it.hasNext()) {
+                    Object o = it.next();
+                    if(o instanceof QuorumDataObject) {
+                        //panelUI.setCurrentFileInEditor((FileObject)o);
+                        QuorumDataObject data = (QuorumDataObject) o;
+                        FileObject fileObject = data.getPrimaryFile();
+                        String path = fileObject.getPath();
+
+                        //now ask the compiler for the most recent version.
+                        Project project = FileOwnerQuery.getOwner(fileObject);
+                        if(project instanceof org.quorum.projects.QuorumProject) {
+                            org.quorum.projects.QuorumProject qp = (org.quorum.projects.QuorumProject) project;
+                            CompilerResult$Interface result = qp.getSandboxCompilerResult();
+                            if(result != null) {
+                                SymbolTable$Interface table = result.Get$Libraries$Language$Compile$CompilerResult$symbolTable();
+                                quorum.Libraries.Language.Compile.Symbol.Class$Interface clazz = table.GetClassInFile(path);
+                                if(clazz != null) {
+                                    setToClass(clazz);
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
+        };
+        
+        Thread thread = new Thread(runner);
+        thread.start();
     }
     
     private void setToClass(final quorum.Libraries.Language.Compile.Symbol.Class$Interface clazz) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                QuorumClassNode node = new QuorumClassNode(clazz);
-                panelUI.setRoot(node);
-            }
-        });
+        QuorumClassNode node = new QuorumClassNode(clazz);
+        panelUI.setRoot(node);
     }
     
     /** Accessor for listener to context */
