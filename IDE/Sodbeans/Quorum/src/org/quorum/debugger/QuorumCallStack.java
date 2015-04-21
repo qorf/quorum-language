@@ -33,9 +33,12 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.Action;
 import org.debugger.CallStackModel;
+import org.debugger.ClassInformation;
 import org.debugger.Debugger;
 import org.debugger.StackFrame;
 import org.debugger.VariableColumns;
+import org.netbeans.api.project.Project;
+import org.quorum.projects.QuorumProject;
 import org.netbeans.spi.debugger.ContextProvider;
 import org.netbeans.spi.viewmodel.ModelListener;
 import org.netbeans.spi.viewmodel.Models;
@@ -54,7 +57,7 @@ import org.quorum.debugger.DebuggerFactory;
  */
 public class QuorumCallStack implements TreeModel, NodeModel, TableModel, NodeActionsProvider {
 
-    private Debugger debugger;// = DebuggerFactory.getQuorumDebugger();
+    private Debugger debugger;
     private CallStackModel model;
 
     public static final String CALL_STACK
@@ -66,12 +69,20 @@ public class QuorumCallStack implements TreeModel, NodeModel, TableModel, NodeAc
             + "callStackView/CurrentFrame";
 
     private static LinkedList<ModelListener> listeners = new LinkedList<ModelListener>();
+    private QuorumSupport support = new QuorumSupport();
+    
 
     public QuorumCallStack(ContextProvider contextProvider) {
         List<? extends QuorumDebuggerCookie> lookup = contextProvider.lookup("", QuorumDebuggerCookie.class);
         QuorumDebuggerCookie cookie = lookup.get(0);
         debugger = cookie.getDebugger();
+        Project proj = cookie.getProject();
+        if(proj instanceof QuorumProject) {
+            QuorumProject project = (QuorumProject) proj;
+            support.setCompiler(project.getCompiler());
+        }
     }
+    
     /**
      * This method fires a change event to the tree model, causing it to refresh
      * all of its values. As this "can" be expensive, it should be used
@@ -193,10 +204,24 @@ public class QuorumCallStack implements TreeModel, NodeModel, TableModel, NodeAc
     public void performDefaultAction(Object node) throws UnknownTypeException {
         if (node instanceof StackFrame) {
             StackFrame stack = (StackFrame) node;
-            //QuorumSupport.jumpToCallStackLocation(stack.getClassInformation().getFullyQualifiedName(), stack.getLine());
+            jumpToLocation(stack);
         }
     }
 
+    /**
+     * This method jumps to the correct location in the source code for this 
+     * particular part of the call stack.
+     * 
+     * @param stack 
+     */
+    private void jumpToLocation(StackFrame stack) {
+        ClassInformation info = stack.getClassInformation();
+        String dotName = info.getDotName();
+        String fullyQualifiedName = info.getFullyQualifiedName();
+        int line = stack.getLine();
+        support.jumpToCallStackLocation(dotName, stack.getLine());
+    }
+    
     @Override
     public Action[] getActions(Object o) throws UnknownTypeException {
         Action[] actions = new Action[1];
@@ -208,7 +233,7 @@ public class QuorumCallStack implements TreeModel, NodeModel, TableModel, NodeAc
      * This inner Class allows us to have an action that jumps to the
      * appropriate editor when the user clicks on the call stack.
      */
-    private static class GoToSourceCallStack implements Models.ActionPerformer {
+    private class GoToSourceCallStack implements Models.ActionPerformer {
 
         @Override
         public boolean isEnabled(Object arg) {
@@ -219,7 +244,7 @@ public class QuorumCallStack implements TreeModel, NodeModel, TableModel, NodeAc
         public void perform(Object[] nodes) {
             if (nodes[0] instanceof StackFrame) {
                 StackFrame stack = (StackFrame) nodes[0];
-                //QuorumSupport.jumpToCallStackLocation(stack.getClassInformation().getFullyQualifiedName(), stack.getLine());
+                jumpToLocation(stack);
             }
         }
     }

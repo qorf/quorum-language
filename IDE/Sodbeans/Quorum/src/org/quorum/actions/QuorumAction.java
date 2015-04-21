@@ -261,7 +261,10 @@ public abstract class QuorumAction implements Action {
                                         }
                                     }
                                 }
+                                Thread.sleep(0);
                             } catch (IOException ex) {
+                                Exceptions.printStackTrace(ex);
+                            } catch (InterruptedException ex) {
                                 Exceptions.printStackTrace(ex);
                             }
                         }
