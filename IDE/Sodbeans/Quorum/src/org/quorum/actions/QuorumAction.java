@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -238,6 +239,39 @@ public abstract class QuorumAction implements Action {
                 blinker = new Thread(this);
                 blinker.setName("Quorum Process Watcher");
                 blinker.start();
+                
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Reader in = io.getIn();
+                        BufferedReader br = new BufferedReader(io.getIn());
+                        
+                        while (!cancelled) {
+                            try {
+                                String line = br.readLine();
+                                if(bufferedWriter != null) {
+                                try {
+                                        bufferedWriter.write(line);
+                                        bufferedWriter.newLine();
+                                        bufferedWriter.flush();
+                                    } catch (IOException ex) {
+                                        Exceptions.printStackTrace(ex);
+                                    }
+                                }
+                            } catch (IOException ex) {
+                                Exceptions.printStackTrace(ex);
+                            }
+                        }
+                        try {
+                            br.close();
+                            in.close();
+                        } catch (IOException ex) {
+                            Exceptions.printStackTrace(ex);
+                        }
+                    }
+                });
+                thread.setName("IDE Input");
+                thread.start();
             }
         }
 
