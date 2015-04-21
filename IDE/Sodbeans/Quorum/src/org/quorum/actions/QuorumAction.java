@@ -222,8 +222,8 @@ public abstract class QuorumAction implements Action {
     protected class QuorumProcessWatcher implements Runnable {
 
         private BufferedReader bufferedReader = null;
-        private OutputStream stream;
-        OutputStreamWriter outputStreamWriter;
+        private OutputStream outputStream;
+        private InputStream inputStream;
         BufferedWriter bufferedWriter;
         private Thread blinker = null;
         public boolean running = false;
@@ -231,6 +231,7 @@ public abstract class QuorumAction implements Action {
         public boolean wasDestroyed = false;
 
         public QuorumProcessWatcher(InputStream in) {
+            inputStream = in;
             bufferedReader = new BufferedReader(new InputStreamReader(in));
         }
 
@@ -244,18 +245,20 @@ public abstract class QuorumAction implements Action {
                     @Override
                     public void run() {
                         Reader in = io.getIn();
-                        BufferedReader br = new BufferedReader(io.getIn());
+                        BufferedReader br = new BufferedReader(in);
                         
                         while (!cancelled) {
                             try {
-                                String line = br.readLine();
-                                if(bufferedWriter != null) {
-                                try {
-                                        bufferedWriter.write(line);
-                                        bufferedWriter.newLine();
-                                        bufferedWriter.flush();
-                                    } catch (IOException ex) {
-                                        Exceptions.printStackTrace(ex);
+                                if(br.ready()) {
+                                    String line = br.readLine();
+                                    if(bufferedWriter != null) {
+                                    try {
+                                            bufferedWriter.write(line);
+                                            bufferedWriter.newLine();
+                                            bufferedWriter.flush();
+                                        } catch (IOException ex) {
+                                            Exceptions.printStackTrace(ex);
+                                        }
                                     }
                                 }
                             } catch (IOException ex) {
@@ -265,6 +268,7 @@ public abstract class QuorumAction implements Action {
                         try {
                             br.close();
                             in.close();
+                            bufferedWriter.close();
                         } catch (IOException ex) {
                             Exceptions.printStackTrace(ex);
                         }
@@ -340,16 +344,15 @@ public abstract class QuorumAction implements Action {
          * @return the stream
          */
         public OutputStream getStream() {
-            return stream;
+            return outputStream;
         }
 
         /**
          * @param stream the stream to set
          */
         public void setStream(OutputStream stream) {
-            this.stream = stream;
-            outputStreamWriter = new OutputStreamWriter(stream);
-            bufferedWriter = new BufferedWriter(outputStreamWriter);
+            this.outputStream = stream;
+            bufferedWriter = new BufferedWriter(new OutputStreamWriter(stream));
         }
     }
 
