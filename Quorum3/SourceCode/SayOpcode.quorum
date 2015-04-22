@@ -55,12 +55,11 @@ class SayOpcode is QuorumOpcode
     action Write
         if outputSpeechCommands
             VisitLineNumber()
-            methodWriter:VisitField(opcodes:GetStaticField(), "java/lang/System", "out", "Ljava/io/PrintStream;")
             Type type = opcode:GetType()
             opcode:Write()
-            methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), "java/io/PrintStream", "println",
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Sound/Speech", "StaticSay",
                     "(" + converter:ConvertTypeToBytecodeSignature(type) + ")V", false)
-        end //else write nothing
+        end
     end
 
     action WriteJavaScript returns text
