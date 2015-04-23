@@ -23,6 +23,8 @@ import org.sodbeans.phonemic.SpeechProcessor;
 import org.sodbeans.phonemic.SpeechVoice;
 import org.sodbeans.phonemic.tts.TextToSpeech;
 import org.sodbeans.phonemic.tts.TextToSpeechEngine;
+import java.io.PrintWriter;
+import org.sodbeans.phonemic.OperatingSystem;
 
 /**
  * Represents a Phonemic client.
@@ -30,6 +32,10 @@ import org.sodbeans.phonemic.tts.TextToSpeechEngine;
  * @author jeff
  */
 public class ClientSpeak implements TextToSpeech {
+    /**
+     * The server OS
+     */
+    private static final OperatingSystem os = OperatingSystem.getOS();
     /**
      * The port of the server we wish to connect to.
      */
@@ -68,25 +74,36 @@ public class ClientSpeak implements TextToSpeech {
      * @throws IOException 
      */
     public void connect() throws IOException {
-        this.socket = new Socket(this.host, this.port);
-        
+        //wait until the connection will be accepted
+        while (true) {
+            try {
+                this.socket = new Socket(this.host, this.port);
+                break; //connection has been accepted if exectution reaches this point
+            }
+            catch (IOException ex) {
+                //connection refused, try again in 100ms
+                try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ex2) {
+                        Logger.getLogger(ClientSpeak.class.getName()).log(Level.SEVERE, null, ex2);
+                    }
+            }
+        }
         // Get our input and output streams.
         this.input = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
         this.output = this.socket.getOutputStream();
         
-        // Write two bytes requesting protocol version 1.
-        this.output.write(0x0000);
-        this.output.write(0x00001);
+        // Write two bytes requesting protocol version 1. (Not used with mac server)
+        if (os != OperatingSystem.MAC_OSX) {
+            this.output.write(0x0000);
+            this.output.write(0x00001);
+        }
         
         // Wait for acceptance message.
+        
         String okLine = this.input.readLine();
-        System.out.println(okLine);
         if (okLine == null || !okLine.equals("OK")) {
             throw new IOException("Unknown response received from Phonemic server.");
-        }
-        else
-        {
-            System.out.println(okLine);
         }
     }
     
@@ -102,11 +119,19 @@ public class ClientSpeak implements TextToSpeech {
             msg = msg.substring(0, 0xFFFE);
         }
         try {
-            // Write length header (2 bytes).
-            this.output.write(ByteBuffer.allocate(4).putInt(length).array(), 2, 2);
-            
-            // Write message itself.
-            this.output.write(msg.getBytes());
+            //the mac server expects \r\n to flag the end of a message
+            if (os == OperatingSystem.MAC_OSX) {
+                PrintWriter out = new PrintWriter(this.output, true);
+                out.print(msg + "\r\n");
+                out.flush();
+            }
+            else {
+                // Write length header (2 bytes).
+                this.output.write(ByteBuffer.allocate(4).putInt(length).array(), 2, 2);
+
+                // Write message itself.
+                this.output.write(msg.getBytes());
+            }
         } catch (IOException ex) {
             Logger.getLogger(ClientSpeak.class.getName()).log(Level.SEVERE, null, ex);
         }        
@@ -120,6 +145,8 @@ public class ClientSpeak implements TextToSpeech {
     private synchronized boolean getBooleanResponse() {
         try {
             String line = this.input.readLine();
+            while (line.equals("dummyMessage"))
+                line = this.input.readLine(); //ignore any return messages from mac server that aren't requested by Phonemic
             
             if (line == null)
                 return false;
@@ -139,6 +166,8 @@ public class ClientSpeak implements TextToSpeech {
     private synchronized double getDoubleResponse() {
         try {
             String line = this.input.readLine();
+            while (line.equals("dummyMessage"))
+                line = this.input.readLine(); //ignore any return messages from mac server that aren't requested by Phonemic
             
             if (line == null)
                 return 0.0;
@@ -158,6 +187,8 @@ public class ClientSpeak implements TextToSpeech {
     private synchronized String getStringResponse() {
         try {
             String line = this.input.readLine();
+            while (line.equals("dummyMessage"))
+                line = this.input.readLine(); //ignore any return messages from mac server that aren't requested by Phonemic
             
             if (line == null)
                 return "";
@@ -225,6 +256,8 @@ public class ClientSpeak implements TextToSpeech {
         // Parse lines of input until we get a blank line.
         try {
             String line = this.input.readLine();
+            while (line.equals("dummyMessage"))
+                line = this.input.readLine(); //ignore any return messages from mac server that aren't requested by Phonemic
             while (!line.isEmpty()) {
                  SpeechVoice v = new SpeechVoice(line, SpeechLanguage.ENGLISH_US);
                  voices.add(v);
@@ -272,16 +305,31 @@ public class ClientSpeak implements TextToSpeech {
         
         // Parse lines of input until we get a blank line.
         String line = "";
-        do {
+//        do {
+//            try {
+//                line = this.input.readLine();
+//                while (line.equals("dummyMessage"))
+//                    line = this.input.readLine(); //ignore any return messages from mac server that aren't requested by Phonemic
+//                if (!line.isEmpty())
+//                    engines.add(TextToSpeechEngine.valueOf(line));
+//            } catch (IOException ex) {
+//                Logger.getLogger(ClientSpeak.class.getName()).log(Level.SEVERE, null, ex);
+//                line = "";
+//            }
+//        } while (!line.isEmpty());
+        
             try {
                 line = this.input.readLine();
-                if (!line.isEmpty())
+                while (line.equals("dummyMessage"))
+                    line = this.input.readLine(); //ignore any return messages from mac server that aren't requested by Phonemic
+                while (!line.isEmpty()) {
                     engines.add(TextToSpeechEngine.valueOf(line));
+                    line = this.input.readLine();
+                 }
             } catch (IOException ex) {
                 Logger.getLogger(ClientSpeak.class.getName()).log(Level.SEVERE, null, ex);
                 line = "";
             }
-        } while (!line.isEmpty());
         
         return engines.iterator();
     }
@@ -379,8 +427,7 @@ public class ClientSpeak implements TextToSpeech {
 
     public boolean speak(String text, SpeechPriority priority, RequestType type) {
         sendRawMessage("speak:" + priority.toString() + ":" + type.toString() + ":" + text);
-        
-        return true; // assume success
+            return true; // assume success
     }
 
     public boolean speak(char c) {
