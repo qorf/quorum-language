@@ -652,11 +652,11 @@ class Compiler
             repeat while it:HasNext()
                 File file = it:Next()
                 if not file:IsHidden()
-                    if file:IsFile()
-                        File next
-                        next:SetWorkingDirectory(nativeCopy:GetAbsolutePath() + "/")
-                        next:SetPath(file:GetPath())
 
+                    File next
+                    next:SetWorkingDirectory(nativeCopy:GetAbsolutePath() + "/")
+                    next:SetPath(file:GetPath())
+                    if file:IsFile()
                         DateTime fileTime = file:GetLastModifiedDate()//1.424560750484E12
                         DateTime nextTime = next:GetLastModifiedDate()//1.424560741363E12
 
@@ -670,6 +670,49 @@ class Compiler
                             end
                         end
                     end
+
+                    if file:IsDirectory()
+                        recursiveCopyDirectory(file, next)
+                    end
+                end
+            end
+        end
+    end
+
+    private action recursiveCopyDirectory(File from, File to) 
+        if not to:Exists()
+            to:CreateDirectories()
+        end
+        Array<File> files = from:GetDirectoryListing()
+        Iterator<File> it = files:GetIterator()
+        repeat while it:HasNext()
+            File next = it:Next()
+            if not next:IsHidden()
+                if next:IsFile()
+                    File copyTo
+                    copyTo:SetWorkingDirectory(to:GetAbsolutePath() + "/")
+                    copyTo:SetPath(next:GetPath())
+
+                    DateTime fileTime = next:GetLastModifiedDate()
+                    DateTime nextTime = copyTo:GetLastModifiedDate()
+
+                    //if it doesn't exist, copy the file
+                    if not copyTo:Exists()
+                        next:Copy(copyTo)
+                    else
+                        //if it does exist
+                        if fileTime:GetEpochTime() > nextTime:GetEpochTime()
+                            next:Copy(copyTo)
+                        end
+                    end
+                elseif next:IsDirectory()
+                    File copyTo
+                    copyTo:SetWorkingDirectory(to:GetAbsolutePath() + "/")
+                    copyTo:SetPath(next:GetPath())
+                    if not copyTo:Exists()
+                        copyTo:CreateDirectories()
+                    end
+                    recursiveCopyDirectory(next, copyTo)
                 end
             end
         end
