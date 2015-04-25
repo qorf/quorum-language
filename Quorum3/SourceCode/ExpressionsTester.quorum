@@ -109,6 +109,7 @@ class ExpressionsTester
         BadText()
         ChangeConstant()
         ChangeConstantField()
+        DuplicateClassTest()
         InvalidExpression()
         InvalidVariableName()
         MainNotCapitalized()
@@ -1218,6 +1219,18 @@ class ExpressionsTester
         File main
         main:SetPath(path + "ChangeConstantField.quorum")
         files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action DuplicateClassTest
+        Array<File> files
+        File main
+        main:SetPath(path + "ClassMain1.quorum")
+        File main2
+        main2:SetPath(path + "ClassMain2.quorum")
+        files:Add(main)
+        files:Add(main2)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
     end
