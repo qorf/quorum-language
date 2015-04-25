@@ -145,13 +145,10 @@ public abstract class QuorumAction implements Action {
         //NetBeans HACK: The NetBeans platform seems to strip away file permissions
         //for the executable in the .app file on mac. If we're on mac, 
         //reset the permissions of that file, if it exists.
-        String os = System.getProperty("os.name");
-        if(os.compareTo("Mac OS X")==0) {
-            File run = new File(directory.getAbsolutePath() + "/" + QuorumProject.DISTRIBUTION_DIRECTORY +
-                    "/jni/CocoaSpeechServer.app/Contents/MacOS/CocoaSpeechServer");
-            if(run.exists()) {
-                run.setExecutable(true);
-            }
+        File run = new File(directory.getAbsolutePath() + "/" + QuorumProject.DISTRIBUTION_DIRECTORY +
+                "/jni/CocoaSpeechServer.app/Contents/MacOS/CocoaSpeechServer");
+        if(run.exists()) {
+            run.setExecutable(true);
         }
         
         SwingUtilities.invokeLater(new Runnable() {
