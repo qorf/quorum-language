@@ -1465,8 +1465,11 @@ class Class is Symbol
     end
 
     action HasMainAction returns boolean
-        if actions:GetValue("Main") not= undefined
-            return true
+        Action main = actions:GetValue("Main")
+        if main not= undefined
+            if not main:IsBlueprint() and not main:IsSystem()
+                return true
+            end
         end
         return false
     end

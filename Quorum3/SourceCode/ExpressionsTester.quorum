@@ -107,6 +107,7 @@ class ExpressionsTester
         path = failPath
         BadErrorMessage()
         BadText()
+        BlueprintMain()
         ChangeConstant()
         ChangeConstantField()
         DuplicateClassTest()
@@ -1200,6 +1201,15 @@ class ExpressionsTester
         Array<File> files
         File main
         main:SetPath(path + "BadErrorMessage.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action BlueprintMain
+        Array<File> files
+        File main
+        main:SetPath(path + "BlueprintMain.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
