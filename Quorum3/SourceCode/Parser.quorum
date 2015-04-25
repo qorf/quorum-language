@@ -110,6 +110,10 @@ class Parser is QuorumSourceListener
             i = i + 1
         end
 
+        if currentClass = undefined
+            return now
+        end
+
         currentClass:SetFile(me:GetFile())
 
         if currentClass:GetStaticKey() not= "Libraries.Language.Object"
@@ -159,6 +163,9 @@ class Parser is QuorumSourceListener
     action ExitInheritStatement(InheritStatementContext context) 
         QualifiedName p = context:name
         Array<Type> gen = context:generics
+        if currentClass = undefined
+            return now
+        end
         currentClass:AddUnresolvedParent(context:name)
         currentClass:SetParentGenerics(p:GetStaticKey(), gen)
     end
@@ -294,6 +301,9 @@ class Parser is QuorumSourceListener
         currentAction:SetLocation(context:GetLocation())
 
         //add it to the class
+        if currentClass = undefined
+            return now
+        end
         CompilerError error = currentClass:Add(currentAction)
         if error not= undefined
             CompilerErrorManager manager = me:GetCompilerErrorManager()
@@ -311,6 +321,10 @@ class Parser is QuorumSourceListener
         type:SetToVoid()
         act:SetReturnType(type)
         
+        if currentClass = undefined
+            return now
+        end
+
         if currentClass:GetConstructor() not= undefined
             CompilerError error
             error:SetLocation(context:GetLocation())
@@ -377,6 +391,9 @@ class Parser is QuorumSourceListener
                 //this is an error and has already been caught.
                 return now
             end
+            if currentClass = undefined
+                return now
+            end
             error = currentClass:Add(variable)
         else //we're in the block of an action
             error = currentBlock:Add(variable)
@@ -404,6 +421,9 @@ class Parser is QuorumSourceListener
 
         Variable isDefinedAlready = undefined
         if currentBlock = undefined //we're in a field initiatlization block
+            if currentClass = undefined
+                return now
+            end
             isDefinedAlready = currentClass:GetVariable(context:name)
         else //we're in the block of an action
             if currentBlock:GetParentAction() = undefined
@@ -415,6 +435,9 @@ class Parser is QuorumSourceListener
         CompilerError error = undefined
         if isDefinedAlready = undefined
             if currentBlock = undefined //we're in a field initiatlization block
+                if currentClass = undefined
+                    return now
+                end
                 error = currentClass:Add(variable)
             else //we're in the block of an action
                 error = currentBlock:Add(variable)
