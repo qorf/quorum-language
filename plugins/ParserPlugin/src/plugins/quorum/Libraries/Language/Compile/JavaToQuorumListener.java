@@ -7,6 +7,7 @@ package plugins.quorum.Libraries.Language.Compile;
 
 import java.util.Iterator;
 import java.util.List;
+import javax.swing.JOptionPane;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -653,6 +654,10 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterReturn_statement(QuorumParser.Return_statementContext ctx) {
         quorum.Libraries.Language.Compile.Context.ReturnContext context = 
                 new quorum.Libraries.Language.Compile.Context.ReturnContext();
+        
+        if(ctx.NOW() != null) {
+            context.isReturnNow = true;
+        }
         setLocation(ctx, context);
         listener.EnterReturnStatement(context);
     }
@@ -661,6 +666,10 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitReturn_statement(QuorumParser.Return_statementContext ctx) {
         quorum.Libraries.Language.Compile.Context.ReturnContext context = 
                 new quorum.Libraries.Language.Compile.Context.ReturnContext();
+        
+        if(ctx.NOW() != null) {
+            context.isReturnNow = true;
+        }
         setLocation(ctx, context);
         listener.ExitReturnStatement(context);
     }
