@@ -2224,6 +2224,20 @@ class QuorumBytecodeListener is QuorumSourceListener
             opcode:SetMethodWriter(methodWriter)
             currentBlockOpcode:Add(opcode)
         else //if it is a void method, just do a normal return, but don't pop off the opcode stack
+            //if it isn't a return now, throw a compiler error
+            if not context:isReturnNow
+                QuorumOpcode right = opcodeStack:Pop()
+                TypeChecker checker = GetTypeChecker()
+                Operation returnOp
+                returnOp:SetOperation(returnOp:RETURN)
+                TypeCheckResult result = checker:Check(type, right:GetType(), returnOp) 
+                CompilerError error = result:GetCompilerError(context:GetLocation())
+                if error not= undefined
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(error)
+                    return now
+                end
+            end
             ReturnOpcode opcode
             opcode:SetLocation(context:GetLocation())
             opcode:SetType(type)

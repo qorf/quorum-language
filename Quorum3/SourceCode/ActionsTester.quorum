@@ -102,6 +102,7 @@ class ActionsTester
         path = failPath
         ActionLetter()
         ActionOutside()
+        BadReturn()
         BadVariableInParameter()
         HOCUndefinedVariable()
         HOCReturnIntFromMain()
@@ -1166,6 +1167,15 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "ActionOutside.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action BadReturn
+        Array<File> files
+        File main
+        main:SetPath(path + "BadReturn.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
