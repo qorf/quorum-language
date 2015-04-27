@@ -229,6 +229,8 @@ public class QuorumProject implements Project {
                 quorum.Libraries.System.File toQuorumFile = Utility.toQuorumFile(path);
                 compiler.AddJar(toQuorumFile);
             }
+        } else {
+            compiler.EmptyAdditionalJars();
         }
     }
     public void resetPluginFolder(String plugins) {
@@ -243,6 +245,8 @@ public class QuorumProject implements Project {
                 quorum.Libraries.System.File toQuorumFile = Utility.toQuorumFile(path);
                 compiler.AddPluginFolder(toQuorumFile);
             }
+        } else {
+            compiler.EmptyAdditionalPluginFolders();
         }
     }
     /**
