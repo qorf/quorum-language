@@ -558,12 +558,14 @@ public class JavaToQuorumListener implements QuorumListener {
     
     public QualifiedName Convert(QuorumParser.Qualified_nameContext next) {
         QualifiedName name = new QualifiedName();
-        List<Token> ids = next.ids;
-        Iterator<Token> tokens = ids.iterator();
-        while(tokens.hasNext()) {
-            Token token = tokens.next();
-            String value = token.getText();
-            name.Add(value);
+        if(next != null) {
+            List<Token> ids = next.ids;
+            Iterator<Token> tokens = ids.iterator();
+            while(tokens.hasNext()) {
+                Token token = tokens.next();
+                String value = token.getText();
+                name.Add(value);
+            }
         }
         return name;
     }
@@ -1415,7 +1417,9 @@ public class JavaToQuorumListener implements QuorumListener {
         ParentAssignmentContext context = new ParentAssignmentContext();
         setLocation(ctx, context);
         context.parentName = Convert(ctx.parent);
-        context.name = ctx.name.getText();
+        if(ctx.name != null) {
+            context.name = ctx.name.getText();
+        }
         listener.EnterParentAssignment(context);
     }
 
@@ -1425,7 +1429,9 @@ public class JavaToQuorumListener implements QuorumListener {
         setLocation(ctx, context);
         
         context.parentName = Convert(ctx.parent);
-        context.name = ctx.name.getText();
+        if(ctx.name != null) {
+            context.name = ctx.name.getText();
+        }
         listener.ExitParentAssignment(context);
     }
 
