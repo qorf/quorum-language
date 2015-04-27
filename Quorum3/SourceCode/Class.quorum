@@ -505,31 +505,11 @@ class Class is Symbol
         return false
     end
 
-    action ValidateGenerics(CompilerErrorManager compilerErrorManager)
-
-        if GetName() = "HashTableIterator"
-            a = 5
-        end
-
-        Iterator<text> values = genericHash:GetKeyIterator()
-        repeat while values:HasNext()
-            text generic = values:Next()
-
-            a = 5
-//            CompilerError error
-//            error:SetLocation(me)
-//            CompilerErrorType t
-//            t:SetCurrentType(t:MISMATCHED_TEMPLATES)
-//            error:SetCompilerErrorType(t)
-//            text message = "The class " + GetStaticKey() + " defines generics "
-//            message = message + "that lead to its parent class " + nextParent + 
-//                " having two different definitions."
-//            error:SetErrorMessage(message)
-//            compilerErrorManager:Add(error)
-        end
-    end
-
     action ComputeGenericsTables(CompilerErrorManager compilerErrorManager)
+
+        if me:GetName() = "Main"
+            a = 5
+        end
         Iterator<text> it = parentGenericMap:GetKeyIterator()
         HashTable<text, HashTable<integer, integer>> tempParentMap
         HashTable<integer, HashTable<text, integer>> circularMap

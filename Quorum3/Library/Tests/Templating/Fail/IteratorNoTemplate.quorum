@@ -1,0 +1,12 @@
+use Libraries.Containers.List 
+use Libraries.Containers.Blueprints.Iterator 
+
+class Main
+    List<integer> list 
+
+    action Main 
+        Iterator iterator = list:GetIterator() 
+        integer x = 0 
+        x = iterator:Next() 
+    end
+end

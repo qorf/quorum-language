@@ -207,7 +207,6 @@ class Compiler
                     newParse:ResolveAllTypes(sandboxSymbolTable, sandboxCompilerErrorManager)
                     newParse:ComputeVirtualActionTable(sandboxCompilerErrorManager)
                     newParse:ComputeGenericsTables(sandboxCompilerErrorManager)
-                    newParse:ValidateGenerics(sandboxCompilerErrorManager)
                     sandboxTypeChecker:Add(newParse)
                 end
             end
@@ -998,7 +997,6 @@ class Compiler
             Class next = classes:Next()
             next:ComputeVirtualActionTable(errors)
             next:ComputeGenericsTables(errors)
-            next:ValidateGenerics(errors)
             types:Add(next)
         end
     end
