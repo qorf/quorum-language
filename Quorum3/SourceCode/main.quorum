@@ -25,12 +25,12 @@ class Main is WebResponder
     HashTable<text, Array<text>> flagValues
 
     action Main
-        ProcessConsoleFlags()
+        //ProcessConsoleFlags()
         //CompileRepeatTest()
         //CodeCompletionTest()
         //ProfileTest()
         //ProfileWeb()
-        //CompileHardcodedFile()
+        CompileHardcodedFile()
         //CompileCompiler()
         //CompileSingleTest()
         //CompileGameEngine()
@@ -220,10 +220,10 @@ class Main is WebResponder
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
-        main:SetPath("Library/Tests/Actions/Fail/AssignmentAfterReturn.quorum")
+        main:SetPath("Library/Tests/Inheritance/Pass/OutputParentFieldMain.quorum")
 
         File class2
-        class2:SetPath("Library/Tests/Expressions/Fail/ClassMain1.quorum")
+        class2:SetPath("Library/Tests/Inheritance/Pass/GetParentFieldA.quorum")
         
         File class3
         class3:SetPath("Library/Tests/Inheritance/Pass/Test2.quorum")
@@ -236,7 +236,7 @@ class Main is WebResponder
         Array<File> files
 
         files:Add(main)
-        //files:Add(class2)
+        files:Add(class2)
         //files:Add(class3)
         //files:Add(class4)
         //files:Add(class5)

@@ -27,10 +27,12 @@ class InheritanceTester
         CheckCast()
         DerivedCall()
         DogMain()
+        GetParentFieldMain()
         InheritedTemplatedMethods()
         InheritanceOverloadingMain()
         MultipleInheritanceCallingAmbiguousBlueprints()
         OutputParentValue()
+        OutputParentFieldMain()
         OutputParentValueField()
         OutputParentValueClass()
         ParentActionCall()
@@ -240,6 +242,21 @@ class InheritanceTester
         suite:TestJavaScript(files, results)
     end
 
+    action GetParentFieldMain
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        main:SetPath(path + "GetParentFieldMain.quorum")
+        dependent1:SetPath(path + "GetParentFieldA.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
     action InheritedTemplatedMethods 
         Array<File> files
         Array<Text> results
@@ -321,6 +338,21 @@ class InheritanceTester
         files:Add(dependent2)
         results:Add(0, "6")
         results:Add(1, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action OutputParentFieldMain
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        main:SetPath(path + "OutputParentFieldMain.quorum")
+        dependent1:SetPath(path + "GetParentFieldA.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        results:Add(0, "10")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

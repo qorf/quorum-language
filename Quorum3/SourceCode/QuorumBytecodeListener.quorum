@@ -2046,7 +2046,10 @@ class QuorumBytecodeListener is QuorumSourceListener
                     end
 
                     if variable not= undefined and parentClass not= undefined 
-                        if variable:IsPrivate()
+                        //check to see if the variable is private
+                        //if it is, this is ok, but only if the class we are
+                        //grabbing from is a parent
+                        if variable:IsPrivate() and not currentClass:HasParentClass(callingName)
                             CompilerError error
                             error:SetLocation(context:GetLocation())
                             error:SetErrorMessage("I found the variable " + name 
