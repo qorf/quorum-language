@@ -536,9 +536,15 @@ class File
             // "/Users/jeff/Music"
             // ... etc ... 
             
+            Array<File> files
+            //empty directory
+            if listingString:IsEmpty()
+                return files
+            end
+
             Array<text> paths = listingString:Split(GetSystemNewline())
             Iterator<text> i = paths:GetIterator()
-            Array<File> files
+
             repeat while i:HasNext()
                 text p = i:Next()
                 File fileToAdd
