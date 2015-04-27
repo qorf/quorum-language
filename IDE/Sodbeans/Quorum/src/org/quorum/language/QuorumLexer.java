@@ -37,14 +37,12 @@ public class QuorumLexer implements Lexer<QuorumTokenId> {
     @Override
     public Token<QuorumTokenId> nextToken() {
         org.antlr.v4.runtime.Token token = lexer.nextToken();
-        //String text = token.getText();
         if (info.input().readLength() < 1) {
             return null;
         } else if (token.getType() == -1) {
             QuorumTokenId id = new QuorumTokenId(plugins.quorum.Libraries.Language.Compile.QuorumLexer.tokenNames[1], "", 1);
             org.netbeans.api.lexer.Token<QuorumTokenId> toke = info.tokenFactory().createToken(id);
             return toke;
-            //return info.tokenFactory().createToken(QuorumLanguageHierarchy.getToken(10));
         }
         
         

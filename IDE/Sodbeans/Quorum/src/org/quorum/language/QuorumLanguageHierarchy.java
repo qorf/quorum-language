@@ -143,7 +143,7 @@ public class QuorumLanguageHierarchy extends LanguageHierarchy<QuorumTokenId> {
         list.add(quorumToken);
         quorumToken = new QuorumTokenId(values[plugins.quorum.Libraries.Language.Compile.QuorumLexer.CLASS], "keyword", plugins.quorum.Libraries.Language.Compile.QuorumLexer.CLASS);
         list.add(quorumToken);
-        quorumToken = new QuorumTokenId(values[plugins.quorum.Libraries.Language.Compile.QuorumLexer.BOOLEAN], "number", plugins.quorum.Libraries.Language.Compile.QuorumLexer.BOOLEAN);
+        quorumToken = new QuorumTokenId(values[plugins.quorum.Libraries.Language.Compile.QuorumLexer.BOOLEAN], "keyword", plugins.quorum.Libraries.Language.Compile.QuorumLexer.BOOLEAN);
         list.add(quorumToken);
         quorumToken = new QuorumTokenId(values[plugins.quorum.Libraries.Language.Compile.QuorumLexer.INT], "number", plugins.quorum.Libraries.Language.Compile.QuorumLexer.INT);
         list.add(quorumToken);
