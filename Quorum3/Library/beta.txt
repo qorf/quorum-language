@@ -1,31 +1,28 @@
-Quorum 3.0 Beta 1:
+Quorum 3.0 Beta 2:
 
-This is the first beta test file for the Quorum 3.0 compiler. Given that this is a 
+This is the second beta test file for the Quorum 3.0 compiler. Given that this is a 
 public beta, there are several features the team is still working on. Here is a 
 list of known issues.
 
-1. Text-to-speech is disabled in Quorum 3 beta 1. The reason is because we are 
-still finishing up a patch for newer versions of Mac OS X. We are waiting to 
-integrate until that work is finished. This includes both the "say" command
-and the Speech library.
-
-2. Several unit tests still fail. The reason is because the team is not yet finished
-porting over Quorum 2's test suite and we are generating new ones to account 
-for design changes in Q3. We are almost finished with this process.
-
-3. The templating/generics/type system still needs some testing.
-
-4. The -web flag, the flag that asks Quorum to generate a .war file,
+1. The -web flag, the flag that asks Quorum to generate a .war file,
 has not been tested for the beta. We plan to finish this up for the final release.
 
-5. The exceptions system, under some rare conditions, outputs a rather cryptic message,
-which was a holdover from Quorum 2. If an exception is thrown, under any condition, 
-and it does not have a corresponding stack trace come out, it's a bug and should
-be reported.
+2. Several minor issues exist in the bug database.
 
-6. Assignment on an object parent call is currently disabled (e.g., test:parent:Class:variable = ...).
+3. There is a slight delay in the tree navigator before it pops up for the first time. After
+it syncs up and indexes, it should respond quickly.
 
-7. There is no support for development environments yet (e.g., NetBeans).
+4. Code completion is not yet finished in the IDE.
+
+5. Accessibility support is not finished yet, as are doing a new comparison of 
+stock NetBeans out-of-the-box on various screen readers. Once this is complete,
+we plan to make some tweaks and decisions regarding self voicing options or other
+features.
+
+6. While relatively rare, in some instances Quorum 3 is outputting more compiler
+errors than it should, or otherwise errors that are less helpful than they 
+should be. Users that find compiler errors they consider particularly unhelpful
+should file a bug report with a reproducible example.
 
 As always, given that this is a beta compiler, users that find any issues at all 
 should feel free to file a bug report. As we go through this process, we will be paying
