@@ -1436,7 +1436,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         variable:SetIsDefined(true)
         Type left = variable:GetType()
 
-        if name = "c"
+        if variable:GetName() = "monkey123"
             a = 5
         end
         QuorumOpcode right = opcodeStack:Pop()

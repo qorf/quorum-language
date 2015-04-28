@@ -506,10 +506,6 @@ class Class is Symbol
     end
 
     action ComputeGenericsTables(CompilerErrorManager compilerErrorManager)
-
-        if me:GetName() = "Main"
-            a = 5
-        end
         Iterator<text> it = parentGenericMap:GetKeyIterator()
         HashTable<text, HashTable<integer, integer>> tempParentMap
         HashTable<integer, HashTable<text, integer>> circularMap
