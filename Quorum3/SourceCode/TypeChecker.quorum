@@ -2494,9 +2494,56 @@ class TypeChecker
                 error:SetCurrentType(error:INCOMPATIBLE_TYPES)
                 result:errorType = error
             end
+        elseif result not= undefined and assignment and right:GetStaticKey() not= right:UNDEFINED_KEY
+            CheckGenerics(left, right, result)
+        elseif result not= undefined and op not= undefined
+            if (op:GetOperation() = op:CAST or op:GetOperation() = op:IMPLICIT_CAST)
+                //copy the generics into the result type
+                Type res = result:result
+                Type type
+                type:CopyFrom(left)
+                result:result = type
+            end
+            
         end
         
         return result
+    end
+
+    private action CheckGenerics(Type left, Type right, TypeCheckResult result)
+        integer leftGenericSize = left:GetNumberGenerics()
+            integer rightGenericSize = right:GetNumberGenerics()
+            boolean genericsMatch = true
+            
+            if leftGenericSize = rightGenericSize
+                Iterator<Type> lGenerics = left:GetGenerics()
+                Iterator<Type> rGenerics = right:GetGenerics()
+                repeat while lGenerics:HasNext()
+                    Type lNext = lGenerics:Next()
+                    Type rNext = rGenerics:Next()
+                    if lNext:GetStaticKey() not= rNext:GetStaticKey()
+                        genericsMatch = false
+                    end
+
+                end
+            else
+                genericsMatch = false
+            end
+
+            if not genericsMatch
+                CompilerErrorType error
+
+                TypeConversionConstants convert = result:conversion
+                convert:SetConversion(convert:INCOMPATIBLE)
+                
+                text quote = ""
+                quote = quote:GetDoubleQuote()
+
+                result:errorMessage = "Cannot assign a value of type " + quote + 
+                    right:GetStaticKeyWithGenerics() + quote + "" + " to a variable of type " + quote + left:GetStaticKeyWithGenerics() + quote + "."
+                error:SetCurrentType(error:INVALID_OPERATOR)
+                result:errorType = error
+            end
     end
 
     action Check(Type left, Operation op) returns TypeCheckResult

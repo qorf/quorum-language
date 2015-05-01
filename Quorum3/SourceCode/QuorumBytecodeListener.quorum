@@ -583,10 +583,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitLoopStatement(LoopContext context) 
-
-        if currentClass:GetName() = "AverageOfFiveNumbers"
-            a = 5
-        end
         if HasErrors() 
             return now
         end
@@ -1375,6 +1371,10 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now
         end
 
+        if variable:GetName() = "newList"
+            a = 5
+        end
+
         TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
         CompilerError error = result:GetCompilerError(context:GetLocation())
 
@@ -1588,6 +1588,10 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action FinishActionResolution(ActionCallOpcode actionCall, ActionCallResolution resolved)
+//        if currentAction:GetName() = "Main"
+//            a = 5 
+//        end
+
         if resolved not= undefined and resolved:isResolved
             actionCall:SetActionCallResolution(resolved)
             actionCall:SetIsActionCall(true)
@@ -1628,7 +1632,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                         index = parentClass:GetIndexOfGeneric(returnType:GetMappedGeneric())
                         index = c:MapParentGenericToMe(parentClass:GetStaticKey(), index)
                     end
-
+                    
                     if index not= -1
                         Type left = t:GetGeneric(index)
                         TypeChecker checker = GetTypeChecker()
@@ -1657,21 +1661,84 @@ class QuorumBytecodeListener is QuorumSourceListener
                             CompilerErrorManager manager = GetCompilerErrorManager()
                             manager:Add(result:GetCompilerError(resolved:location))
                         end
+                    else //this is an invalid generic, throw an error
+                        
 
-                        a = 5
-                    else //this generic doesn't exist, throw an error
                     end
+                else
+                    //this variable isn't mapped to a generic, but it could
+                    //be templated type itself that is mapped to a generic
+                    //if it has generics in it, map them appropriately
 
-                    a = 5
+                    if returnType:GetNumberGenerics() > 0
+                        Type newReturn
+                        newReturn:CopyFrom(returnType)
+                        ResolveGenericType(newReturn, resolved:typeToMakeCallOn, resolved:classToMakeCallOn, act, resolved)
+                        actionCall:SetType(newReturn)
+                    end
                 end
             end
-
-            
         else
             CompilerError error = resolved:error 
             if error not= undefined
                 CompilerErrorManager manager = GetCompilerErrorManager()
                 manager:Add(error)
+            end
+        end
+    end
+
+    private action ResolveGenericType(Type returnType, Type typeToMakeCallOn, 
+        Class classToMakeCallOn, Action act, ActionCallResolution resolved)
+        if returnType:IsMappedToGeneric() //it is mapped to a generic, so find the variable it is mapped to
+            Type t = typeToMakeCallOn
+            Class c = classToMakeCallOn
+
+            integer index = -1
+            Class parentClass = act:GetParentClass()
+            if parentClass:GetStaticKey() = c:GetStaticKey()
+                index = c:GetIndexOfGeneric(returnType:GetMappedGeneric())
+            else //this action must be defined in a parent. Map its generics separately
+                index = parentClass:GetIndexOfGeneric(returnType:GetMappedGeneric())
+                index = c:MapParentGenericToMe(parentClass:GetStaticKey(), index)
+            end
+
+            if index not= -1
+                Type left = t:GetGeneric(index)
+                
+                returnType:CopyFrom(left)
+                returnType:SetToObject(left:GetStaticKey())
+//                TypeChecker checker = GetTypeChecker()
+//
+//                //get the type of the thing. If it is a primitive
+//                //it is stored type erased, but might look like a
+//                //primitive, so get the object version
+//                Type right
+//                text boxedKey = left:ConvertToNonPrimitiveStaticKey()
+//                right:SetToObject(boxedKey)
+//
+//                //since we know this is defined as a generic,
+//                //it is equivalent to a cast
+//                Operation op
+//                op:SetOperation(op:CAST)
+//                TypeCheckResult result = checker:Check(left, returnType, op, false)
+//                if result:errorType not= undefined
+//                    CompilerErrorManager manager = GetCompilerErrorManager()
+//                    manager:Add(result:GetCompilerError(resolved:location))
+//                end
+            else //no index, this is an error
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                //manager:Add(result:GetCompilerError(resolved:location))
+            end
+        else
+            //this variable isn't mapped to a generic, but it could
+            //be templated type itself that is mapped to a generic
+            //if it has generics in it, map them appropriately
+            if returnType:GetNumberGenerics() > 0
+                Iterator<Type> generics = returnType:GetGenerics()
+                repeat while generics:HasNext()
+                    Type type = generics:Next()
+                    ResolveGenericType(type, resolved:typeToMakeCallOn, resolved:classToMakeCallOn, act, resolved)
+                end
             end
         end
     end
@@ -1753,9 +1820,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
 
         Location loc = context:GetLocation()
-        if currentClass:GetName() = "Sprite" and loc:GetLineNumber() = 91
-            a = 5
-        end
         isNextVariableReferenceMe = context:hasMe
         Array<ActionCallOpcode> stack
         actionCallStacks:Add(me:currentActionStack, stack)
@@ -2022,10 +2086,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         else //push the variable
             actionCall:SetIsActionCall(false)
             name = context:name
-
-            if name = "a" and currentClass:GetName() = "Main"
-                a = 5
-            end
             Variable variable = undefined
 
             Array<ActionCallOpcode> stack = actionCallStacks:GetValue(currentActionStack - 1)
@@ -2288,11 +2348,6 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         Type left = context:type //this has to be resolved
         currentClass:ResolveType(context:GetLocation(), left, GetSymbolTable(), GetCompilerErrorManager())
-
-        Location location = context:GetLocation()
-        if location:GetLineNumber() = 1
-            a = 5
-        end
 
         TypeCheckResult result = checker:Check(left, right:GetType(), op)
         CompilerError error = result:GetCompilerError(context:GetLocation())

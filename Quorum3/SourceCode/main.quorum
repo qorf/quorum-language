@@ -25,12 +25,12 @@ class Main is WebResponder
     HashTable<text, Array<text>> flagValues
 
     action Main
-        ProcessConsoleFlags()
+        //ProcessConsoleFlags()
         //CompileRepeatTest()
         //CodeCompletionTest()
         //ProfileTest()
         //ProfileWeb()
-        //CompileHardcodedFile()
+        CompileHardcodedFile()
         //CompileCompiler()
         //CompileSingleTest()
         //CompileGameEngine()
@@ -220,25 +220,25 @@ class Main is WebResponder
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
-        main:SetPath("Library/Tests/Templating/Fail/IteratorNoTemplate.quorum")
+        main:SetPath("Library/Tests/Templating/Pass/TempClassHasTempClassThatInheritsFromTempClass_10.quorum")
 
         File class2
-        class2:SetPath("Library/Tests/Inheritance/Pass/GetParentFieldA.quorum")
+        class2:SetPath("Library/Tests/Templating/Pass/DoubleNodeList_10.quorum")
         
         File class3
-        class3:SetPath("Library/Tests/Inheritance/Pass/Test2.quorum")
+        class3:SetPath("Library/Tests/Templating/Pass/DoubleNode_10.quorum")
 
         File class4
-        class4:SetPath("Library/Tests/Templating/Fail/C_9.quorum")
+        class4:SetPath("Library/Tests/Templating/Pass/Node_8.quorum")
 
         File class5
         class5:SetPath("Library/Tests/Templating/Fail/D_8.quorum")
         Array<File> files
 
         files:Add(main)
-        //files:Add(class2)
-        //files:Add(class3)
-        //files:Add(class4)
+        files:Add(class2)
+        files:Add(class3)
+        files:Add(class4)
         //files:Add(class5)
 
         //compiler:SetOutputSpeech(false) //don't speak while in test mode

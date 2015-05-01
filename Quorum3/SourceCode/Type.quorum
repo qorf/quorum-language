@@ -33,7 +33,7 @@ class Type
     /* This is the value of the text if it happens to be a constant. */
     text textConstant = ""
 
-    action Copy returns Type //TODO: does not yet handle generics
+    action Copy returns Type
         Type type
         if IsInteger()
             type:SetToInteger()
@@ -55,9 +55,38 @@ class Type
             type:SetToObject(staticKey)
         end
         type:SetIsConstant(isConstant)
+        type:mappedGeneric = mappedGeneric
+        
+        type:genericName = genericName
+
+        Iterator<Type> types = GetGenerics()
+        repeat while types:HasNext()
+            Type t = types:Next()
+            Type copy = t:Copy()
+            type:AddGeneric(copy)
+        end
+
+
+
         return type
     end
 
+    /*
+        This action copies Type type into the curren object's fields.
+
+    */
+    action CopyFrom(Type type)
+        staticKey = type:GetStaticKey()
+        mappedGeneric = type:GetMappedGeneric()
+        genericName = type:genericName
+        generics:Empty()
+        Iterator<Type> types = type:GetGenerics()
+        repeat while types:HasNext()
+            Type t = types:Next()
+            Type copy = t:Copy()
+            AddGeneric(copy)
+        end
+    end
     /*
         Returns a static key for the object version of this type, even if it is
         a primitive. It does not change the type itself.
