@@ -51,6 +51,8 @@ class TemplatingTester
         DefineTypeOfUntemplatedClass_10()
         DiamondProblemWithTwoTypes_9()
         DiamondProblemWithTwoTypes_10()
+        IteratorNoTemplate()
+        IteratorWrongTemplate()
         PassBooleanTakesInteger_1()
         PassBooleanTakesNumber_7()
         PassIntegerTakesBoolean_4()
@@ -504,6 +506,22 @@ class TemplatingTester
         files:Add(dependent2)
         files:Add(dependent3)
 
+        suite:TestFail(files)
+    end
+
+    action IteratorNoTemplate
+        Array<File> files
+        File main
+        main:SetPath(path + "IteratorNoTemplate.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+    end
+
+    action IteratorWrongTemplate
+        Array<File> files
+        File main
+        main:SetPath(path + "IteratorWrongTemplate.quorum")
+        files:Add(main)
         suite:TestFail(files)
     end
 
