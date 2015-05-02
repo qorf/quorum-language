@@ -217,6 +217,9 @@ class Block
             return variable
         end
 
+        if parentClass = undefined
+            return variable
+        end
         //not a parameter either, so check the class's fields
         variable = parentClass:GetVariable(key)
         return variable

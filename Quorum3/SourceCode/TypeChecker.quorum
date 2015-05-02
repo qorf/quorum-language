@@ -10,8 +10,18 @@ class TypeChecker
     HashTable<text, TypeCheckResult> results
     Type constants
     JavaBytecodeOpcodes opcodes
+    SymbolTable symbolTable = undefined
+
     on create
         GenerateTypeCheckingTable()
+    end
+
+    action GetSymbolTable returns SymbolTable
+        return symbolTable
+    end
+
+    action SetSymbolTable(SymbolTable table)
+        symbolTable = table
     end
 
     action GenerateTypeCheckingTable
@@ -2481,8 +2491,6 @@ class TypeChecker
             convert:SetConversion(convert:INCOMPATIBLE)
             text quote = leftKey:GetDoubleQuote()
             if assignment
-                //leftKey = "" //account for generics later
-                //rightKey = "" //account for generics later
 
                 result:errorMessage = "Cannot assign a value of type " + quote + 
                     rightKey + quote + "" + " to a variable of type " + quote + leftKey + quote + "."
@@ -2495,7 +2503,12 @@ class TypeChecker
                 result:errorType = error
             end
         elseif result not= undefined and assignment and right:GetStaticKey() not= right:UNDEFINED_KEY
-            CheckGenerics(left, right, result)
+
+            if leftKey not= rightKey
+
+            else
+                CheckGenerics(left, right, result)
+            end
         elseif result not= undefined and op not= undefined
             if (op:GetOperation() = op:CAST or op:GetOperation() = op:IMPLICIT_CAST)
                 //copy the generics into the result type
