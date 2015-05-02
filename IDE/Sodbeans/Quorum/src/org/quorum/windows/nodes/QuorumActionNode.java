@@ -35,7 +35,7 @@ public class QuorumActionNode extends AbstractNode implements Comparable {
         while(params.HasNext()) {
             quorum.Libraries.Language.Compile.Symbol.Variable$Interface param = (quorum.Libraries.Language.Compile.Symbol.Variable$Interface) params.Next();
             Type$Interface type = param.GetType();
-            if(first = true) {
+            if(first == true) {
                 name = name + type.GetStaticKey() + " " + param.GetName();
             } else {
                 name = name + ", " + type.GetStaticKey() + " " + param.GetName();
