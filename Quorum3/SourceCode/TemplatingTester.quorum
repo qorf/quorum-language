@@ -51,6 +51,7 @@ class TemplatingTester
         DefineTypeOfUntemplatedClass_10()
         DiamondProblemWithTwoTypes_9()
         DiamondProblemWithTwoTypes_10()
+        DoubleTest()
         IteratorNoTemplate()
         IteratorWrongTemplate()
         PassBooleanTakesInteger_1()
@@ -563,6 +564,21 @@ class TemplatingTester
         files:Add(dependent2)
         files:Add(dependent3)
         files:Add(dependent4)
+
+        suite:TestFail(files)
+    end
+
+    action DoubleTest()
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        main:SetPath(path + "DoubleTest.quorum")
+        dependent1:SetPath(path + "A_DoubleTest.quorum")
+        dependent2:SetPath(path + "B_DoubleTest.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
 
         suite:TestFail(files)
     end

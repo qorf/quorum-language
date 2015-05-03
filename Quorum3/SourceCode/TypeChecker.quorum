@@ -2504,13 +2504,64 @@ class TypeChecker
             end
         elseif result not= undefined and assignment and right:GetStaticKey() not= right:UNDEFINED_KEY
 
-            if leftKey not= rightKey
+            if leftKey not= rightKey and left:GetNumberGenerics() > 0
+                if symbolTable not= undefined
+                    Class leftClass = symbolTable:GetClass(leftKey)
+                    Class rightClass = symbolTable:GetClass(rightKey)
 
+                    if leftClass not= undefined and rightClass not= undefined
+                        i = 0
+                        repeat while i < rightClass:GetNumberGenerics()
+                            text value = rightClass:GetGeneric(i)
+                            integer myIndex = rightClass:MapParentGenericToMe(leftKey, i)
+
+                            //get the generic from the right hand side at index i
+                            //and compare it to the index at myIndex
+                            //if it doesn't match, it's an error
+                            //ignore all indices that do not match
+                            if myIndex not= -1
+                                Type rgen = right:GetGeneric(i)
+                                Type lgen = left:GetGeneric(myIndex)
+
+                                //if these are not the same, it is an error
+                                //use the with generics call to account for nesting
+                                //we might need testing of sets of cases here.
+                                if rgen:GetStaticKeyWithGenerics() not= lgen:GetStaticKeyWithGenerics()
+                                    text quote = ""
+                                    quote = quote:GetDoubleQuote()
+                                    CompilerErrorType error
+
+                                    TypeConversionConstants convert = result:conversion
+                                    convert:SetConversion(convert:INCOMPATIBLE)
+
+                                    result:errorMessage = "Cannot assign a value of type " + quote + 
+                                        right:GetStaticKeyWithGenerics() + quote + "" + " to a variable of type " + quote + left:GetStaticKeyWithGenerics() + quote + "."
+                                    error:SetCurrentType(error:INVALID_OPERATOR)
+                                    result:errorType = error
+                                end
+                            end
+                            i = i + 1
+                        end
+                    else
+                        text quote = ""
+                        quote = quote:GetDoubleQuote()
+                        CompilerErrorType error
+
+                        TypeConversionConstants convert = result:conversion
+                        convert:SetConversion(convert:INCOMPATIBLE)
+
+                        result:errorMessage = "Cannot assign a value of type " + quote + 
+                            right:GetStaticKeyWithGenerics() + quote + "" + " to a variable of type " + quote + left:GetStaticKeyWithGenerics() + quote + "."
+                        error:SetCurrentType(error:INVALID_OPERATOR)
+                        result:errorType = error
+                    end
+                end
             else
                 CheckGenerics(left, right, result)
             end
         elseif result not= undefined and op not= undefined
             if (op:GetOperation() = op:CAST or op:GetOperation() = op:IMPLICIT_CAST)
+                and left:GetNumberGenerics() > 0
                 //copy the generics into the result type
                 Type res = result:result
                 Type type

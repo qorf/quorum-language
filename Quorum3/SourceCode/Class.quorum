@@ -669,7 +669,11 @@ class Class is Symbol
             //do we have a map for this generic?
             HashTable<integer, integer> map = parentGenericMap:GetValue(parentKey)
             if map not= undefined
-                return map:GetValue(index)
+                if map:HasKey(index)
+                    return map:GetValue(index)
+                else
+                    return -1
+                end
             else //we couldn't find the map. Ask the parent, and any of its parents, if it has one
                 //check all of the maps to see if any of them lead to the one
                 //in question. If this is not unique, is this an issue? Think on this more

@@ -1371,6 +1371,9 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now
         end
 
+        if name = "ATAN2_DIM"
+            a = 5
+        end
         TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
         CompilerError error = result:GetCompilerError(context:GetLocation())
 

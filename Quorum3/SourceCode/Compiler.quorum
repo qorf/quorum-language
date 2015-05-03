@@ -69,6 +69,7 @@ class Compiler
         symbolTable = symbolTable2
         compilerErrorManager = compilerErrorManager2
         checker = checker2
+        checker:SetSymbolTable(symbolTable)
         profiler = profiler2
     end
 
@@ -123,6 +124,7 @@ class Compiler
         result:compilerErrorManager = sandboxCompilerErrorManager
         sandboxCompilerErrorManager:Empty()
         result:symbolTable = sandboxSymbolTable
+        sandboxTypeChecker:SetSymbolTable(sandboxSymbolTable)
         DateTime time
         start = time:GetEpochTime()
         sandboxedProfiler:Add(time:GetEpochTime())
@@ -365,6 +367,7 @@ class Compiler
         profiler:Empty()
         profiler:Add(time:GetEpochTime())
         boolean isInvalidCompile = false
+        checker:SetSymbolTable(symbolTable)
         if files = undefined
             isInvalidCompile = true
         elseif files:IsEmpty()

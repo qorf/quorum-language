@@ -25,12 +25,12 @@ class Main is WebResponder
     HashTable<text, Array<text>> flagValues
 
     action Main
-        //ProcessConsoleFlags()
+        ProcessConsoleFlags()
         //CompileRepeatTest()
         //CodeCompletionTest()
         //ProfileTest()
         //ProfileWeb()
-        CompileHardcodedFile()
+        //CompileHardcodedFile()
         //CompileCompiler()
         //CompileSingleTest()
         //CompileGameEngine()
@@ -220,13 +220,13 @@ class Main is WebResponder
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
-        main:SetPath("Library/Tests/Templating/Fail/IteratorWrongTemplate.quorum")
+        main:SetPath("Library/Tests/Expressions/Pass/CastTest.quorum")
 
         File class2
-        class2:SetPath("Library/Tests/Templating/Pass/DoubleNodeList_10.quorum")
+        class2:SetPath("Library/Tests/Templating/Fail/B_DoubleTest.quorum")
         
         File class3
-        class3:SetPath("Library/Tests/Templating/Pass/DoubleNode_10.quorum")
+        class3:SetPath("Library/Tests/Templating/Fail/A_DoubleTest.quorum")
 
         File class4
         class4:SetPath("Library/Tests/Templating/Pass/Node_8.quorum")
