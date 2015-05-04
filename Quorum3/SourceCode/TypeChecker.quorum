@@ -2333,8 +2333,10 @@ class TypeChecker
         results:Add(key, result)
 
         Iterator<Class> parents = clazz:GetParentClasses()
+        Array<Class> parentArray
         repeat while parents:HasNext()
             Class p = parents:Next()
+            parentArray:Add(p)
             text parentKey = p:GetStaticKey()
             TypeConversionPoints points = undefined
 
@@ -2434,6 +2436,47 @@ class TypeChecker
             points:SetPoints(points:SUPER)
             results:Add(key, result)
         end
+
+        i = 0
+        repeat parentArray:GetSize() - 1 times
+            //get the current parent
+            Class p = parentArray:Get(i)
+            text parentKey = p:GetStaticKey()
+            //now dig through the rest of the parents and 
+            //allow "is" statements for all of them
+            j = i + 1
+            repeat while j < parentArray:GetSize()
+                Class nextParent = parentArray:Get(j)
+                text nextParentKey = nextParent:GetStaticKey()
+                
+                op = GetOperation(opConstant:IS)
+                key = GenerateTypeCheckKey(nextParentKey,
+                    parentKey, op, false)
+                result = GetNoConvertResult()
+                type = result:result
+                type:SetToBoolean()
+                IsOpcode isOpcode2
+                isOpcode2:SetType(type)
+                result:SetQuorumOpcode(isOpcode2)
+                results:Add(key, result)
+
+                op = GetOperation(opConstant:IS)
+                key = GenerateTypeCheckKey(parentKey,
+                    nextParentKey, op, false)
+                result = GetNoConvertResult()
+                type = result:result
+                type:SetToBoolean()
+                IsOpcode isOpcode3
+                isOpcode3:SetType(type)
+                result:SetQuorumOpcode(isOpcode3)
+                results:Add(key, result)
+
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+
     end
 
     action GenerateTypeCheckKey(text left, text right,

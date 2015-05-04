@@ -30,6 +30,7 @@ class InheritanceTester
         GetParentFieldMain()
         InheritedTemplatedMethods()
         InheritanceOverloadingMain()
+        IsTestMain()
         MultipleInheritanceCallingAmbiguousBlueprints()
         OutputParentValue()
         OutputParentFieldMain()
@@ -297,6 +298,26 @@ class InheritanceTester
         files:Add(dependent2)
         results:Add(0, "Class")
         results:Add(1, "SubClass")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action IsTestMain 
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "IsTestMain.quorum")
+        dependent1:SetPath(path + "ASolo.quorum")
+        dependent2:SetPath(path + "BSolo.quorum")
+        dependent3:SetPath(path + "CIsAB.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        results:Add(0, "a is b")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
