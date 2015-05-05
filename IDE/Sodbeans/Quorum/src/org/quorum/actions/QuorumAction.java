@@ -270,7 +270,7 @@ public abstract class QuorumAction implements Action {
                                         }
                                     }
                                 }
-                                Thread.sleep(0);
+                                Thread.sleep(20);
                             } catch (IOException ex) {
                                 Exceptions.printStackTrace(ex);
                             } catch (InterruptedException ex) {
@@ -338,7 +338,7 @@ public abstract class QuorumAction implements Action {
                             }
                         });
                     }
-                    Thread.sleep(0);
+                    Thread.sleep(20);
                 } catch (IOException ex) {
                 } catch (InterruptedException ex) {
                 } catch (InvocationTargetException ex) {
