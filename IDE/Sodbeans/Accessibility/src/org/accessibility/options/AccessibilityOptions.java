@@ -81,7 +81,7 @@ public class AccessibilityOptions {
      * 
      * @param read if true, the screen will be self voiced.
      */
-    public static void setTaslkingDebugging(boolean read) {
+    public static void setTalkingDebugging(boolean read) {
         NbPreferences.forModule(GeneralPanel.class).putBoolean(TALKING_DEBUGGING, read);
     }
     
@@ -256,7 +256,7 @@ public class AccessibilityOptions {
      * this value returns the empty string, then its value is set to
      * whatever voice the system defaults to.
      */
-    public static String getSelectedVoice(String voice) {
+    public static String getSelectedVoice() {
         return NbPreferences.forModule(GeneralPanel.class).get(SELECTED_VOICE, "");
     }
 }

@@ -5,8 +5,13 @@
  */
 package org.accessibility.windows;
 
+import java.util.Iterator;
+import javax.swing.DefaultListModel;
+import org.accessibility.options.AccessibilityOptions;
+import org.sodbeans.phonemic.SpeechVoice;
 import org.sodbeans.phonemic.TextToSpeechFactory;
 import org.sodbeans.phonemic.tts.TextToSpeech;
+import org.sodbeans.phonemic.tts.TextToSpeechEngine;
 
 public final class GeneralPanel extends javax.swing.JPanel {
     private TextToSpeech speech = TextToSpeechFactory.getDefaultTextToSpeech();
@@ -108,11 +113,6 @@ public final class GeneralPanel extends javax.swing.JPanel {
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(speedLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(pitchLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -122,10 +122,13 @@ public final class GeneralPanel extends javax.swing.JPanel {
                                     .addComponent(pitchSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(volumeSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(speedSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addComponent(jSeparator2)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel8)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addComponent(jSeparator2)))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel8))
+                                .addGap(0, 0, Short.MAX_VALUE))))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -176,7 +179,7 @@ public final class GeneralPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jCheckBox3)
                     .addComponent(jCheckBox4))
-                .addGap(18, 45, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addComponent(jLabel8)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -191,7 +194,8 @@ public final class GeneralPanel extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(pitchSlider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(pitchLabel)))
+                    .addComponent(pitchLabel))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -203,7 +207,26 @@ public final class GeneralPanel extends javax.swing.JPanel {
         // someCheckBox.setSelected(NbPreferences.forModule(GeneralPanel.class).getBoolean("someFlag", false));
         // or:
         // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
-        
+        if(speech != null) {
+            String speechEngine = AccessibilityOptions.getSpeechEngine();
+            
+            Iterator<TextToSpeechEngine> engines = speech.getAvailableEngines();
+            DefaultListModel engineModel = new DefaultListModel();
+            while(engines.hasNext()) {
+                TextToSpeechEngine next = engines.next();
+                engineModel.addElement(next.getEngineName());
+            }
+            engineList.setModel(engineModel);
+            
+            String selectedVoice = AccessibilityOptions.getSelectedVoice();
+            Iterator<SpeechVoice> voices = speech.getAvailableVoices();
+            DefaultListModel voiceModel = new DefaultListModel();
+            while(voices.hasNext()) {
+                SpeechVoice next = voices.next();
+                voiceModel.addElement(next.getName());
+            }
+            voiceList.setModel(voiceModel);
+        }
     }
 
     void store() {
