@@ -45,7 +45,7 @@ public class Installer extends ModuleInstall implements Runnable{
             startup.setLocationRelativeTo(frame);
             startup.setVisible(true);
             boolean voiced = startup.isSelfVoiced();
-            AccessibilityOptions.setSelfVoicing(voiced);
+            AccessibilityOptions.setDefaultAccessibilityOptions(voiced);
             AccessibilityOptions.setStartedOnce(true);
         }
         

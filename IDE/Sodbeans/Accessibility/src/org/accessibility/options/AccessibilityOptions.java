@@ -2,6 +2,12 @@ package org.accessibility.options;
 
 import org.accessibility.windows.GeneralPanel;
 import org.openide.util.NbPreferences;
+import org.sodbeans.phonemic.OperatingSystem;
+import org.sodbeans.phonemic.SpeechLanguage;
+import org.sodbeans.phonemic.SpeechVoice;
+import org.sodbeans.phonemic.TextToSpeechFactory;
+import org.sodbeans.phonemic.tts.TextToSpeech;
+import org.sodbeans.phonemic.tts.TextToSpeechEngine;
 
 
 /**
@@ -18,6 +24,9 @@ import org.openide.util.NbPreferences;
  * @author Andreas Stefik
  */
 public class AccessibilityOptions {
+    
+    private static final OperatingSystem os = OperatingSystem.getOS();
+    
     /**
      * This flag determines whether the accessibility module has started at least
      * one time. If it hasn't, then an accessibility window pops up asking if
@@ -161,56 +170,56 @@ public class AccessibilityOptions {
     }
 
     /**
-     * Stores the current speech volume. (0.0 to 1.0).
+     * Stores the current speech volume. (0 to 100)
      */
     public static final String SPEECH_VOLUME = "speechVolume";
     
     /**
-     * Stores the current speech volume. (0.0 to 1.0).
+     * Stores the current speech volume. (0 to 100)
      */
     public static int getSpeechVolume() {
         return NbPreferences.forModule(GeneralPanel.class).getInt(SPEECH_VOLUME, 100);
     }
     
     /**
-     * Stores the current speech volume. (0.0 to 1.0).
+     * Stores the current speech volume. (0 to 100)
      */
     public static void setSpeechVolume(int vol) {
         NbPreferences.forModule(GeneralPanel.class).putInt(SPEECH_VOLUME, vol);
     }
     
     /**
-     * Stores the current speech speed. (0.0 to 1.0).
+     * Stores the current speech speed. (0 to 100)
      */
     public static final String SPEECH_SPEED = "speechSpeed";
     
     /**
-     * Stores the current speech speed. (0.0 to 1.0).
+     * Stores the current speech speed. (0 to 100)
      */
     public static int getSpeechSpeed() {
         return NbPreferences.forModule(GeneralPanel.class).getInt(SPEECH_SPEED, 50);
     }
 
     /**
-     * Stores the current speech speed. (0.0 to 1.0).
+     * Stores the current speech speed. (0 to 100)
      */
     public static void setSpeechSpeed(int speed) {
         NbPreferences.forModule(GeneralPanel.class).putInt(SPEECH_SPEED, speed);
     }
     /**
-     * Stores the current speech pitch. (0.0 to 1.0)
+     * Stores the current speech pitch. (0 to 100)
      */
     public static final String SPEECH_PITCH = "speechPitch";
     
    /**
-     * Stores the current speech pitch. (0.0 to 1.0)
+     * Stores the current speech pitch. (0 to 100)
      */
     public static int getSpeechPitch() {
         return NbPreferences.forModule(GeneralPanel.class).getInt(SPEECH_PITCH, 50);
     }
 
    /**
-     * Stores the current speech pitch. (0.0 to 1.0)
+     * Stores the current speech pitch. (0 to 100)
      */
     public static void setSpeechPitch(int pitch) {
         NbPreferences.forModule(GeneralPanel.class).putInt(SPEECH_PITCH, pitch);
@@ -225,7 +234,7 @@ public class AccessibilityOptions {
      * Stores the current speech engine.
      */
     public static String getSpeechEngine() {
-        return NbPreferences.forModule(GeneralPanel.class).get(SPEECH_ENGINE, "");
+        return NbPreferences.forModule(GeneralPanel.class).get(SPEECH_ENGINE, getDefaultPlatformEngine());
     }
     
    /**
@@ -235,6 +244,67 @@ public class AccessibilityOptions {
         NbPreferences.forModule(GeneralPanel.class).put(SPEECH_ENGINE, engine);
     }
     
+    /**
+     * This method returns the default name, per platform, for the engine to
+     * use on the system. If this choice does not exist, the first option
+     * it returns the empty string.
+     * 
+     * @return 
+     */
+    public static String getDefaultPlatformEngine() {
+        if (os == OperatingSystem.MAC_OSX) {
+            return "APPLE_COCOA";
+        } else if (os == OperatingSystem.LINUX) {
+            return "";
+        } else if(isWindows()) {
+            return "SAPI";
+        }
+        
+        return "";
+    }
+    
+    /**
+     * Sets the default accessibility options. If self voice is set to true,
+     * then all options are turned on. If it is false, only some options
+     * are turned on.
+     * 
+     * @param selfVoice 
+     */
+    public static void setDefaultAccessibilityOptions(boolean selfVoice) {
+        AccessibilityOptions.setSpeechEngine(getDefaultPlatformEngine());
+        AccessibilityOptions.setSelectedVoice(getDefaultPlatformVoice());
+        
+        if(selfVoice) {
+            AccessibilityOptions.setSelfVoicing(true);
+            AccessibilityOptions.setTalkingDebugging(true);
+            AccessibilityOptions.setSoundOnError(true);
+        } else {
+            AccessibilityOptions.setSelfVoicing(false);
+            AccessibilityOptions.setTalkingDebugging(false);
+            AccessibilityOptions.setSoundOnError(false);
+        }
+        AccessibilityOptions.setSpeechOnRequest(true);
+        AccessibilityOptions.setMagnificationOn(false);
+        AccessibilityOptions.setSpeechSpeed(50);
+        AccessibilityOptions.setSpeechVolume(100);
+        AccessibilityOptions.setSpeechPitch(50);
+        setSystemOptions();
+    }
+    
+    /**
+     * Resets the system, from current settings, to the current options.
+     */
+    public static void setSystemOptions() {
+        TextToSpeech speech = TextToSpeechFactory.getDefaultTextToSpeech();
+        speech.setTextToSpeechEngine(TextToSpeechEngine.valueOf(getSpeechEngine()));
+        SpeechVoice voice = new SpeechVoice(getSelectedVoice(), SpeechLanguage.ENGLISH_US);
+        speech.setVoice(voice);
+        
+        speech.setSpeed(((double)getSpeechSpeed()) / 100.0);
+        speech.setVolume(((double)getSpeechVolume()) / 100.0);
+        speech.setPitch(((double)getSpeechPitch()) / 100.0);
+    }
+
     /**
      * Returns the currently selected voice on the system. If
      * this value returns the empty string, then its value is set to
@@ -257,6 +327,39 @@ public class AccessibilityOptions {
      * whatever voice the system defaults to.
      */
     public static String getSelectedVoice() {
-        return NbPreferences.forModule(GeneralPanel.class).get(SELECTED_VOICE, "");
+        return NbPreferences.forModule(GeneralPanel.class).get(SELECTED_VOICE, getDefaultPlatformVoice());
+    }
+    
+   /**
+     * This method returns the default name, per platform, for the voice to
+     * use on the system. If this choice does not exist, the first option
+     * it returns the empty string.
+     * 
+     * @return 
+     */
+    public static String getDefaultPlatformVoice() {
+        if (os == OperatingSystem.MAC_OSX) {
+            return "Alex";
+        } else if (os == OperatingSystem.LINUX) {
+            return "";
+        } else if(isWindows()) {
+            return "Anna";
+        }
+        
+        return "";
+    }
+    
+    /**
+     * Determines whether we are on any particular version of windows. THis method
+     * is copied from phonemic.
+     * 
+     * @return 
+     */
+    private static boolean isWindows() {
+        return (OperatingSystem.WINDOWS7 == os ||
+            OperatingSystem.WINDOWS_VISTA == os ||
+            OperatingSystem.WINDOWS_XP == os ||
+            OperatingSystem.WINDOWS8 == os ||
+            OperatingSystem.WINDOWS_OTHER == os);
     }
 }

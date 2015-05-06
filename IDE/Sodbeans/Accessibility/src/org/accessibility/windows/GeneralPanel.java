@@ -5,6 +5,7 @@
  */
 package org.accessibility.windows;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import javax.swing.DefaultListModel;
 import org.accessibility.options.AccessibilityOptions;
@@ -16,7 +17,11 @@ import org.sodbeans.phonemic.tts.TextToSpeechEngine;
 public final class GeneralPanel extends javax.swing.JPanel {
     private TextToSpeech speech = TextToSpeechFactory.getDefaultTextToSpeech();
     private final GeneralOptionsPanelController controller;
-
+    HashMap<String, TextToSpeechEngine> engineHash = new HashMap<String, TextToSpeechEngine>();
+    HashMap<String, SpeechVoice> voiceHash = new HashMap<String, SpeechVoice>();
+    private int engineIndex = 0;
+    private int voiceIndex = 0;
+    
     GeneralPanel(GeneralOptionsPanelController controller) {
         this.controller = controller;
         initComponents();
@@ -38,14 +43,14 @@ public final class GeneralPanel extends javax.swing.JPanel {
         voiceList = new javax.swing.JList();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jCheckBox1 = new javax.swing.JCheckBox();
+        selfVoicingCheckBox = new javax.swing.JCheckBox();
         jSeparator1 = new javax.swing.JSeparator();
-        jCheckBox2 = new javax.swing.JCheckBox();
-        jCheckBox3 = new javax.swing.JCheckBox();
-        jCheckBox4 = new javax.swing.JCheckBox();
+        speechRequestCheckBox = new javax.swing.JCheckBox();
+        talkingDebuggerCheckBox = new javax.swing.JCheckBox();
+        beepOnErrorCheckBox = new javax.swing.JCheckBox();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
-        jCheckBox5 = new javax.swing.JCheckBox();
+        magnificationCheckBox = new javax.swing.JCheckBox();
         speedSlider = new javax.swing.JSlider();
         speedLabel = new javax.swing.JLabel();
         volumeLabel = new javax.swing.JLabel();
@@ -69,24 +74,24 @@ public final class GeneralPanel extends javax.swing.JPanel {
         jLabel2.setLabelFor(voiceList);
         org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jLabel2.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox1, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jCheckBox1.text")); // NOI18N
-        jCheckBox1.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jCheckBox1.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(selfVoicingCheckBox, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.selfVoicingCheckBox.text")); // NOI18N
+        selfVoicingCheckBox.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.selfVoicingCheckBox.toolTipText")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox2, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jCheckBox2.text")); // NOI18N
-        jCheckBox2.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jCheckBox2.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(speechRequestCheckBox, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.speechRequestCheckBox.text")); // NOI18N
+        speechRequestCheckBox.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.speechRequestCheckBox.toolTipText")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox3, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jCheckBox3.text")); // NOI18N
-        jCheckBox3.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jCheckBox3.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(talkingDebuggerCheckBox, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.talkingDebuggerCheckBox.text")); // NOI18N
+        talkingDebuggerCheckBox.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.talkingDebuggerCheckBox.toolTipText")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox4, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jCheckBox4.text")); // NOI18N
-        jCheckBox4.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jCheckBox4.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(beepOnErrorCheckBox, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.beepOnErrorCheckBox.text")); // NOI18N
+        beepOnErrorCheckBox.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.beepOnErrorCheckBox.toolTipText")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jLabel3.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel4, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jLabel4.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox5, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jCheckBox5.text")); // NOI18N
-        jCheckBox5.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.jCheckBox5.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(magnificationCheckBox, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.magnificationCheckBox.text")); // NOI18N
+        magnificationCheckBox.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.magnificationCheckBox.toolTipText")); // NOI18N
 
         speedLabel.setLabelFor(speedSlider);
         org.openide.awt.Mnemonics.setLocalizedText(speedLabel, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.speedLabel.text")); // NOI18N
@@ -133,12 +138,12 @@ public final class GeneralPanel extends javax.swing.JPanel {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jCheckBox3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jCheckBox1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                    .addComponent(talkingDebuggerCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(selfVoicingCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jCheckBox4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jCheckBox2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                    .addComponent(beepOnErrorCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(speechRequestCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                             .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
                                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 289, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -148,7 +153,7 @@ public final class GeneralPanel extends javax.swing.JPanel {
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jCheckBox5)
+                                    .addComponent(magnificationCheckBox)
                                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(0, 0, Short.MAX_VALUE)))))
                 .addContainerGap())
@@ -172,13 +177,13 @@ public final class GeneralPanel extends javax.swing.JPanel {
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jCheckBox1)
-                    .addComponent(jCheckBox2)
-                    .addComponent(jCheckBox5))
+                    .addComponent(selfVoicingCheckBox)
+                    .addComponent(speechRequestCheckBox)
+                    .addComponent(magnificationCheckBox))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jCheckBox3)
-                    .addComponent(jCheckBox4))
+                    .addComponent(talkingDebuggerCheckBox)
+                    .addComponent(beepOnErrorCheckBox))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel8)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -200,43 +205,72 @@ public final class GeneralPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     void load() {
-        // TODO read settings and initialize GUI
-        // Example:        
-        // someCheckBox.setSelected(Preferences.userNodeForPackage(GeneralPanel.class).getBoolean("someFlag", false));
-        // or for org.openide.util with API spec. version >= 7.4:
-        // someCheckBox.setSelected(NbPreferences.forModule(GeneralPanel.class).getBoolean("someFlag", false));
-        // or:
-        // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
+        loadEngineVoices();
+        selfVoicingCheckBox.setSelected(AccessibilityOptions.isSelfVoicing());
+        speechRequestCheckBox.setSelected(AccessibilityOptions.isSpeechOnRequest());
+        talkingDebuggerCheckBox.setSelected(AccessibilityOptions.isTalkingDebugging());
+        beepOnErrorCheckBox.setSelected(AccessibilityOptions.isSoundOnError());
+        magnificationCheckBox.setSelected(AccessibilityOptions.isMagnificationOn());
+        speedSlider.setValue(AccessibilityOptions.getSpeechSpeed());
+        volumeSlider.setValue(AccessibilityOptions.getSpeechVolume());
+        pitchSlider.setValue(AccessibilityOptions.getSpeechPitch());
+    }
+
+    private void loadEngineVoices() {
         if(speech != null) {
             String speechEngine = AccessibilityOptions.getSpeechEngine();
-            
             Iterator<TextToSpeechEngine> engines = speech.getAvailableEngines();
             DefaultListModel engineModel = new DefaultListModel();
+            int i = 0;
             while(engines.hasNext()) {
                 TextToSpeechEngine next = engines.next();
+                engineHash.put(next.getEngineName(), next);
                 engineModel.addElement(next.getEngineName());
+                if(next.getEngineName().compareTo(speechEngine) == 0) {
+                    engineIndex = i;
+                }
+                i = i + 1;
             }
             engineList.setModel(engineModel);
+            if(i > 0) {
+                engineList.setSelectedIndex(engineIndex);
+            }
             
             String selectedVoice = AccessibilityOptions.getSelectedVoice();
             Iterator<SpeechVoice> voices = speech.getAvailableVoices();
             DefaultListModel voiceModel = new DefaultListModel();
+            i = 0;
             while(voices.hasNext()) {
                 SpeechVoice next = voices.next();
+                voiceHash.put(next.getName(), next);
                 voiceModel.addElement(next.getName());
+                if(next.getName().compareTo(selectedVoice) == 0) {
+                    voiceIndex = i;
+                }
+                i = i + 1;
             }
+            
             voiceList.setModel(voiceModel);
+            if(i > 0) {
+                voiceList.setSelectedIndex(voiceIndex);
+            }
         }
     }
-
+    
     void store() {
-        // TODO store modified settings
-        // Example:
-        // Preferences.userNodeForPackage(GeneralPanel.class).putBoolean("someFlag", someCheckBox.isSelected());
-        // or for org.openide.util with API spec. version >= 7.4:
-        // NbPreferences.forModule(GeneralPanel.class).putBoolean("someFlag", someCheckBox.isSelected());
-        // or:
-        // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
+        String engine = (String) engineList.getSelectedValue();
+        AccessibilityOptions.setSpeechEngine(engine);
+        String voice = (String) voiceList.getSelectedValue();
+        AccessibilityOptions.setSelectedVoice(voice);
+        
+        AccessibilityOptions.setSelfVoicing(selfVoicingCheckBox.isSelected());
+        AccessibilityOptions.setSpeechOnRequest(speechRequestCheckBox.isSelected());
+        AccessibilityOptions.setTalkingDebugging(talkingDebuggerCheckBox.isSelected());
+        AccessibilityOptions.setSoundOnError(beepOnErrorCheckBox.isSelected());
+        AccessibilityOptions.setMagnificationOn(magnificationCheckBox.isSelected());
+        AccessibilityOptions.setSpeechSpeed(speedSlider.getValue());
+        AccessibilityOptions.setSpeechVolume(volumeSlider.getValue());
+        AccessibilityOptions.setSpeechPitch(pitchSlider.getValue());
     }
 
     boolean valid() {
@@ -245,13 +279,9 @@ public final class GeneralPanel extends javax.swing.JPanel {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox beepOnErrorCheckBox;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JList engineList;
-    private javax.swing.JCheckBox jCheckBox1;
-    private javax.swing.JCheckBox jCheckBox2;
-    private javax.swing.JCheckBox jCheckBox3;
-    private javax.swing.JCheckBox jCheckBox4;
-    private javax.swing.JCheckBox jCheckBox5;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -261,10 +291,14 @@ public final class GeneralPanel extends javax.swing.JPanel {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JCheckBox magnificationCheckBox;
     private javax.swing.JLabel pitchLabel;
     private javax.swing.JSlider pitchSlider;
+    private javax.swing.JCheckBox selfVoicingCheckBox;
+    private javax.swing.JCheckBox speechRequestCheckBox;
     private javax.swing.JLabel speedLabel;
     private javax.swing.JSlider speedSlider;
+    private javax.swing.JCheckBox talkingDebuggerCheckBox;
     private javax.swing.JList voiceList;
     private javax.swing.JLabel volumeLabel;
     private javax.swing.JSlider volumeSlider;
