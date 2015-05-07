@@ -1503,26 +1503,24 @@ public class JavaToQuorumListener implements QuorumListener {
     @Override
     public void enterVariableSoloFunctionCall(QuorumParser.VariableSoloFunctionCallContext ctx) {
         VariableFunctionCallContext context = new VariableFunctionCallContext();
-        setLocation(ctx, context);
         boolean hasMe = ctx.ME() != null;
         context.hasMe = hasMe;
-//        context.name = ctx.var.getText();
         if(ctx.object != null) {
             context.objectName = ctx.object.getText();
         }
+        setLocation(ctx, context);
         listener.EnterVariableSoloFunctionCall(context);
     }
 
     @Override
     public void exitVariableSoloFunctionCall(QuorumParser.VariableSoloFunctionCallContext ctx) {
         VariableFunctionCallContext context = new VariableFunctionCallContext();
-        setLocation(ctx, context);
         boolean hasMe = ctx.ME() != null;
         context.hasMe = hasMe;
-//        context.name = ctx.var.getText();
         if(ctx.object != null) {
             context.objectName = ctx.object.getText();
         }
+        setLocation(ctx, context);
         listener.ExitVariableSoloFunctionCall(context);
     }
 
