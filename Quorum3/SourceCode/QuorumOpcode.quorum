@@ -74,6 +74,9 @@ class QuorumOpcode
         if location not= undefined and liner not= undefined
             JavaBytecodeLabel start
             liner:VisitLabel(start)
+            if location:GetLineNumber() = 0
+                a = 5
+            end
             liner:VisitLine(location:GetLineNumber(), start)
         end
     end

@@ -1518,6 +1518,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         text object = context:objectName
         if not (object = undefined)
             ActionCallContext ac
+            ac:SetLocation(context:GetLocation())
             ac:isActionCall = false
             ac:name = object
             EnterActionCall(ac)
@@ -1587,10 +1588,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action FinishActionResolution(ActionCallOpcode actionCall, ActionCallResolution resolved)
-//        if currentAction:GetName() = "Main"
-//            a = 5 
-//        end
-
         if resolved not= undefined and resolved:isResolved
             actionCall:SetActionCallResolution(resolved)
             actionCall:SetIsActionCall(true)
