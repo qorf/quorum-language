@@ -8,6 +8,7 @@ use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Symbol.Variable
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 use Libraries.Language.Compile.Symbol.Block
+use Libraries.Language.Compile.Location
 
 class ActionOpcode is QuorumOpcode
     List<QuorumOpcode> opcodeList
@@ -137,6 +138,12 @@ class ActionOpcode is QuorumOpcode
             //checked in a previous phase, which makes this a compiler bug.
             Block block = method:GetBlock()
             if not block:HasReturnThisBlock() and type:IsVoid()
+                Location loc = GetLocation()
+                if loc not= undefined and methodWriter not= undefined
+                    JavaBytecodeLabel start
+                    methodWriter:VisitLabel(start)
+                    methodWriter:VisitLine(loc:GetLineNumberEnd(), start)
+                end
                 methodWriter:VisitInstruction(opcodes:GetReturn())
             end
         end

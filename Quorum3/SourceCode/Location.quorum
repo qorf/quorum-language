@@ -20,7 +20,7 @@ class Location
     end
 
     action GetLineNumberEnd returns integer
-        return startLine
+        return endLine
     end
 
     action SetLineNumberEnd(integer line)
@@ -36,7 +36,7 @@ class Location
     end
 
     action GetColumnNumberEnd returns integer
-        return startColumn
+        return endColumn
     end
 
     action SetColumnNumberEnd(integer column)
