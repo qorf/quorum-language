@@ -182,6 +182,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             Action method = currentClass:GetAction(key)
             currentAction = method
             ActionOpcode actionOpcode
+            actionOpcode:SetLocation(context:GetLocation())
             currentActionOpcode = actionOpcode
             currentActionOpcode:SetAction(method)
             currentActionOpcode:SetClass(currentClass)
@@ -256,6 +257,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             Action method = currentClass:GetAction(key)
             currentAction = method
             ActionOpcode actionOpcode
+            actionOpcode:SetLocation(context:GetLocation())
             currentActionOpcode = actionOpcode
             currentActionOpcode:SetAction(method)
             currentActionOpcode:SetClass(currentClass)
@@ -277,6 +279,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         isInAction = true
 
         ActionOpcode actionOpcode
+        actionOpcode:SetLocation(context:GetLocation())
         currentActionOpcode = actionOpcode
         currentActionOpcode:SetAction(currentAction)
         currentActionOpcode:SetClass(currentClass)
@@ -319,6 +322,8 @@ class QuorumBytecodeListener is QuorumSourceListener
         ClearActionState()
         
         if currentActionOpcode not= undefined
+            Location location = context:GetLocation()
+            currentActionOpcode:SetLocation(location)
             if not poppedBlockOpcodes:IsEmpty()
                 currentActionOpcode:Add(poppedBlockOpcodes:Pop())
             end
