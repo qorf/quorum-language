@@ -67,7 +67,7 @@ public class SoundUtility {
      */
     private void playBeep() {
         //if (AccessibilityOptions.isSelfVoicing())
-            play("topOfEditor.wav");
+            play("TopOfEditor.wav");
     }
 
     /**
