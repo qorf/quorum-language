@@ -44,7 +44,7 @@ public class SoundUtility {
      * Plays a short clicking sound.
      */
     public void playClick() {
-        //if (TextToSpeechOptions.isScreenReading())
+        //if (AccessibilityOptions.isSelfVoicing())
             play("Click.wav");
     }
     
@@ -66,7 +66,7 @@ public class SoundUtility {
      * etc.
      */
     private void playBeep() {
-        //if (TextToSpeechOptions.isScreenReading())
+        //if (AccessibilityOptions.isSelfVoicing())
             play("topOfEditor.wav");
     }
 
@@ -82,7 +82,7 @@ public class SoundUtility {
      * The sound to play when a compiler error is encountered in the editor.
      */
     public void playCompilerError() {
-        //if (TextToSpeechOptions.isScreenReading())
+        //if (AccessibilityOptions.isSelfVoicing())
             play("CompilerError.wav");
     }
 }
