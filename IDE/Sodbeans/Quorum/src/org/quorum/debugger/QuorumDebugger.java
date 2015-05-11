@@ -148,7 +148,8 @@ public class QuorumDebugger extends ActionsProviderSupport implements Breakpoint
         }
         QuorumDebuggerListener listener = new QuorumDebuggerListener();
         listener.setEngine(engineProvider);
-        listener.setCompiler(project.getLookup().lookup(quorum.Libraries.Language.Compile.Compiler.class));
+        listener.getSupport().setCompiler(project.getLookup().lookup(quorum.Libraries.Language.Compile.Compiler.class));
+        //listener.setCompiler(project.getLookup().lookup(quorum.Libraries.Language.Compile.Compiler.class));
         listener.setDebugger(debugger);
         listener.setCancel(cancel);
         listener.setAnnotationUpdater(annotationProvider);

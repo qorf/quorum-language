@@ -37,13 +37,10 @@ import org.debugger.events.DebuggerStartEvent;
 import org.debugger.events.DebuggerStepEvent;
 import org.debugger.events.DebuggerStopEvent;
 import org.openide.util.Cancellable;
-import org.openide.util.Lookup;
-//import org.sodbeans.actions.SodbeansStopDebuggerAction;
-//import org.sodbeans.io.CommandLine;
-//import org.sodbeans.phonemic.SpeechPriority;
-//import org.sodbeans.phonemic.TextToSpeechFactory;
-//import org.sodbeans.phonemic.tts.TextToSpeech;
-//import org.sodbeans.tts.options.api.TextToSpeechOptions;
+import org.sodbeans.phonemic.SpeechPriority;
+import org.sodbeans.phonemic.TextToSpeechFactory;
+import org.sodbeans.phonemic.tts.TextToSpeech;
+import org.accessibility.options.AccessibilityOptions;
 
 /**
  * This class listens to events from the debugger architecture.
@@ -53,14 +50,11 @@ import org.openide.util.Lookup;
 public class QuorumDebuggerListener implements DebuggerListener{
     private QuorumDebuggerEngineProvider engine = null;
     private QuorumSupport support = new QuorumSupport();
-    private quorum.Libraries.Language.Compile.Compiler compiler;
     private Debugger debugger;
     private QuorumDebugger quorumDebugger;
     private Cancellable cancel;
-//    private SodbeansStopDebuggerAction kill = null;
     private QuorumAnnotationUpdater annotationUpdater = null;
-//    private TextToSpeech speech = TextToSpeechFactory.getDefaultTextToSpeech();
-//    private CommandLine console = Lookup.getDefault().lookup(CommandLine.class);
+    private TextToSpeech speech = TextToSpeechFactory.getDefaultTextToSpeech();
     
     @Override
     public void accept(DebuggerStartEvent event) {
@@ -83,9 +77,9 @@ public class QuorumDebuggerListener implements DebuggerListener{
         
         String message = "";
         message = "" + getLocationInformation(event);
-//        if (TextToSpeechOptions.isScreenReading()) {
-//            speech.speak(message, SpeechPriority.HIGHEST);
-//        }
+        if (AccessibilityOptions.isTalkingDebugging()) {
+            speech.speak(message, SpeechPriority.MEDIUM);
+        }
     }
 
     @Override
@@ -99,19 +93,18 @@ public class QuorumDebuggerListener implements DebuggerListener{
         
         String message = "";
         message = "Breakpoint hit at line " + getLocationInformation(event);
-//        if (TextToSpeechOptions.isScreenReading()) {
-//            speech.speak(message, SpeechPriority.HIGHEST);
-//        }
+        if (AccessibilityOptions.isTalkingDebugging()) {
+            speech.speak(message, SpeechPriority.MEDIUM);
+        }
     }
     
     @Override
     public void accept(DebuggerExceptionEvent event) {
         String message = "";
         message = "Exception thrown with message: " + event.getMessage();
-//        console.post(message, true);
-//        if (TextToSpeechOptions.isScreenReading()) {
-//            speech.speak(message, SpeechPriority.HIGHEST);
-//        }
+        if (AccessibilityOptions.isTalkingDebugging()) {
+            speech.speak(message, SpeechPriority.MEDIUM);
+        }
     }
     
     /**
@@ -127,26 +120,16 @@ public class QuorumDebuggerListener implements DebuggerListener{
             return "";
         }
         
-        String quorum = "quorum/";
+        String quorum = "quorum.";
         int line = event.getLine();
         String source = event.getSource();
         
-//        String text = QuorumSupport.getLineInEditor(source, line);
-//        if(source.startsWith(quorum)) {
-//            source = source.substring(quorum.length());
-//        }
-//        
-//        return text + ", " + line + " " + source;
-        return "";
-    }
-
-    private void stop() {
+        String text = support.getLineInEditor(source, line);
+        if(source.startsWith(quorum)) {
+            source = source.substring(quorum.length());
+        }
         
-//        debugger.stop();
-//        engine.getDestructor().killEngine();
-//        cancel.cancel();
-//        annotationUpdater.removeAnnotation();
-//        QuorumBreakpointActionProvider.removeListener(quorumDebugger);
+        return text + ", " + line + " " + source;
     }
     
     @Override
@@ -166,21 +149,6 @@ public class QuorumDebuggerListener implements DebuggerListener{
      */
     public void setEngine(QuorumDebuggerEngineProvider engine) {
         this.engine = engine;
-    }
-
-    /**
-     * @return the compiler
-     */
-    public quorum.Libraries.Language.Compile.Compiler getCompiler() {
-        return compiler;
-    }
-
-    /**
-     * @param compiler the compiler to set
-     */
-    public void setCompiler(quorum.Libraries.Language.Compile.Compiler compiler) {
-        this.compiler = compiler;
-        getSupport().setCompiler(compiler);
     }
 
     /**
@@ -225,20 +193,6 @@ public class QuorumDebuggerListener implements DebuggerListener{
     public void setSupport(QuorumSupport support) {
         this.support = support;
     }
-
-//    /**
-//     * @return the kill
-//     */
-//    public SodbeansStopDebuggerAction getKill() {
-//        return kill;
-//    }
-//
-//    /**
-//     * @param kill the kill to set
-//     */
-//    public void setKill(SodbeansStopDebuggerAction kill) {
-//        this.kill = kill;
-//    }
 
     /**
      * @return the annotationProvider
