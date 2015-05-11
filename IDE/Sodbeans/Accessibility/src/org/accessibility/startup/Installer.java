@@ -66,6 +66,7 @@ public class Installer extends ModuleInstall implements Runnable{
             AccessibilityOptions.setStartedOnce(true);
         }
         
+        AccessibilityOptions.setSystemOptions();
         if(AccessibilityOptions.isSelfVoicing()) {
             speech.speak(STARTUP_STRING);
         }

@@ -132,7 +132,7 @@ public class AccessibilityOptions {
      * 
      * @return 
      */
-    public static boolean isSpeechOnRequest() {
+    public static boolean isTopBottomSound() {
         return NbPreferences.forModule(GeneralPanel.class).getBoolean(SPEECH_ON_REQUEST, true);
     }
     
@@ -142,7 +142,7 @@ public class AccessibilityOptions {
      * 
      * @param read
      */
-    public static void setSpeechOnRequest(boolean read) {
+    public static void setTopBottomSound(boolean read) {
         NbPreferences.forModule(GeneralPanel.class).putBoolean(SPEECH_ON_REQUEST, read);
     }
     
@@ -283,7 +283,7 @@ public class AccessibilityOptions {
             AccessibilityOptions.setTalkingDebugging(false);
             AccessibilityOptions.setSoundOnError(false);
         }
-        AccessibilityOptions.setSpeechOnRequest(true);
+        AccessibilityOptions.setTopBottomSound(true);
         AccessibilityOptions.setMagnificationOn(false);
         AccessibilityOptions.setSpeechSpeed(50);
         AccessibilityOptions.setSpeechVolume(100);

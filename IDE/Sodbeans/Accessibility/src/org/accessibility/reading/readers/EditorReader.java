@@ -13,6 +13,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Element;
+import org.accessibility.options.AccessibilityOptions;
 import org.magnify.MagnifierFactory;
 import org.magnify.MagnifierInterface;
 import org.netbeans.editor.AnnotationDesc;
@@ -755,7 +756,7 @@ public class EditorReader extends AbstractScreenReader {
                 String[][] list = new String[2][count];
                 list[0][0] = annotations.get(active.getAnnotationType());
                 list[1][0] = active.getShortDescription();
-                if (list[0][0].equals("Compiler Error")) {
+                if (list[0][0].equals("Compiler Error") && AccessibilityOptions.isSoundOnError()) {
                     snd.playCompilerError();
                 }
                 if (count > 1){
@@ -765,7 +766,7 @@ public class EditorReader extends AbstractScreenReader {
                         list[0][i] = annotations.get(pasive[i-1].getAnnotationType());
                         list[1][i] = pasive[i-1].getShortDescription();
                         
-                        if (list[0][i].equals("Compiler Error")) {
+                        if (list[0][i].equals("Compiler Error") && AccessibilityOptions.isSoundOnError()) {
                             snd.playCompilerError();
                         }
                     }

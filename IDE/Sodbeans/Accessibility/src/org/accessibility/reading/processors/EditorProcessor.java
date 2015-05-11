@@ -4,6 +4,7 @@
  */
 package org.accessibility.reading.processors;
 
+import org.accessibility.options.AccessibilityOptions;
 import org.sodbeans.phonemic.AbstractSpeechProcessor;
 import org.sodbeans.phonemic.RequestType;
 import org.accessibility.sound.SoundUtility;
@@ -45,9 +46,9 @@ public class EditorProcessor extends AbstractSpeechProcessor {
 
         // If necessary, speak line numbering information.
 
-        if (isStartOfDocument()) {
+        if (isStartOfDocument() && AccessibilityOptions.isTopBottomSound()) {
             snd.playTopOfEditor();
-        } else if (endOfDocument) {//we're at the end
+        } else if (endOfDocument && AccessibilityOptions.isTopBottomSound()) {//we're at the end
             snd.playTopOfEditor();
         }
 
