@@ -27,7 +27,7 @@ class Main is WebResponder
     action Main
         ProcessConsoleFlags()
         //CompileRepeatTest()
-        //CodeCompletionTest()
+        //CompileCodeCompletionTest()
         //ProfileTest()
         //ProfileWeb()
         //CompileHardcodedFile()
@@ -36,9 +36,9 @@ class Main is WebResponder
         //CompileGameEngine()
     end
 
-    action CodeCompletionTest
+    action CompileCodeCompletionTest
         Compiler compiler
-        output compiler:GetVersion() + ", Compile the compiler."
+        output compiler:GetVersion() + ", Code completion test."
         File main
         main:SetPath("SourceCode")
 
@@ -50,15 +50,21 @@ class Main is WebResponder
         Array<File> files = main:GetDirectoryListing()
 
         File actualMain
-        actualMain:SetPath("SourceCode/main.quorum")
+        actualMain:SetPath("Library/Tests/Use/Pass/GrabAllContainers.quorum")
         compiler:SetMain(actualMain)
         
-        
-        CodeCompletionRequest info
-        //info:projectFiles = files
-        //info:sourceLocation = actualMain
+        ProjectInformation info
+        info:projectFiles = files
+        info:sourceLocation = actualMain
         info:source = actualMain:Read()
+        
+        CodeCompletionRequest cc
+        cc:caretLocation = 27
+        cc:source = actualMain:Read()
 
+        CompilerResult result = compiler:ParseRepeat(info)
+        CodeCompletionResult ccr = compiler:Request(cc)
+        integer a = 5
     end
 
     action CompileRepeatTest

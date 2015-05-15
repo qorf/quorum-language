@@ -266,8 +266,11 @@ class Compiler
     action Request(CodeCompletionRequest request) returns CodeCompletionResult
         CodeCompletionResult result
 
-//        text line = request:line
-//        text trimmed = line:Trim()
+        text source = request:source
+        integer index = request:caretLocation
+        text line = GetLineBeforeCursor(index, source)
+        text trimmed = line:Trim()
+        request:line = trimmed
 //
 //        text sub = line:GetSubtext(0, request:startOffset - 1)
 //        boolean isDot = false
@@ -279,13 +282,152 @@ class Compiler
 //            end
 //        end
 //        
-//        boolean isUse = trimmed:StartsWith("use")
-//        boolean isPackage = trimmed:StartsWith("package")
-//
-//        if isUse
-//            AddUseResults(request, result, isUse)
-//        end
+        boolean isUse = trimmed:StartsWith("use")
+        boolean isPackage = trimmed:StartsWith("package")
 
+        if isUse
+            AddUseResults(request, result, true)
+        elseif not isUse and isPackage
+            AddUseResults(request, result, false)
+        end
+
+        return result
+    end
+
+    private action GetLineBeforeCursor(integer loc, text source) returns text
+        if loc <= source:GetSize()
+            integer i = loc
+            text CR = source:GetLineFeed()
+
+            integer start = 0
+            repeat while i >=0 
+                text ch = source:GetCharacter(i)
+                if ch = CR //this is the end of the line
+                    start = i
+                    i = -1
+                end
+                i = i - 1
+            end
+
+            text sub = source:GetSubtext(start, loc)
+            return sub
+        end
+
+        return undefined
+    end
+
+    private action AddCustomClasses(CodeCompletionRequest request, CodeCompletionResult result, text pack)
+        Iterator<Class> classes = sandboxSymbolTable:GetClassesInPackage(pack)
+
+        if classes not= undefined
+            repeat while classes:HasNext()
+                Class clazz = classes:Next()
+                CodeCompletionItem item = GetClassCompletionItem(clazz)
+                result:Add(item)
+            end
+        end
+    end
+
+    private action GetClassCompletionItem(Class clazz) returns CodeCompletionItem
+        CodeCompletionItem item
+        item:SetType(item:CLASS)
+
+        text signature = clazz:GetStaticKey()
+        text name = clazz:GetName()
+
+        text description = ""
+        description = description + "<h1>" + signature + "</h1>"
+//        String[] paragraphs = Documentation.breakStringIntoParagraphArray(clazz.getDocumentation().getDescription());
+//        for (int i = 0; i < paragraphs.length; i++) {
+//            description += "<p>" + paragraphs[i] + "</p>";
+//        }
+//
+//        description += "<h2>" + "Code Example:" + "</h2>";
+//        description += "<PRE><CODE>" + clazz.getDocumentation().getExample()
+//                + "</PRE></CODE>";
+
+        item:displayText = name
+        item:completionText = name
+        item:documentationText = "Test"
+        return item
+    end
+    
+    private action GetPackageCompletionItem(text pack) returns CodeCompletionItem
+        CodeCompletionItem item
+        item:SetType(item:PACKAGE)
+
+        text signature = pack
+        text name = pack
+
+        text description = "<h1>" + signature + "</h1>"
+
+        item:displayText = name
+        item:completionText = name
+        item:documentationText = ""
+        return item
+    end
+
+    private action AddSubpackagesAndClasses(CodeCompletionRequest request, CodeCompletionResult result, text name)
+        //first find all of the packages/sub-packages 
+        Iterator<text> packs = sandboxSymbolTable:GetSubpackageNames(name)
+        repeat while packs:HasNext()
+            text pack = packs:Next()
+            CodeCompletionItem item = GetPackageCompletionItem(pack)
+            result:Add(item)
+        end
+
+        //next find any classes on the system in the package
+        Iterator<Class> classesInPackage = sandboxSymbolTable:GetClassesInPackage(name)
+        boolean hasAny = classesInPackage:HasNext()
+        repeat while classesInPackage:HasNext()
+            Class pack = classesInPackage:Next()
+            CodeCompletionItem item = GetClassCompletionItem(pack)
+            result:Add(item)
+        end
+        
+        //finally, remind the user they can use the "all" keyword
+        if hasAny
+            CodeCompletionItem item
+            item:SetType(item:PACKAGE)
+            text DQ = ""
+            DQ = DQ:GetDoubleQuote()
+            text signature = "Use all classes with the " + DQ + "all" + DQ + " keyword."
+            text itemName = "all"
+
+            text description = "<h1>" + signature + "</h1>"
+                    + "<p align=" + DQ + "justify" + DQ + ">The word "
+                    + "all indicates to quorum that we would like to"
+                    + " have access to all classes in the package. For "
+                    + "example, the phrase Libraries.Containers.all would indicate "
+                    + "that we want to use any class in the Libraries.Containers "
+                    + "package."
+                    + "</p>"
+            description = description + "<h2>" + "Code Example:" + "</h2>"
+            description = description + "<PRE><CODE>"
+                    + "use Libraries.Containers.all\n\n"
+                    + "List&lt;integer&gt; list\n"
+                    + "Array&lt;integer&gt; array"
+                    + "</PRE></CODE>"
+
+            item:displayText = itemName
+            item:documentationText = description
+            item:completionText = "all"
+            result:Add(item)
+        end
+    end
+
+    private action ReformPackage(Array<text> packs) returns text
+        text result = ""
+        integer i = 0
+        repeat while i < packs:GetSize()
+            text value = packs:Get(i)
+            if i = 0
+                result = result + value
+            else
+                result = result + value + "."
+            end
+            i = i + 1
+        end
         return result
     end
 
@@ -301,19 +443,37 @@ class Compiler
         trim = trim:Trim()
         Array<text> values = trim:Split("\.")
 
+        integer filterSize = 0
         if not values:IsEmpty() and not trim:IsEmpty()
             if trim:GetCharacter(trim:GetSize() - 1) = "."
                 result:filter = ""
             else
                 result:filter = values:Get(values:GetSize() - 1)
             end
+
+            text filter = result:filter
+            filterSize = filter:GetSize()
         end
 
         constant text root = "Libraries"
         if values:GetSize() = 1
             text left = values:Get(0)
-            
-
+            text leftTrimmed = left:Trim()
+            if leftTrimmed:IsEmpty()
+                CodeCompletionItem item
+                item:SetType(item:PACKAGE)
+                item:displayText = root
+                item:completionText = root
+                result:Add(item)
+                AddCustomClasses(request, result, root)
+            elseif left = root
+                AddSubpackagesAndClasses(request, result, root)
+                AddCustomClasses(request, result, root)
+            end
+        else 
+            text valueNoFilter = trim:GetSubtext(0, trim:GetSize() - filterSize - 1)
+            AddSubpackagesAndClasses(request, result, valueNoFilter)
+            AddCustomClasses(request, result, valueNoFilter)
         end
 
 //        final String root = this.standardLibrary.getStandardLibraryRootName();

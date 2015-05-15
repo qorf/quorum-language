@@ -59,6 +59,24 @@ class SymbolTable
         return clazz
     end
 
+    action GetSubpackageNames(text parentPackage) returns Iterator<text>
+        Iterator<text> it = packages:GetKeyIterator()
+        Array<text> subpacks
+        repeat while it:HasNext()
+            text pack = it:Next()
+            if pack:StartsWith(parentPackage + ".")
+                //now split the pack
+                Array<text> splitChild = pack:Split("\.")
+                Array<text> splitParent = parentPackage:Split("\.")
+                if splitChild:GetSize() = splitParent:GetSize() + 1
+                    subpacks:Add(pack)
+                end
+            end
+        end
+
+        return subpacks:GetIterator()
+    end
+
     /*
         Returns all classes in a particular package.
     */
