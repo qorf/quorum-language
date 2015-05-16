@@ -55,10 +55,13 @@ public class QuorumCodeCompletionHandler implements CodeCompletionHandler2{
             FileObject fileObject = parserResult.getSnapshot().getSource().getFileObject();
             request.Set$Libraries$Language$Compile$CodeCompletionRequest$fileKey(FileUtil.toFile(fileObject).getAbsolutePath());
             int caretOffset = context.getCaretOffset();
+            request.caretLocation = caretOffset;
+            request.source = string;
             String prefix = context.getPrefix();
             boolean caseSensitive = context.isCaseSensitive();
                 
             CodeCompletionResult$Interface Request = compiler.Request(request);
+            result.setResult(Request);
         }
         return result;
     }

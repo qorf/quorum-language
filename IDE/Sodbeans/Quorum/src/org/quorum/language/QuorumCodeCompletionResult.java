@@ -9,18 +9,33 @@ import java.util.LinkedList;
 import java.util.List;
 import org.netbeans.modules.csl.api.CodeCompletionResult;
 import org.netbeans.modules.csl.api.CompletionProposal;
+import quorum.Libraries.Containers.Blueprints.Iterator$Interface;
+import quorum.Libraries.Language.Compile.CodeCompletionResult$Interface;
+import quorum.Libraries.Language.Object$Interface;
+import quorum.Libraries.Language.Compile.CodeCompletionItem$Interface;
 
 /**
  *
  * @author stefika
  */
 public class QuorumCodeCompletionResult extends CodeCompletionResult{
-    List<CompletionProposal> list = new LinkedList<CompletionProposal>();
+    
+    private CodeCompletionResult$Interface result = null;
     
     @Override
     public List<CompletionProposal> getItems() {
-        QuorumCompletionProposal proposal = new QuorumCompletionProposal();
-        list.add(proposal);
+        List<CompletionProposal> list = new LinkedList<CompletionProposal>();
+        if(result != null) {
+            Iterator$Interface it = result.GetIterator();
+            if(it != null) {
+                while(it.HasNext()) {
+                    CodeCompletionItem$Interface next = (CodeCompletionItem$Interface) it.Next();
+                    QuorumCompletionProposal prop = new QuorumCompletionProposal();
+                    prop.setCompletionItem(next);
+                    list.add(prop);
+                }
+            }
+        }
         return list;
     }
 
@@ -32,6 +47,20 @@ public class QuorumCodeCompletionResult extends CodeCompletionResult{
     @Override
     public boolean isFilterable() {
         return true;
+    }
+
+    /**
+     * @return the result
+     */
+    public CodeCompletionResult$Interface getResult() {
+        return result;
+    }
+
+    /**
+     * @param result the result to set
+     */
+    public void setResult(CodeCompletionResult$Interface result) {
+        this.result = result;
     }
     
 }
