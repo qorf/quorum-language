@@ -705,6 +705,32 @@ class Compiler
         end
     end
 
+    // A convenience class used to write jars to disk.
+    private action WriteJarToDisk(File file)
+        File copyLocation
+        File run = GetRunFolder()
+        copyLocation:SetWorkingDirectory(run:GetWorkingDirectory())
+        copyLocation:SetPath(run:GetPath() + "/" + JAR_DEPENDENCY_FOLDER + "/")
+
+
+        if not copyLocation:Exists()
+            copyLocation:CreateDirectories()
+        end
+
+        copyLocation:SetPath(run:GetPath() + "/" + JAR_DEPENDENCY_FOLDER + "/" + file:GetFileName())
+        //check if the jar already exists. If the old file is newer
+        //copy it. If not, ignore it.
+        if not copyLocation:Exists()
+            file:Copy(copyLocation)
+        else 
+            DateTime original = file:GetLastModifiedDate()
+            DateTime copy = copyLocation:GetLastModifiedDate()
+            if copyLocation:Exists() and (original:GetEpochTime() > copy:GetEpochTime())
+                file:Copy(copyLocation)
+            end
+        end
+    end
+
     private action WriteDependencies(JarGenerator generator)
         WritePlugins(generator, pluginFolder, pluginFolder)
 
@@ -721,30 +747,19 @@ class Compiler
             Iterator<File> jars = additionalJarFiles:GetIterator()
             repeat while jars:HasNext()
                 File file = jars:Next()
-                
-                File copyLocation
-                File run = GetRunFolder()
-                copyLocation:SetWorkingDirectory(run:GetWorkingDirectory())
-                copyLocation:SetPath(run:GetPath() + "/" + JAR_DEPENDENCY_FOLDER + "/")
-                
-
-                if not copyLocation:Exists()
-                    copyLocation:CreateDirectories()
-                end
-
-                copyLocation:SetPath(run:GetPath() + "/" + JAR_DEPENDENCY_FOLDER + "/" + file:GetFileName())
-                //check if the jar already exists. If the old file is newer
-                //copy it. If not, ignore it.
-                if not copyLocation:Exists()
-                    file:Copy(copyLocation)
-                else 
-                    DateTime original = file:GetLastModifiedDate()
-                    DateTime copy = copyLocation:GetLastModifiedDate()
-                    if copyLocation:Exists() and (original:GetEpochTime() > copy:GetEpochTime())
-                        file:Copy(copyLocation)
-                    end
-                end
+                WriteJarToDisk(file)
             end
+        end
+        
+        // Booleans added for the game/sound plugins.
+        boolean hasGame = symbolTable:HasClass("Libraries.Games.Game")
+        boolean hasAudio = symbolTable:HasClass("Libraries.Sound.Audio")
+
+        if hasGame or hasAudio
+            File lwjgl
+            lwjgl:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+            lwjgl:SetPath("lwjgl.jar")
+            WriteJarToDisk(lwjgl)
         end
 
         //check the symbol table to see if the user generated any code
@@ -777,6 +792,75 @@ class Compiler
             objectWeb:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
             objectWeb:SetPath("org/objectweb")
             WriteCompilerDependency(generator, objectWeb, to)
+        end
+
+        if hasAudio
+            File to
+            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/sound/")
+            to:SetPath("")
+
+            File soundPlugins
+            soundPlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/sound")
+            soundPlugins:SetPath("plugins")
+            WriteCompilerDependency(generator, soundPlugins, to)
+        end
+
+        // If statement added for the game engine.
+        if hasGame
+            /*  From what I can tell, WriteCompilerDependency only uses the
+                working directory of to, so setting the path is unnecessary. */
+            File to
+            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/games/")
+            to:SetPath("")
+
+            File gamePlugins
+            gamePlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/games/")
+            gamePlugins:SetPath("plugins")
+            WriteCompilerDependency(generator, gamePlugins, to)
+
+            File gameNative
+            gameNative:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Native/")
+            gameNative:SetPath("Libraries.Games")
+
+            File nativeCopy
+            File run = GetRunFolder()
+            nativeCopy:SetWorkingDirectory(run:GetAbsolutePath())
+            nativeCopy:SetPath("jni")
+
+            if not nativeCopy:Exists()
+                nativeCopy:CreateDirectories()
+            end
+            
+            //get all the files in this folder and copy them over
+            Array<File> files = gameNative:GetDirectoryListing()
+            Iterator<File> it = files:GetIterator()
+            repeat while it:HasNext()
+                File file = it:Next()
+                if not file:IsHidden()
+
+                    File next
+                    next:SetWorkingDirectory(nativeCopy:GetAbsolutePath() + "/")
+                    next:SetPath(file:GetPath())
+                    if file:IsFile()
+                        DateTime fileTime = file:GetLastModifiedDate()//1.424560750484E12
+                        DateTime nextTime = next:GetLastModifiedDate()//1.424560741363E12
+
+                        //if it doesn't exist, copy the file
+                        if not next:Exists()
+                            file:Copy(next)
+                        else
+                            //if it does exist
+                            if fileTime:GetEpochTime() > nextTime:GetEpochTime()
+                                file:Copy(next)
+                            end
+                        end
+                    end
+
+                    if file:IsDirectory()
+                        recursiveCopyDirectory(file, next)
+                    end
+                end
+            end
         end
 
         if hasSpeech or HasSpeechCallInCompile()
@@ -962,8 +1046,10 @@ class Compiler
         main = main + ": " + classKey
         main = main + line
 
+        boolean usesLWJGL = symbolTable:HasClass("Libraries.Sound.Audio") or symbolTable:HasClass("Libraries.Games.Game")
+
         //now write any jar dependencies into the manifest
-        if not additionalJarFiles:IsEmpty()
+        if not additionalJarFiles:IsEmpty() or usesLWJGL
             Iterator<File> jars = additionalJarFiles:GetIterator()
             text classpath = "Class-Path: "
             text libraries = JAR_DEPENDENCY_FOLDER
@@ -971,6 +1057,14 @@ class Compiler
                 File file = jars:Next()
                 classpath = classpath + libraries + "/" + file:GetFileName()
             end
+
+            if usesLWJGL
+                File lwjgl
+                lwjgl:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+                lwjgl:SetPath("lwjgl.jar")
+                classpath = classpath + libraries + "/" + lwjgl:GetFileName()
+            end
+
             main = main + classpath + line
         end
 

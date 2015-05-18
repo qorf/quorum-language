@@ -1,0 +1,213 @@
+package Libraries.Games.Graphics
+
+// use Libraries.Games.FileHandle
+// use Libraries.Games.g2d.Gdx2DPixmap
+use Libraries.Games.Disposable
+use Libraries.Games.Graphics.Blending
+use Libraries.Games.Graphics.Format
+use Libraries.Games.Graphics.Filter
+use Libraries.Games.Graphics.PixelMap
+
+use Libraries.System.File
+
+class PixelMap is Disposable
+    
+    Color color
+    Format format
+
+    on create
+        //blending:SetValue(blending:SOURCE_OVER)
+        //colorCode = 0
+    end
+    
+    // FOR DEBUGGING PURPOSES ONLY
+    system action GetDisposed returns boolean
+
+    action DrawPixelMap(PixelMap pixmap, integer x, integer y)
+        DrawPixelMap(pixmap, x, y, 0, 0, pixmap:GetWidth(), pixmap:GetHeight())
+    end
+
+    system action DrawPixelMap(PixelMap pixmap, integer sourceX, integer sourceY, integer destX, integer destY, integer sourceWidth, integer sourceHeight)
+
+    // Sets the type of Blending to be used for all operations.
+    // Default is Blending:SOURCE_OVER
+    // NOTE: NOT FULLY IMPLEMENTED
+    /*public action SetBlending (Blending newBlend)
+        blending:SetValue(newBlend:GetValue())
+        //Gdx2DPixmap.setBlend(blending == Blending.None ? 0 : 1);
+    end*/
+
+    action GetFormat returns Format
+        return format
+    end
+
+    system action GetWidth returns integer
+    
+    system action GetHeight returns integer
+
+    action GetColor returns Color
+        return color
+    end
+
+    action SetColor(Color newColor) 
+        color = newColor
+    end
+
+    action SetColor(number redValue, number greenValue, number blueValue, number alphaValue)
+        color:SetColor(redValue, greenValue, blueValue, alphaValue)
+    end
+
+    action SetColorFromCode(integer code)
+        color:SetColorFromCode(code)
+    end
+
+    system action GetBlending returns Blending
+
+    // Sets the type of interpolation Filter to be used in conjunction with
+    // Pixmap:DrawPixelMap(Pixmap, int, int, int, int, int, int, int, int).
+    action SetFilter(Filter filter)
+        SetScale(filter:GetValue())
+    end
+    //Gdx2DPixmap.setScale(filter == Filter.NearestNeighbour ? Gdx2DPixmap.GDX2D_SCALE_NEAREST : Gdx2DPixmap.GDX2D_SCALE_LINEAR);
+    
+    // Must be used to initialize the PixelMap from a file. Follows the same
+    // format as the Pixmap(file) constructor from libGDX.
+    system action LoadPixelMap(File file)
+/* public Pixmap (FileHandle file) {
+    try {
+        byte[] bytes = file.readBytes();
+        pixmap = new Gdx2DPixmap(bytes, 0, bytes.length, 0);
+        } catch (Exception e) {
+            throw new GdxRuntimeException("Couldn't load file: " + file, e);
+        }
+    }
+/*
+
+    /** Creates a new Pixmap instance with the given width, height and format.
+    * @param width the width in pixels
+    * @param height the height in pixels
+    * @param format the {@link Format} */
+    system action CreatePixelMap (integer newWidth, integer newHeight, Format newFormat)
+
+    system action Define2DImage(integer target, integer mipLevel, integer border)
+
+    system action SetBlending(Blending newBlend)
+    
+    system action SetScale(integer scale)
+
+    system action Dispose
+
+    system action GetGLInternalFormat() returns integer
+
+    // This action will fill the complete bitmap with the currently set color.
+    system action Fill
+
+    system action DrawLine(integer x1, integer y1, integer x2, integer y2)
+    
+    system action DrawRectangle(integer x, integer y, integer width, integer height)
+
+    system action FillRectangle(integer x, integer y, integer width, integer height)
+
+    system action DrawCircle(integer x, integer y, integer radius)
+
+    system action FillCircle(integer x, integer y, integer radius)
+
+    system action FillTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3)
+
+    system action GetPixel(integer x, integer y) returns integer
+
+    action SetPixel(integer x, integer y)
+        SetPixel(x, y, color:GetColorCode())
+    end
+
+    action SetPixel(integer x, integer y, Color setColor)
+        SetPixel(x, y, setColor:GetColorCode())
+    end
+
+    system action SetPixel(integer x, integer y, integer code)
+
+    /** Creates a new Pixmap instance from the given encoded image data. The image can be encoded as JPEG, PNG or BMP.
+    * @param encodedData the encoded image data
+    * @param offset the offset
+    * @param len the length */
+/*  public action CreatePixelMap (byte[] encodedData, integer offset, integer length)
+        try {
+            pixmap = new Gdx2DPixmap(encodedData, offset, len, 0);
+            } catch (IOException e) {
+        throw new GdxRuntimeException("Couldn't load pixmap from image data", e);
+        } 
+    end
+
+    }
+    // /**
+    // * Sets the width in pixels of strokes.
+    // *
+    // * @param width The stroke width in pixels.
+    // */
+    // public void setStrokeWidth (int width);
+    
+    /** Draws an area form another Pixmap to this Pixmap.
+    *
+    * @param pixmap The other Pixmap
+    * @param x The target x-coordinate (top left corner)
+    * @param y The target y-coordinate (top left corner) */
+/*    public void drawPixmap (Pixmap pixmap, int x, int y) {
+    drawPixmap(pixmap, x, y, 0, 0, pixmap.getWidth(), pixmap.getHeight());
+    }
+    /** Draws an area form another Pixmap to this Pixmap.
+    *
+    * @param pixmap The other Pixmap
+    * @param x The target x-coordinate (top left corner)
+    * @param y The target y-coordinate (top left corner)
+    * @param srcx The source x-coordinate (top left corner)
+    * @param srcy The source y-coordinate (top left corner);
+    * @param srcWidth The width of the area form the other Pixmap in pixels
+    * @param srcHeight The height of the area form the other Pixmap in pixles */
+/*    public void drawPixmap (Pixmap pixmap, int x, int y, int srcx, int srcy, int srcWidth, int srcHeight) {
+    this.pixmap.drawPixmap(pixmap.pixmap, srcx, srcy, x, y, srcWidth, srcHeight);
+    }
+    /** Draws an area form another Pixmap to this Pixmap. This will automatically scale and stretch the source image to the
+    * specified target rectangle. Use {@link Pixmap#setFilter(Filter)} to specify the type of filtering to be used (nearest
+    * neighbour or bilinear).
+    *
+    * @param pixmap The other Pixmap
+    * @param srcx The source x-coordinate (top left corner)
+    * @param srcy The source y-coordinate (top left corner);
+    * @param srcWidth The width of the area form the other Pixmap in pixels
+    * @param srcHeight The height of the area form the other Pixmap in pixles
+    * @param dstx The target x-coordinate (top left corner)
+    * @param dsty The target y-coordinate (top left corner)
+    * @param dstWidth The target width
+    * @param dstHeight the target height */
+/*    public void drawPixmap (Pixmap pixmap, int srcx, int srcy, int srcWidth, int srcHeight, int dstx, int dsty, int dstWidth,
+    int dstHeight) {
+    this.pixmap.drawPixmap(pixmap.pixmap, srcx, srcy, srcWidth, srcHeight, dstx, dsty, dstWidth, dstHeight);
+    }
+
+    }
+    /** Returns the OpenGL ES format of this Pixmap. Used as the seventh parameter to
+    * {@link GL20#glTexImage2D(int, int, int, int, int, int, int, int, java.nio.Buffer)}.
+    * @return one of GL_ALPHA, GL_RGB, GL_RGBA, GL_LUMINANCE, or GL_LUMINANCE_ALPHA. */
+/*    public int getGLFormat () {
+    return pixmap.getGLFormat();
+    }
+    /** Returns the OpenGL ES format of this Pixmap. Used as the third parameter to
+    * {@link GL20#glTexImage2D(int, int, int, int, int, int, int, int, java.nio.Buffer)}.
+    * @return one of GL_ALPHA, GL_RGB, GL_RGBA, GL_LUMINANCE, or GL_LUMINANCE_ALPHA. */
+/*    public int getGLInternalFormat () {
+    return pixmap.getGLInternalFormat();
+    }
+    /** Returns the OpenGL ES type of this Pixmap. Used as the eighth parameter to
+    * {@link GL20#glTexImage2D(int, int, int, int, int, int, int, int, java.nio.Buffer)}.
+    * @return one of GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_4_4_4_4 */
+/*    public int getGLType () {
+    return pixmap.getGLType();
+    }
+    /** Returns the direct ByteBuffer holding the pixel data. For the format Alpha each value is encoded as a byte. For the format
+    * LuminanceAlpha the luminance is the first byte and the alpha is the second byte of the pixel. For the formats RGB888 and
+    * RGBA8888 the color components are stored in a single byte each in the order red, green, blue (alpha). For the formats RGB565
+    * and RGBA4444 the pixel colors are stored in shorts in machine dependent order.
+    * @return the direct {@link ByteBuffer} holding the pixel data. */
+    
+
+end

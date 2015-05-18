@@ -1,0 +1,48 @@
+package Libraries.Games.Interface.Events
+
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+
+class KeyboardEventProcessor
+    
+    /*  The Update action will check if any keyboard events have occured, and if
+        there are any, it will add them to the events list. This will be called
+        on every frame of a game. */
+    system action Update
+
+    List<KeyboardEvent> events
+    List<KeyboardEventListener> listeners
+
+    action AddListener(KeyboardEventListener listener)
+        listeners:Add(listener)
+   end
+
+    action RemoveListener(KeyboardEventListener listener)
+        listeners:Remove(listener)
+    end
+
+    action ProcessEvents
+
+        if not events:IsEmpty() and not listeners:IsEmpty()
+
+            Iterator<KeyboardEventListener> listenIterator = listeners:GetIterator()
+            KeyboardEvent currentEvent = undefined
+            KeyboardEventListener currentListener = undefined
+            
+            repeat while not events:IsEmpty()
+                currentEvent = events:RemoveFromFront()
+
+                repeat while listenIterator:HasNext()
+                    currentListener = listenIterator:Next()
+                    if currentEvent:eventType = currentEvent:PRESSED_KEY
+                        currentListener:PressedKey(currentEvent)
+                    elseif currentEvent:eventType = currentEvent:RELEASED_KEY
+                        currentListener:ReleasedKey(currentEvent)
+                    end
+                end
+
+                listenIterator:Rewind()
+            end
+        end
+    end
+end

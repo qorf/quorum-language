@@ -1,0 +1,42 @@
+package Libraries.Games.Graphics
+
+use Libraries.System.File
+use Libraries.Games.Disposable
+
+class ImageSheet is Disposable
+    private boolean initialized = false
+
+    action Load(text filePath)
+        File temp
+        temp:SetPath(filePath)
+        Load(temp)
+    end
+
+    action Load(File file)
+        LoadNative(file)
+        initialized = true
+    end
+
+    system action LoadNative(File quorumFile)
+
+    action GetDrawable(text name) returns Drawable
+        if not initialized
+            alert("Attempted to get a Drawable from an unloaded ImageSheet! Call Load() before using the ImageSheet.")
+        end
+        return GetDrawableNative(name)
+    end
+
+    action GetDrawable(text name, integer index) returns Drawable
+        if not initialized
+            alert("Attempted to get a Drawable from an unloaded ImageSheet! Call Load() before using the ImageSheet.")
+        end
+        return GetDrawableNative(name, index)
+    end
+
+    system action GetDrawableNative(text name) returns Drawable
+
+    system action GetDrawableNative(text name, integer index) returns Drawable
+
+    system action Dispose
+
+end

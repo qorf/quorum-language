@@ -1,0 +1,15 @@
+package Libraries.Games.Interface
+
+class State 
+    Item parentItem = undefined
+
+    blueprint action Update(number secondsSinceUpdate)
+
+    action SetParent(Item item)
+        parentItem = item
+    end
+
+    action GetParent returns Item
+        return parentItem
+    end
+end

@@ -1,0 +1,12 @@
+// Many classes inherit from the Disposable class. If they do, this indicates
+// that they are supposed to be disposed of after usage, using the Dispose()
+// action. This keeps them from using memory after they are no longer useful.
+//
+// Note that Dispose() is a blueprint action. This means that any class that
+// inherits from Disposable will have to have an implementation of the action.
+
+package Libraries.Games
+
+class Disposable 
+    blueprint action Dispose()
+end

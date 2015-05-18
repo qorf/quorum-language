@@ -1,0 +1,215 @@
+/*
+    The foundation of any game. Any user created game should inherit from this
+    and must implement CreateGame and ComputeFrame.
+*/
+
+package Libraries.Games
+
+use Libraries.Games.Graphics.SpriteBatch
+use Libraries.Games.Graphics.Font
+use Libraries.Games.Graphics.GL20Manager
+use Libraries.Games.Graphics.Color
+use Libraries.Games.Graphics.Drawable
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.System.File
+use Libraries.System.Properties
+use Libraries.Games.Interface.Panel
+use Libraries.Games.Interface.Events.KeyboardEventProcessor
+use Libraries.Games.Interface.Events.KeyboardEventListener
+use Libraries.Games.Interface.Events.MouseEventProcessor
+use Libraries.Games.Interface.Events.MouseEventListener
+use Libraries.Games.Interface.Events.MouseEvent
+use Libraries.Games.Interface.Item
+
+class Game
+
+    public SpriteBatch batch = undefined
+    ApplicationConfiguration configuration
+    GL20Manager gl20
+
+    public boolean exitRequested = false
+
+    // Variables used for Panels and the event system.
+    private Panel activePanel = undefined
+    private KeyboardEventProcessor keyboardProcessor
+    private MouseEventProcessor mouseProcessor
+
+    on create
+        Color color
+        color = color:Black()
+
+        configuration:title = "Game"
+        configuration:width = 1600
+        configuration:height = 1000
+
+        configuration:initialBackgroundColor = color
+
+        Properties properties
+        text os = properties:GetOperatingSystemName()
+
+        text path = ""
+        File file
+        //other operating systems might need other pathing information
+        if os:Contains("Mac OS X")
+            file:SetPath("native/macosx")
+
+        elseif os:Contains("Windows")
+            file:SetPath("native/windows")
+
+        else
+            alert("System was not Mac or Windows!")
+        end
+        
+        path = file:GetAbsolutePath()
+
+        properties:SetProperty("org.lwjgl.librarypath", path)
+
+        // Setting the path to load the native C files, reusing the file and
+        // path variables.
+        path = ""
+        file:SetPath("native/JNI/libGameEngineCPlugins.so")
+        path = file:GetAbsolutePath()
+        
+        GameStateManager manager
+        manager:SetNativePath(path)
+        manager:SetOperatingSystem(os)
+
+        Panel panel
+        SetActivePanel(panel)
+    end
+
+    action StartGame
+    
+        GameStateManager manager
+
+        GameDisplay display
+        manager:SetGameDisplay(display)
+        
+        display:SetConfig(configuration)
+        display:SetupDisplay()
+
+        Application application
+        application:Setup(me, configuration, display)
+
+    end
+
+    action Add(Item item)
+        activePanel:Add(item)
+    end
+
+    action Remove(Item item)
+        activePanel:Remove(item)
+    end
+
+    action DrawAll
+
+        batch:Begin()
+
+        activePanel:Draw(batch, 0, 0)
+
+        batch:End()
+
+    end
+
+    action ClearScreen
+        gl20:ClearScreenColor(0.75,0.75,0.75,0)
+        gl20:ClearScreen(16384)
+    end
+
+    action ContinueGame
+        ProcessInputEvents()
+        UpdateAll()
+        ComputeFrame()
+        ClearScreen()
+        DrawAll()
+    end
+
+    action SetConfiguration(ApplicationConfiguration config)
+        configuration = config
+    end
+
+    action GetConfiguration returns ApplicationConfiguration
+        return configuration
+    end
+
+    action GetScreenWidth returns integer
+        return configuration:width
+    end
+
+    action GetScreenHeight returns integer
+        return configuration:height
+    end
+
+    action SetColorFilter(number r, number g, number b, number a)
+        batch:SetColor(r, g, b, a)
+    end
+
+    action SetColorFilter(Color newColor)
+        batch:SetColor(newColor)
+    end
+
+    system action GetSecondsBetweenFrames returns number
+
+    blueprint action ComputeFrame
+
+    action Create
+        CreateGame()
+    end
+
+    blueprint action CreateGame
+
+    action Exit
+        exitRequested = true
+    end
+
+    action GetActivePanel returns Panel
+        return activePanel
+    end
+
+    action SetActivePanel(Panel panel)
+        if activePanel not= undefined
+            activePanel:keyboardProcessor = undefined
+            activePanel:mouseProcessor = undefined
+        end
+        panel:keyboardProcessor = keyboardProcessor
+        panel:mouseProcessor = mouseProcessor
+        panel:SetPosition(0,0)
+        panel:SetWidth(GetScreenWidth())
+        panel:SetHeight(GetScreenHeight())
+        activePanel = panel
+    end
+
+    action UpdateAll
+        activePanel:UpdateAll(GetSecondsBetweenFrames())
+    end
+
+    action ProcessInputEvents
+        List<MouseEvent> mouseEvents = mouseProcessor:GetCurrentEvents()
+        MouseEvent mouseEvent = undefined
+        repeat mouseEvents:GetSize() times
+            mouseEvent = mouseEvents:RemoveFromFront()
+            activePanel:ProcessMouseEvent(mouseEvent)
+        end
+
+        keyboardProcessor:Update()
+        keyboardProcessor:ProcessEvents()
+    end
+
+    action AddMouseEventListener(MouseEventListener listener)
+        activePanel:AddMouseEventListener(listener)
+    end
+
+    action AddKeyboardEventListener(KeyboardEventListener listener)
+        keyboardProcessor:AddListener(listener)
+    end
+
+    action RemoveMouseEventListener(MouseEventListener listener)
+        activePanel:RemoveMouseEventListener(listener)
+    end
+
+    action RemoveKeyboardEventListener(KeyboardEventListener listener)
+        keyboardProcessor:RemoveListener(listener)
+    end
+
+end

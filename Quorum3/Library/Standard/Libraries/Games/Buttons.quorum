@@ -1,0 +1,24 @@
+// The Buttons class is based off the Input.Buttons class from libgdx. It
+// holds exactly three constants, designating integer flags to represent input
+// from the left, right, and middle mouse buttons.
+//
+// Similar to the Keys class, these constants only have meaning due to a lower
+// level input class passing OS-specific input information upwards, but for a 
+// programmer using the complete code, they will want to use these constants to
+// represent OS-independent input.
+//
+// Note that unlike its libgdx counterpart, this Button class is not a nested
+// class of Input, but rather a parent of Input.
+
+package Libraries.Games
+
+class Buttons 
+    
+    public constant integer ANY = -1
+    public constant integer LEFT = 0
+    public constant integer RIGHT = 1
+    public constant integer MIDDLE = 2
+    public constant integer BACK = 3
+    public constant integer FORWARD = 4
+
+end

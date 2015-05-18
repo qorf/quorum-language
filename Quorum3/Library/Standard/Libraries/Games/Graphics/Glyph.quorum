@@ -1,0 +1,22 @@
+package Libraries.Games.Graphics
+
+class Glyph 
+    public Drawable drawable = undefined
+    public integer horizontalAdvance = 0
+    public integer verticalAdvance = 0
+    public integer lengthToGlyph = 0
+    public integer heightFromBaseLine = 0
+
+    action CopyGlyph returns Glyph
+        Glyph temp
+        temp:horizontalAdvance = horizontalAdvance
+        temp:verticalAdvance = verticalAdvance
+        temp:lengthToGlyph = lengthToGlyph
+        temp:heightFromBaseLine = heightFromBaseLine
+        
+        Drawable tempDrawable
+        tempDrawable:QuickCopy(drawable)
+        temp:drawable = tempDrawable
+        return temp
+    end
+end

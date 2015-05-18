@@ -1,0 +1,505 @@
+// The Keys class is based on the nested Input.Keys class from libgdx. The
+// class contains a very large group of constants, representing keyboard and 
+// game controller inputs with integer flags. These constants have no meaning
+// on their own, however, and will require a lower-level input class that
+// handles OS-specific input to map keys to this list of constants.
+//
+// For programmers using this code once the porting is finished, this class will
+// provide OS-independent flags for input, and thus you should use this rather
+// than the low-level input classes that feed into this.
+//
+// Note that unlike the libgdx class Input.Keys, the qlibgdx Keys class is a
+// parent of Input.
+//
+// DEVELOPMENT NOTE: The class Games.Libraries.Utils.ObjectIntMap must be
+// implemented before this class is complete.
+
+package Libraries.Games
+
+use Libraries.Language.Errors.Error
+
+class Keys 
+    public constant integer ANY_KEY = -1
+    public constant integer NUM_0 = 7
+    public constant integer NUM_1 = 8
+    public constant integer NUM_2 = 9
+    public constant integer NUM_3 = 10
+    public constant integer NUM_4 = 11
+    public constant integer NUM_5 = 12
+    public constant integer NUM_6 = 13
+    public constant integer NUM_7 = 14
+    public constant integer NUM_8 = 15
+    public constant integer NUM_9 = 16
+    public constant integer A = 29
+    public constant integer ALT_LEFT = 57
+    public constant integer ALT_RIGHT = 58
+    public constant integer APOSTROPHE = 75
+    public constant integer AT = 77
+    public constant integer B = 30
+    public constant integer BACK = 4
+    public constant integer BACKSLASH = 73
+    public constant integer C = 31
+    public constant integer CALL = 5
+    public constant integer CAMERA = 27
+    public constant integer CLEAR = 28
+    public constant integer COMMA = 55
+    public constant integer D = 32
+    public constant integer DEL = 67
+    public constant integer BACKSPACE = 67
+    public constant integer FORWARD_DEL = 112
+    public constant integer DPAD_CENTER = 23
+    public constant integer DPAD_DOWN = 20
+    public constant integer DPAD_LEFT = 21
+    public constant integer DPAD_RIGHT = 22
+    public constant integer DPAD_UP = 19
+    public constant integer CENTER = 23
+    public constant integer DOWN = 20
+    public constant integer LEFT = 21
+    public constant integer RIGHT = 22
+    public constant integer UP = 19
+    public constant integer E = 33
+    public constant integer ENDCALL = 6
+    public constant integer ENTER = 66
+    public constant integer ENVELOPE = 65
+    public constant integer EQUALS = 70
+    public constant integer EXPLORER = 64
+    public constant integer F = 34
+    public constant integer FOCUS = 80
+    public constant integer G = 35
+    public constant integer GRAVE = 68
+    public constant integer H = 36
+    public constant integer HEADSETHOOK = 79
+    public constant integer HOME = 3
+    public constant integer I = 37
+    public constant integer J = 38
+    public constant integer K = 39
+    public constant integer L = 40
+    public constant integer LEFT_BRACKET = 71
+    public constant integer M = 41
+    public constant integer MEDIA_FAST_FORWARD = 90
+    public constant integer MEDIA_NEXT = 87
+    public constant integer MEDIA_PLAY_PAUSE = 85
+    public constant integer MEDIA_PREVIOUS = 88
+    public constant integer MEDIA_REWIND = 89
+    public constant integer MEDIA_STOP = 86
+    public constant integer MENU = 82
+    public constant integer MINUS = 69
+    public constant integer MUTE = 91
+    public constant integer N = 42
+    public constant integer NOTIFICATION = 83
+    public constant integer NUM = 78
+    public constant integer O = 43
+    public constant integer P = 44
+    public constant integer PERIOD = 56
+    public constant integer PLUS = 81
+    public constant integer POUND = 18
+    public constant integer POWER = 26
+    public constant integer Q = 45
+    public constant integer R = 46
+    public constant integer RIGHT_BRACKET = 72
+    public constant integer S = 47
+    public constant integer SEARCH = 84
+    public constant integer SEMICOLON = 74
+    public constant integer SHIFT_LEFT = 59
+    public constant integer SHIFT_RIGHT = 60
+    public constant integer SLASH = 76
+    public constant integer SOFT_LEFT = 1
+    public constant integer SOFT_RIGHT = 2
+    public constant integer SPACE = 62
+    public constant integer STAR = 17
+    public constant integer SYM = 63
+    public constant integer T = 48
+    public constant integer TAB = 61
+    public constant integer U = 49
+    public constant integer UNKNOWN = 0
+    public constant integer V = 50
+    public constant integer VOLUME_DOWN = 25
+    public constant integer VOLUME_UP = 24
+    public constant integer W = 51
+    public constant integer X = 52
+    public constant integer Y = 53
+    public constant integer Z = 54
+    public constant integer META_ALT_LEFT_ON = 16
+    public constant integer META_ALT_ON = 2
+    public constant integer META_ALT_RIGHT_ON = 32
+    public constant integer META_SHIFT_LEFT_ON = 64
+    public constant integer META_SHIFT_ON = 1
+    public constant integer META_SHIFT_RIGHT_ON = 128
+    public constant integer META_SYM_ON = 4
+    public constant integer CONTROL_LEFT = 129
+    public constant integer CONTROL_RIGHT = 130
+    public constant integer ESCAPE = 131
+    public constant integer END = 132
+    public constant integer INSERT = 133
+    public constant integer PAGE_UP = 92
+    public constant integer PAGE_DOWN = 93
+    public constant integer PICTSYMBOLS = 94
+    public constant integer SWITCH_CHARSET = 95
+    public constant integer BUTTON_CIRCLE = 255
+    public constant integer BUTTON_A = 96
+    public constant integer BUTTON_B = 97
+    public constant integer BUTTON_C = 98
+    public constant integer BUTTON_X = 99
+    public constant integer BUTTON_Y = 100
+    public constant integer BUTTON_Z = 101
+    public constant integer BUTTON_L1 = 102
+    public constant integer BUTTON_R1 = 103
+    public constant integer BUTTON_L2 = 104
+    public constant integer BUTTON_R2 = 105
+    public constant integer BUTTON_THUMBL = 106
+    public constant integer BUTTON_THUMBR = 107
+    public constant integer BUTTON_START = 108
+    public constant integer BUTTON_SELECT = 109
+    public constant integer BUTTON_MODE = 110
+    public constant integer NUMPAD_0 = 144
+    public constant integer NUMPAD_1 = 145
+    public constant integer NUMPAD_2 = 146
+    public constant integer NUMPAD_3 = 147
+    public constant integer NUMPAD_4 = 148
+    public constant integer NUMPAD_5 = 149
+    public constant integer NUMPAD_6 = 150
+    public constant integer NUMPAD_7 = 151
+    public constant integer NUMPAD_8 = 152
+    public constant integer NUMPAD_9 = 153
+    public constant integer COLON = 243
+    public constant integer F1 = 244
+    public constant integer F2 = 245
+    public constant integer F3 = 246
+    public constant integer F4 = 247
+    public constant integer F5 = 248
+    public constant integer F6 = 249
+    public constant integer F7 = 250
+    public constant integer F8 = 251
+    public constant integer F9 = 252
+    public constant integer F10 = 253
+    public constant integer F11 = 254
+    public constant integer F12 = 255
+
+    action ToText(integer keycode) returns text
+        if keycode < 0
+            Error error
+            error:SetErrorMessage("Keycode cannot be negative, keycode: " + keycode)
+            alert(error)
+        end
+        
+        if keycode > 255
+            Error error
+            error:SetErrorMessage("Keycode cannot be greater than 255, keycode: " + keycode)
+            alert(error)
+        end
+
+        if keycode = UNKNOWN
+            return "Unknown"        end
+        if keycode = SOFT_LEFT
+            return "Soft Left"      end
+        if keycode = SOFT_RIGHT
+            return "Soft Right"     end
+        if keycode = HOME
+            return "Home"           end
+        if keycode = BACK
+            return "Back"           end
+        if keycode = CALL
+            return "Call"           end
+        if keycode = ENDCALL
+            return "End Call"       end
+        if keycode = NUM_0
+            return "0"              end
+        if keycode = NUM_1
+            return "1"              end
+        if keycode = NUM_2
+            return "2"              end
+        if keycode = NUM_3
+            return "3"              end
+        if keycode = NUM_4
+            return "4"              end
+        if keycode = NUM_5
+            return "5"              end
+        if keycode = NUM_6
+            return "6"              end
+        if keycode = NUM_7
+            return "7"              end
+        if keycode = NUM_8
+            return "8"              end
+        if keycode = NUM_9
+            return "9"              end
+        if keycode = STAR
+            return "*"              end
+        if keycode = POUND
+            return "#"              end
+        if keycode = UP
+            return "Up"             end
+        if keycode = DOWN
+            return "Down"           end
+        if keycode = LEFT
+            return "Left"           end
+        if keycode = RIGHT
+            return "Right"          end
+        if keycode = CENTER
+            return "Center"         end
+        if keycode = VOLUME_UP
+            return "Volume Up"      end
+        if keycode = VOLUME_DOWN
+            return "Volume Down"    end
+        if keycode = POWER
+            return "Power"          end
+        if keycode = CAMERA
+            return "Camera"         end
+        if keycode = CLEAR
+            return "Clear"          end
+        if keycode = A
+            return "A"              end
+        if keycode = B
+            return "B"              end
+        if keycode = C
+            return "C"              end
+        if keycode = D
+            return "D"              end
+        if keycode = E
+            return "E"              end
+        if keycode = F
+            return "F"              end
+        if keycode = G
+            return "G"              end
+        if keycode = H
+            return "H"              end
+        if keycode = I
+            return "I"              end
+        if keycode = J
+            return "J"              end
+        if keycode = K
+            return "K"              end
+        if keycode = L
+            return "L"              end
+        if keycode = M
+            return "M"              end
+        if keycode = N
+            return "N"              end
+        if keycode = O
+            return "O"              end
+        if keycode = P
+            return "P"              end
+        if keycode = Q
+            return "Q"              end
+        if keycode = R
+            return "R"              end
+        if keycode = S
+            return "S"              end
+        if keycode = T
+            return "T"              end
+        if keycode = U
+            return "U"              end
+        if keycode = V
+            return "V"              end
+        if keycode = W
+            return "W"              end
+        if keycode = X
+            return "X"              end
+        if keycode = Y
+            return "Y"              end
+        if keycode = Z
+            return "Z"              end
+        if keycode = COMMA
+            return ","              end
+        if keycode = PERIOD
+            return "."              end
+        if keycode = ALT_LEFT
+            return "L-Alt"          end
+        if keycode = ALT_RIGHT
+            return "R-Alt"          end
+        if keycode = SHIFT_LEFT
+            return "L-Shift"        end
+        if keycode = SHIFT_RIGHT
+            return "R-Shift"        end
+        if keycode = TAB
+            return "Tab"            end
+        if keycode = SPACE
+            return "Space"          end
+        if keycode = SYM
+            return "SYM"            end
+        if keycode = EXPLORER
+            return "Explorer"       end
+        if keycode = ENVELOPE
+            return "Envelope"       end
+        if keycode = ENTER
+            return "Enter"          end
+        if keycode = DEL
+            return "Delete"         end
+        if keycode = GRAVE
+            return "`"              end
+        if keycode = MINUS
+            return "-"              end
+        if keycode = EQUALS
+            return "="              end
+        if keycode = LEFT_BRACKET
+            return "["              end
+        if keycode = RIGHT_BRACKET
+            return "]"              end
+        if keycode = BACKSLASH
+            return "\\"             end
+        if keycode = SEMICOLON
+            return ";"              end
+        if keycode = APOSTROPHE
+            return "'"              end
+        if keycode = SLASH
+            return "/"              end
+        if keycode = AT
+            return "@"              end
+        if keycode = NUM
+            return "Num"            end
+        if keycode = HEADSETHOOK
+            return "Headset Hook"   end
+        if keycode = FOCUS
+            return "Focus"          end
+        if keycode = PLUS
+            return "Plus"           end
+        if keycode = MENU
+            return "Menu"           end
+        if keycode = NOTIFICATION
+            return "Notification"   end
+        if keycode = SEARCH
+            return "Search"         end
+        if keycode = MEDIA_PLAY_PAUSE
+            return "Play/Pause"     end
+        if keycode = MEDIA_STOP
+            return "Stop Media"     end
+        if keycode = MEDIA_NEXT
+            return "Next Media"     end
+        if keycode = MEDIA_PREVIOUS
+            return "Prev Media"     end
+        if keycode = MEDIA_REWIND
+            return "Rewind"         end
+        if keycode = MEDIA_FAST_FORWARD
+            return "Fast Forward"   end
+        if keycode = MUTE
+            return "Mute"           end
+        if keycode = PAGE_UP        
+            return "Page Up"        end
+        if keycode = PAGE_DOWN
+            return "Page Down"      end
+        if keycode = PICTSYMBOLS
+            return "PICTSYMBOLS"    end
+        if keycode = SWITCH_CHARSET
+            return "SWITCH_CHARSET" end
+        if keycode = BUTTON_A
+            return "A Button"       end
+        if keycode = BUTTON_B
+            return "B Button"       end
+        if keycode = BUTTON_C
+            return "C Button"       end
+        if keycode = BUTTON_X
+            return "X Button"       end
+        if keycode = BUTTON_Y
+            return "Y Button"       end
+        if keycode = BUTTON_Z
+            return "Z Button"       end
+        if keycode = BUTTON_L1
+            return "L1 Button"      end
+        if keycode = BUTTON_R1
+            return "R1 Button"      end
+        if keycode = BUTTON_L2
+            return "L2 Button"      end
+        if keycode = BUTTON_R2
+            return "R2 Button"      end
+        if keycode = BUTTON_THUMBL
+            return "Left Thumb"     end
+        if keycode = BUTTON_THUMBR
+            return "Right Thumb"    end
+        if keycode = BUTTON_START
+            return "Start"          end
+        if keycode = BUTTON_SELECT
+            return "Select"         end
+        if keycode = BUTTON_MODE
+            return "Button Mode"    end
+        if keycode = FORWARD_DEL
+            return "Forward Delete" end
+        if keycode = CONTROL_LEFT
+            return "L-Ctrl"         end
+        if keycode = CONTROL_RIGHT
+            return "R-Ctrl"         end
+        if keycode = ESCAPE
+            return "Escape"         end
+        if keycode = END
+            return "End"            end
+        if keycode = INSERT
+            return "Insert"         end
+        if keycode = NUMPAD_0
+            return "Numpad 0"       end
+        if keycode = NUMPAD_1
+            return "Numpad 1"       end
+        if keycode = NUMPAD_2
+            return "Numpad 2"       end
+        if keycode = NUMPAD_3
+            return "Numpad 3"       end
+        if keycode = NUMPAD_4
+            return "Numpad 4"       end
+        if keycode = NUMPAD_5
+            return "Numpad 5"       end
+        if keycode = NUMPAD_6
+            return "Numpad 6"       end
+        if keycode = NUMPAD_7
+            return "Numpad 7"       end
+        if keycode = NUMPAD_8
+            return "Numpad 8"       end
+        if keycode = NUMPAD_9
+            return "Numpad 9"       end
+        if keycode = COLON
+            return ":"              end
+        if keycode = F1
+            return "F1"             end
+        if keycode = F2
+            return "F2"             end
+        if keycode = F3
+            return "F3"             end
+        if keycode = F4
+            return "F4"             end
+        if keycode = F5
+            return "F5"             end
+        if keycode = F6
+            return "F6"             end
+        if keycode = F7 
+            return "F7"             end
+        if keycode = F8
+            return "F8"             end
+        if keycode = F9
+            return "F9"             end
+        if keycode = F10
+            return "F10"            end
+        if keycode = F11
+            return "F11"            end
+        if keycode = F12
+            return "F12"            end
+
+        // If it has reached this point, the key name was not found.
+        // Quorum doesn't allow returning "undefined" when text is expected,
+        // so an empty string is returned instead.
+        
+        return ""
+    end
+
+    /* private ObjectIntMap<text> keyNames
+    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    // The above code requires Games.Libraries.Utils.ObjectIntMap
+    // Same goes for the below Actions. Remove these comments once
+    // the ObjectIntMap is implemented.
+
+    action ValueOf (text keyName) returns integer
+        if keyNames = undefined
+            me:InitializeKeyNames()
+        end
+        return keyNames:get(keyName, -1)
+    end
+
+    action InitializeKeyNames
+        integer index = 0
+        repeat while index < 256
+            text name = ToText(index)
+            if name not= undefined
+                keyNames:put(index, index)
+            end
+        end
+    end
+
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    */
+
+end

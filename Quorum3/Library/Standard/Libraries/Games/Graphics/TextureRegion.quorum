@@ -1,0 +1,337 @@
+package Libraries.Games.Graphics
+
+use Libraries.Language.Errors.Error
+use Libraries.Compute.Math
+use Libraries.Games.Disposable
+
+/*
+The TextureRegion class is made up of two features: a Texture, and a rectangular
+space on the screen. This can be used for putting simple, stationary textures on
+the screen. For anything that will have to move or do anything else that might
+be complicated, use the Drawable class instead.
+
+Any texture defined by this class will be located on the screen by a coordinate
+system. A coordinate of (0,0) is the very top left corner of the screen.
+Increasing the first value will make the texture move to the right.
+Increasing the second value will make the texture move down the screen.
+
+Attribute: Example
+
+use Libraries.Games.Graphics.TextureRegion
+class Main
+   action Main
+      
+        // This example is currently incomplete!
+
+   end
+end
+*/
+
+class TextureRegion is Disposable
+    
+    Texture texture = undefined
+
+    // These numbers define how much of the Texture will be drawn on the screen.
+    // Values typically range between 0 and 1. Values greater than 1 will cause
+    // different effects based on the texture wrapping mode.
+    number leftSide = 0.0
+    number rightSide = 0.0
+    number topSide = 0.0
+    number bottomSide = 0.0
+
+    integer regionWidth = 0
+    integer regionHeight = 0
+
+    action LoadTextureRegion(Texture newTexture)
+        if newTexture = undefined
+            Error error
+            error:SetErrorMessage("The Texture must be defined to load a TextureRegion!")
+            alert(error)
+        end
+        texture = newTexture
+        SetRegion(0, 0, texture:GetWidth(), texture:GetHeight())
+    end
+
+    action LoadTextureRegion(Texture newTexture, integer width, integer height)
+        if newTexture = undefined
+            Error error
+            error:SetErrorMessage("The Texture must be defined to load a TextureRegion!")
+            alert(error)
+        end
+        texture = newTexture
+        SetRegion(0, 0, width, height)
+    end
+
+    action LoadTextureRegion(Texture newTexture, integer x, integer y, integer width, integer height)
+        if newTexture = undefined
+            Error error
+            error:SetErrorMessage("The Texture must be defined to load a TextureRegion!")
+            alert(error)
+        end
+        texture = newTexture
+        SetRegion(x, y, width, height)
+    end
+
+    action LoadTextureRegion(Texture newTexture, number left, number right, number top, number bottom)
+        if newTexture = undefined
+            Error error
+            error:SetErrorMessage("The Texture must be defined to load a TextureRegion!")
+            alert(error)
+        end
+        texture = newTexture
+        SetRegion(left, right, top, bottom)
+    end
+
+    action CopyTextureRegion(TextureRegion region)
+        texture = region:texture
+        SetRegion(region)
+    end
+
+    action CopyTextureRegion(TextureRegion region, integer x, integer y, integer width, integer height)
+        texture = region:texture
+        SetRegion(region, x, y, width, height)
+    end
+
+    action SetRegion(integer x, integer y, integer width, integer height)
+
+        number inverseTextureWidth = 1.0/texture:GetWidth()
+        number inverseTextureHeight = 1.0/texture:GetHeight()
+        SetRegion(x * inverseTextureWidth, y * inverseTextureHeight, (x + width) * inverseTextureWidth, (y + height) * inverseTextureHeight)
+        
+        Math math
+        regionWidth = math:AbsoluteValue(width)
+        regionHeight = math:AbsoluteValue(height)
+
+    end
+
+    action SetRegion(number left, number top, number right, number bottom)
+
+        integer textureWidth = cast(integer, texture:GetWidth())
+        integer textureHeight = cast(integer, texture:GetHeight())
+        Math math
+
+        regionWidth = cast(integer, math:Round(math:AbsoluteValue(right - left) * textureWidth))
+        regionHeight = cast(integer, math:Round(math:AbsoluteValue(bottom - top) * textureHeight))
+
+        // For a 1x1 region, adjust UVs toward pixel center to avoid filtering artifacts on AMD GPUs when drawing very stretched.
+        if regionWidth = 1 and regionHeight = 1
+            number adjustX = 0.25 / textureWidth
+            left = left + adjustX
+            right = right - adjustX
+            number adjustY = 0.25 / textureHeight
+            top = top + adjustY
+            bottom = bottom - adjustY
+        end
+
+        leftSide = left
+        rightSide = right
+        topSide = top
+        bottomSide = bottom
+
+    end
+
+    action SetRegion(TextureRegion region)
+        SetRegion(region:leftSide, region:topSide, region:rightSide, region:bottomSide)
+    end
+
+    action SetRegion(TextureRegion region, integer x, integer y, integer width, integer height)
+        SetRegion(region:GetRegionX() + x, region:GetRegionY() + y, width, height)
+    end
+
+    // Renamed to avoid a stack overflow error due to bug in the inheritance
+    action GetTextureField returns Texture
+        return texture
+    end
+
+    action SetTexture(Texture newTexture)
+        texture = newTexture
+    end
+
+    action GetLeftSide returns number
+        return leftSide
+    end
+
+    action SetLeftSide(number left)
+    
+        Math math
+        leftSide = left
+        regionWidth = cast(integer, math:Round(math:AbsoluteValue(rightSide - leftSide) * texture:GetWidth()))
+
+    end
+
+    action GetTopSide returns number
+        return topSide
+    end
+
+    action SetTopSide(number top)
+    
+        Math math
+        topSide = top
+        regionHeight = cast(integer, math:Round(math:AbsoluteValue(bottomSide - topSide) * texture:GetHeight()))
+
+    end
+
+    action GetRightSide returns number
+        return rightSide
+    end
+
+    action SetRightSide(number right)
+        
+        Math math
+        rightSide = right
+        regionWidth = cast(integer, math:Round(math:AbsoluteValue(rightSide - leftSide) * texture:GetWidth()))
+
+    end
+
+    action GetBottomSide returns number
+        return bottomSide
+    end
+
+    action SetBottomSide(number bottom)
+    
+        Math math
+        bottomSide = bottom
+        regionHeight = cast(integer, math:Round(math:AbsoluteValue(bottomSide - topSide) * texture:GetHeight()))
+
+    end
+
+    action GetRegionX returns integer
+    
+        Math math
+        return cast(integer, math:Round(leftSide * texture:GetWidth()))
+    
+    end
+
+    action SetRegionX(integer x)
+        SetLeftSide(x / cast(number, texture:GetWidth()))
+    end
+
+    action GetRegionY returns integer
+
+        Math math
+        return cast(integer, math:Round(topSide * texture:GetHeight()))
+
+    end
+
+    action SetRegionY(integer y)
+        SetTopSide(y / cast(number, texture:GetHeight()))
+    end
+
+    action GetRegionWidth returns integer
+        return regionWidth
+    end
+
+    action SetRegionWidth(integer width)
+
+        if IsFlippedHorizontally()
+            SetLeftSide(rightSide + width / cast(number, texture:GetWidth()))
+        else
+            SetRightSide(leftSide + width / cast(number, texture:GetWidth()))
+        end
+
+    end
+
+    action GetRegionHeight returns integer
+        return regionHeight
+    end
+
+    action SetRegionHeight(integer height)
+
+        if IsFlippedVertically()
+            SetTopSide(bottomSide + height / cast(number, texture:GetHeight()))
+        else
+            SetBottomSide(topSide + height / cast(number, texture:GetHeight()))
+        end
+
+    end
+
+    action FlipHorizontally
+
+        number temp = leftSide
+        leftSide = rightSide
+        rightSide = temp
+
+    end
+
+    action FlipVertically
+
+        number temp = topSide
+        topSide = bottomSide
+        bottomSide = temp
+
+    end
+
+    action IsFlippedHorizontally returns boolean
+        return leftSide > rightSide
+    end
+
+    action IsFlippedVertically returns boolean
+        return topSide > bottomSide
+    end
+
+    action Dispose
+        texture:Dispose()
+    end
+
+end
+
+	/** Offsets the region relative to the current region. Generally the region's size should be the entire size of the texture in
+	 * the direction(s) it is scrolled.
+	 * @param xAmount The percentage to offset horizontally.
+	 * @param yAmount The percentage to offset vertically. This is done in texture space, so up is negative. */
+/*	public void scroll (float xAmount, float yAmount) {
+		if (xAmount != 0) {
+			float width = (u2 - u) * texture.getWidth();
+			u = (u + xAmount) % 1;
+			u2 = u + width / texture.getWidth();
+		}
+		if (yAmount != 0) {
+			float height = (v2 - v) * texture.getHeight();
+			v = (v + yAmount) % 1;
+			v2 = v + height / texture.getHeight();
+		}
+	}
+
+	/** Helper function to create tiles out of this TextureRegion starting from the top left corner going to the right and ending at
+	 * the bottom right corner. Only complete tiles will be returned so if the region's width or height are not a multiple of the
+	 * tile width and height not all of the region will be used. This will not work on texture regions returned form a TextureAtlas
+	 * that either have whitespace removed or where flipped before the region is split.
+	 * 
+	 * @param tileWidth a tile's width in pixels
+	 * @param tileHeight a tile's height in pixels
+	 * @return a 2D array of TextureRegions indexed by [row][column]. */
+/*	public TextureRegion[][] split (int tileWidth, int tileHeight) {
+		int x = getRegionX();
+		int y = getRegionY();
+		int width = regionWidth;
+		int height = regionHeight;
+
+		int rows = height / tileHeight;
+		int cols = width / tileWidth;
+
+		int startX = x;
+		TextureRegion[][] tiles = new TextureRegion[rows][cols];
+		for (int row = 0; row < rows; row++, y += tileHeight) {
+			x = startX;
+			for (int col = 0; col < cols; col++, x += tileWidth) {
+				tiles[row][col] = new TextureRegion(texture, x, y, tileWidth, tileHeight);
+			}
+		}
+
+		return tiles;
+	}
+
+	/** Helper function to create tiles out of the given {@link Texture} starting from the top left corner going to the right and
+	 * ending at the bottom right corner. Only complete tiles will be returned so if the texture's width or height are not a
+	 * multiple of the tile width and height not all of the texture will be used.
+	 * 
+	 * @param texture the Texture
+	 * @param tileWidth a tile's width in pixels
+	 * @param tileHeight a tile's height in pixels
+	 * @return a 2D array of TextureRegions indexed by [row][column]. */
+/*	public static TextureRegion[][] split (Texture texture, int tileWidth, int tileHeight) {
+		TextureRegion region = new TextureRegion(texture);
+		return region.split(tileWidth, tileHeight);
+	}
+}
+*/

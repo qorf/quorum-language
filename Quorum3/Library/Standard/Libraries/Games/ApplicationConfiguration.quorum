@@ -1,0 +1,156 @@
+package Libraries.Games
+
+use Libraries.Games.Graphics.Color
+use Libraries.Containers.Array
+
+/*
+ *A class that represents the configuration of the application.
+ *It contains a large number of the graphics configurations.
+ */
+class ApplicationConfiguration 
+  
+  //If true openAL will not be used
+  public boolean disableAudio = false
+
+  //Use OpenGL ES 3.0
+  public boolean useGL30 = false
+  
+  //Bits per channel
+  public integer r = 8
+  public integer b = 8
+  public integer g = 8
+  public integer a = 8
+  
+
+  //Bits for depth and stencil buffers
+  public integer depth = 16
+  public integer stencil = 0
+
+  //Number of samples for MSAA
+  public integer samples = 0
+
+  //Width and height of the application
+  public integer width = 640
+  public integer height = 480
+
+
+  //X and Y for application Windows, -1 for center
+  public integer x = -1
+  public integer y = -1
+
+  public boolean fullScreen = false
+  
+  //For screen density emulation
+  public integer overrideDensity = -1
+
+  public boolean vSyncEnabled = false
+
+  //application title
+  public text title = "Game"
+
+  //Call System.exit() on tear down
+  public boolean forceExit = true
+
+  //Is the window resizable?
+  public boolean resizable = true
+
+
+  // The maximum number of sources that can be played simultaneously
+  public integer audioDeviceSimultaneousSources = 16
+	
+  // The audio device buffer size in samples
+  public integer audioDeviceBufferSize = 512
+
+  // The audio device buffer count
+  public integer audioDeviceBufferCount = 9
+	
+  //This private variable is a way to get around Quorum's 
+  //lack of contructors. We basically use a temporary Color as a
+  //Constructor object, that then returns a Color singleton for 
+  //ApplicationConfiguration to use.
+  private Color tempColor  
+  public Color initialBackgroundColor = tempColor:Black()
+	
+  //Target framerate when the window is in the foreground. 
+  //The CPU sleeps as needed. Use 0 to never sleep.
+  public integer foregroundFPS = 60
+	
+  // Target framerate when the window is not in the foreground. 
+  // The CPU sleeps as needed. Use 0 to never sleep, -1 to not render. 
+  public integer backgroundFPS = 60
+
+  // Allows software OpenGL rendering if hardware acceleration was not available.
+  public boolean allowSoftwareMode = false
+
+  // Preferences directory on the desktop. Default is ".prefs/".
+  public text preferencesDirectory = ".prefs/"
+
+  //Not implemented yet.
+  //public LwjglGraphics.SetDisplayModeCallback setDisplayModeCallback;
+  
+  //NOTE: FileType is stubbed out as of 9/24/2014
+  Array<text> iconPaths
+ // Array<FileType> iconFileTypes
+  
+  
+
+	//Adds a window icon. Icons are tried in the order added, 
+  //the first one that works is used. Typically three icons should be
+	//provided: 128x128 (for Mac), 32x32 (for Windows and Linux), 
+  //and 16x16 (for Windows).
+  public action addIcon(text path/*, FileType fileType*/)
+    iconPaths:Add(path)
+    //iconFileTypes:Add(fileType)
+  end
+
+  /* 
+
+  These may need to be implemented in the future. This comment is left for
+  reference.
+
+  Is there a way to extend a class? 
+  protected static class LwjglApplicationConfigurationDisplayMode extends DisplayMode {
+		protected LwjglApplicationConfigurationDisplayMode (int width, int height, int refreshRate, int bitsPerPixel) {
+			super(width, height, refreshRate, bitsPerPixel);
+		}
+
+
+	public static DisplayMode getDesktopDisplayMode () {
+		GraphicsEnvironment genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice device = genv.getDefaultScreenDevice();
+		java.awt.DisplayMode mode = device.getDisplayMode();
+		return new LwjglApplicationConfigurationDisplayMode(mode.getWidth(), mode.getHeight(), mode.getRefreshRate(),
+			mode.getBitDepth());
+	}
+
+	public static DisplayMode[] getDisplayModes () {
+		GraphicsEnvironment genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice device = genv.getDefaultScreenDevice();
+		java.awt.DisplayMode desktopMode = device.getDisplayMode();
+		java.awt.DisplayMode[] displayModes = device.getDisplayModes();
+		ArrayList<DisplayMode> modes = new ArrayList<DisplayMode>();
+		int idx = 0;
+		for (java.awt.DisplayMode mode : displayModes) {
+			boolean duplicate = false;
+			for (int i = 0; i < modes.size(); i++) {
+				if (modes.get(i).width == mode.getWidth() && modes.get(i).height == mode.getHeight()
+					&& modes.get(i).bitsPerPixel == mode.getBitDepth()) {
+					duplicate = true;
+					break;
+				}
+			}
+			if (duplicate) continue;
+			if (mode.getBitDepth() != desktopMode.getBitDepth()) continue;
+			modes.add(new LwjglApplicationConfigurationDisplayMode(mode.getWidth(), mode.getHeight(), mode.getRefreshRate(), mode
+				.getBitDepth()));
+		}
+
+		return modes.toArray(new DisplayMode[modes.size()]);
+	}
+	}*/
+
+  
+    
+  
+  
+end

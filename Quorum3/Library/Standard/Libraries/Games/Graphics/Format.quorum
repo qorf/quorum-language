@@ -1,0 +1,23 @@
+package Libraries.Games.Graphics
+
+class Format 
+    
+    private integer value = 1
+
+    public constant integer ALPHA = 1
+    public constant integer INTENSITY = 1
+    public constant integer LUMINANCE_ALPHA = 2
+    public constant integer RGB888 = 3
+    public constant integer RGBA8888 = 4
+    public constant integer RGB565 = 5
+    public constant integer RGBA4444 = 6
+
+    public action GetValue returns integer
+        return value
+    end
+
+    public action SetValue(integer type)
+        value = type
+    end
+
+end

@@ -1,0 +1,22 @@
+package Libraries.Games.Graphics
+
+class FPSLabel is Label
+    
+    on create
+        SetText("FPS: ")
+        SetPosition(20, 20)
+    end
+
+    integer frames = 0
+    number timer = 0
+
+    action Update(number secondsSinceUpdate)
+        frames = frames + 1
+        timer = timer + secondsSinceUpdate
+        if timer >= 1
+            SetText("FPS: " + frames)
+            frames = 0
+            timer = timer - 1
+        end
+    end
+end
