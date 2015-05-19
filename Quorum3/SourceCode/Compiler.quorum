@@ -1056,16 +1056,26 @@ class Compiler
             Iterator<File> jars = additionalJarFiles:GetIterator()
             text classpath = "Class-Path: "
             text libraries = JAR_DEPENDENCY_FOLDER
+            boolean isFirst = true
             repeat while jars:HasNext()
                 File file = jars:Next()
-                classpath = classpath + libraries + "/" + file:GetFileName()
+                if isFirst
+                    classpath = classpath + libraries + "/" + file:GetFileName()
+                else
+                    classpath = classpath + " " + libraries + "/" + file:GetFileName()
+                end
+                isFirst = false
             end
 
             if usesLWJGL
                 File lwjgl
                 lwjgl:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
                 lwjgl:SetPath("lwjgl.jar")
-                classpath = classpath + libraries + "/" + lwjgl:GetFileName()
+                if isFirst
+                    classpath = classpath + libraries + "/" + lwjgl:GetFileName()
+                else
+                    classpath = classpath + " " + libraries + "/" + lwjgl:GetFileName()
+                end
             end
 
             main = main + classpath + line

@@ -51,7 +51,7 @@ class Game
         text path = ""
         File file
         //other operating systems might need other pathing information
-        if os:Contains("Mac OS X")
+        /*if os:Contains("Mac OS X")
             file:SetPath("native/macosx")
 
         elseif os:Contains("Windows")
@@ -59,7 +59,9 @@ class Game
 
         else
             alert("System was not Mac or Windows!")
-        end
+        end*/
+
+        file:SetPath("Run/jni")
         
         path = file:GetAbsolutePath()
 
@@ -68,7 +70,7 @@ class Game
         // Setting the path to load the native C files, reusing the file and
         // path variables.
         path = ""
-        file:SetPath("native/JNI/libGameEngineCPlugins.so")
+        file:SetPath("Run/jni/libGameEngineCPlugins.so")
         path = file:GetAbsolutePath()
         
         GameStateManager manager
