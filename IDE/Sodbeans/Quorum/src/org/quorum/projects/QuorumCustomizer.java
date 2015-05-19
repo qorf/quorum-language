@@ -31,8 +31,10 @@ public class QuorumCustomizer implements CustomizerProvider{
     private ProjectCustomizer.Category[] categories;
     private ProjectCustomizer.CategoryComponentProvider panelProvider;
     private ProjectInformationPanel infoPanel;
+    private GamePanel gamePanel;
     
     private static final String PROJECT_INFO_CATEGORY = "ProjectInfoCategory";
+    private static final String GAME_CATEGORY = "GameCategory";
     private final QuorumProject project;
     public QuorumCustomizer(QuorumProject project) {
         this.project = project;
@@ -45,14 +47,24 @@ public class QuorumCustomizer implements CustomizerProvider{
                 null,
                 null);
         
+        ProjectCustomizer.Category gameInfo = ProjectCustomizer.Category.create(
+                GAME_CATEGORY,
+                "Games",
+                null,
+                null);
+        
         categories = new ProjectCustomizer.Category[] {
-            projectInfo
+            projectInfo, gameInfo
         };
         
         HashMap<String, JPanel> panels = new HashMap<String, JPanel>();
         infoPanel = new ProjectInformationPanel();
         infoPanel.setProject(project);
         panels.put(PROJECT_INFO_CATEGORY, infoPanel);
+        
+        gamePanel = new GamePanel();
+        
+        panels.put(GAME_CATEGORY, gamePanel);
         panelProvider = new PanelProvider(panels);
     }
     
