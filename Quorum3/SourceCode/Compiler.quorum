@@ -820,7 +820,9 @@ class Compiler
             gamePlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/games/")
             gamePlugins:SetPath("plugins")
             WriteCompilerDependency(generator, gamePlugins, to)
+        end
 
+        if hasAudio or hasGame
             File gameNative
             gameNative:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Native/")
             gameNative:SetPath("Libraries.Games")
