@@ -378,11 +378,14 @@ class Compiler
 
         //next find any classes on the system in the package
         Iterator<Class> classesInPackage = sandboxSymbolTable:GetClassesInPackage(name)
-        boolean hasAny = classesInPackage:HasNext()
-        repeat while classesInPackage:HasNext()
-            Class pack = classesInPackage:Next()
-            CodeCompletionItem item = GetClassCompletionItem(pack)
-            result:Add(item)
+        boolean hasAny = false
+        if classesInPackage not= undefined
+            hasAny = classesInPackage:HasNext()
+            repeat while classesInPackage:HasNext()
+                Class pack = classesInPackage:Next()
+                CodeCompletionItem item = GetClassCompletionItem(pack)
+                result:Add(item)
+            end
         end
         
         //finally, remind the user they can use the "all" keyword
