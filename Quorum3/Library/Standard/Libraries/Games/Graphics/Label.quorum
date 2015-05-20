@@ -227,6 +227,6 @@ class Label is DrawableGroup
         if textChanged
             LoadDrawables()
         end
-        return parent:DrawableGroup:drawables
+        return parent:DrawableGroup:GetDrawables()
     end
 end

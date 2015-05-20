@@ -1,6 +1,6 @@
 /*
     The foundation of any game. Any user created game should inherit from this
-    and must implement CreateGame and ComputeFrame.
+    and must implement CreateGame and Update.
 */
 
 package Libraries.Games
@@ -122,7 +122,7 @@ class Game
     action ContinueGame
         ProcessInputEvents()
         UpdateAll()
-        ComputeFrame()
+        Update(GetSecondsBetweenFrames())
         ClearScreen()
         DrawAll()
     end
@@ -153,7 +153,7 @@ class Game
 
     system action GetSecondsBetweenFrames returns number
 
-    blueprint action ComputeFrame
+    blueprint action Update(number time)
 
     action Create
         CreateGame()

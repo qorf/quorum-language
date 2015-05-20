@@ -2,6 +2,7 @@ package Libraries.Sound
 
 use Libraries.System.File
 use Libraries.System.Properties
+use Libraries.System.SystemHelper
 
 /*
 The Audio class can be used to play sound files and change how they are played.
@@ -218,6 +219,53 @@ class Audio
     */
     system action Play
 
+    /*
+    If you want to make a program wait until your audio has stopped playing to
+    continue, use the PlayUntilDone action. This action won't work on streamed
+    audio, only on audio loaded with the Load() action. The audio file will
+    always play just once, even if looping is enabled. If this action is used
+    on a streaming audio file, nothing will happen.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We will first load a sound normally with the Load command. Most sounds
+    // should be loaded this way.
+    audio:Load("ShortSound.wav")
+
+    // Now that our file is loaded, we can play the sound.
+    audio:PlayUntilDone()
+    
+    // This output statement will be called after the entire sound has played.
+    output "Finished playing audio!"
+
+    */
+    action PlayUntilDone
+        if IsStreaming()
+            return now
+        end
+
+        Play()
+
+        boolean wasLooping = IsLoopingEnabled()
+        if wasLooping
+            DisableLooping()
+        end
+
+        SystemHelper helper
+        repeat while IsPlaying()
+            helper:Sleep(100)
+        end
+
+        if wasLooping
+            EnableLooping()
+        end
+    end
     
     /*
     The Stop action will stop audio if it is currently playing. If it is not
@@ -340,6 +388,12 @@ class Audio
     */
     system action DisableLooping
 
+    /*
+    This action will return true or false based on whether or not the audio
+    has been set to loop.
+    */
+    system action IsLoopingEnabled returns boolean
+
     
     /*
     The Dispose action will stop a sound if it is playing and then free the 
@@ -377,6 +431,9 @@ class Audio
     // normal pitch value. To increase pitch by 20%, pass a value of 1.2.
     system action SetPitch(number pitch)
 
+    // Returns the currently set pitch.
+    system action GetPitch returns number
+
     /*
     The SetVolume action adjusts the volume of a sound. It takes a number value
     to set the volume to a percentage of the original sound volume. A value of
@@ -406,13 +463,36 @@ class Audio
     */
     system action SetVolume(number volume)
 
+    /*
+    The GetVolume action returns the currently set volume. A number value of 1.0
+    represents 100% of normal volume.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We always have to load a sound before use.
+    audio:Load("ding.wav")
+
+    // For this example, we will set the audio to 50%, or half, volume.
+    audio:SetVolume(0.5)
+
+    // We can get the volume back as a number using the GetVolume() action.
+    number volume = audio:GetVolume()
+
+    */
+    system action GetVolume returns number
+
     
     /*
-    SetHorizontalPosition will change how the sound is played through stereo
-    speakers or headphones. Values passed to this should always be between -1
-    and 1. A value of -1 will make the sound play through only the left speaker.
-    A value of 1 will play the sound only through the right speaker. A value of
-    0 will play the sound equally through both speakers.
+    SetBalance will change how the sound is played through stereo speakers or
+    headphones. Values passed to this should always be between -1 and 1. A value 
+    of -1 will make the sound play through only the left speaker. A value of 1 
+    will play the sound only through the right speaker. A value of 0 will play
+    the sound equally through both speakers.
 
 
     Attribute: Example
@@ -427,7 +507,7 @@ class Audio
 
     // For this example, we will set the position with the value -1. This will
     // make the sound play through only the left speaker.
-    audio:SetHorizontalPosition(-1)
+    audio:SetBalancePosition(-1)
 
     // After we load the file, we can play it with a simple call to Play().
     audio:Play()
@@ -436,8 +516,31 @@ class Audio
     audio:Dispose()
 
     */
-    system action SetHorizontalPosition(number position)
+    system action SetBalance(number position)
 
+    /*
+    GetBalance will return the current balance value of the sound. A value of -1
+    represents audio fully from the left speaker. A value of 1 represents audio
+    fully from the right speaker. A value of 0 represents audio equally from
+    both speakers.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We always have to load a sound before use.
+    audio:Load("ding.wav")
+
+    // For this example, we will set the balance to -1.
+    audio:SetBalance(-1)
+
+    // We can get the balance back as a number using the GetBalance() action.
+    number balance = audio:GetBalance()
+    */
+    system action GetBalance returns number
 
     /*
     The Stream action is used to load and play the next chunk of data for a file
@@ -474,5 +577,28 @@ class Audio
 
     */
     system action Stream()
+
+    /*
+    IsStreaming will return if an audio file was loaded as a streaming audio
+    file. If the audio was loaded normally via the Load action, this will return
+    false. If it was loaded with LoadToStream, it will return true. 
+
+    Attribute:Example
+
+    use Libraries.Sound.Audio
+
+    // We will have two audio objects for this example.
+    Audio audio1
+    Audio audio2
+
+    // Our first object will not be streamed. Our second one will be.
+    audio1:Load("shortSound.ogg")
+    audio2:LoadToStream("longSound.ogg")
+
+    // Now we'll output which of these two audio files are set for streaming.
+    output "Was audio1 streaming? " + audio1:IsStreaming()
+    output "Was audio2 streaming? " + audio2:IsStreaming()
+    */
+    system action IsStreaming() returns boolean
     
 end
