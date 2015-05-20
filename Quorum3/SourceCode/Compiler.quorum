@@ -472,6 +472,13 @@ class Compiler
             elseif left = root
                 AddSubpackagesAndClasses(request, result, root)
                 AddCustomClasses(request, result, root)
+            elseif root:StartsWith(left)
+                CodeCompletionItem item
+                item:SetType(item:PACKAGE)
+                item:displayText = root
+                item:completionText = root
+                result:Add(item)
+                AddCustomClasses(request, result, root)
             end
         else 
             text valueNoFilter = trim:GetSubtext(0, trim:GetSize() - filterSize - 1)
