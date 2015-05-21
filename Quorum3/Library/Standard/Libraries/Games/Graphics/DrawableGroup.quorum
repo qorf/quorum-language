@@ -9,9 +9,10 @@ class DrawableGroup is Item
 
     private number offsetX = 0
     private number offsetY = 0
+    private boolean recalculateOffsets = false
 
     action GetDrawables returns List<Drawable>
-        if offsetX not= GetX() or offsetY not= GetY()
+        if offsetX not= GetX() or offsetY not= GetY() or recalculateOffsets
             Iterator<Drawable> temp = drawables:GetIterator()
             Drawable drawable = undefined
             repeat while temp:HasNext()
@@ -26,6 +27,7 @@ class DrawableGroup is Item
 
     action Add(Drawable drawable)
         drawables:Add(drawable)
+        recalculateOffsets = true
     end
 
     action Remove(Drawable drawable)
