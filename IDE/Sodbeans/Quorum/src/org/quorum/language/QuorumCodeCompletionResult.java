@@ -32,6 +32,7 @@ public class QuorumCodeCompletionResult extends CodeCompletionResult{
                     CodeCompletionItem$Interface next = (CodeCompletionItem$Interface) it.Next();
                     QuorumCompletionProposal prop = new QuorumCompletionProposal();
                     prop.setCompletionItem(next);
+                    prop.setPrefix(result.Get$Libraries$Language$Compile$CodeCompletionResult$prefix());
                     list.add(prop);
                 }
             }

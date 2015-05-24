@@ -60,8 +60,8 @@ public class QuorumCodeCompletionHandler implements CodeCompletionHandler2{
             String prefix = context.getPrefix();
             boolean caseSensitive = context.isCaseSensitive();
                 
-            CodeCompletionResult$Interface Request = compiler.Request(request);
-            result.setResult(Request);
+            CodeCompletionResult$Interface quorumResult = compiler.Request(request);
+            result.setResult(quorumResult);
         }
         return result;
     }

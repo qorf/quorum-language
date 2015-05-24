@@ -16,6 +16,7 @@ import quorum.Libraries.Language.Compile.CodeCompletionItem$Interface;
  */
 public class QuorumCompletionProposal extends DefaultCompletionProposal{
     private CodeCompletionItem$Interface completionItem = null;
+    private String prefix = "";
     
     public QuorumCompletionProposal() {
     }
@@ -30,6 +31,12 @@ public class QuorumCompletionProposal extends DefaultCompletionProposal{
     public String getName() {
         String value = completionItem.Get$Libraries$Language$Compile$CodeCompletionItem$displayText();
         return value;
+    }
+
+    @Override
+    public String getInsertPrefix() {
+        String value = completionItem.Get$Libraries$Language$Compile$CodeCompletionItem$completionText();
+        return prefix + value;
     }
 
     /**
@@ -76,5 +83,19 @@ public class QuorumCompletionProposal extends DefaultCompletionProposal{
                 elementKind = ElementKind.VARIABLE;
             }
         }
+    }
+
+    /**
+     * @return the prefix
+     */
+    public String getPrefix() {
+        return prefix;
+    }
+
+    /**
+     * @param prefix the prefix to set
+     */
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
     }
 }
