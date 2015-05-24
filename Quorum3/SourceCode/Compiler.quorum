@@ -269,6 +269,7 @@ class Compiler
         text source = request:source
         integer index = request:caretLocation
         text line = GetLineBeforeCursor(index, source)
+        result:prefix = line
         text trimmed = line:Trim()
         request:line = trimmed
 //
@@ -295,8 +296,8 @@ class Compiler
     end
 
     private action GetLineBeforeCursor(integer loc, text source) returns text
-        if loc <= source:GetSize()
-            integer i = loc
+        if loc - 1 <= source:GetSize()
+            integer i = loc - 1
             text CR = source:GetLineFeed()
 
             integer start = 0
@@ -372,8 +373,15 @@ class Compiler
         Iterator<text> packs = sandboxSymbolTable:GetSubpackageNames(name)
         repeat while packs:HasNext()
             text pack = packs:Next()
-            CodeCompletionItem item = GetPackageCompletionItem(pack)
-            result:Add(item)
+            integer size = name:GetSize() + 1
+            text subpackName = pack:GetSubtext(0, size)
+            text filteredName = subpackName + result:filter
+            subpackName = pack:GetSubtext(size, pack:GetSize())
+
+            if pack:StartsWith(filteredName)
+                CodeCompletionItem item = GetPackageCompletionItem(subpackName)
+                result:Add(item)
+            end
         end
 
         //next find any classes on the system in the package
@@ -383,6 +391,7 @@ class Compiler
             hasAny = classesInPackage:HasNext()
             repeat while classesInPackage:HasNext()
                 Class pack = classesInPackage:Next()
+                text key = pack:GetStaticKey()
                 CodeCompletionItem item = GetClassCompletionItem(pack)
                 result:Add(item)
             end
@@ -483,7 +492,7 @@ class Compiler
         else 
             text valueNoFilter = trim:GetSubtext(0, trim:GetSize() - filterSize - 1)
             AddSubpackagesAndClasses(request, result, valueNoFilter)
-            AddCustomClasses(request, result, valueNoFilter)
+            //AddCustomClasses(request, result, valueNoFilter)
         end
 
 //        final String root = this.standardLibrary.getStandardLibraryRootName();

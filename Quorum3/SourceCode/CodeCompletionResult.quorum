@@ -5,6 +5,7 @@ use Libraries.Containers.Blueprints.Iterator
 class CodeCompletionResult 
     List<CodeCompletionItem> items
     public text filter = ""
+    public text prefix = ""
 
     action Add(CodeCompletionItem item)
         items:Add(item)
