@@ -47,6 +47,9 @@ class Parser is QuorumSourceListener
     end
 
     action ExitFullClassDeclaration(FullClassDeclarationContext context) 
+        if currentClass = undefined
+            return now
+        end
         i = 0
         repeat while i < unresolvedUseStatements:GetSize()
             currentClass:AddUnresolvedUseStatement(unresolvedUseStatements:Get(i))
@@ -60,6 +63,7 @@ class Parser is QuorumSourceListener
             currentClass:AddGeneric(generics:GetGeneric(i))
             i = i + 1
         end
+        currentClass:SetLocation(context:GetLocation())
         ExitClass()
     end
 
@@ -201,6 +205,7 @@ class Parser is QuorumSourceListener
         currentAction = act
         currentAction:SetParentClass(currentClass)
         currentAction:SetIsSystem(true)
+        currentAction:SetLocation(context:GetLocation())
     end
 
     action EnterBlock(BlockContext context) 
@@ -252,6 +257,7 @@ class Parser is QuorumSourceListener
         currentAction = act
         currentAction:SetParentClass(currentClass)
         currentAction:SetIsBluePrint(true)
+        currentAction:SetLocation(context:GetLocation())
     end
 
     action ExitBlueprintAction(ActionContext context)
@@ -298,7 +304,7 @@ class Parser is QuorumSourceListener
         
         currentAction:SetReturnType(context:returnType)
         currentAction:SetName(context:actionName)
-        currentAction:SetLocation(context:GetLocation())
+        //currentAction:SetLocation(context:GetLocation())
 
         //add it to the class
         if currentClass = undefined
@@ -351,6 +357,7 @@ class Parser is QuorumSourceListener
 
         currentAction = act
         act:SetParentClass(currentClass)
+        currentAction:SetLocation(context:GetLocation())
     end
 
     action ExitAction(ActionContext context) 

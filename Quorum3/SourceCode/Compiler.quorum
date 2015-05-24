@@ -290,9 +290,129 @@ class Compiler
             AddUseResults(request, result, true)
         elseif not isUse and isPackage
             AddUseResults(request, result, false)
+        elseif not isUse and not isPackage
+            AddExpressionResults(request, result)
         end
 
         return result
+    end
+
+    private action AddExpressionResults(CodeCompletionRequest request, CodeCompletionResult result)
+        text line = request:line //this is already trimmed
+        Array<text> split = line:Split(":")
+
+        //now set the filer for this particular request
+        if split:GetSize() > 0 and not line:IsEmpty()
+            text ch = line:GetCharacter(line:GetSize() - 1)
+            if ch = ":"
+                result:filter = ""
+            else
+                result:filter = split:Get(split:GetSize() - 1)
+            end
+        end
+
+        //the most recent compile may contain errors. Get the most recent
+        //successful compile. Store the error compile as well, as it may
+        //help us determine the right values for code completion.
+        text file = request:fileKey
+        Class clazz = sandboxSymbolTable:GetClassInFile(file)
+
+        //we have tried to get the class from the sandbox. It this is undefined
+        //then check the cache. If there is no cached version of the class,
+        //then likely this class hasn't compiled in a while and there may
+        //be little we can do to detect what the user is doing.
+        //TODO
+        
+        //now we have checked the cache. If this is still undefined, bail
+        if clazz not= undefined
+            integer start = clazz:GetIndex()
+            integer finish = clazz:GetIndexEnd()
+
+            //is it inside of this class? If not, kill the request, because no syntax is legal
+            if not(request:caretLocation >= start and request:caretLocation <= finish)
+                clazz = undefined
+            end
+
+            if split:IsEmpty()
+                clazz = undefined
+                return now
+            end
+        end
+
+        Action method = GetActionAtIndex(clazz, request:caretLocation)
+        text left = split:Get(0)
+        text trimmedLeft = left:Trim()
+        if clazz not= undefined
+            if left = "me" or left:IsEmpty() or trimmedLeft:IsEmpty()
+                AddClassToResult(undefined, request, result, clazz, true, method)
+            else
+                if method not= undefined
+                    Variable variable = undefined
+                    
+                end
+            end
+        end
+        
+        a = 5
+    end
+
+    private action GetVariableInBlock() returns Variable
+        Variable variable = undefined
+        
+
+        return variable
+    end
+
+    private action GetBlockAtIndex(Action method, integer index) returns Block
+        Block block = undefined
+        
+        return block
+    end
+
+    private action GetActionAtIndex(Class clazz, integer index) returns Action
+        Action act = undefined
+        File file = clazz:GetFile()
+        text classPath = file:GetAbsolutePath()
+
+        Iterator<Action> actions = clazz:GetActions()
+        repeat while actions:HasNext()
+            Action a = actions:Next()
+            integer start = a:GetIndex()
+            integer finish = a:GetIndexEnd()
+            File f = a:GetFile()
+            text actionPath = f:GetAbsolutePath()
+            if index >= start and index <= finish and classPath = actionPath
+                act = a
+                return act
+            end
+        end
+        return act
+    end
+
+    private action AddClassToResult(Variable variable, 
+            CodeCompletionRequest request, 
+            CodeCompletionResult result, Class clazz, 
+            boolean isCurrentClass, Action insideMethod)
+
+        if clazz not= undefined
+
+            //if this is the current class, load all methods, public or private
+            //if this is a variable, load only its public methods.
+            Iterator<Action> actions = undefined
+            if isCurrentClass
+                actions = clazz:GetActions()
+            else
+
+            end
+
+            repeat while actions:HasNext()
+                Action act = actions:Next()
+                CodeCompletionItem item = GetActionCompletionItem(act)
+                result:Add(item)
+            end
+        end
+
+
     end
 
     private action GetLineBeforeCursor(integer loc, text source) returns text
@@ -353,6 +473,47 @@ class Compiler
         return item
     end
     
+    private action GetActionCompletionItem(Action act) returns CodeCompletionItem
+        CodeCompletionItem item
+        //item:SetType(item:METHOD)
+
+        if act:IsPublic()
+            if act:IsBlueprint()
+                item:SetType(item:PUBLIC_BLUEPRINT_ACTION)
+            elseif act:IsSystem()
+                item:SetType(item:PUBLIC_SYSTEM_ACTION)
+            else
+                item:SetType(item:PUBLIC_ACTION)
+            end
+        else 
+            if act:IsBlueprint()
+                item:SetType(item:PRIVATE_BLUEPRINT_ACTION)
+            elseif act:IsSystem()
+                item:SetType(item:PRIVATE_SYSTEM_ACTION)
+            else
+                item:SetType(item:PRIVATE_ACTION)
+            end
+        end
+
+        Class clazz = act:GetParentClass()
+
+        if clazz not= undefined
+            if clazz:GetAction(act:GetStaticKey()) not= undefined
+                item:isBaseClassAction = true
+            end
+        end
+
+        text signature = act:GetStaticKey()
+        text name = act:GetName()
+
+        text description = "<h1>" + signature + "</h1>"
+
+        item:displayText = name
+        item:completionText = name
+        item:documentationText = ""
+        return item
+    end
+
     private action GetPackageCompletionItem(text pack) returns CodeCompletionItem
         CodeCompletionItem item
         item:SetType(item:PACKAGE)
