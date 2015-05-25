@@ -7,7 +7,7 @@ use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Location
 use Libraries.Containers.Blueprints.Iterator
 
-class Block
+class Block is Location
     HashTable<text, Variable> variables
     Array<Block> blocks
     integer currentBlock = 0

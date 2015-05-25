@@ -216,6 +216,7 @@ class Parser is QuorumSourceListener
             currentAction:SetBlock(block)
         end
         currentBlock = block
+        block:SetLocation(context:GetLocation())
         blocks:Push(block)
     end
     

@@ -347,8 +347,18 @@ class Compiler
                 AddClassToResult(undefined, request, result, clazz, true, method)
             else
                 if method not= undefined
-                    Variable variable = undefined
-                    
+                    Block block = GetBlockAtIndex(method:GetBlock(), request:caretLocation)
+                    if block not= undefined
+                        Variable variable = block:GetVariable(trimmedLeft)
+                        if variable not= undefined
+                            Type type = variable:GetType()
+                            text key = type:GetStaticKey()
+                            Class varClass = sandboxSymbolTable:GetClass(key)
+                            if varClass not= undefined
+                                AddClassToResult(variable, request, result, varClass, false, undefined)
+                            end
+                        end
+                    end
                 end
             end
         end
@@ -356,6 +366,7 @@ class Compiler
         a = 5
     end
 
+    
     private action GetVariableInBlock() returns Variable
         Variable variable = undefined
         
@@ -363,10 +374,57 @@ class Compiler
         return variable
     end
 
-    private action GetBlockAtIndex(Action method, integer index) returns Block
-        Block block = undefined
-        
-        return block
+    /*
+        Obtains the logical block located at this index. 
+    */
+    private action GetBlockAtIndex(Block block, integer index) returns Block
+        Block bestBlock = undefined
+
+        if block not= undefined
+            boolean test = IsIndexInLocation(block, index)
+            if test
+                bestBlock = block
+            end
+            //get subblocks and try those
+            //this call recursively calls to subblocks, thus no need
+            //for going deeper in this loop exists
+            Iterator<Block> blocks = block:GetBlocks()
+            repeat while blocks:HasNext()
+                Block b = blocks:Next()
+                Block returnedBlock = GetBlockAtIndex(b, index)
+                if returnedBlock not= undefined
+                    if IsIndexInLocation(returnedBlock, index)
+                        integer start = returnedBlock:GetIndex()
+                        integer finish = returnedBlock:GetIndexEnd()
+                        integer range = start - finish
+
+                        if bestBlock = undefined
+                            bestBlock = returnedBlock
+                        else
+                            integer bestStart = bestBlock:GetIndex()
+                            integer bestFinish = returnedBlock:GetIndexEnd()
+                            integer bestRange = bestStart - bestFinish
+                            //this block is nested 
+                            if range < bestRange
+                                bestBlock = returnedBlock
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+        return bestBlock
+    end
+
+    private action IsIndexInLocation(Location location, integer index) returns boolean
+        integer start = location:GetIndex()
+        integer finish = location:GetIndexEnd()
+        if index >= start and index <= finish
+            return true
+        end
+
+        return false
     end
 
     private action GetActionAtIndex(Class clazz, integer index) returns Action
@@ -398,17 +456,19 @@ class Compiler
 
             //if this is the current class, load all methods, public or private
             //if this is a variable, load only its public methods.
-            Iterator<Action> actions = undefined
-            if isCurrentClass
-                actions = clazz:GetActions()
-            else
-
-            end
+            Iterator<Action> actions = clazz:GetActions()
 
             repeat while actions:HasNext()
                 Action act = actions:Next()
                 CodeCompletionItem item = GetActionCompletionItem(act)
-                result:Add(item)
+                if isCurrentClass
+                    result:Add(item)
+                else
+                    if not act:IsPrivate()
+                        result:Add(item)
+                    end
+                end
+                
             end
         end
 
