@@ -25,9 +25,9 @@ class Main is WebResponder
     HashTable<text, Array<text>> flagValues
 
     action Main
-        //ProcessConsoleFlags()
+        ProcessConsoleFlags()
         //CompileRepeatTest()
-        CompileCodeCompletionTest()
+        //CompileCodeCompletionTest()
         //ProfileTest()
         //ProfileWeb()
         //CompileHardcodedFile()
@@ -72,6 +72,9 @@ class Main is WebResponder
 
         CompilerResult result = compiler:ParseRepeat(info)
         //CodeCompletionResult ccr = compiler:Request(cc)
+
+        info:source = failSource
+        result = compiler:ParseRepeat(info)
 
         cc:source = failSource
         CodeCompletionResult ccr2 = compiler:Request(cc)
