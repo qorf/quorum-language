@@ -40,8 +40,8 @@ class Game
         color = color:Black()
 
         configuration:title = "Game"
-        configuration:width = 1600
-        configuration:height = 1000
+        configuration:width = 800
+        configuration:height = 600
 
         configuration:initialBackgroundColor = color
 
@@ -212,6 +212,27 @@ class Game
 
     action RemoveKeyboardEventListener(KeyboardEventListener listener)
         keyboardProcessor:RemoveListener(listener)
+    end
+
+    action SetScreenSize(integer width, integer height)
+        configuration:width = width
+        configuration:height = height
+    end
+
+    action SetVSync(boolean vSync)
+        configuration:vSyncEnabled = vSync
+    end
+
+    action EnableResizing(boolean resize)
+        configuration:resizable = resize
+    end
+
+    action SetGameName(text name)
+        configuration:title = name
+    end
+
+    action EnableTextureAutoResizing(boolean resize)
+        configuration:autoResizeTextures = resize
     end
 
 end
