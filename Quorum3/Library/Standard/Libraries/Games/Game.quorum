@@ -70,7 +70,13 @@ class Game
         // Setting the path to load the native C files, reusing the file and
         // path variables.
         path = ""
-        file:SetPath("Run/jni/libGameEngineCPlugins.so")
+        if os:Contains("Mac OS X")
+            file:SetPath("Run/jni/libGameEngineCPlugins.so")
+        elseif os:Contains("Windows")
+            file:SetPath("Run/jni/libGameEngineWindows.so")
+        end
+
+        
         path = file:GetAbsolutePath()
         
         GameStateManager manager
