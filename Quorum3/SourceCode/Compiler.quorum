@@ -368,10 +368,11 @@ class Compiler
             end
         end
 
-        Action method = GetActionAtIndex(clazz, request:caretLocation)
+        
         text left = split:Get(0)
         text trimmedLeft = left:Trim()
         if clazz not= undefined
+            Action method = GetActionAtIndex(clazz, request:caretLocation)
             if left = "me" or left:IsEmpty() or trimmedLeft:IsEmpty()
                 AddClassToResult(undefined, request, result, clazz, true, method)
             else

@@ -21,6 +21,7 @@ class Parser is QuorumSourceListener
     Array<QualifiedName> unresolvedUseStatements
     List<Class> classes
     boolean isFirstGenericInFile = false
+    Stack<Location> locationStack
     
 
     /*
@@ -212,11 +213,17 @@ class Parser is QuorumSourceListener
         Block block
         if currentBlock not= undefined
             currentBlock:Add(block)
+            if not locationStack:IsEmpty()
+                Location location = locationStack:Pop()
+                location = currentAction:CreateLocationCopy()
+                block:SetLocation(location)
+            end
         elseif currentAction not= undefined
             currentAction:SetBlock(block)
+            Location location = currentAction:CreateLocationCopy()
+            block:SetLocation(location)
         end
-        currentBlock = block
-        block:SetLocation(context:GetLocation())
+        currentBlock = block      
         blocks:Push(block)
     end
     
@@ -264,7 +271,32 @@ class Parser is QuorumSourceListener
     action ExitBlueprintAction(ActionContext context)
     end
 
+    action EnterCheckStatement(CheckContext context) 
+        locationStack:Push(context:GetLocation())
+    end
+
+    action EnterDetectStatement(DetectStatementContext context) 
+        locationStack:Push(context:GetLocation())
+    end
+
+    action EnterAlwaysStatement(AlwaysStatementContext context) 
+        locationStack:Push(context:GetLocation())
+    end
+
+    action EnterIfStatement(IfContext context) 
+        locationStack:Push(context:GetLocation())
+    end
+
+    action EnterElseIfStatement(IfContext context) 
+        locationStack:Push(context:GetLocation())
+    end
+
+    action EnterElseStatement(IfContext context) 
+        locationStack:Push(context:GetLocation())
+    end
+
     action EnterLoopStatement(LoopContext context)
+        locationStack:Push(context:GetLocation())
         if context:isTimes
             constant text LOOP_NAME = "Loopy"
             Variable variable

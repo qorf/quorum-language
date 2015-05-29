@@ -79,4 +79,13 @@ class Location
         me:endIndex = location:GetIndexEnd()
         me:file = location:GetFile()
     end
+
+    /*
+        This action is a helper action to get copies of the location.
+    */
+    action CreateLocationCopy returns Location
+        Location location 
+        location:SetLocation(me)
+        return location
+    end
 end
