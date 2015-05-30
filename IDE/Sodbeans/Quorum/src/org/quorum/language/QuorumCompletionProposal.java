@@ -36,6 +36,9 @@ public class QuorumCompletionProposal extends DefaultCompletionProposal{
     @Override
     public String getInsertPrefix() {
         String value = completionItem.Get$Libraries$Language$Compile$CodeCompletionItem$completionText();
+        if(completionItem.Get$Libraries$Language$Compile$CodeCompletionItem$isActionWithoutParameters()) {
+            value = value + "()";
+        }
         return value;
     }
 
