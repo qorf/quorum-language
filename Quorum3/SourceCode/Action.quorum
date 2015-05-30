@@ -3,6 +3,7 @@ package Libraries.Language.Compile.Symbol
 use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Containers.HashTable
+use Libraries.Language.Compile.CodeCompletionItem
 
 class Action is Symbol
     List<Variable> parameters
@@ -75,6 +76,112 @@ class Action is Symbol
         parentClass = clazz
     end
 
+    action GetCodeCompletionItem(Variable variable) returns CodeCompletionItem
+        CodeCompletionItem item
+        if GetParametersSize() = 0
+            item:isActionWithoutParameters = true
+        end
+
+        if IsPublic()
+            if IsBlueprint()
+                item:SetType(item:PUBLIC_BLUEPRINT_ACTION)
+            elseif IsSystem()
+                item:SetType(item:PUBLIC_SYSTEM_ACTION)
+            else
+                item:SetType(item:PUBLIC_ACTION)
+            end
+        else 
+            if IsBlueprint()
+                item:SetType(item:PRIVATE_BLUEPRINT_ACTION)
+            elseif IsSystem()
+                item:SetType(item:PRIVATE_SYSTEM_ACTION)
+            else
+                item:SetType(item:PRIVATE_ACTION)
+            end
+        end
+
+        Class clazz = GetParentClass()
+
+        if clazz not= undefined
+            if clazz:GetAction(GetStaticKey()) not= undefined
+                item:isBaseClassAction = true
+            end
+        end
+
+        text signature = GetStaticKey()
+        
+        Iterator<Variable> variables = GetParameterIterator()
+        text result = "("
+        integer i = 0
+        repeat while variables:HasNext()
+            Variable param = variables:Next()
+            Type type = param:GetType()
+            text typeKey = ""
+            text key = param:GetStaticKey()
+            text name = param:GetName()
+            if variable = undefined //we have no information on generics, so do the best we can
+                typeKey = type:GetStaticKey()
+            else //if this isn't a generic, it doesn't really matter anyway
+                if type:IsMappedToGeneric() //TODO: Check these cases
+                    //the type key comes from the sub-generic in the variable list
+                    Type varType = variable:GetType()
+                    if varType not= undefined
+                        typeKey = GetTypeName(varType, i, variable)
+//                        //check if this is a generic
+//                        if i < varType:GetNumberGenerics()
+//                            Type generic = varType:GetGeneric(i)
+//                            if generic not= undefined
+//                                typeKey = generic:GetStaticKey()
+//                            else //we still found no information that is useful
+//                                typeKey = type:GetStaticKey()
+//                            end
+//                        end
+                    else //unfortuantely, there's no information in the variable
+                        typeKey = type:GetStaticKey()
+                    end
+                else
+                    typeKey = type:GetStaticKey()
+                end
+            end
+
+            text value = typeKey + " " + name
+            result = result + value
+            if variables:HasNext()
+                result = result + ", "
+            end
+            i = i + 1
+        end
+        result = result + ")"
+
+        Type returnType = GetReturnType()
+        //if the return type is void, ignore it. Otherwise, include it
+        if not returnType:IsVoid()
+            result = result + " returns " + GetTypeName(returnType, -1, variable)
+        end
+
+        text name = GetName()
+        text display = name + result
+
+        item:displayText = display
+        item:completionText = name
+        item:documentationText = ""
+        return item
+    end
+
+    private action GetTypeName(Type type, integer location, Variable var) returns text
+        text result = ""
+        if location = -1 //this is the return type
+
+        elseif location < type:GetNumberGenerics()
+            Type generic = type:GetGeneric(location)
+            if generic not= undefined
+                result = generic:GetStaticKey()
+            else //we still found no information that is useful
+                result = type:GetStaticKey()
+            end
+        end
+        return result
+    end
     /*
         This action returns true if this is a Main action and false otherwise.
         The rules for determinining this are that 1) it may not be a blueprint

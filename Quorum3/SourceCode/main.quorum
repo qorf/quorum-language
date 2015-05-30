@@ -74,7 +74,7 @@ class Main is WebResponder
         info:source = actualMain:Read()
         
         CodeCompletionRequest cc
-        cc:caretLocation = 150
+        cc:caretLocation = 194
         cc:fileKey = actualMain:GetAbsolutePath()
         cc:source = actualMain:Read()
 
@@ -82,6 +82,8 @@ class Main is WebResponder
         //CodeCompletionResult ccr = compiler:Request(cc)
 
         info:source = failSource
+        text out = failSource:GetSubtext(0, cc:caretLocation)
+        output out
         result = compiler:ParseRepeat(info)
 
         cc:source = failSource
