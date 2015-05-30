@@ -170,8 +170,17 @@ class Action is Symbol
 
     private action GetTypeName(Type type, integer location, Variable var) returns text
         text result = ""
-        if location = -1 //this is the return type
-
+        if location = -1 //this is the return type            
+            boolean mapped = type:IsMappedToGeneric()
+            if mapped
+                Class clazz = GetParentClass()
+                integer i = clazz:GetIndexOfGeneric(type:GetMappedGeneric())
+                Type varType = var:GetType()
+                Type t = varType:GetGeneric(i)
+                return t:GetStaticKey()
+            else
+                return type:GetStaticKey()
+            end
         elseif location < type:GetNumberGenerics()
             Type generic = type:GetGeneric(location)
             if generic not= undefined
