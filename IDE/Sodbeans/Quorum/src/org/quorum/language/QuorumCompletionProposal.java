@@ -36,9 +36,14 @@ public class QuorumCompletionProposal extends DefaultCompletionProposal{
     @Override
     public String getInsertPrefix() {
         String value = completionItem.Get$Libraries$Language$Compile$CodeCompletionItem$completionText();
-        return prefix + value;
+        return value;
     }
 
+    @Override
+    public int getAnchorOffset() {
+        return completionItem.Get$Libraries$Language$Compile$CodeCompletionItem$dotOffset();
+    }
+    
     /**
      * @return the completionItem
      */
