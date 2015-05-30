@@ -557,6 +557,9 @@ class Compiler
             repeat while classes:HasNext()
                 Class clazz = classes:Next()
                 CodeCompletionItem item = GetClassCompletionItem(clazz)
+                text filter = result:filter
+                integer size = filter:GetSize()
+                item:dotOffset = request:caretLocation - size
                 result:Add(item)
             end
         end
@@ -588,7 +591,9 @@ class Compiler
     
     private action GetActionCompletionItem(Action act) returns CodeCompletionItem
         CodeCompletionItem item
-        //item:SetType(item:METHOD)
+        if act:GetParametersSize() = 0
+            item:isActionWithoutParameters = true
+        end
 
         if act:IsPublic()
             if act:IsBlueprint()
@@ -654,6 +659,9 @@ class Compiler
 
             if pack:StartsWith(filteredName)
                 CodeCompletionItem item = GetPackageCompletionItem(subpackName)
+                text filter = result:filter
+                integer size = filter:GetSize()
+                item:dotOffset = request:caretLocation - size
                 result:Add(item)
             end
         end
@@ -667,6 +675,9 @@ class Compiler
                 Class pack = classesInPackage:Next()
                 text key = pack:GetStaticKey()
                 CodeCompletionItem item = GetClassCompletionItem(pack)
+                text filter = result:filter
+                integer size = filter:GetSize()
+                item:dotOffset = request:caretLocation - size
                 result:Add(item)
             end
         end
@@ -698,6 +709,9 @@ class Compiler
             item:displayText = itemName
             item:documentationText = description
             item:completionText = "all"
+            text filter = result:filter
+            integer size = filter:GetSize()
+            item:dotOffset = request:caretLocation - size
             result:Add(item)
         end
     end
@@ -750,6 +764,9 @@ class Compiler
                 item:SetType(item:PACKAGE)
                 item:displayText = root
                 item:completionText = root
+                text filter = result:filter
+                integer size = filter:GetSize()
+                item:dotOffset = request:caretLocation - size
                 result:Add(item)
                 AddCustomClasses(request, result, root)
             elseif left = root
@@ -760,6 +777,9 @@ class Compiler
                 item:SetType(item:PACKAGE)
                 item:displayText = root
                 item:completionText = root
+                text filter = result:filter
+                integer size = filter:GetSize()
+                item:dotOffset = request:caretLocation - size
                 result:Add(item)
                 AddCustomClasses(request, result, root)
             end
