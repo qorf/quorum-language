@@ -86,9 +86,13 @@ class Main is WebResponder
         output out
         result = compiler:ParseRepeat(info)
 
-        cc:source = failSource
-        CodeCompletionResult ccr2 = compiler:Request(cc)
-        integer a = 5
+        check
+            cc:source = failSource
+            CodeCompletionResult ccr2 = compiler:Request(cc)
+            integer a = 5
+        detect e
+            e:OutputStackTrace()
+        end
     end
 
     action CompileRepeatTest

@@ -119,30 +119,7 @@ class Action is Symbol
             text typeKey = ""
             text key = param:GetStaticKey()
             text name = param:GetName()
-            if variable = undefined //we have no information on generics, so do the best we can
-                typeKey = type:GetStaticKey()
-            else //if this isn't a generic, it doesn't really matter anyway
-                if type:IsMappedToGeneric() //TODO: Check these cases
-                    //the type key comes from the sub-generic in the variable list
-                    Type varType = variable:GetType()
-                    if varType not= undefined
-                        typeKey = GetTypeName(varType, i, variable)
-//                        //check if this is a generic
-//                        if i < varType:GetNumberGenerics()
-//                            Type generic = varType:GetGeneric(i)
-//                            if generic not= undefined
-//                                typeKey = generic:GetStaticKey()
-//                            else //we still found no information that is useful
-//                                typeKey = type:GetStaticKey()
-//                            end
-//                        end
-                    else //unfortuantely, there's no information in the variable
-                        typeKey = type:GetStaticKey()
-                    end
-                else
-                    typeKey = type:GetStaticKey()
-                end
-            end
+            typeKey = GetTypeName(type, variable)
 
             text value = typeKey + " " + name
             result = result + value
@@ -156,7 +133,7 @@ class Action is Symbol
         Type returnType = GetReturnType()
         //if the return type is void, ignore it. Otherwise, include it
         if not returnType:IsVoid()
-            result = result + " returns " + GetTypeName(returnType, -1, variable)
+            result = result + " returns " + GetTypeName(returnType, variable)
         end
 
         text name = GetName()
@@ -168,29 +145,33 @@ class Action is Symbol
         return item
     end
 
-    private action GetTypeName(Type type, integer location, Variable var) returns text
+    private action GetTypeName(Type type, Variable variable) returns text
         text result = ""
-        if location = -1 //this is the return type            
-            boolean mapped = type:IsMappedToGeneric()
-            if mapped
-                Class clazz = GetParentClass()
-                integer i = clazz:GetIndexOfGeneric(type:GetMappedGeneric())
-                Type varType = var:GetType()
-                Type t = varType:GetGeneric(i)
-                return t:GetStaticKey()
-            else
-                return type:GetStaticKey()
-            end
-        elseif location < type:GetNumberGenerics()
-            Type generic = type:GetGeneric(location)
-            if generic not= undefined
-                result = generic:GetStaticKey()
-            else //we still found no information that is useful
-                result = type:GetStaticKey()
-            end
+        boolean mapped = type:IsMappedToGeneric()
+        if mapped
+            Class clazz = GetParentClass()
+            integer i = clazz:GetIndexOfGeneric(type:GetMappedGeneric())
+            Type varType = variable:GetType()
+            Type t = varType:GetGeneric(i)
+            result = t:GetStaticKey()
+        else
+            result = type:GetStaticKey()
         end
+
+        if type:GetNumberGenerics() > 0
+            Iterator<Type> generics = type:GetGenerics()
+            result = result + "<"
+            repeat while generics:HasNext()
+                Type t = generics:Next()
+                result = result + GetTypeName(t, variable)
+            end
+
+            result = result + ">"
+        end
+
         return result
     end
+
     /*
         This action returns true if this is a Main action and false otherwise.
         The rules for determinining this are that 1) it may not be a blueprint
