@@ -511,6 +511,9 @@ class Compiler
             repeat while actions:HasNext()
                 Action act = actions:Next()
                 CodeCompletionItem item = GetActionCompletionItem(act)
+                text filter = result:filter
+                integer size = filter:GetSize()
+                item:dotOffset = request:caretLocation - size
                 if isCurrentClass
                     result:Add(item)
                 else
