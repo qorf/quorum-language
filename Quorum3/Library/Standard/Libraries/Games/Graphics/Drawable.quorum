@@ -498,53 +498,58 @@ class Drawable is TextureRegion, Item
                 localY2 = localY2 * scaleY
             end
 
-            //if rotation not= 0
-            /* JAVA CODE
-            final float cos = MathUtils.cosDeg(rotation);
-            final float sin = MathUtils.sinDeg(rotation);
-            final float localXCos = localX * cos;
-            final float localXSin = localX * sin;
-            final float localYCos = localY * cos;
-            final float localYSin = localY * sin;
-            final float localX2Cos = localX2 * cos;
-            final float localX2Sin = localX2 * sin;
-            final float localY2Cos = localY2 * cos;
-            final float localY2Sin = localY2 * sin;
+            if rotation not= 0
+                Math math
+                number radians = math:DegreesToRadians(rotation)
+                number cos = math:Cosine(radians)
+                number sin = math:Sine(radians)
+                number localXCos = localX * cos
+                number localXSin = localX * sin
+                number localYCos = localY * cos
+                number localYSin = localY * sin
+                number localX2Cos = localX2 * cos
+                number localX2Sin = localX2 * sin
+                number localY2Cos = localY2 * cos
+                number localY2Sin = localY2 * sin
+                
+                number x1 = localXCos - localYSin + worldOriginX
+                number y1 = localYCos + localXSin + worldOriginX
+                
+                returnVertices:Set(X1, x1)
+                returnVertices:Set(Y1, y1)
 
-            final float x1 = localXCos - localYSin + worldOriginX;
-            final float y1 = localYCos + localXSin + worldOriginY;
-            vertices[X1] = x1;
-            vertices[Y1] = y1;
+                number x2 = localXCos - localY2Sin + worldOriginX
+                number y2 = localY2Cos + localXSin + worldOriginY
 
-            final float x2 = localXCos - localY2Sin + worldOriginX;
-            final float y2 = localY2Cos + localXSin + worldOriginY;
-            vertices[X2] = x2;
-            vertices[Y2] = y2;
+                returnVertices:Set(X2, x2)
+                returnVertices:Set(Y2, y2)
 
-            final float x3 = localX2Cos - localY2Sin + worldOriginX;
-            final float y3 = localY2Cos + localX2Sin + worldOriginY;
-            vertices[X3] = x3;
-            vertices[Y3] = y3;
+                number x3 = localX2Cos - localY2Sin + worldOriginX
+                number y3 = localY2Cos + localX2Sin + worldOriginY
 
-            vertices[X4] = x1 + (x3 - x2);
-            vertices[Y4] = y3 - (y2 - y1);
-            else */
-            number x1 = localX + worldOriginX
-            number y1 = localY + worldOriginY
-            number x2 = localX2 + worldOriginX
-            number y2 = localY2 + worldOriginY
+                returnVertices:Set(X3, x3)
+                returnVertices:Set(Y3, y3)
 
-            returnVertices:Set(X1, x1)
-            returnVertices:Set(Y1, y1)
-            
-            returnVertices:Set(X2, x1)
-            returnVertices:Set(Y2, y2)
+                returnVertices:Set(X4, x1 + x3 - x2)
+                returnVertices:Set(Y4, y3 - (y2 - y1))
+            else
+                number x1 = localX + worldOriginX
+                number y1 = localY + worldOriginY
+                number x2 = localX2 + worldOriginX
+                number y2 = localY2 + worldOriginY
 
-            returnVertices:Set(X3, x2)
-            returnVertices:Set(Y3, y2)
-            
-            returnVertices:Set(X4, x2)
-            returnVertices:Set(Y4, y1)
+                returnVertices:Set(X1, x1)
+                returnVertices:Set(Y1, y1)
+
+                returnVertices:Set(X2, x1)
+                returnVertices:Set(Y2, y2)
+
+                returnVertices:Set(X3, x2)
+                returnVertices:Set(Y3, y2)
+
+                returnVertices:Set(X4, x2)
+                returnVertices:Set(Y4, y1)
+            end
         end
         //return returnVertices
     end
@@ -719,7 +724,7 @@ class Drawable is TextureRegion, Item
         number temp = vertices:Get(V1)
         vertices:Set(V1, vertices:Get(V3))
         vertices:Set(V3, temp)
-        temp = vertices:Get(U2)
+        temp = vertices:Get(V2)
         vertices:Set(V2, vertices:Get(V4))
         vertices:Set(V4, temp)
     end
