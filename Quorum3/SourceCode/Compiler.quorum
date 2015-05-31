@@ -503,17 +503,21 @@ class Compiler
             boolean isCurrentClass, Action insideMethod)
 
         if clazz not= undefined
-
             //if this is the current class, load all methods, public or private
             //if this is a variable, load only its public methods.
-            Iterator<Action> actions = clazz:GetActions()
-
+            Iterator<Action> actions = clazz:GetVirtualTable()
             repeat while actions:HasNext()
                 Action act = actions:Next()
                 CodeCompletionItem item = act:GetCodeCompletionItem(variable)
                 text filter = result:filter
                 integer size = filter:GetSize()
                 item:dotOffset = request:caretLocation - size
+
+                //is this action in the base class or the v-table?
+                if clazz:HasAction(act:GetStaticKey())
+                    item:isBaseClassAction = true
+                end
+
                 if isCurrentClass
                     result:Add(item)
                 else

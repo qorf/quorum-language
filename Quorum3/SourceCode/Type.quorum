@@ -177,6 +177,17 @@ class Type
         return staticKey
     end
 
+    action GetName returns text
+        text result = ""
+        Array<text> split = staticKey:Split("\.")
+        if split not= undefined
+            if not split:IsEmpty()
+                result = split:Get(split:GetSize() - 1)
+            end
+        end
+        return result
+    end
+
     action GetStaticKeyWithGenerics returns text
         text final = staticKey
         boolean first = true

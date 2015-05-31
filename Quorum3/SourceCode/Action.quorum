@@ -100,14 +100,6 @@ class Action is Symbol
             end
         end
 
-        Class clazz = GetParentClass()
-
-        if clazz not= undefined
-            if clazz:GetAction(GetStaticKey()) not= undefined
-                item:isBaseClassAction = true
-            end
-        end
-
         text signature = GetStaticKey()
         
         Iterator<Variable> variables = GetParameterIterator()
@@ -133,7 +125,7 @@ class Action is Symbol
         Type returnType = GetReturnType()
         //if the return type is void, ignore it. Otherwise, include it
         if not returnType:IsVoid()
-            result = result + " returns " + GetTypeName(returnType, variable)
+            item:rightDisplayText = GetTypeName(returnType, variable)
         end
 
         text name = GetName()
@@ -153,9 +145,9 @@ class Action is Symbol
             integer i = clazz:GetIndexOfGeneric(type:GetMappedGeneric())
             Type varType = variable:GetType()
             Type t = varType:GetGeneric(i)
-            result = t:GetStaticKey()
+            result = t:GetName()
         else
-            result = type:GetStaticKey()
+            result = type:GetName()
         end
 
         if type:GetNumberGenerics() > 0
