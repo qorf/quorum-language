@@ -7,6 +7,7 @@ package org.quorum.language;
 
 import org.netbeans.modules.csl.api.ElementHandle;
 import org.netbeans.modules.csl.api.ElementKind;
+import org.netbeans.modules.csl.api.HtmlFormatter;
 import org.netbeans.modules.csl.spi.DefaultCompletionProposal;
 import quorum.Libraries.Language.Compile.CodeCompletionItem$Interface;
 
@@ -27,6 +28,42 @@ public class QuorumCompletionProposal extends DefaultCompletionProposal{
         return new ElementHandle.UrlHandle(value);
     }
 
+    @Override
+    public String getLhsHtml(HtmlFormatter formatter) {
+        String value = completionItem.Get$Libraries$Language$Compile$CodeCompletionItem$displayText();
+        value = value.replaceAll("<", "&lt;");
+        value = value.replaceAll(">", "&gt;");
+        ElementKind kind = getKind();
+        formatter.name(kind, true);
+        if(completionItem.Get$Libraries$Language$Compile$CodeCompletionItem$isBaseClassAction()) {
+            formatter.appendHtml("<strong>" + value + "</strong>");
+        } else {
+            formatter.appendHtml(value);
+        }
+        
+        formatter.name(kind, false);
+        value = formatter.getText();
+        return value;
+    }
+
+    @Override
+    public String getRhsHtml(HtmlFormatter formatter) {
+        String value = completionItem.Get$Libraries$Language$Compile$CodeCompletionItem$rightDisplayText();
+        value = value.replaceAll("<", "&lt;");
+        value = value.replaceAll(">", "&gt;");
+        ElementKind kind = getKind();
+        formatter.name(kind, true);
+        if(completionItem.Get$Libraries$Language$Compile$CodeCompletionItem$isBaseClassAction()) {
+            formatter.appendHtml("<strong>" + value + "</strong>");
+        } else {
+            formatter.appendHtml(value);
+        }
+        
+        formatter.name(kind, false);
+        value = formatter.getText();
+        return value;
+    }
+    
     @Override
     public String getName() {
         String value = completionItem.Get$Libraries$Language$Compile$CodeCompletionItem$displayText();
