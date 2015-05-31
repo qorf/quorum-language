@@ -41,6 +41,14 @@ class Parser is QuorumSourceListener
         packageValue = context:name
     end
 
+    action EnterDocumentation(DocumentationContext context) 
+        a = 5
+    end
+
+    action ExitDocumentation(DocumentationContext context) 
+        a = 5
+    end
+
     action EnterFullClassDeclaration(FullClassDeclarationContext context)
         text name = context:className
         AddClass(name)

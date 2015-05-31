@@ -1,5 +1,10 @@
 grammar Quorum;
 
+@lexer::members {
+    public static final int WHITESPACE_CHANNEL = 1000;
+    public static final int COMMENT_CHANNEL = 1001;
+}
+
 start	:
 		(package_rule reference+ 
 	|	reference+ package_rule
@@ -309,10 +314,10 @@ ID 	: 	('a'..'z'|'A'..'Z')('a'..'z'|'A'..'Z'|'0'..'9' | '_')*;
 STRING	:	DOUBLE_QUOTE .*? DOUBLE_QUOTE;
 
 
-NEWLINE	:	 '\r'?'\n' -> channel(HIDDEN);
-WS	:	(' '|'\t'|'\n'|'\r')+ -> channel(HIDDEN);
+NEWLINE	:	 '\r'?'\n' -> channel(WHITESPACE_CHANNEL);
+WS	:	(' '|'\t'|'\n'|'\r')+ -> channel(WHITESPACE_CHANNEL);
 
 COMMENTS
     :   ('//' ~('\n'|'\r')* (('\r'? '\n') | EOF)
-    |   '/*' .*? '*/') -> channel(HIDDEN)
+    |   '/*' .*? '*/') -> channel(COMMENT_CHANNEL)
     ;

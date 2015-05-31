@@ -43,6 +43,9 @@ class QuorumSourceListener
         me:file = file
     end
 
+    action EnterDocumentation(DocumentationContext context) end
+    action ExitDocumentation(DocumentationContext context) end
+
     action EnterNoActionsNoClass(NoActionsNoClassContext context) end
     action ExitNoActionsNoClass(NoActionsNoClassContext context) end
 
