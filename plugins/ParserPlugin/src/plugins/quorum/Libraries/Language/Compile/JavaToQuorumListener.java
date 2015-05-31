@@ -7,7 +7,7 @@ package plugins.quorum.Libraries.Language.Compile;
 
 import java.util.Iterator;
 import java.util.List;
-import javax.swing.JOptionPane;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -29,6 +29,7 @@ public class JavaToQuorumListener implements QuorumListener {
 
     private QuorumSourceListener$Interface listener;
     private File$Interface file;
+    private CommonTokenStream tokens;
     
     @Override
     public void enterDecimal(QuorumParser.DecimalContext ctx) {
@@ -118,6 +119,7 @@ public class JavaToQuorumListener implements QuorumListener {
         FullClassDeclarationContext context = new FullClassDeclarationContext();
         context.className = ctx.ID().getText();
         setLocation(ctx, context);
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterFullClassDeclaration(context);
     }
 
@@ -143,6 +145,7 @@ public class JavaToQuorumListener implements QuorumListener {
                 context.name.AddGeneric(value);
             }
         }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitFullClassDeclaration(context);
     }
 
@@ -1012,13 +1015,41 @@ public class JavaToQuorumListener implements QuorumListener {
     }
 
     @Override
-    public void enterEveryRule(ParserRuleContext prc) {
-
+    public void enterEveryRule(ParserRuleContext ctx) {
+    }
+    
+    private void fireDocumentationToken(int index, ParserRuleContext ctx, boolean enter) {
+        Token comment = findLeftCommentToken(index);
+        if(comment != null) {
+            DocumentationContext context = new DocumentationContext();
+            context.Set$Libraries$Language$Compile$Context$DocumentationContext$document(comment.getText());
+            setLocation(ctx, context);
+            if(enter) {
+                listener.EnterDocumentation(context);
+            } else {
+                listener.ExitDocumentation(context);
+            }
+        }
+    }
+    
+    private Token findLeftCommentToken(int index) {
+        Token token = null;
+        int i = index;
+        while(i > 0) { 
+            Token toke = tokens.get(i);
+            if(toke.getChannel() == QuorumLexer.COMMENT_CHANNEL) {
+                return toke;
+            } else if(toke.getChannel() == QuorumLexer.WHITESPACE_CHANNEL) {
+                i--;
+            } else {
+                return null;
+            }
+        }
+        return token;
     }
 
     @Override
-    public void exitEveryRule(ParserRuleContext prc) {
-
+    public void exitEveryRule(ParserRuleContext ctx) {
     }
 
     /**
@@ -1130,6 +1161,7 @@ public class JavaToQuorumListener implements QuorumListener {
                 context.isPrivate = true;
             }
         }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterSystemAction(context);
     }
 
@@ -1150,6 +1182,7 @@ public class JavaToQuorumListener implements QuorumListener {
                 context.isPrivate = true;
             }
         }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.ExitSystemAction(context);
     }
 
@@ -1169,6 +1202,7 @@ public class JavaToQuorumListener implements QuorumListener {
                 context.isPrivate = true;
             }
         }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterAction(context);
     }
 
@@ -1189,6 +1223,7 @@ public class JavaToQuorumListener implements QuorumListener {
                 context.isPrivate = true;
             }
         }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitAction(context);
     }
 
@@ -1209,6 +1244,8 @@ public class JavaToQuorumListener implements QuorumListener {
                 context.isPrivate = true;
             }
         }
+        
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterBlueprintAction(context);
     }
 
@@ -1229,6 +1266,7 @@ public class JavaToQuorumListener implements QuorumListener {
                 context.isPrivate = true;
             }
         }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitBlueprintAction(context);
     }
 
@@ -1237,6 +1275,7 @@ public class JavaToQuorumListener implements QuorumListener {
         quorum.Libraries.Language.Compile.Context.ConstructorContext context = 
                 new quorum.Libraries.Language.Compile.Context.ConstructorContext();
         setLocation(ctx, context);
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterConstructor(context);
     }
 
@@ -1245,6 +1284,7 @@ public class JavaToQuorumListener implements QuorumListener {
         quorum.Libraries.Language.Compile.Context.ConstructorContext context = 
                 new quorum.Libraries.Language.Compile.Context.ConstructorContext();
         setLocation(ctx, context);
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitConstructor(context);
     }
 
@@ -1372,6 +1412,7 @@ public class JavaToQuorumListener implements QuorumListener {
         if(name != null) {
             context.name = ctx.name.getText();
         }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterNormalAssignment(context);
     }
 
@@ -1409,6 +1450,7 @@ public class JavaToQuorumListener implements QuorumListener {
         } else {
             context.hasRightHandSide = true;
         }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitNormalAssignment(context);
     }
 
@@ -1420,6 +1462,7 @@ public class JavaToQuorumListener implements QuorumListener {
         if(ctx.name != null) {
             context.name = ctx.name.getText();
         }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterParentAssignment(context);
     }
 
@@ -1432,6 +1475,7 @@ public class JavaToQuorumListener implements QuorumListener {
         if(ctx.name != null) {
             context.name = ctx.name.getText();
         }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitParentAssignment(context);
     }
 
@@ -1445,6 +1489,7 @@ public class JavaToQuorumListener implements QuorumListener {
             context.parentName = name;
         }
         context.name = ctx.name.getText();
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterObjectAssignment(context);
     }
 
@@ -1458,6 +1503,7 @@ public class JavaToQuorumListener implements QuorumListener {
             context.parentName = name;
         }
         context.name = ctx.name.getText();
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitObjectAssignment(context);
     }
 
@@ -1466,6 +1512,7 @@ public class JavaToQuorumListener implements QuorumListener {
         NoTypeAssignmentContext context = new NoTypeAssignmentContext();
         setLocation(ctx, context);
         context.name = ctx.name.getText();
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterNoTypeAssignment(context);
     }
 
@@ -1478,6 +1525,7 @@ public class JavaToQuorumListener implements QuorumListener {
             context.isField = true;
             context.hasMe = true;
         }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitNoTypeAssignment(context);
     }
 
@@ -1689,5 +1737,19 @@ public class JavaToQuorumListener implements QuorumListener {
         ActionsNoClassContext context = new ActionsNoClassContext();
         setLocation(ctx, context);
         listener.ExitActionsNoClass(context);
+    }
+
+    /**
+     * @return the tokens
+     */
+    public CommonTokenStream getTokens() {
+        return tokens;
+    }
+
+    /**
+     * @param tokens the tokens to set
+     */
+    public void setTokens(CommonTokenStream tokens) {
+        this.tokens = tokens;
     }
 }

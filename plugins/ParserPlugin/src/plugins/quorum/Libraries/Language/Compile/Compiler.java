@@ -7,8 +7,6 @@
 package plugins.quorum.Libraries.Language.Compile;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import quorum.Libraries.System.File$Interface;
 import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
 import org.antlr.v4.runtime.ANTLRFileStream;
@@ -56,6 +54,7 @@ public class Compiler {
             ParseTree tree = parser.start();
             
             ParseTreeWalker walker = new ParseTreeWalker();
+            javaToQuorumListener.setTokens(tokens);
             walker.walk(javaToQuorumListener, tree);
         } catch (IOException ex) {
             CompilerError error = new CompilerError();
@@ -94,6 +93,7 @@ public class Compiler {
         
         ParseTree tree = parser.start();
         ParseTreeWalker walker = new ParseTreeWalker();
+        javaToQuorumListener.setTokens(tokens);
         walker.walk(javaToQuorumListener, tree);
     }
     
