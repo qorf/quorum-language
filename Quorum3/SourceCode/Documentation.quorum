@@ -1,4 +1,74 @@
 package Libraries.Language.Compile.Symbol
 
+use Libraries.Containers.Array
+
 class Documentation 
+    public constant text AUTHOR = "Author"
+    public constant text PARAMETER = "Parameter"
+    public constant text RETURNS = "Returns"
+    public constant text EXAMPLE = "Example"
+
+    text description = ""
+    text author = ""
+    text theReturn = ""
+    text example = ""
+    Array<text> paramaterNames
+    Array<text> parameterDescriptions
+
+    action ParseDocumentation(text docs)
+        text value = docs:Trim()
+        if value:GetSize() >= 4 //make sure there is enough space in the text, otherwise it's in the wrong format
+            value = value:GetSubtext(2, value:GetSize() - 2)
+            value = value:Trim()
+        else
+            return now
+        end
+
+        Array<text> values = value:Split("Attribute:")
+
+        if not values:IsEmpty()
+            description = values:Get(0)
+            description = description:Trim()
+        end
+
+        integer i = 1
+        repeat values:GetSize() - 1 times
+            text attribute = values:Get(i)
+            attribute = attribute:Trim()
+
+            if attribute:StartsWith(AUTHOR)
+                text val = attribute:GetSubtext(AUTHOR:GetSize(), attribute:GetSize())
+                author = val:Trim()
+            elseif attribute:StartsWith(PARAMETER)
+                text val = attribute:GetSubtext(PARAMETER:GetSize(), attribute:GetSize())
+                val = val:Trim()
+
+                integer j = 0
+                repeat while j < val:GetSize()
+                    if val:GetCharacter(j) = " "
+                        text name = val:GetSubtext(0, j)
+                        paramaterNames:Add(name:Trim())
+                        if j + 1 < val:GetSize()
+                            text descript = val:GetSubtext(j + 1, val:GetSize())
+                            parameterDescriptions:Add(descript:Trim())
+                        end
+                        j = val:GetSize()
+                    end
+                    j = j + 1
+                end
+
+
+            elseif attribute:StartsWith(RETURNS)
+                text val = attribute:GetSubtext(RETURNS:GetSize(), attribute:GetSize())
+                theReturn = val:Trim()
+            elseif attribute:StartsWith(EXAMPLE)
+                text val = attribute:GetSubtext(EXAMPLE:GetSize(), attribute:GetSize())
+
+                example = val:Trim()
+            end
+            i = i + 1
+        end
+
+        integer a = 5
+    end
 end

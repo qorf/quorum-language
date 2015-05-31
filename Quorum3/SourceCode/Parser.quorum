@@ -22,7 +22,7 @@ class Parser is QuorumSourceListener
     List<Class> classes
     boolean isFirstGenericInFile = false
     Stack<Location> locationStack
-    
+    Stack<Documentation> documents
 
     /*
         This action returns an iterator of all of the classes parsed
@@ -41,12 +41,16 @@ class Parser is QuorumSourceListener
         packageValue = context:name
     end
 
-    action EnterDocumentation(DocumentationContext context) 
-        a = 5
+    action EnterDocumentation(DocumentationContext context)
+        text doc = context:document
+        if doc not= undefined
+            Documentation documentation
+            documentation:ParseDocumentation(doc)
+            documents:Push(documentation)
+        end
     end
 
     action ExitDocumentation(DocumentationContext context) 
-        a = 5
     end
 
     action EnterFullClassDeclaration(FullClassDeclarationContext context)
