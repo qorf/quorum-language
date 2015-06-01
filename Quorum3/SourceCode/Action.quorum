@@ -139,7 +139,36 @@ class Action is Symbol
             text value = "<h1>" + display + "</h1>"
 
             value = value + "<p>" + doc:GetDescription() + "</p>"
-            item:documentationText = value
+            Iterator<text> names = doc:GetParameterNames()
+            Iterator<text> descriptions = doc:GetParameterDescriptions()
+            value = value + "<p><strong>Parameters</strong></p>"
+            if names:HasNext() and descriptions:HasNext()
+                value = value + "<ul>"
+                repeat while names:HasNext() and descriptions:HasNext()
+                    text name = names:Next()
+                    text description = descriptions:Next()
+                    Variable param = GetParameter(name)
+                    if param not= undefined
+                        Type type = param:GetType()
+                        text paramTypeName = GetTypeName(type, variable)
+                        value = value + "<li>" + paramTypeName + " " + name + ": " + description
+                    end
+                end
+                value = value + "</ul>"
+            end
+
+            if not returnType:IsVoid()
+                value = value + "<p><strong>Returns</strong></p>"
+                value = value + item:rightDisplayText + ": " + doc:GetReturns()
+            end
+
+            text example = doc:GetExample()
+            if not example:IsEmpty()
+                value = value + "<p><strong>Example</strong></p>"
+                value = value + example
+            end
+            
+            item:documentationText = value 
         end
         
         return item
