@@ -6,10 +6,14 @@ use Libraries.Language.Compile.Location
 class Symbol is Location
     text name = ""
     Location location
-    Documentation documentation
+    Documentation documentation = undefined
 
     action GetDocumentation returns Documentation
         return documentation
+    end
+
+    action SetDocumentation(Documentation documentation)
+        me:documentation = documentation
     end
     
     action GetName returns text

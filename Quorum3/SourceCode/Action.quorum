@@ -133,7 +133,15 @@ class Action is Symbol
 
         item:displayText = display
         item:completionText = name
-        item:documentationText = ""
+
+        Documentation doc = GetDocumentation()
+        if doc not= undefined
+            text value = "<h1>" + display + "</h1>"
+
+            value = value + "<p>" + doc:GetDescription() + "</p>"
+            item:documentationText = value
+        end
+        
         return item
     end
 

@@ -1,6 +1,7 @@
 package Libraries.Language.Compile.Symbol
 
 use Libraries.Containers.Array
+use Libraries.Containers.Blueprints.Iterator
 
 class Documentation 
     public constant text AUTHOR = "Author"
@@ -14,6 +15,30 @@ class Documentation
     text example = ""
     Array<text> paramaterNames
     Array<text> parameterDescriptions
+
+    action GetDescription returns text
+        return description
+    end
+
+    action GetAuthor returns text
+        return author
+    end
+
+    action GetReturns returns text
+        return theReturn
+    end
+
+    action GetParameterNames returns Iterator<text>
+        return paramaterNames:GetIterator()
+    end
+
+    action GetParameterDescriptions returns Iterator<text>
+        return parameterDescriptions:GetIterator()
+    end
+
+    action GetExample returns text
+        return example
+    end
 
     action ParseDocumentation(text docs)
         text value = docs:Trim()

@@ -219,6 +219,10 @@ class Parser is QuorumSourceListener
         currentAction:SetParentClass(currentClass)
         currentAction:SetIsSystem(true)
         currentAction:SetLocation(context:GetLocation())
+        if not documents:IsEmpty()
+            Documentation doc = documents:Pop()
+            act:SetDocumentation(doc)
+        end
     end
 
     action EnterBlock(BlockContext context) 
@@ -278,6 +282,10 @@ class Parser is QuorumSourceListener
         currentAction:SetParentClass(currentClass)
         currentAction:SetIsBluePrint(true)
         currentAction:SetLocation(context:GetLocation())
+        if not documents:IsEmpty()
+            Documentation doc = documents:Pop()
+            act:SetDocumentation(doc)
+        end
     end
 
     action ExitBlueprintAction(ActionContext context)
@@ -387,6 +395,10 @@ class Parser is QuorumSourceListener
         else
             currentClass:SetConstructor(act)
         end
+        if not documents:IsEmpty()
+            Documentation doc = documents:Pop()
+            act:SetDocumentation(doc)
+        end
     end
 
     action ExitConstructor(ConstructorContext context) 
@@ -403,6 +415,10 @@ class Parser is QuorumSourceListener
         currentAction = act
         act:SetParentClass(currentClass)
         currentAction:SetLocation(context:GetLocation())
+        if not documents:IsEmpty()
+            Documentation doc = documents:Pop()
+            act:SetDocumentation(doc)
+        end
     end
 
     action ExitAction(ActionContext context) 
