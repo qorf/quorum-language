@@ -25,6 +25,7 @@ import org.netbeans.modules.csl.spi.ParserResult;
 import org.netbeans.modules.parsing.api.Source;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import quorum.Libraries.Language.Compile.CodeCompletionItem$Interface;
 import quorum.Libraries.Language.Compile.CodeCompletionRequest;
 import quorum.Libraries.Language.Compile.CodeCompletionResult$Interface;
 
@@ -34,9 +35,18 @@ import quorum.Libraries.Language.Compile.CodeCompletionResult$Interface;
  */
 public class QuorumCodeCompletionHandler implements CodeCompletionHandler2{
 
+    private CodeCompletionResult$Interface lastResult = null;
     @Override
     public Documentation documentElement(ParserResult pr, ElementHandle eh, Callable<Boolean> clbl) {
-        return Documentation.create("Hi");
+        String name = eh.getName();
+        if(lastResult != null) {
+            CodeCompletionItem$Interface item = lastResult.Get(name);
+            if(item != null) {
+                String docs = item.Get$Libraries$Language$Compile$CodeCompletionItem$documentationText();
+                return Documentation.create(docs);
+            }
+        }
+        return Documentation.create("");
     }
 
     @Override
@@ -62,6 +72,7 @@ public class QuorumCodeCompletionHandler implements CodeCompletionHandler2{
                 
             CodeCompletionResult$Interface quorumResult = compiler.Request(request);
             result.setResult(quorumResult);
+            lastResult = quorumResult;
         }
         return result;
     }
