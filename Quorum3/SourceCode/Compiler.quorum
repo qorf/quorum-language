@@ -530,14 +530,14 @@ class Compiler
                     if IsIndexInLocation(returnedBlock, index)
                         integer start = returnedBlock:GetIndex()
                         integer finish = returnedBlock:GetIndexEnd()
-                        integer range = start - finish
+                        integer range = finish - start
 
                         if bestBlock = undefined
                             bestBlock = returnedBlock
                         else
                             integer bestStart = bestBlock:GetIndex()
-                            integer bestFinish = returnedBlock:GetIndexEnd()
-                            integer bestRange = bestStart - bestFinish
+                            integer bestFinish = bestBlock:GetIndexEnd()
+                            integer bestRange = bestFinish - bestStart
                             //this block is nested 
                             if range < bestRange
                                 bestBlock = returnedBlock

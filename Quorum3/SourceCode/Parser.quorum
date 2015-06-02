@@ -231,7 +231,7 @@ class Parser is QuorumSourceListener
             currentBlock:Add(block)
             if not locationStack:IsEmpty()
                 Location location = locationStack:Pop()
-                location = currentAction:CreateLocationCopy()
+                location = location:CreateLocationCopy()
                 block:SetLocation(location)
             end
         elseif currentAction not= undefined
