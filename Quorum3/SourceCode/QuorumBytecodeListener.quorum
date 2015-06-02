@@ -1315,6 +1315,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         QuorumOpcode right = undefined
         if context:hasRightHandSide = false
             Type typeOriginal = context:leftHandSide
+            if typeOriginal = undefined
+                return now
+            end
             if typeOriginal:IsPrimitive()
                 //Note: We need to investigate/run a study on whether this decision
                 //matters or not. 

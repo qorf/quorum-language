@@ -3,6 +3,7 @@ package Libraries.Language.Compile.Symbol
 use Libraries.Language.Compile.Location
 use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.CodeCompletionItem
 
 class Variable is Symbol
     boolean isParameter = false
@@ -50,6 +51,60 @@ class Variable is Symbol
 
     action GetUsageLocations returns Iterator<Location>
         return locations:GetIterator()
+    end
+
+    action GetCodeCompletionItem(Class calledFrom) returns CodeCompletionItem
+        CodeCompletionItem item
+        
+        if not IsField() 
+            if IsParameter()
+                item:SetType(item:LOCAL_VARIABLE)
+            else
+                item:SetType(item:PARAMETER)
+            end
+        else 
+            if IsPublic()
+                item:SetType(item:PUBLIC_FIELD_VARIABLE)
+            else
+                item:SetType(item:PRIVATE_FIELD_VARIABLE)
+            end
+        end
+
+        text name = GetName()
+
+        //if this is a variable in a parent class relative to the caller,
+        //adjust the syntax to allow access if it is public
+        if calledFrom:GetStaticKey() not= parentClass:GetStaticKey()
+            //check if the class has a "use" for this parent
+            name = "parent:" + parentClass:GetStaticKey() + ":" + name
+        end
+
+        Type type = GetType()
+        text docs = ""
+        //no resolution is required here because variables are resolved
+        //actions require an additional step because they are tied to a
+        //particular variable
+        text signature = type:GetNameWithGenerics()
+
+        Documentation doc = GetDocumentation()
+        if doc not= undefined
+            docs = "<h1>" + signature + "</h1>"
+
+            docs = docs + "<p>" + doc:GetDescription() + "</p>"
+
+            text example = doc:GetExample()
+            if not example:IsEmpty()
+                docs = docs + "<p><strong>Example</strong></p>"
+                docs = docs + example
+            end
+        end
+        
+        item:displayText = name
+        item:rightDisplayText = signature
+        item:completionText = name
+        item:documentationText = docs
+
+        return item
     end
 
     action IsDefined returns boolean

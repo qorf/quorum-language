@@ -372,6 +372,39 @@ class Compiler
         text left = split:Get(0)
         text trimmedLeft = left:Trim()
         if clazz not= undefined
+            text line = left
+            integer i = line:GetSize() - 1
+            repeat while i >= 0
+                text ch = line:GetCharacter(i)
+                if ch = "(" or ch = ","
+                   or ch = "*" or ch = "/"
+                   or ch = "+" or ch = "-"
+                   or ch = " " or IsMod(line, i) 
+                    //make this work for mod --- if it's a d, check backwards and ensure that it's not part of another word
+
+                    //split the line again
+                    line = line:GetSubtext(i + 1, line:GetSize())
+                    left = line
+                    line = line:Trim()
+                    split = line:Split(":")
+                    if split:IsEmpty()
+                        return now
+                    end
+
+                    if split:GetSize() > 1 or line:Contains(":")
+                        text ch = line:GetCharacter(line:GetSize() - 1)
+                        if ch = ":"
+                            result:filter = ""
+                        else
+                            result:filter = split:Get(split:GetSize() - 1)
+                        end
+                    end
+                    trimmedLeft = line
+                    i = -1
+                end
+                i = i - 1
+            end
+
             Action method = GetActionAtIndex(clazz, request:caretLocation)
             if left = "me" or left:IsEmpty() or trimmedLeft:IsEmpty()
                 AddClassToResult(undefined, request, result, clazz, true, method)
@@ -403,6 +436,57 @@ class Compiler
                 end
             end
         end
+    end
+
+//    private action GetPartialLine(text line) returns text
+//        text result = ""
+//
+//        integer i = line:GetSize() - 1
+//        repeat while i >= 0
+//            text ch = line:GetCharacter(i)
+//            if ch = "(" or ch = ","
+//               or ch = "*" or ch = "/"
+//               or ch = "+" or ch = "-"
+//               or ch = " " or IsMod(line, i) 
+//                //make this work for mod --- if it's a d, check backwards and ensure that it's not part of another word
+//                
+//                //split the line again
+//                line = line:GetSubtext(i + 1, line:GetSize() - 1)
+//                line = line:Trim()
+//                
+////                //resplit it
+////                partialLine = partialLine.trim();
+////                split = partialLine.split(":");
+////                if(split.length == 0) {
+////                    return; //the string is garbage, so return
+////                }
+////                left = split[0];
+////                if (split.length > 1 || !partialLine.contains(":")) {
+////                    result.setFilter(split[split.length - 1]);
+////                } else {
+////                    result.setFilter("");
+////                }
+////                i = -1; //finish early.
+//                end
+//            i = i - 1
+//        end
+//
+//        return result
+//    end
+
+    private action IsMod(text partial, integer i) returns boolean
+        if i - 3 < 0
+            return false
+        end
+
+        if partial:GetCharacter(i) = "d"
+            and partial:GetCharacter(i - 1) = "o"
+            and partial:GetCharacter(i - 2) = "m"
+            and partial:GetCharacter(i - 3) = " "
+            return true
+        end
+
+        return false
     end
 
     private action AddVariableAsClass(Variable variable, CodeCompletionRequest request, CodeCompletionResult result)
@@ -503,6 +587,45 @@ class Compiler
             boolean isCurrentClass, Action insideMethod)
 
         if clazz not= undefined
+
+            //add all of the fields from this class
+            Iterator<Variable> variables = clazz:GetVariables()
+            repeat while variables:HasNext()
+                Variable variable = variables:Next()
+                CodeCompletionItem item = variable:GetCodeCompletionItem(clazz)
+                text filter = result:filter
+                integer size = filter:GetSize()
+                item:dotOffset = request:caretLocation - size
+                if isCurrentClass
+                    result:Add(item)
+                else
+                    if not variable:IsPrivate()
+                        result:Add(item)
+                    end
+                end
+            end
+
+            //now add all of the parent fields from this class
+            Iterator<Class> parents = clazz:GetParentClasses()
+            repeat while parents:HasNext()
+                Class par = parents:Next()
+                Iterator<Variable> variables = par:GetVariables()
+                repeat while variables:HasNext()
+                    Variable variable = variables:Next()
+                    CodeCompletionItem item = variable:GetCodeCompletionItem(clazz)
+                    text filter = result:filter
+                    integer size = filter:GetSize()
+                    item:dotOffset = request:caretLocation - size
+                    if isCurrentClass
+                        result:Add(item)
+                    else
+                        if not variable:IsPrivate()
+                            result:Add(item)
+                        end
+                    end
+                end
+            end
+
             //if this is the current class, load all methods, public or private
             //if this is a variable, load only its public methods.
             Iterator<Action> actions = clazz:GetVirtualTable()
@@ -525,7 +648,6 @@ class Compiler
                         result:Add(item)
                     end
                 end
-                
             end
         end
 
