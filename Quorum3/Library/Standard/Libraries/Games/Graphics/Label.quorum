@@ -31,6 +31,9 @@ class Label is DrawableGroup
     private text targetText = "TEXT"
     private boolean textChanged = true
 
+    private number textWidth = 0
+    private number textHeight = 0
+
     action SetHorizontalMargins(integer margins)
         horizontalMargins = margins
     end
@@ -146,6 +149,9 @@ class Label is DrawableGroup
             integer currentWordLength = 0
             integer currentLineLength = 0
 
+            number maxLineWidth = 0
+            number startingOriginY = originY
+
             repeat lines:GetSize() times
                 words = lines:Get(lineIndex):Split(" ")
                 wordsIndex = 0
@@ -168,6 +174,9 @@ class Label is DrawableGroup
                     end
 
                     if availableWidth > 0 and currentLineLength + currentWordLength > availableWidth
+                        if currentLineLength > maxLineWidth
+                            maxLineWidth = currentLineLength
+                        end
                         currentLineLength = 0
                         x = originX
                         y = originY - font:GetLineHeight()
@@ -186,6 +195,8 @@ class Label is DrawableGroup
                         x = x + glyph:horizontalAdvance
                         y = y + glyph:verticalAdvance
                         if availableWidth > 0 and x - originX > availableWidth
+                            currentLineLength = 0
+                            currentWordLength = 0
                             x = originX
                             y = originY - font:GetLineHeight()
                             originY = y
@@ -197,6 +208,10 @@ class Label is DrawableGroup
 
                 end
 
+                if currentLineLength > maxLineWidth
+                    maxLineWidth = currentLineLength
+                end
+
                 // After iterating through all words on this line, we go to the
                 // next line.
                 lineIndex = lineIndex + 1
@@ -204,6 +219,10 @@ class Label is DrawableGroup
                 y = originY - font:GetLineHeight()
                 originY = y
             end
+
+            textWidth = maxLineWidth
+            textHeight = startingOriginY - originY
+            
 
             /* OLD DRAWING CODE
             repeat targetText:GetSize() times
@@ -229,5 +248,23 @@ class Label is DrawableGroup
             LoadDrawables()
         end
         return parent:DrawableGroup:GetDrawables()
+    end
+
+    action GetTextWidth returns number
+        if textChanged
+            LoadDrawables()
+        end
+        return textWidth
+    end
+
+    action GetTextHeight returns number
+        if textChanged
+            LoadDrawables()
+        end
+        return textHeight
+    end
+
+    action GetLineHeight returns integer
+        return font:GetLineHeight()
     end
 end
