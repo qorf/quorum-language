@@ -188,6 +188,33 @@ class Type
         return result
     end
 
+    action GetNameWithGenerics returns text
+        text result = ""
+        Array<text> split = staticKey:Split("\.")
+        if split not= undefined
+            if not split:IsEmpty()
+                result = split:Get(split:GetSize() - 1)
+            end
+        end
+
+        boolean first = true
+        if HasGenerics()
+            result = result + "<"
+            Iterator<Type> gen = generics:GetIterator()
+            repeat while gen:HasNext()
+                Type type = gen:Next()
+                if first
+                    result = result + type:GetNameWithGenerics()
+                    first = false
+                else
+                    result = result + ":" + type:GetNameWithGenerics()
+                end
+            end
+            result = result + ">"
+        end
+        return result
+    end
+
     action GetStaticKeyWithGenerics returns text
         text final = staticKey
         boolean first = true
