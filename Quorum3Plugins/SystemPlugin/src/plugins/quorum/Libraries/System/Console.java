@@ -58,7 +58,7 @@ public class Console {
      */
     public static String StaticInput(String text) {
         if(text != null) {
-            System.out.print(text);
+            System.out.println(text);
         }
         return StaticInput();
     }
