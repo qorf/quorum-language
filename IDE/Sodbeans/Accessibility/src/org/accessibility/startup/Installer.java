@@ -158,51 +158,53 @@ public class Installer extends ModuleInstall implements Runnable{
         Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
 
             public void eventDispatched(AWTEvent evt) {
-                HierarchyEvent e = (HierarchyEvent) evt;
-                if (e.getChangeFlags() == HierarchyEvent.DISPLAYABILITY_CHANGED) {
-                    Object source = e.getSource();
+                if (AccessibilityOptions.isSelfVoicing()) {
+                    HierarchyEvent e = (HierarchyEvent) evt;
+                    if (e.getChangeFlags() == HierarchyEvent.DISPLAYABILITY_CHANGED) {
+                        Object source = e.getSource();
 
-                    // Is this the code completion window?
-                    if (source instanceof JList && source.getClass().getName().equals("org.netbeans.modules.editor.completion.CompletionJList")) {
-                        JList jl = (JList)source;
-                        if (jl.isDisplayable()) {
-                            //if (!CodeCompletionListener.isCodeCompletionOpen()) {
-                                JList list = (JList) source;
-                                list.addListSelectionListener(CodeCompletionListener.getInstance());
-                                SwingUtilities.getWindowAncestor(jl).addWindowListener(CodeCompletionListener.getInstance());
+                        // Is this the code completion window?
+                        if (source instanceof JList && source.getClass().getName().equals("org.netbeans.modules.editor.completion.CompletionJList")) {
+                            JList jl = (JList)source;
+                            if (jl.isDisplayable()) {
+                                //if (!CodeCompletionListener.isCodeCompletionOpen()) {
+                                    JList list = (JList) source;
+                                    list.addListSelectionListener(CodeCompletionListener.getInstance());
+                                    SwingUtilities.getWindowAncestor(jl).addWindowListener(CodeCompletionListener.getInstance());
 
+                                    Object selectedValue = list.getSelectedValue();
+                                    CodeCompletionListener.getInstance().read(selectedValue);
+                                //}
+                            }
+                        }
+                        // Is it the combo box popup?
+                        if (source instanceof JList && source.getClass().getName().equals("org.netbeans.modules.editor.hints.borrowed.ListCompletionView")) {
+                            JList list = (JList) source;
+
+                            if (list.isDisplayable()) { // about to become visible
+                                list.addListSelectionListener(EditorHintsListener.getInstance());
+                                list.addComponentListener(EditorHintsListener.getInstance());
+
+                                // Attempt to speak selection.
                                 Object selectedValue = list.getSelectedValue();
-                                CodeCompletionListener.getInstance().read(selectedValue);
-                            //}
-                        }
-                    }
-                    // Is it the combo box popup?
-                    if (source instanceof JList && source.getClass().getName().equals("org.netbeans.modules.editor.hints.borrowed.ListCompletionView")) {
-                        JList list = (JList) source;
-
-                        if (list.isDisplayable()) { // about to become visible
-                            list.addListSelectionListener(EditorHintsListener.getInstance());
-                            list.addComponentListener(EditorHintsListener.getInstance());
-
-                            // Attempt to speak selection.
-                            Object selectedValue = list.getSelectedValue();
-                            if (AccessibilityOptions.isSelfVoicing() && selectedValue != null && selectedValue instanceof Fix) {
-                                Fix f = (Fix) selectedValue;
-                                speech.speak(f.getText(), SpeechPriority.MEDIUM_HIGH);
+                                if (AccessibilityOptions.isSelfVoicing() && selectedValue != null && selectedValue instanceof Fix) {
+                                    Fix f = (Fix) selectedValue;
+                                    speech.speak(f.getText(), SpeechPriority.MEDIUM_HIGH);
+                                }
+                            } else {
+                                if (AccessibilityOptions.isSelfVoicing()) {
+                                    speech.speak("Editor hints closing", SpeechPriority.MEDIUM_HIGH);
+                                }
                             }
-                        } else {
-                            if (AccessibilityOptions.isSelfVoicing()) {
-                                speech.speak("Editor hints closing", SpeechPriority.MEDIUM_HIGH);
-                            }
-                        }
-                    } // ... or the tooltip? Editor Tooltips, (as determined from the Netbeans Source),
-                    // are instances of JTextAreas.
-                    else if (source.getClass().getName().startsWith("org.netbeans.editor.ext.ToolTipSupport")) {
-                        if (source instanceof JTextArea) {
-                            JTextArea t = (JTextArea) source;
-                            if (AccessibilityOptions.isSelfVoicing() && t.isDisplayable()) // it is about to be displayed
-                            {
-                                speech.speak("Tooltip: " + t.getText(), SpeechPriority.MEDIUM_HIGH);
+                        } // ... or the tooltip? Editor Tooltips, (as determined from the Netbeans Source),
+                        // are instances of JTextAreas.
+                        else if (source.getClass().getName().startsWith("org.netbeans.editor.ext.ToolTipSupport")) {
+                            if (source instanceof JTextArea) {
+                                JTextArea t = (JTextArea) source;
+                                if (AccessibilityOptions.isSelfVoicing() && t.isDisplayable()) // it is about to be displayed
+                                {
+                                    speech.speak("Tooltip: " + t.getText(), SpeechPriority.MEDIUM_HIGH);
+                                }
                             }
                         }
                     }
@@ -247,7 +249,7 @@ public class Installer extends ModuleInstall implements Runnable{
                     list.addListSelectionListener(CodeCompletionListener.getInstance());
                     window.addWindowListener(CodeCompletionListener.getInstance());
 
-                    if (speak) {
+                    if (AccessibilityOptions.isSelfVoicing()) {
                         Object selectedValue = list.getSelectedValue();
                         CodeCompletionListener.getInstance().read(selectedValue);
                     }

@@ -43,9 +43,11 @@ public class CodeCompletionListener implements ListSelectionListener, ComponentL
     }
     
     public void valueChanged(ListSelectionEvent lse) {
-        JList list = (JList) lse.getSource();
-        Object selectedValue = list.getSelectedValue();    
-        read(selectedValue);
+        if (AccessibilityOptions.isSelfVoicing()) {
+            JList list = (JList) lse.getSource();
+            Object selectedValue = list.getSelectedValue();    
+            read(selectedValue);
+        }
     }
 
     public void componentResized(ComponentEvent ce) {
