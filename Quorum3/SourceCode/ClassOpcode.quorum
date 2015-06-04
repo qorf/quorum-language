@@ -10,6 +10,7 @@ use Libraries.Language.Compile.Symbol.Class
 use Libraries.Containers.Array
 use Libraries.System.File
 use Libraries.Language.Compile.QualifiedName
+use Libraries.Language.Compile.Symbol.Documentation
 
 class ClassOpcode is QuorumOpcode
     QualifiedName packageValue = undefined
@@ -133,6 +134,106 @@ class ClassOpcode is QuorumOpcode
 
     action SetConstructor(ActionOpcode method)
         constructor = method
+    end
+
+    action WriteToWeb returns text
+        text result = WriteHeader()
+        text dq = result:GetDoubleQuote()
+        result = result + WriteHeroBar()
+        text NL = dq:GetCarriageReturn()
+
+        result = result + "<div id=" + dq + "wrapper" + dq + "><div class=" + dq + "content" + dq + ">"
+        Documentation doc = clazz:GetDocumentation()
+        if doc not= undefined
+            result = result + doc:GetHeaderAsWeb()
+        end
+
+        result = result + "<h1>Variables</h1>" + NL
+        Iterator<Variable> vars = clazz:GetVariables()
+        repeat while vars:HasNext()
+            Variable var = vars:Next()
+            result = result + "<h2>" + var:GetName() + "</h2>" + NL
+        end
+
+        result = result + "<h1>Actions</h1>" + NL
+        Iterator<Action> it = clazz:GetVirtualTable()
+        repeat while it:HasNext()
+            Action act = it:Next()
+            text display = act:GetDisplayNameNoReturnAsWeb()
+            result = result + "<h2>" + display + "</h2>" + NL
+            Documentation doc = act:GetDocumentation()
+            if doc not= undefined
+                result = result + doc:GetHeaderAsWeb()
+            end
+            
+            Iterator<Variable> params = act:GetParameterIterator()
+            if params:HasNext()
+                result = result + "<h3>Parameters</h3>"
+                result = result + "<ul>"
+                repeat while params:HasNext()
+                    Variable param = params:Next()
+                    result = result + "<li>" + NL
+                    result = result + param:GetDisplayNameWithGenericsAsWeb()
+
+                    Documentation paramDoc = param:GetDocumentation()
+                    if paramDoc not= undefined
+                        result = result + paramDoc:GetDescription()
+                    end
+                    result = result + "</li>" + NL
+                end
+                result = result + "</ul>"
+            end
+        end
+        result = result +"</div></div>"
+
+        return result + WriteFooter()
+    end
+
+    private action WriteWebActions returns text
+        text result = ""
+
+        return result
+    end
+
+    private action WriteHeroBar returns text
+        text result = ""
+        text dq = result:GetDoubleQuote()
+
+        result = result + "<div class=" + dq + "hero-unit" + dq + ">"
+        result = result + "<div class=" + dq + "hero-unit-container" + dq + " role=" + dq + "banner" +dq + ">"
+        result = result + "<h2 id=" + dq + "pageTitle" + dq + ">" + me:GetStaticKey() + "</h2> </div></div>"//<h2 id="pageTitle">The Quorum Programming Language</h2>
+        return result
+    end
+
+    private action WriteHeader returns text
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+
+        text key = me:GetStaticKey()
+        Array<text> split = key:Split("\.")
+        integer val = split:GetSize() - 1
+
+        text path = ""
+        repeat val times
+            path = path + "../"
+        end
+
+        return "<?php include(" + dq + path + "static/templates/pageheader.template.php" + dq + "); ?>"
+    end
+
+    private action WriteFooter returns text
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+
+        text key = me:GetStaticKey()
+        Array<text> split = key:Split("\.")
+        integer val = split:GetSize() - 1
+
+        text path = ""
+        repeat val times
+            path = path + "../"
+        end
+        return "<?php include(" + dq + path + "static/templates/pagefooter.template.php" + dq + "); ?>"
     end
 
     action Write

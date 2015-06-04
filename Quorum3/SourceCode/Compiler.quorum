@@ -41,6 +41,8 @@ class Compiler
     TypeChecker sandboxTypeChecker
     public constant integer JAVA_BYTECODE = 0
     public constant integer JAVASCRIPT = 1
+    public constant integer DOCUMENT = 2
+
     integer currentOutputType = 0
     boolean outputSpeechCommands = true
     boolean containsSpeechCommandInCompile = false
@@ -100,7 +102,7 @@ class Compiler
         This action tells the compiler what kind of output to emit.
     */
     action SetOutputType(integer type)
-        if type >= JAVA_BYTECODE and type <= JAVASCRIPT
+        if type >= JAVA_BYTECODE and type <= DOCUMENT
             currentOutputType = type
         else
             currentOutputType = 0
@@ -1056,7 +1058,6 @@ class Compiler
         //an intentional design decision.
         if compilerErrorManager:IsCompilationErrorFree()
             if currentOutputType = JAVA_BYTECODE
-                
                 //open up and begin filling the Jar
                 JarGenerator generator
                 text manifest = GetManifest(generator)
@@ -1106,6 +1107,38 @@ class Compiler
                     a = 5
                 end
                 convertedJavaScript = result
+            elseif currentOutputType = DOCUMENT
+                text result = ""
+                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+                repeat while codes:HasNext()
+                    ClassOpcode code = codes:Next()
+                    Class clazz = code:GetClass()
+
+                    text web = code:WriteToWeb()
+                    text key = clazz:GetStaticKey()
+                    text parentKey = ""
+                    Array<text> split = key:Split("\.")
+                    i = 0
+                    repeat split:GetSize() - 1 times
+                        parentKey = parentKey + split:Get(i) + "/"
+                        i = i + 1
+                    end
+                    key = "/" + key:Replace(".", "/") + ".php"
+
+                    constant text DOCUMENTATION_FOLDER = "Documents/"
+                    File mom
+                    mom:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+                    mom:SetPath(DOCUMENTATION_FOLDER + "/" + parentKey)
+                    mom:CreateDirectories()
+
+                    File documentationFile
+                    documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+                    documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + key)
+
+                    
+                    documentationFile:Write(web)
+                    a = 5
+                end
             end
         end
     end

@@ -278,15 +278,62 @@ class Action is Symbol
             repeat while params:HasNext()
                 Variable variable = params:Next()
                 Type varType = variable:GetType()
-                key = key + ", " + varType:GetDisplayName()
+                key = key + variable:GetDisplayNameWithGenerics()
+                if params:HasNext() 
+                    key = key + ", "
+                end
             end
         end
         
         key = key + ")"
 
        if not returnType:IsVoid()
-            key = " returns " + returnType:GetDisplayName()
+            key = key + " returns " + returnType:GetDisplayName()
         end
+        return key
+    end
+
+    action GetDisplayNameNoReturn returns text
+        text key = me:GetName() + "("
+        if parameters not= undefined
+            Iterator<Variable> params = parameters:GetIterator()
+            repeat while params:HasNext()
+                Variable variable = params:Next()
+                Type varType = variable:GetType()
+                key = key + variable:GetDisplayNameWithGenerics()
+                if params:HasNext() 
+                    key = key + ", "
+                end
+            end
+        end
+        
+        key = key + ")"
+        return key
+    end
+
+    action GetDisplayNameNoReturnAsWeb returns text
+        text key = ""
+
+        if IsPublic()
+            key = key + "public "
+        else
+            key = key + "private "
+        end
+
+        key = key + "" + me:GetName() + "("
+        if parameters not= undefined
+            Iterator<Variable> params = parameters:GetIterator()
+            repeat while params:HasNext()
+                Variable variable = params:Next()
+                Type varType = variable:GetType()
+                key = key + variable:GetDisplayNameWithGenericsAsWeb()
+                if params:HasNext() 
+                    key = key + ", "
+                end
+            end
+        end
+        
+        key = key + ")"
         return key
     end
 

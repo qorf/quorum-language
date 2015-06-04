@@ -25,12 +25,12 @@ class Main is WebResponder
     HashTable<text, Array<text>> flagValues
 
     action Main
-        ProcessConsoleFlags()
+        //ProcessConsoleFlags()
         //CompileRepeatTest()
         //CompileCodeCompletionTest()
         //ProfileTest()
         //ProfileWeb()
-        //CompileHardcodedFile()
+        CompileHardcodedFile()
         //CompileCompiler()
         //CompileSingleTest()
         //CompileGameEngine()
@@ -254,9 +254,9 @@ class Main is WebResponder
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
-        main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication2/SourceCode/")
-//        main:SetPath("Library/Tests/Actions/Fail/BadVariableInParameter.quorum")
-        main:SetPath("main.quorum")
+        //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication2/SourceCode/")
+        main:SetPath("Library/Tests/Use/Pass/SoloArrayUse.quorum")
+        //main:SetPath("main.quorum")
 
         File class2
         class2:SetPath("Library/Tests/Inheritance/Pass/ASolo.quorum")
@@ -278,7 +278,7 @@ class Main is WebResponder
         //files:Add(class5)
 
         //compiler:SetOutputSpeech(false) //don't speak while in test mode
-        //compiler:SetOutputType(compiler:JAVASCRIPT)
+        compiler:SetOutputType(compiler:DOCUMENT)
         compiler:SetMain(main)
         //compiler:CompileSingle("a = b")
         compiler:Compile(files)

@@ -20,6 +20,20 @@ class Documentation
         return description
     end
 
+    action GetHeaderAsWeb returns text
+        text result = ""
+        text dq = result:GetDoubleQuote()
+        result = result + "<p><em>Description: <em>" + GetDescription() + "</p>" 
+        text example = GetExample()
+        if example not= undefined
+            result = result + "<em>Example Code</em>"
+            result = result + "<pre class=" + dq + "code" + dq + ">"
+            result = result + example
+            result = result + "</pre>"
+        end
+        return result
+    end
+
     action GetAuthor returns text
         return author
     end
