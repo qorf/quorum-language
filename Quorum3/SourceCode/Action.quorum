@@ -4,6 +4,7 @@ use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.CodeCompletionItem
+use Libraries.Language.Support.CompareResult
 
 class Action is Symbol
     List<Variable> parameters
@@ -315,9 +316,9 @@ class Action is Symbol
         text key = ""
 
         if IsPublic()
-            key = key + "public "
+            key = key + "public action "
         else
-            key = key + "private "
+            key = key + "private action "
         end
 
         key = key + "" + me:GetName() + "("
@@ -427,6 +428,22 @@ class Action is Symbol
             result = result + "$" + t
         end
 
+        return result
+    end
+
+    action Compare(Object object) returns CompareResult
+        CompareResult result
+        Action right = cast(Action, object)
+        text l = GetName()
+        text r = right:GetName()
+
+        if l < r
+            result:result = result:SMALLER
+        elseif l = r
+            result:result = result:EQUAL
+        else
+            result:result = result:LARGER
+        end
         return result
     end
 end

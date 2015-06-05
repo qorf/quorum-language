@@ -57,6 +57,12 @@ class Parser is QuorumSourceListener
         text name = context:className
         AddClass(name)
         isFirstGenericInFile = true
+        if not documents:IsEmpty()
+            Documentation doc = documents:Pop()
+            if currentClass not= undefined
+                currentClass:SetDocumentation(doc)
+            end
+        end
     end
 
     action ExitFullClassDeclaration(FullClassDeclarationContext context) 

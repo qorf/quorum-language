@@ -148,8 +148,10 @@ class ClassOpcode is QuorumOpcode
             result = result + doc:GetHeaderAsWeb()
         end
 
-        result = result + "<h1>Variables</h1>" + NL
         Iterator<Variable> vars = clazz:GetVariables()
+        if vars:HasNext()
+            result = result + "<h1>Variables</h1>" + NL
+        end
         repeat while vars:HasNext()
             Variable var = vars:Next()
             result = result + "<h2>" + var:GetName() + "</h2>" + NL
@@ -157,6 +159,14 @@ class ClassOpcode is QuorumOpcode
 
         result = result + "<h1>Actions</h1>" + NL
         Iterator<Action> it = clazz:GetVirtualTable()
+        Array<Action> array
+        repeat while it:HasNext()
+            Action next = it:Next()
+            array:Add(next)
+        end
+        array:Sort()
+        it = array:GetIterator()
+
         repeat while it:HasNext()
             Action act = it:Next()
             text display = act:GetDisplayNameNoReturnAsWeb()
@@ -166,6 +176,11 @@ class ClassOpcode is QuorumOpcode
                 result = result + doc:GetHeaderAsWeb()
             end
             
+            Iterator<text> descriptions = undefined
+            if doc not= undefined
+                doc:GetParameterDescriptions()
+            end
+
             Iterator<Variable> params = act:GetParameterIterator()
             if params:HasNext()
                 result = result + "<h3>Parameters</h3>"
@@ -174,14 +189,26 @@ class ClassOpcode is QuorumOpcode
                     Variable param = params:Next()
                     result = result + "<li>" + NL
                     result = result + param:GetDisplayNameWithGenericsAsWeb()
-
-                    Documentation paramDoc = param:GetDocumentation()
-                    if paramDoc not= undefined
-                        result = result + paramDoc:GetDescription()
+                    if descriptions not= undefined
+                        if descriptions:HasNext()
+                            text d = descriptions:Next()
+                            result = result + " " + d
+                        end
                     end
+                    
                     result = result + "</li>" + NL
                 end
                 result = result + "</ul>"
+            end
+
+            Type returnType = act:GetReturnType()
+            if not returnType:IsVoid()
+                text r = returnType:GetStaticKeyWithMappedGenerics()
+                result = result + "<h3>Return: </h3>"
+                result = result + r
+                if doc not= undefined
+                    result = result + " " + doc:GetReturns()
+                end
             end
         end
         result = result +"</div></div>"
