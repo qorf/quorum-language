@@ -2,6 +2,7 @@ package Libraries.Language.Compile.Symbol
 
 use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.HashTable
 
 class Documentation 
     public constant text AUTHOR = "Author"
@@ -13,8 +14,7 @@ class Documentation
     text author = ""
     text theReturn = ""
     text example = ""
-    Array<text> paramaterNames
-    Array<text> parameterDescriptions
+    HashTable<text, text> parameters
 
     action GetDescription returns text
         return description
@@ -23,10 +23,10 @@ class Documentation
     action GetHeaderAsWeb returns text
         text result = ""
         text dq = result:GetDoubleQuote()
-        result = result + "<p><em>Description: <em>" + GetDescription() + "</p>" 
+        result = result + "<p align=" + dq + "justify" + dq + ">" + GetDescription() + "</p>" 
         text example = GetExample()
         if example not= undefined
-            result = result + "<em>Example Code</em>"
+            result = result + "<strong><em>Example Code</em></strong>"
             result = result + "<pre class=" + dq + "code" + dq + ">"
             result = result + example
             result = result + "</pre>"
@@ -42,12 +42,18 @@ class Documentation
         return theReturn
     end
 
-    action GetParameterNames returns Iterator<text>
-        return paramaterNames:GetIterator()
+    action HasParameter(text name) returns boolean
+        if parameters:HasKey(name)
+            return true
+        end
+        return false
     end
 
-    action GetParameterDescriptions returns Iterator<text>
-        return parameterDescriptions:GetIterator()
+    action GetParameterDescription(text name) returns text
+        if parameters:HasKey(name)
+            return parameters:GetValue(name)
+        end
+        return undefined
     end
 
     action GetExample returns text
@@ -86,17 +92,16 @@ class Documentation
                 repeat while j < val:GetSize()
                     if val:GetCharacter(j) = " "
                         text name = val:GetSubtext(0, j)
-                        paramaterNames:Add(name:Trim())
+                        name = name:Trim()
+                        text descript = undefined
                         if j + 1 < val:GetSize()
-                            text descript = val:GetSubtext(j + 1, val:GetSize())
-                            parameterDescriptions:Add(descript:Trim())
+                            descript = val:GetSubtext(j + 1, val:GetSize())
                         end
+                        parameters:Add(name, descript)
                         j = val:GetSize()
                     end
                     j = j + 1
                 end
-
-
             elseif attribute:StartsWith(RETURNS)
                 text val = attribute:GetSubtext(RETURNS:GetSize(), attribute:GetSize())
                 theReturn = val:Trim()
