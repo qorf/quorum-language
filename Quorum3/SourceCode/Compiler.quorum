@@ -1126,6 +1126,7 @@ class Compiler
                     key = "/" + key:Replace(".", "/") + ".php"
 
                     constant text DOCUMENTATION_FOLDER = "Documents/"
+                    buildFolder:CreateDirectories()
                     File mom
                     mom:SetWorkingDirectory(buildFolder:GetAbsolutePath())
                     mom:SetPath(DOCUMENTATION_FOLDER + "/" + parentKey)

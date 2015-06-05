@@ -469,6 +469,10 @@ class Parser is QuorumSourceListener
                 return now
             end
             error = currentClass:Add(variable)
+            if not documents:IsEmpty()
+                Documentation doc = documents:Pop()
+                variable:SetDocumentation(doc)
+            end
         else //we're in the block of an action
             error = currentBlock:Add(variable)
         end
@@ -515,6 +519,10 @@ class Parser is QuorumSourceListener
                 error = currentClass:Add(variable)
             else //we're in the block of an action
                 error = currentBlock:Add(variable)
+                if not documents:IsEmpty()
+                    Documentation doc = documents:Pop()
+                    variable:SetDocumentation(doc)
+                end
             end
         else 
             isDefinedAlready:AddUsage(context:GetLocation())

@@ -25,15 +25,42 @@ class Main is WebResponder
     HashTable<text, Array<text>> flagValues
 
     action Main
-        //ProcessConsoleFlags()
+        ProcessConsoleFlags()
+        //GenerateDocumentation()
         //CompileRepeatTest()
         //CompileCodeCompletionTest()
         //ProfileTest()
         //ProfileWeb()
-        CompileHardcodedFile()
+        //CompileHardcodedFile()
         //CompileCompiler()
         //CompileSingleTest()
         //CompileGameEngine()
+    end
+
+    action GenerateDocumentation
+        Compiler compiler
+        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
+        compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        output compiler:GetVersion()
+        File root
+        root:SetPath("Output")
+        compiler:SetOutputFolder(root)
+        File main
+        main:SetPath("Library/Tests/Use/Pass/GenerateAllClasses.quorum")
+        Array<File> files
+        files:Add(main)
+        compiler:SetOutputType(compiler:DOCUMENT)
+        compiler:SetMain(main)
+        compiler:Compile(files)
+
+        if compiler:IsCompilationErrorFree()
+            output "Build Successful"
+            if compiler:GetOutputType() = compiler:JAVASCRIPT
+                output compiler:GetCompiledJavaScript()
+            end
+        else
+            output compiler:GetCompilerErrorsAsText()
+        end
     end
 
     action CompileCodeCompletionTest

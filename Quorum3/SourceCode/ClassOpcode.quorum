@@ -40,7 +40,7 @@ class ClassOpcode is QuorumOpcode
     File buildFile = undefined
     File buildInterfaceFile = undefined
     integer h1Size = 150
-    integer h2Size = 115
+    integer h2Size = 125
     integer h3Size = 100
 
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
@@ -62,22 +62,6 @@ class ClassOpcode is QuorumOpcode
     action SetBuild(File file)
         buildFolder = file
     end
-
-//    action GetBuildPath returns text
-//        return buildPath
-//    end
-//
-//    action GetRunPath returns text
-//        return runPath
-//    end
-//
-//    action SetBuildPath(text build)
-//        buildPath = build
-//    end
-//
-//    action SetRunPath(text build)
-//        runPath = build
-//    end
 
     action GetStaticKey returns text
         return staticKey
@@ -139,6 +123,34 @@ class ClassOpcode is QuorumOpcode
         constructor = method
     end
 
+    action GetParentLink(Class from, Class theParent) returns text
+        text link = ""
+        text key = from:GetStaticKey()
+        text parentKey = theParent:GetStaticKey()
+        Array<text> fromSplit = key:Split("\.")
+        Array<text> parentSplit = parentKey:Split("\.")
+        if fromSplit not= undefined and parentSplit not= undefined
+            integer i = 0
+            repeat fromSplit:GetSize() - 1 times
+                link = link + "../"
+                i = i + 1
+            end
+
+            i = 0
+            repeat parentSplit:GetSize() times
+                if i < parentSplit:GetSize() - 1
+                    link = link + parentSplit:Get(i) + "/"
+                else
+                    link = link + parentSplit:Get(i) + ".php"
+                end
+                i = i + 1
+            end
+        end
+        text dq = link:GetDoubleQuote()
+        link = "<a href = " + dq + link + dq + ">" + parentKey + "</a>"
+        return link
+    end
+
     action WriteToWeb returns text
         text result = WriteHeader()
         text dq = result:GetDoubleQuote()
@@ -151,14 +163,35 @@ class ClassOpcode is QuorumOpcode
             result = result + doc:GetHeaderAsWeb()
         end
 
+        Iterator<Class> parents = clazz:GetParentClasses()
+        if parents:HasNext()
+            result = result + "<em>Inherits from: <em>"
+            repeat while parents:HasNext()
+                Class p = parents:Next()
+                result = result + GetParentLink(clazz, p)
+                if parents:HasNext()
+                    result = result + ", "
+                end
+            end
+        end
+
         Iterator<Variable> vars = clazz:GetVariables()
         if vars:HasNext()
             result = result + "<h1 style=" + dq + "font-size:" + h1Size + "%" + dq + ">Variables</h1>" + NL
+            result = result + "<ul>"
+            repeat while vars:HasNext()
+                Variable var = vars:Next()
+                result = result + "<li><strong>" + var:GetName() + "</strong>: "
+                Documentation doc = var:GetDocumentation()
+                if doc not= undefined
+                    result = result + doc:GetDescription()
+                end
+                result = result + "</li>" + NL
+                
+            end
+            result = result + "</ul>"
         end
-        repeat while vars:HasNext()
-            Variable var = vars:Next()
-            result = result + "<h2>" + var:GetName() + "</h2>" + NL
-        end
+        
 
         result = result + "<h1 style=" + dq + "font-size:" + h1Size + "%" + dq + ">Actions</h1>" + NL
         Iterator<Action> it = clazz:GetVirtualTable()
