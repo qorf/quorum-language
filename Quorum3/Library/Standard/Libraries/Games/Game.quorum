@@ -21,6 +21,7 @@ use Libraries.Games.Interface.Events.MouseEventProcessor
 use Libraries.Games.Interface.Events.MouseEventListener
 use Libraries.Games.Interface.Events.MouseEvent
 use Libraries.Games.Interface.Item
+use Libraries.Games.Collision
 
 class Game
 
@@ -34,6 +35,8 @@ class Game
     private Panel activePanel = undefined
     private KeyboardEventProcessor keyboardProcessor
     private MouseEventProcessor mouseProcessor
+    private List<Item> collisionList
+    private List<Collision> currentCollisions
 
     on create
         Color color
@@ -127,6 +130,7 @@ class Game
 
     action ContinueGame
         ProcessInputEvents()
+        TestForCollisions()
         UpdateAll()
         Update(GetSecondsBetweenFrames())
         ClearScreen()
@@ -239,6 +243,70 @@ class Game
 
     action EnableTextureAutoResizing(boolean resize)
         configuration:autoResizeTextures = resize
+    end
+
+    action AddCollisionListener(Item item)
+        collisionList:Add(item)
+    end
+
+    action RemoveCollisionListener(Item item)
+        collisionList:Remove(item)
+    end
+
+    action TestForCollisions
+        integer counter1 = 0
+        integer counter2 = 1
+        Item item1 = undefined
+        Item item2 = undefined
+
+        repeat collisionList:GetSize() times
+            item1 = collisionList:Get(counter1)
+            number x1 = item1:GetX()
+            number x2 = item1:GetX() + item1:GetWidth()
+            number y1 = item1:GetY()
+            number y2 = item1:GetY() + item1:GetHeight()
+            counter2 = counter1 + 1
+            repeat while counter2 < collisionList:GetSize()
+                item2 = collisionList:Get(counter2)
+                if x1 < item2:GetX() + item2:GetWidth() and x2 > item2:GetX() and y1 < item2:GetY() + item2:GetHeight() and y2 > item2:GetY()
+                    integer collisionCounter = 0
+                    boolean found = false
+                    Collision temp = undefined
+                    repeat while collisionCounter < currentCollisions:GetSize() and found = false
+                        temp = currentCollisions:Get(collisionCounter)
+                        if temp:Contains(item1) and temp:Contains(item2)
+                            found = true
+                        end
+                    end
+
+                    if found = false
+                        Collision newCollision
+                        newCollision:SetCollision(item1, item2)
+                        currentCollisions:Add(newCollision)
+                        newCollision:BeginCollision()
+                    end
+                else
+                    integer collisionCounter = 0
+                    boolean found = false
+                    Collision temp = undefined
+                    repeat while collisionCounter < currentCollisions:GetSize() and found = false
+                        temp = currentCollisions:Get(collisionCounter)
+                        if temp:Contains(item1) and temp:Contains(item2)
+                            found = true
+                        end
+                    end
+
+                    if found = true
+                        currentCollisions:Remove(temp)
+                        temp:FinishCollision()
+                    end
+                end
+                
+                counter2 = counter2 + 1
+            end
+
+            counter1 = counter1 + 1
+        end
     end
 
 end
