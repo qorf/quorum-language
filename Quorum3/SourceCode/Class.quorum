@@ -10,6 +10,7 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.Containers.Array
 use Libraries.System.File
 use Libraries.Language.Compile.Translate.QuorumOpcode
+use Libraries.Language.Support.CompareResult
 
 class Class is Symbol
     QualifiedName packageName
@@ -2017,5 +2018,21 @@ class Class is Symbol
 
     action SetPackage(QualifiedName pack)
         packageName = pack:Copy()
+    end
+
+    action Compare(Object object) returns CompareResult
+        CompareResult result
+        Class right = cast(Class, object)
+        text l = GetStaticKey()
+        text r = right:GetStaticKey()
+
+        if l < r
+            result:result = result:SMALLER
+        elseif l = r
+            result:result = result:EQUAL
+        else
+            result:result = result:LARGER
+        end
+        return result
     end
 end

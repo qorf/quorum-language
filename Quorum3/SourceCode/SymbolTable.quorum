@@ -89,6 +89,59 @@ class SymbolTable
         return pack:GetValueIterator()
     end
 
+    /*
+        This action returns an array of classes in a particular subpackage
+        sorted by their static keys.
+    */
+    action GetClassesSortedInPackage(text packageKey) returns Array<Class>
+        HashTable<text, Class> pack = packages:GetValue(packageKey)
+        if pack = undefined
+            return undefined
+        end
+        Array<Class> sorted
+        Iterator<Class> cl = pack:GetValueIterator()
+        repeat while cl:HasNext()
+            Class next = cl:Next()
+            sorted:Add(next)
+        end
+        sorted:Sort()
+        return sorted
+    end
+
+    /*
+        Returns an iterator of all loaded packages.
+    */
+    action GetPackages returns Iterator<text>
+        return packages:GetKeyIterator()
+    end
+
+    action GetPackagesSorted returns Array<text>
+        Iterator<text> keys = packages:GetKeyIterator()
+        Array<text> result
+        repeat while keys:HasNext()
+            text key = keys:Next()
+            result:Add(key)
+        end
+        result:Sort()
+        
+        return result
+    end 
+
+    action GetPackagesSortedIterator returns Iterator<text>
+        Iterator<text> keys = packages:GetKeyIterator()
+        Array<text> result
+        repeat while keys:HasNext()
+            text key = keys:Next()
+            result:Add(key)
+        end
+        result:Sort()
+        
+        return result:GetIterator()
+    end 
+
+    /*
+        Returns a class with the corresponding unique static key.
+    */
     action GetClass(text key) returns Class
         return classes:GetValue(key)
     end
