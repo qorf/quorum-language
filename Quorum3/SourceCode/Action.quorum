@@ -148,7 +148,14 @@ class Action is Symbol
                 Variable param = variables:Next()
                 Type type = param:GetType()
                 text paramTypeName = GetTypeName(type, variable)
-                value = value + "<li>" + paramTypeName + " " + param:GetName() + ": " + doc:GetParameterDescription(param:GetName()) + "</li>"
+                value = value + "<li>" + paramTypeName + " " + param:GetName()
+                text paramDescription = doc:GetParameterDescription(param:GetName())
+                if paramDescription not= undefined
+                    value = value + ": " + doc:GetParameterDescription(param:GetName()) + "</li>"
+                else
+                    value = value + "</li>"
+                end
+                
                 i = i + 1
             end
             value = value + "</ul>"
