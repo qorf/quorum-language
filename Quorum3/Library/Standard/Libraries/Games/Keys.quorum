@@ -17,6 +17,7 @@
 package Libraries.Games
 
 use Libraries.Language.Errors.Error
+use Libraries.Containers.HashTable
 
 class Keys 
     public constant integer ANY_KEY = -1
@@ -175,6 +176,21 @@ class Keys
     public constant integer F11 = 254
     public constant integer F12 = 255
 
+    HashTable<integer, text> textHash
+    HashTable<integer, text> textShiftHash
+
+    on create
+        InitializeTextHash()
+        InitializeTextShiftHash()
+    end
+
+    action ToText(integer keycode, boolean shiftPressed) returns text
+        if shiftPressed
+            return ToTextShift(keycode)
+        end
+        return ToText(keycode)
+    end
+
     action ToText(integer keycode) returns text
         if keycode < 0
             Error error
@@ -188,291 +204,36 @@ class Keys
             alert(error)
         end
 
-        if keycode = UNKNOWN
-            return "Unknown"        end
-        if keycode = SOFT_LEFT
-            return "Soft Left"      end
-        if keycode = SOFT_RIGHT
-            return "Soft Right"     end
-        if keycode = HOME
-            return "Home"           end
-        if keycode = BACK
-            return "Back"           end
-        if keycode = CALL
-            return "Call"           end
-        if keycode = ENDCALL
-            return "End Call"       end
-        if keycode = NUM_0
-            return "0"              end
-        if keycode = NUM_1
-            return "1"              end
-        if keycode = NUM_2
-            return "2"              end
-        if keycode = NUM_3
-            return "3"              end
-        if keycode = NUM_4
-            return "4"              end
-        if keycode = NUM_5
-            return "5"              end
-        if keycode = NUM_6
-            return "6"              end
-        if keycode = NUM_7
-            return "7"              end
-        if keycode = NUM_8
-            return "8"              end
-        if keycode = NUM_9
-            return "9"              end
-        if keycode = STAR
-            return "*"              end
-        if keycode = POUND
-            return "#"              end
-        if keycode = UP
-            return "Up"             end
-        if keycode = DOWN
-            return "Down"           end
-        if keycode = LEFT
-            return "Left"           end
-        if keycode = RIGHT
-            return "Right"          end
-        if keycode = CENTER
-            return "Center"         end
-        if keycode = VOLUME_UP
-            return "Volume Up"      end
-        if keycode = VOLUME_DOWN
-            return "Volume Down"    end
-        if keycode = POWER
-            return "Power"          end
-        if keycode = CAMERA
-            return "Camera"         end
-        if keycode = CLEAR
-            return "Clear"          end
-        if keycode = A
-            return "A"              end
-        if keycode = B
-            return "B"              end
-        if keycode = C
-            return "C"              end
-        if keycode = D
-            return "D"              end
-        if keycode = E
-            return "E"              end
-        if keycode = F
-            return "F"              end
-        if keycode = G
-            return "G"              end
-        if keycode = H
-            return "H"              end
-        if keycode = I
-            return "I"              end
-        if keycode = J
-            return "J"              end
-        if keycode = K
-            return "K"              end
-        if keycode = L
-            return "L"              end
-        if keycode = M
-            return "M"              end
-        if keycode = N
-            return "N"              end
-        if keycode = O
-            return "O"              end
-        if keycode = P
-            return "P"              end
-        if keycode = Q
-            return "Q"              end
-        if keycode = R
-            return "R"              end
-        if keycode = S
-            return "S"              end
-        if keycode = T
-            return "T"              end
-        if keycode = U
-            return "U"              end
-        if keycode = V
-            return "V"              end
-        if keycode = W
-            return "W"              end
-        if keycode = X
-            return "X"              end
-        if keycode = Y
-            return "Y"              end
-        if keycode = Z
-            return "Z"              end
-        if keycode = COMMA
-            return ","              end
-        if keycode = PERIOD
-            return "."              end
-        if keycode = ALT_LEFT
-            return "L-Alt"          end
-        if keycode = ALT_RIGHT
-            return "R-Alt"          end
-        if keycode = SHIFT_LEFT
-            return "L-Shift"        end
-        if keycode = SHIFT_RIGHT
-            return "R-Shift"        end
-        if keycode = TAB
-            return "Tab"            end
-        if keycode = SPACE
-            return "Space"          end
-        if keycode = SYM
-            return "SYM"            end
-        if keycode = EXPLORER
-            return "Explorer"       end
-        if keycode = ENVELOPE
-            return "Envelope"       end
-        if keycode = ENTER
-            return "Enter"          end
-        if keycode = DEL
-            return "Delete"         end
-        if keycode = GRAVE
-            return "`"              end
-        if keycode = MINUS
-            return "-"              end
-        if keycode = EQUALS
-            return "="              end
-        if keycode = LEFT_BRACKET
-            return "["              end
-        if keycode = RIGHT_BRACKET
-            return "]"              end
-        if keycode = BACKSLASH
-            return "\\"             end
-        if keycode = SEMICOLON
-            return ";"              end
-        if keycode = APOSTROPHE
-            return "'"              end
-        if keycode = SLASH
-            return "/"              end
-        if keycode = AT
-            return "@"              end
-        if keycode = NUM
-            return "Num"            end
-        if keycode = HEADSETHOOK
-            return "Headset Hook"   end
-        if keycode = FOCUS
-            return "Focus"          end
-        if keycode = PLUS
-            return "Plus"           end
-        if keycode = MENU
-            return "Menu"           end
-        if keycode = NOTIFICATION
-            return "Notification"   end
-        if keycode = SEARCH
-            return "Search"         end
-        if keycode = MEDIA_PLAY_PAUSE
-            return "Play/Pause"     end
-        if keycode = MEDIA_STOP
-            return "Stop Media"     end
-        if keycode = MEDIA_NEXT
-            return "Next Media"     end
-        if keycode = MEDIA_PREVIOUS
-            return "Prev Media"     end
-        if keycode = MEDIA_REWIND
-            return "Rewind"         end
-        if keycode = MEDIA_FAST_FORWARD
-            return "Fast Forward"   end
-        if keycode = MUTE
-            return "Mute"           end
-        if keycode = PAGE_UP        
-            return "Page Up"        end
-        if keycode = PAGE_DOWN
-            return "Page Down"      end
-        if keycode = PICTSYMBOLS
-            return "PICTSYMBOLS"    end
-        if keycode = SWITCH_CHARSET
-            return "SWITCH_CHARSET" end
-        if keycode = BUTTON_A
-            return "A Button"       end
-        if keycode = BUTTON_B
-            return "B Button"       end
-        if keycode = BUTTON_C
-            return "C Button"       end
-        if keycode = BUTTON_X
-            return "X Button"       end
-        if keycode = BUTTON_Y
-            return "Y Button"       end
-        if keycode = BUTTON_Z
-            return "Z Button"       end
-        if keycode = BUTTON_L1
-            return "L1 Button"      end
-        if keycode = BUTTON_R1
-            return "R1 Button"      end
-        if keycode = BUTTON_L2
-            return "L2 Button"      end
-        if keycode = BUTTON_R2
-            return "R2 Button"      end
-        if keycode = BUTTON_THUMBL
-            return "Left Thumb"     end
-        if keycode = BUTTON_THUMBR
-            return "Right Thumb"    end
-        if keycode = BUTTON_START
-            return "Start"          end
-        if keycode = BUTTON_SELECT
-            return "Select"         end
-        if keycode = BUTTON_MODE
-            return "Button Mode"    end
-        if keycode = FORWARD_DEL
-            return "Forward Delete" end
-        if keycode = CONTROL_LEFT
-            return "L-Ctrl"         end
-        if keycode = CONTROL_RIGHT
-            return "R-Ctrl"         end
-        if keycode = ESCAPE
-            return "Escape"         end
-        if keycode = END
-            return "End"            end
-        if keycode = INSERT
-            return "Insert"         end
-        if keycode = NUMPAD_0
-            return "Numpad 0"       end
-        if keycode = NUMPAD_1
-            return "Numpad 1"       end
-        if keycode = NUMPAD_2
-            return "Numpad 2"       end
-        if keycode = NUMPAD_3
-            return "Numpad 3"       end
-        if keycode = NUMPAD_4
-            return "Numpad 4"       end
-        if keycode = NUMPAD_5
-            return "Numpad 5"       end
-        if keycode = NUMPAD_6
-            return "Numpad 6"       end
-        if keycode = NUMPAD_7
-            return "Numpad 7"       end
-        if keycode = NUMPAD_8
-            return "Numpad 8"       end
-        if keycode = NUMPAD_9
-            return "Numpad 9"       end
-        if keycode = COLON
-            return ":"              end
-        if keycode = F1
-            return "F1"             end
-        if keycode = F2
-            return "F2"             end
-        if keycode = F3
-            return "F3"             end
-        if keycode = F4
-            return "F4"             end
-        if keycode = F5
-            return "F5"             end
-        if keycode = F6
-            return "F6"             end
-        if keycode = F7 
-            return "F7"             end
-        if keycode = F8
-            return "F8"             end
-        if keycode = F9
-            return "F9"             end
-        if keycode = F10
-            return "F10"            end
-        if keycode = F11
-            return "F11"            end
-        if keycode = F12
-            return "F12"            end
-
+        text result = textHash:GetValue(keycode)
+        if result not= undefined
+            return result
+        end
         // If it has reached this point, the key name was not found.
         // Quorum doesn't allow returning "undefined" when text is expected,
         // so an empty string is returned instead.
+        return ""
+    end
+
+    action ToTextShift(integer keycode) returns text
+        if keycode < 0
+            Error error
+            error:SetErrorMessage("Keycode cannot be negative, keycode: " + keycode)
+            alert(error)
+        end
         
+        if keycode > 255
+            Error error
+            error:SetErrorMessage("Keycode cannot be greater than 255, keycode: " + keycode)
+            alert(error)
+        end
+
+        text result = textShiftHash:GetValue(keycode)
+        if result not= undefined
+            return result
+        end
+        // If it has reached this point, the key name was not found.
+        // Quorum doesn't allow returning "undefined" when text is expected,
+        // so an empty string is returned instead.
         return ""
     end
 
@@ -501,5 +262,291 @@ class Keys
 
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     */
+    private action InitializeTextHash()
+        textHash:Add(UNKNOWN, "Unknown")
+        textHash:Add(SOFT_LEFT, "SoftLeft")
+        textHash:Add(SOFT_RIGHT, "SoftRight")
+        textHash:Add(HOME, "Home")
+        textHash:Add(BACK, "Back")
+        textHash:Add(CALL, "Call")
+        textHash:Add(ENDCALL, "EndCall")
+        textHash:Add(NUM_0, "0")
+        textHash:Add(NUM_1, "1")
+        textHash:Add(NUM_2, "2")
+        textHash:Add(NUM_3, "3")
+        textHash:Add(NUM_4, "4")
+        textHash:Add(NUM_5, "5")
+        textHash:Add(NUM_6, "6")
+        textHash:Add(NUM_7, "7")
+        textHash:Add(NUM_8, "8")
+        textHash:Add(NUM_9, "9")
+        textHash:Add(STAR, "*")
+        textHash:Add(POUND, "#")
+        textHash:Add(UP, "Up")
+        textHash:Add(DOWN, "Down")
+        textHash:Add(LEFT, "Left")
+        textHash:Add(RIGHT, "Right")
+        textHash:Add(CENTER, "Center")
+        textHash:Add(VOLUME_UP, "VolumeUp")
+        textHash:Add(VOLUME_DOWN, "VolumeDown")
+        textHash:Add(POWER, "Power")
+        textHash:Add(CAMERA, "Camera")
+        textHash:Add(CLEAR, "Clear")
+        textHash:Add(A, "a")
+        textHash:Add(B, "b")
+        textHash:Add(C, "c")
+        textHash:Add(D, "d")
+        textHash:Add(E, "e")
+        textHash:Add(F, "f")
+        textHash:Add(G, "g")
+        textHash:Add(H, "h")
+        textHash:Add(I, "I")
+        textHash:Add(J, "j")
+        textHash:Add(K, "k")
+        textHash:Add(L, "l")
+        textHash:Add(M, "m")
+        textHash:Add(N, "n")
+        textHash:Add(O, "o")
+        textHash:Add(P, "p")
+        textHash:Add(Q, "q")
+        textHash:Add(R, "r")
+        textHash:Add(S, "s")
+        textHash:Add(T, "t")
+        textHash:Add(U, "u")
+        textHash:Add(V, "v")
+        textHash:Add(W, "w")
+        textHash:Add(X, "x")
+        textHash:Add(Y, "y")
+        textHash:Add(Z, "z")
+        textHash:Add(COMMA, ",")
+        textHash:Add(PERIOD, ".")
+        textHash:Add(ALT_LEFT, "L-Alt")
+        textHash:Add(ALT_RIGHT, "R-Alt")
+        textHash:Add(SHIFT_LEFT, "L-Shift")
+        textHash:Add(SHIFT_RIGHT, "R-Shift")
+        textHash:Add(TAB, "Tab")
+        textHash:Add(SPACE, "Space")
+        textHash:Add(SYM, "SYM")
+        textHash:Add(EXPLORER, "Explorer")
+        textHash:Add(ENVELOPE, "Envelope")
+        textHash:Add(ENTER, "Enter")
+        textHash:Add(DEL, "Delete")
+        textHash:Add(GRAVE, "`")
+        textHash:Add(MINUS, "-")
+        textHash:Add(EQUALS, "=")
+        textHash:Add(LEFT_BRACKET, "[")
+        textHash:Add(RIGHT_BRACKET, "]")
+        textHash:Add(BACKSLASH, "\")
+        textHash:Add(SEMICOLON, ";")
+        textHash:Add(APOSTROPHE, "'")
+        textHash:Add(SLASH, "/")
+        textHash:Add(AT, "@")
+        textHash:Add(NUM, "Num")
+        textHash:Add(HEADSETHOOK, "HeadsetHook")
+        textHash:Add(FOCUS, "Focus")
+        textHash:Add(PLUS, "Plus")
+        textHash:Add(MENU, "Menu")
+        textHash:Add(NOTIFICATION, "Notification")
+        textHash:Add(SEARCH, "Search")
+        textHash:Add(MEDIA_PLAY_PAUSE, "Play/Pause")
+        textHash:Add(MEDIA_STOP, "StopMedia")
+        textHash:Add(MEDIA_NEXT, "NextMedia")
+        textHash:Add(MEDIA_PREVIOUS, "PrevMedia")
+        textHash:Add(MEDIA_REWIND, "Rewind")
+        textHash:Add(MEDIA_FAST_FORWARD, "FastForward")
+        textHash:Add(MUTE, "Mute")
+        textHash:Add(PAGE_UP        , "PageUp")
+        textHash:Add(PAGE_DOWN, "PageDown")
+        textHash:Add(PICTSYMBOLS, "PICTSYMBOLS")
+        textHash:Add(SWITCH_CHARSET, "SWITCH_CHARSET")
+        textHash:Add(BUTTON_A, "AButton")
+        textHash:Add(BUTTON_B, "BButton")
+        textHash:Add(BUTTON_C, "CButton")
+        textHash:Add(BUTTON_X, "XButton")
+        textHash:Add(BUTTON_Y, "YButton")
+        textHash:Add(BUTTON_Z, "ZButton")
+        textHash:Add(BUTTON_L1, "L1Button")
+        textHash:Add(BUTTON_R1, "R1Button")
+        textHash:Add(BUTTON_L2, "L2Button")
+        textHash:Add(BUTTON_R2, "R2Button")
+        textHash:Add(BUTTON_THUMBL, "LeftThumb")
+        textHash:Add(BUTTON_THUMBR, "RightThumb")
+        textHash:Add(BUTTON_START, "Start")
+        textHash:Add(BUTTON_SELECT, "Select")
+        textHash:Add(BUTTON_MODE, "ButtonMode")
+        textHash:Add(FORWARD_DEL, "ForwardDelete")
+        textHash:Add(CONTROL_LEFT, "L-Ctrl")
+        textHash:Add(CONTROL_RIGHT, "R-Ctrl")
+        textHash:Add(ESCAPE, "Escape")
+        textHash:Add(END, "End")
+        textHash:Add(INSERT, "Insert")
+        textHash:Add(NUMPAD_0, "Numpad0")
+        textHash:Add(NUMPAD_1, "Numpad1")
+        textHash:Add(NUMPAD_2, "Numpad2")
+        textHash:Add(NUMPAD_3, "Numpad3")
+        textHash:Add(NUMPAD_4, "Numpad4")
+        textHash:Add(NUMPAD_5, "Numpad5")
+        textHash:Add(NUMPAD_6, "Numpad6")
+        textHash:Add(NUMPAD_7, "Numpad7")
+        textHash:Add(NUMPAD_8, "Numpad8")
+        textHash:Add(NUMPAD_9, "Numpad9")
+        textHash:Add(COLON, ":")
+        textHash:Add(F1, "F1")
+        textHash:Add(F2, "F2")
+        textHash:Add(F3, "F3")
+        textHash:Add(F4, "F4")
+        textHash:Add(F5, "F5")
+        textHash:Add(F6, "F6")
+        textHash:Add(F7 , "F7")
+        textHash:Add(F8, "F8")
+        textHash:Add(F9, "F9")
+        textHash:Add(F10, "F10")
+        textHash:Add(F11, "F11")
+        textHash:Add(F12, "F12")
+    end
+
+    private action InitializeTextShiftHash()
+        text t = ""
+        textShiftHash:Add(UNKNOWN, "Unknown")
+        textShiftHash:Add(SOFT_LEFT, "SoftLeft")
+        textShiftHash:Add(SOFT_RIGHT, "SoftRight")
+        textShiftHash:Add(HOME, "Home")
+        textShiftHash:Add(BACK, "Back")
+        textShiftHash:Add(CALL, "Call")
+        textShiftHash:Add(ENDCALL, "EndCall")
+        textShiftHash:Add(NUM_0, ")")
+        textShiftHash:Add(NUM_1, "!")
+        textShiftHash:Add(NUM_2, "@")
+        textShiftHash:Add(NUM_3, "#")
+        textShiftHash:Add(NUM_4, "$")
+        textShiftHash:Add(NUM_5, "%")
+        textShiftHash:Add(NUM_6, "^")
+        textShiftHash:Add(NUM_7, "&")
+        textShiftHash:Add(NUM_8, "*")
+        textShiftHash:Add(NUM_9, "(")
+        textShiftHash:Add(STAR, "*")
+        textShiftHash:Add(POUND, "#")
+        textShiftHash:Add(UP, "Up")
+        textShiftHash:Add(DOWN, "Down")
+        textShiftHash:Add(LEFT, "Left")
+        textShiftHash:Add(RIGHT, "Right")
+        textShiftHash:Add(CENTER, "Center")
+        textShiftHash:Add(VOLUME_UP, "VolumeUp")
+        textShiftHash:Add(VOLUME_DOWN, "VolumeDown")
+        textShiftHash:Add(POWER, "Power")
+        textShiftHash:Add(CAMERA, "Camera")
+        textShiftHash:Add(CLEAR, "Clear")
+        textShiftHash:Add(A, "A")
+        textShiftHash:Add(B, "B")
+        textShiftHash:Add(C, "C")
+        textShiftHash:Add(D, "D")
+        textShiftHash:Add(E, "E")
+        textShiftHash:Add(F, "F")
+        textShiftHash:Add(G, "G")
+        textShiftHash:Add(H, "H")
+        textShiftHash:Add(I, "I")
+        textShiftHash:Add(J, "J")
+        textShiftHash:Add(K, "K")
+        textShiftHash:Add(L, "L")
+        textShiftHash:Add(M, "M")
+        textShiftHash:Add(N, "N")
+        textShiftHash:Add(O, "O")
+        textShiftHash:Add(P, "P")
+        textShiftHash:Add(Q, "Q")
+        textShiftHash:Add(R, "R")
+        textShiftHash:Add(S, "S")
+        textShiftHash:Add(T, "T")
+        textShiftHash:Add(U, "U")
+        textShiftHash:Add(V, "V")
+        textShiftHash:Add(W, "W")
+        textShiftHash:Add(X, "X")
+        textShiftHash:Add(Y, "Y")
+        textShiftHash:Add(Z, "Z")
+        textShiftHash:Add(COMMA, "<")
+        textShiftHash:Add(PERIOD, ">")
+        textShiftHash:Add(ALT_LEFT, "L-Alt")
+        textShiftHash:Add(ALT_RIGHT, "R-Alt")
+        textShiftHash:Add(SHIFT_LEFT, "L-Shift")
+        textShiftHash:Add(SHIFT_RIGHT, "R-Shift")
+        textShiftHash:Add(TAB, "Tab")
+        textShiftHash:Add(SPACE, "Space")
+        textShiftHash:Add(SYM, "SYM")
+        textShiftHash:Add(EXPLORER, "Explorer")
+        textShiftHash:Add(ENVELOPE, "Envelope")
+        textShiftHash:Add(ENTER, "Enter")
+        textShiftHash:Add(DEL, "Delete")
+        textShiftHash:Add(GRAVE, "~")
+        textShiftHash:Add(MINUS, "_")
+        textShiftHash:Add(EQUALS, "+")
+        textShiftHash:Add(LEFT_BRACKET, "{")
+        textShiftHash:Add(RIGHT_BRACKET, "}")
+        textShiftHash:Add(BACKSLASH, "|")
+        textShiftHash:Add(SEMICOLON, ":")
+        textShiftHash:Add(APOSTROPHE, t:GetDoubleQuote())
+        textShiftHash:Add(SLASH, "?")
+        textShiftHash:Add(AT, "@")
+        textShiftHash:Add(NUM, "Num")
+        textShiftHash:Add(HEADSETHOOK, "HeadsetHook")
+        textShiftHash:Add(FOCUS, "Focus")
+        textShiftHash:Add(PLUS, "Plus")
+        textShiftHash:Add(MENU, "Menu")
+        textShiftHash:Add(NOTIFICATION, "Notification")
+        textShiftHash:Add(SEARCH, "Search")
+        textShiftHash:Add(MEDIA_PLAY_PAUSE, "Play/Pause")
+        textShiftHash:Add(MEDIA_STOP, "StopMedia")
+        textShiftHash:Add(MEDIA_NEXT, "NextMedia")
+        textShiftHash:Add(MEDIA_PREVIOUS, "PrevMedia")
+        textShiftHash:Add(MEDIA_REWIND, "Rewind")
+        textShiftHash:Add(MEDIA_FAST_FORWARD, "FastForward")
+        textShiftHash:Add(MUTE, "Mute")
+        textShiftHash:Add(PAGE_UP        , "PageUp")
+        textShiftHash:Add(PAGE_DOWN, "PageDown")
+        textShiftHash:Add(PICTSYMBOLS, "PICTSYMBOLS")
+        textShiftHash:Add(SWITCH_CHARSET, "SWITCH_CHARSET")
+        textShiftHash:Add(BUTTON_A, "AButton")
+        textShiftHash:Add(BUTTON_B, "BButton")
+        textShiftHash:Add(BUTTON_C, "CButton")
+        textShiftHash:Add(BUTTON_X, "XButton")
+        textShiftHash:Add(BUTTON_Y, "YButton")
+        textShiftHash:Add(BUTTON_Z, "ZButton")
+        textShiftHash:Add(BUTTON_L1, "L1Button")
+        textShiftHash:Add(BUTTON_R1, "R1Button")
+        textShiftHash:Add(BUTTON_L2, "L2Button")
+        textShiftHash:Add(BUTTON_R2, "R2Button")
+        textShiftHash:Add(BUTTON_THUMBL, "LeftThumb")
+        textShiftHash:Add(BUTTON_THUMBR, "RightThumb")
+        textShiftHash:Add(BUTTON_START, "Start")
+        textShiftHash:Add(BUTTON_SELECT, "Select")
+        textShiftHash:Add(BUTTON_MODE, "ButtonMode")
+        textShiftHash:Add(FORWARD_DEL, "ForwardDelete")
+        textShiftHash:Add(CONTROL_LEFT, "L-Ctrl")
+        textShiftHash:Add(CONTROL_RIGHT, "R-Ctrl")
+        textShiftHash:Add(ESCAPE, "Escape")
+        textShiftHash:Add(END, "End")
+        textShiftHash:Add(INSERT, "Insert")
+        textShiftHash:Add(NUMPAD_0, "Numpad0")
+        textShiftHash:Add(NUMPAD_1, "Numpad1")
+        textShiftHash:Add(NUMPAD_2, "Numpad2")
+        textShiftHash:Add(NUMPAD_3, "Numpad3")
+        textShiftHash:Add(NUMPAD_4, "Numpad4")
+        textShiftHash:Add(NUMPAD_5, "Numpad5")
+        textShiftHash:Add(NUMPAD_6, "Numpad6")
+        textShiftHash:Add(NUMPAD_7, "Numpad7")
+        textShiftHash:Add(NUMPAD_8, "Numpad8")
+        textShiftHash:Add(NUMPAD_9, "Numpad9")
+        textShiftHash:Add(COLON, ":")
+        textShiftHash:Add(F1, "F1")
+        textShiftHash:Add(F2, "F2")
+        textShiftHash:Add(F3, "F3")
+        textShiftHash:Add(F4, "F4")
+        textShiftHash:Add(F5, "F5")
+        textShiftHash:Add(F6, "F6")
+        textShiftHash:Add(F7 , "F7")
+        textShiftHash:Add(F8, "F8")
+        textShiftHash:Add(F9, "F9")
+        textShiftHash:Add(F10, "F10")
+        textShiftHash:Add(F11, "F11")
+        textShiftHash:Add(F12, "F12")
+    end
 
 end
