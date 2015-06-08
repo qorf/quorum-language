@@ -4,6 +4,7 @@ use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.CodeCompletionItem
+use Libraries.Language.Support.CompareResult
 
 class Action is Symbol
     List<Variable> parameters
@@ -139,23 +140,25 @@ class Action is Symbol
             text value = "<h1>" + display + "</h1>"
 
             value = value + "<p>" + doc:GetDescription() + "</p>"
-            Iterator<text> names = doc:GetParameterNames()
-            Iterator<text> descriptions = doc:GetParameterDescriptions()
             value = value + "<p><strong>Parameters</strong></p>"
-            if names:HasNext() and descriptions:HasNext()
-                value = value + "<ul>"
-                repeat while names:HasNext() and descriptions:HasNext()
-                    text name = names:Next()
-                    text description = descriptions:Next()
-                    Variable param = GetParameter(name)
-                    if param not= undefined
-                        Type type = param:GetType()
-                        text paramTypeName = GetTypeName(type, variable)
-                        value = value + "<li>" + paramTypeName + " " + name + ": " + description
-                    end
+            variables = GetParameterIterator()
+            integer i = 0
+            value = value + "<ul>"
+            repeat while variables:HasNext()
+                Variable param = variables:Next()
+                Type type = param:GetType()
+                text paramTypeName = GetTypeName(type, variable)
+                value = value + "<li>" + paramTypeName + " " + param:GetName()
+                text paramDescription = doc:GetParameterDescription(param:GetName())
+                if paramDescription not= undefined
+                    value = value + ": " + doc:GetParameterDescription(param:GetName()) + "</li>"
+                else
+                    value = value + "</li>"
                 end
-                value = value + "</ul>"
+                
+                i = i + 1
             end
+            value = value + "</ul>"
 
             if not returnType:IsVoid()
                 value = value + "<p><strong>Returns</strong></p>"
@@ -278,15 +281,56 @@ class Action is Symbol
             repeat while params:HasNext()
                 Variable variable = params:Next()
                 Type varType = variable:GetType()
-                key = key + ", " + varType:GetDisplayName()
+                key = key + variable:GetDisplayNameWithGenerics()
+                if params:HasNext() 
+                    key = key + ", "
+                end
             end
         end
         
         key = key + ")"
 
        if not returnType:IsVoid()
-            key = " returns " + returnType:GetDisplayName()
+            key = key + " returns " + returnType:GetDisplayName()
         end
+        return key
+    end
+
+    action GetDisplayNameNoReturn returns text
+        text key = me:GetName() + "("
+        if parameters not= undefined
+            Iterator<Variable> params = parameters:GetIterator()
+            repeat while params:HasNext()
+                Variable variable = params:Next()
+                Type varType = variable:GetType()
+                key = key + variable:GetDisplayNameWithGenerics()
+                if params:HasNext() 
+                    key = key + ", "
+                end
+            end
+        end
+        
+        key = key + ")"
+        return key
+    end
+
+    action GetDisplayNameNoReturnAsWeb returns text
+        text key = "action "
+
+        key = key + "" + me:GetName() + "("
+        if parameters not= undefined
+            Iterator<Variable> params = parameters:GetIterator()
+            repeat while params:HasNext()
+                Variable variable = params:Next()
+                Type varType = variable:GetType()
+                key = key + variable:GetDisplayNameWithGenericsAsWeb()
+                if params:HasNext() 
+                    key = key + ", "
+                end
+            end
+        end
+        
+        key = key + ")"
         return key
     end
 
@@ -380,6 +424,22 @@ class Action is Symbol
             result = result + "$" + t
         end
 
+        return result
+    end
+
+    action Compare(Object object) returns CompareResult
+        CompareResult result
+        Action right = cast(Action, object)
+        text l = GetName()
+        text r = right:GetName()
+
+        if l < r
+            result:result = result:SMALLER
+        elseif l = r
+            result:result = result:EQUAL
+        else
+            result:result = result:LARGER
+        end
         return result
     end
 end

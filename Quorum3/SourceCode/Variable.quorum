@@ -157,6 +157,20 @@ class Variable is Symbol
         return GetStaticKey()
     end
 
+    action GetDisplayNameWithGenerics returns text
+        text result = ""
+        result = result + type:GetStaticKeyWithMappedGenerics() + " " + GetName()
+        return result
+    end
+
+    action GetDisplayNameWithGenericsAsWeb returns text
+        text result = ""
+        result = result + type:GetStaticKeyWithMappedGenerics() + " " + GetName()
+        result = result:Replace(">", "&gt;")
+        result = result:Replace("<", "&lt;")
+        return result
+    end
+
     action IsPublic returns boolean
         return isPublic
     end

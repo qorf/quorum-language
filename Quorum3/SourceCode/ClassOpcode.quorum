@@ -10,6 +10,7 @@ use Libraries.Language.Compile.Symbol.Class
 use Libraries.Containers.Array
 use Libraries.System.File
 use Libraries.Language.Compile.QualifiedName
+use Libraries.Language.Compile.Symbol.Documentation
 
 class ClassOpcode is QuorumOpcode
     QualifiedName packageValue = undefined
@@ -38,6 +39,9 @@ class ClassOpcode is QuorumOpcode
     //text runPath = ""
     File buildFile = undefined
     File buildInterfaceFile = undefined
+    integer h1Size = 150
+    integer h2Size = 125
+    integer h3Size = 100
 
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
         SetBytecodeWriteOffset(offset)
@@ -58,22 +62,6 @@ class ClassOpcode is QuorumOpcode
     action SetBuild(File file)
         buildFolder = file
     end
-
-//    action GetBuildPath returns text
-//        return buildPath
-//    end
-//
-//    action GetRunPath returns text
-//        return runPath
-//    end
-//
-//    action SetBuildPath(text build)
-//        buildPath = build
-//    end
-//
-//    action SetRunPath(text build)
-//        runPath = build
-//    end
 
     action GetStaticKey returns text
         return staticKey
@@ -133,6 +121,178 @@ class ClassOpcode is QuorumOpcode
 
     action SetConstructor(ActionOpcode method)
         constructor = method
+    end
+
+    action GetParentLink(Class from, Class theParent) returns text
+        text link = ""
+        text key = from:GetStaticKey()
+        text parentKey = theParent:GetStaticKey()
+        Array<text> fromSplit = key:Split("\.")
+        Array<text> parentSplit = parentKey:Split("\.")
+        if fromSplit not= undefined and parentSplit not= undefined
+            integer i = 0
+            repeat fromSplit:GetSize() - 1 times
+                link = link + "../"
+                i = i + 1
+            end
+
+            i = 0
+            repeat parentSplit:GetSize() times
+                if i < parentSplit:GetSize() - 1
+                    link = link + parentSplit:Get(i) + "/"
+                else
+                    link = link + parentSplit:Get(i) + ".php"
+                end
+                i = i + 1
+            end
+        end
+        text dq = link:GetDoubleQuote()
+        link = "<a href = " + dq + link + dq + ">" + parentKey + "</a>"
+        return link
+    end
+
+    action WriteToWeb returns text
+        text result = WriteHeader()
+        text dq = result:GetDoubleQuote()
+        result = result + WriteHeroBar()
+        text NL = dq:GetCarriageReturn()
+
+        result = result + "<div id=" + dq + "wrapper" + dq + "><div class=" + dq + "content" + dq + ">"
+        Documentation doc = clazz:GetDocumentation()
+        if doc not= undefined
+            result = result + doc:GetHeaderAsWeb()
+        end
+
+        Iterator<Class> parents = clazz:GetParentClasses()
+        if parents:HasNext()
+            result = result + "<em>Inherits from: <em>"
+            repeat while parents:HasNext()
+                Class p = parents:Next()
+                result = result + GetParentLink(clazz, p)
+                if parents:HasNext()
+                    result = result + ", "
+                end
+            end
+        end
+
+        Iterator<Variable> vars = clazz:GetVariables()
+        if vars:HasNext()
+            result = result + "<h1 style=" + dq + "font-size:" + h1Size + "%" + dq + ">Variables</h1>" + NL
+            result = result + "<ul>"
+            repeat while vars:HasNext()
+                Variable var = vars:Next()
+                result = result + "<li><strong>" + var:GetName() + "</strong>: "
+                Documentation doc = var:GetDocumentation()
+                if doc not= undefined
+                    result = result + doc:GetDescription()
+                end
+                result = result + "</li>" + NL
+                
+            end
+            result = result + "</ul>"
+        end
+        
+
+        result = result + "<h1 style=" + dq + "font-size:" + h1Size + "%" + dq + ">Actions</h1>" + NL
+        Iterator<Action> it = clazz:GetVirtualTable()
+        Array<Action> array
+        repeat while it:HasNext()
+            Action next = it:Next()
+            if next:IsPublic()
+                array:Add(next)
+            end
+        end
+        array:Sort()
+        it = array:GetIterator()
+
+        repeat while it:HasNext()
+            Action act = it:Next()
+            text display = act:GetDisplayNameNoReturnAsWeb()
+            result = result + "<h2 style=" + dq + "font-size:" + h2Size + "%" + dq + ">" + display + "</h2>" + NL
+            Documentation doc = act:GetDocumentation()
+            if doc not= undefined
+                result = result + doc:GetHeaderAsWeb()
+            end          
+
+            Iterator<Variable> params = act:GetParameterIterator()
+            if params:HasNext()
+                result = result + "<strong><em>Parameters</em></strong>"
+                result = result + "<ul>"
+                repeat while params:HasNext()
+                    Variable param = params:Next()
+                    result = result + "<li>" + NL
+                    result = result + "<strong>" + param:GetDisplayNameWithGenericsAsWeb() + "</strong>"
+                     if doc not= undefined
+                        text value = doc:GetParameterDescription(param:GetName())
+                        if value not= undefined
+                            result = result + ": " + value
+                        end
+                    end
+                    result = result + "</li>" + NL
+                end
+                result = result + "</ul>"
+            end
+
+            Type returnType = act:GetReturnType()
+            if not returnType:IsVoid()
+                text r = returnType:GetStaticKeyWithMappedGenerics()
+                result = result + "<strong><em>Return: </em></strong>"
+                result = result + r
+                if doc not= undefined
+                    result = result + " " + doc:GetReturns()
+                end
+            end
+        end
+        result = result +"</div></div>"
+
+        return result + WriteFooter()
+    end
+
+    private action WriteWebActions returns text
+        text result = ""
+
+        return result
+    end
+
+    private action WriteHeroBar returns text
+        text result = ""
+        text dq = result:GetDoubleQuote()
+
+        result = result + "<div class=" + dq + "hero-unit" + dq + ">"
+        result = result + "<div class=" + dq + "hero-unit-container" + dq + " role=" + dq + "banner" +dq + ">"
+        result = result + "<h2 id=" + dq + "pageTitle" + dq + ">" + me:GetStaticKey() + "</h2> </div></div>"//<h2 id="pageTitle">The Quorum Programming Language</h2>
+        return result
+    end
+
+    private action WriteHeader returns text
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+
+        text key = me:GetStaticKey()
+        Array<text> split = key:Split("\.")
+        integer val = split:GetSize() - 1
+
+        text path = ""
+        repeat val times
+            path = path + "../"
+        end
+
+        return "<?php include(" + dq + path + "static/templates/pageheader.template.php" + dq + "); ?>"
+    end
+
+    private action WriteFooter returns text
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+
+        text key = me:GetStaticKey()
+        Array<text> split = key:Split("\.")
+        integer val = split:GetSize() - 1
+
+        text path = ""
+        repeat val times
+            path = path + "../"
+        end
+        return "<?php include(" + dq + path + "static/templates/pagefooter.template.php" + dq + "); ?>"
     end
 
     action Write

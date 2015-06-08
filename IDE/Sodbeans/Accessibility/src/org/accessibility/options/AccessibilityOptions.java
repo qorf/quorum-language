@@ -255,9 +255,9 @@ public class AccessibilityOptions {
         if (os == OperatingSystem.MAC_OSX) {
             return "APPLE_COCOA";
         } else if (os == OperatingSystem.LINUX) {
-            return "";
+            return "SPEECH_DISPATCHER";
         } else if(isWindows()) {
-            return "SAPI";
+            return "MICROSOFT_SAPI";
         }
         
         return "";

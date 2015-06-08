@@ -24,10 +24,10 @@ boolean implied = MyDTDAttribute:IsImpliedValue() // implied will be false
 boolean fixed = MyDTDAttribute:IsFixedValue() // fixed will be false
 */
 class DocumentTypeDefinitionAttribute 
-    text elementName
-    text attributeName
-    text attributeType
-    text attributeValue
+    text elementName = ""
+    text attributeName = ""
+    text attributeType = ""
+    text attributeValue = ""
     boolean isRequired = false
     boolean isImplied = false
     boolean isFixed = false

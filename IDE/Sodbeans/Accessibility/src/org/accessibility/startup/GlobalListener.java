@@ -12,6 +12,7 @@ import javax.swing.InputMap;
 import javax.swing.KeyStroke;
 import org.openide.util.Lookup;
 import org.accessibility.ScreenReader;
+import org.accessibility.options.AccessibilityOptions;
 import org.sodbeans.phonemic.TextToSpeechFactory;
 import org.sodbeans.phonemic.tts.TextToSpeech;
 
@@ -87,7 +88,9 @@ public class GlobalListener implements AWTEventListener {
         }
         else if (theStroke.getKeyCode() == KeyEvent.VK_SHIFT && shiftOnlyDown) {
             shiftOnlyDown = false;
-            speech.respeak();
+            if (AccessibilityOptions.isSelfVoicing()) {
+                speech.respeak();
+            }
         }
     }
 

@@ -20,6 +20,7 @@ class Compiler
     constant text DEFAULT_RUN_FOLDER = "Run"
     constant text DEFAULT_STANDARD_LIBRARY_FOLDER = "Library/Standard"
     constant text WAR_CLASS_DIRECTORY = "WEB-INF/classes"
+    constant text DOCUMENTATION_FOLDER = "Documents/"
     constant text OBJECT = "Libraries.Language.Object"
     constant text JAR_DEPENDENCY_FOLDER = "libraries"
     File buildFolder = undefined
@@ -41,6 +42,8 @@ class Compiler
     TypeChecker sandboxTypeChecker
     public constant integer JAVA_BYTECODE = 0
     public constant integer JAVASCRIPT = 1
+    public constant integer DOCUMENT = 2
+
     integer currentOutputType = 0
     boolean outputSpeechCommands = true
     boolean containsSpeechCommandInCompile = false
@@ -100,7 +103,7 @@ class Compiler
         This action tells the compiler what kind of output to emit.
     */
     action SetOutputType(integer type)
-        if type >= JAVA_BYTECODE and type <= JAVASCRIPT
+        if type >= JAVA_BYTECODE and type <= DOCUMENT
             currentOutputType = type
         else
             currentOutputType = 0
@@ -1056,7 +1059,6 @@ class Compiler
         //an intentional design decision.
         if compilerErrorManager:IsCompilationErrorFree()
             if currentOutputType = JAVA_BYTECODE
-                
                 //open up and begin filling the Jar
                 JarGenerator generator
                 text manifest = GetManifest(generator)
@@ -1106,8 +1108,113 @@ class Compiler
                     a = 5
                 end
                 convertedJavaScript = result
+            elseif currentOutputType = DOCUMENT
+                text result = ""
+                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+                repeat while codes:HasNext()
+                    ClassOpcode code = codes:Next()
+                    Class clazz = code:GetClass()
+
+                    text web = code:WriteToWeb()
+                    text key = clazz:GetStaticKey()
+                    text parentKey = ""
+                    Array<text> split = key:Split("\.")
+                    i = 0
+                    repeat split:GetSize() - 1 times
+                        parentKey = parentKey + split:Get(i) + "/"
+                        i = i + 1
+                    end
+                    key = "/" + key:Replace(".", "/") + ".php"
+
+                    
+                    buildFolder:CreateDirectories()
+                    File mom
+                    mom:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+                    mom:SetPath(DOCUMENTATION_FOLDER + "/" + parentKey)
+                    mom:CreateDirectories()
+
+                    File documentationFile
+                    documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+                    documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + key)
+
+                    
+                    documentationFile:Write(web)
+                    a = 5
+                end
+                
+                
+                text index = "<?php $classPageTitle = 'The Quorum Standard Library'; include('static/templates/pageheader.template.php'); ?>"
+                text dq = index:GetDoubleQuote()
+                text NL = index:GetCarriageReturn()
+
+                index = index + NL + " <div class=" + dq + "hero-unit" + dq + ">" + NL
+                index = index + "<div class=" + dq + "hero-unit-container" + dq + ">"
+		index = index + "<h1>The Quorum Standard Library</h1>"
+		index = index + "<p>Quorum includes library classes like: 1) computer games, 2) text-to-speech and audio playback, 3) Lego robots, and 4) support classes (e.g., arrays, lists, hash tables, math, console, system). The standard library is expanded in each release.</p>"
+		index = index + "</div></div>"
+                index = index + "<div class=" + dq + "content index-content" + dq + ">"
+
+                Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
+                repeat while packages:HasNext()
+                    text key = packages:Next()
+                    if not key:IsEmpty() //ignore the default package
+                        index = index + NL + "<table class=" + dq + "table index-package" + dq + ">"
+                        index = index + "<tr><th><h3 class=" + dq + "index_package_title" + dq + ">" + key + "</h3></th></tr>" + NL
+                        Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
+                        integer i = 0
+                        repeat classes:GetSize() times
+                            Class clazz = classes:Get(i)
+                            index = index + "<tr><td class=" + dq + "primary" + dq + ">" + NL
+                            index = index + GetClassLinkFromIndex(clazz)//"<a href=" + dq + "" + dq + ">" + clazz:GetName() + "</a>" 
+                            
+                            Documentation doc = clazz:GetDocumentation()
+                            if doc not= undefined
+                                constant integer DOC_SIZE = 120
+                                text description = doc:GetDescription()
+                                if description = undefined
+                                    description = ""
+                                end
+                                if description:GetSize() > DOC_SIZE
+                                    description = description:GetSubtext(0, DOC_SIZE) + " ..."
+                                end
+
+                                index = index + ": " + description
+                            end
+
+                            index = index + "</td></tr>"
+                            i = i + 1
+                        end
+                        index = index + "</table>"
+                    end
+                end
+                index = index + NL + "</div" + NL + "<?php include('static/templates/pagefooter.template.php'); ?>"
+
+                File documentationFile
+                documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+                documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + "libraries.php")
+                documentationFile:Write(index)
             end
         end
+    end
+
+    private action GetClassLinkFromIndex(Class from) returns text
+        text link = ""
+        text key = from:GetStaticKey()
+        Array<text> fromSplit = key:Split("\.")
+        if fromSplit not= undefined
+            i = 0
+            repeat fromSplit:GetSize() times
+                if i < fromSplit:GetSize() - 1
+                    link = link + fromSplit:Get(i) + "/"
+                else
+                    link = link + fromSplit:Get(i) + ".php"
+                end
+                i = i + 1
+            end
+        end
+        text dq = link:GetDoubleQuote()
+        link = "<a href = " + dq + link + dq + ">" + from:GetName() + "</a>"
+        return link
     end
 
     /*
