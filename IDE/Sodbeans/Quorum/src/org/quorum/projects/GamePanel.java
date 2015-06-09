@@ -20,6 +20,11 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import javax.swing.JOptionPane;
 import org.netbeans.api.project.Project;
+import com.badlogic.gdx.tools.texturepacker.TexturePacker;
+import com.badlogic.gdx.tools.texturepacker.TexturePacker.Settings;
+import com.sun.media.jfxmedia.logging.Logger;
+import javax.swing.SwingUtilities;
+
 /**
  *
  * @author stefika
@@ -112,6 +117,11 @@ public class GamePanel extends javax.swing.JPanel {
         org.openide.awt.Mnemonics.setLocalizedText(previewImageSheetButton, org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.previewImageSheetButton.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(buildImageSheetButton, org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.buildImageSheetButton.text")); // NOI18N
+        buildImageSheetButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buildImageSheetButtonActionPerformed(evt);
+            }
+        });
 
         imageList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
@@ -397,6 +407,33 @@ public class GamePanel extends javax.swing.JPanel {
             }
         }
     }//GEN-LAST:event_removeImageFromSheetButtonActionPerformed
+
+    private void buildImageSheetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buildImageSheetButtonActionPerformed
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                Settings settings = new TexturePacker.Settings();
+                TexturePacker packer = new TexturePacker(settings);
+
+                QuorumProject proj = (QuorumProject) project;
+                FileObject directory = proj.getProjectDirectory();
+                String projectPath = FileUtil.toFile(directory).getAbsolutePath();
+                for(int i = 0; i < images.size(); i++) {
+                    String image = (String) images.get(i);
+                    File file = new File(projectPath + File.separator + image);
+                    packer.addImage(file);
+                }
+                File output = new File(projectPath + File.separator + pathTextField.getText());
+                String val = (String) imageSheetList.getSelectedValue();
+                try {
+                    packer.pack(output, val);
+                } catch(Exception e) {
+                    Logger.logMsg(Logger.WARNING, e.toString());
+                }
+            }
+        });
+        
+    }//GEN-LAST:event_buildImageSheetButtonActionPerformed
 
     public String getPathRelativeToProject(File file) {
         String absolutePath = file.getAbsolutePath();
