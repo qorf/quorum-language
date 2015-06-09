@@ -63,7 +63,7 @@ public class QuorumCustomizer implements CustomizerProvider{
         panels.put(PROJECT_INFO_CATEGORY, infoPanel);
         
         gamePanel = new GamePanel();
-        
+        gamePanel.setProject(project);
         panels.put(GAME_CATEGORY, gamePanel);
         panelProvider = new PanelProvider(panels);
     }
