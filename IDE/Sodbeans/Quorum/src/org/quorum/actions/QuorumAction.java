@@ -90,7 +90,7 @@ public abstract class QuorumAction implements Action {
         
         ImageSheetManager imageSheetManager = project.getImageSheetManager();
         //if image sheet support is disabled, don't bother going further.
-        if(imageSheetManager.isEnableImageSheetSupport()) {
+        if(imageSheetManager.isEnableImageSheetSupport() && imageSheetManager.isRebuildOnCompile()) {
             String message = "Automatically building the following image sheets: ";
             Iterator<String> it = imageSheetManager.getImageSheetIterator();
             while(it.hasNext()) {

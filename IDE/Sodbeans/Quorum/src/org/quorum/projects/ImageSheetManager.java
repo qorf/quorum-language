@@ -113,6 +113,7 @@ public class ImageSheetManager {
      */
     public void buildImageSheet(String sheet, File path) {
         Settings settings = new TexturePacker.Settings();
+        settings.flattenPaths = true;
         TexturePacker packer = new TexturePacker(settings);
         String projectPath =  path.getAbsolutePath();
         List<String> images = imagesHash.get(sheet);

@@ -281,6 +281,8 @@ public class GamePanel extends javax.swing.JPanel {
             String get = (String)imageSheets.get(index);
             String input = JOptionPane.showInputDialog(this, "Please enter the name of the image sheet", get);
             imageSheets.set(index, input);
+            List<String> remove = imagesHash.remove(get);
+            imagesHash.put(input, remove);
         }
     }//GEN-LAST:event_editImageSheetButtonActionPerformed
 
