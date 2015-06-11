@@ -63,7 +63,10 @@ public class QuorumProject implements Project {
     public static final String QUORUM_EXECUTABLE_NAME = "Quorum_Executable_Name";
     public static final String ADDITIONAL_PLUGIN_FOLDERS = "Additional_Plugin_Folders";
     public static final String ADDITIONAL_JARS = "Additional_Jars";
-    
+    public static final String IMAGE_SHEETS = "Image_Sheets";
+    public static final String IMAGE_SHEETS_ENABLED = "Image_Sheets_Enabled";
+    public static final String REBUILD_IMAGE_SHEETS_ON_COMPILE = "Rebuild_Image_Sheets_On_Compile";
+    public static final String IMAGE_SHEET_BUILD_PATH = "ImageSheetBuildPath";
 
     public static final String QUORUM_PROJECT_ICON = "org/quorum/resources/project.png";
     public static final String QUORUM_FILE_ICON = "org/quorum/resources/file.png";

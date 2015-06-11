@@ -23,6 +23,7 @@ import org.netbeans.api.project.Project;
 import com.badlogic.gdx.tools.texturepacker.TexturePacker;
 import com.badlogic.gdx.tools.texturepacker.TexturePacker.Settings;
 import com.sun.media.jfxmedia.logging.Logger;
+import java.util.Properties;
 import javax.swing.SwingUtilities;
 
 /**
@@ -61,19 +62,18 @@ public class GamePanel extends javax.swing.JPanel {
         addImageSheetButton = new javax.swing.JButton();
         editImageSheetButton = new javax.swing.JButton();
         removeImageSheetButton = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
-        previewImageSheetButton = new javax.swing.JButton();
+        imageSheetLabel = new javax.swing.JLabel();
         buildImageSheetButton = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         imageList = new javax.swing.JList();
-        jLabel2 = new javax.swing.JLabel();
+        imageLabel = new javax.swing.JLabel();
         addImageToSheetButton = new javax.swing.JButton();
         addFolderToSheetButton = new javax.swing.JButton();
         removeImageFromSheetButton = new javax.swing.JButton();
         previewLabel = new javax.swing.JLabel();
         pathTextField = new javax.swing.JTextField();
         buildLabel = new javax.swing.JLabel();
-        jCheckBox1 = new javax.swing.JCheckBox();
+        isEnabledCheckBox = new javax.swing.JCheckBox();
 
         folderChooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
 
@@ -112,9 +112,7 @@ public class GamePanel extends javax.swing.JPanel {
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.jLabel1.text")); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(previewImageSheetButton, org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.previewImageSheetButton.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(imageSheetLabel, org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.imageSheetLabel.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(buildImageSheetButton, org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.buildImageSheetButton.text")); // NOI18N
         buildImageSheetButton.addActionListener(new java.awt.event.ActionListener() {
@@ -132,7 +130,7 @@ public class GamePanel extends javax.swing.JPanel {
         imageList.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.imageList.AccessibleContext.accessibleName")); // NOI18N
         imageList.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.imageList.AccessibleContext.accessibleDescription")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.jLabel2.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(imageLabel, org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.imageLabel.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(addImageToSheetButton, org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.addImageToSheetButton.text")); // NOI18N
         addImageToSheetButton.addActionListener(new java.awt.event.ActionListener() {
@@ -166,7 +164,12 @@ public class GamePanel extends javax.swing.JPanel {
         org.openide.awt.Mnemonics.setLocalizedText(buildLabel, org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.buildLabel.text")); // NOI18N
         buildLabel.setToolTipText(org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.buildLabel.toolTipText")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jCheckBox1, org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.jCheckBox1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(isEnabledCheckBox, org.openide.util.NbBundle.getMessage(GamePanel.class, "GamePanel.isEnabledCheckBox.text")); // NOI18N
+        isEnabledCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                isEnabledCheckBoxActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -178,7 +181,7 @@ public class GamePanel extends javax.swing.JPanel {
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel1)
+                                .addComponent(imageSheetLabel)
                                 .addGap(0, 0, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE)
@@ -187,12 +190,11 @@ public class GamePanel extends javax.swing.JPanel {
                                     .addComponent(addImageSheetButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(editImageSheetButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(removeImageSheetButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(previewImageSheetButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(buildImageSheetButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel2)
+                                        .addComponent(imageLabel)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(jScrollPane2)
@@ -207,7 +209,7 @@ public class GamePanel extends javax.swing.JPanel {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(pathTextField))))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jCheckBox1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(isEnabledCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(rebuildImageSheetOnCompileCheckBox)))
                 .addContainerGap())
@@ -218,13 +220,13 @@ public class GamePanel extends javax.swing.JPanel {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(rebuildImageSheetOnCompileCheckBox)
-                    .addComponent(jCheckBox1))
+                    .addComponent(isEnabledCheckBox))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(pathTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(buildLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel1)
+                .addComponent(imageSheetLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -234,12 +236,10 @@ public class GamePanel extends javax.swing.JPanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(removeImageSheetButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(previewImageSheetButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buildImageSheetButton))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel2)
+                .addComponent(imageLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -435,6 +435,36 @@ public class GamePanel extends javax.swing.JPanel {
         
     }//GEN-LAST:event_buildImageSheetButtonActionPerformed
 
+    private void isEnabledCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_isEnabledCheckBoxActionPerformed
+        setEnabledGUI();
+    }//GEN-LAST:event_isEnabledCheckBoxActionPerformed
+
+    private void setEnabledGUI() {
+        boolean isTrue = false;
+        if(isEnabledCheckBox.isSelected()) {
+            isTrue = true;
+        } else {
+            isTrue = false;
+        }
+        
+        rebuildImageSheetOnCompileCheckBox.setEnabled(isTrue);
+        pathTextField.setEnabled(isTrue);
+        imageSheetList.setEnabled(isTrue);
+        addImageSheetButton.setEnabled(isTrue);
+        addImageToSheetButton.setEnabled(isTrue);
+        buildImageSheetButton.setEnabled(isTrue);
+        editImageSheetButton.setEnabled(isTrue);
+        addFolderToSheetButton.setEnabled(isTrue);
+        imageList.setEnabled(isTrue);
+        buildLabel.setEnabled(isTrue);
+        imageSheetLabel.setEnabled(isTrue);
+        imageLabel.setEnabled(isTrue);
+        imageSheetList.setEnabled(isTrue);
+        rebuildImageSheetOnCompileCheckBox.setEnabled(isTrue);
+        removeImageFromSheetButton.setEnabled(isTrue);
+        removeImageSheetButton.setEnabled(isTrue);
+    }
+    
     public String getPathRelativeToProject(File file) {
         String absolutePath = file.getAbsolutePath();
         QuorumProject proj = (QuorumProject) project;
@@ -447,13 +477,72 @@ public class GamePanel extends javax.swing.JPanel {
         return relativePath.toString();
     }
     
+    public ImageSheetManager getManager() {
+        ImageSheetManager manager = new ImageSheetManager();
+        manager.setImagesHash(imagesHash);
+        manager.setBuildPath(pathTextField.getText());
+        manager.setEnableImageSheetSupport(isEnabledCheckBox.isSelected());
+        manager.setRebuildOnCompile(rebuildImageSheetOnCompileCheckBox.isSelected());
+        return manager;
+    }
+    
     public Project getProject() {
         return project;
     }
     
     public void setProject(Project project) {
         this.project = project;
-        //loadProperties();
+        loadProperties();
+    }
+    
+    private void loadProperties() {
+        Properties properties = project.getLookup().lookup(Properties.class);
+        String enabled = properties.getProperty(QuorumProject.IMAGE_SHEETS_ENABLED);
+        if(enabled != null) {
+            isEnabledCheckBox.setSelected(true);
+        } else { //by default, this does not exist if it is false
+            isEnabledCheckBox.setSelected(false);
+        }
+        String rebuild = properties.getProperty(QuorumProject.REBUILD_IMAGE_SHEETS_ON_COMPILE);
+        if(rebuild != null) {
+            rebuildImageSheetOnCompileCheckBox.setSelected(true);
+        } else { //by default, this does not exist if it is false
+            rebuildImageSheetOnCompileCheckBox.setSelected(false);
+        }
+        String sheets = properties.getProperty(QuorumProject.IMAGE_SHEETS);
+        ImageSheetManager ism = new ImageSheetManager();
+        ism.load(sheets);
+        imagesHash = ism.getImagesHash();
+        populateTextboxes();
+        
+        String path = properties.getProperty(QuorumProject.IMAGE_SHEET_BUILD_PATH);
+        if(path != null) {
+            pathTextField.setText(path);
+        } else {
+            pathTextField.setText("resources");
+        }
+        setEnabledGUI();
+    }
+    
+    private void populateTextboxes() {
+        if(imagesHash != null) {
+            Iterator<String> iterator = imagesHash.keySet().iterator();
+            int i = 0;
+            while(iterator.hasNext()) {
+                String next = iterator.next();
+                imageSheets.addElement(next);
+                if(i == 0) {
+                    List<String> get = imagesHash.get(next);
+                    Iterator<String> li = get.iterator();
+                    images.clear();
+                    while(li.hasNext()) {
+                        String image = li.next();
+                        images.addElement(image);
+                    }
+                }
+                i++;
+            }
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -465,15 +554,14 @@ public class GamePanel extends javax.swing.JPanel {
     private javax.swing.JButton editImageSheetButton;
     private javax.swing.JFileChooser folderChooser;
     private javax.swing.JFileChooser imageFileChooser;
+    private javax.swing.JLabel imageLabel;
     private javax.swing.JList imageList;
+    private javax.swing.JLabel imageSheetLabel;
     private javax.swing.JList imageSheetList;
-    private javax.swing.JCheckBox jCheckBox1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
+    private javax.swing.JCheckBox isEnabledCheckBox;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextField pathTextField;
-    private javax.swing.JButton previewImageSheetButton;
     private javax.swing.JLabel previewLabel;
     private javax.swing.JCheckBox rebuildImageSheetOnCompileCheckBox;
     private javax.swing.JButton removeImageFromSheetButton;

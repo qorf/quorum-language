@@ -104,6 +104,8 @@ public class QuorumCustomizer implements CustomizerProvider{
         @Override
         public void actionPerformed(ActionEvent e) {
             Properties properties = project.getLookup().lookup(Properties.class);
+            
+            //set the properties from the information panel
             String type = infoPanel.getQuorumProjectType();
             properties.setProperty(QuorumProject.QUORUM_PROJECT_TYPE, type);
             
@@ -135,6 +137,27 @@ public class QuorumCustomizer implements CustomizerProvider{
             
             String jars = properties.getProperty(QuorumProject.ADDITIONAL_JARS);
             ((QuorumProject) project).resetJars(jars);
+            
+            
+            //set the properties from the game panel
+            ImageSheetManager manager = gamePanel.getManager();
+            
+            if(manager.isEnableImageSheetSupport()) {
+                properties.setProperty(QuorumProject.IMAGE_SHEETS_ENABLED, "true");
+                if(manager.isRebuildOnCompile()) {
+                    properties.setProperty(QuorumProject.REBUILD_IMAGE_SHEETS_ON_COMPILE, "true");
+                } else {
+                    properties.remove(QuorumProject.REBUILD_IMAGE_SHEETS_ON_COMPILE);
+                }
+                String sheets = manager.save();
+                properties.setProperty(QuorumProject.IMAGE_SHEETS, sheets);
+                properties.setProperty(QuorumProject.IMAGE_SHEET_BUILD_PATH, manager.getBuildPath());
+            } else {
+                properties.remove(QuorumProject.IMAGE_SHEETS_ENABLED);
+                properties.remove(QuorumProject.REBUILD_IMAGE_SHEETS_ON_COMPILE);
+                properties.remove(QuorumProject.IMAGE_SHEETS);
+                properties.remove(QuorumProject.IMAGE_SHEET_BUILD_PATH);
+            }
         }
 
         @Override
