@@ -9,6 +9,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
+import com.badlogic.gdx.tools.texturepacker.TexturePacker;
+import com.badlogic.gdx.tools.texturepacker.TexturePacker.Settings;
+import com.sun.media.jfxmedia.logging.Logger;
+import java.io.File;
 
 /**
  *
@@ -22,6 +27,10 @@ public class ImageSheetManager {
     private String buildPath = "resources";
     private boolean rebuildOnCompile = false;
     private boolean enableImageSheetSupport = false;
+    public static final String IMAGE_SHEETS = "Image_Sheets";
+    public static final String IMAGE_SHEETS_ENABLED = "Image_Sheets_Enabled";
+    public static final String REBUILD_IMAGE_SHEETS_ON_COMPILE = "Rebuild_Image_Sheets_On_Compile";
+    public static final String IMAGE_SHEET_BUILD_PATH = "ImageSheetBuildPath";
     
     public boolean Add(String imageSheet) {
         if(getImagesHash().containsKey(imageSheet)) {
@@ -52,6 +61,30 @@ public class ImageSheetManager {
         return getImagesHash().keySet().iterator();
     }
     
+    /*
+    
+        This method returns an image sheet manager with all appropriate properties
+        set. It is just a helper method.
+    */
+    public static ImageSheetManager getImageSheetManager(Properties properties) {
+        ImageSheetManager manager = new ImageSheetManager();
+        String enabled = properties.getProperty(IMAGE_SHEETS_ENABLED);
+        if(enabled != null) {
+            manager.setEnableImageSheetSupport(true);
+        }
+        String rebuild = properties.getProperty(REBUILD_IMAGE_SHEETS_ON_COMPILE);
+        if(rebuild != null) {
+            manager.setRebuildOnCompile(true);
+        }
+        String path = properties.getProperty(IMAGE_SHEET_BUILD_PATH);
+        if(path != null) {
+            manager.setBuildPath(path);
+        }
+        String sheets = properties.getProperty(IMAGE_SHEETS);
+        manager.load(sheets); //this method automatically checks for null
+        return manager;
+    }
+    
     public void load(String string) {
         if(string != null) {
             String[] sheets = string.split(SHEET_DELIMITER);
@@ -69,6 +102,70 @@ public class ImageSheetManager {
                 }
                 imagesHash.put(sheetName, images);
             }
+        }
+    }
+    
+    /**
+     * This method builds a single image sheet, if it exists.
+     * 
+     * @param sheet
+     * @param path 
+     */
+    public void buildImageSheet(String sheet, File path) {
+        Settings settings = new TexturePacker.Settings();
+        TexturePacker packer = new TexturePacker(settings);
+        String projectPath =  path.getAbsolutePath();
+        List<String> images = imagesHash.get(sheet);
+        if(images != null && images.size() > 0 && sheet != null && sheet.length() != 0) {
+            for(int i = 0; i < images.size(); i++) {
+                String image = (String) images.get(i);
+                File file = new File(projectPath + File.separator + image);
+                packer.addImage(file);
+            }
+            File output = new File(projectPath + File.separator + buildPath);
+            try {
+                deleteOldTextureSheet(sheet, path);
+                packer.pack(output, sheet);
+            } catch(Exception e) {
+                Logger.logMsg(Logger.WARNING, e.toString());
+            }
+        }
+    }
+    
+    private void deleteOldTextureSheet(String sheet, File path) {
+        String projectPath =  path.getAbsolutePath();
+        File atlas = new File(projectPath + File.separator + buildPath + File.separator + sheet + ".atlas");
+        if(atlas.exists() && atlas.isFile()) {
+            atlas.delete();
+        }
+        //now delete any atlas files that exist with this naming convention.
+        boolean isFinished = false;
+        int i = 0;
+        while(!isFinished) {
+            File page = null;
+            if(i == 0) {
+                page = new File(projectPath + File.separator + buildPath + File.separator + sheet + ".png");
+            } else {
+                page = new File(projectPath + File.separator + buildPath + File.separator + sheet + i + ".png");
+            }
+            if(page.exists() && page.isFile()) {
+                page.delete();
+            } else { //we're done here.
+                isFinished = true;
+            }
+            i++;
+        }
+    }
+    /**
+     * This method builds all image sheets loaded into the object.
+     * 
+     * @param path 
+     */
+    public void buildAllImageSheets(File path) {
+        Iterator<String> iterator = imagesHash.keySet().iterator();
+        while(iterator.hasNext()) {
+            String next = iterator.next();
+            buildImageSheet(next, path);
         }
     }
     
