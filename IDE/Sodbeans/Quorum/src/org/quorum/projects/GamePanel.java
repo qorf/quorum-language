@@ -20,9 +20,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import javax.swing.JOptionPane;
 import org.netbeans.api.project.Project;
-import com.badlogic.gdx.tools.texturepacker.TexturePacker;
-import com.badlogic.gdx.tools.texturepacker.TexturePacker.Settings;
-import com.sun.media.jfxmedia.logging.Logger;
 import java.util.Properties;
 import javax.swing.SwingUtilities;
 
@@ -412,27 +409,15 @@ public class GamePanel extends javax.swing.JPanel {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                Settings settings = new TexturePacker.Settings();
-                TexturePacker packer = new TexturePacker(settings);
-
-                QuorumProject proj = (QuorumProject) project;
-                FileObject directory = proj.getProjectDirectory();
-                String projectPath = FileUtil.toFile(directory).getAbsolutePath();
-                for(int i = 0; i < images.size(); i++) {
-                    String image = (String) images.get(i);
-                    File file = new File(projectPath + File.separator + image);
-                    packer.addImage(file);
-                }
-                File output = new File(projectPath + File.separator + pathTextField.getText());
-                String val = (String) imageSheetList.getSelectedValue();
-                try {
-                    packer.pack(output, val);
-                } catch(Exception e) {
-                    Logger.logMsg(Logger.WARNING, e.toString());
+                if(imageSheetList.getSelectedIndex() != -1) {
+                    ImageSheetManager manager = getManager();
+                    QuorumProject proj = (QuorumProject) project;
+                    FileObject directory = proj.getProjectDirectory();
+                    File path = FileUtil.toFile(directory);
+                    manager.buildImageSheet((String) imageSheetList.getSelectedValue(), path);
                 }
             }
         });
-        
     }//GEN-LAST:event_buildImageSheetButtonActionPerformed
 
     private void isEnabledCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_isEnabledCheckBoxActionPerformed
@@ -497,25 +482,25 @@ public class GamePanel extends javax.swing.JPanel {
     
     private void loadProperties() {
         Properties properties = project.getLookup().lookup(Properties.class);
-        String enabled = properties.getProperty(QuorumProject.IMAGE_SHEETS_ENABLED);
+        String enabled = properties.getProperty(ImageSheetManager.IMAGE_SHEETS_ENABLED);
         if(enabled != null) {
             isEnabledCheckBox.setSelected(true);
         } else { //by default, this does not exist if it is false
             isEnabledCheckBox.setSelected(false);
         }
-        String rebuild = properties.getProperty(QuorumProject.REBUILD_IMAGE_SHEETS_ON_COMPILE);
+        String rebuild = properties.getProperty(ImageSheetManager.REBUILD_IMAGE_SHEETS_ON_COMPILE);
         if(rebuild != null) {
             rebuildImageSheetOnCompileCheckBox.setSelected(true);
         } else { //by default, this does not exist if it is false
             rebuildImageSheetOnCompileCheckBox.setSelected(false);
         }
-        String sheets = properties.getProperty(QuorumProject.IMAGE_SHEETS);
+        String sheets = properties.getProperty(ImageSheetManager.IMAGE_SHEETS);
         ImageSheetManager ism = new ImageSheetManager();
         ism.load(sheets);
         imagesHash = ism.getImagesHash();
         populateTextboxes();
         
-        String path = properties.getProperty(QuorumProject.IMAGE_SHEET_BUILD_PATH);
+        String path = properties.getProperty(ImageSheetManager.IMAGE_SHEET_BUILD_PATH);
         if(path != null) {
             pathTextField.setText(path);
         } else {
@@ -544,7 +529,6 @@ public class GamePanel extends javax.swing.JPanel {
             }
         }
     }
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addFolderToSheetButton;
     private javax.swing.JButton addImageSheetButton;

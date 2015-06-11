@@ -143,20 +143,20 @@ public class QuorumCustomizer implements CustomizerProvider{
             ImageSheetManager manager = gamePanel.getManager();
             
             if(manager.isEnableImageSheetSupport()) {
-                properties.setProperty(QuorumProject.IMAGE_SHEETS_ENABLED, "true");
+                properties.setProperty(ImageSheetManager.IMAGE_SHEETS_ENABLED, "true");
                 if(manager.isRebuildOnCompile()) {
-                    properties.setProperty(QuorumProject.REBUILD_IMAGE_SHEETS_ON_COMPILE, "true");
+                    properties.setProperty(ImageSheetManager.REBUILD_IMAGE_SHEETS_ON_COMPILE, "true");
                 } else {
-                    properties.remove(QuorumProject.REBUILD_IMAGE_SHEETS_ON_COMPILE);
+                    properties.remove(ImageSheetManager.REBUILD_IMAGE_SHEETS_ON_COMPILE);
                 }
                 String sheets = manager.save();
-                properties.setProperty(QuorumProject.IMAGE_SHEETS, sheets);
-                properties.setProperty(QuorumProject.IMAGE_SHEET_BUILD_PATH, manager.getBuildPath());
+                properties.setProperty(ImageSheetManager.IMAGE_SHEETS, sheets);
+                properties.setProperty(ImageSheetManager.IMAGE_SHEET_BUILD_PATH, manager.getBuildPath());
             } else {
-                properties.remove(QuorumProject.IMAGE_SHEETS_ENABLED);
-                properties.remove(QuorumProject.REBUILD_IMAGE_SHEETS_ON_COMPILE);
-                properties.remove(QuorumProject.IMAGE_SHEETS);
-                properties.remove(QuorumProject.IMAGE_SHEET_BUILD_PATH);
+                properties.remove(ImageSheetManager.IMAGE_SHEETS_ENABLED);
+                properties.remove(ImageSheetManager.REBUILD_IMAGE_SHEETS_ON_COMPILE);
+                properties.remove(ImageSheetManager.IMAGE_SHEETS);
+                properties.remove(ImageSheetManager.IMAGE_SHEET_BUILD_PATH);
             }
         }
 

@@ -20,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
 import org.netbeans.api.progress.ProgressHandle;
@@ -33,6 +34,7 @@ import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.windows.*;
 import org.quorum.debugger.QuorumDebugger;
+import org.quorum.projects.ImageSheetManager;
 import org.quorum.projects.QuorumProject;
 import org.quorum.windows.CompilerErrorTopComponent;
 import quorum.Libraries.Containers.Array$Interface;
@@ -85,6 +87,29 @@ public abstract class QuorumAction implements Action {
         Lookup lookup = project.getLookup();
         final quorum.Libraries.Language.Compile.Compiler compiler = lookup.lookup(quorum.Libraries.Language.Compile.Compiler.class);
         FileObject projectDirectory = project.getProjectDirectory();
+        
+        ImageSheetManager imageSheetManager = project.getImageSheetManager();
+        //if image sheet support is disabled, don't bother going further.
+        if(imageSheetManager.isEnableImageSheetSupport()) {
+            String message = "Automatically building the following image sheets: ";
+            Iterator<String> it = imageSheetManager.getImageSheetIterator();
+            while(it.hasNext()) {
+                String next = it.next();
+                if(it.hasNext()) {
+                    message = message + next + ", ";
+                } else {
+                    message = message + next + ".";
+                }
+                
+            }
+            io.getOut().println(message);
+            long start = System.currentTimeMillis();
+            imageSheetManager.buildAllImageSheets(FileUtil.toFile(projectDirectory));
+            long finish = System.currentTimeMillis();
+            double total = (finish - start);
+            total = total / 1000.0;
+            io.getOut().println("Image sheets complete in " + total + " seconds.");
+        }
         File directory = FileUtil.toFile(projectDirectory);
 
         File file = new File(directory.getAbsolutePath() + "/" + QuorumProject.SOURCES_DIR);
@@ -110,11 +135,8 @@ public abstract class QuorumAction implements Action {
                 Exceptions.printStackTrace(ex);
             }
         }
-        
-        
+        long start = System.currentTimeMillis();
         compiler.Empty();
-        //quorum.Libraries.System.File f = (quorum.Libraries.System.File)listing.Get(0);
-        //compiler.SetMain(f);
         try {
             compiler.Compile(listing);
         } catch (final Exception e) {
@@ -123,7 +145,6 @@ public abstract class QuorumAction implements Action {
                     @Override
                     public void run() {
                         io.select();
-
                         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
                         Date date = new Date();
                         String format = dateFormat.format(date);
@@ -151,6 +172,10 @@ public abstract class QuorumAction implements Action {
             run.setExecutable(true);
         }
         
+        long finish = System.currentTimeMillis();
+        double value = (finish - start);
+        value = value / 1000.0;
+        final double total = value;
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -173,7 +198,7 @@ public abstract class QuorumAction implements Action {
                     SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
                     Date date = new Date();
 
-                    io.getOut().println("Build Successful at " + dateFormat.format(date) + ".");
+                    io.getOut().println("Build Successful at " + dateFormat.format(date) + " in " + total + " seconds.");
                     io.setInputVisible(true);
                     io.getOut().close();
                 }
