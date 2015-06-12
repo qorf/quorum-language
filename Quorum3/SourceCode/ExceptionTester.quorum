@@ -70,6 +70,7 @@ class ExceptionTester
         IfInCheckWithAlways()
         IfInDetect()
         IfInDetectWithAlways()
+        FieldError()
         MultipleDetects()
         MultipleDetectsWithAlways()
         NestedAlwaysWithException()
@@ -722,6 +723,17 @@ class ExceptionTester
         files:Add(main)
         results:Add(0, "detect")
         results:Add(1, "always")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action FieldError 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "FieldError.quorum")
+        files:Add(main)
+        results:Add(0, "Hello world!")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

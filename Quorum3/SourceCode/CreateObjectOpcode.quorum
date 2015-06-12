@@ -59,7 +59,12 @@ class CreateObjectOpcode is QuorumOpcode
                 //path = clazz:ConvertStaticKeyToBytecodeInterfacePath()
                 setterName = fieldHolder:ConvertToActionNameFromField(variable, false)
                 Type type = variable:GetType()
-                methodName = type:ConvertToSignatureFromFieldInterface(false)
+                text methodName = ""
+                if not type:IsPrimitive() and clazz:IsError()
+                    methodName = type:ConvertToSignatureFromField(false)
+                else
+                    methodName = type:ConvertToSignatureFromFieldInterface(false)
+                end
                 
                 //cast this thing to the interface type
                 //methodWriter:VisitType(opcodes:GetCheckCast(), clazz:ConvertStaticKeyToBytecodeInterfacePath())
