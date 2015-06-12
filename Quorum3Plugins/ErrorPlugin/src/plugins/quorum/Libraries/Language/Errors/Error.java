@@ -31,12 +31,13 @@ public class Error {
         } else if(throwable instanceof quorum.Libraries.Language.Errors.Error) {
             quorum.Libraries.Language.Errors.Error error = (quorum.Libraries.Language.Errors.Error) throwable;
             if(error.stackTrace == null) {
-                CaptureThrowableTrace(Thread.currentThread().getStackTrace(), error);
+                CaptureThrowableTrace(throwable.getStackTrace(), error);
             }
             return error;
         } else {
             quorum.Libraries.Language.Errors.Error error = new quorum.Libraries.Language.Errors.Error();
-            CaptureThrowableTrace(Thread.currentThread().getStackTrace(), error);
+            CaptureThrowableTrace(throwable.getStackTrace(), error);
+            
             error.SetErrorMessage(throwable.getClass().toString() + ", " + throwable.getMessage());
             return error;
         }
@@ -81,5 +82,9 @@ public class Error {
             array.Add(item);
         }
         error.SetStackTrace(array);
+    }
+    
+    public void go() {
+        
     }
 }
