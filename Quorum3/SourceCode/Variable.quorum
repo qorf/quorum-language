@@ -29,10 +29,18 @@ class Variable is Symbol
         definedInAlwaysBlock = defined
     end
 
+    /*
+        This action returns the class this variable is contained in. It does
+        not return the type of the variable.
+    */
     action GetParentClass returns Class
         return parentClass
     end
 
+    /*
+        This action sets the class this variable is contained in. It does
+        not set the type of the variable.
+    */
     action SetParentClass(Class c)
         parentClass = c
     end

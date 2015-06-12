@@ -147,7 +147,8 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         text name = className
         SymbolTable table = me:GetSymbolTable()
-        
+        currentClassOpcode:SetSymbolTable(table)
+
         text staticKey = ""
         if packageValue = undefined
             QualifiedName default
@@ -368,6 +369,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         recentStatementWasReturn = true
         QuorumOpcode op = opcodeStack:Pop()
         AlertOpcode al
+        al:SetLocation(context:GetLocation())
         al:SetOpcode(op)
         al:SetMethodWriter(methodWriter)
 

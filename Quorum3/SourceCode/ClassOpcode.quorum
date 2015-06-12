@@ -11,6 +11,7 @@ use Libraries.Containers.Array
 use Libraries.System.File
 use Libraries.Language.Compile.QualifiedName
 use Libraries.Language.Compile.Symbol.Documentation
+use Libraries.Language.Compile.Symbol.SymbolTable
 
 class ClassOpcode is QuorumOpcode
     QualifiedName packageValue = undefined
@@ -35,13 +36,20 @@ class ClassOpcode is QuorumOpcode
     constant integer ME = 0
     constant text QUORUM = "quorum"
     File buildFolder = undefined
-    //text buildPath = ""
-    //text runPath = ""
     File buildFile = undefined
     File buildInterfaceFile = undefined
     integer h1Size = 150
     integer h2Size = 125
     integer h3Size = 100
+    SymbolTable symbolTable = undefined
+
+    action GetSymbolTable returns SymbolTable
+        return symbolTable
+    end
+
+    action SetSymbolTable(SymbolTable table)
+        symbolTable = table
+    end
 
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
         SetBytecodeWriteOffset(offset)
@@ -606,7 +614,18 @@ class ClassOpcode is QuorumOpcode
             Variable variable = fields:Next()
             text varName = variable:GetName()
             Type type = variable:GetType()
-            text converted = type:ConvertTypeToBytecodeSignatureInterface()
+            text typeKey = type:GetStaticKey()
+            text converted = ""
+            if not type:IsPrimitive()
+                Class mom = symbolTable:GetClass(typeKey)
+                if mom:IsError()
+                    converted = type:ConvertTypeToBytecodeSignature()
+                else
+                    converted = type:ConvertTypeToBytecodeSignatureInterface()
+                end
+            else 
+                converted = type:ConvertTypeToBytecodeSignatureInterface()
+            end
             
             //write them as public. This doesn't really matter, because
             //at the bytecode level it doesn't provide any security anyway
@@ -636,8 +655,26 @@ class ClassOpcode is QuorumOpcode
             Type type = variable:GetType()
             text converted = type:ConvertTypeToBytecodeSignature()
             text hiddenGetterName = clazz:ConvertToActionNameFromField(variable, true)
-            text hiddenGetterSignature = type:ConvertToSignatureFromFieldInterface(true)
-            
+
+            text hiddenGetterSignature = ""
+            text hiddenSetterSignature = ""
+            text bytecodeInterface = ""
+            if not type:IsPrimitive()
+                Class mom = symbolTable:GetClass(type:GetStaticKey())
+                if mom:IsError()
+                    hiddenGetterSignature = type:ConvertToSignatureFromField(true)
+                    bytecodeInterface = type:ConvertTypeToBytecodeSignature()
+                    hiddenSetterSignature = type:ConvertToSignatureFromField(false)
+                else
+                    hiddenGetterSignature = type:ConvertToSignatureFromFieldInterface(true)
+                    bytecodeInterface = type:ConvertTypeToBytecodeSignatureInterface()
+                    hiddenSetterSignature = type:ConvertToSignatureFromFieldInterface(false)
+                end
+            else
+                hiddenGetterSignature = type:ConvertToSignatureFromFieldInterface(true)
+                bytecodeInterface = type:ConvertTypeToBytecodeSignatureInterface()
+                hiddenSetterSignature = type:ConvertToSignatureFromFieldInterface(false)
+            end
             //do the getter in the interface file
             JavaBytecodeMethodWriter interfaceMethodWriter = 
                 interfaceWriter:VisitMethod(opcodes:GetPublic() + opcodes:GetAbstract(), 
@@ -653,7 +690,7 @@ class ClassOpcode is QuorumOpcode
             //TODO: Check that what is at line 2231 of QuorumJavaBytecodeStepVisitor
             //is not an artifact of that system and is actually important.
             methodWriter:VisitField(opcodes:GetField(), clazz:ConvertStaticKeyToBytecodePath(),
-                variable:GetName(), type:ConvertTypeToBytecodeSignatureInterface())
+                variable:GetName(), bytecodeInterface)
 
             methodWriter:VisitInstruction(opcodes:GetReturnOpcode(type))
             methodWriter:VisitMaxSize(1,1)
@@ -662,7 +699,7 @@ class ClassOpcode is QuorumOpcode
 
             //do the setter in the interface file
             text hiddenSetterName = clazz:ConvertToActionNameFromField(variable, false)
-            text hiddenSetterSignature = type:ConvertToSignatureFromFieldInterface(false)
+            //text hiddenSetterSignature = 
 
             interfaceMethodWriter = 
                 interfaceWriter:VisitMethod(opcodes:GetPublic() + opcodes:GetAbstract(), 
@@ -679,7 +716,7 @@ class ClassOpcode is QuorumOpcode
             //is not an artifact of that system and is actually important.
             methodWriter:VisitVariable(opcodes:GetLoadOpcode(type), 1)
             methodWriter:VisitField(opcodes:PutField(), clazz:ConvertStaticKeyToBytecodePath(),
-                variable:GetName(), type:ConvertTypeToBytecodeSignatureInterface())
+                variable:GetName(), bytecodeInterface)
 
             methodWriter:VisitInstruction(opcodes:GetReturn())
             methodWriter:VisitMaxSize(1,1)
@@ -887,6 +924,9 @@ class ClassOpcode is QuorumOpcode
 
     action WriteFields (JavaBytecodeMethodWriter methodWriter)
         Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
+        if clazz:GetName() = "Main"
+            a = 5
+        end
         repeat while fieldIterator:HasNext()
             QuorumOpcode field = fieldIterator:Next()
             field:SetMethodWriterToAllChildren(methodWriter)
