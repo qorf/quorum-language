@@ -500,7 +500,7 @@ class Drawable is TextureRegion, Item
 
             if rotation not= 0
                 Math math
-                number radians = math:DegreesToRadians(rotation)
+                number radians = math:DegreesToRadians(-1 * rotation)
                 number cos = math:Cosine(radians)
                 number sin = math:Sine(radians)
                 number localXCos = localX * cos
@@ -513,7 +513,7 @@ class Drawable is TextureRegion, Item
                 number localY2Sin = localY2 * sin
                 
                 number x1 = localXCos - localYSin + worldOriginX
-                number y1 = localYCos + localXSin + worldOriginX
+                number y1 = localYCos + localXSin + worldOriginY
                 
                 returnVertices:Set(X1, x1)
                 returnVertices:Set(Y1, y1)

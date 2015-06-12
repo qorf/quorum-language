@@ -23,6 +23,23 @@ use Libraries.Games.Interface.Events.MouseEvent
 use Libraries.Games.Interface.Item
 use Libraries.Games.Collision
 
+/*
+The Game class is the heart of any game in Quorum. The basic Game class will
+just display a gray screen. To make your own game, you should make a new class
+that inherits from Game, and make your own versions of the CreateGame() and
+Update(number) actions. The example below will pop up an empty gray window.
+
+Attribute: Example
+
+    use Libraries.Games.Game
+
+    class Main
+        action main
+            Game game
+            Game:StartGame()
+        end
+    end
+*/
 class Game
 
     public Painter batch = undefined
@@ -90,6 +107,26 @@ class Game
         SetActivePanel(panel)
     end
 
+    /*
+    The StartGame action will start your game. Specifically, it does this:
+    1. Creates the Game window.
+    2. Calls the CreateGame() action.
+    3. Repeatedly calls Update() until Exit() is called or the window is closed.
+
+    If you are using any actions to change the starting settings of the window,
+    call those before calling StartGame().
+
+    Attribute: Example
+
+        use Libraries.Games.Game
+
+        class Main
+            action main
+                Game game
+                Game:StartGame()
+            end
+        end
+    */
     action StartGame
     
         GameStateManager manager
@@ -105,10 +142,51 @@ class Game
 
     end
 
+    /*
+    The Add action will add an item to the Game. This will make the game handle
+    the item for many tasks. For example, adding a Drawable to the game will
+    make it draw on the screen.
+
+    Attribute: Example
+
+        use Libraries.Games.Game
+        use Libraries.Games.Graphics.Drawable
+
+        class MyGame is Game
+            Drawable bunny
+
+            action CreateGame
+                bunny:Load("Images/Rabbit.png")
+                Add(bunny)
+            end
+        end
+    */
     action Add(Item item)
         activePanel:Add(item)
     end
 
+    /*
+    The Remove action will remove an item that was put into the game using the
+    Add action. For example, removing a Drawable will make the game engine stop
+    drawing it.
+
+    Attribute: Example
+
+        use Libraries.Games.Game
+        use Libraries.Games.Graphics.Drawable
+
+        class MyGame is Game
+            Drawable bunny
+
+            action CreateGame
+                bunny:Load("Images/Rabbit.png")
+                Add(bunny)
+
+                // If we don't have this remove command, the bunny will draw.
+                Remove(bunny)
+            end
+        end
+    */
     action Remove(Item item)
         activePanel:Remove(item)
     end
@@ -145,31 +223,177 @@ class Game
         return configuration
     end
 
+    /*
+    The GetScreenWidth action will return the width of the screen as an integer.
+
+    Attribute: Example
+
+        use Libraries.Games.Game
+
+        class MyGame is Game
+
+            action CreateGame
+                output GetScreenWidth()
+            end
+        end
+    */
     action GetScreenWidth returns integer
         return configuration:width
     end
 
+    /*
+    The GetScreenHeight action will return the height of the screen as an integer.
+
+    Attribute: Example
+
+        use Libraries.Games.Game
+
+        class MyGame is Game
+
+            action CreateGame
+                output GetScreenHeight()
+            end
+        end
+    */
     action GetScreenHeight returns integer
         return configuration:height
     end
 
-    action SetColorFilter(number r, number g, number b, number a)
-        batch:SetColor(r, g, b, a)
-    end
+    /*
+    Using SetColorFilter will tint all drawn objects on the screen that do not
+    have their own custom color tint. For example, using a red color filter will
+    make all objects drawn in the game appear to be more red.
 
+    Attribute: Example
+
+        use Libraries.Games.Game
+        use Libraries.Games.Graphics.Drawable
+        use Libraries.Games.Graphics.Color
+
+        class MyGame is Game
+        
+            Drawable bunny
+            Color tint
+
+            action CreateGame
+                bunny:Load("Rabbit.png")
+                Add(bunny)
+                
+                tint = tint:Maroon()
+
+                SetColorFilter(tint)
+            end
+        end
+    */
     action SetColorFilter(Color newColor)
         batch:SetColor(newColor)
     end
 
+    /*
+    SetColorFilter can also be called using four number parameters instead of a
+    color object. The four parameters are the red, green, blue, and opacity
+    of the filter, respectively. All four of the parameters should be between 0
+    and 1, representing between 0% and 100% of that color component. For example,
+    a value of 0 for red means that the tinting color will have no red, while a
+    value of 1 will have all red components. An opacity of 0 is totally
+    transparent, while an opacity of 1 will be totally visible. 
+
+    Attribute: Example
+
+        use Libraries.Games.Game
+        use Libraries.Games.Graphics.Drawable
+
+        class MyGame is Game
+        
+            Drawable bunny
+
+            action CreateGame
+                bunny:Load("Rabbit.png")
+                Add(bunny)
+                
+                // Our color will have 75% red, 0% green, 75% blue, and be
+                // totally opaque. This will tint our bunny image purple.
+
+                SetColorFilter(0.75, 0, 0.75, 1)
+            end
+        end
+    */
+    action SetColorFilter(number r, number g, number b, number a)
+        batch:SetColor(r, g, b, a)
+    end
+
+    /*
+    GetSecondsBetweenFrames will return the number of seconds that has passed
+    between the current frame and the previous one. Frames are the still images
+    drawn on the screen in rapid succession to make the images appear to move.
+    Note that the value from this field is the same value as the parameter in
+    the Update action.
+
+    Attribute: Example
+
+        use Libraries.Games.Game
+
+        class MyGame is Game
+
+            action Update(number time)
+                output "Seconds since last frame: " + GetSecondsBetweenFrames()
+            end
+        end
+    */
     system action GetSecondsBetweenFrames returns number
 
-    blueprint action Update(number time)
+    /*
+    The Update action is where most of the game's logic goes. The code inside
+    Update will be called on every frame of the game. In other words, for
+    every time a picture is drawn on the screen, the Update action is called.
+    The number parameter is the amount of seconds that has passed since the last
+    time Update was called.
+
+    Attribute: Example
+
+        use Libraries.Games.Game
+
+        class MyGame is Game
+
+            // It is very important when making our own Update action that it has
+            // the time parameter! If we don't have it, it won't be called.
+            action Update(number time)
+                output "Update was called!"
+            end
+        end
+    */
+    action Update(number time)
+
+    end
 
     action Create
         CreateGame()
     end
 
-    blueprint action CreateGame
+    /*
+    CreateGame is called when you first start the game, and is useful for setting
+    up things that need to be initialized before they can be used, like loading
+    Drawables.
+
+    Attribute: Example
+
+        use Libraries.Games.Game
+        use Libraries.Games.Graphics.Drawable
+
+        class MyGame is Game
+
+            Drawable bunny
+
+            action CreateGame
+                bunny:Load("Rabbit.png")
+                Add(bunny)
+            end
+            
+        end
+    */
+    action CreateGame
+
+    end
 
     action Exit
         exitRequested = true
