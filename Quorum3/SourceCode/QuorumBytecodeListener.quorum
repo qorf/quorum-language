@@ -368,6 +368,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         recentStatementWasReturn = true
         QuorumOpcode op = opcodeStack:Pop()
         AlertOpcode al
+        al:SetLocation(context:GetLocation())
         al:SetOpcode(op)
         al:SetMethodWriter(methodWriter)
 
