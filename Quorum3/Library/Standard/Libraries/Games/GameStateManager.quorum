@@ -7,7 +7,7 @@ package Libraries.Games
 
 use Libraries.Games.Application
 use Libraries.Games.GameDisplay
-use Libraries.Games.Graphics.GL20Manager
+use Libraries.Games.Graphics.GraphicsManager
 use Libraries.Games.InputManager
 
 
@@ -19,8 +19,8 @@ class GameStateManager
     system action SetGameDisplay(GameDisplay disp)
     system action GetGameDisplay returns GameDisplay
   
-    system action SetGameGraphics(GL20Manager gl20)
-    system action GetGameGraphics returns GL20Manager
+    system action SetGameGraphics(GraphicsManager gl20)
+    system action GetGameGraphics returns GraphicsManager
 
     system action GetInput returns InputManager
     system action SetInput(InputManager im)

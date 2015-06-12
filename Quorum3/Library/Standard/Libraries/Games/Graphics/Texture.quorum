@@ -3,7 +3,7 @@ package Libraries.Games.Graphics
 use Libraries.Games.Graphics.FileTextureData
 use Libraries.Games.Application
 use Libraries.Containers.Array
-use Libraries.Games.Graphics.GL20Manager
+use Libraries.Games.Graphics.GraphicsManager
 use Libraries.Games.Graphics.PixelMap
 use Libraries.System.File
 use Libraries.Language.Errors.Error
@@ -14,7 +14,7 @@ class Texture is Disposable
 
     private TextureData data = undefined
 
-    private GL20Manager gl20
+    private GraphicsManager gl20
 
     TextureFilter minimizeFilter
     TextureFilter magnifyFilter

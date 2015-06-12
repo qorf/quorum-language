@@ -3,7 +3,7 @@ package Libraries.Games.Interface
 use Libraries.Containers.List
 use Libraries.Containers.HashTable
 use Libraries.Containers.Blueprints.Iterator
-use Libraries.Games.Interface.Events.MouseEventListener
+use Libraries.Games.Interface.Events.MouseListener
 use Libraries.Games.Interface.Events.MouseEvent
 
 class Item 
@@ -14,7 +14,7 @@ class Item
     public number width = 0
     public number height = 0
 
-    List<MouseEventListener> mouseListeners
+    List<MouseListener> mouseListeners
 
     private HashTable<text, State> states
     State currentState = undefined
@@ -57,16 +57,16 @@ class Item
         return height
     end
 
-    action AddMouseEventListener(MouseEventListener listener)
+    action AddMouseListener(MouseListener listener)
         mouseListeners:Add(listener)
     end
 
-    action RemoveMouseEventListener(MouseEventListener listener)
+    action RemoveMouseListener(MouseListener listener)
         mouseListeners:Remove(listener)
     end
 
     action ProcessMouseEvent(MouseEvent event)
-        Iterator<MouseEventListener> iterator = mouseListeners:GetIterator()
+        Iterator<MouseListener> iterator = mouseListeners:GetIterator()
         if event:eventType = event:CLICKED_MOUSE
             repeat while iterator:HasNext()
                 iterator:Next():ClickedMouse(event)
