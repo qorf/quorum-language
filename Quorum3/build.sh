@@ -30,14 +30,14 @@ echo "Copying to NetBeans Installation"
 #rm ../../IDE/Sodbeans/Quorum/release/modules/ext/Quorum.jar
 cp Run/Quorum.jar ../../IDE/Sodbeans/Quorum/release/modules/ext/Quorum.jar
 
-#rm -r ../../IDE/Sodbeans/Quorum/release/modules/
+#By default, get rid of the library package and put it back in.
+rm -r ../../IDE/Sodbeans/Quorum/release/modules/Library
 cp -r Library ../../IDE/Sodbeans/Quorum/release/modules
 
 echo "Copying Quorum to its final form."
 mkdir ../Quorum
 cp Run/Quorum.jar ../Quorum/Quorum.jar
 
-#rm -r ../../IDE/Sodbeans/Quorum/release/modules/
 cp -r Library ../Quorum/Library
 
 echo "Running test suite"
