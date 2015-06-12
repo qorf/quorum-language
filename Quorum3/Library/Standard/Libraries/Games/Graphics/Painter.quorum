@@ -1,6 +1,6 @@
 package Libraries.Games.Graphics
 
-class SpriteBatch 
+class Painter 
     
     Texture lastTexture = undefined
 
@@ -11,7 +11,7 @@ class SpriteBatch
     on create
         color = color:White()
         SetColor(color)
-        LoadDefaultSpriteBatch()
+        LoadDefaultPainter()
     end
 
     // This is a system action because it also sets a Java-side float variable
@@ -33,11 +33,11 @@ class SpriteBatch
     // public constructor: could be replaced with "on create" to call a system
     // action to load the default values. Java code below:
     /*
-        public SpriteBatch () {
+        public Painter () {
 		this(1000, null);
 	}
     */
-    system action LoadDefaultSpriteBatch
+    system action LoadDefaultPainter
 
     system action Begin
 

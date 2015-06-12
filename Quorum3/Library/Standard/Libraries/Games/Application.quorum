@@ -3,8 +3,8 @@ package Libraries.Games
 use Libraries.Containers.Array
 use Libraries.System.DateTime
 use Libraries.Games.GameStateManager
-use Libraries.Games.Graphics.GL20Manager
-use Libraries.Games.Graphics.SpriteBatch
+use Libraries.Games.Graphics.GraphicsManager
+use Libraries.Games.Graphics.Painter
 
 //This is an implementation of 
 //https://github.com/libgdx/libgdx/blob/d1f18bd3fe6e399aea61026cb1f58f1e0b89bc56/backends/gdx-backend-lwjgl/src/com/badlogic/gdx/backends/lwjgl/LwjglApplication.java
@@ -14,7 +14,7 @@ class Application
     GameDisplay display = undefined
     integer loglevel = 1 //LOG_INFO
     GameStateManager manager
-    GL20Manager glmanager = undefined
+    GraphicsManager glmanager = undefined
     boolean running = true
  
     on create
@@ -32,7 +32,7 @@ class Application
         me:game = game
         
         //Initialize the game graphics for the rest of the library.
-        GL20Manager temp
+        GraphicsManager temp
         manager:SetGameGraphics(temp)
 
         glmanager = manager:GetGameGraphics()
@@ -46,7 +46,7 @@ class Application
         // This has moved into GameDisplay:SetupDisplay().
         //display:SetVSync(config:vSyncEnabled)
 
-        SpriteBatch tempBatch
+        Painter tempBatch
         game:batch = tempBatch
         
 
@@ -150,7 +150,7 @@ class Application
                 display:SetResize(false)
 
                 // Checking glmanager for NullPointerException
-                // If null, check to see if GL20Manager's
+                // If null, check to see if GraphicsManager's
                 // GetGameGraphics() action is working properly.
                     /*if glmanager = undefined
                         output("WARNING: Undefined glmanager!")

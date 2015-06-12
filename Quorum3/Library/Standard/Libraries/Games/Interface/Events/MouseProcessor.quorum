@@ -3,10 +3,10 @@ package Libraries.Games.Interface.Events
 use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
 
-class MouseEventProcessor
+class MouseProcessor
 
     List<MouseEvent> events
-    List<MouseEventListener> listeners
+    List<MouseListener> listeners
 
     /*  Deletes any old events that may be in the events list, then gets all
         current events, puts them in the events variable, and returns it. */
@@ -18,11 +18,11 @@ class MouseEventProcessor
         
     system action GetCurrentEventsNative
 
-    action AddListener(MouseEventListener listener)
+    action AddListener(MouseListener listener)
         listeners:Add(listener)
    end
 
-    action RemoveListener(MouseEventListener listener)
+    action RemoveListener(MouseListener listener)
         listeners:Remove(listener)
     end
 
@@ -30,9 +30,9 @@ class MouseEventProcessor
 
         if not events:IsEmpty() and not listeners:IsEmpty()
 
-            Iterator<MouseEventListener> listenIterator = listeners:GetIterator()
+            Iterator<MouseListener> listenIterator = listeners:GetIterator()
             MouseEvent currentEvent = undefined
-            MouseEventListener currentListener = undefined
+            MouseListener currentListener = undefined
             
             repeat while not events:IsEmpty()
                 currentEvent = events:RemoveFromFront()

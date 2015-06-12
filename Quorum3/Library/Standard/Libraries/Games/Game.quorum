@@ -5,9 +5,9 @@
 
 package Libraries.Games
 
-use Libraries.Games.Graphics.SpriteBatch
+use Libraries.Games.Graphics.Painter
 use Libraries.Games.Graphics.Font
-use Libraries.Games.Graphics.GL20Manager
+use Libraries.Games.Graphics.GraphicsManager
 use Libraries.Games.Graphics.Color
 use Libraries.Games.Graphics.Drawable
 use Libraries.Containers.List
@@ -15,26 +15,26 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.System.File
 use Libraries.System.Properties
 use Libraries.Games.Interface.Panel
-use Libraries.Games.Interface.Events.KeyboardEventProcessor
-use Libraries.Games.Interface.Events.KeyboardEventListener
-use Libraries.Games.Interface.Events.MouseEventProcessor
-use Libraries.Games.Interface.Events.MouseEventListener
+use Libraries.Games.Interface.Events.KeyboardProcessor
+use Libraries.Games.Interface.Events.KeyboardListener
+use Libraries.Games.Interface.Events.MouseProcessor
+use Libraries.Games.Interface.Events.MouseListener
 use Libraries.Games.Interface.Events.MouseEvent
 use Libraries.Games.Interface.Item
 use Libraries.Games.Collision
 
 class Game
 
-    public SpriteBatch batch = undefined
+    public Painter batch = undefined
     ApplicationConfiguration configuration
-    GL20Manager gl20
+    GraphicsManager gl20
 
     public boolean exitRequested = false
 
     // Variables used for Panels and the event system.
     private Panel activePanel = undefined
-    private KeyboardEventProcessor keyboardProcessor
-    private MouseEventProcessor mouseProcessor
+    private KeyboardProcessor keyboardProcessor
+    private MouseProcessor mouseProcessor
     private List<Item> collisionList
     private List<Collision> currentCollisions
 
@@ -208,19 +208,19 @@ class Game
         keyboardProcessor:ProcessEvents()
     end
 
-    action AddMouseEventListener(MouseEventListener listener)
-        activePanel:AddMouseEventListener(listener)
+    action AddMouseListener(MouseListener listener)
+        activePanel:AddMouseListener(listener)
     end
 
-    action AddKeyboardEventListener(KeyboardEventListener listener)
+    action AddKeyboardListener(KeyboardListener listener)
         keyboardProcessor:AddListener(listener)
     end
 
-    action RemoveMouseEventListener(MouseEventListener listener)
-        activePanel:RemoveMouseEventListener(listener)
+    action RemoveMouseListener(MouseListener listener)
+        activePanel:RemoveMouseListener(listener)
     end
 
-    action RemoveKeyboardEventListener(KeyboardEventListener listener)
+    action RemoveKeyboardListener(KeyboardListener listener)
         keyboardProcessor:RemoveListener(listener)
     end
 
