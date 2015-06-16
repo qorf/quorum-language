@@ -57,6 +57,8 @@ class InheritanceTester
         UsePrivateVariable()
         UsePrivateAction()
         UsePrivateActionSoloCall()
+        ForgotBlueprint()
+        WrongBlueprint()
     end
 
     action GetName returns text
@@ -629,6 +631,38 @@ class InheritanceTester
         dependent2:SetPath(path + "Test2.quorum")
         files:Add(main)
         files:Add(dependent2)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action WrongBlueprint
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "WrongBlueprintMain.quorum")
+        dependent2:SetPath(path + "WrongBlueprintParent.quorum")
+        dependent3:SetPath(path + "WrongBlueprint.quorum")
+        files:Add(main)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ForgotBlueprint
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "ForgotBlueprintMain.quorum")
+        dependent2:SetPath(path + "ForgotBlueprintParent.quorum")
+        dependent3:SetPath(path + "ForgotBlueprint.quorum")
+        files:Add(main)
+        files:Add(dependent2)
+        files:Add(dependent3)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
     end

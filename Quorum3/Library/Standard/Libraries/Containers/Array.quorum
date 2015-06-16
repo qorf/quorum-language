@@ -362,6 +362,16 @@ class Array <Type> is ArrayBlueprint<Type>
     end
 
     /*
+        This action copies the list to an array data structure.
+
+        Attribute: Returns This returns an array of the list.
+    */
+    action CopyToArray returns Array<Type>
+        Array<Type> array = cast(Array<Type>, Copy())
+        return array
+    end
+
+    /*
         This action gets the item at the front of the array(the item will remain in the array). 
 
         Attribute: Returns The item at the front of the array.
@@ -680,5 +690,4 @@ class Array <Type> is ArrayBlueprint<Type>
         boolean result = myArray:IsEmpty()
     */
     system action IsEmpty returns boolean
-
 end

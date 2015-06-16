@@ -1356,6 +1356,50 @@ class QuorumBytecodeListener is QuorumSourceListener
                 opcode:SetLocation(context:GetLocation())
                 opcode:SetMethodWriter(methodWriter)
                 opcode:SetClass(clazz)
+
+                //make sure we do not try and instantiate a class
+                //that has blueprints
+                if clazz:HasBlueprints()
+                    CompilerError error
+                    error:SetLocation(context:GetLocation())
+                    CompilerErrorType t
+                    t:SetCurrentType(t:INSTANTIATE_ABSTRACT)
+                    error:SetCompilerErrorType(t)
+                    text message = "Cannot Create Class with Blueprint: I noticed that the variable " + variable:GetName()
+                    + " has the declared type of " + left:GetStaticKey() 
+                    + ", but that class has blueprint actions, so I don't know how to create one." 
+
+                    boolean first = false
+                    integer numBlueprints = 0
+                    Iterator<Action> it = clazz:GetVirtualTable()
+                    text blue = ""
+                    repeat while it:HasNext()
+                        Action act = it:Next()
+                        if act:IsBlueprint()
+                            text sk = act:GetStaticKey()
+                            if first
+                                blue = blue + ", " + sk
+                            else
+                                blue = blue + sk
+                            end
+                            numBlueprints = numBlueprints + 1
+                            first = true
+                        end
+                    end
+                    
+                    if numBlueprints > 1
+                        message = message + " The blueprints missing are "
+                    else
+                        message = message + " The blueprint missing is "
+                    end
+
+                    message = message + blue + "."
+
+                    error:SetErrorMessage(message)
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(error)
+                end
+
                 opcode:SetVariable(variable)
 
                 if isInAction
@@ -1381,9 +1425,6 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now
         end
 
-        if name = "ATAN2_DIM"
-            a = 5
-        end
         TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
         CompilerError error = result:GetCompilerError(context:GetLocation())
 
@@ -1445,9 +1486,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         variable:SetIsDefined(true)
         Type left = variable:GetType()
 
-        if variable:GetName() = "monkey123"
-            a = 5
-        end
         QuorumOpcode right = opcodeStack:Pop()
         if left = undefined //if the type is undefined, it might be possible to infer it
             InferenceResult infer = checker:CanInfer(right)
