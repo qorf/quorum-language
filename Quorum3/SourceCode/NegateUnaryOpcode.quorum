@@ -13,6 +13,9 @@ class NegateUnaryOpcode is UnaryOpcode
         opcode = op
     end
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+    end
+
     action Write
         VisitLineNumber()
         QuorumOpcode op = me:GetOpcode()

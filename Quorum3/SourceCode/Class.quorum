@@ -1931,7 +1931,12 @@ class Class is Symbol
                 i = 0
                 repeat parameters:GetSize() times
                     Type type = parameters:Get(i)
-                    params = params + type:GetStaticKey()
+                    if type = undefined
+                        params = params + "undefined"
+                    else 
+                        params = params + type:GetStaticKey()
+                    end
+                    
                     i = i + 1
 
                     if i < parameters:GetSize()
