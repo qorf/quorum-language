@@ -21,6 +21,9 @@ class FlipBooleanOpcode is UnaryOpcode
         methodWriter:VisitLabel(jumpPastLabel)
     end
 
+    action SetBytecodeWriteOffsetToAllChildren(integer offset)
+    end
+
     action WriteJavaScript returns text
         QuorumOpcode op = me:GetOpcode()
         return "!" + op:WriteJavaScript()

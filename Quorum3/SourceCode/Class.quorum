@@ -39,6 +39,7 @@ class Class is Symbol
     constant text LIBRARIES_LANGUAGE_ERRORS_ERROR = "Libraries.Language.Errors.Error"
     boolean isMainClass = false
     Array<Array<Class>> resolvedParentLevels
+    boolean hasBlueprints = false
 
     on create
         QualifiedName object
@@ -87,6 +88,10 @@ class Class is Symbol
         errorObject:Add("Error")
 
         AddUnresolvedUseStatement(errorObject)
+    end
+
+    action HasBlueprints returns boolean
+        return hasBlueprints
     end
 
     action HasParentGenerics(text key) returns boolean
@@ -176,6 +181,18 @@ class Class is Symbol
                 WeaveActionFromDirectParent(mom, act, errors)                
             end
         end
+
+        //now go through all of the actions in the v-table 
+        //and see if any if the actions are blueprints. If they are,
+        //mark this class so it cannot be instantiated.
+        Iterator<Action> it = GetVirtualTable()
+        repeat while it:HasNext()
+            Action a = it:Next()
+            if a:IsBlueprint()
+                hasBlueprints = true
+                return now
+            end
+        end
     end
     
     action WeaveActionFromDirectParent(Class mom, Action act, CompilerErrorManager errors)
@@ -196,6 +213,20 @@ class Class is Symbol
                 Class dad = baseAction:GetParentClass()
                 Type baseReturnType = baseAction:GetReturnType()
                 text baseReturnKey = baseReturnType:GetStaticKey()
+
+                //also make sure the base class didn't override with a blueprint
+                //as that wouldn't make any sense.
+                if not act:IsBlueprint() and baseAction:IsBlueprint()
+                    CompilerError error
+                    CompilerErrorType t
+                    t:SetCurrentType(t:INHERITANCE_AMBIGUOUS)
+                    error:SetCompilerErrorType(t)
+                    error:SetErrorMessage("The action " + key + " is defined in the parent "
+                        + mom:GetStaticKey() + ", but is overriden in the base class " 
+                        + dad:GetStaticKey() + " as a blueprint. I do not understand what that would mean.")
+                    error:SetLocation(mom)
+                    errors:Add(error)
+                end
 
                 //if the returnType of the parent (returnType) has a generic, map it
                 //to the specific isntance located in the class template declaration
@@ -1900,7 +1931,12 @@ class Class is Symbol
                 i = 0
                 repeat parameters:GetSize() times
                     Type type = parameters:Get(i)
-                    params = params + type:GetStaticKey()
+                    if type = undefined
+                        params = params + "undefined"
+                    else 
+                        params = params + type:GetStaticKey()
+                    end
+                    
                     i = i + 1
 
                     if i < parameters:GetSize()

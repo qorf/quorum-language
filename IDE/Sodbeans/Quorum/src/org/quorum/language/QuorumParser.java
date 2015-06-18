@@ -7,6 +7,7 @@ package org.quorum.language;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
@@ -37,6 +38,7 @@ public class QuorumParser extends Parser{
     SourceModificationEvent sme;
     private ArrayList<QuorumError> fileErrors = new ArrayList<QuorumError>();
     quorum.Libraries.Language.Compile.ProjectInformation info = new quorum.Libraries.Language.Compile.ProjectInformation();
+    private static final Logger logger = Logger.getLogger(QuorumParser.class.getName());
     
     @Override
     public void parse(Snapshot snapshot, Task task, SourceModificationEvent sme) throws ParseException {
@@ -107,8 +109,8 @@ public class QuorumParser extends Parser{
                             fileErrors.add(error);
                         }
                     }
-                } catch (RuntimeException exc) {
-                    exc.printStackTrace();
+                } catch (Exception ex) {
+                    logger.log(java.util.logging.Level.INFO, string, ex);
                 }
             }
         }
