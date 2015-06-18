@@ -1,0 +1,361 @@
+package Libraries.Game.Graphics
+
+use Libraries.Compute.BitwiseOperations
+use Libraries.Game.NumberUtilities
+
+class Color 
+  
+    /* The RGBA components of the Color class */
+    private number red = 0
+    private number green = 0
+    private number blue = 0 
+    private number alpha = 0
+
+      action SetColor(number redValue, number greenValue, number blueValue, number alphaValue)
+
+          red = redValue
+          green = greenValue
+          blue = blueValue
+          alpha = alphaValue
+
+          Clamp()
+
+      end
+
+      // Note: For future optimization, replace bit shifting with static values.
+      action SetColorFromCode(integer code)
+          BitwiseOperations ops
+
+          integer bitMask = 255
+          alpha = ops:And(bitMask, code) / 255.0
+          bitMask = ops:ShiftLeft(8, bitMask)
+          blue = ops:And(bitMask, code) / 255.0
+          bitMask = ops:ShiftLeft(8, bitMask)
+          green = ops:And(bitMask, code) / 255.0
+          bitMask = ops:ShiftLeft(8, bitMask)
+          red = ops:And(bitMask, code) / 255.0
+
+      end
+
+      public action SetRed(number rVal)
+        red = rVal
+      end
+
+    public action SetGreen(number gVal)
+      green = gVal
+    end
+
+    public action SetBlue(number bVal)
+      blue = bVal
+    end
+
+    public action SetAlpha(number aVal)
+      alpha = aVal
+    end
+
+    public action GetRed() returns number
+      return red
+    end
+
+    public action GetGreen() returns number
+      return green
+    end
+
+    public action GetBlue() returns number
+      return blue
+    end
+
+    public action GetAlpha() returns number
+      return alpha
+    end
+    //Takes the rgba range and restricts it to [0,1]
+    public action Clamp() returns Color
+
+      if GetRed() < 0
+        SetRed(0)
+      elseif GetRed() > 1
+        SetRed(1)
+      end
+
+      if GetGreen() < 0
+        SetGreen(0)
+      elseif GetGreen() > 1
+        SetGreen(1)
+      end
+
+      if GetBlue() < 0
+        SetBlue(0)
+      elseif GetBlue() > 1
+        SetBlue(1)
+      end
+
+      if GetAlpha() < 0
+        SetAlpha(0)
+      elseif GetAlpha() > 1
+        SetAlpha(1)
+      end
+
+      return me
+
+    end
+
+    //The following actions are all constructor-functions to get around
+    //Quorum not having constructors capable of doing this.
+    public action Clear returns Color
+      Color c
+      c:SetRed(0)
+      c:SetGreen(0)
+      c:SetBlue(0)
+      c:SetAlpha(0)
+
+      return c
+    end
+
+    public action White returns Color
+      Color c
+      c:SetRed(1)
+      c:SetGreen(1)
+      c:SetBlue(1)
+      c:SetAlpha(1)
+
+      return c
+     end
+
+    public action Black returns Color
+      Color c
+      c:SetRed(0)
+      c:SetGreen(0)
+      c:SetBlue(0)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action Red returns Color
+      Color c
+      c:SetRed(1)
+      c:SetGreen(0)
+      c:SetBlue(0)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action Green returns Color
+      Color c
+      c:SetRed(0)
+      c:SetGreen(1)
+      c:SetBlue(0)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action Blue returns Color
+      Color c
+      c:SetRed(0)
+      c:SetGreen(0)
+      c:SetBlue(1)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action LightGray returns Color
+      Color c
+      c:SetRed(0.75)
+      c:SetGreen(0.75)
+      c:SetBlue(0.75)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action Gray returns Color
+      Color c
+      c:SetRed(0.5)
+      c:SetGreen(0.5)
+      c:SetBlue(0.5)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action DarkGray returns Color
+      Color c
+      c:SetRed(0.25)
+      c:SetGreen(0.25)
+      c:SetBlue(0.25)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action Pink returns Color
+      Color c
+      c:SetRed(1)
+      c:SetGreen(0.68)
+      c:SetBlue(0.68)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action Orange returns Color
+      Color c
+      c:SetRed(1)
+      c:SetGreen(0.78)
+      c:SetBlue(0)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action Yellow returns Color
+      Color c
+      c:SetRed(1)
+      c:SetGreen(1)
+      c:SetBlue(0)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action Magenta returns Color
+      Color c
+      c:SetRed(1)
+      c:SetGreen(0)
+      c:SetBlue(1)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action Cyan returns Color
+      Color c
+      c:SetRed(0)
+      c:SetGreen(1)
+      c:SetBlue(1)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action Olive returns Color
+      Color c
+      c:SetRed(0.5)
+      c:SetGreen(0.5)
+      c:SetBlue(0)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action Purple returns Color
+      Color c
+      c:SetRed(0.5)
+      c:SetGreen(0)
+      c:SetBlue(0.5)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action Maroon returns Color
+      Color c
+      c:SetRed(0.5)
+      c:SetGreen(0)
+      c:SetBlue(0)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+
+    public action Teal returns Color
+      Color c
+      c:SetRed(0)
+      c:SetGreen(0.5)
+      c:SetBlue(0.5)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+    public action Navy returns Color
+      Color c
+      c:SetRed(0)
+      c:SetGreen(0)
+      c:SetBlue(0.5)
+      c:SetAlpha(1)
+
+      return c
+    end
+
+
+    // The way this copy action works is inconsistent with the other copy actions.
+    // Consider removing it. Alternative implementation is just below.
+    // Example:
+    // Color a
+    // a = a:Navy()
+    // Color b
+    // b = a:Copy()
+    public action Copy returns Color
+      Color c
+      c:SetRed(me:GetRed())
+      c:SetBlue(me:GetBlue())
+      c:SetGreen(me:GetGreen())
+      c:SetAlpha(me:GetAlpha())
+      return c
+    end
+
+    // Example:
+    // Color a
+    // a = a:Navy()
+    // Color b
+    // b:Copy(a)
+    action CopyColor(Color copyColor)
+        SetRed(copyColor:GetRed())
+        SetBlue(copyColor:GetBlue())
+        SetGreen(copyColor:GetGreen())
+        SetAlpha(copyColor:GetAlpha())
+    end
+
+    /* This action will return the color as an integer in the RGBA8888 format, or
+    in other words, in the 32 bit integer, the highest 8 bits represent the red,
+    the next 8 represent the green, the next 8 represent the blue, and the final
+    8 represent the alpha (which is usually transparency). */
+    action GetColorCode returns integer
+
+      BitwiseOperations ops
+
+      integer redValue = cast(integer, GetRed() * 255)
+      integer greenValue = cast(integer, GetGreen() * 255)
+      integer blueValue = cast(integer, GetBlue() * 255)
+      integer alphaValue = cast(integer, GetAlpha() * 255)
+
+      redValue = ops:ShiftLeft(24, redValue)
+      greenValue = ops:ShiftLeft(16, greenValue)
+      blueValue = ops:ShiftLeft(8, blueValue)
+
+      return ops:Or(ops:Or(redValue, greenValue), ops:Or(blueValue, alphaValue))
+
+    end
+
+    action EncodeColorAsNumber returns number
+        
+        BitwiseOperations ops
+        NumberUtilities utility
+
+        integer a = ops:ShiftLeft(cast(integer, alpha * 255), 24)
+        integer b = ops:ShiftLeft(cast(integer, blue * 255), 16)
+        integer g = ops:ShiftLeft(cast(integer, green * 255), 8)
+        integer r = cast(integer, red * 255)
+
+        integer result = ops:Or(ops:Or(a, b), ops:Or(g, r))
+
+        return utility:EncodeColorIntegerAsNumber(result)
+
+    end
+    
+end

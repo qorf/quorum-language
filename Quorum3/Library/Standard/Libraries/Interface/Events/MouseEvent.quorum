@@ -1,0 +1,57 @@
+package Libraries.Interface.Events
+
+class MouseEvent
+    
+    public constant integer CLICKED_MOUSE = 1
+    public constant integer MOVED_MOUSE = 2
+    public constant integer DRAGGED_MOUSE = 3
+    public constant integer RELEASED_MOUSE = 4
+    public constant integer SCROLLED_MOUSE = 5
+
+    public constant integer ANY = -1
+    public constant integer LEFT = 0
+    public constant integer RIGHT = 1
+    public constant integer MIDDLE = 2
+    public constant integer BACK = 3
+    public constant integer FORWARD = 4
+
+    // By default, -1 represents "ANY" button.
+    public integer mouseButton = -1
+
+    public integer scrollAmount = 0
+
+    public integer eventType = 0
+
+    integer x = 0
+    integer y = 0
+
+    integer movementX = 0
+    integer movementY = 0
+
+    boolean eventHandled = true
+
+    action GetX returns integer
+        return x
+    end
+
+    action GetY returns integer
+        return y
+    end
+
+    action GetMovementX returns integer
+        return movementX
+    end
+
+    action GetMovementY returns integer
+        return movementY
+    end
+
+    action SetEventHandled(boolean handled)
+        eventHandled = handled
+    end
+
+    action WasEventHandled returns boolean
+        return eventHandled
+    end
+
+end

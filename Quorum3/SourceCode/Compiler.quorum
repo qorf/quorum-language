@@ -1299,7 +1299,7 @@ class Compiler
         end
         
         // Booleans added for the game/sound plugins.
-        boolean hasGame = symbolTable:HasClass("Libraries.Games.Game")
+        boolean hasGame = symbolTable:HasClass("Libraries.Game.Game")
         boolean hasAudio = symbolTable:HasClass("Libraries.Sound.Audio")
 
         if hasGame or hasAudio
@@ -1357,11 +1357,11 @@ class Compiler
             /*  From what I can tell, WriteCompilerDependency only uses the
                 working directory of to, so setting the path is unnecessary. */
             File to
-            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/games/")
+            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/game/")
             to:SetPath("")
 
             File gamePlugins
-            gamePlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/games/")
+            gamePlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/game/")
             gamePlugins:SetPath("plugins")
             WriteCompilerDependency(generator, gamePlugins, to)
         end
@@ -1369,7 +1369,7 @@ class Compiler
         if hasAudio or hasGame
             File gameNative
             gameNative:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Native/")
-            gameNative:SetPath("Libraries.Games")
+            gameNative:SetPath("Libraries.Game")
 
             File nativeCopy
             File run = GetRunFolder()
@@ -1595,7 +1595,7 @@ class Compiler
         main = main + ": " + classKey
         main = main + line
 
-        boolean usesLWJGL = symbolTable:HasClass("Libraries.Sound.Audio") or symbolTable:HasClass("Libraries.Games.Game")
+        boolean usesLWJGL = symbolTable:HasClass("Libraries.Sound.Audio") or symbolTable:HasClass("Libraries.Game.Game")
 
         //now write any jar dependencies into the manifest
         if not additionalJarFiles:IsEmpty() or usesLWJGL

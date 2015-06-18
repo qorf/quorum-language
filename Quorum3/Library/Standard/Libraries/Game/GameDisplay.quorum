@@ -1,0 +1,59 @@
+package Libraries.Game
+
+/*
+    GameDisplay is responsible for handling information about LWJGL's Display
+    object, which represents the game screen.
+  
+  source:
+  https://github.com/libgdx/libgdx/blob/master/backends/gdx-backend-lwjgl/src/com/badlogic/gdx/backends/lwjgl/LwjglGraphics.java
+ */
+
+
+class GameDisplay 
+    boolean resize = true
+    public boolean shouldrender = false
+    private ApplicationConfiguration config = undefined
+    private boolean vsync = false
+    
+
+    action SetConfig(ApplicationConfiguration conf)
+        config = conf
+    end
+
+    action GetConfig returns ApplicationConfiguration
+        return config
+    end
+
+    system action SetupDisplay()
+    system action SetDisplayMode(integer width, integer height, 
+                                 boolean fullscreen) returns boolean
+
+    system action GetWidth() returns integer
+    system action GetHeight() returns integer
+    //system action GetDisplayMode(DisplayMode disp) returns boolean
+
+    system action SetVSync(boolean vsync)
+
+    action GetResize returns boolean
+        return resize
+    end
+
+    action SetResize(boolean resize)
+        me:resize = resize
+    end
+
+    
+    system action ProcessMessages
+    system action IsCloseRequested returns boolean
+    system action IsActive returns boolean
+    system action GetDisplayX returns integer
+    system action GetDisplayY returns integer
+    system action WasResized returns boolean
+    system action RequestRendering
+    system action Destroy
+    system action UpdateTime
+    system action SetLastTime
+    system action UpdateFalse
+    system action GetSecondsBetweenFrames returns number
+    system action GetPixelScaleFactor returns number
+end

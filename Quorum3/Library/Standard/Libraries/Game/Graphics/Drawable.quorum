@@ -1,0 +1,757 @@
+package Libraries.Game.Graphics
+
+use Libraries.Game.Shapes.Rectangle
+use Libraries.Game.NumberUtilities
+use Libraries.Containers.Array
+use Libraries.Language.Errors.Error
+use Libraries.Compute.Math
+use Libraries.Compute.BitwiseOperations
+use Libraries.System.File
+use Libraries.Interface.Item
+
+class Drawable is TextureRegion, Item
+    
+    constant integer VERTEX_SIZE = 5
+    constant integer DRAWABLE_SIZE = 4 * VERTEX_SIZE
+
+    Array<number> vertices
+
+    on create
+        vertices:SetSize(20)
+    end
+
+    // These constants represent certain aspects of each vertex. For example,
+    // X1 and Y2 represent the x value of the first vertex and the y value of
+    // the second vertex, respectively.
+    constant integer X1 = 0
+    constant integer Y1 = 1
+    constant integer C1 = 2
+    constant integer U1 = 3
+    constant integer V1 = 4
+    constant integer X2 = 5
+    constant integer Y2 = 6
+    constant integer C2 = 7
+    constant integer U2 = 8
+    constant integer V2 = 9
+    constant integer X3 = 10
+    constant integer Y3 = 11
+    constant integer C3 = 12
+    constant integer U3 = 13
+    constant integer V3 = 14
+    constant integer X4 = 15
+    constant integer Y4 = 16
+    constant integer C4 = 17
+    constant integer U4 = 18
+    constant integer V4 = 19
+
+    private Color color
+    private boolean useCustomColor = false
+
+    private number originX = 0.0
+    private number originY = 0.0
+    private number rotation = 0.0
+    private number scaleX = 1
+    private number scaleY = 1
+    private number offsetX = 0
+    private number offsetY = 0
+
+    private boolean dirty = true
+    private Rectangle bounds
+
+    action Load(text filePath)
+        Texture temp
+        temp:LoadFromFile(filePath)
+        Load(temp)
+    end
+
+    action Load(File file)
+        Texture temp
+        temp:LoadFromFile(file)
+        Load(temp)
+    end
+
+    action Load(Texture texture)
+        Load(texture, 0, 0, cast(integer, texture:GetWidth()), cast(integer, texture:GetHeight()))
+    end
+
+    action Load(Texture texture, integer sourceWidth, integer sourceHeight)
+        Load(texture, 0, 0, sourceWidth, sourceHeight)
+    end
+
+    action Load(Texture newTexture, integer sourceX, integer sourceY, integer sourceWidth, integer sourceHeight)
+        if newTexture = undefined
+            Error error
+            error:SetErrorMessage("Can not define a Drawable with an undefined Texture!")
+            alert(error)
+        end
+
+        SetTexture(newTexture)
+        /*parent:TextureRegion:*/SetRegion(sourceX, sourceY, sourceWidth, sourceHeight)
+
+        Math math
+        SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
+        SetOrigin(parent:Item:width / 2.0, parent:Item:height / 2.0)
+    end
+
+    action Load(TextureRegion region)
+        SetRegion(region)
+        //SetColor(1, 1, 1, 1)
+        SetSize(region:GetRegionWidth(), region:GetRegionHeight())
+        SetOrigin(parent:Item:width / 2.0, parent:Item:height / 2.0)
+    end
+
+    action Load(TextureRegion region, integer sourceX, integer sourceY, integer sourceWidth, integer sourceHeight)
+        SetRegion(region, sourceX, sourceY, sourceWidth, sourceHeight)
+        //SetColor(1, 1, 1, 1)
+        Math math
+        SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
+        SetOrigin(parent:Item:width / 2.0, parent:Item:height / 2.0)
+    end
+
+    action Copy(Drawable drawable)
+        if drawable = undefined
+            Error error
+            error:SetErrorMessage("Can not copy an undefined Drawable!")
+            alert(error)
+        end
+
+        integer index = 0
+        Array<number> vertexArray = drawable:GetVertices()
+        Array<number> myVertices = GetVertices()
+        repeat DRAWABLE_SIZE times
+            number temp = vertexArray:Get(index)
+            myVertices:Set(index, temp)
+            index = index + 1
+        end
+
+        SetTexture(drawable:GetTexture())
+        SetLeftSide(drawable:GetLeftSide())
+        SetTopSide(drawable:GetTopSide())
+        SetRightSide(drawable:GetRightSide())
+        SetBottomSide(drawable:GetBottomSide())
+
+        SetX(drawable:GetX())
+        SetY(drawable:GetY())
+        //x = drawable:x
+        //y = drawable:y
+        width = drawable:parent:Item:width
+        height = drawable:parent:Item:height
+
+        SetRegionWidth(drawable:GetRegionWidth())
+        SetRegionHeight(drawable:GetRegionHeight())
+
+        originX = drawable:originX
+        originY = drawable:originY
+        rotation = drawable:rotation
+        scaleX = drawable:scaleX
+        scaleY = drawable:scaleY
+        color:CopyColor(drawable:color)
+        dirty = drawable:dirty
+        
+    end
+
+    action QuickCopy(Drawable drawable)
+        Load(drawable:GetTexture())
+    end
+
+    action SetBounds(number newX, number newY, integer newWidth, integer newHeight)
+        SetX(newX)
+        SetY(newY)
+        parent:Item:width = newWidth
+        parent:Item:height = newHeight
+
+        Array<number> vertices = GetVertices()
+        number parentX = GetX()
+        number parentY = GetY()
+
+        number x2 = parentX + parent:Item:width
+        number y2 = parentY + parent:Item:height
+
+        vertices:Set(X1, parentX)
+        vertices:Set(Y1, parentY)
+        
+        vertices:Set(X2, parentX)
+        vertices:Set(Y2, y2)
+        
+        vertices:Set(X3, x2)
+        vertices:Set(Y3, y2)
+       
+        vertices:Set(X4, x2)
+        vertices:Set(Y4, parentY)
+
+        if rotation not= 0 or scaleX not= 1 or scaleY not= 1
+            dirty = true
+        end
+
+    end
+
+    action SetSize(integer newWidth, integer newHeight)
+        parent:Item:width = newWidth
+        parent:Item:height = newHeight
+
+        if dirty = false
+            number parentX = GetX()
+            number parentY = GetY()
+            number x2 = parentX + parent:Item:width
+            number y2 = parentY + parent:Item:height
+
+            Array<number> vertices = GetVertices()
+
+            vertices:Set(X1, parentX)
+            vertices:Set(Y1, parentY)
+
+            vertices:Set(X2, parentX)
+            vertices:Set(Y2, y2)
+
+            vertices:Set(X3, x2)
+            vertices:Set(Y3, y2)
+
+            vertices:Set(X4, x2)
+            vertices:Set(Y4, parentY)
+
+            if rotation not= 0 or scaleX not= 1 or scaleY not= 1
+                dirty = true
+            end
+        end
+    end
+
+    action SetPosition(number setX, number setY)
+        Translate(setX - GetX(), setY - GetY())
+    end
+
+    action SetX(number setX)
+        TranslateX(setX - GetX())
+    end
+
+    action SetY(number setY)
+        TranslateY(setY - GetY())
+    end
+
+    action SetCenterX(number setX)
+        SetX(setX - parent:Item:width / 2.0)
+    end
+
+    action SetCenterY(number setY)
+        SetY(setY - parent:Item:height / 2.0)
+    end
+
+    action SetCenter(number setX, number setY)
+        SetCenterX(setX)
+        SetCenterY(setY)
+    end
+
+    action TranslateX(number xAmount)
+        parent:Item:SetX(GetX() + xAmount)
+        if dirty = false
+            Array<number> vertices = GetVertices()
+
+            vertices:Set(X1, vertices:Get(X1) + xAmount)
+            vertices:Set(X2, vertices:Get(X2) + xAmount)
+            vertices:Set(X3, vertices:Get(X3) + xAmount)
+            vertices:Set(X4, vertices:Get(X4) + xAmount)
+        end
+    end
+
+    action TranslateY(number yAmount)
+        parent:Item:SetY(GetY() + yAmount)
+        if dirty = false
+            Array<number> vertices = GetVertices()
+        
+            vertices:Set(Y1, vertices:Get(Y1) + yAmount)
+            vertices:Set(Y2, vertices:Get(Y2) + yAmount)
+            vertices:Set(Y3, vertices:Get(Y3) + yAmount)
+            vertices:Set(Y4, vertices:Get(Y4) + yAmount)
+        end
+    end
+
+    action Translate(number xAmount, number yAmount)
+        parent:Item:SetX(GetX() + xAmount)
+        parent:Item:SetY(GetY() + yAmount)
+        if dirty = false
+            Array<number> vertices = GetVertices()
+            
+            vertices:Set(X1, vertices:Get(X1) + xAmount)
+            vertices:Set(Y1, vertices:Get(Y1) + yAmount)
+
+            vertices:Set(X2, vertices:Get(X2) + xAmount)
+            vertices:Set(Y2, vertices:Get(Y2) + yAmount)
+
+            vertices:Set(X3, vertices:Get(X3) + xAmount)
+            vertices:Set(Y3, vertices:Get(Y3) + yAmount)
+
+            vertices:Set(X4, vertices:Get(X4) + xAmount)
+            vertices:Set(Y4, vertices:Get(Y4) + yAmount)
+        end
+    end
+
+    action SetOffsetX(number xAmount)
+        if dirty = false
+            Array<number> vertices = GetVertices()
+            number adjust = xAmount - offsetX
+
+            vertices:Set(X1, vertices:Get(X1) + adjust)
+            vertices:Set(X2, vertices:Get(X2) + adjust)
+            vertices:Set(X3, vertices:Get(X3) + adjust)
+            vertices:Set(X4, vertices:Get(X4) + adjust)
+        end
+        offsetX = xAmount
+    end
+
+    action SetOffsetY(number yAmount)
+        if dirty = false
+            Array<number> vertices = GetVertices()
+            number adjust = yAmount - offsetY
+        
+            vertices:Set(Y1, vertices:Get(Y1) + adjust)
+            vertices:Set(Y2, vertices:Get(Y2) + adjust)
+            vertices:Set(Y3, vertices:Get(Y3) + adjust)
+            vertices:Set(Y4, vertices:Get(Y4) + adjust)
+        end
+        offsetY = yAmount
+    end
+
+    action SetOffset(number xAmount, number yAmount)
+        if dirty = false
+            Array<number> vertices = GetVertices()
+            number adjustX = xAmount - offsetX
+            number adjustY = yAmount - offsetY
+            
+            vertices:Set(X1, vertices:Get(X1) + adjustX)
+            vertices:Set(Y1, vertices:Get(Y1) + adjustY)
+
+            vertices:Set(X2, vertices:Get(X2) + adjustX)
+            vertices:Set(Y2, vertices:Get(Y2) + adjustY)
+
+            vertices:Set(X3, vertices:Get(X3) + adjustX)
+            vertices:Set(Y3, vertices:Get(Y3) + adjustY)
+
+            vertices:Set(X4, vertices:Get(X4) + adjustX)
+            vertices:Set(Y4, vertices:Get(Y4) + adjustY)
+        end
+        offsetX = xAmount
+        offsetY = yAmount
+    end
+
+    action SetColor(Color tint)
+        useCustomColor = true
+        color = tint
+        number colorValue = tint:EncodeColorAsNumber()
+
+        Array<number> vertices = GetVertices()
+
+        vertices:Set(C1, colorValue)
+        vertices:Set(C2, colorValue)
+        vertices:Set(C3, colorValue)
+        vertices:Set(C4, colorValue)
+    end
+
+    action SetAlpha(number alpha)
+        BitwiseOperations ops
+        NumberUtilities utility
+
+        Array<number> vertices = GetVertices()
+
+        integer intBits = utility:EncodeNumberAsInteger(vertices:Get(C1))
+        integer alphaBits = ops:ShiftLeft(cast(integer, 255 * alpha), 24)
+
+        intBits = ops:And(intBits, 16777215)
+        intBits = ops:Or(intBits, alphaBits)
+
+        number colorValue = utility:EncodeColorIntegerAsNumber(intBits)
+        
+        vertices:Set(C1, colorValue)
+        vertices:Set(C2, colorValue)
+        vertices:Set(C3, colorValue)
+        vertices:Set(C4, colorValue)
+    end
+
+    action SetColor(number red, number green, number blue, number alpha)
+        useCustomColor = true
+        BitwiseOperations ops
+        NumberUtilities utility
+
+        Array<number> vertices = GetVertices()
+
+        integer alphaBits = ops:ShiftLeft(cast(integer, 255 * alpha), 24)
+        integer blueBits = ops:ShiftLeft(cast(integer, 255 * blue), 16)
+        integer greenBits = ops:ShiftLeft(cast(integer, 255 * green), 8)
+        integer redBits = cast(integer, 255 * red)
+
+        integer result = ops:Or(ops:Or(alphaBits, blueBits), ops:Or(greenBits, redBits))
+        number colorValue = utility:EncodeColorIntegerAsNumber(result)
+
+        vertices:Set(C1, colorValue)
+        vertices:Set(C2, colorValue)
+        vertices:Set(C3, colorValue)
+        vertices:Set(C4, colorValue)
+    end
+
+    action SetColor(number colorValue)
+        useCustomColor = true
+        Array<number> vertices = GetVertices()
+
+        vertices:Set(C1, colorValue)
+        vertices:Set(C2, colorValue)
+        vertices:Set(C3, colorValue)
+        vertices:Set(C4, colorValue)
+    end
+
+    action SetOrigin(number setX, number setY)
+        originX = setX
+        originY = setY
+        dirty = true
+    end
+
+    action SetOriginCenter
+        originX = parent:Item:width / 2.0
+        originY = parent:Item:height / 2.0
+        dirty = true
+    end
+
+    action SetRotation(number degrees)
+        rotation = degrees
+        dirty = true
+    end
+
+    action GetRotation returns number
+        return rotation
+    end
+
+    action Rotate(number degrees)
+        rotation = rotation + degrees
+        if degrees not= 0
+            dirty = true
+        end
+    end
+
+    // Could be split into two functions for clockwise and counter-clockwise.
+    action Rotate90DegreesClockwise(boolean clockwise)
+        Array<number> vertices = GetVertices()
+
+        if clockwise
+            number temp = vertices:Get(V1)
+            vertices:Set(V1, V4)
+            vertices:Set(V4, V3)
+            vertices:Set(V3, V2)
+            vertices:Set(V2, temp)
+
+            temp = vertices:Get(U1)
+            vertices:Set(U1, U4)
+            vertices:Set(U4, U3)
+            vertices:Set(U3, U2)
+            vertices:Set(U2, temp)
+        else
+            number temp = vertices:Get(V1)
+            vertices:Set(V1, V2)
+            vertices:Set(V2, V3)
+            vertices:Set(V3, V4)
+            vertices:Set(V4, temp)
+
+            temp = vertices:Get(U1)
+            vertices:Set(U1, U2)
+            vertices:Set(U2, U3)
+            vertices:Set(U3, U4)
+            vertices:Set(U4, temp)
+        end
+    end
+
+    action SetScale(number scale)
+        scaleX = scale
+        scaleY = scale
+        dirty = true
+    end
+
+    action SetScale(number newX, number newY)
+        scaleX = newX
+        scaleY = newY
+        dirty = true
+    end
+
+    action Scale(number amount)
+        scaleX = scaleX + amount
+        scaleY = scaleY + amount
+        dirty = true
+    end
+
+    action PrepareVertices
+        PrepareVertices(0, 0, false)
+    end
+
+    action PrepareVertices(number globalOffsetX, number globalOffsetY, boolean forceUpdate)
+
+        Array<number> returnVertices = GetVertices()
+
+        if dirty or forceUpdate
+            dirty = false
+
+            number localX = 0 - originX
+            number localY = 0 - originY
+            number localX2 = localX + parent:Item:width
+            number localY2 = localY + parent:Item:height
+            number worldOriginX = GetX() - localX + offsetX + globalOffsetX
+            number worldOriginY = GetY() - localY + offsetY + globalOffsetY
+
+            if (scaleX not= 1 or scaleY not= 1)
+                localX = localX * scaleX
+                localY = localY * scaleY
+                localX2 = localX2 * scaleX
+                localY2 = localY2 * scaleY
+            end
+
+            if rotation not= 0
+                Math math
+                number radians = math:DegreesToRadians(-1 * rotation)
+                number cos = math:Cosine(radians)
+                number sin = math:Sine(radians)
+                number localXCos = localX * cos
+                number localXSin = localX * sin
+                number localYCos = localY * cos
+                number localYSin = localY * sin
+                number localX2Cos = localX2 * cos
+                number localX2Sin = localX2 * sin
+                number localY2Cos = localY2 * cos
+                number localY2Sin = localY2 * sin
+                
+                number x1 = localXCos - localYSin + worldOriginX
+                number y1 = localYCos + localXSin + worldOriginY
+                
+                returnVertices:Set(X1, x1)
+                returnVertices:Set(Y1, y1)
+
+                number x2 = localXCos - localY2Sin + worldOriginX
+                number y2 = localY2Cos + localXSin + worldOriginY
+
+                returnVertices:Set(X2, x2)
+                returnVertices:Set(Y2, y2)
+
+                number x3 = localX2Cos - localY2Sin + worldOriginX
+                number y3 = localY2Cos + localX2Sin + worldOriginY
+
+                returnVertices:Set(X3, x3)
+                returnVertices:Set(Y3, y3)
+
+                returnVertices:Set(X4, x1 + x3 - x2)
+                returnVertices:Set(Y4, y3 - (y2 - y1))
+            else
+                number x1 = localX + worldOriginX
+                number y1 = localY + worldOriginY
+                number x2 = localX2 + worldOriginX
+                number y2 = localY2 + worldOriginY
+
+                returnVertices:Set(X1, x1)
+                returnVertices:Set(Y1, y1)
+
+                returnVertices:Set(X2, x1)
+                returnVertices:Set(Y2, y2)
+
+                returnVertices:Set(X3, x2)
+                returnVertices:Set(Y3, y2)
+
+                returnVertices:Set(X4, x2)
+                returnVertices:Set(Y4, y1)
+            end
+        end
+        //return returnVertices
+    end
+
+    action GetBoundingRectangle returns Rectangle
+        Array<number> vertexArray = GetVertices()
+        Array<number> vertices = GetVertices()
+        
+        number minX = vertexArray:Get(X1)
+        number minY = vertexArray:Get(Y1)
+        number maxX = vertexArray:Get(X1)
+        number maxY = vertexArray:Get(Y1)
+
+        if minX > vertices:Get(X2)
+            minX  = vertices:Get(X2)
+        end
+        if minX > vertices:Get(X3)
+            minX  = vertices:Get(X3)
+        end
+        if minX > vertices:Get(X4)
+            minX  = vertices:Get(X4)
+        end
+
+        if maxX < vertices:Get(X2)
+            maxX  = vertices:Get(X2)
+        end
+        if maxX < vertices:Get(X3)
+            maxX  = vertices:Get(X3)
+        end
+        if maxX < vertices:Get(X4)
+            maxX  = vertices:Get(X4)
+        end
+
+        if minY > vertices:Get(Y2)
+            minY  = vertices:Get(Y2)
+        end
+        if minY > vertices:Get(Y3)
+            minY  = vertices:Get(Y3)
+        end
+        if minY > vertices:Get(Y4)
+            minY  = vertices:Get(Y4)
+        end
+
+        if maxY < vertices:Get(Y2)
+            maxY  = vertices:Get(Y2)
+        end
+        if maxY < vertices:Get(Y3)
+            maxY  = vertices:Get(Y3)
+        end
+        if maxY < vertices:Get(Y4)
+            maxY  = vertices:Get(Y4)
+        end
+
+        if bounds = undefined
+            Rectangle newRectangle
+            bounds = newRectangle
+        end
+        
+        bounds:SetX(minX)
+        bounds:SetY(minY)
+        bounds:SetWidth(maxX - minX)
+        bounds:SetHeight(maxY - minY)
+        return bounds
+
+    end
+
+    action GetOriginX returns number
+        return originX
+    end
+
+    action GetOriginY returns number
+        return originY
+    end
+
+    action GetScaleX returns number
+        return scaleX
+    end
+
+    action GetScaleY returns number
+        return scaleY
+    end
+
+    action GetColor returns Color
+        NumberUtilities utility
+        BitwiseOperations ops
+
+        Array<number> vertices = GetVertices()
+
+        integer intBits = utility:EncodeNumberAsInteger(vertices:Get(C1))
+
+        color:SetRed(ops:And(intBits, 255) / 255.0)
+        color:SetGreen(ops:And(ops:ShiftRight(intBits, 8), 255) / 255.0)
+        color:SetBlue(ops:And(ops:ShiftRight(intBits, 16), 255) / 255.0)
+        color:SetAlpha(ops:And(ops:ShiftRight(intBits, 24), 255) / 255.0)
+
+        return color
+    end
+
+    action SetRegion(number left, number top, number right, number bottom)
+        parent:TextureRegion:SetRegion(left, top, right, bottom)
+        Array<number> vertices = GetVertices()
+
+        vertices:Set(U1, left)
+        vertices:Set(V1, bottom)
+
+        vertices:Set(U2, left)
+        vertices:Set(V2, top)
+
+        vertices:Set(U3, right)
+        vertices:Set(V3, top)
+
+        vertices:Set(U4, right)
+        vertices:Set(V4, bottom)        
+    end
+
+    action SetLeftSide(number left)
+        parent:TextureRegion:SetLeftSide(left)
+        Array<number> vertices = GetVertices()
+        vertices:Set(U1, left)
+        vertices:Set(U2, left)
+    end
+
+    action SetTopSide(number top)
+        parent:TextureRegion:SetTopSide(top)
+        Array<number> vertices = GetVertices()
+        vertices:Set(V2, top)
+        vertices:Set(V3, top)
+    end
+
+    action SetRightSide(number right)
+        parent:TextureRegion:SetRightSide(right)
+        Array<number> vertices = GetVertices()
+        vertices:Set(U3, right)
+        vertices:Set(U4, right)
+    end
+
+    action SetBottomSide(number bottom)
+        parent:TextureRegion:SetBottomSide(bottom)
+        Array<number> vertices = GetVertices()
+        vertices:Set(V1, bottom)
+        vertices:Set(V4, bottom)
+    end
+
+    action SetHorizontalFlip(boolean flip)
+        if IsFlippedHorizontally() not= flip
+            FlipHorizontally()
+        end
+    end
+
+    action SetVerticalFlip(boolean flip)
+        if IsFlippedVertically() not= flip
+            FlipVertically()
+        end
+    end
+
+    action FlipHorizontally
+        parent:TextureRegion:FlipHorizontally()
+        Array<number> vertices = GetVertices()
+
+        number temp = vertices:Get(U1)
+        vertices:Set(U1, vertices:Get(U3))
+        vertices:Set(U3, temp)
+        temp = vertices:Get(U2)
+        vertices:Set(U2, vertices:Get(U4))
+        vertices:Set(U4, temp)
+    end
+
+    action FlipVertically
+        parent:TextureRegion:FlipVertically()
+        Array<number> vertices = GetVertices()
+
+        number temp = vertices:Get(V1)
+        vertices:Set(V1, vertices:Get(V3))
+        vertices:Set(V3, temp)
+        temp = vertices:Get(V2)
+        vertices:Set(V2, vertices:Get(V4))
+        vertices:Set(V4, temp)
+    end
+
+    action UseCustomColor returns boolean
+        return useCustomColor
+    end
+
+    action UseDefaultColor
+        useCustomColor = false
+    end
+
+    action GetTexture returns Texture
+        return parent:TextureRegion:GetTextureField()
+    end
+
+    // Convenience function to make it easier to get items from Java plugins.
+    action GetVertex(integer index) returns number
+        return vertices:Get(index)
+    end
+
+    action SetVertex(integer index, number value)
+        vertices:Set(index, value)
+    end
+
+    action GetVertices returns Array<number>
+        return vertices
+    end
+
+end

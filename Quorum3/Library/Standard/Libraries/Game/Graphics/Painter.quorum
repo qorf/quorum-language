@@ -1,0 +1,68 @@
+package Libraries.Game.Graphics
+
+class Painter 
+    
+    Texture lastTexture = undefined
+
+    private boolean drawing = false
+
+    private Color color
+
+    on create
+        color = color:White()
+        SetColor(color)
+        LoadDefaultPainter()
+    end
+
+    // This is a system action because it also sets a Java-side float variable
+    // that represents the color passed to OpenGL.
+    system action SetColor(Color newColor)
+
+    system action SetColor(number red, number green, number blue, number alpha)
+
+    action GetColor returns Color
+        return color
+    end
+
+    action IsDrawing returns boolean
+            return drawing
+    end
+
+    system action IsBlendingEnabled returns boolean
+
+    // public constructor: could be replaced with "on create" to call a system
+    // action to load the default values. Java code below:
+    /*
+        public Painter () {
+		this(1000, null);
+	}
+    */
+    system action LoadDefaultPainter
+
+    system action Begin
+
+    system action End
+
+    /*  This call will draw the Drawable on the screen, performing all needed
+        transformations, e.g. scale, rotation, etc. */
+    system action Draw(Drawable drawable)
+
+    /*  This call will draw the Drawable on the screen, offsetting it by the
+        two number parameters given. If forceUpdate is true, then the vertices
+        will be updated regardless of the "dirty" status of the Drawable. */
+    system action Draw(Drawable drawable, number globalOffsetX, number globalOffsetY, boolean forceUpdate)
+
+    // This is a simple draw action using a TextureRegion. Because Sprites
+    // are TextureRegions, this will also allow them to be drawn. Note that
+    // the code below won't use the custom Sprite data! This may need to
+    // be revised to fix that, or add another action which replaces the
+    // TextureRegion with a Sprite.
+    system action Draw(TextureRegion drawRegion, number drawX, number drawY)
+
+    // This action must be available to a Quorum user, but handles the mesh.
+    // Therefore it must be a system action.
+    system action Dispose
+
+    system action Flush
+
+end

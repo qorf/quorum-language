@@ -1,0 +1,16 @@
+package Libraries.Game.Graphics
+
+class Filter
+    private integer value = 0
+
+    public constant integer NEAREST_NEIGHBOR = 0
+    public constant integer BILINEAR = 1
+
+    public action GetValue returns integer
+        return value
+    end
+
+    public action SetValue(integer type)
+        value = type
+    end
+end

@@ -1,0 +1,34 @@
+package Libraries.Game
+
+/*
+  This class is quorum side of the GameStateManager that creates a singleton
+  to maintain the game state across class instances.
+ */
+
+use Libraries.Game.Application
+use Libraries.Game.GameDisplay
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.InputMonitor
+
+
+class GameStateManager 
+    
+    system action SetApplication(Application app)
+    system action GetApplication returns Application
+   
+    system action SetGameDisplay(GameDisplay disp)
+    system action GetGameDisplay returns GameDisplay
+  
+    system action SetGameGraphics(GraphicsManager gl20)
+    system action GetGameGraphics returns GraphicsManager
+
+    system action GetInput returns InputMonitor
+    system action SetInput(InputMonitor im)
+
+    system action SetNativePath(text path)
+    system action GetNativePath returns text
+
+    system action SetOperatingSystem(text os)
+    system action GetOperatingSystem returns text
+
+end
