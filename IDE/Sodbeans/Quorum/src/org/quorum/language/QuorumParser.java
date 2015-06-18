@@ -109,8 +109,8 @@ public class QuorumParser extends Parser{
                             fileErrors.add(error);
                         }
                     }
-                } catch (RuntimeException ex) {
-                    logger.log(java.util.logging.Level.SEVERE, string, ex);
+                } catch (Exception ex) {
+                    logger.log(java.util.logging.Level.INFO, string, ex);
                 }
             }
         }
