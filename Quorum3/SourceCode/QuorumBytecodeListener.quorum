@@ -1355,6 +1355,18 @@ class QuorumBytecodeListener is QuorumSourceListener
                 CreateObjectOpcode opcode
                 opcode:SetLocation(context:GetLocation())
                 opcode:SetMethodWriter(methodWriter)
+                if clazz = undefined
+                    CompilerError error
+                    error:SetLocation(context:GetLocation())
+                    CompilerErrorType t
+                    t:SetCurrentType(t:MISSING_CLASS)
+                    error:SetCompilerErrorType(t)
+                    text message = "The class " + left:GetStaticKey() + " is either missing or I cannot find it."
+                    error:SetErrorMessage(message)
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(error)
+                    return now
+                end
                 opcode:SetClass(clazz)
 
                 //make sure we do not try and instantiate a class

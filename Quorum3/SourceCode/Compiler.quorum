@@ -196,14 +196,14 @@ class Compiler
         //including potentially some from the standard library
         //in order to build the requested files
         Array<File> allFiles = undefined
-        if compilerErrorManager:IsCompilationErrorFree()
+        if sandboxCompilerErrorManager:IsCompilationErrorFree()
             allFiles = GetAllRequiredFiles(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
         else 
             return result
         end
         sandboxedProfiler:Add(time:GetEpochTime())
 
-        if compilerErrorManager:IsCompilationErrorFree()
+        if sandboxCompilerErrorManager:IsCompilationErrorFree()
             if inFile = undefined
                 TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
             else
@@ -222,7 +222,7 @@ class Compiler
         sandboxedProfiler:Add(time:GetEpochTime())
 
         Array<ClassOpcode> classOpcodes
-        if compilerErrorManager:IsCompilationErrorFree()
+        if sandboxCompilerErrorManager:IsCompilationErrorFree()
             if inFile = undefined
                 i = 0
                 repeat while i < allFiles:GetSize()
