@@ -1,0 +1,58 @@
+package Libraries.Game
+
+use Libraries.Game.Graphics.Drawable
+
+/*
+    Primitive input class used to poll for input. In almost all cases, it is 
+    better to use event listeners and register them with the game class.
+*/
+class InputMonitor
+    system action IsKeyPressed(integer keyCode) returns boolean
+
+    // Actions for mouse input.
+
+    /* This will test if a particular button is pressed on the mouse. Use the
+    constants from the MouseEvent class to test the buttons. */
+    system action IsMouseButtonPressed(integer buttonCode) returns boolean
+
+    /* Returns the X coordinate of the mouse's location on the screen. */
+    system action GetMouseX returns integer
+
+    /* Returns the Y coordinate of the mouse's location on the screen. */
+    system action GetMouseY returns integer
+
+    /* Returns true if the left, right, or middle mouse button are held down.*/
+    system action IsClicked returns boolean
+
+    /* Checks if the mouse scroll wheel has been moved. If the wheel is scrolled
+    up, the integer will be positive. If it has been scrolled down, it will be
+    negative. */
+    system action IsScrolled returns integer
+
+    action DrawableIsClicked(Drawable drawable) returns boolean
+        
+        if IsClicked()
+            if GetMouseX() >= drawable:GetX() and GetMouseX() <= (drawable:GetX() + drawable:GetWidth())
+                if GetMouseY() >= drawable:GetY() and GetMouseY() <= drawable:GetY() + drawable:GetHeight()
+                    return true
+                end
+            end
+        end
+
+        return false
+    end
+
+    action DrawableIsClicked(Drawable drawable, integer button) returns boolean
+        
+        if IsMouseButtonPressed(button)
+            if GetMouseX() >= drawable:GetX() and GetMouseX() <= (drawable:GetX() + drawable:GetWidth())
+                if GetMouseY() >= drawable:GetY() and GetMouseY() <= drawable:GetY() + drawable:GetHeight()
+                    return true
+                end
+            end
+        end
+
+        return false
+    end
+
+end

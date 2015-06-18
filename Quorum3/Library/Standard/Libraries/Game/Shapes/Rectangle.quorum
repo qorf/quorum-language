@@ -1,0 +1,324 @@
+/*
+    The Rectangle class stores the location of a rectangle. This is managed
+    as a location on the screen in (x,y) coordinates coupled with the height
+    and width.
+
+    This class still needs proper commenting!
+*/
+
+package Libraries.Game.Shapes
+
+class Rectangle
+    
+    number x = 0
+    number y = 0
+    number width = 0
+    number height = 0
+
+    action SetRectangle(number newX, number newY, number newWidth, number newHeight)
+        x = newX
+        y = newY
+        width = newWidth
+        height = newHeight
+    end
+
+    action CopyRectangle(Rectangle rectangle)
+        x = rectangle:x
+        y = rectangle:y
+        width = rectangle:width
+        height = rectangle:height
+    end
+
+    action GetX returns number
+        return x
+    end
+
+    action SetX(number newX)
+        x = newX
+    end
+
+    action GetY returns number
+        return y
+    end
+
+    action SetY(number newY)
+        y = newY
+    end
+
+    action GetWidth returns number
+        return width
+    end
+
+    action SetWidth(number newWidth)
+        width = newWidth
+    end
+    
+    action GetHeight returns number
+        return height
+    end
+
+    action SetHeight(number newHeight)
+        height = newHeight
+    end
+
+    action SetPosition(number newX, number newY)
+        x = newX
+        y = newY
+    end
+
+    action SetSize(number newWidth, number newHeight)
+        width = newWidth
+        height = newHeight
+    end
+
+    action SetSquare(number scale)
+        width = scale
+        height = scale
+    end
+
+    action Contains(number testX, number testY) returns boolean
+        return x <= testX and x + width >= testX and y <= testY and y + height >= testY
+    end
+
+    action Contains(Rectangle rectangle) returns boolean
+        number xMin = rectangle:x
+        number xMax = xMin + rectangle:width
+
+        number yMin = rectangle:y
+        number yMax = yMin + rectangle:height
+
+        return (xMin > x and xMin < x + width) and (xMax > x and xMax < x + width) and (yMin > y and yMin < y + height) and (yMax > y and yMax < y + height)
+
+    end
+
+    action Overlaps(Rectangle rectangle) returns boolean
+        return (x < rectangle:x + rectangle:width and x + width > rectangle:x) and (y < rectangle:y + rectangle:height and y + height > rectangle:y)
+    end
+
+    action Merge (Rectangle rectangle)
+        number minX = 0.0
+        number maxX = 0.0
+        number minY = 0.0
+        number maxY = 0.0
+
+        if x < rectangle:x
+            minX = x
+        else
+            minX = rectangle:x
+        end
+
+        if x > rectangle:x
+            maxX = x
+        else
+            maxX = rectangle:x
+        end
+
+        if y < rectangle:y
+            minY = y
+        else
+            minY = rectangle:y
+        end
+
+        if y > rectangle:y
+            maxY = y
+        else
+            maxY = rectangle:y
+        end
+
+        x = minX
+        width = maxX - minX
+        
+        y = minY
+        height = maxY - minY
+
+    end
+
+    action Merge (number pointX, number pointY)
+        number minX = 0.0
+        number maxX = 0.0
+        number minY = 0.0
+        number maxY = 0.0
+
+        if x < pointX
+            minX = x
+        else
+            minX = pointX
+        end
+
+        if x > pointX
+            maxX = x
+        else
+            maxX = pointX
+        end
+
+        if y < pointY
+            minY = y
+        else
+            minY = pointY
+        end
+
+        if y > pointY
+            maxY = y
+        else
+            maxY = pointY
+        end
+
+        x = minX
+        width = maxX - minX
+        
+        y = minY
+        height = maxY - minY
+
+    end
+
+    action GetAspectRatio returns number
+        if height not= 0
+            return width / height
+        end
+        return 0
+    end
+
+    action SetCenter(number centerX, number centerY)
+        SetPosition(centerX - width/2, centerY - height/2)
+    end
+
+    action FitOutside(Rectangle rectangle)
+        number ratio = GetAspectRatio()
+        
+        if ratio < rectangle:GetAspectRatio()
+            SetSize(rectangle:height * ratio, rectangle:height)
+        else
+            SetSize(rectangle:width, rectangle:width / ratio)
+        end
+
+        SetPosition((rectangle:x + rectangle:width/2) - width/2, (rectangle:y + rectangle:height/2) - height/2)
+
+    end
+
+    action FitInside(Rectangle rectangle)
+        number ratio = GetAspectRatio()
+        
+        if ratio > rectangle:GetAspectRatio()
+            SetSize(rectangle:height * ratio, rectangle:height)
+        else
+            SetSize(rectangle:width, rectangle:width / ratio)
+        end
+
+        SetPosition((rectangle:x + rectangle:width/2) - width/2, (rectangle:y + rectangle:height/2) - height/2)
+    end
+
+    action Area returns number
+        return width * height
+    end
+
+    action Perimeter returns number
+        return 2 * (width + height)
+    end
+
+    /*
+
+	public String toString () {
+		return x + "," + y + "," + width + "," + height;
+	}
+
+	public int hashCode () {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + NumberUtils.floatToRawIntBits(height);
+		result = prime * result + NumberUtils.floatToRawIntBits(width);
+		result = prime * result + NumberUtils.floatToRawIntBits(x);
+		result = prime * result + NumberUtils.floatToRawIntBits(y);
+		return result;
+	}
+
+	public boolean equals (Object obj) {
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		Rectangle other = (Rectangle)obj;
+		if (NumberUtils.floatToRawIntBits(height) != NumberUtils.floatToRawIntBits(other.height)) return false;
+		if (NumberUtils.floatToRawIntBits(width) != NumberUtils.floatToRawIntBits(other.width)) return false;
+		if (NumberUtils.floatToRawIntBits(x) != NumberUtils.floatToRawIntBits(other.x)) return false;
+		if (NumberUtils.floatToRawIntBits(y) != NumberUtils.floatToRawIntBits(other.y)) return false;
+		return true;
+	}*/
+
+        /* The following actions will require Vector2 to implement.
+
+        /** return the Vector2 with coordinates of this rectangle
+	 * @param position The Vector2 */
+/*	public Vector2 getPosition (Vector2 position) {
+		return position.set(x, y);
+	}
+
+	/** Sets the x and y-coordinates of the bottom left corner from vector
+	 * @param position The position vector
+	 * @return this rectangle for chaining */
+/*	public Rectangle setPosition (Vector2 position) {
+		this.x = position.x;
+		this.y = position.y;
+
+		return this;
+	}
+
+	/** @return the Vector2 with size of this rectangle
+	 * @param size The Vector2 */
+/*	public Vector2 getSize (Vector2 size) {
+		return size.set(width, height);
+	}
+
+	/** @param point The coordinates vector
+	 * @return whether the point is contained in the rectangle */
+/*	public boolean contains (Vector2 point) {
+		return contains(point.x, point.y);
+	}
+
+/** Merges this rectangle with a point. The rectangle should not have negative width or negative height.
+	 * @param vec the vector describing the point
+	 * @return this rectangle for chaining */
+/*	public Rectangle merge (Vector2 vec) {
+		return merge(vec.x, vec.y);
+	}
+
+	/** Merges this rectangle with a list of points. The rectangle should not have negative width or negative height.
+	 * @param vecs the vectors describing the points
+	 * @return this rectangle for chaining */
+/*	public Rectangle merge (Vector2[] vecs) {
+		float minX = x;
+		float maxX = x + width;
+		float minY = y;
+		float maxY = y + height;
+		for (int i = 0; i < vecs.length; ++i) {
+			Vector2 v = vecs[i];
+			minX = Math.min(minX, v.x);
+			maxX = Math.max(maxX, v.x);
+			minY = Math.min(minY, v.y);
+			maxY = Math.max(maxY, v.y);
+		}
+		x = minX;
+		width = maxX - minX;
+		y = minY;
+		height = maxY - minY;
+		return this;
+	}
+
+        /** Calculates the center of the rectangle. Results are located in the given Vector2
+	 * @param vector the Vector2 to use
+	 * @return the given vector with results stored inside */
+/*	public Vector2 getCenter (Vector2 vector) {
+		vector.x = x + width / 2;
+		vector.y = y + height / 2;
+		return vector;
+	}
+
+	/** Moves this rectangle so that its center point is located at a given position
+	 * @param position the position
+	 * @return this for chaining */
+/*	public Rectangle setCenter (Vector2 position) {
+		setPosition(position.x - width / 2, position.y - height / 2);
+		return this;
+	}
+
+        */
+
+end

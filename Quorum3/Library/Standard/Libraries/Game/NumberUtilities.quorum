@@ -1,0 +1,21 @@
+// This is temporarily in Libraries.Game, but there is likely a better package
+// for this to be a part of, or its actions could simply be added to another
+// class, such as MathUtilities.
+
+package Libraries.Game
+
+use Libraries.Compute.BitwiseOperations
+
+class NumberUtilities 
+
+    action EncodeColorIntegerAsNumber(integer target) returns number
+        BitwiseOperations ops
+        // -16777217 is the 2's complement representation of 0xFEFFFFFF
+        return EncodeIntegerAsNumber(ops:And(target, -16777217))
+    end
+
+    system action EncodeNumberAsInteger(number target) returns integer
+
+    system action EncodeIntegerAsNumber(integer target) returns number
+
+end

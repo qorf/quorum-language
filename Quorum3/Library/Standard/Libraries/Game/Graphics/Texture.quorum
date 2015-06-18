@@ -1,0 +1,325 @@
+package Libraries.Game.Graphics
+
+use Libraries.Game.Graphics.FileTextureData
+use Libraries.Game.Application
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.PixelMap
+use Libraries.System.File
+use Libraries.Language.Errors.Error
+use Libraries.Game.Disposable
+
+/* Texture wraps an OpenGL ES Texture */
+class Texture is Disposable
+
+    private TextureData data = undefined
+
+    private GraphicsManager gl20
+
+    TextureFilter minimizeFilter
+    TextureFilter magnifyFilter
+    TextureWrap horizontalWrap
+    TextureWrap verticalWrap
+
+    on create
+        minimizeFilter:ConstructTextureFilter(minimizeFilter:NEAREST)
+        magnifyFilter:ConstructTextureFilter(magnifyFilter:NEAREST)
+        horizontalWrap:ConstructTextureWrap(horizontalWrap:CLAMP_TO_EDGE)
+        verticalWrap:ConstructTextureWrap(verticalWrap:CLAMP_TO_EDGE)
+    end
+
+    system action GetDepth() returns integer
+
+    /*
+        This action loads a Texture from a file path given as text. The file path should be given relative to the directory where the program is executed from. 
+
+        Attribute: Parameter filePath A file path pointing to the image file to load into a Texture.
+        
+        Attribute: Example
+        use Libraries.Game.Texture
+        Texture myTexture
+        
+        // This call will load an image "Sample.png" from a directory called "Images".
+        myTexture:LoadFromFile("Images/Sample.png")
+    */
+    action LoadFromFile(text filePath)
+        File file
+        file:SetPath(filePath)
+        LoadFromFile(file)
+    end
+
+    /*
+        This action loads a Texture from a Quorum File. The File must already have its path set for this function.
+
+        Attribute: Parameter file An image file to be loaded into a Texture.
+        
+        Attribute: Example
+        use Libraries.Game.Texture
+        use Libraries.System.File
+
+        File myFile
+        myFile:SetPath("Images/Sample.png")
+        Texture myTexture
+
+        // This call will load the image that the "myFile" variable points to.
+        // The file points to an image called "Sample.png" in a folder called "Images".
+        myTexture:LoadFromFile(myFile)
+    */
+    action LoadFromFile(File file)
+        LoadFromFile(file, undefined, false)
+    end
+
+    action LoadFromFile(File file, Format format, boolean useMipMaps)
+        LoadFromTextureData(CreateTextureData(file, format, useMipMaps))
+    end
+
+    action LoadFromTextureData(TextureData data)
+        SetGL20Info(gl20:GL_TEXTURE_2D, CreateGLHandle())
+        Load(data)
+        AddManagedTexture()
+    end
+
+    action Load(TextureData loadingData)
+        if data not= undefined
+            if loadingData:IsManaged() not= data:IsManaged()
+                Error error
+                error:SetErrorMessage("Newly loaded data must have the same type of data management as the old data.")
+                alert(error)
+            end
+        end
+
+        data = loadingData
+
+        if data:IsPrepared() not= true
+            data:Prepare()
+        end
+
+        Bind()
+
+        UploadImageData(gl20:GL_TEXTURE_2D, data)
+        SetFilter(GetMinimizeFilter(), GetMagnifyFilter())
+        SetWrap(GetHorizontalWrap(), GetVerticalWrap())
+        
+        BindToDefault()
+
+        //parent:Item:width = data:GetWidth()
+        //parent:Item:height = data:GetHeight()
+
+    end
+
+    action GetWidth returns integer
+        if data not= undefined
+            return data:GetWidth()
+        end
+        return 0
+    end
+
+    action GetHeight returns integer
+        if data not= undefined
+            return data:GetHeight()
+        end
+        return 0
+    end
+
+    // This currently takes no parameters, unlike in libGDX. This may have to
+    // change, but for now it should suffice.
+    private system action AddManagedTexture
+
+/*
+                Array<Texture> managedTextureArray = managedTextures.get(app);
+		if (managedTextureArray == null) managedTextureArray = new Array<Texture>();
+		managedTextureArray.add(texture);
+		managedTextures.put(app, managedTextureArray);
+*/
+
+    system action Bind
+
+    system action BindToDefault
+
+    system action CreateGLHandle returns integer
+
+    system action SetGL20Info(integer target, integer handle)
+
+    system action GetGLTarget returns integer
+
+    system action GetGLHandle returns integer
+
+    // All actions placed below are originally from GLTexture.
+
+    action CreateTextureData(File file, boolean useMipMaps) returns TextureData
+        return CreateTextureData(file, undefined, useMipMaps)
+    end
+
+    action CreateTextureData(File file, Format format, boolean useMipMaps) returns TextureData
+        if file = undefined
+            return undefined
+        end
+        
+        text filePath = file:GetPath()
+
+        if filePath:EndsWith(".cim") 
+            //return new FileTextureData(file, PixmapIO.readCIM(file), format, useMipMaps);
+        elseif filePath:EndsWith(".etc1") 
+            //return new ETC1TextureData(file, useMipMaps);
+        elseif filePath:EndsWith(".ktx") 
+            //return new KTXTextureData(file, useMipMaps);
+        end
+
+        FileTextureData data
+        PixelMap temp
+        temp:LoadPixelMap(file)
+        data:InitializeFileTextureData(file, temp, format, useMipMaps)
+        return data
+    end
+
+
+    // PUT PROPER COMMENTING HERE
+    action UploadImageData(integer target, TextureData data)
+        UploadImageData(target, data, 0)
+    end
+
+    action UploadImageData(integer target, TextureData data, integer mipLevel)
+
+        if data = undefined
+            Error error
+            error:SetErrorMessage("Can not upload undefined image data!")
+            alert(error)
+        end
+
+        if data:IsPrepared() not= true
+            data:Prepare()
+        end
+
+
+        // If custom data types are allowed in the future, they will have to
+        // be handled here. Otherwise, we use the standard.
+
+        PixelMap pixelMap = data:ConsumePixelMap()
+        boolean disposePixelMap = data:DisposePixelMap()
+
+        Format pixelFormat = pixelMap:GetFormat()
+        Format dataFormat = data:GetFormat()
+
+        if pixelFormat:GetValue() not= dataFormat:GetValue()
+            /*      Need to determine if this is really needed. In the meantime,
+                    this will throw an error (to help determine when this would
+                    occur during execution).
+
+                    Pixmap tmp = new Pixmap(pixmap.getWidth(), pixmap.getHeight(), data.getFormat());
+                    Blending blend = Pixmap.getBlending();
+                    Pixmap.setBlending(Blending.None);
+                    tmp.drawPixmap(pixmap, 0, 0, 0, 0, pixmap.getWidth(), pixmap.getHeight());
+                    Pixmap.setBlending(blend);
+                    if (data.disposePixmap()) {
+                            pixmap.dispose();
+                    }
+                    pixmap = tmp;
+                    disposePixmap = true;
+            */
+            Error error
+            error:SetErrorMessage("PixelMap format and data format mismatch!")
+            alert(error)
+        end
+
+        gl20:PixelStorageMode(gl20:GL_UNPACK_ALIGNMENT,1)
+
+        if data:UseMipMaps()
+            // Generate MipMaps - only used for 3D textures. Java code below.
+            // MipMapGenerator.generateMipMap(target, pixmap, pixmap.getWidth(), pixmap.getHeight());
+        else
+            pixelMap:Define2DImage(target, mipLevel, 0)
+        end
+
+        if disposePixelMap = true
+            pixelMap:Dispose()
+        end
+
+    end
+
+    action SetFilter(TextureFilter minFilter, TextureFilter magFilter)
+        
+        minimizeFilter = minFilter
+        magnifyFilter = magFilter
+        Bind()
+        gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_MIN_FILTER, minFilter:GetValue())
+        gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_MAG_FILTER, magFilter:GetValue())
+
+    end
+
+    action SetWrap(TextureWrap hWrap, TextureWrap vWrap)
+
+        horizontalWrap = hWrap
+        verticalWrap = vWrap
+        Bind()
+        gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_WRAP_S, hWrap:GetValue())
+        gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_WRAP_T, vWrap:GetValue())
+
+    end
+
+    action GetMinimizeFilter returns TextureFilter
+        return minimizeFilter
+    end
+
+    action GetMagnifyFilter returns TextureFilter
+        return magnifyFilter
+    end
+
+    action GetHorizontalWrap returns TextureWrap
+        return horizontalWrap
+    end
+
+    action GetVerticalWrap returns TextureWrap
+        return verticalWrap
+    end
+
+    action UseCustomColor returns boolean
+        return false
+    end
+
+    action GetTexture returns Texture
+        return me
+    end
+
+    /*action PrepareVertices
+
+        Array<number> vertices = GetVertices()
+
+        number x = GetX()
+        number y = GetY()
+
+        number x2 = x + GetWidth()
+        number y2 = y + GetHeight()
+
+        number u = 0
+        number v = 1
+        number u2 = 1
+        number v2 = 0
+
+        vertices:Set(0, x)
+        vertices:Set(1, y)
+        // Index 2 is automatically handled by the drawing SpriteBatch.
+        vertices:Set(3, u)
+        vertices:Set(4, v)
+
+        vertices:Set(5, x)
+        vertices:Set(6, y2)
+        // Index 7 is automatically handled by the drawing SpriteBatch.
+        vertices:Set(8, u)
+        vertices:Set(9, v2)
+
+        vertices:Set(10, x2)
+        vertices:Set(11, y2)
+        // Index 12 is automatically handled by the drawing SpriteBatch.
+        vertices:Set(13, u2)
+        vertices:Set(14, v2)
+
+        vertices:Set(15, x2)
+        vertices:Set(16, y)
+        // Index 17 is automatically handled by the drawing SpriteBatch.
+        vertices:Set(18, u2)
+        vertices:Set(19, v)
+    end*/
+
+    system action Dispose
+
+end

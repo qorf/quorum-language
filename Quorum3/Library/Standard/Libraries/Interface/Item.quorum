@@ -1,0 +1,102 @@
+package Libraries.Interface
+
+use Libraries.Containers.List
+use Libraries.Containers.HashTable
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseEvent
+
+class Item 
+
+    public number x = 0
+    public number y = 0
+
+    public number width = 0
+    public number height = 0
+
+    List<MouseListener> mouseListeners
+
+    action SetX(number newX)
+        x = newX
+    end
+   
+    action SetY(number newY)
+        y = newY
+    end
+
+    action GetX returns number
+        return x
+    end
+
+    action GetY returns number
+        return y
+    end
+
+    action SetPosition(number newX, number newY)
+        x = newX
+        y = newY
+    end
+
+    action SetWidth(number newWidth)
+        width = newWidth
+    end
+
+    action SetHeight(number newHeight)
+        height = newHeight
+    end
+    
+    action GetWidth returns number
+        return width
+    end
+
+    action GetHeight returns number
+        return height
+    end
+
+    action AddMouseListener(MouseListener listener)
+        mouseListeners:Add(listener)
+    end
+
+    action RemoveMouseListener(MouseListener listener)
+        mouseListeners:Remove(listener)
+    end
+
+    action ProcessMouseEvent(MouseEvent event)
+        Iterator<MouseListener> iterator = mouseListeners:GetIterator()
+        if event:eventType = event:CLICKED_MOUSE
+            repeat while iterator:HasNext()
+                iterator:Next():ClickedMouse(event)
+            end
+        elseif event:eventType = event:MOVED_MOUSE
+            repeat while iterator:HasNext()
+                iterator:Next():MovedMouse(event)
+            end
+        elseif event:eventType = event:DRAGGED_MOUSE
+            repeat while iterator:HasNext()
+                iterator:Next():DraggedMouse(event)
+            end
+        elseif event:eventType = event:RELEASED_MOUSE
+            repeat while iterator:HasNext()
+                iterator:Next():ReleasedMouse(event)
+            end
+        elseif event:eventType = event:SCROLLED_MOUSE
+            repeat while iterator:HasNext()
+                iterator:Next():ScrolledMouse(event)
+            end
+        end
+
+    end
+
+    action Update(number secondsSinceUpdate)
+
+    end
+
+    action BeginCollision(Item item)
+        
+    end
+
+    action FinishCollision(Item item)
+
+    end
+
+end
