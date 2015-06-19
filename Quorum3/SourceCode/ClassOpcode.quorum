@@ -173,7 +173,7 @@ class ClassOpcode is QuorumOpcode
 
         Iterator<Class> parents = clazz:GetParentClasses()
         if parents:HasNext()
-            result = result + "<em>Inherits from: <em>"
+            result = result + "<em>Inherits from: </em>"
             repeat while parents:HasNext()
                 Class p = parents:Next()
                 result = result + GetParentLink(clazz, p)

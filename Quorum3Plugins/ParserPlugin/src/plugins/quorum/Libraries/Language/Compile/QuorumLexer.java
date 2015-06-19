@@ -55,6 +55,10 @@ public class QuorumLexer extends Lexer {
 	};
 
 
+	    public static final int WHITESPACE_CHANNEL = 1000;
+	    public static final int COMMENT_CHANNEL = 1001;
+
+
 	public QuorumLexer(CharStream input) {
 		super(input);
 		_interp = new LexerATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
@@ -77,6 +81,32 @@ public class QuorumLexer extends Lexer {
 
 	@Override
 	public ATN getATN() { return _ATN; }
+
+	@Override
+	public void action(RuleContext _localctx, int ruleIndex, int actionIndex) {
+		switch (ruleIndex) {
+		case 65: NEWLINE_action((RuleContext)_localctx, actionIndex); break;
+
+		case 66: WS_action((RuleContext)_localctx, actionIndex); break;
+
+		case 67: COMMENTS_action((RuleContext)_localctx, actionIndex); break;
+		}
+	}
+	private void NEWLINE_action(RuleContext _localctx, int actionIndex) {
+		switch (actionIndex) {
+		case 0: _channel = WHITESPACE_CHANNEL; break;
+		}
+	}
+	private void COMMENTS_action(RuleContext _localctx, int actionIndex) {
+		switch (actionIndex) {
+		case 2: _channel = COMMENT_CHANNEL; break;
+		}
+	}
+	private void WS_action(RuleContext _localctx, int actionIndex) {
+		switch (actionIndex) {
+		case 1: _channel = WHITESPACE_CHANNEL; break;
+		}
+	}
 
 	public static final String _serializedATN =
 		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\2F\u0210\b\1\4\2\t"+
@@ -239,7 +269,7 @@ public class QuorumLexer extends Lexer {
 		"\u01e6\3\2\2\2\u01e6\u01e7\7\f\2\2\u01e7\u01e8\3\2\2\2\u01e8\u01e9\bC"+
 		"\2\2\u01e9\u0086\3\2\2\2\u01ea\u01ec\t\5\2\2\u01eb\u01ea\3\2\2\2\u01ec"+
 		"\u01ed\3\2\2\2\u01ed\u01eb\3\2\2\2\u01ed\u01ee\3\2\2\2\u01ee\u01ef\3\2"+
-		"\2\2\u01ef\u01f0\bD\2\2\u01f0\u0088\3\2\2\2\u01f1\u01f2\7\61\2\2\u01f2"+
+		"\2\2\u01ef\u01f0\bD\3\2\u01f0\u0088\3\2\2\2\u01f1\u01f2\7\61\2\2\u01f2"+
 		"\u01f3\7\61\2\2\u01f3\u01f7\3\2\2\2\u01f4\u01f6\n\6\2\2\u01f5\u01f4\3"+
 		"\2\2\2\u01f6\u01f9\3\2\2\2\u01f7\u01f5\3\2\2\2\u01f7\u01f8\3\2\2\2\u01f8"+
 		"\u01ff\3\2\2\2\u01f9\u01f7\3\2\2\2\u01fa\u01fc\7\17\2\2\u01fb\u01fa\3"+
@@ -249,9 +279,9 @@ public class QuorumLexer extends Lexer {
 		"\u0206\13\2\2\2\u0205\u0204\3\2\2\2\u0206\u0209\3\2\2\2\u0207\u0208\3"+
 		"\2\2\2\u0207\u0205\3\2\2\2\u0208\u020a\3\2\2\2\u0209\u0207\3\2\2\2\u020a"+
 		"\u020b\7,\2\2\u020b\u020d\7\61\2\2\u020c\u01f1\3\2\2\2\u020c\u0201\3\2"+
-		"\2\2\u020d\u020e\3\2\2\2\u020e\u020f\bE\2\2\u020f\u008a\3\2\2\2\22\2\u017b"+
+		"\2\2\u020d\u020e\3\2\2\2\u020e\u020f\bE\4\2\u020f\u008a\3\2\2\2\22\2\u017b"+
 		"\u01be\u01c3\u01c8\u01ce\u01d1\u01d7\u01de\u01e4\u01ed\u01f7\u01fb\u01ff"+
-		"\u0207\u020c\3\2\3\2";
+		"\u0207\u020c\5\3C\2\3D\3\3E\4";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

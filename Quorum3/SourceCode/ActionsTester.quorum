@@ -23,6 +23,7 @@ class ActionsTester
         CastMiddleArgument()
         CastReturn()
         CastReturnValue()
+        ChainedSoloFieldTest()
         Factorial()
         Fibonacci()
         Field()
@@ -222,6 +223,26 @@ class ActionsTester
         results:Add(0, "4.0")
         suite:Test(files, results)
         results:Set(0,"4")
+        suite:TestJavaScript(files, results)
+    end
+
+    action ChainedSoloFieldTest
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ChainingOtherClassMain.quorum")
+        File dependent
+        dependent:SetPath(path + "ChainingB.quorum")
+        File dependent2
+        dependent2:SetPath(path + "ChainingA.quorum")
+
+        files:Add(main)
+        files:Add(dependent)
+        files:Add(dependent2)
+
+        results:Add(0, "Did a thing!")
+        suite:Test(files, results)
+        results:Set(0,"Did a thing!")
         suite:TestJavaScript(files, results)
     end
 

@@ -7,6 +7,7 @@ package plugins.quorum.Libraries.Language.Compile;
 
 import java.util.Iterator;
 import java.util.List;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -28,6 +29,7 @@ public class JavaToQuorumListener implements QuorumListener {
 
     private QuorumSourceListener$Interface listener;
     private File$Interface file;
+    private CommonTokenStream tokens;
     
     @Override
     public void enterDecimal(QuorumParser.DecimalContext ctx) {
@@ -75,6 +77,7 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitCast(QuorumParser.CastContext ctx) {
         quorum.Libraries.Language.Compile.Context.CastContext context = 
                 new quorum.Libraries.Language.Compile.Context.CastContext();
+        context.type = ctx.type.type;
         setLocation(ctx, context);
         listener.ExitCast(context);
     }
@@ -116,6 +119,7 @@ public class JavaToQuorumListener implements QuorumListener {
         FullClassDeclarationContext context = new FullClassDeclarationContext();
         context.className = ctx.ID().getText();
         setLocation(ctx, context);
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterFullClassDeclaration(context);
     }
 
@@ -141,6 +145,7 @@ public class JavaToQuorumListener implements QuorumListener {
                 context.name.AddGeneric(value);
             }
         }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitFullClassDeclaration(context);
     }
 
@@ -159,29 +164,10 @@ public class JavaToQuorumListener implements QuorumListener {
     }
 
     @Override
-    public void enterSolo_method_call(QuorumParser.Solo_method_callContext ctx) {
-        quorum.Libraries.Language.Compile.Context.ActionCallContext context = 
-                new quorum.Libraries.Language.Compile.Context.ActionCallContext();
-        setLocation(ctx, context);
-        context.isSolo = true;
-        listener.EnterSoloActionCall(context);
-    }
-
-    @Override
-    public void exitSolo_method_call(QuorumParser.Solo_method_callContext ctx) {
-        quorum.Libraries.Language.Compile.Context.ActionCallContext context = 
-                new quorum.Libraries.Language.Compile.Context.ActionCallContext();
-        setLocation(ctx, context);
-        context.isSolo = true;
-        listener.ExitSoloActionCall(context);
-    }
-
-    @Override
     public void enterFormal_parameter(QuorumParser.Formal_parameterContext ctx) {
         FormalParameterContext context = new FormalParameterContext();
         setLocation(ctx, context);
         context.name = ctx.ID().getText();
-        
         
         listener.EnterFormalParameter(context);
     }
@@ -368,16 +354,21 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterInherits(QuorumParser.InheritsContext ctx) {
-        quorum.Libraries.Language.Compile.Context.IsContext context = 
+        quorum.Libraries.Language.Compile.Context.IsContext$Interface context = 
                 new quorum.Libraries.Language.Compile.Context.IsContext();
+        //QualifiedName name = ctx.name.qualified_name().qualifiedName;
+        //context.Set$Libraries$Language$Compile$Context$InheritStatementContext$name(name);
         setLocation(ctx, context);
         listener.EnterIs(context);
     }
 
     @Override
     public void exitInherits(QuorumParser.InheritsContext ctx) {
-        quorum.Libraries.Language.Compile.Context.IsContext context = 
+        quorum.Libraries.Language.Compile.Context.IsContext$Interface context = 
                 new quorum.Libraries.Language.Compile.Context.IsContext();
+        
+        QualifiedName name = Convert(ctx.name.qualified_name());
+        context.Set$Libraries$Language$Compile$Context$IsContext$name(name);
         setLocation(ctx, context);
         listener.ExitIs(context);
     }
@@ -546,51 +537,98 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitInherit_stmt(QuorumParser.Inherit_stmtContext ctx) {
         quorum.Libraries.Language.Compile.Context.InheritStatementContext context = 
                 new quorum.Libraries.Language.Compile.Context.InheritStatementContext();
-        QuorumParser.Qualified_nameContext name = ctx.qualified_name();
-        QuorumParser.Generic_declarationContext generic = ctx.generic_declaration();
         
+        //first get the name
+        QuorumParser.Qualified_nameContext name = ctx.qualified_name();        
         context.name = Convert(name);
         
+        //add generics if there are any.
+        QuorumParser.Generic_statementContext generic = ctx.generic_statement();
         if(generic != null) {
-            List<Token> tokenList = generic.ids;
-            Iterator<Token> tokens = tokenList.iterator();
-            while(tokens.hasNext()) {
-                Token token = tokens.next();
-                String value = token.getText();
-                context.name.AddGeneric(value);
+            List<QuorumParser.Assignment_declarationContext> decls = generic.assignment_declaration();
+            if(decls != null) {
+                Iterator<QuorumParser.Assignment_declarationContext> it = decls.iterator();
+                while(it.hasNext()) {
+                    QuorumParser.Assignment_declarationContext next = it.next();
+                    Type type = next.type;
+                    context.generics.Add(type);
+                }
             }
         }
-        
         setLocation(ctx, context);
         listener.ExitInheritStatement(context);
     }
     
     public QualifiedName Convert(QuorumParser.Qualified_nameContext next) {
         QualifiedName name = new QualifiedName();
-        List<Token> ids = next.ids;
-        Iterator<Token> tokens = ids.iterator();
-        while(tokens.hasNext()) {
-            Token token = tokens.next();
-            String value = token.getText();
-            name.Add(value);
+        if(next != null) {
+            List<Token> ids = next.ids;
+            Iterator<Token> tokens = ids.iterator();
+            while(tokens.hasNext()) {
+                Token token = tokens.next();
+                String value = token.getText();
+                name.Add(value);
+            }
         }
         return name;
     }
 
-    @Override
-    public void enterDetect_parameter(QuorumParser.Detect_parameterContext ctx) {
-        quorum.Libraries.Language.Compile.Context.DetectParameterContext context = 
-                new quorum.Libraries.Language.Compile.Context.DetectParameterContext();
+     @Override
+    public void enterAlways_statement(QuorumParser.Always_statementContext ctx) {
+        quorum.Libraries.Language.Compile.Context.AlwaysStatementContext context = 
+                new quorum.Libraries.Language.Compile.Context.AlwaysStatementContext();
         setLocation(ctx, context);
-        listener.EnterDetectParameter(context);
+        listener.EnterAlwaysStatement(context);
     }
 
     @Override
-    public void exitDetect_parameter(QuorumParser.Detect_parameterContext ctx) {
-        quorum.Libraries.Language.Compile.Context.DetectParameterContext context = 
-                new quorum.Libraries.Language.Compile.Context.DetectParameterContext();
+    public void exitAlways_statement(QuorumParser.Always_statementContext ctx) {
+        quorum.Libraries.Language.Compile.Context.AlwaysStatementContext context = 
+                new quorum.Libraries.Language.Compile.Context.AlwaysStatementContext();
         setLocation(ctx, context);
-        listener.ExitDetectParameter(context);
+        listener.ExitAlwaysStatement(context);
+    }
+
+    @Override
+    public void enterDetect_statement(QuorumParser.Detect_statementContext ctx) {
+        quorum.Libraries.Language.Compile.Context.DetectStatementContext context = 
+                new quorum.Libraries.Language.Compile.Context.DetectStatementContext();
+        setLocation(ctx, context);
+        String text = ctx.name.getText();
+        context.name = text;
+        List<QuorumParser.Qualified_nameContext> names = ctx.qualified_name();
+        if(names != null) {
+            Iterator<QuorumParser.Qualified_nameContext> iterator = names.iterator();
+            while(iterator.hasNext()) {
+                QuorumParser.Qualified_nameContext next = iterator.next();
+                QualifiedName qn = Convert(next);
+                if(qn != null) {
+                    context.parents.Add(qn);
+                }
+            }
+        }
+        listener.EnterDetectStatement(context);
+    }
+
+    @Override
+    public void exitDetect_statement(QuorumParser.Detect_statementContext ctx) {
+        quorum.Libraries.Language.Compile.Context.DetectStatementContext context = 
+                new quorum.Libraries.Language.Compile.Context.DetectStatementContext();
+        setLocation(ctx, context);
+        String text = ctx.name.getText();
+        context.name = text;
+        List<QuorumParser.Qualified_nameContext> names = ctx.qualified_name();
+        if(names != null) {
+            Iterator<QuorumParser.Qualified_nameContext> iterator = names.iterator();
+            while(iterator.hasNext()) {
+                QuorumParser.Qualified_nameContext next = iterator.next();
+                QualifiedName qn = Convert(next);
+                if(qn != null) {
+                    context.parents.Add(qn);
+                }
+            }
+        }
+        listener.ExitDetectStatement(context);
     }
 
     @Override
@@ -618,25 +656,13 @@ public class JavaToQuorumListener implements QuorumListener {
     }
 
     @Override
-    public void enterNo_class_stmnts(QuorumParser.No_class_stmntsContext ctx) {
-        quorum.Libraries.Language.Compile.Context.NoClassStatementsContext context = 
-                new quorum.Libraries.Language.Compile.Context.NoClassStatementsContext();
-        setLocation(ctx, context);
-        listener.EnterNoClassStatements(context);
-    }
-
-    @Override
-    public void exitNo_class_stmnts(QuorumParser.No_class_stmntsContext ctx) {
-        quorum.Libraries.Language.Compile.Context.NoClassStatementsContext context = 
-                new quorum.Libraries.Language.Compile.Context.NoClassStatementsContext();
-        setLocation(ctx, context);
-        listener.ExitNoClassStatements(context);
-    }
-
-    @Override
     public void enterReturn_statement(QuorumParser.Return_statementContext ctx) {
         quorum.Libraries.Language.Compile.Context.ReturnContext context = 
                 new quorum.Libraries.Language.Compile.Context.ReturnContext();
+        
+        if(ctx.NOW() != null) {
+            context.isReturnNow = true;
+        }
         setLocation(ctx, context);
         listener.EnterReturnStatement(context);
     }
@@ -645,6 +671,10 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitReturn_statement(QuorumParser.Return_statementContext ctx) {
         quorum.Libraries.Language.Compile.Context.ReturnContext context = 
                 new quorum.Libraries.Language.Compile.Context.ReturnContext();
+        
+        if(ctx.NOW() != null) {
+            context.isReturnNow = true;
+        }
         setLocation(ctx, context);
         listener.ExitReturnStatement(context);
     }
@@ -663,6 +693,22 @@ public class JavaToQuorumListener implements QuorumListener {
                 new quorum.Libraries.Language.Compile.Context.InputContext();
         setLocation(ctx, context);
         listener.ExitInput(context);
+    }
+    
+    @Override
+    public void enterInputNoParameters(QuorumParser.InputNoParametersContext ctx) {
+        quorum.Libraries.Language.Compile.Context.InputContext context = 
+                new quorum.Libraries.Language.Compile.Context.InputContext();
+        setLocation(ctx, context);
+        listener.EnterInputNoParameters(context);
+    }
+
+    @Override
+    public void exitInputNoParameters(QuorumParser.InputNoParametersContext ctx) {
+        quorum.Libraries.Language.Compile.Context.InputContext context = 
+                new quorum.Libraries.Language.Compile.Context.InputContext();
+        setLocation(ctx, context);
+        listener.ExitInputNoParameters(context);
     }
 
     @Override
@@ -907,12 +953,21 @@ public class JavaToQuorumListener implements QuorumListener {
     private void setLocation(ParserRuleContext context,
             quorum.Libraries.Language.Compile.Context.ParseContext$Interface quorumContext) {
         quorum.Libraries.Language.Compile.Location$Interface location = quorumContext.GetLocation();
-        location.SetLineNumber(context.getStart().getLine());
-        location.SetLineNumberEnd(context.getStop().getLine());
-        location.SetColumnNumber(context.getStart().getCharPositionInLine());
-        location.SetColumnNumberEnd(context.getStop().getCharPositionInLine());
-        location.SetIndex(context.getStart().getStartIndex());
-        location.SetIndex(context.getStop().getStartIndex());
+        Token start = context.getStart();
+        Token stop = context.getStop();
+        
+        if(start != null) {
+            location.SetLineNumber(start.getLine());
+            location.SetColumnNumber(start.getCharPositionInLine());
+            location.SetIndex(start.getStartIndex());
+        }
+        
+        if(stop != null) {
+            location.SetLineNumberEnd(stop.getLine());
+            location.SetColumnNumberEnd(stop.getCharPositionInLine());
+            location.SetIndexEnd(stop.getStopIndex());
+        }
+        
         location.SetFile(file);
     }
 
@@ -960,13 +1015,41 @@ public class JavaToQuorumListener implements QuorumListener {
     }
 
     @Override
-    public void enterEveryRule(ParserRuleContext prc) {
-
+    public void enterEveryRule(ParserRuleContext ctx) {
+    }
+    
+    private void fireDocumentationToken(int index, ParserRuleContext ctx, boolean enter) {
+        Token comment = findLeftCommentToken(index);
+        if(comment != null) {
+            DocumentationContext context = new DocumentationContext();
+            context.Set$Libraries$Language$Compile$Context$DocumentationContext$document(comment.getText());
+            setLocation(ctx, context);
+            if(enter) {
+                listener.EnterDocumentation(context);
+            } else {
+                listener.ExitDocumentation(context);
+            }
+        }
+    }
+    
+    private Token findLeftCommentToken(int index) {
+        Token token = null;
+        int i = index;
+        while(i > 0) { 
+            Token toke = tokens.get(i);
+            if(toke.getChannel() == QuorumLexer.COMMENT_CHANNEL) {
+                return toke;
+            } else if(toke.getChannel() == QuorumLexer.WHITESPACE_CHANNEL) {
+                i--;
+            } else {
+                return null;
+            }
+        }
+        return token;
     }
 
     @Override
-    public void exitEveryRule(ParserRuleContext prc) {
-
+    public void exitEveryRule(ParserRuleContext ctx) {
     }
 
     /**
@@ -1013,8 +1096,11 @@ public class JavaToQuorumListener implements QuorumListener {
             variable.SetIsParameter(true);
             context.parameters.Add(variable);
         }
+        TerminalNode ID = ctx.ID();
+        if(ID != null) {
+            context.actionName = ID.getText();
+        }
         
-        context.actionName = ctx.ID().getText();
         if(ctx.RETURNS() != null) {
             context.returnType = ctx.return_type.type;
         } else {
@@ -1043,7 +1129,10 @@ public class JavaToQuorumListener implements QuorumListener {
             context.parameters.Add(variable);
         }
         
-        context.actionName = ctx.ID().getText();
+        TerminalNode ID = ctx.ID();
+        if(ID != null) {
+            context.actionName = ID.getText();
+        }
         if(ctx.RETURNS() != null) {
             context.returnType = ctx.return_type.type;
         } else {
@@ -1059,6 +1148,20 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterNativeAction(QuorumParser.NativeActionContext ctx) {
         ActionContext context = new ActionContext();
         setLocation(ctx, context);
+        
+        if(ctx.modifier != null) {
+            TerminalNode PUBLIC = ctx.modifier.PUBLIC();
+            if(PUBLIC != null) {
+                context.isPublic = true;
+                context.isPrivate = false;
+            }
+            TerminalNode PRIVATE = ctx.modifier.PRIVATE();
+            if(PRIVATE != null) {
+                context.isPublic = false;
+                context.isPrivate = true;
+            }
+        }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterSystemAction(context);
     }
 
@@ -1066,6 +1169,20 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitNativeAction(QuorumParser.NativeActionContext ctx) {
         ActionContext context = new ActionContext();
         setLocation(ctx, context);
+        
+        if(ctx.modifier != null) {
+            TerminalNode PUBLIC = ctx.modifier.PUBLIC();
+            if(PUBLIC != null) {
+                context.isPublic = true;
+                context.isPrivate = false;
+            }
+            TerminalNode PRIVATE = ctx.modifier.PRIVATE();
+            if(PRIVATE != null) {
+                context.isPublic = false;
+                context.isPrivate = true;
+            }
+        }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.ExitSystemAction(context);
     }
 
@@ -1073,6 +1190,19 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterAction(QuorumParser.ActionContext ctx) {
         ActionContext context = new ActionContext();
         setLocation(ctx, context);
+        if(ctx.modifier != null) {
+            TerminalNode PUBLIC = ctx.modifier.PUBLIC();
+            if(PUBLIC != null) {
+                context.isPublic = true;
+                context.isPrivate = false;
+            }
+            TerminalNode PRIVATE = ctx.modifier.PRIVATE();
+            if(PRIVATE != null) {
+                context.isPublic = false;
+                context.isPrivate = true;
+            }
+        }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterAction(context);
     }
 
@@ -1080,6 +1210,20 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitAction(QuorumParser.ActionContext ctx) {
         ActionContext context = new ActionContext();
         setLocation(ctx, context);
+        
+        if(ctx.modifier != null) {
+            TerminalNode PUBLIC = ctx.modifier.PUBLIC();
+            if(PUBLIC != null) {
+                context.isPublic = true;
+                context.isPrivate = false;
+            }
+            TerminalNode PRIVATE = ctx.modifier.PRIVATE();
+            if(PRIVATE != null) {
+                context.isPublic = false;
+                context.isPrivate = true;
+            }
+        }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitAction(context);
     }
 
@@ -1087,6 +1231,21 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterBlueprintAction(QuorumParser.BlueprintActionContext ctx) {
         ActionContext context = new ActionContext();
         setLocation(ctx, context);
+        
+        if(ctx.modifier != null) {
+            TerminalNode PUBLIC = ctx.modifier.PUBLIC();
+            if(PUBLIC != null) {
+                context.isPublic = true;
+                context.isPrivate = false;
+            }
+            TerminalNode PRIVATE = ctx.modifier.PRIVATE();
+            if(PRIVATE != null) {
+                context.isPublic = false;
+                context.isPrivate = true;
+            }
+        }
+        
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterBlueprintAction(context);
     }
 
@@ -1094,6 +1253,20 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitBlueprintAction(QuorumParser.BlueprintActionContext ctx) {
         ActionContext context = new ActionContext();
         setLocation(ctx, context);
+        
+        if(ctx.modifier != null) {
+            TerminalNode PUBLIC = ctx.modifier.PUBLIC();
+            if(PUBLIC != null) {
+                context.isPublic = true;
+                context.isPrivate = false;
+            }
+            TerminalNode PRIVATE = ctx.modifier.PRIVATE();
+            if(PRIVATE != null) {
+                context.isPublic = false;
+                context.isPrivate = true;
+            }
+        }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitBlueprintAction(context);
     }
 
@@ -1102,6 +1275,7 @@ public class JavaToQuorumListener implements QuorumListener {
         quorum.Libraries.Language.Compile.Context.ConstructorContext context = 
                 new quorum.Libraries.Language.Compile.Context.ConstructorContext();
         setLocation(ctx, context);
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterConstructor(context);
     }
 
@@ -1110,6 +1284,7 @@ public class JavaToQuorumListener implements QuorumListener {
         quorum.Libraries.Language.Compile.Context.ConstructorContext context = 
                 new quorum.Libraries.Language.Compile.Context.ConstructorContext();
         setLocation(ctx, context);
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitConstructor(context);
     }
 
@@ -1233,7 +1408,11 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterNormalAssignment(QuorumParser.NormalAssignmentContext ctx) {
         NormalAssignmentContext context = new NormalAssignmentContext();
         setLocation(ctx, context);
-        context.name = ctx.name.getText();
+        Token name = ctx.name;
+        if(name != null) {
+            context.name = ctx.name.getText();
+        }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterNormalAssignment(context);
     }
 
@@ -1246,7 +1425,10 @@ public class JavaToQuorumListener implements QuorumListener {
             context.isConstant = true;
         }
         
-        context.name = ctx.name.getText();
+        Token name = ctx.name;
+        if(name != null) {
+            context.name = ctx.name.getText();
+        }
         if(ctx.modifier != null) {
             TerminalNode PUBLIC = ctx.modifier.PUBLIC();
             if(PUBLIC != null) {
@@ -1263,11 +1445,12 @@ public class JavaToQuorumListener implements QuorumListener {
             context.leftHandSide = ctx.assignment_declaration().type;
         }
         
-        if(ctx.rhs == null) {
+        if(ctx.EQUALITY() == null) {
             context.hasRightHandSide = false;
         } else {
             context.hasRightHandSide = true;
         }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitNormalAssignment(context);
     }
 
@@ -1275,8 +1458,11 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterParentAssignment(QuorumParser.ParentAssignmentContext ctx) {
         ParentAssignmentContext context = new ParentAssignmentContext();
         setLocation(ctx, context);
-        context.parentName = ctx.parent.qualifiedName;
-        context.name = ctx.name.getText();
+        context.parentName = Convert(ctx.parent);
+        if(ctx.name != null) {
+            context.name = ctx.name.getText();
+        }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterParentAssignment(context);
     }
 
@@ -1284,8 +1470,12 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitParentAssignment(QuorumParser.ParentAssignmentContext ctx) {
         ParentAssignmentContext context = new ParentAssignmentContext();
         setLocation(ctx, context);
-        context.parentName = ctx.parent.qualifiedName;
-        context.name = ctx.name.getText();
+        
+        context.parentName = Convert(ctx.parent);
+        if(ctx.name != null) {
+            context.name = ctx.name.getText();
+        }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitParentAssignment(context);
     }
 
@@ -1295,9 +1485,11 @@ public class JavaToQuorumListener implements QuorumListener {
         setLocation(ctx, context);
         context.object = ctx.object.getText();
         if(ctx.parent != null) {
-            context.parentName = ctx.parent.qualifiedName;
+            QualifiedName name = Convert(ctx.parent);
+            context.parentName = name;
         }
         context.name = ctx.name.getText();
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterObjectAssignment(context);
     }
 
@@ -1307,9 +1499,11 @@ public class JavaToQuorumListener implements QuorumListener {
         setLocation(ctx, context);
         context.object = ctx.object.getText();
         if(ctx.parent != null) {
-            context.parentName = ctx.parent.qualifiedName;
+            QualifiedName name = Convert(ctx.parent);
+            context.parentName = name;
         }
         context.name = ctx.name.getText();
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitObjectAssignment(context);
     }
 
@@ -1318,6 +1512,7 @@ public class JavaToQuorumListener implements QuorumListener {
         NoTypeAssignmentContext context = new NoTypeAssignmentContext();
         setLocation(ctx, context);
         context.name = ctx.name.getText();
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterNoTypeAssignment(context);
     }
 
@@ -1330,29 +1525,99 @@ public class JavaToQuorumListener implements QuorumListener {
             context.isField = true;
             context.hasMe = true;
         }
+        fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, false);
         listener.ExitNoTypeAssignment(context);
     }
 
+    @Override
+    public void enterSolo_method_required_method_part(QuorumParser.Solo_method_required_method_partContext ctx) {
+        ActionCallContext context = new ActionCallContext();
+        setLocation(ctx, context);
+        listener.EnterActionCall(context);
+    }
+
+    @Override
+    public void exitSolo_method_required_method_part(QuorumParser.Solo_method_required_method_partContext ctx) {
+        ActionCallContext context = new ActionCallContext();
+        setLocation(ctx, context);
+        String name = ctx.var.getText();
+        boolean isActionCall = ctx.LEFT_PAREN() != null;
+        context.name = name;
+        context.isActionCall = isActionCall;
+
+        listener.ExitActionCall(context);
+    }
+    
+    @Override
+    public void enterVariableSoloFunctionCall(QuorumParser.VariableSoloFunctionCallContext ctx) {
+        VariableFunctionCallContext context = new VariableFunctionCallContext();
+        boolean hasMe = ctx.ME() != null;
+        context.hasMe = hasMe;
+        if(ctx.object != null) {
+            context.objectName = ctx.object.getText();
+        }
+        setLocation(ctx, context);
+        listener.EnterVariableSoloFunctionCall(context);
+    }
+
+    @Override
+    public void exitVariableSoloFunctionCall(QuorumParser.VariableSoloFunctionCallContext ctx) {
+        VariableFunctionCallContext context = new VariableFunctionCallContext();
+        boolean hasMe = ctx.ME() != null;
+        context.hasMe = hasMe;
+        if(ctx.object != null) {
+            context.objectName = ctx.object.getText();
+        }
+        setLocation(ctx, context);
+        listener.ExitVariableSoloFunctionCall(context);
+    }
+
+    @Override
+    public void enterParentVariableSoloFunctionCall(QuorumParser.ParentVariableSoloFunctionCallContext ctx) {
+        ParentVariableFunctionCallContext context = new ParentVariableFunctionCallContext();
+        setLocation(ctx, context);
+        if(ctx.ME() != null) {
+            context.hasMe = true;
+        }
+        
+        if(ctx.fieldName != null) {
+            context.variableName = ctx.fieldName.getText();
+            if(context.variableName.isEmpty()) {
+                context.variableName = null;
+            }
+        }
+        
+        QualifiedName name = Convert(ctx.parent);
+        context.parentName = name;
+        listener.EnterParentVariableSoloFunctionCall(context);
+    }
+
+    @Override
+    public void exitParentVariableSoloFunctionCall(QuorumParser.ParentVariableSoloFunctionCallContext ctx) {
+        ParentVariableFunctionCallContext context = new ParentVariableFunctionCallContext();
+        setLocation(ctx, context);
+        if(ctx.ME() != null) {
+            context.hasMe = true;
+        }
+        
+        if(ctx.fieldName != null) {
+            context.variableName = ctx.fieldName.getText();
+            if(context.variableName.isEmpty()) {
+                context.variableName = null;
+            }
+        }
+        
+        QualifiedName name = Convert(ctx.parent);
+        context.parentName = name;
+        listener.ExitParentVariableSoloFunctionCall(context);
+    }
+    
     @Override
     public void enterVariableFunctionCall(QuorumParser.VariableFunctionCallContext ctx) {
         VariableFunctionCallContext context = new VariableFunctionCallContext();
         setLocation(ctx, context);
         boolean hasMe = ctx.ME() != null;
         context.hasMe = hasMe;
-//        List<QuorumParser.Action_callContext> calls = ctx.action_call();
-//        if(calls != null) {
-//            if(calls.size() == 1) {
-//                QuorumParser.Action_callContext ctx2 = calls.get(0);
-//                context.name = ctx2.ID().getText();
-//                if(ctx2.LEFT_PAREN() != null) {
-//                    context.isActionCall = true;
-//                }
-//            }
-//        }
-//        QuorumParser.Parent_callContext parent = ctx.parent_call();
-//        if(parent != null) {
-//            context.isParentCall = true;
-//        }
         listener.EnterVariableFunctionCall(context);
     }
 
@@ -1369,6 +1634,20 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterParentVariableFunctionCall(QuorumParser.ParentVariableFunctionCallContext ctx) {
         ParentVariableFunctionCallContext context = new ParentVariableFunctionCallContext();
         setLocation(ctx, context);
+        
+        if(ctx.ME() != null) {
+            context.hasMe = true;
+        }
+        
+        if(ctx.fieldName != null) {
+            context.variableName = ctx.fieldName.getText();
+            if(context.variableName.isEmpty()) {
+                context.variableName = null;
+            }
+        }
+        
+        QualifiedName name = Convert(ctx.parent);
+        context.parentName = name;
         listener.EnterParentVariableFunctionCall(context);
     }
 
@@ -1376,6 +1655,21 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitParentVariableFunctionCall(QuorumParser.ParentVariableFunctionCallContext ctx) {
         ParentVariableFunctionCallContext context = new ParentVariableFunctionCallContext();
         setLocation(ctx, context);
+        
+        if(ctx.ME() != null) {
+            context.hasMe = true;
+        }
+        
+        if(ctx.fieldName != null) {
+            context.variableName = ctx.fieldName.getText();
+            if(context.variableName.isEmpty()) {
+                context.variableName = null;
+            }
+        }
+        
+        QualifiedName name = Convert(ctx.parent);
+        context.parentName = name;
+        
         listener.ExitParentVariableFunctionCall(context);
     }
 
@@ -1397,18 +1691,65 @@ public class JavaToQuorumListener implements QuorumListener {
 
         listener.ExitActionCall(context);
     }
-
-    @Override
-    public void enterParent_call(QuorumParser.Parent_callContext ctx) {
-        ParentCallContext context = new ParentCallContext();
+    
+    @Override 
+    public void enterInitial_parent_action_call(@NotNull QuorumParser.Initial_parent_action_callContext ctx) {
+        ActionCallContext context = new ActionCallContext();
         setLocation(ctx, context);
-        listener.EnterParentCall(context);
+        listener.EnterInitialParentActionCall(context);
+    }
+
+    @Override 
+    public void exitInitial_parent_action_call(@NotNull QuorumParser.Initial_parent_action_callContext ctx) {
+        ActionCallContext context = new ActionCallContext();
+        setLocation(ctx, context);
+        String name = ctx.var.getText();
+        boolean isActionCall = ctx.LEFT_PAREN() != null;
+        context.name = name;
+        context.isActionCall = isActionCall;
+
+        listener.ExitInitialParentActionCall(context);
     }
 
     @Override
-    public void exitParent_call(QuorumParser.Parent_callContext ctx) {
-        ParentCallContext context = new ParentCallContext();
+    public void enterNoActionsNoClass(QuorumParser.NoActionsNoClassContext ctx) {
+        NoActionsNoClassContext context = new NoActionsNoClassContext();
         setLocation(ctx, context);
-        listener.ExitParentCall(context);
+        listener.EnterNoActionsNoClass(context);
+    }
+
+    @Override
+    public void exitNoActionsNoClass(QuorumParser.NoActionsNoClassContext ctx) {
+        NoActionsNoClassContext context = new NoActionsNoClassContext();
+        setLocation(ctx, context);
+        listener.ExitNoActionsNoClass(context);
+    }
+
+    @Override
+    public void enterActionsNoClass(QuorumParser.ActionsNoClassContext ctx) {
+        ActionsNoClassContext context = new ActionsNoClassContext();
+        setLocation(ctx, context);
+        listener.EnterActionsNoClass(context);
+    }
+
+    @Override
+    public void exitActionsNoClass(QuorumParser.ActionsNoClassContext ctx) {
+        ActionsNoClassContext context = new ActionsNoClassContext();
+        setLocation(ctx, context);
+        listener.ExitActionsNoClass(context);
+    }
+
+    /**
+     * @return the tokens
+     */
+    public CommonTokenStream getTokens() {
+        return tokens;
+    }
+
+    /**
+     * @param tokens the tokens to set
+     */
+    public void setTokens(CommonTokenStream tokens) {
+        this.tokens = tokens;
     }
 }
