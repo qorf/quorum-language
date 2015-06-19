@@ -140,24 +140,6 @@ class Main is WebResponder
         compiler:SetMain(actualMain)
 
         files:Add(actualMain)
-        //compiler:Compile(files)
-//        Compiler compiler
-//        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
-//        compiler:SetStandardLibraryFolder(standardLibraryFolder)
-//        output compiler:GetVersion()
-//        File root
-//        root:SetPath("Output")
-//        compiler:SetOutputFolder(root)
-//        File main
-//        main:SetPath("Library/Tests/Actions/Pass/AverageOfFiveNumbers.quorum")
-//
-//        Array<File> files
-//
-//        files:Add(main)
-//
-//        compiler:SetOutputSpeech(false) //don't speak while in test mode
-//        //compiler:SetOutputType(compiler:JAVASCRIPT)
-//        compiler:SetMain(main)
         
         ProjectInformation info
         info:projectFiles = files
