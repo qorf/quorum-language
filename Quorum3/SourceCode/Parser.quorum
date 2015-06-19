@@ -23,6 +23,7 @@ class Parser is QuorumSourceListener
     boolean isFirstGenericInFile = false
     Stack<Location> locationStack
     Stack<Documentation> documents
+    constant text ILLEGAL_CLASS_NAME = "_Interface"
 
     /*
         This action returns an iterator of all of the classes parsed
@@ -55,6 +56,18 @@ class Parser is QuorumSourceListener
 
     action EnterFullClassDeclaration(FullClassDeclarationContext context)
         text name = context:className
+        //class names cannot end with this value, so throw an error if they 
+        //do
+        if name:EndsWith(ILLEGAL_CLASS_NAME)
+            CompilerError error
+            CompilerErrorType type
+            type:SetCurrentType(type:OTHER)
+            error:SetCompilerErrorType(type)
+            error:SetErrorMessage("Names that end with " + ILLEGAL_CLASS_NAME + " are not allowed, as they cause problems with the code I generate.")
+            error:SetLocation(context:GetLocation())
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+        end
         AddClass(name)
         isFirstGenericInFile = true
         if not documents:IsEmpty()
@@ -92,6 +105,18 @@ class Parser is QuorumSourceListener
         text extension = file:GetFileExtension()
         integer length = extension:GetSize()
         name = name:GetSubtext(0, name:GetSize() - length - 1)
+        //class names cannot end with this value, so throw an error if they 
+        //do
+        if name:EndsWith(ILLEGAL_CLASS_NAME)
+            CompilerError error
+            CompilerErrorType type
+            type:SetCurrentType(type:OTHER)
+            error:SetCompilerErrorType(type)
+            error:SetErrorMessage("Names that end with " + ILLEGAL_CLASS_NAME + " are not allowed, as they cause problems with the code I generate.")
+            error:SetLocation(context:GetLocation())
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+        end
         AddClass(name)
         isFirstGenericInFile = true
 
@@ -162,6 +187,18 @@ class Parser is QuorumSourceListener
         text extension = file:GetFileExtension()
         integer length = extension:GetSize()
         name = name:GetSubtext(0, name:GetSize() - length - 1)
+        //class names cannot end with this value, so throw an error if they 
+        //do
+        if name:EndsWith(ILLEGAL_CLASS_NAME)
+            CompilerError error
+            CompilerErrorType type
+            type:SetCurrentType(type:OTHER)
+            error:SetCompilerErrorType(type)
+            error:SetErrorMessage("Names that end with " + ILLEGAL_CLASS_NAME + " are not allowed, as they cause problems with the code I generate.")
+            error:SetLocation(context:GetLocation())
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+        end
         AddClass(name)
         isFirstGenericInFile = true
     end
@@ -203,7 +240,6 @@ class Parser is QuorumSourceListener
             QualifiedName default
             clazz:SetPackage(default)
         end
-        
         clazz:SetName(name)
         clazz:SetFile(GetFile())
         CompilerError error = symbolTable:Add(clazz)
