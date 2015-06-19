@@ -27,7 +27,7 @@ public class JavaBytecodeClassWriter implements Opcodes{
     private ClassWriter classWriter;
     
     public JavaBytecodeClassWriter() {
-        classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        classWriter = new QuorumClassWriter(ClassWriter.COMPUTE_FRAMES);
     }
     
     public void VisitSource(String name) {

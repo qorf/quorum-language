@@ -1,5 +1,10 @@
 grammar Quorum;
 
+@lexer::members {
+    public static final int WHITESPACE_CHANNEL = 1000;
+    public static final int COMMENT_CHANNEL = 1001;
+}
+
 start	:
 		(package_rule reference+ 
 	|	reference+ package_rule
@@ -27,8 +32,8 @@ class_declaration
 	;
 no_class_stmnts
         :
-	statement+
-	|(access_modifier? method_declaration)+
+	statement+                              #NoActionsNoClass
+	|(access_modifier? method_declaration)+ #ActionsNoClass
 	;
 inherit_stmnts
 	:	INHERITS inherit_stmt 
@@ -36,7 +41,7 @@ inherit_stmnts
 	;
 inherit_stmt
         :
-            qualified_name generic_declaration? 
+            qualified_name generic_statement? 
         ;
 access_modifier
 	:	PUBLIC
@@ -44,16 +49,15 @@ access_modifier
 	;	
 class_stmnts
 	:
-	assignment_statement
-	|	access_modifier?
-	 method_declaration
+            assignment_statement
+        |   method_declaration
 	;
 
 method_declaration
-	:	method_shared block END     #Action
-	|	BLUEPRINT method_shared     #BlueprintAction
-	|	NATIVE method_shared        #NativeAction
-	| ON CREATE block END               #Constructor
+	:	modifier = access_modifier? method_shared block END     #Action
+	|	modifier = access_modifier? BLUEPRINT method_shared     #BlueprintAction
+	|	modifier = access_modifier? NATIVE method_shared        #NativeAction
+	| ON CREATE block END                                           #Constructor
 	;
 
 method_shared returns [quorum.Libraries.Language.Compile.Context.ActionContext actionContext]
@@ -85,31 +89,37 @@ statement:
 
 solo_method_call 
 	:
-	qualified_name (COLON ID)? LEFT_PAREN (expression (COMMA expression)*)? RIGHT_PAREN
-	|	PARENT COLON qualified_name COLON ID LEFT_PAREN (expression (COMMA expression)*)? RIGHT_PAREN
-	|	ME COLON qualified_name (COLON ID)? LEFT_PAREN (expression (COMMA expression)*)? RIGHT_PAREN
+            (ME COLON)? (object=ID COLON)? (action_call COLON)* solo_method_required_method_part #VariableSoloFunctionCall   
+        |   ((ME COLON)? (fieldName=ID COLON))? PARENT COLON parent=qualified_name 
+                COLON initial_parent_action_call (COLON (action_call))* #ParentVariableSoloFunctionCall
 	;
-	
+
+solo_method_required_method_part
+    :
+        var=ID LEFT_PAREN function_expression_list RIGHT_PAREN
+    ;
+
 alert_statement 
 	:	ALERT LEFT_PAREN expression RIGHT_PAREN
 	;
 	
 check_statement
 	:   CHECK block 
-	    ((DETECT 
-	    detect_parameter block
-	    )+ 
-	    (ALWAYS
-	    block
-	    )? 
-	|   ALWAYS 
-	    block
-	    ) END
+	    (
+                    (detect_statement)+ (always_statement)? 
+                |   always_statement
+            ) 
+            END
 	 ;	
     
-detect_parameter
-	: 	ID (INHERITS  qualified_name(OR qualified_name)*)?
+detect_statement
+	: 	DETECT name=ID (INHERITS  qualified_name (OR qualified_name)*)? block
 	;
+
+always_statement
+        :   ALWAYS block
+        ;
+
 print_statement 
 	:	OUTPUT expression
 	;
@@ -183,28 +193,17 @@ loop_statement
             )  block END
     ;
 
+initial_parent_action_call
+    :   var=ID (LEFT_PAREN function_expression_list RIGHT_PAREN)?
+    ;
+
 action_call
     :   var=ID (LEFT_PAREN function_expression_list RIGHT_PAREN)?
     ;
 
-parent_call
-    :   PARENT COLON parent=qualified_name (COLON action_call)+ 
-    ;
-
 expression
     :
-        (ME COLON)? action_call (COLON (action_call*))?                                         #VariableFunctionCall
-    |   (ME COLON)? parent_call (COLON action_call)+                                            #ParentVariableFunctionCall
-    |   MINUS expression                                                                        #Minus
-    |   NOT expression                                                                          #Not
-    |   CAST LEFT_PAREN assignment_declaration COMMA expression RIGHT_PAREN                     #Cast
-    |   expression (MULTIPLY | DIVIDE |MODULO) expression                                       #Multiplication
-    |   expression (PLUS | MINUS) expression                                                    #Addition
-    |   expression (GREATER | GREATER_EQUAL | LESS | LESS_EQUAL) expression                     #Greater
-    |   expression INHERITS class_type                                                          #Inherits
-    |   expression (EQUALITY | NOTEQUALS) expression                                            #Equals
-    |   expression (AND) expression                                                             #And
-    |   expression (OR) expression                                                              #Or
+        LEFT_PAREN expression RIGHT_PAREN                                                       #ParenthesisExpression
     |   INT                                                                                     #Integer
     |   BOOLEAN                                                                                 #Boolean
     |   DECIMAL                                                                                 #Decimal
@@ -212,7 +211,19 @@ expression
     |   NULL                                                                                    #Null
     |   ME                                                                                      #Me
     |   INPUT LEFT_PAREN expression RIGHT_PAREN                                                 #Input
-    |   LEFT_PAREN expression RIGHT_PAREN                                                       #ParenthesisExpression
+    |   INPUT LEFT_PAREN RIGHT_PAREN                                                            #InputNoParameters
+    |   (ME COLON)? action_call (COLON (action_call))*                                          #VariableFunctionCall
+    |   ((ME COLON)? (fieldName=ID COLON))? PARENT COLON parent=qualified_name COLON initial_parent_action_call (COLON (action_call))* #ParentVariableFunctionCall
+    |   MINUS expression                                                                        #Minus
+    |   NOT expression                                                                          #Not
+    |   CAST LEFT_PAREN type=assignment_declaration COMMA expression RIGHT_PAREN                #Cast
+    |   expression (MULTIPLY | DIVIDE |MODULO) expression                                       #Multiplication
+    |   expression (PLUS | MINUS) expression                                                    #Addition
+    |   expression (GREATER | GREATER_EQUAL | LESS | LESS_EQUAL) expression                     #Greater
+    |   expression INHERITS name=class_type                                                     #Inherits
+    |   expression (EQUALITY | NOTEQUALS) expression                                            #Equals
+    |   expression (AND) expression                                                             #And
+    |   expression (OR) expression                                                              #Or
     ;
 
 
@@ -303,10 +314,10 @@ ID 	: 	('a'..'z'|'A'..'Z')('a'..'z'|'A'..'Z'|'0'..'9' | '_')*;
 STRING	:	DOUBLE_QUOTE .*? DOUBLE_QUOTE;
 
 
-NEWLINE	:	 '\r'?'\n' -> channel(HIDDEN);
-WS	:	(' '|'\t'|'\n'|'\r')+ -> channel(HIDDEN);
+NEWLINE	:	 '\r'?'\n' -> channel(WHITESPACE_CHANNEL);
+WS	:	(' '|'\t'|'\n'|'\r')+ -> channel(WHITESPACE_CHANNEL);
 
 COMMENTS
     :   ('//' ~('\n'|'\r')* (('\r'? '\n') | EOF)
-    |   '/*' .*? '*/') -> channel(HIDDEN)
+    |   '/*' .*? '*/') -> channel(COMMENT_CHANNEL)
     ;
