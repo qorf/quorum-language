@@ -1,33 +1,23 @@
 package Libraries.Interface
 
-use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
-use Libraries.Interface.Events.KeyboardProcessor
-use Libraries.Interface.Events.KeyboardListener
-use Libraries.Interface.Events.MouseProcessor
-use Libraries.Interface.Events.MouseListener
-use Libraries.Interface.Events.MouseEvent
-use Libraries.Game.Graphics.Painter
 use Libraries.Game.Graphics.Drawable
-use Libraries.Game.Graphics.DrawableGroup
-use Libraries.Game.Graphics.Font
 
-class Panel is Item
+class Panel is Drawable
     
     // A list of every item registered with the panel.
-    List<Item> items
+    // List<Item> items
 
     /* A list of items which are Drawable, DrawableGroup, or Panel. Maintaining
     a separate list ensures only items which require drawing are considered
     during screen drawing. */
-    List<Item> drawables
+    // List<Item> drawables
 
-    boolean positionAdjusted = true
+    // boolean positionAdjusted = true
 
-    KeyboardProcessor keyboardProcessor = undefined
-    MouseProcessor mouseProcessor = undefined
+    // KeyboardProcessor keyboardProcessor = undefined
+    // MouseProcessor mouseProcessor = undefined
 
-    action Add(Item item)
+    /*action Add(Item item)
         items:Add(item)
         if item is Drawable or item is DrawableGroup or item is Panel
             drawables:Add(item)
@@ -47,11 +37,11 @@ class Panel is Item
 
     action RemoveKeyboardListener(KeyboardListener listener)
         keyboardProcessor:RemoveListener(listener)
-    end
+    end*/
 
     /*  This will be called from Game on each active panel. Note that before this
         is called, Painter:Begin() must be called! After all active panels
-        have drawn, the calling class must finish by calling Painter:End(). */
+        have drawn, the calling class must finish by calling Painter:End(). *
     action Draw(Painter batch, number globalOffsetX, number globalOffsetY)
         Iterator<Item> drawIterator = drawables:GetIterator()
         
@@ -81,18 +71,8 @@ class Panel is Item
             end
         end
 
-    end
-
-    action UpdateAll(number secondsSinceUpdate)
-        Iterator<Item> itemIterator = items:GetIterator()
-        Item temp = undefined
-
-        repeat while itemIterator:HasNext()
-            temp = itemIterator:Next()
-            temp:Update(secondsSinceUpdate)
-        end
-    end
-
+    end */
+/*
     action ProcessMouseEvent(MouseEvent event)
         Item temp = ItemAtPoint(event:GetX(), event:GetY())
         if temp not= undefined
@@ -115,6 +95,6 @@ class Panel is Item
             index = index - 1
         end
         return undefined
-    end
+    end*/
 
 end

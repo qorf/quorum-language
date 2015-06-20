@@ -223,7 +223,7 @@ class TextureRegion is Disposable
 
     action SetRegionWidth(integer width)
 
-        if IsFlippedHorizontally()
+        if IsFlippedX()
             SetLeftSide(rightSide + width / cast(number, texture:GetWidth()))
         else
             SetRightSide(leftSide + width / cast(number, texture:GetWidth()))
@@ -237,7 +237,7 @@ class TextureRegion is Disposable
 
     action SetRegionHeight(integer height)
 
-        if IsFlippedVertically()
+        if IsFlippedY()
             SetTopSide(bottomSide + height / cast(number, texture:GetHeight()))
         else
             SetBottomSide(topSide + height / cast(number, texture:GetHeight()))
@@ -245,7 +245,7 @@ class TextureRegion is Disposable
 
     end
 
-    action FlipHorizontally
+    action FlipX
 
         number temp = leftSide
         leftSide = rightSide
@@ -253,7 +253,7 @@ class TextureRegion is Disposable
 
     end
 
-    action FlipVertically
+    action FlipY
 
         number temp = topSide
         topSide = bottomSide
@@ -261,11 +261,11 @@ class TextureRegion is Disposable
 
     end
 
-    action IsFlippedHorizontally returns boolean
+    action IsFlippedX returns boolean
         return leftSide > rightSide
     end
 
-    action IsFlippedVertically returns boolean
+    action IsFlippedY returns boolean
         return topSide > bottomSide
     end
 

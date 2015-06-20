@@ -4,8 +4,10 @@ use Libraries.Containers.Array
 use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.System.File
+use Libraries.Interface.Item
+use Libraries.Game.Graphics.Painter
 
-class Label is DrawableGroup
+class Label is Item
 
     on create
         Font font
@@ -103,6 +105,7 @@ class Label is DrawableGroup
     action Rotate(number angle)
         textChanged = true
         font:Rotate(angle)
+        parent:Item:Rotate(angle)
     end
 
     action SetAngle(number angle)
@@ -123,14 +126,15 @@ class Label is DrawableGroup
             font:SetAngle(font:GetAngle())
 
             // Dispose of the old sprites.
-            Iterator<Drawable> iterator = parent:DrawableGroup:drawables:GetIterator()
+            DisposeChildren()
+            /*Iterator<Drawable> iterator = parent:DrawableGroup:drawables:GetIterator()
             Drawable deleter = undefined
 
             repeat while iterator:HasNext()
                 deleter = iterator:Next()
                 deleter:Dispose()
                 Remove(deleter)
-            end
+            end*/
 
             //List<Drawable> tempList = parent:DrawableGroup:drawables
 
@@ -259,12 +263,20 @@ class Label is DrawableGroup
 
     end
 
+    action Draw(Painter painter)
+        if textChanged
+            LoadDrawables()
+        end
+        parent:Item:Draw()
+    end
+
+    /*
     action GetDrawables returns List<Drawable>
         if textChanged
             LoadDrawables()
         end
         return parent:DrawableGroup:GetDrawables()
-    end
+    end*/
 
     action GetTextWidth returns number
         if textChanged
