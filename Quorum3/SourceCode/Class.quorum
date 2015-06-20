@@ -1643,7 +1643,7 @@ class Class is Symbol
         Returns the name of the plugin for this class.
     */
     action GetPluginName returns text
-        return "<plugin>"
+        return "plugin_"
     end
 
     /*
@@ -1678,7 +1678,7 @@ class Class is Symbol
     */
     action ConvertStaticKeyToParentFieldName returns text
         text key = GetStaticKey()
-        text result = key:Replace(".", "_") + "_"
+        text result = key:Replace(".", "_") + "__"
         return result
     end
 
@@ -1690,7 +1690,7 @@ class Class is Symbol
     */
     action ConvertStaticKeyToParentFieldInterfaceName returns text
         text key = GetStaticKey()
-        text result = key:Replace(".", "_") + "_"
+        text result = key:Replace(".", "_") + "__"
         return result
     end
 
