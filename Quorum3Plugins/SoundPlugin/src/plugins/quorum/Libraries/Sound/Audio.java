@@ -26,7 +26,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
  * @author astefik
  */
 public class Audio {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private final int BUFFER_SIZE = 128000;
     private AudioInputStream audioStream;
     private AudioFormat audioFormat;

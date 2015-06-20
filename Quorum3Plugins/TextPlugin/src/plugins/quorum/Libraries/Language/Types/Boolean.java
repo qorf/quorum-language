@@ -4,14 +4,14 @@
  */
 package plugins.quorum.Libraries.Language.Types;
 
-import quorum.Libraries.Language.Object$Interface;
-import quorum.Libraries.Language.Types.Boolean$Interface;
+import quorum.Libraries.Language.Object_;
+import quorum.Libraries.Language.Types.Boolean_;
 /**
  * Boolean plugin for handling Boolean class functions for objects and primitives.
  * @author Melissa Stefik
  */
 public class Boolean {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private boolean bool = false;
     private static final int trueHash = 1231;
     private static final int falseHash = 1237;
@@ -30,29 +30,29 @@ public class Boolean {
         throw new quorum.Libraries.Language.Errors.CastError();
     }
     
-    public static boolean ConvertObjectToBoolean(Object$Interface object) {
+    public static boolean ConvertObjectToBoolean(Object_ object) {
         if(object == null) {
             throw new NullPointerException("Cannot convert an undefined type to an integer.");
         }
-        Boolean$Interface val = (Boolean$Interface) object;
+        Boolean_ val = (Boolean_) object;
         return val.GetValue();
     }
     
-    public static Object$Interface ConvertBooleanToObject(boolean value) {
-        Boolean$Interface i = new quorum.Libraries.Language.Types.Boolean();
+    public static Object_ ConvertBooleanToObject(boolean value) {
+        Boolean_ i = new quorum.Libraries.Language.Types.Boolean();
         i.SetValue(value);
         return i;
     }
     
-    public static boolean ConvertBooleanObjectToBoolean(Boolean$Interface object) {
+    public static boolean ConvertBooleanObjectToBoolean(Boolean_ object) {
         if(object == null) {
             throw new NullPointerException("Cannot convert an undefined type to an integer.");
         }
         return object.GetValue();
     }
     
-    public static Boolean$Interface ConvertBooleanToBooleanObject(boolean value) {
-        Boolean$Interface i = new quorum.Libraries.Language.Types.Boolean();
+    public static Boolean_ ConvertBooleanToBooleanObject(boolean value) {
+        Boolean_ i = new quorum.Libraries.Language.Types.Boolean();
         i.SetValue(value);
         return i;
     }
@@ -61,8 +61,8 @@ public class Boolean {
         bool = value;
     }
     
-    public static boolean PrimitiveEquals(boolean self, Object$Interface obj) throws quorum.Libraries.Language.Errors.Error{
-        Boolean$Interface t = (Boolean$Interface)obj;
+    public static boolean PrimitiveEquals(boolean self, Object_ obj) throws quorum.Libraries.Language.Errors.Error{
+        Boolean_ t = (Boolean_)obj;
         return self == t.GetValue();
     }
    
@@ -102,9 +102,9 @@ public class Boolean {
         return result;
     }
     
-    public static quorum.Libraries.Language.Support.CompareResult$Interface PrimitiveCompare(boolean self, quorum.Libraries.Language.Object$Interface obj){
+    public static quorum.Libraries.Language.Support.CompareResult_ PrimitiveCompare(boolean self, quorum.Libraries.Language.Object_ obj){
         quorum.Libraries.Language.Support.CompareResult r = new quorum.Libraries.Language.Support.CompareResult();
-        Boolean$Interface t = (Boolean$Interface)obj;
+        Boolean_ t = (Boolean_)obj;
         if(self == t.GetValue()){
             r.result = r.EQUAL;
         } else if(self == false && t.GetValue() == true){

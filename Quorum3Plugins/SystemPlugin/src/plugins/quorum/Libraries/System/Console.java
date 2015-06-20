@@ -14,7 +14,7 @@ import java.io.InputStreamReader;
  * @author Andreas Stefik
  */
 public class Console {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     public static String[] commandLineArguments = new String[0];
   
     public Console() {

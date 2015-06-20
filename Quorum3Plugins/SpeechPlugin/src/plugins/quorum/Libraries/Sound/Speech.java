@@ -13,7 +13,7 @@ import org.sodbeans.phonemic.tts.TextToSpeech;
  * @author Andreas Stefik
  */
 public class Speech {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private static TextToSpeech speech = TextToSpeechFactory.getDefaultTextToSpeech();
     
     /*

@@ -4,8 +4,8 @@
  */
 package plugins.quorum.Libraries.Language.Types;
 
-import quorum.Libraries.Language.Object$Interface;
-import quorum.Libraries.Language.Types.Number$Interface;
+import quorum.Libraries.Language.Object_;
+import quorum.Libraries.Language.Types.Number_;
 
 /**
  * Number plugin for handling Number class functions for objects and primitives.
@@ -13,7 +13,7 @@ import quorum.Libraries.Language.Types.Number$Interface;
  * @author Melissa Stefik
  */
 public class Number {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private double number = -1;
     
     public static double ParseNumber(String value) throws quorum.Libraries.Language.Errors.CastError{
@@ -24,29 +24,29 @@ public class Number {
         }
     }
     
-    public static double ConvertObjectToNumber(Object$Interface object) {
+    public static double ConvertObjectToNumber(Object_ object) {
         if(object == null) {
             throw new NullPointerException("Cannot convert an undefined type to an integer.");
         }
-        Number$Interface val = (Number$Interface) object;
+        Number_ val = (Number_) object;
         return val.GetValue();
     }
     
-    public static Object$Interface ConvertNumberToObject(double value) {
-        Number$Interface i = new quorum.Libraries.Language.Types.Number();
+    public static Object_ ConvertNumberToObject(double value) {
+        Number_ i = new quorum.Libraries.Language.Types.Number();
         i.SetValue(value);
         return i;
     }
     
-    public static double ConvertNumberObjectToNumber(Number$Interface object) {
+    public static double ConvertNumberObjectToNumber(Number_ object) {
         if(object == null) {
             throw new NullPointerException("Cannot convert an undefined type to an integer.");
         }
         return object.GetValue();
     }
     
-    public static Number$Interface ConvertNumberToNumberObject(double value) {
-        Number$Interface i = new quorum.Libraries.Language.Types.Number();
+    public static Number_ ConvertNumberToNumberObject(double value) {
+        Number_ i = new quorum.Libraries.Language.Types.Number();
         i.SetValue(value);
         return i;
     }
@@ -103,8 +103,8 @@ public class Number {
         number = value;
     }
     
-    public static boolean PrimitiveEquals(double self, Object$Interface obj) throws quorum.Libraries.Language.Errors.Error{
-        Number$Interface t = (Number$Interface)obj;
+    public static boolean PrimitiveEquals(double self, Object_ obj) throws quorum.Libraries.Language.Errors.Error{
+        Number_ t = (Number_)obj;
         return self == t.GetValue();
     }
     
@@ -116,9 +116,9 @@ public class Number {
         return "" + self;
     }
     
-    public static quorum.Libraries.Language.Support.CompareResult$Interface PrimitiveCompare(double self, quorum.Libraries.Language.Object$Interface obj){
+    public static quorum.Libraries.Language.Support.CompareResult_ PrimitiveCompare(double self, quorum.Libraries.Language.Object_ obj){
         quorum.Libraries.Language.Support.CompareResult r = new quorum.Libraries.Language.Support.CompareResult();
-        Number$Interface t = (Number$Interface)obj;
+        Number_ t = (Number_)obj;
         if(self == t.GetValue()){
             r.result = r.EQUAL;
         } else if(self > t.GetValue()){

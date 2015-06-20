@@ -4,15 +4,11 @@
  */
 package plugins.quorum.Libraries.Language.Types;
 
-import quorum.Libraries.Containers.Array$Interface;
+import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Language.Errors.InvalidLocationError;
 import quorum.Libraries.Language.Errors.UndefinedObjectError;
-//import quorum.Libraries.Language.Errors.Error;
-//import quorum.Libraries.Language.Errors.InvalidLocationError;
-//import quorum.Libraries.Language.Errors.ParseError;
-//import quorum.Libraries.Language.Errors.UndefinedObjectError;
-import quorum.Libraries.Language.Object$Interface;
-import quorum.Libraries.Language.Types.Text$Interface;
+import quorum.Libraries.Language.Object_;
+import quorum.Libraries.Language.Types.Text_;
 
 /**
  * A plugin for handling text system functions.
@@ -20,32 +16,32 @@ import quorum.Libraries.Language.Types.Text$Interface;
  * @author Andreas Stefik
  */
 public class Text {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private String text = "";
     
-    public static String ConvertObjectToString(Object$Interface object) {
+    public static String ConvertObjectToString(Object_ object) {
         if(object == null) {
             return null;
         }
-        Text$Interface text = (Text$Interface) object;
+        Text_ text = (Text_) object;
         return text.GetValue();
     }
     
-    public static Object$Interface ConvertTextToObject(String value) {
-        Text$Interface i = new quorum.Libraries.Language.Types.Text();
+    public static Object_ ConvertTextToObject(String value) {
+        Text_ i = new quorum.Libraries.Language.Types.Text();
         i.SetValue(value);
         return i;
     }
     
-    public static String ConvertTextObjectToText(Text$Interface object) {
+    public static String ConvertTextObjectToText(Text_ object) {
         if(object == null) {
             throw new NullPointerException("Cannot convert an undefined type to an integer.");
         }
         return object.GetValue();
     }
     
-    public static Text$Interface ConvertTextToTextObject(String value) {
-        Text$Interface i = new quorum.Libraries.Language.Types.Text();
+    public static Text_ ConvertTextToTextObject(String value) {
+        Text_ i = new quorum.Libraries.Language.Types.Text();
         i.SetValue(value);
         return i;
     }
@@ -201,7 +197,7 @@ public class Text {
             return text.hashCode();
         }
         else {
-            return $me.hashCode();
+            return me_.hashCode();
         }
     }
     
@@ -279,7 +275,7 @@ public class Text {
         return "" + self.charAt(index);
     }
     
-    public static Array$Interface PrimitiveSplit(String self, String delimiter) { //throws Error{
+    public static Array_ PrimitiveSplit(String self, String delimiter) { //throws Error{
         
         if(self == null){
             throw(new RuntimeException());
@@ -292,14 +288,14 @@ public class Text {
         quorum.Libraries.Containers.Array a = new quorum.Libraries.Containers.Array();
         
         for(int i = 0; i < split.length; i++){
-            Text$Interface t = new quorum.Libraries.Language.Types.Text();
+            Text_ t = new quorum.Libraries.Language.Types.Text();
             t.SetValue(split[i]);
-            a.AddNative((Object$Interface)t);
+            a.AddNative((Object_)t);
         }
         return a;
     }
     
-    public static boolean PrimitiveEquals(String self, Object$Interface obj) {//throws Error{
+    public static boolean PrimitiveEquals(String self, Object_ obj) {//throws Error{
         if(self == null){
             throw(new RuntimeException());
 //            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
@@ -307,11 +303,11 @@ public class Text {
 //            throw(error);
         }
         
-        Text$Interface t = (Text$Interface)obj;
+        Text_ t = (Text_)obj;
         return self.equals(t.GetValue());
     }
     
-    public static quorum.Libraries.Language.Support.CompareResult$Interface PrimitiveCompare(String self, quorum.Libraries.Language.Object$Interface obj) {//throws Error{
+    public static quorum.Libraries.Language.Support.CompareResult_ PrimitiveCompare(String self, quorum.Libraries.Language.Object_ obj) {//throws Error{
         if(self == null){
             throw(new RuntimeException());
 //            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
@@ -320,7 +316,7 @@ public class Text {
         }
         
         quorum.Libraries.Language.Support.CompareResult r = new quorum.Libraries.Language.Support.CompareResult();
-        Text$Interface t = (Text$Interface)obj;
+        Text_ t = (Text_)obj;
         int result = self.compareTo(t.GetValue());
         if(result == 0){
             r.result = r.EQUAL;
@@ -333,7 +329,7 @@ public class Text {
         
     }
     
-    public static quorum.Libraries.Language.Support.CompareResult$Interface PrimitiveCompareIgnoringCase(String self, quorum.Libraries.Language.Object$Interface obj) {//throws Error{
+    public static quorum.Libraries.Language.Support.CompareResult_ PrimitiveCompareIgnoringCase(String self, quorum.Libraries.Language.Object_ obj) {//throws Error{
         if(self == null){
             throw(new RuntimeException());
 //            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
@@ -342,7 +338,7 @@ public class Text {
         }
         
         quorum.Libraries.Language.Support.CompareResult r = new quorum.Libraries.Language.Support.CompareResult();
-        Text$Interface t = (Text$Interface)obj;
+        Text_ t = (Text_)obj;
         int result = self.compareToIgnoreCase(t.GetValue());
         if(result == 0){
             r.result = r.EQUAL;
@@ -388,7 +384,7 @@ public class Text {
         return self.startsWith(prefix);
     }
     
-    public static boolean PrimitiveEqualsIgnoringCase(String self, Object$Interface right) {//throws Error{
+    public static boolean PrimitiveEqualsIgnoringCase(String self, Object_ right) {//throws Error{
         if(self == null){
             throw(new RuntimeException());
 //            quorum.Libraries.Language.Errors.Error error = new UndefinedObjectError();
@@ -396,7 +392,7 @@ public class Text {
 //            throw(error);
         }
         
-        Text$Interface t = (Text$Interface)right;
+        Text_ t = (Text_)right;
         return self.equalsIgnoreCase(t.GetValue());
     }
     
