@@ -16,14 +16,14 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import quorum.Libraries.Language.Errors.InputOutputError;
-import quorum.Libraries.System.File$Interface;
+import quorum.Libraries.System.File_;
         
 /**
  *
  * @author stefika
  */
 public class JavaBytecodeClassWriter implements Opcodes{
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private ClassWriter classWriter;
     
     public JavaBytecodeClassWriter() {
@@ -44,11 +44,11 @@ public class JavaBytecodeClassWriter implements Opcodes{
      * @param superClassName
      * @param array 
      */
-    public void Visit(int javaVersion, int access, String className, String signature, String superClassName, quorum.Libraries.Containers.Array$Interface array) {
+    public void Visit(int javaVersion, int access, String className, String signature, String superClassName, quorum.Libraries.Containers.Array_ array) {
         String[] values = new String[array.GetSize()];
         for(int i = 0; i < array.GetSize(); i++) {
-            quorum.Libraries.Language.Types.Text$Interface text = (quorum.Libraries.Language.Types.Text$Interface) array.Get(i);
-            values[i] = text.Get$Libraries$Language$Types$Text$value();
+            quorum.Libraries.Language.Types.Text_ text = (quorum.Libraries.Language.Types.Text_) array.Get(i);
+            values[i] = text.Get_Libraries_Language_Types_Text__value_();
         }
         
         classWriter.visit(javaVersion, access, className, signature, superClassName, values);
@@ -63,16 +63,16 @@ public class JavaBytecodeClassWriter implements Opcodes{
      * @param errors
      * @return
      */
-    public quorum.Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter$Interface 
+    public quorum.Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter_ 
         VisitMethod(int access, String actionName, String description, 
-                String generics, quorum.Libraries.Containers.Array$Interface errors) {
+                String generics, quorum.Libraries.Containers.Array_ errors) {
         quorum.Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter methodWriter = new quorum.Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter();
         String[] values = null;
         if(errors != null) {
             values = new String[errors.GetSize()];
             for(int i = 0; i < errors.GetSize(); i++) {
-                quorum.Libraries.Language.Types.Text$Interface text = (quorum.Libraries.Language.Types.Text$Interface) errors.Get(i);
-                values[i] = text.Get$Libraries$Language$Types$Text$value();
+                quorum.Libraries.Language.Types.Text_ text = (quorum.Libraries.Language.Types.Text_) errors.Get(i);
+                values[i] = text.Get_Libraries_Language_Types_Text__value_();
             }
         }
         MethodVisitor visitor = classWriter.visitMethod(access, actionName, description, generics, values);
@@ -87,8 +87,8 @@ public class JavaBytecodeClassWriter implements Opcodes{
         return methodWriter;
     }
         
-    public quorum.Libraries.Language.Compile.Translate.JavaBytecodeFieldWriter$Interface VisitField(
-            int opcode, String name, String description, String signature, quorum.Libraries.Language.Object$Interface object) {
+    public quorum.Libraries.Language.Compile.Translate.JavaBytecodeFieldWriter_ VisitField(
+            int opcode, String name, String description, String signature, quorum.Libraries.Language.Object_ object) {
         quorum.Libraries.Language.Compile.Translate.JavaBytecodeFieldWriter fieldWriter = 
                 new quorum.Libraries.Language.Compile.Translate.JavaBytecodeFieldWriter();
         
@@ -108,7 +108,7 @@ public class JavaBytecodeClassWriter implements Opcodes{
         classWriter.visitEnd();
     }
     
-    public void Write(File$Interface file) throws quorum.Libraries.Language.Errors.InputOutputError{
+    public void Write(File_ file) throws quorum.Libraries.Language.Errors.InputOutputError{
         String path = file.GetAbsolutePath();
         java.io.File javaFile = new java.io.File(path);
         byte[] bites = classWriter.toByteArray();

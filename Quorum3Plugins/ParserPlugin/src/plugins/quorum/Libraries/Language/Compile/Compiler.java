@@ -7,8 +7,8 @@
 package plugins.quorum.Libraries.Language.Compile;
 
 import java.io.IOException;
-import quorum.Libraries.System.File$Interface;
-import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
+import quorum.Libraries.System.File_;
+import quorum.Libraries.Language.Compile.QuorumSourceListener_;
 import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -24,14 +24,14 @@ import quorum.Libraries.Language.Compile.QuorumBytecodeListener;
  * @author stefika
  */
 public class Compiler {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     
     
     public void ConnectToAntlr() {
         
     }
     
-    public void ParseNative(File$Interface file, QuorumSourceListener$Interface listener) {
+    public void ParseNative(File_ file, QuorumSourceListener_ listener) {
         try {
             JavaToQuorumListener javaToQuorumListener = new JavaToQuorumListener();
             QuorumErrorListener javaToQuorumErrorListener = new QuorumErrorListener();
@@ -73,7 +73,7 @@ public class Compiler {
         }
     }
     
-    public void ParseNative(String source, QuorumSourceListener$Interface listener) {
+    public void ParseNative(String source, QuorumSourceListener_ listener) {
         JavaToQuorumListener javaToQuorumListener = new JavaToQuorumListener();
         QuorumErrorListener javaToQuorumErrorListener = new QuorumErrorListener();
         javaToQuorumListener.setListener(listener);

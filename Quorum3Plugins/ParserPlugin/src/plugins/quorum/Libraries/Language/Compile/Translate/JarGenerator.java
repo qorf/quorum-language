@@ -19,7 +19,7 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import quorum.Libraries.System.File$Interface;
+import quorum.Libraries.System.File_;
 
 /**
  *
@@ -27,17 +27,17 @@ import quorum.Libraries.System.File$Interface;
  */
 public class JarGenerator {
 
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private final String ENCODING = "UTF-8";
     //private final String WAR_CLASS_DIRECTORY = "WEB-INF/classes";
     FileOutputStream stream = null;
     JarOutputStream target = null;
 
     
-    public void Open(quorum.Libraries.System.File$Interface location) {
+    public void Open(quorum.Libraries.System.File_ location) {
         try {
             quorum.Libraries.Language.Compile.Translate.JarGenerator generator
-                    = (quorum.Libraries.Language.Compile.Translate.JarGenerator) $me;
+                    = (quorum.Libraries.Language.Compile.Translate.JarGenerator) me_;
             String manifestValue = generator.GetManifest();
             Manifest manifest = CreateManifest(manifestValue);
             File writeLocation = new File(location.GetAbsolutePath());
@@ -67,7 +67,7 @@ public class JarGenerator {
         }
     }
     
-    public void Add(File$Interface source) {
+    public void Add(File_ source) {
         BufferedInputStream in = null;
         try {
             String name = source.GetPath().replace("\\", "/");

@@ -9,7 +9,7 @@ package plugins.quorum.Libraries.Compute;
  * @author astefik
  */
 public class BitwiseOperations {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     
     public int And(int left, int right){
         return left & right; 

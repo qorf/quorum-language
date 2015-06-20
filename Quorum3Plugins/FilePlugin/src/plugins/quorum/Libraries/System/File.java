@@ -15,7 +15,7 @@ import static java.nio.file.StandardCopyOption.*;
  * @author Jeff Wilson
  */
 public class File {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private QuorumFile inst = new QuorumFile();
     
     public double GetLastModifiedNative() {
@@ -114,7 +114,7 @@ public class File {
         return inst.Move(newPath);
     }
     
-    public boolean Copy(quorum.Libraries.System.File$Interface file) {
+    public boolean Copy(quorum.Libraries.System.File_ file) {
         String pathOriginal = inst.getAbsolutePathNative();
         java.io.File original = new java.io.File(pathOriginal);
         

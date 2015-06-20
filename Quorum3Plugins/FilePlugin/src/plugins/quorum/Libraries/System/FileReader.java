@@ -14,7 +14,7 @@ import quorum.Libraries.Language.Errors.*;
  * @author jeff
  */
 public class FileReader {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private QuorumFileReader inst = new QuorumFileReader();
     
     public void OpenForReadNative(String path) throws FileNotFoundError {

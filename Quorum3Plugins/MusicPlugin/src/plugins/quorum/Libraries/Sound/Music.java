@@ -15,7 +15,7 @@ import javax.sound.midi.Synthesizer;
  * @author Jeff Wilson
  */
 public class Music {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private QuorumMusic inst = null;
     private static Synthesizer synthesizer = null;
     

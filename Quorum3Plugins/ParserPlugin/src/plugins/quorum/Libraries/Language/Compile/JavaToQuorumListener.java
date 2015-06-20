@@ -15,11 +15,11 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import quorum.Libraries.Language.Compile.Context.*;
 import quorum.Libraries.Language.Compile.QualifiedName;
-import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
+import quorum.Libraries.Language.Compile.QuorumSourceListener_;
 import quorum.Libraries.Language.Compile.Symbol.Type;
 import quorum.Libraries.Language.Compile.Symbol.Variable;
 import quorum.Libraries.Language.Types.Text;
-import quorum.Libraries.System.File$Interface;
+import quorum.Libraries.System.File_;
 
 /**
  *
@@ -27,15 +27,15 @@ import quorum.Libraries.System.File$Interface;
  */
 public class JavaToQuorumListener implements QuorumListener {
 
-    private QuorumSourceListener$Interface listener;
-    private File$Interface file;
+    private QuorumSourceListener_ listener;
+    private File_ file;
     private CommonTokenStream tokens;
     
     @Override
     public void enterDecimal(QuorumParser.DecimalContext ctx) {
         double val = Double.parseDouble(ctx.DECIMAL().getText());
         NumberContext context = new NumberContext();
-        context.Set$Libraries$Language$Compile$Context$NumberContext$value(val);
+        context.Set_Libraries_Language_Compile_Context_NumberContext__value_(val);
         setLocation(ctx, context);
         listener.EnterNumber(context);
     }
@@ -44,7 +44,7 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitDecimal(QuorumParser.DecimalContext ctx) {
         double val = Double.parseDouble(ctx.DECIMAL().getText());
         NumberContext context = new NumberContext();
-        context.Set$Libraries$Language$Compile$Context$NumberContext$value(val);
+        context.Set_Libraries_Language_Compile_Context_NumberContext__value_(val);
         setLocation(ctx, context);
         listener.ExitNumber(context);
     }
@@ -253,7 +253,7 @@ public class JavaToQuorumListener implements QuorumListener {
         String val = ctx.STRING().getText();
         val = val.substring(1, val.length() - 1);
         TextContext context = new TextContext();
-        context.Set$Libraries$Language$Compile$Context$TextContext$value(val);
+        context.Set_Libraries_Language_Compile_Context_TextContext__value_(val);
         setLocation(ctx, context);
         listener.EnterText(context);
     }
@@ -263,7 +263,7 @@ public class JavaToQuorumListener implements QuorumListener {
         String val = ctx.STRING().getText();
         val = val.substring(1, val.length() - 1);
         TextContext context = new TextContext();
-        context.Set$Libraries$Language$Compile$Context$TextContext$value(val);
+        context.Set_Libraries_Language_Compile_Context_TextContext__value_(val);
         setLocation(ctx, context);
         listener.ExitText(context);
     }
@@ -354,7 +354,7 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterInherits(QuorumParser.InheritsContext ctx) {
-        quorum.Libraries.Language.Compile.Context.IsContext$Interface context = 
+        quorum.Libraries.Language.Compile.Context.IsContext_ context = 
                 new quorum.Libraries.Language.Compile.Context.IsContext();
         //QualifiedName name = ctx.name.qualified_name().qualifiedName;
         //context.Set$Libraries$Language$Compile$Context$InheritStatementContext$name(name);
@@ -364,11 +364,11 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void exitInherits(QuorumParser.InheritsContext ctx) {
-        quorum.Libraries.Language.Compile.Context.IsContext$Interface context = 
+        quorum.Libraries.Language.Compile.Context.IsContext_ context = 
                 new quorum.Libraries.Language.Compile.Context.IsContext();
         
         QualifiedName name = Convert(ctx.name.qualified_name());
-        context.Set$Libraries$Language$Compile$Context$IsContext$name(name);
+        context.Set_Libraries_Language_Compile_Context_IsContext__name_(name);
         setLocation(ctx, context);
         listener.ExitIs(context);
     }
@@ -761,7 +761,7 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterBoolean(QuorumParser.BooleanContext ctx) {
         boolean val = Boolean.parseBoolean(ctx.BOOLEAN().getText());
         BooleanContext context = new BooleanContext();
-        context.Set$Libraries$Language$Compile$Context$BooleanContext$value(val);
+        context.Set_Libraries_Language_Compile_Context_BooleanContext__value_(val);
         setLocation(ctx, context);
         listener.EnterBoolean(context);
     }
@@ -770,7 +770,7 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitBoolean(QuorumParser.BooleanContext ctx) {
         boolean val = Boolean.parseBoolean(ctx.BOOLEAN().getText());
         BooleanContext context = new BooleanContext();
-        context.Set$Libraries$Language$Compile$Context$BooleanContext$value(val);
+        context.Set_Libraries_Language_Compile_Context_BooleanContext__value_(val);
         setLocation(ctx, context);
         listener.ExitBoolean(context);
     }
@@ -945,14 +945,14 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterInteger(QuorumParser.IntegerContext ctx) {
         int val = Integer.parseInt(ctx.INT().getText());
         IntegerContext context = new IntegerContext();
-        context.Set$Libraries$Language$Compile$Context$IntegerContext$value(val);
+        context.Set_Libraries_Language_Compile_Context_IntegerContext__value_(val);
         setLocation(ctx, context);
         listener.EnterInteger(context);
     }
 
     private void setLocation(ParserRuleContext context,
-            quorum.Libraries.Language.Compile.Context.ParseContext$Interface quorumContext) {
-        quorum.Libraries.Language.Compile.Location$Interface location = quorumContext.GetLocation();
+            quorum.Libraries.Language.Compile.Context.ParseContext_ quorumContext) {
+        quorum.Libraries.Language.Compile.Location_ location = quorumContext.GetLocation();
         Token start = context.getStart();
         Token stop = context.getStop();
         
@@ -975,7 +975,7 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitInteger(QuorumParser.IntegerContext ctx) {
         int val = Integer.parseInt(ctx.INT().getText());
         IntegerContext context = new IntegerContext();
-        context.Set$Libraries$Language$Compile$Context$IntegerContext$value(val);
+        context.Set_Libraries_Language_Compile_Context_IntegerContext__value_(val);
         setLocation(ctx, context);
         listener.ExitInteger(context);
     }
@@ -1022,7 +1022,7 @@ public class JavaToQuorumListener implements QuorumListener {
         Token comment = findLeftCommentToken(index);
         if(comment != null) {
             DocumentationContext context = new DocumentationContext();
-            context.Set$Libraries$Language$Compile$Context$DocumentationContext$document(comment.getText());
+            context.Set_Libraries_Language_Compile_Context_DocumentationContext__document_(comment.getText());
             setLocation(ctx, context);
             if(enter) {
                 listener.EnterDocumentation(context);
@@ -1055,28 +1055,28 @@ public class JavaToQuorumListener implements QuorumListener {
     /**
      * @return the listener
      */
-    public QuorumSourceListener$Interface getListener() {
+    public QuorumSourceListener_ getListener() {
         return listener;
     }
 
     /**
      * @param listener the listener to set
      */
-    public void setListener(QuorumSourceListener$Interface listener) {
+    public void setListener(QuorumSourceListener_ listener) {
         this.listener = listener;
     }
 
     /**
      * @return the file
      */
-    public File$Interface getFile() {
+    public File_ getFile() {
         return file;
     }
 
     /**
      * @param file the file to set
      */
-    public void setFile(File$Interface file) {
+    public void setFile(File_ file) {
         this.file = file;
     }
 

@@ -19,7 +19,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * @author Nicole Blumhorst
  */
 public class ExtensibleMarkupLanguageParser {
-    public Object $me;
+    public Object me_;
     
     public String category;
     public String act;

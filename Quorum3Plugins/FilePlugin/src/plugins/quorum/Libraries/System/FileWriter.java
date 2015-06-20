@@ -12,7 +12,7 @@ import quorum.Libraries.Language.Errors.*;
  * @author jeff
  */
 public class FileWriter {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private QuorumFileWriter inst = new QuorumFileWriter();
     
     public void OpenForWriteNative(String path) throws InputOutputError {

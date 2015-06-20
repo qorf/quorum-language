@@ -14,7 +14,7 @@ import quorum.Libraries.Language.Errors.*;
  * @author jeff
  */
 public class FileRandomAccess {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private QuorumFileRandomAccess inst = new QuorumFileRandomAccess();
     
     public void OpenForRandomAccessNative(String path) throws FileNotFoundError {

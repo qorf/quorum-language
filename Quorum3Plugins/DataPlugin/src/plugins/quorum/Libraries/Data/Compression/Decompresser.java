@@ -18,7 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
-import quorum.Libraries.System.File$Interface;
+import quorum.Libraries.System.File_;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -28,10 +28,10 @@ import java.util.zip.ZipFile;
  * @author stefika
  */
 public class Decompresser {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     boolean isGZip = true;
     
-    public void DecompressGZip(File$Interface input, File$Interface output) {
+    public void DecompressGZip(File_ input, File_ output) {
         try {
             String path = input.GetAbsolutePath();
             String outPath = output.GetAbsolutePath();
@@ -45,7 +45,7 @@ public class Decompresser {
         }
     }
     
-    public void DecompressZip(File$Interface input) {
+    public void DecompressZip(File_ input) {
         try {
             String path = input.GetAbsolutePath();
             ZipFile zip = new ZipFile(path);

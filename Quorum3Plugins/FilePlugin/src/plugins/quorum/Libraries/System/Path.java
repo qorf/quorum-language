@@ -10,7 +10,7 @@ package plugins.quorum.Libraries.System;
  * @author jeff
  */
 public class Path {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     /**
      * Is the path absolute? 
      * 

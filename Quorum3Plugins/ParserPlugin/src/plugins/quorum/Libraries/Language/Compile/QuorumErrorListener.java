@@ -16,42 +16,42 @@ import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import quorum.Libraries.Language.Compile.CompilerError;
 import quorum.Libraries.Language.Compile.CompilerErrorType;
-import quorum.Libraries.Language.Compile.QuorumSourceListener$Interface;
-import quorum.Libraries.System.File$Interface;
+import quorum.Libraries.Language.Compile.QuorumSourceListener_;
+import quorum.Libraries.System.File_;
 
 /**
  *
  * @author stefika
  */
 public class QuorumErrorListener extends BaseErrorListener{
-    private QuorumSourceListener$Interface listener;
-    private File$Interface file;
+    private QuorumSourceListener_ listener;
+    private File_ file;
     
     /**
      * @return the listener
      */
-    public QuorumSourceListener$Interface getListener() {
+    public QuorumSourceListener_ getListener() {
         return listener;
     }
 
     /**
      * @param listener the listener to set
      */
-    public void setListener(QuorumSourceListener$Interface listener) {
+    public void setListener(QuorumSourceListener_ listener) {
         this.listener = listener;
     }
 
     /**
      * @return the file
      */
-    public File$Interface getFile() {
+    public File_ getFile() {
         return file;
     }
 
     /**
      * @param file the file to set
      */
-    public void setFile(File$Interface file) {
+    public void setFile(File_ file) {
         this.file = file;
     }
     

@@ -27,7 +27,7 @@ import static org.objectweb.asm.Opcodes.SIPUSH;
  * @author stefika
  */
 public class JavaBytecodeMethodWriter {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private MethodVisitor methodVisitor;
 
     /**
@@ -44,7 +44,7 @@ public class JavaBytecodeMethodWriter {
         this.methodVisitor = methodVisitor;
     }
     
-    public void VisitJump(int opcode, quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface label) {
+    public void VisitJump(int opcode, quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel_ label) {
         Label l = getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel)label);
         methodVisitor.visitJumpInsn(opcode, l);
     }
@@ -127,8 +127,8 @@ public class JavaBytecodeMethodWriter {
     }
     
     public void VisitLocalVariable(String name, String description, String signature, 
-            quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface start,
-            quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface finish,
+            quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel_ start,
+            quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel_ finish,
             int index) {
         Label startLabel = getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel) start);
         Label finishLabel = getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel) finish);
@@ -139,15 +139,15 @@ public class JavaBytecodeMethodWriter {
         methodVisitor.visitInsn(ACONST_NULL);
     }
     
-    public void VisitLabel(quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface label) {
+    public void VisitLabel(quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel_ label) {
         Label l = getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel)label);
         methodVisitor.visitLabel(l);
     }
     
     public void VisitTryCatchBlock(
-        quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface tryStart, 
-        quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface tryEnd, 
-        quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface catchStart, 
+        quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel_ tryStart, 
+        quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel_ tryEnd, 
+        quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel_ catchStart, 
         String type) {
         methodVisitor.visitTryCatchBlock(
             getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel) tryStart), 
@@ -156,7 +156,7 @@ public class JavaBytecodeMethodWriter {
             type);
     }
     
-    public void VisitLine(int line, quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel$Interface label) {
+    public void VisitLine(int line, quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel_ label) {
         Label start = getLabel((quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel)label);
         methodVisitor.visitLineNumber(line, start);
     }

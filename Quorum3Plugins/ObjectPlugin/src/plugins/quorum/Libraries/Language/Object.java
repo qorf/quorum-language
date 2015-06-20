@@ -9,8 +9,8 @@ package plugins.quorum.Libraries.Language;
  * @author Andreas Stefik
  */
 public class Object {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     public int GetHashCode() {
-        return $me.hashCode();
+        return me_.hashCode();
     }
 }

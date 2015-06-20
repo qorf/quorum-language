@@ -12,14 +12,12 @@ import quorum.Libraries.System.StackTraceItem;
  * @author Andreas Stefik
  */
 public class Error {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     
     public Error() {
     }
     
-    
     public static quorum.Libraries.Language.Errors.Error ConvertToQuorumError(Throwable throwable) {
-        
         if(throwable instanceof NullPointerException) {
             UndefinedObjectError error = new UndefinedObjectError();
             CaptureThrowableTrace(throwable.getStackTrace(), error);
@@ -37,7 +35,6 @@ public class Error {
         } else {
             quorum.Libraries.Language.Errors.Error error = new quorum.Libraries.Language.Errors.Error();
             CaptureThrowableTrace(throwable.getStackTrace(), error);
-            
             error.SetErrorMessage(throwable.getClass().toString() + ", " + throwable.getMessage());
             return error;
         }
@@ -62,10 +59,10 @@ public class Error {
                && !(methodName.startsWith("main") && lineNumber == -1)
                && !(className.startsWith("plugins.quorum.Libraries.Language.Errors.Error"))) {
                 StackTraceItem item = new StackTraceItem();
-                item.Set$Libraries$System$StackTraceItem$className(className);
-                item.Set$Libraries$System$StackTraceItem$fileName(fileName);
-                item.Set$Libraries$System$StackTraceItem$lineNumber(lineNumber);
-                item.Set$Libraries$System$StackTraceItem$methodName(methodName);
+                item.Set_Libraries_System_StackTraceItem__className_(className);
+                item.Set_Libraries_System_StackTraceItem__fileName_(fileName);
+                item.Set_Libraries_System_StackTraceItem__lineNumber_(lineNumber);
+                item.Set_Libraries_System_StackTraceItem__methodName_(methodName);
                 array.Add(item);
             }
         }
@@ -75,16 +72,12 @@ public class Error {
         if(array.IsEmpty()) {
             StackTraceElement e = trace[trace.length - 1];
             StackTraceItem item = new StackTraceItem();
-            item.Set$Libraries$System$StackTraceItem$className(e.getClassName());
-            item.Set$Libraries$System$StackTraceItem$fileName(e.getFileName());
-            item.Set$Libraries$System$StackTraceItem$lineNumber(e.getLineNumber());
-            item.Set$Libraries$System$StackTraceItem$methodName("Main");
+            item.Set_Libraries_System_StackTraceItem__className_(e.getClassName());
+            item.Set_Libraries_System_StackTraceItem__fileName_(e.getFileName());
+            item.Set_Libraries_System_StackTraceItem__lineNumber_(e.getLineNumber());
+            item.Set_Libraries_System_StackTraceItem__methodName_("Main");
             array.Add(item);
         }
         error.SetStackTrace(array);
-    }
-    
-    public void go() {
-        
     }
 }

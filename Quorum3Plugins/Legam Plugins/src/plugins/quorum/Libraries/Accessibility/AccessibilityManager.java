@@ -9,7 +9,7 @@ import javax.swing.SwingUtilities;
  * @author Nicole Blumhorst
  */
 public class AccessibilityManager {
-    public Object $me;
+    public Object me_;
     static AccessibleHandler handler;
     
     public AccessibilityManager()
@@ -59,8 +59,8 @@ public class AccessibilityManager {
             eventInfo = eventInfo.substring(0, index+1);
             eventInfo += "</AccessibleEvent>";
         }
-        if ($me instanceof quorum.Libraries.Accessibility.AccessibilityManager) {
-            quorum.Libraries.Accessibility.AccessibilityManager m = (quorum.Libraries.Accessibility.AccessibilityManager)$me;
+        if (me_ instanceof quorum.Libraries.Accessibility.AccessibilityManager) {
+            quorum.Libraries.Accessibility.AccessibilityManager m = (quorum.Libraries.Accessibility.AccessibilityManager)me_;
             m.GetEvent(eventInfo);
         }
         

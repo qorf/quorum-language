@@ -10,9 +10,9 @@ import java.util.logging.Logger;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import quorum.Libraries.System.File$Interface;
+import quorum.Libraries.System.File_;
 import quorum.Libraries.Language.Compile.Test.CompilerTestResult;
-import quorum.Libraries.Language.Compile.Test.CompilerTestResult$Interface;
+import quorum.Libraries.Language.Compile.Test.CompilerTestResult_;
 import quorum.Libraries.Language.Types.Text;
 
 /**
@@ -20,11 +20,11 @@ import quorum.Libraries.Language.Types.Text;
  * @author stefika
  */
 public class CompilerTestSuite {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     
-    public CompilerTestResult$Interface RunClassFile(File$Interface file) {
+    public CompilerTestResult_ RunClassFile(File_ file) {
         String name = file.GetFileName();
-        CompilerTestResult$Interface result = new CompilerTestResult();
+        CompilerTestResult_ result = new CompilerTestResult();
         ProcessBuilder pb = new ProcessBuilder("java", "-DQuorumUnitTest=1", "-jar", "Default.jar");
         java.io.File parentFile = new java.io.File(file.GetAbsolutePath()).getParentFile();
         pb.directory(parentFile);
@@ -38,8 +38,8 @@ public class CompilerTestSuite {
         
         try {
             int returnCode = proc.waitFor();
-            result.Set$Libraries$Language$Compile$Test$CompilerTestResult$returnCode(returnCode);
-            result.Set$Libraries$Language$Compile$Test$CompilerTestResult$ranWithoutError(returnCode == 0);
+            result.Set_Libraries_Language_Compile_Test_CompilerTestResult__returnCode_(returnCode);
+            result.Set_Libraries_Language_Compile_Test_CompilerTestResult__ranWithoutError_(returnCode == 0);
         } catch (InterruptedException ex) {
             Logger.getLogger(CompilerTestSuite.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -56,14 +56,14 @@ public class CompilerTestSuite {
             if (line != null) {
                 Text text = new Text();
                 text.SetValue(line);
-                result.Get$Libraries$Language$Compile$Test$CompilerTestResult$lines().Add(text);
+                result.Get_Libraries_Language_Compile_Test_CompilerTestResult__lines_().Add(text);
             }
         } while (line != null);
         return result;
     }
     
-    public CompilerTestResult$Interface RunJavaScript(String script) {
-        CompilerTestResult$Interface result = new CompilerTestResult();
+    public CompilerTestResult_ RunJavaScript(String script) {
+        CompilerTestResult_ result = new CompilerTestResult();
         ScriptEngineManager factory = new ScriptEngineManager();
         ScriptEngine engine = factory.getEngineByName("JavaScript");
         try {
@@ -77,11 +77,11 @@ public class CompilerTestSuite {
             for(int i = 0; i < lines.length; i++) {
                 Text text = new Text();
                 text.SetValue(lines[i]);
-                result.Get$Libraries$Language$Compile$Test$CompilerTestResult$lines().Add(text);
+                result.Get_Libraries_Language_Compile_Test_CompilerTestResult__lines_().Add(text);
             }
-            result.Set$Libraries$Language$Compile$Test$CompilerTestResult$ranWithoutError(true);
+            result.Set_Libraries_Language_Compile_Test_CompilerTestResult__ranWithoutError_(true);
         } catch (Exception ex) {
-            result.Set$Libraries$Language$Compile$Test$CompilerTestResult$passed(false);
+            result.Set_Libraries_Language_Compile_Test_CompilerTestResult__passed_(false);
         }
         return result;
     }

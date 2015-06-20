@@ -5,7 +5,7 @@
 package plugins.quorum.Libraries.Containers;
 
 import java.util.Vector;
-import quorum.Libraries.Language.Object$Interface;
+import quorum.Libraries.Language.Object_;
 
 /**
  * An implementation of the native plugin for Libraries.Containers.Array.
@@ -13,22 +13,22 @@ import quorum.Libraries.Language.Object$Interface;
  * @author Andreas Stefik
  */
 public class Array {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     public static final int DEFAULT_CAPACITY = 10;
     protected boolean resizable = true;
-    private Vector<Object$Interface> array;
+    private Vector<Object_> array;
     
     public Array() {
         array = new Vector(DEFAULT_CAPACITY);
     }
     
     
-    public void SetNative(int location, Object$Interface value) {
+    public void SetNative(int location, Object_ value) {
         array.set(location, value);
     }
     
     
-    public Object$Interface GetNative(int location) {
+    public Object_ GetNative(int location) {
         return array.get(location);
     }
     
@@ -36,15 +36,15 @@ public class Array {
         array.setSize(size);
     }
     
-    public void AddNative(int location, Object$Interface value) {
+    public void AddNative(int location, Object_ value) {
         array.add(location, value);
     }
     
-    public void AddNative(Object$Interface value) {
+    public void AddNative(Object_ value) {
         array.add(value);
     }
     
-    public Object$Interface RemoveAtNative(int location) {
+    public Object_ RemoveAtNative(int location) {
         return array.remove(location);
     }
     

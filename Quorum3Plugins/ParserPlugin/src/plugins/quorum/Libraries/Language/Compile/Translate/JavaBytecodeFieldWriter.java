@@ -13,7 +13,7 @@ import org.objectweb.asm.FieldVisitor;
  * @author stefika
  */
 public class JavaBytecodeFieldWriter {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private FieldVisitor visitor;
 
     /**
