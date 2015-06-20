@@ -30,7 +30,7 @@ class ClassOpcode is QuorumOpcode
     constant text JAVA_THROWABLE = "java/lang/Throwable"
     constant text JAVA_OBJECT = "java/lang/Object"
     constant text QUORUM_ERROR = "quorum/Libraries/Language/Errors/Error"
-    constant text QUORUM_ERROR_INTERFACE = "quorum/Libraries/Language/Errors/Error$Interface"
+    constant text QUORUM_ERROR_INTERFACE = "quorum/Libraries/Language/Errors/Error_"
     constant text QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR = "Libraries.Language.Errors.Error"
     constant text CONSTRUCTOR_JAVA_NAME = "<init>"
     constant integer ME = 0
@@ -859,7 +859,7 @@ class ClassOpcode is QuorumOpcode
         methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
         methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), clazz:GetPluginName(), convertedSupplement)
         methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-        methodWriter:VisitField(opcodes:GetPutField(), converted, "$me", "Ljava/lang/Object;")
+        methodWriter:VisitField(opcodes:GetPutField(), converted, "me_", "Ljava/lang/Object;")
     end
 
     private action WriteParents(JavaBytecodeMethodWriter methodWriter)

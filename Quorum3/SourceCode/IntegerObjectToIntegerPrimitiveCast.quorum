@@ -13,7 +13,7 @@ class IntegerObjectToIntegerPrimitiveCast is ExplicitCastOpcode
             opcodeToCast:Write()
         end
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Types/Integer", "ConvertIntegerObjectToInteger",
-                "(Lquorum/Libraries/Language/Types/Integer$Interface;)I", false)
+                "(Lquorum/Libraries/Language/Types/Integer_;)I", false)
     end
     
     action WriteJavaScript returns text

@@ -13,7 +13,7 @@ class TextObjectToTextPrimitiveCast is ExplicitCastOpcode
             opcodeToCast:Write()
         end
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Types/Text", "ConvertTextObjectToText",
-                "(Lquorum/Libraries/Language/Types/Text$Interface;)Ljava/lang/String;", false)
+                "(Lquorum/Libraries/Language/Types/Text_;)Ljava/lang/String;", false)
     end
     
     action WriteJavaScript returns text

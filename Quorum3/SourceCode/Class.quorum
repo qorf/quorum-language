@@ -150,7 +150,7 @@ class Class is Symbol
 
     action ConvertStaticKeyToParentActionName returns text
         key = GetStaticKey()
-        result = "$parent$" + key:Replace(".", "$")
+        result = "parent" + key:Replace(".", "_") + "_"
         return result
     end
 
@@ -384,8 +384,8 @@ class Class is Symbol
     end
 
     action GenerateSetterNameFromField(Variable variable) returns text
-        text result = "Set$"
-        result = result + ConvertStaticKeyToFieldPath() + variable:GetName()
+        text result = "Set_"
+        result = result + ConvertStaticKeyToFieldPath() + variable:GetName() + "_"
         return result
     end
 
@@ -393,12 +393,12 @@ class Class is Symbol
         text result = ""
 
         if isGetter
-            result = result + "Get$"
+            result = result + "Get_"
         else
-            result = result + "Set$"
+            result = result + "Set_"
         end
         
-        result = result + ConvertStaticKeyToFieldPath() + "$" + variable:GetName()
+        result = result + ConvertStaticKeyToFieldPath() + "_" + variable:GetName() + "_"
         return result
     end
 
@@ -873,7 +873,7 @@ class Class is Symbol
 
     action GetInterfaceName returns text
         text name = GetName()
-        return name + "$Interface"
+        return name + "_"
     end
 
     private action ResolveActions(SymbolTable table, CompilerErrorManager errors)
@@ -1595,7 +1595,7 @@ class Class is Symbol
 
     action ConvertStaticKeyToUnderScore returns text
         text key = GetStaticKey()
-        text result = "$quorum_" + key:Replace(".", "_")
+        text result = "quorum_" + key:Replace(".", "_") + "_"
         return result
     end
     
@@ -1605,7 +1605,7 @@ class Class is Symbol
     */
     action ConvertStaticKeyToFieldPath returns text
         text key = GetStaticKey()
-        text result = key:Replace(".", "$")
+        text result = key:Replace(".", "_") + "_"
         return result
     end
 
@@ -1615,7 +1615,7 @@ class Class is Symbol
     */
     action ConvertStaticKeyToBytecodeInterfacePath returns text
         text key = GetStaticKey()
-        text result = "quorum/" + key:Replace(".", "/") + "$Interface"
+        text result = "quorum/" + key:Replace(".", "/") + "_"
         return result
     end
 
@@ -1662,23 +1662,23 @@ class Class is Symbol
     */
     action ConvertStaticKeyToBytecodePathTypeNameInterface returns text
         text key = GetStaticKey()
-        text result = "Lquorum/" + key:Replace(".", "/") + "$Interface;"
+        text result = "Lquorum/" + key:Replace(".", "/") + "_;"
         return result
     end
 
     action GetHiddenVariableName() returns text
-        return "$hidden$"
+        return "hidden_"
     end
 
     /*
         This action converts the static key of this class to a 
         name that can be used by the compiler as a class field name.
         An example would be that Libraries.Language.Object becomes
-        $Libraries/Language/Object.
+        Libraries_Language_Object_.
     */
     action ConvertStaticKeyToParentFieldName returns text
         text key = GetStaticKey()
-        text result = "$" + key:Replace(".", "$")
+        text result = key:Replace(".", "_") + "_"
         return result
     end
 
@@ -1686,11 +1686,11 @@ class Class is Symbol
         This action converts the static key of this class to a 
         name that can be used by the compiler as a class field name.
         An example would be that Libraries.Language.Object becomes
-        $Libraries/Language/Object.
+        Libraries_Language_Object_.
     */
     action ConvertStaticKeyToParentFieldInterfaceName returns text
         text key = GetStaticKey()
-        text result = "$" + key:Replace(".", "$") + "$Interface"
+        text result = key:Replace(".", "_") + "_"
         return result
     end
 

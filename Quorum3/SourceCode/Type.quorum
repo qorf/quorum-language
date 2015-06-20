@@ -478,7 +478,7 @@ class Type
         elseif IsVoid()
             return "V"
         else //it is an object, so return its interface type
-            return "L" + ConvertStaticKeyToBytecodePath() + "$Interface;"
+            return "L" + ConvertStaticKeyToBytecodePath() + "_;"
         end
     end
 
@@ -511,7 +511,7 @@ class Type
     end
 
     action ConvertStaticKeyToBytecodeInterfacePath() returns text
-        return ConvertStaticKeyToBytecodePath() + "$Interface"
+        return ConvertStaticKeyToBytecodePath() + "_"
     end
 
     action ConvertStaticKeyToJavaScriptName() returns text

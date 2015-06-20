@@ -215,7 +215,7 @@ class ActionCallOpcode is QuorumOpcode
         if not callingClass:IsError()
             //owner, name, description
             text owner = callingClass:ConvertStaticKeyToBytecodePath()
-            text name = "$hidden$"
+            text name = "hidden_"
             text description = callingClass:ConvertStaticKeyToBytecodePathTypeNameInterface()
             methodWriter:VisitField(opcodes:GetField(), owner, name, description)
         end
@@ -230,7 +230,7 @@ class ActionCallOpcode is QuorumOpcode
                 WriteParentVariable()
                 //return now
             elseif pushOnMe //if there's a variable, load it.
-                //push on the variable $hidden
+                //push on the variable hidden_
                 LoadHiddenMe()
             end
 

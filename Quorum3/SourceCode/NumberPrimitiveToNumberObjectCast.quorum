@@ -13,7 +13,7 @@ class NumberPrimitiveToNumberObjectCast is ExplicitCastOpcode
             opcodeToCast:Write()
         end
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Types/Number", "ConvertNumberToNumberObject",
-                "(D)Lquorum/Libraries/Language/Types/Number$Interface;", false)
+                "(D)Lquorum/Libraries/Language/Types/Number_;", false)
     end
     
     action WriteJavaScript returns text

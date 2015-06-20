@@ -13,7 +13,7 @@ class BooleanPrimitiveToBooleanObjectCast is ExplicitCastOpcode
             opcodeToCast:Write()
         end
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Types/Boolean", "ConvertBooleanToBooleanObject",
-                "(Z)Lquorum/Libraries/Language/Types/Boolean$Interface;", false)
+                "(Z)Lquorum/Libraries/Language/Types/Boolean_;", false)
     end
     
     action WriteJavaScript returns text
