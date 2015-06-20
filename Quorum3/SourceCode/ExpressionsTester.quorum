@@ -105,7 +105,9 @@ class ExpressionsTester
         SubIntInt()
 // FAIL TESTS
         path = failPath
+        BadActionName()
         BadClassName()
+        BadVariableName()
         BadErrorMessage()
         BadText()
         BlueprintMain()
@@ -1199,10 +1201,28 @@ class ExpressionsTester
         suite:TestJavaScriptFail(files)
     end
     
+    action BadActionName
+        Array<File> files
+        File main
+        main:SetPath(path + "BadActionName.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
     action BadClassName
         Array<File> files
         File main
         main:SetPath(path + "BadClassName.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action BadVariableName
+        Array<File> files
+        File main
+        main:SetPath(path + "BadVariableName.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

@@ -14,7 +14,6 @@ use Libraries.Compute.Math
 use Libraries.Containers.HashTable
 use Libraries.Language.Errors.OutOfBoundsError
 use Libraries.Language.Compile.Test.CompilerTestSuite
-use Libraries.Accessibility.AccessibilityManager
 
 class Main is WebResponder
     public constant text NAME_FLAG = "-name"
@@ -278,7 +277,7 @@ class Main is WebResponder
         compiler:SetOutputFolder(root)
         File main
         //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication2/SourceCode/")
-        main:SetPath("Library/Tests/Game/Pass/TestGame.quorum")
+        main:SetPath("Library/Tests/Expressions/Fail/BadVariableName.quorum")
         //main:SetPath("main.quorum")
 
         File class2
