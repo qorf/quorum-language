@@ -10,7 +10,7 @@ package plugins.quorum.Libraries.Compute;
  * @author jeff
  */
 public class Random {
-    public java.lang.Object $me = null;
+    public java.lang.Object me_ = null;
     private java.util.Random random = new java.util.Random();
     
     public void InitializeNative() {
