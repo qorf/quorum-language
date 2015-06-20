@@ -76,14 +76,8 @@ public class JavaBytecodeClassWriter implements Opcodes{
             }
         }
         MethodVisitor visitor = classWriter.visitMethod(access, actionName, description, generics, values);
-        try {
-            //get the plugin from the passed class
-            Field field = methodWriter.getClass().getField("<plugin>");
-            JavaBytecodeMethodWriter get = (JavaBytecodeMethodWriter) field.get(methodWriter);
-            get.setMethodVisitor(visitor);
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
-            Logger.getLogger(JavaBytecodeClassWriter.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        JavaBytecodeMethodWriter get = (JavaBytecodeMethodWriter) methodWriter.plugin_;
+        get.setMethodVisitor(visitor);
         return methodWriter;
     }
         
@@ -93,14 +87,8 @@ public class JavaBytecodeClassWriter implements Opcodes{
                 new quorum.Libraries.Language.Compile.Translate.JavaBytecodeFieldWriter();
         
         FieldVisitor visitor = classWriter.visitField(opcode, name, description, signature, object);
-        try {
-            //get the plugin from the passed class
-            Field field = fieldWriter.getClass().getField("<plugin>");
-            JavaBytecodeFieldWriter get = (JavaBytecodeFieldWriter) field.get(fieldWriter);
-            get.setFieldVisitor(visitor);
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
-            Logger.getLogger(JavaBytecodeClassWriter.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        JavaBytecodeFieldWriter get = fieldWriter.plugin_;
+        get.setFieldVisitor(visitor);
         return fieldWriter;
     }
     

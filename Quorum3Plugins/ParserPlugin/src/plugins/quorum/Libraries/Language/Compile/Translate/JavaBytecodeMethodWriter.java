@@ -162,14 +162,7 @@ public class JavaBytecodeMethodWriter {
     }
     
     public Label getLabel(quorum.Libraries.Language.Compile.Translate.JavaBytecodeLabel label) {
-        try {
-            //get the plugin from the passed class
-            Field field = label.getClass().getField("<plugin>");
-            JavaBytecodeLabel get = (JavaBytecodeLabel) field.get(label);
-            return get.getLabel();
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
-            Logger.getLogger(JavaBytecodeClassWriter.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
+        JavaBytecodeLabel get = (JavaBytecodeLabel) label.plugin_;
+        return get.getLabel();
     }
 }
