@@ -11,15 +11,15 @@ import org.openide.filesystems.FileObject;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.util.ImageUtilities;
-import quorum.Libraries.System.File$Interface;
+import quorum.Libraries.System.File_;
 
 /**
  *
  * @author stefika
  */
 public class QuorumVariableNode extends AbstractNode implements Comparable {
-    private quorum.Libraries.Language.Compile.Symbol.Variable$Interface variable;
-    public QuorumVariableNode(quorum.Libraries.Language.Compile.Symbol.Variable$Interface variable) {
+    private quorum.Libraries.Language.Compile.Symbol.Variable_ variable;
+    public QuorumVariableNode(quorum.Libraries.Language.Compile.Symbol.Variable_ variable) {
         super(Children.LEAF);
         this.variable = variable;
         computeName();
@@ -27,7 +27,7 @@ public class QuorumVariableNode extends AbstractNode implements Comparable {
     
     public void computeName() {
         String name = variable.GetName() + " : ";
-        quorum.Libraries.Language.Compile.Symbol.Type$Interface type = variable.GetType();
+        quorum.Libraries.Language.Compile.Symbol.Type_ type = variable.GetType();
         name = name + type.GetDisplayName();
         setDisplayName(name);
     }
@@ -50,13 +50,13 @@ public class QuorumVariableNode extends AbstractNode implements Comparable {
     public Action getPreferredAction() {
         JumpToEditorAction jump = new JumpToEditorAction();
         int line = variable.GetLineNumber();
-        File$Interface file = variable.GetFile();
+        File_ file = variable.GetFile();
         FileObject fo = org.quorum.support.Utility.toFileObject(file);
         jump.line = line;
         jump.file = fo;
         return jump;
     }
-    public quorum.Libraries.Language.Compile.Symbol.Variable$Interface getVariable() {
+    public quorum.Libraries.Language.Compile.Symbol.Variable_ getVariable() {
         return variable;
     }
     
@@ -64,8 +64,8 @@ public class QuorumVariableNode extends AbstractNode implements Comparable {
     public int compareTo(Object o) {
         QuorumVariableNode rightNode = (QuorumVariableNode) o;
         
-        quorum.Libraries.Language.Compile.Symbol.Variable$Interface left = getVariable();
-        quorum.Libraries.Language.Compile.Symbol.Variable$Interface right = rightNode.getVariable();
+        quorum.Libraries.Language.Compile.Symbol.Variable_ left = getVariable();
+        quorum.Libraries.Language.Compile.Symbol.Variable_ right = rightNode.getVariable();
         return left.GetStaticKey().compareTo(right.GetStaticKey());
     }
 }

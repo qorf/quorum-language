@@ -37,10 +37,10 @@ import org.quorum.debugger.QuorumDebugger;
 import org.quorum.projects.ImageSheetManager;
 import org.quorum.projects.QuorumProject;
 import org.quorum.windows.CompilerErrorTopComponent;
-import quorum.Libraries.Containers.Array$Interface;
-import quorum.Libraries.Containers.Blueprints.Iterator$Interface;
-import quorum.Libraries.Language.Compile.CompilerErrorManager$Interface;
-import quorum.Libraries.Language.Object$Interface;
+import quorum.Libraries.Containers.Array_;
+import quorum.Libraries.Containers.Blueprints.Iterator_;
+import quorum.Libraries.Language.Compile.CompilerErrorManager_;
+import quorum.Libraries.Language.Object_;
 
 /**
  *
@@ -114,12 +114,12 @@ public abstract class QuorumAction implements Action {
 
         File file = new File(directory.getAbsolutePath() + "/" + QuorumProject.SOURCES_DIR);
         quorum.Libraries.System.File quorumFile = getQuorumFile(file);
-        Array$Interface listing = quorumFile.GetDirectoryListing();
+        Array_ listing = quorumFile.GetDirectoryListing();
         
         
-        Iterator$Interface it = listing.GetIterator();
+        Iterator_ it = listing.GetIterator();
         while(it.HasNext()) {
-            quorum.Libraries.System.File$Interface next = (quorum.Libraries.System.File$Interface) it.Next();
+            quorum.Libraries.System.File_ next = (quorum.Libraries.System.File_) it.Next();
             FileObject fo = org.quorum.support.Utility.toFileObject(next);
             try {
                 DataObject dataObj = DataObject.find(fo);
@@ -181,7 +181,7 @@ public abstract class QuorumAction implements Action {
             public void run() {
                 CompilerErrorTopComponent errors = (CompilerErrorTopComponent) WindowManager.getDefault().findTopComponent("CompilerErrorTopComponent");
                 if (!compiler.IsCompilationErrorFree()) {
-                    CompilerErrorManager$Interface manager = compiler.GetCompilerErrorManager();
+                    CompilerErrorManager_ manager = compiler.GetCompilerErrorManager();
                     errors.resetErrors(manager);
 
                     boolean open = errors.isOpened();

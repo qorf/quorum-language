@@ -20,9 +20,9 @@ import org.openide.util.lookup.Lookups;
  * @author stefika
  */
 public class QuorumClassNode extends AbstractNode{
-    private quorum.Libraries.Language.Compile.Symbol.Class$Interface clazz = null;
+    private quorum.Libraries.Language.Compile.Symbol.Class_ clazz = null;
 
-    public QuorumClassNode(quorum.Libraries.Language.Compile.Symbol.Class$Interface clazz) {
+    public QuorumClassNode(quorum.Libraries.Language.Compile.Symbol.Class_ clazz) {
         super(new ClassChildren(clazz), Lookups.fixed( new Object[] {clazz}));
         this.clazz = clazz;
         computeName();
@@ -31,10 +31,10 @@ public class QuorumClassNode extends AbstractNode{
     public void computeName() {
         String name = clazz.GetName() + " :: " ;
         
-        quorum.Libraries.Containers.Blueprints.Iterator$Interface parents = clazz.GetParentClasses();
+        quorum.Libraries.Containers.Blueprints.Iterator_ parents = clazz.GetParentClasses();
         boolean first = true;
         while(parents.HasNext()) {
-            quorum.Libraries.Language.Compile.Symbol.Class$Interface parent = (quorum.Libraries.Language.Compile.Symbol.Class$Interface) parents.Next();
+            quorum.Libraries.Language.Compile.Symbol.Class_ parent = (quorum.Libraries.Language.Compile.Symbol.Class_) parents.Next();
             if(first) {
                 name = name + parent.GetName();
             } else {
@@ -58,7 +58,7 @@ public class QuorumClassNode extends AbstractNode{
     /**
      * @return the clazz
      */
-    public quorum.Libraries.Language.Compile.Symbol.Class$Interface getClazz() {
+    public quorum.Libraries.Language.Compile.Symbol.Class_ getClazz() {
         return clazz;
     }
 }

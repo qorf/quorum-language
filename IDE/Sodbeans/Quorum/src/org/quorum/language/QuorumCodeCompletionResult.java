@@ -9,10 +9,10 @@ import java.util.LinkedList;
 import java.util.List;
 import org.netbeans.modules.csl.api.CodeCompletionResult;
 import org.netbeans.modules.csl.api.CompletionProposal;
-import quorum.Libraries.Containers.Blueprints.Iterator$Interface;
-import quorum.Libraries.Language.Compile.CodeCompletionResult$Interface;
-import quorum.Libraries.Language.Object$Interface;
-import quorum.Libraries.Language.Compile.CodeCompletionItem$Interface;
+import quorum.Libraries.Containers.Blueprints.Iterator_;
+import quorum.Libraries.Language.Compile.CodeCompletionResult_;
+import quorum.Libraries.Language.Object_;
+import quorum.Libraries.Language.Compile.CodeCompletionItem_;
 
 /**
  *
@@ -20,19 +20,19 @@ import quorum.Libraries.Language.Compile.CodeCompletionItem$Interface;
  */
 public class QuorumCodeCompletionResult extends CodeCompletionResult{
     
-    private CodeCompletionResult$Interface result = null;
+    private CodeCompletionResult_ result = null;
     
     @Override
     public List<CompletionProposal> getItems() {
         List<CompletionProposal> list = new LinkedList<CompletionProposal>();
         if(result != null) {
-            Iterator$Interface it = result.GetIterator();
+            Iterator_ it = result.GetIterator();
             if(it != null) {
                 while(it.HasNext()) {
-                    CodeCompletionItem$Interface next = (CodeCompletionItem$Interface) it.Next();
+                    CodeCompletionItem_ next = (CodeCompletionItem_) it.Next();
                     QuorumCompletionProposal prop = new QuorumCompletionProposal();
                     prop.setCompletionItem(next);
-                    prop.setPrefix(result.Get$Libraries$Language$Compile$CodeCompletionResult$prefix());
+                    prop.setPrefix(result.Get_Libraries_Language_Compile_CodeCompletionResult__prefix_());
                     list.add(prop);
                 }
             }
@@ -53,14 +53,14 @@ public class QuorumCodeCompletionResult extends CodeCompletionResult{
     /**
      * @return the result
      */
-    public CodeCompletionResult$Interface getResult() {
+    public CodeCompletionResult_ getResult() {
         return result;
     }
 
     /**
      * @param result the result to set
      */
-    public void setResult(CodeCompletionResult$Interface result) {
+    public void setResult(CodeCompletionResult_ result) {
         this.result = result;
     }
     

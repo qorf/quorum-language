@@ -19,8 +19,8 @@ import org.openide.util.Exceptions;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
 import org.quorum.debugger.QuorumSupport;
-import quorum.Libraries.Containers.Blueprints.Iterator$Interface;
-import quorum.Libraries.Language.Compile.CompilerErrorManager$Interface;
+import quorum.Libraries.Containers.Blueprints.Iterator_;
+import quorum.Libraries.Language.Compile.CompilerErrorManager_;
 
 /**
  * Top component which displays something.
@@ -189,12 +189,12 @@ public final class CompilerErrorTopComponent extends TopComponent {
         }
     }
     
-    public void resetErrors(CompilerErrorManager$Interface manager) {
+    public void resetErrors(CompilerErrorManager_ manager) {
         DefaultTableModel model = (DefaultTableModel) errorTable.getModel();
         clear();
-        Iterator$Interface it = manager.GetIterator();
+        Iterator_ it = manager.GetIterator();
         while(it.HasNext()) {
-            quorum.Libraries.Language.Compile.CompilerError$Interface error = (quorum.Libraries.Language.Compile.CompilerError$Interface) it.Next();
+            quorum.Libraries.Language.Compile.CompilerError_ error = (quorum.Libraries.Language.Compile.CompilerError_) it.Next();
             model.addRow(new Object[] {error.GetErrorMessage(), error.GetLineNumber(), error.GetAbsolutePath()});
         }
     }

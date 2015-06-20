@@ -43,7 +43,7 @@ public class Utility {
      * @param file
      * @return 
      */
-    public static FileObject toFileObject(quorum.Libraries.System.File$Interface file) {
+    public static FileObject toFileObject(quorum.Libraries.System.File_ file) {
         java.io.File f = new java.io.File(file.GetAbsolutePath());
         return FileUtil.toFileObject(f);
     }
@@ -85,7 +85,7 @@ public class Utility {
      * @param file
      * @return 
      */
-    public static java.io.File toQuorumFile(quorum.Libraries.System.File$Interface file) {
+    public static java.io.File toQuorumFile(quorum.Libraries.System.File_ file) {
         if(file == null) {
             return null;
         }

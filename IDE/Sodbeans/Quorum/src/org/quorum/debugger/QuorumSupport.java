@@ -45,9 +45,9 @@ import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.text.Line;
-import quorum.Libraries.Language.Compile.Symbol.Class$Interface;
-import quorum.Libraries.Language.Compile.Symbol.SymbolTable$Interface;
-import quorum.Libraries.System.File$Interface;
+import quorum.Libraries.Language.Compile.Symbol.Class_;
+import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
+import quorum.Libraries.System.File_;
 
 /**
  *
@@ -181,8 +181,8 @@ public class QuorumSupport {
      * @return
      */
     public String findJVMClassName(FileObject fo, int targetLine) {
-        SymbolTable$Interface table = getCompiler().Get$Libraries$Language$Compile$Compiler$symbolTable();
-        Class$Interface clazz = table.GetClassInFile(FileUtil.toFile(fo).getAbsolutePath());
+        SymbolTable_ table = getCompiler().Get_Libraries_Language_Compile_Compiler__symbolTable_();
+        Class_ clazz = table.GetClassInFile(FileUtil.toFile(fo).getAbsolutePath());
         if(clazz != null) {
             return staticKeyToJVMName(clazz.GetStaticKey());
         }
@@ -256,9 +256,9 @@ public class QuorumSupport {
      */
     public FileObject lookupQuorumFile(String staticKey) {
         String key = DotNameToStaticKey(staticKey);
-        SymbolTable$Interface table = getCompiler().Get$Libraries$Language$Compile$Compiler$symbolTable();
-        Class$Interface clazz = table.GetClass(key);
-        File$Interface f = clazz.GetFile();
+        SymbolTable_ table = getCompiler().Get_Libraries_Language_Compile_Compiler__symbolTable_();
+        Class_ clazz = table.GetClass(key);
+        File_ f = clazz.GetFile();
         String path = f.GetAbsolutePath();
         File file = new File(path);
         return FileUtil.toFileObject(file);

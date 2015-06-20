@@ -41,8 +41,8 @@ import org.quorum.actions.Debug;
 import org.quorum.actions.Document;
 import org.quorum.actions.Run;
 import org.quorum.support.Utility;
-import quorum.Libraries.System.File$Interface;
-//import CompilerResult$Interface;
+import quorum.Libraries.System.File_;
+//import CompilerResult_;
 
 /**
  *
@@ -89,7 +89,7 @@ public class QuorumProject implements Project {
     private final quorum.Libraries.Language.Compile.Compiler compiler = 
             new quorum.Libraries.Language.Compile.Compiler();
     private MainFileProvider mainFileProvider = new MainFileProvider(this);
-    private quorum.Libraries.Language.Compile.CompilerResult$Interface sandboxResult = null;
+    private quorum.Libraries.Language.Compile.CompilerResult_ sandboxResult = null;
     
     public QuorumProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
@@ -119,11 +119,11 @@ public class QuorumProject implements Project {
         run = new Run(this);
     }
 
-    public quorum.Libraries.Language.Compile.CompilerResult$Interface getSandboxCompilerResult() {
+    public quorum.Libraries.Language.Compile.CompilerResult_ getSandboxCompilerResult() {
         return sandboxResult;
     }
     
-    public void setSandboxCompilerResult(quorum.Libraries.Language.Compile.CompilerResult$Interface result) {
+    public void setSandboxCompilerResult(quorum.Libraries.Language.Compile.CompilerResult_ result) {
         sandboxResult = result;
     }
     
@@ -168,7 +168,7 @@ public class QuorumProject implements Project {
     }
 
     public String getExecutableLocation() {
-        File$Interface output = getCompiler().GetRunFolder();
+        File_ output = getCompiler().GetRunFolder();
         String path = output.GetAbsolutePath();
         
         return path + "/" + getCompiler().GetName() + getCompiler().GetFileExtension();
@@ -179,7 +179,7 @@ public class QuorumProject implements Project {
     }
     
     public File getRunDirectory() {
-        File$Interface output = getCompiler().GetRunFolder();
+        File_ output = getCompiler().GetRunFolder();
         return org.quorum.support.Utility.toQuorumFile(output);
     }
     

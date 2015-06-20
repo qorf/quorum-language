@@ -13,16 +13,16 @@ import org.openide.filesystems.FileObject;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.util.ImageUtilities;
-import quorum.Libraries.Language.Compile.Symbol.Type$Interface;
-import quorum.Libraries.System.File$Interface;
+import quorum.Libraries.Language.Compile.Symbol.Type_;
+import quorum.Libraries.System.File_;
 
 /**
  *
  * @author stefika
  */
 public class QuorumActionNode extends AbstractNode implements Comparable {
-    private quorum.Libraries.Language.Compile.Symbol.Action$Interface action;
-    public QuorumActionNode(quorum.Libraries.Language.Compile.Symbol.Action$Interface action) {
+    private quorum.Libraries.Language.Compile.Symbol.Action_ action;
+    public QuorumActionNode(quorum.Libraries.Language.Compile.Symbol.Action_ action) {
         super(Children.LEAF);
         this.action = action;
         computeName();
@@ -31,10 +31,10 @@ public class QuorumActionNode extends AbstractNode implements Comparable {
     public void computeName() {
         String name = action.GetName() + "(";
         boolean first = true;
-        quorum.Libraries.Containers.Blueprints.Iterator$Interface params = action.GetParameterIterator();
+        quorum.Libraries.Containers.Blueprints.Iterator_ params = action.GetParameterIterator();
         while(params.HasNext()) {
-            quorum.Libraries.Language.Compile.Symbol.Variable$Interface param = (quorum.Libraries.Language.Compile.Symbol.Variable$Interface) params.Next();
-            Type$Interface type = param.GetType();
+            quorum.Libraries.Language.Compile.Symbol.Variable_ param = (quorum.Libraries.Language.Compile.Symbol.Variable_) params.Next();
+            Type_ type = param.GetType();
             if(first == true) {
                 name = name + type.GetStaticKey() + " " + param.GetName();
             } else {
@@ -51,14 +51,14 @@ public class QuorumActionNode extends AbstractNode implements Comparable {
     public Action getPreferredAction() {
         JumpToEditorAction jump = new JumpToEditorAction();
         int line = action.GetLineNumber();
-        File$Interface file = action.GetFile();
+        File_ file = action.GetFile();
         FileObject fo = org.quorum.support.Utility.toFileObject(file);
         jump.line = line;
         jump.file = fo;
         return jump;
     }
 
-    public quorum.Libraries.Language.Compile.Symbol.Action$Interface getAction() {
+    public quorum.Libraries.Language.Compile.Symbol.Action_ getAction() {
         return action;
     }
     
@@ -80,8 +80,8 @@ public class QuorumActionNode extends AbstractNode implements Comparable {
     public int compareTo(Object o) {
         QuorumActionNode rightNode = (QuorumActionNode) o;
         
-        quorum.Libraries.Language.Compile.Symbol.Action$Interface left = getAction();
-        quorum.Libraries.Language.Compile.Symbol.Action$Interface right = rightNode.getAction();
+        quorum.Libraries.Language.Compile.Symbol.Action_ left = getAction();
+        quorum.Libraries.Language.Compile.Symbol.Action_ right = rightNode.getAction();
         return left.GetStaticKey().compareTo(right.GetStaticKey());
     }
 }

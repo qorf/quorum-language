@@ -22,12 +22,12 @@ import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
 import org.quorum.projects.QuorumProject;
 import org.quorum.support.Utility;
-import quorum.Libraries.Containers.Array$Interface;
-import quorum.Libraries.Containers.Blueprints.Iterator$Interface;
-import quorum.Libraries.Language.Compile.CompilerErrorManager$Interface;
-import quorum.Libraries.Language.Compile.CompilerError$Interface;
-import quorum.Libraries.Language.Compile.CompilerResult$Interface;
-import quorum.Libraries.Language.Compile.Symbol.SymbolTable$Interface;
+import quorum.Libraries.Containers.Array_;
+import quorum.Libraries.Containers.Blueprints.Iterator_;
+import quorum.Libraries.Language.Compile.CompilerErrorManager_;
+import quorum.Libraries.Language.Compile.CompilerError_;
+import quorum.Libraries.Language.Compile.CompilerResult_;
+import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
 /**
  *
  * @author stefika
@@ -76,14 +76,14 @@ public class QuorumParser extends Parser{
                     File directory = FileUtil.toFile(projectDirectory);
                     File file = new File(directory.getAbsolutePath() + "/" + QuorumProject.SOURCES_DIR);
                     quorum.Libraries.System.File sourceFolder = Utility.toQuorumFile(file);
-                    Array$Interface listing = sourceFolder.GetDirectoryListing();
+                    Array_ listing = sourceFolder.GetDirectoryListing();
                     
-                    info.Set$Libraries$Language$Compile$ProjectInformation$source(string);
-                    info.Set$Libraries$Language$Compile$ProjectInformation$sourceLocation(quorumFile);
-                    info.Set$Libraries$Language$Compile$ProjectInformation$projectFiles(listing);
-                    CompilerResult$Interface result = compiler.ParseRepeat(info);                 
+                    info.Set_Libraries_Language_Compile_ProjectInformation__source_(string);
+                    info.Set_Libraries_Language_Compile_ProjectInformation__sourceLocation_(quorumFile);
+                    info.Set_Libraries_Language_Compile_ProjectInformation__projectFiles_(listing);
+                    CompilerResult_ result = compiler.ParseRepeat(info);                 
                     
-                    CompilerErrorManager$Interface errors = result.Get$Libraries$Language$Compile$CompilerResult$compilerErrorManager();
+                    CompilerErrorManager_ errors = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
                     if(errors.IsCompilationErrorFree()) {
                         fileErrors.clear();
                         if(result != null && project instanceof QuorumProject) {
@@ -93,9 +93,9 @@ public class QuorumParser extends Parser{
                         
                     } else {
                         fileErrors.clear();
-                        Iterator$Interface it = errors.GetIterator();
+                        Iterator_ it = errors.GetIterator();
                         while(it.HasNext()) {
-                            CompilerError$Interface next = (CompilerError$Interface) it.Next();
+                            CompilerError_ next = (CompilerError_) it.Next();
                             String displayName = next.GetDisplayName();
                             String description = next.GetErrorMessage();
                             String key = next.GetDisplayName();

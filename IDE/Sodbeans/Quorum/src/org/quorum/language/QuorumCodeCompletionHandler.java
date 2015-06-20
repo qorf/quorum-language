@@ -25,9 +25,9 @@ import org.netbeans.modules.csl.spi.ParserResult;
 import org.netbeans.modules.parsing.api.Source;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import quorum.Libraries.Language.Compile.CodeCompletionItem$Interface;
+import quorum.Libraries.Language.Compile.CodeCompletionItem_;
 import quorum.Libraries.Language.Compile.CodeCompletionRequest;
-import quorum.Libraries.Language.Compile.CodeCompletionResult$Interface;
+import quorum.Libraries.Language.Compile.CodeCompletionResult_;
 
 /**
  *
@@ -35,14 +35,14 @@ import quorum.Libraries.Language.Compile.CodeCompletionResult$Interface;
  */
 public class QuorumCodeCompletionHandler implements CodeCompletionHandler2{
 
-    private CodeCompletionResult$Interface lastResult = null;
+    private CodeCompletionResult_ lastResult = null;
     @Override
     public Documentation documentElement(ParserResult pr, ElementHandle eh, Callable<Boolean> clbl) {
         String name = eh.getName();
         if(lastResult != null) {
-            CodeCompletionItem$Interface item = lastResult.Get(name);
+            CodeCompletionItem_ item = lastResult.Get(name);
             if(item != null) {
-                String docs = item.Get$Libraries$Language$Compile$CodeCompletionItem$documentationText();
+                String docs = item.Get_Libraries_Language_Compile_CodeCompletionItem__completionText_();
                 return Documentation.create(docs);
             }
         }
@@ -63,14 +63,14 @@ public class QuorumCodeCompletionHandler implements CodeCompletionHandler2{
             String string = parserResult.getSnapshot().getText().toString();
             CodeCompletionRequest request = new CodeCompletionRequest();
             FileObject fileObject = parserResult.getSnapshot().getSource().getFileObject();
-            request.Set$Libraries$Language$Compile$CodeCompletionRequest$fileKey(FileUtil.toFile(fileObject).getAbsolutePath());
+            request.Set_Libraries_Language_Compile_CodeCompletionRequest__fileKey_(FileUtil.toFile(fileObject).getAbsolutePath());
             int caretOffset = context.getCaretOffset();
             request.caretLocation = caretOffset;
             request.source = string;
             String prefix = context.getPrefix();
             boolean caseSensitive = context.isCaseSensitive();
                 
-            CodeCompletionResult$Interface quorumResult = compiler.Request(request);
+            CodeCompletionResult_ quorumResult = compiler.Request(request);
             result.setResult(quorumResult);
             lastResult = quorumResult;
         }

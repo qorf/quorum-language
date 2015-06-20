@@ -31,8 +31,8 @@ import org.openide.util.LookupListener;
 import org.quorum.files.QuorumDataObject;
 import org.quorum.windows.QuorumNavigatorPanel;
 import org.quorum.windows.nodes.QuorumClassNode;
-import quorum.Libraries.Language.Compile.CompilerResult$Interface;
-import quorum.Libraries.Language.Compile.Symbol.SymbolTable$Interface;
+import quorum.Libraries.Language.Compile.CompilerResult_;
+import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
 
 /**
  *
@@ -125,10 +125,10 @@ public class QuorumNavigator implements NavigatorPanel{
                         Project project = FileOwnerQuery.getOwner(fileObject);
                         if(project instanceof org.quorum.projects.QuorumProject) {
                             org.quorum.projects.QuorumProject qp = (org.quorum.projects.QuorumProject) project;
-                            CompilerResult$Interface result = qp.getSandboxCompilerResult();
+                            CompilerResult_ result = qp.getSandboxCompilerResult();
                             if(result != null) {
-                                SymbolTable$Interface table = result.Get$Libraries$Language$Compile$CompilerResult$symbolTable();
-                                quorum.Libraries.Language.Compile.Symbol.Class$Interface clazz = table.GetClassInFile(path);
+                                SymbolTable_ table = result.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
+                                quorum.Libraries.Language.Compile.Symbol.Class_ clazz = table.GetClassInFile(path);
                                 if(clazz != null) {
                                     setToClass(clazz);
                                 }
@@ -143,7 +143,7 @@ public class QuorumNavigator implements NavigatorPanel{
         thread.start();
     }
     
-    private void setToClass(final quorum.Libraries.Language.Compile.Symbol.Class$Interface clazz) {
+    private void setToClass(final quorum.Libraries.Language.Compile.Symbol.Class_ clazz) {
         QuorumClassNode node = new QuorumClassNode(clazz);
         panelUI.setRoot(node);
     }

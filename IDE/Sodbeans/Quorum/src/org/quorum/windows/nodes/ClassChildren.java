@@ -17,27 +17,27 @@ import org.openide.nodes.Node;
  * @author stefika
  */
 public class ClassChildren extends Index.ArrayChildren{
-    private quorum.Libraries.Language.Compile.Symbol.Class$Interface clazz;
+    private quorum.Libraries.Language.Compile.Symbol.Class_ clazz;
     
-    public ClassChildren(quorum.Libraries.Language.Compile.Symbol.Class$Interface clazz) {
+    public ClassChildren(quorum.Libraries.Language.Compile.Symbol.Class_ clazz) {
         this.clazz = clazz;
     }
     
     @Override
     protected java.util.List<Node> initCollection() {
         List fields = new ArrayList();
-        quorum.Libraries.Containers.Blueprints.Iterator$Interface variables = clazz.GetVariables();
+        quorum.Libraries.Containers.Blueprints.Iterator_ variables = clazz.GetVariables();
         while(variables.HasNext()) {
-            quorum.Libraries.Language.Compile.Symbol.Variable$Interface next = (quorum.Libraries.Language.Compile.Symbol.Variable$Interface) variables.Next();
+            quorum.Libraries.Language.Compile.Symbol.Variable_ next = (quorum.Libraries.Language.Compile.Symbol.Variable_) variables.Next();
             QuorumVariableNode node = new QuorumVariableNode(next);
             fields.add(node);
         }
         Collections.sort(fields);
         
         List methods = new ArrayList();
-        quorum.Libraries.Containers.Blueprints.Iterator$Interface actions = clazz.GetActions();
+        quorum.Libraries.Containers.Blueprints.Iterator_ actions = clazz.GetActions();
         while(actions.HasNext()) {
-            quorum.Libraries.Language.Compile.Symbol.Action$Interface next = (quorum.Libraries.Language.Compile.Symbol.Action$Interface) actions.Next();
+            quorum.Libraries.Language.Compile.Symbol.Action_ next = (quorum.Libraries.Language.Compile.Symbol.Action_) actions.Next();
             QuorumActionNode node = new QuorumActionNode(next);
             methods.add(node);
         }
