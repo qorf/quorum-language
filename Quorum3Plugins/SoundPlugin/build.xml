@@ -12,9 +12,23 @@
     <import file="nbproject/build-impl.xml"/>
     
     <target name="-post-compile">
-        <copy file="build/classes/plugins/quorum/Libraries/Sound/Audio.class" todir="../../quorum/plugins/quorum/Libraries/Sound"/>
-        <copy file="build/classes/plugins/quorum/Libraries/Sound/Audio$1.class" todir="../../quorum/plugins/quorum/Libraries/Sound"/>
-        <copy file="build/classes/plugins/quorum/Libraries/Sound/Audio$2.class" todir="../../quorum/plugins/quorum/Libraries/Sound"/>
+        <copy todir="../../Quorum3/Library/Standard/Plugins/sound/plugins/quorum/Libraries/Sound">
+          <fileset dir="build/classes/plugins/quorum/Libraries/Sound">
+            <include name="*"/>
+          </fileset>
+        </copy>
+        
+        <copy todir="../../Quorum3/Library/Standard/Plugins/sound/plugins/quorum/Libraries/Sound/Ogg/jogg">
+          <fileset dir="build/classes/plugins/quorum/Libraries/Sound/Ogg/jogg">
+            <include name="*"/>
+          </fileset>
+        </copy>
+        
+        <copy todir="../../Quorum3/Library/Standard/Plugins/sound/plugins/quorum/Libraries/Sound/Ogg/jorbis">
+          <fileset dir="build/classes/plugins/quorum/Libraries/Sound/Ogg/jorbis">
+            <include name="*"/>
+          </fileset>
+        </copy>
     </target>
     
     <!--
