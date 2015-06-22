@@ -19,6 +19,8 @@ use Libraries.Interface.Events.KeyboardProcessor
 use Libraries.Interface.Events.KeyboardListener
 use Libraries.Interface.Events.MouseProcessor
 use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Item
 use Libraries.Interface.Events.CollisionEvent
@@ -405,15 +407,17 @@ class Game
 
     action SetActivePanel(Panel panel)
         if activePanel not= undefined
-            activePanel:keyboardProcessor = undefined
-            activePanel:mouseProcessor = undefined
+            //activePanel:keyboardProcessor = undefined
+            //activePanel:mouseProcessor = undefined
+            activePanel:Disable()
         end
-        panel:keyboardProcessor = keyboardProcessor
-        panel:mouseProcessor = mouseProcessor
+        //panel:keyboardProcessor = keyboardProcessor
+        //panel:mouseProcessor = mouseProcessor
         panel:SetPosition(0,0)
         panel:SetWidth(GetScreenWidth())
         panel:SetHeight(GetScreenHeight())
         activePanel = panel
+        activePanel:Enable()
     end
 
     action UpdateAll
@@ -436,12 +440,28 @@ class Game
         activePanel:AddMouseListener(listener)
     end
 
+    action AddMouseMovementListener(MouseMovementListener listener)
+        activePanel:AddMouseMovementListener(listener)
+    end
+
+    action AddMouseWheelListener(MouseWheelListener listener)
+        activePanel:AddMouseWheelListener(listener)
+    end
+
     action AddKeyboardListener(KeyboardListener listener)
         keyboardProcessor:AddListener(listener)
     end
 
     action RemoveMouseListener(MouseListener listener)
         activePanel:RemoveMouseListener(listener)
+    end
+
+    action RemoveMouseMovementListener(MouseMovementListener listener)
+        activePanel:RemoveMouseMovementListener(listener)
+    end
+
+    action RemoveMouseWheelListener(MouseWheelListener listener)
+        activePanel:RemoveMouseWheelListener(listener)
     end
 
     action RemoveKeyboardListener(KeyboardListener listener)

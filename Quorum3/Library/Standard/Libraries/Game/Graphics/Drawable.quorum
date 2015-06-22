@@ -12,6 +12,33 @@ use Libraries.Game.Graphics.Painter
 
 class Drawable is TextureRegion, Item
 
+    // These constants represent certain aspects of each vertex. For example,
+    // X1 and Y2 represent the x value of the first vertex and the y value of
+    // the second vertex, respectively.
+    constant integer X1 = 0
+    constant integer Y1 = 1
+    constant integer C1 = 2
+    constant integer U1 = 3
+    constant integer V1 = 4
+    constant integer X2 = 5
+    constant integer Y2 = 6
+    constant integer C2 = 7
+    constant integer U2 = 8
+    constant integer V2 = 9
+    constant integer X3 = 10
+    constant integer Y3 = 11
+    constant integer C3 = 12
+    constant integer U3 = 13
+    constant integer V3 = 14
+    constant integer X4 = 15
+    constant integer Y4 = 16
+    constant integer C4 = 17
+    constant integer U4 = 18
+    constant integer V4 = 19
+
+    constant integer VERTEX_SIZE = 5
+    constant integer DRAWABLE_SIZE = 4 * VERTEX_SIZE
+
     private Color color
     private boolean useCustomColor = false
 
@@ -65,6 +92,7 @@ class Drawable is TextureRegion, Item
         SetOrigin(parent:Item:width / 2.0, parent:Item:height / 2.0)
     end
 
+    /*
     action Copy(Drawable drawable)
         if drawable = undefined
             Error error
@@ -97,15 +125,15 @@ class Drawable is TextureRegion, Item
         SetRegionWidth(drawable:GetRegionWidth())
         SetRegionHeight(drawable:GetRegionHeight())
 
-        originX = drawable:originX
-        originY = drawable:originY
-        rotation = drawable:rotation
-        scaleX = drawable:scaleX
-        scaleY = drawable:scaleY
-        color:CopyColor(drawable:color)
-        dirty = drawable:dirty
+        parent:Item:originX = drawable:originX
+        parent:Item:originY = drawable:originY
+        parent:Item:rotation = drawable:rotation
+        parent:Item:scaleX = drawable:scaleX
+        parent:Item:scaleY = drawable:scaleY
+        parent:Item:color:CopyColor(drawable:color)
+        parent:Item:dirty = drawable:dirty
         
-    end
+    end */
 
     action QuickCopy(Drawable drawable)
         Load(drawable:GetTexture())
@@ -205,24 +233,6 @@ class Drawable is TextureRegion, Item
             vertices:Set(U4, temp)
         end
     end*/
-
-    action SetScale(number scale)
-        scaleX = scale
-        scaleY = scale
-        dirty = true
-    end
-
-    action SetScale(number newX, number newY)
-        scaleX = newX
-        scaleY = newY
-        dirty = true
-    end
-
-    action Scale(number amount)
-        scaleX = scaleX + amount
-        scaleY = scaleY + amount
-        dirty = true
-    end
 
     /*action PrepareVertices
         PrepareVertices(0, 0, false)
@@ -369,6 +379,8 @@ class Drawable is TextureRegion, Item
     action FlipX
         parent:TextureRegion:FlipX()
 
+        Array<number> vertices = parent:Item:vertices
+
         number temp = vertices:Get(U1)
         vertices:Set(U1, vertices:Get(U3))
         vertices:Set(U3, temp)
@@ -381,6 +393,8 @@ class Drawable is TextureRegion, Item
 
     action FlipY
         parent:TextureRegion:FlipY()
+
+        Array<number> vertices = parent:Item:vertices
 
         number temp = vertices:Get(V1)
         vertices:Set(V1, vertices:Get(V3))
@@ -404,6 +418,10 @@ class Drawable is TextureRegion, Item
         return parent:TextureRegion:GetTextureField()
     end
 
+    action IsLoaded returns boolean
+        return GetTexture() not= undefined
+    end
+
     action Dispose
         parent:TextureRegion:Dispose()
     end
@@ -411,12 +429,23 @@ class Drawable is TextureRegion, Item
     action Draw(Painter painter)
         PrepareVertices()
 
-        if not visible
+        if not IsShowing()
             return now
         end
 
-        painter:Draw(me)
+        if GetTexture() not= undefined
+            painter:Draw(me)
+        end
+
         parent:Item:Draw(painter)
+    end
+
+    action IsFlippedX returns boolean
+        return parent:Item:IsFlippedX()
+    end
+
+    action IsFlippedY returns boolean
+        return parent:Item:IsFlippedY()
     end
 
 end

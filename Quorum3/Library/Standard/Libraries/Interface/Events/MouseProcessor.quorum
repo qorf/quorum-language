@@ -7,6 +7,8 @@ class MouseProcessor
 
     List<MouseEvent> events
     List<MouseListener> listeners
+    List<MouseMovementListener> moveListeners
+    List<MouseWheelListener> wheelListeners
 
     /*  Deletes any old events that may be in the events list, then gets all
         current events, puts them in the events variable, and returns it. */
@@ -28,31 +30,43 @@ class MouseProcessor
 
     action ProcessEvents
 
-        if not events:IsEmpty() and not listeners:IsEmpty()
+        if not events:IsEmpty()
 
-            Iterator<MouseListener> listenIterator = listeners:GetIterator()
+            Iterator<MouseListener> clickIterator = listeners:GetIterator()
+            Iterator<MouseMovementListener> moveIterator = moveListeners:GetIterator()
+            Iterator<MouseWheelListener> wheelIterator = wheelListeners:GetIterator()
+
             MouseEvent currentEvent = undefined
-            MouseListener currentListener = undefined
             
             repeat while not events:IsEmpty()
                 currentEvent = events:RemoveFromFront()
 
-                repeat while listenIterator:HasNext()
-                    currentListener = listenIterator:Next()
-                    if currentEvent:eventType = currentEvent:CLICKED_MOUSE
-                        currentListener:ClickedMouse(currentEvent)
-                    elseif currentEvent:eventType = currentEvent:MOVED_MOUSE
-                        currentListener:MovedMouse(currentEvent)
-                    elseif currentEvent:eventType = currentEvent:DRAGGED_MOUSE
-                        currentListener:DraggedMouse(currentEvent)
-                    elseif currentEvent:eventType = currentEvent:RELEASED_MOUSE
-                        currentListener:ReleasedMouse(currentEvent)
-                    elseif currentEvent:eventType = currentEvent:SCROLLED_MOUSE
-                        currentListener:ScrolledMouse(currentEvent)
+                if currentEvent:eventType = currentEvent:MOVED_MOUSE
+                    repeat while moveIterator:HasNext()
+                        moveIterator:Next():MovedMouse(currentEvent)
                     end
+                    moveIterator:Rewind()
+                elseif currentEvent:eventType = currentEvent:DRAGGED_MOUSE
+                    repeat while moveIterator:HasNext()
+                        moveIterator:Next():DraggedMouse(currentEvent)
+                    end
+                    moveIterator:Rewind()
+                elseif currentEvent:eventType = currentEvent:CLICKED_MOUSE
+                    repeat while clickIterator:HasNext()
+                        clickIterator:Next():ClickedMouse(currentEvent)
+                    end
+                    clickIterator:Rewind()
+                elseif currentEvent:eventType = currentEvent:RELEASED_MOUSE
+                    repeat while clickIterator:HasNext()
+                        clickIterator:Next():ReleasedMouse(currentEvent)
+                    end
+                    clickIterator:Rewind()
+                elseif currentEvent:eventType = currentEvent:SCROLLED_MOUSE
+                    repeat while wheelIterator:HasNext()
+                        wheelIterator:Next():ScrolledMouse(currentEvent)
+                    end
+                    wheelIterator:Rewind()
                 end
-
-                listenIterator:Rewind()
             end
         end
     end
