@@ -1,205 +1,167 @@
 /*
- * To change this template, choose Tools | Templates
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
 package plugins.quorum.Libraries.Sound;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import quorum.Libraries.System.File_;
+
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.sound.sampled.AudioFileFormat.Type;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.SourceDataLine;
-import javax.sound.sampled.TargetDataLine;
-import javax.sound.sampled.UnsupportedAudioFileException;
 
 /**
  *
- * @author astefik
+ * @author alleew
  */
 public class Audio {
+    
     public java.lang.Object me_ = null;
-    private final int BUFFER_SIZE = 128000;
-    private AudioInputStream audioStream;
-    private AudioFormat audioFormat;
-    private SourceDataLine sourceLine;
     
-    private Thread playThread = null;
-    private boolean playThreadShouldRun = false;
-    private Thread recordThread = null;
-    private boolean recordThreadShouldRun = false;
+    Data data;
     
-    public void PlayNative(String path, boolean block) {
-        final String finPath = path;
-        if(block) {
-            playThreadShouldRun = true;
-            PlayInternal(path);
-            playThreadShouldRun = false;
-        }
-        else {
-            playThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    playThreadShouldRun = true;
-                    PlayInternal(finPath);
-                    playThreadShouldRun = false;
-                }
-            });
-            playThread.start();
-        }
-    }
-    
-    private void PlayInternal(String stringPath) {
-        try {
-            File path = new File(stringPath);
-            audioStream = AudioSystem.getAudioInputStream(path);
-            
-            audioFormat = audioStream.getFormat();
+    static
+    {
+        quorum.Libraries.System.Properties properties = new quorum.Libraries.System.Properties();
 
-            DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
-            try {
-                sourceLine = (SourceDataLine) AudioSystem.getLine(info);
-                sourceLine.open(audioFormat);
-            } catch (LineUnavailableException ex) {
-                Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (Exception ex) {
-                Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        String path;
+        quorum.Libraries.System.File file = new quorum.Libraries.System.File();
 
-            if(false == playThreadShouldRun) {
-                finishOffAudio();
-                return;
-            }
+        file.SetPath("Run/jni");
         
-            sourceLine.start();
+        path = file.GetAbsolutePath();
 
-            int nBytesRead = 0;
-            byte[] abData = new byte[BUFFER_SIZE];
-            while (nBytesRead != -1) {
-                try {
-                    if(false == playThreadShouldRun) {
-                        finishOffAudio();
-                        return;
-                    }
-                    nBytesRead = audioStream.read(abData, 0, abData.length);
-                } catch (Exception ex) {
-                    Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                if (nBytesRead >= 0) {
-                    sourceLine.write(abData, 0, nBytesRead);
-                }
-            }
-
-            sourceLine.drain();
-            sourceLine.close();
-
-        } catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        properties.SetProperty("org.lwjgl.librarypath", path);
     }
     
-    private void finishOffAudio() {
-        audioStream = null;
-        audioFormat = null;
-        if(sourceLine != null) {
-            sourceLine.drain();
-            sourceLine.close();
-            sourceLine = null;
-        }
-    }
-    
-    public void StopPlayingNative() {
-        playThreadShouldRun = false;
-    }
-    
-    public void RecordNative(String stringPath) {
-        final String finPath = stringPath;
-        recordThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                recordThreadShouldRun = true;
-                RecordInternal(finPath);
-            }
-        });
-        recordThread.start();
-    }
-    
-    private void RecordInternal(String stringPath) {
-        File path = new File(stringPath);
-        TargetDataLine line;
+    public void Load(quorum.Libraries.System.File_ quorumFile)
+    {
+        if (data != null)
+            throw new RuntimeException("An audio file is already loaded! To reuse this variable, call Dispose() before loading a new file.");
         
-        AudioFormat format = new AudioFormat(44100, 16, 2, true, true);
+        File file = new File(quorumFile.GetAbsolutePath());
+        String fileName = file.getName().toLowerCase();
         
-        DataLine.Info info = new DataLine.Info(TargetDataLine.class, format); // format is an AudioFormat object
-        if (!AudioSystem.isLineSupported(info)) {
-            Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, "Cannot get a recording line from the system.", "");
-
-        }
-        // Obtain and open the line.
-        try {
-            line = (TargetDataLine) AudioSystem.getLine(info);
-            line.open(format);
-            
-            // Assume that the TargetDataLine, line, has already
-            // been obtained and opened.
-            ByteArrayOutputStream out  = new ByteArrayOutputStream();
-            int numBytesRead = 0;
-            byte[] data = new byte[line.getBufferSize() / 5];
-
-            // Begin audio capture.
-            line.start();
-
-            // Here, stopped is a global boolean set by another thread.
-            while (recordThreadShouldRun) {
-               // Read the next chunk of data from the TargetDataLine.
-               numBytesRead =  line.read(data, 0, data.length);
-               // Save this chunk of data.
-               out.write(data, 0, numBytesRead);
-            } 
-            
-            int frameSize = format.getFrameSize();
-            byte[] bites = out.toByteArray();
-            InputStream stream = new ByteArrayInputStream(bites);
-            AudioInputStream ais = new AudioInputStream(stream, format, bites.length / frameSize);
-            
-            AudioSystem.write(ais, Type.WAVE, path);
-            
-        } catch (IOException ex) {
-            Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, "Cannot get a recording line from the system.", ex);
-        }
+        if (fileName.endsWith(".wav"))
+                data = new WavData(file);
+        else if (fileName.endsWith(".ogg"))
+                data = new OggData(file);
+        else 
+            throw new RuntimeException("Can't load file " + file.getAbsolutePath() + " because the file extension is unsupported!");   
     }
     
-    public void StopRecordingNative() {
-        recordThreadShouldRun = false;
-    }
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        // TODO code application logic here
-        Audio audio = new Audio();
-        audio.PlayNative("/Users/astefik/Desktop/fart.wav", false);
+    public void LoadToStream(quorum.Libraries.System.File_ quorumFile)
+    {
+        File file = new File(quorumFile.GetAbsolutePath());
+        String fileName = file.getName().toLowerCase();
         
-        
-//        audio.RecordNative("/Users/astefik/Desktop/test_record.wav");
-//        try {
-//            Thread.sleep(5000);
-//        } catch (InterruptedException ex) {
-//            Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//        
-//        audio.StopRecordingNative();
+        if (fileName.endsWith(".wav"))
+                data = new WavStreamingData(file);
+        else if (fileName.endsWith(".ogg"))
+                data = new OggStreamingData(file);
+        else 
+            throw new RuntimeException("Can't load file " + file.getAbsolutePath() + " because the file extension is unsupported!");   
     }
+    
+    public void Play()
+    {
+        if (data == null)
+            throw new RuntimeException("Can't play audio before it's loaded -- use Load first.");
+        data.Play();
+    }
+    
+    public void EnableLooping()
+    {
+        if (data == null)
+            throw new RuntimeException("Can't enable audio looping before it's loaded -- use Load first.");
+        data.SetLooping(true);
+    }
+    
+    public void DisableLooping()
+    {
+        if (data == null)
+            throw new RuntimeException("Can't disable audio looping before it's loaded -- use Load first.");
+        data.SetLooping(false);
+    }
+    
+    public void Stop()
+    {
+        if (data == null)
+            throw new RuntimeException("Can't stop audio before it's loaded -- use Load first.");
+        data.Stop();
+    }
+    
+    public void Dispose()
+    {
+        if (data == null)
+            throw new RuntimeException("There was no data to dispose! Use Load first.");
+        data.Dispose();
+        data = null;
+    }
+    
+    public void Pause()
+    {
+        if (data == null)
+            throw new RuntimeException("Can't pause audio before it's loaded -- use Load first.");
+        data.Pause();
+    }
+    
+    public void Resume()
+    {
+        if (data == null)
+            throw new RuntimeException("Can't resume audio before it's loaded -- use Load first.");
+        data.Resume();
+    }
+    
+    public void SetPitch(double pitch)
+    {
+        data.SetPitch((float)pitch);
+    }
+    
+    public void SetVolume(double volume)
+    {
+        data.SetVolume((float)volume);
+    }
+    
+    public void SetBalance(double position)
+    {
+        data.SetHorizontalPosition((float)position);
+    }
+    
+    public boolean IsStreaming()
+    {
+        return data.IsStreaming();
+    }
+    
+    public boolean IsPlaying()
+    {
+        return data.IsPlaying();
+    }
+    
+    public boolean IsLoopingEnabled()
+    {
+        return data.IsLooping();
+    }
+    
+    public double GetBalance()
+    {
+        return data.GetBalance();
+    }
+    
+    public double GetVolume()
+    {
+        return data.GetVolume();
+    }
+    
+    public double GetPitch()
+    {
+        return data.GetPitch();
+    }
+    
+    public void Stream()
+    {
+        if (data == null)
+            throw new RuntimeException("Can't stream audio before it's loaded -- call Load first.");
+        data.Update();
+    }
+    
 }

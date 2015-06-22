@@ -273,13 +273,7 @@ class Item
             end
         end
 
-        if event:eventType = event:CLICKED_MOUSE
-            Iterator<MouseListener> iterator = mouseListeners:GetIterator()
-            repeat while iterator:HasNext()
-                iterator:Next():ClickedMouse(event)
-            end
-
-        elseif event:eventType = event:MOVED_MOUSE
+        if event:eventType = event:MOVED_MOUSE
             Iterator<MouseMovementListener> iterator = mouseMoveListeners:GetIterator()
             repeat while iterator:HasNext()
                 iterator:Next():MovedMouse(event)
@@ -291,6 +285,12 @@ class Item
                 iterator:Next():DraggedMouse(event)
             end
 
+        elseif event:eventType = event:CLICKED_MOUSE
+            Iterator<MouseListener> iterator = mouseListeners:GetIterator()
+            repeat while iterator:HasNext()
+                iterator:Next():ClickedMouse(event)
+            end
+
         elseif event:eventType = event:RELEASED_MOUSE
             Iterator<MouseListener> iterator = mouseListeners:GetIterator()
             repeat while iterator:HasNext()
@@ -298,7 +298,7 @@ class Item
             end
 
         elseif event:eventType = event:SCROLLED_MOUSE
-            Iterator<MouseListener> iterator = mouseWheelListeners:GetIterator()
+            Iterator<MouseWheelListener> iterator = mouseWheelListeners:GetIterator()
             repeat while iterator:HasNext()
                 iterator:Next():ScrolledMouse(event)
             end
@@ -392,11 +392,15 @@ class Item
     action Add(Item newItem)
         children:Add(newItem)
         newItem:SetParent(me)
+        newItem:PrepareVertices()
+        newItem:SetOffset(x + offsetX, y + offsetY)
     end
 
     action Add(Item newItem, integer index)
         children:Add(index, newItem)
         newItem:SetParent(me)
+        newItem:PrepareVertices()
+        newItem:SetOffset(x + offsetX, y + offsetY)
     end
 
     action Remove(Item removed) returns boolean
@@ -432,14 +436,16 @@ class Item
 
     action Contains(number x, number y, number z) returns boolean
         // TO BE IMPLEMENTED
+        return false
     end
 
     action GetItemAt(number x, number y) returns Item
-        Iterator<Item> childIterator = GetItems()
+        integer counter = children:GetSize()
         Item temp = undefined
         boolean found = false
-        repeat while childIterator:HasNext() and not found
-            temp = childIterator:Next()
+        repeat while counter > 0 and not found
+            counter = counter - 1
+            temp = children:Get(counter)
             temp = temp:GetItemAt(x, y)
             if temp not= undefined
                 found = true
@@ -454,11 +460,12 @@ class Item
     end
 
     action GetItemAt(number x, number y, number z) returns Item
-        Iterator<Item> childIterator = GetItems()
+        integer counter = children:GetSize()
         Item temp = undefined
         boolean found = false
-        repeat while childIterator:HasNext() and not found
-            temp = childIterator:Next()
+        repeat while counter > 0 and not found
+            counter = counter - 1
+            temp = children:Get(counter)
             temp = temp:GetItemAt(x, y, z)
             if temp not= undefined
                 found = true
@@ -532,7 +539,7 @@ class Item
         width = newWidth
         height = newHeight
 
-        if dirty = false
+        if verticesChanged = false
             number parentX = GetX()
             number parentY = GetY()
             number x2 = parentX + width
@@ -840,7 +847,7 @@ class Item
     action Draw(Painter painter)
         PrepareVertices()
     
-        if not visible
+        if not IsShowing()
             return now
         end
 
@@ -887,6 +894,18 @@ class Item
         repeat while childIterator:HasNext()
             childIterator:Next():FlipZ()
         end
+    end
+
+    action IsFlippedX returns boolean
+        return flipX
+    end
+
+    action IsFlippedY returns boolean
+        return flipY
+    end
+
+    action IsFlippedZ returns boolean
+        return flipZ
     end
 
 end

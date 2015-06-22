@@ -100,4 +100,13 @@ public class Math {
     public double RaiseToPower(double value, double power){ 
         return java.lang.Math.pow(value, power); 
     }
+    
+    public double DegreesToRadians(double value){
+        return java.lang.Math.toRadians(value);
+    }
+    
+    public double RadiansToDegrees(double value){
+        return java.lang.Math.toDegrees(value);
+    }
 }
+

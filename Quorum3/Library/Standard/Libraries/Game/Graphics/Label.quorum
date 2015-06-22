@@ -127,6 +127,7 @@ class Label is Item
 
             // Dispose of the old sprites.
             DisposeChildren()
+            Empty()
             /*Iterator<Drawable> iterator = parent:DrawableGroup:drawables:GetIterator()
             Drawable deleter = undefined
 
@@ -267,7 +268,7 @@ class Label is Item
         if textChanged
             LoadDrawables()
         end
-        parent:Item:Draw()
+        parent:Item:Draw(painter)
     end
 
     /*
