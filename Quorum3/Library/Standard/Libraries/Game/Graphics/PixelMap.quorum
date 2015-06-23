@@ -97,20 +97,48 @@ class PixelMap is Disposable
 
     system action GetGLInternalFormat() returns integer
 
-    // This action will fill the complete bitmap with the currently set color.
-    system action Fill
+    // This action will fill the complete bitmap with the given color.
+    action Fill(Color color)
+        Fill(color:GetColorCode())
+    end
 
-    system action DrawLine(integer x1, integer y1, integer x2, integer y2)
+    action DrawLine(integer x1, integer y1, integer x2, integer y2, Color color)
+        DrawLine(x1, y1, x2, y2, color:GetColorCode())
+    end
+
+    action DrawRectangle(integer x, integer y, integer width, integer height, Color color)
+        DrawRectangle(x, y, width, height, color:GetColorCode())
+    end
+
+    action FillRectangle(integer x, integer y, integer width, integer height, Color color)
+        FillRectangle(x, y, width, height, color:GetColorCode())
+    end
+
+    action DrawCircle(integer x, integer y, integer radius, Color color)
+        DrawCircle(x, y, radius, color:GetColorCode())
+    end
+
+    action FillCircle(integer x, integer y, integer radius, Color color)
+        FillCircle(x, y, radius, color:GetColorCode())
+    end
+
+    action FillTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, Color color)
+        FillTriangle(x1, y1, x2, y2, x3, y3, color:GetColorCode())
+    end
+
+    system action Fill(integer color)
+
+    system action DrawLine(integer x1, integer y1, integer x2, integer y2, integer color)
     
-    system action DrawRectangle(integer x, integer y, integer width, integer height)
+    system action DrawRectangle(integer x, integer y, integer width, integer height, integer color)
 
-    system action FillRectangle(integer x, integer y, integer width, integer height)
+    system action FillRectangle(integer x, integer y, integer width, integer height, integer color)
 
-    system action DrawCircle(integer x, integer y, integer radius)
+    system action DrawCircle(integer x, integer y, integer radius, integer color)
 
-    system action FillCircle(integer x, integer y, integer radius)
+    system action FillCircle(integer x, integer y, integer radius, integer color)
 
-    system action FillTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3)
+    system action FillTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, integer color)
 
     system action GetPixel(integer x, integer y) returns integer
 
