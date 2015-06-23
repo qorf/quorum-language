@@ -216,6 +216,7 @@ class Texture is Disposable
                     pixmap = tmp;
                     disposePixmap = true;
             */
+            output "PixMap: " + pixelFormat:GetValue() + ", data: " + dataFormat:GetValue()
             Error error
             error:SetErrorMessage("PixelMap format and data format mismatch!")
             alert(error)
@@ -321,5 +322,105 @@ class Texture is Disposable
     end*/
 
     system action Dispose
+
+    action LoadLine(integer x, integer y, Color color)
+        PixelMap pixmap
+        Format format
+        format:SetValue(format:RGBA8888)
+        pixmap:CreatePixelMap(x, y, format)
+
+        pixmap:DrawLine(0, 0, x, y, color)
+        
+        FileTextureData data
+        data:InitializeFileTextureData(undefined, pixmap, format, false)
+        
+        LoadFromTextureData(data)
+    end
+
+    action LoadRectangle(integer width, integer height, Color color)
+        PixelMap pixmap
+        Format format
+        format:SetValue(format:RGBA8888)
+        pixmap:CreatePixelMap(width, height, format)
+
+        pixmap:DrawRectangle(0, 0, width, height, color)
+        
+        FileTextureData data
+        data:InitializeFileTextureData(undefined, pixmap, format, false)
+        
+        LoadFromTextureData(data)
+    end
+
+    action LoadFilledRectangle(integer width, integer height, Color color)
+        PixelMap pixmap
+        Format format
+        format:SetValue(format:RGBA8888)
+        pixmap:CreatePixelMap(width, height, format)
+
+        pixmap:FillRectangle(0, 0, width, height, color)
+        
+        FileTextureData data
+        data:InitializeFileTextureData(undefined, pixmap, format, false)
+        
+        LoadFromTextureData(data)
+    end
+
+    action LoadCircle(integer radius, Color color)
+        PixelMap pixmap
+        Format format
+        format:SetValue(format:RGBA8888)
+        pixmap:CreatePixelMap(radius * 2, radius * 2, format)
+
+        pixmap:DrawCircle(radius, radius, radius, color)
+        
+        FileTextureData data
+        data:InitializeFileTextureData(undefined, pixmap, format, false)
+        
+        LoadFromTextureData(data)
+    end
+
+    action LoadFilledCircle(integer radius, Color color)
+        PixelMap pixmap
+        Format format
+        format:SetValue(format:RGBA8888)
+        pixmap:CreatePixelMap(radius * 2, radius * 2, format)
+
+        pixmap:FillCircle(radius, radius, radius, color)
+        
+        FileTextureData data
+        data:InitializeFileTextureData(undefined, pixmap, format, false)
+        
+        LoadFromTextureData(data)
+    end
+
+    action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, Color color)
+        integer width = x1
+        if x2 > width
+            width = x2
+        end
+        if x3 > width
+            width = x3
+        end
+
+        integer height = y1
+        if y2 > height
+            height = y2
+        end
+        if y3 > height
+            height = y3
+        end
+
+        PixelMap pixmap
+        Format format
+        format:SetValue(format:RGBA8888)
+        pixmap:CreatePixelMap(width, height, format)
+
+        pixmap:FillTriangle(x1, y1, x2, y2, x3, y3, color)
+        
+        FileTextureData data
+        data:InitializeFileTextureData(undefined, pixmap, format, false)
+        
+        LoadFromTextureData(data)
+    end
 
 end

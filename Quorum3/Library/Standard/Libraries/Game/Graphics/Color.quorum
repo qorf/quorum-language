@@ -334,9 +334,9 @@ class Color
       integer blueValue = cast(integer, GetBlue() * 255)
       integer alphaValue = cast(integer, GetAlpha() * 255)
 
-      redValue = ops:ShiftLeft(24, redValue)
-      greenValue = ops:ShiftLeft(16, greenValue)
-      blueValue = ops:ShiftLeft(8, blueValue)
+      redValue = ops:ShiftLeft(redValue, 24)
+      greenValue = ops:ShiftLeft(greenValue, 16)
+      blueValue = ops:ShiftLeft(blueValue, 8)
 
       return ops:Or(ops:Or(redValue, greenValue), ops:Or(blueValue, alphaValue))
 
