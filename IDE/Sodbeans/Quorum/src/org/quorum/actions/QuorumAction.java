@@ -69,7 +69,7 @@ public abstract class QuorumAction implements Action {
             if (build != null && build.isValid()) {
                 build.delete();
             }
-            if (build != null && run.isValid()) {
+            if (run != null && run.isValid()) {
                 run.delete();
             }
         } catch (IOException ex) {
