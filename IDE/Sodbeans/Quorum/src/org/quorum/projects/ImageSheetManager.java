@@ -91,16 +91,18 @@ public class ImageSheetManager {
             for(int i = 0; i < sheets.length; i++) {
                 String sheet = sheets[i];
                 String[] split = sheet.split(SHEET_SEPARATOR);
-                String sheetName = split[0];
-                List<String> images = new LinkedList<String>();
-                
-                if(split.length > 1) {
-                    split = split[1].split(IMAGE_DELIMITER);
-                    for(int j = 0; j < split.length; j++) {
-                        images.add(split[j]);
+                if(split != null && split.length > 0) {
+                    String sheetName = split[0];
+                    List<String> images = new LinkedList<String>();
+
+                    if(split.length > 1) {
+                        split = split[1].split(IMAGE_DELIMITER);
+                        for(int j = 0; j < split.length; j++) {
+                            images.add(split[j]);
+                        }
                     }
+                    imagesHash.put(sheetName, images);
                 }
-                imagesHash.put(sheetName, images);
             }
         }
     }
