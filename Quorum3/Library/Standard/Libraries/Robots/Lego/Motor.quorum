@@ -1,0 +1,398 @@
+package Libraries.Robots.Lego
+use Libraries.Containers.Array
+
+/*
+This class is an object representation of a LEGO Mindstorms EV3 motor.
+It is used to control movement of the EV3 robot.
+
+Attribute: Author Evan Pierzina
+
+Attribute: Example
+class Main
+    action Main
+        Motor motor
+        Utility utility
+        
+        motor:SetSpeed(motor:MOTOR_A, 360)  //one revolution per second
+        motor:SetSpeed(motor:MOTOR_B, 360)
+        motor:MoveForward(motor:MOTOR_A)
+        motor:MoveForward(motor:MOTOR_B)
+        utility:DelayMilliseconds(3000)
+        motor:Stop(motor:MOTOR_A)
+        motor:Stop(motor:MOTOR_B)
+    end
+end
+*/
+
+class Motor
+    public constant text MOTOR_A = "A"
+    public constant text MOTOR_B = "B"
+    public constant text MOTOR_C = "C"
+    public constant text MOTOR_D = "D"
+
+    /*
+    This action sets the speed of a motor.
+    Alone, this action does not cause a motor to move, but rather, it lets the motor know how fast to go when it moves.
+    
+    Attribute: Parameter motorID represents which motor will be changed by this action.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+
+    Attribute: Parameter speed represents how fast the motor will turn in units of degrees per second.
+    For example, if we want the motor to make one full rotation per second, we specify 360 for the speed.
+    Valid speeds are non-negative integers and values that exceed the maximum speed will rotate the motor at the maximum speed.
+
+    The maximum speed is limited by battery voltage and how much the robot is already doing.
+    If the robot is not doing any other tasks, the maximum speed should be around 600 to 900 (100 times battery voltage).
+    
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    Motor motor
+    
+    motor:SetSpeed(motor:MOTOR_C, 720) //Two revolutions per second
+    motor:RotateByDegrees(motor:MOTOR_C, 720)
+    motor:SetSpeed(motor:MOTOR_C, 360) //One revolution per second
+    motor:RotateByDegrees(motor:MOTOR_C, -720)
+    
+    */
+    
+    system action SetSpeed(text motorID, integer speed)
+
+    /*
+    This action will cause the specified motor to rotate forward until stopped by the Stop action or if the program ends.
+    
+    Attribute: Parameter motorID represents which motor will be changed by this action.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+    
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    Motor motor
+    InfraredSensor infraredSensor
+    
+    infraredSensor:SetPort(infraredSensor:PORT_1)
+    motor:SetSpeed(motor:MOTOR_B, 720)
+    motor:SetSpeed(motor:MOTOR_C, 720)
+    motor:MoveForward(motor:MOTOR_B)
+    motor:MoveForward(motor:MOTOR_C)
+    repeat until infraredSensor:GetDistance(infraredSensor:PORT_1) < 30 //repeat until the sensor is close to an object
+    end
+    motor:Stop(motor:MOTOR_B)
+    motor:Stop(motor:MOTOR_C)
+    */
+    
+    system action MoveForward(text motorID)
+
+    /*
+    This action will cause the specified motor to rotate forward until stopped by the Stop action.
+    
+    Attribute: Parameter motorID represents which motor will be changed by this action. There are class constants that can be used here.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+    
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    Motor motor
+    InfraredSensor infraredSensor
+    
+    infraredSensor:SetPort(infraredSensor:PORT_1)
+    motor:SetSpeed(motor:MOTOR_A, 360)
+    motor:SetSpeed(motor:MOTOR_D, 360)
+    motor:MoveForward(motor:MOTOR_A)
+    motor:MoveForward(motor:MOTOR_D)
+    repeat until infraredSensor:GetDistance(infraredSensor:PORT_1) > 30 //repeat until the sensor gets far enough away from an object
+    end
+    motor:Stop(motor:MOTOR_A)
+    motor:Stop(motor:MOTOR_D)
+    */
+    
+    system action MoveBackward(text motorID)
+
+    /*
+    This action will cause the robot's program to wait until the specified motor stops moving.
+
+    Attribute: Parameter motorID indicates which motor the robot's program should wait for before moving on. There are class constants that can be used here.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+    
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    Motor motor
+    
+    motor:SetSpeed(motor:MOTOR_A, 480)
+    motor:SetSpeed(motor:MOTOR_B, 480)
+    motor:MoveForward(motor:MOTOR_A)
+    motor:RotateByDegrees(motor:MOTOR_B, 1440)
+    motor:WaitForMotorToFinish(motor:MOTOR_B)
+    motor:Stop(motor:MOTOR_A)
+    */
+    
+    system action WaitForMotorToFinish(text motorID)
+
+    /*
+    This action rotates a motor by the amount of degrees specified
+
+    Attribute: Parameter motorID specifies the motor that will rotate. There are class constants that can be used here.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+
+    Attribute: Parameter degrees tells the motor how many degrees to move by.
+    Negative values will cause the motor to roatate backwards by that amount of degrees.
+    
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    Motor motor
+    
+    motor:SetSpeed(motor:MOTOR_A, 600)
+    motor:SetSpeed(motor:MOTOR_B, 600)
+    motor:RotateByDegrees(motor:MOTOR_A, 3600)
+    motor:RotateByDegrees(motor:MOTOR_B, -3600)
+    */
+    
+    system action RotateByDegrees(text motorID, integer degrees)
+
+    /*
+    This action causes a motor to move to a certain degree, based on its current rotation.
+
+    Attribute: Parameter motorID specifies the motor that will rotate. There are class constants that can be used here.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+    
+    Attribute: Parameter degreeTarget indicates what degree the motor should rotate to.
+    Negative values can be used here.
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    Motor motor
+    
+    motor:SetSpeed(motor:MOTOR_A, 720)
+    motor:RotateByDegrees(motor:MOTOR_A, 360) //rotates one revolution
+    motor:RotateToDegree(motor:MOTOR_A, 360)  //will do nothing since the motor is already at that degree
+    motor:RotateToDegree(motor:MOTOR_A, 720)  //rotates one more revolution from its starting position of 360 degrees
+    motor:RotateToDegree(motor:MOTOR_A, 0)    //rotates backwards two revolutions from its current position of 720 degrees
+    */
+    
+    system action RotateToDegree(text motorID, integer degreeTarget)
+
+    /*
+    This action reports the target degree of a rotating motor.
+    
+    Attribute: Parameter motorID specifies which motor is being checked for its rotation target. There are class constants that can be used here.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+    
+    Attribute: Returns the degree that the motor is rotating to.
+    
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    Motor motor
+    Sound sound
+    
+    motor:SetSpeed(motor:MOTOR_C, 500)
+    repeat while motor:GetRotationTarget(motor:MOTOR_C) < 1000
+        sound:Beep()
+        motor:RotateByDegrees(100)
+    end
+    */
+    
+    system action GetRotationTarget(text motorID) returns integer
+
+    /*
+    This action resets the motor's memory of its current rotation.
+    This will not cause the motor to rotate.
+    
+    Attribute: Parameter motorID specifies which motor to reset. There are class constants that can be used here.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+    
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    Motor motor
+    
+    motor:SetSpeed(motor:MOTOR_A, 300)
+    motor:RotateToDegree(motor:MOTOR_A, 180) //after this, the motor's rotation is at 180 degrees
+    motor:ResetRotation(motor:MOTOR_A)       //this will change the motor's rotation to 0, without moving the motor
+    motor:RotateToDegree(motor:MOTOR_A, 180) //since the motor's current degree was reset to 0, this will move it 180 degrees forward
+    */
+    
+    system action ResetRotation(text motorID)
+
+    /*
+    This action will give the position of a motor based on how many degrees it has rotated.
+    
+    Parameter: motorID specifies the motor being checked for its position. There are class constants that can be used here.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+    
+    Parameter: Returns the position of the motor in degrees, based on how much it has rotated.
+    
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    Motor motor
+    Sound sound
+    Utility utility
+    
+    motor:SetSpeed(motor:MOTOR_D, 600)
+    motor:MoveForward(motor:MOTOR_D)
+    repeat while motor:GetRotation(motor:MOTOR_D) < 3600
+        sound:Beep()
+        utility:DelayMilliseconds(1000)
+    end
+    sound:Buzz()
+    */
+    
+    system action GetRotation(text motorID) returns integer
+
+    /*
+    This action will give the speed associated with the motor requested.
+    
+    Parameter: motorID specifies the motor being checked for its speed. There are class constants that can be used here.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+    
+    Parameter: Returns the speed associated with the motor requested in units of degrees per second.
+    
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    Motor motor
+    InfraredSensor infraredSensor
+    Utility utility
+    
+    infraredSensor:SetPort(infraredSensor:PORT_1)
+    motor:SetSpeed(motor:MOTOR_A) //motors A and B control movement
+    motor:SetSpeed(motor:MOTOR_B)
+    repeat 5 times
+        motor:SetSpeed(motor:MOTOR_A, motor:GetMotorSpeed*motor:MOTOR_A) + 100) //speeds up the motor rotation by 100 degrees per second from what it was
+        motor:SetSpeed(motor:MOTOR_B, motor:GetMotorSpeed*motor:MOTOR_B) + 100)
+        motor:MoveForward(motor:MOTOR_A)
+        motor:MoveForward(motor:MOTOR_B)
+        utility:delayMilliseconds(1000) //lets the motors go forward for 1 second
+    end
+    */
+    
+    system action GetSpeed(text motorID) returns integer
+
+    /*
+    This action is used to find out if a specific motor is currently moving or not.
+    
+    Attribute: Parameter motorID specifies the motor being checked for movement. There are class constants that can be used here.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+    
+    Parameter: Returns a boolean value where the value 'true' means the motor is moving, and the value 'false' means the motor is not moving.
+    
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    Motor motor
+    Button button
+    
+    motor:SetSpeed(motor:MOTOR_A, 360)
+    motor:RotateByDegrees(motor:MOTOR_A, 3600)
+    button:SetLightPattern(button:SOLID_GREEN_LIGHT) //will stay on while the motor is moving
+    repeat while motor:IsMoving(motor:MOTOR_A)
+    end
+    button:SetLightPattern(button:SOLID_RED_LIGHT)
+    */
+    
+    system action IsMoving(text motorID) returns boolean
+
+    /*
+    This action allows the pairing of two motors in order to make them execute motor actions at the same time.
+    After calling this action, the motor actions that follow will be stored in the order they were called, up until the motor action EndSynchronization is called.
+    Once the EndSynchronization action is called, all of the stored motor commands will execute in order on both of the motors used to call the Synchronization action.
+    
+    Attribute: Parameter leaderMotor specifies the motor being synchronized that will be used to call all of the motor actions to be synchronized.
+    There are class constants that can be used here.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+    
+    Attribute: Parameter followerMotor specifies the motor being synchronized with the leader motor. There are class constants that can be used here.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+    
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    Motor motor
+    
+    motor:Synchronize(motor:MOTOR_C, motor:MOTOR_D) //tells the program that the following motor actions apply to both motors
+    motor:RotateByDegrees(motor:MOTOR_C, -360)      //these actions are stored and will not execute until the EndSynchronization action is called
+    motor:RotateByDegrees(motor:MOTOR_C, 720)       //even though we pass one motor, both C and D will rotate since they are synchronized at this point
+    motor:EndSynchronization(motor:MOTOR_C)         //all of the stored motor actions will start executing now
+    //note that since motor:MOTOR_C was passed for the parameter leaderMotor it is used to call all of the synchronized motor actions
+    */
+    
+    system action Synchronize(text leaderMotor, text followerMotor)
+
+    /*
+    This action allows the pairing of multiple motors in order to make them execute motor actions at the same time.
+    After calling this action, the motor actions that follow will be stored in the order they were called, up until the motor action EndSynchronization is called.
+    Once the EndSynchronization action is called, all of the stored motor commands will execute in order on all of the motors used to call the Synchronization action.
+    
+    Attribute: Parameter leaderMotor specifies the first motor being synchronized. This motor must be used to call the actions that will be synchronized.
+    There are class constants that can be used here.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+    
+    Attribute: Parameter followerMotors specifies the motors being synchronized with the leaderMotor. There are class constants that can be used here.
+    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    use Libraries.Containers.Array
+    Motor motor
+    
+    Array<Motor> motors;
+    motors:Add(motor:MOTOR_A)
+    motors:Add(motor:MOTOR_B)
+    
+    motor:Synchronize(motor:MOTOR_D, motors)        //tells the program that the following motor actions apply to all three motors
+    motor:RotateByDegrees(motor:MOTOR_D, -360)      //these actions are stored and will not execute until the EndSynchronization action is called
+    motor:RotateByDegrees(motor:MOTOR_D, 720)       //even though we pass one motor, all synchronized motors will rotate since they are synchronized at this point
+    motor:EndSynchronization(motor:MOTOR_D)         //all of the stored motor actions will start executing now
+    //note that since motor:MOTOR_D was passed for the parameter leaderMotor it is used to call all of the motor actions that will be synchronized
+    */
+    
+    system action Synchronize(text leaderMotor, Array<text> followerMotors)
+
+    /*
+    This action flags the end of synchronization for all motors synchronized with a leader motor of a set of synchronized motors.
+    Once this action is called, all motor actions called between the Synchronize action and EndSynchronization action will execute in order.
+    
+    Attribute: Parameter leaderMotor should be a motor that was passed as the leaderMotor parameter of a Synchronize action previously.
+    There are class constants that can be used here.
+    Valid motors are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+    
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    Motor motor
+    
+    motor:Synchronize(motor:MOTOR_A, motor:MOTOR_D) //tells the program that the following motor actions apply to both motors
+    motor:RotateByDegrees(motor:MOTOR_A, -360)      //these actions are stored and will not execute until the EndSynchronization action is called
+    motor:RotateByDegrees(motor:MOTOR_A, 720)       //even though we pass one motor, both C and D will rotate since they are synchronized at this point
+    motor:EndSynchronization(motor:MOTOR_A)         //all of the stored motor actions will start executing now
+    //note that since motor:MOTOR_A was passed for the parameter motorID1 it is used to call all of the synchronized motor actions
+    */
+    
+    system action EndSynchronization(text leaderMotor)
+
+    /*
+    This action causes a motor to stop moving.
+    
+    Attribute: Parameter motorID specifies which motor should be stopped.
+    
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    Motor motor
+    InfraredSensor infraredSensor
+    
+    infraredSensor:SetPort(4)
+    repeat while true
+        if infraredSensor:GetRemoteCommand(infraredSensor:CHANNEL_1) = infraredSensor:BUTTON_TOP_LEFT
+            motor:MoveForward
+        else
+        motor:Stop("A")
+    */
+    
+    system action Stop(text motorID)
+end

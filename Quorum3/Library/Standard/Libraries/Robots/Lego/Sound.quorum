@@ -1,0 +1,144 @@
+package Libraries.Robots.Lego
+
+/*
+This class is an object representation of the LEGO EV3 Mindstorms sound controller.
+It is used to control volume, to play tones, and to play music.
+
+Attribute: Author Evan Pierzina
+
+Attribute: Example
+Sound sound
+Motor motor
+ColorSensor colorSensor
+
+colorSensor:SetPort(colorSensor:PORT_4)
+motor:MoveForward(motor:MOTOR_B)        //two motors for movement
+motor:MoveForward(motor:MOTOR_C)
+repeat while true
+    
+end
+*/
+
+class Sound
+
+    /*
+    This action 
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    
+    */
+
+    system action PlayTone(integer frequency, integer duration)
+
+    /*
+    This action 
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    
+    */
+
+    system action GetVolume returns integer
+
+    /*
+    This action 
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    
+    */
+
+    system action SetVolume(integer volume)
+
+    /*
+    This action 
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    
+    */
+
+    system action PlayAudio(text filePath)
+
+    /*
+    This action 
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    
+    */
+
+    system action GetTimeRemaining returns integer
+
+    /*
+    This action 
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    
+    */
+
+    system action IsPlaying returns boolean
+
+    /*
+    This action 
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    
+    */
+
+    system action Beep
+
+    /*
+    This action 
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    
+    */
+
+    system action BeepSequenceDown
+
+    /*
+    This action 
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    
+    */
+
+    system action BeepSequenceUp
+
+    /*
+    This action 
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    
+    */
+
+    system action BeepTwice
+
+    /*
+    This action 
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    
+    */
+
+    system action Buzz
+end
