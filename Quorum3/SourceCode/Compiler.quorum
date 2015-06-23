@@ -1302,11 +1302,28 @@ class Compiler
         boolean hasGame = symbolTable:HasClass("Libraries.Game.Game")
         boolean hasAudio = symbolTable:HasClass("Libraries.Sound.Audio")
 
+        Iterator<Class> tempIterator = symbolTable:GetClassesInPackage("Libraries.Robots.Lego")
+        boolean hasRobots = false
+        if tempIterator not= undefined
+            hasRobots = tempIterator:HasNext()
+        end
+
         if hasGame or hasAudio
             File lwjgl
             lwjgl:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
             lwjgl:SetPath("lwjgl.jar")
             WriteJarToDisk(lwjgl)
+        end
+
+        if hasRobots
+            File file1
+            File file2
+            file1:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+            file2:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+            file1:SetPath("dbusjava.jar")
+            file2:SetPath("ev3classes.jar")
+            WriteJarToDisk(file1)
+            WriteJarToDisk(file2)
         end
 
         //check the symbol table to see if the user generated any code
@@ -1364,6 +1381,17 @@ class Compiler
             gamePlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/game/")
             gamePlugins:SetPath("plugins")
             WriteCompilerDependency(generator, gamePlugins, to)
+        end
+
+        if hasRobots
+            File to
+            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/robot/")
+            to:SetPath("")
+
+            File robotPlugins
+            robotPlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/robot/")
+            robotPlugins:SetPath("plugins")
+            WriteCompilerDependency(generator, robotPlugins, to)
         end
 
         if hasAudio or hasGame
@@ -1597,8 +1625,14 @@ class Compiler
 
         boolean usesLWJGL = symbolTable:HasClass("Libraries.Sound.Audio") or symbolTable:HasClass("Libraries.Game.Game")
 
+        Iterator<Class> tempIterator = symbolTable:GetClassesInPackage("Libraries.Robots.Lego")
+        boolean hasRobots = false
+        if tempIterator not= undefined
+            hasRobots = tempIterator:HasNext()
+        end
+
         //now write any jar dependencies into the manifest
-        if not additionalJarFiles:IsEmpty() or usesLWJGL
+        if not additionalJarFiles:IsEmpty() or usesLWJGL or hasRobots
             Iterator<File> jars = additionalJarFiles:GetIterator()
             text classpath = "Class-Path: "
             text libraries = JAR_DEPENDENCY_FOLDER
@@ -1622,6 +1656,22 @@ class Compiler
                 else
                     classpath = classpath + " " + libraries + "/" + lwjgl:GetFileName()
                 end
+            end
+
+            if hasRobots
+                File dbus
+                File ev3
+                dbus:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+                dbus:SetPath("dbusjava.jar")
+                if isFirst
+                    classpath = classpath + libraries + "/" + dbus:GetFileName()
+                else
+                    classpath = classpath + " " + libraries + "/" + dbus:GetFileName()
+                end
+
+                ev3:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+                ev3:SetPath("ev3classes.jar")
+                classpath = classpath + " " + libraries + "/" + ev3:GetFileName()
             end
 
             main = main + classpath + line
