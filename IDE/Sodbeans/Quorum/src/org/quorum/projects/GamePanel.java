@@ -293,7 +293,8 @@ public class GamePanel extends javax.swing.JPanel {
     private void removeImageSheetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeImageSheetButtonActionPerformed
         int index = imageSheetList.getSelectedIndex();
         if(index != -1) {
-            imageSheets.remove(index);
+            String remove = (String) imageSheets.remove(index);
+            imagesHash.remove(remove);
         }
     }//GEN-LAST:event_removeImageSheetButtonActionPerformed
 
@@ -403,10 +404,13 @@ public class GamePanel extends javax.swing.JPanel {
             if(index >=0 && index < images.size()) {
                 images.remove(index);
             }
-            String value = (String) imageSheets.get(imageSheetList.getSelectedIndex());
-            List<String> list = imagesHash.get(value);
-            if(list != null) {
-                list.remove(remove);
+            
+            if(imageSheetList.getSelectedIndex() != -1) {
+                String value = (String) imageSheets.get(imageSheetList.getSelectedIndex());
+                List<String> list = imagesHash.get(value);
+                if(list != null) {
+                    list.remove(remove);
+                }
             }
         }
     }//GEN-LAST:event_removeImageFromSheetButtonActionPerformed
