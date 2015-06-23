@@ -1,0 +1,243 @@
+package Libraries.Robots.Lego
+
+/*
+The InfraredSensor class is an object representation of the LEGO Mindstorms EV3 Infrared Sensor.
+It is used to measure distance between the robot and other physical objects.  The range at which this sensor works is from around 5 to 40 centimeters.
+Additionally, the EV3 remote, also called a beacon, interacts with the robot through this sensor.
+
+Attribute: Author Evan Pierzina
+
+Attribute: Example
+class Main
+    action Main
+        InfraredSensor infraredSensor
+        Motor motor
+        Sound sound
+        
+        integer direction = 0
+        infraredSensor:SetPort(infraredSensor:PORT_2)
+        repeat while true
+            if infraredSensor:GetDistance() < 25
+                output "I am getting too close to an object."
+                sound:Buzz()
+            else
+                direction = infraredSensor:GetRemoteCommand(infraredSensor:CHANNEL_1)  //determines what button was pressed on the EV3 remote over channel 1
+                if direction = 1                    //forward
+                    motor:SetMotorSpeed("B", 1080)
+                    motor:SetMotorSpeed("C", 1080)
+                    motor:MoveBackward("B")
+                    motor:MoveBackward("C")
+                elseif direction = 2                //backward
+                    motor:SetMotorSpeed("B", 1080)
+                    motor:SetMotorSpeed("C", 1080)
+                    motor:MoveForward("B")
+                    motor:MoveForward("C")
+                elseif button = 3                   //right
+                    motor:SetMotorSpeed("B", 1080)
+                    motor:SetMotorSpeed("C", 1080)
+                    motor:Stop("B")
+                    motor:MoveBackward("C")
+                elseif button = 4                   //left
+                    motor:SetMotorSpeed("B", 1080)
+                    motor:SetMotorSpeed("C", 1080)
+                    motor:Stop("C")
+                    motor:MoveBackward("B")
+                else
+                    motor:Stop("B")
+                    motor:Stop("C")
+                end
+            end
+        end
+    end
+end
+*/
+
+class InfraredSensor
+    public constant integer CHANNEL_1 = 1
+    public constant integer CHANNEL_2 = 2
+    public constant integer CHANNEL_3 = 3
+    public constant integer CHANNEL_4 = 4
+    public constant integer PORT_1 = 1
+    public constant integer PORT_2 = 2
+    public constant integer PORT_3 = 3
+    public constant integer PORT_4 = 4
+    public constant integer BUTTON_TOP_LEFT = 1
+    public constant integer BUTTON_BOTTOM_LEFT = 2
+    public constant integer BUTTON_TOP_RIGHT = 3
+    public constant integer BUTTON_BOTTOM_RIGHT = 4
+    public constant integer BUTTONS_TOP_LEFT_TOP_RIGHT = 5
+    public constant integer BUTTONS_TOP_LEFT_BOTTOM_RIGHT = 6
+    public constant integer BUTTONS_BOTTOM_LEFT_TOP_RIGHT = 7
+    public constant integer BUTTONS_BOTTOM_LEFT_BOTTOM_RIGHT = 8
+    public constant integer BUTTON_CENTER = 9
+    public constant integer BUTTONS_BOTTOM_LEFT_TOP_LEFT = 10
+    public constant integer BUTTONS_TOP_RIGHT_BOTTOM_RIGHT = 11
+
+    /*
+    This action lets the program know which port on the robot that the infrared sensor being used is plugged into.
+    As such, this action must be called before any other action in the ColorSensor class will work.
+    
+    Attribute: Parameter portNumber specifies the port on the robot that the infrered sensor is plugged into.
+    The port number corresponds to the actual number printed above the port on the EV3 brick. Valid port numbers are 1, 2, 3 or 4.
+
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    InfraredSensor infraredSensor1
+    InfraredSensor infraredSensor2
+    
+    infraredSensor1:SetPort(PORT_1)     //we can have multiple infrared sensors plugged into the robot at once
+    infraredSensor2:SetPort(PORT_2)     //after setting the ports, we can now use any other action in the ColorSensor class
+    */
+
+    system action SetPort(integer portNumber)
+
+    /*
+    This action uses the infrared sensor to measure the distance between it and a physical object directly ahead of it.
+    The effective range for measuring distance is between 5 and 40 centimeters.
+
+    Attribute: Returns an integer representation that corresponds to units of centimeters between the sensor and object.
+    The reflectivity of the object may cause the number to be inaccurate. Possible return values range from 5 to 55.
+
+    Attribute: Author Evan Pierzina
+
+    Attribute: Example
+    InfraredSensor infraredSensor
+    Motor motor
+    Sound sound
+    
+    infraredSensor:SetPort(PORT_3)
+    motor:MoveForward("B")
+    motor:MoveForward("C")
+    repeat while infraredSensor:GetDistance() > 20
+        
+    end
+    sound:BeepTwice()
+    */
+    
+    system action GetDistance returns integer
+    
+    /*
+    This action is used to find the direction of an EV3 remote with respect to the infrared sensor.
+
+    Attribute: Parameter channel is used to find an EV3 remote using the same channel.
+    There are 4 valid channels: 1, 2, 3, and 4. There are class constants available for this parameter.
+
+    Attribute: Returns an integer representing the relative angle, in degrees, of the remote with respect to the robot.
+    Values returned will be between -180 to 180, where:
+        negative integers represent that the remote is to the left of the sensor,
+        positive integers represent that the remote is to the right of the sensor,
+        a value of 0 indicates that the remote is directly ahead of the sensor.
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    Motor motor
+    InfraredSensor ir
+
+    ir:SetPort(4)
+    motor:SetMotorSpeed("B", 720)
+    motor:SetMotorSpeed("C", 720)
+
+    integer direction = 0
+    repeat while true
+        direction = ir:GetRemoteDirection(1)
+        if direction > 0
+            motor:MoveForward("C")
+            motor:Stop("B")
+        elseif direction < 0
+            motor:MoveForward("B")
+            motor:Stop("C")
+        elseif ir:GetRemoteDistance(1) <= 100
+            motor:MoveForward("B")
+            motor:MoveForward("C")
+        else
+            motor:Stop("B")
+            motor:Stop("C")
+        end
+    end
+    
+    */
+    
+    system action GetRemoteDirection(integer channel) returns integer
+    
+    /*
+    This action is used to find the distance of an EV3 remote with respect to the infrared sensor.
+    
+    Attribute: Parameter channel is used to find an EV3 remote using the same channel.
+    There are 4 valid channels: 1, 2, 3, and 4. There are class constants available for this parameter.
+
+    Attribute: Returns an integer representing the centimeters between the infrared sensor and the EV3 remote using the specified channel.
+    Return values are 1 through 100 if the remote is found, otherwise the value will be the maximum integer value.
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    InfraredSensor infraredSensor
+    Sound sound
+    
+    infraredSensor:SetPort(4)
+    repeat while true
+        if infraredSensor:GetRemoteDistance(1) <= 20
+            sound:PlayTone(1100, 20)
+        elseif infraredSensor:GetRemoteDistance(1) <= 40
+            sound:PlayTone(900, 20)
+        elseif infraredSensor:GetRemoteDistance(1) <= 60
+            sound:PlayTone(700, 20)
+        elseif infraredSensor:GetRemoteDistance(1) <= 80
+            sound:PlayTone(500, 20)
+        elseif infraredSensor:GetRemoteDistance(1) <= 100
+            sound:PlayTone(300, 20)
+        else
+            sound:PlayTone(20, 20)
+        end
+    end
+    
+    */
+
+    system action GetRemoteDistance(integer channel) returns integer
+    
+    /*
+    This action retrieves a command, or button press, from an EV3 remote.
+
+    Attribute: Parameter channel is used to find an EV3 remote using the same channel.
+
+    Attribute: Returns an integer representing the key(s) pressed on the EV3 remote. There are class constants available to help determine the return value.
+    Return values correspond to the following key(s) pressed on the EV3 remote:
+    1 TOP-LEFT
+    2 BOTTOM-LEFT
+    3 TOP-RIGHT
+    4 BOTTOM-RIGHT
+    5 TOP-LEFT + TOP-RIGHT
+    6 TOP-LEFT + BOTTOM-RIGHT
+    7 BOTTOM-LEFT + TOP-RIGHT
+    8 BOTTOM-LEFT + BOTTOM-RIGHT
+    9 CENTER
+    10 BOTTOM-LEFT + TOP-LEFT
+    11 TOP-RIGHT + BOTTOM-RIGHT
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    InfraredSensor infraredSensor
+    Sound sound
+
+    infraredSensor:SetPort(infraredSensor:PORT_4)
+    integer command = 0
+    repeat while true
+        command = infraredSensor:GetRemoteCommand(infraredSensor:CHANNEL_1)
+        if command = 1
+            sound:PlayTone(200, 20)
+        elseif command = 2
+            sound:PlayTone(400, 20)
+        elseif command = 3
+            sound:PlayTone(800, 20)
+        elseif command = 4
+            sound:PlayTone(1600, 20)
+        end
+    end
+    
+    */
+    
+    system action GetRemoteCommand(integer channel) returns integer
+end
