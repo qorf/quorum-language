@@ -1865,14 +1865,19 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         //since this is a solo call, there is no assignment statement.
         //thus, if there's a return type, we need to pop it off the stack.
-        ActionCallOpcode op = stack:GetFromEnd()
-        Type returnType = op:GetType()
-        if returnType not= undefined
-            if not returnType:IsVoid()
-                ops:SetPopReturn(true)
+        //if the stack is empty, then no valid action was found and an 
+        //error has already been issued by the compiler, so don't generate a 
+        //new one here.
+        if not stack:IsEmpty()
+            ActionCallOpcode op = stack:GetFromEnd()
+            Type returnType = op:GetType()
+            if returnType not= undefined
+                if not returnType:IsVoid()
+                    ops:SetPopReturn(true)
+                end
             end
+            currentBlockOpcode:Add(ops)
         end
-        currentBlockOpcode:Add(ops)
     end
 
     action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context)

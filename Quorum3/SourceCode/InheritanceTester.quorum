@@ -53,6 +53,7 @@ class InheritanceTester
         CircularInheritance()
         BadTemplate()
         OutputPrivateParentValue()
+        ParentActionNotExist()
         UseInvalidVariable()
         UsePrivateVariable()
         UsePrivateAction()
@@ -559,6 +560,20 @@ class InheritanceTester
         files:Add(dependent1)
         files:Add(dependent2)
         files:Add(dependent3)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action ParentActionNotExist
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "ParentActionNotExist.quorum")
+        dependent1:SetPath(path + "A.quorum")
+        files:Add(main)
+        files:Add(dependent1)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
     end
