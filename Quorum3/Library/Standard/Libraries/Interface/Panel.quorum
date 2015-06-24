@@ -1,100 +1,104 @@
 package Libraries.Interface
 
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Drawable
 
-class Panel is Drawable
+class Panel is Item
     
-    // A list of every item registered with the panel.
-    // List<Item> items
+    boolean hasBorder = false
+    boolean hasBackground = false
 
-    /* A list of items which are Drawable, DrawableGroup, or Panel. Maintaining
-    a separate list ensures only items which require drawing are considered
-    during screen drawing. */
-    // List<Item> drawables
+    Color borderColor
+    Color backgroundColor
 
-    // boolean positionAdjusted = true
+    on create
+        borderColor = borderColor:Gray()
+        backgroundColor = backgroundColor:LightGray()
+    end
 
-    // KeyboardProcessor keyboardProcessor = undefined
-    // MouseProcessor mouseProcessor = undefined
-
-    /*action Add(Item item)
-        items:Add(item)
-        if item is Drawable or item is DrawableGroup or item is Panel
-            drawables:Add(item)
+    action EnableBackground
+        if hasBackground = true
+            return now
         end
+
+        Texture backTexture
+        backTexture:LoadFilledRectangle(cast(integer, GetWidth()), cast(integer, GetHeight()), backgroundColor)
+
+        Drawable background
+        background:Load(backTexture)
+
+        Add(background, 0)
+
+        hasBackground = true
     end
 
-    action AddKeyboardListener(KeyboardListener listener)
-        keyboardProcessor:AddListener(listener)
-    end
-
-    action Remove(Item item)
-        items:Remove(item)
-        if item is Drawable or item is DrawableGroup or item is Panel
-            drawables:Remove(item)
+    action DisableBackground
+        if hasBackground = false
+            return now
         end
-    end
 
-    action RemoveKeyboardListener(KeyboardListener listener)
-        keyboardProcessor:RemoveListener(listener)
-    end*/
-
-    /*  This will be called from Game on each active panel. Note that before this
-        is called, Painter:Begin() must be called! After all active panels
-        have drawn, the calling class must finish by calling Painter:End(). *
-    action Draw(Painter batch, number globalOffsetX, number globalOffsetY)
-        Iterator<Item> drawIterator = drawables:GetIterator()
+        Item background = Remove(0)
+        background:Dispose()
         
-        number offsetX = GetX() + globalOffsetX
-        number offsetY = GetY() + globalOffsetY
+        hasBackground = false
+    end
 
-        Item temp = undefined
-        Drawable tempDraw = undefined
-        DrawableGroup tempGroup = undefined
-        Iterator<Drawable> tempIterator = undefined
+    action SetBackgroundColor(Color color)
+        backgroundColor = color
 
-        repeat while drawIterator:HasNext()
-            temp = drawIterator:Next()
-            if temp is Drawable
-                batch:Draw(cast(Drawable, temp), offsetX, offsetY, positionAdjusted)
-            end
-            if temp is DrawableGroup
-                tempGroup = cast(DrawableGroup, temp)
-                tempIterator = tempGroup:GetDrawables():GetIterator()
-                repeat while tempIterator:HasNext()
-                    batch:Draw(tempIterator:Next(), offsetX, offsetY, positionAdjusted)
-                end
-            end
-            if temp is Panel
-                Panel tPanel = cast(Panel, temp)
-                tPanel:Draw(batch, offsetX, offsetY)
-            end
-        end
-
-    end */
-/*
-    action ProcessMouseEvent(MouseEvent event)
-        Item temp = ItemAtPoint(event:GetX(), event:GetY())
-        if temp not= undefined
-            temp:ProcessMouseEvent(event)
-        end
-        if event:WasEventHandled() = false
-            parent:Item:ProcessMouseEvent(event)
+        if hasBackground = true
+            DisableBackground()
+            EnableBackground()
         end
     end
 
-    action ItemAtPoint(number x, number y) returns Item
-        integer index = items:GetSize() - 1
-        Item temp = undefined
-
-        repeat items:GetSize() times
-            temp = items:Get(index)
-            if temp:GetX() <= x and temp:GetX() + temp:GetWidth() >= x and temp:GetY() <= y and temp:GetY() + temp:GetHeight() >= y
-                return temp
-            end
-            index = index - 1
+    action EnableBorder
+        if hasBorder = true
+            return now
         end
-        return undefined
-    end*/
+
+        integer borderIndex = 0
+
+        if hasBackground
+            borderIndex = 1
+        end
+
+        Texture borderTexture
+        borderTexture:LoadRectangle(cast(integer, GetWidth()), cast(integer, GetHeight()), borderColor)
+
+        Drawable border
+        border:Load(borderTexture)
+
+        Add(border, borderIndex)
+
+        hasBorder = true
+    end
+
+    action DisableBorder
+        if hasBorder = false
+            return now
+        end
+
+        integer borderIndex = 0
+
+        if hasBackground
+            borderIndex = 1
+        end
+
+        Item border = Remove(borderIndex)
+        border:Dispose()
+        
+        hasBorder = false
+    end
+
+    action SetBorderColor(Color color)
+        borderColor = color
+
+        if hasBorder = true
+            DisableBorder()
+            EnableBorder()
+        end
+    end
 
 end
