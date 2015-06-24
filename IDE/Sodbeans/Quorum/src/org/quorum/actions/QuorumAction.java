@@ -176,7 +176,7 @@ public abstract class QuorumAction implements Action {
         
         final QuorumProjectType type = project.getProjectType();
         boolean legos = false;
-        if(type == QuorumProjectType.LEGO) {
+        if(type == QuorumProjectType.LEGO && compiler.IsCompilationErrorFree()) {
             QuorumToLegoAdapter adapter = new QuorumToLegoAdapter();
             String loc = project.getExecutableLocation();
             File f = new File(loc);

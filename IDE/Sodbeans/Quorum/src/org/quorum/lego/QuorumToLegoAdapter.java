@@ -26,7 +26,7 @@ public class QuorumToLegoAdapter {
     private String host = "10.0.1.1";
     private String password = "";
     private String destinationPath = "/home/lejos/programs/";
-    private static final int TIMEOUT = 50;
+    private static final int TIMEOUT = 10000;
 
     public boolean IsLegoConnected() {
         try {
@@ -189,7 +189,7 @@ public class QuorumToLegoAdapter {
                 Logger.getLogger(QuorumToLegoAdapter.class.getName()).log(Level.INFO, null, ee);
             }
         }
-        return false;
+        return true;
     }
 
     /**
