@@ -34,8 +34,10 @@ import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.windows.*;
 import org.quorum.debugger.QuorumDebugger;
+import org.quorum.lego.QuorumToLegoAdapter;
 import org.quorum.projects.ImageSheetManager;
 import org.quorum.projects.QuorumProject;
+import org.quorum.projects.QuorumProjectType;
 import org.quorum.windows.CompilerErrorTopComponent;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Containers.Blueprints.Iterator_;
@@ -172,6 +174,16 @@ public abstract class QuorumAction implements Action {
             run.setExecutable(true);
         }
         
+        final QuorumProjectType type = project.getProjectType();
+        boolean legos = false;
+        if(type == QuorumProjectType.LEGO) {
+            QuorumToLegoAdapter adapter = new QuorumToLegoAdapter();
+            String loc = project.getExecutableLocation();
+            File f = new File(loc);
+            legos = adapter.Send(f);
+        }
+        final boolean legoFound = legos;
+                        
         long finish = System.currentTimeMillis();
         double value = (finish - start);
         value = value / 1000.0;
@@ -199,6 +211,14 @@ public abstract class QuorumAction implements Action {
                     Date date = new Date();
 
                     io.getOut().println("Build Successful at " + dateFormat.format(date) + " in " + total + " seconds.");
+                    if(type == QuorumProjectType.LEGO) {
+                        if(legoFound) {
+                            io.getOut().println("Successfully output " + project.getExecutableName() + " to your lego robot.");
+                        } else {
+                            io.getOut().println("I could not connect to a lego device. Is it plugged in?");
+                        }
+                        
+                    }
                     io.setInputVisible(true);
                     io.getOut().close();
                 }

@@ -42,10 +42,6 @@
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
-                      <Component id="jLabel1" max="32767" attributes="0"/>
-                      <EmptySpace min="-2" pref="117" max="-2" attributes="0"/>
-                  </Group>
-                  <Group type="102" alignment="0" attributes="0">
                       <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="jScrollPane2" min="-2" pref="380" max="-2" attributes="0"/>
@@ -54,13 +50,23 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="addPlugin" alignment="1" max="32767" attributes="0"/>
-                          <Component id="removePlugin" alignment="0" pref="103" max="32767" attributes="0"/>
+                          <Component id="removePlugin" alignment="0" pref="105" max="32767" attributes="0"/>
                           <Component id="addJar" alignment="0" max="32767" attributes="0"/>
                           <Component id="removeJar" alignment="0" max="32767" attributes="0"/>
                           <Component id="pluginClearButton" alignment="0" max="32767" attributes="0"/>
                           <Component id="jarClearButton" alignment="1" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="102" alignment="1" attributes="0">
+                      <Group type="103" groupAlignment="1" attributes="0">
+                          <Group type="102" attributes="0">
+                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                              <Component id="legoRadioButton" min="-2" pref="97" max="-2" attributes="0"/>
+                          </Group>
+                          <Component id="jLabel1" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="-2" pref="117" max="-2" attributes="0"/>
                   </Group>
               </Group>
           </Group>
@@ -74,12 +80,12 @@
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Group type="102" attributes="0">
-                              <Component id="projectRadioButton" min="-2" pref="152" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="compiledWebProjectRadioButton" min="-2" pref="174" max="-2" attributes="0"/>
-                          </Group>
                           <Component id="nameTextField" min="-2" pref="320" max="-2" attributes="0"/>
+                          <Group type="102" attributes="0">
+                              <Component id="projectRadioButton" min="-2" pref="109" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="99" max="-2" attributes="0"/>
+                              <Component id="compiledWebProjectRadioButton" min="-2" pref="105" max="-2" attributes="0"/>
+                          </Group>
                       </Group>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
@@ -104,6 +110,7 @@
                   <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="projectRadioButton" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="compiledWebProjectRadioButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="legoRadioButton" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
@@ -147,7 +154,7 @@
         <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
           <ComponentRef name="projectTypeButtonGroup"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Quorum Project"/>
+        <Property name="text" type="java.lang.String" value="Standard"/>
         <Property name="toolTipText" type="java.lang.String" value="Select this radio button if you would like to have a normal Quorum project"/>
       </Properties>
     </Component>
@@ -156,8 +163,9 @@
         <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
           <ComponentRef name="projectTypeButtonGroup"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Quorum Web Project"/>
+        <Property name="text" type="java.lang.String" value="Web"/>
         <Property name="toolTipText" type="java.lang.String" value="Use this option if you want to compile your Quorum code for use in a Java Web Server, like Tomcat or Glassfish"/>
+        <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
     <Container class="javax.swing.JScrollPane" name="jScrollPane1">
@@ -259,6 +267,17 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jarClearButtonActionPerformed"/>
       </Events>
+    </Component>
+    <Component class="javax.swing.JRadioButton" name="legoRadioButton">
+      <Properties>
+        <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+          <ComponentRef name="projectTypeButtonGroup"/>
+        </Property>
+        <Property name="text" type="java.lang.String" value="Lego"/>
+      </Properties>
+      <AccessibilityProperties>
+        <Property name="AccessibleContext.accessibleDescription" type="java.lang.String" value="This project type should be selected if you would like Quorum to automatically send programs to a lego robot after building."/>
+      </AccessibilityProperties>
     </Component>
   </SubComponents>
 </Form>

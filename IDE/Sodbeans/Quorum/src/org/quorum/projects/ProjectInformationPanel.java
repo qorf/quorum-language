@@ -40,6 +40,8 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
             projectRadioButton.setSelected(true);
         } else if(property.compareTo(QuorumProject.QUORUM_COMPILED_WEB_PROJECT) == 0) {
             compiledWebProjectRadioButton.setSelected(true);
+        } else if(property.compareTo(QuorumProject.QUORUM_LEGO_PROJECT) == 0) {
+            legoRadioButton.setSelected(true);
         }
         
         property = properties.getProperty(QuorumProject.QUORUM_EXECUTABLE_NAME);
@@ -81,8 +83,10 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
     public String getQuorumProjectType() {
         if(projectRadioButton.isSelected()) {
             return QuorumProject.QUORUM_CONSOLE_PROJECT;
-        } else {
+        } else if(compiledWebProjectRadioButton.isSelected()) {
             return QuorumProject.QUORUM_COMPILED_WEB_PROJECT;
+        } else {
+            return QuorumProject.QUORUM_LEGO_PROJECT;
         }
     }
     
@@ -152,6 +156,7 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         jLabel4 = new javax.swing.JLabel();
         pluginClearButton = new javax.swing.JButton();
         jarClearButton = new javax.swing.JButton();
+        legoRadioButton = new javax.swing.JRadioButton();
 
         jRadioButton1.setText("jRadioButton1");
 
@@ -163,12 +168,13 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         jLabel2.setText("Select Project Type:");
 
         projectTypeButtonGroup.add(projectRadioButton);
-        projectRadioButton.setText("Quorum Project");
+        projectRadioButton.setText("Standard");
         projectRadioButton.setToolTipText("Select this radio button if you would like to have a normal Quorum project");
 
         projectTypeButtonGroup.add(compiledWebProjectRadioButton);
-        compiledWebProjectRadioButton.setText("Quorum Web Project");
+        compiledWebProjectRadioButton.setText("Web");
         compiledWebProjectRadioButton.setToolTipText("Use this option if you want to compile your Quorum code for use in a Java Web Server, like Tomcat or Glassfish");
+        compiledWebProjectRadioButton.setEnabled(false);
 
         pluginList.setModel(new DefaultListModel());
         jScrollPane1.setViewportView(pluginList);
@@ -226,6 +232,9 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
             }
         });
 
+        projectTypeButtonGroup.add(legoRadioButton);
+        legoRadioButton.setText("Lego");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -234,9 +243,6 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(117, 117, 117))
-                    .addGroup(layout.createSequentialGroup()
                         .addGap(6, 6, 6)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 380, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -244,12 +250,19 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(addPlugin, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(removePlugin, javax.swing.GroupLayout.DEFAULT_SIZE, 103, Short.MAX_VALUE)
+                            .addComponent(removePlugin, javax.swing.GroupLayout.DEFAULT_SIZE, 105, Short.MAX_VALUE)
                             .addComponent(addJar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(removeJar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(pluginClearButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jarClearButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addContainerGap())))
+                        .addContainerGap())
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(legoRadioButton, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(117, 117, 117))))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -259,11 +272,11 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
                             .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 320, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(projectRadioButton, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(compiledWebProjectRadioButton, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 320, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(projectRadioButton, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(99, 99, 99)
+                                .addComponent(compiledWebProjectRadioButton, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
@@ -280,7 +293,8 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(projectRadioButton)
-                    .addComponent(compiledWebProjectRadioButton))
+                    .addComponent(compiledWebProjectRadioButton)
+                    .addComponent(legoRadioButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -305,6 +319,8 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
                         .addComponent(jarClearButton)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
+
+        legoRadioButton.getAccessibleContext().setAccessibleDescription("This project type should be selected if you would like Quorum to automatically send programs to a lego robot after building.");
     }// </editor-fold>//GEN-END:initComponents
 
     private void addPluginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPluginActionPerformed
@@ -392,6 +408,7 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
     private javax.swing.JButton jarClearButton;
     private javax.swing.JFileChooser jarFileChooser;
     private javax.swing.JList jarList;
+    private javax.swing.JRadioButton legoRadioButton;
     private javax.swing.JTextField nameTextField;
     private javax.swing.JButton pluginClearButton;
     private javax.swing.JFileChooser pluginFolderChooser;
