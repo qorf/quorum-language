@@ -10,19 +10,34 @@ Attribute: Example
 Sound sound
 Motor motor
 ColorSensor colorSensor
+Utility utility
 
 colorSensor:SetPort(colorSensor:PORT_4)
 motor:MoveForward(motor:MOTOR_B)        //two motors for movement
 motor:MoveForward(motor:MOTOR_C)
+text color = ""
 repeat while true
-    
+    color = colorSensorGetColor()
+    if color = red
+        sound:PlayTone(200, 100)
+    elseif color = blue
+        sound:PlayTone(800, 100)
+    elseif color = green
+        sound:PlayTone(1600, 100)
+    elseif color = yellow
+        sound:PlayTone(3200, 100)
+    end
+    utility:DelayMilliseconds(100)
 end
 */
 
 class Sound
 
     /*
-    This action 
+    This action plays a specified tone for a an amount of time.
+    
+    Attribute: Parameter frequency indicates the frequency, in hertz, of the tone that will be played.
+    Audible frequencies for humans range from around 20 to 20,000.
     
     Attribute: Author Evan Pierzina
     
@@ -33,111 +48,258 @@ class Sound
     system action PlayTone(integer frequency, integer duration)
 
     /*
-    This action 
+    This action gets the volume of the robot.
+    
+    Attribute: Returns how loud the robot is set to be.
+    This value will be between 0 (lowest) and 100 (highest).
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    Sound sound
     
+    integer volume = sound:GetVolume()
+    if volume > 75
+        sound:SetVolume(75) //limit the maximum volume
+    elseif volume < 25
+        sound:SetVolume(25) //limit the minimum volume
+    end
+    sound:BeepSequenceUp()
+    sound:BeepSequenceDown()
     */
 
     system action GetVolume returns integer
 
     /*
-    This action 
+    This action sets the volume of the robot.
+    
+    Attribute: Parameter volume specifies how loud the robot should be.
+    Valid volume levels range from 0 (lowest) to 100 (highest).
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    Sound sound
+    Utility utility
     
+    sound:SetVolume(25)
+    sound:PlayTone(777, 100)
+    utility:DelayMilliseconds(200)
+    sound:SetVolume(50)
+    sound:PlayTone(777, 100)
+    utility:DelayMilliseconds(200)
+    sound:SetVolume(100)
+    sound:PlayTone(777, 100)
+    utility:DelayMilliseconds(200)
     */
 
     system action SetVolume(integer volume)
 
     /*
-    This action 
+    This action plays an audio file stored on the robot.
+    The audio file must be in .wav format and use a single channel (mono).
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.System.File
     
+    Sound sound
+    Motor motor
+    Utility utility
+    File audioFile
+    
+    audioFile:SetPath("sound.wav")      //assumes there is a file named sound.wav already stored on the robot
+    motor:SetSpeed(motor:MOTOR_B, 360)  //two motors to move the robot
+    motor:SetSpeed(motor:MOTOR_C, 360)
+    motor:MoveForward(motor:MOTOR_B)
+    motor:MoveBackward(motor:MOTOR_C)   //spin in place
+    sound:PlayAudio(audioFile)
+    repeat while sound:IsPlaying()
+        utility:DelayMilliseconds(100)  //check every 100 milliseconds if the robot is still playing the audio
+    end
+    motor:Stop(motor:MOTOR_B)
+    motor:Stop(motor:MOTOR_C)
     */
 
-    system action PlayAudio(text filePath)
+    system action PlayAudio(file audioFile)
 
     /*
-    This action 
+    This action gives the remaining time of whatever audio is currently playing.
+    
+    Attribute: Returns the amount of time remaining in the current tone or audio file in units of milliseconds.
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.System.File
     
+    Sound sound
+    Motor motor
+    Utility utility
+    File audioFile
+    
+    audioFile:SetPath("sound.wav")          //assumes there is a file named sound.wav already stored on the robot
+    motor:SetSpeed(motor:MOTOR_B, 360)      //two motors to move the robot
+    motor:SetSpeed(motor:MOTOR_C, 360)
+    motor:MoveForward(motor:MOTOR_B)
+    motor:MoveBackward(motor:MOTOR_C)       //spin in place
+    sound:PlayAudio(audioFile)
+    repeat while sound:IsPlaying()
+        if sound:GetTimeRemaining() < 3000  //under 3 seconds left
+            motor:Stop(motor:MOTOR_C)
+        end
+        utility:DelayMilliseconds(100)      //check every 100 milliseconds if the robot is still playing the audio
+    end
+    motor:Stop(motor:MOTOR_B)
     */
 
     system action GetTimeRemaining returns integer
 
     /*
-    This action 
+    This action is used to find out whether the robot is currently playing audio or not.
+    
+    Attribute: Returns a boolean value indicating whether audio is playing or not.
+    A value of true means the robot is playing audio and a value of false means the robot is not playing audio.
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.System.File
     
+    Sound sound
+    Motor motor
+    Utility utility
+    File audioFile
+    
+    audioFile:SetPath("sound.wav")      //assumes there is a file named sound.wav already stored on the robot
+    motor:SetSpeed(motor:MOTOR_B, 360)  //two motors to move the robot
+    motor:SetSpeed(motor:MOTOR_C, 360)
+    motor:MoveForward(motor:MOTOR_B)
+    motor:MoveBackward(motor:MOTOR_C)   //spin in place
+    sound:PlayAudio(audioFile)
+    repeat while sound:IsPlaying()
+        utility:DelayMilliseconds(100)  //check every 100 milliseconds if the robot is still playing the audio
+    end
+    motor:Stop(motor:MOTOR_B)
+    motor:Stop(motor:MOTOR_C)
     */
 
     system action IsPlaying returns boolean
 
     /*
-    This action 
+    This action tells the robot to play a beep noise.
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    Sound sound
+    Motor motor
+    ColorSensor colorSensor
+    Utility utility
     
+    colorSensor:SetPort(3)
+    motor:SetSpeed(motor:MOTOR_B, 360)  //two motors used for movement
+    motor:SetSpeed(motor:MOTOR_C, 360)
+    motor:MoveForward(motor:MOTOR_B)
+    motor:MoveForward(motor:MOTOR_C)
+    repeat 10 times
+        if colorSensor:GetColor() = red
+            sound:BeepTwice()
+        else
+            sound:Buzz()
+        end
+        utility:DelayMilliseconds(1000)
+    end
     */
 
     system action Beep
 
     /*
-    This action 
+    This action tells the robot to play a sequence of 4 beeps with each tone lower than the previous.
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    Sound sound
+    Motor motor
     
+    motor:SetSpeed(motor:MOTOR_A, 360)
+    sound:BeepSequenceUp()                      //indicate the motor is about to start moving
+    motor:RotateByDegrees(motor:MOTOR_A, 720)   //rotate the motor connected to port A
+    sound:BeepSequenceDown()                    //indicate the motor has stopped moving
     */
 
     system action BeepSequenceDown
 
     /*
-    This action 
+    This action tells the robot to play a sequence of 4 beeps with each tone higher than the previous.
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    Sound sound
+    Motor motor
     
+    motor:SetSpeed(motor:MOTOR_A, 360)
+    sound:BeepSequenceUp()                      //indicate the motor is about to start moving
+    motor:RotateByDegrees(motor:MOTOR_A, 720)   //rotate the motor connected to port A
+    sound:BeepSequenceDown()                    //indicate the motor has stopped moving
     */
 
     system action BeepSequenceUp
 
     /*
-    This action 
+    This action tells the robot to beep twice.
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    Sound sound
+    Motor motor
+    ColorSensor colorSensor
+    Utility utility
     
+    colorSensor:SetPort(3)
+    motor:SetSpeed(motor:MOTOR_B, 360)  //two motors used for movement
+    motor:SetSpeed(motor:MOTOR_C, 360)
+    motor:MoveForward(motor:MOTOR_B)
+    motor:MoveForward(motor:MOTOR_C)
+    repeat 10 times
+        if colorSensor:GetColor() = blue
+            sound:BeepTwice()
+        else
+            sound:Buzz()
+        end
+        utility:DelayMilliseconds(1000)
+    end
     */
 
     system action BeepTwice
 
     /*
-    This action 
+    This action tells the robot to make a low pitch buzz noise.
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    Sound sound
+    InfraredSensor infraredSensor
+    Motor motor
+    Utility utility
     
+    infraredSensor:SetPort(infraredSensor:PORT_4)
+    motor:SetSpeed(motor:MOTOR_B, 360)  //two motors used for movement
+    motor:SetSpeed(motor:MOTOR_C, 360)
+    motor:MoveForward(motor:MOTOR_B)
+    motor:MoveForward(motor:MOTOR_C)
+    repeat until infraredSensor:GetDistance() < 50
+        sound:Beep()
+        utility:DelayMilliseconds(100)
+    end
+    sound:Buzz()    //the sensor found a nearby object
+    motor:Stop(motor:MOTOR_B)
+    motor:Stop(motor:MOTOR_C)
     */
 
     system action Buzz

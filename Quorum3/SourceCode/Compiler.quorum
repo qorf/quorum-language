@@ -196,29 +196,21 @@ class Compiler
         //including potentially some from the standard library
         //in order to build the requested files
         Array<File> allFiles = undefined
-        if sandboxCompilerErrorManager:IsCompilationErrorFree()
-            allFiles = GetAllRequiredFiles(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
-        else 
-            return result
-        end
+        allFiles = GetAllRequiredFiles(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
         sandboxedProfiler:Add(time:GetEpochTime())
-
-        if sandboxCompilerErrorManager:IsCompilationErrorFree()
-            if inFile = undefined
-                TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
-            else
-                Class newParse = sandboxSymbolTable:GetClassInFile(locPath)
-                if newParse not= undefined
-                    newParse:ResolveUseStatements(sandboxSymbolTable, sandboxCompilerErrorManager)
-                    newParse:ResolveAllTypes(sandboxSymbolTable, sandboxCompilerErrorManager)
-                    newParse:ComputeVirtualActionTable(sandboxCompilerErrorManager)
-                    newParse:ComputeGenericsTables(sandboxCompilerErrorManager)
-                    sandboxTypeChecker:Add(newParse)
-                end
+        if inFile = undefined
+            TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
+        else
+            Class newParse = sandboxSymbolTable:GetClassInFile(locPath)
+            if newParse not= undefined
+                newParse:ResolveUseStatements(sandboxSymbolTable, sandboxCompilerErrorManager)
+                newParse:ResolveAllTypes(sandboxSymbolTable, sandboxCompilerErrorManager)
+                newParse:ComputeVirtualActionTable(sandboxCompilerErrorManager)
+                newParse:ComputeGenericsTables(sandboxCompilerErrorManager)
+                sandboxTypeChecker:Add(newParse)
             end
-        else 
-            return result
         end
+
         sandboxedProfiler:Add(time:GetEpochTime())
 
         Array<ClassOpcode> classOpcodes

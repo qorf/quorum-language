@@ -13,7 +13,9 @@ import java.io.OutputStream;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
 import org.openide.util.Exceptions;
+import org.quorum.lego.QuorumToLegoAdapter;
 import org.quorum.projects.QuorumProject;
+import org.quorum.projects.QuorumProjectType;
 
 /**
  *
@@ -43,6 +45,14 @@ public class Run extends QuorumAction implements ActionListener {
             boolean success = build();
             if(!success) {
                 progress.finish();
+                return;
+            }
+            
+            final QuorumProjectType type = project.getProjectType();
+            boolean legos = false;
+            if(type == QuorumProjectType.LEGO) {
+                //io.getOut().println("To run the robot, use the lego robot itself. The reason is because I cannot execute the robot from within the development environment. ");
+                //io.getOut().close();
                 return;
             }
 

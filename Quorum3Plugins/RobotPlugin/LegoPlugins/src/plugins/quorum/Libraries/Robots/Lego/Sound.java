@@ -17,8 +17,7 @@ public class Sound {
         lejos.hardware.Sound.setVolume(volume); //0-100
     }
     
-    public void PlayAudio(String filePath) {
-        File audioFile = new File(filePath);
+    public void PlayAudio(File audioFile) {
         lejos.hardware.Sound.playSample(audioFile);
     }
     

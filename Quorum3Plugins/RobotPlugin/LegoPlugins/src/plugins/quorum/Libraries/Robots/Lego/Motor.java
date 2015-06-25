@@ -53,13 +53,13 @@ public class Motor {
     public void RotateByDegrees(String motorID, int degrees) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
         if (MotorIsValid(motorID, motor))
-            motor.rotate(degrees);
+            motor.rotate(-1 * degrees);
     }
     
     public void RotateToDegree(String motorID, int degreeTarget) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
         if (MotorIsValid(motorID, motor))
-            motor.rotateTo(degreeTarget);
+            motor.rotateTo(-1 * degreeTarget);
     }
     
     public int GetRotationTarget(String motorID) throws IOException {
@@ -83,7 +83,7 @@ public class Motor {
         if (motor == null)
             throw new IOException("Invalid motor ID specified. Valid options are: A, B, C, or D, but " + motorID + " was given.");
         else
-            return motor.getTachoCount();
+            return motor.getTachoCount() * - 1;
     }
     
     public int GetSpeed(String motorID) throws IOException {
@@ -106,7 +106,7 @@ public class Motor {
         BaseRegulatedMotor motor = motors.get(motor1);
         BaseRegulatedMotor[] motorArray = new BaseRegulatedMotor[1];
         motorArray[0] = motors.get(motor2);
-        if (motorArray[0] == null || motorArray[1] == null) {
+        if (motorArray[0] == null) {
             try {
                 throw new IOException("Invalid motor ID specified. Valid options are: A, B, C, or D.");
             } catch (IOException ex) {
@@ -119,7 +119,7 @@ public class Motor {
         }
     }
     
-    public void Synchronize(String leaderMotor, quorum.Libraries.Containers.Array$Interface followerMotors) throws IOException {
+    public void Synchronize(String leaderMotor, quorum.Libraries.Containers.Array_ followerMotors) throws IOException {
         //the lejOS method accepts duplicate values, so sending 20 "A"s to this functions would generate 20 refernces to the same motor
         //How should this be handled? Throwing out duplicates would guarantee we had at most 4 references to motors,
         //but this would have to potentially search through the whole array
@@ -133,7 +133,7 @@ public class Motor {
         
         //verify and store references to any valid motor (can be up to 4)
         for (int i = 0; i < 4; i++) {
-            quorum.Libraries.Language.Types.Text$Interface motorTextObject = (quorum.Libraries.Language.Types.Text$Interface) followerMotors.Get(i);
+            quorum.Libraries.Language.Types.Text_ motorTextObject = (quorum.Libraries.Language.Types.Text_) followerMotors.Get(i);
             if (motorTextObject != null) {
                 motorID = motorTextObject.GetValue();
                 if (motorID != null) {

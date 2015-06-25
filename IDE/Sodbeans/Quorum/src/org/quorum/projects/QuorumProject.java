@@ -59,6 +59,7 @@ public class QuorumProject implements Project {
     public static final String QUORUM_CONSOLE_PROJECT = "Quorum_Console_Project";
     public static final String QUORUM_WEB_PROJECT = "Quorum_Web_Project";
     public static final String QUORUM_COMPILED_WEB_PROJECT = "Quorum_Compiled_Web_Project";
+    public static final String QUORUM_LEGO_PROJECT = "Quorum_Lego_Project";
     
     public static final String QUORUM_EXECUTABLE_NAME = "Quorum_Executable_Name";
     public static final String ADDITIONAL_PLUGIN_FOLDERS = "Additional_Plugin_Folders";
@@ -72,7 +73,8 @@ public class QuorumProject implements Project {
     public static final String BUILD_DIRECTORY = "Build";
     public static final String DISTRIBUTION_DIRECTORY = "Run";
     public static final String DOCUMENTS_DIRECTORY = "Documentation";
-
+    public QuorumProjectType projectType = QuorumProjectType.STANDARD;
+    
     public static final String MIME_TYPE = "text/x-quorum";
     private final FileObject projectDir;
     private LogicalViewProvider logicalView = new QuorumLogicalView(this);
@@ -119,6 +121,10 @@ public class QuorumProject implements Project {
         run = new Run(this);
     }
 
+    public QuorumProjectType getProjectType() {
+        return projectType;
+    }
+    
     public quorum.Libraries.Language.Compile.CompilerResult_ getSandboxCompilerResult() {
         return sandboxResult;
     }
@@ -209,6 +215,15 @@ public class QuorumProject implements Project {
             FileObject directory = this.getProjectDirectory();
             FileObject mainFile = directory.getFileObject(key);
             mainFileProvider.setMainFile(mainFile);
+        }
+        
+        String property = properties.getProperty(QUORUM_PROJECT_TYPE);
+        if(property == null || property.compareTo(QuorumProject.QUORUM_CONSOLE_PROJECT) == 0) {
+            projectType = QuorumProjectType.STANDARD;
+        } else if(property.compareTo(QuorumProject.QUORUM_COMPILED_WEB_PROJECT) == 0) {
+            projectType = QuorumProjectType.WEB;
+        } else if(property.compareTo(QuorumProject.QUORUM_LEGO_PROJECT) == 0) {
+            projectType = QuorumProjectType.LEGO;
         }
         
         String plugins = properties.getProperty(QuorumProject.ADDITIONAL_PLUGIN_FOLDERS);

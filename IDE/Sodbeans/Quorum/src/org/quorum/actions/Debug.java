@@ -17,6 +17,7 @@ import org.netbeans.api.debugger.DebuggerManager;
 import org.netbeans.spi.debugger.SessionProvider;
 import org.openide.util.Cancellable;
 import org.quorum.debugger.QuorumDebuggerCookie;
+import org.quorum.projects.QuorumProjectType;
 
 /**
  *
@@ -56,6 +57,13 @@ public class Debug extends QuorumAction implements ActionListener{
                 return;
             }
             
+            final QuorumProjectType type = project.getProjectType();
+            boolean legos = false;
+            if(type == QuorumProjectType.LEGO) {
+                //io.getOut().println("To run the robot, use the lego robot itself. The reason is because I cannot debug the robot from within the development environment. ");
+                //io.getOut().close();
+                return;
+            }
 
             String location = project.getExecutableLocation();
             debugger.setExecutable(location);

@@ -84,7 +84,7 @@ class Main is WebResponder
         File mygame
         mygame:SetWorkingDirectory("/Users/stefika/NetBeansProjects/QuorumGame")
         mygame:SetPath("/SourceCode/MyGame.quorum")
-        actualMain:SetPath("Library/Tests/CodeCompletion/Pass/GrabAllContainers.quorum")
+        //actualMain:SetPath("Library/Tests/CodeCompletion/Pass/GrabAllContainers.quorum")
         compiler:SetMain(actualMain)
 
         File failMain
@@ -107,7 +107,6 @@ class Main is WebResponder
         cc:source = actualMain:Read()
 
         CompilerResult result = compiler:ParseRepeat(info)
-        //CodeCompletionResult ccr = compiler:Request(cc)
 
         info:source = failSource
         text out = failSource:GetSubtext(0, cc:caretLocation)
@@ -117,7 +116,11 @@ class Main is WebResponder
         check
             cc:source = failSource
             CodeCompletionResult ccr2 = compiler:Request(cc)
-            integer a = 5
+            Iterator<CodeCompletionItem> it = ccr2:GetIterator()
+            repeat while it:HasNext()
+                CodeCompletionItem item = it:Next()
+                output item:displayText + " " + item:rightDisplayText
+            end
         detect e
             e:OutputStackTrace()
         end
@@ -278,11 +281,11 @@ class Main is WebResponder
         compiler:SetOutputFolder(root)
         File main
         //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication2/SourceCode/")
-        main:SetPath("Library/Tests/Inheritance/Fail/ParentActionNotExist.quorum")
+        main:SetPath("Library/Tests/Use/Fail/FailNicely.quorum")
         //main:SetPath("main.quorum")
 
         File class2
-        class2:SetPath("Library/Tests/Inheritance/Fail/A.quorum")
+        class2:SetPath("Library/Tests/Actions/Fail/A.quorum")
         
         File class3
         class3:SetPath("Library/Tests/Inheritance/Fail/ForgotBlueprint.quorum")
@@ -295,7 +298,7 @@ class Main is WebResponder
         Array<File> files
 
         files:Add(main)
-        files:Add(class2)
+        //files:Add(class2)
         //files:Add(class3)
         //files:Add(class4)
         //files:Add(class5)

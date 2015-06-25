@@ -35,52 +35,52 @@ public class Screen {
     //should these methods clear the line before displaying on them or just leave what was on screen previously?
     public void Output(String string, int line) {
         display.setFont(lejos.hardware.lcd.Font.getDefaultFont());
-        lejos.hardware.lcd.LCD.clear(line-1);
+        lejos.hardware.lcd.LCD.clear(line);
         display.drawString(string, 0, (line-1)*16, 0); //line numbers range from 0 to 7 normally, * 16 pixels for font height. Offset to make lines 1 indexed.
     }
     
     public void Output(String string, int line, int offset) {
         display.setFont(lejos.hardware.lcd.Font.getDefaultFont());
-        lejos.hardware.lcd.LCD.clear(line-1);
+        lejos.hardware.lcd.LCD.clear(line);
         display.drawString(string, offset, (line-1)*16, 0); //offset is in terms of monospaced character positions from the left side of the screen
     }
     
     public void OutputCenter(String string, int line) {
         display.setFont(lejos.hardware.lcd.Font.getDefaultFont());
-        lejos.hardware.lcd.LCD.clear(line-1);
-        display.drawString(string, 88, (line-1)*16, display.HCENTER); //88 pixels = center
+        lejos.hardware.lcd.LCD.clear(line);
+        display.drawString(string, 88, (line)*16, display.HCENTER); //88 pixels = center
     }
     
     public void OutputInvertedColor(String message, int line) {
-        lejos.hardware.lcd.LCD.clear(line-1);
-        lejos.hardware.lcd.LCD.drawString(message, 0, line-1, true);
+        lejos.hardware.lcd.LCD.clear(line);
+        lejos.hardware.lcd.LCD.drawString(message, 0, line, true);
     }
     
     public void OutputInvertedColor(String message, int line, int offset) {
-        lejos.hardware.lcd.LCD.clear(line-1);
-        lejos.hardware.lcd.LCD.drawString(message, offset, line-1, true);
+        lejos.hardware.lcd.LCD.clear(line);
+        lejos.hardware.lcd.LCD.drawString(message, offset, line, true);
     }
     
     //large fonts take up two lines
     public void OutputCenterLarge(String string, int line) {
         display.setFont(lejos.hardware.lcd.Font.getLargeFont());
-        lejos.hardware.lcd.LCD.clear(line-1);
         lejos.hardware.lcd.LCD.clear(line);
+        lejos.hardware.lcd.LCD.clear(line+1);
         display.drawString(string, 88, line*16, display.HCENTER);
     }
     
     public void OutputLarge(String string, int line) {
         display.setFont(lejos.hardware.lcd.Font.getLargeFont());
-        lejos.hardware.lcd.LCD.clear(line-1);
         lejos.hardware.lcd.LCD.clear(line);
-        display.drawString(string, 0, (line-1)*16, 0);
+        lejos.hardware.lcd.LCD.clear(line+1);
+        display.drawString(string, 0, (line)*16, 0);
     }
     
     public void OutputLarge(String string, int line, int offset) {
         display.setFont(lejos.hardware.lcd.Font.getLargeFont());
-        lejos.hardware.lcd.LCD.clear(line-1);
         lejos.hardware.lcd.LCD.clear(line);
-        display.drawString(string, offset, (line-1)*16, 0);
+        lejos.hardware.lcd.LCD.clear(line+1);
+        display.drawString(string, offset, (line)*16, 0);
     }
     
     public void ScrollUp() {

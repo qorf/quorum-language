@@ -124,6 +124,7 @@ class ActionsTester
         InvalidVarName5()
         InvalidVarName6()
         MissingEnd()
+        MissingAction()
         MissingMain()
         MissingParen()
         MissingReturn1()
@@ -1378,6 +1379,19 @@ class ActionsTester
         File main
         main:SetPath(path + "MissingEnd.quorum")
         files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingAction
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingAction.quorum")
+
+        File dependent
+        dependent:SetPath(path + "A.quorum")
+        files:Add(main)
+        files:Add(dependent)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
     end
