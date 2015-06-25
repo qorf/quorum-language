@@ -27,6 +27,7 @@ class Panel is Item
 
         Drawable background
         background:Load(backTexture)
+        background:SetName("Panel Background")
 
         Add(background, 0)
 
@@ -69,6 +70,7 @@ class Panel is Item
 
         Drawable border
         border:Load(borderTexture)
+        border:SetName("Panel Border")
 
         Add(border, borderIndex)
 
@@ -99,6 +101,14 @@ class Panel is Item
             DisableBorder()
             EnableBorder()
         end
+    end
+
+    action IsBackgroundEnabled returns boolean
+        return hasBackground
+    end
+
+    action IsBorderEnabled returns boolean
+        return hasBorder
     end
 
 end

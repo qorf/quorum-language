@@ -147,11 +147,16 @@ class Label is Item
             Glyph glyph = undefined
 
             // BEGINNING OF NEW CODE
+            boolean endsWithSpace = false
+
+            if targetText:GetSize() > 0
+                endsWithSpace = targetText:GetCharacter(targetText:GetSize() - 1):Equals(" ")
+            end
 
             number availableWidth = GetWidth() - horizontalMargins
             number availableHeight = GetHeight() - verticalMargins
 
-            Array<text> lines = targetText:Split(targetText:GetLineFeed())
+            Array<text> lines = Split(targetText, targetText:GetLineFeed())//targetText:Split(targetText:GetLineFeed())
             Array<text> words = undefined
             Array<Glyph> glyphs
 
@@ -174,7 +179,7 @@ class Label is Item
             number startingOriginY = originY
 
             repeat lines:GetSize() times
-                words = lines:Get(lineIndex):Split(" ")
+                words = Split(lines:Get(lineIndex), " ")//lines:Get(lineIndex):Split(" ")
                 wordsIndex = 0
                 currentLineLength = 0
 
@@ -183,7 +188,7 @@ class Label is Item
                     currentWordLength = 0
                     glyphIndex = 0
 
-                    if wordsIndex + 1 not= words:GetSize()
+                    if wordsIndex + 1 not= words:GetSize() or endsWithSpace
                         currentWord = currentWord + " "
                     end
 
@@ -262,6 +267,68 @@ class Label is Item
             textChanged = false
         end
 
+    end
+
+    // A custom implementation of the text Split action that does not truncate
+    // delimiters at the end of the text.
+    private action Split(text splitter, text delimiter) returns Array<text>
+        // TODO: Rewrite this. it is horrid. There are much more clever ways to do this.
+
+	Array<text> results
+	integer pos = 0
+	integer length = splitter:GetSize()
+	Text delim
+        delim:SetValue(delimiter)
+	integer delimLength = delim:GetSize()
+	text newString = ""
+        boolean afterDelim = false
+
+	repeat while pos < length
+            // If this doesn't start the delimiter, add it to the new string.
+            if splitter:GetCharacter(pos) not= delim:GetCharacter(0)
+                newString = newString + splitter:GetCharacter(pos)
+                pos = pos + 1
+                afterDelim = false
+            else
+                // Matches start of delimiter. Keep track and bail if we don't match the delimiter
+                text tmpString = ""
+                integer delimPos = 0
+                text currentChar = splitter:GetCharacter(pos)
+                text currentDelimChar = delim:GetCharacter(0)
+
+                // As long as the values read continue to match the delimiter...
+                repeat while delimPos < delimLength and currentChar = currentDelimChar and pos < length
+                    tmpString = tmpString + splitter:GetCharacter(pos)
+                    delimPos = delimPos + 1 // keep going through delimiter
+                    pos = pos + 1 // and keep moving ahead in main string
+                    
+                    if pos < length
+                        currentChar = splitter:GetCharacter(pos)
+                    end
+
+                    if delimPos < delimLength
+                        currentDelimChar = delim:GetCharacter(delimPos)
+                    end
+                end
+
+                if delimPos not= delimLength
+                    // We didn't reach the end of the delimiter, so add this temporary string and keep moving.
+                    tmpString = tmpString + newString
+                    afterDelim = false
+                else
+                    // Delimiter hit. Store the result.
+                    results:Add(newString)
+                    newString = ""  
+                    afterDelim = true
+                end
+            end
+	end
+
+        //if not afterDelim
+            results:Add(newString)
+        //end
+
+        return results
     end
 
     action Draw(Painter painter)
