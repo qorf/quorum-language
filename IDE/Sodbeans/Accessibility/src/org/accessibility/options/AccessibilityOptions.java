@@ -241,7 +241,9 @@ public class AccessibilityOptions {
      * Stores the current speech engine.
      */
     public static void setSpeechEngine(String engine) {
-        NbPreferences.forModule(GeneralPanel.class).put(SPEECH_ENGINE, engine);
+        if(engine != null) {
+            NbPreferences.forModule(GeneralPanel.class).put(SPEECH_ENGINE, engine);
+        }
     }
     
     /**
@@ -318,7 +320,9 @@ public class AccessibilityOptions {
      * whatever voice the system defaults to.
      */
     public static void setSelectedVoice(String voice) {
-        NbPreferences.forModule(GeneralPanel.class).put(SELECTED_VOICE, voice);
+        if(voice != null) {
+            NbPreferences.forModule(GeneralPanel.class).put(SELECTED_VOICE, voice);
+        }
     }
     
     /**

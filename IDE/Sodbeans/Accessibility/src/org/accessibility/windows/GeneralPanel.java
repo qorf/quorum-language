@@ -9,6 +9,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import javax.swing.DefaultListModel;
 import org.accessibility.options.AccessibilityOptions;
+import org.accessibility.options.MagnificationOptions;
+import org.magnify.MagnifierFactory;
+import org.magnify.MagnifierInterface;
 import org.sodbeans.phonemic.SpeechVoice;
 import org.sodbeans.phonemic.TextToSpeechFactory;
 import org.sodbeans.phonemic.tts.TextToSpeech;
@@ -16,6 +19,7 @@ import org.sodbeans.phonemic.tts.TextToSpeechEngine;
 
 public final class GeneralPanel extends javax.swing.JPanel {
     private TextToSpeech speech = TextToSpeechFactory.getDefaultTextToSpeech();
+    private MagnifierInterface magnifier = MagnifierFactory.getDefaultMagnifier();
     private final GeneralOptionsPanelController controller;
     HashMap<String, TextToSpeechEngine> engineHash = new HashMap<String, TextToSpeechEngine>();
     HashMap<String, SpeechVoice> voiceHash = new HashMap<String, SpeechVoice>();
@@ -214,6 +218,11 @@ public final class GeneralPanel extends javax.swing.JPanel {
         speedSlider.setValue(AccessibilityOptions.getSpeechSpeed());
         volumeSlider.setValue(AccessibilityOptions.getSpeechVolume());
         pitchSlider.setValue(AccessibilityOptions.getSpeechPitch());
+        if(magnifier.isStarted()) {
+            magnificationCheckBox.setSelected(true);
+        } else {
+            magnificationCheckBox.setSelected(false);
+        }
     }
 
     private void loadEngineVoices() {
@@ -272,6 +281,44 @@ public final class GeneralPanel extends javax.swing.JPanel {
         AccessibilityOptions.setSpeechVolume(volumeSlider.getValue());
         AccessibilityOptions.setSpeechPitch(pitchSlider.getValue());
         AccessibilityOptions.setSystemOptions();
+        
+        if(magnificationCheckBox.isSelected()) {
+            if(!magnifier.isStarted()) {
+                magnifier.start();
+            
+                // Should it be full screen?
+                magnifier.setFullScreen(MagnificationOptions.isFullscreenEnabled());
+
+                if (!MagnificationOptions.isFullscreenEnabled()) {
+                    magnifier.setSize(MagnificationOptions.getMagnifierHeight(), MagnificationOptions.getMagnifierWidth());
+                }
+
+            }
+            MagnificationOptions.setMagnificationEnabled(true);
+        } else {
+            if(!magnifier.isStarted()) {
+                magnifier.stop();
+            }
+            MagnificationOptions.setMagnificationEnabled(false);
+        }
+        
+//        if(magnifier.isStarted()) {
+//            magnifier.stop();
+//            
+//            // Update settings.
+//            MagnificationOptions.setMagnificationEnabled(false);
+//        } else {
+//            magnifier.start();
+//            
+//            // Should it be full screen?
+//            magnifier.setFullScreen(MagnificationOptions.isFullscreenEnabled());
+//            
+//            if (!MagnificationOptions.isFullscreenEnabled())
+//                magnifier.setSize(MagnificationOptions.getMagnifierHeight(), MagnificationOptions.getMagnifierWidth());
+//            
+//            // Update settings.
+//            MagnificationOptions.setMagnificationEnabled(true);
+//        }
     }
 
     boolean valid() {
