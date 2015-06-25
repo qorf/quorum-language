@@ -16,6 +16,25 @@ use Libraries.Game.Graphics.Painter
 use Libraries.Game.Shapes.Rectangle
 use Libraries.Compute.Math
 
+
+/*
+    The Item class represents any object that has a position in the game world.
+    They have X and Y coordinates, representing their horizontal and vertical
+    position in 2D space, respectively. They also have corresponding width and
+    height, which combine with the x, y coordinates to make a rectangle. Note
+    that Items on their own can't be seen on the screen. To make an Item that
+    can be drawn directly on the screen, use a Libraries.Game.Graphics.Drawable
+    instead.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        
+        myItem:SetPosition(20, 60)
+        myItem:SetWidth(50)
+        myItem:SetHeight(15)
+    */
 class Item 
 
     private number x = 0
@@ -86,73 +105,199 @@ class Item
     constant integer V4 = 19
 
     
+    /*
+    This action sets the X coordinate of the Item.
 
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetX(35.0)
+    */
     action SetX(number setX)
         TranslateX(setX - x)
     end
 
+    /*
+    This action sets the Y coordinate of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetY(210.0)
+    */
     action SetY(number setY)
         TranslateY(setY - y)
     end
 
+    /* An Item can also represent an object in three dimensional space, but 
+    currently this functionality is not supported. When it is, this action will
+    set the Z coordinate of the Item. */
     action SetZ(number newZ)
         z = newZ
     end
 
+    /*
+    This action returns the currently set X coordinate of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        number value = myItem:GetX()
+    */
     action GetX returns number
         return x
     end
 
+    /*
+    This action returns the currently set Y coordinate of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        number value = myItem:GetY()
+    */
     action GetY returns number
         return y
     end
 
+    /* An Item can also represent an object in three dimensional space, but 
+    currently this functionality is not supported. When it is, this action will
+    return the Z coordinate of the Item. */
     action GetZ returns number
         return z
     end
 
+    /*
+    This action will set both the X coordinate and the Y coordinate of the Item,
+    in that order.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetPosition(30, 70)
+    */
     action SetPosition(number setX, number setY)
         Translate(setX - GetX(), setY - GetY())
     end
 
+    /* An Item can also represent an object in three dimensional space, but 
+    currently this functionality is not supported. When it is, this action will
+    set the X, Y, and Z coordinates of the Item. */
     action SetPosition(number newX, number newY, number newZ)
         SetPosition(newX, newY)
         z = newZ
     end
 
+    /*
+    This action will set the width of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetWidth(50)
+    */
     action SetWidth(number newWidth)
         width = newWidth
     end
 
+    /*
+    This action will set the height of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetHeight(70)
+    */
     action SetHeight(number newHeight)
         height = newHeight
     end
 
+    /* An Item can also represent an object in three dimensional space, but 
+    currently this functionality is not supported. When it is, this action will
+    set the depth of the Item. */
     action SetDepth(number newDepth)
         depth = newDepth
     end
 
+    /*
+    This action will set the X coordinate of the Item so that the center of the
+    Item is aligned with the given X coordinate value.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetCenterX(70)
+    */
     action SetCenterX(number setX)
         SetX(setX - width / 2.0)
     end
 
+    /*
+    This action will set the Y coordinate of the Item so that the center of the
+    Item is aligned with the given Y coordinate value.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetCenterY(65)
+    */
     action SetCenterY(number setY)
         SetY(setY - height / 2.0)
     end
 
+    /*
+    This action will set the X and Y coordinates of the Item so that the center
+    of the Item is located at the given X, Y coordinates.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetCenter(70)
+    */
     action SetCenter(number setX, number setY)
         SetCenterX(setX)
         SetCenterY(setY)
     end
     
+    /*
+    This action will return the currently set width of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        number width = myItem:GetWidth()
+    */
     action GetWidth returns number
         return width
     end
 
+    /*
+    This action will return the currently set height of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        number height = myItem:GetHeight()
+    */
     action GetHeight returns number
         return height
     end
 
+    /* An Item can also represent an object in three dimensional space, but 
+    currently this functionality is not supported. When it is, this action will
+    return the currently set depth of the Item. */
     action GetDepth returns number
         return depth
     end
@@ -423,6 +568,10 @@ class Item
 
     action GetItemCount returns integer
         return children:GetSize()
+    end
+
+    action SetItem(integer index, Item newItem)
+        children:Set(index, newItem)
     end
 
     action IsEmpty returns boolean
