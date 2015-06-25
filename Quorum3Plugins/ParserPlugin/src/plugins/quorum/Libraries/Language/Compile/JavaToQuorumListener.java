@@ -13,6 +13,9 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import quorum.Libraries.Language.Compile.CompilerError;
+import quorum.Libraries.Language.Compile.CompilerErrorManager_;
+import quorum.Libraries.Language.Compile.CompilerErrorType;
 import quorum.Libraries.Language.Compile.Context.*;
 import quorum.Libraries.Language.Compile.QualifiedName;
 import quorum.Libraries.Language.Compile.QuorumSourceListener_;
@@ -33,19 +36,38 @@ public class JavaToQuorumListener implements QuorumListener {
     
     @Override
     public void enterDecimal(QuorumParser.DecimalContext ctx) {
-        double val = Double.parseDouble(ctx.DECIMAL().getText());
+        double value = 0.0;
         NumberContext context = new NumberContext();
-        context.Set_Libraries_Language_Compile_Context_NumberContext__value_(val);
         setLocation(ctx, context);
+        try {
+            value = Double.parseDouble(ctx.DECIMAL().getText());
+        } catch(NumberFormatException e) {
+            CompilerErrorManager_ manager = listener.GetCompilerErrorManager();
+            CompilerError error = new CompilerError();
+            CompilerErrorType type = new CompilerErrorType();
+            type.SetCurrentType(type.PARSER_NO_VIABLE_ALTERNATIVE);
+            error.SetCompilerErrorType(type);
+            error.SetLocation(context.GetLocation());
+            error.SetErrorMessage("The value of " + ctx.DECIMAL().getText() + " does not fit in a number. " +
+            "The range of a number is from " + Double.MIN_VALUE + " to " + Double.MAX_VALUE + ".");
+            manager.Add(error);
+        }
+        
+        context.Set_Libraries_Language_Compile_Context_NumberContext__value_(value);
         listener.EnterNumber(context);
     }
 
     @Override
     public void exitDecimal(QuorumParser.DecimalContext ctx) {
-        double val = Double.parseDouble(ctx.DECIMAL().getText());
+        double value = 0.0;
         NumberContext context = new NumberContext();
-        context.Set_Libraries_Language_Compile_Context_NumberContext__value_(val);
         setLocation(ctx, context);
+        try {
+            value = Double.parseDouble(ctx.DECIMAL().getText());
+        } catch(NumberFormatException e) {
+        }
+        
+        context.Set_Libraries_Language_Compile_Context_NumberContext__value_(value);
         listener.ExitNumber(context);
     }
 
@@ -943,10 +965,24 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void enterInteger(QuorumParser.IntegerContext ctx) {
-        int val = Integer.parseInt(ctx.INT().getText());
+        int value = 0;
         IntegerContext context = new IntegerContext();
-        context.Set_Libraries_Language_Compile_Context_IntegerContext__value_(val);
         setLocation(ctx, context);
+        try {
+            value = Integer.parseInt(ctx.INT().getText());
+        } catch(NumberFormatException e) {
+            CompilerErrorManager_ manager = listener.GetCompilerErrorManager();
+            CompilerError error = new CompilerError();
+            CompilerErrorType type = new CompilerErrorType();
+            type.SetCurrentType(type.PARSER_NO_VIABLE_ALTERNATIVE);
+            error.SetCompilerErrorType(type);
+            error.SetLocation(context.GetLocation());
+            error.SetErrorMessage("The value of " + ctx.INT().getText() + " does not fit in an integer. " +
+            "The range of an integer is from " + + Integer.MIN_VALUE + " to " + Integer.MAX_VALUE + ".");
+            manager.Add(error);
+        }
+        
+        context.Set_Libraries_Language_Compile_Context_IntegerContext__value_(value);
         listener.EnterInteger(context);
     }
 
@@ -973,10 +1009,15 @@ public class JavaToQuorumListener implements QuorumListener {
 
     @Override
     public void exitInteger(QuorumParser.IntegerContext ctx) {
-        int val = Integer.parseInt(ctx.INT().getText());
+        int value = 0;
         IntegerContext context = new IntegerContext();
-        context.Set_Libraries_Language_Compile_Context_IntegerContext__value_(val);
         setLocation(ctx, context);
+        try {
+            value = Integer.parseInt(ctx.INT().getText());
+        } catch(NumberFormatException e) {
+        }
+        
+        context.Set_Libraries_Language_Compile_Context_IntegerContext__value_(value);
         listener.ExitInteger(context);
     }
 
