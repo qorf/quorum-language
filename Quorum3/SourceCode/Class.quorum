@@ -1025,7 +1025,7 @@ class Class is Symbol
                 t:SetCurrentType(t:MISSING_USE)
                 error:SetCompilerErrorType(t)
                 error:SetErrorMessage("I could not locate a type named "
-                    +  key + ". Are you sure you spelled it correctly?" )
+                    +  key + ". Did you forget a use statement?" )
                 errors:Add(error)
             end
         end
@@ -1071,7 +1071,7 @@ class Class is Symbol
                 t:SetCurrentType(t:MISSING_USE)
                 error:SetCompilerErrorType(t)
                 error:SetErrorMessage("I could not locate a type named "
-                    +  key + ". Are you sure you spelled it correctly?" )
+                    +  key + ". Did you forget a use statement?" )
                 errors:Add(error)
             end
         end
@@ -1126,7 +1126,7 @@ class Class is Symbol
                 t:SetCurrentType(t:MISSING_USE)
                 error:SetCompilerErrorType(t)
                 error:SetErrorMessage("I could not locate a type named "
-                    +  key + ". Are you sure you spelled it correctly?" )
+                    +  key + ". Did you forget a use statement?" )
                 errors:Add(error)
             end
         end
@@ -1257,19 +1257,19 @@ class Class is Symbol
             return clazz
         end
 
-        if clazz = undefined
-            CompilerError error
-            CompilerErrorType t
-            t:SetCurrentType(t:MISSING_USE)
-            error:SetCompilerErrorType(t)
-            text a = ""
-            a = a:GetDoubleQuote()
-            key  = GetStaticKey()
-            error:SetErrorMessage("The class name " + a + key + a + 
-                " could not be found. Did you forget a use statement?") 
-            error:SetLocation(me)
-            errors:Add(error)
-        end
+//        if clazz = undefined
+//            CompilerError error
+//            CompilerErrorType t
+//            t:SetCurrentType(t:MISSING_USE)
+//            error:SetCompilerErrorType(t)
+//            text a = ""
+//            a = a:GetDoubleQuote()
+//            from = GetStaticKey()
+//            error:SetErrorMessage("The class name " + a + key + a + 
+//                " could not be found from the class " + from + ". Did you forget a use statement?") 
+//            error:SetLocation(me)
+//            errors:Add(error)
+//        end
         //if we still have not found the class, then it cannot be found, 
         //which is an error
         return undefined

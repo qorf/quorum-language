@@ -2404,15 +2404,15 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitCast(CastContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Peek()
         Operation op
         op:SetOperation(op:CAST)
 
         Type left = context:type //this has to be resolved
+        if left = undefined
+            return now //An error has already been issued.
+        end
         currentClass:ResolveType(context:GetLocation(), left, GetSymbolTable(), GetCompilerErrorManager())
 
         TypeCheckResult result = checker:Check(left, right:GetType(), op)
@@ -2433,13 +2433,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
     end
 
-
-    
-
     action ExitInequality(InequalityContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()
         QuorumOpcode left = opcodeStack:Pop()
@@ -2452,6 +2446,10 @@ class QuorumBytecodeListener is QuorumSourceListener
             add:SetOperation(add:LESS)
         elseif context:isLessEquals
             add:SetOperation(add:LESS_EQUALS)
+        end
+
+        if left = undefined or right = undefined
+            return now
         end
         
         TypeCheckResult result = checker:Check(left:GetType(), right:GetType(), add)
@@ -2473,9 +2471,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitEquals (EqualsContext context)
-//        if HasErrors() 
-//            return now
-//        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()
         QuorumOpcode left = opcodeStack:Pop()
@@ -2514,9 +2509,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action DoAndOr(AndOrContext context)
-//        if HasErrors() 
-//            return now
-//        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()
         QuorumOpcode left = opcodeStack:Pop()
@@ -2571,9 +2563,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitMultiplication(MultiplicationContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()
         QuorumOpcode left = opcodeStack:Pop()
@@ -2609,9 +2598,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitAddition(AdditionContext addition) 
-//        if HasErrors() 
-//            return now
-//        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode right = opcodeStack:Pop()
         QuorumOpcode left = opcodeStack:Pop()
@@ -2645,9 +2631,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitMinus(UnaryMinusContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode left = opcodeStack:Pop()
 
@@ -2676,9 +2659,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitNot(NotContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         TypeChecker checker = GetTypeChecker()
         QuorumOpcode left = opcodeStack:Pop()
 
@@ -2707,9 +2687,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitMe(MeContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         MeOpcode opcode
         opcode:SetLocation(context:GetLocation())
         opcode:SetMethodWriter(methodWriter)
@@ -2718,9 +2695,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitInput(InputContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         InputOpcode opcode
         opcode:SetLocation(context:GetLocation())
         opcode:SetMethodWriter(methodWriter)
@@ -2729,6 +2703,10 @@ class QuorumBytecodeListener is QuorumSourceListener
         type:SetToText()
         opcode:SetType(type)
         QuorumOpcode op = opcodeStack:Pop()
+
+        if op = undefined
+            return now
+        end
 
         //check if it's either text or undefined
         Type returnedType = op:GetType()
@@ -2750,9 +2728,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitInputNoParameters(InputContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         InputOpcode opcode
         opcode:SetLocation(context:GetLocation())
         opcode:SetMethodWriter(methodWriter)
@@ -2764,9 +2739,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitUndefined(UndefinedContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         Type type
         type:SetIsConstant(true)
         type:SetToUndefined()
@@ -2779,9 +2751,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitInteger(IntegerContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         Type type
         type:SetIsConstant(true)
         type:SetIntegerConstant(context:value)

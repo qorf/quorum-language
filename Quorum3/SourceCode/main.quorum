@@ -26,13 +26,13 @@ class Main is WebResponder
     HashTable<text, Array<text>> flagValues
 
     action Main
-        ProcessConsoleFlags()
+        //ProcessConsoleFlags()
         //GenerateDocumentation()
         //CompileRepeatTest()
         //CompileCodeCompletionTest()
         //ProfileTest()
         //ProfileWeb()
-        //CompileHardcodedFile()
+        CompileHardcodedFile()
         //CompileCompiler()
         //CompileSingleTest()
         //CompileGameEngine()
@@ -281,11 +281,11 @@ class Main is WebResponder
         compiler:SetOutputFolder(root)
         File main
         //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication2/SourceCode/")
-        main:SetPath("Library/Tests/Inheritance/Fail/ParentActionNotExist.quorum")
+        main:SetPath("Library/Tests/Use/Fail/FailNicely.quorum")
         //main:SetPath("main.quorum")
 
         File class2
-        class2:SetPath("Library/Tests/Inheritance/Fail/A.quorum")
+        class2:SetPath("Library/Tests/Actions/Fail/A.quorum")
         
         File class3
         class3:SetPath("Library/Tests/Inheritance/Fail/ForgotBlueprint.quorum")
@@ -298,7 +298,7 @@ class Main is WebResponder
         Array<File> files
 
         files:Add(main)
-        files:Add(class2)
+        //files:Add(class2)
         //files:Add(class3)
         //files:Add(class4)
         //files:Add(class5)
