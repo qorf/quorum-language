@@ -1,7 +1,101 @@
 package Libraries.Robots.Lego
 
+/*
+This class is an object representation of the LEGO EV3 Mindstorms Touch Sensor.
+It is used to detect when the sensor is pressed in.
+Generally, this button is pressed in by the user to tell the robot to perform some other action.
+
+Attribute: Author Evan Pierzina
+
+Attribute: Example
+TouchSensor touchSensor
+Sound sound
+Motor motor
+Utility utility
+
+touchSensor:SetPort(touchSensor:PORT_2)
+motor:SetSpeed(motor:MOTOR_B, 480)      //two motors used to move the robot
+motor:SetSpeed(motor:MOTOR_C, 480)
+repeat while true
+    if touchSensor:IsPressed
+        motor:Synchronize(motor:MOTOR_B, motor:MOTOR_C)
+        motor:RotateByDegrees(motor:MOTOR_B, 1440)
+        motor:RotateByDegrees(motor:MOTOR_C, 1440)
+        motor:EndSynchronization(motor:MOTOR_B)         //robot will move forward if button was pressed
+    else
+        sound:Beep()    //robot will beep if the button was not pressed in
+    end
+    utlity:DelayMilliseconds(1000)  //check if the button is pressed in every second
+end
+*/
+
 class TouchSensor
+    public constant integer PORT_1 = 1
+    public constant integer PORT_2 = 2
+    public constant integer PORT_3 = 3
+    public constant integer PORT_4 = 4
+    
+    /*
+    This action lets the program know which port on the robot that the touch sensor being used is plugged into.
+    As such, this action must be called before any other action in the TouchSensor class will work.
+    
+    Attribute: Parameter portNumber specifies the port on the robot that the touch sensor is plugged into.
+    The port number corresponds to the actual number printed above the port on the EV3 brick. Valid port numbers are 1, 2, 3 or 4.
+    There are class variables that correspond to the valid ports.
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    TouchSensor touchSensor
+    Motor motor
+    Utility utility
+
+    touchSensor:SetPort(touchSensor:PORT_3)
+    motor:SetSpeed(motor:MOTOR_B, 480)      //two motors used to move the robot
+    motor:SetSpeed(motor:MOTOR_C, 480)
+    integer buttonPressCount = 0
+    repeat while true
+        if touchSensor:IsPressed            //only changes robot behavior when pressed
+            buttonPressCount = (buttonPressCount + 1) % 2   //keeps the count at either 0 or 1
+            if buttonPressCount = 1
+               motor:MoveForward(motor:MOTOR_B)
+               motor:MoveBackward(motor:MOTOR_C)    //spin in a certain direction
+            else    //buttonPressCount = 0
+               motor:MoveBackward(motor:MOTOR_B)
+               motor:MoveForward(motor:MOTOR_C)     //spin in the opposite direction
+            
+            end
+        end
+        utlity:DelayMilliseconds(1000)  //check if the button is pressed in every second
+    end
+    */
+    
     system action SetPort(integer portNumber)
+    
+    /*
+    This action checks if the touch sensor is currently pressed in or not.
+    
+    Attribute: Returns a bollean value indicating whether the button is pressed in (true) or not pressed in (false).
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    TouchSensor touchSensor
+    Button button
+    Utility utility
+
+    touchSensor:SetPort(touchSensor:PORT_1)
+    integer lightColor = 0
+    repeat while true
+        if touchSensor:IsPressed
+            lightColor = lightColor + 1                 //update the light color
+            button:SetLightPattern(lightColor % 3 + 1)    //sets the pattern to either 1, 2, or 3 which corresponds to a solid green, red, or orange light, respectively
+        else
+            button:SetLightPattern(button:NO_LIGHT)         //turn off the light when the button is not pressed in
+        end
+        utlity:DelayMilliseconds(100)  //check if the button is pressed in every 100 milliseconds
+    end
+    */
+    
     system action IsPressed returns boolean
-    //RobotC has a method to keep count of the times pressed
 end
