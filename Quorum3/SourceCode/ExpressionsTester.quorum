@@ -113,11 +113,13 @@ class ExpressionsTester
         BlueprintMain()
         ChangeConstant()
         ChangeConstantField()
+        FatInteger()
         DuplicateClassTest()
         InvalidExpression()
         InvalidVariableName()
         MainNotCapitalized()
         NoVariable()
+        NoVariable2()
         SetInitialize()
         VariableNamedAsKeyword()
         WeirdText()
@@ -1276,6 +1278,15 @@ class ExpressionsTester
         suite:TestJavaScriptFail(files)
     end
 
+    action FatInteger
+        Array<File> files
+        File main
+        main:SetPath(path + "FatInteger.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
     action InvalidExpression
         Array<File> files
         File main
@@ -1307,6 +1318,15 @@ class ExpressionsTester
         Array<File> files
         File main
         main:SetPath(path + "NoVariable.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action NoVariable2
+        Array<File> files
+        File main
+        main:SetPath(path + "NoVariable2.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
