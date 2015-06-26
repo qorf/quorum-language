@@ -31,7 +31,11 @@ class MeOpcode is QuorumOpcode
         methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
         //load the class's hidden variable field.
         //the inheritance system needs to be finished before this can be completed
-        
+        text hidden = this:GetHiddenVariableName()
+        text converted = this:ConvertStaticKeyToBytecodePath()
+        text convertedParentNameType = this:ConvertStaticKeyToBytecodePathTypeName()
+        text convertedHiddenType = this:ConvertStaticKeyToBytecodePathTypeNameInterface()
+        methodWriter:VisitField(opcodes:GetGetField(), converted, hidden, convertedHiddenType)
     end
 
     action WriteJavaScript returns text
