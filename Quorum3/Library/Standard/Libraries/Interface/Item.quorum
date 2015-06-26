@@ -18,7 +18,7 @@ use Libraries.Compute.Math
 
 
 /*
-    The Item class represents any object that has a position in the game world.
+    The Item class represents any object that has a position on the screen.
     They have X and Y coordinates, representing their horizontal and vertical
     position in 2D space, respectively. They also have corresponding width and
     height, which combine with the x, y coordinates to make a rectangle. Note
@@ -302,6 +302,16 @@ class Item
         return depth
     end
 
+    /* This action sets the X offset of the item. The offset tells the Item
+    where to relate its X position to. In other words, the X offset is where an
+    X coordinate of 0 is for this Item. 
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetOffsetX(100)
+    */
     action SetOffsetX(number xAmount)
         if xAmount not= offsetX and verticesChanged = false
             number adjust = xAmount - offsetX
@@ -320,6 +330,16 @@ class Item
         end
     end
 
+    /* This action sets the Y offset of the item. The offset tells the Item
+    where to relate its Y position to. In other words, the Y offset is where an
+    Y coordinate of 0 is for this Item. 
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetOffsetY(75)
+    */
     action SetOffsetY(number yAmount)
         if yAmount not= offsetY and verticesChanged = false
             number adjust = yAmount - offsetY
@@ -338,6 +358,14 @@ class Item
         end
     end
 
+    /* This action will set both the X and Y offsets of the Item, respectively.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetOffset(100, 75)
+    */
     action SetOffset(number xAmount, number yAmount)
         if (xAmount not= offsetX or yAmount not= offsetY) and verticesChanged = false
             Array<number> vertices = GetVertices()
@@ -367,89 +395,244 @@ class Item
         end
     end
 
+    /* This action adds a MouseListener to the Item. If the Item ever receives
+    a MouseEvent due to a mouse click, the mouse listener will be notified.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.MouseListener
+        Item myItem
+        MouseListener listener
+        myItem:AddMouseListener(listener)
+    */
     action AddMouseListener(MouseListener listener)
         mouseListeners:Add(listener)
     end
 
+    /* This action removes a MouseListener from the Item. The listener will no
+    longer receive notification if the Item gets a mouse click event.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.MouseListener
+        Item myItem
+        MouseListener listener
+        myItem:AddMouseListener(listener)
+        myItem:RemoveMouseListener(listener)
+    */
     action RemoveMouseListener(MouseListener listener)
         mouseListeners:Remove(listener)
     end
 
+    /* This action adds a MouseMovementListener to the Item. If the Item ever 
+    receives a MouseEvent due to mouse movement, the listener will be notified.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.MouseMovementListener
+        Item myItem
+        MouseMovementListener listener
+        myItem:AddMouseMovementListener(listener)
+    */
     action AddMouseMovementListener(MouseMovementListener listener)
         mouseMoveListeners:Add(listener)
     end
 
+    /* This action removes a MouseMovementListener from the Item. The listener 
+    will no longer receive notification if the Item gets a mouse movement event.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.MouseMovementListener
+        Item myItem
+        MouseMovementListener listener
+        myItem:AddMouseMovementListener(listener)
+        myItem:RemoveMouseMovementListener(listener)
+    */
     action RemoveMouseMovementListener(MouseMovementListener listener)
         mouseMoveListeners:Remove(listener)
     end
 
+    /* This action adds a MouseWheelListener to the Item. If the Item ever 
+    receives a MouseEvent due to the mouse wheel being scrolled, the listener
+    will be notified.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.MouseWheelListener
+        Item myItem
+        MouseWheelListener listener
+        myItem:AddMouseWheelListener(listener)
+    */
     action AddMouseWheelListener(MouseWheelListener listener)
         mouseWheelListeners:Add(listener)
     end
 
+    /* This action removes a MouseWheelListener from the Item. The listener 
+    will no longer receive notification if the Item gets a mouse wheel event.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.MouseWheelListener
+        Item myItem
+        MouseWheelListener listener
+        myItem:AddMouseWheelListener(listener)
+        myItem:RemoveMouseWheelListener(listener)
+    */
     action RemoveMouseWheelListener(MouseWheelListener listener)
         mouseWheelListeners:Remove(listener)
     end
 
+    /* This action adds a KeyboardListener to the Item. Any time this Item
+    receives a KeyboardEvent, all of the KeyboardListeners will be notified.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.KeyboardListener
+        Item myItem
+        KeyboardListener listener
+        myItem:AddKeyboardListener(listener)
+    */
     action AddKeyboardListener(KeyboardListener listener)
         keyboardListeners:Add(listener)
     end
 
+    /* This action removes a KeyboardListener from the Item. The listener will
+    no longer receive any notification if the Item gets a KeyboardEvent.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.KeyboardListener
+        Item myItem
+        KeyboardListener listener
+        myItem:AddKeyboardListener(listener)
+    */
     action RemoveKeyboardListener(KeyboardListener listener)
         keyboardListeners:Remove(listener)
     end
 
+    /* In the future, Items will support touch functionality, but this is not
+    currently supported. When it is, this will add a TouchListener to the Item. */
     action AddTouchListener(TouchListener listener)
         touchListeners:Add(listener)
     end
 
+    /* In the future, Items will support touch functionality, but this is not
+    currently supported. When it is, this will remove a TouchListener from the
+    Item. */
     action RemoveTouchListener(TouchListener listener)
         touchListeners:Remove(listener)
     end
 
+    /*  This action takes a mouse event and handles it. It will look first to
+    see if any of the items that were added to this Item contain the coordinates
+    of the mouse event, and if one does, it will let that Item process it. If no
+    child Item is found that contains it, it will send the event to the
+    appropriate mouse event listeners that have been added to this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.MouseEvent
+        use Libraries.Interface.Events.MouseListener
+        Item myItem
+        MouseListener listener
+        myItem:AddMouseListener(listener)
+        MouseEvent event
+        event:eventType = event:CLICKED_MOUSE
+        myItem:ProcessMouseEvent(event)
+    
+    */
     action ProcessMouseEvent(MouseEvent event)
-        
-        Item temp = GetItemAt(event:GetX(), event:GetY())
-        if temp not= undefined and temp not= me
-            temp:ProcessMouseEvent(event)
-        
-            if event:WasEventHandled()
-                return now
+
+        if not Contains(event:GetX(), event:GetY())
+            if parentItem not= undefined
+                parentItem:ProcessMouseEvent(event)
             end
+            
+            return now
         end
 
         if event:eventType = event:MOVED_MOUSE
             Iterator<MouseMovementListener> iterator = mouseMoveListeners:GetIterator()
+            if iterator:HasNext()
+                event:SetEventHandled(true)
+            end
+
             repeat while iterator:HasNext()
                 iterator:Next():MovedMouse(event)
             end
 
         elseif event:eventType = event:DRAGGED_MOUSE
             Iterator<MouseMovementListener> iterator = mouseMoveListeners:GetIterator()
+            if iterator:HasNext()
+                event:SetEventHandled(true)
+            end
+
             repeat while iterator:HasNext()
                 iterator:Next():DraggedMouse(event)
             end
 
         elseif event:eventType = event:CLICKED_MOUSE
             Iterator<MouseListener> iterator = mouseListeners:GetIterator()
+            if iterator:HasNext()
+                event:SetEventHandled(true)
+            end
+
             repeat while iterator:HasNext()
                 iterator:Next():ClickedMouse(event)
             end
 
         elseif event:eventType = event:RELEASED_MOUSE
             Iterator<MouseListener> iterator = mouseListeners:GetIterator()
+            if iterator:HasNext()
+                event:SetEventHandled(true)
+            end
+
             repeat while iterator:HasNext()
                 iterator:Next():ReleasedMouse(event)
             end
 
         elseif event:eventType = event:SCROLLED_MOUSE
             Iterator<MouseWheelListener> iterator = mouseWheelListeners:GetIterator()
+            if iterator:HasNext()
+                event:SetEventHandled(true)
+            end
+
             repeat while iterator:HasNext()
                 iterator:Next():ScrolledMouse(event)
             end
         end
+
+        if not event:WasEventHandled() and parentItem not= undefined
+            parentItem:ProcessMouseEvent(event)
+        end
     end
 
+    /*  This action takes a keyboard event and passes it to all KeyboardListeners
+    that were added to this Item. 
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.KeyboardEvent
+        use Libraries.Interface.Events.KeyboardListener
+        Item myItem
+        KeyboardListener listener
+        myItem:AddKeyboardListener(listener)
+        KeyboardEvent event
+        event:eventType = event:PRESSED_KEY
+        myItem:ProcessKeyboardEvent(event)
+    
+    */
     action ProcessKeyboardEvent(KeyboardEvent event)
         
         Iterator<KeyboardListener> iterator = keyboardListeners:GetIterator()
@@ -467,14 +650,73 @@ class Item
 
     end
 
+    /* In the future, Items will support touch functionality, but this is not
+    currently supported. When it is, this will send a TouchEvent to all of the
+    TouchListeners that have been added to this Item. */
     action ProcessTouchEvent(TouchEvent event)
         // NOT YET IMPLEMENTED
     end
 
+    /*  This action updates the item. It takes a number parameter that should
+    indicate how many seconds have passed since the last time this action was
+    called. This action does nothing in the Item class, but any class that
+    inherits from Item may override it.
+
+    Attribute: Parameter secondsSinceUpdate The number of seconds that have passed since the last time Update was called.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.System.DateTime
+        
+        class Main is Item
+
+            action Main
+                // We'll use a DateTime object to count seconds.
+                DateTime time
+                number currentTime = time:GetEpochTime()
+                number newTime = 0
+
+                repeat while GetX() < 300
+                    // Check what the time is now.
+                    newTime = time:GetEpochTime()
+
+                    // Calculate how many seconds have passed, then call Update.
+                    Update( (newTime - currentTime)/1000 )
+
+                    // Store the old time.
+                    currentTime = newTime
+                end
+            end
+
+            // Our update action will move our Item to the right at 200 units a second.
+            action Update(number secondsSinceUpdate)
+                SetX(GetX() + 200 * secondsSinceUpdate)
+                output "Our item is now at " + GetX()
+            end
+        end
+    
+    */
     action Update(number secondsSinceUpdate)
 
     end
 
+    /*  This action calls the Update action on this Item and all Items that have
+    been added to this item with the Add action.
+
+    Attribute: Parameter secondsSinceUpdate The number of seconds that have passed since the last time Update was called.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item parent
+        Item child1
+        Item child2
+        parent:Add(child1)
+        parent:Add(child2)
+        parent:UpdateAll(0)
+    */
     action UpdateAll(number secondsSinceUpdate)
         Update(secondsSinceUpdate)
 
@@ -486,42 +728,164 @@ class Item
         end
     end
 
+    /*  This action is used to indicate that two items have just begun colliding.
+    When two Items collide, the BeginCollision action should be called on both
+    of them, with the other item passed as a parameter to the action. Note that 
+    this action does nothing by default, but classes that inherit from Item may 
+    override it.
+
+    Attribute: Parameter item The other Item involved in the collision.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item collider1
+        Item collider2
+        collider1:BeginCollision(collider2)
+        collider2:BeginCollision(collider1)
+    */
     action BeginCollision(Item item)
         
     end
 
+    /*  This action is used to indicate that two items that were previously
+    colliding no longer are. The FinishCollision action should be called on both
+    Items involved, with the other item passed as a parameter to the action. 
+    Note that this action does nothing by default, but classes that inherit from
+    Item may override it.
+
+    Attribute: Parameter item The other Item involved in the collision.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item collider1
+        Item collider2
+        collider1:FinishCollision(collider2)
+        collider2:FinishCollision(collider1)
+    */
     action FinishCollision(Item item)
 
     end
 
+    /*  This action is used to indicate that an Item and all Items that were
+    added to it should be visible on the screen. Note that the Item class on its
+    own cannot be drawn on the screen, but classes that inherit from it such as
+    Libraries.Game.Graphics.Drawable can be. By default, Items are considered
+    visible.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item item
+        item:Show()
+    */
     action Show
         visible = true
     end
 
+    /*  This action is used to indicate that an Item and all Items that were
+    added to it should not be visible on the screen. Note that the Item class on
+    its own cannot be drawn on the screen, but classes that inherit from it such
+    as Libraries.Game.Graphics.Drawable can be. By default, Items are considered
+    visible.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item item
+        item:Hide()
+    */
     action Hide
         visible = false
     end
 
+    /*  This action returns whether the Item is currently set to be visible on
+    the screen.
+
+    Attribute: Returns A boolean representing whether or not the Item is currently visible.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item item
+        item:Hide()
+        boolean visible = item:IsShowing()
+    */
     action IsShowing returns boolean
         return visible
     end
 
+    /*  This action indicates that an Item should currently be active. Items are
+    set to enabled by default.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item item
+        item:Enable()
+    */
     action Enable
         enabled = true
     end
 
+    /*  This action indicates that an Item should currently be inactive. Items
+    are set to enabled by default.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item item
+        item:Disable()
+    */
     action Disable
         enabled = false
     end
 
+    /*  This action returns whether or not the Item is currently enabled.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item item
+        item:Disable()
+        boolean active = item:IsEnabled()
+    */
     action IsEnabled returns boolean
         return enabled
     end
 
+    /*  This action sets the internal name of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item item
+        item:SetName("My Item")
+    */
     action SetName(text newName)
         name = newName
     end
 
+    /*  This action returns the current internal name of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item item
+        item:SetName("My Item")
+        output "My item's name is " + item:GetName()
+    */
     action GetName returns text
         return name
     end
@@ -530,10 +894,37 @@ class Item
         parentItem = newItem
     end
 
+    /*  This action returns the parent of this Item. An Item gets a parent when
+    it is added to another Item using the Add action.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item parent
+        Item child
+        parent:Add(child)
+        Item item = child:GetParent()
+        
+    */
     action GetParent returns Item
         return parentItem
     end
 
+    /*  This action adds a different Item into this one. This makes a few things happen.
+        1. The added item will get this item as its parent.
+        2. The added item's x and y coordinates will become relative to this Item.
+        3. Most actions on this Item will also effect the added Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item parent
+        Item child
+        parent:Add(child)
+        
+    */
     action Add(Item newItem)
         children:Add(newItem)
         newItem:SetParent(me)
@@ -541,6 +932,18 @@ class Item
         newItem:SetOffset(x + offsetX, y + offsetY)
     end
 
+    /*  This action adds a different Item into this one, storing the added Item
+    at a specific index in the internal array.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item parent
+        Item child
+        parent:Add(child, 0)
+        
+    */
     action Add(Item newItem, integer index)
         children:Add(index, newItem)
         newItem:SetParent(me)
@@ -548,13 +951,42 @@ class Item
         newItem:SetOffset(x + offsetX, y + offsetY)
     end
 
+    /*  This action removes an Item that was previously added to this Item. 
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item parent
+        Item child1
+        Item child2
+        parent:Add(child1)
+        parent:Add(child2)
+        parent:Remove(child1)
+    */
     action Remove(Item removed) returns boolean
         boolean success = children:Remove(removed)
+        removed:SetParent(undefined)
         return success
     end
 
+    /*  This action removes an Item that was previously added to this Item by
+    finding it at the given index in the internal array of children Items.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item parent
+        Item child1
+        Item child2
+        parent:Add(child1)
+        parent:Add(child2)
+        parent:Remove(0)
+    */
     action Remove(integer index) returns Item
         Item temp = children:RemoveAt(index)
+        temp:SetParent(undefined)
         return temp
     end
 
@@ -579,7 +1011,9 @@ class Item
     end
 
     // NOTE: This simple implementation of Contains uses the UNROTATED Item box!
-    action Contains(number testX, number testY) returns boolean
+    action Contains(number containsX, number containsY) returns boolean
+        number testX = containsX - offsetX
+        number testY = containsY - offsetY
         return testX >= x and testX <= x + width and testY >= y and testY <= y + height
     end
 

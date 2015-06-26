@@ -33,10 +33,7 @@ class TextBox is Panel, KeyboardListener
     end
 
     action Initialize(number width, number height)
-        SetWidth(width)
-        SetHeight(height)
-        EnableBackground()
-        EnableBorder()
+        parent:Panel:Initialize(width, height)
         
         integer spacing = response:GetLineHeight() / 4
 

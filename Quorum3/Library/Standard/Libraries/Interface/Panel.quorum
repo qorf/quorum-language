@@ -17,6 +17,14 @@ class Panel is Item
         backgroundColor = backgroundColor:LightGray()
     end
 
+    action Initialize(number width, number height)
+        SetWidth(width)
+        SetHeight(height)
+        EnableBackground()
+        EnableBorder()
+        SetName("Panel")
+    end
+
     action EnableBackground
         if hasBackground = true
             return now
