@@ -1541,6 +1541,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         Operation assign
         assign:SetOperation(assign:EQUALS)
 
+        if right = undefined
+            return now
+        end
         TypeCheckResult result = checker:Check(left, right:GetType(), undefined, true) 
 
         if result:errorType = undefined

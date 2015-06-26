@@ -1972,8 +1972,14 @@ class Class is Symbol
             end
 
             if actual = undefined
-                a = 5
+                TypeCheckResult result2
+                CompilerErrorType type
+                type:SetCurrentType(type:MISSING_VARIABLE)
+                result2:errorMessage = "A formal parameter with generic name " + formal:GetMappedGeneric() + " is missing."
+                result2:errorType = type
+                return result2
             end
+
             if actual:IsPrimitive()
                 //if we have a primitive type that we're calling to, 
                 //we need to do something special to ensure the generic

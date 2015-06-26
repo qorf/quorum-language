@@ -48,6 +48,7 @@ class TemplatingTester
 //FAIL TESTS
         path = failPath
         ArrayFilledWithWrongType()
+        BadGeneric()
         DefineTypeOfUntemplatedClass_10()
         DiamondProblemWithTwoTypes_9()
         DiamondProblemWithTwoTypes_10()
@@ -491,6 +492,15 @@ class TemplatingTester
 
         suite:TestFail(files)
     end
+
+    action BadGeneric
+        Array<File> files
+        File main
+        main:SetPath(path + "BadGeneric.quorum")
+        files:Add(main)
+
+        suite:TestFail(files)
+    end 
 
     action DefineTypeOfUntemplatedClass_10()
         Array<File> files
