@@ -39,7 +39,7 @@ import org.xml.sax.InputSource;
 
 // TODO define position attribute
 @TemplateRegistration(folder = "Project/Quorum", displayName = "#BlankQuorumApplication_displayName", description = "BlankQuorumApplicationDescription.html", iconBase = "org/quorum/projects/samples/blank/BlankQuorumApplication.png", content = "BlankQuorumApplicationProject.zip")
-@Messages("BlankQuorumApplication_displayName=Blank Quorum Application")
+@Messages("BlankQuorumApplication_displayName=Blank Application")
 public class BlankQuorumApplicationWizardIterator implements WizardDescriptor./*Progress*/InstantiatingIterator {
 
     private int index;

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.quorum.projects.samples.web;
+package org.quorum.projects.samples.games;
 
 import java.io.File;
 import javax.swing.JFileChooser;
@@ -16,13 +16,13 @@ import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
 import org.openide.filesystems.FileUtil;
 
-public class QuorumWebPanelVisual extends JPanel implements DocumentListener {
+public class GameApplicationPanelVisual extends JPanel implements DocumentListener {
 
     public static final String PROP_PROJECT_NAME = "projectName";
 
-    private QuorumWebWizardPanel panel;
+    private GameApplicationWizardPanel panel;
 
-    public QuorumWebPanelVisual(QuorumWebWizardPanel panel) {
+    public GameApplicationPanelVisual(GameApplicationWizardPanel panel) {
         initComponents();
         this.panel = panel;
         // Register listener on the textFields to make the automatic updates
@@ -51,13 +51,13 @@ public class QuorumWebPanelVisual extends JPanel implements DocumentListener {
         createdFolderTextField = new javax.swing.JTextField();
 
         projectNameLabel.setLabelFor(projectNameTextField);
-        org.openide.awt.Mnemonics.setLocalizedText(projectNameLabel, org.openide.util.NbBundle.getMessage(QuorumWebPanelVisual.class, "QuorumWebPanelVisual.projectNameLabel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(projectNameLabel, org.openide.util.NbBundle.getMessage(GameApplicationPanelVisual.class, "GameApplicationPanelVisual.projectNameLabel.text")); // NOI18N
 
         projectLocationLabel.setLabelFor(projectLocationTextField);
-        org.openide.awt.Mnemonics.setLocalizedText(projectLocationLabel, org.openide.util.NbBundle.getMessage(QuorumWebPanelVisual.class, "QuorumWebPanelVisual.projectLocationLabel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(projectLocationLabel, org.openide.util.NbBundle.getMessage(GameApplicationPanelVisual.class, "GameApplicationPanelVisual.projectLocationLabel.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(browseButton, org.openide.util.NbBundle.getMessage(QuorumWebPanelVisual.class, "QuorumWebPanelVisual.browseButton.text")); // NOI18N
-        browseButton.setActionCommand(org.openide.util.NbBundle.getMessage(QuorumWebPanelVisual.class, "QuorumWebPanelVisual.browseButton.actionCommand")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(browseButton, org.openide.util.NbBundle.getMessage(GameApplicationPanelVisual.class, "GameApplicationPanelVisual.browseButton.text")); // NOI18N
+        browseButton.setActionCommand(org.openide.util.NbBundle.getMessage(GameApplicationPanelVisual.class, "GameApplicationPanelVisual.browseButton.actionCommand")); // NOI18N
         browseButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 browseButtonActionPerformed(evt);
@@ -65,7 +65,7 @@ public class QuorumWebPanelVisual extends JPanel implements DocumentListener {
         });
 
         createdFolderLabel.setLabelFor(createdFolderTextField);
-        org.openide.awt.Mnemonics.setLocalizedText(createdFolderLabel, org.openide.util.NbBundle.getMessage(QuorumWebPanelVisual.class, "QuorumWebPanelVisual.createdFolderLabel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(createdFolderLabel, org.openide.util.NbBundle.getMessage(GameApplicationPanelVisual.class, "GameApplicationPanelVisual.createdFolderLabel.text")); // NOI18N
 
         createdFolderTextField.setEditable(false);
 
@@ -210,7 +210,7 @@ public class QuorumWebPanelVisual extends JPanel implements DocumentListener {
 
         String projectName = (String) settings.getProperty("name");
         if (projectName == null) {
-            projectName = "QuorumWeb";
+            projectName = "GameApplication";
         }
         this.projectNameTextField.setText(projectName);
         this.projectNameTextField.selectAll();

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.quorum.projects.samples.web;
+package org.quorum.projects.samples.games;
 
 import java.awt.Component;
 import java.io.ByteArrayInputStream;
@@ -38,29 +38,29 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 // TODO define position attribute
-@TemplateRegistration(folder = "Project/Quorum", displayName = "#QuorumWeb_displayName", description = "QuorumWebDescription.html", iconBase = "org/quorum/projects/samples/web/QuorumWeb.png", content = "QuorumWebProject.zip")
-@Messages("QuorumWeb_displayName=Quorum Web Application")
-public class QuorumWebWizardIterator implements WizardDescriptor./*Progress*/InstantiatingIterator {
+@TemplateRegistration(folder = "Project/Quorum", displayName = "#GameApplication_displayName", description = "GameApplicationDescription.html", iconBase = "org/quorum/projects/samples/games/GameApplication.png", content = "GameApplicationProject.zip")
+@Messages("GameApplication_displayName=Game Application")
+public class GameApplicationWizardIterator implements WizardDescriptor./*Progress*/InstantiatingIterator {
 
     private int index;
     private WizardDescriptor.Panel[] panels;
     private WizardDescriptor wiz;
 
-    public QuorumWebWizardIterator() {
+    public GameApplicationWizardIterator() {
     }
 
-    public static QuorumWebWizardIterator createIterator() {
-        return new QuorumWebWizardIterator();
+    public static GameApplicationWizardIterator createIterator() {
+        return new GameApplicationWizardIterator();
     }
 
     private WizardDescriptor.Panel[] createPanels() {
         return new WizardDescriptor.Panel[]{
-            new QuorumWebWizardPanel(),};
+            new GameApplicationWizardPanel(),};
     }
 
     private String[] createSteps() {
         return new String[]{
-            NbBundle.getMessage(QuorumWebWizardIterator.class, "LBL_CreateProjectStep")
+            NbBundle.getMessage(GameApplicationWizardIterator.class, "LBL_CreateProjectStep")
         };
     }
 

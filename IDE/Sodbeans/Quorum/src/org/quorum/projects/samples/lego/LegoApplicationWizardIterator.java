@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.quorum.projects.samples.application;
+package org.quorum.projects.samples.lego;
 
 import java.awt.Component;
 import java.io.ByteArrayInputStream;
@@ -38,29 +38,29 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 // TODO define position attribute
-@TemplateRegistration(folder = "Project/Quorum", displayName = "#QuorumApplication_displayName", description = "QuorumApplicationDescription.html", iconBase = "org/quorum/projects/samples/application/QuorumApplication.png", content = "QuorumApplicationProject.zip")
-@Messages("QuorumApplication_displayName=Application")
-public class QuorumApplicationWizardIterator implements WizardDescriptor./*Progress*/InstantiatingIterator {
+@TemplateRegistration(folder = "Project/Quorum", displayName = "#LegoApplication_displayName", description = "LegoApplicationDescription.html", iconBase = "org/quorum/projects/samples/lego/LegoApplication.png", content = "LegoApplicationProject.zip")
+@Messages("LegoApplication_displayName=Lego Application")
+public class LegoApplicationWizardIterator implements WizardDescriptor./*Progress*/InstantiatingIterator {
 
     private int index;
     private WizardDescriptor.Panel[] panels;
     private WizardDescriptor wiz;
 
-    public QuorumApplicationWizardIterator() {
+    public LegoApplicationWizardIterator() {
     }
 
-    public static QuorumApplicationWizardIterator createIterator() {
-        return new QuorumApplicationWizardIterator();
+    public static LegoApplicationWizardIterator createIterator() {
+        return new LegoApplicationWizardIterator();
     }
 
     private WizardDescriptor.Panel[] createPanels() {
         return new WizardDescriptor.Panel[]{
-            new QuorumApplicationWizardPanel(),};
+            new LegoApplicationWizardPanel(),};
     }
 
     private String[] createSteps() {
         return new String[]{
-            NbBundle.getMessage(QuorumApplicationWizardIterator.class, "LBL_CreateProjectStep")
+            NbBundle.getMessage(LegoApplicationWizardIterator.class, "LBL_CreateProjectStep")
         };
     }
 
