@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.quorum.projects.samples.web;
+package org.quorum.projects.samples.lego;
 
 import java.awt.Component;
 import java.util.HashSet;
@@ -18,25 +18,25 @@ import org.openide.util.NbBundle;
 /**
  * Panel just asking for basic info.
  */
-public class QuorumWebWizardPanel implements WizardDescriptor.Panel,
+public class LegoApplicationWizardPanel implements WizardDescriptor.Panel,
         WizardDescriptor.ValidatingPanel, WizardDescriptor.FinishablePanel {
 
     private WizardDescriptor wizardDescriptor;
-    private QuorumWebPanelVisual component;
+    private LegoApplicationPanelVisual component;
 
-    public QuorumWebWizardPanel() {
+    public LegoApplicationWizardPanel() {
     }
 
     public Component getComponent() {
         if (component == null) {
-            component = new QuorumWebPanelVisual(this);
-            component.setName(NbBundle.getMessage(QuorumWebWizardPanel.class, "LBL_CreateProjectStep"));
+            component = new LegoApplicationPanelVisual(this);
+            component.setName(NbBundle.getMessage(LegoApplicationWizardPanel.class, "LBL_CreateProjectStep"));
         }
         return component;
     }
 
     public HelpCtx getHelp() {
-        return new HelpCtx(QuorumWebWizardPanel.class);
+        return new HelpCtx(LegoApplicationWizardPanel.class);
     }
 
     public boolean isValid() {

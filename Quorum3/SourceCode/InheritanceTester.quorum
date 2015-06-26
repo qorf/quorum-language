@@ -31,6 +31,7 @@ class InheritanceTester
         InheritedTemplatedMethods()
         InheritanceOverloadingMain()
         IsTestMain()
+        MeTest()
         MultipleInheritanceCallingAmbiguousBlueprints()
         OutputParentValue()
         OutputParentFieldMain()
@@ -321,6 +322,28 @@ class InheritanceTester
         files:Add(dependent2)
         files:Add(dependent3)
         results:Add(0, "a is b")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action MeTest 
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        File dependent4
+        main:SetPath(path + "MeTest.quorum")
+        dependent1:SetPath(path + "A3.quorum")
+        dependent2:SetPath(path + "B3.quorum")
+        dependent3:SetPath(path + "C3.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        results:Add(0, "Was not B!")
+        results:Add(1, "C-Foo!")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
