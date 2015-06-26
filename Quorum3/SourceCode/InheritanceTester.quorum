@@ -342,8 +342,8 @@ class InheritanceTester
         files:Add(dependent1)
         files:Add(dependent2)
         files:Add(dependent3)
-        results:Add(0, "Was not B!")
-        results:Add(1, "C-Foo!")
+        results:Add(0, "Was B!")
+        results:Add(1, "B-Foo!")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
