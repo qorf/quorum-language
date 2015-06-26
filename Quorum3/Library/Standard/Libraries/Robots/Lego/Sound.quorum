@@ -1,5 +1,7 @@
 package Libraries.Robots.Lego
 
+use Libraries.System.File
+
 /*
 This class is an object representation of the LEGO EV3 Mindstorms sound controller.
 It is used to control volume, to play tones, and to play music.
@@ -122,7 +124,7 @@ class Sound
     motor:Stop(motor:MOTOR_C)
     */
 
-    system action PlayAudio(file audioFile)
+    system action PlayAudio(File audioFile)
 
     /*
     This action gives the remaining time of whatever audio is currently playing.
