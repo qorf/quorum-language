@@ -106,6 +106,7 @@ class Game
         manager:SetOperatingSystem(os)
 
         Panel panel
+        panel:SetName("Default Active Panel")
         SetActivePanel(panel)
     end
 
@@ -429,7 +430,8 @@ class Game
         MouseEvent mouseEvent = undefined
         repeat mouseEvents:GetSize() times
             mouseEvent = mouseEvents:RemoveFromFront()
-            activePanel:ProcessMouseEvent(mouseEvent)
+            Item temp = activePanel:GetItemAt(mouseEvent:GetX(), mouseEvent:GetY())
+            temp:ProcessMouseEvent(mouseEvent)
         end
 
         keyboardProcessor:Update()

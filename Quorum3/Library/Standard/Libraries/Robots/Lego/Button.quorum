@@ -8,14 +8,18 @@ The buttons and LED patterns available are represented by class constants.
 Attribute: Author Evan Pierzina
 
 Attribute: Example
+use Libraries.Robots.Lego.Button
+use Libraries.Robots.Lego.Motor
+
 class Main
     action Main
         Button button
         Motor motor
-        motor:SetSpeed("A", 720)
+        
+        motor:SetSpeed("A", 720)    //two motors to move the robot
         motor:SetSpeed("B", 720)
         repeat while true
-            buttons:WaitForButtonPress()
+            button:WaitForButtonPress()
             if button:IsButtonPressed(button:UP_BUTTON)
                 motor:MoveForward("A")
                 motor:MoveForward("B")
@@ -28,6 +32,7 @@ class Main
                 motor:Stop("A")
                 motor:Stop("B")
                 button:SetLightPattern(button:NO_LIGHT)
+            end
         end
     end
 end
@@ -62,6 +67,9 @@ class Button
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Button
+    use Libraries.Robots.Lego.Sound
+
     Button button
     Sound sound
 
@@ -70,8 +78,6 @@ class Button
             sound:PlayTone(1000, 20)
         elseif button:IsButtonPressed(button:RIGHT_BUTTON)
             sound:PlayTone(2000, 20)
-        else
-            sound:PlayTone(300, 20)
         end
     end
     */
@@ -86,6 +92,9 @@ class Button
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Button
+    use Libraries.Robots.Lego.Utility
+
     Button button
     Utility utility
 
@@ -105,6 +114,9 @@ class Button
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Button
+    use Libraries.Robots.Lego.Motor
+
     Button button
     Motor motor
 

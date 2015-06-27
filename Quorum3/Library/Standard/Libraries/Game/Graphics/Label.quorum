@@ -10,6 +10,7 @@ use Libraries.Game.Graphics.Painter
 class Label is Item
 
     on create
+        SetName("Label")
         Font font
         if font:FontIsAvailable("Arial")
             font:LoadFont("Arial")

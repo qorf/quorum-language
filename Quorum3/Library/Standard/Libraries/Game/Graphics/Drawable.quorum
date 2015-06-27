@@ -448,4 +448,76 @@ class Drawable is TextureRegion, Item
         return parent:Item:IsFlippedY()
     end
 
+    action LoadLine(integer x, integer y)
+        Color black
+        black = black:Black()
+        LoadLine(x, y, black)
+    end
+
+    action LoadLine(integer x, integer y, Color color)
+        Texture temp
+        temp:LoadLine(x, y, color)
+        Load(temp)
+    end
+
+    action LoadRectangle(integer width, integer height)
+        Color black
+        black = black:Black()
+        LoadRectangle(width, height, black)
+    end
+
+    action LoadRectangle(integer width, integer height, Color color)
+        Texture temp
+        temp:LoadRectangle(width, height, color)
+        Load(temp)
+    end
+
+    action LoadFilledRectangle(integer width, integer height)
+        Color black
+        black = black:Black()
+        LoadFilledRectangle(width, height, black)
+    end
+
+    action LoadFilledRectangle(integer width, integer height, Color color)
+        Texture temp
+        temp:LoadFilledRectangle(width, height, color)
+        Load(temp)
+    end
+
+    action LoadCircle(integer radius)
+        Color black
+        black = black:Black()
+        LoadCircle(radius, black)
+    end
+
+    action LoadCircle(integer radius, Color color)
+        Texture temp
+        temp:LoadCircle(radius, color)
+        Load(temp)
+    end
+
+    action LoadFilledCircle(integer radius)
+        Color black
+        black = black:Black()
+        LoadFilledCircle(radius, black)
+    end
+
+    action LoadFilledCircle(integer radius, Color color)
+        Texture temp
+        temp:LoadFilledCircle(radius, color)
+        Load(temp)
+    end
+
+    action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3)
+        Color black
+        black = black:Black()
+        LoadFilledTriangle(x1, y1, x2, y2, x3, y3, black)
+    end
+
+    action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, Color color)
+        Texture temp
+        temp:LoadFilledTriangle(x1, y1, x2, y2, x3, y3, color)
+        Load(temp)
+    end
+
 end

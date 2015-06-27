@@ -7,6 +7,9 @@ It is only used to get information about the current battery usage.
 Attribute: Author Evan Pierzina
 
 Attribute: Example
+use Libraries.Robots.Lego.Battery
+use Libraries.Robots.Lego.Motor
+
 class Main
     action Main
         Motor motor
@@ -37,10 +40,12 @@ class Battery
     Attribute: Author Evan Pierzina
     
     Attribute: Example
-    Battery robotBattery
+    use Libraries.Robots.Lego.Battery
 
-    number voltage = robotBattery:GetVoltage()
-    output "The voltage coming from the batteries is: " + voltage
+    Battery battery
+
+    number voltage = battery:GetVoltage()
+    output "The voltage coming from the batteries is: " + voltage + " volts."
     
     */
     system action GetVoltage returns number
@@ -53,9 +58,11 @@ class Battery
     Attribute: Author Evan Pierzina
 
     Atrribute: Example
-    Battery robotBattery
+    use Libraries.Robots.Lego.Battery
+    
+    Battery battery
 
-    number current = robotBatter:GetCurrent()
+    number current = battery:GetCurrent()
     if current < 0.05
         output "The electrical current coming from the batteries is: " + current
     end

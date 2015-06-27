@@ -60,7 +60,7 @@ public class ColorSensor {
             case 7: return "black";
             case 13: return "brown";
         }
-        return "could not read color";
+        return "none";
     }
     
     public double GetLightLevel() {
