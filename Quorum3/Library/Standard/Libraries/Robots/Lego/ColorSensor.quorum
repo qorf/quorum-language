@@ -7,30 +7,24 @@ The ColorSensor class is an object representation of the LEGO Mindstorms EV3 Col
 Attribute: Author Evan Pierzina
 
 Attribute: Example
+use Libraries.Robots.Lego.ColorSensor
+use Libraries.Robots.Lego.Motor
+use Libraries.Robots.Lego.Utility
+
+
 class Main
     action Main
         ColorSensor colorSensor
         Motor motor
         Utility utility
-        boolean stop = false
         
-        colorSensor:SetPort(2)                          //tells the robot that the sensor is plugged into port 2
-        motor:SetSpeed("B", 540)                        //two motors to move the robot
+        colorSensor:SetPort(3)                      //tells the robot that the sensor is plugged into port 2
+        motor:SetSpeed("B", 540)                    //two motors to move the robot
         motor:SetSpeed("C", 540)
-        repeat until stop
-            motor:MoveForward("B")
-            motor:MoveForward("C")
-            utility:DelayMilliseconds(20)               //interval between color checks
-            if colorSensor:GetColor not = green
-                if colorSensor:GetColor = red
-                    stop = true                         //stop if we find red
-                else
-                    motor:Stop("B")                     //motor C keeps going, cause the robot to turn
-                    repeat until colorSensor:GetColor = green
-                        utility:DelayMilliseconds(10)   //turn until the robot finds green again
-                    end
-                end
-            end
+        motor:MoveForward("B")
+        motor:MoveForward("C")
+        repeat until colorSensor:GetColor() = "red"
+            utility:DelayMilliseconds(20)           //interval between color checks
         end
     end
 end
@@ -57,6 +51,7 @@ class ColorSensor
     /*
     This action lets the program know which port on the robot that the color sensor being used is plugged into.
     As such, this action must be called before any other action in the ColorSensor class will work.
+    After calling this action, the color sensor's red light will turn on.
 
     Attribute: Parameter portNumber specifies the port on the robot that the color sensor is plugged into.
     The port number corresponds to the actual number printed above the port on the EV3 brick. Valid port numbers are 1, 2, 3 or 4.
@@ -64,6 +59,8 @@ class ColorSensor
     Attribute: Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.ColorSensor
+
     ColorSensor colorSensor1
     ColorSensor colorSensor2
     
@@ -85,14 +82,19 @@ class ColorSensor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.ColorSensor
+
     ColorSensor colorSensor
 
     colorSensor:SetPort(3)
-    text color = colorSensor:GetColor()
-    if color = none
-        output "Could not determine color."
-    else
-        output "Successfully read the color " + color + "."
+    text color = ""
+    repeat while true
+        color = colorSensor:GetColor()
+        if color = "none"
+            output "No color found."
+        else
+            output "Color: " + color + "."
+        end
     end
     */
     
@@ -107,14 +109,17 @@ class ColorSensor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.ColorSensor
+    use Libraries.Robots.Lego.Motor
+
     ColorSensor colorSensor
     Motor motor
     
-    motor:MoveForward("A")      //two motors used to move the robot forward
-    motor:MoveForward("B")
-    colorSensor:SetLightColor(colorSensor:WHITE)
-    repeat until colorSensor:GetLightLevel > 0.15
-       output "Light level: " + colorSensorGetLightLevel()
+    colorSensor:SetPort(3)
+    motor:MoveForward("B")      //two motors used to move the robot forward
+    motor:MoveForward("C")
+    repeat until colorSensor:GetLightLevel() > 0.15
+       output "Light level: " + colorSensor:GetLightLevel()
     end
     */
     
@@ -131,14 +136,20 @@ class ColorSensor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.ColorSensor
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.Screen
+
     ColorSensor colorSensor
     Motor motor
+    Screen screen
 
-    repeat while colorSensor:GetReflection() < 0.50
-        motor:MoveForward("A")
-        motor:MoveForward("B")
+    motor:MoveForward("A")  //two motors used to move the robot
+    motor:MoveForward("B")
+    repeat while colorSensor:GetReflectionLevel() < 0.50
+        
     end
-    output "I have found an object nearby."
+    screen:Output("Object found.", 0)
     */
     
     system action GetReflectionLevel returns number
@@ -154,10 +165,15 @@ class ColorSensor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.ColorSensor
+    use Libraries.Robots.Lego.Button
+    use Libraries.Robots.Lego.Utility
+
     ColorSensor colorSensor
     Button button
     Utility utility
     
+    colorSensor:SetPort(3)
     repeat until button:IsButtonPressed(button:ESCAPE_BUTTON)
         colorSensor:SetLightColor(colorSensor:BLUE)
         utility:DelayMilliseconds(500)
@@ -177,17 +193,23 @@ class ColorSensor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.ColorSensor
+    use Libraries.Robots.Lego.Sound
+
     ColorSensor colorSensor
     Sound sound
     
-    if colorSensor:GetLightColor = red
+    colorSensor:SetPort(3)
+    text lightColor = colorSensor:GetLightColor()
+    if lightColor = "red"
         sound:Beep()
-    elseif color:GetLightColor = blue
+    elseif lightColor = "blue"
         sound:BeepTwice()
-    elseif color:GetLightColor = white
+    elseif lightColor = "white"
         sound:BeepSequenceUp()
     else
         sound:Buzz()
+    end
     */
     
     system action GetLightColor returns text
@@ -200,10 +222,17 @@ class ColorSensor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.ColorSensor
+    use Libraries.Robots.Lego.Sound
+
     ColorSensor colorSensor
+    Sound sound
     
+    colorSensor:SetPort(3)
     if colorSensor:IsLightOn()
-        SetLightColor(colorSensor:NONE)
+        colorSensor:SetLightColor(colorSensor:BLUE)
+    else
+        sound:Buzz()
     end
     */
     
@@ -218,17 +247,21 @@ class ColorSensor
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.ColorSensor
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Button
+    use Libraries.Containers.Array
+
     ColorSensor colorSensor
+    Screen screen
+    Button button
     
-    Array<number> redBlueGreenLevels = colorSensor:GetRedBlueGreenLevels()
-    if redBlueGreenLevels:Get(0) < 0.33
-        output "Low levels of red detected."
-    elseif redBlueGreenLevels:Get(1) < 0.33
-        output "Low levels of green detected."
-    elseif redBlueGreenLevels:Get(2) < 0.33
-        output "LowLevels of blue detected."
-    else
-        output "All colors are visibly present."
+    colorSensor:SetPort(3)
+    Array<number> redGreenBlueLevels = colorSensor:GetRedGreenBlueLevels()
+    screen:Output("Red: " + redGreenBlueLevels:Get(0), 0)
+    screen:Output("Green: " + redGreenBlueLevels:Get(1), 1)
+    screen:Output("Blue: " + redGreenBlueLevels:Get(2), 2)
+    button:WaitForButtonPress()
     */
 
     action GetRedGreenBlueLevels returns Array<number>
