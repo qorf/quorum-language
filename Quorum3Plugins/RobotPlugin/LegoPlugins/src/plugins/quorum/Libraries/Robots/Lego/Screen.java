@@ -36,7 +36,7 @@ public class Screen {
     public void Output(String string, int line) {
         display.setFont(lejos.hardware.lcd.Font.getDefaultFont());
         lejos.hardware.lcd.LCD.clear(line);
-        display.drawString(string, 0, (line-1)*16, 0); //line numbers range from 0 to 7 normally, * 16 pixels for font height. Offset to make lines 1 indexed.
+        display.drawString(string, 0, (line)*16, 0); //line numbers range from 0 to 7 normally, * 16 pixels for font height. Offset to make lines 1 indexed.
     }
     
     public void Output(String string, int line, int offset) {
