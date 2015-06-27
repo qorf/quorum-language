@@ -4,6 +4,30 @@ use Libraries.Interface.Events.MouseListener
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.Color
 
+/*
+    The Button class is an extension of the Libraries.Interface.Panel class and
+    the Libraries.Interface.Events.MouseListener class. It represents a button
+    on the screen that will automatically call its own MouseListener actions
+    when it is clicked on. To make your own Button that reacts to mouse events,
+    create a class that inherits from Button and overrides its MouseListener
+    actions.
+
+    Attribute: Example
+
+        use Libraries.Interface.Button
+        use Libraries.Interface.Events.MouseEvent
+
+        class MyButton is Button
+
+            action ClickedMouse(MouseEvent event)
+                output "MyButton was clicked!"
+            end
+
+            action ReleasedMouse(MouseEvent event)
+                output "MyButton was released!"
+            end
+        end
+*/
 class Button is Panel, MouseListener
     
     private Label title
@@ -12,6 +36,28 @@ class Button is Panel, MouseListener
         title:SetText("Button")
     end
 
+    /*
+    This action sets the initial width and height of the button, and loads its
+    background, border, and button label.
+
+    Attribute: Example
+
+        use Libraries.Interface.Button
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Button button
+                button:Initialize(200, 100)
+                Add(button)
+            end
+        end
+    */
     action Initialize(number width, number height)
         Color border
         border:SetColor(0.55, 0.55, 0.55, 1)
@@ -32,6 +78,29 @@ class Button is Panel, MouseListener
         title:SetY(cast(integer, (height - title:GetTextHeight()) / 2))
     end
 
+    /*
+    This action sets the initial width and height of the button, and sets the
+    text on the Button's label. It also loads its background, border, and button 
+    label.
+
+    Attribute: Example
+
+        use Libraries.Interface.Button
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Button button
+                button:Initialize(200, 100, "Quorum!")
+                Add(button)
+            end
+        end
+    */
     action Initialize(number width, number height, text buttonTitle)
         title:SetText(buttonTitle)
 

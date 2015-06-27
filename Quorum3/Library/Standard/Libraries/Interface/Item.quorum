@@ -34,7 +34,7 @@ use Libraries.Compute.Math
         myItem:SetPosition(20, 60)
         myItem:SetWidth(50)
         myItem:SetHeight(15)
-    */
+*/
 class Item 
 
     private number x = 0
@@ -953,6 +953,8 @@ class Item
 
     /*  This action removes an Item that was previously added to this Item. 
 
+    Attribute: Returns Whether or not the Item was found and removed.
+
     Attribute: Example
 
         use Libraries.Interface.Item
@@ -973,6 +975,8 @@ class Item
     /*  This action removes an Item that was previously added to this Item by
     finding it at the given index in the internal array of children Items.
 
+    Attribute: Returns The Item that was removed.
+
     Attribute: Example
 
         use Libraries.Interface.Item
@@ -990,37 +994,118 @@ class Item
         return temp
     end
 
+    /*  This action returns an Item that was previously added to this Item by
+    finding it at the given index in the internal array of children Items.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item parent
+        Item child1
+        Item child2
+        parent:Add(child1)
+        parent:Add(child2)
+        Item temp = parent:GetItem(0)
+    */
     action GetItem(integer index) returns Item
         return children:Get(index)
     end
 
+    /*  This action returns an iterator containing all the items contained in
+    this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Containers.Blueprints.Iterator
+
+        Item parent
+        Item child1
+        Item child2
+        parent:Add(child1)
+        parent:Add(child2)
+        Iterator<Item> iterator = parent:GetItems()
+    */
     action GetItems returns Iterator<Item>
         return children:GetIterator()
     end
 
+    /*  This action returns the number of items contained in this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item parent
+        Item child1
+        Item child2
+        parent:Add(child1)
+        parent:Add(child2)
+        integer size = parent:GetItemCount()
+    */
     action GetItemCount returns integer
         return children:GetSize()
     end
 
+    /*  This action sets a value inside the internal item array of this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item parent
+        Item child1
+        Item child2
+        parent:Add(child1)
+        parent:SetItem(0, child2)
+    */
     action SetItem(integer index, Item newItem)
         children:Set(index, newItem)
     end
 
+    /*  This action returns whether or not any items are contained in this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item parent
+        Item child1
+        parent:Add(child1)
+        boolean wasEmpty = parent:IsEmpty()
+    */
     action IsEmpty returns boolean
         return children:IsEmpty()
     end
 
-    // NOTE: This simple implementation of Contains uses the UNROTATED Item box!
+    /*  This action tests if a point in global x,y coordinates is contained
+    inside this Item. The global coordinates are considered to be the x and y
+    coordinates of this Item plus its offsetX and offsetY values.
+
+    Attribute: Returns Whether or not the point is contained in this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item item
+        item:SetPosition(50, 50)
+        item:SetWidth(100)
+        item:SetHeight(50)
+        boolean value = item:Contains(125, 70)
+    */
     action Contains(number containsX, number containsY) returns boolean
         number testX = containsX - offsetX
         number testY = containsY - offsetY
         return testX >= x and testX <= x + width and testY >= y and testY <= y + height
     end
 
+    /*
     action Contains(number x, number y, number z) returns boolean
         // TO BE IMPLEMENTED
         return false
-    end
+    end*/
 
     action GetItemAt(number x, number y) returns Item
         integer counter = children:GetSize()
