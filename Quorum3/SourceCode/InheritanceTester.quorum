@@ -33,6 +33,7 @@ class InheritanceTester
         IsTestMain()
         MeTest()
         MultipleInheritanceCallingAmbiguousBlueprints()
+        OnCreatePolymorphism()
         OutputParentValue()
         OutputParentFieldMain()
         OutputParentValueField()
@@ -367,6 +368,26 @@ class InheritanceTester
         files:Add(dependent3)
         files:Add(dependent4)
         results:Add(0, "grandchild")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action OnCreatePolymorphism 
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "OnCreatePolymorphism.quorum")
+        dependent1:SetPath(path + "A4.quorum")
+        dependent2:SetPath(path + "B4.quorum")
+        dependent3:SetPath(path + "C4.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        files:Add(dependent3)
+        results:Add(0, "From-C!")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

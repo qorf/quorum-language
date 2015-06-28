@@ -1127,25 +1127,25 @@ class Item
         end
     end
 
-    action GetItemAt(number x, number y, number z) returns Item
-        integer counter = children:GetSize()
-        Item temp = undefined
-        boolean found = false
-        repeat while counter > 0 and not found
-            counter = counter - 1
-            temp = children:Get(counter)
-            temp = temp:GetItemAt(x, y, z)
-            if temp not= undefined
-                found = true
-            end
-        end
-
-        if not found and Contains(x, y, z)
-            return me
-        else
-            return temp
-        end
-    end
+//    action GetItemAt(number x, number y, number z) returns Item
+//        integer counter = children:GetSize()
+//        Item temp = undefined
+//        boolean found = false
+//        repeat while counter > 0 and not found
+//            counter = counter - 1
+//            temp = children:Get(counter)
+//            temp = temp:GetItemAt(x, y, z)
+//            if temp not= undefined
+//                found = true
+//            end
+//        end
+//
+//        if not found and Contains(x, y, z)
+//            return me
+//        else
+//            return temp
+//        end
+//    end
 
     action Dispose
         
