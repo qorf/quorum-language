@@ -54,6 +54,7 @@ class LoopsTester
 
 //FAIL TESTS
         path = failPath
+        RepeatIfUndeclaredValue()
         RepeatTimesConstBool()
         RepeatTimesConstDouble()
         RepeatTimesConstText()
@@ -464,7 +465,15 @@ class LoopsTester
     end
 
 //  FAIL TESTS
-    
+    action RepeatIfUndeclaredValue
+        Array<File> files
+        File main
+        main:SetPath(path + "RepeatIfUndeclaredValue.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
     action RepeatTimesConstBool
         Array<File> files
         File main

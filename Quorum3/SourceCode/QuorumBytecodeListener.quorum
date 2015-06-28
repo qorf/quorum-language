@@ -595,6 +595,9 @@ class QuorumBytecodeListener is QuorumSourceListener
 //        end
         LoopOpcode loop = loopStack:Pop()
         QuorumOpcode qop = opcodeStack:Pop()
+        if qop = undefined
+            return now
+        end
         qop:SetIsIfExpression(true)
         
         Type type = qop:GetType()
@@ -897,7 +900,9 @@ class QuorumBytecodeListener is QuorumSourceListener
 //        end
         ConditionalOpcode conditional = ifStack:Peek()
         QuorumOpcode qop = opcodeStack:Pop()
-
+        if qop = undefined
+            return now
+        end
 
         Type type = qop:GetType()
         if type = undefined
