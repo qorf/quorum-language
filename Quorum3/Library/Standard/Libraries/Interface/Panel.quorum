@@ -111,7 +111,7 @@ class Panel is Item
         background:Load(backTexture)
         background:SetName("Panel Background")
 
-        Add(background, 0)
+        Add(0, background)
 
         hasBackground = true
     end
@@ -228,7 +228,7 @@ class Panel is Item
         border:Load(borderTexture)
         border:SetName("Panel Border")
 
-        Add(border, borderIndex)
+        Add(borderIndex, border)
 
         hasBorder = true
     end
