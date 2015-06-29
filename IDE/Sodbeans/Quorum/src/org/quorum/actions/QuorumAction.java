@@ -174,21 +174,7 @@ public abstract class QuorumAction implements Action {
             run.setExecutable(true);
         }
         
-        final QuorumProjectType type = project.getProjectType();
-        boolean legos = false;
-        if(type == QuorumProjectType.LEGO && compiler.IsCompilationErrorFree()) {
-            QuorumToLegoAdapter adapter = new QuorumToLegoAdapter();
-            String loc = project.getExecutableLocation();
-            File f = new File(loc);
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    io.getOut().println("Trying to connect to lego robot.");
-                }
-            });
-            legos = adapter.Send(f);
-        }
-        final boolean legoFound = legos;
+        
                         
         long finish = System.currentTimeMillis();
         double value = (finish - start);
@@ -217,6 +203,29 @@ public abstract class QuorumAction implements Action {
                     Date date = new Date();
 
                     io.getOut().println("Build Successful at " + dateFormat.format(date) + " in " + total + " seconds.");
+                }
+            }
+        });
+        
+        final QuorumProjectType type = project.getProjectType();
+        boolean legos = false;
+        if(type == QuorumProjectType.LEGO && compiler.IsCompilationErrorFree()) {
+            QuorumToLegoAdapter adapter = new QuorumToLegoAdapter();
+            String loc = project.getExecutableLocation();
+            File f = new File(loc);
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    io.getOut().println("Trying to connect to lego robot.");
+                }
+            });
+            legos = adapter.Send(f);
+        }
+        final boolean legoFound = legos;
+        if(type == QuorumProjectType.LEGO && compiler.IsCompilationErrorFree()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
                     if(type == QuorumProjectType.LEGO) {
                         if(legoFound) {
                             io.getOut().println("Successfully output " + project.getExecutableName() + " to your lego robot.");
@@ -225,9 +234,15 @@ public abstract class QuorumAction implements Action {
                         }
                         
                     }
-                    io.setInputVisible(true);
-                    io.getOut().close();
                 }
+            });
+        }
+        
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                io.setInputVisible(true);
+                io.getOut().close();
             }
         });
         return compiler.IsCompilationErrorFree();
