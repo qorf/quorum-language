@@ -84,7 +84,12 @@ class Game
         if os:Contains("Mac OS X")
             file:SetPath("jni/libGameEngineCPlugins.so")
         elseif os:Contains("Windows")
-            file:SetPath("jni/libGameEngineCPlugins64.dll")
+            text bits = properties:GetProperty("os.arch")
+            if bits = "x86"
+                file:SetPath("jni/libGameEngineCPlugins32.dll")
+            else
+                file:SetPath("jni/libGameEngineCPlugins64.dll")
+            end
         end
 
         

@@ -164,12 +164,9 @@ class Item
         return y
     end
 
-    /* An Item can also represent an object in three dimensional space, but 
-    currently this functionality is not supported. When it is, this action will
-    return the Z coordinate of the Item. */
-    action GetZ returns number
-        return z
-    end
+//    action GetZ returns number
+//        return z
+//    end
 
     /*
     This action will set both the X coordinate and the Y coordinate of the Item,
@@ -185,13 +182,10 @@ class Item
         Translate(setX - GetX(), setY - GetY())
     end
 
-    /* An Item can also represent an object in three dimensional space, but 
-    currently this functionality is not supported. When it is, this action will
-    set the X, Y, and Z coordinates of the Item. */
-    action SetPosition(number newX, number newY, number newZ)
-        SetPosition(newX, newY)
-        z = newZ
-    end
+//    action SetPosition(number newX, number newY, number newZ)
+//        SetPosition(newX, newY)
+//        z = newZ
+//    end
 
     /*
     This action will set the width of the Item.
@@ -219,12 +213,9 @@ class Item
         height = newHeight
     end
 
-    /* An Item can also represent an object in three dimensional space, but 
-    currently this functionality is not supported. When it is, this action will
-    set the depth of the Item. */
-    action SetDepth(number newDepth)
-        depth = newDepth
-    end
+//    action SetDepth(number newDepth)
+//        depth = newDepth
+//    end
 
     /*
     This action will set the X coordinate of the Item so that the center of the
@@ -262,7 +253,7 @@ class Item
 
         use Libraries.Interface.Item
         Item myItem
-        myItem:SetCenter(70)
+        myItem:SetCenter(70, 40)
     */
     action SetCenter(number setX, number setY)
         SetCenterX(setX)
@@ -295,12 +286,9 @@ class Item
         return height
     end
 
-    /* An Item can also represent an object in three dimensional space, but 
-    currently this functionality is not supported. When it is, this action will
-    return the currently set depth of the Item. */
-    action GetDepth returns number
-        return depth
-    end
+//    action GetDepth returns number
+//        return depth
+//    end
 
     /* This action sets the X offset of the item. The offset tells the Item
     where to relate its X position to. In other words, the X offset is where an
@@ -514,23 +502,19 @@ class Item
         Item myItem
         KeyboardListener listener
         myItem:AddKeyboardListener(listener)
+        myItem:RemoveKeyboardListener(listener)
     */
     action RemoveKeyboardListener(KeyboardListener listener)
         keyboardListeners:Remove(listener)
     end
 
-    /* In the future, Items will support touch functionality, but this is not
-    currently supported. When it is, this will add a TouchListener to the Item. */
-    action AddTouchListener(TouchListener listener)
-        touchListeners:Add(listener)
-    end
+//    action AddTouchListener(TouchListener listener)
+//        touchListeners:Add(listener)
+//    end
 
-    /* In the future, Items will support touch functionality, but this is not
-    currently supported. When it is, this will remove a TouchListener from the
-    Item. */
-    action RemoveTouchListener(TouchListener listener)
-        touchListeners:Remove(listener)
-    end
+//    action RemoveTouchListener(TouchListener listener)
+//        touchListeners:Remove(listener)
+//    end
 
     /*  This action takes a mouse event and handles it. It will look first to
     see if any of the items that were added to this Item contain the coordinates
@@ -650,12 +634,9 @@ class Item
 
     end
 
-    /* In the future, Items will support touch functionality, but this is not
-    currently supported. When it is, this will send a TouchEvent to all of the
-    TouchListeners that have been added to this Item. */
-    action ProcessTouchEvent(TouchEvent event)
-        // NOT YET IMPLEMENTED
-    end
+//    action ProcessTouchEvent(TouchEvent event)
+//        // NOT YET IMPLEMENTED
+//    end
 
     /*  This action updates the item. It takes a number parameter that should
     indicate how many seconds have passed since the last time this action was
@@ -692,7 +673,6 @@ class Item
             // Our update action will move our Item to the right at 200 units a second.
             action Update(number secondsSinceUpdate)
                 SetX(GetX() + 200 * secondsSinceUpdate)
-                output "Our item is now at " + GetX()
             end
         end
     
@@ -710,12 +690,12 @@ class Item
 
         use Libraries.Interface.Item
         
-        Item parent
+        Item parentItem
         Item child1
         Item child2
-        parent:Add(child1)
-        parent:Add(child2)
-        parent:UpdateAll(0)
+        parentItem:Add(child1)
+        parentItem:Add(child2)
+        parentItem:UpdateAll(0)
     */
     action UpdateAll(number secondsSinceUpdate)
         Update(secondsSinceUpdate)
@@ -901,9 +881,9 @@ class Item
 
         use Libraries.Interface.Item
 
-        Item parent
+        Item parentItem
         Item child
-        parent:Add(child)
+        parentItem:Add(child)
         Item item = child:GetParent()
         
     */
@@ -920,9 +900,9 @@ class Item
 
         use Libraries.Interface.Item
 
-        Item parent
+        Item parentItem
         Item child
-        parent:Add(child)
+        parentItem:Add(child)
         
     */
     action Add(Item newItem)
@@ -939,12 +919,12 @@ class Item
 
         use Libraries.Interface.Item
 
-        Item parent
+        Item parentItem
         Item child
-        parent:Add(child, 0)
+        parentItem:Add(0, child)
         
     */
-    action Add(Item newItem, integer index)
+    action Add(integer index, Item newItem)
         children:Add(index, newItem)
         newItem:SetParent(me)
         newItem:PrepareVertices()
@@ -959,12 +939,12 @@ class Item
 
         use Libraries.Interface.Item
 
-        Item parent
+        Item parentItem
         Item child1
         Item child2
-        parent:Add(child1)
-        parent:Add(child2)
-        parent:Remove(child1)
+        parentItem:Add(child1)
+        parentItem:Add(child2)
+        parentItem:Remove(child1)
     */
     action Remove(Item removed) returns boolean
         boolean success = children:Remove(removed)
@@ -981,12 +961,12 @@ class Item
 
         use Libraries.Interface.Item
 
-        Item parent
+        Item parentItem
         Item child1
         Item child2
-        parent:Add(child1)
-        parent:Add(child2)
-        parent:Remove(0)
+        parentItem:Add(child1)
+        parentItem:Add(child2)
+        parentItem:Remove(0)
     */
     action Remove(integer index) returns Item
         Item temp = children:RemoveAt(index)
@@ -1001,12 +981,12 @@ class Item
 
         use Libraries.Interface.Item
 
-        Item parent
+        Item parentItem
         Item child1
         Item child2
-        parent:Add(child1)
-        parent:Add(child2)
-        Item temp = parent:GetItem(0)
+        parentItem:Add(child1)
+        parentItem:Add(child2)
+        Item temp = parentItem:GetItem(0)
     */
     action GetItem(integer index) returns Item
         return children:Get(index)
@@ -1020,12 +1000,12 @@ class Item
         use Libraries.Interface.Item
         use Libraries.Containers.Blueprints.Iterator
 
-        Item parent
+        Item parentItem
         Item child1
         Item child2
-        parent:Add(child1)
-        parent:Add(child2)
-        Iterator<Item> iterator = parent:GetItems()
+        parentItem:Add(child1)
+        parentItem:Add(child2)
+        Iterator<Item> iterator = parentItem:GetItems()
     */
     action GetItems returns Iterator<Item>
         return children:GetIterator()
@@ -1037,12 +1017,12 @@ class Item
 
         use Libraries.Interface.Item
 
-        Item parent
+        Item parentItem
         Item child1
         Item child2
-        parent:Add(child1)
-        parent:Add(child2)
-        integer size = parent:GetItemCount()
+        parentItem:Add(child1)
+        parentItem:Add(child2)
+        integer size = parentItem:GetItemCount()
     */
     action GetItemCount returns integer
         return children:GetSize()
@@ -1054,11 +1034,11 @@ class Item
 
         use Libraries.Interface.Item
 
-        Item parent
+        Item parentItem
         Item child1
         Item child2
-        parent:Add(child1)
-        parent:SetItem(0, child2)
+        parentItem:Add(child1)
+        parentItem:SetItem(0, child2)
     */
     action SetItem(integer index, Item newItem)
         children:Set(index, newItem)
@@ -1070,10 +1050,10 @@ class Item
 
         use Libraries.Interface.Item
 
-        Item parent
+        Item parentItem
         Item child1
-        parent:Add(child1)
-        boolean wasEmpty = parent:IsEmpty()
+        parentItem:Add(child1)
+        boolean wasEmpty = parentItem:IsEmpty()
     */
     action IsEmpty returns boolean
         return children:IsEmpty()
@@ -1101,12 +1081,22 @@ class Item
         return testX >= x and testX <= x + width and testY >= y and testY <= y + height
     end
 
-    /*
-    action Contains(number x, number y, number z) returns boolean
-        // TO BE IMPLEMENTED
-        return false
-    end*/
+    
+//    action Contains(number x, number y, number z) returns boolean
+//        // TO BE IMPLEMENTED
+//        return false
+//    end
 
+    /*  This action searches through all Items stored in this Item and finds the
+    deepest Item which contains the given point in global coordinates.
+
+    Attribute: Returns Whether or not the point is contained in this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+    */
     action GetItemAt(number x, number y) returns Item
         integer counter = children:GetSize()
         Item temp = undefined
