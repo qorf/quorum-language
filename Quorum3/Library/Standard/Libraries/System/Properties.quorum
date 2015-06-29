@@ -65,6 +65,20 @@ class Properties
     end
 
     /*
+        This action returns a the location of the running executable on the system.
+
+        Attribute: Example
+
+        use Libraries.System.Properties
+        use Libraries.System.File
+
+        Properties properties
+        File file = properties:GetRunPath()
+        output file:GetAbsolutePath()
+    */
+    system action GetRunLocation returns File
+
+    /*
         This action returns an environment variable from the system.
 
         Attribute: Parameter key the property being requested

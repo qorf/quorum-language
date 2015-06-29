@@ -69,21 +69,10 @@ class Game
 
         Properties properties
         text os = properties:GetOperatingSystemName()
-        
+
         text path = ""
-        File file
-        //other operating systems might need other pathing information
-        /*if os:Contains("Mac OS X")
-            file:SetPath("native/macosx")
-
-        elseif os:Contains("Windows")
-            file:SetPath("native/windows")
-
-        else
-            alert("System was not Mac or Windows!")
-        end*/
-
-        file:SetPath("Run/jni")
+        File file = properties:GetRunLocation()
+        file:SetPath("jni")
         
         path = file:GetAbsolutePath()
 
@@ -93,9 +82,9 @@ class Game
         // path variables.
         path = ""
         if os:Contains("Mac OS X")
-            file:SetPath("Run/jni/libGameEngineCPlugins.so")
+            file:SetPath("jni/libGameEngineCPlugins.so")
         elseif os:Contains("Windows")
-            file:SetPath("Run/jni/libGameEngineCPlugins64.dll")
+            file:SetPath("jni/libGameEngineCPlugins64.dll")
         end
 
         
