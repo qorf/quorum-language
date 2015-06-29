@@ -4,6 +4,12 @@
  */
 package plugins.quorum.Libraries.System;
 
+import java.net.URISyntaxException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import quorum.Libraries.System.File;
+import quorum.Libraries.System.File_;
+
 /**
  *
  * @author astefik
@@ -26,6 +32,20 @@ public class Properties {
         } else {
             return true;
         }
+    }
+    
+    public File_ GetRunLocation() {
+        try {
+            java.io.File file = new java.io.File(Properties.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+            File quorumFile = new File();
+            quorumFile.SetWorkingDirectory(file.getParent());
+            quorumFile.SetPath(file.getName());
+            return quorumFile;
+           
+        } catch (URISyntaxException ex) {
+            Logger.getLogger(Properties.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
     
     public String GetEnvironmentVariableNative(String key) {
