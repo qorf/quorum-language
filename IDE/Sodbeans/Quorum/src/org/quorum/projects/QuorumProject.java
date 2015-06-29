@@ -125,6 +125,10 @@ public class QuorumProject implements Project {
         return projectType;
     }
     
+    public void SetProjectType(QuorumProjectType type) {
+        projectType = type;
+    }
+    
     public quorum.Libraries.Language.Compile.CompilerResult_ getSandboxCompilerResult() {
         return sandboxResult;
     }

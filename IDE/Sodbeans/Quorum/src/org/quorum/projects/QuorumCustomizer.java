@@ -108,6 +108,13 @@ public class QuorumCustomizer implements CustomizerProvider{
             //set the properties from the information panel
             String type = infoPanel.getQuorumProjectType();
             properties.setProperty(QuorumProject.QUORUM_PROJECT_TYPE, type);
+            if(type == null || type.compareTo(QuorumProject.QUORUM_CONSOLE_PROJECT) == 0) {
+                ((QuorumProject) project).SetProjectType(QuorumProjectType.STANDARD);
+            } else if(type.compareTo(QuorumProject.QUORUM_COMPILED_WEB_PROJECT) == 0) {
+                ((QuorumProject) project).SetProjectType(QuorumProjectType.WEB);
+            } else if(type.compareTo(QuorumProject.QUORUM_LEGO_PROJECT) == 0) {
+                ((QuorumProject) project).SetProjectType(QuorumProjectType.LEGO);
+            }
             
             String jarList = infoPanel.getJarList();
             

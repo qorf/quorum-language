@@ -180,6 +180,12 @@ public abstract class QuorumAction implements Action {
             QuorumToLegoAdapter adapter = new QuorumToLegoAdapter();
             String loc = project.getExecutableLocation();
             File f = new File(loc);
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    io.getOut().println("Trying to connect to lego robot.");
+                }
+            });
             legos = adapter.Send(f);
         }
         final boolean legoFound = legos;
