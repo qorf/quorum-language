@@ -392,8 +392,8 @@ public class ImageSheet implements Disposable {
                 if (sheet.texture == null) {
                         texture = new quorum.Libraries.Game.Graphics.Texture();
                         File_ quorumFile = new quorum.Libraries.System.File();
-                        quorumFile.SetWorkingDirectory("/");
-                        quorumFile.SetPath(sheet.textureFile.getAbsolutePath());
+                        quorumFile.SetWorkingDirectory(sheet.textureFile.getParent());
+                        quorumFile.SetPath(sheet.textureFile.getName());
                         Format_ format = new quorum.Libraries.Game.Graphics.Format();
                         format.SetValue(sheet.format);
                         texture.LoadFromFile(quorumFile, format, sheet.useMipMaps);
