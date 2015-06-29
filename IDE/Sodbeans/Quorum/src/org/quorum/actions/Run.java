@@ -61,7 +61,9 @@ public class Run extends QuorumAction implements ActionListener {
             String runName = runDirectory.getName() + "/" + project.getExecutableName();
 
             // Spawn a new Java process that will run "Default.jar" from the project directory.
-            ProcessBuilder builder = new ProcessBuilder("java", "-Dsodbeans=1", "-jar", runName);
+            String java = System.getProperty("java.home");
+            java += File.separator + "bin" + File.separator + "java";
+            ProcessBuilder builder = new ProcessBuilder(java, "-Dsodbeans=1", "-jar", runName);
             builder.directory(runDirectory.getParentFile());
 
             // Start the process.
