@@ -508,7 +508,7 @@ Quorum is a computer programming language, which you can use either " +
 "from the console using flags (the program you just ran) or from a development environment (like NetBeans). " +
 "For this version, the commands that Quorum knows take the following format:
 
-    quorum (-flag value*)*
+    java -jar Quorum.jar (-flag value*)*
 
 What this means is that you can pass a flag to Quorum combined with any number of values. " +
 "The legal flags are listed as follows:
@@ -526,11 +526,11 @@ What this means is that you can pass a flag to Quorum combined with any number o
 
 
 Here are a few examples of how you can use this program:
-    quorum Hello.quorum 
+        java -jar Quorum.jar Hello.quorum 
 
-        This would request that Quorum compiles the source file Hello.quorum.
+    This would request that Quorum compiles the source file Hello.quorum.
 
-    quorum -compile Hello.quorum" +
+        java -jar Quorum.jar -compile Hello.quorum" +
 
 //  Hide the web content for the 3.0 release, as the team redesigns it.
 //        This would have the same impact, compiling Hello.quorum
@@ -540,18 +540,18 @@ Here are a few examples of how you can use this program:
 //        This would have Quorum compile Hello.quorum and package it for the web.
     "
 
-    quorum -name MyProgram -compile Hello.quorum
+        java -jar Quorum.jar -name MyProgram -compile Hello.quorum
 
-        This would cause Quorum to compile Hello.quorum and name the output MyProgram." +
+    This would cause Quorum to compile Hello.quorum and name the output MyProgram." +
 
 //    quorum -name MyProgram -web Hello.quorum
 //
 //        This would cause Quorum to compile Hello.quorum and name the output MyProgram.
     "
 
-    quorum Hello.quorum Goodbye.quorum
+        java -jar Quorum.jar Hello.quorum Goodbye.quorum
 
-        This would cause Quorum to Compile two source code files. The first file must have a Main action.
+    This would cause Quorum to Compile two source code files. The first file must have a Main action.
 
 For more information on writing programs in Quorum, visit www.quorumlanguage.com."     
         return help

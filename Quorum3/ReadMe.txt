@@ -19,19 +19,19 @@ Valid Flags in Quorum 3.0: quorum (-flag value*)*
 
 
 Here are a few examples of how you can use this program:
-    quorum Hello.quorum 
+    java -jar Quorum.jar Hello.quorum 
 
 This would request that Quorum compiles the source file Hello.quorum.
 
-    quorum -compile Hello.quorum
+    java -jar Quorum.jar -compile Hello.quorum
 
 This would cause a program to compile and generate a file named MyProgram.jar (which you can execute from the keyboard or by double clicking).
 
-    quorum -name MyProgram -compile Hello.quorum
+    java -jar Quorum.jar -name MyProgram -compile Hello.quorum
 
 This would cause Quorum to compile Hello.quorum and name the output MyProgram.
 
-    quorum Hello.quorum Goodbye.quorum
+    java -jar Quorum.jar Hello.quorum Goodbye.quorum
 
 This would cause Quorum to Compile two source code files. The first file must have a Main action.
 For more information on writing programs in Quorum, visit www.quorumlanguage.com.
