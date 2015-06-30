@@ -289,6 +289,26 @@ public class AudioManager {
 	AL10.alSource3f(sourceID, AL10.AL_POSITION, (float)Math.cos((pan - 1) * (float)Math.PI / 2), 0,
 			(float)Math.sin((pan + 1) * (float)Math.PI / 2));
     }
+    
+    public void SetSoundFade (long soundID, float pan) 
+    {
+	if (!SoundIDIsActive(soundID)) 
+            return;
+	int sourceID = (int)soundIDToSource.get(soundID);
+
+        // This next call establishes the sound at XYZ coordinates.
+	AL10.alSource3f(sourceID, AL10.AL_POSITION, 0, (float)Math.cos((pan - 1) * (float)Math.PI / 2),
+			(float)Math.sin((pan + 1) * (float)Math.PI / 2));
+    }
+    
+    public void UpdatePosition(long soundID, float newX, float newY, float newZ)
+    {
+        if (!SoundIDIsActive(soundID)) 
+            return;
+	int sourceID = (int)soundIDToSource.get(soundID);
+        
+        AL10.alSource3f(sourceID, AL10.AL_POSITION, newX, newY, newZ);
+    }
 
     public void Dispose () 
     {

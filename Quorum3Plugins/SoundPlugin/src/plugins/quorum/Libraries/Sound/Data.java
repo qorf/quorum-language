@@ -19,7 +19,13 @@ public abstract class Data {
     protected boolean isPlaying = false;
     protected float volume = 1;
     protected float pan = 0;
+    protected float fade = 0;
     protected float pitch = 1;
+    protected double rotation = 0;
+    
+    protected float x = 0;
+    protected float y = 0;
+    protected float z = 1;
     
     static
     {
@@ -45,7 +51,48 @@ public abstract class Data {
     
     public abstract void SetHorizontalPosition(float position);
     
+    public abstract void SetFade(float position);
+    
+    public abstract void SetX(float newX);
+    
+    public abstract void SetY(float newY);
+    
+    public abstract void SetZ(float newZ);
+    
+    public abstract void SetPosition(float newX, float newY, float newZ);
+    
     public abstract boolean IsStreaming();
+    
+    public double GetX()
+    {
+        return x;
+    }
+    
+    public double GetY()
+    {
+        return y;
+    }
+    
+    public double GetZ()
+    {
+        return z;
+    }
+    
+    public void SetRotation(double rotation)
+    {
+        this.rotation = rotation;
+        
+        double newX = Math.sin(Math.toRadians(rotation));
+        double newY = Math.cos(Math.toRadians(rotation));
+        double newZ = 0;
+        
+        SetPosition((float)newX, (float)newY, (float)newZ);
+    }
+    
+    public void Rotate(double addRotation)
+    {
+        SetRotation(rotation + addRotation);
+    }
     
     public boolean IsLooping()
     {

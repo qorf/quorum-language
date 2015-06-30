@@ -127,6 +127,56 @@ public class Audio {
         data.SetHorizontalPosition((float)position);
     }
     
+    public void SetFade(double fade)
+    {
+        data.SetFade((float)fade);
+    }
+    
+    public void SetX(double newX)
+    {
+        data.SetX((float)newX);
+    }
+    
+    public void SetY(double newY)
+    {
+        data.SetY((float)newY);
+    }
+    
+    public void SetZ(double newZ)
+    {
+        data.SetZ((float)newZ);
+    }
+    
+    public double GetX()
+    {
+        return data.GetX();
+    }
+    
+    public double GetY()
+    {
+        return data.GetY();
+    }
+    
+    public double GetZ()
+    {
+        return data.GetZ();
+    }
+    
+    public void SetPosition(double newX, double newY, double newZ)
+    {
+        data.SetPosition((float)newX, (float)newY, (float)newZ);
+    }
+    
+    public void SetRotation(double rotation)
+    {
+        data.SetRotation(rotation);
+    }
+    
+    public void Rotate(double rotation)
+    {
+        data.Rotate(rotation);
+    }
+    
     public boolean IsStreaming()
     {
         return data.IsStreaming();

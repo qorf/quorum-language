@@ -89,7 +89,8 @@ public abstract class StreamingData extends Data {
 			
             alSourcei(sourceID, AL_LOOPING, AL_FALSE);
             SetVolume(volume);
-            SetHorizontalPosition(pan);
+            //SetHorizontalPosition(pan);
+            SetPosition(x, y, z);
 
             boolean filled = false; // Check if there's anything to actually play.
             for (int i = 0; i < bufferCount; i++) 
@@ -186,12 +187,99 @@ public abstract class StreamingData extends Data {
     {
 	//this.volume = volume;
 	this.pan = pan;
+        fade = 0;
 	if (manager.noDevice) 
             return;
 	if (sourceID == -1)
             return;
         
+        this.x = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
+        this.y = 0;
+        this.z = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
+        
         alSource3f(sourceID, AL_POSITION, (float)Math.cos((pan - 1) * Math.PI/2), 0, (float)Math.sin((pan + 1) * Math.PI/2));
+        
+        alSourcef(sourceID, AL_GAIN, volume);
+    }
+    
+    @Override
+    public void SetFade(float newFade) 
+    {
+	//this.volume = volume;
+	this.fade = newFade;
+        pan = 0;
+	if (manager.noDevice) 
+            return;
+	if (sourceID == -1)
+            return;
+        
+        this.x = 0;
+        this.y = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
+        this.z = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
+        
+        alSource3f(sourceID, AL_POSITION, 0, (float)Math.cos((newFade - 1) * Math.PI/2), (float)Math.sin((newFade + 1) * Math.PI/2));
+        
+        alSourcef(sourceID, AL_GAIN, volume);
+    }
+    
+    @Override
+    public void SetX(float newX)
+    {
+        if (manager.noDevice) 
+            return;
+	if (sourceID == -1)
+            return;
+        
+        this.x = newX;
+        
+        alSource3f(sourceID, AL_POSITION, newX, y, z);
+        
+        alSourcef(sourceID, AL_GAIN, volume);
+    }
+    
+    @Override
+    public void SetY(float newY)
+    {
+        if (manager.noDevice) 
+            return;
+	if (sourceID == -1)
+            return;
+        
+        this.y = newY;
+        
+        alSource3f(sourceID, AL_POSITION, x, newY, z);
+        
+        alSourcef(sourceID, AL_GAIN, volume);
+    }
+    
+    @Override
+    public void SetZ(float newZ)
+    {
+        if (manager.noDevice) 
+            return;
+	if (sourceID == -1)
+            return;
+        
+        this.z = newZ;
+        
+        alSource3f(sourceID, AL_POSITION, x, y, newZ);
+        
+        alSourcef(sourceID, AL_GAIN, volume);
+    }
+    
+    @Override
+    public void SetPosition(float newX, float newY, float newZ)
+    {
+        if (manager.noDevice) 
+            return;
+	if (sourceID == -1)
+            return;
+        
+        this.x = newX;
+        this.y = newY;
+        this.z = newZ;
+        
+        alSource3f(sourceID, AL_POSITION, newX, newY, newZ);
         
         alSourcef(sourceID, AL_GAIN, volume);
     }

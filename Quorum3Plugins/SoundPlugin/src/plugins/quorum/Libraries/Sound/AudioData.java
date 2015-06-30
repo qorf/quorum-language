@@ -73,7 +73,8 @@ public abstract class AudioData extends Data {
 	alSourcei(sourceID, AL_LOOPING, AL_FALSE);
 	alSourcef(sourceID, AL_GAIN, volume);
 	alSourcePlay(sourceID);
-        SetHorizontalPosition(pan);
+        //SetHorizontalPosition(pan);
+        SetPosition(x, y, z);
     }
     
     /*
@@ -229,13 +230,111 @@ public abstract class AudioData extends Data {
             return;
         
         pan = newPan;
+        fade = 0;
         
         if (!manager.SoundIDIsActive(soundID))
         {
             int sourceID = manager.ObtainSource(false);
             soundID = (long)manager.sourceToSoundID.get(sourceID);
         }
+        
+        this.x = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
+        this.y = 0;
+        this.z = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
+        
         manager.SetSoundPan(soundID, pan);
+    }
+    
+    @Override
+    public void SetFade(float newFade)
+    {
+        if (manager.noDevice)
+            return;
+        
+        fade = newFade;
+        pan = 0;
+        
+        if (!manager.SoundIDIsActive(soundID))
+        {
+            int sourceID = manager.ObtainSource(false);
+            soundID = (long)manager.sourceToSoundID.get(sourceID);
+        }
+        
+        this.x = 0;
+        this.y = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
+        this.z = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
+        
+        manager.SetSoundFade(soundID, fade);
+    }
+    
+    @Override
+    public void SetX(float newX)
+    {
+        if (manager.noDevice)
+            return;
+        
+        if (!manager.SoundIDIsActive(soundID))
+        {
+            int sourceID = manager.ObtainSource(false);
+            soundID = (long)manager.sourceToSoundID.get(sourceID);
+        }
+        
+        this.x = newX;
+        
+        manager.UpdatePosition(soundID, newX, y, z);
+    }
+    
+    @Override
+    public void SetY(float newY)
+    {
+        if (manager.noDevice)
+            return;
+        
+        if (!manager.SoundIDIsActive(soundID))
+        {
+            int sourceID = manager.ObtainSource(false);
+            soundID = (long)manager.sourceToSoundID.get(sourceID);
+        }
+        
+        this.y = newY;
+        
+        manager.UpdatePosition(soundID, x, newY, z);
+    }
+    
+    @Override
+    public void SetZ(float newZ)
+    {
+        if (manager.noDevice)
+            return;
+        
+        if (!manager.SoundIDIsActive(soundID))
+        {
+            int sourceID = manager.ObtainSource(false);
+            soundID = (long)manager.sourceToSoundID.get(sourceID);
+        }
+        
+        this.z = newZ;
+        
+        manager.UpdatePosition(soundID, x, y, newZ);
+    }
+    
+    @Override
+    public void SetPosition(float newX, float newY, float newZ)
+    {
+        if (manager.noDevice)
+            return;
+        
+        if (!manager.SoundIDIsActive(soundID))
+        {
+            int sourceID = manager.ObtainSource(false);
+            soundID = (long)manager.sourceToSoundID.get(sourceID);
+        }
+        
+        this.x = newX;
+        this.y = newY;
+        this.z = newZ;
+        
+        manager.UpdatePosition(soundID, newX, newY, newZ);
     }
     
     // Returns the duration of the sound in seconds.
