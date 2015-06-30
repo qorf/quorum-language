@@ -514,10 +514,11 @@ What this means is that you can pass a flag to Quorum combined with any number o
 "The legal flags are listed as follows:
     -name This flag tells Quorum to change the name the file is outputs.
 
-    -compile This flag tells Quorum to compile a set of files.
-
-    -web This flag tells Quorum to compile and generate output for use on the web through what " +
-"is called a Tomcat or Glassfish server. These are server technologies designed to serve web pages.
+    -compile This flag tells Quorum to compile a set of files." +
+//  Hide the web version for this release.
+//    -web This flag tells Quorum to compile and generate output for use on the web through what " +
+//"is called a Tomcat or Glassfish server. These are server technologies designed to serve web pages.
+    "
 
     -test This flag tells Quorum to run its test suite on itself.
 
@@ -529,21 +530,24 @@ Here are a few examples of how you can use this program:
 
         This would request that Quorum compiles the source file Hello.quorum.
 
-    quorum -compile Hello.quorum
+    quorum -compile Hello.quorum" +
 
-        This would have the same impact, compiling Hello.quorum
-
-    quorum -web Hello.quorum
-
-        This would have Quorum compile Hello.quorum and package it for the web.
+//  Hide the web content for the 3.0 release, as the team redesigns it.
+//        This would have the same impact, compiling Hello.quorum
+//
+//    quorum -web Hello.quorum
+//
+//        This would have Quorum compile Hello.quorum and package it for the web.
+    "
 
     quorum -name MyProgram -compile Hello.quorum
 
-        This would cause Quorum to compile Hello.quorum and name the output MyProgram.
+        This would cause Quorum to compile Hello.quorum and name the output MyProgram." +
 
-    quorum -name MyProgram -web Hello.quorum
-
-        This would cause Quorum to compile Hello.quorum and name the output MyProgram.
+//    quorum -name MyProgram -web Hello.quorum
+//
+//        This would cause Quorum to compile Hello.quorum and name the output MyProgram.
+    "
 
     quorum Hello.quorum Goodbye.quorum
 
