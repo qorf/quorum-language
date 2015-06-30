@@ -25,6 +25,8 @@ class Documentation
         text dq = result:GetDoubleQuote()
         result = result + "<p align=" + dq + "justify" + dq + ">" + GetDescription() + "</p>" 
         text example = GetExample()
+        example = example:Replace("<", "&lt;")
+        example:Replace(">", "&gt;")
         if example not= undefined
             result = result + "<strong><em>Example Code</em></strong>"
             result = result + "<pre class=" + dq + "code" + dq + ">"

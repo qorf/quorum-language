@@ -184,12 +184,24 @@ class ClassOpcode is QuorumOpcode
         end
 
         Iterator<Variable> vars = clazz:GetVariables()
+        Array<Variable> variableArray
+        repeat while vars:HasNext()
+            Variable next = vars:Next()
+            if next:IsPublic()
+                variableArray:Add(next)
+            end
+        end
+        variableArray:Sort()
+        vars = variableArray:GetIterator()
+
         if vars:HasNext()
             result = result + "<h1 style=" + dq + "font-size:" + h1Size + "%" + dq + ">Variables</h1>" + NL
             result = result + "<ul>"
             repeat while vars:HasNext()
                 Variable var = vars:Next()
-                result = result + "<li><strong>" + var:GetName() + "</strong>: "
+                Type t = var:GetType()
+                text typeDisplay = t:GetDisplayName()
+                result = result + "<li><strong>" + typeDisplay + " " + var:GetName() + "</strong>: "
                 Documentation doc = var:GetDocumentation()
                 if doc not= undefined
                     result = result + doc:GetDescription()
@@ -247,7 +259,7 @@ class ClassOpcode is QuorumOpcode
                 result = result + "<strong><em>Return: </em></strong>"
                 result = result + r
                 if doc not= undefined
-                    result = result + " " + doc:GetReturns()
+                    result = result + "<p> " + doc:GetReturns() + "</p>"
                 end
             end
         end
