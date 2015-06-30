@@ -4,20 +4,24 @@ use Libraries.Containers.Array
 /*
 This class is an object representation of a LEGO Mindstorms EV3 motor.
 It is used to control movement of the EV3 robot.
+By default, motors are set to move at 360 degrees per second.
 
 Attribute: Author Evan Pierzina
 
 Attribute: Example
+use Libraries.Robots.Lego.Motor
+use Libraries.Robots.Lego.Utility
+
 class Main
     action Main
         Motor motor
         Utility utility
         
-        motor:SetSpeed(motor:MOTOR_A, 360)  //one revolution per second
-        motor:SetSpeed(motor:MOTOR_B, 360)
+        motor:SetSpeed(motor:MOTOR_A, 720)  //two revolutions per second
+        motor:SetSpeed(motor:MOTOR_B, 720)
         motor:MoveForward(motor:MOTOR_A)
         motor:MoveForward(motor:MOTOR_B)
-        utility:DelayMilliseconds(3000)
+        utility:DelayMilliseconds(3000)     //let the motors rotate for 3 seconds
         motor:Stop(motor:MOTOR_A)
         motor:Stop(motor:MOTOR_B)
     end
@@ -60,6 +64,7 @@ class Motor
 
     /*
     This action will cause the specified motor to rotate forward until stopped by the Stop action or if the program ends.
+    If this method is not called, motors will default to a speed of 360 degrees per second.
     
     Attribute: Parameter motorID represents which motor will be changed by this action.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.

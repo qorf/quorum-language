@@ -53,6 +53,7 @@ public class Run extends QuorumAction implements ActionListener {
             if(type == QuorumProjectType.LEGO) {
                 //io.getOut().println("To run the robot, use the lego robot itself. The reason is because I cannot execute the robot from within the development environment. ");
                 //io.getOut().close();
+                progress.finish();
                 return;
             }
 
