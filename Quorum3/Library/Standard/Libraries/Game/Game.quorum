@@ -425,7 +425,9 @@ class Game
         repeat mouseEvents:GetSize() times
             mouseEvent = mouseEvents:RemoveFromFront()
             Item temp = activePanel:GetItemAt(mouseEvent:GetX(), mouseEvent:GetY())
-            temp:ProcessMouseEvent(mouseEvent)
+            if temp not= undefined
+                temp:ProcessMouseEvent(mouseEvent)
+            end
         end
 
         keyboardProcessor:Update()
