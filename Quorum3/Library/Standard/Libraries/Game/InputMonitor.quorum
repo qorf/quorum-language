@@ -3,8 +3,31 @@ package Libraries.Game
 use Libraries.Game.Graphics.Drawable
 
 /*
-    Primitive input class used to poll for input. In almost all cases, it is 
-    better to use event listeners and register them with the game class.
+    The InputMonitor class can be used to test the state of the keyboard or
+    mouse at any time. This will poll the input for its status.
+
+    Attribute: Example
+
+        use Libraries.Game.InputMonitor
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.KeyboardEvent
+
+        class Main is Game
+
+            InputMonitor monitor
+            KeyboardEvent keys
+
+            action Main
+                StartGame()
+            end
+
+            action Update(number time)
+                if monitor:IsKeyPressed(keys:SPACE)
+                    output "The space bar is pressed!"
+                end
+            end
+
+        end
 */
 class InputMonitor
     system action IsKeyPressed(integer keyCode) returns boolean

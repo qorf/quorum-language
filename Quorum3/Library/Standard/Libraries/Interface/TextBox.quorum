@@ -9,6 +9,32 @@ use Libraries.Game.Graphics.Label
 use Libraries.Game.InputMonitor
 use Libraries.Game.Graphics.Color
 
+
+/*
+    The TextBox class is an extension of the Libraries.Interface.Panel class, 
+    and is used to receive text input from the user. 
+
+    Attribute: Example
+
+        use Libraries.Interface.TextBox
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TextBox box
+                box:SetPosition(100, 100)
+                box:Initialize(100, 100)
+                Add(box)
+                AddKeyboardListener(box)
+            end
+
+        end
+*/
 class TextBox is Panel, KeyboardListener
     private InputMonitor im
     private Label response

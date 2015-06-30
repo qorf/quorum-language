@@ -3,6 +3,53 @@ package Libraries.Game.Graphics
 use Libraries.Compute.BitwiseOperations
 use Libraries.Game.NumberUtilities
 
+/*
+    The Color class stores information about a color used by the game engine.
+    Colors are stored as a combination of red, green, blue, and alpha (or
+    opacity). All four values may be set from 0 to 1, where 0 represents the
+    total lack of a color or full transparency, and 1 represents full presence
+    of that color or total opacity.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle1
+            Drawable rectangle2
+            Drawable rectangle3
+
+            Color blue
+            Color yellow
+            Color glassy
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                blue:SetColor(0, 0, 1, 1)
+                rectangle1:LoadFilledRectangle(100, 50, blue)
+
+                yellow:SetColor(1, 1, 0, 1)
+                rectangle2:LoadFilledRectangle(100, 50, yellow)
+
+                glassy:SetColor(1, 1, 1, 0.25)
+                rectangle3:LoadFilledRectangle(100, 50, glassy)
+
+                rectangle1:SetPosition(50, 50)
+                rectangle2:SetPosition(200, 50)
+                rectangle3:SetPosition(125, 65)
+               
+                Add(rectangle1)
+                Add(rectangle2)
+                Add(rectangle3)
+            end
+        end
+*/
 class Color 
   
     /* The RGBA components of the Color class */

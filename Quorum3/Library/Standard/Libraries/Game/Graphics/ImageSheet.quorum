@@ -3,6 +3,11 @@ package Libraries.Game.Graphics
 use Libraries.System.File
 use Libraries.Game.Disposable
 
+/*
+    The ImageSheet class is used to handle many images spread across different
+    files. It loads a .atlas file, and then can be used to get Libraries.Game.Graphics.Drawable
+    objects from the files.
+*/
 class ImageSheet is Disposable
     private boolean initialized = false
 

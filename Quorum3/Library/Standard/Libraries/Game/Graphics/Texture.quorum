@@ -9,7 +9,38 @@ use Libraries.System.File
 use Libraries.Language.Errors.Error
 use Libraries.Game.Disposable
 
-/* Texture wraps an OpenGL ES Texture */
+/*
+    The Texture class represents an image that can be drawn on the screen. Once
+    an image is loaded into a texture, it can be drawn on the screen by loading
+    it into a Drawable.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Texture
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable drawable
+            Texture texture
+            Color red
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                red:SetColor(1, 0, 0, 1)
+                texture:LoadFilledRectangle(80, 100, red)
+                drawable:Load(texture)
+
+                drawable:SetPosition(200, 200)
+                Add(drawable)
+            end
+        end
+*/
 class Texture is Disposable
 
     private TextureData data = undefined
@@ -369,9 +400,9 @@ class Texture is Disposable
         PixelMap pixmap
         Format format
         format:SetValue(format:RGBA8888)
-        pixmap:CreatePixelMap(radius * 2, radius * 2, format)
+        pixmap:CreatePixelMap(radius * 2 + 2, radius * 2 + 2, format)
 
-        pixmap:DrawCircle(radius, radius, radius, color)
+        pixmap:DrawCircle(radius + 1, radius + 1, radius, color)
         
         FileTextureData data
         data:InitializeFileTextureData(undefined, pixmap, format, false)
@@ -383,7 +414,7 @@ class Texture is Disposable
         PixelMap pixmap
         Format format
         format:SetValue(format:RGBA8888)
-        pixmap:CreatePixelMap(radius * 2, radius * 2, format)
+        pixmap:CreatePixelMap(radius * 2 + 1, radius * 2 + 1, format)
 
         pixmap:FillCircle(radius, radius, radius, color)
         

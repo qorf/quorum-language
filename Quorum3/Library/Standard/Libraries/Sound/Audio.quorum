@@ -600,5 +600,23 @@ class Audio
     output "Was audio2 streaming? " + audio2:IsStreaming()
     */
     system action IsStreaming() returns boolean
+
+    system action SetFade(number fade)
+
+    system action SetX(number newX)
+
+    system action SetY(number newY)
+
+    system action SetZ(number newZ)
+
+    system action GetX returns number
+
+    system action GetY returns number 
+
+    system action GetZ returns number
+
+    system action SetRotation(number rotation)
+
+    system action Rotate(number rotation)
     
 end

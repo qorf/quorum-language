@@ -10,6 +10,40 @@ use Libraries.System.File
 use Libraries.Interface.Item
 use Libraries.Game.Graphics.Painter
 
+/*
+    The Drawable class is a Libraries.Interface.Item that can be drawn on the
+    screen. It has x and y coordinates to represent its location on the screen.
+    A Drawable with coordinates (0, 0) is located at the bottom left corner of
+    the screen. Increasing the x and y coordinates will move the Drawable right
+    and up, respectively.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+            Drawable circle
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                rectangle:LoadFilledRectangle(100, 50)
+                circle:LoadFilledCircle(40)
+
+                rectangle:SetPosition(25, 100)
+                circle:SetPosition(150, 200)
+
+                Add(rectangle)
+                Add(circle)
+            end
+
+        end
+*/
 class Drawable is TextureRegion, Item
 
     // These constants represent certain aspects of each vertex. For example,
