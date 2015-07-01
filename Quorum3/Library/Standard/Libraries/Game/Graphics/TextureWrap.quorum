@@ -2,6 +2,11 @@ package Libraries.Game.Graphics
 
 use Libraries.Language.Errors.Error
 
+/* 
+This class is used for internal use by the Game class to define the texture
+wrapping properties of a Texture in OpenGL. Most users will never need to touch
+this class directly.
+*/
 class TextureWrap 
     private integer value = 0
     private boolean initialized = false
@@ -22,6 +27,11 @@ class TextureWrap
     public constant integer CLAMP_TO_EDGE = 33071
     public constant integer REPEAT = 10497
 
+    /*
+    Returns the current value of the TextureWrap.. Calling this before the
+    TextureWrap has been initialized with ConstructTextureWrap will result
+    in an error.
+    */
     public action GetValue returns integer
 
         if initialized = false
@@ -33,6 +43,10 @@ class TextureWrap
         return value
     end
 
+    /*
+    This action sets the value of the TextureWrap. Note that the TextureWrap can
+    not be used before using this action.
+    */
     public action ConstructTextureWrap(integer type)
 
         // We could potentially use error checking here to prevent:

@@ -7,6 +7,16 @@
 
 package Libraries.Game
 
+/*
+The Disposable class contains a single blueprint action, Dispose. Some classes
+inherit from it to indicate that they are capable of disposing themselves.
+*/
 class Disposable 
+
+    /*
+    The Dispose action is used to free up resources when the object is no longer
+    needed. This is typically because they store information like pictures or
+    sounds.
+    */
     blueprint action Dispose()
 end

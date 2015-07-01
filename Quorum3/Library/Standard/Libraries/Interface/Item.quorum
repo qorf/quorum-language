@@ -383,6 +383,36 @@ class Item
         end
     end
 
+    /* This action returns the Item's global x coordinate, or where the Item is
+    located at after applying the x offset.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetOffsetX(100)
+        myItem:SetX(30)
+        number globalX = myItem:GetGlobalX()
+    */
+    action GetGlobalX returns number
+        return GetX() + offsetX
+    end
+
+    /* This action returns the Item's global y coordinate, or where the Item is
+    located at after applying the y offset.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetOffsetY(60)
+        myItem:SetX(90)
+        number globalY = myItem:GetGlobalY()
+    */
+    action GetGlobalY returns number
+        return GetY() + offsetY
+    end
+
     /* This action adds a MouseListener to the Item. If the Item ever receives
     a MouseEvent due to a mouse click, the mouse listener will be notified.
 

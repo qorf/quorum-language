@@ -1,5 +1,27 @@
 package Libraries.Game.Graphics
 
+/*
+The FramesPerSecondLabel is a Label that will automatically track a game's
+displayed frames per second.
+
+Attribute: Example
+
+    use Libraries.Game.Graphics.FramesPerSecondLabel
+    use Libraries.Game.Game
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            FramesPerSecondLabel fpsLabel
+            Add(fpsLabel)
+        end
+
+    end
+*/
 class FramesPerSecondLabel is Label
     
     on create
@@ -10,6 +32,12 @@ class FramesPerSecondLabel is Label
     integer frames = 0
     number timer = 0
 
+    /*
+        The Update action will test the current frames per second and
+        automatically update the label's text to show it. When this is added to
+        the Game class, this will automatically be called immediately after Game
+        calls Game:Update().
+    */
     action Update(number secondsSinceUpdate)
         frames = frames + 1
         timer = timer + secondsSinceUpdate

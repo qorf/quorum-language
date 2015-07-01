@@ -6,6 +6,10 @@ package Libraries.Game.Graphics
 
 use Libraries.Language.Errors.Error
 
+/* 
+This class is used for internal use by the Game class to define the filtering on
+a Texture in OpenGL. Most users will never need to touch this class directly.
+*/
 class TextureFilter 
     private integer value = 0
     private boolean initialized = false
@@ -34,6 +38,11 @@ class TextureFilter
     public constant integer MIPMAP_NEAREST_LINEAR = 9986
     public constant integer MIPMAP_LINEAR_LINEAR = 9987
 
+    /*
+    Returns the current value of the TextureFilter. Calling this before the
+    TextureFilter has been initialized with ConstructTextureFilter will result
+    in an error.
+    */
     public action GetValue returns integer
         if initialized = false
             Error error
@@ -44,6 +53,10 @@ class TextureFilter
         return value
     end
 
+    /*
+    This action sets the value of the TextureFilter. Note that the TextureFilter
+    can not be used before using this action.
+    */
     public action ConstructTextureFilter(integer type)
 
         // We could potentially use error checking here to prevent:
@@ -53,6 +66,10 @@ class TextureFilter
         value = type
     end
 
+    /*
+    This action returns whether the currently set value indicates that the
+    Texture is used as part of mip-mapping.
+    */
     public action IsMipMap returns boolean
             return value not= NEAREST and value not= LINEAR
     end

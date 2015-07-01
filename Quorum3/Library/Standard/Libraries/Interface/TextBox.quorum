@@ -58,6 +58,33 @@ class TextBox is Panel, KeyboardListener
         SetBorderColor(nearWhite)
     end
 
+    /*
+    The Initialize action sets the starting width and height of the TextBox,
+    loads the default background and border, and prepares the box for input.
+
+    Attribute: Parameter width The width of the text box.
+    Attribute: Parameter height The height of the text box.
+
+    Attribute: Example
+
+        use Libraries.Interface.TextBox
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TextBox box
+                box:Initialize(100, 100)
+                Add(box)
+                AddKeyboardListener(box)
+            end
+
+        end
+    */
     action Initialize(number width, number height)
         parent:Panel:Initialize(width, height)
         
@@ -77,10 +104,50 @@ class TextBox is Panel, KeyboardListener
         Add(lineCursor)
     end
 
+    /*
+    Returns the input that the user has put in the TextBox.
+
+    Attribute: Example
+
+        use Libraries.Interface.TextBox
+        use Libraries.Game.Game
+        use Libraries.Game.InputMonitor
+        use Libraries.Interface.Events.KeyboardEvent
+
+        class Main is Game
+
+            TextBox box
+            InputMonitor monitor
+            KeyboardEvent keys
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                box:Initialize(100, 100)
+                Add(box)
+                AddKeyboardListener(box)
+            end
+
+            action Update(number time)
+                if monitor:IsKeyPressed(keys:ENTER)
+                    output box:GetInput()
+                end
+            end
+
+        end
+    */
     action GetInput returns text
         return responseStr
     end
 
+    /*
+    This action positions the cursor and makes it blink on and off. When TextBox
+    is used in conjunction with the Game class, this action will automatically
+    be called by Game immediately after Game:Update() is called if the TextBox
+    is a part of the Game via the Add(Item) action.
+    */
     action Update(number delta)
         UpdateText()
 
@@ -110,6 +177,13 @@ class TextBox is Panel, KeyboardListener
 
     end
 
+    /*
+    This action listens for a key on the keyboard to be pressed. When a key is
+    pressed, if it is a valid symbol, it will be added to the text box's input.
+    When used in conjunction with the Game class, this will be called
+    automatically if added to the Game via the AddKeyboardListener(KeyboardListener)
+    action.
+    */
     action PressedKey(KeyboardEvent ke)
         ShiftPressed = false
         if im:IsKeyPressed(ke:SHIFT_LEFT) or im:IsKeyPressed(ke:SHIFT_RIGHT)
@@ -215,7 +289,7 @@ class TextBox is Panel, KeyboardListener
         return value
     end
 
-    action UpdateText
+    private action UpdateText
         if textChanged
             response:SetText(responseStr)
             if response:GetTextHeight() > GetHeight()
@@ -228,19 +302,98 @@ class TextBox is Panel, KeyboardListener
         end
     end
 
+    /*
+    Sets the number of seconds that should pass between the cursor blinking on
+    or off.
+
+    Attribute: Example
+
+        use Libraries.Interface.TextBox
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TextBox box
+                box:Initialize(100, 100)
+                box:SetBlinkRate(0.25)
+                Add(box)
+                AddKeyboardListener(box)
+            end
+
+        end
+    */
     action SetBlinkRate(number rate)
         blinkRate = rate
     end
 
+    /*
+    Returns the current number of seconds that are allowed to pass between the
+    cursor blinking on and off.
+
+    Attribute: Example
+
+        use Libraries.Interface.TextBox
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TextBox box
+                box:Initialize(100, 100)
+                Add(box)
+                AddKeyboardListener(box)
+                output "The default blink rate is " + box:GetBlinkRate()
+            end
+
+        end
+    */
     action GetBlinkRate returns number
         return blinkRate
     end
 
+    /*
+    This action enables the text box, making it accept input and making the
+    cursor visible. Note that the text box is enabled by default.
+    */
     action Enable
         AddKeyboardListener(me)
         lineCursor:Show()
     end
 
+    /*
+    This action disables the text box, preventing it from accepting input and
+    hiding the cursor.
+
+    Attribute: Example
+
+        use Libraries.Interface.TextBox
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TextBox box
+                box:Initialize(100, 100)
+                Add(box)
+                AddKeyboardListener(box)
+                box:Disable()
+            end
+
+        end
+    */
     action Disable
         // Update text to set the most recent text, if needed.
         UpdateText()

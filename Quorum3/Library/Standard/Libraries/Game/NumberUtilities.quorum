@@ -6,16 +6,31 @@ package Libraries.Game
 
 use Libraries.Compute.BitwiseOperations
 
+/*
+The NumberUtilities class contains some actions used by the game engine to 
+manipulate the bits of a number for graphical purposes. Most users will never
+need to interface with this class directly.
+*/
 class NumberUtilities 
 
+    /*
+    Creates a number with the same bits as the integer parameter, ensuring that
+    the returned number is a valid color code.
+    */
     action EncodeColorIntegerAsNumber(integer target) returns number
         BitwiseOperations ops
         // -16777217 is the 2's complement representation of 0xFEFFFFFF
         return EncodeIntegerAsNumber(ops:And(target, -16777217))
     end
 
+    /*
+    Creates an integer with the same bits as the number parameter.
+    */
     system action EncodeNumberAsInteger(number target) returns integer
 
+    /*
+    Creates a number with the same bits as the integer parameter.
+    */
     system action EncodeIntegerAsNumber(integer target) returns number
 
 end

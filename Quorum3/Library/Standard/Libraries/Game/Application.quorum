@@ -6,8 +6,11 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Painter
 
-//This is an implementation of 
-//https://github.com/libgdx/libgdx/blob/d1f18bd3fe6e399aea61026cb1f58f1e0b89bc56/backends/gdx-backend-lwjgl/src/com/badlogic/gdx/backends/lwjgl/LwjglApplication.java
+/*
+    This is an internal class used by the Game class to manage several resources
+    that must be unique. It is responsible for initial set up, execution of the
+    main loop, and exiting a game. Most users will never use this class directly.
+*/
 class Application 
 
     Game game = undefined
@@ -21,6 +24,11 @@ class Application
         manager:SetApplication(me)
     end
 
+    /*
+        The Setup action is used for initial set up of the Game's resources, and
+        will begin the game's main loop. This is automatically used by the Game
+        class via the Game:StartGame() action.
+    */
     action Setup(Game game, ApplicationConfiguration config, GameDisplay disp)
         //load natives?
         if config:title = ""
@@ -87,7 +95,7 @@ class Application
      
     //Kicks off the game in it's own thread from inside Java.
     //Equivilent to the Initialize method.
-    system action NativeSetup
+    //system action NativeSetup
 
     private action MainLoop
 
@@ -232,11 +240,18 @@ class Application
         
     end
 
+    /*
+        This action tells the game to close at the end of the next iteration of
+        the MainLoop. It is called automatically by the Game class's Exit action.
+    */
     action Exit()
         running = false
     end
 
-    // FOR DEBUGGING PURPOSES ONLY
+    /*
+        This action queries OpenGL to see if any errors have ocurred in the
+        graphics pipeline, and is used for debugging only.
+    */
     system action CheckForErrors
 
 end

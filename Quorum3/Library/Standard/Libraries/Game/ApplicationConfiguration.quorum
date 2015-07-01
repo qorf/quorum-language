@@ -4,106 +4,120 @@ use Libraries.Game.Graphics.Color
 use Libraries.Containers.Array
 
 /*
- *A class that represents the configuration of the application.
- *It contains a large number of the graphics configurations.
+    This class represents the configuration of the game. It is referenced when
+    the game is first created to set its initial data.
  */
 class ApplicationConfiguration 
   
-  //If true openAL will not be used
-  public boolean disableAudio = false
+    /* If true, will disable audio. */
+    public boolean disableAudio = false
 
-  //Use OpenGL ES 3.0
-  public boolean useGL30 = false
-  
-  //Bits per channel
-  public integer r = 8
-  public integer b = 8
-  public integer g = 8
-  public integer a = 8
-  
+    /* If true, use OpenGL ES 3.0 */
+    public boolean useGL30 = false
 
-  //Bits for depth and stencil buffers
-  public integer depth = 16
-  public integer stencil = 0
+    /* Number of bits available per pixel for drawing red on the screen. */
+    public integer r = 8
 
-  //Number of samples for MSAA
-  public integer samples = 0
+    /* Number of bits available per pixel for drawing blue on the screen. */
+    public integer b = 8
 
-  //Width and height of the application
-  public integer width = 640
-  public integer height = 480
+    /* Number of bits available per pixel for drawing green on the screen. */
+    public integer g = 8
+
+    /* Number of bits available per pixel for drawing alpha on the screen. */
+    public integer a = 8
 
 
-  //X and Y for application Windows, -1 for center
-  public integer x = -1
-  public integer y = -1
+    /* Number of bits availble for the depth buffer. */
+    public integer depth = 16
 
-  public boolean fullScreen = false
-  
-  //For screen density emulation
-  public integer overrideDensity = -1
+    /* Number of bits availble for the stencil buffer. */
+    public integer stencil = 0
 
-  public boolean vSyncEnabled = true
+    /* Number of samples available for MSAA. */
+    public integer samples = 0
 
-  //application title
-  public text title = "Game"
+    /* The initial width of the application screen. */
+    public integer width = 640
 
-  //Call System.exit() on tear down
-  public boolean forceExit = true
+    /* The initial height of the application screen. */
+    public integer height = 480
 
-  //Is the window resizable?
-  public boolean resizable = false
 
-  // Should the textures automatically be resized when the window is resized?
-  public boolean autoResizeTextures = true
+    /* Initial x coordinate where the window will appear on screen. -1 for center. */
+    public integer x = -1
 
-  // The maximum number of sources that can be played simultaneously
-  public integer audioDeviceSimultaneousSources = 16
-	
-  // The audio device buffer size in samples
-  public integer audioDeviceBufferSize = 512
+    /* Initial y coordinate where the window will appear on screen. -1 for center. */
+    public integer y = -1
 
-  // The audio device buffer count
-  public integer audioDeviceBufferCount = 9
-	
-  //This private variable is a way to get around Quorum's 
-  //lack of contructors. We basically use a temporary Color as a
-  //Constructor object, that then returns a Color singleton for 
-  //ApplicationConfiguration to use.
-  private Color tempColor  
-  public Color initialBackgroundColor = tempColor:Black()
-	
-  //Target framerate when the window is in the foreground. 
-  //The CPU sleeps as needed. Use 0 to never sleep.
-  public integer foregroundFPS = 60
-	
-  // Target framerate when the window is not in the foreground. 
-  // The CPU sleeps as needed. Use 0 to never sleep, -1 to not render. 
-  public integer backgroundFPS = 60
+    /* If true, the application will run in full screen mode. */
+    public boolean fullScreen = false
 
-  // Allows software OpenGL rendering if hardware acceleration was not available.
-  public boolean allowSoftwareMode = false
+    /* For screen density emulation. */
+    public integer overrideDensity = -1
 
-  // Preferences directory on the desktop. Default is ".prefs/".
-  public text preferencesDirectory = ".prefs/"
+    /* If true, the application will use vSync. */
+    public boolean vSyncEnabled = true
 
-  //Not implemented yet.
-  //public LwjglGraphics.SetDisplayModeCallback setDisplayModeCallback;
-  
-  //NOTE: FileType is stubbed out as of 9/24/2014
-  Array<text> iconPaths
- // Array<FileType> iconFileTypes
-  
-  
+    /* The title of the application. */
+    public text title = "Game"
 
-	//Adds a window icon. Icons are tried in the order added, 
-  //the first one that works is used. Typically three icons should be
-	//provided: 128x128 (for Mac), 32x32 (for Windows and Linux), 
-  //and 16x16 (for Windows).
-  public action addIcon(text path/*, FileType fileType*/)
-    iconPaths:Add(path)
-    //iconFileTypes:Add(fileType)
-  end
+    /* Call System.exit() when the window is closed. */
+    public boolean forceExit = true
+
+    /* If true, the window will be resizable. */
+    public boolean resizable = false
+
+    /* If true, the textures will automatically be resized when the window is resized. */
+    public boolean autoResizeTextures = true
+
+    /* The maximum number of audio sources that can be played simultaneously. */
+    public integer audioDeviceSimultaneousSources = 16
+
+    /* The audio device buffer size in samples. */
+    public integer audioDeviceBufferSize = 512
+
+    /* The audio device buffer count. */
+    public integer audioDeviceBufferCount = 9
+
+    //This private variable is a way to get around Quorum's 
+    //lack of contructors. We basically use a temporary Color as a
+    //Constructor object, that then returns a Color singleton for 
+    //ApplicationConfiguration to use.
+    private Color tempColor
+
+    /* The starting color of the window while the Game is loading. */
+    public Color initialBackgroundColor = tempColor:Black()
+
+    /* Target framerate when the window is in the foreground. Use 0 to never sleep. */
+    public integer foregroundFPS = 60
+
+    /* Target framerate when the window is not in the foreground. Use 0 to never sleep, -1 to not render. */
+    public integer backgroundFPS = 60
+
+    /* Allows software OpenGL rendering if hardware acceleration was not available. */
+    public boolean allowSoftwareMode = false
+
+    /* Preferences directory on the desktop. Default is ".prefs/". */
+    public text preferencesDirectory = ".prefs/"
+
+    //Not implemented yet.
+    //public LwjglGraphics.SetDisplayModeCallback setDisplayModeCallback;
+
+    //NOTE: FileType is stubbed out as of 9/24/2014
+    //Array<text> iconPaths
+   // Array<FileType> iconFileTypes
+
+
+
+          //Adds a window icon. Icons are tried in the order added, 
+    //the first one that works is used. Typically three icons should be
+          //provided: 128x128 (for Mac), 32x32 (for Windows and Linux), 
+    //and 16x16 (for Windows).
+    //public action addIcon(text path/*, FileType fileType*/)
+    /*  iconPaths:Add(path)
+      //iconFileTypes:Add(fileType)
+    end*/
 
   /* 
 
@@ -151,8 +165,4 @@ class ApplicationConfiguration
 	}
 	}*/
 
-  
-    
-  
-  
 end

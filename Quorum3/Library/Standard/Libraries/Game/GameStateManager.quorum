@@ -1,34 +1,81 @@
 package Libraries.Game
 
-/*
-  This class is quorum side of the GameStateManager that creates a singleton
-  to maintain the game state across class instances.
- */
-
 use Libraries.Game.Application
 use Libraries.Game.GameDisplay
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.InputMonitor
 
-
+/*
+    The GameStateManager is an internal class, used by the game engine to
+    communicate between Quorum and plugin code. Most users will never have to
+    interface with this class directly.
+*/
 class GameStateManager 
     
+    /* 
+    This action is used by the engine to set the game's application info in the
+     plugins. 
+    */
     system action SetApplication(Application app)
+
+    /*
+    This action returns the application stored by the plugins. 
+    */
     system action GetApplication returns Application
    
+    /* 
+    This action is used by the engine to set the game's display info in the
+    plugins.
+    */
     system action SetGameDisplay(GameDisplay disp)
+
+    /*
+    This action returns the GameDisplay stored by the plugins. 
+    */
     system action GetGameDisplay returns GameDisplay
   
+    /*
+    This action is used by the engine to set the game's graphics manager in the
+    plugins.
+    */
     system action SetGameGraphics(GraphicsManager gl20)
+    
+    /*
+    This action returns the GraphicsManager stored by the plugins.
+    */
     system action GetGameGraphics returns GraphicsManager
 
+    /*
+    This action returns an InputMonitor that is stored in the plugins.
+    */
     system action GetInput returns InputMonitor
+
+    /*
+    This action sets an InputMonitor to be stored in the plugins.
+    */
     system action SetInput(InputMonitor im)
 
+    /*
+    This action sets a path to the native file used to load the engine's C
+    plugins. After setting the path, the engine will load the native file.
+    */
     system action SetNativePath(text path)
+
+    /*
+    This action returns the path of the native file loaded by the engine.
+    */
     system action GetNativePath returns text
 
+    /*
+    This action sets a flag in the plugins indicating what operating system the
+    game is running on.
+    */
     system action SetOperatingSystem(text os)
+
+    /*
+    This action returns a text flag indicating what operating system the game is
+    running on.
+    */
     system action GetOperatingSystem returns text
 
 end
