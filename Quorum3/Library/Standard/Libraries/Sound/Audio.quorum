@@ -31,8 +31,8 @@ file:SetPath("test.wav")
 // Now that our file is set up, we can load that file as audio.
 audio:Load(file)
 
-// After we load the file, we can play it with a simple call to Play().
-audio:Play()
+// After we load the file, we can play it with a call to PlayUntilDone().
+audio:PlayUntilDone()
 
 */
 class Audio
@@ -61,8 +61,8 @@ class Audio
     // Now that our file is set up, we can load that file as audio.
     audio:Load(file)
 
-    // After we load the file, we can play it with a simple call to Play().
-    audio:Play()
+    // After we load the file, we can play it with a call to PlayUntilDone().
+    audio:PlayUntilDone()
 
     */
     system action Load(File file)
@@ -87,8 +87,8 @@ class Audio
     // This will load the same "beep.ogg" file as in the previous example.
     audio:Load("Sounds/beep.ogg")
 
-    // After we load the file, we can play it with a simple call to Play().
-    audio:Play()
+    // After we load the file, we can play it with a call to PlayUntilDone().
+    audio:PlayUntilDone()
 
     */
     action Load(text filePath)
@@ -200,7 +200,7 @@ class Audio
     // should be loaded this way.
     audio:Load("ShortSound.wav")
 
-    // After we load the file, we can play it with a simple call to Play().
+    // After we load the file, we can play it with a call to Play().
     audio:Play()
 
     // We can also use the Play action with streamed audio.
@@ -282,7 +282,7 @@ class Audio
     // We always have to load a sound before use.
     audio:Load("ding.wav")
 
-    // After we load the file, we can play it with a simple call to Play().
+    // After we load the file, we can play it with a call to Play().
     audio:Play()
 
     // Now that audio is playing, we can stop it at any time by calling Stop().
@@ -316,7 +316,7 @@ class Audio
     // We always have to load a sound before use.
     audio:Load("ding.wav")
 
-    // After we load the file, we can play it with a simple call to Play().
+    // After we load the file, we can play it with a call to Play().
     audio:Play()
 
     // Now that audio is playing, we can pause it at any time by calling Pause.
@@ -343,7 +343,7 @@ class Audio
     // We always have to load a sound before use.
     audio:Load("example.ogg")
 
-    // After we load the file, we can play it with a simple call to Play().
+    // After we load the file, we can play it with a call to Play().
     audio:Play()
 
     // Because we just told the sound to play, IsPlaying() should return true,
@@ -454,8 +454,8 @@ class Audio
     // For this example, we will set the audio to 50%, or half, volume.
     audio:SetVolume(0.5)
 
-    // After we load the file, we can play it with a simple call to Play().
-    audio:Play()
+    // After we load the file, we can play it with a call to PlayUntilDone().
+    audio:PlayUntilDone()
 
     // Once we're finished with an audio file, we need to let the computer know.
     audio:Dispose()
@@ -494,6 +494,8 @@ class Audio
     will play the sound only through the right speaker. A value of 0 will play
     the sound equally through both speakers.
 
+    Using Balance, Fade, Rotation, or X,Y,Z coordinates are all exclusive of
+    each other, and using one will override any others used previously.
 
     Attribute: Example
 
@@ -507,10 +509,10 @@ class Audio
 
     // For this example, we will set the position with the value -1. This will
     // make the sound play through only the left speaker.
-    audio:SetBalancePosition(-1)
+    audio:SetBalance(-1)
 
-    // After we load the file, we can play it with a simple call to Play().
-    audio:Play()
+    // After we load the file, we can play it with a call to PlayUntilDone().
+    audio:PlayUntilDone()
 
     // Once we're finished with an audio file, we need to let the computer know.
     audio:Dispose()
@@ -601,26 +603,357 @@ class Audio
     */
     system action IsStreaming() returns boolean
 
+    /*
+    SetFade will change how the sound is played through speakers that have
+    forward and back channels. Values passed to this should always be between -1
+    and 1. A value of -1 will make the sound play through only the back channel.
+    A value of 1 will play the sound only through the front channel. A value of 
+    0 will play the sound equally through both channels.
+
+    Using Balance, Fade, Rotation, or X,Y,Z coordinates are all exclusive of
+    each other, and using one will override any others used previously.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We always have to load a sound before use.
+    audio:Load("noise.ogg")
+
+    // For this example, we will set the fade with the value 1. This will make
+    // the sound play through only the front channel.
+    audio:SetFade(1)
+
+    // After we load the file, we can play it with a call to PlayUntilDone().
+    audio:PlayUntilDone()
+
+    // Once we're finished with an audio file, we need to let the computer know.
+    audio:Dispose()
+    */
     system action SetFade(number fade)
 
+    /*
+    GetFade will return the current fade value of the sound. A value of -1
+    represents audio fully from the rear channel. A value of 1 represents audio
+    fully from the front channel. A value of 0 represents audio equally from
+    both channels.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We always have to load a sound before use.
+    audio:Load("ding.wav")
+
+    // For this example, we will set the fade to -1.
+    audio:SetFade(-1)
+
+    // We can get the fade back as a number using the GetFade() action.
+    number fade = audio:GetFade()
+    */
     system action GetFade returns number
 
+    /*
+    SetX places the sound at a specific X coordinate in 3D virtual space. The
+    distance and location of the sound relative to the listener's coordinates of
+    0, 0, 0 will affect the volume of the sound as well as how it plays though
+    speakers or headphones.
+
+    Using Balance, Fade, Rotation, or X,Y,Z coordinates are all exclusive of
+    each other, and using one will override any others used previously.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We always have to load a sound before use.
+    audio:Load("noise.ogg")
+
+    // For this example, we will place the audio at 2.5 units to the right of
+    // the listener. 
+    audio:SetX(2.5)
+
+    // After we load the file, we can play it with a call to PlayUntilDone().
+    audio:PlayUntilDone()
+
+    // Once we're finished with an audio file, we need to let the computer know.
+    audio:Dispose()
+    */
     system action SetX(number newX)
 
+    /*
+    SetY places the sound at a specific Y coordinate in 3D virtual space. The
+    distance and location of the sound relative to the listener's coordinates of
+    0, 0, 0 will affect the volume of the sound as well as how it plays though
+    speakers or headphones.
+
+    Using Balance, Fade, Rotation, or X,Y,Z coordinates are all exclusive of
+    each other, and using one will override any others used previously.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We always have to load a sound before use.
+    audio:Load("noise.ogg")
+
+    // For this example, we will place the audio at 1 unit behind the listener.
+    audio:SetY(-1)
+
+    // After we load the file, we can play it with a call to PlayUntilDone().
+    audio:PlayUntilDone()
+
+    // Once we're finished with an audio file, we need to let the computer know.
+    audio:Dispose()
+    */
     system action SetY(number newY)
 
+    /*
+    SetZ places the sound at a specific Z coordinate in 3D virtual space. The
+    distance and location of the sound relative to the listener's coordinates of
+    0, 0, 0 will affect the volume of the sound as well as how it plays though
+    speakers or headphones.
+
+    Using Balance, Fade, Rotation, or X,Y,Z coordinates are all exclusive of
+    each other, and using one will override any others used previously.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We always have to load a sound before use.
+    audio:Load("noise.ogg")
+
+    // For this example, we will place the audio at 1.5 units above the listener.
+    audio:SetZ(1.5)
+
+    // After we load the file, we can play it with a call to PlayUntilDone().
+    audio:PlayUntilDone()
+
+    // Once we're finished with an audio file, we need to let the computer know.
+    audio:Dispose()
+    */
     system action SetZ(number newZ)
 
+    /*
+    SetPosition places the sound at a specific set of X, Y, and Z coordinates in
+    3D virtual space. The distance and location of the sound relative to the
+    listener's coordinates of 0, 0, 0 will affect the volume of the sound as 
+    well as how it plays though speakers or headphones.
+
+    Using Balance, Fade, Rotation, or X,Y,Z coordinates are all exclusive of
+    each other, and using one will override any others used previously.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We always have to load a sound before use.
+    audio:Load("noise.ogg")
+
+    // For this example, we will place the audio at 2 units to the left, 4 units
+    // in front of, and 1 unit above the listener.
+    audio:SetPosition(-2, 4, 1)
+
+    // After we load the file, we can play it with a call to PlayUntilDone().
+    audio:PlayUntilDone()
+
+    // Once we're finished with an audio file, we need to let the computer know.
+    audio:Dispose()
+    */
+    system action SetPosition(number newX, number newY, number newZ)
+
+    /*
+        GetX returns the current location of the sound in the X plane in virtual
+        3D space.
+
+        Using Balance, Fade, Rotation, or X,Y,Z coordinates are all exclusive of
+        each other, and using one will override any others used previously.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // To use audio, we'll first need to create an object for it.
+        Audio audio
+
+        // We always have to load a sound before use.
+        audio:Load("noise.ogg")
+
+        // For this example, we will place the audio at 1.5 units to the left 
+        // of the listener.
+        audio:SetX(-1.5)
+
+        // We can get the x position of the sound as a number with GetX().
+        number x = audio:GetX()
+    */
     system action GetX returns number
 
+    /*
+        GetY returns the current location of the sound in the Y plane in virtual
+        3D space.
+
+        Using Balance, Fade, Rotation, or X,Y,Z coordinates are all exclusive of
+        each other, and using one will override any others used previously.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // To use audio, we'll first need to create an object for it.
+        Audio audio
+
+        // We always have to load a sound before use.
+        audio:Load("noise.ogg")
+
+        // For this example, we will place the audio at 1.85 units in front of
+        // the listener.
+        audio:SetY(1.85)
+
+        // We can get the y position of the sound as a number with GetY().
+        number y = audio:GetY()
+    */
     system action GetY returns number 
 
+    /*
+        GetZ returns the current location of the sound in the Z plane in virtual
+        3D space.
+
+        Using Balance, Fade, Rotation, or X,Y,Z coordinates are all exclusive of
+        each other, and using one will override any others used previously.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // To use audio, we'll first need to create an object for it.
+        Audio audio
+
+        // We always have to load a sound before use.
+        audio:Load("noise.ogg")
+
+        // For this example, we will place the audio at 1 unit below the listener.
+        audio:SetZ(-1)
+
+        // We can get the z position of the sound as a number with GetZ().
+        number z = audio:GetZ()
+    */
     system action GetZ returns number
 
+    /*
+        SetRotation sets a sound to play at a point in 3D space such that it
+        has constant volume and is located a given number of degrees from the
+        listener, where 0 degrees is directly in front of the listener and the
+        sound rotates clockwise around the listener.
+
+        Using Balance, Fade, Rotation, or X,Y,Z coordinates are all exclusive of
+        each other, and using one will override any others used previously.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // To use audio, we'll first need to create an object for it.
+        Audio audio
+
+        // We always have to load a sound before use.
+        audio:Load("noise.ogg")
+
+        // For this example, we will rotate the sound so it is to the right of
+        // the listener.
+        audio:SetRotation(90)
+
+        // After we load the file, we can play it with a call to PlayUntilDone().
+        audio:PlayUntilDone()
+
+        // Once we're finished with an audio file, we need to let the computer know.
+        audio:Dispose()
+    */
     system action SetRotation(number rotation)
 
+    /*
+        GetRotation gets the current degree of rotation of the sound.
+
+        Using Balance, Fade, Rotation, or X,Y,Z coordinates are all exclusive of
+        each other, and using one will override any others used previously.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // To use audio, we'll first need to create an object for it.
+        Audio audio
+
+        // We always have to load a sound before use.
+        audio:Load("noise.ogg")
+
+        // For this example, we will rotate the sound so it is to the right of
+        // the listener.
+        audio:SetRotation(90)
+
+        // We can get the rotation back as a number with GetRotation().
+        number rotation = audio:GetRotation()
+    */
     system action GetRotation returns number
 
+    /*
+        Rotate increases the degree of rotation of the sound, causing it to 
+        progress clockwise around the listener if given a positive value, or 
+        counter-clockwise around the listener if the action is given a negative
+        value.
+
+        Using Balance, Fade, Rotation, or X,Y,Z coordinates are all exclusive of
+        each other, and using one will override any others used previously.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // To use audio, we'll first need to create an object for it.
+        Audio audio
+
+        // We always have to load a sound before use.
+        audio:Load("noise.ogg")
+
+        // For this example, we will rotate the sound so it is to the right of
+        // the listener.
+        audio:Rotate(90)
+
+        // After we load the file, we can play it with a call to PlayUntilDone().
+        audio:PlayUntilDone()
+
+        // Now we will rotate it another 180 degrees, so it will be at 270 degrees.
+        audio:Rotate(180)
+            
+        // We can call PlayUntilDone() again to hear it in its new position.
+        audio:PlayUntilDone()
+
+        // Once we're finished with an audio file, we need to let the computer know.
+        audio:Dispose()
+    */
     system action Rotate(number rotation)
     
 end

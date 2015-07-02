@@ -1067,81 +1067,423 @@ class Drawable is TextureRegion, Item
         parent:Item:Draw(painter)
     end
 
-    
+    /*
+    This action will return true if the Drawable has been flipped across the
+    x-axis, or false if it has not.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Drawable line
+                    line:LoadLine(20, 100)
+                    line:FlipX()
+                    boolean flipX = line:IsFlippedX()
+                end
+            end
+    */
     action IsFlippedX returns boolean
         return parent:Item:IsFlippedX()
     end
 
+    /*
+    This action will return true if the Drawable has been flipped across the
+    y-axis, or false if it has not.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Drawable line
+                    line:LoadLine(20, 100)
+                    line:FlipY()
+                    boolean flipY = line:IsFlippedY()
+                end
+            end
+    */
     action IsFlippedY returns boolean
         return parent:Item:IsFlippedY()
     end
 
+    /*
+    This action will create a new Texture with a black line that connects an
+    imaginary point at 0,0 to the provided x,y coordinates. This texture is then
+    loaded into the Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Drawable line
+                    line:LoadLine(20, 100)
+                    line:SetPosition(50, 50)
+                    Add(line)
+                end
+            end
+    */
     action LoadLine(integer x, integer y)
         Color black
         black = black:Black()
         LoadLine(x, y, black)
     end
 
+    /*
+    This action will create a new Texture with a line of the given color that
+    connects between an imaginary point at 0,0 to the provided x,y coordinates.
+    This texture is then loaded into the Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Color cyan
+                    cyan:SetColor(0, 1, 1, 1)
+                    Drawable line
+                    line:LoadLine(20, 100, cyan)
+                    line:SetPosition(50, 50)
+                    Add(line)
+                end
+            end
+    */
     action LoadLine(integer x, integer y, Color color)
         Texture temp
         temp:LoadLine(x, y, color)
         Load(temp)
     end
 
+    /*
+    This action will create a new Texture with a hollow black rectangle with
+    the given width and height. This texture is then loaded into the Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Drawable rectangle
+                    rectangle:LoadRectangle(20, 100)
+                    rectangle:SetPosition(50, 50)
+                    Add(rectangle)
+                end
+            end
+    */
     action LoadRectangle(integer width, integer height)
         Color black
         black = black:Black()
         LoadRectangle(width, height, black)
     end
 
+    /*
+    This action will create a new Texture with a hollow rectangle of the given
+    color with the given width and height. This texture is then loaded into the
+    Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Drawable rectangle
+                    rectangle:LoadRectangle(20, 100)
+                    rectangle:SetPosition(50, 50)
+                    Add(rectangle)
+                end
+            end
+    */
     action LoadRectangle(integer width, integer height, Color color)
         Texture temp
         temp:LoadRectangle(width, height, color)
         Load(temp)
     end
 
+    /*
+    This action will create a new Texture with a solid black rectangle with
+    the given width and height. This texture is then loaded into the Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Drawable rectangle
+                    rectangle:LoadFilledRectangle(20, 100)
+                    rectangle:SetPosition(50, 50)
+                    Add(rectangle)
+                end
+            end
+    */
     action LoadFilledRectangle(integer width, integer height)
         Color black
         black = black:Black()
         LoadFilledRectangle(width, height, black)
     end
 
+    /*
+    This action will create a new Texture with a solid rectangle of the given
+    color with the given width and height. This texture is then loaded into the
+    Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Color green
+                    green:SetColor(0, 1, 0, 1)
+                    Drawable rectangle
+                    rectangle:LoadFilledRectangle(20, 100, green)
+                    rectangle:SetPosition(50, 50)
+                    Add(rectangle)
+                end
+            end
+    */
     action LoadFilledRectangle(integer width, integer height, Color color)
         Texture temp
         temp:LoadFilledRectangle(width, height, color)
         Load(temp)
     end
 
+    /*
+    This action will create a new Texture with a hollow black circle with the
+    given radius. This texture is then loaded into the Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Drawable circle
+                    circle:LoadCircle(75)
+                    circle:SetPosition(50, 50)
+                    Add(circle)
+                end
+            end
+    */
     action LoadCircle(integer radius)
         Color black
         black = black:Black()
         LoadCircle(radius, black)
     end
 
+    /*
+    This action will create a new Texture with a hollow circle of the given
+    color with the given radius. This texture is then loaded into the Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Color red
+                    red:SetColor(1, 0, 0, 1)
+                    Drawable circle
+                    circle:LoadCircle(75, red)
+                    circle:SetPosition(50, 50)
+                    Add(circle)
+                end
+            end
+    */
     action LoadCircle(integer radius, Color color)
         Texture temp
         temp:LoadCircle(radius, color)
         Load(temp)
     end
 
+    /*
+    This action will create a new Texture with a solid black circle with the
+    given radius. This texture is then loaded into the Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Drawable circle
+                    circle:LoadFilledCircle(75)
+                    circle:SetPosition(50, 50)
+                    Add(circle)
+                end
+            end
+    */
     action LoadFilledCircle(integer radius)
         Color black
         black = black:Black()
         LoadFilledCircle(radius, black)
     end
 
+    /*
+    This action will create a new Texture with a solid circle of the given
+    color with the given radius. This texture is then loaded into the Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Color blue
+                    blue:SetColor(0, 0, 1, 1)
+                    Drawable circle
+                    circle:LoadCircle(75, blue)
+                    circle:SetPosition(50, 50)
+                    Add(circle)
+                end
+            end
+    */
     action LoadFilledCircle(integer radius, Color color)
         Texture temp
         temp:LoadFilledCircle(radius, color)
         Load(temp)
     end
 
+    /*
+    This action will create a new Texture with a solid black triangle that is
+    made of the points identified by the three given points. The three points
+    are relative to the origin of the Drawable. This texture is then loaded into
+    the Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Drawable triangle
+                    triangle:LoadFilledTriangle(0, 0, 200, 200, 400, 0)
+                    triangle:SetPosition(50, 50)
+                    Add(triangle)
+                end
+            end
+    */
     action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3)
         Color black
         black = black:Black()
         LoadFilledTriangle(x1, y1, x2, y2, x3, y3, black)
     end
 
+    /*
+    This action will create a new Texture with a solid triangle of the given
+    color that is made of the points identified by the three given points. The
+    three points are relative to the origin of the Drawable. This texture is 
+    then loaded into the Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Color purple
+                    purple:SetColor(0.5, 0, 0.5, 1)
+                    Drawable triangle
+                    triangle:LoadFilledTriangle(0, 0, 200, 200, 400, 0, purple)
+                    triangle:SetPosition(50, 50)
+                    Add(triangle)
+                end
+            end
+    */
     action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, Color color)
         Texture temp
         temp:LoadFilledTriangle(x1, y1, x2, y2, x3, y3, color)

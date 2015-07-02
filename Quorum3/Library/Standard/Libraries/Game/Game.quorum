@@ -149,8 +149,12 @@ class Game
         use Libraries.Game.Game
         use Libraries.Game.Graphics.Drawable
 
-        class MyGame is Game
+        class Main is Game
             Drawable bunny
+
+            action Main
+                StartGame()
+            end
 
             action CreateGame
                 bunny:Load("Images/Rabbit.png")
@@ -172,8 +176,12 @@ class Game
         use Libraries.Game.Game
         use Libraries.Game.Graphics.Drawable
 
-        class MyGame is Game
+        class Main is Game
             Drawable bunny
+
+            action Main
+                StartGame()
+            end
 
             action CreateGame
                 bunny:Load("Images/Rabbit.png")
@@ -227,7 +235,11 @@ class Game
 
         use Libraries.Game.Game
 
-        class MyGame is Game
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
 
             action CreateGame
                 output GetScreenWidth()
@@ -245,7 +257,11 @@ class Game
 
         use Libraries.Game.Game
 
-        class MyGame is Game
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
 
             action CreateGame
                 output GetScreenHeight()
@@ -267,10 +283,14 @@ class Game
         use Libraries.Game.Graphics.Drawable
         use Libraries.Game.Graphics.Color
 
-        class MyGame is Game
+        class Main is Game
         
             Drawable bunny
             Color tint
+
+            action Main
+                StartGame()
+            end
 
             action CreateGame
                 bunny:Load("Rabbit.png")
@@ -300,9 +320,13 @@ class Game
         use Libraries.Game.Game
         use Libraries.Game.Graphics.Drawable
 
-        class MyGame is Game
+        class Main is Game
         
             Drawable bunny
+
+            action Main
+                StartGame()
+            end
 
             action CreateGame
                 bunny:Load("Rabbit.png")
@@ -323,14 +347,18 @@ class Game
     GetSecondsBetweenFrames will return the number of seconds that has passed
     between the current frame and the previous one. Frames are the still images
     drawn on the screen in rapid succession to make the images appear to move.
-    Note that the value from this field is the same value as the parameter in
-    the Update action.
+    Note that the value from this field is approximately the same value as the
+    parameter in the Update action.
 
     Attribute: Example
 
         use Libraries.Game.Game
 
-        class MyGame is Game
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
 
             action Update(number time)
                 output "Seconds since last frame: " + GetSecondsBetweenFrames()
@@ -350,7 +378,11 @@ class Game
 
         use Libraries.Game.Game
 
-        class MyGame is Game
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
 
             // It is very important when making our own Update action that it has
             // the time parameter! If we don't have it, it won't be called.
@@ -363,10 +395,6 @@ class Game
 
     end
 
-    action Create
-        CreateGame()
-    end
-
     /*
     CreateGame is called when you first start the game, and is useful for setting
     up things that need to be initialized before they can be used, like loading
@@ -377,9 +405,13 @@ class Game
         use Libraries.Game.Game
         use Libraries.Game.Graphics.Drawable
 
-        class MyGame is Game
+        class Main is Game
 
             Drawable bunny
+
+            action Main
+                StartGame()
+            end
 
             action CreateGame
                 bunny:Load("Rabbit.png")
@@ -392,14 +424,90 @@ class Game
 
     end
 
+    /*
+    The Exit action is used to tell the Game class to close the application
+    after it completes the current iteration of the main loop.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            number timer = 0
+
+            action Main
+                StartGame()
+            end
+
+            action Update(number time)
+                timer = timer + time
+                if timer > 3
+                    Exit()
+                    output "Exiting the game!"
+                end
+            end
+            
+        end
+    */
     action Exit
         exitRequested = true
     end
 
+    /*
+    GetActivePanel returns the currently active Panel object. The Game class
+    always has one Panel that is considered active. The active Panel will have
+    all of its children drawn and updated. When Items are added to the Game,
+    they are actually added to the active Panel.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Panel
+
+        class Main is Game
+
+            Panel myPanel = undefined
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                myPanel = GetActivePanel()
+            end
+            
+        end
+    */
     action GetActivePanel returns Panel
         return activePanel
     end
 
+    /*
+    SetActivePanel sets the currently active Panel object. The Game class
+    always has one Panel that is considered active. The active Panel will have
+    all of its children drawn and updated. When Items are added to the Game,
+    they are actually added to the active Panel.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Panel
+
+        class Main is Game
+
+            Panel myPanel
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                SetActivePanel(myPanel)
+            end
+            
+        end
+    */
     action SetActivePanel(Panel panel)
         if activePanel not= undefined
             //activePanel:keyboardProcessor = undefined
@@ -415,11 +523,23 @@ class Game
         activePanel:Enable()
     end
 
-    action UpdateAll
+    /*
+    This action updates the active Panel and all of the Items that have been
+    added to the active Panel. This is called automatically by the Game class 
+    as part of the main loop, so most users will never need to use this action
+    directly.
+    */
+    private action UpdateAll
         activePanel:UpdateAll(GetSecondsBetweenFrames())
     end
 
-    action ProcessInputEvents
+    /*
+    This action looks for input events and notifies any event handlers that
+    have been added to the Game class as necessary. This action is called
+    automatically by the Game class as part of the main loop, so most users will
+    never need to use this action directly.
+    */
+    private action ProcessInputEvents
         List<MouseEvent> mouseEvents = mouseProcessor:GetCurrentEvents()
         MouseEvent mouseEvent = undefined
         repeat mouseEvents:GetSize() times
@@ -434,68 +554,409 @@ class Game
         keyboardProcessor:ProcessEvents()
     end
 
+    /*
+    This action adds a MouseListener to the Game's active Panel. The mouse
+    listener will be notified of mouse buttons being clicked and released 
+    so long as it is a part of the active Panel.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.MouseListener
+
+        class Main is Game
+
+            MouseListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddMouseListener(listener)
+            end
+            
+        end
+    */
     action AddMouseListener(MouseListener listener)
         activePanel:AddMouseListener(listener)
     end
 
+    /*
+    This action adds a MouseMovementListener to the Game's active Panel. The
+    listener will be notified of mouse movement and dragging so long as it is a
+    part of the active Panel.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.MouseMovementListener
+
+        class Main is Game
+
+            MouseMovementListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddMouseMovementListener(listener)
+            end
+            
+        end
+    */
     action AddMouseMovementListener(MouseMovementListener listener)
         activePanel:AddMouseMovementListener(listener)
     end
 
+    /*
+    This action adds a MouseWheelListener to the Game's active Panel. The
+    listener will be notified of mouse wheel scrolling so long as it is a
+    part of the active Panel.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.MouseWheelListener
+
+        class Main is Game
+
+            MouseWheelListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddMouseWheelListener(listener)
+            end
+            
+        end
+    */
     action AddMouseWheelListener(MouseWheelListener listener)
         activePanel:AddMouseWheelListener(listener)
     end
 
+    /*
+    This action adds a KeyboardListener to the Game's active Panel. The
+    listener will be notified of keys being pressed and released so long as it
+    is a part of the active Panel.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.KeyboardListener
+
+        class Main is Game
+
+            Keyboard listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddKeyboardListener(listener)
+            end
+            
+        end
+    */
     action AddKeyboardListener(KeyboardListener listener)
         keyboardProcessor:AddListener(listener)
     end
 
+    /*
+    This action removes a MouseListener from the Game's active Panel. The
+    listener will no longer receive events for mouse clicks and releases from
+    the active Panel.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.MouseListener
+
+        class Main is Game
+
+            MouseListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddMouseListener(listener)
+
+                RemoveMouseListener(listener)
+            end
+            
+        end
+    */
     action RemoveMouseListener(MouseListener listener)
         activePanel:RemoveMouseListener(listener)
     end
 
+    /*
+    This action removes a MouseMovementListener from the Game's active Panel.
+    The listener will no longer receive events for mouse movement and dragging
+    from the active Panel.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.MouseMovementListener
+
+        class Main is Game
+
+            MouseMovementListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddMouseMovementListener(listener)
+
+                RemoveMouseMovementListener(listener)
+            end
+            
+        end
+    */
     action RemoveMouseMovementListener(MouseMovementListener listener)
         activePanel:RemoveMouseMovementListener(listener)
     end
 
+    /*
+    This action removes a MouseWheelListener to the Game's active Panel. The
+    listener will no longer receive events for mouse wheel scrolling from
+    the active Panel.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.MouseWheelListener
+
+        class Main is Game
+
+            MouseWheelListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddMouseWheelListener(listener)
+
+                RemoveMouseWheelListener(listener)
+            end
+            
+        end
+    */
     action RemoveMouseWheelListener(MouseWheelListener listener)
         activePanel:RemoveMouseWheelListener(listener)
     end
 
+    /*
+    This action removes a KeyboardListener to the Game's active Panel. The
+    listener will no longer receive events for key presses and releases from
+    the active Panel.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.KeyboardListener
+
+        class Main is Game
+
+            KeyboardListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddKeyboardListener(listener)
+
+                RemoveKeyboardListener(listener)
+            end
+            
+        end
+    */
     action RemoveKeyboardListener(KeyboardListener listener)
         keyboardProcessor:RemoveListener(listener)
     end
 
+    /*
+    This action sets the starting screen size of the game. The default screen
+    size is 800 by 600. This action should be called before calling StartGame().
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                SetScreenSize(1024, 800)
+                StartGame()
+            end
+        end
+    */
     action SetScreenSize(integer width, integer height)
         configuration:width = width
         configuration:height = height
     end
 
+    /*
+    This action enables or disables vSync in the game. Passing a value of true
+    enables it, a value of false disables it. vSync is enabled by default. 
+    This action should be called before calling StartGame().
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                SetVSync(false)
+                StartGame()
+            end
+        end
+    */
     action SetVSync(boolean vSync)
         configuration:vSyncEnabled = vSync
     end
 
+    /*
+    This action enables or disables resizing the game window by dragging the
+    edges of the screen. Passing a value of true enables it, a value of false
+    disables it. Resizing is disabled by default. 
+    This action should be called before calling StartGame().
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                EnableResizing(true)
+                StartGame()
+            end
+        end
+    */
     action EnableResizing(boolean resize)
         configuration:resizable = resize
     end
 
+    /*
+    This action sets the name of the game displayed at the top of the window. 
+    The default name is "Game". This action should be called before calling
+    StartGame().
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                SetGameName("Mariachi Band Simulator 3000")
+                StartGame()
+            end
+        end
+    */
     action SetGameName(text name)
         configuration:title = name
     end
 
+    /*
+    This action enables or disables auto resizing of textures if the game window
+    is resized. Passing a value of true enables it, a value of false disables it.
+    Texture auto resizing is enabled by default. This action should be called
+    before calling StartGame().
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                EnableTextureAutoResizing(false)
+                StartGame()
+            end
+        end
+    */
     action EnableTextureAutoResizing(boolean resize)
         configuration:autoResizeTextures = resize
     end
 
+    /*
+    Adds an Item to the Game to be tested for collisions. Items added in this
+    way will produce collision events if they overlap another Item that has been
+    added as a collision listener. Items can react to collisions via the 
+    BeginCollision and FinishCollision actions in Item.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Item
+
+        class Main is Game
+
+            Item item1
+            Item item2
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddCollisionListener(item1)
+                AddCollisionListener(item2)
+            end
+
+        end
+    */
     action AddCollisionListener(Item item)
         collisionList:Add(item)
     end
 
+    /*
+    Removes an Item from the Game for testing for collisions. Items that have
+    been removed as collision listeners will no longer receive collision events,
+    and can no longer cause collision events in other Items.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Item
+
+        class Main is Game
+
+            Item item1
+            Item item2
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddCollisionListener(item1)
+                AddCollisionListener(item2)
+
+                RemoveCollisionListener(item1)
+            end
+
+        end
+    */
     action RemoveCollisionListener(Item item)
         collisionList:Remove(item)
     end
 
-    action TestForCollisions
+    private action TestForCollisions
         integer counter1 = 0
         integer counter2 = 1
         Item item1 = undefined
