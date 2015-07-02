@@ -124,11 +124,21 @@ public class Audio {
     
     public void SetBalance(double position)
     {
+        if (position < -1)
+            position = - 1;
+        else if (position > 1)
+            position = 1;
+        
         data.SetHorizontalPosition((float)position);
     }
     
     public void SetFade(double fade)
     {
+        if (fade < -1)
+            fade = - 1;
+        else if (fade > 1)
+            fade = 1;
+        
         data.SetFade((float)fade);
     }
     
