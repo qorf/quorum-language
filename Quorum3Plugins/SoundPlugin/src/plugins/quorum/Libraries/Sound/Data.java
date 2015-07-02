@@ -114,6 +114,16 @@ public abstract class Data {
         return pitch;
     }
     
+    public float GetFade()
+    {
+        return fade;
+    }
+    
+    public double GetRotation()
+    {
+        return rotation;
+    }
+    
     public abstract boolean IsPlaying();
     
     // Continues streaming data for streaming audio classes.

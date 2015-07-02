@@ -207,6 +207,16 @@ public class Audio {
         return data.GetPitch();
     }
     
+    public double GetRotation()
+    {
+        return data.GetRotation();
+    }
+    
+    public double GetFade()
+    {
+        return data.GetFade();
+    }
+    
     public void Stream()
     {
         if (data == null)
