@@ -17,11 +17,11 @@ class Main
         Motor motor
         Utility utility
         
-        motor:SetSpeed(motor:MOTOR_A, 720)  //two revolutions per second
-        motor:SetSpeed(motor:MOTOR_B, 720)
+        motor:SetSpeed(motor:MOTOR_A, 720)  //two motors for moving the robot, connected to ports A and B
+        motor:SetSpeed(motor:MOTOR_B, 720)  //these motors will fully rotate twice per second
         motor:MoveForward(motor:MOTOR_A)
         motor:MoveForward(motor:MOTOR_B)
-        utility:DelayMilliseconds(3000)     //let the motors rotate for 3 seconds
+        utility:DelayMilliseconds(3000)     //lets the motors rotate for 3 seconds
         motor:Stop(motor:MOTOR_A)
         motor:Stop(motor:MOTOR_B)
     end
@@ -51,13 +51,14 @@ class Motor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
+
     Motor motor
     
-    motor:SetSpeed(motor:MOTOR_C, 720) //Two revolutions per second
-    motor:RotateByDegrees(motor:MOTOR_C, 720)
-    motor:SetSpeed(motor:MOTOR_C, 360) //One revolution per second
-    motor:RotateByDegrees(motor:MOTOR_C, -720)
-    
+    motor:SetSpeed(motor:MOTOR_C, 720)          //two revolutions per second
+    motor:RotateByDegrees(motor:MOTOR_C, 720)   //reaches rotation target in one second
+    motor:SetSpeed(motor:MOTOR_C, 360)          //one revolution per second
+    motor:RotateByDegrees(motor:MOTOR_C, -720)  //reaches rotation target in two seconds
     */
     
     system action SetSpeed(text motorID, integer speed)
@@ -72,15 +73,18 @@ class Motor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.InfraredSensor
+    
     Motor motor
     InfraredSensor infraredSensor
     
-    infraredSensor:SetPort(infraredSensor:PORT_1)
+    infraredSensor:SetPort(infraredSensor:PORT_1)   //infrared sensor connected to port 1 of the robot
     motor:SetSpeed(motor:MOTOR_B, 720)
     motor:SetSpeed(motor:MOTOR_C, 720)
     motor:MoveForward(motor:MOTOR_B)
     motor:MoveForward(motor:MOTOR_C)
-    repeat until infraredSensor:GetDistance(infraredSensor:PORT_1) < 30 //repeat until the sensor is close to an object
+    repeat until infraredSensor:GetDistance() < 30   //repeat until the sensor is close to an object
     end
     motor:Stop(motor:MOTOR_B)
     motor:Stop(motor:MOTOR_C)
@@ -97,15 +101,16 @@ class Motor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.InfraredSensor
+
     Motor motor
     InfraredSensor infraredSensor
     
-    infraredSensor:SetPort(infraredSensor:PORT_1)
-    motor:SetSpeed(motor:MOTOR_A, 360)
-    motor:SetSpeed(motor:MOTOR_D, 360)
-    motor:MoveForward(motor:MOTOR_A)
-    motor:MoveForward(motor:MOTOR_D)
-    repeat until infraredSensor:GetDistance(infraredSensor:PORT_1) > 30 //repeat until the sensor gets far enough away from an object
+    infraredSensor:SetPort(infraredSensor:PORT_1)   //infrared sensor connected to port 1 of the robot
+    motor:MoveBackward(motor:MOTOR_A)               //two motors for moving the robot, connected to ports A and D
+    motor:MoveBackward(motor:MOTOR_D)
+    repeat until infraredSensor:GetDistance() > 40  //repeat until the sensor gets far enough away from an object
     end
     motor:Stop(motor:MOTOR_A)
     motor:Stop(motor:MOTOR_D)
@@ -122,13 +127,15 @@ class Motor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
+
     Motor motor
     
-    motor:SetSpeed(motor:MOTOR_A, 480)
+    motor:SetSpeed(motor:MOTOR_A, 480)      //two motors for moving the robot, connected to ports A and B
     motor:SetSpeed(motor:MOTOR_B, 480)
     motor:MoveForward(motor:MOTOR_A)
     motor:RotateByDegrees(motor:MOTOR_B, 1440)
-    motor:WaitForMotorToFinish(motor:MOTOR_B)
+    motor:WaitForMotorToFinish(motor:MOTOR_B)   //motor A will continue moving during this time, as well
     motor:Stop(motor:MOTOR_A)
     */
     
@@ -146,12 +153,14 @@ class Motor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
+
     Motor motor
     
     motor:SetSpeed(motor:MOTOR_A, 600)
-    motor:SetSpeed(motor:MOTOR_B, 600)
-    motor:RotateByDegrees(motor:MOTOR_A, 3600)
-    motor:RotateByDegrees(motor:MOTOR_B, -3600)
+    motor:SetSpeed(motor:MOTOR_B, 600)          //two motors used to move the robot, connected to ports A and B
+    motor:RotateByDegrees(motor:MOTOR_A, 3600)  //motor A rotates 10 full revolutions forward
+    motor:RotateByDegrees(motor:MOTOR_B, -3600) //motor B rotates 10 full revolutions backward
     */
     
     system action RotateByDegrees(text motorID, integer degrees)
@@ -168,13 +177,20 @@ class Motor
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.Utility
+
     Motor motor
+    Utility utility
     
-    motor:SetSpeed(motor:MOTOR_A, 720)
-    motor:RotateByDegrees(motor:MOTOR_A, 360) //rotates one revolution
-    motor:RotateToDegree(motor:MOTOR_A, 360)  //will do nothing since the motor is already at that degree
-    motor:RotateToDegree(motor:MOTOR_A, 720)  //rotates one more revolution from its starting position of 360 degrees
-    motor:RotateToDegree(motor:MOTOR_A, 0)    //rotates backwards two revolutions from its current position of 720 degrees
+    motor:SetSpeed(motor:MOTOR_C, 720)
+    motor:RotateByDegrees(motor:MOTOR_C, 360) //rotates one revolution
+    utility:DelayMilliseconds(500)
+    motor:RotateToDegree(motor:MOTOR_C, 360)  //will do nothing since the motor is already at that degree
+    utility:DelayMilliseconds(500)
+    motor:RotateToDegree(motor:MOTOR_C, 720)  //rotates one more revolution from its starting position of 360 degrees
+    utility:DelayMilliseconds(500)
+    motor:RotateToDegree(motor:MOTOR_C, 0)    //rotates backwards two revolutions from its current position of 720 degrees
     */
     
     system action RotateToDegree(text motorID, integer degreeTarget)
@@ -212,12 +228,18 @@ class Motor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.Sound
+
     Motor motor
+    Sound sound
     
     motor:SetSpeed(motor:MOTOR_A, 300)
-    motor:RotateToDegree(motor:MOTOR_A, 180) //after this, the motor's rotation is at 180 degrees
+    motor:RotateToDegree(motor:MOTOR_A, 360) //after this, the motor's rotation is at 180 degrees
+    sound:Beep()
     motor:ResetRotation(motor:MOTOR_A)       //this will change the motor's rotation to 0, without moving the motor
-    motor:RotateToDegree(motor:MOTOR_A, 180) //since the motor's current degree was reset to 0, this will move it 180 degrees forward
+    motor:RotateToDegree(motor:MOTOR_A, 360) //since the motor's current degree was reset to 0, this will move it 180 degrees forward
+    sound:BeepTwice()
     */
     
     system action ResetRotation(text motorID)
@@ -233,15 +255,19 @@ class Motor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.Utility
+
     Motor motor
     Sound sound
     Utility utility
     
-    motor:SetSpeed(motor:MOTOR_D, 600)
+    motor:SetSpeed(motor:MOTOR_D, 600)  //moves at 600 degrees per second
     motor:MoveForward(motor:MOTOR_D)
     repeat while motor:GetRotation(motor:MOTOR_D) < 3600
         sound:Beep()
-        utility:DelayMilliseconds(1000)
+        utility:DelayMilliseconds(1000) //allows the motor to keep moving for a second before checking its rotation again
     end
     sound:Buzz()
     */
@@ -259,19 +285,20 @@ class Motor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.Utility
+
     Motor motor
-    InfraredSensor infraredSensor
     Utility utility
     
-    infraredSensor:SetPort(infraredSensor:PORT_1)
-    motor:SetSpeed(motor:MOTOR_A) //motors A and B control movement
-    motor:SetSpeed(motor:MOTOR_B)
-    repeat 5 times
-        motor:SetSpeed(motor:MOTOR_A, motor:GetMotorSpeed*motor:MOTOR_A) + 100) //speeds up the motor rotation by 100 degrees per second from what it was
-        motor:SetSpeed(motor:MOTOR_B, motor:GetMotorSpeed*motor:MOTOR_B) + 100)
-        motor:MoveForward(motor:MOTOR_A)
+    motor:SetSpeed(motor:MOTOR_B, 50)
+    motor:SetSpeed(motor:MOTOR_C, 50)
+    repeat 5 times  
+        motor:SetSpeed(motor:MOTOR_C, motor:GetSpeed(motor:MOTOR_C) + 100)   //speeds up the motor rotation by 100 degrees per second from what it was
+        motor:SetSpeed(motor:MOTOR_B, motor:GetSpeed(motor:MOTOR_B) + 100)
+        motor:MoveForward(motor:MOTOR_C)
         motor:MoveForward(motor:MOTOR_B)
-        utility:delayMilliseconds(1000) //lets the motors go forward for 1 second
+        utility:DelayMilliseconds(1000) //lets the motors go forward for 1 second
     end
     */
     
@@ -288,6 +315,8 @@ class Motor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
+    
     Motor motor
     Button button
     
@@ -306,57 +335,61 @@ class Motor
     After calling this action, the motor actions that follow will be stored in the order they were called, up until the motor action EndSynchronization is called.
     Once the EndSynchronization action is called, all of the stored motor commands will execute in order on both of the motors used to call the Synchronization action.
     
-    Attribute: Parameter leaderMotor specifies the motor being synchronized that will be used to call all of the motor actions to be synchronized.
+    Attribute: Parameter syncMotor specifies the motor being synchronized that will be used in the EndSynchronization call.
     There are class constants that can be used here.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
     
-    Attribute: Parameter followerMotor specifies the motor being synchronized with the leader motor. There are class constants that can be used here.
+    Attribute: Parameter otherMotor specifies another motor being synchronized with syncMotor. There are class constants that can be used here.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
     
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
+    
     Motor motor
     
-    motor:Synchronize(motor:MOTOR_C, motor:MOTOR_D) //tells the program that the following motor actions apply to both motors
-    motor:RotateByDegrees(motor:MOTOR_C, -360)      //these actions are stored and will not execute until the EndSynchronization action is called
-    motor:RotateByDegrees(motor:MOTOR_C, 720)       //even though we pass one motor, both C and D will rotate since they are synchronized at this point
+    motor:Synchronize(motor:MOTOR_C, motor:MOTOR_B) //tells the program that the following motor actions should happen at the same time
+    motor:RotateByDegrees(motor:MOTOR_C, -720)      //these actions are stored and will not execute until the EndSynchronization action is called
+    motor:RotateByDegrees(motor:MOTOR_B, 720)
     motor:EndSynchronization(motor:MOTOR_C)         //all of the stored motor actions will start executing now
-    //note that since motor:MOTOR_C was passed for the parameter leaderMotor it is used to call all of the synchronized motor actions
+    motor:WaitForMotorToFinish(motor:MOTOR_C)
     */
     
-    system action Synchronize(text leaderMotor, text followerMotor)
+    system action Synchronize(text syncMotor, text otherMotor)
 
     /*
     This action allows the pairing of multiple motors in order to make them execute motor actions at the same time.
     After calling this action, the motor actions that follow will be stored in the order they were called, up until the motor action EndSynchronization is called.
     Once the EndSynchronization action is called, all of the stored motor commands will execute in order on all of the motors used to call the Synchronization action.
     
-    Attribute: Parameter leaderMotor specifies the first motor being synchronized. This motor must be used to call the actions that will be synchronized.
+    Attribute: Parameter syncMotor specifies the motor being synchronized that will be used in the EndSynchronization call.
     There are class constants that can be used here.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
     
-    Attribute: Parameter followerMotors specifies the motors being synchronized with the leaderMotor. There are class constants that can be used here.
+    Attribute: Parameter otherMotors specifies the array of motors being synchronized with the syncMotor.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
     use Libraries.Containers.Array
     Motor motor
     
-    Array<Motor> motors;
-    motors:Add(motor:MOTOR_A)
-    motors:Add(motor:MOTOR_B)
+    Array<Text> motorNames
+    motorNames:Add("A")
+    motorNames:Add("B")
     
-    motor:Synchronize(motor:MOTOR_D, motors)        //tells the program that the following motor actions apply to all three motors
-    motor:RotateByDegrees(motor:MOTOR_D, -360)      //these actions are stored and will not execute until the EndSynchronization action is called
-    motor:RotateByDegrees(motor:MOTOR_D, 720)       //even though we pass one motor, all synchronized motors will rotate since they are synchronized at this point
-    motor:EndSynchronization(motor:MOTOR_D)         //all of the stored motor actions will start executing now
-    //note that since motor:MOTOR_D was passed for the parameter leaderMotor it is used to call all of the motor actions that will be synchronized
+    motor:Synchronize(motor:MOTOR_C, motorNames)    //tells the program that the following motor actions apply to all three motors
+    motor:RotateByDegrees(motor:MOTOR_C, -720)      //these actions are stored and will not execute until the EndSynchronization action is called
+    motor:RotateByDegrees(motor:MOTOR_B, 720)
+    motor:RotateByDegrees(motor:MOTOR_A, 90)
+    motor:EndSynchronization(motor:MOTOR_C)         //all of the stored motor actions will start executing now
+    motor:WaitForMotorToFinish(motor:MOTOR_C)
     */
     
-    system action Synchronize(text leaderMotor, Array<text> followerMotors)
+    system action Synchronize(text syncMotor, Array<text> otherMotors)
 
     /*
     This action flags the end of synchronization for all motors synchronized with a leader motor of a set of synchronized motors.
@@ -369,13 +402,15 @@ class Motor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
+    
     Motor motor
     
-    motor:Synchronize(motor:MOTOR_A, motor:MOTOR_D) //tells the program that the following motor actions apply to both motors
-    motor:RotateByDegrees(motor:MOTOR_A, -360)      //these actions are stored and will not execute until the EndSynchronization action is called
-    motor:RotateByDegrees(motor:MOTOR_A, 720)       //even though we pass one motor, both C and D will rotate since they are synchronized at this point
-    motor:EndSynchronization(motor:MOTOR_A)         //all of the stored motor actions will start executing now
-    //note that since motor:MOTOR_A was passed for the parameter motorID1 it is used to call all of the synchronized motor actions
+    motor:Synchronize(motor:MOTOR_C, motor:MOTOR_B) //tells the program that the following motor actions should happen at the same time
+    motor:RotateByDegrees(motor:MOTOR_C, -720)      //these actions are stored and will not execute until the EndSynchronization action is called
+    motor:RotateByDegrees(motor:MOTOR_B, 720)
+    motor:EndSynchronization(motor:MOTOR_C)         //all of the stored motor actions will start executing now
+    motor:WaitForMotorToFinish(motor:MOTOR_C)
     */
     
     system action EndSynchronization(text leaderMotor)
@@ -388,15 +423,20 @@ class Motor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.InfraredSensor
+
     Motor motor
     InfraredSensor infraredSensor
     
     infraredSensor:SetPort(4)
     repeat while true
         if infraredSensor:GetRemoteCommand(infraredSensor:CHANNEL_1) = infraredSensor:BUTTON_TOP_LEFT
-            motor:MoveForward
+            motor:MoveForward(motor:MOTOR_C)
         else
-        motor:Stop("A")
+            motor:Stop(motor:MOTOR_C)
+        end
+    end
     */
     
     system action Stop(text motorID)
