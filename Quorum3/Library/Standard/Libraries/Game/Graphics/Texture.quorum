@@ -354,11 +354,23 @@ class Texture is Disposable
 
     system action Dispose
 
+    action LoadLine(integer x, integer y)
+        Color black
+        black = black:Black()
+        LoadLine(x, y, black)
+    end
+
     action LoadLine(integer x, integer y, Color color)
         PixelMap pixmap
         Format format
         format:SetValue(format:RGBA8888)
         pixmap:CreatePixelMap(x, y, format)
+
+        integer originX = 0
+        integer originY = 0
+        if x < 0
+            
+        end
 
         pixmap:DrawLine(0, 0, x, y, color)
         
@@ -366,6 +378,12 @@ class Texture is Disposable
         data:InitializeFileTextureData(undefined, pixmap, format, false)
         
         LoadFromTextureData(data)
+    end
+
+    action LoadRectangle(integer width, integer height)
+        Color black
+        black = black:Black()
+        LoadRectangle(width, height, black)
     end
 
     action LoadRectangle(integer width, integer height, Color color)
@@ -382,6 +400,12 @@ class Texture is Disposable
         LoadFromTextureData(data)
     end
 
+    action LoadFilledRectangle(integer width, integer height)
+        Color black
+        black = black:Black()
+        LoadFilledRectangle(width, height, black)
+    end
+
     action LoadFilledRectangle(integer width, integer height, Color color)
         PixelMap pixmap
         Format format
@@ -394,6 +418,12 @@ class Texture is Disposable
         data:InitializeFileTextureData(undefined, pixmap, format, false)
         
         LoadFromTextureData(data)
+    end
+
+    action LoadCircle(integer radius)
+        Color black
+        black = black:Black()
+        LoadCircle(radius, black)
     end
 
     action LoadCircle(integer radius, Color color)
@@ -410,6 +440,12 @@ class Texture is Disposable
         LoadFromTextureData(data)
     end
 
+    action LoadFilledCircle(integer radius)
+        Color black
+        black = black:Black()
+        LoadFilledCircle(radius, black)
+    end
+
     action LoadFilledCircle(integer radius, Color color)
         PixelMap pixmap
         Format format
@@ -422,6 +458,12 @@ class Texture is Disposable
         data:InitializeFileTextureData(undefined, pixmap, format, false)
         
         LoadFromTextureData(data)
+    end
+
+    action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3)
+        Color black
+        black = black:Black()
+        LoadFilledTriangle(x1, y1, x2, y2, x3, y3, black)
     end
 
     action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, Color color)

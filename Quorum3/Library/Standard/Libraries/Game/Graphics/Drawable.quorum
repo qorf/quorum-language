@@ -76,26 +76,170 @@ class Drawable is TextureRegion, Item
     private Color color
     private boolean useCustomColor = false
 
+    /*
+        This action will create a new texture from the image file located at the
+        given file path. This texture will then be loaded into this Drawable.
+        This sets the Drawable's appearance when it is drawn on the screen.
+
+        Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+
+                Drawable bunny
+
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    // Assuming that we have a file in our project named "Rabbit.png"
+                    bunny:Load("Rabbit.png")
+                    Add(bunny)
+                end
+            end
+    */
     action Load(text filePath)
         Texture temp
         temp:LoadFromFile(filePath)
         Load(temp)
     end
 
+    /*
+        This action will create a new texture from provided image file. This 
+        texture will then be loaded into this Drawable. This sets the Drawable's
+        appearance when it is drawn on the screen.
+
+        Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.System.File
+            use Libraries.Game.Game
+
+            class Main is Game
+
+                Drawable bunny
+                File imageFile
+
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    // Assuming that we have a folder in our project called
+                    // "Assets" containing a file named "hare.jpg"
+                    imageFile:SetWorkingDirectory("Assets")
+                    imageFile:SetPath("hare.jpg")
+                    bunny:Load(imageFile)
+                    Add(bunny)
+                end
+            end
+    */
     action Load(File file)
         Texture temp
         temp:LoadFromFile(file)
         Load(temp)
     end
 
+    /*
+        This action will load the given texture into this Drawable. This sets
+        the Drawable's appearance when it is drawn on the screen.
+
+        Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Game
+
+            class Main is Game
+
+                Drawable circle1
+                Drawable circle2
+                Texture circleTexture
+
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    circleTexture:LoadFilledCircle(50)
+                    circle1:Load(circleTexture)
+                    circle2:Load(circleTexture)
+                    circle1:SetPosition(50, 100)
+                    circle2:SetPosition(250, 100)
+                    Add(circle1)
+                    Add(circle2)
+                end
+            end
+    */
     action Load(Texture texture)
         Load(texture, 0, 0, cast(integer, texture:GetWidth()), cast(integer, texture:GetHeight()))
     end
 
+    /*
+        This action will load the given texture into this Drawable, loading from
+        the lower left corner of the texture to the given width and height.
+
+        Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Game
+
+            class Main is Game
+
+                Drawable semicircle1
+                Drawable semicircle2
+                Texture circleTexture
+
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    circleTexture:LoadFilledCircle(50)
+                    semicircle1:Load(circleTexture, circleTexture:GetWidth()/2, circleTexture:GetHeight())
+                    semicircle2:Load(circleTexture, circleTexture:GetWidth(), circleTexture:GetHeight()/2)
+                    semicircle1:SetPosition(50, 100)
+                    semicircle2:SetPosition(250, 100)
+                    Add(semicircle1)
+                    Add(semicircle2)
+                end
+            end
+    */
     action Load(Texture texture, integer sourceWidth, integer sourceHeight)
         Load(texture, 0, 0, sourceWidth, sourceHeight)
     end
 
+    /*
+        This action will load the given texture into this Drawable, loading from
+        the given x,y coordinates of the texture to the given width and height.
+
+        Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Game
+
+            class Main is Game
+
+                Drawable circlePiece
+                Texture circleTexture
+
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    circleTexture:LoadFilledCircle(50)
+                    circlePiece:Load(circleTexture, circleTexture:GetWidth()/4, 0, circleTexture:GetWidth()/2, circleTexture:GetHeight())
+                    circlePiece:SetPosition(250, 100)
+                    Add(circlePiece)
+                end
+            end
+    */
     action Load(Texture newTexture, integer sourceX, integer sourceY, integer sourceWidth, integer sourceHeight)
         if newTexture = undefined
             Error error
@@ -111,14 +255,77 @@ class Drawable is TextureRegion, Item
         SetOrigin(parent:Item:width / 2.0, parent:Item:height / 2.0)
     end
 
+    /*
+        This action will load the given TextureRegion into this Drawable, which
+        will set its appearance when drawn on screen.
+
+        Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Graphics.TextureRegion
+            use Libraries.Game.Game
+
+            class Main is Game
+
+                Drawable circle
+                Texture circleTexture
+                TextureRegion circleRegion
+
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    circleTexture:LoadFilledCircle(50)
+                    circleRegion:LoadTextureRegion(circleTexture)
+                    circle:Load(circleRegion)
+                    circle:SetPosition(250, 100)
+                    Add(circle)
+                end
+            end
+    */
     action Load(TextureRegion region)
+        SetTexture(region:GetTextureField())
         SetRegion(region)
         //SetColor(1, 1, 1, 1)
         SetSize(region:GetRegionWidth(), region:GetRegionHeight())
         SetOrigin(parent:Item:width / 2.0, parent:Item:height / 2.0)
     end
 
+    /*
+        This action will load the given TextureRegion into this Drawable, 
+        loading from the given x,y coordinates of the texture to the given width
+        and height.
+
+        Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Graphics.TextureRegion
+            use Libraries.Game.Game
+
+            class Main is Game
+
+                Drawable circlePiece
+                Texture circleTexture
+                TextureRegion circleRegion
+
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    circleTexture:LoadFilledCircle(50)
+                    circleRegion:LoadTextureRegion(circleTexture)
+                    circlePiece:Load(circleRegion, circleTexture:GetWidth()/4, 0, circleTexture:GetWidth()/2, circleTexture:GetHeight())
+                    circlePiece:SetPosition(250, 100)
+                    Add(circlePiece)
+                end
+            end
+    */
     action Load(TextureRegion region, integer sourceX, integer sourceY, integer sourceWidth, integer sourceHeight)
+        SetTexture(region:GetTextureField())
         SetRegion(region, sourceX, sourceY, sourceWidth, sourceHeight)
         //SetColor(1, 1, 1, 1)
         Math math
@@ -169,10 +376,69 @@ class Drawable is TextureRegion, Item
         
     end */
 
+    /*
+    Loads this drawable using the parameter Drawable's texture.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Game
+
+            class Main is Game
+
+                Drawable circle1
+                Drawable circle2
+
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    circle1:LoadFilledCircle(50)
+                    circle2:QuickCopy(circle1)
+                    circle1:SetPosition(50, 100)
+                    circle2:SetPosition(250, 100)
+                    Add(circle1)
+                    Add(circle2)
+                end
+            end
+    */
     action QuickCopy(Drawable drawable)
         Load(drawable:GetTexture())
     end
 
+    /*
+    Sets the color filter on this Drawable. This will reduce the intensity of
+    colors in the Drawable that are not part of the filter, while leaving the
+    other colors that are part of the filter as the same.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Game
+
+            class Main is Game
+
+                Drawable circle
+                Color red
+                Color yellow
+
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    red:SetColor(1, 0, 0, 1)
+                    yellow:SetColor(1, 1, 0, 1)
+                    circle:LoadFilledCircle(50, yellow)
+                    circle:SetColor(red)
+                    circle:SetPosition(50, 100)
+                    Add(circle)
+                end
+            end
+    */
     action SetColor(Color tint)
         useCustomColor = true
         color = tint
@@ -186,6 +452,32 @@ class Drawable is TextureRegion, Item
         vertices:Set(C4, colorValue)
     end
 
+    /*
+    Sets the alpha of the Drawable. The alpha represents how transparent the
+    Drawable is. The given value should be between 0 and 1, where a value of 0
+    is totally transparent, and a value of 1 is totally opaque.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+
+                Drawable circle
+
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    circle:LoadFilledCircle(50)
+                    circle:SetAlpha(0.5)
+                    circle:SetPosition(50, 100)
+                    Add(circle)
+                end
+            end
+    */
     action SetAlpha(number alpha)
         BitwiseOperations ops
         NumberUtilities utility
@@ -206,6 +498,35 @@ class Drawable is TextureRegion, Item
         vertices:Set(C4, colorValue)
     end
 
+    /*
+    Sets the color filter of the Drawable from the given components of red,
+    green, blue, and alpha. The values for the components should be between 0
+    and 1, representing 0% to 100% of that color or alpha. 
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Game
+
+            class Main is Game
+
+                Drawable circle
+                Color white
+
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    white:SetColor(1, 1, 1, 1)
+                    circle:LoadFilledCircle(50, white)
+                    circle:SetColor(0.5, 1, 0.25, 1)
+                    circle:SetPosition(50, 100)
+                    Add(circle)
+                end
+            end
+    */
     action SetColor(number red, number green, number blue, number alpha)
         useCustomColor = true
         BitwiseOperations ops
@@ -227,6 +548,11 @@ class Drawable is TextureRegion, Item
         vertices:Set(C4, colorValue)
     end
 
+    /*
+    This action will set the color tint of a Drawable using a number value whose
+    bits are set to represent a particular color. This is used primarily for
+    internal use and should not be needed by most users.
+    */
     action SetColor(number colorValue)
         useCustomColor = true
         Array<number> vertices = GetVertices()
@@ -349,6 +675,30 @@ class Drawable is TextureRegion, Item
         //return returnVertices
     end*/
 
+    /*
+    This action returns the current color filter on the Drawable.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Drawable drawable
+                drawable:SetColor(0, 1, 1, 1)
+                color = drawable:GetColor()
+            end
+
+        end
+    */
     action GetColor returns Color
         NumberUtilities utility
         BitwiseOperations ops
@@ -365,6 +715,14 @@ class Drawable is TextureRegion, Item
         return color
     end
 
+    /*
+    This action selects the portion of the loaded texture to use when drawing.
+    The four parameters represent the left, top, right, and bottom sides of the
+    texture, respectively. For the left and right parameters, 0 represents the
+    left of the base texture, and 1 represents the right of the base texture.
+    For the top and bottom parameters, 0 represents the bottom, and 1 represents
+    the top.
+    */
     action SetRegion(number left, number top, number right, number bottom)
         parent:TextureRegion:SetRegion(left, top, right, bottom)
         Array<number> vertices = GetVertices()
@@ -382,6 +740,11 @@ class Drawable is TextureRegion, Item
         vertices:Set(V4, bottom)        
     end
 
+    /*
+    This action selects a point on the loaded texture that this Drawable will
+    consider to be the left edge of the image to be drawn. 0 represents the left
+    edge of the base texture, and 1 represents the right edge of the base texture.
+    */
     action SetLeftSide(number left)
         parent:TextureRegion:SetLeftSide(left)
         Array<number> vertices = GetVertices()
@@ -389,6 +752,11 @@ class Drawable is TextureRegion, Item
         vertices:Set(U2, left)
     end
 
+    /*
+    This action selects a point on the loaded texture that this Drawable will
+    consider to be the top edge of the image to be drawn. 0 represents the bottom
+    edge of the base texture, and 1 represents the top edge of the base texture.
+    */
     action SetTopSide(number top)
         parent:TextureRegion:SetTopSide(top)
         Array<number> vertices = GetVertices()
@@ -396,6 +764,11 @@ class Drawable is TextureRegion, Item
         vertices:Set(V3, top)
     end
 
+    /*
+    This action selects a point on the loaded texture that this Drawable will
+    consider to be the right edge of the image to be drawn. 0 represents the left
+    edge of the base texture, and 1 represents the right edge of the base texture.
+    */
     action SetRightSide(number right)
         parent:TextureRegion:SetRightSide(right)
         Array<number> vertices = GetVertices()
@@ -403,6 +776,11 @@ class Drawable is TextureRegion, Item
         vertices:Set(U4, right)
     end
 
+    /*
+    This action selects a point on the loaded texture that this Drawable will
+    consider to be the bottom edge of the image to be drawn. 0 represents the bottom
+    edge of the base texture, and 1 represents the top edge of the base texture.
+    */
     action SetBottomSide(number bottom)
         parent:TextureRegion:SetBottomSide(bottom)
         Array<number> vertices = GetVertices()
@@ -410,6 +788,30 @@ class Drawable is TextureRegion, Item
         vertices:Set(V4, bottom)
     end
 
+    /*
+    This action flips the Drawable along the x-axis, or in other words, flips it
+    horizontally in 2D space.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Drawable line
+                    line:LoadLine(20, 100)
+                    line:SetPosition(50, 50)
+                    line:FlipX()
+                    Add(line)
+                end
+            end
+    */
     action FlipX
         parent:TextureRegion:FlipX()
 
@@ -425,6 +827,30 @@ class Drawable is TextureRegion, Item
         parent:Item:FlipX()
     end
 
+    /*
+    This action flips the Drawable along the y-axis, or in other words, flips it
+    vertically in 2D space.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Drawable line
+                    line:LoadLine(20, 100)
+                    line:SetPosition(50, 50)
+                    line:FlipY()
+                    Add(line)
+                end
+            end
+    */
     action FlipY
         parent:TextureRegion:FlipY()
 
@@ -440,26 +866,193 @@ class Drawable is TextureRegion, Item
         parent:Item:FlipY()
     end
 
+    /*
+    This action returns whether or not the Drawable has a custom color filter.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Color cyan
+                cyan:SetColor(0, 1, 1, 1)
+
+                Drawable drawable
+                drawable:LoadFilledCircle(100, cyan)
+                output "Drawable has custom color filter = " + drawable:UseCustomColor()
+                
+                drawable:SetColor(0, 1, 0, 1)
+                output "Drawable now has custom color filter = " + drawable:UseCustomColor()
+            end
+
+        end
+    */
     action UseCustomColor returns boolean
         return useCustomColor
     end
 
+    /*
+    This action removes the color filter from a Drawable.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Color cyan
+                cyan:SetColor(0, 1, 1, 1)
+
+                Drawable drawable
+                drawable:LoadFilledCircle(100, cyan)
+                drawable:SetColor(0, 1, 0, 1)
+                output "Drawable has custom color filter = " + drawable:UseCustomColor()
+                
+                drawable:UseDefaultColor()
+                output "Drawable now has custom color filter = " + drawable:UseCustomColor()
+            end
+
+        end
+    */
     action UseDefaultColor
         useCustomColor = false
     end
 
+    /*
+    This action returns the texture that is currently loaded into the Drawable.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Texture
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Drawable drawable
+                drawable:LoadFilledCircle(75)
+                Texture circle = drawable:GetTexture()
+            end
+
+        end
+    */
     action GetTexture returns Texture
         return parent:TextureRegion:GetTextureField()
     end
 
+    /*
+    This action returns true if there is a texture currently loaded into the 
+    Drawable, otherwise it returns false.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Drawable drawable
+                output "Drawable is loaded = " + drawable:IsLoaded()
+                drawable:LoadFilledCircle(75)
+                output "Drawable is now loaded = " + drawable:isLoaded()
+            end
+
+        end
+    */
     action IsLoaded returns boolean
         return GetTexture() not= undefined
     end
 
+    /*
+    The Dispose action will dispose the currently loaded texture. This frees up
+    computer resources, but the texture will no longer be usable. Note that
+    multiple Drawables can use the same texture, and disposing of it will get
+    rid of the texture information not just for this Drawable, but any Drawable
+    that is using the texture. 
+
+    Dispose should be used when a texture will not be used again. Here are some
+    guide lines for when you should or should not dispose a Drawable:
+
+    1. If the Drawable was loaded using Load(text) or Load(File), then the
+    Drawable created new texture data when it was loaded. This can be safely
+    disposed, unless you copied the Drawable, e.g. with QuickCopy(Drawable).
+
+    2. If the Drawable was loaded as a shape, e.g. with the LoadRectangle action,
+    the Drawable created new texture data when it loaded. It can be safely
+    disposed, unless you copied the Drawable, e.g. with QuickCopy(Drawable).
+
+    3. If the Drawable was loaded using a Texture or a TextureRegion, such as
+    with the Load(Texture) action, then it is NOT safe to dispose this if there
+    are any other Drawables that are still in use which were also loaded with
+    the same Texture. If there are no other Drawables that were loaded with the
+    Texture, it is safe to dispose. If a texture was used to load multiple
+    Drawables, it is good practice to use the Dispose action directly from the
+    Texture once all of the Drawables are no longer in use.
+
+    4. If the Drawable was loaded with an ImageSheet, you should NEVER dispose
+    the Drawable's texture. All Drawables loaded from an ImageSheet use the same
+    Texture data, so disposing of any Drawable from an ImageSheet will delete
+    the ImageSheet's texture data. If you ever wish to dispose an ImageSheet's
+    texture data, it is good practice to use the ImageSheet's Dispose action.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Drawable drawable
+                drawable:LoadFilledCircle(75)
+                Add(drawable)
+
+                // When we no longer need the Drawable, we can remove it from
+                // the Game, and then Dispose it to clean up the memory it used.
+                Remove(drawable)
+                drawable:Dispose()
+            end
+
+        end
+    */
     action Dispose
         parent:TextureRegion:Dispose()
     end
 
+    /*
+    The Draw action is what makes a Drawable appear on the screen. This action
+    will automatically be called by the Game class if the Drawable has been
+    added to the Game with the Add(Item) action. 
+    */
     action Draw(Painter painter)
         PrepareVertices()
 
@@ -474,6 +1067,7 @@ class Drawable is TextureRegion, Item
         parent:Item:Draw(painter)
     end
 
+    
     action IsFlippedX returns boolean
         return parent:Item:IsFlippedX()
     end
