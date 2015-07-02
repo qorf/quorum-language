@@ -18,8 +18,8 @@ public class Motor {
         motors.put("D", lejos.hardware.motor.Motor.D);
     }
     
-    private boolean MotorIsValid(String motorID, BaseRegulatedMotor motor) throws IOException {
-        motor = motors.get(motorID);
+    private boolean MotorIsValid(String motorID) throws IOException {
+        BaseRegulatedMotor motor = motors.get(motorID);
         if (motor == null)
             throw new IOException("Invalid motor ID specified. Valid options are: A, B, C, or D, but " + motorID + " was given.");
         else
@@ -28,37 +28,37 @@ public class Motor {
     
     public void SetSpeed(String motorID, int speed) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
-        if (MotorIsValid(motorID, motor))
+        if (MotorIsValid(motorID))
             motor.setSpeed(speed);
     }
     
     public void MoveForward(String motorID) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
-        if (MotorIsValid(motorID, motor))
+        if (MotorIsValid(motorID))
             motor.backward(); //forward is relative to the motors themselves, the EV3 robots seem to go backward to move forward
     }
     
     public void MoveBackward(String motorID) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
-        if (MotorIsValid(motorID, motor))
+        if (MotorIsValid(motorID))
             motor.forward();
     }
     
     public void WaitForMotorToFinish(String motorID) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
-        if (MotorIsValid(motorID, motor))
+        if (MotorIsValid(motorID))
             motor.waitComplete();
     }
     
     public void RotateByDegrees(String motorID, int degrees) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
-        if (MotorIsValid(motorID, motor))
+        if (MotorIsValid(motorID))
             motor.rotate(-1 * degrees);
     }
     
     public void RotateToDegree(String motorID, int degreeTarget) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
-        if (MotorIsValid(motorID, motor))
+        if (MotorIsValid(motorID))
             motor.rotateTo(-1 * degreeTarget);
     }
     
@@ -91,7 +91,7 @@ public class Motor {
         if (motor == null)
             throw new IOException("Invalid motor ID specified. Valid options are: A, B, C, or D, but " + motorID + " was given.");
         else
-            return motor.getRotationSpeed();
+            return motor.getRotationSpeed() * -1;
     }
     
     public boolean IsMoving(String motorID) throws IOException {
@@ -131,40 +131,32 @@ public class Motor {
         BaseRegulatedMotor[] motorsArray = new BaseRegulatedMotor[4];
         String motorID = null;
         
-        //verify and store references to any valid motor (can be up to 4)
-        for (int i = 0; i < 4; i++) {
+        //verify and store references to any valid motor
+        for (int i = 0; i < followerMotors.GetSize(); i++) {
             quorum.Libraries.Language.Types.Text_ motorTextObject = (quorum.Libraries.Language.Types.Text_) followerMotors.Get(i);
             if (motorTextObject != null) {
-                motorID = motorTextObject.GetValue();
-                if (motorID != null) {
-                    motor = motors.get(motorID);
-                    if (MotorIsValid(motorID, motor))
+                motorID = motorTextObject.GetValue();   //pull out the motor name
+                if (motorID != null) {  
+                    if (MotorIsValid(motorID)) {
+                        motor = motors.get(motorID);        //get the BaseRegulatedMotor
                         motorsArray[motorsIndex++] = motor;
+                    }
                 }
             }
         }
         
-        motor = motors.get(leaderMotor);
-        motor.synchronizeWith(motorsArray);
-        motor.startSynchronization();
-        
-        
-//        //create an array with only valid motor references
-//        //motorsIndex is equal to motorsArray.length
-//        if (motorsIndex < 2)
-//            throw new IOException("Synchronization failed; at least two motors are required to synchronize");
-//        BaseRegulatedMotor[] validMotorsArray = new BaseRegulatedMotor[motorsIndex-1];
-//        System.arraycopy(motorsArray, 1, validMotorsArray, 0, motorsIndex-1); //leaving out the first valid motor, as it is used to call the lejOS method
-//        //sync
-//        motorsArray[0].synchronizeWith(validMotorsArray); //throws an error if a motor tries to synchronize with itself
-//        motorsArray[0].startSynchronization();
+        if (MotorIsValid(leaderMotor)) {
+            motor = motors.get(leaderMotor);
+            motor.synchronizeWith(motorsArray);
+            motor.startSynchronization();
+        }
 }
     
     public void EndSynchronization(String motorID) throws IOException {
         //The passed motorID MUST match the first motor passed to Synchronize -- maybe we should make Synchronize take two parameters? (motorID, motorArray)
         
         BaseRegulatedMotor motor = motors.get(motorID);
-        if (MotorIsValid(motorID, motor))
+        if (MotorIsValid(motorID))
             motor.endSynchronization();
     }
     
