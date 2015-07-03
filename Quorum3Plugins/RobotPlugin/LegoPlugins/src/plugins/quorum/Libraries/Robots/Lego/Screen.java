@@ -33,16 +33,14 @@ public class Screen {
 //    }
     
     //should these methods clear the line before displaying on them or just leave what was on screen previously?
-    public void Output(String string, int line) {
-        display.setFont(lejos.hardware.lcd.Font.getDefaultFont());
+    public void Output(String message, int line) {
         lejos.hardware.lcd.LCD.clear(line);
-        display.drawString(string, 0, (line)*16, 0); //line numbers range from 0 to 7 normally, * 16 pixels for font height. Offset to make lines 1 indexed.
+        lejos.hardware.lcd.LCD.drawString(message, 0, line, false);
     }
     
-    public void Output(String string, int line, int offset) {
-        display.setFont(lejos.hardware.lcd.Font.getDefaultFont());
+    public void Output(String message, int line, int offset) {
         lejos.hardware.lcd.LCD.clear(line);
-        display.drawString(string, offset, (line-1)*16, 0); //offset is in terms of monospaced character positions from the left side of the screen
+        lejos.hardware.lcd.LCD.drawString(message, offset, line, false);
     }
     
     public void OutputCenter(String string, int line) {
@@ -73,14 +71,14 @@ public class Screen {
         display.setFont(lejos.hardware.lcd.Font.getLargeFont());
         lejos.hardware.lcd.LCD.clear(line);
         lejos.hardware.lcd.LCD.clear(line+1);
-        display.drawString(string, 0, (line)*16, 0);
+        display.drawString(string, 0, (line)*16, 0);    //there are 16 pixels per line
     }
     
-    public void OutputLarge(String string, int line, int offset) {
+    public void OutputLarge(String string, int line, int indent) {
         display.setFont(lejos.hardware.lcd.Font.getLargeFont());
         lejos.hardware.lcd.LCD.clear(line);
         lejos.hardware.lcd.LCD.clear(line+1);
-        display.drawString(string, offset, (line)*16, 0);
+        display.drawString(string, indent*8, (line)*16, 0); //8 pixels per character
     }
     
     public void ScrollUp() {
