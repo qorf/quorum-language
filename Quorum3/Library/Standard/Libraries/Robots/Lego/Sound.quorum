@@ -9,24 +9,29 @@ It is used to control volume, to play tones, and to play music.
 Attribute: Author Evan Pierzina
 
 Attribute: Example
+use Libraries.Robots.Lego.Sound
+use Libraries.Robots.Lego.Motor
+use Libraries.Robots.Lego.ColorSensor
+use Libraries.Robots.Lego.Utility
+
 Sound sound
 Motor motor
 ColorSensor colorSensor
 Utility utility
 
-colorSensor:SetPort(colorSensor:PORT_4)
-motor:MoveForward(motor:MOTOR_B)        //two motors for movement
-motor:MoveForward(motor:MOTOR_C)
+colorSensor:SetPort(colorSensor:PORT_3)
+motor:MoveForward(motor:MOTOR_B)
+motor:MoveForward(motor:MOTOR_C)        //two motors to move the robot, connected to ports B and C
 text color = ""
-repeat while true
-    color = colorSensorGetColor()
-    if color = red
+repeat 20 times
+    color = colorSensor:GetColor()
+    if color = "red"
         sound:PlayTone(200, 100)
-    elseif color = blue
+    elseif color = "blue"
         sound:PlayTone(800, 100)
-    elseif color = green
+    elseif color = "green"
         sound:PlayTone(1600, 100)
-    elseif color = yellow
+    elseif color = "yellow"
         sound:PlayTone(3200, 100)
     end
     utility:DelayMilliseconds(100)
@@ -38,13 +43,24 @@ class Sound
     /*
     This action plays a specified tone for a an amount of time.
     
-    Attribute: Parameter frequency indicates the frequency, in hertz, of the tone that will be played.
-    Audible frequencies for humans range from around 20 to 20,000.
+    Attribute: Parameter frequency indicates the frequency, in hertz (Hz), of the tone that will be played.
+    Audible frequencies for humans generally range from around 20 to 20,000 Hz.
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.Utility
     
+    Sound sound
+    Utility utility
+    
+    integer frequency = 100
+    repeat 5 times
+        sound:PlayTone(frequency, 200)
+        utility:DelayMilliseconds(200)
+        frequency = frequency * 3
+    end
     */
 
     system action PlayTone(integer frequency, integer duration)
@@ -58,15 +74,24 @@ class Sound
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
+
     Sound sound
+    Screen screen
+    Utility utility
     
     integer volume = sound:GetVolume()
-    if volume > 75
-        sound:SetVolume(75) //limit the maximum volume
-    elseif volume < 25
-        sound:SetVolume(25) //limit the minimum volume
+    screen:OutputCenter("Initial volume: " + volume, 2)
+    if volume > 30
+        sound:SetVolume(30) //limit the maximum volume
+    elseif volume < 10
+        sound:SetVolume(10) //limit the minimum volume
     end
+    screen:OutputCenter("New volume: " + sound:GetVolume(), 4)
     sound:BeepSequenceUp()
+    utility:DelayMilliseconds(250)
     sound:BeepSequenceDown()
     */
 
@@ -81,18 +106,27 @@ class Sound
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.Utility
+
     Sound sound
     Utility utility
     
-    sound:SetVolume(25)
-    sound:PlayTone(777, 100)
-    utility:DelayMilliseconds(200)
-    sound:SetVolume(50)
-    sound:PlayTone(777, 100)
-    utility:DelayMilliseconds(200)
+    sound:SetVolume(20)
+    sound:PlayTone(777, 200)
+    utility:DelayMilliseconds(400)
+    sound:SetVolume(40)
+    sound:PlayTone(777, 200)
+    utility:DelayMilliseconds(400)
+    sound:SetVolume(60)
+    sound:PlayTone(777, 200)
+    utility:DelayMilliseconds(400)
+    sound:SetVolume(80)
+    sound:PlayTone(777, 200)
+    utility:DelayMilliseconds(400)
     sound:SetVolume(100)
-    sound:PlayTone(777, 100)
-    utility:DelayMilliseconds(200)
+    sound:PlayTone(777, 200)
+    utility:DelayMilliseconds(400)
     */
 
     system action SetVolume(integer volume)
@@ -104,6 +138,9 @@ class Sound
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.Utility
     use Libraries.System.File
     
     Sound sound
@@ -111,11 +148,10 @@ class Sound
     Utility utility
     File audioFile
     
-    audioFile:SetPath("sound.wav")      //assumes there is a file named sound.wav already stored on the robot
-    motor:SetSpeed(motor:MOTOR_B, 360)  //two motors to move the robot
-    motor:SetSpeed(motor:MOTOR_C, 360)
-    motor:MoveForward(motor:MOTOR_B)
-    motor:MoveBackward(motor:MOTOR_C)   //spin in place
+    audioFile:SetPath("song1.wav")      //requires a file named sound.wav already stored on the robot
+    motor:MoveForward(motor:MOTOR_B)    //two motors used to move the robot, connected to ports B and C
+    motor:MoveBackward(motor:MOTOR_C)   //both motors go in opposite directions, causing the robot to spin in place
+    sound:SetVolume(100)
     sound:PlayAudio(audioFile)
     repeat while sound:IsPlaying()
         utility:DelayMilliseconds(100)  //check every 100 milliseconds if the robot is still playing the audio
@@ -134,6 +170,9 @@ class Sound
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.Utility
     use Libraries.System.File
     
     Sound sound
@@ -167,6 +206,9 @@ class Sound
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.Utility
     use Libraries.System.File
     
     Sound sound
@@ -195,18 +237,21 @@ class Sound
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.ColorSensor
+    use Libraries.Robots.Lego.Utility
+
     Sound sound
     Motor motor
     ColorSensor colorSensor
     Utility utility
     
     colorSensor:SetPort(3)
-    motor:SetSpeed(motor:MOTOR_B, 360)  //two motors used for movement
-    motor:SetSpeed(motor:MOTOR_C, 360)
     motor:MoveForward(motor:MOTOR_B)
-    motor:MoveForward(motor:MOTOR_C)
-    repeat 10 times
-        if colorSensor:GetColor() = red
+    motor:MoveForward(motor:MOTOR_C)    //two motors used to move the robot, connected to ports B and C
+    repeat 5 times
+        if colorSensor:GetColor() = "red"
             sound:BeepTwice()
         else
             sound:Buzz()
@@ -223,11 +268,14 @@ class Sound
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.Motor
+
     Sound sound
     Motor motor
     
-    motor:SetSpeed(motor:MOTOR_A, 360)
-    sound:BeepSequenceUp()                      //indicate the motor is about to start moving
+    motor:SetSpeed(motor:MOTOR_A, 180)
+    sound:BeepSequenceUp()                      //indicate that the motor is about to start moving
     motor:RotateByDegrees(motor:MOTOR_A, 720)   //rotate the motor connected to port A
     sound:BeepSequenceDown()                    //indicate the motor has stopped moving
     */
@@ -240,10 +288,13 @@ class Sound
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.Motor
+
     Sound sound
     Motor motor
     
-    motor:SetSpeed(motor:MOTOR_A, 360)
+    motor:SetSpeed(motor:MOTOR_A, 180)
     sound:BeepSequenceUp()                      //indicate the motor is about to start moving
     motor:RotateByDegrees(motor:MOTOR_A, 720)   //rotate the motor connected to port A
     sound:BeepSequenceDown()                    //indicate the motor has stopped moving
@@ -257,18 +308,21 @@ class Sound
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.ColorSensor
+    use Libraries.Robots.Lego.Utility
+
     Sound sound
     Motor motor
     ColorSensor colorSensor
     Utility utility
     
     colorSensor:SetPort(3)
-    motor:SetSpeed(motor:MOTOR_B, 360)  //two motors used for movement
-    motor:SetSpeed(motor:MOTOR_C, 360)
     motor:MoveForward(motor:MOTOR_B)
-    motor:MoveForward(motor:MOTOR_C)
-    repeat 10 times
-        if colorSensor:GetColor() = blue
+    motor:MoveForward(motor:MOTOR_C)    //two motors used to move the robot, connected to ports B and C
+    repeat 5 times
+        if colorSensor:GetColor() = "blue"
             sound:BeepTwice()
         else
             sound:Buzz()
@@ -285,19 +339,22 @@ class Sound
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.InfraredSensor
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.Utility
+
     Sound sound
     InfraredSensor infraredSensor
     Motor motor
     Utility utility
     
     infraredSensor:SetPort(infraredSensor:PORT_4)
-    motor:SetSpeed(motor:MOTOR_B, 360)  //two motors used for movement
-    motor:SetSpeed(motor:MOTOR_C, 360)
     motor:MoveForward(motor:MOTOR_B)
-    motor:MoveForward(motor:MOTOR_C)
+    motor:MoveForward(motor:MOTOR_C)                //two motors used to move the robot, connected to ports B and C
     repeat until infraredSensor:GetDistance() < 50
         sound:Beep()
-        utility:DelayMilliseconds(100)
+        utility:DelayMilliseconds(200)
     end
     sound:Buzz()    //the sensor found a nearby object
     motor:Stop(motor:MOTOR_B)

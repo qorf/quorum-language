@@ -47,6 +47,10 @@ class ColorSensor
     public constant integer DARK_GRAY = 11
     public constant integer CYAN = 12
     public constant integer BROWN = 13
+    public constant integer PORT_1 = 1
+    public constant integer PORT_2 = 2
+    public constant integer PORT_3 = 3
+    public constant integer PORT_4 = 4
     
     /*
     This action lets the program know which port on the robot that the color sensor being used is plugged into.
@@ -63,9 +67,11 @@ class ColorSensor
 
     ColorSensor colorSensor1
     ColorSensor colorSensor2
+    ColorSensor colorSensor3
     
-    colorSensor1:SetPort(1)     //we can have multiple color sensors plugged into the robot at once
-    colorSensor2:SetPort(2)     //after setting the ports, we can now use any other action in the ColorSensor class
+    colorSensor1:SetPort(1)                     //we can have multiple color sensors plugged into the robot at once
+    colorSensor2:SetPort(2)                     //after setting the ports, we can now use any other action in the ColorSensor class
+    colorSensor3:SetPort(colorSensor3:PORT_3)   //we can use a class constant to designate a port, as well
     */
     
     system action SetPort(integer portNumber)

@@ -91,9 +91,11 @@ class InfraredSensor
 
     InfraredSensor infraredSensor1
     InfraredSensor infraredSensor2
+    InfraredSensor infraredSensor3
     
-    infraredSensor1:SetPort(PORT_1)     //we can have multiple infrared sensors plugged into the robot at once
-    infraredSensor2:SetPort(PORT_2)     //after setting the ports, we can now use any other action in the ColorSensor class
+    infraredSensor1:SetPort(1)                      //we can have multiple infrared sensors plugged into the robot at once
+    infraredSensor2:SetPort(2)                      //after setting the ports, we can now use any other action in the ColorSensor class
+    infraredSensor3:SetPort(infraredSensor3:PORT_3) //we can use a class constant to designate a port, as well
     */
 
     system action SetPort(integer portNumber)

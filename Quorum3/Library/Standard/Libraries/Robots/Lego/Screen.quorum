@@ -8,6 +8,9 @@ When using coordinates, the origin (0, 0) represents the bottom-left corner of t
 Attribute: Author Evan Pierzina
 
 Attribute: Example
+use Libraries.Robots.Lego.Screen
+use Libraries.Robots.Lego.Button
+
 class Main
     action Main
         Button button
@@ -31,10 +34,19 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
-    Screen screen
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Button
     
-    screen:DrawCircleFull(25, 25, 50)
-    screen:Clear()  //removes anything on the screen
+    Screen screen
+    Button button
+    
+    screen:DrawCircleFull(50, 50, 30)
+    button:WaitForButtonPress()
+    screen:Output("Hello!", 0)
+    button:WaitForButtonPress()
+    screen:Clear()      //removes anything on the screen
+    screen:OutputCenter("Cleared!", 3)
+    button:WaitForButtonPress()
     */
     
     system action Clear
@@ -49,10 +61,19 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Button
+    
     Screen screen
+    Button button
     
     screen:DrawCircleFull(50, 50, 25)
     screen:ErasePixel(50, 50)   //removes the center pixel of the circle
+    screen:ErasePixel(51, 51)
+    screen:ErasePixel(49, 49)
+    screen:ErasePixel(51, 49)
+    screen:ErasePixel(49, 51)
+    button:WaitForButtonPress()
     */
     
     system action ErasePixel(integer x, integer y)
@@ -67,11 +88,14 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
+    
     Screen screen
     Utility utility
     
     integer y = 0
-    repeat while y <= 127 //bottom of the screen
+    repeat while y <= 127 //top of the screen
         integer x = 0
         repeat while x <= 177 //right side of the screen
             screen:DrawPixel(x, y)
@@ -90,18 +114,27 @@ class Screen
     Attribute: Parameter message is what should be displayed on the screen.
     
     Attribute: Parameter line specifies which line the text should be displayed on.
-    Valid line numbers are 1 through 8. 
+    Valid line numbers are 0 through 7, where 0 is the top line. 
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
-    Screen screen
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
     
-    screen:Output("Hello!", 1)
+    Screen screen
+    Utility utility
+    
+    screen:Output("Hello!", 0)
+    utility:DelayMilliseconds(500)
     screen:Output("I", 2)
+    utility:DelayMilliseconds(500)
     screen:Output("Am", 3)
+    utility:DelayMilliseconds(500)
     screen:Output("Your", 4)
-    screen:Output("Robot", 5)
+    utility:DelayMilliseconds(500)
+    screen:Output("Robot!", 5)
+    utility:DelayMilliseconds(2000)
     */
     
     system action Output(text message, integer line)
@@ -112,24 +145,27 @@ class Screen
     Attribute: Parameter message is what will be displayed on the screen.
     
     Attribute: Parameter line specifies which line number the message will appear on.
-    Valid line numbers are 1 through 8.
+    Valid line numbers are 0 through 7, where 0 is the top line.
     
-    Attribute: Parameter indent specifies how much of an indent, measured in pixels, the message should have.
-    The visible width visible portion of the screen ranges from 0 to 177 pixels, but you can use any integer.
+    Attribute: Parameter indent specifies how much of an indent, measured in a character's width (1 character's width = 8 pixels), the message should have.
+    The visible width of the screen ranges from 0 to 177 pixels, but you can use any size indent.
     Negative values are accepted and shift the text message to the left.
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Button
+    
     Screen screen
     Button button
     
     integer indent = 0
-    integer line = 1
-    repeat until line = 9
+    integer line = 0
+    repeat until line = 8
         screen:Output("Indent = " + indent, line, indent) //displays the current indent on screen
         line = line + 1
-        indent = indent + 8
+        indent = indent + 1
     end
     button:WaitForButtonPress()
     */
@@ -142,23 +178,26 @@ class Screen
     Attribute: Parameter message is what will be displayed on the screen
     
     Attribute: Parameter specifies what text line the message should appear on.
-    Valid text lines are 1 through 8.
+    Valid text lines are 0 through 7, where 0 is the top line.
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.InfraredSensor
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.Utility
+    
     Screen screen
     InfraredSensor infraredSensor
     Motor motor
     Utility utility
     
     infraredSensor:SetPort(4)
-    motor:SetSpeed(motor:MOTOR_B, 720) //two motors for movement
-    motor:SetSpeed(motor:MOTOR_C, 720)
     motor:MoveForward(motor:MOTOR_B)
-    motor:MoveForward(motor:MOTOR_C)
-    repeat while true
-       screen:OutputCenter("Distance: " + infraredSensor:GetDistance(), 1) //displays the distance on the first line
+    motor:MoveForward(motor:MOTOR_C)    //two motors to move the robot, connected to ports B and C
+    repeat 20 times
+       screen:OutputCenter("Distance: " + infraredSensor:GetDistance(), 0) //displays the distance on the top line
        utility:DelayMilliseconds(100)
     end
     */
@@ -172,18 +211,27 @@ class Screen
     Attribute: Parameter message specifies the text that should be displayed on screen.
     
     Attribute: Parameter line specifies the line number that the text should appear on.
-    Valid line numbers are 1 through 8.
+    Valid line numbers are 0 through 7, where 0 is the top line.
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
-    Screen screen
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
     
-    screen:OutputInvertedColor("Hello!", 1)
+    Screen screen
+    Utility utility
+    
+    screen:OutputInvertedColor("Hello!", 0)
+    utility:DelayMilliseconds(500)
     screen:OutputInvertedColor("I", 2)
+    utility:DelayMilliseconds(500)
     screen:OutputInvertedColor("Am", 3)
+    utility:DelayMilliseconds(500)
     screen:OutputInvertedColor("Your", 4)
-    screen:OutputInvertedColor("Robot", 5)
+    utility:DelayMilliseconds(500)
+    screen:OutputInvertedColor("Robot!", 5)
+    utility:DelayMilliseconds(2000)
     */
     
     system action OutputInvertedColor(text message, integer line)
@@ -194,24 +242,27 @@ class Screen
     Attribute: Parameter message is what will be displayed on the screen.
     
     Attribute: Parameter line specifies which line number the message will appear on.
-    Valid line numbers are 1 through 8.
+    Valid line numbers are 0 through 7, where 0 is the top line.
     
-    Attribute: Parameter indent specifies how much of an indent, measured in pixels, the message should have.
-    The visible width visible portion of the screen ranges from 0 to 177 pixels, but you can use any integer.
+    Attribute: Parameter indent specifies how much of an indent, measured in a character's width (1 character's width = 8 pixels), the message should have.
+    The visible width of the screen ranges from 0 to 177 pixels, but you can use any size indent.
     Negative values are accepted and shift the text message to the left.
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Button
+    
     Screen screen
     Button button
     
     integer indent = 0
-    integer line = 1
-    repeat until line = 9
+    integer line = 0
+    repeat until line = 8
         screen:OutputInvertedColor("Indent = " + indent, line, indent) //displays the current indent on screen
         line = line + 1
-        indent = indent + 8
+        indent = indent + 1
     end
     button:WaitForButtonPress()
     */
@@ -229,12 +280,17 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
-    Screen screen
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
     
-    screen:OutputLarge("This", 1)
-    screen:OutputLarge("is", 3)
-    screen:OutputLarge("large", 5)
-    screen:OutputLarge("text!", 7)
+    Screen screen
+    Utility utility
+    
+    screen:OutputLarge("This", 0)
+    screen:OutputLarge("is", 2)
+    screen:OutputLarge("large", 4)
+    screen:OutputLarge("text!", 6)
+    utility:DelayMilliseconds(3000)
     */
     
     system action OutputLarge(text message, integer line)
@@ -247,22 +303,25 @@ class Screen
     Attribute: Parameter line specifies which line the message should start on.
     Since the message spans two text lines, the line specified and the one below it will be used to display the message.
     
-    Attribute: Parameter indent specifies how much of an indent, measured in pixels, the message should have.
-    The visible width visible portion of the screen ranges from 0 to 177 pixels, but you can use any integer.
+    Attribute: Parameter indent specifies how much of an indent, measured in a character's width (1 character's width = 8 pixels), the message should have.
+    The visible width of the screen ranges from 0 to 177 pixels, but you can use any size indent.
     Negative values are accepted and shift the text message to the left.
     
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Button
+    
     Screen screen
     Button button
     
     integer indent = 0
-    integer line = 1
-    repeat until line = 9
-        screen:OutputLarge("Indent = " + indent, line, indent) //displays the current indent on screen
+    integer line = 0
+    repeat until line = 8
+        screen:OutputLarge("indent:" + indent, line, indent) //displays the current indent on screen
         line = line + 2
-        indent = indent + 16
+        indent = indent + 1
     end
     button:WaitForButtonPress()
     */
@@ -280,18 +339,21 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.InfraredSensor
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.Utility
+    
     Screen screen
     InfraredSensor infraredSensor
     Motor motor
     Utility utility
     
     infraredSensor:SetPort(4)
-    motor:SetSpeed(motor:MOTOR_B, 720) //two motors for movement
-    motor:SetSpeed(motor:MOTOR_C, 720)
     motor:MoveForward(motor:MOTOR_B)
-    motor:MoveForward(motor:MOTOR_C)
-    repeat while true
-       screen:OutputCenterLarge("Distance: " + infraredSensor:GetDistance(), 1) //displays the distance on the first line
+    motor:MoveForward(motor:MOTOR_C)    //two motors to move the robot, connected to ports B and C
+    repeat 10 times
+       screen:OutputCenterLarge("Dist.: " + infraredSensor:GetDistance(), 1) //displays the distance on the top line
        utility:DelayMilliseconds(100)
     end
     */
@@ -304,17 +366,21 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
+    use Libraries.Robots.Lego.ColorSensor
+    
     Screen screen
     Utility utility
     ColorSensor colorSensor
     
     colorSensor:SetPort(colorSensor:PORT_3)
     text color = ""
-    repeat while true
+    repeat 20 times
         color = colorSensor:GetColor()
         if color not= "none"
             screen:ScrollUp()           //scroll up
-            screen:Output(color, 8)     //display color name on the bottom text line
+            screen:Output(color, 7)     //display color name on the bottom text line
         end
         utility:DelayMilliseconds(200)
     end
@@ -330,13 +396,17 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
+    use Libraries.Robots.Lego.ColorSensor
+    
     Screen screen
     Utility utility
     ColorSensor colorSensor
     
     colorSensor:SetPort(colorSensor:PORT_3)
     text color = ""
-    repeat while true
+    repeat 20 times
         color = colorSensor:GetColor()
         if color not= "none"
             screen:ScrollUp(color)      //scroll up and display color name on the bottom text line
@@ -355,16 +425,19 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
+    
     Screen screen
     Utility utility
     
-    screen:Output("Beep", 8)
+    screen:Output("Beep", 7)
     utility:DelayMilliseconds(500)
     screen:ScrollUp(1)              //scroll up one line
-    screen:Output("Boop", 8)
+    screen:Output("Boop", 7)
     utility:DelayMilliseconds(500)
     screen:ScrollUp(2)              //scroll up two lines
-    screen:Output("I am a robot!", 8)
+    screen:Output("I am a robot!", 7)
     utility:DelayMilliseconds(3000)
     */
     
@@ -384,6 +457,10 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
+    use Libraries.Robots.Lego.Button
+    
     Screen screen
     Utility utility
     Button button
@@ -412,15 +489,19 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
+    use Libraries.Robots.Lego.Button
+    
     Screen screen
     Utility utility
     Button button
 
-    screen:DrawRectangleOutline(30, 30, 118, 68) //rectangle's bottom left corner is 30, 30 with a width of 118 and height of 68
+    screen:DrawRectangleOutline(30, 30, 118, 68)    //rectangle's bottom left corner is 30, 30 with a width of 118 and height of 68
     utility:DelayMilliseconds(500)
-    screen:DrawRectangleOutline(40, 40, 98, 48)
+    screen:DrawRectangleOutline(40, 40, 98, 48)     //a smaller rectangle
     utility:DelayMilliseconds(500)
-    screen:DrawRectangleOutline(50, 50, 78, 28)
+    screen:DrawRectangleOutline(50, 50, 78, 28)     //an even smaller rectangle
     button:WaitForButtonPress()
     */
     
@@ -440,6 +521,10 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
+    use Libraries.Robots.Lego.Button
+    
     Screen screen
     Utility utility
     Button button
@@ -470,13 +555,16 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Button
+    
     Button button
     Screen screen
     
     screen:DrawRectangleFull(40, 80, 20, 20)    //draw left eye
     screen:DrawRectangleFull(116, 80, 20, 20)   //draw right eye
 
-    repeat while true
+    repeat 3 times
     screen:EraseRectangleFull(40, 120, 20, 10)  //erase previous left eyebrow
     screen:EraseRectangleFull(116, 120, 20, 10) //erase previous right eyebrow
     screen:EraseRectangleFull(40, 30, 96, 30)   //erase previous mouth
@@ -511,14 +599,17 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
-    Button button
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Button
+    
     Screen screen
+    Button button
     
     screen:DrawRectangleFull(0, 0, 177, 127)    //make the screen black
     screen:EraseRectangleFull(40, 80, 20, 20)    //draw left eye
     screen:EraseRectangleFull(116, 80, 20, 20)   //draw right eye
 
-    repeat while true
+    repeat 3 times
     screen:DrawRectangleFull(40, 120, 20, 10)  //erase previous left eyebrow
     screen:DrawRectangleFull(116, 120, 20, 10) //erase previous right eyebrow
     screen:DrawRectangleFull(40, 30, 96, 30)   //erase previous mouth
@@ -553,15 +644,23 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
+    use Libraries.Robots.Lego.Button
+    
     Screen screen
     Utility utility
     Button button
 
     screen:DrawEllipseOutline(89, 64, 20, 10) //ellipse's center is at 89, 64 with a width of 20 and height of 10
     utility:DelayMilliseconds(500)
-    screen:DrawEllipseOutline(89, 64, 30, 15)
-    utility:DelayMilliseconds(500)
     screen:DrawEllipseOutline(89, 64, 40, 20)
+    utility:DelayMilliseconds(500)
+    screen:DrawEllipseOutline(89, 64, 60, 30)
+    utility:DelayMilliseconds(500)
+    screen:DrawEllipseOutline(89, 64, 80, 40)
+    utility:DelayMilliseconds(500)
+    screen:DrawEllipseOutline(89, 64, 100, 50)
     button:WaitForButtonPress()
     */
     
@@ -580,15 +679,25 @@ class Screen
     
     Attribute: Author Evan Pierzina
     
-    Attribute: ExampleScreen screen
+    Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
+    use Libraries.Robots.Lego.Button
+    
+    Screen screen
     Utility utility
     Button button
 
-    screen:DrawEllipseOutline(89, 64, 40, 20) //center of the ellipse is 89, 64 with a width of 40 and height of 20
+    screen:DrawRectangleFull(0, 0, 177, 127)    //make the screen black
+    screen:EraseEllipseOutline(89, 64, 20, 10) //ellipse's center is at 89, 64 with a width of 20 and height of 10
     utility:DelayMilliseconds(500)
-    screen:DrawEllipseOutline(89, 64, 60, 30)
+    screen:EraseEllipseOutline(89, 64, 40, 20)
     utility:DelayMilliseconds(500)
-    screen:DrawEllipseOutline(89, 64, 80, 40)
+    screen:EraseEllipseOutline(89, 64, 60, 30)
+    utility:DelayMilliseconds(500)
+    screen:EraseEllipseOutline(89, 64, 80, 40)
+    utility:DelayMilliseconds(500)
+    screen:EraseEllipseOutline(89, 64, 100, 50)
     button:WaitForButtonPress()
     */
     
@@ -608,13 +717,16 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Button
+    
     Button button
     Screen screen
 
     screen:DrawEllipseFull(50, 80, 20, 20)      //draw left eye
     screen:DrawEllipseFull(126, 80, 20, 20)     //draw right eye
 
-    repeat while true
+    repeat 3 times
     screen:EraseEllipseFull(50, 115, 20, 10)    //erase previous left eyebrow
     screen:EraseEllipseFull(126, 115, 20, 10)   //erase previous right eyebrow
     screen:EraseEllipseFull(88, 35, 96, 30)     //erase previous mouth
@@ -649,6 +761,9 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Button
+    
     Button button
     Screen screen
     
@@ -656,7 +771,7 @@ class Screen
     screen:EraseEllipseFull(50, 80, 20, 20)     //erase a left eye from the screen
     screen:EraseEllipseFull(126, 80, 20, 20)    //erase a right eye from the screen
 
-    repeat while true
+    repeat 3 times
     screen:DrawEllipseFull(50, 115, 20, 10)     //fill in previous left eyebrow
     screen:DrawEllipseFull(126, 115, 20, 10)    //fill in previous right eyebrow
     screen:DrawEllipseFull(88, 35, 96, 30)      //fill in previous mouth
@@ -690,6 +805,10 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
+    use Libraries.Robots.Lego.Button
+    
     Screen screen
     Utility utility
     Button button
@@ -717,6 +836,10 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
+    use Libraries.Robots.Lego.Button
+    
     Screen screen
     Utility utility
     Button button
@@ -728,7 +851,6 @@ class Screen
     utility:DelayMilliseconds(500)
     screen:EraseCircleOutline(89, 64, 40)
     button:WaitForButtonPress()
-    
     */
     
     system action EraseCircleOutline(integer x, integer y, integer radius)
@@ -746,13 +868,17 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Utility
+    use Libraries.Robots.Lego.Button
+    
     Button button
     Screen screen
 
     screen:DrawCircleFull(50, 80, 20)      //draw left eye
     screen:DrawCircleFull(126, 80, 20)     //draw right eye
 
-    repeat while true
+    repeat 3 times
     screen:EraseEllipseFull(50, 120, 20, 10)    //erase previous left eyebrow
     screen:EraseEllipseFull(126, 120, 20, 10)   //erase previous right eyebrow
     screen:EraseCircleFull(86, 40, 25)          //erase previous mouth
@@ -786,6 +912,9 @@ class Screen
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Button
+    
     Button button
     Screen screen
     
@@ -793,7 +922,7 @@ class Screen
     screen:EraseCircleFull(50, 80, 20)          //erase a left eye from screen
     screen:EraseCircleFull(126, 80, 20)         //erase a right eye from screen
 
-    repeat while true
+    repeat 3 times
     screen:DrawEllipseFull(50, 120, 20, 10)     //fill in previous left eyebrow
     screen:DrawEllipseFull(126, 120, 20, 10)    //fill in previous right eyebrow
     screen:DrawCircleFull(86, 40, 25)           //fill in previous mouth

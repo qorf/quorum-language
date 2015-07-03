@@ -7,13 +7,16 @@ package Libraries.Robots.Lego
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Utility
+    use Libraries.Robots.Lego.Motor
+
     Utility utility
     Motor motor
     
-    motor:SetSpeed(motor:MOTOR_A, 600)
-    motor:MoveForward(motor:MOTOR_A)
+    motor:SetSpeed(motor:MOTOR_B, 600)
+    motor:MoveForward(motor:MOTOR_B)
     utility:DelayMilliseconds(1000)     //the program will wait 1 second before moving onto the next line of code, where the motor will then stop
-    motor:Stop(motor:MOTOR_A)
+    motor:Stop(motor:MOTOR_B)
     */
     
 
@@ -27,19 +30,23 @@ class Utility
     Attribute: Author Evan Pierzina
     
     Attribute: Example
+    use Libraries.Robots.Lego.Utility
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.Motor
+
     Utility utility
     Sound sound
     Motor motor
     
-    motor:SetSpeed(motor:MOTOR_B, 720)      //two motors used to move the robot
-    motor:SetSpeed(motor:MOTOR_C, 720)
+    motor:SetSpeed(motor:MOTOR_B, 720)
+    motor:SetSpeed(motor:MOTOR_C, 720)      //two motors used to move the robot, connected to ports B and C
     motor:MoveForward(motor:MOTOR_B)
     motor:MoveForward(motor:MOTOR_C)
-    repeat 10 times
+    repeat 5 times
         sound:Beep()
         utility:DelayMilliseconds(1000)      //wait a second in between beeps
     end
-    motor:Stop(motor:MOTOR_B)   //because of the 1 seconds delay repeating 10 times, the motors get to run for 10 seconds
+    motor:Stop(motor:MOTOR_B)   //because of the 1 seconds delay repeating 5 times, the motors get to run for 5 seconds
     motor:Stop(motor:MOTOR_C)
     */
     
