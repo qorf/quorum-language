@@ -18,7 +18,8 @@ public class Sound {
     }
     
     public void PlayAudio(quorum.Libraries.System.File_ quorumFile) {
-        File audioFile = new File(quorumFile.GetAbsolutePath());
+        File audioFile;
+        audioFile = new File(quorumFile.GetAbsolutePath());
         lejos.hardware.Sound.playSample(audioFile);
     }
     
