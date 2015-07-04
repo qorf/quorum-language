@@ -64,7 +64,7 @@ class Motor
     system action SetSpeed(text motorID, integer speed)
 
     /*
-    This action will cause the specified motor to rotate forward until stopped by the Stop action or if the program ends.
+    This action will cause the specified motor to rotate forward until stopped by the Stop action, or if the program ends.
     If this method is not called, motors will default to a speed of 360 degrees per second.
     
     Attribute: Parameter motorID represents which motor will be changed by this action.
@@ -93,7 +93,7 @@ class Motor
     system action MoveForward(text motorID)
 
     /*
-    This action will cause the specified motor to rotate forward until stopped by the Stop action.
+    This action will cause the specified motor to rotate forward until stopped by the Stop action, or if the program ends.
     
     Attribute: Parameter motorID represents which motor will be changed by this action. There are class constants that can be used here.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
@@ -160,7 +160,9 @@ class Motor
     motor:SetSpeed(motor:MOTOR_A, 600)
     motor:SetSpeed(motor:MOTOR_B, 600)          //two motors used to move the robot, connected to ports A and B
     motor:RotateByDegrees(motor:MOTOR_A, 3600)  //motor A rotates 10 full revolutions forward
+    motor:WaitForMotorToFinish(motor:MOTOR_A)
     motor:RotateByDegrees(motor:MOTOR_B, -3600) //motor B rotates 10 full revolutions backward
+    motor:WaitForMotorToFinish(motor:MOTOR_B)
     */
     
     system action RotateByDegrees(text motorID, integer degrees)
@@ -185,12 +187,16 @@ class Motor
     
     motor:SetSpeed(motor:MOTOR_C, 720)
     motor:RotateByDegrees(motor:MOTOR_C, 360) //rotates one revolution
+    motor:WaitForMotorToFinish(motor:MOTOR_C)
     utility:DelayMilliseconds(500)
     motor:RotateToDegree(motor:MOTOR_C, 360)  //will do nothing since the motor is already at that degree
+    motor:WaitForMotorToFinish(motor:MOTOR_C)
     utility:DelayMilliseconds(500)
     motor:RotateToDegree(motor:MOTOR_C, 720)  //rotates one more revolution from its starting position of 360 degrees
+    motor:WaitForMotorToFinish(motor:MOTOR_C)
     utility:DelayMilliseconds(500)
     motor:RotateToDegree(motor:MOTOR_C, 0)    //rotates backwards two revolutions from its current position of 720 degrees
+    motor:WaitForMotorToFinish(motor:MOTOR_C)
     */
     
     system action RotateToDegree(text motorID, integer degreeTarget)
@@ -206,14 +212,25 @@ class Motor
     Attribute: Author Evan Pierzina
 
     Attribute: Example
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.Screen
+    use Libraries.Robots.Lego.Button
+    
     Motor motor
     Sound sound
+    Screen screen
+    Button button
     
     motor:SetSpeed(motor:MOTOR_C, 500)
-    repeat while motor:GetRotationTarget(motor:MOTOR_C) < 1000
+    repeat while motor:GetRotationTarget(motor:MOTOR_C) < 1000  //repeat until motor C is attempting to go past 1000 degrees of rotation
         sound:Beep()
-        motor:RotateByDegrees(100)
+        motor:RotateByDegrees(motor:MOTOR_C, 100)
+        screen:ScrollUp("Target: " + motor:GetRotationTarget(motor:MOTOR_C))
     end
+    motor:Stop(motor:MOTOR_C)   //stop it from going past 1000
+    screen:ScrollUp("Press any button")
+    button:WaitForButtonPress()
     */
     
     system action GetRotationTarget(text motorID) returns integer
@@ -306,6 +323,8 @@ class Motor
 
     /*
     This action is used to find out if a specific motor is currently moving or not.
+    It can be used to detect if a motor is stalled.
+    It takes about one second of a motor trying to move before it is determined to be stalled, so calling this the instant a motor gets stuck will not 
     
     Attribute: Parameter motorID specifies the motor being checked for movement. There are class constants that can be used here.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
@@ -316,104 +335,107 @@ class Motor
 
     Attribute: Example
     use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.Button
+    use Libraries.Robots.Lego.Utility
     
     Motor motor
     Button button
+    Utility utility
     
-    motor:SetSpeed(motor:MOTOR_A, 360)
-    motor:RotateByDegrees(motor:MOTOR_A, 3600)
+    motor:RotateByDegrees(motor:MOTOR_A, 1080)
     button:SetLightPattern(button:SOLID_GREEN_LIGHT) //will stay on while the motor is moving
     repeat while motor:IsMoving(motor:MOTOR_A)
+        utility:DelayMilliseconds(100)  //check if the motor is moving every 100 milliseconds
     end
     button:SetLightPattern(button:SOLID_RED_LIGHT)
     */
     
     system action IsMoving(text motorID) returns boolean
 
-    /*
-    This action allows the pairing of two motors in order to make them execute motor actions at the same time.
-    After calling this action, the motor actions that follow will be stored in the order they were called, up until the motor action EndSynchronization is called.
-    Once the EndSynchronization action is called, all of the stored motor commands will execute in order on both of the motors used to call the Synchronization action.
-    
-    Attribute: Parameter syncMotor specifies the motor being synchronized that will be used in the EndSynchronization call.
-    There are class constants that can be used here.
-    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
-    
-    Attribute: Parameter otherMotor specifies another motor being synchronized with syncMotor. There are class constants that can be used here.
-    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
-    
-    Attribute: Author Evan Pierzina
-
-    Attribute: Example
-    use Libraries.Robots.Lego.Motor
-    
-    Motor motor
-    
-    motor:Synchronize(motor:MOTOR_C, motor:MOTOR_B) //tells the program that the following motor actions should happen at the same time
-    motor:RotateByDegrees(motor:MOTOR_C, -720)      //these actions are stored and will not execute until the EndSynchronization action is called
-    motor:RotateByDegrees(motor:MOTOR_B, 720)
-    motor:EndSynchronization(motor:MOTOR_C)         //all of the stored motor actions will start executing now
-    motor:WaitForMotorToFinish(motor:MOTOR_C)
-    */
-    
-    system action Synchronize(text syncMotor, text otherMotor)
-
-    /*
-    This action allows the pairing of multiple motors in order to make them execute motor actions at the same time.
-    After calling this action, the motor actions that follow will be stored in the order they were called, up until the motor action EndSynchronization is called.
-    Once the EndSynchronization action is called, all of the stored motor commands will execute in order on all of the motors used to call the Synchronization action.
-    
-    Attribute: Parameter syncMotor specifies the motor being synchronized that will be used in the EndSynchronization call.
-    There are class constants that can be used here.
-    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
-    
-    Attribute: Parameter otherMotors specifies the array of motors being synchronized with the syncMotor.
-    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
-    
-    Attribute: Author Evan Pierzina
-    
-    Attribute: Example
-    use Libraries.Robots.Lego.Motor
-    use Libraries.Containers.Array
-    Motor motor
-    
-    Array<Text> motorNames
-    motorNames:Add("A")
-    motorNames:Add("B")
-    
-    motor:Synchronize(motor:MOTOR_C, motorNames)    //tells the program that the following motor actions apply to all three motors
-    motor:RotateByDegrees(motor:MOTOR_C, -720)      //these actions are stored and will not execute until the EndSynchronization action is called
-    motor:RotateByDegrees(motor:MOTOR_B, 720)
-    motor:RotateByDegrees(motor:MOTOR_A, 90)
-    motor:EndSynchronization(motor:MOTOR_C)         //all of the stored motor actions will start executing now
-    motor:WaitForMotorToFinish(motor:MOTOR_C)
-    */
-    
-    system action Synchronize(text syncMotor, Array<text> otherMotors)
-
-    /*
-    This action flags the end of synchronization for all motors synchronized with a leader motor of a set of synchronized motors.
-    Once this action is called, all motor actions called between the Synchronize action and EndSynchronization action will execute in order.
-    
-    Attribute: Parameter leaderMotor should be a motor that was passed as the leaderMotor parameter of a Synchronize action previously.
-    There are class constants that can be used here.
-    Valid motors are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
-    
-    Attribute: Author Evan Pierzina
-
-    Attribute: Example
-    use Libraries.Robots.Lego.Motor
-    
-    Motor motor
-    
-    motor:Synchronize(motor:MOTOR_C, motor:MOTOR_B) //tells the program that the following motor actions should happen at the same time
-    motor:RotateByDegrees(motor:MOTOR_C, -720)      //these actions are stored and will not execute until the EndSynchronization action is called
-    motor:RotateByDegrees(motor:MOTOR_B, 720)
-    motor:EndSynchronization(motor:MOTOR_C)         //all of the stored motor actions will start executing now
-    motor:WaitForMotorToFinish(motor:MOTOR_C)
-    */
-    
-    system action EndSynchronization(text leaderMotor)
+//    /*
+//    This action allows the pairing of two motors in order to make them execute motor actions at the same time.
+//    After calling this action, the motor actions that follow will be stored in the order they were called, up until the motor action EndSynchronization is called.
+//    Once the EndSynchronization action is called, all of the stored motor commands will execute in order on both of the motors used to call the Synchronization action.
+//    
+//    Attribute: Parameter syncMotor specifies the motor being synchronized that will be used in the EndSynchronization call.
+//    There are class constants that can be used here.
+//    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+//    
+//    Attribute: Parameter otherMotor specifies another motor being synchronized with syncMotor. There are class constants that can be used here.
+//    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+//    
+//    Attribute: Author Evan Pierzina
+//
+//    Attribute: Example
+//    use Libraries.Robots.Lego.Motor
+//    
+//    Motor motor
+//    
+//    motor:Synchronize(motor:MOTOR_C, motor:MOTOR_B) //tells the program that the following motor actions should happen at the same time
+//    motor:RotateByDegrees(motor:MOTOR_C, -720)      //these actions are stored and will not execute until the EndSynchronization action is called
+//    motor:RotateByDegrees(motor:MOTOR_B, 720)
+//    motor:EndSynchronization(motor:MOTOR_C)         //all of the stored motor actions will start executing now
+//    motor:WaitForMotorToFinish(motor:MOTOR_C)
+//    */
+//    
+//    system action Synchronize(text syncMotor, text otherMotor)
+//
+//    /*
+//    This action allows the pairing of multiple motors in order to make them execute motor actions at the same time.
+//    After calling this action, the motor actions that follow will be stored in the order they were called, up until the motor action EndSynchronization is called.
+//    Once the EndSynchronization action is called, all of the stored motor commands will execute in order on all of the motors used to call the Synchronization action.
+//    
+//    Attribute: Parameter syncMotor specifies the motor being synchronized that will be used in the EndSynchronization call.
+//    There are class constants that can be used here.
+//    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+//    
+//    Attribute: Parameter otherMotors specifies the array of motors being synchronized with the syncMotor.
+//    Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+//    
+//    Attribute: Author Evan Pierzina
+//    
+//    Attribute: Example
+//    use Libraries.Robots.Lego.Motor
+//    use Libraries.Containers.Array
+//    Motor motor
+//    
+//    Array<Text> motorNames
+//    motorNames:Add("A")
+//    motorNames:Add("B")
+//    
+//    motor:Synchronize(motor:MOTOR_C, motorNames)    //tells the program that the following motor actions apply to all three motors
+//    motor:RotateByDegrees(motor:MOTOR_C, -720)      //these actions are stored and will not execute until the EndSynchronization action is called
+//    motor:RotateByDegrees(motor:MOTOR_B, 720)
+//    motor:RotateByDegrees(motor:MOTOR_A, 90)
+//    motor:EndSynchronization(motor:MOTOR_C)         //all of the stored motor actions will start executing now
+//    motor:WaitForMotorToFinish(motor:MOTOR_C)
+//    */
+//    
+//    system action Synchronize(text syncMotor, Array<text> otherMotors)
+//
+//    /*
+//    This action flags the end of synchronization for all motors synchronized with a leader motor of a set of synchronized motors.
+//    Once this action is called, all motor actions called between the Synchronize action and EndSynchronization action will execute in order.
+//    
+//    Attribute: Parameter leaderMotor should be a motor that was passed as the leaderMotor parameter of a Synchronize action previously.
+//    There are class constants that can be used here.
+//    Valid motors are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
+//    
+//    Attribute: Author Evan Pierzina
+//
+//    Attribute: Example
+//    use Libraries.Robots.Lego.Motor
+//    
+//    Motor motor
+//    
+//    motor:Synchronize(motor:MOTOR_C, motor:MOTOR_B) //tells the program that the following motor actions should happen at the same time
+//    motor:RotateByDegrees(motor:MOTOR_C, -720)      //these actions are stored and will not execute until the EndSynchronization action is called
+//    motor:RotateByDegrees(motor:MOTOR_B, 720)
+//    motor:EndSynchronization(motor:MOTOR_C)         //all of the stored motor actions will start executing now
+//    motor:WaitForMotorToFinish(motor:MOTOR_C)
+//    */
+//    
+//    system action EndSynchronization(text leaderMotor)
 
     /*
     This action causes a motor to stop moving.

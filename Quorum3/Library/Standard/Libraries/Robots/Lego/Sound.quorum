@@ -148,7 +148,7 @@ class Sound
     Utility utility
     File audioFile
     
-    audioFile:SetPath("song1.wav")      //requires a file named sound.wav already stored on the robot
+    audioFile:SetPath("sound.wav")      //requires a file named sound.wav already stored on the robot
     motor:MoveForward(motor:MOTOR_B)    //two motors used to move the robot, connected to ports B and C
     motor:MoveBackward(motor:MOTOR_C)   //both motors go in opposite directions, causing the robot to spin in place
     sound:SetVolume(100)
@@ -162,74 +162,74 @@ class Sound
 
     system action PlayAudio(File audioFile)
 
-    /*
-    This action gives the remaining time of whatever audio is currently playing.
-    
-    Attribute: Returns the amount of time remaining in the current tone or audio file in units of milliseconds.
-    
-    Attribute: Author Evan Pierzina
-    
-    Attribute: Example
-    use Libraries.Robots.Lego.Sound
-    use Libraries.Robots.Lego.Motor
-    use Libraries.Robots.Lego.Utility
-    use Libraries.System.File
-    
-    Sound sound
-    Motor motor
-    Utility utility
-    File audioFile
-    
-    audioFile:SetPath("sound.wav")          //assumes there is a file named sound.wav already stored on the robot
-    motor:SetSpeed(motor:MOTOR_B, 360)      //two motors to move the robot
-    motor:SetSpeed(motor:MOTOR_C, 360)
-    motor:MoveForward(motor:MOTOR_B)
-    motor:MoveBackward(motor:MOTOR_C)       //spin in place
-    sound:PlayAudio(audioFile)
-    repeat while sound:IsPlaying()
-        if sound:GetTimeRemaining() < 3000  //under 3 seconds left
-            motor:Stop(motor:MOTOR_C)
-        end
-        utility:DelayMilliseconds(100)      //check every 100 milliseconds if the robot is still playing the audio
-    end
-    motor:Stop(motor:MOTOR_B)
-    */
-
-    system action GetTimeRemaining returns integer
-
-    /*
-    This action is used to find out whether the robot is currently playing audio or not.
-    
-    Attribute: Returns a boolean value indicating whether audio is playing or not.
-    A value of true means the robot is playing audio and a value of false means the robot is not playing audio.
-    
-    Attribute: Author Evan Pierzina
-    
-    Attribute: Example
-    use Libraries.Robots.Lego.Sound
-    use Libraries.Robots.Lego.Motor
-    use Libraries.Robots.Lego.Utility
-    use Libraries.System.File
-    
-    Sound sound
-    Motor motor
-    Utility utility
-    File audioFile
-    
-    audioFile:SetPath("sound.wav")      //assumes there is a file named sound.wav already stored on the robot
-    motor:SetSpeed(motor:MOTOR_B, 360)  //two motors to move the robot
-    motor:SetSpeed(motor:MOTOR_C, 360)
-    motor:MoveForward(motor:MOTOR_B)
-    motor:MoveBackward(motor:MOTOR_C)   //spin in place
-    sound:PlayAudio(audioFile)
-    repeat while sound:IsPlaying()
-        utility:DelayMilliseconds(100)  //check every 100 milliseconds if the robot is still playing the audio
-    end
-    motor:Stop(motor:MOTOR_B)
-    motor:Stop(motor:MOTOR_C)
-    */
-
-    system action IsPlaying returns boolean
+//    /*
+//    This action gives the remaining time of whatever audio is currently playing.
+//    
+//    Attribute: Returns the amount of time remaining in the current tone or audio file in units of milliseconds.
+//    
+//    Attribute: Author Evan Pierzina
+//    
+//    Attribute: Example
+//    use Libraries.Robots.Lego.Sound
+//    use Libraries.Robots.Lego.Motor
+//    use Libraries.Robots.Lego.Utility
+//    use Libraries.System.File
+//    
+//    Sound sound
+//    Motor motor
+//    Utility utility
+//    File audioFile
+//    
+//    audioFile:SetPath("sound.wav")          //assumes there is a file named sound.wav already stored on the robot
+//    motor:SetSpeed(motor:MOTOR_B, 360)      //two motors to move the robot
+//    motor:SetSpeed(motor:MOTOR_C, 360)
+//    motor:MoveForward(motor:MOTOR_B)
+//    motor:MoveBackward(motor:MOTOR_C)       //spin in place
+//    sound:PlayAudio(audioFile)
+//    repeat while sound:IsPlaying()
+//        if sound:GetTimeRemaining() < 3000  //under 3 seconds left
+//            motor:Stop(motor:MOTOR_C)
+//        end
+//        utility:DelayMilliseconds(100)      //check every 100 milliseconds if the robot is still playing the audio
+//    end
+//    motor:Stop(motor:MOTOR_B)
+//    */
+//
+//    system action GetTimeRemaining returns integer
+//
+//    /*
+//    This action is used to find out whether the robot is currently playing audio or not.
+//    
+//    Attribute: Returns a boolean value indicating whether audio is playing or not.
+//    A value of true means the robot is playing audio and a value of false means the robot is not playing audio.
+//    
+//    Attribute: Author Evan Pierzina
+//    
+//    Attribute: Example
+//    use Libraries.Robots.Lego.Sound
+//    use Libraries.Robots.Lego.Motor
+//    use Libraries.Robots.Lego.Utility
+//    use Libraries.System.File
+//    
+//    Sound sound
+//    Motor motor
+//    Utility utility
+//    File audioFile
+//    
+//    audioFile:SetPath("sound.wav")      //assumes there is a file named sound.wav already stored on the robot
+//    motor:SetSpeed(motor:MOTOR_B, 360)  //two motors to move the robot
+//    motor:SetSpeed(motor:MOTOR_C, 360)
+//    motor:MoveForward(motor:MOTOR_B)
+//    motor:MoveBackward(motor:MOTOR_C)   //spin in place
+//    sound:PlayAudio(audioFile)
+//    repeat while sound:IsPlaying()
+//        utility:DelayMilliseconds(100)  //check every 100 milliseconds if the robot is still playing the audio
+//    end
+//    motor:Stop(motor:MOTOR_B)
+//    motor:Stop(motor:MOTOR_C)
+//    */
+//
+//    system action IsPlaying returns boolean
 
     /*
     This action tells the robot to play a beep noise.
