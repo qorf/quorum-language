@@ -20,8 +20,8 @@ ColorSensor colorSensor
 Utility utility
 
 colorSensor:SetPort(colorSensor:PORT_3)
-motor:MoveForward(motor:MOTOR_B)
-motor:MoveForward(motor:MOTOR_C)        //two motors to move the robot, connected to ports B and C
+motor:RotateForward(motor:MOTOR_B)
+motor:RotateForward(motor:MOTOR_C)        //two motors to move the robot, connected to ports B and C
 text color = ""
 repeat 20 times
     color = colorSensor:GetColor()
@@ -149,8 +149,8 @@ class Sound
     File audioFile
     
     audioFile:SetPath("sound.wav")      //requires a file named sound.wav already stored on the robot
-    motor:MoveForward(motor:MOTOR_B)    //two motors used to move the robot, connected to ports B and C
-    motor:MoveBackward(motor:MOTOR_C)   //both motors go in opposite directions, causing the robot to spin in place
+    motor:RotateForward(motor:MOTOR_B)    //two motors used to move the robot, connected to ports B and C
+    motor:RotateBackward(motor:MOTOR_C)   //both motors go in opposite directions, causing the robot to spin in place
     sound:SetVolume(100)
     sound:PlayAudio(audioFile)
     repeat while sound:IsPlaying()
@@ -183,8 +183,8 @@ class Sound
 //    audioFile:SetPath("sound.wav")          //assumes there is a file named sound.wav already stored on the robot
 //    motor:SetSpeed(motor:MOTOR_B, 360)      //two motors to move the robot
 //    motor:SetSpeed(motor:MOTOR_C, 360)
-//    motor:MoveForward(motor:MOTOR_B)
-//    motor:MoveBackward(motor:MOTOR_C)       //spin in place
+//    motor:RotateForward(motor:MOTOR_B)
+//    motor:RotateBackward(motor:MOTOR_C)       //spin in place
 //    sound:PlayAudio(audioFile)
 //    repeat while sound:IsPlaying()
 //        if sound:GetTimeRemaining() < 3000  //under 3 seconds left
@@ -219,8 +219,8 @@ class Sound
 //    audioFile:SetPath("sound.wav")      //assumes there is a file named sound.wav already stored on the robot
 //    motor:SetSpeed(motor:MOTOR_B, 360)  //two motors to move the robot
 //    motor:SetSpeed(motor:MOTOR_C, 360)
-//    motor:MoveForward(motor:MOTOR_B)
-//    motor:MoveBackward(motor:MOTOR_C)   //spin in place
+//    motor:RotateForward(motor:MOTOR_B)
+//    motor:RotateBackward(motor:MOTOR_C)   //spin in place
 //    sound:PlayAudio(audioFile)
 //    repeat while sound:IsPlaying()
 //        utility:DelayMilliseconds(100)  //check every 100 milliseconds if the robot is still playing the audio
@@ -248,8 +248,8 @@ class Sound
     Utility utility
     
     colorSensor:SetPort(3)
-    motor:MoveForward(motor:MOTOR_B)
-    motor:MoveForward(motor:MOTOR_C)    //two motors used to move the robot, connected to ports B and C
+    motor:RotateForward(motor:MOTOR_B)
+    motor:RotateForward(motor:MOTOR_C)    //two motors used to move the robot, connected to ports B and C
     repeat 5 times
         if colorSensor:GetColor() = "red"
             sound:BeepTwice()
@@ -319,8 +319,8 @@ class Sound
     Utility utility
     
     colorSensor:SetPort(3)
-    motor:MoveForward(motor:MOTOR_B)
-    motor:MoveForward(motor:MOTOR_C)    //two motors used to move the robot, connected to ports B and C
+    motor:RotateForward(motor:MOTOR_B)
+    motor:RotateForward(motor:MOTOR_C)    //two motors used to move the robot, connected to ports B and C
     repeat 5 times
         if colorSensor:GetColor() = "blue"
             sound:BeepTwice()
@@ -350,8 +350,8 @@ class Sound
     Utility utility
     
     infraredSensor:SetPort(infraredSensor:PORT_4)
-    motor:MoveForward(motor:MOTOR_B)
-    motor:MoveForward(motor:MOTOR_C)                //two motors used to move the robot, connected to ports B and C
+    motor:RotateForward(motor:MOTOR_B)
+    motor:RotateForward(motor:MOTOR_C)                //two motors used to move the robot, connected to ports B and C
     repeat until infraredSensor:GetDistance() < 50
         sound:Beep()
         utility:DelayMilliseconds(200)

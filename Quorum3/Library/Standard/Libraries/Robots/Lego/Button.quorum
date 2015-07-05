@@ -21,12 +21,12 @@ class Main
         repeat while true
             button:WaitForButtonPress()
             if button:IsButtonPressed(button:UP_BUTTON)
-                motor:MoveForward("A")
-                motor:MoveForward("B")
+                motor:RotateForward("A")
+                motor:RotateForward("B")
                 button:SetLightPattern(button:SOLID_GREEN_LIGHT)
             elseif button:IsButtonPressed(button:DOWN_BUTTON)
-                motor:MoveBackward("A")
-                motor:MoveBackward("B")
+                motor:RotateBackward("A")
+                motor:RotateBackward("B")
                 button:SetLightPattern(button:FLASHING_RED_LIGHT)
             else
                 motor:Stop("A")
@@ -121,7 +121,7 @@ class Button
     Motor motor
 
     motor:SetSpeed("B", 1080)
-    motor:MoveForward("B")
+    motor:RotateForward("B")
     button:WaitForButtonPress()
     motor:Stop("B")
     */
