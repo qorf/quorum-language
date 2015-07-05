@@ -24,8 +24,8 @@ motor:SetSpeed(motor:MOTOR_B, 480)
 motor:SetSpeed(motor:MOTOR_C, 480)      //two motors used to move the robot, connected to ports B and C
 repeat 5 times
     if touchSensor:IsPressed()
-        motor:MoveForward(motor:MOTOR_B)
-        motor:MoveForward(motor:MOTOR_C)    //robot will move forward if button was pressed
+        motor:RotateForward(motor:MOTOR_B)
+        motor:RotateForward(motor:MOTOR_C)    //robot will move forward if button was pressed
     else
         sound:Beep()    //robot will beep if the button was not pressed in
     end
@@ -66,11 +66,11 @@ class TouchSensor
     motor:SetSpeed(motor:MOTOR_C, 720)      //two motors used to move the robot, connected to ports B and C
     repeat 10 times
         if touchSensor:IsPressed()
-           motor:MoveForward(motor:MOTOR_B)
-           motor:MoveBackward(motor:MOTOR_C)    //spin in a certain direction
+           motor:RotateForward(motor:MOTOR_B)
+           motor:RotateBackward(motor:MOTOR_C)    //spin in a certain direction
         else
-           motor:MoveBackward(motor:MOTOR_B)
-           motor:MoveForward(motor:MOTOR_C)     //spin in the opposite direction
+           motor:RotateBackward(motor:MOTOR_B)
+           motor:RotateForward(motor:MOTOR_C)     //spin in the opposite direction
         end
         utility:DelayMilliseconds(1000)  //check if the button is pressed in every second
     end

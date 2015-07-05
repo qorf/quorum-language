@@ -19,8 +19,8 @@ class Main
         
         motor:SetSpeed(motor:MOTOR_A, 720)  //two motors for moving the robot, connected to ports A and B
         motor:SetSpeed(motor:MOTOR_B, 720)  //these motors will fully rotate twice per second
-        motor:MoveForward(motor:MOTOR_A)
-        motor:MoveForward(motor:MOTOR_B)
+        motor:RotateForward(motor:MOTOR_A)
+        motor:RotateForward(motor:MOTOR_B)
         utility:DelayMilliseconds(3000)     //lets the motors rotate for 3 seconds
         motor:Stop(motor:MOTOR_A)
         motor:Stop(motor:MOTOR_B)
@@ -82,15 +82,15 @@ class Motor
     infraredSensor:SetPort(infraredSensor:PORT_1)   //infrared sensor connected to port 1 of the robot
     motor:SetSpeed(motor:MOTOR_B, 720)
     motor:SetSpeed(motor:MOTOR_C, 720)
-    motor:MoveForward(motor:MOTOR_B)
-    motor:MoveForward(motor:MOTOR_C)
+    motor:RotateForward(motor:MOTOR_B)
+    motor:RotateForward(motor:MOTOR_C)
     repeat until infraredSensor:GetDistance() < 30   //repeat until the sensor is close to an object
     end
     motor:Stop(motor:MOTOR_B)
     motor:Stop(motor:MOTOR_C)
     */
     
-    system action MoveForward(text motorID)
+    system action RotateForward(text motorID)
 
     /*
     This action will cause the specified motor to rotate forward until stopped by the Stop action, or if the program ends.
@@ -108,15 +108,15 @@ class Motor
     InfraredSensor infraredSensor
     
     infraredSensor:SetPort(infraredSensor:PORT_1)   //infrared sensor connected to port 1 of the robot
-    motor:MoveBackward(motor:MOTOR_A)               //two motors for moving the robot, connected to ports A and D
-    motor:MoveBackward(motor:MOTOR_D)
+    motor:RotateBackward(motor:MOTOR_A)               //two motors for moving the robot, connected to ports A and D
+    motor:RotateBackward(motor:MOTOR_D)
     repeat until infraredSensor:GetDistance() > 40  //repeat until the sensor gets far enough away from an object
     end
     motor:Stop(motor:MOTOR_A)
     motor:Stop(motor:MOTOR_D)
     */
     
-    system action MoveBackward(text motorID)
+    system action RotateBackward(text motorID)
 
     /*
     This action will cause the robot's program to wait until the specified motor stops moving.
@@ -133,7 +133,7 @@ class Motor
     
     motor:SetSpeed(motor:MOTOR_A, 480)      //two motors for moving the robot, connected to ports A and B
     motor:SetSpeed(motor:MOTOR_B, 480)
-    motor:MoveForward(motor:MOTOR_A)
+    motor:RotateForward(motor:MOTOR_A)
     motor:RotateByDegrees(motor:MOTOR_B, 1440)
     motor:WaitForMotorToFinish(motor:MOTOR_B)   //motor A will continue moving during this time, as well
     motor:Stop(motor:MOTOR_A)
@@ -281,7 +281,7 @@ class Motor
     Utility utility
     
     motor:SetSpeed(motor:MOTOR_D, 600)  //moves at 600 degrees per second
-    motor:MoveForward(motor:MOTOR_D)
+    motor:RotateForward(motor:MOTOR_D)
     repeat while motor:GetRotation(motor:MOTOR_D) < 3600
         sound:Beep()
         utility:DelayMilliseconds(1000) //allows the motor to keep moving for a second before checking its rotation again
@@ -313,8 +313,8 @@ class Motor
     repeat 5 times  
         motor:SetSpeed(motor:MOTOR_C, motor:GetSpeed(motor:MOTOR_C) + 100)   //speeds up the motor rotation by 100 degrees per second from what it was
         motor:SetSpeed(motor:MOTOR_B, motor:GetSpeed(motor:MOTOR_B) + 100)
-        motor:MoveForward(motor:MOTOR_C)
-        motor:MoveForward(motor:MOTOR_B)
+        motor:RotateForward(motor:MOTOR_C)
+        motor:RotateForward(motor:MOTOR_B)
         utility:DelayMilliseconds(1000) //lets the motors go forward for 1 second
     end
     */
@@ -454,7 +454,7 @@ class Motor
     infraredSensor:SetPort(4)
     repeat while true
         if infraredSensor:GetRemoteCommand(infraredSensor:CHANNEL_1) = infraredSensor:BUTTON_TOP_LEFT
-            motor:MoveForward(motor:MOTOR_C)
+            motor:RotateForward(motor:MOTOR_C)
         else
             motor:Stop(motor:MOTOR_C)
         end

@@ -21,8 +21,8 @@ class Main
         colorSensor:SetPort(3)                      //tells the robot that the sensor is plugged into port 2
         motor:SetSpeed("B", 540)                    //two motors to move the robot
         motor:SetSpeed("C", 540)
-        motor:MoveForward("B")
-        motor:MoveForward("C")
+        motor:RotateForward("B")
+        motor:RotateForward("C")
         repeat until colorSensor:GetColor() = "red"
             utility:DelayMilliseconds(20)           //interval between color checks
         end
@@ -122,8 +122,8 @@ class ColorSensor
     Motor motor
     
     colorSensor:SetPort(3)
-    motor:MoveForward("B")      //two motors used to move the robot forward
-    motor:MoveForward("C")
+    motor:RotateForward("B")      //two motors used to move the robot forward
+    motor:RotateForward("C")
     repeat until colorSensor:GetLightLevel() > 0.15
        output "Light level: " + colorSensor:GetLightLevel()
     end
@@ -150,8 +150,8 @@ class ColorSensor
     Motor motor
     Screen screen
 
-    motor:MoveForward("A")  //two motors used to move the robot
-    motor:MoveForward("B")
+    motor:RotateForward("A")  //two motors used to move the robot
+    motor:RotateForward("B")
     repeat while colorSensor:GetReflectionLevel() < 0.50
         
     end

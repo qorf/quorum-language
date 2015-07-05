@@ -194,8 +194,8 @@ class Screen
     Utility utility
     
     infraredSensor:SetPort(4)
-    motor:MoveForward(motor:MOTOR_B)
-    motor:MoveForward(motor:MOTOR_C)    //two motors to move the robot, connected to ports B and C
+    motor:RotateForward(motor:MOTOR_B)
+    motor:RotateForward(motor:MOTOR_C)    //two motors to move the robot, connected to ports B and C
     repeat 20 times
        screen:OutputCenter("Distance: " + infraredSensor:GetDistance(), 0) //displays the distance on the top line
        utility:DelayMilliseconds(100)
@@ -350,8 +350,8 @@ class Screen
     Utility utility
     
     infraredSensor:SetPort(4)
-    motor:MoveForward(motor:MOTOR_B)
-    motor:MoveForward(motor:MOTOR_C)    //two motors to move the robot, connected to ports B and C
+    motor:RotateForward(motor:MOTOR_B)
+    motor:RotateForward(motor:MOTOR_C)    //two motors to move the robot, connected to ports B and C
     repeat 10 times
        screen:OutputCenterLarge("Dist.: " + infraredSensor:GetDistance(), 1) //displays the distance on the top line
        utility:DelayMilliseconds(100)

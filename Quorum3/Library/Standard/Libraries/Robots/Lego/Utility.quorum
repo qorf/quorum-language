@@ -14,7 +14,7 @@ package Libraries.Robots.Lego
     Motor motor
     
     motor:SetSpeed(motor:MOTOR_B, 600)
-    motor:MoveForward(motor:MOTOR_B)
+    motor:RotateForward(motor:MOTOR_B)
     utility:DelayMilliseconds(1000)     //the program will wait 1 second before moving onto the next line of code, where the motor will then stop
     motor:Stop(motor:MOTOR_B)
     */
@@ -40,8 +40,8 @@ class Utility
     
     motor:SetSpeed(motor:MOTOR_B, 720)
     motor:SetSpeed(motor:MOTOR_C, 720)      //two motors used to move the robot, connected to ports B and C
-    motor:MoveForward(motor:MOTOR_B)
-    motor:MoveForward(motor:MOTOR_C)
+    motor:RotateForward(motor:MOTOR_B)
+    motor:RotateForward(motor:MOTOR_C)
     repeat 5 times
         sound:Beep()
         utility:DelayMilliseconds(1000)      //wait a second in between beeps

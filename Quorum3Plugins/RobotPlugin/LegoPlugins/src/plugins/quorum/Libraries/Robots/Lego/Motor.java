@@ -30,13 +30,13 @@ public class Motor {
             motor.setSpeed(speed);
     }
     
-    public void MoveForward(String motorID) throws IOException {
+    public void RotateForward(String motorID) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
         if (MotorIsValid(motorID))
             motor.forward(); //forward is relative to the motors themselves
     }
     
-    public void MoveBackward(String motorID) throws IOException {
+    public void RotateBackward(String motorID) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
         if (MotorIsValid(motorID))
             motor.backward();
