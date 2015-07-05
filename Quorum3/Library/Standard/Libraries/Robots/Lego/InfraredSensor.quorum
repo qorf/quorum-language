@@ -29,23 +29,23 @@ class Main
                 if direction = 1                    //forward
                     motor:SetSpeed("B", 1080)
                     motor:SetSpeed("C", 1080)
-                    motor:RotateForward("B")
-                    motor:RotateForward("C")
+                    motor:MoveForward("B")
+                    motor:MoveForward("C")
                 elseif direction = 2                //backward
                     motor:SetSpeed("B", 1080)
                     motor:SetSpeed("C", 1080)
-                    motor:RotateBackward("B")
-                    motor:RotateBackward("C")
+                    motor:MoveBackward("B")
+                    motor:MoveBackward("C")
                 elseif direction = 3                   //right
                     motor:SetSpeed("B", 1080)
                     motor:SetSpeed("C", 1080)
                     motor:Stop("B")
-                    motor:RotateForward("C")
+                    motor:MoveForward("C")
                 elseif direction = 4                   //left
                     motor:SetSpeed("B", 1080)
                     motor:SetSpeed("C", 1080)
                     motor:Stop("C")
-                    motor:RotateForward("B")
+                    motor:MoveForward("B")
                 else
                     motor:Stop("B")
                     motor:Stop("C")
@@ -119,8 +119,8 @@ class InfraredSensor
     Sound sound
     
     infraredSensor:SetPort(infraredSensor:PORT_3)   //tells the program that the infrared sensor is plugged into port 3 of the robot
-    motor:RotateForward("B")
-    motor:RotateForward("C")
+    motor:MoveForward("B")
+    motor:MoveForward("C")
     repeat until infraredSensor:GetDistance() < 40  //the robot moves forward until getting close to an object
     end
     sound:BeepTwice()
@@ -159,15 +159,15 @@ class InfraredSensor
     repeat while true
         direction = infraredSensor:GetRemoteDirection(infraredSensor:CHANNEL_1) //tells the program to interact with a remote using channel 1
         if direction > 0            //remote is on the right side of the sensor
-            motor:RotateForward("C")
+            motor:MoveForward("C")
             motor:Stop("B")
         elseif direction < 0        //remote is on the left side of the sensor
-            motor:RotateForward("B")
+            motor:MoveForward("B")
             motor:Stop("C")
         elseif infraredSensor:GetRemoteDistance(1) < 100   //remote straight ahead and remote still in range of the sensor
             output infraredSensor:GetRemoteDistance(1)
-            motor:RotateForward("B")
-            motor:RotateForward("C")
+            motor:MoveForward("B")
+            motor:MoveForward("C")
         else                        //found the remote
             motor:Stop("B")
             motor:Stop("C")
