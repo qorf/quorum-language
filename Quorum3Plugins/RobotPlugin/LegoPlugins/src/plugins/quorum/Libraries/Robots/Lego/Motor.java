@@ -2,8 +2,6 @@ package plugins.quorum.Libraries.Robots.Lego;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import lejos.hardware.motor.BaseRegulatedMotor;
 
 public class Motor {
@@ -32,16 +30,16 @@ public class Motor {
             motor.setSpeed(speed);
     }
     
-    public void MoveForward(String motorID) throws IOException {
+    public void RotateForward(String motorID) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
         if (MotorIsValid(motorID))
-            motor.backward(); //forward is relative to the motors themselves, the EV3 robots seem to go backward to move forward
+            motor.forward(); //forward is relative to the motors themselves
     }
     
-    public void MoveBackward(String motorID) throws IOException {
+    public void RotateBackward(String motorID) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
         if (MotorIsValid(motorID))
-            motor.forward();
+            motor.backward();
     }
     
     public void WaitForMotorToFinish(String motorID) throws IOException {
@@ -60,7 +58,7 @@ public class Motor {
                 motorArray[0] = motors.get("A");
             motor.synchronizeWith(motorArray);
             motor.startSynchronization();
-            motor.rotate(-1 * degrees);      //all of the synchronization stuff is to make this not block
+            motor.rotate(degrees);      //all of the synchronization stuff is to make this not block
             motor.endSynchronization();
         }
     }
@@ -75,7 +73,7 @@ public class Motor {
                 motorArray[0] = motors.get("A");
             motor.synchronizeWith(motorArray);
             motor.startSynchronization();
-            motor.rotateTo(-1 * degreeTarget);      //all of the synchronization stuff is to make this not block
+            motor.rotateTo(degreeTarget);      //all of the synchronization stuff is to make this not block
             motor.endSynchronization();
         }
     }
@@ -85,7 +83,7 @@ public class Motor {
         if (motor == null)
             throw new IOException("Invalid motor ID specified. Valid options are: A, B, C, or D, but " + motorID + " was given.");
         else
-            return motor.getLimitAngle() * -1;
+            return motor.getLimitAngle();
     }
     
     public void ResetRotation(String motorID) throws IOException {
@@ -101,7 +99,7 @@ public class Motor {
         if (motor == null)
             throw new IOException("Invalid motor ID specified. Valid options are: A, B, C, or D, but " + motorID + " was given.");
         else
-            return motor.getTachoCount() * - 1;
+            return motor.getTachoCount();
     }
     
     public int GetSpeed(String motorID) throws IOException {
@@ -109,7 +107,7 @@ public class Motor {
         if (motor == null)
             throw new IOException("Invalid motor ID specified. Valid options are: A, B, C, or D, but " + motorID + " was given.");
         else
-            return motor.getRotationSpeed() * -1;
+            return motor.getRotationSpeed();
     }
     
     public boolean IsMoving(String motorID) throws IOException {
@@ -120,23 +118,23 @@ public class Motor {
             return motor.isMoving();
     }
     
-    public void Synchronize(String motor1, String motor2) {
-        BaseRegulatedMotor motor = motors.get(motor1);
-        BaseRegulatedMotor[] motorArray = new BaseRegulatedMotor[1];
-        motorArray[0] = motors.get(motor2);
-        if (motorArray[0] == null) {
-            try {
-                throw new IOException("Invalid motor ID specified. Valid options are: A, B, C, or D.");
-            } catch (IOException ex) {
-                Logger.getLogger(Motor.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        else {
-            motor.synchronizeWith(motorArray);
-            motor.startSynchronization();
-        }
-    }
-    
+//    public void Synchronize(String motor1, String motor2) {
+//        BaseRegulatedMotor motor = motors.get(motor1);
+//        BaseRegulatedMotor[] motorArray = new BaseRegulatedMotor[1];
+//        motorArray[0] = motors.get(motor2);
+//        if (motorArray[0] == null) {
+//            try {
+//                throw new IOException("Invalid motor ID specified. Valid options are: A, B, C, or D.");
+//            } catch (IOException ex) {
+//                Logger.getLogger(Motor.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//        }
+//        else {
+//            motor.synchronizeWith(motorArray);
+//            motor.startSynchronization();
+//        }
+//    }
+//    
 //    public void Synchronize(String leaderMotor, quorum.Libraries.Containers.Array_ followerMotors) throws IOException {
 //        //the lejOS method accepts duplicate values, so sending 20 "A"s to this functions would generate 20 refernces to the same motor
 //        //How should this be handled? Throwing out duplicates would guarantee we had at most 4 references to motors,
