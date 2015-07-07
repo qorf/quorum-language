@@ -1,5 +1,10 @@
 package Libraries.Interface.Events
 
+/*
+The KeyboardEvent class represents an event on the keyboard, which is caused by
+the user pushing down or releasing a key. This class also contains constants for
+the possible keys that may have been pressed or released.
+*/
 class KeyboardEvent
     
     public constant integer PRESSED_KEY = 1
@@ -168,6 +173,12 @@ class KeyboardEvent
     public constant integer F11 = 254
     public constant integer F12 = 255
 
+    /*
+    This action will return the text value represented by a particular key. The
+    boolean represents whether the text should use the shift-keyed value, e.g.,
+    the "A" key on the keyboard can represent the text "a" if shiftPressed is
+    false, or "A" if shiftPressed is true.
+    */
     action ToText(integer keycode, boolean shiftPressed) returns text
         if shiftPressed
             return ToTextShift(keycode)
@@ -175,6 +186,10 @@ class KeyboardEvent
         return ToText(keycode)
     end
 
+    /*
+    This action will return the text value represented by a particular key. The
+    returned text value assumes that the shift key is not being held down.
+    */
     action ToText(integer keycode) returns text
         if keycode < 0
             Error error
@@ -198,6 +213,10 @@ class KeyboardEvent
         return ""
     end
 
+    /*
+    This action will return the text value represented by a particular key. The
+    returned text value assumes that the shift key is being held down.
+    */
     action ToTextShift(integer keycode) returns text
         if keycode < 0
             Error error
@@ -221,7 +240,7 @@ class KeyboardEvent
         return ""
     end
 
-    system action ToTextNative(integer keycode) returns text
+    private system action ToTextNative(integer keycode) returns text
 
-    system action ToTextShiftNative(integer keycode) returns text
+    private system action ToTextShiftNative(integer keycode) returns text
 end

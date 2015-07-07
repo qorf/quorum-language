@@ -58,64 +58,361 @@ class Color
     private number blue = 0 
     private number alpha = 0
 
-      action SetColor(number redValue, number greenValue, number blueValue, number alphaValue)
+    /*
+    This action sets a color by setting its red, green, blue, and alpha values,
+    where 0 represents a total absence of that component and 1 represents a full
+    presence of it. Alpha is the opacity of a color, where 0 represents total
+    transparency and 1 represents total opacity.
 
-          red = redValue
-          green = greenValue
-          blue = blueValue
-          alpha = alphaValue
+    Attribute: Example
 
-          Clamp()
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
 
-      end
+        class Main is Game
 
-      // Note: For future optimization, replace bit shifting with static values.
-      action SetColorFromCode(integer code)
-          BitwiseOperations ops
+            Drawable rectangle
 
-          integer bitMask = 255
-          alpha = ops:And(bitMask, code) / 255.0
-          bitMask = ops:ShiftLeft(8, bitMask)
-          blue = ops:And(bitMask, code) / 255.0
-          bitMask = ops:ShiftLeft(8, bitMask)
-          green = ops:And(bitMask, code) / 255.0
-          bitMask = ops:ShiftLeft(8, bitMask)
-          red = ops:And(bitMask, code) / 255.0
+            Color orange
 
-      end
+            action Main
+                StartGame()
+            end
 
-      public action SetRed(number rVal)
-        red = rVal
-      end
+            action CreateGame
+                orange:SetColor(1, 0.7, 0, 1)
+                rectangle:LoadFilledRectangle(100, 50, orange)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
+    action SetColor(number redValue, number greenValue, number blueValue, number alphaValue)
 
+        red = redValue
+        green = greenValue
+        blue = blueValue
+        alpha = alphaValue
+
+        Clamp()
+
+    end
+
+    /*
+    This action is used internally by the game engine to set a color using an
+    integer value representing a color. Most users will never need to use this
+    action directly.
+    */
+    action SetColorFromCode(integer code)
+        // Note: For future optimization, replace bit shifting with static values.
+        BitwiseOperations ops
+
+        integer bitMask = 255
+        alpha = ops:And(bitMask, code) / 255.0
+        bitMask = ops:ShiftLeft(8, bitMask)
+        blue = ops:And(bitMask, code) / 255.0
+        bitMask = ops:ShiftLeft(8, bitMask)
+        green = ops:And(bitMask, code) / 255.0
+        bitMask = ops:ShiftLeft(8, bitMask)
+        red = ops:And(bitMask, code) / 255.0
+
+    end
+
+    /*
+    This action sets the red component of this color. The value passed should be
+    between 0 and 1, where 0 represents a total lack of red, and 1 represents
+    a full presence of red.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color red
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                red:SetRed(1)
+                red:SetAlpha(1)
+                rectangle:LoadFilledRectangle(100, 50, red)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
+    public action SetRed(number rVal)
+      red = rVal
+    end
+
+    /*
+    This action sets the green component of this color. The value passed should 
+    be between 0 and 1, where 0 represents a total lack of green, and 1 
+    represents a full presence of green.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color green
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                green:SetGreen(1)
+                green:SetAlpha(1)
+                rectangle:LoadFilledRectangle(100, 50, green)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action SetGreen(number gVal)
       green = gVal
     end
 
+    /*
+    This action sets the blue component of this color. The value passed should 
+    be between 0 and 1, where 0 represents a total lack of blue, and 1 
+    represents a full presence of blue.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color blue
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                blue:SetBlue(1)
+                blue:SetAlpha(1)
+                rectangle:LoadFilledRectangle(100, 50, blue)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action SetBlue(number bVal)
       blue = bVal
     end
 
+    /*
+    This action sets the alpha component of this color. The value passed should 
+    be between 0 and 1, where 0 represents total transparency, and 1 represents
+    total opacity.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color black
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                black:SetAlpha(1)
+                rectangle:LoadFilledRectangle(100, 50, black)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action SetAlpha(number aVal)
       alpha = aVal
     end
 
+    /*
+    This action returns the red component of this color.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color:SetColor(0.5, 0.7, 0.9, 1)
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+                output "The red value is " + color:GetRed()
+            end
+        end
+    */
     public action GetRed() returns number
       return red
     end
 
+    /*
+    This action returns the green component of this color.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color:SetColor(0.5, 0.7, 0.9, 1)
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+                output "The green value is " + color:GetGreen()
+            end
+        end
+    */
     public action GetGreen() returns number
       return green
     end
 
+    /*
+    This action returns the blue component of this color.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color:SetColor(0.5, 0.7, 0.9, 1)
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+                output "The blue value is " + color:GetBlue()
+            end
+        end
+    */
     public action GetBlue() returns number
       return blue
     end
 
+    /*
+    This action returns the alpha component of this color.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color:SetColor(0.5, 0.7, 0.9, 1)
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+                output "The alpha value is " + color:GetAlpha()
+            end
+        end
+    */
     public action GetAlpha() returns number
       return alpha
     end
-    //Takes the rgba range and restricts it to [0,1]
+
+    /*
+    This action sets all color component values to be between 0 and 1.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color:SetRed(50)
+                color:SetBlue(-10)
+                color:SetGreen(0.5)
+                color:SetAlpha(1)
+                color:Clamp()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Clamp() returns Color
 
       if GetRed() < 0
@@ -146,8 +443,33 @@ class Color
 
     end
 
-    //The following actions are all constructor-functions to get around
-    //Quorum not having constructors capable of doing this.
+    /*
+    This action returns a new Color object that is clear.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Clear()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Clear returns Color
       Color c
       c:SetRed(0)
@@ -158,6 +480,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is white.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:White()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action White returns Color
       Color c
       c:SetRed(1)
@@ -168,6 +517,33 @@ class Color
       return c
      end
 
+     /*
+    This action returns a new Color object that is black.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Black()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Black returns Color
       Color c
       c:SetRed(0)
@@ -178,6 +554,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is red.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Red()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Red returns Color
       Color c
       c:SetRed(1)
@@ -188,6 +591,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is green.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Green()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Green returns Color
       Color c
       c:SetRed(0)
@@ -198,6 +628,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is blue.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Blue()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Blue returns Color
       Color c
       c:SetRed(0)
@@ -208,6 +665,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is light gray.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:LightGray()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action LightGray returns Color
       Color c
       c:SetRed(0.75)
@@ -218,6 +702,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is gray.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Gray()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Gray returns Color
       Color c
       c:SetRed(0.5)
@@ -228,6 +739,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is dark gray.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:DarkGray()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action DarkGray returns Color
       Color c
       c:SetRed(0.25)
@@ -238,6 +776,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is pink.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Pink()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Pink returns Color
       Color c
       c:SetRed(1)
@@ -248,6 +813,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is orange.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Orange()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Orange returns Color
       Color c
       c:SetRed(1)
@@ -258,6 +850,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is yellow.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Yellow()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Yellow returns Color
       Color c
       c:SetRed(1)
@@ -268,6 +887,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is magenta.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Magenta()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Magenta returns Color
       Color c
       c:SetRed(1)
@@ -278,6 +924,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is cyan.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Cyan()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Cyan returns Color
       Color c
       c:SetRed(0)
@@ -288,6 +961,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is olive.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Olive()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Olive returns Color
       Color c
       c:SetRed(0.5)
@@ -298,6 +998,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is purple.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Purple()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Purple returns Color
       Color c
       c:SetRed(0.5)
@@ -308,6 +1035,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is maroon.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Maroon()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Maroon returns Color
       Color c
       c:SetRed(0.5)
@@ -318,7 +1072,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is teal.
 
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Teal()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Teal returns Color
       Color c
       c:SetRed(0)
@@ -329,6 +1109,33 @@ class Color
       return c
     end
 
+    /*
+    This action returns a new Color object that is navy.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                color = color:Navy()
+                rectangle:LoadFilledRectangle(100, 50, color)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
     public action Navy returns Color
       Color c
       c:SetRed(0)
@@ -339,29 +1146,76 @@ class Color
       return c
     end
 
+    /*
+        This action returns a new color that is a copy of this color.
 
-    // The way this copy action works is inconsistent with the other copy actions.
-    // Consider removing it. Alternative implementation is just below.
-    // Example:
-    // Color a
-    // a = a:Navy()
-    // Color b
-    // b = a:Copy()
+        Attribute: Example
+
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                Color original
+                Color copy
+
+                action Main is Game
+                    StartGame()
+                end
+
+                action CreateGame
+                    original = original:Navy()
+                    copy = original:Copy()
+                end
+            end
+    */
     public action Copy returns Color
-      Color c
-      c:SetRed(me:GetRed())
-      c:SetBlue(me:GetBlue())
-      c:SetGreen(me:GetGreen())
-      c:SetAlpha(me:GetAlpha())
-      return c
+        // The way this copy action works is inconsistent with the other copy actions.
+        // Consider removing it. Alternative implementation is just below.
+        // Example:
+        // Color a
+        // a = a:Navy()
+        // Color b
+        // b = a:Copy()
+          Color c
+          c:SetRed(me:GetRed())
+          c:SetBlue(me:GetBlue())
+          c:SetGreen(me:GetGreen())
+          c:SetAlpha(me:GetAlpha())
+          return c
     end
 
-    // Example:
-    // Color a
-    // a = a:Navy()
-    // Color b
-    // b:Copy(a)
+    /*
+        This action sets this color to be identical to the given color parameter.
+
+        Attribute: Example
+
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                Color original
+                Color copy
+
+                action Main is Game
+                    StartGame()
+                end
+
+                action CreateGame
+                    original = original:Navy()
+                    copy:CopyColor(original)
+                end
+            end
+    */
     action CopyColor(Color copyColor)
+        // Example:
+        // Color a
+        // a = a:Navy()
+        // Color b
+        // b:Copy(a)
         SetRed(copyColor:GetRed())
         SetBlue(copyColor:GetBlue())
         SetGreen(copyColor:GetGreen())
@@ -371,7 +1225,8 @@ class Color
     /* This action will return the color as an integer in the RGBA8888 format, or
     in other words, in the 32 bit integer, the highest 8 bits represent the red,
     the next 8 represent the green, the next 8 represent the blue, and the final
-    8 represent the alpha (which is usually transparency). */
+    8 represent the alpha (which is usually transparency). This is used primarily
+    for internal use, and most users will never need to use this action directly. */
     action GetColorCode returns integer
 
       BitwiseOperations ops
@@ -389,6 +1244,10 @@ class Color
 
     end
 
+    /*
+    This action encodes this color as a number. This is used primarily for
+    internal use, and most users will never need to use this action directly.
+    */
     action EncodeColorAsNumber returns number
         
         BitwiseOperations ops

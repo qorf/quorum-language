@@ -7,6 +7,29 @@ use Libraries.System.File
 use Libraries.Interface.Item
 use Libraries.Game.Graphics.Painter
 
+/*
+The Label class is used to draw text on the screen using a Font that is loaded
+from the system. Labels will wrap text if the text is longer than the width of
+the Label.
+
+Attribute: Example
+
+    use Libraries.Game.Graphics.Label
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Label label
+            label:SetText("Hello world!")
+            label:SetPosition(200, 200)
+            Add(label)
+        end
+    end
+*/
 class Label is Item
 
     on create
@@ -33,6 +56,8 @@ class Label is Item
         end
     end
 
+    /* Alignment controls are not yet implemented, and have been commented out
+    for this release. 
     public constant integer LEFT_ALIGN = 0
     public constant integer RIGHT_ALIGN = 1
     public constant integer CENTER_ALIGN = 2
@@ -41,7 +66,7 @@ class Label is Item
     public constant integer BOTTOM_ALIGN = 1
 
     integer horizontalAlignment = CENTER_ALIGN
-    integer verticalAlignment = CENTER_ALIGN
+    integer verticalAlignment = CENTER_ALIGN */
 
     integer horizontalMargins = 0
     integer verticalMargins = 0
@@ -53,72 +78,407 @@ class Label is Item
     private number textWidth = 0
     private number textHeight = 0
 
+    /*
+    Sets the horizontal margins for this label. When the label's text is drawn,
+    there will be whitespace between the beginning of the label and the start of
+    the text and between the end of the text and the end of the label equal to
+    the given horizontal margins. By default, the margins are 0.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label1
+                label1:SetText("Hello world!")
+                label1:SetPosition(200, 300)
+                Add(label1)
+
+                Label label2
+                label2:SetText("Hello world!")
+                label2:SetPosition(200, 200)
+                label2:SetHorizontalMargins(50)
+                Add(label2)
+            end
+        end
+    */
     action SetHorizontalMargins(integer margins)
         horizontalMargins = margins
     end
 
+    /*
+    This action will return the currently set horizontal margins of the label.
+    By default, the margins are 0.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                label:SetText("Hello world!")
+                label:SetPosition(200, 200)
+                label:SetHorizontalMargins(50)
+                Add(label)
+                output "The margins are " + label:GetHorizontalMargins()
+            end
+        end
+    */
     action GetHorizontalMargins returns integer
         return horizontalMargins
     end
 
+    /*
+    Sets the vertical margins for this label. When the label's text is drawn,
+    there will be whitespace between the top of the label and the start of
+    the text. By default, the margins are 0.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label1
+                label1:SetText("Hello world!")
+                label1:SetPosition(200, 200)
+                Add(label1)
+
+                Label label2
+                label2:SetText("Hello world!")
+                label2:SetPosition(400, 200)
+                label2:SetVerticalMargins(50)
+                Add(label2)
+            end
+        end
+    */
     action SetVerticalMargins(integer margins)
         verticalMargins = margins
     end
 
+    /*
+    This action will return the currently set vertical margins of the label.
+    By default, the margins are 0.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                label:SetText("Hello world!")
+                label:SetPosition(200, 200)
+                label:SetVerticalMargins(50)
+                Add(label)
+                output "The margins are " + label:GetVerticalMargins()
+            end
+        end
+    */
     action GetVerticalMargins returns integer
         return verticalMargins
     end
 
+    /*
+    This action will set the Font that is being used by this label. By default,
+    labels will attempt to use Arial, Georgia, Times New Roman, or the first
+    font that can be found on the system, if possible.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                Label label
+
+                if font:FontIsAvailable("Verdana")
+                    font:LoadFont("Verdana")
+                    label:SetFont(font)
+                else
+                    output "Could not find the font!"
+                end
+                
+                label:SetText("Hello world!")
+                label:SetPosition(200, 200)
+                Add(label)
+            end
+        end
+    */
     action SetFont(Font newFont)
         font = newFont
     end
 
+    /*
+    This action will set the text that is drawn on the screen by the Label.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                
+                label:SetText("Hello world!")
+                label:SetPosition(200, 200)
+                Add(label)
+            end
+        end
+    */
     action SetText(text newText)
         targetText = newText
         textChanged = true
     end
 
+    /*
+    This action will get the text that is being drawn on the screen by the Label.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                
+                label:SetText("Hello world!")
+                label:SetPosition(200, 200)
+                Add(label)
+                output "The label text is " + label:GetText()
+            end
+        end
+    */
     action GetText returns text
         return targetText
     end
 
+    /*
+    This action will set the Font that is being used by this label. By default,
+    labels will attempt to use Arial, Georgia, Times New Roman, or the first
+    font that can be found on the system, if possible.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Font font = undefined
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                label:SetText("Hello world!")
+                label:SetPosition(200, 200)
+                Add(label)
+                font = label:GetFont()
+            end
+        end
+    */
     action GetFont returns Font
         return font
     end
 
+    /* Alignment controls are not yet implemented, and have been commented out
+    for this release. 
     action SetHorizontalAlignment(integer align)
         horizontalAlignment = align
     end
 
     action SetVerticalAlignment(integer align)
         verticalAlignment = align
-    end
+    end*/
 
+    /*
+    This action will set the size of the font being used to draw the label.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                
+                label:SetText("Hello world!")
+                label:SetPosition(200, 200)
+                label:SetSize(20)
+                Add(label)
+            end
+        end
+    */
     action SetSize(integer size)
         textChanged = true
         font:SetSize(size)
     end
 
+    /*
+    This action will get the size of the font being used to draw the label.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                
+                label:SetText("Hello world!")
+                label:SetPosition(200, 200)
+                Add(label)
+                output "The size of the label is " + label:GetSize()
+            end
+        end
+    */
     action GetSize returns integer
         return font:GetSize()
     end
 
+    /*
+    This action rotate the label counter-clockwise by the given number of degrees.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                
+                label:SetText("Hello world!")
+                label:SetPosition(200, 200)
+                label:Rotate(30)
+                Add(label)
+            end
+        end
+    */
     action Rotate(number angle)
         textChanged = true
         font:Rotate(angle)
         parent:Item:Rotate(angle)
     end
 
+    /*
+    This action sets the angle of the label in degrees.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                
+                label:SetText("Hello world!")
+                label:SetPosition(200, 200)
+                label:SetAngle(90)
+                Add(label)
+            end
+        end
+    */
     action SetAngle(number angle)
         textChanged = true
         font:SetAngle(angle)
     end
 
+    /*
+    This action returns the angle of the label in degrees.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                
+                label:SetText("Hello world!")
+                label:SetPosition(200, 200)
+                label:SetAngle(90)
+                Add(label)
+                output "The angle of the label is " + label:GetAngle()
+            end
+        end
+    */
     action GetAngle returns number
         return font:GetAngle()
     end
 
-    action LoadDrawables
+    /*
+    This action is used to make the label reload the images of each character in
+    the label's text. 
+    */
+    private action LoadDrawables
 
         if font:IsLoaded()
             // The size and angle are set before drawing to ensure that FreeType is
@@ -270,8 +630,8 @@ class Label is Item
 
     end
 
-    // A custom implementation of the text Split action that does not truncate
-    // delimiters at the end of the text.
+    /* A custom implementation of the text Split action that does not truncate
+    delimiters at the end of the text. */
     private action Split(text splitter, text delimiter) returns Array<text>
         // TODO: Rewrite this. it is horrid. There are much more clever ways to do this.
 
@@ -332,6 +692,11 @@ class Label is Item
         return results
     end
 
+    /*
+    This action is used to draw the label on the screen. This is handled by the
+    game engine automatically, so most users will not need to use this action
+    directly.
+    */
     action Draw(Painter painter)
         if textChanged
             LoadDrawables()
@@ -347,6 +712,31 @@ class Label is Item
         return parent:DrawableGroup:GetDrawables()
     end*/
 
+    /*
+    Returns the width of the longest line of text in the label.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                label:SetPosition(200, 200)
+                label:SetWidth(100)
+                label:SetText("This is a lot of text!")
+                Add(label)
+                output "The text width is " + label:GetTextWidth()
+            end
+
+        end
+    */
     action GetTextWidth returns number
         if textChanged
             LoadDrawables()
@@ -354,6 +744,32 @@ class Label is Item
         return textWidth
     end
 
+    /*
+    Returns the height of all of the text in the label, as it is drawn on the
+    screen.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                label:SetPosition(200, 200)
+                label:SetWidth(100)
+                label:SetText("This is a lot of text!")
+                Add(label)
+                output "The text height is " + label:GetTextHeight()
+            end
+
+        end
+    */
     action GetTextHeight returns number
         if textChanged
             LoadDrawables()
@@ -361,6 +777,33 @@ class Label is Item
         return textHeight
     end
 
+    /*
+    Returns the height of each individual line of text in the label. This height
+    is uniform for any given font of a particular size, regardless of what the
+    text being drawn is.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                label:SetPosition(200, 200)
+                label:SetWidth(100)
+                label:SetText("This is a lot of text!")
+                Add(label)
+                output "The line height is " + label:GetLineHeight()
+            end
+
+        end
+    */
     action GetLineHeight returns integer
         return font:GetLineHeight()
     end

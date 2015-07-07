@@ -8,6 +8,36 @@ use Libraries.Game.Graphics.Color
 use Libraries.System.Properties
 use Libraries.Containers.Blueprints.Iterator
 
+/*
+The Font class is used to load a font from the system. 
+
+Attribute: Example
+
+    use Libraries.Game.Graphics.Font
+    use Libraries.Game.Graphics.Label
+    use Libraries.Game.Game
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Font font
+            Label label
+            if not font:FontIsAvailable("Veranda")
+                output "The font could not be found!"
+                return now
+            end
+            font:LoadFont("Veranda")
+            font:SetSize(18)
+            label:SetFont(font)
+            Add(label)
+        end
+
+    end
+*/
 class Font 
     
     private integer size = 14
@@ -21,6 +51,30 @@ class Font
         color = color:Black()
     end
     
+    /*
+    This action loads a font from a given font file. 
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.System.File
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                File file
+                file:SetPath("CustomFont.ttf")
+                font:LoadFont(file)
+            end
+
+        end
+    */
     action LoadFont(File fontFile)
         if initialized
             Dispose()
@@ -32,6 +86,29 @@ class Font
         initialized = true
     end
 
+    /*
+    This action will load a font by name from the system. On Windows, this will
+    search for fonts in "C:\Windows\Fonts". On Mac, this will search for fonts
+    in "/Library/Fonts".
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:LoadFont("Arial")
+            end
+
+        end
+    */
     action LoadFont(text fontName)
 
         File fontFile
@@ -56,7 +133,7 @@ class Font
 
     private system action LoadFontNative(text fontFile)
 
-    action FindFontExtension(text fontName) returns text
+    private action FindFontExtension(text fontName) returns text
         File fontFile
         text os = GetOS()
 
@@ -93,6 +170,29 @@ class Font
         end
     end
 
+    /*
+    This action will look in the default system font folder and look for a font
+    of the given name. If a font is found with the same name, the action will
+    return true. Otherwise, it returns false.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                boolean hasFont = font:FontIsAvailable("Times New Roman")
+            end
+
+        end
+    */
     action FontIsAvailable(text fontName) returns boolean
         if FindFontExtension(fontName) = ""
             return false
@@ -101,6 +201,27 @@ class Font
         end
     end
 
+    /*
+    This action will set the size of the font. The default font size is 14.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:SetSize(16)
+            end
+
+        end
+    */
     action SetSize (integer newSize)
         size = newSize
         textChanged = true
@@ -113,14 +234,80 @@ class Font
 
     private system action SetSizeNative(integer newSize)
 
+    /*
+    This action will return the current size of the font. The default font size
+    is 14.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                output "The default font size is " + font:GetSize()
+            end
+
+        end
+    */
     action GetSize returns integer
         return size
     end
 
+    /*
+    This action will rotate the characters produced by this font by the given
+    number of degrees.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:Rotate(45)
+            end
+
+        end
+    */
     action Rotate(number rotation)
         SetAngle(angle + rotation)
     end
 
+    /*
+    This action will set the angle in degrees of the characters produced by this
+    font.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:SetAngle(90)
+            end
+
+        end
+    */
     action SetAngle(number newAngle)
         textChanged = true
 
@@ -154,11 +341,55 @@ class Font
         return color
     end*/
 
+    /*
+    This action will return the current angle of the font. The default angle is
+    0 degrees.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                output "The font has an angle of " + font:GetAngle() + " degrees."
+            end
+
+        end
+    */
     action GetAngle returns number
         return angle
     end
 
-    // Used to clean up a loaded font in the FreeType library.
+    /*
+    This action will release the resources used by a loaded font. The Font 
+    object will no longer be usable until another font is loaded.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:LoadFont("Arial")
+                font:Dispose()
+            end
+
+        end
+    */
     action Dispose
         DisposeNative()
         initialized = false
@@ -166,6 +397,30 @@ class Font
 
     private system action DisposeNative
 
+    /*
+    This action will return a Glyph object for this font's representation of the
+    given character. 
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Glyph
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:LoadFont("Arial")
+                Glyph a = font:GetGlyph("a")
+            end
+
+        end
+    */
     action GetGlyph(text character) returns Glyph
         text char = character:GetCharacter(0)
         if glyphTable:HasKey(char)
@@ -231,16 +486,92 @@ class Font
         return drawables:GetSize()
     end*/
 
+    /*
+    This action will check if the font has been loaded yet. If the font has
+    been loaded, this will return true. Otherwise, it will return false.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:LoadFont("Arial")
+                boolean loaded = font:IsLoaded()
+            end
+
+        end
+    */
     action IsLoaded returns boolean
         return initialized
     end
 
     private system action GetHeight returns integer
 
+    /*
+    This action will the height of each line of text produced by this font.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:LoadFont("Arial")
+                integer height = font:GetLineHeight()
+            end
+
+        end
+    */
     action GetLineHeight returns integer
         return height
     end
 
+    /*
+    This action will return an array of all files found in the system's default
+    font folder.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.System.File
+        use Libraries.Containers.Array
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                Array<File> fontFiles = font:GetAvailableFonts()
+                integer index = 0
+                output "The following fonts are available on the system: "
+                repeat fontFiles:GetSize() times
+                    File temp = fontFiles:Get(index)
+                    output temp:GetPath()
+                    index = index + 1
+                end
+            end
+
+        end
+    */
     action GetAvailableFonts returns Array<File>
 
         text os = GetOS()

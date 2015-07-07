@@ -7,23 +7,121 @@ use Libraries.Game.Disposable
     The ImageSheet class is used to handle many images spread across different
     files. It loads a .atlas file, and then can be used to get Libraries.Game.Graphics.Drawable
     objects from the files.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.ImageSheet
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            ImageSheet sheet
+            Drawable myDrawable
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                sheet:Load("MySheet.atlas")
+                myDrawable = sheet:GetDrawable("Spaceship")
+                Add(myDrawable)
+            end
+
+        end
 */
 class ImageSheet is Disposable
     private boolean initialized = false
 
+    /*
+    This action will load a file as a text file path relative to the project
+    directory.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.ImageSheet
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            ImageSheet sheet
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                sheet:Load("Run/Assets/Images.atlas")
+            end
+
+        end
+    */
     action Load(text filePath)
         File temp
         temp:SetPath(filePath)
         Load(temp)
     end
 
+    /*
+    This action will load the ImageSheet's data using the given atlas file.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.ImageSheet
+        use Libraries.System.File
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            ImageSheet sheet
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                File sheetFile
+                sheetFile:SetPath("Run/Assets/Images.atlas")
+                sheet:Load(sheetFile)
+            end
+
+        end
+    */
     action Load(File file)
         LoadNative(file)
         initialized = true
     end
 
-    system action LoadNative(File quorumFile)
+    private system action LoadNative(File quorumFile)
 
+    /*
+    This action will get a Drawable from the ImageSheet. If the ImageSheet hasn't
+    been loaded yet, this will throw an error.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.ImageSheet
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            ImageSheet sheet
+            Drawable myDrawable
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                sheet:Load("MySheet.atlas")
+                myDrawable = sheet:GetDrawable("Spaceship")
+                Add(myDrawable)
+            end
+
+        end
+    */
     action GetDrawable(text name) returns Drawable
         if not initialized
             alert("Attempted to get a Drawable from an unloaded ImageSheet! Call Load() before using the ImageSheet.")
@@ -31,6 +129,36 @@ class ImageSheet is Disposable
         return GetDrawableNative(name)
     end
 
+    /*
+    This action will get a Drawable matching the given name and index from the
+    ImageSheet. This is used in the case where you have files that end with an
+    underscore followed by a number, e.g. "laser_1.png" and "laser_2.png". The
+    text name should be the name before the underscore. If the ImageSheet hasn't
+    been loaded yet, this will throw an error.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.ImageSheet
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            ImageSheet sheet
+            Drawable myDrawable
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                sheet:Load("MySheet.atlas")
+                myDrawable = sheet:GetDrawable("laser", 2)
+                Add(myDrawable)
+            end
+
+        end
+    */
     action GetDrawable(text name, integer index) returns Drawable
         if not initialized
             alert("Attempted to get a Drawable from an unloaded ImageSheet! Call Load() before using the ImageSheet.")
@@ -38,10 +166,16 @@ class ImageSheet is Disposable
         return GetDrawableNative(name, index)
     end
 
-    system action GetDrawableNative(text name) returns Drawable
+    private system action GetDrawableNative(text name) returns Drawable
 
-    system action GetDrawableNative(text name, integer index) returns Drawable
+    private system action GetDrawableNative(text name, integer index) returns Drawable
 
-    system action Dispose
+    //system action Dispose
+
+    action Dispose
+        /* This needs to be a system action, but the plugin hasn't been
+        implemented yet! This empty action won't do anything, but it'll keep a
+        program from crashing when disposing an image sheet. */
+    end
 
 end

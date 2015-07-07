@@ -6,27 +6,16 @@ use Libraries.Game.Disposable
 
 /*
 The TextureRegion class is made up of two features: a Texture, and a rectangular
-space on the screen. This can be used for putting simple, stationary textures on
-the screen. For anything that will have to move or do anything else that might
-be complicated, use the Drawable class instead.
+space on the screen. This class is primarily for internal use in the game engine.
+For a class with the same functionality, users are recommended to use the
+Drawable class.
 
 Any texture defined by this class will be located on the screen by a coordinate
 system. A coordinate of (0,0) is the very top left corner of the screen.
 Increasing the first value will make the texture move to the right.
 Increasing the second value will make the texture move down the screen.
 
-Attribute: Example
-
-use Libraries.Game.Graphics.TextureRegion
-class Main
-   action Main
-      
-        // This example is currently incomplete!
-
-   end
-end
 */
-
 class TextureRegion is Disposable
     
     Texture texture = undefined
