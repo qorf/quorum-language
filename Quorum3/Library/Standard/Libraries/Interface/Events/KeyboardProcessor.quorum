@@ -3,6 +3,10 @@ package Libraries.Interface.Events
 use Libraries.Containers.List
 use Libraries.Containers.Blueprints.Iterator
 
+/*
+This class is used to read KeyboardEvents from the Keyboard and send them to
+KeyboardListeners which have registered themselves with this processor.
+*/
 class KeyboardProcessor
     
     /*  The Update action will check if any keyboard events have occured, and if

@@ -213,9 +213,9 @@ class Game
 
     action ContinueGame
         ProcessInputEvents()
-        TestForCollisions()
         UpdateAll()
         Update(GetSecondsBetweenFrames())
+        TestForCollisions()
         ClearScreen()
         DrawAll()
     end
