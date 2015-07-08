@@ -101,7 +101,7 @@ public class QuorumToLegoAdapter {
         FileInputStream fis = null;
         try {
             String sourcePath = from.getAbsolutePath();
-            String destinationPath = to.getAbsolutePath();
+            String destinationPath = to.getPath();
 
             JSch jsch = new JSch();
             Session session = jsch.getSession(getUser(), getHost(), 22);
