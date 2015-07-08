@@ -1221,6 +1221,7 @@ class Drawable is TextureRegion, Item
     Attribute: Example
 
             use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
             use Libraries.Game.Game
 
             class Main is Game
@@ -1230,8 +1231,10 @@ class Drawable is TextureRegion, Item
                 end
 
                 action CreateGame
+                    Color yellow
+                    yellow:SetColor(1, 1, 0, 1)
                     Drawable rectangle
-                    rectangle:LoadRectangle(20, 100)
+                    rectangle:LoadRectangle(20, 100, yellow)
                     rectangle:SetPosition(50, 50)
                     Add(rectangle)
                 end
@@ -1341,6 +1344,7 @@ class Drawable is TextureRegion, Item
     Attribute: Example
 
             use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
             use Libraries.Game.Game
 
             class Main is Game
@@ -1401,6 +1405,7 @@ class Drawable is TextureRegion, Item
     Attribute: Example
 
             use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
             use Libraries.Game.Game
 
             class Main is Game

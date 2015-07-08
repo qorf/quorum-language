@@ -612,6 +612,36 @@ class Texture is Disposable
         LoadRectangle(width, height, black)
     end
 
+    /*
+    This action will create a new Texture with a hollow rectangle of the given
+    color with the given width and height. This texture is then loaded into the
+    Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Color yellow
+                    yellow:SetColor(1, 1, 0, 1)
+                    Texture texture
+                    texture:LoadRectangle(20, 100, yellow)
+                    Drawable rectangle
+                    rectangle:Load(texture)
+                    rectangle:SetPosition(50, 50)
+                    Add(rectangle)
+                end
+            end
+    */
     action LoadRectangle(integer width, integer height, Color color)
         PixelMap pixmap
         Format format
@@ -626,12 +656,67 @@ class Texture is Disposable
         LoadFromTextureData(data)
     end
 
+    /*
+    This action will create a new Texture with a solid black rectangle with
+    the given width and height.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Texture texture
+                    texture:LoadFilledRectangle(20, 100)
+                    Drawable rectangle
+                    rectangle:Load(texture)
+                    rectangle:SetPosition(50, 50)
+                    Add(rectangle)
+                end
+            end
+    */
     action LoadFilledRectangle(integer width, integer height)
         Color black
         black = black:Black()
         LoadFilledRectangle(width, height, black)
     end
 
+    /*
+    This action will create a new Texture with a solid rectangle of the given
+    color with the given width and height.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Color green
+                    green:SetColor(0, 1, 0, 1)
+                    Texture texture
+                    texture:LoadFilledRectangle(20, 100, green)
+                    Drawable rectangle
+                    rectangle:Load(texture)
+                    rectangle:SetPosition(50, 50)
+                    Add(rectangle)
+                end
+            end
+    */
     action LoadFilledRectangle(integer width, integer height, Color color)
         PixelMap pixmap
         Format format
@@ -646,12 +731,66 @@ class Texture is Disposable
         LoadFromTextureData(data)
     end
 
+    /*
+    This action will create a new Texture with a hollow black circle with the
+    given radius.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Texture texture
+                    texture:LoadCircle(75)
+                    circle:Load(texture)
+                    circle:SetPosition(50, 50)
+                    Add(circle)
+                end
+            end
+    */
     action LoadCircle(integer radius)
         Color black
         black = black:Black()
         LoadCircle(radius, black)
     end
 
+    /*
+    This action will create a new Texture with a hollow circle of the given
+    color with the given radius.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Color red
+                    red:SetColor(1, 0, 0, 1)
+                    Texture texture
+                    texture:LoadCircle(75, red)
+                    Drawable circle
+                    circle:Load(texture)
+                    circle:SetPosition(50, 50)
+                    Add(circle)
+                end
+            end
+    */
     action LoadCircle(integer radius, Color color)
         PixelMap pixmap
         Format format
@@ -666,12 +805,67 @@ class Texture is Disposable
         LoadFromTextureData(data)
     end
 
+    /*
+    This action will create a new Texture with a solid black circle with the
+    given radius.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Texture texture
+                    texture:LoadFilledCircle(75)
+                    Drawable circle
+                    circle:Load(texture)
+                    circle:SetPosition(50, 50)
+                    Add(circle)
+                end
+            end
+    */
     action LoadFilledCircle(integer radius)
         Color black
         black = black:Black()
         LoadFilledCircle(radius, black)
     end
 
+    /*
+    This action will create a new Texture with a solid circle of the given
+    color with the given radius.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Color blue
+                    blue:SetColor(0, 0, 1, 1)
+                    Texture texture
+                    texture:LoadCircle(75, blue)
+                    Drawable circle
+                    circle:Load(texture)
+                    circle:SetPosition(50, 50)
+                    Add(circle)
+                end
+            end
+    */
     action LoadFilledCircle(integer radius, Color color)
         PixelMap pixmap
         Format format
@@ -686,12 +880,67 @@ class Texture is Disposable
         LoadFromTextureData(data)
     end
 
+    /*
+    This action will create a new Texture with a solid black triangle that is
+    made of the points identified by the three given points.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Texture texture
+                    texture:LoadFilledTriangle(0, 0, 200, 200, 400, 0)
+                    Drawable triangle
+                    triangle:Load(texture)
+                    triangle:SetPosition(50, 50)
+                    Add(triangle)
+                end
+            end
+    */
     action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3)
         Color black
         black = black:Black()
         LoadFilledTriangle(x1, y1, x2, y2, x3, y3, black)
     end
 
+    /*
+    This action will create a new Texture with a solid triangle of the given
+    color that is made of the points identified by the three given points.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Color purple
+                    purple:SetColor(0.5, 0, 0.5, 1)
+                    Texture texture
+                    texture:LoadFilledTriangle(0, 0, 200, 200, 400, 0, purple)
+                    Drawable triangle
+                    triangle:Load(texture)
+                    triangle:SetPosition(50, 50)
+                    Add(triangle)
+                end
+            end
+    */
     action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, Color color)
         integer width = x1
         if x2 > width
