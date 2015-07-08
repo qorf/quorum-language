@@ -6,21 +6,34 @@ use Libraries.Containers.Blueprints.Iterator
 class KeyboardProcessor
     
     /*  The Update action will check if any keyboard events have occured, and if
-        there are any, it will add them to the events list. This will be called
-        on every frame of a game. */
+        there are any, it will add them to the events list. */
     system action Update
 
     List<KeyboardEvent> events
     List<KeyboardListener> listeners
 
+    /*
+    This action will add a KeyboardListener to this KeyboardProcessor. It will
+    be notified of any key pressed or key released events during ProcessEvents.
+    */
     action AddListener(KeyboardListener listener)
         listeners:Add(listener)
-   end
-
+    end
+    
+    /*
+    This action will remove a KeyboardListener from this KeyboardProcessor. It 
+    will no longer be notified of any key pressed or key released events during
+    ProcessEvents.
+    */
     action RemoveListener(KeyboardListener listener)
         listeners:Remove(listener)
     end
 
+    /*
+    This action will notify any KeyboardListeners registered with this
+    KeyboardProcessor of any KeyboardEvents stored in the processor's internal
+    events list, which is populated by the Update action.
+    */
     action ProcessEvents
 
         if not events:IsEmpty() and not listeners:IsEmpty()
