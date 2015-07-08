@@ -42,7 +42,7 @@ public class QuorumCodeCompletionHandler implements CodeCompletionHandler2{
         if(lastResult != null) {
             CodeCompletionItem_ item = lastResult.Get(name);
             if(item != null) {
-                String docs = item.Get_Libraries_Language_Compile_CodeCompletionItem__completionText_();
+                String docs = item.Get_Libraries_Language_Compile_CodeCompletionItem__documentationText_();
                 return Documentation.create(docs);
             }
         }
