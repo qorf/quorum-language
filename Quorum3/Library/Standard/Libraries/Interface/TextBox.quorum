@@ -46,7 +46,7 @@ class TextBox is Panel, KeyboardListener
     private integer cursorIndex = 0
     private boolean cursorMoved = true
     private number blinkTimer = 0
-    private number blinkRate = 1
+    private number blinkRate = 0.5
 
     on create
         Color white
@@ -363,11 +363,11 @@ class TextBox is Panel, KeyboardListener
     /*
     This action enables the text box, making it accept input and making the
     cursor visible. Note that the text box is enabled by default.
-    */
+    */ /*
     action Enable
         AddKeyboardListener(me)
         lineCursor:Show()
-    end
+    end */
 
     /*
     This action disables the text box, preventing it from accepting input and
@@ -393,7 +393,7 @@ class TextBox is Panel, KeyboardListener
             end
 
         end
-    */
+    */ /*
     action Disable
         // Update text to set the most recent text, if needed.
         UpdateText()
@@ -401,6 +401,6 @@ class TextBox is Panel, KeyboardListener
         lineCursor:Hide()
 
         RemoveKeyboardListener(me)
-    end
+    end */
 
 end

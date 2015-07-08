@@ -7,8 +7,8 @@ use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.MouseEvent
-use Libraries.Interface.Events.KeyboardListener
-use Libraries.Interface.Events.KeyboardEvent
+//use Libraries.Interface.Events.KeyboardListener
+//use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Game.Graphics.Drawable
@@ -54,7 +54,7 @@ class Item
     List<MouseListener> mouseListeners
     List<MouseMovementListener> mouseMoveListeners
     List<MouseWheelListener> mouseWheelListeners
-    List<KeyboardListener> keyboardListeners
+    //List<KeyboardListener> keyboardListeners
     List<TouchListener> touchListeners
     
     private number originX = 0.0
@@ -517,10 +517,10 @@ class Item
         Item myItem
         KeyboardListener listener
         myItem:AddKeyboardListener(listener)
-    */
+    */ /*
     action AddKeyboardListener(KeyboardListener listener)
         keyboardListeners:Add(listener)
-    end
+    end*/
 
     /* This action removes a KeyboardListener from the Item. The listener will
     no longer receive any notification if the Item gets a KeyboardEvent.
@@ -533,10 +533,10 @@ class Item
         KeyboardListener listener
         myItem:AddKeyboardListener(listener)
         myItem:RemoveKeyboardListener(listener)
-    */
+    */ /*
     action RemoveKeyboardListener(KeyboardListener listener)
         keyboardListeners:Remove(listener)
-    end
+    end */
 
 //    action AddTouchListener(TouchListener listener)
 //        touchListeners:Add(listener)
@@ -546,11 +546,11 @@ class Item
 //        touchListeners:Remove(listener)
 //    end
 
-    /*  This action takes a mouse event and handles it. It will look first to
-    see if any of the items that were added to this Item contain the coordinates
-    of the mouse event, and if one does, it will let that Item process it. If no
-    child Item is found that contains it, it will send the event to the
-    appropriate mouse event listeners that have been added to this Item.
+    /*  This action takes a mouse event and handles it. It will first test to 
+    see if the mouse event took place within the bounds of this Item. If so, it
+    will notify any MouseListeners of the event. If the event was not contained
+    within this Item, or if there are no MouseListeners on this Item, the Item
+    will ask its parent Item to process the mouse event, if there is a parent.
 
     Attribute: Example
 
@@ -646,7 +646,7 @@ class Item
         event:eventType = event:PRESSED_KEY
         myItem:ProcessKeyboardEvent(event)
     
-    */
+    */ /*
     action ProcessKeyboardEvent(KeyboardEvent event)
         
         Iterator<KeyboardListener> iterator = keyboardListeners:GetIterator()
@@ -662,7 +662,7 @@ class Item
             end
         end
 
-    end
+    end */
 
 //    action ProcessTouchEvent(TouchEvent event)
 //        // NOT YET IMPLEMENTED
@@ -1654,8 +1654,8 @@ class Item
     end*/
 
     /*
-    This action will add the given number value to the current scaling. Positive
-    numbers will increase scaling, negative numbers will decrease scaling.
+    This action will multiply the current scaling value by the given number.
+    A parameter of 0 or less will be ignored.
 
     Attribute: Example
 
@@ -1667,8 +1667,12 @@ class Item
         myItem:Scale(1.1)
     */
     action Scale(number amount)
-        scaleX = scaleX + amount
-        scaleY = scaleY + amount
+        if amount <= 0
+            return now
+        end
+
+        scaleX = scaleX * amount
+        scaleY = scaleY * amount
         verticesChanged = true
 
         Iterator<Item> childIterator = GetItems()
