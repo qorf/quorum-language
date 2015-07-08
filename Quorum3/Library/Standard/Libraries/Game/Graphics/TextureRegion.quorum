@@ -11,10 +11,9 @@ For a class with the same functionality, users are recommended to use the
 Drawable class.
 
 Any texture defined by this class will be located on the screen by a coordinate
-system. A coordinate of (0,0) is the very top left corner of the screen.
+system. A coordinate of (0,0) is the very botom left corner of the screen.
 Increasing the first value will make the texture move to the right.
-Increasing the second value will make the texture move down the screen.
-
+Increasing the second value will make the texture move up the screen.
 */
 class TextureRegion is Disposable
     
@@ -31,6 +30,9 @@ class TextureRegion is Disposable
     integer regionWidth = 0
     integer regionHeight = 0
 
+    /*
+    This action loads an entire texture into the TextureRegion.
+    */
     action LoadTextureRegion(Texture newTexture)
         if newTexture = undefined
             Error error
@@ -41,6 +43,10 @@ class TextureRegion is Disposable
         SetRegion(0, 0, texture:GetWidth(), texture:GetHeight())
     end
 
+    /*
+    This action loads part of a texture into the TextureRegion, starting from
+    the bottom left corner to the given width and height.
+    */
     action LoadTextureRegion(Texture newTexture, integer width, integer height)
         if newTexture = undefined
             Error error
@@ -51,6 +57,10 @@ class TextureRegion is Disposable
         SetRegion(0, 0, width, height)
     end
 
+    /*
+    This action loads part of a texture into this TextureRegion, starting from
+    the given x,y coordinates of the Texture to the given width and height.
+    */
     action LoadTextureRegion(Texture newTexture, integer x, integer y, integer width, integer height)
         if newTexture = undefined
             Error error
@@ -61,6 +71,10 @@ class TextureRegion is Disposable
         SetRegion(x, y, width, height)
     end
 
+    /*
+    This action loads part of a texture into this TextureRegion, using the given
+    percentage coordinates from 0 to 1 of the texture to load.
+    */
     action LoadTextureRegion(Texture newTexture, number left, number right, number top, number bottom)
         if newTexture = undefined
             Error error
@@ -71,16 +85,28 @@ class TextureRegion is Disposable
         SetRegion(left, right, top, bottom)
     end
 
+    /*
+    This action copies the information from the given TextureRegion into this
+    TextureRegion.
+    */
     action CopyTextureRegion(TextureRegion region)
         texture = region:texture
         SetRegion(region)
     end
 
+    /*
+    This action copies the information from a given TextureRegion at the given
+    coordinates to the given width and height onto this TextureRegion.
+    */
     action CopyTextureRegion(TextureRegion region, integer x, integer y, integer width, integer height)
         texture = region:texture
         SetRegion(region, x, y, width, height)
     end
 
+    /*
+    Sets the region of this TextureRegion to start at the given x,y coordinates
+    and go to the given width and height.
+    */
     action SetRegion(integer x, integer y, integer width, integer height)
 
         number inverseTextureWidth = 1.0/texture:GetWidth()
@@ -93,6 +119,11 @@ class TextureRegion is Disposable
 
     end
 
+    /*
+    This action will set the region of this TextureRegion to begin at the bottom
+    left of the Texture to the top right, where 0 represents the far left or 
+    bottom, and 1 represents the far right or top.
+    */
     action SetRegion(number left, number top, number right, number bottom)
 
         integer textureWidth = cast(integer, texture:GetWidth())
@@ -119,27 +150,52 @@ class TextureRegion is Disposable
 
     end
 
+    /*
+    Sets the region of this TextureRegion to be the same as the region of a 
+    different TextureRegion.
+    */
     action SetRegion(TextureRegion region)
         SetRegion(region:leftSide, region:topSide, region:rightSide, region:bottomSide)
     end
 
+    /*
+    Sets the region of this TextureRegion to begin at the start of the given
+    TextureRegion's plus an offset by the given x,y values, and stretching to
+    the given width and height.
+    */
     action SetRegion(TextureRegion region, integer x, integer y, integer width, integer height)
         SetRegion(region:GetRegionX() + x, region:GetRegionY() + y, width, height)
     end
 
     // Renamed to avoid a stack overflow error due to bug in the inheritance
+    /*
+    This action returns the texture held by this TextureRegion.
+    */
     action GetTextureField returns Texture
         return texture
     end
 
+    /*
+    This action sets the texture used by this TextureRegion to the given texture.
+    */
     action SetTexture(Texture newTexture)
         texture = newTexture
     end
 
+    /*
+    This action returns where the TextureRegion begins the left edge of its region
+    on the stored texture, where 0 is the far left of the texture and 1 is the
+    far right side of the texture.
+    */
     action GetLeftSide returns number
         return leftSide
     end
 
+    /*
+    This action sets where the TextureRegion begins the left edge of its region
+    on the stored texture, where 0 is the far left of the texture and 1 is the
+    far right side of the texture.
+    */
     action SetLeftSide(number left)
     
         Math math
@@ -148,10 +204,20 @@ class TextureRegion is Disposable
 
     end
 
+    /*
+    This action returns where the TextureRegion begins the top edge of its region
+    on the stored texture, where 0 is the far bottom of the texture and 1 is the
+    far top side of the texture.
+    */
     action GetTopSide returns number
         return topSide
     end
 
+    /*
+    This action sets where the TextureRegion begins the top edge of its region
+    on the stored texture, where 0 is the far bottom of the texture and 1 is the
+    far top side of the texture.
+    */
     action SetTopSide(number top)
     
         Math math
@@ -160,10 +226,20 @@ class TextureRegion is Disposable
 
     end
 
+    /*
+    This action returns where the TextureRegion begins the right edge of its region
+    on the stored texture, where 0 is the far left of the texture and 1 is the
+    far right side of the texture.
+    */
     action GetRightSide returns number
         return rightSide
     end
 
+    /*
+    This action sets where the TextureRegion begins the left edge of its region
+    on the stored texture, where 0 is the far left of the texture and 1 is the
+    far right side of the texture.
+    */
     action SetRightSide(number right)
         
         Math math
@@ -172,10 +248,20 @@ class TextureRegion is Disposable
 
     end
 
+    /*
+    This action returns where the TextureRegion begins the bottom edge of its region
+    on the stored texture, where 0 is the far bottom of the texture and 1 is the
+    far top side of the texture.
+    */
     action GetBottomSide returns number
         return bottomSide
     end
 
+    /*
+    This action sets where the TextureRegion begins the bottom edge of its region
+    on the stored texture, where 0 is the far bottom of the texture and 1 is the
+    far top side of the texture.
+    */
     action SetBottomSide(number bottom)
     
         Math math
@@ -184,6 +270,9 @@ class TextureRegion is Disposable
 
     end
 
+    /*
+    This action returns the x coordinate where the region begins on the Texture.
+    */
     action GetRegionX returns integer
     
         Math math
@@ -191,10 +280,16 @@ class TextureRegion is Disposable
     
     end
 
+    /*
+    This action sets the x coordinate where the region begins on the Texture.
+    */
     action SetRegionX(integer x)
         SetLeftSide(x / cast(number, texture:GetWidth()))
     end
 
+    /*
+    This action returns the y coordinate where the region begins on the Texture.
+    */
     action GetRegionY returns integer
 
         Math math
@@ -202,14 +297,23 @@ class TextureRegion is Disposable
 
     end
 
+    /*
+    This action sets the y coordinate where the region begins on the Texture.
+    */
     action SetRegionY(integer y)
         SetTopSide(y / cast(number, texture:GetHeight()))
     end
 
+    /*
+    This action returns the width of the TextureRegion.
+    */
     action GetRegionWidth returns integer
         return regionWidth
     end
 
+    /* 
+    This action sets the width of the TextureRegion.
+    */
     action SetRegionWidth(integer width)
 
         if IsFlippedX()
@@ -220,10 +324,16 @@ class TextureRegion is Disposable
 
     end
 
+    /*
+    This action returns the height of the region.
+    */
     action GetRegionHeight returns integer
         return regionHeight
     end
 
+    /*
+    This action sets the height of the region.
+    */
     action SetRegionHeight(integer height)
 
         if IsFlippedY()
@@ -234,6 +344,9 @@ class TextureRegion is Disposable
 
     end
 
+    /*
+    This action flips the TextureRegion along the x-axis.
+    */
     action FlipX
 
         number temp = leftSide
@@ -242,6 +355,9 @@ class TextureRegion is Disposable
 
     end
 
+    /*
+    This action flips the TextureRegion along the y-axis.
+    */
     action FlipY
 
         number temp = topSide
@@ -250,14 +366,25 @@ class TextureRegion is Disposable
 
     end
 
+    /*
+    This action returns whether or not the TextureRegion has been flipped along
+    the x-axis.
+    */
     action IsFlippedX returns boolean
         return leftSide > rightSide
     end
 
+    /*
+    This action returns whether or not the TextureRegion has been flipped along
+    the y-axis.
+    */
     action IsFlippedY returns boolean
         return topSide > bottomSide
     end
 
+    /*
+    This action will dispose of the Texture stored in this TextureRegion.
+    */
     action Dispose
         texture:Dispose()
     end

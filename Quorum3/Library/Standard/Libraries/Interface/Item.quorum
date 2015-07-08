@@ -1089,7 +1089,8 @@ class Item
         return children:IsEmpty()
     end
 
-    /*  This action tests if a point in global x,y coordinates is contained
+    /*  
+    This action tests if a point in global x,y coordinates is contained
     inside this Item. The global coordinates are considered to be the x and y
     coordinates of this Item plus its offsetX and offsetY values.
 
@@ -1117,14 +1118,25 @@ class Item
 //        return false
 //    end
 
-    /*  This action searches through all Items stored in this Item and finds the
+    /*  
+    This action searches through all Items stored in this Item and finds the
     deepest Item which contains the given point in global coordinates.
 
-    Attribute: Returns Whether or not the point is contained in this Item.
+    Attribute: Returns The deepest item in the children hierarchy at the given point.
 
     Attribute: Example
 
         use Libraries.Interface.Item
+
+        Item parentItem
+        Item child
+        Item child
+        Item grandchild
+        parentItem:Add(child)
+        child:Add(grandchild)
+        grandchild:SetHeight(100)
+        grandchild:SetPosition(100)
+        Item temp = parentItem:GetItemAt(75, 75)
 
     */
     action GetItemAt(number x, number y) returns Item
@@ -1167,10 +1179,21 @@ class Item
 //        end
 //    end
 
+    /*
+    This action is used to free up any additional memory that is being used by
+    this Item for purposes such as graphics. Note that the Item class doesn't
+    have any extra memory that needs to be released with this action, but some
+    classes which inherit from Item, such as Libraries.Game.Graphics.Drawable,
+    do.
+    */
     action Dispose
         
     end
 
+    /*
+    This action is used to call Dispose on the entire children hierarchy of this
+    Item. This will not call Dispose on this Item.
+    */
     action DisposeChildren
         Iterator<Item> childIterator = GetItems()
         Item temp = undefined
@@ -1180,15 +1203,47 @@ class Item
         end
     end
 
+    /*
+    This action is used to call Dispose on this Item and on the entire children
+    hierarchy of this Item.
+    */
     action DisposeAll
         DisposeChildren()
         Dispose()
     end
 
+    /*
+    This action will remove all Items from this Item's children hierarchy. Note
+    that this will not empty the hierarchies of the contained Items.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item parentItem
+        Item child1
+        Item child2
+        Item grandchild
+        parentItem:Add(child1)
+        parentItem:Add(child2)
+        child1:Add(grandChild)
+        parentItem:Empty()
+    */
     action Empty
         children:Empty()
     end
 
+    /*
+    This action will set the x coordinate, y coordinate, width, and height of
+    the Item, respectively.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item myItem
+        myItem:SetBoundingBox(50, 200, 100, 75)
+    */
     action SetBoundingBox(number newX, number newY, number newWidth, number newHeight)
         SetX(newX)
         SetY(newY)
@@ -1219,10 +1274,21 @@ class Item
 
     end
 
+    /*
     action SetBoundingBox(number newX, number newY, number newZ, number newWidth, number newHeight, number newDepth)
         // NOT YET IMPLEMENTED
-    end
+    end*/
 
+    /*
+    This action will set the width and height of the Item, respectively.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item myItem
+        myItem:SetSize(100, 50)
+    */
     action SetSize(integer newWidth, integer newHeight)
         width = newWidth
         height = newHeight
@@ -1252,6 +1318,17 @@ class Item
 
     end
 
+    /*
+    This action will increase the x-coordinate of this Item by the given amount.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item myItem
+        myItem:SetX(50)
+        myItem:TranslateX(25)
+    */
     action TranslateX(number xAmount)
         x = x + xAmount
         if verticesChanged = false
@@ -1263,6 +1340,17 @@ class Item
         SetOffsetX(offsetX)
     end
 
+    /*
+    This action will increase the y-coordinate of this Item by the given amount.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item myItem
+        myItem:SetY(50)
+        myItem:TranslateY(25)
+    */
     action TranslateY(number yAmount)
         y = y + yAmount
         if verticesChanged = false
@@ -1274,6 +1362,19 @@ class Item
         SetOffsetY(offsetY)
     end
 
+    /*
+    This action will increase the x and y coordinates of this Item by the given
+    amounts.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item myItem
+        myItem:SetX(50)
+        myItem:SetY(80)
+        myItem:Translate(25, -20)
+    */
     action Translate(number xAmount, number yAmount)
         x = x + xAmount
         y = y + yAmount
@@ -1294,18 +1395,53 @@ class Item
         SetOffset(offsetX, offsetY)
     end
 
+    /*
+    This action will set the origin of the Item to be at the given location in
+    the Item. This is used when projecting the Item's vertices onto the screen,
+    i.e. when determining where to draw a picture on the screen.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item myItem
+        myItem:SetOrigin(20, 20)
+    */
     action SetOrigin(number setX, number setY)
         originX = setX
         originY = setY
         verticesChanged = true
     end
 
+    /*
+    This action will set the origin of the Item to be at the current center of
+    the Item's width and height bounds.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item myItem
+        myItem:SetSize(50, 80)
+        myItem:SetOriginCenter()
+    */
     action SetOriginCenter
         originX = width / 2.0
         originY = height / 2.0
         verticesChanged = true
     end
 
+    /*
+    Sets this Item to be rotated to an angle of the given number of degrees.
+    This will also rotate all Items in the children hierarchy of this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item myItem
+        myItem:SetRotation(90)
+    */
     action SetRotation(number degrees)
         rotation = degrees
         verticesChanged = true
@@ -1316,10 +1452,32 @@ class Item
         end
     end
 
+    /*
+    Gets the current degree of rotation of this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item myItem
+        myItem:SetRotation(90)
+        number rotation = myItem:GetRotation()
+    */
     action GetRotation returns number
         return rotation
     end
 
+    /*
+    Rotates this Item by the given number of degrees. This will also rotate all
+    Items in the children hierarchy of this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item myItem
+        myItem:Rotate(65)
+    */
     action Rotate(number degrees)
         rotation = rotation + degrees
         if degrees not= 0
@@ -1332,6 +1490,13 @@ class Item
         end
     end
 
+    /*
+    Checks to see if the Item's internal vertices are up to date, and updates
+    them if they are not. This is used primarily internally to ensure that the
+    Item's vertices are properly aligned before use, e.g. to project an image on
+    the screen at the coordinates of the vertices. Most users will never need to
+    use this action directly.
+    */
     action PrepareVertices
 
         if verticesChanged
@@ -1407,19 +1572,46 @@ class Item
  
     end
 
-    // Convenience function to make it easier to get items from Java plugins.
+    /*
+    This action returns a value from one of the internal vertices of this Item.
+    This action is primarily for internal use, and most users will never need to
+    use this action directly.
+    */
     action GetVertex(integer index) returns number
         return vertices:Get(index)
     end
 
+    /*
+    This action sets a value of one of the internal vertices of this Item.
+    This action is primarily for internal use, and most users will never need to
+    use this action directly.
+    */
     action SetVertex(integer index, number value)
         vertices:Set(index, value)
     end
 
+    /*
+    This action returns the internal vertices array of this Item.
+    This action is primarily for internal use, and most users will never need to
+    use this action directly.
+    */
     action GetVertices returns Array<number>
         return vertices
     end
 
+    /*
+    This action sets the scale of this Item, causing the vertices of the item to
+    be calculated based on a scaled percentage of the width and height. The
+    default scaling values are 1.0, or 100% of the Item's width and height.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetSize(100, 200)
+        myItem:SetScale(1.25)
+    */
     action SetScale(number scale)
         scaleX = scale
         scaleY = scale
@@ -1431,6 +1623,20 @@ class Item
         end
     end
 
+    /*
+    This action sets separate scaling values for the x and y planes on this Item.
+    This will cause the vertices of this Item to be calculated based on a scaled
+    percentage of the width and height. The default scaling values are 1.0, or
+    100% of the Item's width and height.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetSize(100, 200)
+        myItem:SetScale(1.5, 0.75)
+    */
     action SetScale(number newX, number newY)
         scaleX = newX
         scaleY = newY
@@ -1442,10 +1648,24 @@ class Item
         end
     end
 
+    /*
     action SetScale(number newX, number newY, number newZ)
         // NOT YET IMPLEMENTED
-    end
+    end*/
 
+    /*
+    This action will add the given number value to the current scaling. Positive
+    numbers will increase scaling, negative numbers will decrease scaling.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetSize(100, 200)
+        myItem:SetScale(1.5)
+        myItem:Scale(1.1)
+    */
     action Scale(number amount)
         scaleX = scaleX + amount
         scaleY = scaleY + amount
@@ -1457,22 +1677,89 @@ class Item
         end
     end
 
+    /*
+    This action will return the current X origin of this Item. By default, the
+    origin is at the coordinates 0, 0.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetSize(100, 200)
+        myItem:SetOriginCenter()
+        number xOrigin = myItem:GetOriginX()
+    */
     action GetOriginX returns number
         return originX
     end
 
+    /*
+    This action will return the current Y origin of this Item. By default, the
+    origin is at the coordinates 0, 0.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetSize(100, 200)
+        myItem:SetOriginCenter()
+        number yOrigin = myItem:GetOriginY()
+    */
     action GetOriginY returns number
         return originY
     end
 
+    /*
+    This action will return the current x-scaling value of this Item. By default,
+    the x-scaling value of an Item is 1.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetSize(100, 200)
+        myItem:Scale(1.25)
+        number scaleX = myItem:GetScaleX()
+    */
     action GetScaleX returns number
         return scaleX
     end
 
+    /*
+    This action will return the current x-scaling value of this Item. By default,
+    the x-scaling value of an Item is 1.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetSize(100, 200)
+        myItem:Scale(1.25)
+        number scaleX = myItem:GetScaleX()
+    */
     action GetScaleY returns number
         return scaleY
     end
 
+    /*
+    This action returns a rectangle that fully encloses the four corners of the
+    Item as it is represented by its internal vertices array. Note that the
+    rectangle produced by this action will be larger than the actual box formed
+    by this Item's vertices if the Item is rotated.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Game.Shapes.Rectangle
+
+        Item myItem
+        myItem:SetBoundingBox(20, 80, 100, 100)
+        Rectangle box = myItem:GetBoundingRectangle()
+    */
     action GetBoundingRectangle returns Rectangle
         
         number minX = vertices:Get(X1)
@@ -1532,6 +1819,13 @@ class Item
         return bounds
     end
 
+    /*
+    This action is used to draw this Item on the screen, and then draw all of
+    the Item's children hierarchy on the screen. Note that Items themselves can
+    not be drawn, but some classes that extend the Item class, such as the
+    Libraries.Game.Graphics.Drawable class, can be. To see how they draw, see
+    their documentation.
+    */
     action Draw(Painter painter)
         PrepareVertices()
     
@@ -1545,18 +1839,53 @@ class Item
         end
     end
 
+    /*
+    This action will set the Item to be flipped across the X-axis according to
+    the boolean. If the boolean value is false, the Item will be set to its
+    unflipped state. If it is true, the Item will be set to its flipped state.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetFlipX(true)
+    */
     action SetFlipX(boolean flip)
         if IsFlippedX() not= flip
             FlipX()
         end
     end
 
+    /*
+    This action will set the Item to be flipped across the Y-axis according to
+    the boolean. If the boolean value is false, the Item will be set to its
+    unflipped state. If it is true, the Item will be set to its flipped state.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetFlipY(true)
+    */
     action SetFlipY(boolean flip)
         if IsFlippedY() not= flip
             FlipY()
         end
     end
 
+    /*
+    This action will flip the Item across the X-axis. This flip is represented
+    by the internal vertices of the Item. For classes that inherit from Item and
+    can draw on the screen, this will flip the drawn image on the screen.
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:FlipX()
+    */
     action FlipX
         flipX = not flipX
 
@@ -1566,6 +1895,17 @@ class Item
         end
     end
 
+    /*
+    This action will flip the Item across the Y-axis. This flip is represented
+    by the internal vertices of the Item. For classes that inherit from Item and
+    can draw on the screen, this will flip the drawn image on the screen.
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:FlipY()
+    */
     action FlipY
         flipY = not flipY
 
@@ -1575,6 +1915,7 @@ class Item
         end
     end
 
+    /*
     action FlipZ
         flipZ = not flipZ
 
@@ -1582,18 +1923,37 @@ class Item
         repeat while childIterator:HasNext()
             childIterator:Next():FlipZ()
         end
-    end
+    end*/
 
+    /*
+    This action will return if the Item is currently flipped across the x-axis.
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:FlipX()
+        boolean flip = myItem:IsFlippedX()
+    */
     action IsFlippedX returns boolean
         return flipX
     end
 
+    /*
+    This action will return if the Item is currently flipped across the y-axis.
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:FlipY()
+        boolean flip = myItem:IsFlippedY()
+    */
     action IsFlippedY returns boolean
         return flipY
     end
 
+    /*
     action IsFlippedZ returns boolean
         return flipZ
-    end
+    end*/
 
 end

@@ -7,9 +7,9 @@ use Libraries.Compute.BitwiseOperations
 use Libraries.System.File
 
 /*  The FileTextureData class holds texture information for PixelMaps retrieved
-    from most supported image file types.
+    from most supported image file types. This is used internally by the game
+    engine, and most users will never interact directly with this class.
 */
-
 class FileTextureData is TextureData
     
     // Could implement as part of plugin if necessary.
@@ -27,6 +27,13 @@ class FileTextureData is TextureData
 
     // Used in place of a constructor, this will have to be called before use.
     // This could be enforced with an "initialized" boolean if needed.
+
+    /*
+    This action initializes the FileTextureData so that it may be used. It takes
+    a file to read information from, a PixelMap if one has already been loaded
+    from a file, the Format that should be used for the PixelMap, and a boolean
+    indicating whether this TextureData should be used to create mip maps.
+    */
     action InitializeFileTextureData (File newFile, PixelMap preloadedPixelMap, Format newFormat, boolean newMipMaps)
         file = newFile
         pixelMap = preloadedPixelMap
@@ -68,15 +75,29 @@ class FileTextureData is TextureData
         return candidate
     end
 
+    /*
+    This action sets whether or not images should be copied to a power of two.
+    */
     system action CopyImagesToPowerOfTwo(boolean bool)
 
-    // This action only exists for a test needed in EnsurePowerOfTwo.
+    /*
+    This action is used to determine if it is necessary for all images to be a
+    power of two in each dimension.
+    */
     system action TestForCopyToPowerOfTwo returns boolean
 
+    /*
+    This action returns true if the FileTextureData has already had a call to
+    Prepare(), and returns false otherwise.
+    */
     action IsPrepared returns boolean
         return isPrepared
     end
 
+    /*
+    This action prepares the FileTextureData for use, ensuring that the PixelMap
+    is loaded.
+    */
     action Prepare
 
         if isPrepared = true
@@ -103,6 +124,10 @@ class FileTextureData is TextureData
         isPrepared = true
     end
 
+    /*
+    This action returns the PixelMap stored in this FileTextureData, then
+    removes the reference to it in the FileTextureData.
+    */
     action ConsumePixelMap returns PixelMap
     
         if isPrepared = false
@@ -118,35 +143,62 @@ class FileTextureData is TextureData
         return result
     end
 
+    /*
+    Returns whether or not the PixelMap should be disposed when done. Defaults
+    to true.
+    */
     action DisposePixelMap returns boolean
         return disposePixelMap
     end
 
+    /*
+    Returns the width of the PixelMap stored by this FileTextureData.
+    */
     action GetWidth returns integer
         return width
     end
 
+    /*
+    Returns the height of the PixelMap stored by this FileTextureData.
+    */
     action GetHeight returns integer
         return height
     end
 
+    /*
+    Returns the Format of the PixelMap stored by this FileTextureData.
+    */
     action GetFormat returns Format
         return format
     end
 
+    /*
+    Returns whether the data stored in this FileTextureData should be used to
+    generate mip maps for the texture.
+    */
     action UseMipMaps returns boolean
         return useMipMaps
     end
 
+    /*
+    Returns whether or not the information stored by this FileTextureData can
+    automatically handle a loss of OpenGL context. Always returns true.
+    */
     action IsManaged returns boolean
         return true
     end
 
-    action getFile returns File
+    /*
+    Returns the file used to load this FileTextureData. 
+    */
+    action GetFile returns File
         return file
     end
 
-    // This replaces "GetDataType" from libGDX. See TextureData for details.
+    /*
+    Returns whether or not this is a custom defined user type of TextureData.
+    Always returns false.
+    */
     action IsCustomData returns boolean
         return false
     end
@@ -159,17 +211,22 @@ class FileTextureData is TextureData
 	}
 */
 
+    /*
+    Sets whether or not the PixelMap in the FileTextureData should be disposed
+    of after use.
+    */
     action SetDisposalState(boolean state)
         disposePixelMap = state
     end
 
-    // This action will take an integer value and find the next power of two. To
-    // do this, it effectively fills all bits before the most significant bit
-    // with 1's, and then adds 1 to it. Due to addition overflow this will make
-    // the next digit after the most significant bit become 1, and all else will
-    // be 0. Subtraction by one at the beginning ensures that if the number was
-    // already a power of two, it will return the same number.
-    action NextPowerOfTwo (integer value) returns integer
+    
+    private action NextPowerOfTwo (integer value) returns integer
+        // This action will take an integer value and find the next power of two. To
+        // do this, it effectively fills all bits before the most significant bit
+        // with 1's, and then adds 1 to it. Due to addition overflow this will make
+        // the next digit after the most significant bit become 1, and all else will
+        // be 0. Subtraction by one at the beginning ensures that if the number was
+        // already a power of two, it will return the same number.
         if value = 0
             return 1
 	end

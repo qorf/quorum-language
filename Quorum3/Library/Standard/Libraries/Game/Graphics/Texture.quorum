@@ -10,36 +10,36 @@ use Libraries.Language.Errors.Error
 use Libraries.Game.Disposable
 
 /*
-    The Texture class represents an image that can be drawn on the screen. Once
-    an image is loaded into a texture, it can be drawn on the screen by loading
-    it into a Drawable.
+The Texture class represents an image that can be drawn on the screen. Once
+an image is loaded into a texture, it can be drawn on the screen by loading
+it into a Drawable.
 
-    Attribute: Example
+Attribute: Example
 
-        use Libraries.Game.Graphics.Texture
-        use Libraries.Game.Graphics.Drawable
-        use Libraries.Game.Graphics.Color
-        use Libraries.Game.Game
+    use Libraries.Game.Graphics.Texture
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Game
 
-        class Main is Game
+    class Main is Game
 
-            Drawable drawable
-            Texture texture
-            Color red
+        Drawable drawable
+        Texture texture
+        Color red
 
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                red:SetColor(1, 0, 0, 1)
-                texture:LoadFilledRectangle(80, 100, red)
-                drawable:Load(texture)
-
-                drawable:SetPosition(200, 200)
-                Add(drawable)
-            end
+        action Main
+            StartGame()
         end
+
+        action CreateGame
+            red:SetColor(1, 0, 0, 1)
+            texture:LoadFilledRectangle(80, 100, red)
+            drawable:Load(texture)
+
+            drawable:SetPosition(200, 200)
+            Add(drawable)
+        end
+    end
 */
 class Texture is Disposable
 
@@ -62,16 +62,29 @@ class Texture is Disposable
     system action GetDepth() returns integer
 
     /*
-        This action loads a Texture from a file path given as text. The file path should be given relative to the directory where the program is executed from. 
+    This action loads a Texture from a file path given as text. The file path
+    should be given relative to the directory where the program is executed from. 
 
-        Attribute: Parameter filePath A file path pointing to the image file to load into a Texture.
-        
-        Attribute: Example
+    Attribute: Parameter filePath A file path pointing to the image file to load into a Texture.
+
+    Attribute: Example
+
         use Libraries.Game.Texture
-        Texture myTexture
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Texture myTexture
+
+            action Main
+                StartGame()
+            end
         
-        // This call will load an image "Sample.png" from a directory called "Images".
-        myTexture:LoadFromFile("Images/Sample.png")
+            action CreateGame
+                // This call will load an image "Sample.png" from a directory called "Images".
+                myTexture:LoadFromFile("Images/Sample.png")
+            end
+        end
     */
     action LoadFromFile(text filePath)
         File file
@@ -80,37 +93,89 @@ class Texture is Disposable
     end
 
     /*
-        This action loads a Texture from a Quorum File. The File must already have its path set for this function.
+    This action loads a Texture from a Quorum File. The File must already
+    have its path set for this function.
 
-        Attribute: Parameter file An image file to be loaded into a Texture.
-        
-        Attribute: Example
+    Attribute: Parameter file An image file to be loaded into a Texture.
+
+    Attribute: Example
+
         use Libraries.Game.Texture
+        use Libraries.Game.Game
         use Libraries.System.File
 
-        File myFile
-        myFile:SetPath("Images/Sample.png")
-        Texture myTexture
+        class Main is Game
 
-        // This call will load the image that the "myFile" variable points to.
-        // The file points to an image called "Sample.png" in a folder called "Images".
-        myTexture:LoadFromFile(myFile)
+            File myFile
+            Texture myTexture
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                myFile:SetPath("Images/Sample.png")
+
+                // This call will load the image that the "myFile" variable points to.
+                // The file points to an image called "Sample.png" in a folder called "Images".
+                myTexture:LoadFromFile(myFile)
+            end
+        end
     */
     action LoadFromFile(File file)
         LoadFromFile(file, undefined, false)
     end
 
+    /*
+    This action loads a Texture from a Quorum File, storing it as the given
+    Format type and optionally using it to create mip maps, if the boolean
+    is true. The File must already have its path set for this function.
+
+    Attribute: Parameter file An image file to be loaded into a Texture.
+
+    Attribute: Example
+    
+        use Libraries.Game.Texture
+        use Libraries.Game.Game
+        use Libraries.System.File
+
+        class Main is Game
+
+            File myFile
+            Texture myTexture
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                myFile:SetPath("Images/Sample.png")
+
+                // This call will load the image that the "myFile" variable points to.
+                // The file points to an image called "Sample.png" in a folder called "Images".
+                myTexture:LoadFromFile(myFile, undefined, false)
+            end
+        end
+    */
     action LoadFromFile(File file, Format format, boolean useMipMaps)
         LoadFromTextureData(CreateTextureData(file, format, useMipMaps))
     end
 
-    action LoadFromTextureData(TextureData data)
+    /*
+    This action loads a Texture from TextureData. This is primarily for internal
+    use, and most users will never need to use this action. 
+    */
+    private action LoadFromTextureData(TextureData data)
         SetGL20Info(gl20:GL_TEXTURE_2D, CreateGLHandle())
         Load(data)
         AddManagedTexture()
     end
 
-    action Load(TextureData loadingData)
+    /*
+    This action loads a Texture's data so it can be drawn to the screen. This is
+    primarily for internal use, and most users will never need to use this action. 
+    */
+    private action Load(TextureData loadingData)
         if data not= undefined
             if loadingData:IsManaged() not= data:IsManaged()
                 Error error
@@ -138,6 +203,29 @@ class Texture is Disposable
 
     end
 
+    /*
+    This action returns the width of a loaded Texture.
+
+    Attribute: Example
+
+        use Libraries.Game.Texture
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Texture myTexture
+
+            action Main
+                StartGame()
+            end
+        
+            action CreateGame
+                // This call will load an image "Sample.png" from a directory called "Images".
+                myTexture:LoadFromFile("Images/Sample.png")
+                number width = myTexture:GetWidth()
+            end
+        end
+    */
     action GetWidth returns integer
         if data not= undefined
             return data:GetWidth()
@@ -145,6 +233,29 @@ class Texture is Disposable
         return 0
     end
 
+    /*
+    This action returns the height of a loaded Texture.
+
+    Attribute: Example
+
+        use Libraries.Game.Texture
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Texture myTexture
+
+            action Main
+                StartGame()
+            end
+        
+            action CreateGame
+                // This call will load an image "Sample.png" from a directory called "Images".
+                myTexture:LoadFromFile("Images/Sample.png")
+                number width = myTexture:GetHeight()
+            end
+        end
+    */
     action GetHeight returns integer
         if data not= undefined
             return data:GetHeight()
@@ -163,25 +274,29 @@ class Texture is Disposable
 		managedTextures.put(app, managedTextureArray);
 */
 
-    system action Bind
+    /*
+    This action activates this texture and binds the texture image to the
+    internal texture ID. This is for internal use.
+    */
+    private system action Bind
 
-    system action BindToDefault
+    private system action BindToDefault
 
-    system action CreateGLHandle returns integer
+    private system action CreateGLHandle returns integer
 
-    system action SetGL20Info(integer target, integer handle)
+    private system action SetGL20Info(integer target, integer handle)
 
-    system action GetGLTarget returns integer
+    private system action GetGLTarget returns integer
 
-    system action GetGLHandle returns integer
+    private system action GetGLHandle returns integer
 
     // All actions placed below are originally from GLTexture.
 
-    action CreateTextureData(File file, boolean useMipMaps) returns TextureData
+    private action CreateTextureData(File file, boolean useMipMaps) returns TextureData
         return CreateTextureData(file, undefined, useMipMaps)
     end
 
-    action CreateTextureData(File file, Format format, boolean useMipMaps) returns TextureData
+    private action CreateTextureData(File file, Format format, boolean useMipMaps) returns TextureData
         if file = undefined
             return undefined
         end
@@ -203,13 +318,11 @@ class Texture is Disposable
         return data
     end
 
-
-    // PUT PROPER COMMENTING HERE
-    action UploadImageData(integer target, TextureData data)
+    private action UploadImageData(integer target, TextureData data)
         UploadImageData(target, data, 0)
     end
 
-    action UploadImageData(integer target, TextureData data, integer mipLevel)
+    private action UploadImageData(integer target, TextureData data, integer mipLevel)
 
         if data = undefined
             Error error
@@ -268,6 +381,11 @@ class Texture is Disposable
 
     end
 
+    /*
+    Sets the minimization filter and magnification filter, respectively, used
+    for this Texture. See Libraries.Game.Graphics.TextureFilter for details on
+    what the different filters do.
+    */
     action SetFilter(TextureFilter minFilter, TextureFilter magFilter)
         
         minimizeFilter = minFilter
@@ -278,6 +396,11 @@ class Texture is Disposable
 
     end
 
+    /*
+    Sets the horizontal and vertical texture wrapping modes, respectively, used
+    for this Texture. See Libraries.Game.Graphics.TextureWrap for details on
+    what the different texture wrapping modes do.
+    */
     action SetWrap(TextureWrap hWrap, TextureWrap vWrap)
 
         horizontalWrap = hWrap
@@ -288,29 +411,45 @@ class Texture is Disposable
 
     end
 
+    /*
+    This action returns the minimization filter of this Texture. For more on how
+    the TextureFilters work, see Libraries.Game.Graphics.TextureFilter.
+    */
     action GetMinimizeFilter returns TextureFilter
         return minimizeFilter
     end
 
+    /*
+    This action returns the magnification filter of this Texture. For more on how
+    the TextureFilters work, see Libraries.Game.Graphics.TextureFilter.
+    */
     action GetMagnifyFilter returns TextureFilter
         return magnifyFilter
     end
 
+    /*
+    This action returns the horizontal texture wrapping mode. For more on how
+    the TextureWrap works, see Libraries.Game.Graphics.TextureWrap.
+    */
     action GetHorizontalWrap returns TextureWrap
         return horizontalWrap
     end
 
+    /*
+    This action returns the vertical texture wrapping mode. For more on how
+    the TextureWrap works, see Libraries.Game.Graphics.TextureWrap.
+    */
     action GetVerticalWrap returns TextureWrap
         return verticalWrap
     end
-
+/*
     action UseCustomColor returns boolean
         return false
     end
 
     action GetTexture returns Texture
         return me
-    end
+    end*/
 
     /*action PrepareVertices
 
@@ -352,14 +491,76 @@ class Texture is Disposable
         vertices:Set(19, v)
     end*/
 
+    /*
+    This action will release the memory used to store pixel information for this
+    Texture. This frees up resources, but will make the Texture no longer usable,
+    including in classes that may have loaded the Texture, such as in Drawable.
+    Use this when you are completely finished with a Texture and no longer intend
+    to use it.
+    */
     system action Dispose
 
+    /*
+    This action will create a new Texture with a black line that connects an
+    imaginary point at 0,0 to the provided x,y coordinates.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Texture texture
+                    texture:LoadLine(20, 100)
+                    Drawable line
+                    line:Load(texture)
+                    line:SetPosition(50, 50)
+                    Add(line)
+                end
+            end
+    */
     action LoadLine(integer x, integer y)
         Color black
         black = black:Black()
         LoadLine(x, y, black)
     end
 
+    /*
+    This action will create a new Texture with a line of the given color that
+    connects between an imaginary point at 0,0 to the provided x,y coordinates.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Color cyan
+                    cyan:SetColor(0, 1, 1, 1)
+                    Texture texture
+                    texture:LoadLine(20, 100, cyan)
+                    Drawable line
+                    line:Load(texture)
+                    line:SetPosition(50, 50)
+                    Add(line)
+                end
+            end
+    */
     action LoadLine(integer x, integer y, Color color)
         PixelMap pixmap
         Format format
@@ -380,6 +581,31 @@ class Texture is Disposable
         LoadFromTextureData(data)
     end
 
+    /*
+    This action will create a new Texture with a hollow black rectangle with
+    the given width and height.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Texture
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Texture texture
+                    texture:LoadRectangle(20, 100)
+                    Drawable rectangle
+                    rectangle:SetPosition(50, 50)
+                    Add(rectangle)
+                end
+            end
+    */
     action LoadRectangle(integer width, integer height)
         Color black
         black = black:Black()

@@ -4,35 +4,40 @@
 
 package Libraries.Game.Graphics
 
+/*
+This class is used to store information about a data. This class is for internal
+use by the game engine, and most users will never need to interact with this
+class directly.
+*/
 class TextureData 
-    
-    /*
-
-        public enum TextureDataType {
-		Pixmap, Custom
-	}
-
-    */
 
         // This action replaces the "GetDataType" function from libGDX's
         // graphics system, as the only types possible are Pixmap or Custom.
+        /*
+        Determines if the TextureData is a default type. If so, this returns true.
+        */
         blueprint action IsCustomData returns boolean
 
-	// Returns whether or not the TextureData has been prepared.
+	/*
+        This action returns whether the TextureData has been prepared yet.
+        */
         blueprint action IsPrepared returns boolean
 
-	// Prepares the TextureData for a call to ConsumePixelMap().
-        // This method can be called from a non OpenGL thread and should thus
-        // not interact with OpenGL.
+        /*
+        This action prepares the TextureData for use by OpenGL.
+        */
         blueprint action Prepare
 
-	// Returns the PixelMap for upload by Texture. A call to Prepare must 
-        // precede a call to this method. Any internal data structures created
-        // in Prepare()} should be disposed of here.
+        /*
+        Returns the PixelMap stored by this TextureData. The TextureData must
+        be set up using Prepare() before calling this action.
+        */
         blueprint action ConsumePixelMap returns PixelMap
 
-	// Returns whether or not the caller of ConsumePixelMap should also
-        // dispose of it.
+        /*
+        Returns whether or not the caller of ConsumePixelMap should also dispose
+        of it.
+        */
         blueprint action DisposePixelMap returns boolean
 
 	/** Uploads the pixel data to the OpenGL ES texture. The caller must bind an OpenGL ES texture. A call to {@link #prepare()}
@@ -43,19 +48,31 @@ class TextureData
         blueprint action ConsumeCustomeData(integer target)
         */
 
-	/** @return the width of the pixel data */
+	/*
+        Returns the width of the stored PixelMap data.
+        */
         blueprint action GetWidth returns integer
 
-	/** @return the height of the pixel data */
+	/*
+        Returns the height of the stored PixelMap data.
+        */
         blueprint action GetHeight returns integer
 
-	/** @return the {@link Format} of the pixel data */
+	/*
+        Returns the Format of the stored PixelMap data.
+        */
         blueprint action GetFormat returns Format
 
-	/** @return whether to generate mipmaps or not. */
+        /*
+        Returns whether or not the TextureData should be additionally used to
+        generate mip maps.
+        */
         blueprint action UseMipMaps returns boolean
 
-	/** @return whether this implementation can cope with a EGL context loss. */
+	/*
+        Returns whether or not the TextureData can handle a loss of OpenGL
+        context automatically.
+        */
         blueprint action IsManaged returns boolean
 
 	/** Provides static method to instantiate the right implementation (Pixmap, ETC1, KTX).

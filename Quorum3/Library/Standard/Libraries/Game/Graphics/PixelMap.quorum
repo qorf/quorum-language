@@ -11,6 +11,8 @@ use Libraries.System.File
 /*
     The PixelMap class represents an image as a collection of individual pixels.
     It is used by the Texture class to draw shapes and load images from files.
+    This is a class used internally by the game engine, and most users will not
+    need to interface with this class directly.
 */
 class PixelMap is Disposable
     
@@ -23,12 +25,21 @@ class PixelMap is Disposable
     end
     
     // FOR DEBUGGING PURPOSES ONLY
-    system action GetDisposed returns boolean
+    //system action GetDisposed returns boolean
 
+    /*
+    This action takes a different PixelMap and draws it on top of this PixelMap
+    at the given x,y coordinates on this PixelMap.
+    */
     action DrawPixelMap(PixelMap pixmap, integer x, integer y)
         DrawPixelMap(pixmap, x, y, 0, 0, pixmap:GetWidth(), pixmap:GetHeight())
     end
 
+    /*
+    This action will draw a different PixelMap starting from the destX and destY
+    with sourceWidth and sourceHeight on top of this PixelMap at the coordinates
+    of sourceX, sourceY.
+    */
     system action DrawPixelMap(PixelMap pixmap, integer sourceX, integer sourceY, integer destX, integer destY, integer sourceWidth, integer sourceHeight)
 
     // Sets the type of Blending to be used for all operations.
@@ -39,121 +50,229 @@ class PixelMap is Disposable
         //Gdx2DPixmap.setBlend(blending == Blending.None ? 0 : 1);
     end*/
 
+    /*
+    Returns the Format that is used by this PixelMap.
+    */
     action GetFormat returns Format
         return format
     end
 
+    /*
+    Returns the width of this PixelMap.
+    */
     system action GetWidth returns integer
     
+    /*
+    Returns the height of this PixelMap.
+    */
     system action GetHeight returns integer
 
+    /*
+    Returns the color being applied to this PixelMap.
+    */
     action GetColor returns Color
         return color
     end
 
+    /*
+    Sets the color being used by this PixelMap using a Color object.
+    */
     action SetColor(Color newColor) 
         color = newColor
     end
 
+    /*
+    Sets the color being used by this PixelMap using color component values
+    between 0 and 1 for the red, green, blue, and alpha components.
+    */
     action SetColor(number redValue, number greenValue, number blueValue, number alphaValue)
         color:SetColor(redValue, greenValue, blueValue, alphaValue)
     end
 
+    /*
+    Sets the color being used by this PixelMap using an integer color code.
+    */
     action SetColorFromCode(integer code)
         color:SetColorFromCode(code)
     end
 
+    /*
+    This action will return the Blending being used on this PixelMap.
+    */
     system action GetBlending returns Blending
 
-    // Sets the type of interpolation Filter to be used in conjunction with
-    // Pixmap:DrawPixelMap(Pixmap, int, int, int, int, int, int, int, int).
+    /*
+    Sets the type of interpolation Filter to be used for this PixelMap.
+    */
     action SetFilter(Filter filter)
         SetScale(filter:GetValue())
     end
     //Gdx2DPixmap.setScale(filter == Filter.NearestNeighbour ? Gdx2DPixmap.GDX2D_SCALE_NEAREST : Gdx2DPixmap.GDX2D_SCALE_LINEAR);
     
-    // Must be used to initialize the PixelMap from a file. Follows the same
-    // format as the Pixmap(file) constructor from libGDX.
+    /*
+    This action will load a PixelMap using an image file.
+    */
     system action LoadPixelMap(File file)
-/* public Pixmap (FileHandle file) {
-    try {
-        byte[] bytes = file.readBytes();
-        pixmap = new Gdx2DPixmap(bytes, 0, bytes.length, 0);
-        } catch (Exception e) {
-            throw new GdxRuntimeException("Couldn't load file: " + file, e);
-        }
-    }
-/*
 
     /** Creates a new Pixmap instance with the given width, height and format.
     * @param width the width in pixels
     * @param height the height in pixels
     * @param format the {@link Format} */
+
+    /*
+    This action will create new PixelMap data to be used in OpenGL with the
+    given width, height, and Format.
+    */
     system action CreatePixelMap (integer newWidth, integer newHeight, Format newFormat)
 
+    /*
+    This action will create OpenGL information for the currently loaded PixelMap
+    information.
+    */
     system action Define2DImage(integer target, integer mipLevel, integer border)
 
+    /*
+    This action will set the Blending to be used for this PixelMap.
+    */
     system action SetBlending(Blending newBlend)
     
+    /*
+    This action will set the scaling filter to the given type.
+    */
     system action SetScale(integer scale)
 
+    /*
+    This action will free up the memory used to store the pixel information of
+    the image. This should only be used when the PixelMap is no longer needed.
+    */
     system action Dispose
-
+    
+    /*
+    This action returns an integer value representing the internal GL format.
+    */
     system action GetGLInternalFormat() returns integer
 
-    // This action will fill the complete bitmap with the given color.
+    /* 
+    This action will fill the complete bitmap with the given color.
+    */
     action Fill(Color color)
         Fill(color:GetColorCode())
     end
 
+    /*
+    This action will draw a line on the PixelMap between the two points given
+    using the given color.
+    */
     action DrawLine(integer x1, integer y1, integer x2, integer y2, Color color)
         DrawLine(x1, y1, x2, y2, color:GetColorCode())
     end
 
+    /*
+    This action will draw a hollow rectangle at the given point with the given
+    width and height using the given color.
+    */
     action DrawRectangle(integer x, integer y, integer width, integer height, Color color)
         DrawRectangle(x, y, width, height, color:GetColorCode())
     end
 
+    /*
+    This action will draw a solid rectangle at the given point with the given
+    width and height using the given color.
+    */
     action FillRectangle(integer x, integer y, integer width, integer height, Color color)
         FillRectangle(x, y, width, height, color:GetColorCode())
     end
 
+    /*
+    This action will draw a hollow circle at the given point with the given
+    radius using the given color.
+    */
     action DrawCircle(integer x, integer y, integer radius, Color color)
         DrawCircle(x, y, radius, color:GetColorCode())
     end
 
+    /*
+    This action will draw a solid circle at the given point with the given
+    radius using the given color.
+    */
     action FillCircle(integer x, integer y, integer radius, Color color)
         FillCircle(x, y, radius, color:GetColorCode())
     end
 
+    /*
+    This action will draw a solid triangle using the three given points and the
+    given color.
+    */
     action FillTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, Color color)
         FillTriangle(x1, y1, x2, y2, x3, y3, color:GetColorCode())
     end
 
+    /* 
+    This action will fill the complete bitmap with the given color code.
+    */
     system action Fill(integer color)
 
+    /*
+    This action will draw a line on the PixelMap between the two points given
+    using the given color code.
+    */
     system action DrawLine(integer x1, integer y1, integer x2, integer y2, integer color)
     
+    /*
+    This action will draw a hollow rectangle at the given point with the given
+    width and height using the given color code.
+    */
     system action DrawRectangle(integer x, integer y, integer width, integer height, integer color)
 
+    /*
+    This action will draw a solid rectangle at the given point with the given
+    width and height using the given color code.
+    */
     system action FillRectangle(integer x, integer y, integer width, integer height, integer color)
 
+    /*
+    This action will draw a hollow circle at the given point with the given
+    radius using the given color code.
+    */
     system action DrawCircle(integer x, integer y, integer radius, integer color)
 
+    /*
+    This action will draw a solid circle at the given point with the given
+    radius using the given color code.
+    */
     system action FillCircle(integer x, integer y, integer radius, integer color)
 
+    /*
+    This action will draw a solid triangle using the three given points and the
+    given color.
+    */
     system action FillTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, integer color)
 
+    /*
+    This action will return an integer color code representing the color of the
+    pixel at the given coordinates.
+    */
     system action GetPixel(integer x, integer y) returns integer
 
+    /*
+    This action will set the pixel at the given coordinates with the PixelMap's
+    current color.
+    */
     action SetPixel(integer x, integer y)
         SetPixel(x, y, color:GetColorCode())
     end
 
+    /*
+    This action will set the pixel at the given coordinates with the given color.
+    */
     action SetPixel(integer x, integer y, Color setColor)
         SetPixel(x, y, setColor:GetColorCode())
     end
 
+    /*
+    This action will set the pixel at the given coordinates with the given color
+    code.
+    */
     system action SetPixel(integer x, integer y, integer code)
 
     /** Creates a new Pixmap instance from the given encoded image data. The image can be encoded as JPEG, PNG or BMP.
