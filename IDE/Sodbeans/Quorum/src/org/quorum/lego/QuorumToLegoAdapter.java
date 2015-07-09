@@ -97,11 +97,13 @@ public class QuorumToLegoAdapter {
     }
 
     public boolean Send(File from, File to) {
-
+        
         FileInputStream fis = null;
         try {
-            String sourcePath = from.getAbsolutePath();
-            String destinationPath = to.getPath();
+            String sourcePath = from.getName();
+            String destinationPath = to.getPath().replace("\\", "/");
+//            String destinationPath = "'/home/lejos/programs'"; //works for Windows
+            
 
             JSch jsch = new JSch();
             Session session = jsch.getSession(getUser(), getHost(), 22);
@@ -150,7 +152,7 @@ public class QuorumToLegoAdapter {
             }
 
             // send a content of sourcePath
-            fis = new FileInputStream(sourcePath);
+            fis = new FileInputStream(from.getAbsolutePath());
             byte[] buf = new byte[1024];
             while (true) {
                 int len = fis.read(buf, 0, buf.length);
