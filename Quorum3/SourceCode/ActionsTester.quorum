@@ -138,6 +138,7 @@ class ActionsTester
         MissingReturn8()
         MissingReturn9()
         MissingReturn10()
+        MissingVariable()
         ReturnCast2ActionsInt()
         SetterBeforeUseFail()
         TextJunk1()
@@ -1379,6 +1380,15 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "MissingEnd.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingVariable
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingVariable.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

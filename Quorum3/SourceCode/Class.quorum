@@ -1717,6 +1717,12 @@ class Class is Symbol
     action ResolveAction(ActionCall call) returns ActionCallResolution
         ActionCallResolution resolution
         Array<Type> parameters = call:actualParameters
+        //if this is null, then we somehow had an invalid sequence from the 
+        //user (e.g., missing variable). An error has been thrown already, 
+        //so ignore it here.
+        if parameters = undefined
+            return resolution
+        end
         TypeChecker checker = call:checker
 
         Location location = call

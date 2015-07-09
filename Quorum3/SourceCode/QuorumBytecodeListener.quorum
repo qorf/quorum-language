@@ -1607,7 +1607,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         repeat size times
             QuorumOpcode op = parametersBackward:Get(i)
             if op = undefined
-                a = 5
+                return now
             end
             parameters:Add(op:GetType())
             parameterOpcodes:Add(op)
@@ -1619,9 +1619,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitVariableSoloFunctionCall(VariableFunctionCallContext context)
-//        if HasErrors() 
-//            return now
-//        end
         Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
         currentActionStack = currentActionStack - 1
 
