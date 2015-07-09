@@ -82,6 +82,9 @@ public class PixelMap {
     
     public void CreatePixelMap(int newWidth, int newHeight, quorum.Libraries.Game.Graphics.Format_ newFormat) 
     {
+        final quorum.Libraries.Game.Graphics.PixelMap thisMap = (quorum.Libraries.Game.Graphics.PixelMap) me_;
+        thisMap.GetFormat().SetValue(newFormat.GetValue());
+        
         pixelPointer = NewPixelMap(nativeData, newWidth, newHeight, newFormat.GetValue());
         if (pixelPointer == null)
             throw new GameRuntimeError("Error creating new PixelMap.");
@@ -91,9 +94,9 @@ public class PixelMap {
         height = (int)nativeData[2];
         format = (int)nativeData[3];
         
-        final quorum.Libraries.Game.Graphics.PixelMap thisMap = (quorum.Libraries.Game.Graphics.PixelMap) me_;
-        thisMap.SetColor(0,0,0,0);
-        Clear();
+        final quorum.Libraries.Game.Graphics.Color clearColor = new quorum.Libraries.Game.Graphics.Color();
+        clearColor.SetColor(0,0,0,0);
+        Clear(clearColor);
     }
     
     public void SetBlending(quorum.Libraries.Game.Graphics.Blending_ newBlending)
@@ -202,6 +205,40 @@ public class PixelMap {
         long sourceBasePointer = map.basePointer;
 
         DrawPixelMap(sourceBasePointer, basePointer, sourceX, sourceY, width, height, destX, destY, width, height);
+    }
+    
+    public void Fill(int color)
+    {
+        Clear(basePointer, color);
+    }
+
+    public void DrawLine(int x1, int y1, int x2, int y2, int color)
+    {
+        DrawLine(basePointer, x1, y1, x2, y2, color);
+    }
+    
+    public void DrawRectangle(int x, int y, int width, int height, int color)
+    {
+        DrawRectangle(basePointer, x, y, width, height, color);
+    }
+    
+    public void FillRectangle(int x, int y, int width, int height, int color)
+    {
+        FillRectangle(basePointer, x, y, width, height, color);
+    }
+    
+    public void DrawCircle(int x, int y, int radius, int color)
+    {
+        DrawCircle(basePointer, x, y, radius, color);
+    }
+    
+    public void FillCircle(int x, int y, int radius, int color)
+    {
+        FillCircle(basePointer, x, y, radius, color);
+    }
+    public void FillTriangle(int x1, int y1, int x2, int y2, int x3, int y3, int color)
+    {
+        FillTriangle(basePointer, x1, y1, x2, y2, x3, y3, color);
     }
     
     private static native ByteBuffer Load(long[] nativeData, byte[] buffer, int offset, int len);
