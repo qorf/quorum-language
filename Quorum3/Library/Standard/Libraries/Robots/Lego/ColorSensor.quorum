@@ -149,13 +149,15 @@ class ColorSensor
     ColorSensor colorSensor
     Motor motor
     Screen screen
-
+    Utility utility
+    
+    colorSensor:SetPort(colorSensor:PORT_3)
     motor:RotateForward("A")  //two motors used to move the robot
     motor:RotateForward("B")
-    repeat while colorSensor:GetReflectionLevel() < 0.50
-        
+    repeat 8 times
+        screen:ScrollUp("Reflectivity: " + colorSensor:GetReflectionLevel())  //displays reflectivity of object
+        utility:DelayMilliseconds(500)
     end
-    screen:Output("Object found.", 0)
     */
     
     system action GetReflectionLevel returns number
@@ -194,7 +196,7 @@ class ColorSensor
     This action gets the color of light being emitted from the color sensor.
 
     Attribute: Returns the color currently being emitted by the color sensor in all lower-case letters.
-    Possible return values are: red, white, blue, or none.
+    Possible return values are: "red", "white", "blue", or "none", where a value of "none" indicates that the light is currently off.
     
     Attribute: Author Evan Pierzina
 
