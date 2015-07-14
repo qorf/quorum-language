@@ -308,9 +308,9 @@ class Item
             vertices:Set(X2, vertices:Get(X2) + adjust)
             vertices:Set(X3, vertices:Get(X3) + adjust)
             vertices:Set(X4, vertices:Get(X4) + adjust)
-
-            offsetX = xAmount
         end
+
+        offsetX = xAmount
 
         Iterator<Item> childIterator = GetItems()
         repeat while childIterator:HasNext()
@@ -336,9 +336,9 @@ class Item
             vertices:Set(Y2, vertices:Get(Y2) + adjust)
             vertices:Set(Y3, vertices:Get(Y3) + adjust)
             vertices:Set(Y4, vertices:Get(Y4) + adjust)
-        
-            offsetY = yAmount
         end
+
+        offsetY = yAmount
 
         Iterator<Item> childIterator = GetItems()
         repeat while childIterator:HasNext()
@@ -371,11 +371,10 @@ class Item
 
             vertices:Set(X4, vertices:Get(X4) + adjustX)
             vertices:Set(Y4, vertices:Get(Y4) + adjustY)
-        
-            offsetX = xAmount
-            offsetY = yAmount
         end
         
+        offsetX = xAmount
+        offsetY = yAmount
 
         Iterator<Item> childIterator = GetItems()
         repeat while childIterator:HasNext()
@@ -1447,8 +1446,33 @@ class Item
         verticesChanged = true
 
         Iterator<Item> childIterator = GetItems()
-        repeat while childIterator:HasNext()
+        /*repeat while childIterator:HasNext()
             childIterator:Next():SetRotation(degrees)
+        end*/
+        if childIterator:HasNext()
+
+            Item temp = undefined
+            number startAngle = 0
+            Math math
+            number centerX = GetWidth()/2
+            number centerY = GetHeight()/2
+            number distance = 0
+
+            repeat while childIterator:HasNext()
+                temp = childIterator:Next()
+                number tempCenterX = temp:GetX() + temp:GetWidth()/2
+                number tempCenterY = temp:GetY() + temp:GetHeight()/2
+                startAngle = math:RadiansToDegrees(math:InverseTangent(tempCenterX - centerX, centerY - tempCenterY)) + 360
+                startAngle = startAngle + degrees + temp:GetRotation()
+                startAngle = startAngle mod 360
+                radius = math:SquareRoot(math:RaiseToPower(tempCenterX - centerX, 2) + math:RaiseToPower(tempCenterY - centerY, 2))
+                number offX = radius * math:Cosine(math:DegreesToRadians(startAngle))
+                number offY = radius * math:Sine(math:DegreesToRadians(startAngle))
+                number distX = centerX - tempCenterX
+                number distY = centerY - tempCenterY
+                temp:SetOffset(GetGlobalX() + offX + distX, GetGlobalY() - offY + distY)
+                temp:SetRotation(degrees)
+            end
         end
     end
 
@@ -1485,8 +1509,31 @@ class Item
         end
 
         Iterator<Item> childIterator = GetItems()
-        repeat while childIterator:HasNext()
-            childIterator:Next():Rotate(degrees)
+        
+        if childIterator:HasNext()
+
+            Item temp = undefined
+            number startAngle = 0
+            Math math
+            number centerX = GetWidth()/2
+            number centerY = GetHeight()/2
+            number distance = 0
+
+            repeat while childIterator:HasNext()
+                temp = childIterator:Next()
+                number tempCenterX = temp:GetX() + temp:GetWidth()/2
+                number tempCenterY = temp:GetY() + temp:GetHeight()/2
+                startAngle = math:RadiansToDegrees(math:InverseTangent(tempCenterX - centerX, centerY - tempCenterY)) + 360
+                startAngle = startAngle + degrees + temp:GetRotation()
+                startAngle = startAngle mod 360
+                radius = math:SquareRoot(math:RaiseToPower(tempCenterX - centerX, 2) + math:RaiseToPower(tempCenterY - centerY, 2))
+                number offX = radius * math:Cosine(math:DegreesToRadians(startAngle))
+                number offY = radius * math:Sine(math:DegreesToRadians(startAngle))
+                number distX = centerX - tempCenterX
+                number distY = centerY - tempCenterY
+                temp:SetOffset((GetGlobalX() + offX + distX) * scaleX, (GetGlobalY() - offY + distY) * scaleY)
+                temp:Rotate(degrees)
+            end
         end
     end
 
@@ -1510,10 +1557,12 @@ class Item
             number worldOriginY = y - localY + offsetY
 
             if (scaleX not= 1 or scaleY not= 1)
-                localX = localX * scaleX
-                localY = localY * scaleY
-                localX2 = localX2 * scaleX
-                localY2 = localY2 * scaleY
+                //localX = localX * scaleX
+                //localY = localY * scaleY
+                //localX2 = localX2 * scaleX
+                //localY2 = localY2 * scaleY
+                localX2 = localX2 * (2 * (scaleX - 1) + 1)
+                localY2 = localY2 * (2 * (scaleY - 1) + 1)
             end
 
             if rotation not= 0
@@ -1618,8 +1667,18 @@ class Item
         verticesChanged = true
 
         Iterator<Item> childIterator = GetItems()
-        repeat while childIterator:HasNext()
-            childIterator:Next():SetScale(scale)
+        if childIterator:HasNext()
+
+            Item temp = undefined
+            number globalX = GetGlobalX()
+            number globalY = GetGlobalY()
+
+            repeat while childIterator:HasNext()
+                temp = childIterator:Next()
+                
+                temp:SetOffset(globalX + (temp:GetX() * scaleX) - temp:GetX(), globalY + (temp:GetY() * scaleY) - temp:GetY())
+                temp:SetScale(scale)
+            end
         end
     end
 
@@ -1643,8 +1702,18 @@ class Item
         verticesChanged = true
 
         Iterator<Item> childIterator = GetItems()
-        repeat while childIterator:HasNext()
-            childIterator:Next():SetScale(newX, newY)
+        if childIterator:HasNext()
+
+            Item temp = undefined
+            number globalX = GetGlobalX()
+            number globalY = GetGlobalY()
+
+            repeat while childIterator:HasNext()
+                temp = childIterator:Next()
+                
+                temp:SetOffset(globalX + (temp:GetX() * scaleX) - temp:GetX(), globalY + (temp:GetY() * scaleY) - temp:GetY())
+                temp:SetScale(newX, newY)
+            end
         end
     end
 
@@ -1676,9 +1745,131 @@ class Item
         verticesChanged = true
 
         Iterator<Item> childIterator = GetItems()
-        repeat while childIterator:HasNext()
-            childIterator:Next():Scale(amount)
+        if childIterator:HasNext()
+
+            Item temp = undefined
+            number globalX = GetGlobalX()
+            number globalY = GetGlobalY()
+
+            repeat while childIterator:HasNext()
+                temp = childIterator:Next()
+                
+                temp:SetOffset(globalX + (temp:GetX() * scaleX) - temp:GetX(), globalY + (temp:GetY() * scaleY) - temp:GetY())
+                temp:Scale(amount)
+            end
+
+            if rotation not= 0
+                Rotate(0)
+            end
+
+            /* Old code for when items scaled about their center.
+            Item temp = undefined
+            number inverseAmount = 1 - amount
+            number centerX = 0
+            number centerY = 0
+            number width = GetWidth()
+            number height = GetHeight()
+            number globalX = GetGlobalX()
+            number globalY = GetGlobalY()
+            
+            repeat while childIterator:HasNext()
+                temp = childIterator:Next()
+
+                centerX = temp:GetGlobalX() - globalX + temp:GetWidth() / 2.0
+                centerY = temp:GetGlobalY() - globalY + temp:GetHeight() / 2.0
+                centerX = centerX / width
+                centerY = centerY / height
+                centerX = centerX + inverseAmount * (0.5 - centerX)
+                centerY = centerY + inverseAmount * (0.5 - centerY)
+                //temp:SetCenter(centerX * width, centerY * height)
+                temp:SetOffset((globalX + centerX * width - temp:GetWidth()/2) - temp:GetX(), (globalY + centerY * height - temp:GetHeight()/2) - temp:GetY())
+                temp:Scale(amount)
+            end
+            */
         end
+    end
+
+    /*
+    This action will multiply the current scaling value by the given number.
+    A parameter of 0 or less will be ignored. This action will increase or
+    decrease the scale of the object from the center, and update the Item's x,y
+    coordinates to reflect the new bottom-left corner of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetSize(100, 200)
+        myItem:SetScale(1.5)
+        myItem:ScaleFromCenter(1.1)
+    */
+    action ScaleFromCenter(number amount)
+        number oldWidth = width * scaleX
+        number newWidth = width * (scaleX * amount)
+        number oldHeight = height * scaleY
+        number newHeight = height * (scaleY * amount)
+
+        number xAdjust = (oldWidth - newWidth) / 2
+        number yAdjust = (oldHeight - newHeight) / 2
+        Translate(xAdjust, yAdjust)
+        Scale(amount)
+    end
+
+    /*
+    This action sets the scale of this Item, causing the vertices of the item to
+    be calculated based on a scaled percentage of the width and height. The
+    default scaling values are 1.0, or 100% of the Item's width and height. This
+    action will increase or decrease the scale of the object from the center, 
+    and update the Item's x,y coordinates to reflect the new bottom-left corner
+    of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetSize(100, 200)
+        myItem:SetScaleFromCenter(1.25)
+    */
+    action SetScaleFromCenter(number scale)
+        number oldWidth = width * scaleX
+        number newWidth = width * scale
+        number oldHeight = height * scaleY
+        number newHeight = height * scale
+
+        number xAdjust = (oldWidth - newWidth) / 2
+        number yAdjust = (oldHeight - newHeight) / 2
+        Translate(xAdjust, yAdjust)
+        SetScale(scale)
+    end
+
+    /*
+    This action sets separate scaling values for the x and y planes on this Item.
+    This will cause the vertices of this Item to be calculated based on a scaled
+    percentage of the width and height. The default scaling values are 1.0, or
+    100% of the Item's width and height. This action will increase or decrease
+    the scale of the object from the center, and update the Item's x,y 
+    coordinates to reflect the new bottom-left corner of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetSize(100, 200)
+        myItem:SetScaleFromCenter(1.5, 0.75)
+    */
+    action SetScaleFromCenter(number newX, number newY)
+        number oldWidth = width * scaleX
+        number newWidth = width * newX
+        number oldHeight = height * scaleY
+        number newHeight = height * newY
+
+        number xAdjust = (oldWidth - newWidth) / 2
+        number yAdjust = (oldHeight - newHeight) / 2
+        Translate(xAdjust, yAdjust)
+        SetScale(newX, newY)
     end
 
     /*
