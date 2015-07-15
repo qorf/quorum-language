@@ -19,7 +19,7 @@ import org.openide.util.NbBundle.Messages;
 id = "org.magnification.ToggleFullScreen")
 @ActionRegistration(displayName = "#CTL_ToggleFullScreen")
 @ActionReferences({
-    @ActionReference(path = "Menu/Tools/Magnification", position = 25),
+    @ActionReference(path = "Menu/Tools/Accessibility", position = 25),
     @ActionReference(path = "Shortcuts", name = "O-BACK_QUOTE")
 })
 @Messages("CTL_ToggleFullScreen=Toggle Full Screen Mode")

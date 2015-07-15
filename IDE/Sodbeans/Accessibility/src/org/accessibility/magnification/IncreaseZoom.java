@@ -19,7 +19,7 @@ import org.openide.util.NbBundle.Messages;
 id = "org.magnification.IncreaseZoom")
 @ActionRegistration(displayName = "#CTL_IncreaseZoom")
 @ActionReferences({
-    @ActionReference(path = "Menu/Tools/Magnification", position = 200, separatorBefore = 150),
+    @ActionReference(path = "Menu/Tools/Accessibility", position = 200, separatorBefore = 150),
     @ActionReference(path = "Shortcuts", name = "D-BACK_QUOTE")
 })
 @Messages("CTL_IncreaseZoom=Increase Zoom")
