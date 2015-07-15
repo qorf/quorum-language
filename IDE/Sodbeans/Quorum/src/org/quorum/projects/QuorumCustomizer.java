@@ -135,6 +135,7 @@ public class QuorumCustomizer implements CustomizerProvider{
             
             if(name != null) {
                 properties.setProperty(QuorumProject.QUORUM_EXECUTABLE_NAME, name);
+                ((QuorumProject) project).getCompiler().SetName(name);
             } else {
                 properties.remove(QuorumProject.QUORUM_EXECUTABLE_NAME);
             }
