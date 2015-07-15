@@ -50,6 +50,11 @@ public class Math {
         return java.lang.Math.acos(value);
     }
 
+    public double InverseTangent(double x, double y)
+    {
+        return java.lang.Math.atan2(y, x);
+    }
+    
     public double InverseTangent(double value){ 
         return java.lang.Math.atan(value);
     }

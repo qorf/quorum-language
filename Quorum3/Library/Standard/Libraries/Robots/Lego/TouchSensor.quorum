@@ -13,25 +13,28 @@ use Libraries.Robots.Lego.Sound
 use Libraries.Robots.Lego.Motor
 use Libraries.Robots.Lego.Utility
 
+class Main
+    action Main
+        TouchSensor touchSensor
+        Sound sound
+        Motor motor
+        Utility utility
 
-TouchSensor touchSensor
-Sound sound
-Motor motor
-Utility utility
-
-touchSensor:SetPort(touchSensor:PORT_2) //touch sensor connected to port 2 on the robot
-motor:SetSpeed(motor:MOTOR_B, 480)
-motor:SetSpeed(motor:MOTOR_C, 480)      //two motors used to move the robot, connected to ports B and C
-repeat 5 times
-    if touchSensor:IsPressed()
-        motor:RotateForward(motor:MOTOR_B)
-        motor:RotateForward(motor:MOTOR_C)    //robot will move forward if button was pressed
-    else
-        sound:Beep()    //robot will beep if the button was not pressed in
+        touchSensor:SetPort(touchSensor:PORT_2) //touch sensor connected to port 2 on the robot
+        motor:SetSpeed(motor:MOTOR_B, 480)
+        motor:SetSpeed(motor:MOTOR_C, 480)      //two motors used to move the robot, connected to ports B and C
+        repeat 5 times
+            if touchSensor:IsPressed()
+                motor:RotateForward(motor:MOTOR_B)
+                motor:RotateForward(motor:MOTOR_C)    //robot will move forward if button was pressed
+            else
+                sound:Beep()    //robot will beep if the button was not pressed in
+            end
+            utility:DelayMilliseconds(1000)  //check if the button is pressed in every second
+            motor:Stop(motor:MOTOR_B)
+            motor:Stop(motor:MOTOR_C)
+        end
     end
-    utility:DelayMilliseconds(1000)  //check if the button is pressed in every second
-    motor:Stop(motor:MOTOR_B)
-    motor:Stop(motor:MOTOR_C)
 end
 */
 
@@ -94,7 +97,7 @@ class TouchSensor
     Button button
     Utility utility
 
-    touchSensor:SetPort(touchSensor:PORT_1) //touch sensor connected to port 1 of the robot
+    touchSensor:SetPort(touchSensor:PORT_1)         //touch sensor connected to port 1 of the robot
     integer lightColor = 0
     repeat 20 times
         if touchSensor:IsPressed()
