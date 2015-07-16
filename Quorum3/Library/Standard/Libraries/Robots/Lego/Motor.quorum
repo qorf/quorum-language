@@ -4,7 +4,6 @@ use Libraries.Containers.Array
 /*
 This class is an object representation of a LEGO Mindstorms EV3 motor.
 It is used to control movement of the EV3 robot.
-By default, motors are set to move at 360 degrees per second.
 
 Attribute: Author Evan Pierzina
 
@@ -37,13 +36,14 @@ class Motor
     /*
     This action sets the speed of a motor.
     Alone, this action does not cause a motor to move, but rather, it lets the motor know how fast to go when it moves.
+    If this method is not called, motors will default to a speed of 360 degrees per second.
     
     Attribute: Parameter motorID represents which motor will be changed by this action.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
 
     Attribute: Parameter speed represents how fast the motor will turn in units of degrees per second.
     For example, if we want the motor to make one full rotation per second, we specify 360 for the speed.
-    Valid speeds are non-negative integers and values that exceed the maximum speed will rotate the motor at the maximum speed.
+    Valid speeds are non-negative integers and if values exceed the maximum speed the motors will just rotate at the maximum speed.
 
     The maximum speed is limited by battery voltage and how much the robot is already doing.
     If the robot is not doing any other tasks, the maximum speed should be around 600 to 900 (100 times battery voltage).
@@ -65,7 +65,6 @@ class Motor
 
     /*
     This action will cause the specified motor to rotate forward until stopped by the Stop action, or if the program ends.
-    If this method is not called, motors will default to a speed of 360 degrees per second.
     
     Attribute: Parameter motorID represents which motor will be changed by this action.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
@@ -93,7 +92,7 @@ class Motor
     system action RotateForward(text motorID)
 
     /*
-    This action will cause the specified motor to rotate forward until stopped by the Stop action, or if the program ends.
+    This action will cause the specified motor to rotate backward until stopped by the Stop action, or if the program ends.
     
     Attribute: Parameter motorID represents which motor will be changed by this action. There are class constants that can be used here.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
@@ -147,8 +146,8 @@ class Motor
     Attribute: Parameter motorID specifies the motor that will rotate. There are class constants that can be used here.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
 
-    Attribute: Parameter degrees tells the motor how many degrees to move by.
-    Negative values will cause the motor to roatate backwards by that amount of degrees.
+    Attribute: Parameter degrees tells the motor how many degrees to rotate by.
+    Negative values will cause the motor to roatate backwards.
     
     Attribute: Author Evan Pierzina
 
@@ -168,7 +167,7 @@ class Motor
     system action RotateByDegrees(text motorID, integer degrees)
 
     /*
-    This action causes a motor to move to a certain degree, based on its current rotation.
+    This action causes a motor to move to a certain degree, based on its current rotation memory.
 
     Attribute: Parameter motorID specifies the motor that will rotate. There are class constants that can be used here.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
@@ -254,7 +253,7 @@ class Motor
     motor:SetSpeed(motor:MOTOR_A, 300)
     motor:RotateToDegree(motor:MOTOR_A, 360) //after this, the motor's rotation is at 180 degrees
     sound:Beep()
-    motor:ResetRotation(motor:MOTOR_A)       //this will change the motor's rotation to 0, without moving the motor
+    motor:ResetRotation(motor:MOTOR_A)       //this will change the motor's rotation memory to 0, without moving the motor
     motor:RotateToDegree(motor:MOTOR_A, 360) //since the motor's current degree was reset to 0, this will move it 180 degrees forward
     sound:BeepTwice()
     */
@@ -264,10 +263,10 @@ class Motor
     /*
     This action will give the position of a motor based on how many degrees it has rotated.
     
-    Parameter: motorID specifies the motor being checked for its position. There are class constants that can be used here.
+    Attribute: Parameter motorID specifies the motor being checked for its position. There are class constants that can be used here.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
     
-    Parameter: Returns the position of the motor in degrees, based on how much it has rotated.
+    Attribute: Returns the position of the motor in degrees, based on how much it has rotated.
     
     Attribute: Author Evan Pierzina
 
@@ -294,10 +293,10 @@ class Motor
     /*
     This action will give the speed associated with the motor requested.
     
-    Parameter: motorID specifies the motor being checked for its speed. There are class constants that can be used here.
+    Attribute: Parameter motorID specifies the motor being checked for its speed. There are class constants that can be used here.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
     
-    Parameter: Returns the speed associated with the motor requested in units of degrees per second.
+    Attribute: Returns the speed associated with the motor requested in units of degrees per second.
     
     Attribute: Author Evan Pierzina
 
@@ -324,12 +323,12 @@ class Motor
     /*
     This action is used to find out if a specific motor is currently moving or not.
     It can be used to detect if a motor is stalled.
-    It takes about one second of a motor trying to move before it is determined to be stalled, so calling this the instant a motor gets stuck will not 
+    It takes about one second of a motor failing to move before it is determined to be stalled.
     
     Attribute: Parameter motorID specifies the motor being checked for movement. There are class constants that can be used here.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
     
-    Parameter: Returns a boolean value where the value 'true' means the motor is moving, and the value 'false' means the motor is not moving.
+    Attribute: Returns a boolean value where the value 'true' means the motor is moving, and the value 'false' means the motor is not moving (stalled).
     
     Attribute: Author Evan Pierzina
 

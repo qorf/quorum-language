@@ -177,7 +177,7 @@ class Screen
     
     Attribute: Parameter message is what will be displayed on the screen
     
-    Attribute: Parameter specifies what text line the message should appear on.
+    Attribute: Parameter line specifies what text line the message should appear on.
     Valid text lines are 0 through 7, where 0 is the top line.
     
     Attribute: Author Evan Pierzina
@@ -539,7 +539,7 @@ class Screen
     button:WaitForButtonPress()
     */
     
-    system action EraseRectangleOutline(integer xStart, integer yStart, integer width, integer height)
+    system action EraseRectangleOutline(integer xBottomLeft, integer yBottomLeft, integer width, integer height)
     
     /*
     This action draws a filled in rectangle on screen.
@@ -583,7 +583,7 @@ class Screen
     end
     */
     
-    system action DrawRectangleFull(integer xStart, integer yStart, integer width, integer height)
+    system action DrawRectangleFull(integer xBottomLeft, integer yBottomLeft, integer width, integer height)
     
     /*
     This action erases pixels in the shape of a full rectangle from the screen.
@@ -592,9 +592,9 @@ class Screen
     
     Attribute: Parameter yBottomLeft specifies the y coordinate of the rectangle's bottom left corner where the rectangle starts from.
     
-    Attribute: Parameter width specifies how wide the rectangle should be, in pixels. The visible screen pixels for width range from 0 to 177.
+    Attribute: Parameter width specifies how wide the ellipse should be, in pixels. The visible screen pixels for width range from 0 to 177.
     
-    Attribute: Parameter height specifies how tall the rectangle should be, in pixels. The visible screen pixels for height range from 0 to 127.
+    Attribute: Parameter height specifies how tall the ellipse should be, in pixels. The visible screen pixels for height range from 0 to 127.
     
     Attribute: Author Evan Pierzina
     
@@ -628,7 +628,7 @@ class Screen
     end
     */
     
-    system action EraseRectangleFull(integer xStart, integer yStart, integer width, integer height)
+    system action EraseRectangleFull(integer xBottomLeft, integer yBottomLeft, integer width, integer height)
     
     /*
     This action draws an ellipse outline on the screen.
@@ -637,9 +637,9 @@ class Screen
     
     Attribute: Parameter y specifies the center y coordinate of the ellipse.
     
-    Attribute: Parameter width specifies how wide the rectangle should be, in pixels. The visible screen pixels for width range from 0 to 177.
+    Attribute: Parameter width specifies how wide the ellipse should be, in pixels. The visible screen pixels for width range from 0 to 177.
     
-    Attribute: Parameter height specifies how tall the rectangle should be, in pixels. The visible screen pixels for height range from 0 to 127.
+    Attribute: Parameter height specifies how tall the ellipse should be, in pixels. The visible screen pixels for height range from 0 to 127.
 
     Attribute: Author Evan Pierzina
     
@@ -673,9 +673,9 @@ class Screen
     
     Attribute: Parameter y specifies the center y coordinate of the ellipse.
     
-    Attribute: Parameter width specifies how wide the rectangle should be, in pixels. The visible screen pixels for width range from 0 to 177.
+    Attribute: Parameter width specifies how wide the ellipse should be, in pixels. The visible screen pixels for width range from 0 to 177.
     
-    Attribute: Parameter height specifies how tall the rectangle should be, in pixels. The visible screen pixels for height range from 0 to 127.
+    Attribute: Parameter height specifies how tall the ellipse should be, in pixels. The visible screen pixels for height range from 0 to 127.
     
     Attribute: Author Evan Pierzina
     
@@ -710,9 +710,9 @@ class Screen
     
     Attribute: Parameter y specifies the center y coordinate of the ellipse.
     
-    Attribute: Parameter width specifies how wide the rectangle should be, in pixels. The visible screen pixels for width range from 0 to 177.
+    Attribute: Parameter width specifies how wide the ellipse should be, in pixels. The visible screen pixels for width range from 0 to 177.
     
-    Attribute: Parameter height specifies how tall the rectangle should be, in pixels. The visible screen pixels for height range from 0 to 127.
+    Attribute: Parameter height specifies how tall the ellipse should be, in pixels. The visible screen pixels for height range from 0 to 127.
     
     Attribute: Author Evan Pierzina
     
@@ -754,9 +754,9 @@ class Screen
     
     Attribute: Parameter y specifies the center y coordinate of the ellipse.
     
-    Attribute: Parameter width specifies how wide the rectangle should be, in pixels. The visible screen pixels for width range from 0 to 177.
+    Attribute: Parameter width specifies how wide the ellipse should be, in pixels. The visible screen pixels for width range from 0 to 177.
     
-    Attribute: Parameter height specifies how tall the rectangle should be, in pixels. The visible screen pixels for height range from 0 to 127.
+    Attribute: Parameter height specifies how tall the ellipse should be, in pixels. The visible screen pixels for height range from 0 to 127.
     
     Attribute: Author Evan Pierzina
     
