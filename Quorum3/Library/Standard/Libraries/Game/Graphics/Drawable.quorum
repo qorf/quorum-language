@@ -76,6 +76,10 @@ class Drawable is TextureRegion, Item
     private Color color
     private boolean useCustomColor = false
 
+    on create
+        color = color:White()
+    end
+
     /*
         This action will create a new texture from the image file located at the
         given file path. This texture will then be loaded into this Drawable.
@@ -529,6 +533,7 @@ class Drawable is TextureRegion, Item
     */
     action SetColor(number red, number green, number blue, number alpha)
         useCustomColor = true
+        color:SetColor(red, green, blue, alpha)
         BitwiseOperations ops
         NumberUtilities utility
 
@@ -700,7 +705,7 @@ class Drawable is TextureRegion, Item
         end
     */
     action GetColor returns Color
-        NumberUtilities utility
+        /*NumberUtilities utility
         BitwiseOperations ops
 
         Array<number> vertices = GetVertices()
@@ -711,7 +716,7 @@ class Drawable is TextureRegion, Item
         color:SetGreen(ops:And(ops:ShiftRight(intBits, 8), 255) / 255.0)
         color:SetBlue(ops:And(ops:ShiftRight(intBits, 16), 255) / 255.0)
         color:SetAlpha(ops:And(ops:ShiftRight(intBits, 24), 255) / 255.0)
-
+        */
         return color
     end
 
