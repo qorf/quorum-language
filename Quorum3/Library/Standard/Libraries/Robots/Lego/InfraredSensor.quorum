@@ -105,10 +105,10 @@ class InfraredSensor
 
     /*
     This action uses the infrared sensor to measure the distance between it and a physical object directly ahead of it.
-    The effective range for measuring distance is between 5 and 40 centimeters.
+    The reliable range for measuring distance is up to around 50 centimeters.
 
     Attribute: Returns an integer representation that corresponds to units of centimeters between the sensor and object.
-    The reflectivity of the object may cause the number to be inaccurate. Possible return values range from 5 to 55.
+    The reflectivity of the object may cause the number to be inaccurate. Possible return values range from 5 to around 50, depending on the object.
 
     Attribute: Author Evan Pierzina
 
@@ -143,7 +143,7 @@ class InfraredSensor
     Values returned will be between -180 to 180, where:
         negative integers represent that the remote is to the left of the sensor,
         positive integers represent that the remote is to the right of the sensor,
-        a value of 0 indicates that the remote is directly ahead of the sensor.
+        and a value of 0 indicates that the remote is directly ahead of the sensor.
     
     Attribute: Author Evan Pierzina
     
@@ -189,7 +189,7 @@ class InfraredSensor
     When the switch is all the way up, the remote's channel is 1 and when the switch is all the way down, the remote's channel is 4.
 
     Attribute: Returns an integer representing the centimeters between the infrared sensor and the EV3 remote using the specified channel.
-    Return values are 1 through 100 if the remote is found, otherwise the value will be the maximum integer value.
+    Return values are 1 through 100 if the remote is found, otherwise the value will be the maximum integer value (2147483647).
     
     Attribute: Author Evan Pierzina
     

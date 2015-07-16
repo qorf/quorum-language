@@ -5,6 +5,8 @@
  */
 package org.accessibility.windows;
 
+import java.io.File;
+
 /**
  *
  * @author stefika
@@ -89,6 +91,7 @@ public class AccessibilityStartup extends javax.swing.JDialog {
     public boolean isSelfVoiced() {
         return selfVoiceCheckBox.isSelected();
     }
+    
     /**
      * @param args the command line arguments
      */

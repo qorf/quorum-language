@@ -37,15 +37,15 @@ class ColorSensor
     public constant integer GREEN = 1
     public constant integer BLUE = 2
     public constant integer YELLOW = 3
-    public constant integer MAGENTA = 4
-    public constant integer ORANGE = 5
+//    public constant integer MAGENTA = 4
+//    public constant integer ORANGE = 5
     public constant integer WHITE = 6
     public constant integer BLACK = 7
-    public constant integer PINK = 8
+//    public constant integer PINK = 8
     public constant integer GRAY = 9
-    public constant integer LIGHT_GRAY = 10
-    public constant integer DARK_GRAY = 11
-    public constant integer CYAN = 12
+//    public constant integer LIGHT_GRAY = 10
+//    public constant integer DARK_GRAY = 11
+//    public constant integer CYAN = 12
     public constant integer BROWN = 13
     public constant integer PORT_1 = 1
     public constant integer PORT_2 = 2
@@ -55,7 +55,7 @@ class ColorSensor
     /*
     This action lets the program know which port on the robot that the color sensor being used is plugged into.
     As such, this action must be called before any other action in the ColorSensor class will work.
-    After calling this action, the color sensor's red light will turn on.
+    After calling this action, the color sensor's red light will turn on once it has fully initiated.
 
     Attribute: Parameter portNumber specifies the port on the robot that the color sensor is plugged into.
     The port number corresponds to the actual number printed above the port on the EV3 brick. Valid port numbers are 1, 2, 3 or 4.
@@ -80,9 +80,9 @@ class ColorSensor
     This action uses the color sensor to read the color in front of it and send back the color as a text variable.
     The color sensor is capable of reading 7 different colors: red, green, blue, yellow, brown, white, and black.
     If the color sensor is too far away from the color it is trying to read, it will return the text "none".
-    During the measurement, the color sensor's white light will be emitted to help pick up an object's color.
+    During the measurement, the color sensor's white light will be emitted to help determine an object's color.
     
-    Attribute: Returns the color that was red by the sensor in all lower-case letters. Possible colors that can be returned are:
+    Attribute: Returns the color that was read by the sensor in all lower-case letters. Possible colors that can be returned are:
     red, green, blue, yellow, brown, white, or black.  If the sensor cannot read a color, it will return the text "none".
 
     Attribute: Author Evan Pierzina
@@ -122,8 +122,8 @@ class ColorSensor
     Motor motor
     
     colorSensor:SetPort(3)
-    motor:RotateForward("B")      //two motors used to move the robot forward
-    motor:RotateForward("C")
+    motor:RotateForward("B")
+    motor:RotateForward("C")      //two motors used to move the robot forward
     repeat until colorSensor:GetLightLevel() > 0.15
        output "Light level: " + colorSensor:GetLightLevel()
     end
@@ -133,11 +133,11 @@ class ColorSensor
     
     /*
     This action uses the color sensor to measure the reflection of an object.
-    It accomplishes this by shooting a red light and then measuring the intensity of that light reflected back.
+    It accomplishes this by projecting a red light and then measuring the intensity of that light reflected back.
 
     Attribute: Returns a number between 0.0 and 1.0 that represents the intensity of light being reflecting.
     The values range from no reflection (0.0) to complete reflection (1.0).
-    If an object is too far away, no relection will be picked up by the sensor, resulting int a value of 0.0.
+    If an object is too far away, no relection will be picked up by the sensor, resulting in a value of 0.0.
 
     Attribute: Author Evan Pierzina
 
@@ -216,7 +216,7 @@ class ColorSensor
     elseif lightColor = "white"
         sound:BeepSequenceUp()
     else
-        sound:Buzz()
+        sound:Buzz()    //the light is currently off
     end
     */
     
@@ -247,7 +247,7 @@ class ColorSensor
     system action IsLightOn returns boolean
     
     /*
-    This action will get the red, green, and blue levels of a nearby object.
+    This action will provide information on the red, green, and blue levels of a measured object.
     
     Attribute: Returns a number array with three values representing the intensity of red, green, and blue measured, respectively.
     Values will range between the color not being read at all (0.0) and the color being fully present in the reading (1.0).

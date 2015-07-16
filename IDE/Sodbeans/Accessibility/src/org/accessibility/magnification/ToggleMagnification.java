@@ -19,7 +19,7 @@ import org.openide.util.NbBundle.Messages;
 id = "org.magnification.ToggleMagnification")
 @ActionRegistration(displayName = "#CTL_ToggleMagnification")
 @ActionReferences({
-    @ActionReference(path = "Menu/Tools/Magnification", position = -100),
+    @ActionReference(path = "Menu/Tools/Accessibility", position = -100),
     @ActionReference(path = "Shortcuts", name = "DS-BACK_QUOTE")
 })
 @Messages("CTL_ToggleMagnification=Toggle Magnification")

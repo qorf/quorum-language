@@ -13,7 +13,11 @@ import java.awt.Window;
 import java.awt.event.AWTEventListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Iterator;
 import javax.accessibility.AccessibleContext;
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -31,6 +35,7 @@ import org.openide.windows.WindowManager;
 import org.sodbeans.phonemic.SpeechPriority;
 import org.sodbeans.phonemic.TextToSpeechFactory;
 import org.sodbeans.phonemic.tts.TextToSpeech;
+import org.sodbeans.phonemic.tts.TextToSpeechEngine;
 
 public class Installer extends ModuleInstall implements Runnable{
     
@@ -39,6 +44,95 @@ public class Installer extends ModuleInstall implements Runnable{
     public static final String STARTUP_STRING = "Starting NetBeans";
     private ScreenReader reader = null;
     private TextToSpeech speech = null;
+    
+    /**
+     * This action basically checks to see if there is a sleep script installed
+     * for either JAWS (versions 9 - 16) or NVDA. If there is one installed, 
+     * then the user must have installed Sodbeans from a non-plugin, which means 
+     * they may be using a screen reader. If the user installed from a plugin, 
+     * there will be no sleep script and we will return false.
+     * 
+     * TODO: Check the App Data folder properly. Currently, there are stubs 
+     * in place until those locations are determined.
+     * 
+     * @return 
+     */
+    public static boolean isJawsSleepScriptDetected() {
+        String env = System.getenv("APPDATA");
+        if(env == null) { //either the folder cannot be found or we are not on Windows
+            return false;
+        }
+        //support JAWS versions 9 through 16
+        for(int i = 9; i < 17; i++) {
+            File file = new File(env + "\\Freedom Scientific\\JAWS\\14h.0\\Settings\\enu\\sodbeans.jcf");
+            if(file.exists()) {
+                //the file exists on the system, so there is a sleep script installed 
+                //for Sodbeans. Return true so that the system knows to temporarily 
+                //turn on self-voicing
+                return true;
+            }
+        }
+        
+        //check if the NVDA sleep scripts were installed.
+        return false;
+    }
+    
+    public static boolean isNVDASleepScriptDetected() {
+        String env = System.getenv("APPDATA");
+        if(env == null) { //either the folder cannot be found or we are not on Windows
+            return false;
+        }
+        
+        File file = new File(env + "\\nvda\\appModules\\sodbeans.py");
+        if(file.exists()) { //we have an NVDA script, so same deal
+            return true;
+        }
+        
+        //check if the NVDA sleep scripts were installed.
+        return false;
+    }
+    
+    public static boolean isJAWSRunning() {
+        return isProcessRunning("jfw");
+    }
+    
+    public static boolean isNVDARunning() {
+        return isProcessRunning("nvda");
+    }
+    
+    public static boolean isProcessRunning(String process) {
+        try {
+            String line;
+            String pidInfo ="";
+            Process p = Runtime.getRuntime().exec(System.getenv("windir") +"\\system32\\"+"tasklist.exe");
+            if(p == null) {
+                return false;
+            }
+            BufferedReader input =  new BufferedReader(new InputStreamReader(p.getInputStream()));
+            while ((line = input.readLine()) != null) { 
+                pidInfo+=line;
+            }
+            input.close();
+            if(pidInfo.contains(process))
+            {
+                return true;
+            }
+        } catch (IOException ex) {
+        }
+        return false;
+    }
+    
+    public boolean isWindowsScreenReaderAvailable() {
+        Iterator<TextToSpeechEngine> engines = speech.getAvailableEngines();
+        while(engines.hasNext()) {
+            TextToSpeechEngine engine = engines.next();
+            if(engine == TextToSpeechEngine.JAWS ||
+               engine == TextToSpeechEngine.NVDA) {
+                return true;
+            }
+        }
+        return false;
+    }
     
     @Override
     public void restored() {
@@ -52,16 +146,32 @@ public class Installer extends ModuleInstall implements Runnable{
         manager.invokeWhenUIReady(this);
     }
 
+    public boolean detectSleepingScreenReader() {
+        if(isJAWSRunning() && isJawsSleepScriptDetected()) {
+            return true;
+        }
+        
+        if(isNVDARunning() && isNVDASleepScriptDetected()) {
+            return true;
+        }
+        
+        return false;
+    }
     @Override
     public void run() {
         speech = TextToSpeechFactory.getDefaultTextToSpeech();
         JFrame frame = (JFrame) WindowManager.getDefault().getMainWindow();
-        
         if(!AccessibilityOptions.isStartedOnce()) {
+            //if we are on windows and a windows screen reader is available, 
+            //then we need to check if the user installed a sleep script 
+            boolean sleeping = detectSleepingScreenReader();
+            if(sleeping) {
+                AccessibilityOptions.setSelfVoicing(true);
+            }
             AccessibilityStartup startup = new AccessibilityStartup(frame, true);
             startup.setLocationRelativeTo(frame);
             startup.setVisible(true);
-            boolean voiced = startup.isSelfVoiced();
+            boolean voiced = startup.isSelfVoiced();            
             AccessibilityOptions.setDefaultAccessibilityOptions(voiced);
             AccessibilityOptions.setStartedOnce(true);
         }
