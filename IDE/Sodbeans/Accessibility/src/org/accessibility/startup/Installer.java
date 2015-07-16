@@ -55,9 +55,13 @@ public class Installer extends ModuleInstall implements Runnable{
      * @return 
      */
     public static boolean isWindowsSleepScriptDetected() {
+        String env = System.getenv("APPDATA");
+        if(env == null) { //either the folder cannot be found or we are not on Windows
+            return false;
+        }
         //support JAWS versions 9 through 16
         for(int i = 9; i < 17; i++) {
-            File file = new File("\"$APPDATA\\Freedom Scientific\\JAWS\\14h.0\\Settings\\enu\\sodbeans.jcf\" ");
+            File file = new File(env + "\\Freedom Scientific\\JAWS\\14h.0\\Settings\\enu\\sodbeans.jcf\" ");
             if(file.exists()) {
                 //the file exists on the system, so there is a sleep script installed 
                 //for Sodbeans. Return true so that the system knows to temporarily 
@@ -66,7 +70,7 @@ public class Installer extends ModuleInstall implements Runnable{
             }
         }
         
-        File file = new File("\"$APPDATA\\nvda\\appModules\"");
+        File file = new File(env + "\\nvda\\appModules\"");
         if(file.exists()) { //we have an NVDA script, so same deal
             return true;
         }
