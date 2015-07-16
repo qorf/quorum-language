@@ -61,7 +61,7 @@ public class Installer extends ModuleInstall implements Runnable{
         }
         //support JAWS versions 9 through 16
         for(int i = 9; i < 17; i++) {
-            File file = new File(env + "\\Freedom Scientific\\JAWS\\14h.0\\Settings\\enu\\sodbeans.jcf\" ");
+            File file = new File(env + "\\Freedom Scientific\\JAWS\\14h.0\\Settings\\enu\\sodbeans.jcf");
             if(file.exists()) {
                 //the file exists on the system, so there is a sleep script installed 
                 //for Sodbeans. Return true so that the system knows to temporarily 
@@ -70,7 +70,7 @@ public class Installer extends ModuleInstall implements Runnable{
             }
         }
         
-        File file = new File(env + "\\nvda\\appModules\"");
+        File file = new File(env + "\\nvda\\appModules\\sodbeans.py");
         if(file.exists()) { //we have an NVDA script, so same deal
             return true;
         }
