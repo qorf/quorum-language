@@ -93,11 +93,11 @@ public class Installer extends ModuleInstall implements Runnable{
     }
     
     public static boolean isJAWSRunning() {
-        return isProcessRunning("jfw.exe");
+        return isProcessRunning("jfw");
     }
     
     public static boolean isNVDARunning() {
-        return isProcessRunning("nvda.exe");
+        return isProcessRunning("nvda");
     }
     
     public static boolean isProcessRunning(String process) {
