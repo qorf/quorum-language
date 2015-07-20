@@ -66,7 +66,7 @@ class Game
         configuration:height = 600
 
         configuration:initialBackgroundColor = color
-
+/*
         Properties properties
         text os = properties:GetOperatingSystemName()
 
@@ -97,7 +97,7 @@ class Game
         
         GameStateManager manager
         manager:SetNativePath(path)
-        manager:SetOperatingSystem(os)
+        manager:SetOperatingSystem(os)*/
 
         Panel panel
         panel:SetName("Default Active Panel")
@@ -978,6 +978,7 @@ class Game
                         if temp:Contains(item1) and temp:Contains(item2)
                             found = true
                         end
+                        collisionCounter = collisionCounter + 1
                     end
 
                     if found = false
@@ -995,6 +996,7 @@ class Game
                         if temp:Contains(item1) and temp:Contains(item2)
                             found = true
                         end
+                        collisionCounter = collisionCounter + 1
                     end
 
                     if found = true
