@@ -106,7 +106,7 @@ public class GameState {
     public static void SetNativePath(String path)
     {
         nativePath = path;
-        System.load(GameState.GetNativePath());
+        System.load(nativePath);
     }
     
     public static String GetNativePath()
