@@ -70,7 +70,7 @@ public abstract class AudioData extends Data {
             return;
 	
 	alSourcei(sourceID, AL_BUFFER, bufferID);
-	alSourcei(sourceID, AL_LOOPING, AL_FALSE);
+	alSourcei(sourceID, AL_LOOPING, isLooping ? AL_TRUE : AL_FALSE);
 	alSourcef(sourceID, AL_GAIN, volume);
 	alSourcePlay(sourceID);
         //SetHorizontalPosition(pan);
