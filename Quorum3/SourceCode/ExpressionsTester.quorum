@@ -118,6 +118,7 @@ class ExpressionsTester
         InvalidExpression()
         InvalidVariableName()
         MainNotCapitalized()
+        MissingVariable()
         NoVariable()
         NoVariable2()
         SetInitialize()
@@ -1309,6 +1310,15 @@ class ExpressionsTester
         Array<File> files
         File main
         main:SetPath(path + "MainNotCapitalized.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingVariable
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingVariable.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

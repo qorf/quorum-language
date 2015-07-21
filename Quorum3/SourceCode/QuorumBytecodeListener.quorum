@@ -368,12 +368,18 @@ class QuorumBytecodeListener is QuorumSourceListener
 //        end
         recentStatementWasReturn = true
         QuorumOpcode op = opcodeStack:Pop()
+        if op = undefined
+            return now //This cannot be determined, but the error has been issued already.
+        end
         AlertOpcode al
         al:SetLocation(context:GetLocation())
         al:SetOpcode(op)
         al:SetMethodWriter(methodWriter)
 
         Type type = op:GetType()
+        if type = undefined
+            return now //This cannot be determined, but the error has been issued already.
+        end
         key = type:GetStaticKey()
         boolean isText = type:IsText()
         boolean isErrorType = false
@@ -456,6 +462,9 @@ class QuorumBytecodeListener is QuorumSourceListener
 //            return now
 //        end
         QuorumOpcode op = opcodeStack:Pop()
+        if op = undefined
+            return now //This cannot be determined, but the error has been issued already.
+        end
         Type type = op:GetType()
 
         if type = undefined
@@ -483,6 +492,9 @@ class QuorumBytecodeListener is QuorumSourceListener
 //            return now
 //        end
         QuorumOpcode op = opcodeStack:Pop()
+        if op = undefined
+            return now //This cannot be determined, but the error has been issued already.
+        end
         Type type = op:GetType()
 
         if type = undefined
