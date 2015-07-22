@@ -241,6 +241,18 @@ public class Speech {
         speech.speakBlocking(value);
     }
     
+    public static void StaticSay(int value) {
+        speech.speakBlocking("" + value);
+    }
+    
+    public static void StaticSay(double value) {
+        speech.speakBlocking("" + value);
+    }
+    
+    public static void StaticSay(boolean value) {
+        speech.speakBlocking("" + value);
+    }
+    
     /**
      * @param args the command line arguments
      */
