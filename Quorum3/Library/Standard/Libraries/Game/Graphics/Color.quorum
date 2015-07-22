@@ -1263,5 +1263,40 @@ class Color
         return utility:EncodeColorIntegerAsNumber(result)
 
     end
+
+    /*
+    This action returns a new color with the given red, green, blue, and alpha
+    values, where 0 represents a total absence of that component and 1 
+    represents a full presence of it. Alpha is the opacity of a color, where 0 
+    represents total transparency and 1 represents total opacity.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                rectangle:LoadFilledRectangle(100, 50, color:CustomColor(1, 0.7, 0, 1))
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
+    action CustomColor(number red, number green, number blue, number alpha) returns Color
+        Color color
+        color:SetColor(red, green, blue, alpha)
+        return color
+    end
     
 end
