@@ -22,7 +22,7 @@ public class Game
             String os = System.getProperty("os.name");
             
             java.io.File file = new java.io.File(Game.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-            String runLocation = file.getParent();
+            String runLocation = file.getParentFile().getAbsolutePath();
             String lwjgl = runLocation + "/jni";
             System.setProperty("org.lwjgl.librarypath", lwjgl);
             
