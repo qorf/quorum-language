@@ -25,9 +25,13 @@ public class Motor {
     }
     
     public void SetSpeed(String motorID, int speed) throws IOException {
+        if (speed > 100)
+            speed = 100;
+        else if (speed < 0)
+            speed = 0;
         BaseRegulatedMotor motor = motors.get(motorID);
         if (MotorIsValid(motorID))
-            motor.setSpeed(speed);
+            motor.setSpeed((int)(speed * 0.01 * 720));  //speed is a percentage of the 720, which is the "max" speed
     }
     
     public void RotateForward(String motorID) throws IOException {
@@ -42,13 +46,13 @@ public class Motor {
             motor.backward();
     }
     
-    public void WaitForMotorToFinish(String motorID) throws IOException {
+    public void Wait(String motorID) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
         if (MotorIsValid(motorID))
             motor.waitComplete();
     }
     
-    public void RotateByDegrees(String motorID, int degrees) throws IOException {
+    public void RotateByDegrees(String motorID, double degrees) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
         if (motor != null) {
             BaseRegulatedMotor[] motorArray = new BaseRegulatedMotor[1];
@@ -58,12 +62,12 @@ public class Motor {
                 motorArray[0] = motors.get("A");
             motor.synchronizeWith(motorArray);
             motor.startSynchronization();
-            motor.rotate(degrees);      //all of the synchronization stuff is to make this not block
+            motor.rotate((int)Math.round(degrees));      //all of the synchronization stuff is to make this not block
             motor.endSynchronization();
         }
     }
     
-    public void RotateToDegree(String motorID, int degreeTarget) throws IOException {
+    public void RotateToDegree(String motorID, double degreeTarget) throws IOException {
         BaseRegulatedMotor motor = motors.get(motorID);
         if (motor != null) {
             BaseRegulatedMotor[] motorArray = new BaseRegulatedMotor[1];
@@ -73,7 +77,7 @@ public class Motor {
                 motorArray[0] = motors.get("A");
             motor.synchronizeWith(motorArray);
             motor.startSynchronization();
-            motor.rotateTo(degreeTarget);      //all of the synchronization stuff is to make this not block
+            motor.rotateTo((int)Math.round(degreeTarget));      //all of the synchronization stuff is to make this not block
             motor.endSynchronization();
         }
     }
@@ -107,7 +111,7 @@ public class Motor {
         if (motor == null)
             throw new IOException("Invalid motor ID specified. Valid options are: A, B, C, or D, but " + motorID + " was given.");
         else
-            return motor.getRotationSpeed();
+            return (int)(motor.getRotationSpeed() / 720 * 100);
     }
     
     public boolean IsMoving(String motorID) throws IOException {

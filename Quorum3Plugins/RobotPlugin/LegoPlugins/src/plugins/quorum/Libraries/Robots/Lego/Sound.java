@@ -23,6 +23,12 @@ public class Sound {
         lejos.hardware.Sound.playSample(audioFile);
     }
     
+    public void PlayAudio(String filePath) {
+        File audioFile;
+        audioFile = new File(filePath);
+        lejos.hardware.Sound.playSample(audioFile);
+    }
+    
     public int GetRemainingTime() {
         return lejos.hardware.Sound.getTime();
     }
