@@ -501,7 +501,7 @@ class Texture is Disposable
     system action Dispose
 
     /*
-    This action will create a new Texture with a black line that connects an
+    This action will create a new Texture with a white line that connects an
     imaginary point at 0,0 to the provided x,y coordinates.
 
     Attribute: Example
@@ -527,9 +527,9 @@ class Texture is Disposable
             end
     */
     action LoadLine(integer x, integer y)
-        Color black
-        black = black:Black()
-        LoadLine(x, y, black)
+        Color white
+        white = white:White()
+        LoadLine(x, y, white)
     end
 
     /*
@@ -565,13 +565,14 @@ class Texture is Disposable
         PixelMap pixmap
         Format format
         format:SetValue(format:RGBA8888)
-        pixmap:CreatePixelMap(x, y, format)
+        pixmap:CreatePixelMap(x+1, y+1, format)
 
+        /*
         integer originX = 0
         integer originY = 0
         if x < 0
             
-        end
+        end*/
 
         pixmap:DrawLine(0, 0, x, y, color)
         
@@ -582,7 +583,7 @@ class Texture is Disposable
     end
 
     /*
-    This action will create a new Texture with a hollow black rectangle with
+    This action will create a new Texture with a hollow white rectangle with
     the given width and height.
 
     Attribute: Example
@@ -607,9 +608,9 @@ class Texture is Disposable
             end
     */
     action LoadRectangle(integer width, integer height)
-        Color black
-        black = black:Black()
-        LoadRectangle(width, height, black)
+        Color white
+        white = white:White()
+        LoadRectangle(width, height, white)
     end
 
     /*
@@ -657,7 +658,7 @@ class Texture is Disposable
     end
 
     /*
-    This action will create a new Texture with a solid black rectangle with
+    This action will create a new Texture with a solid white rectangle with
     the given width and height.
 
     Attribute: Example
@@ -683,9 +684,9 @@ class Texture is Disposable
             end
     */
     action LoadFilledRectangle(integer width, integer height)
-        Color black
-        black = black:Black()
-        LoadFilledRectangle(width, height, black)
+        Color white
+        white = white:White()
+        LoadFilledRectangle(width, height, white)
     end
 
     /*
@@ -732,7 +733,7 @@ class Texture is Disposable
     end
 
     /*
-    This action will create a new Texture with a hollow black circle with the
+    This action will create a new Texture with a hollow white circle with the
     given radius.
 
     Attribute: Example
@@ -757,9 +758,9 @@ class Texture is Disposable
             end
     */
     action LoadCircle(integer radius)
-        Color black
-        black = black:Black()
-        LoadCircle(radius, black)
+        Color white
+        white = white:White()
+        LoadCircle(radius, white)
     end
 
     /*
@@ -806,7 +807,7 @@ class Texture is Disposable
     end
 
     /*
-    This action will create a new Texture with a solid black circle with the
+    This action will create a new Texture with a solid white circle with the
     given radius.
 
     Attribute: Example
@@ -832,9 +833,9 @@ class Texture is Disposable
             end
     */
     action LoadFilledCircle(integer radius)
-        Color black
-        black = black:Black()
-        LoadFilledCircle(radius, black)
+        Color white
+        white = white:White()
+        LoadFilledCircle(radius, white)
     end
 
     /*
@@ -881,7 +882,7 @@ class Texture is Disposable
     end
 
     /*
-    This action will create a new Texture with a solid black triangle that is
+    This action will create a new Texture with a solid white triangle that is
     made of the points identified by the three given points.
 
     Attribute: Example
@@ -907,9 +908,9 @@ class Texture is Disposable
             end
     */
     action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3)
-        Color black
-        black = black:Black()
-        LoadFilledTriangle(x1, y1, x2, y2, x3, y3, black)
+        Color white
+        white = white:White()
+        LoadFilledTriangle(x1, y1, x2, y2, x3, y3, white)
     end
 
     /*

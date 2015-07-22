@@ -1151,9 +1151,11 @@ class Drawable is TextureRegion, Item
             end
     */
     action LoadLine(integer x, integer y)
-        Color black
-        black = black:Black()
-        LoadLine(x, y, black)
+        Color color
+        Texture temp
+        temp:LoadLine(x, y)
+        Load(temp)
+        SetColor(color:Black())
     end
 
     /*
@@ -1185,8 +1187,9 @@ class Drawable is TextureRegion, Item
     */
     action LoadLine(integer x, integer y, Color color)
         Texture temp
-        temp:LoadLine(x, y, color)
+        temp:LoadLine(x, y)
         Load(temp)
+        SetColor(color)
     end
 
     /*
@@ -1213,9 +1216,11 @@ class Drawable is TextureRegion, Item
             end
     */
     action LoadRectangle(integer width, integer height)
-        Color black
-        black = black:Black()
-        LoadRectangle(width, height, black)
+        Color color
+        Texture temp
+        temp:LoadRectangle(width, height)
+        Load(temp)
+        SetColor(color:Black())
     end
 
     /*
@@ -1247,8 +1252,9 @@ class Drawable is TextureRegion, Item
     */
     action LoadRectangle(integer width, integer height, Color color)
         Texture temp
-        temp:LoadRectangle(width, height, color)
+        temp:LoadRectangle(width, height)
         Load(temp)
+        SetColor(color)
     end
 
     /*
@@ -1275,9 +1281,11 @@ class Drawable is TextureRegion, Item
             end
     */
     action LoadFilledRectangle(integer width, integer height)
-        Color black
-        black = black:Black()
-        LoadFilledRectangle(width, height, black)
+        Color color
+        Texture temp
+        temp:LoadFilledRectangle(width, height)
+        Load(temp)
+        SetColor(color:Black())
     end
 
     /*
@@ -1309,8 +1317,9 @@ class Drawable is TextureRegion, Item
     */
     action LoadFilledRectangle(integer width, integer height, Color color)
         Texture temp
-        temp:LoadFilledRectangle(width, height, color)
+        temp:LoadFilledRectangle(width, height)
         Load(temp)
+        SetColor(color)
     end
 
     /*
@@ -1337,9 +1346,11 @@ class Drawable is TextureRegion, Item
             end
     */
     action LoadCircle(integer radius)
-        Color black
-        black = black:Black()
-        LoadCircle(radius, black)
+        Color color
+        Texture temp
+        temp:LoadCircle(radius)
+        Load(temp)
+        SetColor(color)
     end
 
     /*
@@ -1370,8 +1381,9 @@ class Drawable is TextureRegion, Item
     */
     action LoadCircle(integer radius, Color color)
         Texture temp
-        temp:LoadCircle(radius, color)
+        temp:LoadCircle(radius)
         Load(temp)
+        SetColor(color)
     end
 
     /*
@@ -1398,9 +1410,11 @@ class Drawable is TextureRegion, Item
             end
     */
     action LoadFilledCircle(integer radius)
-        Color black
-        black = black:Black()
-        LoadFilledCircle(radius, black)
+        Color color
+        Texture temp
+        temp:LoadFilledCircle(radius)
+        Load(temp)
+        SetColor(color:Black())
     end
 
     /*
@@ -1423,7 +1437,7 @@ class Drawable is TextureRegion, Item
                     Color blue
                     blue:SetColor(0, 0, 1, 1)
                     Drawable circle
-                    circle:LoadCircle(75, blue)
+                    circle:LoadFilledCircle(75, blue)
                     circle:SetPosition(50, 50)
                     Add(circle)
                 end
@@ -1431,8 +1445,9 @@ class Drawable is TextureRegion, Item
     */
     action LoadFilledCircle(integer radius, Color color)
         Texture temp
-        temp:LoadFilledCircle(radius, color)
+        temp:LoadFilledCircle(radius)
         Load(temp)
+        SetColor(color)
     end
 
     /*
@@ -1461,9 +1476,11 @@ class Drawable is TextureRegion, Item
             end
     */
     action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3)
-        Color black
-        black = black:Black()
-        LoadFilledTriangle(x1, y1, x2, y2, x3, y3, black)
+        Color color
+        Texture temp
+        temp:LoadFilledTriangle(x1, y1, x2, y2, x3, y3)
+        Load(temp)
+        SetColor(color:Black())
     end
 
     /*
@@ -1496,8 +1513,9 @@ class Drawable is TextureRegion, Item
     */
     action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, Color color)
         Texture temp
-        temp:LoadFilledTriangle(x1, y1, x2, y2, x3, y3, color)
+        temp:LoadFilledTriangle(x1, y1, x2, y2, x3, y3)
         Load(temp)
+        SetColor(color)
     end
 
 end
