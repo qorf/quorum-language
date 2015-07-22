@@ -166,6 +166,38 @@ class Sound
 
     system action PlayAudio(File audioFile)
 
+    /*
+    This action plays an audio file stored on the robot.
+    The audio file must be in .wav format and use a single channel (mono).
+
+    Attribute: Parameter audioFile should be a file path that leads to a single channel .wav audio file.
+    
+    Attribute: Author Evan Pierzina
+    
+    Attribute: Example
+    use Libraries.Robots.Lego.Sound
+    use Libraries.Robots.Lego.Motor
+    use Libraries.Robots.Lego.Utility
+    use Libraries.System.File
+    
+    Sound sound
+    Motor motor
+    Utility utility
+
+    text audioFile = "sound.wav"          //assumes a file named sound.wav exists in the current directory
+    motor:RotateForward(motor:MOTOR_B)    //two motors used to move the robot, connected to ports B and C
+    motor:RotateBackward(motor:MOTOR_C)   //both motors go in opposite directions, causing the robot to spin in place
+    sound:SetVolume(100)
+    sound:PlayAudio(audioFile)
+    repeat while sound:IsPlaying()
+        utility:DelayMilliseconds(100)  //check every 100 milliseconds if the robot is still playing the audio
+    end
+    motor:Stop(motor:MOTOR_B)
+    motor:Stop(motor:MOTOR_C)
+    */
+
+    system action PlayAudio(text audioFile)
+
 //    /*
 //    This action gives the remaining time of whatever audio is currently playing.
 //    

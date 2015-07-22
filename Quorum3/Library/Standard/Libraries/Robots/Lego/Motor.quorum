@@ -36,17 +36,16 @@ class Motor
     /*
     This action sets the speed of a motor.
     Alone, this action does not cause a motor to move, but rather, it lets the motor know how fast to go when it moves.
-    If this method is not called, motors will default to a speed of 360 degrees per second.
+    If this method is not called, motors will default to 50% of the max speed.
     
     Attribute: Parameter motorID represents which motor will be changed by this action.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
 
-    Attribute: Parameter speed represents how fast the motor will turn in units of degrees per second.
-    For example, if we want the motor to make one full rotation per second, we specify 360 for the speed.
-    Valid speeds are non-negative integers and if values exceed the maximum speed the motors will just rotate at the maximum speed.
+    Attribute: Parameter speed represents how fast the motor will turn as a percentage of the max speed.
+    The max speed will cause the motor to complete two revolutions per second.
+    Valid speeds are integers between 0 and 100.
 
-    The maximum speed is limited by battery voltage and how much the robot is already doing.
-    If the robot is not doing any other tasks, the maximum speed should be around 600 to 900 (100 times battery voltage).
+    The maximum speed is limited by battery voltage and how much the robot is already doing, so a speed of 100 may exceed the motor's capabilities under some conditions. In this case, the motor will just move as fast as it can.
     
     Attribute: Author Evan Pierzina
 
@@ -55,9 +54,9 @@ class Motor
 
     Motor motor
     
-    motor:SetSpeed(motor:MOTOR_C, 720)          //two revolutions per second
+    motor:SetSpeed(motor:MOTOR_C, 100)          //two revolutions per second
     motor:RotateByDegrees(motor:MOTOR_C, 720)   //reaches rotation target in one second
-    motor:SetSpeed(motor:MOTOR_C, 360)          //one revolution per second
+    motor:SetSpeed(motor:MOTOR_C, 50)           //one revolution per second
     motor:RotateByDegrees(motor:MOTOR_C, -720)  //reaches rotation target in two seconds
     */
     
@@ -134,11 +133,11 @@ class Motor
     motor:SetSpeed(motor:MOTOR_B, 480)
     motor:RotateForward(motor:MOTOR_A)
     motor:RotateByDegrees(motor:MOTOR_B, 1440)
-    motor:WaitForMotorToFinish(motor:MOTOR_B)   //motor A will continue moving during this time, as well
+    motor:Wait(motor:MOTOR_B)   //motor A will continue moving during this time, as well
     motor:Stop(motor:MOTOR_A)
     */
     
-    system action WaitForMotorToFinish(text motorID)
+    system action Wait(text motorID)
 
     /*
     This action rotates a motor by the amount of degrees specified
@@ -156,15 +155,15 @@ class Motor
 
     Motor motor
     
-    motor:SetSpeed(motor:MOTOR_A, 600)
-    motor:SetSpeed(motor:MOTOR_B, 600)          //two motors used to move the robot, connected to ports A and B
+    motor:SetSpeed(motor:MOTOR_A, 75)
+    motor:SetSpeed(motor:MOTOR_B, 75)           //two motors used to move the robot, connected to ports A and B
     motor:RotateByDegrees(motor:MOTOR_A, 3600)  //motor A rotates 10 full revolutions forward
-    motor:WaitForMotorToFinish(motor:MOTOR_A)
+    motor:Wait(motor:MOTOR_A)
     motor:RotateByDegrees(motor:MOTOR_B, -3600) //motor B rotates 10 full revolutions backward
-    motor:WaitForMotorToFinish(motor:MOTOR_B)
+    motor:Wait(motor:MOTOR_B)
     */
     
-    system action RotateByDegrees(text motorID, integer degrees)
+    system action RotateByDegrees(text motorID, number degrees)
 
     /*
     This action causes a motor to move to a certain degree, based on its current rotation memory.
@@ -186,19 +185,19 @@ class Motor
     
     motor:SetSpeed(motor:MOTOR_C, 720)
     motor:RotateByDegrees(motor:MOTOR_C, 360) //rotates one revolution
-    motor:WaitForMotorToFinish(motor:MOTOR_C)
+    motor:Wait(motor:MOTOR_C)
     utility:DelayMilliseconds(500)
     motor:RotateToDegree(motor:MOTOR_C, 360)  //will do nothing since the motor is already at that degree
-    motor:WaitForMotorToFinish(motor:MOTOR_C)
+    motor:Wait(motor:MOTOR_C)
     utility:DelayMilliseconds(500)
     motor:RotateToDegree(motor:MOTOR_C, 720)  //rotates one more revolution from its starting position of 360 degrees
-    motor:WaitForMotorToFinish(motor:MOTOR_C)
+    motor:Wait(motor:MOTOR_C)
     utility:DelayMilliseconds(500)
     motor:RotateToDegree(motor:MOTOR_C, 0)    //rotates backwards two revolutions from its current position of 720 degrees
-    motor:WaitForMotorToFinish(motor:MOTOR_C)
+    motor:Wait(motor:MOTOR_C)
     */
     
-    system action RotateToDegree(text motorID, integer degreeTarget)
+    system action RotateToDegree(text motorID, number degreeTarget)
 
     /*
     This action reports the target degree of a rotating motor.
@@ -296,7 +295,7 @@ class Motor
     Attribute: Parameter motorID specifies the motor being checked for its speed. There are class constants that can be used here.
     Valid motor IDs are the capital letters A B C or D and correspond to the labelled ports on the EV3 brick.
     
-    Attribute: Returns the speed associated with the motor requested in units of degrees per second.
+    Attribute: Returns the speed associated with the motor requested in a percentage of the motor's max speed, between 0 and 100.
     
     Attribute: Author Evan Pierzina
 
@@ -310,8 +309,8 @@ class Motor
     motor:SetSpeed(motor:MOTOR_B, 50)
     motor:SetSpeed(motor:MOTOR_C, 50)
     repeat 5 times  
-        motor:SetSpeed(motor:MOTOR_C, motor:GetSpeed(motor:MOTOR_C) + 100)   //speeds up the motor rotation by 100 degrees per second from what it was
-        motor:SetSpeed(motor:MOTOR_B, motor:GetSpeed(motor:MOTOR_B) + 100)
+        motor:SetSpeed(motor:MOTOR_C, motor:GetSpeed(motor:MOTOR_C) + 10)   //speeds up the motor rotation by 10% each iteration
+        motor:SetSpeed(motor:MOTOR_B, motor:GetSpeed(motor:MOTOR_B) + 10)
         motor:RotateForward(motor:MOTOR_C)
         motor:RotateForward(motor:MOTOR_B)
         utility:DelayMilliseconds(1000) //lets the motors go forward for 1 second
@@ -374,7 +373,7 @@ class Motor
 //    motor:RotateByDegrees(motor:MOTOR_C, -720)      //these actions are stored and will not execute until the EndSynchronization action is called
 //    motor:RotateByDegrees(motor:MOTOR_B, 720)
 //    motor:EndSynchronization(motor:MOTOR_C)         //all of the stored motor actions will start executing now
-//    motor:WaitForMotorToFinish(motor:MOTOR_C)
+//    motor:Wait(motor:MOTOR_C)
 //    */
 //    
 //    system action Synchronize(text syncMotor, text otherMotor)
@@ -407,7 +406,7 @@ class Motor
 //    motor:RotateByDegrees(motor:MOTOR_B, 720)
 //    motor:RotateByDegrees(motor:MOTOR_A, 90)
 //    motor:EndSynchronization(motor:MOTOR_C)         //all of the stored motor actions will start executing now
-//    motor:WaitForMotorToFinish(motor:MOTOR_C)
+//    motor:Wait(motor:MOTOR_C)
 //    */
 //    
 //    system action Synchronize(text syncMotor, Array<text> otherMotors)
@@ -431,7 +430,7 @@ class Motor
 //    motor:RotateByDegrees(motor:MOTOR_C, -720)      //these actions are stored and will not execute until the EndSynchronization action is called
 //    motor:RotateByDegrees(motor:MOTOR_B, 720)
 //    motor:EndSynchronization(motor:MOTOR_C)         //all of the stored motor actions will start executing now
-//    motor:WaitForMotorToFinish(motor:MOTOR_C)
+//    motor:Wait(motor:MOTOR_C)
 //    */
 //    
 //    system action EndSynchronization(text leaderMotor)
