@@ -38,7 +38,7 @@ import quorum.Libraries.Language.Compile.CompilerErrorManager_;
 @ActionID(category = "Window", id = "org.quorum.windows.CompilerErrorTopComponent")
 @ActionReferences({
     @ActionReference(path = "Menu/Window", position = 950),
-    @ActionReference(path = "Shortcuts", name = "D-9")
+    @ActionReference(path = "Shortcuts", name = "CAS-9")
 })
 
 @TopComponent.OpenActionRegistration(
