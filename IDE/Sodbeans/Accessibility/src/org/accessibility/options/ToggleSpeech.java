@@ -22,7 +22,7 @@ import org.openide.util.NbBundle.Messages;
 )
 @ActionReferences({
     @ActionReference(path = "Menu/Tools/Accessibility", position = -200),
-    @ActionReference(path = "Shortcuts", name = "SM-T")
+    @ActionReference(path = "Shortcuts", name = "CAS-T")
 })
 @Messages("CTL_ToggleSpeech=Speech Toggle")
 public final class ToggleSpeech implements ActionListener {
