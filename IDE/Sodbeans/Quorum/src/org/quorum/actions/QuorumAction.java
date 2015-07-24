@@ -5,6 +5,7 @@
  */
 package org.quorum.actions;
 
+import com.sun.media.jfxmedia.logging.Logger;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
@@ -55,6 +56,7 @@ public abstract class QuorumAction implements Action {
     private HashMap<String, Object> values = new HashMap<String, Object>();
     private Process process = null;
     InputOutput io;
+    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(QuorumAction.class.getName());
 
     QuorumAction(QuorumProject project) {
         this.project = project;
@@ -122,19 +124,23 @@ public abstract class QuorumAction implements Action {
         Iterator_ it = listing.GetIterator();
         while(it.HasNext()) {
             quorum.Libraries.System.File_ next = (quorum.Libraries.System.File_) it.Next();
-            FileObject fo = org.quorum.support.Utility.toFileObject(next);
-            try {
-                DataObject dataObj = DataObject.find(fo);
-                if (dataObj != null) {
-                    SaveCookie cookie = dataObj.getLookup().lookup(SaveCookie.class);
-                    if (cookie != null) {
-                        cookie.save();
+            if(next == null) {
+                logger.log(java.util.logging.Level.INFO, "Iterator returned null file from compiler in QuorumAction.build().");
+            } else {
+                FileObject fo = org.quorum.support.Utility.toFileObject(next);
+                try {
+                    DataObject dataObj = DataObject.find(fo);
+                    if (dataObj != null) {
+                        SaveCookie cookie = dataObj.getLookup().lookup(SaveCookie.class);
+                        if (cookie != null) {
+                            cookie.save();
+                        }
                     }
+                } catch (DataObjectNotFoundException ex) {
+                    Exceptions.printStackTrace(ex);
+                } catch (IOException ex) {
+                    Exceptions.printStackTrace(ex);
                 }
-            } catch (DataObjectNotFoundException ex) {
-                Exceptions.printStackTrace(ex);
-            } catch (IOException ex) {
-                Exceptions.printStackTrace(ex);
             }
         }
         long start = System.currentTimeMillis();
