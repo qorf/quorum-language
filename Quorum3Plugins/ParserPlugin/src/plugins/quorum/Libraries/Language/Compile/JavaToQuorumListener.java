@@ -139,7 +139,9 @@ public class JavaToQuorumListener implements QuorumListener {
     @Override
     public void enterFullClassDeclaration(@NotNull QuorumParser.FullClassDeclarationContext ctx) {
         FullClassDeclarationContext context = new FullClassDeclarationContext();
-        context.className = ctx.ID().getText();
+        if(ctx.ID() != null) {
+            context.className = ctx.ID().getText();
+        }
         setLocation(ctx, context);
         fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterFullClassDeclaration(context);
@@ -148,7 +150,9 @@ public class JavaToQuorumListener implements QuorumListener {
     @Override
     public void exitFullClassDeclaration(@NotNull QuorumParser.FullClassDeclarationContext ctx) {
         FullClassDeclarationContext context = new FullClassDeclarationContext();
-        context.className = ctx.ID().getText();
+        if(ctx.ID() != null) {
+            context.className = ctx.ID().getText();
+        }
         setLocation(ctx, context);
         
         QualifiedName name = new QualifiedName();
