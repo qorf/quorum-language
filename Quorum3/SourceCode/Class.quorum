@@ -1032,6 +1032,9 @@ class Class is Symbol
     end
 
     private action ResolveType(Variable variable, Type type, SymbolTable table, CompilerErrorManager errors)
+        if type = undefined
+            return now
+        end
         if not type:IsPrimitive() //if it's a primitive, do nothing
             text key = type:GetStaticKey()
             Class clazz = GetClass(key, table, errors)
