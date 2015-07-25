@@ -146,7 +146,17 @@ class Parser is QuorumSourceListener
         Location loc = b:GetLocation()
         loc:SetLocation(context:GetLocation())
         ExitBlock(b)
+        text source = GetSource()
+        number size = source:GetSize() + 1
+
+        currentAction:SetIndexEnd(cast(integer, size))
+        Block actionBlock = currentAction:GetBlock()
+        actionBlock:SetIndexEnd(cast(integer, size))
+
         ExitClass()
+        currentClass:SetLocation(context:GetLocation())
+        currentClass:SetIndexEnd(cast(integer, size))
+        loc:SetIndexEnd(cast(integer, size))
     end
 
     action ExitClass

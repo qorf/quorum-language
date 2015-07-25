@@ -10,6 +10,15 @@ class QuorumSourceListener
     TypeChecker typeChecker = undefined
     File file = undefined
     CompilerErrorManager compilerErrorManager = undefined
+    text source = ""
+    
+    action GetSource returns text
+        return source
+    end
+
+    action SetSource(text source)
+        me:source = source
+    end
 
     action GetCompilerErrorManager returns CompilerErrorManager
         return compilerErrorManager

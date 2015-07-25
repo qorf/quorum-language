@@ -262,6 +262,7 @@ class Compiler
         listener:SetFile(loc)
 
         if not (source = undefined)
+            listener:SetSource(source)
             ParseNative(source, listener)
         else 
             ParseNative(loc, listener)

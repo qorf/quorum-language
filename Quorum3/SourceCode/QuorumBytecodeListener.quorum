@@ -2432,6 +2432,10 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
         currentClass:ResolveType(context:GetLocation(), left, GetSymbolTable(), GetCompilerErrorManager())
 
+        if right = undefined
+            return now
+        end
+
         TypeCheckResult result = checker:Check(left, right:GetType(), op)
         CompilerError error = result:GetCompilerError(context:GetLocation())
         if error not= undefined
