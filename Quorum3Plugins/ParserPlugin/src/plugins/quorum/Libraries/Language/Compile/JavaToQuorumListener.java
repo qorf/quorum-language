@@ -1529,7 +1529,9 @@ public class JavaToQuorumListener implements QuorumListener {
             QualifiedName name = Convert(ctx.parent);
             context.parentName = name;
         }
-        context.name = ctx.name.getText();
+        if(ctx.name != null) {
+            context.name = ctx.name.getText();
+        }
         fireDocumentationToken(ctx.getStart().getTokenIndex() - 1, ctx, true);
         listener.EnterObjectAssignment(context);
     }
