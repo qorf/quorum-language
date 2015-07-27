@@ -12,6 +12,35 @@ class SymbolTable
     HashTable<text, Class> classes
     HashTable<text, HashTable<text, Class>> packages
 
+    /*
+        Returns the number of packages in the symbol table.
+    */
+    action GetPackageSize returns integer
+        return packages:GetSize()
+    end
+
+    /*
+        Returns the number of files in the symbol table.
+    */
+    action GetFileSize returns integer
+        return files:GetSize()
+    end
+
+    /*
+        Returns the number of classes in the symbol table.
+    */
+    action GetClassSize returns integer
+        return classes:GetSize()
+    end
+
+    /*
+        Returns whether the symbol table has any 
+    */
+    action IsEmpty returns boolean
+        return classes:IsEmpty()
+    end
+
+
     action Add(Class clazz) returns CompilerError
         if classes:HasKey(clazz:GetStaticKey())
             CompilerError error

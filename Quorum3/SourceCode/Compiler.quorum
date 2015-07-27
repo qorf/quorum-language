@@ -138,9 +138,13 @@ class Compiler
         text locPath = loc:GetAbsolutePath()
 
         //Check if this class is already in there. If so, remove it
+        //if after 
+        boolean isSandBoxEmpty = true
         Class inFile = sandboxSymbolTable:GetClassInFile(locPath)
         if inFile not= undefined
             sandboxSymbolTable:RemoveClass(inFile:GetStaticKey())
+        else //the file isn't in there. Check if the symbol table has other classes
+            isSandBoxEmpty = sandboxSymbolTable:IsEmpty()
         end
         
         Array<File> files = information:projectFiles
@@ -198,7 +202,7 @@ class Compiler
         Array<File> allFiles = undefined
         allFiles = GetAllRequiredFiles(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
         sandboxedProfiler:Add(time:GetEpochTime())
-        if inFile = undefined
+        if inFile = undefined and isSandBoxEmpty
             TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
         else
             Class newParse = sandboxSymbolTable:GetClassInFile(locPath)

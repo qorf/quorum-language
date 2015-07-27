@@ -140,7 +140,7 @@ class Main is WebResponder
         Array<File> files// = main:GetDirectoryListing()
 
         File actualMain
-        actualMain:SetPath("Library/Tests/Expressions/Fail/LoudComplaint.quorum")
+        actualMain:SetPath("Library/Tests/Expressions/Fail/RedLine1.quorum")
         compiler:SetMain(actualMain)
 
         files:Add(actualMain)
@@ -150,8 +150,15 @@ class Main is WebResponder
         info:sourceLocation = actualMain
         info:source = actualMain:Read()
 
-        repeat 200 times
-            CompilerResult result = compiler:ParseRepeat(info)
+        File redFail
+        redFail:SetPath("Library/Tests/Expressions/Fail/RedLine2.quorum")
+        
+
+        CompilerResult result = compiler:ParseRepeat(info)
+        info:source = redFail:Read()
+
+        repeat 20 times
+            result = compiler:ParseRepeat(info)
 
             CompilerErrorManager manager = result:compilerErrorManager
             if manager:IsCompilationErrorFree()
@@ -161,17 +168,17 @@ class Main is WebResponder
                 end
             else
                 output "Compiler Error Found in " + result:time + " seconds."
-//                text EOL = ""
-//                EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-//                CompilerErrorManager man = result:compilerErrorManager
-//                Iterator<CompilerError> errors =  man:GetIterator()
-//                text value =  "This program did not compile. I have compiled a list of errors for you below:" + EOL
-//                repeat while errors:HasNext()
-//                    CompilerError error = errors:Next()
-//                    text t = error:GetDisplayName()
-//                    value = value + EOL + t
-//                end
-//                output value
+                text EOL = ""
+                EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+                CompilerErrorManager man = result:compilerErrorManager
+                Iterator<CompilerError> errors =  man:GetIterator()
+                text value =  "This program did not compile. I have compiled a list of errors for you below:" + EOL
+                repeat while errors:HasNext()
+                    CompilerError error = errors:Next()
+                    text t = error:GetDisplayName()
+                    value = value + EOL + t
+                end
+                output value
             end
         end
     end
