@@ -2349,6 +2349,10 @@ class QuorumBytecodeListener is QuorumSourceListener
 //        end
         recentStatementWasReturn = true
         Type type = currentAction:GetReturnType()
+        if type = undefined
+            return now
+        end
+
         if not type:IsVoid() //if this is not a void method, handle the return
             QuorumOpcode right = opcodeStack:Pop()
 
@@ -2356,6 +2360,10 @@ class QuorumBytecodeListener is QuorumSourceListener
             returnOp:SetOperation(returnOp:RETURN)
 
             TypeChecker checker = GetTypeChecker()
+            if right = undefined
+                return now
+            end
+
             TypeCheckResult result = checker:Check(type, right:GetType(), returnOp) 
             CompilerError error = result:GetCompilerError(context:GetLocation())
             if error not= undefined
@@ -2376,6 +2384,10 @@ class QuorumBytecodeListener is QuorumSourceListener
                 TypeChecker checker = GetTypeChecker()
                 Operation returnOp
                 returnOp:SetOperation(returnOp:RETURN)
+                if right = undefined
+                    return now
+                end
+
                 TypeCheckResult result = checker:Check(type, right:GetType(), returnOp) 
                 CompilerError error = result:GetCompilerError(context:GetLocation())
                 if error not= undefined
