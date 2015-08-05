@@ -261,6 +261,36 @@ class Item
         SetCenterX(setX)
         SetCenterY(setY)
     end
+
+    /*
+    This action returns the x coordinate of the center of this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetWidth(20)
+        myItem:SetX(100)
+        number x = myItem:GetCenterX()
+    */
+    action GetCenterX returns number
+        return x - GetWidth()/2
+    end
+
+    /*
+    This action returns the y coordinate of the center of this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetHeight(20)
+        myItem:SetY(100)
+        number y = myItem:GetCenterY()
+    */
+    action GetCenterY returns number
+        return y - GetHeight()/2
+    end
     
     /*
     This action will return the currently set width of the Item.
@@ -1749,6 +1779,42 @@ class Item
     end
 
     /*
+    This action sets the scaling value of the x plane on this Item. This will
+    cause the vertices of this Item to be calculated based on a scaled
+    percentage of the width. The default scaling values are 1.0, or 100% of the
+    Item's width and height.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetSize(100, 200)
+        myItem:SetScaleX(1.5)
+    */
+    action SetScaleX(number scaleX)
+        SetScale(scaleX, GetScaleY())
+    end
+
+    /*
+    This action sets the scaling value of the y plane on this Item. This will
+    cause the vertices of this Item to be calculated based on a scaled
+    percentage of the height. The default scaling values are 1.0, or 100% of the
+    Item's width and height.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetSize(100, 200)
+        myItem:SetScaleY(0.75)
+    */
+    action SetScaleY(number scaleY)
+        SetScale(GetScaleX(), scaleY)
+    end
+
+    /*
     action SetScale(number newX, number newY, number newZ)
         // NOT YET IMPLEMENTED
     end*/
@@ -1817,6 +1883,58 @@ class Item
     end
 
     /*
+    This action will multiply the x scaling and y scaling values, respectively,
+    by the given numbers. A parameter of 0 or less will be ignored.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetSize(100, 200)
+        myItem:SetScale(1.5)
+        myItem:Scale(1.1, 0.9)
+    */
+    action Scale(number xAmount, number yAmount)
+        if xAmount <= 0
+            xAmount = 1
+        end
+        if yAmount <= 0
+            yAmount = 1
+        end
+        if xAmount = 1 and yAmount = 1
+            return now
+        end
+
+        scaleX = scaleX * xAmount
+        scaleY = scaleY * yAmount
+        verticesChanged = true
+
+        scaleOffsetX = (scaleX * width - width)/2
+        scaleOffsetY = (scaleY * height - height)/2
+
+        Iterator<Item> childIterator = GetItems()
+        if childIterator:HasNext()
+
+            // Code used to scale Items about their center.
+            Item temp = undefined
+            number globalX = GetGlobalX()
+            number globalY = GetGlobalY()
+
+
+            repeat while childIterator:HasNext()
+                temp = childIterator:Next()
+                temp:SetOffset(globalX + temp:GetX() * (scaleX - 1), globalY + temp:GetY() * (scaleY - 1))
+                temp:Scale(xAmount, yAmount)
+            end
+        end
+
+        if rotation not= 0
+            Rotate(0)
+        end
+    end
+
+    /*
     This action will multiply the current scaling value by the given number.
     A parameter of 0 or less will be ignored. This action will increase or
     decrease the scale of the object from the center, and update the Item's x,y
@@ -1847,6 +1965,31 @@ class Item
         number yAdjust = (oldHeight - newHeight) / 2
         Translate(xAdjust, yAdjust)
         Scale(amount)*/
+    end
+
+    /*
+    This action will multiply the current scaling values of the x and y planes 
+    by the given number. A parameter of 0 or less will be ignored. This action 
+    will increase or decrease the scale of the object from the center, and 
+    update the Item's x,y coordinates to reflect the new bottom-left corner of 
+    the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        
+        Item myItem
+        myItem:SetSize(100, 200)
+        myItem:SetScale(1.5)
+        myItem:ScaleFromCenter(1.1, 0.9)
+    */
+    action ScaleFromCenter(number xAmount, number yAmount)
+        number oldWidth = width * scaleX
+        number oldHeight = height * scaleY
+        number newWidth = width * scaleX * xAmount
+        number newHeight = height * scaleY * yAmount
+        Translate((oldWidth - newWidth)/2, (oldHeight - newHeight)/2)
+        Scale(xAmount, yAmount)
     end
 
     /*
