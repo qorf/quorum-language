@@ -963,14 +963,14 @@ class Game
 
         repeat collisionList:GetSize() times
             item1 = collisionList:Get(counter1)
-            number x1 = item1:GetX()
-            number x2 = item1:GetX() + item1:GetWidth()
-            number y1 = item1:GetY()
-            number y2 = item1:GetY() + item1:GetHeight()
+            number x1 = item1:GetGlobalX()
+            number x2 = item1:GetGlobalX() + item1:GetWidth()
+            number y1 = item1:GetGlobalY()
+            number y2 = item1:GetGlobalY() + item1:GetHeight()
             counter2 = counter1 + 1
             repeat while counter2 < collisionList:GetSize()
                 item2 = collisionList:Get(counter2)
-                if x1 < item2:GetX() + item2:GetWidth() and x2 > item2:GetX() and y1 < item2:GetY() + item2:GetHeight() and y2 > item2:GetY()
+                if x1 < item2:GetGlobalX() + item2:GetWidth() and x2 > item2:GetGlobalX() and y1 < item2:GetGlobalY() + item2:GetHeight() and y2 > item2:GetGlobalY()
                     integer collisionCounter = 0
                     boolean found = false
                     CollisionEvent temp = undefined

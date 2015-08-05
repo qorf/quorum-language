@@ -1464,7 +1464,7 @@ class Item
                 number tempCenterX = temp:GetX() * temp:GetScaleX() + (temp:GetWidth() * temp:GetScaleX())/2
                 number tempCenterY = temp:GetY() * temp:GetScaleY() + (temp:GetHeight() * temp:GetScaleY())/2
                 startAngle = math:RadiansToDegrees(math:InverseTangent(tempCenterX - centerX, centerY - tempCenterY)) + 360
-                startAngle = startAngle + degrees
+                startAngle = startAngle + rotation
                 startAngle = startAngle mod 360
                 radius = math:SquareRoot(math:RaiseToPower(tempCenterX - centerX, 2) + math:RaiseToPower(tempCenterY - centerY, 2))
                 number offX = radius * math:Cosine(math:DegreesToRadians(startAngle))
@@ -1525,7 +1525,7 @@ class Item
                 number tempCenterX = temp:GetX() * temp:GetScaleX() + (temp:GetWidth() * temp:GetScaleX())/2
                 number tempCenterY = temp:GetY() * temp:GetScaleY() + (temp:GetHeight() * temp:GetScaleY())/2
                 startAngle = math:RadiansToDegrees(math:InverseTangent(tempCenterX - centerX, centerY - tempCenterY)) + 360
-                startAngle = startAngle + degrees + temp:GetRotation()
+                startAngle = startAngle + rotation
                 startAngle = startAngle mod 360
                 radius = math:SquareRoot(math:RaiseToPower(tempCenterX - centerX, 2) + math:RaiseToPower(tempCenterY - centerY, 2))
                 number offX = radius * math:Cosine(math:DegreesToRadians(startAngle))

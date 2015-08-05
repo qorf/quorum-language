@@ -1,7 +1,6 @@
 package Libraries.Interface
 
 use Libraries.Game.Graphics.Color
-use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Drawable
 
 /*
@@ -35,7 +34,9 @@ class Panel is Item
 
     Color borderColor
     Color backgroundColor
-
+    Drawable border = undefined
+    Drawable background = undefined
+    
     on create
         borderColor = borderColor:Gray()
         backgroundColor = backgroundColor:LightGray()
@@ -104,11 +105,9 @@ class Panel is Item
             return now
         end
 
-        Texture backTexture
-        backTexture:LoadFilledRectangle(cast(integer, GetWidth()), cast(integer, GetHeight()), backgroundColor)
-
-        Drawable background
-        background:Load(backTexture)
+        Drawable back
+        back:LoadFilledRectangle(cast(integer, GetWidth()), cast(integer, GetHeight()), backgroundColor)
+        background = back
         background:SetName("Panel Background")
 
         Add(0, background)
@@ -144,8 +143,9 @@ class Panel is Item
             return now
         end
 
-        Item background = Remove(0)
+        Remove(0)
         background:Dispose()
+        background = undefined
         
         hasBackground = false
     end
@@ -181,8 +181,9 @@ class Panel is Item
         backgroundColor = color
 
         if hasBackground = true
-            DisableBackground()
-            EnableBackground()
+            //DisableBackground()
+            //EnableBackground()
+            background:SetColor(color)
         end
     end
 
@@ -221,11 +222,9 @@ class Panel is Item
             borderIndex = 1
         end
 
-        Texture borderTexture
-        borderTexture:LoadRectangle(cast(integer, GetWidth()), cast(integer, GetHeight()), borderColor)
-
-        Drawable border
-        border:Load(borderTexture)
+        Drawable bord
+        bord:LoadRectangle(cast(integer, GetWidth()), cast(integer, GetHeight()), borderColor)
+        border = bord
         border:SetName("Panel Border")
 
         Add(borderIndex, border)
@@ -267,8 +266,9 @@ class Panel is Item
             borderIndex = 1
         end
 
-        Item border = Remove(borderIndex)
+        Remove(borderIndex)
         border:Dispose()
+        border = undefined
         
         hasBorder = false
     end
@@ -304,8 +304,9 @@ class Panel is Item
         borderColor = color
 
         if hasBorder = true
-            DisableBorder()
-            EnableBorder()
+            //DisableBorder()
+            //EnableBorder()
+            border:SetColor(color)
         end
     end
 
