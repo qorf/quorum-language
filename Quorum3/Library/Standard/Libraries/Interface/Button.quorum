@@ -107,6 +107,28 @@ class Button is Panel, MouseListener
         Initialize(width, height)
     end
 
+    /*
+    This action sets the text on the Button's label.
+
+    Attribute: Example
+
+        use Libraries.Interface.Button
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Button button
+                button:Initialize(200, 100)
+                button:SetTitle("My Button")
+                Add(button)
+            end
+        end
+    */
     action SetTitle(text buttonTitle)
         title:SetText(buttonTitle)
     end
