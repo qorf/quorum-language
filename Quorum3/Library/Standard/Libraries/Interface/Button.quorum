@@ -2,6 +2,7 @@ package Libraries.Interface
 
 use Libraries.Interface.Events.MouseListener
 use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
 
 /*
@@ -124,12 +125,149 @@ class Button is Panel, MouseListener
             action CreateGame
                 Button button
                 button:Initialize(200, 100)
-                button:SetTitle("My Button")
+                button:SetText("My Button")
                 Add(button)
             end
         end
     */
-    action SetTitle(text buttonTitle)
-        title:SetText(buttonTitle)
+    action SetText(text buttonText)
+        title:SetText(buttonText)
+    end
+
+    /*
+    This action returns the current text on the Button's label.
+
+    Attribute: Example
+
+        use Libraries.Interface.Button
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Button button
+                button:Initialize(200, 100)
+                Add(button)
+                output "The default text for the button is " + button:GetText()
+            end
+        end
+    */
+    action GetText returns text
+        return title:GetText()
+    end
+
+    /*
+    This action sets the font being used by this Button's label.
+
+    Attribute: Example
+
+        use Libraries.Interface.Button
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Button button
+                button:Initialize(200, 100)
+                Font myFont
+                myFont:LoadFont("Times New Roman")
+                button:SetFont(myFont)
+                Add(button)
+            end
+        end
+    */
+    action SetFont(Font font)
+        title:SetFont(font)
+        title:SetX(cast(integer, (GetWidth() - title:GetTextWidth()) / 2))
+        title:SetY(cast(integer, (GetHeight() - title:GetTextHeight()) / 2))
+    end
+
+    /*
+    This action returns the current font being used by this Button's label.
+
+    Attribute: Example
+
+        use Libraries.Interface.Button
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Button button
+                button:Initialize(200, 100)
+                Font myFont
+                myFont =  button:GetFont()
+            end
+        end
+    */
+    action GetFont returns Font
+        return title:GetFont()
+    end
+
+    /*
+    This action sets the size of the font being used by this Button's label.
+
+    Attribute: Example
+
+        use Libraries.Interface.Button
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Button button
+                button:Initialize(200, 100)
+                button:SetTextSize(24)
+                Add(button)
+            end
+        end
+    */
+    action SetTextSize(integer size)
+        title:SetSize(size)
+        title:SetX(cast(integer, (GetWidth() - title:GetTextWidth()) / 2))
+        title:SetY(cast(integer, (GetHeight() - title:GetTextHeight()) / 2))
+    end
+
+    /*
+    This action returns the current size of the font being used by this Button's label.
+
+    Attribute: Example
+
+        use Libraries.Interface.Button
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Button button
+                button:Initialize(200, 100)
+                output "The default font size of a button is " + button:GetTextSize()
+            end
+        end
+    */
+    action GetTextSize returns integer
+        return title:GetSize()
     end
 end
