@@ -803,6 +803,7 @@ class Game
     action SetScreenSize(integer width, integer height)
         configuration:width = width
         configuration:height = height
+        activePanel:SetSize(width, height)
     end
 
     /*
