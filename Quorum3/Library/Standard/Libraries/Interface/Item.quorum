@@ -1724,19 +1724,27 @@ class Item
         scaleY = newY
         verticesChanged = true
 
+        scaleOffsetX = (scaleX * width - width)/2
+        scaleOffsetY = (scaleY * height - height)/2
+
         Iterator<Item> childIterator = GetItems()
         if childIterator:HasNext()
 
+            // Code used to scale Items about their center.
             Item temp = undefined
             number globalX = GetGlobalX()
             number globalY = GetGlobalY()
 
+
             repeat while childIterator:HasNext()
                 temp = childIterator:Next()
-                
-                temp:SetOffset(globalX + (temp:GetX() * scaleX) - temp:GetX(), globalY + (temp:GetY() * scaleY) - temp:GetY())
+                temp:SetOffset(globalX + temp:GetX() * (scaleX - 1), globalY + temp:GetY() * (scaleY - 1))
                 temp:SetScale(newX, newY)
             end
+        end
+
+        if rotation not= 0
+            Rotate(0)
         end
     end
 
