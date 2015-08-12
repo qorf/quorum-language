@@ -8,6 +8,9 @@ package plugins.quorum.Libraries.Sound;
 import quorum.Libraries.System.File_;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -21,7 +24,19 @@ public class Audio {
     
     static
     {
-        quorum.Libraries.System.Properties properties = new quorum.Libraries.System.Properties();
+        try 
+        {
+            java.io.File file = new java.io.File(Audio.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+            String runLocation = file.getParentFile().getAbsolutePath();
+            String lwjgl = runLocation + "/jni";
+            System.setProperty("org.lwjgl.librarypath", lwjgl);
+        } 
+        catch (URISyntaxException ex) 
+        {
+            Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        /*quorum.Libraries.System.Properties properties = new quorum.Libraries.System.Properties();
 
         String path;
         quorum.Libraries.System.File file = new quorum.Libraries.System.File();
@@ -30,7 +45,7 @@ public class Audio {
         
         path = file.GetAbsolutePath();
 
-        properties.SetProperty("org.lwjgl.librarypath", path);
+        properties.SetProperty("org.lwjgl.librarypath", path);*/
     }
     
     public void Load(quorum.Libraries.System.File_ quorumFile)
