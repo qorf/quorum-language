@@ -51,7 +51,7 @@ public class PixelMap {
 
     static 
     {
-        System.load(GameState.GetNativePath());
+        //System.load(GameState.GetNativePath());
         blending = new quorum.Libraries.Game.Graphics.Blending();
         //blending.Set_Libraries_Game_Graphics_Blending_value(BLEND_SOURCE_OVER);
         blending.SetValue(BLEND_SOURCE_OVER);

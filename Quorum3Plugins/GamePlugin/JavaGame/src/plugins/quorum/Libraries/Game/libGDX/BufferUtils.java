@@ -38,7 +38,7 @@ public final class BufferUtils {
         
         static
         {
-            System.load(GameState.GetNativePath());
+            //System.load(GameState.GetNativePath());
         }
 
 	/** Copies numFloats floats from src starting at offset to dst. Dst is assumed to be a direct {@link Buffer}. The method will

@@ -143,7 +143,6 @@ public class GameDisplay {
 						if ((current.getBitsPerPixel() == Display.getDesktopDisplayMode().getBitsPerPixel())
 							&& (current.getFrequency() == Display.getDesktopDisplayMode().getFrequency())) {
 							targetDisplayMode = current;
-                                                        System.out.println("Broke the loop!");
 							break;
 						}
 					}
