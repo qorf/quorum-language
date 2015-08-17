@@ -324,7 +324,7 @@ class Font
         angle = newAngle
 
         if initialized
-            SetAngleNative(angle)
+            SetAngleNative(angle * -1)
             EmptyGlyphTable()
         end
     end
