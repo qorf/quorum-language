@@ -134,6 +134,8 @@ public class Audio {
     
     public void SetVolume(double volume)
     {
+        if (volume < 0)
+            volume = 0;
         data.SetVolume((float)volume);
     }
     
