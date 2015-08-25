@@ -1,0 +1,451 @@
+package Libraries.Compute
+
+use Libraries.Compute.all
+use Libraries.Compute.Vector2
+use Libraries.Containers.Array
+
+class Vector3 
+
+    number x = 0
+    number y = 0
+    number z = 0
+    Math math
+    public constant number ROUNDING_MARGIN = 0.000001
+
+
+    action GetX () returns number
+        return x
+    end
+
+    action GetY () returns number
+        return y
+    end
+
+    action GetZ () returns number
+        return z
+    end
+
+    action Set (number xValue, number yValue, number zValue)
+        x = xValue
+        y = yValue
+        z = zValue
+    end
+
+    action Set (Vector3 vector)
+        Set(vector:x, vector:y, vector:z)
+    end
+
+    action set (Array<number> array)
+        Set(array:Get(0), array:Get(1), array:Get(2))
+    end
+
+    action Set (Vector2 vector, number z)
+        Set(vector:GetX(), vector:GetY(), z)
+    end
+
+    action Copy () returns Vector3
+        Vector3 temp
+        temp:Set(x, y, z)
+        return temp
+    end
+
+    action Add (Vector3 vector)
+        Add(vector:x, vector:y, vector:z)
+    end
+
+    action Add (number xValue, number yValue, number zValue)
+        x = x + xValue
+        y = y + yValue
+        z = z + zValue
+    end
+
+    action Add (number values)
+        x = x + values
+        y = y + values
+        z = z + values
+    end
+
+    action Subtract (Vector3 vector)
+        Subtract(vector:x, vector:y, vector:z)
+    end
+
+    action Subtract (number xValue, number yValue, number zValue)
+        Set(x - xValue, y - yValue, z - zValue)
+    end
+
+    action Subtract (number value)
+        x = x - value
+        y = y - value
+        z = z - value
+    end
+
+    action Scalar (number scalar)
+        x = x * scalar
+        y = y * scalar
+        z = z * scalar
+    end
+
+    action Scalar (Vector3 vector)
+        x = x * vector:x
+        y = y * vector:y
+        z = z * vector:z
+    end
+
+    action Scalar (number vx, number vy, number vz)
+        x = x * vx
+        y = y * vy
+        z = z * vz
+    end
+
+    action MultiplyAndAdd (Vector3 vec, number scalar)
+        x = x + vec:x * scalar
+        y = y + vec:y * scalar
+        z = z + vec:z * scalar
+    end
+
+    action MultiplyAndAdd (Vector3 vec, Vector3 mulVec)
+        x = x + vec:x * mulVec:x
+        y = y + vec:y * mulVec:y
+        z = z + vec:z * mulVec:z
+    end
+
+    action Length () returns number
+        return math:SquareRoot(x * x + y * y + z * z)
+    end
+
+    action Length (number x, number y, number z) returns number
+        return math:SquareRoot(x * x + y * y + z * z)
+    end
+
+    action LengthSquared (number x, number y, number z) returns number
+        return x * x + y * y + z * z
+    end
+
+    action LengthSquared () returns number
+        return x * x + y * y + z * z
+    end
+
+    action AreEqual (Vector3 vector) returns boolean
+        if x = vector:x
+            if y = vector:y
+                if z = vector:z
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    action Distance (number x1, number y1, number z1, number x2, number y2, number z2) returns number
+        number a = x2 - x1
+        number b = y2 - y1
+        number c = z2 - z1
+        return math:SquareRoot(a * a + b * b + c * c)
+    end
+    
+    action Distance (Vector3 vector) returns number
+        number a = vector:x - x
+        number b = vector:y - y
+        number c = vector:z - z
+        return math:SquareRoot(a * a + b * b + c * c)
+    end
+
+    action Distance (number xValue, number yValue, number zValue) returns number
+        number a = xValue - x
+        number b = yValue - y
+        number c = zValue - z
+        return math:SquareRoot(a * a + b * b + c * c)
+    end
+
+    action DistanceSquared (number x1, number y1, number z1, number x2, number y2, number z2)returns number
+        number a = x2 - x1
+        number b = y2 - y1
+        number c = z2 - z1
+        return a * a + b * b + c * c
+    end
+
+    action DistanceSquared (Vector3 vector) returns number
+        number a = vector:x - x
+        number b = vector:y - y
+        number c = vector:z - z
+        return a * a + b * b + c * c
+    end
+
+    action DistanceSquared (number xValue, number yValue, number zValue) returns number
+        number a = xValue - x
+        number b = yValue - y
+        number c = zValue - z
+        return a * a + b * b + c * c
+    end
+
+   action Normalize() returns Vector3
+        Vector3 temp
+        temp:Set(x, y, z)
+        number lengthSquared = LengthSquared()
+        if lengthSquared = 0.0
+            return temp
+        end
+        if lengthSquared = 1.0
+            return temp
+        end
+        Scalar(1.0 / math:SquareRoot(lengthSquared))
+        temp:Set(x, y, z)
+        return temp
+    end         
+
+    action DotProduct (Vector3 vector) returns number
+        return x * vector:x + y * vector:y + z * vector:z
+    end
+
+    action DotProduct (number xValue, number yValue, number zValue) returns number
+        return x * xValue + y * yValue + z * zValue
+    end
+
+    action DotProduct (number x1, number y1, number z1, number x2, number y2, number z2) returns number
+        return x1 * x2 + y1 * y2 + z1 * z2
+    end
+
+    /* Sets Vector3's variables to the cross product of the current variables of Vector3 and the parameters */
+    action CrossProduct (Vector3 vector)
+        Set(y * vector:z - z * vector:y, z * vector:x - x * vector:z, x * vector:y - y * vector:x)
+    end
+
+    action CrossProduct (number xVal, number yVal, number zVal)
+        Set(y * zVal - z * yVal, z * xVal - x * zVal, x * yVal - y * xVal)
+    end
+
+    action MultiplyBy4x3Matrix (Array<number> matrix)
+        Set(x * matrix:Get(0) + y * matrix:Get(3) + z * matrix:Get(6) + matrix:Get(9),
+            x * matrix:Get(1) + y * matrix:Get(4) + z * matrix:Get(7) + matrix:Get(10),
+            x * matrix:Get(2) + y * matrix:Get(5) + z * matrix:Get(8) + matrix:Get(11))
+    end
+
+    action Multiply(Matrix4 matrix)
+        
+        Array<number> val = matrix:values
+
+        number t1 = x * val:Get(0) + y * val:Get(4) + z * val:Get(8) + val:Get(12)
+        number t2 = x * val:Get(1) + y * val:Get(5) + z * val:Get(9) + val:Get(13)
+        number t3 = x * val:Get(2) + y * val:Get(6) + z * val:Get(10) + val:Get(14)
+        
+        Set(t1,t2,t3)
+        
+    end
+        
+    /* action MultiplyByTranspose (Matrix4 matrix)          */
+ 
+    action Multiply (Matrix3 matrix)
+           constant Array<number> leftMatrix = matrix:values
+
+           Set(x * leftMatrix:Get(matrix:M00) + y * leftMatrix:Get(matrix:M01) + z * leftMatrix:Get(matrix:M02),
+               x * leftMatrix:Get(matrix:M10) + y * leftMatrix:Get(matrix:M11) + z * leftMatrix:Get(matrix:M12),
+               x * leftMatrix:Get(matrix:M20) + y * leftMatrix:Get(matrix:M21) + z * leftMatrix:Get(matrix:M22))
+
+    end
+
+    action MultiplyByTranspose (Matrix3 matrix)
+        constant Array<number> leftMatrix = matrix:values
+        
+         Set(x * leftMatrix:Get(matrix:M00) + y * leftMatrix:Get(matrix:M10) + z * leftMatrix:Get(matrix:M20),
+               x * leftMatrix:Get(matrix:M01) + y * leftMatrix:Get(matrix:M11) + z * leftMatrix:Get(matrix:M21),
+               x * leftMatrix:Get(matrix:M02) + y * leftMatrix:Get(matrix:M12) + z * leftMatrix:Get(matrix:M22))
+
+    end
+
+    // multiple methods need Matrix4 here
+
+    action IsUnit() returns boolean
+        return IsUnit(0.000000001)
+    end
+
+    action IsUnit (number margin) returns boolean
+        return math:AbsoluteValue(LengthSquared() - 1.0) < margin
+    end
+
+    action IsZero() returns boolean
+        if x = 0
+            if y = 0
+                if z = 0
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    action IsZero (number margin) returns boolean
+        return LengthSquared() < margin
+    end
+
+    action IsOnLine (Vector3 other, number epsilon) returns boolean
+        return LengthSquared(y * other:z - z * other:y, z * other:x - x * other:z,
+        x * other:y - y * other:x) <= epsilon
+    end
+
+    action IsOnLine (Vector3 other) returns boolean
+        return LengthSquared(y * other:z - z * other:y, z * other:x - x * other:z, x * other:y - y * other:x) <= ROUNDING_MARGIN
+    end
+        
+    action IsCollinearOpposite (Vector3 other, number epsilon) returns boolean
+        if IsOnLine(other, epsilon)
+            if HasOppositeDirection(other)
+                return true
+            end
+        end
+        return false
+    end
+
+    action IsCollinearOpposite (Vector3 other) returns boolean
+        if IsOnLine(other)
+            if HasOppositeDirection(other)
+                return true
+            end
+        end
+        return false
+    end
+
+    action IsCollinear (Vector3 other, number epsilon) returns boolean
+        if IsOnLine(other, epsilon)
+            if HasSameDirection(other)
+                return true
+            end
+        end
+        return false
+    end
+
+    action IsCollinear (Vector3 other) returns boolean
+        if IsOnLine(other)
+            if HasSameDirection(other)
+                return true
+            end
+        end
+        return false
+    end
+
+    action IsPerpendicular (Vector3 vector) returns boolean
+        return math:AbsoluteValue(DotProduct(vector)) <= ROUNDING_MARGIN
+    end
+
+    action IsPerpendicular (Vector3 vector, number epsilon) returns boolean
+        return math:AbsoluteValue(DotProduct(vector)) <= epsilon
+    end
+
+    action HasSameDirection (Vector3 vector) returns boolean
+        return DotProduct(vector) > 0
+    end
+
+    action HasOppositeDirection (Vector3 vector) returns boolean
+        return DotProduct(vector) < 0
+    end
+
+    action LinearInterpolation (Vector3 target, number alpha) returns Vector3
+        Vector3 temp
+        Scalar(1.0 - alpha)
+        Add(target:x * alpha, target:y * alpha, target:z * alpha)
+        temp:Set(x, y, z)
+        return temp
+    end
+
+    /* action interpolate (Vector3 target, number alpha, Interpolation interpolator) returns Vector3
+            return lerp(target, interpolator:apply(0.0, 1.0, alpha)
+       end */
+
+    /* action SphericalLinearInterpolation (Vector3 target, number alpha)
+        constant number dotProduct = DotProduct(target)
+
+        if dotProduct > 0.9995
+            LinearInterpolation(target, alpha)
+
+        elseif dotProduct < -0.9995
+            LinearInterpolation(target, alpha)
+
+        end
+
+            constant number theta0 = cast(number, math:acos(dotProduct))
+            constant number theta = theta0 * alpha
+            constant number st = cast(number, math:Sine(theta))
+            constant number tx = target:x - x * dotProduct
+            constant number ty = target:y - y * dotProduct
+            constant number tz = target:z - z * dotProduct
+            constant number l2 = tx * tx + ty * ty + tz * tz
+            constant number dl = st 
+       end */
+
+       action toString() returns text
+            return "[" + x + "," + y + "," + z + "]"
+       end
+
+       action Limit (number limit) returns Vector3
+            Vector3 temp
+            temp = Copy()
+            if LengthSquared() > (limit * limit)
+                temp = Normalize()
+                temp:Scalar(limit)
+            end
+            return temp
+       end
+       
+       action LimitPositionToArea (number min, number max)
+            constant number lengthSquared = LengthSquared()
+            if lengthSquared not= 0.0
+                number maxSquared = max * max
+                if lengthSquared > (maxSquared)
+                    number temp = math:SquareRoot(maxSquared/lengthSquared)
+                    Scalar(temp)
+                end
+                number minSquared = min * min
+                if lengthSquared < (minSquared)
+                    number temp = math:SquareRoot(minSquared/lengthSquared)
+                    Scalar(temp)
+                end
+            end
+        end
+
+        /* action hashCode () returns integer
+            constant integer prime = 31
+            integer result = 1
+            result = prime * result + numberUtils:floatToIntBits(x)
+            result = prime * result + numberUtils:floatToIntBits(y)
+            result = prime * result + numberUtils:floatToIntBits(z)
+            return result
+        end */
+
+        /* action equals (Object obj) returns boolean
+            Vector3 temp = cpy()
+            if temp = obj
+                return true
+            end
+            if obj = null
+                return false
+            end */
+        
+            action EqualAtPrecision (Vector3 other, number epsilon) returns boolean
+                if other = undefined
+                    return false
+                end
+                if math:AbsoluteValue(other:x - x) > epsilon
+                    return false
+                end
+                if math:AbsoluteValue(other:y - y) > epsilon
+                    return false
+                end
+                if math:AbsoluteValue(other:z - z) > epsilon
+                    return false
+                end
+                return true
+            end
+            
+            action EqualAtPrecision(number xVal, number yVal, number zVal, number epsilon) returns boolean  
+                if math:AbsoluteValue(xVal - x) > epsilon
+                    return false
+                end
+                if math:AbsoluteValue(yVal - y) > epsilon
+                    return false
+                end
+                if math:AbsoluteValue(zVal - z) > epsilon
+                    return false
+                end
+                return true
+            end
+
+end

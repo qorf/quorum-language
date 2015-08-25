@@ -1,0 +1,986 @@
+package Libraries.Compute
+
+use Libraries.Containers.Array
+use Libraries.Compute.Matrix3
+use Libraries.Compute.Vector2
+use Libraries.Compute.Vector3
+use Libraries.Compute.Affine2
+use Libraries.Compute.Quaternion
+use Libraries.Language.Errors.Error
+
+class Matrix4 
+    
+
+    public constant integer M00 = 0
+    public constant integer M01 = 4
+    public constant integer M02 = 8
+    public constant integer M03 = 12
+    public constant integer M10 = 1
+    public constant integer M11 = 5
+    public constant integer M12 = 9
+    public constant integer M13 = 13
+    public constant integer M20 = 2
+    public constant integer M21 = 6
+    public constant integer M22 = 10
+    public constant integer M23 = 14
+    public constant integer M30 = 3
+    public constant integer M31 = 7
+    public constant integer M32 = 11
+    public constant integer M33 = 15
+
+    public Array<number> values
+    public Array<number> temporary
+
+    Math math
+
+    // Quaternion quaternion
+    // Quaternion quaternion2
+    
+    Vector3 l_vez
+    Vector3 l_vex
+    Vector3 l_vey
+
+    Vector3 tmpVec
+    Matrix4 tmpMat = undefined
+
+    Vector3 right
+    Vector3 tmpForward
+    Vector3 tmpUp
+
+    on create
+
+        values:SetSize(16)
+        temporary:SetSize(16)
+        values:Set(M00, 1.0)
+        values:Set(M01, 0)
+        values:Set(M02, 0)
+        values:Set(M03, 0)
+        values:Set(M10, 0)
+        values:Set(M11, 1.0)
+        values:Set(M12, 0)
+        values:Set(M13, 0)
+        values:Set(M20, 0)
+        values:Set(M21, 0)
+        values:Set(M22, 1.0)
+        values:Set(M23, 0)
+        values:Set(M30, 0)
+        values:Set(M31, 0)
+        values:Set(M32, 0)
+        values:Set(M33, 1.0)
+
+    end
+
+    action PrintValues ()
+        output values:Get(M00) + " " + values:Get(M01) + " " + values:Get(M02) + " " + values:Get(M03)
+        output values:Get(M10) + " " + values:Get(M11) + " " + values:Get(M12) + " " + values:Get(M13)
+        output values:Get(M20) + " " + values:Get(M21) + " " + values:Get(M22) + " " + values:Get(M23)
+        output values:Get(M30) + " " + values:Get(M31) + " " + values:Get(M32) + " " + values:Get(M33)
+
+    end
+
+
+   action Set (Matrix4 matrix)
+        //Array<number> matrixValues = matrix:values
+        //Set(matrixValues)
+        // Set(matrix:values)
+        values = matrix:values
+    end
+
+/*
+    action Set (Array<number> array)
+
+        values = array
+
+    end
+*/
+     action Set2 (Array<number> array)
+
+        values = array
+
+    end
+
+    action Set (Matrix3 matrix)
+
+        Array<number> matrixValues = matrix:values
+        
+        values:Set(0, matrixValues:Get(0))
+        values:Set(1, matrixValues:Get(1))
+        values:Set(2, matrixValues:Get(2))
+        values:Set(3, 0)
+        values:Set(4, matrixValues:Get(3))
+        values:Set(5, matrixValues:Get(4))
+        values:Set(6, matrixValues:Get(5))
+        values:Set(7, 0)
+        values:Set(8, 0)
+        values:Set(9, 0)
+        values:Set(10, 1)
+        values:Set(11, 0)
+        values:Set(12, matrixValues:Get(6))
+        values:Set(13, matrixValues:Get(7))
+        values:Set(14, 0)
+        values:Set(15, matrixValues:Get(8))
+
+    end
+
+    action Set (Affine2 affine)
+
+        values:Set(M00, affine:M00)
+        values:Set(M10, affine:M10)
+        values:Set(M20, 0)
+        values:Set(M30, 0)
+        values:Set(M01, affine:M01)
+        values:Set(M11, affine:M11)
+        values:Set(M21, 0)
+        values:Set(M31, 0)
+        values:Set(M02, 0)
+        values:Set(M12, 0)
+        values:Set(M22, 1)
+        values:Set(M32, 0)
+        values:Set(M03, affine:M02)
+        values:Set(M13, affine:M12)
+        values:Set(M23, 0)
+        values:Set(M33, 1)
+
+    end
+
+    action SetAsAffine (Affine2 affine)
+
+        values:Set(M00, affine:M00)
+        values:Set(M10, affine:M10)
+        values:Set(M01, affine:M01)
+        values:Set(M11, affine:M11)
+        values:Set(M03, affine:M02)
+        values:Set(M13, affine:M12)
+
+    end
+
+       action SetAsAffine (Matrix4 matrix)
+
+        Array<number> matrixValues = matrix:values
+
+        values:Set(M00, matrixValues:Get(M00))
+        values:Set(M10, matrixValues:Get(M10))
+        values:Set(M01, matrixValues:Get(M01))
+        values:Set(M11, matrixValues:Get(M11))
+        values:Set(M03, matrixValues:Get(M03))
+        values:Set(M13, matrixValues:Get(M13))
+
+    end
+
+   /* action Set (Quaternion quaternion)
+
+        Set(quaternion:GetX, quaternion:GetY, quaternion:GetZ, quaternion:GetW)
+
+    end */
+
+    action Set (number quaternionX, number quaternionY, number quaternionZ, number quaternionW)
+    
+        Set (0.0, 0.0, 0.0, quaternionX, quaternionY, quaternionZ, quaternionW)
+
+    end
+
+    /* action Set (Vector3 position, Quaternion orientation)
+
+        Set (position:GetX, position:GetY, position:GetZ, orientation:GetX, orientation:GetY, orientation:GetZ, orientation:GetW)
+
+    end */
+
+    action Set (number translationX, number translationY, number translationZ, number quaternionX, number quaternionY, number quaternionZ, number quaternionW)
+
+        constant number xs = quaternionX * 2.0
+        constant number ys = quaternionY * 2.0
+        constant number zs = quaternionZ * 2.0
+        constant number wx = quaternionW * xs
+        constant number wy = quaternionW * ys
+        constant number wz = quaternionW * zs
+        constant number xx = quaternionX * xs
+        constant number xy = quaternionX * ys
+        constant number xz = quaternionX * zs
+        constant number yy = quaternionY * ys
+        constant number yz = quaternionY * zs
+        constant number zz = quaternionZ * zs
+
+        values:Set(M00, (1.0 - (yy + zz)))
+        values:Set(M01, (xy - wz))
+        values:Set(M02, (xz + wy))
+        values:Set(M03, translationX)
+
+        values:Set(M10, (xy + wz))
+        values:Set(M11, (1.0 - (xx + zz)))
+        values:Set(M12, (yz - wx))
+        values:Set(M13, translationY)
+
+        values:Set(M20, (xz - wy))
+        values:Set(M21, (yz + wx))
+        values:Set(M22, (1.0 - (xx + yy)))
+        values:Set(M23, translationZ)
+
+        values:Set(M30, 0.0)
+        values:Set(M31, 0.0)
+        values:Set(M32, 0.0)
+        values:Set(M33, 1.0)
+
+    end
+
+    action Set (Vector3 position, Quaternion orientation, Vector3 scale)
+
+        Set (position:GetX(), position:GetY(), position:GetZ(), orientation:GetX(), orientation:GetY(), orientation:GetZ(), orientation:GetW(), scale:GetX(), scale:GetY(), scale:GetZ())
+
+    end
+
+    action Set (number translationX, number translationY, number translationZ, number quaternionX, number quaternionY,
+                number quaternionZ, number quaternionW, number scaleX, number scaleY, number scaleZ)
+
+        constant number xs = quaternionX * 2.0
+        constant number ys = quaternionY * 2.0
+        constant number zs = quaternionZ * 2.0
+        constant number wx = quaternionW * xs 
+        constant number wy = quaternionW * ys
+        constant number wz = quaternionW * zs
+        constant number xx = quaternionX * xs
+        constant number xy = quaternionX * ys
+        constant number xz = quaternionX * zs
+        constant number yy = quaternionY * ys
+        constant number yz = quaternionY * zs
+        constant number zz = quaternionZ * zs
+        
+        values:Set(M00, scaleX * (1.0 - (yy + zz)))
+        values:Set(M01, scaleY * (xy - wz))
+        values:Set(M02, scaleZ * (xz + wy))
+        values:Set(M03, translationX)
+        values:Set(M10, scaleX * (xy + wz))
+        values:Set(M11, scaleY * (1.0 - (xx + zz)))
+        values:Set(M12, scaleZ * (yz - wx))
+        values:Set(M13, translationY)
+        values:Set(M20, scaleX * (xz - wy))
+        values:Set(M21, scaleY * (yz + wx))
+        values:Set(M22, scaleZ * (1.0 - (xx + yy)))
+        values:Set(M23, translationZ)
+        values:Set(M30, 0.0)
+        values:Set(M31, 0.0)
+        values:Set(M32, 0.0)
+        values:Set(M33, 1.00)
+
+    end
+
+    action Set (Vector3 xAxis, Vector3 yAxis, Vector3 zAxis, Vector3 position)
+
+        values:Set(M00, xAxis:GetX())
+        values:Set(M01, xAxis:GetY())
+        values:Set(M02, xAxis:GetZ())
+        values:Set(M10, yAxis:GetX())
+        values:Set(M11, yAxis:GetY())
+        values:Set(M12, yAxis:GetZ())
+        values:Set(M20, zAxis:GetX())
+        values:Set(M21, zAxis:GetY())
+        values:Set(M22, zAxis:GetZ())
+        values:Set(M03, position:GetX())
+        values:Set(M13, position:GetY())
+        values:Set(M23, position:GetZ())
+        values:Set(M30, 0)
+        values:Set(M31, 0)
+        values:Set(M32, 0)
+        values:Set(M33, 1)
+
+    end
+
+    action Copy () returns Matrix4
+
+        return me
+
+    end
+
+    action Translate (Vector3 vector)
+
+        values:Set(M03, values:Get(M03) + vector:GetX())
+        values:Set(M13, values:Get(M13) + vector:GetY())
+        values:Set(M23, values:Get(M23) + vector:GetZ())
+    
+    end
+
+    action Translate (number x, number y, number z)
+        
+        values:Set(M03, values:Get(M03) + x)
+        values:Set(M13, values:Get(M13) + y)
+        values:Set(M23, values:Get(M23) + z)
+
+    end
+
+    action GetValues () returns Array<number>
+
+        return values
+
+    end
+
+    action Multiply (Matrix4 matrix)
+
+	Array<number> temp
+	temp:SetSize(16)
+	Array<number> other = matrix:values
+	temp:Set(M00, values:Get(M00) * other:Get(M00) + values:Get(M01) * other:Get(M10) + values:Get(M02) * other:Get(M20) + values:Get(M03) * other:Get(M30))
+	temp:Set(M01, values:Get(M00) * other:Get(M01) + values:Get(M01) * other:Get(M11) + values:Get(M02) * other:Get(M21) + values:Get(M03) * other:Get(M31))
+	temp:Set(M02, values:Get(M00) * other:Get(M02) + values:Get(M01) * other:Get(M12) + values:Get(M02) * other:Get(M22) + values:Get(M03) * other:Get(M32))
+	temp:Set(M03, values:Get(M00) * other:Get(M03) + values:Get(M01) * other:Get(M13) + values:Get(M02) * other:Get(M23) + values:Get(M03) * other:Get(M33))
+	temp:Set(M10, values:Get(M10) * other:Get(M00) + values:Get(M11) * other:Get(M10) + values:Get(M12) * other:Get(M20) + values:Get(M13) * other:Get(M30))
+	temp:Set(M11, values:Get(M10) * other:Get(M01) + values:Get(M11) * other:Get(M11) + values:Get(M12) * other:Get(M21) + values:Get(M13) * other:Get(M31))
+	temp:Set(M12, values:Get(M10) * other:Get(M02) + values:Get(M11) * other:Get(M12) + values:Get(M12) * other:Get(M22) + values:Get(M13) * other:Get(M32))
+	temp:Set(M13, values:Get(M10) * other:Get(M03) + values:Get(M11) * other:Get(M13) + values:Get(M12) * other:Get(M23) + values:Get(M13) * other:Get(M33))
+	temp:Set(M20, values:Get(M20) * other:Get(M00) + values:Get(M21) * other:Get(M10) + values:Get(M22) * other:Get(M20) + values:Get(M23) * other:Get(M30))
+	temp:Set(M21, values:Get(M20) * other:Get(M01) + values:Get(M21) * other:Get(M11) + values:Get(M22) * other:Get(M21) + values:Get(M23) * other:Get(M31))
+	temp:Set(M22, values:Get(M20) * other:Get(M02) + values:Get(M21) * other:Get(M12) + values:Get(M22) * other:Get(M22) + values:Get(M23) * other:Get(M32))
+	temp:Set(M23, values:Get(M20) * other:Get(M03) + values:Get(M21) * other:Get(M13) + values:Get(M22) * other:Get(M23) + values:Get(M23) * other:Get(M33))
+	temp:Set(M30, values:Get(M30) * other:Get(M00) + values:Get(M31) * other:Get(M10) + values:Get(M32) * other:Get(M20) + values:Get(M33) * other:Get(M30))
+	temp:Set(M31, values:Get(M30) * other:Get(M01) + values:Get(M31) * other:Get(M11) + values:Get(M32) * other:Get(M21) + values:Get(M33) * other:Get(M31))
+	temp:Set(M32, values:Get(M30) * other:Get(M02) + values:Get(M31) * other:Get(M12) + values:Get(M32) * other:Get(M22) + values:Get(M33) * other:Get(M32))
+	temp:Set(M33, values:Get(M30) * other:Get(M03) + values:Get(M31) * other:Get(M13) + values:Get(M32) * other:Get(M23) + values:Get(M33) * other:Get(M33))
+
+	values = temp
+
+    end 
+
+    action Transpose ()
+
+        temporary:Set(M00, values:Get(M00))
+        temporary:Set(M01, values:Get(M10))
+        temporary:Set(M02, values:Get(M20))
+        temporary:Set(M03, values:Get(M30))
+        temporary:Set(M10, values:Get(M01))
+        temporary:Set(M11, values:Get(M11))
+        temporary:Set(M12, values:Get(M21))
+        temporary:Set(M13, values:Get(M31))
+        temporary:Set(M20, values:Get(M02))
+        temporary:Set(M21, values:Get(M12))
+        temporary:Set(M22, values:Get(M22))
+        temporary:Set(M23, values:Get(M32))
+        temporary:Set(M30, values:Get(M03))
+        temporary:Set(M31, values:Get(M13))
+        temporary:Set(M32, values:Get(M23))
+        temporary:Set(M33, values:Get(M33))
+
+        values = temporary
+
+    end
+
+    action Identity ()
+
+        values:Set(M00, 1)
+        values:Set(M01, 0)
+        values:Set(M02, 0)
+        values:Set(M03, 0)
+        values:Set(M10, 0)
+        values:Set(M11, 1)
+        values:Set(M12, 0)
+        values:Set(M13, 0)
+        values:Set(M20, 0)
+        values:Set(M21, 0)
+        values:Set(M22, 1)
+        values:Set(M23, 0)
+        values:Set(M30, 0)
+        values:Set(M31, 0)
+        values:Set(M32, 0)
+        values:Set(M33, 1)
+
+    end
+
+    action Inverse ()
+
+        number l_det = values:Get(M30) * values:Get(M21) * values:Get(M12) * values:Get(M03) - values:Get(M20) * values:Get(M31) * values:Get(M12) * values:Get(M03) - values:Get(M30) * values:Get(M11)
+        * values:Get(M22) * values:Get(M03) + values:Get(M10) * values:Get(M31) * values:Get(M22) * values:Get(M03) + values:Get(M20) * values:Get(M11) * values:Get(M32) * values:Get(M03) - values:Get(M10)
+        * values:Get(M21) * values:Get(M32) * values:Get(M03) - values:Get(M30) * values:Get(M21) * values:Get(M02) * values:Get(M13) + values:Get(M20) * values:Get(M31) * values:Get(M02) * values:Get(M13)
+        + values:Get(M30) * values:Get(M01) * values:Get(M22) * values:Get(M13) - values:Get(M00) * values:Get(M31) * values:Get(M22) * values:Get(M13) - values:Get(M20) * values:Get(M01) * values:Get(M32)
+        * values:Get(M13) + values:Get(M00) * values:Get(M21) * values:Get(M32) * values:Get(M13) + values:Get(M30) * values:Get(M11) * values:Get(M02) * values:Get(M23) - values:Get(M10) * values:Get(M31)
+        * values:Get(M02) * values:Get(M23) - values:Get(M30) * values:Get(M01) * values:Get(M12) * values:Get(M23) + values:Get(M00) * values:Get(M31) * values:Get(M12) * values:Get(M23) + values:Get(M10)
+        * values:Get(M01) * values:Get(M32) * values:Get(M23) - values:Get(M00) * values:Get(M11) * values:Get(M32) * values:Get(M23) - values:Get(M20) * values:Get(M11) * values:Get(M02) * values:Get(M33)
+        + values:Get(M10) * values:Get(M21) * values:Get(M02) * values:Get(M33) + values:Get(M20) * values:Get(M01) * values:Get(M12) * values:Get(M33) - values:Get(M00) * values:Get(M21) * values:Get(M12)
+        * values:Get(M33) - values:Get(M10) * values:Get(M01) * values:Get(M22) * values:Get(M33) + values:Get(M00) * values:Get(M11) * values:Get(M22) * values:Get(M33)
+
+        if l_det = 0.0 
+	    Error error
+	    error:SetErrorMessage("Can't take the inverse of this matrix!")
+	    alert(error)
+	end
+        
+        number inv_det = 1.0 / l_det
+        temporary:Set(M00, values:Get(M12) * values:Get(M23) * values:Get(M31) - values:Get(M13) * values:Get(M22) * values:Get(M31) + values:Get(M13) * values:Get(M21) * values:Get(M32) - values:Get(M11)
+        * values:Get(M23) * values:Get(M32) - values:Get(M12) * values:Get(M21) * values:Get(M33) + values:Get(M11) * values:Get(M22) * values:Get(M33))
+        temporary:Set(M01, values:Get(M03) * values:Get(M22) * values:Get(M31) - values:Get(M02) * values:Get(M23) * values:Get(M31) - values:Get(M03) * values:Get(M21) * values:Get(M32) + values:Get(M01)
+        * values:Get(M23) * values:Get(M32) + values:Get(M02) * values:Get(M21) * values:Get(M33) - values:Get(M01) * values:Get(M22) * values:Get(M33))
+        temporary:Set(M02, values:Get(M02) * values:Get(M13) * values:Get(M31) - values:Get(M03) * values:Get(M12) * values:Get(M31) + values:Get(M03) * values:Get(M11) * values:Get(M32) - values:Get(M01)
+        * values:Get(M13) * values:Get(M32) - values:Get(M02) * values:Get(M11) * values:Get(M33) + values:Get(M01) * values:Get(M12) * values:Get(M33))
+        temporary:Set(M03, values:Get(M03) * values:Get(M12) * values:Get(M21) - values:Get(M02) * values:Get(M13) * values:Get(M21) - values:Get(M03) * values:Get(M11) * values:Get(M22) + values:Get(M01)
+        * values:Get(M13) * values:Get(M22) + values:Get(M02) * values:Get(M11) * values:Get(M23) - values:Get(M01) * values:Get(M12) * values:Get(M23))
+        temporary:Set(M10, values:Get(M13) * values:Get(M22) * values:Get(M30) - values:Get(M12) * values:Get(M23) * values:Get(M30) - values:Get(M13) * values:Get(M20) * values:Get(M32) + values:Get(M10)
+        * values:Get(M23) * values:Get(M32) + values:Get(M12) * values:Get(M20) * values:Get(M33) - values:Get(M10) * values:Get(M22) * values:Get(M33))
+        temporary:Set(M11, values:Get(M02) * values:Get(M23) * values:Get(M30) - values:Get(M03) * values:Get(M22) * values:Get(M30) + values:Get(M03) * values:Get(M20) * values:Get(M32) - values:Get(M00)
+        * values:Get(M23) * values:Get(M32) - values:Get(M02) * values:Get(M20) * values:Get(M33) + values:Get(M00) * values:Get(M22) * values:Get(M33))
+        temporary:Set(M12, values:Get(M03) * values:Get(M12) * values:Get(M30) - values:Get(M02) * values:Get(M13) * values:Get(M30) - values:Get(M03) * values:Get(M10) * values:Get(M32) + values:Get(M00)
+        * values:Get(M13) * values:Get(M32) + values:Get(M02) * values:Get(M10) * values:Get(M33) - values:Get(M00) * values:Get(M12) * values:Get(M33))
+        temporary:Set(M13, values:Get(M02) * values:Get(M13) * values:Get(M20) - values:Get(M03) * values:Get(M12) * values:Get(M20) + values:Get(M03) * values:Get(M10) * values:Get(M22) - values:Get(M00)
+        * values:Get(M13) * values:Get(M22) - values:Get(M02) * values:Get(M10) * values:Get(M23) + values:Get(M00) * values:Get(M12) * values:Get(M23))
+        temporary:Set(M20, values:Get(M11) * values:Get(M23) * values:Get(M30) - values:Get(M13) * values:Get(M21) * values:Get(M30) + values:Get(M13) * values:Get(M20) * values:Get(M31) - values:Get(M10)
+        * values:Get(M23) * values:Get(M31) - values:Get(M11) * values:Get(M20) * values:Get(M33) + values:Get(M10) * values:Get(M21) * values:Get(M33))
+        temporary:Set(M21, values:Get(M03) * values:Get(M21) * values:Get(M30) - values:Get(M01) * values:Get(M23) * values:Get(M30) - values:Get(M03) * values:Get(M20) * values:Get(M31) + values:Get(M00)
+        * values:Get(M23) * values:Get(M31) + values:Get(M01) * values:Get(M20) * values:Get(M33) - values:Get(M00) * values:Get(M21) * values:Get(M33))
+        temporary:Set(M22, values:Get(M01) * values:Get(M13) * values:Get(M30) - values:Get(M03) * values:Get(M11) * values:Get(M30) + values:Get(M03) * values:Get(M10) * values:Get(M31) - values:Get(M00)
+        * values:Get(M13) * values:Get(M31) - values:Get(M01) * values:Get(M10) * values:Get(M33) + values:Get(M00) * values:Get(M11) * values:Get(M33))
+        temporary:Set(M23, values:Get(M03) * values:Get(M11) * values:Get(M20) - values:Get(M01) * values:Get(M13) * values:Get(M20) - values:Get(M03) * values:Get(M10) * values:Get(M21) + values:Get(M00)
+        * values:Get(M13) * values:Get(M21) + values:Get(M01) * values:Get(M10) * values:Get(M23) - values:Get(M00) * values:Get(M11) * values:Get(M23))
+        temporary:Set(M30, values:Get(M12) * values:Get(M21) * values:Get(M30) - values:Get(M11) * values:Get(M22) * values:Get(M30) - values:Get(M12) * values:Get(M20) * values:Get(M31) + values:Get(M10)
+        * values:Get(M22) * values:Get(M31) + values:Get(M11) * values:Get(M20) * values:Get(M32) - values:Get(M10) * values:Get(M21) * values:Get(M32))
+        temporary:Set(M31, values:Get(M01) * values:Get(M22) * values:Get(M30) - values:Get(M02) * values:Get(M21) * values:Get(M30) + values:Get(M02) * values:Get(M20) * values:Get(M31) - values:Get(M00)
+        * values:Get(M22) * values:Get(M31) - values:Get(M01) * values:Get(M20) * values:Get(M32) + values:Get(M00) * values:Get(M21) * values:Get(M32))
+        temporary:Set(M32, values:Get(M02) * values:Get(M11) * values:Get(M30) - values:Get(M01) * values:Get(M12) * values:Get(M30) - values:Get(M02) * values:Get(M10) * values:Get(M31) + values:Get(M00)
+        * values:Get(M12) * values:Get(M31) + values:Get(M01) * values:Get(M10) * values:Get(M32) - values:Get(M00) * values:Get(M11) * values:Get(M32))
+        temporary:Set(M33, values:Get(M01) * values:Get(M12) * values:Get(M20) - values:Get(M02) * values:Get(M11) * values:Get(M20) + values:Get(M02) * values:Get(M10) * values:Get(M21) - values:Get(M00)
+        * values:Get(M12) * values:Get(M21) - values:Get(M01) * values:Get(M10) * values:Get(M22) + values:Get(M00) * values:Get(M11) * values:Get(M22))
+
+        values:Set(M00, temporary:Get(M00) * inv_det)
+        values:Set(M01, temporary:Get(M01) * inv_det)
+        values:Set(M02, temporary:Get(M02) * inv_det)
+        values:Set(M03, temporary:Get(M03) * inv_det)
+        values:Set(M10, temporary:Get(M10) * inv_det)
+        values:Set(M11, temporary:Get(M11) * inv_det)
+        values:Set(M12, temporary:Get(M12) * inv_det)
+        values:Set(M13, temporary:Get(M13) * inv_det)
+        values:Set(M20, temporary:Get(M20) * inv_det)
+        values:Set(M21, temporary:Get(M21) * inv_det)
+        values:Set(M22, temporary:Get(M22) * inv_det)
+        values:Set(M23, temporary:Get(M23) * inv_det)
+        values:Set(M30, temporary:Get(M30) * inv_det)
+        values:Set(M31, temporary:Get(M31) * inv_det)
+        values:Set(M32, temporary:Get(M32) * inv_det)
+        values:Set(M33, temporary:Get(M33) * inv_det)
+
+    end
+
+    action Determinant () returns number
+
+        return values:Get(M30) * values:Get(M21) * values:Get(M12) * values:Get(M03) - values:Get(M20) * values:Get(M31) * values:Get(M12) * values:Get(M03) - values:Get(M30) * values:Get(M11)
+        * values:Get(M22) * values:Get(M03) + values:Get(M10) * values:Get(M31) * values:Get(M22) * values:Get(M03) + values:Get(M20) * values:Get(M11) * values:Get(M32) * values:Get(M03) - values:Get(M10)
+        * values:Get(M21) * values:Get(M32) * values:Get(M03) - values:Get(M30) * values:Get(M21) * values:Get(M02) * values:Get(M13) + values:Get(M20) * values:Get(M31) * values:Get(M02) * values:Get(M13)
+        + values:Get(M30) * values:Get(M01) * values:Get(M22) * values:Get(M13) - values:Get(M00) * values:Get(M31) * values:Get(M22) * values:Get(M13) - values:Get(M20) * values:Get(M01) * values:Get(M32)
+        * values:Get(M13) + values:Get(M00) * values:Get(M21) * values:Get(M32) * values:Get(M13) + values:Get(M30) * values:Get(M11) * values:Get(M02) * values:Get(M23) - values:Get(M10) * values:Get(M31)
+        * values:Get(M02) * values:Get(M23) - values:Get(M30) * values:Get(M01) * values:Get(M12) * values:Get(M23) + values:Get(M00) * values:Get(M31) * values:Get(M12) * values:Get(M23) + values:Get(M10)
+        * values:Get(M01) * values:Get(M32) * values:Get(M23) - values:Get(M00) * values:Get(M11) * values:Get(M32) * values:Get(M23) - values:Get(M20) * values:Get(M11) * values:Get(M02) * values:Get(M33)
+        + values:Get(M10) * values:Get(M21) * values:Get(M02) * values:Get(M33) + values:Get(M20) * values:Get(M01) * values:Get(M12) * values:Get(M33) - values:Get(M00) * values:Get(M21) * values:Get(M12)
+        * values:Get(M33) - values:Get(M10) * values:Get(M01) * values:Get(M22) * values:Get(M33) + values:Get(M00) * values:Get(M11) * values:Get(M22) * values:Get(M33)
+
+    end
+
+    action Determinant3x3 () returns number
+
+        return values:Get(M00) * values:Get(M11) * values:Get(M22) + values:Get(M01) * values:Get(M12) * values:Get(M20) + values:Get(M02) * values:Get(M10) * values:Get(M21) - values:Get(M00)
+        * values:Get(M12) * values:Get(M21) - values:Get(M01) * values:Get(M10) * values:Get(M22) - values:Get(M02) * values:Get(M11) * values:Get(M20)
+
+    end
+
+    action SetToProjection (number near, number far, number fovy, number aspectRatio)
+
+        Identity()
+        number l_fd = cast(number, (1.0 / math:Tangent((fovy * (math:pi / 180)) / 2.0)))
+        number l_a1 = (far + near) / (near - far)
+        number l_a2 = (2 * far * near) / (near - far)
+        values:Set(M00, l_fd / aspectRatio)
+        values:Set(M10, 0)
+        values:Set(M20, 0)
+        values:Set(M30, 0)
+        values:Set(M01, 0)
+        values:Set(M11, l_fd)
+        values:Set(M21, 0)
+        values:Set(M31, 0)
+        values:Set(M02, 0)
+        values:Set(M12, 0)
+        values:Set(M22, l_a1)
+        values:Set(M32, -1)
+        values:Set(M03, 0)
+        values:Set(M13, 0)
+        values:Set(M23, l_a2)
+        values:Set(M33, 0)
+
+    end
+
+    action SetToOrthographic2D (number x, number y, number width, number height)
+
+        SetToOrthographic(x, x + width, y, y + height, 0, 1)
+
+    end
+
+    action SetToOrthographic2D (number x, number y, number width, number height, number near, number far)
+
+        SetToOrthographic(x, x + width, y, y + height, near, far)
+
+    end
+
+    action SetToOrthographic (number left, number right, number bottom, number top, number near, number far)
+    
+        Identity()
+        number x_orth = 2 / (right - left)
+        number y_orth = 2 / (top - bottom)
+        number z_orth = -2 / (far - near)
+        number tx = -1 * (right + left) / (right - left)
+        number ty = -1 * (top + bottom) / (top - bottom)
+        number tz = -1 * (far + near) / (far - near)
+
+        values:Set(M00, x_orth)
+        values:Set(M10, 0)
+        values:Set(M20, 0)
+        values:Set(M30, 0)
+        values:Set(M01, 0)
+        values:Set(M11, y_orth)
+        values:Set(M21, 0)
+        values:Set(M31, 0)
+        values:Set(M02, 0)
+        values:Set(M12, 0)
+        values:Set(M22, z_orth)
+        values:Set(M32, 0)
+        values:Set(M03, tx)
+        values:Set(M13, ty)
+        values:Set(M23, tz)
+        values:Set(M33, 1)
+
+    end
+
+    action SetTranslation (Vector3 vector)
+
+        values:Set(M03, vector:GetX())
+        values:Set(M13, vector:GetY())
+        values:Set(M23, vector:GetZ())
+
+    end
+
+    action SetTranslation (number x, number y, number z)
+
+        values:Set(M03, x)
+        values:Set(M13, y)
+        values:Set(M23, z)
+
+    end
+
+    action SetToTranslation (Vector3 vector)
+
+        Identity()
+        values:Set(M03, vector:GetX())
+        values:Set(M13, vector:GetY())
+        values:Set(M23, vector:GetZ())
+
+    end
+
+    action SetToTranslation (number x, number y, number z)
+
+        Identity()
+        values:Set(M03, x)
+        values:Set(M13, y)
+        values:Set(M23, z)
+
+    end
+
+    action SetToTranslationAndScaling (Vector3 translation, Vector3 scaling)
+
+        Identity()
+        values:Set(M03, translation:GetX())
+        values:Set(M13, translation:GetY())
+        values:Set(M23, translation:GetZ())
+        values:Set(M00, scaling:GetX())
+        values:Set(M11, scaling:GetY())
+        values:Set(M22, scaling:GetZ())
+
+    end
+
+    action SetToTranslationAndScaling (number translationX, number translationY, number translationZ, number scalingX, number scalingY, number scalingZ)
+        
+        Identity()
+        values:Set(M03, translationX)
+        values:Set(M13, translationY)
+        values:Set(M23, translationZ)
+        values:Set(M00, scalingX)
+        values:Set(M11, scalingY)
+        values:Set(M22, scalingZ)
+
+    end
+
+    /* action SetToRotation (Vector3 axis, number degrees)
+
+        if degrees = 0
+            Identity()
+        else
+            quaternion:Set(axis, degrees)
+            Set(quaternion)
+        end
+
+    end
+
+    action SetToRotationInRadians (Vector3 axis, number radians)
+
+        if radians = 0
+            Identity()
+        else
+            quaternion:SetFromAxisRadians(axis, radians)
+            Set(quaternion)
+        end
+
+    end
+
+    action SetToRotation (number axisX, number axisY, number axisZ, number degrees)
+
+        if degrees = 0
+            Identity()
+        else
+            quaternion:SetFromAxis(axisX, axisY, axisZ, degrees)
+            Set(quaternion)
+        end
+
+    end
+
+    action SetToRotationInRadians (number axisX, number axisY, number axisZ, number radians)
+
+        if degrees = 0
+            Identity()
+        else
+            quaternion:SetFromAxisInRadians(axisX, axisY, axisZ, radians)
+            Set(quaternion)
+        end
+
+    end
+
+    action SetToRotation (Vector3 v1, Vector3 v2)
+
+        quaternion:SetFromCross(v1, v2)
+        Set(quaternion)
+
+    end
+
+    action SetToRotation (number x1, number y1, number z1, number x2, number y2, number z2)
+
+        quaternion:SetFromCross(x1, y1, z1, x2, y2, z2)
+        Set(quaternion)
+        
+    end
+
+    action SetFromEulerAngles (number yaw, number pitch, number roll)
+
+        quaternion:SetEulerAngles (yaw, pitch, roll)
+        Set(quaternion)
+
+    end */
+
+    action SetToScaling (Vector3 vector)
+
+        Identity()
+        values:Set(M00, vector:GetX())
+        values:Set(M11, vector:GetY())
+        values:Set(M22, vector:GetZ())
+
+    end
+
+    action SetToScaling (number x, number y, number z)
+
+        Identity()
+        values:Set(M00, x)
+        values:Set(M11, y)
+        values:Set(M22, z)
+
+    end
+
+    action SetToLookAt (Vector3 direction, Vector3 up)
+
+        l_vez:Set(direction)
+        l_vez:Normalize()
+        l_vex:Set(direction)
+        l_vex:Normalize()
+        l_vex:CrossProduct(up)
+        l_vex:Normalize()
+        l_vey:Set(l_vex)
+        l_vey:CrossProduct(l_vez)
+        l_vey:Normalize()
+
+        Identity()
+
+        values:Set(M00, l_vex:GetX())
+        values:Set(M01, l_vex:GetY())
+        values:Set(M02, l_vex:GetZ())
+        values:Set(M10, l_vey:GetX())
+        values:Set(M11, l_vey:GetY())
+        values:Set(M12, l_vey:GetZ())
+        values:Set(M20, -1 * l_vez:GetX())
+        values:Set(M21, -1 * l_vez:GetY())
+        values:Set(M22, -1 * l_vez:GetZ())
+
+    end
+
+
+    action SetToLookAt (Vector3 position, Vector3 target, Vector3 up)
+
+        tmpVec:Set(target)
+        tmpVec:Subtract(position)
+        SetToLookAt(tmpVec, up)
+
+        tmpMat:SetToTranslation(-1 * position:GetX(), -1 * position:GetY(), -1 * position:GetZ())
+        // Multiply(tmpMat)
+
+    end
+
+    action SetToWorld (Vector3 position, Vector3 forward, Vector3 up)
+
+        tmpForward:Set(forward)
+        tmpForward:Normalize()
+        right:Set(tmpForward)
+        right:CrossProduct(up)
+        right:Normalize()
+        tmpUp:Set(right)
+        tmpUp:CrossProduct(tmpForward)
+        tmpUp:Normalize()
+
+        tmpForward:Scalar(-1)
+        Set(right, tmpUp, tmpForward, position)
+
+    end
+
+    action ToString () returns text
+
+        return "[" + values:Get(M00) + "|" + values:Get(M01) + "|" + values:Get(M02) + "|" + values:Get(M03) + ")
+        " + "[" + values:Get(M10) + "|" + values:Get(M11) + "|" + values:Get(M12) + "|" + values:Get(M13) + ")
+        " + "[" + values:Get(M20) + "|" + values:Get(M21) + "|" + values:Get(M22) + "|" + values:Get(M23) + ")
+        " + "[" + values:Get(M30) + "|" + values:Get(M31) + "|" + values:Get(M32) + "|" + values:Get(M33) + ")"
+
+    end
+
+    action LinearInterpolation (Matrix4 matrix, number alpha)
+
+        integer i = 0
+
+        Array<number> matrixValues =  matrix:values
+
+        repeat 16 times
+            values:Set(i, values:Get(i) * (1 - alpha) + matrixValues:Get(i) * alpha)
+            i = i + 1
+        end
+        
+    end
+
+    /* action Average (Matrix4 other, number w)
+
+        GetScale(tmpVec)
+        other:GetScale(tmpForward)
+
+        GetRotation(quaternion)
+        other:GetRotation(quaternion2)
+
+        GetTranslation(tmpUp)
+        other:GetTranslation(right)
+
+        tmpForward:Scale(1 - w)
+        tmpVec:Scale(w)
+        tmpVec:Add(tmpForward)
+        SetToScaling(tmpVec)
+        
+        quaternion:Slerp(quaternion2, 1 - w)
+        Rotate(quaternion)
+
+        right:Scale(1 - w)
+        tmpUp:Scale(w)
+        tmpUp:Add(right)
+        SetToTranslation(tmpUp)
+
+    end */
+
+
+
+
+   // action Average (Array<Matrix4>
+
+
+    action Scale (Vector3 scale)
+
+        values:Set(M00, values:Get(M00) * scale:GetX())
+        values:Set(M11, values:Get(M11) * scale:GetY())
+        values:Set(M22, values:Get(M22) * scale:GetZ())
+
+    end
+
+    action Scale (number x, number y, number z)
+
+        values:Set(M00, values:Get(M00) * x)
+        values:Set(M11, values:Get(M11) * y)
+        values:Set(M22, values:Get(M22) * z)
+
+    end
+
+    action Scale (number scale)
+
+        values:Set(M00, values:Get(M00) * scale)
+        values:Set(M11, values:Get(M11) * scale)
+        values:Set(M22, values:Get(M22) * scale)
+
+    end
+
+    action GetTranslation () returns Vector3
+        
+        Vector3 tmp
+        tmp:Set (values:Get(M03), values:Get(M13), values:Get(M23))
+        return tmp
+
+    end
+
+
+
+
+   // action GetRotation (Quaternion rotation, boolean normalizeAxes)
+
+      
+
+
+    action GetScaleXSquared () returns number 
+        
+        Matrix4 tmp
+        return values:Get(tmp:M00) * values:Get(tmp:M00) + values:Get(tmp:M01) * values:Get(tmp:M01) + values:Get(tmp:M02) * values:Get(tmp:M02)
+
+    end
+
+     action GetScaleYSquared () returns number 
+        
+        Matrix4 tmp
+        return values:Get(tmp:M10) * values:Get(tmp:M10) + values:Get(tmp:M11) * values:Get(tmp:M11) + values:Get(tmp:M12) * values:Get(tmp:M12)
+
+    end
+
+     action GetScaleZSquared () returns number 
+        
+        Matrix4 tmp
+        return values:Get(tmp:M20) * values:Get(tmp:M20) + values:Get(tmp:M21) * values:Get(tmp:M21) + values:Get(tmp:M22) * values:Get(tmp:M22)
+
+    end
+
+    action GetScaleX () returns number 
+
+        Matrix4 tmp
+        if values:Get(tmp:M01) <= 0.000001
+            if values:Get(tmp:M02) <= 0.000001
+                
+                return math:SquareRoot(values:Get(tmp:M00))
+
+            end
+        end
+
+        return cast(number, math:SquareRoot(GetScaleXSquared()))
+
+    end
+
+     action GetScaleY () returns number 
+
+        Matrix4 tmp
+        if values:Get(tmp:M10) <= 0.000001
+            if values:Get(tmp:M12) <= 0.000001
+                
+                return math:SquareRoot(values:Get(tmp:M11))
+
+            end
+        end
+
+        return cast(number, math:SquareRoot(GetScaleYSquared()))
+
+    end
+
+     action GetScaleZ () returns number 
+
+        Matrix4 tmp
+        if values:Get(tmp:M20) <= 0.000001
+            if values:Get(tmp:M21) <= 0.000001
+                
+                return math:SquareRoot(values:Get(tmp:M22))
+
+            end
+        end
+
+        return cast(number, math:SquareRoot(GetScaleZSquared()))
+
+    end
+
+    action GetScale () returns Vector3
+
+        Vector3 tmp
+
+        tmp:Set(GetScaleX(), GetScaleY(), GetScaleZ())
+
+        return tmp
+
+    end
+
+    action ToNormalMatrix ()
+
+        values:Set(M03, 0)
+        values:Set(M13, 0)
+        values:Set(M23, 0)
+
+        Transpose()
+        Inverse()
+
+    end
+
+    /* action Rotate (Vector3 axis, number degrees)
+        
+        if degrees not= 0
+            quaternion:Set(axis, degrees)
+            Rotate(quaternion)
+        end
+
+    end
+
+    action RotateInRadians (Vector3 axis, number radians)
+
+        if radians not= 0
+            quaternion:SetFromAxisRadians(axis, radians)
+            Rotate(quaternion)
+        end
+
+    end
+
+    action Rotate (number axisX, number axisY, number axisZ, number degrees)
+
+        if degrees not= 0
+            quaternion:SetFromAxis(axisX, axisY, axisZ, degrees)
+            Rotate(quaternion)
+        end
+        
+    end
+
+    action RotateInRadians (number axisX, number axisY, number axisZ, number radians)
+
+        if radians not= 0
+            quaternion:SetFromAxisRadians(axisX, axisY, axisZ, radians)
+            Rotate(quaternion)
+        end
+        
+    end
+
+    action Rotate (Quaternion rotation)
+
+        rotation:ToMatrix(temporary)
+        Multiply(values, temporary)
+
+    end
+
+    action Rotate (Vector3 v1, Vector3 v2)
+
+        quaternion:SetFromCross(v1, v2)
+        Rotate(quaternion)
+
+    end */
+
+    action Extract4x3Matrix (Array<number> destination)
+
+        destination:Set(0, values:Get(M00))
+        destination:Set(1, values:Get(M10))
+        destination:Set(2, values:Get(M20))
+        destination:Set(3, values:Get(M01))
+        destination:Set(4, values:Get(M11))
+        destination:Set(5, values:Get(M21))
+        destination:Set(6, values:Get(M02))
+        destination:Set(7, values:Get(M12))
+        destination:Set(8, values:Get(M22))
+        destination:Set(9, values:Get(M03))
+        destination:Set(10, values:Get(M13))
+        destination:Set(11, values:Get(M23))
+
+    end
+      
+end

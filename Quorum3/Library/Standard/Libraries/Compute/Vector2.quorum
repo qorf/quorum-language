@@ -1,0 +1,426 @@
+/* A class representing a vector in 2D space. */
+
+package Libraries.Compute
+
+use Libraries.Compute.all
+use Libraries.Containers.Array
+
+class Vector2
+
+    number x = 0
+    number y = 0
+    constant number radians = 0.0174532925
+    Math math
+
+    action GetX() returns number
+        return x
+    end
+
+    action GetY() returns number
+        return y
+    end
+
+    // set the calling vectors coordinates
+    action Set(Vector2 vector)
+        x = vector:x
+        y = vector:y
+    end
+
+    action Set(number xValue, number yValue)
+        x = xValue
+        y = yValue
+    end
+
+    // returns a copy of the calling vector
+    action Copy() returns Vector2
+        Vector2 vector
+        vector:Set(x,y)
+        return vector
+    end
+
+    action Length(number x, number y) returns number
+        return math:SquareRoot(x * x + y * y)
+    end
+
+    action Length() returns number
+        return math:SquareRoot(x * x + y * y)
+    end
+
+    action LengthSquared(number x, number y) returns number
+        return x * x + y * y
+    end
+
+    action LengthSquared() returns number
+        return x * x + y * y
+    end
+
+/* sub methods do not return Vector2 */
+    action Subtract(Vector2 v)
+        x = x - v:x
+        y = y - v:y
+    end
+
+    action Subtract(number xValue, number yValue)
+        x = x - xValue
+        y = y - yValue
+    end
+
+    action Normalize()
+        number length = Length()
+        if length not= 0
+            x = x / length
+            y = y / length
+        end
+    end
+
+    action Add(Vector2 vector)
+        x = x + vector:x
+        y = y + vector:y
+    end
+
+    action Add(number xValue, number yValue)
+        x = x + xValue
+        y = y + yValue
+    end
+
+    action DotProduct(number x1, number y1, number x2, number y2) returns number
+        return x1 * x2 + y1 * y2
+    end
+
+    action DotProduct(Vector2 vector) returns number
+        return x * vector:x + y * vector:y
+    end
+
+    action DotProduct(number xValue, number yValue) returns number
+        return x * xValue + y * yValue
+    end
+
+    action Scalar (number scalar)
+        x = x * scalar
+        y = y * scalar
+    end
+
+    action Scalar (number xValue, number yValue)
+        x = x * xValue
+        y = y * yValue
+    end
+
+    action Scalar (Vector2 vector)
+        x = x * vector:x
+        y = y * vector:y
+    end
+
+    action MultiplyAndAdd (Vector2 vector, number scalar)
+        x = x + vector:x * scalar
+        y = y + vector:y * scalar
+    end
+
+    action MultiplyAndAdd(Vector2 vector, Vector2 vector2)
+        x = x + vector:x * vector2:x
+        y = y + vector:y * vector2:y
+    end
+
+    action Distance (number x1, number y1, number x2, number y2) returns number
+        constant number x_d = x2 - x1
+        constant number y_d = y2 - y1
+        return math:SquareRoot(x_d * x_d + y_d * y_d)
+    end
+
+    action Distance (Vector2 vector) returns number
+        constant number x_d = vector:x - x
+        constant number y_d = vector:y - y
+        return math:SquareRoot(x_d * x_d + y_d * y_d)
+    end
+
+    action Distance (number xValue, number yValue) returns number
+        constant number x_d = xValue - x
+        constant number y_d = yValue - y
+        return math:SquareRoot(x_d * x_d + y_d * y_d)
+    end
+
+    action DistanceSquared (number x1, number y1, number x2, number y2) returns number
+        constant number x_d = x2 - x1
+        constant number y_d = y2 - y1
+        return x_d * x_d + y_d * y_d
+    end
+
+    action DistanceSquared (Vector2 vector) returns number
+        constant number x_d = vector:x - x
+        constant number y_d = vector:y - y
+        return x_d * x_d + y_d * y_d
+    end
+
+    action DistanceSquared (number xValue, number yValue) returns number
+        constant number x_d = xValue - x
+        constant number y_d = yValue - y
+        return x_d * x_d + y_d * y_d
+    end
+
+    action Limit (number limit) returns Vector2
+        Vector2 temp
+        if LengthSquared() > limit * limit
+            Normalize()
+            Scalar(limit)
+        end
+        temp:Set(x,y)
+        return temp
+    end
+
+    /* check this */
+    action LimitPositionToArea (number min, number max) returns Vector2
+        Vector2 temp
+        constant number lengthSquared = LengthSquared()
+
+        if lengthSquared = 0.0
+	    temp:Set(x, y)
+            return temp
+        end
+
+        if lengthSquared > max * max
+            Scalar(math:SquareRoot((max * max)/lengthSquared))
+	    temp:Set(x, y)
+            return temp
+        end
+
+        if lengthSquared < min * min
+            Scalar(math:SquareRoot((min * min)/lengthSquared))
+	    temp:Set(x, y)
+            return temp
+        end
+
+	temp:Set(x,y)
+        return temp
+    end
+
+    /* check this */
+    action ToString() returns text
+        return "[" + x + ":" + y + "]"
+    end
+
+    // left multiplies the calling vector by the passed matrix
+    /* Multiplying a 2 element vector by a 3x3 matrix? The way it's being
+    calculated also doesn't seem to make sense. As far as I can tell, this is
+    never used in libGDX.
+    action Multiply (Matrix3 matrix) returns Vector2
+
+        Vector2 temp
+        Array<number> matrixValues = matrix:values
+        
+        number xValue = x * matrixValues:Get(0) + y * matrixValues:Get(3) + matrixValues:Get(6)
+        number yValue = x * matrixValues:Get(1) + y * matrixValues:Get(4) + matrixValues:Get(7)
+        x = xValue
+        y = yValue
+        temp:Set(xValue, yValue)
+
+        return temp
+
+    end*/
+
+    action CrossProduct (Vector2 v) returns number
+        return x * v:y - y * v:x
+    end
+
+    action CrossProduct (number xValue, number yValue) returns number
+        return x * yValue - y * xValue
+    end
+
+   action Angle () returns number
+        number angle = math:InverseTangent(x, y) / radians
+        if angle < 0
+            angle = angle + 360
+        end
+        return angle
+    end
+
+    action Angle (Vector2 vector) returns number
+	return math:InverseTangent(DotProduct(vector), CrossProduct(vector)) / radians
+	//return math:InverseTangent(CrossProduct(vector),DotProduct(vector)) / radians
+    end
+
+    action AngleInRadians () returns number
+        return cast(number, math:InverseTangent(x, y))
+    end
+
+    action AngleInRadians(Vector2 vector) returns number
+        return math:InverseTangent(DotProduct(vector), CrossProduct(vector))
+	//return math:InverseTangent(CrossProduct(vector), DotProduct(vector))
+    end
+
+    action SetAngle (number degrees)
+        SetAngleInRadians(degrees * radians)
+    end
+
+    action SetAngleInRadians (number radians)
+        Set(Length(), 0.0)
+        RotateInRadians(radians)
+    end
+
+    action Rotate (number degrees)
+        RotateInRadians(degrees * radians)
+    end
+    
+   /* check this */
+   action RotateInRadians (number radians)
+        number cos = math:Cosine(radians)
+        number sin = math:Sine(radians)
+        number newX = x * cos - y * sin
+        number newY = x * sin + y * cos
+        x = newX
+        y = newY
+   end
+
+    action Rotate90Degrees (integer direction)
+        number xValue = x
+        if direction >= 0
+            x = y * -1.0
+            y = xValue
+        else
+            x = y
+            y = xValue * -1.0
+        end
+    end
+
+    action LinearInterpolation (Vector2 vector, number alpha) returns Vector2
+        constant number invAlpha = 1.0 - alpha
+        Vector2 temp
+        x = (x * invAlpha) + (vector:x * alpha)
+        y = (y * invAlpha) + (vector:y * alpha)
+        temp:Set(x, y)
+        return temp
+    end
+
+    /* needs Interpolation class
+    action interpolate (Vector2 target, number alpha, Interpolation interpolation)
+        return LinearInterpolation(target, interpolation:Apply(alpha))
+    end */
+
+   /* action hashCode() returns integer
+        integer prime = 31
+        integer result = 1
+        result = prime * result + numberUtils:floatToIntBits(x)
+        result = prime * result + numerUtils:floatToIntBits(y)
+        return result
+    end */
+
+    /* action equals (Object object) returns boolean
+        if me = object
+            return true
+        end
+        
+        if object = undefined
+            return false
+        end */
+
+    action EqualAtPrecision (Vector2 vector, number epsilon) returns boolean
+
+        if vector = undefined
+            return false
+
+        elseif math:AbsoluteValue(vector:x - x) > epsilon
+            return false
+
+        elseif math:AbsoluteValue(vector:y - y) > epsilon
+            return false
+
+        end
+
+        return true
+
+    end
+
+    action EqualAtPrecision (number xValue, number yValue, number epsilon) returns boolean
+        if math:AbsoluteValue(xValue - x) > epsilon
+            return false
+        elseif math:AbsoluteValue(yValue - y) > epsilon
+            return false
+        end
+        return true
+    end
+
+    action IsUnit() returns boolean 
+        return IsUnit(0.000000001)
+    end
+
+    action IsUnit(number margin) returns boolean
+        if math:AbsoluteValue(LengthSquared() - 1.0) < margin
+	    return true
+        else
+	    return false
+        end
+    end
+
+    action IsZero() returns boolean
+        if x = 0 
+            if y = 0
+            return true
+            end
+        end
+        return false
+    end
+
+    action IsZero (number margin)  returns boolean
+        return LengthSquared() < margin
+    end
+
+    action IsOnLine (Vector2 other) returns boolean
+        return math:AbsoluteValue(x * other:y - y * other:x) <= 0.000001
+    end
+    
+   action IsOnLine (Vector2 other, number epsilon) returns boolean
+        return math:AbsoluteValue(x * other:y - y * other:x) <= epsilon
+    end
+
+    action IsCollinear (Vector2 other, number epsilon) returns boolean
+        if IsOnLine(other, epsilon) 
+            if DotProduct(other) > 0.0
+                return true
+            end
+        end
+        return false
+    end
+
+    action IsCollinear (Vector2 other) returns boolean
+        if IsOnLine(other) 
+            if DotProduct(other) > 0.0
+                return true
+            end
+        end 
+        return false
+    end
+
+    action IsCollinearOpposite (Vector2 other, number epsilon) returns boolean
+        if IsOnLine(other, epsilon) 
+            if DotProduct(other) < 0.0
+                return true
+            end
+        end 
+        return false
+    end
+
+    action IsCollinearOpposite (Vector2 other) returns boolean
+        if IsOnLine(other) 
+            if DotProduct(other) < 0.0
+                return true
+            end
+        end
+        return false
+    end
+
+    action IsPerpendicular (Vector2 vector) returns boolean
+        return math:AbsoluteValue(DotProduct(vector)) <= 0.000001
+    end
+
+    action IsPerpendicular (Vector2 vector, number epsilon) returns boolean
+        //return mathUtils:IsZero(DotProduct(vector), epsilon)
+        return math:AbsoluteValue(DotProduct(vector)) <= epsilon
+    end
+
+    action HasSameDirection (Vector2 vector) returns boolean
+        return DotProduct(vector) > 0
+    end
+
+    action HasOppositeDirection (Vector2 vector) returns boolean
+        return DotProduct(vector) < 0
+    end
+    
+end
