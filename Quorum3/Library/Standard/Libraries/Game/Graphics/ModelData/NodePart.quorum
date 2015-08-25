@@ -1,0 +1,38 @@
+package Libraries.Game.Graphics.ModelData
+
+use Libraries.Compute.Matrix4
+use Libraries.Containers.Array
+
+class NodePart 
+    // public MeshPart meshPart
+    // public Material material
+    public Array<Matrix4> bones
+    public boolean enabled = true
+
+    // public ArrayMap<Node, Matrix4> invBoneBindTransforms;
+
+    /** Construct a new NodePart referencing the provided {@link MeshPart} and {@link Material}.
+	 * @param meshPart The MeshPart to reference.
+	 * @param material The Material to reference. *-
+	public NodePart (final MeshPart meshPart, final Material material) {
+		this.meshPart = meshPart;
+		this.material = material;
+	}
+
+	// FIXME add copy constructor and override #equals.
+
+	/** Convenience method to set the material, mesh, meshPartOffset, meshPartSize, primitiveType and bones members of the specified
+	 * Renderable. The other member of the provided {@link Renderable} remain untouched. Note that the material, mesh and bones
+	 * members are referenced, not copied. Any changes made to those objects will be reflected in both the NodePart and Renderable
+	 * object.
+	 * @param out The Renderable of which to set the members to the values of this NodePart. *-
+	public Renderable setRenderable (final Renderable out) {
+		out.material = material;
+		out.mesh = meshPart.mesh;
+		out.meshPartOffset = meshPart.indexOffset;
+		out.meshPartSize = meshPart.numVertices;
+		out.primitiveType = meshPart.primitiveType;
+		out.bones = bones;
+		return out;
+	}*/
+end
