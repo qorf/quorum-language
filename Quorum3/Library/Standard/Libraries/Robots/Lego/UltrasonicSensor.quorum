@@ -1,0 +1,31 @@
+package Libraries.Robots.Lego
+
+/*
+
+
+Attribute: Example
+use Libraries.Robots.Lego.Button
+use Libraries.Robots.Lego.Screen
+use Libraries.Robots.Lego.UltrasonicSensor
+
+UltrasonicSensor ultrasonicSensor
+Button buttonCtrl
+Screen screenCtrl
+
+ultrasonicSensor:SetPort(1)
+
+repeat until buttonCtrl:IsButtonPressed(buttonCtrl:ESCAPE_BUTTON)
+    screenCtrl:ScrollUp(ultrasonicSensor:GetDistance()+"")
+end
+*/
+
+class UltrasonicSensor
+    public constant integer PORT_1 = 1
+    public constant integer PORT_2 = 2
+    public constant integer PORT_3 = 3
+    public constant integer PORT_4 = 4
+    
+    system action SetPort(integer portNumber)
+    
+    system action GetDistance returns number
+end
