@@ -1,0 +1,11 @@
+package Libraries.Game.Graphics.ModelData
+
+use Libraries.Compute.Matrix4
+use Libraries.Containers.Array
+
+class ModelNodePart 
+    public text materialID = ""
+    public text meshPartID = ""
+    // public ArrayMap<String, Matrix4> bones;
+    public Array<Array<integer>> uvMapping = undefined
+end

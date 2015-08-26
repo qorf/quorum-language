@@ -1,0 +1,23 @@
+package Libraries.Game.Graphics.ModelData
+
+use Libraries.Containers.Array
+
+class ModelLoadingData 
+    public text id = ""
+    public Array<number> version
+    public Array<ModelMesh> meshes
+    public Array<ModelMaterial> materials
+    public Array<ModelNode> nodes
+    public Array<ModelAnimation> animations
+
+    action AddMesh(ModelMesh mesh)
+        integer counter = 0
+        repeat meshes:GetSize() times
+            if meshes:Get(counter):id = mesh:id
+                alert("Mesh with ID '" + mesh:id + "' is already in this model!")
+            end
+        end
+        meshes:Add(mesh)
+    end
+
+end
