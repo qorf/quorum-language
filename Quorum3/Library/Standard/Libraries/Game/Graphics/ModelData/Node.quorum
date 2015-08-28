@@ -182,6 +182,47 @@ class Node
     end
 
     /*
+    This action will return the child node with the given ID in this node's
+    immediate children hierarchy. The case of the ID is ignored. If no node is
+    found, undefined is returned.
+    */
+    action GetImmediateChild(text id) returns Node
+        integer counter = 0
+        repeat children:GetSize() times
+            if children:Get(counter):id:EqualsIgnoringCase(id)
+                return children:Get(counter)
+            end
+            counter = counter + 1
+        end
+        return undefined
+    end
+
+    /*
+    This action will search the entire children hierarchy of this node, and 
+    return the child node with the given ID. The case of the ID is ignored. 
+    If no node is found, undefined is returned.
+    */
+    action GetChild(text id) returns Node
+        integer counter = 0
+        repeat children:GetSize() times
+            if children:Get(counter):id:EqualsIgnoringCase(id)
+                return children:Get(counter)
+            end
+            counter = counter + 1
+        end
+        counter = 0
+        Node temp = undefined
+        repeat children:GetSize() times
+            temp = children:Get(counter):GetChild(id)
+            if temp not= undefined
+                return temp
+            end
+            counter = counter + 1
+        end
+        return undefined
+    end
+
+    /*
     This action returns an iterator containing all of the direct children of
     this node, i.e., they have been specifically added to this node.
     */
@@ -249,12 +290,6 @@ end
 		return out;
 	}
 
-	/** @param recursive false to fetch a root child only, true to search the entire node tree for the specified node.
-	 * @return The node with the specified id, or null if not found. *-
-	public Node getChild (final String id, boolean recursive, boolean ignoreCase) {
-		return getNode(children, id, recursive, ignoreCase);
-	}
-
 	/** Adds the specified nodes as the currently last child of this node. If the node is already a child of another node, then it
 	 * is removed from its current parent.
 	 * @param nodes The Node to add as child of this Node
@@ -276,25 +311,5 @@ end
 		for (T child : nodes)
 			insertChild(i++, child);
 		return index;
-	}
-
-	/** Helper method to recursive fetch a node from an array
-	 * @param recursive false to fetch a root node only, true to search the entire node tree for the specified node.
-	 * @return The node with the specified id, or null if not found. *-
-	public static Node getNode (final Array<Node> nodes, final String id, boolean recursive, boolean ignoreCase) {
-		final int n = nodes.size;
-		Node node;
-		if (ignoreCase) {
-			for (int i = 0; i < n; i++)
-				if ((node = nodes.get(i)).id.equalsIgnoreCase(id)) return node;
-		} else {
-			for (int i = 0; i < n; i++)
-				if ((node = nodes.get(i)).id.equals(id)) return node;
-		}
-		if (recursive) {
-			for (int i = 0; i < n; i++)
-				if ((node = getNode(nodes.get(i).children, id, true, ignoreCase)) != null) return node;
-		}
-		return null;
 	}
 */

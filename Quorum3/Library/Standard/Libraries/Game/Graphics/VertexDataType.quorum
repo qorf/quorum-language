@@ -1,0 +1,45 @@
+package Libraries.Game.Graphics
+
+/*
+This class is used to set how vertex data is stored for a Mesh. This class is
+designed primarily for internal use, and most users will never need to use this
+class directly.
+*/
+class Blending 
+    private integer value = 0
+
+    public constant integer VERTEX_BUFFER_OBJECT = 0
+    public constant integer VERTEX_BUFFER_OBJECT_SUBDATA = 1
+    public constant integer VERTEX_ARRAY = 2
+    public constant integer VERTEX_BUFFER_OBJECT_WITH_VAO = 3
+
+    /*
+    This gets the value of the VertexDataType object. The value should be one of
+    the four defined constants in this class.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.VertexDataType
+        
+        VertexDataType type
+        integer value = type:GetValue()
+    */
+    public action GetValue returns integer
+        return value
+    end
+
+    /*
+    This sets the value of the VertexDataType object. The value should be one of
+    the four defined constants in this class.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.VertexDataType
+        
+        VertexDataType type
+        type:SetValue(type:VERTEX_ARRAY)
+    */
+    public action SetValue(integer type)
+        value = type
+    end
+end
