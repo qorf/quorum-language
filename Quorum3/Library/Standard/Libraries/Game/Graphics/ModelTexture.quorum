@@ -1,0 +1,29 @@
+package Libraries.Game.Graphics
+
+/*
+This class handles textures used by 3D models. It returns distinct copies of a
+Texture used for a particular ModelBlueprint and all Models created from that
+ModelBlueprint. The returned Texture will be set to use OpenGL rendering values
+that make sense for 3D, i.e., using Linear min/mag filtering and Repeat texture
+wrapping.
+*/
+class ModelTexture 
+    action Load(text fileName) returns Texture
+        Texture texture
+        texture:Load(fileName)
+
+        TextureFilter minFilter
+        minFilter:ConstructTextureFilter(minFilter:LINEAR)
+        TextureFilter magFilter
+        magFilter:ConstructTextureFilter(magFilter:LINEAR)
+        texture:SetFilter(minFilter, magFilter)
+
+        TextureWrap uWrap
+        uWrap:ConstructTextureWrap(uWrap:REPEAT)
+        TextureWrap vWrap
+        vWrap:ConstructTextureWrap(vWrap:REPEAT)
+        texture:SetWrap(uWrap, vWrap)
+
+        return texture
+    end
+end

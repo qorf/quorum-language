@@ -1,0 +1,33 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+use Libraries.Game.Disposable
+
+class VertexData is Disposable
+    
+    blueprint action Dispose
+
+    blueprint action GetSize returns integer
+
+    blueprint action GetMaxSize returns integer
+
+    // blueprint action GetAttributes returns VertexAttributes
+
+    blueprint action SetVertices(Array<number> vertices, integer offset, integer count)
+
+    blueprint action UpdateVertices(integer targetOffset, Array<number> vertices, integer sourceOffset, integer count)
+
+    // blueprint action GetBuffer returns FloatBuffer (?)
+
+    // blueprint action Bind(ShaderProgram shader)
+
+    // blueprint action Bind(ShaderProgram shader, Array<integer> locations)
+
+    // blueprint action Unbind(ShaderProgram shader)
+
+    // blueprint action Bind(ShaderProgram shader, Array<integer> locations)
+
+    // Used to invalidate the data when applicable, e.g. due to context loss.
+    blueprint action Invalidate
+
+end

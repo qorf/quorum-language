@@ -1,0 +1,29 @@
+package Libraries.Game.Graphics
+
+class VertexBufferObject is VertexData
+    // This class will almost certainly need to be implemented as a plugin, due
+    // to presence of Java buffer objects.
+    
+    // Definitely within plugin:
+    //private FloatBuffer buffer;
+    //private ByteBuffer byteBuffer;
+
+    // Plugin or not?
+    private boolean ownsBuffer = true
+
+    // OpenGL handle to the buffer, probably plugin.
+    private integer bufferHandle = 0
+
+    // Constant representing OpenGL usage.
+    private integer usage = 0
+
+    // Whether the buffer object has changed and needs to be updated.
+    boolean isDirty = false
+
+    // Whether the buffer object is bound in OpenGL. Probably plugin.
+    boolean isBound = false
+
+    system action Dispose
+
+
+end
