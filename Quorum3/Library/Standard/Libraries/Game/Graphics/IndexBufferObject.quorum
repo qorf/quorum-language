@@ -1,0 +1,47 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+
+class IndexBufferObject 
+    
+    // Plugin side:
+    // ShortBuffer buffer
+    // ByteBuffer byteBuffer
+    // int bufferHandle
+
+    boolean isDirect = true
+
+    boolean isDirty = true
+
+    boolean isBound = false
+
+    integer usage = 0
+    
+    private boolean empty = true
+
+    system action Dispose
+
+    action Load(integer maxIndices)
+        Load(true, maxIndices)
+    end
+
+    system action Load(boolean isStatic, integer maxIndices)
+
+    system action GetSize returns integer
+
+    system action GetMaxSize returns integer
+
+    system action SetIndices(Array<integer> indices, integer offset, integer count)
+    
+    // blueprint action SetIndices(ShortBuffer) (?)
+
+    // blueprint action GetBuffer returns ShortBuffer (?)
+
+    system action Bind
+
+    system action Unbind
+
+    // Used to force OpenGL to create a new buffer handle. Used for context loss.
+    system action Invalidate
+
+end

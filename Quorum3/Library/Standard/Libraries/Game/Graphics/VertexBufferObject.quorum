@@ -25,5 +25,33 @@ class VertexBufferObject is VertexData
 
     system action Dispose
 
+    action Load(boolean isStatic, integer verticesCount, Array<VertexAttribute> attributes)
+        VertexAttributes vertexAttributes
+        vertexAttributes:Load(attributes)
+        Load(isStatic, verticesCount, vertexAttributes)
+    end
 
+    system action Load(boolean isStatic, integer verticesCount, VertexAttributes attributes)
+
+    system action GetSize returns integer
+
+    system action GetMaxSize returns integer
+
+    // action GetAttributes returns VertexAttributes
+
+    system action SetVertices(Array<number> vertices, integer offset, integer count)
+
+    system action UpdateVertices(integer targetOffset, Array<number> vertices, integer sourceOffset, integer count)
+
+    // action GetBuffer returns FloatBuffer
+
+    // system action Bind(ShaderProgram shader)
+
+    // system action Bind(ShaderProgram shader, Array<integer> locations
+
+    // system action Unbind(ShaderProgram shader)
+
+    // system action Unbind(ShaderProgram shader, Array<integer> locations)
+
+    system action Invalidate
 end

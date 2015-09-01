@@ -1,0 +1,76 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+use Libraries.Containers.Blueprints.Iterator
+
+class VertexAttributes 
+    
+    public constant integer POSITION = 1
+    public constant integer COLOR_UNPACKED = 2
+    public constant integer COLOR_PACKED = 4
+    public constant integer NORMAL = 8
+    public constant integer TEXTURE_COORDINATES = 16
+    public constant integer GENERIC = 32
+    public constant integer BONE_WEIGHT = 64
+    public constant integer TANGENT = 128
+    public constant integer BINORMAL = 256
+
+    private Array<VertexAttribute> attributes
+
+    public integer vertexSize = 0
+
+    // private long mask = -1 
+
+    // private ReadOnlyIterable<VertexAttribute> iterable
+
+    action SetAttributes(Array<VertexAttribute> array)
+        if array = undefined or array:GetSize() = 0
+            alert("SetAttributes requires an array with at least one element.")
+        end
+        
+        integer counter = 0
+
+        repeat array:GetSize() times
+            attributes:Set(counter, array:Get(counter))
+            counter = counter + 1
+        end
+
+        vertexSize = CalculateOffsets()
+    end
+
+    action FindByUsage(integer usage) returns VertexAttribute
+        integer counter = 0
+        repeat attributes:GetSize() times
+            if attributes:Get(counter):usage = usage
+                return attributes:Get(counter)
+            end
+            counter = counter + 1
+        end
+        return undefined
+    end
+
+    action GetOffset(integer usage)
+        VertexAttribute temp = FindByUsage(usage)
+        if temp = undefined
+            return 0
+        end
+        return temp:offset/4
+    end
+
+    action GetAttribute(integer index) returns VertexAttribute
+        return attributes:Get(index)
+    end
+
+    action GetSize returns integer
+        return attributes:GetSize()
+    end
+
+    action GetIterator returns Iterator<VertexAttribute>
+        return attributes:GetIterator()
+    end
+
+    private action CalculateOffsets returns integer
+        return 0
+    end
+
+end

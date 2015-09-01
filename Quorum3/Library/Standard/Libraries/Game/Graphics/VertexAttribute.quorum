@@ -1,0 +1,135 @@
+package Libraries.Game.Graphics
+
+use Libraries.Language.Object
+
+class VertexAttribute 
+    
+    public constant integer POSITION = 1
+    public constant integer COLOR_UNPACKED = 2
+    public constant integer COLOR_PACKED = 4
+    public constant integer NORMAL = 8
+    public constant integer TEXTURE_COORDINATES = 16
+    public constant integer GENERIC = 32
+    public constant integer BONE_WEIGHT = 64
+    public constant integer TANGENT = 128
+    public constant integer BINORMAL = 256
+
+    /* An integer formed from the bits of the above constants, representing its usage. */
+    public integer usage = 0
+
+    /* How many components this attribute has. */
+    public integer componentCount = 0
+
+    /* Whether the values are normalized to either -1.0 and 1.0 (signed) or 0 and 1.0 (unsigned) */
+    public boolean normalized = false
+
+    /* The OpenGL type of each component, e.g. GL_FLOAT, GL_UNSIGNED_BYTE, etc. */
+    public integer type = 0
+
+    /* The offset of this attribute in bytes. Shouldn't be changed by the user. */
+    public integer offset = 0
+
+    /* The alias used for this attribute in a ShaderProgram. */
+    public text alias = ""
+    
+    /* An optional unit/index specifier used for texture coordinates and bone weights. */
+    public integer unit = 0
+
+    private integer usageIndex = 0
+
+
+    action SetAttribute(integer usage, integer componentCount, text alias)
+        SetAttribute(usage, componentCount, alias, 0)
+    end
+
+    action SetAttribute(integer usage, integer componentCount, text alias, integer index)
+        if usage = COLOR_PACKED
+            // 5121 is the integer value of GL_UNSIGNED_BYTE.
+            SetAttribute(usage, componentCount, 5121, true, alias, index)
+        else
+            // 5126 is the integer value of GL_FLOAT.
+            SetAttribute(usage, componentCount, 5126, false, alias, index)
+        end
+    end
+
+    private action SetAttribute(integer usage, integer componentCount, integer type, boolean normalized, text alias)
+        SetAttribute(usage, componentCount, type, normalized, alias, 0)
+    end
+
+    private action SetAttribute(integer usage, integer componentCount, integer type, boolean normalized, text alias, integer index)
+        me:usage = usage
+        me:componentCount = componentCount
+        me:type = type
+        me:normalized = normalized
+        me:alias  = alias
+        me:unit = index
+        me:usageIndex = usageIndex:TrailingZeros()
+    end
+
+    // FIX ME: ShaderProgram not implemented yet.
+    action Position returns VertexAttribute
+        VertexAttribute temp
+        //temp:Load(POSITION, 3, ShaderProgram:POSITION_ATTRIBUTE)
+        return temp
+    end
+
+    // FIX ME: ShaderProgram not implemented yet.
+    action TextureCoordinates returns VertexAttribute
+        VertexAttribute temp
+        //temp:Load(TEXTURE_COORDINATES, 2, ShaderProgram:TEXTURE_COORDINATES_ATTRIBUTE + unit, unit)
+        return temp
+    end
+
+    // FIX ME: ShaderProgram not implemented yet.
+    action Normal returns VertexAttribute
+        VertexAttribute temp
+        //temp:Load(NORMAL, 3, ShaderProgram:NORMAL_ATTRIBUTE)
+        return temp
+    end
+
+    // FIX ME: ShaderProgram not implemented yet.
+    action ColorPacked returns VertexAttribute
+        VertexAttribute temp
+        // 5121 is the integer value of GL_UNSIGNED_BYTE.
+        //temp:Load(COLOR_PACKED, 4, 5121, true, ShaderProgram:COLOR_ATTRIBUTE)
+        return temp
+    end
+
+    action ColorUnpacked returns VertexAttribute
+        VertexAttribute temp
+        // 5126 is the integer value of GL_FLOAT.
+        //temp:Load(COLOR_UNPACKED, 4, 5126, false, ShaderProgram:COLOR_ATTRIBUTE)
+        return temp
+    end
+
+    action Tangent returns VertexAttribute
+        VertexAttribute temp
+        //temp:Load(TANGENT, 3, ShaderProgram:TANGENT_ATTRIBUTE)
+        return temp
+    end
+
+    action Binormal returns VertexAttribute
+        VertexAttribute temp
+        //temp:Load(BINORMAL, 3, ShaderProgram:BInORMAL_ATTRIBUTE)
+        return temp
+    end
+
+    action BoneWeight(integer unit) returns VertexAttribute
+        VertexAttribute temp
+        //temp:Load(BONE_WEIGHT, 2, ShaderProgram:BONE_WEIGHT_ATTRIBUTE + unit, unit)
+        return temp
+    end
+
+    action Equals(Object object) returns boolean
+        if object is VertexAttribute
+            return Equals(cast(VertexAttribute, object))
+        else
+            return false
+        end
+    end
+
+    action Equals(VertexAttribute attribute) returns boolean
+        return attribute not= undefined and attribute:usage = usage and attribute:componentCount = componentCount
+            and attribute:alias = alias and attribute:unit = unit
+    end
+end

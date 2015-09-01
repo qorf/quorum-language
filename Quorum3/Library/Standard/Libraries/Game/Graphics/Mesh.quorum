@@ -40,6 +40,65 @@ class Mesh is Disposable
         me:vertices = vertices
         me:indices = indices
         me:isVertexArray = isVertexArray
+
+        // addManagedMesh(...)
+    end
+
+    action Load(boolean isStatic, integer maxVertices, integer maxIndices, VertexAttributes attributes)
+        vertices = MakeVertexBuffer(isStatic, maxVertices, attributes)
+        IndexBufferObject index
+        index:Load(isStatic, maxIndices)
+        indices = index
+        isVertexArray = false
+
+        // addManagedMesh(...)
+    end
+
+    private action MakeVertexBuffer(boolean isStatic, integer maxVertices, VertexAttributes attributes) returns VertexData
+        // if SupportsGL30() return new VertexBufferObjectWithVAO end
+        VertexBufferObject temp
+        temp:Load(isStatic, maxVertices, attributes)
+        return temp
+    end
+
+    action SetVertices(Array<number> vertices)
+       SetVertices(vertices, 0, vertices:GetSize()) 
+    end
+
+    action SetVertices(Array<number> vertices, integer offset, integer count)
+        me:vertices:SetVertices(vertices, offset, count)
+    end
+
+    action UpdateVertices(integer targetOffset, Array<number> source)
+        UpdateVertices(targetOffset, source, 0, source:GetSize())
+    end
+
+    action UpdateVertices(integer targetOffset, Array<number> source, integer sourceOffset, integer count)
+        vertices:UpdateVertices(targetOffset, source, sourceOffset, count)
+    end
+
+    action SetIndices(Array<number> indices)
+        me:indices:SetIndices(indices, 0, indices:GetSize())
+    end
+
+    action SetIndices(Array<number> indices, integer offset, integer count)
+        me:indices:SetIndices(indices, offset, count)
+    end
+
+    action GetIndicesCount returns integer
+        return indices:GetSize()
+    end
+
+    action GetVerticesCount returns integer
+        return vertices:GetSize()
+    end
+
+    action GetMaxIndices returns integer
+        return indices:GetMaxSize()
+    end
+
+    action GetMaxVertices returns integer
+        return vertices:GetMaxSize()
     end
 
     action Dispose
@@ -47,138 +106,13 @@ class Mesh is Disposable
     end
 end
 /*
-/** Creates a new Mesh with the given attributes.
-	 * 
-	 * @param isStatic whether this mesh is static or not. Allows for internal optimizations.
-	 * @param maxVertices the maximum number of vertices this mesh can hold
-	 * @param maxIndices the maximum number of indices this mesh can hold
-	 * @param attributes the {@link VertexAttribute}s. Each vertex attribute defines one property of a vertex such as position,
-	 *           normal or texture coordinate *-
-	public Mesh (boolean isStatic, int maxVertices, int maxIndices, VertexAttribute... attributes) {
-		vertices = makeVertexBuffer(isStatic, maxVertices, new VertexAttributes(attributes));
-		indices = new IndexBufferObject(isStatic, maxIndices);
-		isVertexArray = false;
 
-		addManagedMesh(Gdx.app, this);
+	/** @return the size of a single vertex in bytes *-
+	public int getVertexSize () {
+		return vertices.getAttributes().vertexSize;
 	}
 
-	/** Creates a new Mesh with the given attributes.
-	 * 
-	 * @param isStatic whether this mesh is static or not. Allows for internal optimizations.
-	 * @param maxVertices the maximum number of vertices this mesh can hold
-	 * @param maxIndices the maximum number of indices this mesh can hold
-	 * @param attributes the {@link VertexAttributes}. Each vertex attribute defines one property of a vertex such as position,
-	 *           normal or texture coordinate *-
-	public Mesh (boolean isStatic, int maxVertices, int maxIndices, VertexAttributes attributes) {
-		vertices = makeVertexBuffer(isStatic, maxVertices, attributes);
-		indices = new IndexBufferObject(isStatic, maxIndices);
-		isVertexArray = false;
-
-		addManagedMesh(Gdx.app, this);
-	}
-
-	/** by jw: Creates a new Mesh with the given attributes. Adds extra optimizations for dynamic (frequently modified) meshes.
-	 * 
-	 * @param staticVertices whether vertices of this mesh are static or not. Allows for internal optimizations.
-	 * @param staticIndices whether indices of this mesh are static or not. Allows for internal optimizations.
-	 * @param maxVertices the maximum number of vertices this mesh can hold
-	 * @param maxIndices the maximum number of indices this mesh can hold
-	 * @param attributes the {@link VertexAttributes}. Each vertex attribute defines one property of a vertex such as position,
-	 *           normal or texture coordinate
-	 * 
-	 * @author Jaroslaw Wisniewski <j.wisniewski@appsisle.com> **-
-	public Mesh (boolean staticVertices, boolean staticIndices, int maxVertices, int maxIndices, VertexAttributes attributes) {
-		vertices = makeVertexBuffer(staticVertices, maxVertices, attributes);
-		indices = new IndexBufferObject(staticIndices, maxIndices);
-		isVertexArray = false;
-
-		addManagedMesh(Gdx.app, this);
-	}
-
-	private VertexData makeVertexBuffer(boolean isStatic, int maxVertices, VertexAttributes vertexAttributes) {
-		if(Gdx.gl30 != null) {
-			return new VertexBufferObjectWithVAO(isStatic, maxVertices, vertexAttributes);
-		} else {
-			return new VertexBufferObject(isStatic, maxVertices, vertexAttributes);
-		}
-	}
-
-	/** Creates a new Mesh with the given attributes. This is an expert method with no error checking. Use at your own risk.
-	 * 
-	 * @param type the {@link VertexDataType} to be used, VBO or VA.
-	 * @param isStatic whether this mesh is static or not. Allows for internal optimizations.
-	 * @param maxVertices the maximum number of vertices this mesh can hold
-	 * @param maxIndices the maximum number of indices this mesh can hold
-	 * @param attributes the {@link VertexAttribute}s. Each vertex attribute defines one property of a vertex such as position,
-	 *           normal or texture coordinate *-
-	public Mesh (VertexDataType type, boolean isStatic, int maxVertices, int maxIndices, VertexAttribute... attributes) {
-		switch(type) {
-			case VertexBufferObject:
-				vertices = new VertexBufferObject(isStatic, maxVertices, attributes);
-				indices = new IndexBufferObject(isStatic, maxIndices);
-				isVertexArray = false;
-				break;
-			case VertexBufferObjectSubData:
-				vertices = new VertexBufferObjectSubData(isStatic, maxVertices, attributes);
-				indices = new IndexBufferObjectSubData(isStatic, maxIndices);
-				isVertexArray = false;
-				break;
-			case VertexBufferObjectWithVAO:
-				vertices = new VertexBufferObjectWithVAO(isStatic, maxVertices, attributes);
-				indices = new IndexBufferObjectSubData(isStatic, maxIndices);
-				isVertexArray = false;
-				break;
-			case VertexArray:
-			default:
-				vertices = new VertexArray(maxVertices, attributes);
-				indices = new IndexArray(maxIndices);
-				isVertexArray = true;
-				break;
-		}
-
-		addManagedMesh(Gdx.app, this);
-	}
-
-	/** Sets the vertices of this Mesh. The attributes are assumed to be given in float format.
-	 * 
-	 * @param vertices the vertices.
-	 * @return the mesh for invocation chaining. *-
-	public Mesh setVertices (float[] vertices) {
-		this.vertices.setVertices(vertices, 0, vertices.length);
-
-		return this;
-	}
-
-	/** Sets the vertices of this Mesh. The attributes are assumed to be given in float format.
-	 * 
-	 * @param vertices the vertices.
-	 * @param offset the offset into the vertices array
-	 * @param count the number of floats to use
-	 * @return the mesh for invocation chaining. *-
-	public Mesh setVertices (float[] vertices, int offset, int count) {
-		this.vertices.setVertices(vertices, offset, count);
-
-		return this;
-	}
-
-	/** Update (a portion of) the vertices. Does not resize the backing buffer.
-	 * @param targetOffset the offset in number of floats of the mesh part.
-	 * @param source the vertex data to update the mesh part with *-
-	public Mesh updateVertices (int targetOffset, float[] source) {
-		return updateVertices(targetOffset, source, 0, source.length);
-	}
-
-	/** Update (a portion of) the vertices. Does not resize the backing buffer.
-	 * @param targetOffset the offset in number of floats of the mesh part.
-	 * @param source the vertex data to update the mesh part with
-	 * @param sourceOffset the offset in number of floats within the source array
-	 * @param count the number of floats to update *-
-	public Mesh updateVertices (int targetOffset, float[] source, int sourceOffset, int count) {
-		this.vertices.updateVertices(targetOffset, source, sourceOffset, count);
-		return this;
-	}
-
-	/** Copies the vertices from the Mesh to the float array. The float array must be large enough to hold all the Mesh's vertices.
+        /** Copies the vertices from the Mesh to the float array. The float array must be large enough to hold all the Mesh's vertices.
 	 * @param vertices the array to copy the vertices to *-
 	public float[] getVertices (float[] vertices) {
 		return getVertices(0, -1, vertices);
@@ -225,28 +159,6 @@ end
 		return vertices;
 	}
 
-	/** Sets the indices of this Mesh
-	 * 
-	 * @param indices the indices
-	 * @return the mesh for invocation chaining. *-
-	public Mesh setIndices (short[] indices) {
-		this.indices.setIndices(indices, 0, indices.length);
-
-		return this;
-	}
-
-	/** Sets the indices of this Mesh.
-	 * 
-	 * @param indices the indices
-	 * @param offset the offset into the indices array
-	 * @param count the number of indices to copy
-	 * @return the mesh for invocation chaining. *-
-	public Mesh setIndices (short[] indices, int offset, int count) {
-		this.indices.setIndices(indices, offset, count);
-
-		return this;
-	}
-
 	/** Copies the indices from the Mesh to the short array. The short array must be large enough to hold all the Mesh's indices.
 	 * @param indices the array to copy the indices to *-
 	public void getIndices (short[] indices) {
@@ -288,31 +200,6 @@ end
 		getIndicesBuffer().position(srcOffset);
 		getIndicesBuffer().get(indices, destOffset, count);
 		getIndicesBuffer().position(pos);
-	}
-
-	/** @return the number of defined indices *-
-	public int getNumIndices () {
-		return indices.getNumIndices();
-	}
-
-	/** @return the number of defined vertices *-
-	public int getNumVertices () {
-		return vertices.getNumVertices();
-	}
-
-	/** @return the maximum number of vertices this mesh can hold *-
-	public int getMaxVertices () {
-		return vertices.getNumMaxVertices();
-	}
-
-	/** @return the maximum number of indices this mesh can hold *-
-	public int getMaxIndices () {
-		return indices.getNumMaxIndices();
-	}
-
-	/** @return the size of a single vertex in bytes *-
-	public int getVertexSize () {
-		return vertices.getAttributes().vertexSize;
 	}
 
 	/** Sets whether to bind the underlying {@link VertexArray} or {@link VertexBufferObject} automatically on a call to one of the
