@@ -1,0 +1,233 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+use Libraries.Compute.BitwiseOperations
+
+class Attributes 
+
+    integer /*long?*/ mask = 0
+    Array<Attribute> attributes
+    boolean sorted = true
+
+    action Sort
+        if not sorted
+            //attributes:Sort()
+            //sorted = true
+        end
+    end
+
+    /*
+    This action returns an integer value which contains the combined values of
+    all of the Attribute types that are present in this Attributes object.
+    */
+    action GetMask returns integer//long?
+        return mask
+    end
+
+    /*
+    This action returns the Attribute stored within this Attributes object with
+    the given type. If no such Attribute has been stored in this object, it
+    will return undefined.
+    */
+    action GetAttribute(integer /*long?*/ type) returns Attribute
+        if HasAttribute(type)
+            integer counter = 0
+            repeat attributes:GetSize() times
+                if attributes:Get(counter):type = type
+                    return attributes:Get(counter)
+                end
+                counter = counter + 1
+            end
+        end
+        return undefined
+    end
+
+    /*
+    This action tests if the given Attribute type is currently a part of this
+    Attributes object. A boolean value is returned based on the result.
+    */
+    action HasAttribute(integer /*long?*/ type) returns Attribute
+        BitwiseOperations ops
+        return type not= 0 and ops:And(type, mask) = type
+    end
+
+    /*
+    This action removes all Attribute objects from this Attributes object.
+    */
+    action Empty
+        attributes:Empty()
+        mask = 0
+    end
+
+    /*
+    This action returns the number of Attribute objects that are currently
+    part of this Attributes object.
+    */
+    action GetSize returns integer
+        return attributes:GetSize()
+    end
+
+    /*
+    This action will enable the given type (or multiple types, if combined using
+    the Or operation of the BitwiseOperations class) in this Attributes object.
+    */
+    action Enable(integer enableMask)
+        BitwiseOperations ops
+        mask = ops:Or(mask, enableMask)
+    end
+
+    /*
+    This action will disable the given type (or multiple types, if combined using
+    the Or operation of the BitwiseOperations class) in this Attributes object.
+    */
+    action Disable(integer disableMask)
+        BitwiseOperations ops
+        mask = ops:Or(mask, ops:Negate(disableMask))
+    end
+
+    /*
+    This action will add an Attribute to this Attributes object.
+    */
+    action Add(Attribute attribute)
+        integer index = GetTypeIndex(attribute:type)
+        if index < 0
+            Enable(attribute:type)
+            attributes:Add(attribute)
+            sorted = false
+        else
+            attributes:Set(index, attribute)
+        end
+    end
+
+    /*
+    This action will add an array of Attribute objects to this Attributes object.
+    */
+    action Add(Array<Attribute> array)
+        integer counter = 0
+        repeat array:GetSize() times
+            Add(array:Get(counter))
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action will remove an Attribute of the given Attribute type from this
+    Attributes object.
+    */
+    action Remove(integer /*long?*/ mask)
+        integer counter = attributes:GetSize() - 1
+        BitwiseOperations ops
+        repeat attributes:GetSize() times
+            integer /*long?*/ type = attributes:Get(counter):type
+            if ops:And(mask, type) = type
+                attributes:Remove(counter)
+                Disable(type)
+                // sorted = false
+            end
+            counter = counter - 1
+        end
+    end
+
+    /*
+    This action will identify the index of a given Attribute type. If the 
+    Attributes object does not currently have the given type, -1 will be
+    returned.
+    */
+    action GetTypeIndex(integer type)
+        if HasAttribute(type)
+            integer counter = 0
+            repeat attributes:GetSize() times
+                if attributes:Get(counter):type = type
+                    return counter
+                end
+                counter = counter + 1
+            end
+        end
+        return -1
+    end
+
+    /*
+    This action returns the array of Attribute objects contained within this
+    Attributes object.
+    */
+    action GetAttributeArray returns Array<Attribute>
+        return attributes
+    end
+    
+
+    /*
+
+	/** Check if this collection has the same attributes as the other collection. If compareValues is true, it also compares the
+	 * values of each attribute.
+	 * @param compareValues True to compare attribute values, false to only compare attribute types
+	 * @return True if this collection contains the same attributes (and optionally attribute values) as the other. *-
+	public final boolean same (final Attributes other, boolean compareValues) {
+		if (other == this) return true;
+		if ((other == null) || (mask != other.mask)) return false;
+		if (!compareValues) return true;
+		sort();
+		other.sort();
+		for (int i = 0; i < attributes.size; i++)
+			if (!attributes.get(i).equals(other.attributes.get(i))) return false;
+		return true;
+	}
+
+	/** See {@link #same(Attributes, boolean)}
+	 * @return True if this collection contains the same attributes (but not values) as the other. *-
+	public final boolean same (final Attributes other) {
+		return same(other, false);
+	}
+
+	/** Used for sorting attributes by type (not by value) *-
+	@Override
+	public final int compare (final Attribute arg0, final Attribute arg1) {
+		return (int)(arg0.type - arg1.type);
+	}
+
+	/** Used for iterating through the attributes *-
+	@Override
+	public final Iterator<Attribute> iterator () {
+		return attributes.iterator();
+	}
+
+	/** @return A hash code based on only the attribute values, which might be different compared to {@link #hashCode()} because the latter
+	 * might include other properties as well, i.e. the material id. *-
+	public int attributesHash () {
+		sort();
+		final int n = attributes.size;
+		long result = 71 + mask;
+		int m = 1;
+		for (int i = 0; i < n; i++)
+			result += mask * attributes.get(i).hashCode() * (m = (m * 7) & 0xFFFF);
+		return (int)(result ^ (result >> 32));
+	}
+
+	@Override
+	public int hashCode () {
+		return attributesHash();
+	}
+
+	@Override
+	public boolean equals (Object other) {
+		if (!(other instanceof Attributes)) return false;
+		if (other == this) return true;
+		return same((Attributes)other, true);
+	}
+
+	@Override
+	public int compareTo (Attributes other) {
+		if (other == this)
+			return 0;
+		if (mask != other.mask)
+			return mask < other.mask ? -1 : 1;
+		sort();
+		other.sort();
+		for (int i = 0; i < attributes.size; i++) {
+			final int c = attributes.get(i).compareTo(other.attributes.get(i));
+			if (c != 0)
+				return c;
+		}
+		return 0;
+	}
+        */
+end

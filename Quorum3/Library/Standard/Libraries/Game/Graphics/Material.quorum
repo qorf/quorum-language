@@ -1,0 +1,36 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+
+class Material is Attributes
+    //private static int counter = 0;
+
+    private text id = ""
+
+    action SetID(text newID)
+        id = newID
+    end
+
+    action GetID returns text
+        if id = ""
+            id = GenerateDefaultID()
+        end
+        return id
+    end
+
+    private system action GenerateDefaultID returns text
+    
+    action Copy returns Material
+        Material temp
+        temp:SetID(id)
+        Array<Attribute> attributes = GetAttributeArray()
+
+        integer counter = 0
+        repeat attributes:GetSize() times
+            temp:Add(attributes:Get(counter):Copy())
+            counter = counter + 1
+        end
+
+        return temp
+    end
+end
