@@ -1,0 +1,21 @@
+Sodbeans setup
+1. Run the standard library batch to turn them to read only
+2. update the version numbers in the Sodbeans module (Installer.java)
+3. update the development flag in the Sodbeans module under Installer.java
+4. update the collect statistics flag in the SappyStarter module under Installer.java
+5. update the login screen flag in the SappyStarter module under Starter.java
+
+
+Instructions for making a windows installer:
+
+1. Create Zip distribution of the latest source in NetBeans.
+2. Unzip the zip distribution. Make sure that Sodbeans is the root folder (not Sodbeans/Sodbeans).
+3. Put the unzipped folder in the same folder as the NSIS script.
+4. Install NSIS (if not installed already).
+5. Right click on the NSIS script and select "Compile NSIS Script."
+
+That should generate the installer.
+
+Sodbeans revert setup
+1. Run the standard library batch to turn them to read/write
+2. update the development flag.
