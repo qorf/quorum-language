@@ -6,6 +6,7 @@
 
 package plugins.quorum.Libraries.Language.Compile;
 
+import java.util.List;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.FailedPredicateException;
 import org.antlr.v4.runtime.InputMismatchException;
@@ -14,6 +15,8 @@ import org.antlr.v4.runtime.NoViableAltException;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.atn.DecisionInfo;
+import org.antlr.v4.runtime.atn.ErrorInfo;
 import quorum.Libraries.Language.Compile.CompilerError;
 import quorum.Libraries.Language.Compile.CompilerErrorType;
 import quorum.Libraries.Language.Compile.QuorumSourceListener_;
@@ -63,7 +66,7 @@ public class QuorumErrorListener extends BaseErrorListener{
         CompilerError error = new CompilerError();
         error.SetFile(file);
         error.SetLineNumber(line);
-        error.SetColumnNumber(charPositionInLine);
+        error.SetColumnNumber(charPositionInLine);        
         CompilerErrorType type = new CompilerErrorType();
         
         //keep this in for now. We may do more with it later.
@@ -97,6 +100,11 @@ public class QuorumErrorListener extends BaseErrorListener{
             }
         } else {
             type.SetCurrentType(type.OTHER);
+            if(offendingSymbol != null && offendingSymbol instanceof Token) {
+                Token offense = (Token) offendingSymbol;
+                error.SetIndex(offense.getStartIndex());
+                error.SetIndexEnd(offense.getStopIndex());
+            }
         }
         error.SetCompilerErrorType(type);
         error.SetErrorMessage(message);
