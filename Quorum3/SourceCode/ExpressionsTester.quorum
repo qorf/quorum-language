@@ -119,6 +119,7 @@ class ExpressionsTester
         InvalidVariableName()
         MainNotCapitalized()
         MissingVariable()
+        NotIsObject()
         NoVariable()
         NoVariable2()
         SetInitialize()
@@ -1319,6 +1320,15 @@ class ExpressionsTester
         Array<File> files
         File main
         main:SetPath(path + "MissingVariable.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action NotIsObject
+        Array<File> files
+        File main
+        main:SetPath(path + "NotIsObject.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

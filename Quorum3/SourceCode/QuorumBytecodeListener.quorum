@@ -408,9 +408,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitIs(IsContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         QualifiedName name = context:name
         //now resolve the name from the current class
         key = name:GetStaticKey()
@@ -429,6 +426,9 @@ class QuorumBytecodeListener is QuorumSourceListener
             operation:SetOperation(operation:IS)
 
             QuorumOpcode op = opcodeStack:Pop()
+            if op = undefined
+                return now
+            end
             Type left = op:GetType()
             TypeCheckResult result = checker:Check(left, right, operation)
 
