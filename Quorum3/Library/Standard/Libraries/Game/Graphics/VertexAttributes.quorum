@@ -2,6 +2,7 @@ package Libraries.Game.Graphics
 
 use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Game.Graphics.VertexAttribute
 
 class VertexAttributes 
     
@@ -49,7 +50,7 @@ class VertexAttributes
         return undefined
     end
 
-    action GetOffset(integer usage)
+    action GetOffset(integer usage) returns integer
         VertexAttribute temp = FindByUsage(usage)
         if temp = undefined
             return 0

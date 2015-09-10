@@ -1,11 +1,12 @@
 package Libraries.Game.Graphics.ModelData
 
-//use Libraries.Game.Graphics.VertexAttribute
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.VertexAttribute
+use Libraries.Game.Graphics.ModelData.ModelMeshPart
 
 class ModelMesh 
     public text id = ""
-    // public Array<VertexAttribute> attributes
+    public Array<VertexAttribute> attributes
     public Array<number> vertices
     public Array<ModelMeshPart> parts
 end

@@ -1,5 +1,10 @@
 package Libraries.Game.Graphics
 
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.VertexData
+use Libraries.Game.Graphics.VertexAttribute
+use Libraries.Game.Disposable
+
 class VertexBufferObject is VertexData
     // This class will almost certainly need to be implemented as a plugin, due
     // to presence of Java buffer objects.
@@ -27,7 +32,7 @@ class VertexBufferObject is VertexData
 
     action Load(boolean isStatic, integer verticesCount, Array<VertexAttribute> attributes)
         VertexAttributes vertexAttributes
-        vertexAttributes:Load(attributes)
+        vertexAttributes:SetAttributes(attributes)
         Load(isStatic, verticesCount, vertexAttributes)
     end
 

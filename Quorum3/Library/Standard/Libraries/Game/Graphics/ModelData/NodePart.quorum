@@ -2,10 +2,12 @@ package Libraries.Game.Graphics.ModelData
 
 use Libraries.Compute.Matrix4
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.ModelData.MeshPart
+use Libraries.Game.Graphics.Material
 
 class NodePart 
-    // public MeshPart meshPart
-    // public Material material
+    public MeshPart meshPart
+    public Material material
     public Array<Matrix4> bones
     public boolean enabled = true
 

@@ -2,6 +2,7 @@ package Libraries.Game.Graphics.ModelData
 
 use Libraries.Game.Graphics.Color
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.ModelData.ModelTextureData
 
 class ModelMaterial 
     public constant integer LAMBERT = 0
@@ -21,5 +22,5 @@ class ModelMaterial
     public number shininess = 0
     public number opacity = 1.0
     
-    public Array<ModelTexture> textures = undefined
+    public Array<ModelTextureData> textures = undefined
 end

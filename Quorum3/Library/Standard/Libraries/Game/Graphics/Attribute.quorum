@@ -40,14 +40,14 @@ class Attribute
     action Equals(Object object) returns boolean
         if object = undefined
             return false
-        elseif object = me
-            return true
-        elseif not object is Attribute
+        elseif not (object is Attribute)
             return false
         end
 
         Attribute temp = cast(Attribute, object)
-        if type not= temp:type
+        if temp = me
+            return true
+        elseif type not= temp:type
             return false
         end
         return Equals(temp)

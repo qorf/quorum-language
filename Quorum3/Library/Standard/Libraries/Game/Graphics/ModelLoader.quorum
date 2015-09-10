@@ -1,15 +1,16 @@
 package Libraries.Game.Graphics
 
 use Libraries.Containers.Array
-use Libraries.Game.Graphics.ModelData
+use Libraries.Game.Graphics.ModelData.all
 use Libraries.System.File
+use Libraries.Game.Graphics.ModelBlueprint
 
 class ModelLoader 
     //protected Array<ObjectMap.Entry<String, ModelData>> items = new Array<ObjectMap.Entry<String, ModelData>>();
     //protected ModelParameters defaultParameters = new ModelParameters()
 
-    public constant VERSION_HIGH = 0
-    public constant VERSION_LOW = 1
+    public constant integer VERSION_HIGH = 0
+    public constant integer VERSION_LOW = 1
 
     blueprint action LoadModelData(File file) returns ModelData
 
@@ -44,5 +45,7 @@ class ModelLoader
     end
 
     // system action ParseModel(File file) returns ModelData
+
+    // action GetDependencies (?)
 
 end

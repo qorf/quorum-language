@@ -10,7 +10,7 @@ wrapping.
 class ModelTexture 
     action Load(text fileName) returns Texture
         Texture texture
-        texture:Load(fileName)
+        texture:LoadFromFile(fileName)
 
         TextureFilter minFilter
         minFilter:ConstructTextureFilter(minFilter:LINEAR)

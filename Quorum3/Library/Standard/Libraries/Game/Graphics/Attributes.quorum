@@ -46,7 +46,7 @@ class Attributes
     This action tests if the given Attribute type is currently a part of this
     Attributes object. A boolean value is returned based on the result.
     */
-    action HasAttribute(integer /*long?*/ type) returns Attribute
+    action HasAttribute(integer /*long?*/ type) returns boolean
         BitwiseOperations ops
         return type not= 0 and ops:And(type, mask) = type
     end
@@ -120,7 +120,7 @@ class Attributes
         repeat attributes:GetSize() times
             integer /*long?*/ type = attributes:Get(counter):type
             if ops:And(mask, type) = type
-                attributes:Remove(counter)
+                attributes:RemoveAt(counter)
                 Disable(type)
                 // sorted = false
             end
@@ -133,7 +133,7 @@ class Attributes
     Attributes object does not currently have the given type, -1 will be
     returned.
     */
-    action GetTypeIndex(integer type)
+    action GetTypeIndex(integer type) returns integer
         if HasAttribute(type)
             integer counter = 0
             repeat attributes:GetSize() times
