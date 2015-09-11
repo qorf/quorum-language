@@ -1,0 +1,85 @@
+package Libraries.Compute
+
+class Plane 
+    public text OnPlane = "onPlane"
+    public text Back = "Back"
+    public text Front = "Front"
+
+    Vector3 normal
+    number d = 0
+
+    action Set(Vector3 normalVector, number distanceFromOrigin)
+        normal:Set(normalVector)
+        normal:Normalize()
+        d = distanceFromOrigin
+    end
+
+    action Set(Vector3 normalVector, Vector3 point)
+        normal:Set(normalVector)
+        normal:Normalize()
+        d = -1 * normal:DotProduct(point)
+    end
+
+    action Set(Vector3 point1, Vector3 point2, Vector3 point3)
+        Vector3 tempVector
+        tempVector:Set(point1)
+        tempVector:Subtract(point2)
+        
+        Vector3 tempVector2
+        tempVector2:Set(point2)
+        tempVector2:Subtract(point3)
+
+        tempVector:CrossProduct(tempVector2)
+        normal:Set(tempVector)
+        normal:Normalize()
+        d = -1 * point1:DotProduct(normal)
+    end
+
+    action Set(number normalX, number normalY, number normalZ, number distanceFromOrigin)
+        normal:Set(normalX, normalY, normalZ)
+        d = distanceFromOrigin
+    end
+
+    action Set(Plane plane)
+        normal:Set(plane:GetNormal())
+        d = plane:GetD()
+    end
+
+    action Distance(Vector3 point) returns number
+        return normal:DotProduct(point) + d
+    end
+
+    action TestPoint(Vector3 point) returns text
+        return TestPoint(point:GetX(), point:GetY(), point:GetZ())
+    end
+
+    action TestPoint(number x, number y, number z) returns text
+        number distance = normal:DotProduct(x, y, z) + d
+
+        if distance = 0
+            return OnPlane
+        elseif distance < 0
+            return Back
+        else
+            return Front
+        end
+    end
+
+    action IsFrontFacing(Vector3 direction) returns boolean
+        number dot = normal:DotProduct(direction)
+        return dot <= 0
+    end
+
+    action GetNormal returns Vector3
+        return normal
+    end
+
+    action GetD returns number
+        return d
+    end
+
+    action ToText returns text
+        return normal:ToText() + ", " + d
+    end
+    
+end
