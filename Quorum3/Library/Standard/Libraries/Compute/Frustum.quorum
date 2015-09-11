@@ -1,0 +1,180 @@
+package Libraries.Compute
+
+use Libraries.Containers.Array
+use Libraries.Language.Object
+
+/* 
+    A truncated rectangular pyramid (i.e., a pyramid with the top chopped off) used to 
+    define the viewable region and its projection onto the screen.
+*/
+class Frustum 
+
+    constant Array<Vector3> clipSpacePlanePoints
+
+    constant Array<number> clipSpacePointsArray
+
+    constant Vector3 temporaryVector
+
+    public Array<Plane> planes
+
+    public Array<Vector3> planePoints
+
+    Array<number> planePointsArray
+
+    on create
+        Vector3 v1
+        v1:Set(-1, -1, -1)
+        Vector3 v2
+        v2:Set(1, -1, -1)
+        Vector3 v3
+        v3:Set(1, 1, -1)
+        Vector3 v4
+        v4:Set(-1, 1, -1)
+        Vector3 v5
+        v5:Set(-1, -1, 1)
+        Vector3 v6
+        v6:Set(1, -1, 1)
+        Vector3 v7
+        v7:Set(1, 1, 1)
+        Vector3 v8
+        v8:Set(-1, 1, 1)
+
+        clipSpacePlanePoints:Add(v1)
+        clipSpacePlanePoints:Add(v2)
+        clipSpacePlanePoints:Add(v3)
+        clipSpacePlanePoints:Add(v4)
+        clipSpacePlanePoints:Add(v5)
+        clipSpacePlanePoints:Add(v6)
+        clipSpacePlanePoints:Add(v7)
+        clipSpacePlanePoints:Add(v8)
+
+        integer i = 0
+        integer j = 0
+        repeat clipSpacePlanePoints:GetSize() times
+            clipSpacePlanePointsArray:Add(j, clipSpacePlanePoints:Get(i):x)
+            j = j + 1
+            clipSpacePlanePointsArray:Add(j, clipSpacePlanePoints:Get(i):y)
+            j = j + 1
+            clipSpacePlanePointsArray:Add(j, clipSpacePlanePoints:Get(i):z)
+            j = j + 1
+            i = i + 1
+        end
+
+        Vector3 v9
+        Vector3 v10
+        Vector3 v11
+        Vector3 v12
+        Vector3 v13
+        Vector3 v14
+
+        Plane plane1
+        Plane plane2
+        Plane plane3
+        Plane plane4
+        Plane plane5
+        Plane plane6
+        
+        plane1:Set(v9, 0)
+        plane2:Set(v10, 0)
+        plane3:Set(v11, 0)
+        plane4:Set(v12, 0)
+        plane5:Set(v13, 0)
+        plane6:Set(v14, 0)
+
+        planes:Add(plane1)
+        planes:Add(plane2)
+        planes:Add(plane3)
+        planes:Add(plane4)
+        planes:Add(plane5)
+        planes:Add(plane6)    
+    end
+
+    action Update(Matrix4 inverseProjectionVew)
+        Object o = clipSpacePlanePointsArray:Copy()
+        planePointsArray = cast(Array<number>, o)
+
+//        todo: rest of Update...
+//        Matrix4.prj(inverseProjectionView.val, planePointsArray, 0, 8, 3);
+//        for (int i = 0, j = 0; i < 8; i++) {
+//                Vector3 v = planePoints[i];
+//                v.x = planePointsArray[j++];
+//                v.y = planePointsArray[j++];
+//                v.z = planePointsArray[j++];
+//        }
+//
+//        planes[0].set(planePoints[1], planePoints[0], planePoints[2]);
+//        planes[1].set(planePoints[4], planePoints[5], planePoints[7]);
+//        planes[2].set(planePoints[0], planePoints[4], planePoints[3]);
+//        planes[3].set(planePoints[5], planePoints[1], planePoints[6]);
+//        planes[4].set(planePoints[2], planePoints[3], planePoints[6]);
+//        planes[5].set(planePoints[4], planePoints[0], planePoints[1]);
+        
+        
+    end
+
+
+    action PointInFrustum(Vector3 point) returns boolean
+        return PointInFrustum(point:GetX(), point:GetY(), point:GetZ())
+    end
+
+    action PointInFrustum(number x, number y, number z) returns boolean
+        integer i = 0
+        repeat planes:GetSize() times
+            text result = planes:Get(i):TestPoint(x, y, z)
+            if result:Equals(PlaneSide:Back)
+                return false
+            end
+            i = i + 1
+        end
+        return true
+    end
+
+    action SphereInFrustum(Vector3 center, number radius) returns boolean
+        return SphereInFrustum(center:GetX(), center:GetY(), center:GetZ(), radius)
+    end
+
+    action SphereInFrustum(number x, number y, number z, number radius) returns boolean
+        integer i = 0
+        repeat 6 times
+            Plane plane = planes:Get(i)
+            if plane:normal:x * x + plane:normal:y * y + plane:normal:z * z < -1 * radius - plane:d)
+                return false
+            end
+            i = i + 1
+        end
+        return true
+    end
+
+    action SphereInFrustumWithoutNearFar(Vector3 center, number radius) returns boolean
+        return SphereInFrustumWithoutNearFar(center:GetX(), center:GetY(), center:GetZ(), radius)
+    end
+
+    action SphereInFrustumWithoutNearFar(number x, number y, number z, number radius) returns boolean
+        integer i = 2
+        repeat 4 times
+            Plane plane = planes:Get(i)
+            if plane:normal:x * x + plane:normal:y * y + plane:normal:z * z < -1 * radius - plane:d)
+                return false
+            end
+            i = i + 1
+        end
+        return true
+    end
+
+/*
+    Do we have BoundingBoxes?
+
+    action BoundsInFrustum(BoundingBox bounds) returns boolean
+
+    end
+
+    action BoundsInFrustum(Vector3 center, Vector3 dimensions) returns boolean
+        return BoundsInFrustum(center:GetX(), center:GetY(), center:GetZ(), dimensions:GetX() / 2, dimensions:GetY() / 2, dimensions:GetZ() / 2)
+    end
+
+    action BoundsInFrustum(number x, number y, number z, number halfWidth, number halfHeight, number halfDepth) returns boolean
+
+    end
+*/
+    
+end
