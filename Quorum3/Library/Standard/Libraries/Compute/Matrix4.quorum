@@ -1,6 +1,7 @@
 package Libraries.Compute
 
 use Libraries.Containers.Array
+use Libraries.Compute.Math
 use Libraries.Compute.Matrix3
 use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
@@ -981,6 +982,27 @@ class Matrix4
         destination:Set(10, values:Get(M13))
         destination:Set(11, values:Get(M23))
 
+    end
+
+
+    action Project(Array<number> matrix, Array<number> vectors, integer offset, integer numVecs, integer stride)
+        integer vectorPointer = offset
+        integer i = 0
+        repeat numVecs times
+            Project(matrix, vectors, vectorPointer)
+            i = i + 1
+            vectorPointer = vectorPointer + stride
+        end
+    end
+
+    action Project(Array<number> matrix, Array<number> vectors, integer vectorPointer)
+        number inv_w = 1.0 / (vectors:Get(vectorPointer) * matrix:Get(M30) + vectors:Get(vectorPointer + 1) * matrix:Get(M31) + vectors:Get(vectorPointer + 2) * matrix:Get(M32) + matrix:Get(M33))
+        number x = (vectors:Get(vectorPointer + 0) * matrix:Get(M00) + vectors:Get(vectorPointer + 1) * matrix:Get(M01) + vectors:Get(vectorPointer + 2) * matrix:Get(M02) + matrix:Get(M03)) * inv_w
+        number y = (vectors:Get(vectorPointer + 0) * matrix:Get(M10) + vectors:Get(vectorPointer + 1) * matrix:Get(M11) + vectors:Get(vectorPointer + 2) * matrix:Get(M12) + matrix:Get(M13)) * inv_w
+        number z = (vectors:Get(vectorPointer + 0) * matrix:Get(M20) + vectors:Get(vectorPointer + 1) * matrix:Get(M21) + vectors:Get(vectorPointer + 2) * matrix:Get(M22) + matrix:Get(M23)) * inv_w
+        vectors:Set(vectorPointer + 0, x)
+        vectors:Set(vectorPointer + 1, y)
+        vectors:Set(vectorPointer + 2, z)
     end
       
 end

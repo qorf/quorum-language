@@ -11,7 +11,7 @@ class Frustum
 
     constant Array<Vector3> clipSpacePlanePoints
 
-    constant Array<number> clipSpacePointsArray
+    constant Array<number> clipSpacePlanePointsArray
 
     constant Vector3 temporaryVector
 
@@ -51,11 +51,11 @@ class Frustum
         integer i = 0
         integer j = 0
         repeat clipSpacePlanePoints:GetSize() times
-            clipSpacePlanePointsArray:Add(j, clipSpacePlanePoints:Get(i):x)
+            clipSpacePlanePointsArray:Add(j, clipSpacePlanePoints:Get(i):GetX())
             j = j + 1
-            clipSpacePlanePointsArray:Add(j, clipSpacePlanePoints:Get(i):y)
+            clipSpacePlanePointsArray:Add(j, clipSpacePlanePoints:Get(i):GetY())
             j = j + 1
-            clipSpacePlanePointsArray:Add(j, clipSpacePlanePoints:Get(i):z)
+            clipSpacePlanePointsArray:Add(j, clipSpacePlanePoints:Get(i):GetZ())
             j = j + 1
             i = i + 1
         end
@@ -89,27 +89,31 @@ class Frustum
         planes:Add(plane6)    
     end
 
-    action Update(Matrix4 inverseProjectionVew)
+    action Update(Matrix4 inverseProjectionView)
         Object o = clipSpacePlanePointsArray:Copy()
         planePointsArray = cast(Array<number>, o)
 
-//        todo: rest of Update...
-//        Matrix4.prj(inverseProjectionView.val, planePointsArray, 0, 8, 3);
-//        for (int i = 0, j = 0; i < 8; i++) {
-//                Vector3 v = planePoints[i];
-//                v.x = planePointsArray[j++];
-//                v.y = planePointsArray[j++];
-//                v.z = planePointsArray[j++];
-//        }
-//
-//        planes[0].set(planePoints[1], planePoints[0], planePoints[2]);
-//        planes[1].set(planePoints[4], planePoints[5], planePoints[7]);
-//        planes[2].set(planePoints[0], planePoints[4], planePoints[3]);
-//        planes[3].set(planePoints[5], planePoints[1], planePoints[6]);
-//        planes[4].set(planePoints[2], planePoints[3], planePoints[6]);
-//        planes[5].set(planePoints[4], planePoints[0], planePoints[1]);
-        
-        
+        Matrix4 temp
+        temp:Project(inverseProjectionView:values, planePointsArray, 0, 8, 3)
+        integer i = 0
+        integer j = 0
+        repeat 8 times
+            Vector3 v = planePoints:Get(i)
+            v:SetX(planePointsArray:Get(j))
+            j = j + 1
+            v:SetY(planePointsArray:Get(j))
+            j = j + 1
+            v:SetZ(planePointsArray:Get(j))
+            j = j + 1
+            i = i + 1
+        end
+
+        planes:Get(0):Set(planePoints:Get(1), planePoints:Get(0), planePoints:Get(2))
+        planes:Get(1):Set(planePoints:Get(4), planePoints:Get(5), planePoints:Get(7))
+        planes:Get(2):Set(planePoints:Get(0), planePoints:Get(4), planePoints:Get(3))
+        planes:Get(3):Set(planePoints:Get(5), planePoints:Get(1), planePoints:Get(6))
+        planes:Get(4):Set(planePoints:Get(2), planePoints:Get(3), planePoints:Get(6))
+        planes:Get(5):Set(planePoints:Get(4), planePoints:Get(0), planePoints:Get(1))        
     end
 
 
@@ -118,10 +122,11 @@ class Frustum
     end
 
     action PointInFrustum(number x, number y, number z) returns boolean
+        Plane plane
         integer i = 0
         repeat planes:GetSize() times
             text result = planes:Get(i):TestPoint(x, y, z)
-            if result:Equals(PlaneSide:Back)
+            if result:Equals(plane:back)
                 return false
             end
             i = i + 1
@@ -137,7 +142,7 @@ class Frustum
         integer i = 0
         repeat 6 times
             Plane plane = planes:Get(i)
-            if plane:normal:x * x + plane:normal:y * y + plane:normal:z * z < -1 * radius - plane:d)
+            if plane:GetNormal():GetX() * x + plane:GetNormal():GetY() * y + plane:GetNormal():GetZ() * z < -1 * radius - plane:GetD()
                 return false
             end
             i = i + 1
@@ -153,7 +158,7 @@ class Frustum
         integer i = 2
         repeat 4 times
             Plane plane = planes:Get(i)
-            if plane:normal:x * x + plane:normal:y * y + plane:normal:z * z < -1 * radius - plane:d)
+            if plane:GetNormal():GetX() * x + plane:GetNormal():GetY() * y + plane:GetNormal():GetZ() * z < -1 * radius - plane:GetD()
                 return false
             end
             i = i + 1
@@ -162,7 +167,7 @@ class Frustum
     end
 
 /*
-    Do we have BoundingBoxes?
+    Do we even have BoundingBoxes?
 
     action BoundsInFrustum(BoundingBox bounds) returns boolean
 

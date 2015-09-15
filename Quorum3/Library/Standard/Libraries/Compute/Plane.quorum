@@ -1,9 +1,9 @@
 package Libraries.Compute
 
 class Plane 
-    public text OnPlane = "onPlane"
-    public text Back = "Back"
-    public text Front = "Front"
+    public constant text onPlane = "OnPlane"
+    public constant text back = "Back"
+    public constant text front = "Front"
 
     Vector3 normal
     number d = 0
@@ -57,11 +57,11 @@ class Plane
         number distance = normal:DotProduct(x, y, z) + d
 
         if distance = 0
-            return OnPlane
+            return onPlane
         elseif distance < 0
-            return Back
+            return back
         else
-            return Front
+            return front
         end
     end
 

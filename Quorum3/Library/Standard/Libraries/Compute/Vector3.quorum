@@ -43,6 +43,18 @@ class Vector3
         Set(vector:GetX(), vector:GetY(), z)
     end
 
+    action SetX(number newX)
+        x = newX
+    end
+
+    action SetY(number newY)
+        y = newY
+    end
+
+    action SetZ(number newZ)
+        z = newZ
+    end
+
     action Copy () returns Vector3
         Vector3 temp
         temp:Set(x, y, z)
