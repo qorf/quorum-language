@@ -252,9 +252,9 @@ class Compiler
         sandboxedProfiler:Add(time:GetEpochTime()) 
         
         DateTime time2
-        finish = time2:GetEpochTime()
-        total = (finish - start) / 1000.0
-        result:time = total
+        //integer finish = cast(integer, time2:GetEpochTime())
+        //integer total = cast(integer, (finish - start) / 1000.0)
+        result:time = (time2:GetEpochTime() - start) / 1000.0//total
         return result
     end
 
@@ -714,50 +714,6 @@ class Compiler
         item:documentationText = "Test"
         return item
     end
-    
-//    private action GetActionCompletionItem(Action act) returns CodeCompletionItem
-//        CodeCompletionItem item
-//        if act:GetParametersSize() = 0
-//            item:isActionWithoutParameters = true
-//        end
-//
-//        if act:IsPublic()
-//            if act:IsBlueprint()
-//                item:SetType(item:PUBLIC_BLUEPRINT_ACTION)
-//            elseif act:IsSystem()
-//                item:SetType(item:PUBLIC_SYSTEM_ACTION)
-//            else
-//                item:SetType(item:PUBLIC_ACTION)
-//            end
-//        else 
-//            if act:IsBlueprint()
-//                item:SetType(item:PRIVATE_BLUEPRINT_ACTION)
-//            elseif act:IsSystem()
-//                item:SetType(item:PRIVATE_SYSTEM_ACTION)
-//            else
-//                item:SetType(item:PRIVATE_ACTION)
-//            end
-//        end
-//
-//        Class clazz = act:GetParentClass()
-//
-//        if clazz not= undefined
-//            if clazz:GetAction(act:GetStaticKey()) not= undefined
-//                item:isBaseClassAction = true
-//            end
-//        end
-//
-//        text signature = act:GetStaticKey()
-//        
-//        text name = act:GetName()
-//
-//        text description = "<h1>" + signature + "</h1>"
-//
-//        item:displayText = name
-//        item:completionText = name
-//        item:documentationText = ""
-//        return item
-//    end
 
     private action GetPackageCompletionItem(text pack) returns CodeCompletionItem
         CodeCompletionItem item
