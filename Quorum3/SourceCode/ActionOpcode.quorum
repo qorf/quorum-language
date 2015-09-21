@@ -169,13 +169,13 @@ class ActionOpcode is QuorumOpcode
                 text description = type:ConvertTypeToBytecodeSignatureInterface()
                 text signature = type:ConvertTypeToBytecodeSignatureInterface()
                 integer location = variable:GetBytecodeLocation()
-           //     writer:VisitLocalVariable(variable:GetName(), description,
-           //         undefined, start, finish, location)
+                writer:VisitLocalVariable(variable:GetName(), description,
+                    undefined, start, finish, location)
             end
         end
 
-        //writer:VisitLocalVariable("this", clazz:ConvertStaticKeyToBytecodePathTypeName(),
-        //    undefined, start, finish, 0)
+        writer:VisitLocalVariable("this", clazz:ConvertStaticKeyToBytecodePathTypeName(),
+            undefined, start, finish, 0)
     end
 
     action WriteJavaScript returns text
