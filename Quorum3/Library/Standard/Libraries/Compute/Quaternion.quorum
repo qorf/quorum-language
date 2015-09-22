@@ -1,4 +1,6 @@
-package Libraries.Compute
+//package Libraries.Compute
+
+use Libraries.Compute.Math
 
 class Quaternion 
     
@@ -7,19 +9,33 @@ class Quaternion
     number z = 0
     number w = 0
 
-    action Set(number a, number b, number c, number d)
+    Quaternion temp1
+    Quaternion temp2
+
+    constant number DECIMAL_ROUNDING_ERROR = 0.000001
+
+    Math math
+
+    action Set(number a, number b, number c, number d) returns Quaternion
 	x = a
 	y = b
 	z = c
 	w = d
+        return me
     end
 
-    action Set(Quaternion quad)
-        Set(quad:GetX(), quad:GetY(), quad:GetZ(), quad:GetW())
+    action Set(Quaternion quad) returns Quaternion
+        return Set(quad:GetX(), quad:GetY(), quad:GetZ(), quad:GetW())
     end
 
-    action Set(Vector3 axis, number angle)
-        //SetFromAxis(axis:GetX(), axis:GetY(), axis:GetZ(), angle)
+    action Set(Vector3 axis, number angle) returns Quaternion
+        return SetFromAxis(axis:GetX(), axis:GetY(), axis:GetZ(), angle)
+    end
+
+    action Copy returns Quaternion
+        Quaternion ret
+        ret:Set(me)
+        return ret
     end
 
     action GetX returns number
@@ -36,6 +52,193 @@ class Quaternion
 
     action GetW returns number
 	return w
+    end
+
+    action Length(number a, number b, number c, number d) returns number
+        return math:SquareRoot(a * a + b * b + c * c + d * d)
+    end
+
+    action ToText returns text
+        return "[" + x + "|" + y + "|" + z + "|" + w + "]"
+    end
+
+    action SetEulerAngles(number yaw, number pitch, number roll) returns Quaternion
+        return SetEulerAnglesRad(yaw * math:pi / 180, pitch * math:pi / 180, roll * math:pi / 180)
+    end
+
+    action SetEulerAnglesRad(number yaw, number pitch, number roll) returns Quaternion
+        number hr = roll * 0.5
+        number shr = math:Sine(hr)
+        number chr = math:Cosine(hr)
+        number hp = pitch * 0.5
+        number shp = math:Sine(hp)
+        number chp = math:Cosine(hp)
+        number hy = yaw * 0.5
+        number shy = math:Sine(hy)
+        number chy = math:Cosine(hy)
+        number chy_shp = chy * shp
+        number shy_chp = shy * chp
+        number chy_chp = chy * chp
+        number shy_shp = shy * shp
+
+        x = (chy_shp * chr) + (shy_chp * shr)
+        y = (shy_chp * chr) - (chy_shp * shr)
+        z = (chy_chp * shr) - (shy_shp * chr)
+        w = (chy_chp * chr) + (shy_shp * shr)
+        return me
+    end
+
+    action GetGimbalPole returns integer
+        number t = y * x + z * w
+        if t > 0.499
+            return 1
+        elseif t < -0.499
+            return -1
+        else
+            return 0
+        end
+    end
+
+    action GetRollRad returns number
+        integer pole = GetGimbalPole()
+        if pole = 0
+            return math:InverseTangent(2.0 * (w * z + y * x), 1.0 - 2.0 *(x * x + z * z))
+        else
+            return pole * 2.0 * math:InverseTangent(y, w)
+        end
+    end
+
+    action GetRoll returns number
+        return GetRollRad() * 180 / math:pi
+    end
+
+    action GetPitchRad returns number
+        integer pole = GetGimbalPole()
+        if pole = 0
+            return math:InverseSine(Clamp(2.0 * (w * x + z * y), -1.0, 1.0))
+        else
+            return pole * math:pi * 0.5
+        end
+    end
+
+    action GetPitch returns number
+        return GetPitchRad() * 180 / math:pi
+    end
+
+    action GetYawRad returns number
+        if GetGimbalPole() = 0
+            return math:InverseTangent(2.0 * (y * w + x * z), 1.0 - 2.0 * (y * y + x * x))
+        else
+            return 0.0
+        end
+    end
+
+    action GetYaw returns number
+        return GetYawRad() * 180 / math:pi
+    end
+
+    action LengthSquared(number a, number b, number c, number d) returns number
+        return a * a + b * b + c * c + d * d
+    end
+    
+    action LengthSquared returns number
+        return x * x + y * y + z * z + w * w
+    end
+
+    action Normalize returns Quaternion
+        number length = LengthSquared()
+        if length not= 0.0 and not IsEqual(length, 1.0)
+            length = math:SquareRoot(length)
+            w = w / length
+            x = x / length
+            y = y / length
+            z = z / length
+        end
+        return me
+    end
+
+    action Conjugate returns Quaternion
+        x = -1 * x
+        y = -1 * y
+        z = -1 * z
+        return me
+    end
+
+    action Transform(Vector3 vector) returns Vector3
+        temp2:Set(me)
+        temp2:Conjugate()
+        temp2:MultiplyLeft(temp1:Set(vector:GetX(), vector:GetY(), vector:GetZ(), 0)):MultiplyLeft(me)
+
+        vector:SetX(temp2:GetX())
+        vector:SetY(temp2:GetY())
+        vector:SetZ(temp2:GetZ())
+        return vector
+    end
+
+    action Multiply(Quaternion other) returns Quaternion
+        number newX = me:GetW() * other:GetX() + me:GetX() * other:GetW() + me:GetY() * other:GetZ() - me:GetZ() * other:GetY()
+        number newY = me:GetW() * other:GetY() + me:GetY() * other:GetW() + me:GetZ() * other:GetX() - me:GetX() * other:GetZ()
+        number newZ = me:GetW() * other:GetZ() + me:GetZ() * other:GetW() + me:GetX() * other:GetY() - me:GetY() * other:GetX()
+        number newW = me:GetW() * other:GetW() - me:GetX() * other:GetX() - me:GetY() * other:GetY() - me:GetZ() * other:GetZ()
+        me:Set(newX, newY, newZ, newW)
+        return me
+    end
+
+    action Multiply(number a, number b, number c, number d) returns Quaternion
+        number newX = me:GetW() * a + me:GetX() * d + me:GetY() * c - me:GetZ() * b
+        number newY = me:GetW() * b + me:GetY() * d + me:GetZ() * a - me:GetX() * c
+        number newZ = me:GetW() * c + me:GetZ() * d + me:GetX() * b - me:GetY() * a
+        number newW = me:GetW() * d - me:GetX() * a - me:GetY() * b - me:GetZ() * c
+        me:Set(newX, newY, newZ, newW)
+        return me
+    end
+
+    action MultiplyLeft(Quaternion other) returns Quaternion
+        number newX = other:GetW() * me:GetX() + other:GetX() * me:GetW() + other:GetY() * me:GetZ() - other:GetZ() * me:GetY()
+        number newY = other:GetW() * me:GetY() + other:GetY() * me:GetW() + other:GetZ() * me:GetX() - other:GetX() * me:GetZ()
+        number newZ = other:GetW() * me:GetZ() + other:GetZ() * me:GetW() + other:GetX() * me:GetY() - other:GetY() * me:GetX()
+        number newW = other:GetW() * me:GetW() - other:GetX() * me:GetX() - other:GetY() * me:GetY() - other:GetZ() * me:GetZ()
+        me:Set(newX, newY, newZ, newW)
+        return me
+    end
+
+    action MultiplyLeft(number a, number b, number c, number d) returns Quaternion
+        number newX = d * me:GetX() + a * me:GetW() + b * me:GetZ() - c * me:GetY()
+        number newY = d * me:GetY() + b * me:GetW() + c * me:GetX() - a * me:GetZ()
+        number newZ = d * me:GetZ() + c * me:GetW() + a * me:GetY() - b * me:GetX()
+        number newW = d * me:GetW() - a * me:GetX() - b * me:GetY() - c * me:GetZ()
+        me:Set(newX, newY, newZ, newW)
+        return me
+    end
+
+    action Add(Quaternion quaternion) returns Quaternion
+        me:x = me:x + quaternion:GetX()
+        me:y = me:y + quaternion:GetY()
+        me:z = me:z + quaternion:GetZ()
+        me:w = me:w + quaternion:GetW()
+        return me
+    end
+
+    action Add(number qx, number qy, number qz, number qw) returns Quaternion
+        me:x = me:x + qx
+        me:y = me:y + qy
+        me:z = me:z + qz
+        me:w = me:w + qw
+        return me
+    end    
+
+    action Clamp(number value, number min, number max) returns number
+        if value < min
+            return min
+        elseif value > max
+            return max
+        else
+            return value
+        end
+    end
+
+    action IsEqual(number value1, number value2) returns boolean
+        return math:AbsoluteValue(value1 - value2) <= DECIMAL_ROUNDING_ERROR
     end
 
 end

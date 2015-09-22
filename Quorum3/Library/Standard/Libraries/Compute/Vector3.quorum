@@ -1,7 +1,7 @@
-package Libraries.Compute
+//package Libraries.Compute
 
 use Libraries.Compute.all
-use Libraries.Compute.Vector2
+//use Libraries.Compute.Vector2
 use Libraries.Containers.Array
 
 class Vector3 
@@ -25,22 +25,23 @@ class Vector3
         return z
     end
 
-    action Set (number xValue, number yValue, number zValue)
+    action Set (number xValue, number yValue, number zValue) returns Vector3
         x = xValue
         y = yValue
         z = zValue
+        return me
     end
 
-    action Set (Vector3 vector)
-        Set(vector:x, vector:y, vector:z)
+    action Set (Vector3 vector) returns Vector3
+        return Set(vector:x, vector:y, vector:z)
     end
 
-    action set (Array<number> array)
-        Set(array:Get(0), array:Get(1), array:Get(2))
+    action set (Array<number> array) returns Vector3
+        return Set(array:Get(0), array:Get(1), array:Get(2))
     end
 
-    action Set (Vector2 vector, number z)
-        Set(vector:GetX(), vector:GetY(), z)
+    action Set (Vector2 vector, number z) returns Vector3
+        return Set(vector:GetX(), vector:GetY(), z)
     end
 
     action SetX(number newX)
@@ -61,64 +62,72 @@ class Vector3
         return temp
     end
 
-    action Add (Vector3 vector)
-        Add(vector:x, vector:y, vector:z)
+    action Add (Vector3 vector) returns Vector3
+        return Add(vector:x, vector:y, vector:z)
     end
 
-    action Add (number xValue, number yValue, number zValue)
+    action Add (number xValue, number yValue, number zValue) returns Vector3
         x = x + xValue
         y = y + yValue
         z = z + zValue
+        return me
     end
 
-    action Add (number values)
+    action Add (number values) returns Vector3
         x = x + values
         y = y + values
         z = z + values
+        return me
     end
 
-    action Subtract (Vector3 vector)
-        Subtract(vector:x, vector:y, vector:z)
+    action Subtract (Vector3 vector) returns Vector3
+        return Subtract(vector:x, vector:y, vector:z)
     end
 
-    action Subtract (number xValue, number yValue, number zValue)
-        Set(x - xValue, y - yValue, z - zValue)
+    action Subtract (number xValue, number yValue, number zValue) returns Vector3
+        return Set(x - xValue, y - yValue, z - zValue)        
     end
 
-    action Subtract (number value)
+    action Subtract (number value) returns Vector3
         x = x - value
         y = y - value
         z = z - value
+        return me
     end
 
-    action Scalar (number scalar)
+    action Scalar (number scalar) returns Vector3
         x = x * scalar
         y = y * scalar
         z = z * scalar
+        return me
     end
 
-    action Scalar (Vector3 vector)
+    action Scalar (Vector3 vector) returns Vector3
         x = x * vector:x
         y = y * vector:y
         z = z * vector:z
+        return me
     end
 
-    action Scalar (number vx, number vy, number vz)
+    action Scalar (number vx, number vy, number vz) returns Vector3
         x = x * vx
         y = y * vy
         z = z * vz
+        return me
     end
 
-    action MultiplyAndAdd (Vector3 vec, number scalar)
+    action MultiplyAndAdd (Vector3 vec, number scalar) returns Vector3
         x = x + vec:x * scalar
         y = y + vec:y * scalar
         z = z + vec:z * scalar
+        return me
     end
 
-    action MultiplyAndAdd (Vector3 vec, Vector3 mulVec)
+    action MultiplyAndAdd (Vector3 vec, Vector3 mulVec) returns Vector3
         x = x + vec:x * mulVec:x
         y = y + vec:y * mulVec:y
         z = z + vec:z * mulVec:z
+        return me
     end
 
     action Length () returns number
@@ -218,21 +227,21 @@ class Vector3
     end
 
     /* Sets Vector3's variables to the cross product of the current variables of Vector3 and the parameters */
-    action CrossProduct (Vector3 vector)
-        Set(y * vector:z - z * vector:y, z * vector:x - x * vector:z, x * vector:y - y * vector:x)
+    action CrossProduct (Vector3 vector) returns Vector3
+        return Set(y * vector:z - z * vector:y, z * vector:x - x * vector:z, x * vector:y - y * vector:x)
     end
 
-    action CrossProduct (number xVal, number yVal, number zVal)
-        Set(y * zVal - z * yVal, z * xVal - x * zVal, x * yVal - y * xVal)
+    action CrossProduct (number xVal, number yVal, number zVal) returns Vector3
+        return Set(y * zVal - z * yVal, z * xVal - x * zVal, x * yVal - y * xVal)
     end
 
-    action MultiplyBy4x3Matrix (Array<number> matrix)
-        Set(x * matrix:Get(0) + y * matrix:Get(3) + z * matrix:Get(6) + matrix:Get(9),
-            x * matrix:Get(1) + y * matrix:Get(4) + z * matrix:Get(7) + matrix:Get(10),
-            x * matrix:Get(2) + y * matrix:Get(5) + z * matrix:Get(8) + matrix:Get(11))
+    action MultiplyBy4x3Matrix (Array<number> matrix) returns Vector3
+        return Set(x * matrix:Get(0) + y * matrix:Get(3) + z * matrix:Get(6) + matrix:Get(9),
+                   x * matrix:Get(1) + y * matrix:Get(4) + z * matrix:Get(7) + matrix:Get(10),
+                   x * matrix:Get(2) + y * matrix:Get(5) + z * matrix:Get(8) + matrix:Get(11))
     end
 
-    action Multiply(Matrix4 matrix)
+    action Multiply(Matrix4 matrix) returns Vector3
         
         Array<number> val = matrix:values
 
@@ -240,27 +249,27 @@ class Vector3
         number t2 = x * val:Get(1) + y * val:Get(5) + z * val:Get(9) + val:Get(13)
         number t3 = x * val:Get(2) + y * val:Get(6) + z * val:Get(10) + val:Get(14)
         
-        Set(t1,t2,t3)
+        return Set(t1,t2,t3)
         
     end
         
     /* action MultiplyByTranspose (Matrix4 matrix)          */
  
-    action Multiply (Matrix3 matrix)
+    action Multiply (Matrix3 matrix) returns Vector3
            constant Array<number> leftMatrix = matrix:values
 
-           Set(x * leftMatrix:Get(matrix:M00) + y * leftMatrix:Get(matrix:M01) + z * leftMatrix:Get(matrix:M02),
-               x * leftMatrix:Get(matrix:M10) + y * leftMatrix:Get(matrix:M11) + z * leftMatrix:Get(matrix:M12),
-               x * leftMatrix:Get(matrix:M20) + y * leftMatrix:Get(matrix:M21) + z * leftMatrix:Get(matrix:M22))
+           return Set(x * leftMatrix:Get(matrix:M00) + y * leftMatrix:Get(matrix:M01) + z * leftMatrix:Get(matrix:M02),
+                      x * leftMatrix:Get(matrix:M10) + y * leftMatrix:Get(matrix:M11) + z * leftMatrix:Get(matrix:M12),
+                      x * leftMatrix:Get(matrix:M20) + y * leftMatrix:Get(matrix:M21) + z * leftMatrix:Get(matrix:M22))
 
     end
 
-    action MultiplyByTranspose (Matrix3 matrix)
+    action MultiplyByTranspose (Matrix3 matrix) returns Vector3
         constant Array<number> leftMatrix = matrix:values
         
-         Set(x * leftMatrix:Get(matrix:M00) + y * leftMatrix:Get(matrix:M10) + z * leftMatrix:Get(matrix:M20),
-               x * leftMatrix:Get(matrix:M01) + y * leftMatrix:Get(matrix:M11) + z * leftMatrix:Get(matrix:M21),
-               x * leftMatrix:Get(matrix:M02) + y * leftMatrix:Get(matrix:M12) + z * leftMatrix:Get(matrix:M22))
+        return Set(x * leftMatrix:Get(matrix:M00) + y * leftMatrix:Get(matrix:M10) + z * leftMatrix:Get(matrix:M20),
+                   x * leftMatrix:Get(matrix:M01) + y * leftMatrix:Get(matrix:M11) + z * leftMatrix:Get(matrix:M21),
+                   x * leftMatrix:Get(matrix:M02) + y * leftMatrix:Get(matrix:M12) + z * leftMatrix:Get(matrix:M22))
 
     end
 

@@ -1,0 +1,76 @@
+class Ray
+    Vector3 origin
+    Vector3 direction
+
+    Vector3 temporaryVector
+
+    action Set(Vector3 newOrigin, Vector3 newDirection) returns Ray
+        origin:Set(newOrigin)
+        direction:Set(newDirection)
+        return me
+    end
+
+    action Set(number x, number y, number z, number directionX, number directionY, number directionZ) returns Ray
+        origin:Set(x, y, z)
+        direction:Set(directionX, directionY, directionZ)
+        return me
+    end
+
+    action Set(Ray ray) returns Ray
+        me:origin:Set(ray:GetOrigin())
+        me:direction:Set(ray:GetDirection())
+        return me
+    end
+
+    action SetDirection(Vector3 newDirection)
+        me:direction:Set(newDirection)
+    end
+
+    action SetOrigin(Vector3 newOrigin)
+        me:origin:Set(newOrigin)
+    end
+
+    action GetDirection returns Vector3
+        return direction
+    end
+
+    action GetOrigin returns Vector3
+        return origin
+    end
+
+    action Copy returns Ray
+        Ray ray
+        ray:SetOrigin(me:origin)
+        ray:SetDirection(me:direction)
+        return ray
+    end
+        
+    action GetEndPoint(Vector3 out, number distance) returns Vector3
+        out:Set(direction)
+        out:Scalar(distance)
+        out:Add(origin)
+        return out
+    end
+
+    action Multiply(Matrix4 matrix) returns Ray
+        temporaryVector:Set(origin)
+        temporaryVector:Add(direction)
+        temporaryVector:Multiply(matrix)
+        origin:Multiply(matrix)
+        temporaryVector:Subtract(origin)
+        direction:Set(temporaryVector)
+        return me
+    end
+
+    action ToText returns text
+        return "ray [" + origin:ToText() + ":" + direction:ToText() + "]"
+    end
+
+    action Equals(Ray ray) returns boolean
+        if ray = me
+            return true
+        end
+        
+        return me:direction:Equals(ray:GetDirection()) and me:origin:Equals(ray:GetOrigin())
+    end
+end
