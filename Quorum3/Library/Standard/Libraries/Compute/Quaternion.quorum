@@ -1,6 +1,7 @@
 //package Libraries.Compute
 
 use Libraries.Compute.Math
+use Libraries.Containers.Array
 
 class Quaternion 
     
@@ -225,8 +226,86 @@ class Quaternion
         me:z = me:z + qz
         me:w = me:w + qw
         return me
-    end    
+    end
 
+    action ToMatrix(Array<number> matrix)
+        number xx = x * x
+        number xy = x * y
+        number xz = x * z
+        number xw = x * w
+        number yy = y * y
+        number yz = y * z
+        number yw = y * w
+        number zz = z * z
+        number zw = z * w
+
+        matrix:Set(Matrix4:M00, 1 - 2 * (yy + zz))
+        matrix:Set(Matrix4:M01, 2 * (xy - zw))
+        matrix:Set(Matrix4:M02, 2 * (xz + yw))
+        matrix:Set(Matrix4:M03, 0)
+        matrix:Set(Matrix4:M10, 2 * (xy + zw))
+        matrix:Set(Matrix4:M11, 1 - 2 * (xx + zz))
+        matrix:Set(Matrix4:M12, 2 * (yz - xw))
+        matrix:Set(Matrix4:M13, 0)
+        matrix:Set(Matrix4:M20, 2 * (xz - yw))
+        matrix:Set(Matrix4:M21, 2 * (yz + xw))
+        matrix:Set(Matrix4:M22, 1 - 2 * (xx + yy))
+        matrix:Set(Matrix4:M23, 0)
+        matrix:Set(Matrix4:M30, 0)
+        matrix:Set(Matrix4:M31, 0)
+        matrix:Set(Matrix4:M32, 0)
+        matrix:Set(Matrix4:M33, 1)        
+    end
+
+    action SetToIdentity returns Quaternion
+        return me:Set(0, 0, 0, 1)
+    end
+
+
+    action IsIdentity returns boolean
+        return IsZero(x) and IsZero(y) and IsZero(z) and IsEqual(w, 1.0)
+    end
+
+    action IsIdentity(number tolerance) returns boolean
+        return IsZero(x, tolerance) and IsZero(y, tolerance) and IsZero(z, tolerance) and IsEqual(w, 1.0, tolerance)
+    end
+
+    action SetFromAxis(Vector3 axis, number degrees) returns Quaternion
+        return SetFromAxis(axis:GetX(), axis:GetY(), axis:GetZ(), degrees)
+    end
+
+    action SetFromAxis(number x, number y, number z, number degrees) returns Quaternion
+        return SetFromAxisRadians(x, y, z, degrees * math:pi / 180)
+    end
+
+    action SetFromAxisRadians(Vector3 axis, number radians) returns Quaternion
+        return SetFromAxisRadians(axis:GetX(), axis:GetY(), axis:GetZ(), radians)
+    end
+
+    action SetFromAxisRadians(number x, number y, number z, number radians) returns Quaternion
+        Vector3 temp
+        number d = temp:Length(x, y, z)
+        if d = 0.0
+            return SetToIdentity()
+        end
+        d = 1.0 / d
+
+        number l_angle = 0
+
+        if radians < 0
+            l_angle = (math:pi * 2) - (-1 * radians mod (math:pi * 2))
+        else
+            l_angle = radians mod (math:pi * 2)
+        end
+
+        number l_sin = math:Sine(l_angle / 2)
+        number l_cos = math:Cosine(l_angle / 2)
+        return me:Set(d * x * l_sin, d * y * l_sin, d * z * l_sin, l_cos):Normalize()
+    end
+
+    
+
+    
     action Clamp(number value, number min, number max) returns number
         if value < min
             return min
@@ -239,6 +318,18 @@ class Quaternion
 
     action IsEqual(number value1, number value2) returns boolean
         return math:AbsoluteValue(value1 - value2) <= DECIMAL_ROUNDING_ERROR
+    end
+
+    action IsEqual(number value1, number value2, number tolerance) returns boolean
+        return math:AbsoluteValue(value1 - value2) <= tolerance
+    end
+
+    action IsZero(number value) returns boolean
+        return math:AbsoluteValue(value) <= DECIMAL_ROUNDING_ERROR
+    end
+
+    action IsZero(number value, number tolerance) returns boolean
+        return math:AbsoluteValue(value) <= tolerance
     end
 
 end
