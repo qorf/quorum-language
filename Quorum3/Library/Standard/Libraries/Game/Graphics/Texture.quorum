@@ -964,7 +964,12 @@ class Texture is Disposable
         format:SetValue(format:RGBA8888)
         pixmap:CreatePixelMap(width, height, format)
 
-        pixmap:FillTriangle(x1, y1, x2, y2, x3, y3, color)
+        // Correcting for pixel map drawing top-down instead of bottom-up.
+        integer t1 = height - y1
+        integer t2 = height - y2
+        integer t3 = height - y3
+
+        pixmap:FillTriangle(x1, t1, x2, t2, x3, t3, color)
         
         FileTextureData data
         data:InitializeFileTextureData(undefined, pixmap, format, false)

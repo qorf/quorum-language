@@ -12,7 +12,7 @@ class ModelLoader
     public constant integer VERSION_HIGH = 0
     public constant integer VERSION_LOW = 1
 
-    blueprint action LoadModelData(File file) returns ModelData
+    system action LoadModelData(File file) returns ModelData
 
     // blueprint action LoadModelData(File file, Parameters p) returns ModelData
 
@@ -26,7 +26,7 @@ class ModelLoader
         return undefined
     end
 
-    action ParseModel(File file) returns ModelData
+    /*action ParseModel(File file) returns ModelData
         //JsonValue json = reader.parse(handle);
         ModelData model
         //JsonValue version = json.require("version");
@@ -42,7 +42,7 @@ class ModelLoader
         //ParseNodes(model, json)
         //ParseAnimations(model, json)
         return model
-    end
+    end*/
 
     // system action ParseModel(File file) returns ModelData
 
