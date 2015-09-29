@@ -7,28 +7,32 @@ use Libraries.Containers.Array
 
 class Vector2
 
-    number x = 0
-    number y = 0
-    constant number radians = 0.0174532925
     Math math
 
-    action GetX() returns number
+    number x = 0
+    number y = 0
+    constant number radiansToDegrees = 180 / math:pi
+    constant number degreesToRadians = math:pi / 180
+
+    action GetX returns number
         return x
     end
 
-    action GetY() returns number
+    action GetY returns number
         return y
     end
 
     // set the calling vectors coordinates
-    action Set(Vector2 vector)
-        x = vector:x
-        y = vector:y
+    action Set(Vector2 vector) returns Vector2
+        x = vector:GetX()
+        y = vector:GetY()
+        return me
     end
 
-    action Set(number xValue, number yValue)
+    action Set(number xValue, number yValue) returns Vector2
         x = xValue
         y = yValue
+        return me
     end
 
     // returns a copy of the calling vector
@@ -54,33 +58,37 @@ class Vector2
         return x * x + y * y
     end
 
-/* sub methods do not return Vector2 */
-    action Subtract(Vector2 v)
-        x = x - v:x
-        y = y - v:y
+    action Subtract(Vector2 vector) returns Vector2
+        x = x - vector:GetX()
+        y = y - vector:GetY()
+        return me
     end
 
-    action Subtract(number xValue, number yValue)
+    action Subtract(number xValue, number yValue) returns Vector2
         x = x - xValue
         y = y - yValue
+        return me
     end
 
-    action Normalize()
+    action Normalize() returns Vector2
         number length = Length()
         if length not= 0
             x = x / length
             y = y / length
         end
+        return me
     end
 
-    action Add(Vector2 vector)
-        x = x + vector:x
-        y = y + vector:y
+    action Add(Vector2 vector) returns Vector2
+        x = x + vector:GetX()
+        y = y + vector:GetY()
+        return me
     end
 
-    action Add(number xValue, number yValue)
+    action Add(number xValue, number yValue) returns Vector2
         x = x + xValue
         y = y + yValue
+        return me
     end
 
     action DotProduct(number x1, number y1, number x2, number y2) returns number
@@ -88,36 +96,41 @@ class Vector2
     end
 
     action DotProduct(Vector2 vector) returns number
-        return x * vector:x + y * vector:y
+        return x * vector:GetX() + y * vector:GetY()
     end
 
     action DotProduct(number xValue, number yValue) returns number
         return x * xValue + y * yValue
     end
 
-    action Scalar (number scalar)
+    action Scale(number scalar) returns Vector2
         x = x * scalar
         y = y * scalar
+        return me
     end
 
-    action Scalar (number xValue, number yValue)
+    action Scale(number xValue, number yValue) returns Vector2
         x = x * xValue
         y = y * yValue
+        return me
     end
 
-    action Scalar (Vector2 vector)
-        x = x * vector:x
-        y = y * vector:y
+    action Scale(Vector2 vector) returns Vector2
+        x = x * vector:GetX()
+        y = y * vector:GetY()
+        return me
     end
 
-    action MultiplyAndAdd (Vector2 vector, number scalar)
-        x = x + vector:x * scalar
-        y = y + vector:y * scalar
+    action MultiplyAndAdd (Vector2 vector, number scalar) returns Vector2
+        x = x + vector:GetX() * scalar
+        y = y + vector:GetY() * scalar
+        return me
     end
 
-    action MultiplyAndAdd(Vector2 vector, Vector2 vector2)
-        x = x + vector:x * vector2:x
-        y = y + vector:y * vector2:y
+    action MultiplyAndAdd(Vector2 addVector, Vector2 multiplyVector) returns Vector2
+        x = x + addVector:GetX() * multiplyVector:GetX()
+        y = y + addVector:GetY() * multiplyVector:GetY()
+        return me
     end
 
     action Distance (number x1, number y1, number x2, number y2) returns number
@@ -127,8 +140,8 @@ class Vector2
     end
 
     action Distance (Vector2 vector) returns number
-        constant number x_d = vector:x - x
-        constant number y_d = vector:y - y
+        constant number x_d = vector:GetX() - x
+        constant number y_d = vector:GetY() - y
         return math:SquareRoot(x_d * x_d + y_d * y_d)
     end
 
@@ -145,8 +158,8 @@ class Vector2
     end
 
     action DistanceSquared (Vector2 vector) returns number
-        constant number x_d = vector:x - x
-        constant number y_d = vector:y - y
+        constant number x_d = vector:GetX() - x
+        constant number y_d = vector:GetY() - y
         return x_d * x_d + y_d * y_d
     end
 
@@ -157,67 +170,66 @@ class Vector2
     end
 
     action Limit (number limit) returns Vector2
-        Vector2 temp
-        if LengthSquared() > limit * limit
-            Normalize()
-            Scalar(limit)
-        end
-        temp:Set(x,y)
-        return temp
+        return LimitSquared(limit * limit)
     end
 
-    /* check this */
-    action LimitPositionToArea (number min, number max) returns Vector2
-        Vector2 temp
+    action LimitSquared(number limit2) returns Vector2
+        number length2 = LengthSquared()
+        if length2 > limit2
+            return Scale(math:SquareRoot(limit2 / length2))
+        end
+        return me
+    end
+
+    action Clamp (number min, number max) returns Vector2
         constant number lengthSquared = LengthSquared()
 
         if lengthSquared = 0.0
-	    temp:Set(x, y)
-            return temp
+            return me
         end
 
-        if lengthSquared > max * max
-            Scalar(math:SquareRoot((max * max)/lengthSquared))
-	    temp:Set(x, y)
-            return temp
+        number max2 = max * max
+
+        if lengthSquared > max2
+            return Scale(math:SquareRoot(max2 /lengthSquared))
         end
 
-        if lengthSquared < min * min
-            Scalar(math:SquareRoot((min * min)/lengthSquared))
-	    temp:Set(x, y)
-            return temp
+        number min2 = min * min
+
+        if lengthSquared < min2
+            return Scale(math:SquareRoot(min2 /lengthSquared))
         end
 
-	temp:Set(x,y)
-        return temp
+        return me
     end
 
-    /* check this */
     action ToText() returns text
         return "[" + x + ":" + y + "]"
     end
 
-    // left multiplies the calling vector by the passed matrix
-    /* Multiplying a 2 element vector by a 3x3 matrix? The way it's being
-    calculated also doesn't seem to make sense. As far as I can tell, this is
-    never used in libGDX.
-    action Multiply (Matrix3 matrix) returns Vector2
+    action SetLength(number length) returns Vector2
+        return SetLengthSquared(length * length)
+    end
 
-        Vector2 temp
-        Array<number> matrixValues = matrix:values
-        
-        number xValue = x * matrixValues:Get(0) + y * matrixValues:Get(3) + matrixValues:Get(6)
-        number yValue = x * matrixValues:Get(1) + y * matrixValues:Get(4) + matrixValues:Get(7)
-        x = xValue
-        y = yValue
-        temp:Set(xValue, yValue)
+    action SetLengthSquared(number lengthSquared) returns Vector2
+        number oldLengthSquared = LengthSquared()
+        if oldLengthSquared = 0 or oldLengthSquared = lengthSquared
+            return me
+        else
+            return Scale(math:SquareRoot(lengthSquared / oldLengthSquared))
+        end
+    end
 
-        return temp
+    action Multiply(Matrix3 matrix) returns Vector2
+        number x = me:x + matrix:values:Get(0) + me:y * matrix:values:Get(3) + matrix:values:Get(6)
+        number y = me:x + matrix:values:Get(1) + me:y * matrix:values:Get(4) + matrix:values:Get(7)
+        me:x = x
+        me:y = y
+        return me
+    end
 
-    end*/
-
-    action CrossProduct (Vector2 v) returns number
-        return x * v:y - y * v:x
+    action CrossProduct (Vector2 vector) returns number
+        return x * vector:GetY() - y * vector:GetY()
     end
 
     action CrossProduct (number xValue, number yValue) returns number
@@ -225,7 +237,7 @@ class Vector2
     end
 
    action Angle () returns number
-        number angle = math:InverseTangent(x, y) / radians
+        number angle = math:InverseTangent(y, x) / radiansToDegrees
         if angle < 0
             angle = angle + 360
         end
@@ -233,43 +245,43 @@ class Vector2
     end
 
     action Angle (Vector2 vector) returns number
-	return math:InverseTangent(DotProduct(vector), CrossProduct(vector)) / radians
-	//return math:InverseTangent(CrossProduct(vector),DotProduct(vector)) / radians
+	return math:InverseTangent(CrossProduct(vector), DotProduct(vector)) / radiansToDegrees
     end
 
     action AngleInRadians () returns number
-        return cast(number, math:InverseTangent(x, y))
+        return math:InverseTangent(y, x)
     end
 
     action AngleInRadians(Vector2 vector) returns number
-        return math:InverseTangent(DotProduct(vector), CrossProduct(vector))
-	//return math:InverseTangent(CrossProduct(vector), DotProduct(vector))
+        return math:InverseTangent(CrossProduct(vector), DotProduct(vector))
     end
 
-    action SetAngle (number degrees)
-        SetAngleInRadians(degrees * radians)
+    action SetAngle (number degrees) returns Vector2
+        return SetAngleInRadians(degrees * degreesToRadians)
     end
 
-    action SetAngleInRadians (number radians)
+    action SetAngleInRadians (number radians) returns Vector2
         Set(Length(), 0.0)
-        RotateInRadians(radians)
+        RotateRadians(radians)
+        return me
     end
 
-    action Rotate (number degrees)
-        RotateInRadians(degrees * radians)
+    action Rotate (number degrees) returns Vector2
+        return RotateRadians(degrees * degreesToRadians)
     end
     
    /* check this */
-   action RotateInRadians (number radians)
+   action RotateRadians (number radians) returns Vector2
         number cos = math:Cosine(radians)
         number sin = math:Sine(radians)
         number newX = x * cos - y * sin
         number newY = x * sin + y * cos
         x = newX
         y = newY
+        return me
    end
 
-    action Rotate90Degrees (integer direction)
+    action Rotate90Degrees (integer direction) returns Vector2
         number xValue = x
         if direction >= 0
             x = y * -1.0
@@ -278,15 +290,15 @@ class Vector2
             x = y
             y = xValue * -1.0
         end
+
+        return me
     end
 
-    action LinearInterpolation (Vector2 vector, number alpha) returns Vector2
+    action LinearInterpolation (Vector2 tangent, number alpha) returns Vector2
         constant number invAlpha = 1.0 - alpha
-        Vector2 temp
-        x = (x * invAlpha) + (vector:x * alpha)
-        y = (y * invAlpha) + (vector:y * alpha)
-        temp:Set(x, y)
-        return temp
+        x = (x * invAlpha) + (tangent:GetX() * alpha)
+        y = (y * invAlpha) + (tangent:GetY() * alpha)
+        return me
     end
 
     /* needs Interpolation class
@@ -311,15 +323,15 @@ class Vector2
             return false
         end */
 
-    action EqualAtPrecision (Vector2 vector, number epsilon) returns boolean
+    action EqualAtPrecision (Vector2 vector, number precision) returns boolean
 
         if vector = undefined
             return false
 
-        elseif math:AbsoluteValue(vector:x - x) > epsilon
+        elseif math:AbsoluteValue(vector:GetX() - x) > precision
             return false
 
-        elseif math:AbsoluteValue(vector:y - y) > epsilon
+        elseif math:AbsoluteValue(vector:GetY() - y) > precision
             return false
 
         end
@@ -328,10 +340,10 @@ class Vector2
 
     end
 
-    action EqualAtPrecision (number xValue, number yValue, number epsilon) returns boolean
-        if math:AbsoluteValue(xValue - x) > epsilon
+    action EqualAtPrecision (number xValue, number yValue, number precision) returns boolean
+        if math:AbsoluteValue(xValue - x) > precision
             return false
-        elseif math:AbsoluteValue(yValue - y) > epsilon
+        elseif math:AbsoluteValue(yValue - y) > precision
             return false
         end
         return true
@@ -350,12 +362,7 @@ class Vector2
     end
 
     action IsZero() returns boolean
-        if x = 0 
-            if y = 0
-            return true
-            end
-        end
-        return false
+        return x = 0 and y = 0
     end
 
     action IsZero (number margin)  returns boolean
@@ -363,47 +370,27 @@ class Vector2
     end
 
     action IsOnLine (Vector2 other) returns boolean
-        return math:AbsoluteValue(x * other:y - y * other:x) <= 0.000001
+        return math:AbsoluteValue(x * other:GetY() - y * other:GetX()) <= 0.000001
     end
     
    action IsOnLine (Vector2 other, number epsilon) returns boolean
-        return math:AbsoluteValue(x * other:y - y * other:x) <= epsilon
+        return math:AbsoluteValue(x * other:GetY() - y * other:GetX()) <= epsilon
     end
 
     action IsCollinear (Vector2 other, number epsilon) returns boolean
-        if IsOnLine(other, epsilon) 
-            if DotProduct(other) > 0.0
-                return true
-            end
-        end
-        return false
+        return IsOnLine(other, epsilon) and DotProduct(other) > 0.0
     end
 
     action IsCollinear (Vector2 other) returns boolean
-        if IsOnLine(other) 
-            if DotProduct(other) > 0.0
-                return true
-            end
-        end 
-        return false
+        return IsOnLine(other) and DotProduct(other) > 0.0
     end
 
     action IsCollinearOpposite (Vector2 other, number epsilon) returns boolean
-        if IsOnLine(other, epsilon) 
-            if DotProduct(other) < 0.0
-                return true
-            end
-        end 
-        return false
+        return IsOnLine(other, epsilon) and DotProduct(other) < 0.0
     end
 
     action IsCollinearOpposite (Vector2 other) returns boolean
-        if IsOnLine(other) 
-            if DotProduct(other) < 0.0
-                return true
-            end
-        end
-        return false
+        return IsOnLine(other) and DotProduct(other) < 0.0
     end
 
     action IsPerpendicular (Vector2 vector) returns boolean
@@ -421,6 +408,12 @@ class Vector2
 
     action HasOppositeDirection (Vector2 vector) returns boolean
         return DotProduct(vector) < 0
+    end
+
+    action SetZero returns Vector2
+        x = 0
+        y = 0
+        return me
     end
     
 end

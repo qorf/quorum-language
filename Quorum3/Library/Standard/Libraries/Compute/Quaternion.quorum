@@ -2,6 +2,7 @@ package Libraries.Compute
 
 use Libraries.Compute.Math
 use Libraries.Containers.Array
+use Libraries.Compute.Vector3
 
 class Quaternion 
     
@@ -9,9 +10,6 @@ class Quaternion
     number y = 0
     number z = 0
     number w = 0
-
-    Quaternion temp1
-    Quaternion temp2
 
     constant number DECIMAL_ROUNDING_ERROR = 0.000001
 
@@ -170,6 +168,9 @@ class Quaternion
     end
 
     action Transform(Vector3 vector) returns Vector3
+        Quaternion temp2
+        Quaternion temp1
+
         temp2:Set(me)
         temp2:Conjugate()
         temp2:MultiplyLeft(temp1:Set(vector:GetX(), vector:GetY(), vector:GetZ(), 0)):MultiplyLeft(me)
@@ -435,6 +436,8 @@ class Quaternion
     end
 
     action SphericalLinearInterpolation(Array<Quaternion> q) returns Quaternion
+        Quaternion temp1
+
         number w = 1.0 / q:GetSize()
         Set(q:Get(0)):Exponent(w)
         
@@ -449,6 +452,8 @@ class Quaternion
     end
 
     action SphericalLinearInterpolation(Array<Quaternion> q, Array<number> w) returns Quaternion
+        Quaternion temp1
+
         Set(q:Get(0)):Exponent(w:Get(0))
 
         integer i = 1

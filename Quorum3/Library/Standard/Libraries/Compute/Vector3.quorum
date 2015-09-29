@@ -10,22 +10,8 @@ class Vector3
     number y = 0
     number z = 0
 
-    public constant Vector3 X
-    public constant Vector3 Y
-    public constant Vector3 Z
-    public constant Vector3 ZERO
-
-    Matrix4 tempMat
-
     Math math
     public constant number ROUNDING_MARGIN = 0.000001
-
-    on create
-        X:Set(1, 0, 0)
-        Y:Set(0, 1, 0)
-        Z:Set(0, 0, 1)
-        ZERO:Set(0, 0, 0)
-    end
 
     action GetX () returns number
         return x
@@ -50,7 +36,7 @@ class Vector3
         return Set(vector:GetX(), vector:GetY(), vector:GetZ())
     end
 
-    action set (Array<number> array) returns Vector3
+    action Set (Array<number> array) returns Vector3
         return Set(array:Get(0), array:Get(1), array:Get(2))
     end
 
@@ -188,7 +174,7 @@ class Vector3
         return a * a + b * b + c * c
     end
 
-    action Normalize() returns Vector3
+   action Normalize() returns Vector3
         number len2 = me:LengthSquared()
         if len2 = 0.0 or len2 = 1.0
             return me
@@ -295,23 +281,23 @@ class Vector3
                       x * l_mat:Get(matrix:M02) + y * l_mat:Get(matrix:M12) + z * l_mat:Get(matrix:M22))
     end
 
-    action Rotate(number degrees, number axisX, number axisY, number axisZ) returns Vector3
-        return me:Multiply(tempMat:SetToRotation(axisX, axisY, axisZ, degrees))
-    end
-
-    action RotateRadians(number radians, number axisX, number axisY, number axisZ) returns Vector3
-        return me:Multiply(tempMat:SetToRotationRadians(axisX, axisY, axisZ, radians))
-    end
-
-    action Rotate(Vector3 axis, number degrees) returns Vector3
-        tempMat:SetToRotation(axis, degrees)
-        return me:Multiply(tempMat)
-    end
-
-    action RotateRadians(Vector3 axis, number radians) returns Vector3
-        tempMat:SetToRotationRadians(axis, radians)
-        return me:Multiply(tempMat)
-    end
+//    action Rotate(number degrees, number axisX, number axisY, number axisZ) returns Vector3
+//        return me:Multiply(tempMat:SetToRotation(axisX, axisY, axisZ, degrees))
+//    end
+//
+//    action RotateRadians(number radians, number axisX, number axisY, number axisZ) returns Vector3
+//        return me:Multiply(tempMat:SetToRotationRadians(axisX, axisY, axisZ, radians))
+//    end
+//
+//    action Rotate(Vector3 axis, number degrees) returns Vector3
+//        tempMat:SetToRotation(axis, degrees)
+//        return me:Multiply(tempMat)
+//    end
+//
+//    action RotateRadians(Vector3 axis, number radians) returns Vector3
+//        tempMat:SetToRotationRadians(axis, radians)
+//        return me:Multiply(tempMat)
+//    end
 
     action IsUnit() returns boolean
         return IsUnit(0.000000001)

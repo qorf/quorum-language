@@ -49,7 +49,7 @@ class Ray
         
     action GetEndPoint(Vector3 out, number distance) returns Vector3
         out:Set(direction)
-        out:Scalar(distance)
+        out:Scale(distance)
         out:Add(origin)
         return out
     end

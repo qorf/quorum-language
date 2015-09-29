@@ -731,7 +731,7 @@ class Matrix4
         tmpUp:CrossProduct(tmpForward)
         tmpUp:Normalize()
 
-        tmpForward:Scalar(-1)
+        tmpForward:Scale(-1)
         Set(right, tmpUp, tmpForward, position)
 
     end
