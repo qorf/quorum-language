@@ -17,6 +17,8 @@ import plugins.quorum.Libraries.Game.libGDX.Array;
  * The default behavior is to parse the JSON into a DOM containing {@link JsonValue} objects. Extend this class and override
  * methods to perform event driven parsing. When this is done, the parse methods will return null.
  * @author Nathan Sweet */
+
+/* Used from libGDX. Modified to work with the Quorum game engine. */
 public class JsonReader
 {
 	public JsonValue parse (String json) {
