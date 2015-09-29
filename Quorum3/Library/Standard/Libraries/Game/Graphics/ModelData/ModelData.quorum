@@ -24,4 +24,12 @@ class ModelData
         meshes:Add(mesh)
     end
 
+    action SetVersion(integer index, integer value)
+        version:Set(index, value)
+    end
+
+    action GetVersion(integer index) returns integer
+        return version:Get(index)
+    end
+
 end
