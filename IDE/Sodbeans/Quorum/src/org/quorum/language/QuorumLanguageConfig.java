@@ -6,6 +6,7 @@
 package org.quorum.language;
 
 import org.netbeans.modules.csl.api.CodeCompletionHandler;
+import org.netbeans.modules.csl.api.HintsProvider;
 import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
 import org.netbeans.modules.csl.spi.LanguageRegistration;
 import org.netbeans.modules.parsing.spi.Parser;
@@ -18,6 +19,7 @@ import org.netbeans.modules.parsing.spi.Parser;
 public class QuorumLanguageConfig extends DefaultLanguageConfig{
     private static final String LINE_COMMENT_PREFIX = "//";
     QuorumParser parser = new QuorumParser();
+    QuorumHintsProvider hints = new QuorumHintsProvider();
     QuorumLanguageHierarchy language = new QuorumLanguageHierarchy();
     org.netbeans.api.lexer.Language lexerLanguage = language.language();
     QuorumCodeCompletionHandler completion = new QuorumCodeCompletionHandler();
@@ -35,6 +37,16 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     @Override
     public CodeCompletionHandler getCompletionHandler() {
         return completion;
+    }
+
+    @Override
+    public HintsProvider getHintsProvider() {
+        return hints;
+    }
+
+    @Override
+    public boolean hasHintsProvider() {
+        return true;
     }
     
     @Override
