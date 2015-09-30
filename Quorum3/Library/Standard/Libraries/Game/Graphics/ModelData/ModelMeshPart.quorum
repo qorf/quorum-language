@@ -4,6 +4,14 @@ use Libraries.Containers.Array
 
 class ModelMeshPart 
     public text id = ""
-    public Array<integer> indices = undefined
+    public Array<integer> indices
     public integer primitiveType = 0
+
+    action SetIndex(integer index, integer value)
+        indices:Set(index, value)
+    end
+
+    action GetIndex(integer index) returns integer
+        return indices:Get(index)
+    end
 end

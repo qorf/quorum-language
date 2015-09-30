@@ -74,7 +74,7 @@ class VertexAttribute
     end
 
     // FIX ME: ShaderProgram not implemented yet.
-    action TextureCoordinates returns VertexAttribute
+    action TextureCoordinates(integer unit) returns VertexAttribute
         VertexAttribute temp
         //temp:Load(TEXTURE_COORDINATES, 2, ShaderProgram:TEXTURE_COORDINATES_ATTRIBUTE + unit, unit)
         return temp

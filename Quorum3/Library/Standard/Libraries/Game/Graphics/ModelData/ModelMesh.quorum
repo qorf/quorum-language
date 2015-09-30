@@ -9,4 +9,12 @@ class ModelMesh
     public Array<VertexAttribute> attributes
     public Array<number> vertices
     public Array<ModelMeshPart> parts
+
+    action SetVertex(integer index, number vertex)
+        vertices:Set(index, vertex)
+    end
+
+    action GetVertex(integer index) returns number
+        return vertices:Get(index)
+    end
 end

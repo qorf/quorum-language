@@ -162,6 +162,97 @@ class Texture is Disposable
     end
 
     /*
+    This action loads a Texture from a file path given as text. The file path
+    should be given relative to the directory where the program is executed from.
+    When loaded via this command, the Texture will be set to use linear filtering
+    and repeated texture wrapping, which is typically preferred for 3D models.
+
+    Attribute: Parameter fileName A file path pointing to the image file to load into a Texture.
+
+    Attribute: Example
+
+        use Libraries.Game.Texture
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Texture myTexture
+
+            action Main
+                StartGame()
+            end
+        
+            action CreateGame
+                // This call will load an image "Sample.png" from a directory called "Images".
+                myTexture:LoadModelTexture("Images/Sample.png")
+            end
+        end
+    */
+    action LoadModelTexture(text fileName)
+        LoadFromFile(fileName)
+
+        TextureFilter minFilter
+        minFilter:ConstructTextureFilter(minFilter:LINEAR)
+        TextureFilter magFilter
+        magFilter:ConstructTextureFilter(magFilter:LINEAR)
+        SetFilter(minFilter, magFilter)
+
+        TextureWrap uWrap
+        uWrap:ConstructTextureWrap(uWrap:REPEAT)
+        TextureWrap vWrap
+        vWrap:ConstructTextureWrap(vWrap:REPEAT)
+        SetWrap(uWrap, vWrap)
+    end
+
+    /*
+    This action loads a Texture from a Quorum File. The File must already
+    have its path set for this function. When loaded via this command, the
+    Texture will be set to use linear filtering and repeated texture wrapping,
+    which is typically preferred for 3D models.
+
+    Attribute: Parameter file An image file to be loaded into a Texture.
+
+    Attribute: Example
+
+        use Libraries.Game.Texture
+        use Libraries.Game.Game
+        use Libraries.System.File
+
+        class Main is Game
+
+            File myFile
+            Texture myTexture
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                myFile:SetPath("Images/Sample.png")
+
+                // This call will load the image that the "myFile" variable points to.
+                // The file points to an image called "Sample.png" in a folder called "Images".
+                myTexture:LoadModelTexture(myFile)
+            end
+        end
+    */
+    action LoadModelTexture(File file)
+        LoadFromFile(file)
+
+        TextureFilter minFilter
+        minFilter:ConstructTextureFilter(minFilter:LINEAR)
+        TextureFilter magFilter
+        magFilter:ConstructTextureFilter(magFilter:LINEAR)
+        SetFilter(minFilter, magFilter)
+
+        TextureWrap uWrap
+        uWrap:ConstructTextureWrap(uWrap:REPEAT)
+        TextureWrap vWrap
+        vWrap:ConstructTextureWrap(vWrap:REPEAT)
+        SetWrap(uWrap, vWrap)
+    end
+
+    /*
     This action loads a Texture from TextureData. This is primarily for internal
     use, and most users will never need to use this action. 
     */

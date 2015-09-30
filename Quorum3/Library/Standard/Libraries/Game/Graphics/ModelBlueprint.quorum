@@ -36,13 +36,6 @@ class ModelBlueprint is Disposable
     //private ObjectMap<NodePart, ArrayMap<String, Matrix4>> nodePartBones = new ObjectMap<NodePart, ArrayMap<String, Matrix4>>();
 
     action Load(ModelData data)
-        ModelTexture texture
-        Load(data, texture)
-        // JAVA:
-        // this(modelData, new FileTextureProvider());
-    end
-
-    action Load(ModelData data, ModelTexture texture)
     //    JAVA:
     //    loadMeshes(modelData.meshes);
     //    loadMaterials(modelData.materials, textureProvider);
@@ -91,7 +84,7 @@ class ModelBlueprint is Disposable
         */
     end
 
-    private action LoadMaterials(Array<ModelMaterial> modelMaterials, ModelTexture texture)
+    private action LoadMaterials(Array<ModelMaterial> modelMaterials)
         integer counter = 0
         repeat modelMaterials:GetSize() times
             // JAVA:
@@ -100,7 +93,7 @@ class ModelBlueprint is Disposable
         end
     end
 
-    private action ConvertMaterial(ModelMaterial mtl, ModelTexture modTexture)
+    private action ConvertMaterial(ModelMaterial mtl)
         // JAVA:
         /*
             Material result = new Material();
