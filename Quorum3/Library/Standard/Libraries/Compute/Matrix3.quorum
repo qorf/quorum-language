@@ -5,7 +5,6 @@ use Libraries.Containers.Array
 
 class Matrix3 
     
-    // private constant long?
     public constant integer M00 = 0
     public constant integer M01 = 3
     public constant integer M02 = 6
@@ -15,20 +14,20 @@ class Matrix3
     public constant integer M20 = 2
     public constant integer M21 = 5
     public constant integer M22 = 8
+
     public Array<number> values
     private Array<number> temporary
     Math math
     
 
     on create
-
         values:SetSize(9)
         temporary:SetSize(9)
         IdentityMatrix()
 
     end
 
-    action IdentityMatrix()
+    action IdentityMatrix() returns Matrix3
         values:Set(M00, 1)
         values:Set(M01, 0)
         values:Set(M02, 0)
@@ -38,6 +37,7 @@ class Matrix3
         values:Set(M20, 0)
         values:Set(M21, 0)
         values:Set(M22, 1)
+        return me
     end
 
     /* Prints a 3x3 matrix for testings purposes */
@@ -54,12 +54,15 @@ class Matrix3
         number v00 = matrixA:Get(M00) * matrixB:Get(M00) + matrixA:Get(M01) * matrixB:Get(M10) + matrixA:Get(M02) * matrixB:Get(M20)
         number v01 = matrixA:Get(M00) * matrixB:Get(M01) + matrixA:Get(M01) * matrixB:Get(M11) + matrixA:Get(M02) * matrixB:Get(M21)
         number v02 = matrixA:Get(M00) * matrixB:Get(M02) + matrixA:Get(M01) * matrixB:Get(M12) + matrixA:Get(M02) * matrixB:Get(M22)
+
         number v10 = matrixA:Get(M10) * matrixB:Get(M00) + matrixA:Get(M11) * matrixB:Get(M10) + matrixA:Get(M12) * matrixB:Get(M20)
         number v11 = matrixA:Get(M10) * matrixB:Get(M01) + matrixA:Get(M11) * matrixB:Get(M11) + matrixA:Get(M12) * matrixB:Get(M21)
         number v12 = matrixA:Get(M10) * matrixB:Get(M02) + matrixA:Get(M11) * matrixB:Get(M12) + matrixA:Get(M12) * matrixB:Get(M22)
+
         number v20 = matrixA:Get(M20) * matrixB:Get(M00) + matrixA:Get(M21) * matrixB:Get(M10) + matrixA:Get(M22) * matrixB:Get(M20)
         number v21 = matrixA:Get(M20) * matrixB:Get(M01) + matrixA:Get(M21) * matrixB:Get(M11) + matrixA:Get(M22) * matrixB:Get(M21)
         number v22 = matrixA:Get(M20) * matrixB:Get(M02) + matrixA:Get(M21) * matrixB:Get(M12) + matrixA:Get(M22) * matrixB:Get(M22)
+
         matrixA:Set(M00, v00)
         matrixA:Set(M10, v10)
         matrixA:Set(M20, v20)
@@ -69,11 +72,10 @@ class Matrix3
         matrixA:Set(M02, v02)
         matrixA:Set(M12, v12)
         matrixA:Set(M22, v22)
-        
     end
  
     /* Multiplys the calling matrix by the passed in matrix */
-    action Multiply (Matrix3 matrix)
+    action Multiply (Matrix3 matrix) returns Matrix3
 
         // Insert the array of passed in matrix into new array variable
         Array<number> matrixValue = matrix:values
@@ -81,9 +83,11 @@ class Matrix3
         number v00 = values:Get(M00) * matrixValue:Get(M00) + values:Get(M01) * matrixValue:Get(M10) + values:Get(M02) * matrixValue:Get(M20)
         number v01 = values:Get(M00) * matrixValue:Get(M01) + values:Get(M01) * matrixValue:Get(M11) + values:Get(M02) * matrixValue:Get(M21)
         number v02 = values:Get(M00) * matrixValue:Get(M02) + values:Get(M01) * matrixValue:Get(M12) + values:Get(M02) * matrixValue:Get(M22)
+
         number v10 = values:Get(M10) * matrixValue:Get(M00) + values:Get(M11) * matrixValue:Get(M10) + values:Get(M12) * matrixValue:Get(M20)
         number v11 = values:Get(M10) * matrixValue:Get(M01) + values:Get(M11) * matrixValue:Get(M11) + values:Get(M12) * matrixValue:Get(M21)
         number v12 = values:Get(M10) * matrixValue:Get(M02) + values:Get(M11) * matrixValue:Get(M12) + values:Get(M12) * matrixValue:Get(M22)
+
         number v20 = values:Get(M20) * matrixValue:Get(M00) + values:Get(M21) * matrixValue:Get(M10) + values:Get(M22) * matrixValue:Get(M20)
         number v21 = values:Get(M20) * matrixValue:Get(M01) + values:Get(M21) * matrixValue:Get(M11) + values:Get(M22) * matrixValue:Get(M21)
         number v22 = values:Get(M20) * matrixValue:Get(M02) + values:Get(M21) * matrixValue:Get(M12) + values:Get(M22) * matrixValue:Get(M22)
@@ -98,10 +102,11 @@ class Matrix3
         values:Set(M12, v12)
         values:Set(M22, v22)
 
+        return me
     end 
 
     // Multiplys the passed in matrix by the calling matrix and stores result in calling matrix
-    action MultiplyLeft (Matrix3 matrix)
+    action MultiplyLeft (Matrix3 matrix) returns Matrix3
 
        // Insert the array of passed in matrix into new array variable
         Array<number> matrixValue = matrix:values
@@ -109,9 +114,11 @@ class Matrix3
         number v00 = matrixValue:Get(M00) * values:Get(M00) + matrixValue:Get(M01) * values:Get(M10) + matrixValue:Get(M02) * values:Get(M20)
         number v01 = matrixValue:Get(M00) * values:Get(M01) + matrixValue:Get(M01) * values:Get(M11) + matrixValue:Get(M02) * values:Get(M21)
         number v02 = matrixValue:Get(M00) * values:Get(M02) + matrixValue:Get(M01) * values:Get(M12) + matrixValue:Get(M02) * values:Get(M22)
+
         number v10 = matrixValue:Get(M10) * values:Get(M00) + matrixValue:Get(M11) * values:Get(M10) + matrixValue:Get(M12) * values:Get(M20)
         number v11 = matrixValue:Get(M10) * values:Get(M01) + matrixValue:Get(M11) * values:Get(M11) + matrixValue:Get(M12) * values:Get(M21)
         number v12 = matrixValue:Get(M10) * values:Get(M02) + matrixValue:Get(M11) * values:Get(M12) + matrixValue:Get(M12) * values:Get(M22)
+
         number v20 = matrixValue:Get(M20) * values:Get(M00) + matrixValue:Get(M21) * values:Get(M10) + matrixValue:Get(M22) * values:Get(M20)
         number v21 = matrixValue:Get(M20) * values:Get(M01) + matrixValue:Get(M21) * values:Get(M11) + matrixValue:Get(M22) * values:Get(M21)
         number v22 = matrixValue:Get(M20) * values:Get(M02) + matrixValue:Get(M21) * values:Get(M12) + matrixValue:Get(M22) * values:Get(M22)
@@ -126,17 +133,18 @@ class Matrix3
         values:Set(M12, v12)
         values:Set(M22, v22)
 
+        return me
     end
 
-    action SetToRotation (number degrees)
-        SetToRotationInRadians(math:DegreesToRadians(degrees))
+    action SetToRotation (number degrees) returns Matrix3
+        return SetToRotationInRadians(math:DegreesToRadians(degrees))
     end
 
-    action SetToRotation (Vector3 axis, number degrees)
-        SetToRotation(axis, math:Cosine(math:DegreesToRadians(degrees)), math:Sine(math:DegreesToRadians(degrees)))
+    action SetToRotation (Vector3 axis, number degrees) returns Matrix3
+        return SetToRotation(axis, math:Cosine(math:DegreesToRadians(degrees)), math:Sine(math:DegreesToRadians(degrees)))
     end
 
-    action SetToRotation (Vector3 axis, number cosine, number sine)
+    action SetToRotation (Vector3 axis, number cosine, number sine) returns Matrix3
         
         number oc = 1.0 - cosine
         values:Set(M00, oc * axis:GetX() * axis:GetX() + cosine)
@@ -149,29 +157,31 @@ class Matrix3
         values:Set(M12, oc * axis:GetY() * axis:GetZ() + axis:GetX() * sine)
         values:Set(M22, oc * axis:GetZ() * axis:GetZ() + cosine)
 
+        return  me
     end
 
-    action SetToRotationInRadians (number radians)
+    action SetToRotationInRadians (number radians) returns Matrix3
 
-        number cosine = cast(number, math:Cosine(radians))
-        number sine = cast(number, math:Sine(radians))
+        number cosine = math:Cosine(radians)
+        number sine = math:Sine(radians)
         
         values:Set(M00, cosine)
         values:Set(M10, sine)
         values:Set(M20, 0)
 
-        values:Set(M00, sine * -1)
-        values:Set(M00, cosine)
-        values:Set(M00, 0)
+        values:Set(M01, sine * -1)
+        values:Set(M11, cosine)
+        values:Set(M21, 0)
 
-        values:Set(M00, 0)
-        values:Set(M00, 0)
-        values:Set(M00, 1)
+        values:Set(M02, 0)
+        values:Set(M12, 0)
+        values:Set(M22, 1)
 
+        return me
     end
         
 
-    action SetToTranslation (number x, number y)
+    action SetToTranslation (number x, number y) returns Matrix3
         values:Set(M00, 1)
         values:Set(M10, 0)
         values:Set(M20, 0)
@@ -181,9 +191,11 @@ class Matrix3
         values:Set(M02, x)
         values:Set(M12, y)
         values:Set(M22, 1)
+        
+        return me
     end
 
-    action SetToTranslation (Vector2 translation)
+    action SetToTranslation (Vector2 translation) returns Matrix3
         values:Set(M00, 1)
         values:Set(M10, 0)
         values:Set(M20, 0)
@@ -193,9 +205,11 @@ class Matrix3
         values:Set(M02, translation:GetX())
         values:Set(M12, translation:GetY())
         values:Set(M22, 1)
+
+        return me
     end
 
-    action SetToScaling (number scaleX, number scaleY)
+    action SetToScaling (number scaleX, number scaleY) returns Matrix3
         values:Set(M00, scaleX)
         values:Set(M10, 0)
         values:Set(M20, 0)
@@ -205,9 +219,11 @@ class Matrix3
         values:Set(M02, 0)
         values:Set(M12, 0)
         values:Set(M22, 1)
+
+        return me
     end
 
-    action SetToScaling (Vector2 scale)
+    action SetToScaling (Vector2 scale) returns Matrix3
         values:Set(M00, scale:GetX())
         values:Set(M10, 0)
         values:Set(M20, 0)
@@ -217,19 +233,25 @@ class Matrix3
         values:Set(M02, 0)
         values:Set(M12, 0)
         values:Set(M22, 1)
+
+        return me
     end
 
     action ToString () returns text
-        return "[" + values:Get(0) + "|" + values:Get(3) + "|" + values:Get(6) + "]\n" + "[" + values:Get(1) + "|" + values:Get(4) + "|" + values:Get(7) + "]\n" + "[" + values:Get(2) + "|" + values:Get(5) + "|" + values:Get(8) + "]"
+        return "[" + values:Get(M00) + "|" + values:Get(M01) + "|" + values:Get(M02) + "]\n" + "[" + values:Get(M10) + "|" + values:Get(M11) + "|" + values:Get(M12) + "]\n" + "[" + values:Get(M20) + "|" + values:Get(M21) + "|" + values:Get(M22) + "]"
     end
 
     action Determinant () returns number
-        return values:Get(M00) * values:Get(M11) * values:Get(M22) + values:Get(M01) * values:Get(M12) * values:Get(M20) + values:Get(M02) * values:Get(M10) * values:Get(M21) - values:Get(M00)
-        * values:Get(M12) * values:Get(M21) - values:Get(M01) * values:Get(M10) * values:Get(M22) - values:Get(M02) * values:Get(M11) * values:Get(M20)
+        return values:Get(M00) * values:Get(M11) * values:Get(M22) + 
+               values:Get(M01) * values:Get(M12) * values:Get(M20) + 
+               values:Get(M02) * values:Get(M10) * values:Get(M21) -
+               values:Get(M00) * values:Get(M12) * values:Get(M21) -
+               values:Get(M01) * values:Get(M10) * values:Get(M22) -
+               values:Get(M02) * values:Get(M11) * values:Get(M20)
     end
 
     /* Inverts the matrix given that the determinant does not equal 0 */
-    action Inverse ()
+    action Inverse () returns Matrix3
         number determinant = Determinant()
         
         number inverseDeterminant = 1.0 / determinant
@@ -253,11 +275,13 @@ class Matrix3
         values:Set(M02, inverseDeterminant * temporary:Get(M02))
         values:Set(M12, inverseDeterminant * temporary:Get(M12))
         values:Set(M22, inverseDeterminant * temporary:Get(M22))
+
+        return me
     end
 
 
     // Copies the values from the array into the values array of the calling matrix
-    action Set (Array<number> array)
+    action Set (Array<number> array) returns Matrix3
         values:Set(M00, array:Get(0))
         values:Set(M10, array:Get(1))
         values:Set(M20, array:Get(2))
@@ -267,10 +291,11 @@ class Matrix3
         values:Set(M02, array:Get(6))
         values:Set(M12, array:Get(7))
         values:Set(M22, array:Get(8))
+        return me
     end
 
     // Copies the values array from the passed in matrix
-    action Set (Matrix3 matrix)
+    action Set (Matrix3 matrix) returns Matrix3
 
         integer index = 0
         repeat 9 times
@@ -278,41 +303,58 @@ class Matrix3
             index = index + 1
         end
 
+        return me
     end
 
-    /* action Set (Affine2 affine)
-        values:Set(M00, affine:m00)
-        values:Set(M10, affine:m10)
+    action Set (Affine2 affine) returns Matrix3
+        values:Set(M00, affine:M00)
+        values:Set(M10, affine:M10)
         values:Set(M20, 0)
-        values:Set(M01, affine:m01)
-        values:Set(M11, affine:m11)
+        values:Set(M01, affine:M01)
+        values:Set(M11, affine:M11)
         values:Set(M21, 0)
-        values:Set(M02, affine:m02)
-        values:Set(M12, affine:m12)
+        values:Set(M02, affine:M02)
+        values:Set(M12, affine:M12)
         values:Set(M22, 1)
-    end */
 
-    // action Set (Matrix4 matrix)
+        return me
+    end
+
+    action Set (Matrix4 matrix) returns Matrix3
+        values:Set(M00, matrix:values:Get(matrix:M00))
+        values:Set(M10, matrix:values:Get(matrix:M10))
+        values:Set(M20, matrix:values:Get(matrix:M20))
+        values:Set(M01, matrix:values:Get(matrix:M01))
+        values:Set(M11, matrix:values:Get(matrix:M11))
+        values:Set(M21, matrix:values:Get(matrix:M21))
+        values:Set(M02, matrix:values:Get(matrix:M02))
+        values:Set(M12, matrix:values:Get(matrix:M12))
+        values:Set(M22, matrix:values:Get(matrix:M22))
+        return me
+    end
 
 
     /* adds a translational component to the matrix in the 3rd column */
-    action AddTranslationalComponent (Vector2 vector)
+    action AddTranslationalComponent (Vector2 vector) returns Matrix3
         values:Set(M02, values:Get(M02) + vector:GetX())
         values:Set(M12, values:Get(M12) + vector:GetY())
+        return me
     end
 
-    action AddTranslationalComponent (number x, number y)
+    action AddTranslationalComponent (number x, number y) returns Matrix3
         values:Set(M02, values:Get(M02) + x)
         values:Set(M12, values:Get(M12) + y)
+        return me
     end
 
-    action AddTranslationalComponent (Vector3 vector)
+    action AddTranslationalComponent (Vector3 vector) returns Matrix3
         values:Set(M02, values:Get(M02) + vector:GetX())
         values:Set(M12, values:Get(M12) + vector:GetY())
+        return me
     end
 
     /* postmultiplies this matrix by a translation matrix */
-    action Translate (number x, number y)
+    action Translate (number x, number y) returns Matrix3
 
         temporary:Set(M00, 1)
         temporary:Set(M10, 0)
@@ -326,9 +368,10 @@ class Matrix3
         
         Multiply(values, temporary)
 
+        return me
     end
     
-    action Translate (Vector2 translation)
+    action Translate (Vector2 translation) returns Matrix3
         temporary:Set(M00, 1)
         temporary:Set(M10, 0)
         temporary:Set(M20, 0)
@@ -340,35 +383,39 @@ class Matrix3
         temporary:Set(M22, 1)
 
         Multiply (values, temporary)
+        
+        return me
     end
 
-    action Rotate (number degrees)
-       RotateInRadians(math:DegreesToRadians(degrees))
+    action Rotate (number degrees) returns Matrix3
+       return RotateInRadians(math:DegreesToRadians(degrees))
     end
 
-    action RotateInRadians (number radians)
+    action RotateInRadians (number radians) returns Matrix3
 
-        if radians not= 0
-            number cos = cast(number, math:Cosine(radians))
-            number sin = cast(number, math:Sine(radians))
-            
-            temporary:Set(M00, cos)
-            temporary:Set(M10, sin)
-            temporary:Set(M20, 0)
-            temporary:Set(M01, sin * -1)
-            temporary:Set(M11, cos)
-            temporary:Set(M21, 0)
-            temporary:Set(M02, 0)
-            temporary:Set(M12, 0)
-            temporary:Set(M22, 1)
-
-            Multiply(values, temporary)
-
+        if radians = 0
+            return me
         end
 
+        number cos = math:Cosine(radians)
+        number sin = math:Sine(radians)
+
+        temporary:Set(M00, cos)
+        temporary:Set(M10, sin)
+        temporary:Set(M20, 0)
+        temporary:Set(M01, sin * -1)
+        temporary:Set(M11, cos)
+        temporary:Set(M21, 0)
+        temporary:Set(M02, 0)
+        temporary:Set(M12, 0)
+        temporary:Set(M22, 1)
+
+        Multiply(values, temporary)
+
+        return me
     end
 
-    action Scale (number scaleX, number scaleY)
+    action Scale (number scaleX, number scaleY) returns Matrix3
         temporary:Set(M00, scaleX)
         temporary:Set(M10, 0)
         temporary:Set(M20, 0)
@@ -381,9 +428,10 @@ class Matrix3
         
         Multiply (values, temporary)
 
+        return me
     end
 
-    action Scale (Vector2 scale)
+    action Scale (Vector2 scale) returns Matrix3
         temporary:Set(M00, scale:GetX())
         temporary:Set(M10, 0)
         temporary:Set(M20, 0)
@@ -395,33 +443,27 @@ class Matrix3
         temporary:Set(M22, 1)
         
         Multiply (values, temporary)
-
+        
+        return me
     end
 
-    action GetValues () returns Array<number>
+    action GetValues returns Array<number>
         return values
     end
 
-    action GetTranslation () returns Vector2
-        Vector2 position
-
+    action GetTranslation(Vector2 position) returns Vector2
         position:Set(values:Get(M02), values:Get(M12))
-
         return position
-
     end
 
-    action GetScale () returns Vector2
-        Vector2 scale
-
-        scale:Set(cast(number, math:SquareRoot(values:Get(M00) * values:Get(M00) + values:Get(M01) * values:Get(M01))),
-        cast(number, math:SquareRoot(values:Get(M10) * values:Get(M10) + values:Get(M11) * values:Get(M11))))
+    action GetScale(Vector2 scale) returns Vector2
+        scale:Set(math:SquareRoot(values:Get(M00) * values:Get(M00) + values:Get(M01) * values:Get(M01)),
+                  math:SquareRoot(values:Get(M10) * values:Get(M10) + values:Get(M11) * values:Get(M11))) 
 
         return scale
-
     end
 
-    action GetRotation () returns number
+    action GetRotation returns number
         return math:RadiansToDegrees(math:InverseTangent(values:Get(M10), values:Get(M00)))
     end
 
@@ -429,22 +471,28 @@ class Matrix3
         return math:InverseTangent(values:Get(M10), values:Get(M00))
     end
 
-    action SetScale (number scale)
+    action SetScale (number scale) returns Matrix3
         values:Set(M00, values:Get(M00) * scale)
         values:Set(M11, values:Get(M11) * scale)
+
+        return me
     end
 
-    action SetScale (Vector3 scale)
+    action SetScale (Vector3 scale) returns Matrix3
         values:Set(M00, values:Get(M00) * scale:GetX())
         values:Set(M11, values:Get(M11) * scale:GetY())
+
+        return me
     end
 
-    action SetScale (Vector2 scale)
+    action SetScale (Vector2 scale) returns Matrix3
         values:Set(M00, values:Get(M00) * scale:GetX())
         values:Set(M11, values:Get(M11) * scale:GetY())
+
+        return me
     end
 
-    action Transpose ()
+    action Transpose () returns Matrix3
         number v01 = values:Get(M10)
         number v02 = values:Get(M20)
         number v10 = values:Get(M01)
@@ -457,6 +505,8 @@ class Matrix3
         values:Set(M12, v12)
         values:Set(M20, v20)
         values:Set(M21, v21)
+
+        return me
     end
     
 end

@@ -25,16 +25,18 @@ class Affine2
 
     end
 
-    action Identity()
+    action Identity returns Affine2
         M00 = 1
         M01 = 0
         M02 = 0
         M10 = 0
         M11 = 1
         M12 = 0
+
+        return me
     end
 
-    action Set(Affine2 other)
+    action Set(Affine2 other) returns Affine2
 
         M00 = other:M00
         M01 = other:M01
@@ -43,9 +45,10 @@ class Affine2
         M11 = other:M11
         M12 = other:M12
 
+        return me
     end
 
-    action Set(Matrix3 matrix)
+    action Set(Matrix3 matrix) returns Affine2
 
         Array<number> matrixValues = matrix:values
 
@@ -56,9 +59,10 @@ class Affine2
         M11 = matrixValues:Get(matrix:M11)
         M12 = matrixValues:Get(matrix:M12)
 
+        return me
     end
 
-    action Set(Matrix4 matrix)
+    action Set(Matrix4 matrix) returns Affine2
 
         Array<number> matrixValues = matrix:values
 
@@ -69,9 +73,10 @@ class Affine2
         M11 = matrixValues:Get(matrix:M11)
         M12 = matrixValues:Get(matrix:M13)
 
+        return me
     end
 
-    action SetToTranslation (number x, number y)
+    action SetToTranslation (number x, number y) returns Affine2
 
         M00 = 1
         M01 = 0
@@ -80,15 +85,16 @@ class Affine2
         M11 = 1
         M12 = y
         
+        return me
     end
 
-    action SetToTranslation (Vector2 vector)
+    action SetToTranslation (Vector2 vector) returns Affine2
 
-        SetToTranslation(vector:GetX(), vector:GetY())
+        return SetToTranslation(vector:GetX(), vector:GetY())
     
     end
 
-    action SetToScaling (number scaleX, number scaleY)
+    action SetToScaling (number scaleX, number scaleY) returns Affine2
 
         M00 = scaleX
         M01 = 0
@@ -97,18 +103,19 @@ class Affine2
         M11 = scaleY
         M12 = 0
 
+        return me
     end
 
-    action SetToScaling (Vector2 vector)
+    action SetToScaling (Vector2 scale) returns Affine2
         
-        SetToScaling(vector:GetX(), vector:GetY())
+        return SetToScaling(scale:GetX(), scale:GetY())
      
     end
 
-    action SetToRotation (number degrees)
+    action SetToRotation (number degrees) returns Affine2
         
-        number cosine = math:RadiansToDegrees(math:Cosine(degrees))
-        number sine = math:RadiansToDegrees(math:Sine(degrees))
+        number cosine = math:Cosine(math:DegreesToRadians(degrees))
+        number sine = math:Sine(math:DegreesToRadians(degrees))
 
         M00 = cosine
         M01 = sine * -1
@@ -117,9 +124,10 @@ class Affine2
         M11 = cosine
         M12 = 0
 
+        return me
     end
 
-    action SetToRotationInRadians (number radians)
+    action SetToRotationInRadians (number radians) returns Affine2
 
         number cosine = math:Cosine(radians)
         number sine = math:Sine(radians)
@@ -131,9 +139,10 @@ class Affine2
         M11 = cosine
         M12 = 0
 
+        return me
     end
 
-    action SetToRotation (number cosine, number sine)
+    action SetToRotation (number cosine, number sine) returns Affine2
 
         M00 = cosine
         M01 = sine * -1
@@ -141,10 +150,12 @@ class Affine2
         M10 = sine
         M11 = cosine
         M12 = 0
+        
+        return me
 
     end
 
-    action SetToShearing (number shearX, number shearY)
+    action SetToShearing (number shearX, number shearY) returns Affine2
         
         M00 = 1
         M01 = shearX
@@ -153,15 +164,16 @@ class Affine2
         M11 = 1
         M12 = 0
 
+        return me
     end
 
-    action SetToShearing (Vector2 vector)
+    action SetToShearing (Vector2 vector) returns Affine2
 
-        SetToShearing (vector:GetX(), vector:GetY())
+        return SetToShearing (vector:GetX(), vector:GetY())
         
     end
 
-    action SetToTranslationRotationScale(number x, number y, number degrees, number scaleX, number scaleY)
+    action SetToTranslationRotationScale(number x, number y, number degrees, number scaleX, number scaleY) returns Affine2
     
         M02 = x
         M12 = y
@@ -175,8 +187,8 @@ class Affine2
 
         else
             
-            number cosine = math:RadiansToDegrees(math:Cosine(degrees))
-	    number sine = math:RadiansToDegrees(math:Sine(degrees))
+            number cosine = math:Cosine(math:DegreesToRadians(degrees))
+	    number sine = math:Sine(math:DegreesToRadians(degrees))
 
             M00 = cosine * scaleX
             M01 = -1 * sine * scaleY
@@ -185,15 +197,16 @@ class Affine2
             
         end
 
+        return me
     end
 
-    action SetToTranslationRotationScale(Vector2 translation, number degrees, Vector2 scale)
+    action SetToTranslationRotationScale(Vector2 translation, number degrees, Vector2 scale) returns Affine2
     
-        SetToTranslationRotationScale(translation:GetX(), translation:GetY(), degrees, scale:GetX(), scale:GetY())
+        return SetToTranslationRotationScale(translation:GetX(), translation:GetY(), degrees, scale:GetX(), scale:GetY())
 
     end
 
-    action SetToTranslationRotationRadiansScale (number x, number y, number radians, number scaleX, number scaleY)
+    action SetToTranslationRotationRadiansScale (number x, number y, number radians, number scaleX, number scaleY) returns Affine2
         
         M02 = x
         M12 = y
@@ -216,16 +229,17 @@ class Affine2
             M11 = cosine * scaleY
             
         end
-
+        
+        return me
     end
 
-    action SetToTranslationRotationRadiansScale(Vector2 translation, number radians, Vector2 scale)
+    action SetToTranslationRotationRadiansScale(Vector2 translation, number radians, Vector2 scale) returns Affine2
     
-        SetToTranslationRotationRadiansScale(translation:GetX(), translation:GetY(), radians, scale:GetX(), scale:GetY())
+        return SetToTranslationRotationRadiansScale(translation:GetX(), translation:GetY(), radians, scale:GetX(), scale:GetY())
 
     end
 
-    action SetToTranslationScale (number x, number y, number scaleX, number scaleY)
+    action SetToTranslationScale (number x, number y, number scaleX, number scaleY) returns Affine2
         
         M00 = scaleX
         M01 = 0
@@ -234,26 +248,28 @@ class Affine2
         M11 = scaleY
         M12 = y
         
+        return me
     end
 
-    action SetToTranslationScale (Vector2 translation, Vector2 scale)
+    action SetToTranslationScale (Vector2 translation, Vector2 scale) returns Affine2
         
-        SetToTranslationScale (translation:GetX(), translation:GetY(), scale:GetX(), scale:GetY())
+        return SetToTranslationScale (translation:GetX(), translation:GetY(), scale:GetX(), scale:GetY())
        
     end
 
-    action SetToProduct (Affine2 left, Affine2 right)
+    action SetToProduct (Affine2 left, Affine2 right) returns Affine2
 
         M00 = left:M00 * right:M00 + left:M01 * right:M10
         M01 = left:M00 * right:M01 + left:M01 * right:M11
-        M02 = left:M00 * right:M02 + left:M01 * right:M12+ left:M02
+        M02 = left:M00 * right:M02 + left:M01 * right:M12 + left:M02
         M10 = left:M10 * right:M00 + left:M11 * right:M10
         M11 = left:M10 * right:M01 + left:M11 * right:M11
-        M12 = left:M10 * right:M01 + left:M11 * right:M12 + left:M12
+        M12 = left:M10 * right:M02 + left:M11 * right:M12 + left:M12
 
+        return me
     end
 
-    action Invert ()
+    action Invert returns Affine2
 
         number determinant = Determinant()
 
@@ -277,9 +293,10 @@ class Affine2
         M11 = inverseDeterminant * tmp11
         M12 = inverseDeterminant * tmp12
 
+        return me
     end
 
-    action Multiply (Affine2 affine)
+    action Multiply (Affine2 affine) returns Affine2
         
         number tmp00 = M00 * affine:M00 + M01 * affine:M10
         number tmp01 = M00 * affine:M01 + M01 * affine:M11
@@ -295,9 +312,10 @@ class Affine2
         M11 = tmp11
         M12 = tmp12
 
+        return me
     end
 
-    action PreMultiply (Affine2 affine)
+    action PreMultiply (Affine2 affine) returns Affine2
 
         number tmp00 = affine:M00 * M00 + affine:M01 * M10
         number tmp01 = affine:M00 * M01 + affine:M01 * M11
@@ -313,50 +331,54 @@ class Affine2
         M11 = tmp11
         M12 = tmp12
 
+        return me
     end
 
-    action Translate (number x, number y)
+    action Translate (number x, number y) returns Affine2
 
         M02 = M02 + (M00 * x + M01 * y)
         M12 = M12 + (M10 * x + M11 * y)
         
+        return me
     end
 
-    action Translate (Vector2 translate)
+    action Translate (Vector2 translate) returns Affine2
         
-        Translate (translate:GetX(), translate:GetY())
+        return Translate (translate:GetX(), translate:GetY())
 
     end
 
-    action PreTranslate (number x, number y)
+    action PreTranslate (number x, number y) returns Affine2
 
         M02 = M02 + x
         M12 = M12 + y
         
+        return me
     end
 
-    action PreTranslate (Vector2 translate)
+    action PreTranslate (Vector2 translate) returns Affine2
 
-        PreTranslate (translate:GetX(), translate:GetY())
+        return PreTranslate (translate:GetX(), translate:GetY())
 
     end
 
-    action Scale (number scaleX, number scaleY)
+    action Scale (number scaleX, number scaleY) returns Affine2
 
         M00 = M00 * scaleX
         M01 = M01 * scaleY
         M10 = M10 * scaleX
         M11 = M11 * scaleY
 
+        return me
     end
 
-    action Scale (Vector2 scale)
+    action Scale (Vector2 scale) returns Affine2
 
-        Scale(scale:GetX(), scale:GetY())
+        return Scale(scale:GetX(), scale:GetY())
         
     end
 
-    action PreScale (number scaleX, number scaleY)
+    action PreScale (number scaleX, number scaleY) returns Affine2
 
         M00 = M00 * scaleX
         M01 = M01 * scaleX
@@ -365,107 +387,114 @@ class Affine2
         M11 = M11 * scaleY
         M12 = M12 * scaleY
 
+        return me
    end
 
-    action PreScale (Vector2 scale)
+    action PreScale (Vector2 scale) returns Affine2
         
-        PreScale (scale:GetX(), scale:GetY())
+        return PreScale (scale:GetX(), scale:GetY())
 
     end
 
-    action Rotate (number degrees)
+    action Rotate (number degrees) returns Affine2
 
-        if degrees not= 0
+        if degrees = 0
+            return me
+        end
             
-            number cosine = math:RadiansToDegrees(math:Cosine(degrees))
-	    number sine = math:RadiansToDegrees(math:Sine(degrees))
+        number cosine = math:Cosine(math:DegreesToRadians(degrees))
+        number sine = math:Sine(math:DegreesToRadians(degrees))
 
-            number tmp00 = M00 * cosine + M01 * sine
-            number tmp01 = M00 * (-1 * sine) + M01 * cosine
-            number tmp10 = M10 * cosine + M11 * sine
-            number tmp11 = M10 * (-1 * sine) + M11 * cosine
+        number tmp00 = M00 * cosine + M01 * sine
+        number tmp01 = M00 * (-1 * sine) + M01 * cosine
+        number tmp10 = M10 * cosine + M11 * sine
+        number tmp11 = M10 * (-1 * sine) + M11 * cosine
 
-            M00 = tmp00
-            M01 = tmp01
-            M10 = tmp10
-            M11 = tmp11
+        M00 = tmp00
+        M01 = tmp01
+        M10 = tmp10
+        M11 = tmp11
 
-       end
-
+        return me
    end
 
-    action RotateInRadians (number radians)
+    action RotateInRadians (number radians) returns Affine2
 
-        if radians not= 0
+        if radians = 0
+            return me
+        end
             
-            number cosine = math:Cosine(radians)
-            number sine = math:Sine(radians)
+        number cosine = math:Cosine(radians)
+        number sine = math:Sine(radians)
 
-            number tmp00 = M00 * cosine + M01 * sine
-            number tmp01 = M00 * (-1 * sine) + M01 * cosine
-            number tmp10 = M10 * cosine + M11 * sine
-            number tmp11 = M10 * (-1 * sine) + M11 * cosine
+        number tmp00 = M00 * cosine + M01 * sine
+        number tmp01 = M00 * (-1 * sine) + M01 * cosine
+        number tmp10 = M10 * cosine + M11 * sine
+        number tmp11 = M10 * (-1 * sine) + M11 * cosine
 
-            M00 = tmp00
-            M01 = tmp01
-            M10 = tmp10
-            M11 = tmp11
+        M00 = tmp00
+        M01 = tmp01
+        M10 = tmp10
+        M11 = tmp11
 
-       end
-
+        return me
     end
 
-    action PreRotate (number degrees)
+    action PreRotate (number degrees) returns Affine2
 
-        if degrees not= 0
-
-            number cosine = math:RadiansToDegrees(math:Cosine(degrees))
-	    number sine = math:RadiansToDegrees(math:Sine(degrees))
-
-            number tmp00 = cosine * M00 - sine * M10
-            number tmp01 = cosine * M01 - sine * M11
-            number tmp02 = cosine * M02 - sine * M12
-            number tmp10 = sine * M00 + cosine * M10
-            number tmp11 = sine * M01 + cosine * M11
-            number tmp12 = sine * M02 + cosine * M12
-
-            M00 = tmp00
-            M01 = tmp01
-            M02 = tmp02
-            M10 = tmp10
-            M11 = tmp11
-            M12 = tmp12
-
+        if degrees = 0
+            return me
         end
 
+        number cosine = math:Cosine(math:DegreesToRadians(degrees))
+        number sine = math:Sine(math:DegreesToRadians(degrees))
+
+        number tmp00 = cosine * M00 - sine * M10
+        number tmp01 = cosine * M01 - sine * M11
+        number tmp02 = cosine * M02 - sine * M12
+        number tmp10 = sine * M00 + cosine * M10
+        number tmp11 = sine * M01 + cosine * M11
+        number tmp12 = sine * M02 + cosine * M12
+
+        M00 = tmp00
+        M01 = tmp01
+        M02 = tmp02
+        M10 = tmp10
+        M11 = tmp11
+        M12 = tmp12
+
+        return me
+
     end
 
-    action PreRotateInRadians (number radians)
+    action PreRotateInRadians (number radians) returns Affine2
 
-        if radians not= 0
-
-            number cosine = math:Cosine(radians)
-            number sine = math:Sine(radians)
-
-            number tmp00 = cosine * M00 - sine * M10
-            number tmp01 = cosine * M01 - sine * M11
-            number tmp02 = cosine * M02 - sine * M12
-            number tmp10 = sine * M00 + cosine * M10
-            number tmp11 = sine * M01 + cosine * M11
-            number tmp12 = sine * M02 + cosine * M12
-
-            M00 = tmp00
-            M01 = tmp01
-            M02 = tmp02
-            M10 = tmp10
-            M11 = tmp11
-            M12 = tmp12
-
+        if radians = 0
+            return me
         end
 
+        number cosine = math:Cosine(radians)
+        number sine = math:Sine(radians)
+
+        number tmp00 = cosine * M00 - sine * M10
+        number tmp01 = cosine * M01 - sine * M11
+        number tmp02 = cosine * M02 - sine * M12
+        number tmp10 = sine * M00 + cosine * M10
+        number tmp11 = sine * M01 + cosine * M11
+        number tmp12 = sine * M02 + cosine * M12
+
+        M00 = tmp00
+        M01 = tmp01
+        M02 = tmp02
+        M10 = tmp10
+        M11 = tmp11
+        M12 = tmp12
+
+        return me
+
     end
 
-    action Shear (number shearX, number shearY)
+    action Shear (number shearX, number shearY) returns Affine2
 
         number tmp0 = M00 + shearY * M01
         number tmp1 = M01 + shearX * M00
@@ -477,15 +506,16 @@ class Affine2
         M10 = tmp0
         M11 = tmp1
 
+        return me
     end
 
-    action Shear (Vector2 shear)
+    action Shear (Vector2 shear) returns Affine2
 
-        Shear (shear:GetX(), shear:GetY())
+        return Shear (shear:GetX(), shear:GetY())
 
     end
 
-    action PreShear (number shearX, number shearY)
+    action PreShear (number shearX, number shearY) returns Affine2
 
         number tmp00 = M00 + shearX * M10
         number tmp01 = M01 + shearX * M11
@@ -501,68 +531,38 @@ class Affine2
         M11 = tmp11
         M12 = tmp12
 
+        return me
     end
 
-    action PreShear (Vector2 shear)
+    action PreShear (Vector2 shear) returns Affine2
 
-        PreShear (shear:GetX(), shear:GetY())
+        return PreShear (shear:GetX(), shear:GetY())
 
     end
 
-    action Determinant () returns number
+    action Determinant returns number
 
         return M00 * M11 - M01 * M10
 
     end
 
-    action GetTranslation () returns Vector2
+    action GetTranslation(Vector2 position returns Vector2
 
-        Vector2 tmp
-        tmp:Set(M02, M12)
+        position:Set(M02, M12)
 
-        return tmp
+        return position
 
     end
 
     action IsTranslation () returns boolean
 
-        if M00 = 1
-            if M11 = 1
-                if M01 = 0
-                    if M10 = 0
-
-                        return true
-
-                    end
-                end
-            end
-
-        end
-        
-        return false
+        return M00 = 1 and M11 = 1 and M01 = 0 and M10 = 0
 
     end
 
     action IsIdentityMatrix () returns boolean
 
-        if M00 = 1
-            if M02 = 0
-                if M12 = 0
-                    if M11 = 1
-                        if M01 = 0
-                            if M10 = 0
-
-                                return true
-
-                            end
-                        end
-                    end
-                end
-            end
-
-        end
-        
-        return false
+        return M00 = 1 and M02 = 0 and M12 = 0 and M11 = 1 and M01 = 0 and M10 = 0
 
     end
 
@@ -575,14 +575,12 @@ class Affine2
 
     end
 
-    action ToString () returns text
+    action ToText () returns text
 
         return "[" + M00 + "|" + M01 + "|" + M02 + "]
-["+ M10 + "|" + M11 + "|" + M12 + "]
-[0.0|0.0|0.1]"
+                ["+ M10 + "|" + M11 + "|" + M12 + "]
+                [0.0|0.0|0.1]"
 
-    end
-
-    
+    end    
 
 end
