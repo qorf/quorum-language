@@ -9,7 +9,12 @@ import quorum.Libraries.Game.Graphics.ModelData.ModelData_;
 import quorum.Libraries.Game.Graphics.ModelData.ModelData;
 import quorum.Libraries.Game.Graphics.ModelData.ModelMesh;
 import quorum.Libraries.Game.Graphics.ModelData.ModelMeshPart;
+import quorum.Libraries.Game.Graphics.ModelData.ModelMaterial;
+import quorum.Libraries.Game.Graphics.ModelData.ModelTextureData;
 import quorum.Libraries.Game.Graphics.VertexAttribute;
+import quorum.Libraries.Game.Graphics.Color;
+import quorum.Libraries.Compute.Vector2;
+
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.System.File_;
 
@@ -164,6 +169,139 @@ public class ModelLoader
                 }
         }
         return vertexAttributes;
+    }
+    
+    private void ParseMaterials(ModelData modelData, JsonValue json, String materialDir)
+    {
+        JsonValue materials = json.Get("materials");
+        if (materials == null)
+        {
+            // Could possibly create a default material in this case -- libGDX does not handle this currently.
+        }
+        else
+        {
+            modelData.materials.SetSize(materials.size);
+            for (JsonValue material = materials.child; material != null; material = material.next)
+            {
+                ModelMaterial jsonMaterial = new ModelMaterial();
+                
+                String id = material.GetString("id", null);
+                if (id == null)
+                    throw new GameRuntimeError("The material did not have an ID.");
+                
+                jsonMaterial.id = id;
+                
+                final JsonValue diffuse = material.Get("diffuse");
+                if (diffuse != null)
+                    jsonMaterial.diffuse = ParseColor(diffuse);
+                
+                final JsonValue ambient = material.Get("ambient");
+                if (ambient != null)
+                    jsonMaterial.ambient = ParseColor(ambient);
+                
+                final JsonValue emissive = material.Get("emissive");
+                if (emissive != null)
+                    jsonMaterial.emissive = ParseColor(emissive);
+                
+                final JsonValue specular = material.Get("specular");
+                if (specular != null)
+                    jsonMaterial.specular = ParseColor(specular);
+                
+                final JsonValue reflection = material.Get("reflection");
+                if (reflection != null)
+                    jsonMaterial.reflection = ParseColor(reflection);
+                
+                jsonMaterial.shininess = material.GetFloat("shininess", 0.0f);
+                jsonMaterial.opacity = material.GetFloat("opacity", 1.0f);
+                
+                JsonValue textures = material.Get("textures");
+                if (textures != null)
+                {
+                    for (JsonValue texture = textures.child; texture != null; texture = texture.next)
+                    {
+                        ModelTextureData jsonTexture = new ModelTextureData();
+                        
+                        String textureID = texture.GetString("id", null);
+                        if (textureID == null)
+                            throw new GameRuntimeError("The texture did not have an ID.");
+                        jsonTexture.id = textureID;
+                        
+                        String fileName = texture.GetString("filename", null);
+                        if (fileName == null)
+                            throw new GameRuntimeError("The texture does not have an associated file name.");
+                        jsonTexture.fileName = materialDir + (materialDir.length() == 0 || materialDir.endsWith("/") ? "" : "/") + fileName;
+                        
+                        jsonTexture.uvTranslation = ReadVector2(texture.Get("uvTranslation"), 0f, 0f);
+                        jsonTexture.uvScaling = ReadVector2(texture.Get("uvScaling"), 1f, 1f);
+                        
+                        String textureType = texture.GetString("type", null);
+                        if (textureType == null)
+                            throw new GameRuntimeError("The texture did not have a provided type.");
+                        
+                        jsonTexture.usage = ParseTextureUsage(textureType);
+                        
+                        jsonMaterial.textures.Add(jsonTexture);
+                    }
+                }
+                modelData.materials.Add(jsonMaterial);
+            }
+        }
+    }
+    
+    private int ParseTextureUsage(final String value)
+    {
+        ModelTextureData modelTexture = new ModelTextureData();
+        if (value.equalsIgnoreCase("AMBIENT"))
+            return modelTexture.USAGE_AMBIENT;
+        else if (value.equalsIgnoreCase("BUMP"))
+            return modelTexture.USAGE_BUMP;
+        else if (value.equalsIgnoreCase("DIFFUSE"))
+            return modelTexture.USAGE_DIFFUSE;
+        else if (value.equalsIgnoreCase("EMISSIVE"))
+            return modelTexture.USAGE_EMISSIVE;
+        else if (value.equalsIgnoreCase("NONE"))
+            return modelTexture.USAGE_NONE;
+        else if (value.equalsIgnoreCase("NORMAL"))
+            return modelTexture.USAGE_NORMAL;
+        else if (value.equalsIgnoreCase("REFLECTION"))
+            return modelTexture.USAGE_REFLECTION;
+        else if (value.equalsIgnoreCase("SHININESS"))
+            return modelTexture.USAGE_SHININESS;
+        else if (value.equalsIgnoreCase("SPECULAR"))
+            return modelTexture.USAGE_SPECULAR;
+        else if (value.equalsIgnoreCase("TRANSPARENCY")) 
+            return modelTexture.USAGE_TRANSPARENCY;
+        return modelTexture.USAGE_UNKNOWN;
+    }
+    
+    private Color ParseColor(JsonValue colorArray)
+    {
+        if (colorArray.size >= 3)
+        {
+            Color color =  new Color();
+            color.SetColor(colorArray.GetFloat(0), colorArray.GetFloat(1), colorArray.GetFloat(2), 1.0f);
+            return color;
+        }
+        else
+            throw new GameRuntimeError("Expected at least 3 Color values.");
+    }
+    
+    private Vector2 ReadVector2(JsonValue vectorArray, float x, float y)
+    {
+        if (vectorArray == null)
+        {
+            Vector2 vector2 = new Vector2();
+            vector2.Set(x, y);
+            return vector2;
+        }
+        else if (vectorArray.size == 2)
+        {
+            Vector2 vector2 = new Vector2();
+            vector2.Set(vectorArray.GetFloat(0), vectorArray.GetFloat(1));
+            return vector2;
+        }
+        else
+            throw new GameRuntimeError("Expected at least two values for Vector2.");
     }
     
 }
