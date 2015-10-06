@@ -16,6 +16,7 @@ import quorum.Libraries.Game.Graphics.ModelData.ModelNodePart;
 import quorum.Libraries.Game.Graphics.ModelData.ModelAnimation;
 import quorum.Libraries.Game.Graphics.ModelData.ModelNodeAnimation;
 import quorum.Libraries.Game.Graphics.ModelData.ModelNodeKeyframe;
+import quorum.Libraries.Game.Graphics.ModelData.ModelNodeKeyframe_;
 import quorum.Libraries.Game.Graphics.VertexAttribute;
 import quorum.Libraries.Game.Graphics.Color;
 import quorum.Libraries.Compute.Vector2;
@@ -473,7 +474,31 @@ public class ModelLoader
                         JsonValue translation = keyframe.Get("translation");
                         if (translation != null && translation.size == 3)
                         {
-                            
+                            ModelNodeKeyframe_ tkf = nodeAnim.CreateVector3Keyframe();
+                            tkf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__keyTime_(keytime);
+                            Vector3 tempV3 = new Vector3();
+                            tempV3.Set(translation.GetFloat(0), translation.GetFloat(1), translation.GetFloat(2));
+                            tkf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__value_(tempV3);
+                            nodeAnim.translation.Add(tkf);
+                        }
+                        
+                        JsonValue rotation = keyframe.Get("rotation");
+                        if (rotation != null && rotation.size == 4)
+                        {
+                            ModelNodeKeyframe_ rkf = nodeAnim.CreateQuaternionKeyframe();
+                            rkf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__keyTime_(keytime);
+                            Quaternion tempQ = new Quaternion();
+                            tempQ.Set(rotation.GetFloat(0), rotation.GetFloat(1), rotation.GetFloat(2), rotation.GetFloat(3));
+                            rkf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__value_(tempQ);
+                        }
+                        
+                        JsonValue scale = keyframe.Get("scale");
+                        if (scale != null && scale.size == 3)
+                        {
+                            ModelNodeKeyframe_ skf = nodeAnim.CreateVector3Keyframe();
+                            skf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__keyTime_(keytime);
+                            Vector3 tempV3 = new Vector3();
+                            skf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__value_(skf);
                         }
                     }
                 }
@@ -484,34 +509,6 @@ public class ModelLoader
     /*
     private void parseAnimations (ModelData model, JsonValue json) {
 		...
-			for (JsonValue node = nodes.child; node != null; node = node.next) {
-				ModelNodeAnimation nodeAnim = new ModelNodeAnimation();
-				animation.nodeAnimations.add(nodeAnim);
-				nodeAnim.nodeId = node.getString("boneId");
-
-				// For backwards compatibility (version 0.1):
-				JsonValue keyframes = node.get("keyframes");
-				if (keyframes != null && keyframes.isArray()) {
-					for (JsonValue keyframe = keyframes.child; keyframe != null; keyframe = keyframe.next) {
-						final float keytime = keyframe.getFloat("keytime", 0f) / 1000.f;
-						JsonValue translation = keyframe.get("translation"); 
-						if (translation != null && translation.size == 3) {
-							if (nodeAnim.translation == null)
-								nodeAnim.translation = new Array<ModelNodeKeyframe<Vector3>>();
-							ModelNodeKeyframe<Vector3> tkf = new ModelNodeKeyframe<Vector3>();
-							tkf.keytime = keytime;
-							tkf.value = new Vector3(translation.getFloat(0), translation.getFloat(1), translation.getFloat(2));
-							nodeAnim.translation.add(tkf);
-						}
-						JsonValue rotation = keyframe.get("rotation");
-						if (rotation != null && rotation.size == 4) {
-							if (nodeAnim.rotation == null)
-								nodeAnim.rotation = new Array<ModelNodeKeyframe<Quaternion>>();
-							ModelNodeKeyframe<Quaternion> rkf = new ModelNodeKeyframe<Quaternion>();
-							rkf.keytime = keytime;
-							rkf.value = new Quaternion(rotation.getFloat(0), rotation.getFloat(1), rotation.getFloat(2), rotation.getFloat(3));
-							nodeAnim.rotation.add(rkf);
-						}
 						JsonValue scale = keyframe.get("scale");
 						if (scale != null && scale.size == 3) {
 							if (nodeAnim.scaling == null)
