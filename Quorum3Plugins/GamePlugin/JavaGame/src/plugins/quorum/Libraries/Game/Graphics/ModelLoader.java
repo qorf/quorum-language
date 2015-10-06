@@ -9,7 +9,17 @@ import quorum.Libraries.Game.Graphics.ModelData.ModelData_;
 import quorum.Libraries.Game.Graphics.ModelData.ModelData;
 import quorum.Libraries.Game.Graphics.ModelData.ModelMesh;
 import quorum.Libraries.Game.Graphics.ModelData.ModelMeshPart;
+import quorum.Libraries.Game.Graphics.ModelData.ModelMaterial;
+import quorum.Libraries.Game.Graphics.ModelData.ModelTextureData;
+import quorum.Libraries.Game.Graphics.ModelData.ModelNode;
+import quorum.Libraries.Game.Graphics.ModelData.ModelNodePart;
+import quorum.Libraries.Game.Graphics.ModelData.ModelAnimation;
 import quorum.Libraries.Game.Graphics.VertexAttribute;
+import quorum.Libraries.Game.Graphics.Color;
+import quorum.Libraries.Compute.Vector2;
+import quorum.Libraries.Compute.Vector3;
+//import quorum.Libraries.Compute.Matrix4;
+import quorum.Libraries.Compute.Quaternion;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.System.File_;
 
@@ -27,6 +37,8 @@ public class ModelLoader
     public static final short VERSION_HIGH = 0;
     public static final short VERSION_LOW = 1;
     protected final JsonReader reader = new JsonReader();
+    
+    private final Quaternion tempQ = new Quaternion();
     
     public ModelData_ LoadModelData(File_ quorumFile)
     {
@@ -166,4 +178,381 @@ public class ModelLoader
         return vertexAttributes;
     }
     
+    private void ParseMaterials(ModelData modelData, JsonValue json, String materialDir)
+    {
+        JsonValue materials = json.Get("materials");
+        if (materials == null)
+        {
+            // Could possibly create a default material in this case -- libGDX does not handle this currently.
+        }
+        else
+        {
+            modelData.materials.SetSize(materials.size);
+            for (JsonValue material = materials.child; material != null; material = material.next)
+            {
+                ModelMaterial jsonMaterial = new ModelMaterial();
+                
+                String id = material.GetString("id", null);
+                if (id == null)
+                    throw new GameRuntimeError("The material did not have an ID.");
+                
+                jsonMaterial.id = id;
+                
+                final JsonValue diffuse = material.Get("diffuse");
+                if (diffuse != null)
+                    jsonMaterial.diffuse = ParseColor(diffuse);
+                
+                final JsonValue ambient = material.Get("ambient");
+                if (ambient != null)
+                    jsonMaterial.ambient = ParseColor(ambient);
+                
+                final JsonValue emissive = material.Get("emissive");
+                if (emissive != null)
+                    jsonMaterial.emissive = ParseColor(emissive);
+                
+                final JsonValue specular = material.Get("specular");
+                if (specular != null)
+                    jsonMaterial.specular = ParseColor(specular);
+                
+                final JsonValue reflection = material.Get("reflection");
+                if (reflection != null)
+                    jsonMaterial.reflection = ParseColor(reflection);
+                
+                jsonMaterial.shininess = material.GetFloat("shininess", 0.0f);
+                jsonMaterial.opacity = material.GetFloat("opacity", 1.0f);
+                
+                JsonValue textures = material.Get("textures");
+                if (textures != null)
+                {
+                    for (JsonValue texture = textures.child; texture != null; texture = texture.next)
+                    {
+                        ModelTextureData jsonTexture = new ModelTextureData();
+                        
+                        String textureID = texture.GetString("id", null);
+                        if (textureID == null)
+                            throw new GameRuntimeError("The texture did not have an ID.");
+                        jsonTexture.id = textureID;
+                        
+                        String fileName = texture.GetString("filename", null);
+                        if (fileName == null)
+                            throw new GameRuntimeError("The texture does not have an associated file name.");
+                        jsonTexture.fileName = materialDir + (materialDir.length() == 0 || materialDir.endsWith("/") ? "" : "/") + fileName;
+                        
+                        jsonTexture.uvTranslation = ReadVector2(texture.Get("uvTranslation"), 0f, 0f);
+                        jsonTexture.uvScaling = ReadVector2(texture.Get("uvScaling"), 1f, 1f);
+                        
+                        String textureType = texture.GetString("type", null);
+                        if (textureType == null)
+                            throw new GameRuntimeError("The texture did not have a provided type.");
+                        
+                        jsonTexture.usage = ParseTextureUsage(textureType);
+                        
+                        jsonMaterial.textures.Add(jsonTexture);
+                    }
+                }
+                modelData.materials.Add(jsonMaterial);
+            }
+        }
+    }
+    
+    private int ParseTextureUsage(final String value)
+    {
+        ModelTextureData modelTexture = new ModelTextureData();
+        if (value.equalsIgnoreCase("AMBIENT"))
+            return modelTexture.USAGE_AMBIENT;
+        else if (value.equalsIgnoreCase("BUMP"))
+            return modelTexture.USAGE_BUMP;
+        else if (value.equalsIgnoreCase("DIFFUSE"))
+            return modelTexture.USAGE_DIFFUSE;
+        else if (value.equalsIgnoreCase("EMISSIVE"))
+            return modelTexture.USAGE_EMISSIVE;
+        else if (value.equalsIgnoreCase("NONE"))
+            return modelTexture.USAGE_NONE;
+        else if (value.equalsIgnoreCase("NORMAL"))
+            return modelTexture.USAGE_NORMAL;
+        else if (value.equalsIgnoreCase("REFLECTION"))
+            return modelTexture.USAGE_REFLECTION;
+        else if (value.equalsIgnoreCase("SHININESS"))
+            return modelTexture.USAGE_SHININESS;
+        else if (value.equalsIgnoreCase("SPECULAR"))
+            return modelTexture.USAGE_SPECULAR;
+        else if (value.equalsIgnoreCase("TRANSPARENCY")) 
+            return modelTexture.USAGE_TRANSPARENCY;
+        return modelTexture.USAGE_UNKNOWN;
+    }
+    
+    private Color ParseColor(JsonValue colorArray)
+    {
+        if (colorArray.size >= 3)
+        {
+            Color color =  new Color();
+            color.SetColor(colorArray.GetFloat(0), colorArray.GetFloat(1), colorArray.GetFloat(2), 1.0f);
+            return color;
+        }
+        else
+            throw new GameRuntimeError("Expected at least 3 Color values.");
+    }
+    
+    private Vector2 ReadVector2(JsonValue vectorArray, float x, float y)
+    {
+        if (vectorArray == null)
+        {
+            Vector2 vector2 = new Vector2();
+            vector2.Set(x, y);
+            return vector2;
+        }
+        else if (vectorArray.size == 2)
+        {
+            Vector2 vector2 = new Vector2();
+            vector2.Set(vectorArray.GetFloat(0), vectorArray.GetFloat(1));
+            return vector2;
+        }
+        else
+            throw new GameRuntimeError("Expected at least two values for Vector2.");
+    }
+    
+    private Array_ ParseNodes(ModelData modelData, JsonValue json)
+    {
+        JsonValue nodes = json.Get("nodes");
+        if (nodes != null)
+        {
+            modelData.nodes.SetSize(nodes.size);
+            for (JsonValue node = nodes.child; node != null; node = node.next)
+                modelData.nodes.Add(ParseNodesRecursively(node));
+        }
+        
+        return modelData.nodes;
+    }
+    
+    private ModelNode ParseNodesRecursively(JsonValue json)
+    {
+        ModelNode jsonNode = new ModelNode();
+        
+        String id = json.GetString("id", null);
+        if (id == null)
+            throw new GameRuntimeError("Node is missing an ID.");
+        jsonNode.id = id;
+        
+        JsonValue translation = json.Get("translation");
+        if (translation != null && translation.size != 3)
+            throw new GameRuntimeError("Node translation is incomplete.");
+        if (translation != null)
+        {
+            Vector3 vec3 = new Vector3();
+            vec3.Set(translation.GetFloat(0), translation.GetFloat(1), translation.GetFloat(2));
+            jsonNode.translation = vec3;
+        }
+        else
+            jsonNode.translation = null;
+        
+        JsonValue rotation = json.Get("rotation");
+        if (rotation != null && rotation.size != 4)
+            throw new GameRuntimeError("Node rotation is incomplete.");
+        if (rotation != null)
+        {
+            Quaternion q = new Quaternion();
+            q.Set(rotation.GetFloat(0), rotation.GetFloat(1), rotation.GetFloat(2), rotation.GetFloat(3));
+            jsonNode.rotation = q;
+        }
+        else
+            jsonNode.rotation = null;
+        
+        JsonValue scale = json.Get("scale");
+        if (scale!= null && scale.size != 3)
+            throw new GameRuntimeError("Node scale is incomplete.");
+        if (scale != null)
+        {
+            Vector3 vec3 = new Vector3();
+            vec3.Set(scale.GetFloat(0), scale.GetFloat(1), scale.GetFloat(2));
+            jsonNode.scale = vec3;
+        }
+        
+        String meshID = json.GetString("mesh", null);
+        if (meshID != null)
+            jsonNode.meshID = meshID;
+        
+        JsonValue materials = json.Get("parts");
+        if (materials != null)
+        {
+            jsonNode.parts.SetSize(materials.size);
+            int i = 0;
+            for (JsonValue material = materials.child; material != null; material = material.next, i++)
+            {
+                ModelNodePart nodePart = new ModelNodePart();
+                
+                String meshPartID = material.GetString("meshpartid", null);
+                if (meshPartID == null)
+                    throw new GameRuntimeError("Node " + id + "part is missing meshPartID.");
+                String materialID = material.GetString("materialid", null);
+                if (materialID == null)
+                    throw new GameRuntimeError("Node " + id + "part is missing materialID.");
+                
+                nodePart.materialID = materialID;
+                nodePart.meshPartID = meshPartID;
+                
+                JsonValue bones = material.Get("bones");
+                if (bones != null)
+                {
+                    int j = 0;
+                    for (JsonValue bone = bones.child; bone != null; bone = bone.next, j++)
+                    {
+                        String nodeID = bone.GetString("node", null);
+                        if (nodeID == null)
+                            throw new GameRuntimeError("Bone node ID is missing.");
+                        
+                        //Matrix4 transform = new Matrix4();
+                        
+                        JsonValue val = bone.Get("translation");
+                        if (val != null && val.size >= 3)
+                            ;//transform.Rotate(tempQ.Set(val.GetFloat(0), val.GetFloat(1), val.GetFloat(2), val.GetFloat(3)));
+                        
+                        val = bone.Get("rotation");
+                        if (val!= null && val.size >= 4)
+                            ;//transform.Rotate(tempQ.Set(val.GetFloat(0), val.GetFloat(1), val.GetFloat(2), val.GetFloat(3)));
+                        
+                        val = bone.Get("scale");
+                        if (val != null && val.size >= 3)
+                            ;//transform.Scale(val.GetFloat(0), val.GetFloat(1), val.GetFloat(2));
+                        
+                        //nodePart.bones.Add(nodeID, transform);
+                    }
+                }
+                
+                jsonNode.parts.Set(i, nodePart);
+            }
+        }
+        
+        JsonValue children = json.Get("children");
+        if (children != null)
+        {
+            jsonNode.children.SetSize(children.size);
+            
+            int i = 0;
+            for (JsonValue child = children.child; child != null; child = child.next, i++)
+            {
+                jsonNode.children.Set(i, ParseNodesRecursively(child));
+            }
+        }
+        
+        return jsonNode;
+    }
+    
+    private void ParseAnimations(ModelData modelData, JsonValue json)
+    {
+        JsonValue animations = json.Get("animations");
+        if (animations == null)
+            return;
+        
+        modelData.animations.SetSize(animations.size);
+        
+        for (JsonValue anim = animations.child; anim != null; anim = anim.next)
+        {
+            JsonValue nodes = anim.Get("bones");
+            if (nodes == null)
+                continue;
+            ModelAnimation animation = new ModelAnimation();
+            modelData.animations.Add(animation);
+        }
+    }
+    
+    /*
+    private void parseAnimations (ModelData model, JsonValue json) {
+		JsonValue animations = json.get("animations");
+		if (animations == null) return;
+
+		model.animations.ensureCapacity(animations.size);
+
+		for (JsonValue anim = animations.child; anim != null; anim = anim.next) {
+			JsonValue nodes = anim.get("bones");
+			if (nodes == null) continue;
+			ModelAnimation animation = new ModelAnimation();
+			model.animations.add(animation);
+			animation.nodeAnimations.ensureCapacity(nodes.size);
+			animation.id = anim.getString("id");
+			for (JsonValue node = nodes.child; node != null; node = node.next) {
+				ModelNodeAnimation nodeAnim = new ModelNodeAnimation();
+				animation.nodeAnimations.add(nodeAnim);
+				nodeAnim.nodeId = node.getString("boneId");
+
+				// For backwards compatibility (version 0.1):
+				JsonValue keyframes = node.get("keyframes");
+				if (keyframes != null && keyframes.isArray()) {
+					for (JsonValue keyframe = keyframes.child; keyframe != null; keyframe = keyframe.next) {
+						final float keytime = keyframe.getFloat("keytime", 0f) / 1000.f;
+						JsonValue translation = keyframe.get("translation"); 
+						if (translation != null && translation.size == 3) {
+							if (nodeAnim.translation == null)
+								nodeAnim.translation = new Array<ModelNodeKeyframe<Vector3>>();
+							ModelNodeKeyframe<Vector3> tkf = new ModelNodeKeyframe<Vector3>();
+							tkf.keytime = keytime;
+							tkf.value = new Vector3(translation.getFloat(0), translation.getFloat(1), translation.getFloat(2));
+							nodeAnim.translation.add(tkf);
+						}
+						JsonValue rotation = keyframe.get("rotation");
+						if (rotation != null && rotation.size == 4) {
+							if (nodeAnim.rotation == null)
+								nodeAnim.rotation = new Array<ModelNodeKeyframe<Quaternion>>();
+							ModelNodeKeyframe<Quaternion> rkf = new ModelNodeKeyframe<Quaternion>();
+							rkf.keytime = keytime;
+							rkf.value = new Quaternion(rotation.getFloat(0), rotation.getFloat(1), rotation.getFloat(2), rotation.getFloat(3));
+							nodeAnim.rotation.add(rkf);
+						}
+						JsonValue scale = keyframe.get("scale");
+						if (scale != null && scale.size == 3) {
+							if (nodeAnim.scaling == null)
+								nodeAnim.scaling = new Array<ModelNodeKeyframe<Vector3>>();
+							ModelNodeKeyframe<Vector3> skf = new ModelNodeKeyframe();
+							skf.keytime = keytime;
+							skf.value = new Vector3(scale.getFloat(0), scale.getFloat(1), scale.getFloat(2));
+							nodeAnim.scaling.add(skf);
+						}
+					}
+				} else { // Version 0.2:
+					JsonValue translationKF = node.get("translation");
+					if (translationKF != null && translationKF.isArray()) {
+						nodeAnim.translation = new Array<ModelNodeKeyframe<Vector3>>();
+						nodeAnim.translation.ensureCapacity(translationKF.size);
+						for (JsonValue keyframe = translationKF.child; keyframe != null; keyframe = keyframe.next) {
+							ModelNodeKeyframe<Vector3> kf = new ModelNodeKeyframe<Vector3>();
+							nodeAnim.translation.add(kf);
+							kf.keytime = keyframe.getFloat("keytime", 0f) / 1000.f;
+							JsonValue translation = keyframe.get("value");
+							if (translation != null && translation.size >= 3)
+								kf.value = new Vector3(translation.getFloat(0), translation.getFloat(1), translation.getFloat(2));
+						}
+					}
+					
+					
+					JsonValue rotationKF = node.get("rotation");
+					if (rotationKF != null && rotationKF.isArray()) {
+						nodeAnim.rotation = new Array<ModelNodeKeyframe<Quaternion>>();
+						nodeAnim.rotation.ensureCapacity(rotationKF.size);
+						for (JsonValue keyframe = rotationKF.child; keyframe != null; keyframe = keyframe.next) {
+							ModelNodeKeyframe<Quaternion> kf = new ModelNodeKeyframe<Quaternion>();
+							nodeAnim.rotation.add(kf);
+							kf.keytime = keyframe.getFloat("keytime", 0f) / 1000.f;
+							JsonValue rotation = keyframe.get("value");
+							if (rotation != null && rotation.size >= 4)
+								kf.value = new Quaternion(rotation.getFloat(0), rotation.getFloat(1), rotation.getFloat(2), rotation.getFloat(3));
+						}
+					}
+					
+					JsonValue scalingKF = node.get("scaling");
+					if (scalingKF != null && scalingKF.isArray()) {
+						nodeAnim.scaling = new Array<ModelNodeKeyframe<Vector3>>();
+						nodeAnim.scaling.ensureCapacity(scalingKF.size);
+						for (JsonValue keyframe = scalingKF.child; keyframe != null; keyframe = keyframe.next) {
+							ModelNodeKeyframe<Vector3> kf = new ModelNodeKeyframe<Vector3>();
+							nodeAnim.scaling.add(kf);
+							kf.keytime = keyframe.getFloat("keytime", 0f) / 1000.f;
+							JsonValue scaling = keyframe.get("value");
+							if (scaling != null && scaling.size >= 3)
+								kf.value = new Vector3(scaling.getFloat(0), scaling.getFloat(1), scaling.getFloat(2));
+						}
+					}
+				}
+			}
+		}
+	}
+    */
 }
