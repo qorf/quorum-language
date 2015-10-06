@@ -14,6 +14,8 @@ import quorum.Libraries.Game.Graphics.ModelData.ModelTextureData;
 import quorum.Libraries.Game.Graphics.ModelData.ModelNode;
 import quorum.Libraries.Game.Graphics.ModelData.ModelNodePart;
 import quorum.Libraries.Game.Graphics.ModelData.ModelAnimation;
+import quorum.Libraries.Game.Graphics.ModelData.ModelNodeAnimation;
+import quorum.Libraries.Game.Graphics.ModelData.ModelNodeKeyframe;
 import quorum.Libraries.Game.Graphics.VertexAttribute;
 import quorum.Libraries.Game.Graphics.Color;
 import quorum.Libraries.Compute.Vector2;
@@ -452,23 +454,36 @@ public class ModelLoader
                 continue;
             ModelAnimation animation = new ModelAnimation();
             modelData.animations.Add(animation);
+            animation.nodeAnimations.SetSize(nodes.size);
+            animation.id = anim.GetString("id");
+            
+            for (JsonValue node = nodes.child; node != null; node = node.next)
+            {
+                ModelNodeAnimation nodeAnim = new ModelNodeAnimation();
+                animation.nodeAnimations.Add(nodeAnim);
+                nodeAnim.nodeID = node.GetString("boneId");
+                
+                // For backwards compatibility with version 0.1 of libGDX's system
+                JsonValue keyframes = node.Get("keyframes");
+                if (keyframes != null && keyframes.IsArray())
+                {
+                    for (JsonValue keyframe = keyframes.child; keyframe != null; keyframe = keyframe.next)
+                    {
+                        final float keytime = keyframe.GetFloat("keytime", 0f) / 1000.f;
+                        JsonValue translation = keyframe.Get("translation");
+                        if (translation != null && translation.size == 3)
+                        {
+                            
+                        }
+                    }
+                }
+            }
         }
     }
     
     /*
     private void parseAnimations (ModelData model, JsonValue json) {
-		JsonValue animations = json.get("animations");
-		if (animations == null) return;
-
-		model.animations.ensureCapacity(animations.size);
-
-		for (JsonValue anim = animations.child; anim != null; anim = anim.next) {
-			JsonValue nodes = anim.get("bones");
-			if (nodes == null) continue;
-			ModelAnimation animation = new ModelAnimation();
-			model.animations.add(animation);
-			animation.nodeAnimations.ensureCapacity(nodes.size);
-			animation.id = anim.getString("id");
+		...
 			for (JsonValue node = nodes.child; node != null; node = node.next) {
 				ModelNodeAnimation nodeAnim = new ModelNodeAnimation();
 				animation.nodeAnimations.add(nodeAnim);
