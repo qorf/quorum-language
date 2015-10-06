@@ -1146,7 +1146,7 @@ public class JavaToQuorumListener implements QuorumListener {
             context.actionName = ID.getText();
         }
         
-        if(ctx.RETURNS() != null) {
+        if(ctx.RETURNS() != null && ctx.return_type != null) {
             context.returnType = ctx.return_type.type;
         } else {
             Type type = new Type();
@@ -1178,7 +1178,7 @@ public class JavaToQuorumListener implements QuorumListener {
         if(ID != null) {
             context.actionName = ID.getText();
         }
-        if(ctx.RETURNS() != null) {
+        if(ctx.RETURNS() != null && ctx.return_type != null) {
             context.returnType = ctx.return_type.type;
         } else {
             Type type = new Type();
