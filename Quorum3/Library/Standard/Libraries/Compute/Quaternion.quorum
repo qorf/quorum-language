@@ -66,10 +66,10 @@ class Quaternion
     end
 
     action SetEulerAngles(number yaw, number pitch, number roll) returns Quaternion
-        return SetEulerAnglesRad(yaw * math:pi / 180, pitch * math:pi / 180, roll * math:pi / 180)
+        return SetEulerAnglesRadians(yaw * math:pi / 180, pitch * math:pi / 180, roll * math:pi / 180)
     end
 
-    action SetEulerAnglesRad(number yaw, number pitch, number roll) returns Quaternion
+    action SetEulerAnglesRadians(number yaw, number pitch, number roll) returns Quaternion
         number hr = roll * 0.5
         number shr = math:Sine(hr)
         number chr = math:Cosine(hr)
