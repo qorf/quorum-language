@@ -503,7 +503,6 @@ class ClassOpcode is QuorumOpcode
 
                     parentWriter:VisitMaxSize(0,0)
                     parentWriter:VisitEnd()
-                    a = 5
                 end
                 
             end
@@ -880,7 +879,7 @@ class ClassOpcode is QuorumOpcode
                     text val = p:ConvertStaticKeyToParentFieldName()
                     methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), val, p:ConvertStaticKeyToBytecodePathTypeName())
                     //fire the constructor
-                    methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), p:ConvertStaticKeyToBytecodePathTypeName(), "constructor_", "()V", false)
+                    methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), p:ConvertStaticKeyToBytecodePath(), "constructor_", "()V", false)
                 end
             end
         end
