@@ -55,14 +55,14 @@ class ExpressionsTester
         GTIntDouble()
         GTIntInt()
         GTTextText()
-        GetCharacterParameterText()   //test runs but fails
+        GetCharacterParameterText()  
         GetMaxParameterInteger()
-        GetTextParameterBoolean()     //test runs but fail
+        GetTextParameterBoolean()     
         HelloWorld()
         HelloWorldNoClassNoActions()
         HelloWorldNoClass()
         IsA()
-        IsInfiniteNumberParameter()   //test runs but fails
+        IsInfiniteNumberParameter()   
         LTDoubleDouble()
         LTDoubleInt()
         LTEDoubleDouble()
@@ -85,7 +85,7 @@ class ExpressionsTester
         MultDoubleInt()
         MultIntDouble()
         MultIntInt()
-        NotBoolean()                  //test runs but fails
+        NotBoolean()                 
         NotEqualBooleanBoolean()
         NotEqualCustomCustom()
         NotEqualDoubleDouble()
@@ -99,6 +99,10 @@ class ExpressionsTester
         OutputDouble()
         OutputInt()
         OutputText()
+        PrimitiveGetMaximumValueInteger()
+        PrimitiveGetMinimumValueInteger()
+        PrimitiveGetMaximumValueDouble()
+        PrimitiveGetMinimumValueDouble()
         SubDoubleDouble()
         SubDoubleInt()
         SubIntDouble()
@@ -1141,6 +1145,85 @@ class ExpressionsTester
         suite:TestJavaScript(files, results)
     end
 
+    action PrimitiveGetMaximumValueInteger
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "PrimitiveGetMaximumValueInteger.quorum")
+        files:Add(main)
+        i = 0
+        repeat 10 times
+            results:Add(i, "-1")
+            i = i + 1
+        end
+        suite:Test(files, results)
+        i = 0
+        repeat 10 times
+            results:Set(i, "-1")
+            i = i + 1
+        end
+        suite:TestJavaScript(files, results)
+    end
+
+    action PrimitiveGetMinimumValueInteger
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "PrimitiveGetMinimumValueInteger.quorum")
+        files:Add(main)
+        i = 0
+        repeat 10 times
+            results:Add(i, "-1")
+            i = i + 1
+        end
+        suite:Test(files, results)
+        i = 0
+        repeat 10 times
+            results:Set(i, "-1")
+            i = i + 1
+        end
+        suite:TestJavaScript(files, results)
+    end
+
+    action PrimitiveGetMaximumValueDouble
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "PrimitiveGetMaximumValueDouble.quorum")
+        files:Add(main)
+        i = 0
+        repeat 10 times
+            results:Add(i, "-1.0")
+            i = i + 1
+        end
+        suite:Test(files, results)
+        i = 0
+        repeat 10 times
+            results:Set(i, "-1.0")
+            i = i + 1
+        end
+        suite:TestJavaScript(files, results)
+    end
+
+    action PrimitiveGetMinimumValueDouble
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "PrimitiveGetMinimumValueDouble.quorum")
+        files:Add(main)
+        i = 0
+        repeat 10 times
+            results:Add(i, "-1.0")
+            i = i + 1
+        end
+        suite:Test(files, results)
+        i = 0
+        repeat 10 times
+            results:Set(i, "-1.0")
+            i = i + 1
+        end
+        suite:TestJavaScript(files, results)
+    end
 
     action SubDoubleDouble
         Array<File> files

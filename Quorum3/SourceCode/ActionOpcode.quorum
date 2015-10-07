@@ -150,6 +150,12 @@ class ActionOpcode is QuorumOpcode
         
         methodWriter:VisitLabel(finish)
 
+//        output clazz:GetName() + ", " + method:GetName()
+//
+//        if clazz:GetName() = "PrimitiveCallTest"
+//            a = 5
+//        end
+
         WriteParameterDebuggingTable(start, finish)
         methodWriter:VisitMaxSize(0,0)
         methodWriter:VisitEnd()

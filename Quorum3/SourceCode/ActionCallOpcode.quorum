@@ -221,7 +221,7 @@ class ActionCallOpcode is QuorumOpcode
         end
     end
 
-    action Write //TODO: make this work for action calls and fields
+    action Write
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
         VisitLineNumber()
 

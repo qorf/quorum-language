@@ -52,7 +52,7 @@ class Number is Object
     system action GetMaximumValue returns number
 
     /*
-        This action gets the minimum number value(2^-1074).
+        This action gets the minimum negative number value (-1.7976931348623157E308).
 
         Attribute: Returns The minimum number value.
 
@@ -62,6 +62,19 @@ class Number is Object
         output i:GetMinimumValue()
     */ 
     system action GetMinimumValue returns number
+
+    /*
+        This action gets the minimum number value (4.9e-324). This 
+        is the smallest possible positive number.
+
+        Attribute: Returns The minimum number value.
+
+        Attribute: Example
+
+        number i = 3.5
+        output i:GetMinimumPositiveValue()
+    */ 
+    system action GetMinimumPositiveValue returns number
 
     /*
         This action gets the positive infinity number value(0x7ff0000000000000L).
