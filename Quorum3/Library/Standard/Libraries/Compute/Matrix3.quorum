@@ -237,8 +237,10 @@ class Matrix3
         return me
     end
 
-    action ToString () returns text
-        return "[" + values:Get(M00) + "|" + values:Get(M01) + "|" + values:Get(M02) + "]\n" + "[" + values:Get(M10) + "|" + values:Get(M11) + "|" + values:Get(M12) + "]\n" + "[" + values:Get(M20) + "|" + values:Get(M21) + "|" + values:Get(M22) + "]"
+    action ToText () returns text
+        return "[" + values:Get(M00) + "|" + values:Get(M01) + "|" + values:Get(M02) + "]
+[" + values:Get(M10) + "|" + values:Get(M11) + "|" + values:Get(M12) + "]
+[" + values:Get(M20) + "|" + values:Get(M21) + "|" + values:Get(M22) + "]"
     end
 
     action Determinant () returns number

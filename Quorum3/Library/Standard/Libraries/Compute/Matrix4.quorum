@@ -675,17 +675,12 @@ class Matrix4
         return me
     end
 
-    action SetToLookAt (Vector3 direction, Vector3 up)
+    action SetToLookAt (Vector3 direction, Vector3 up) returns Matrix4
 
-        l_vez:Set(direction)
-        l_vez:Normalize()
-        l_vex:Set(direction)
-        l_vex:Normalize()
-        l_vex:CrossProduct(up)
-        l_vex:Normalize()
-        l_vey:Set(l_vex)
-        l_vey:CrossProduct(l_vez)
-        l_vey:Normalize()
+        l_vez:Set(direction):Normalize()
+        l_vex:Set(direction):Normalize()
+        l_vex:CrossProduct(up):Normalize()
+        l_vey:Set(l_vex):CrossProduct(l_vez):Normalize()
 
         Identity()
 
@@ -699,46 +694,40 @@ class Matrix4
         values:Set(M21, -1 * l_vez:GetY())
         values:Set(M22, -1 * l_vez:GetZ())
 
+        return me
     end
 
 
-    action SetToLookAt (Vector3 position, Vector3 target, Vector3 up)
+    action SetToLookAt (Vector3 position, Vector3 target, Vector3 up) returns Matrix4
 
-        tmpVec:Set(target)
-        tmpVec:Subtract(position)
+        tmpVec:Set(target):Subtract(position)
         SetToLookAt(tmpVec, up)
+        me:Multiply(tmpMat:SetToTranslation(-1 * position:GetX(), -1 * position:GetY(), -1 * position:GetZ()))
 
-        tmpMat:SetToTranslation(-1 * position:GetX(), -1 * position:GetY(), -1 * position:GetZ())
-        // Multiply(tmpMat)
+        return me
+    end
+
+    action SetToWorld (Vector3 position, Vector3 forward, Vector3 up) returns Matrix4
+
+        tmpForward:Set(forward):Set(forward):Normalize()
+        right:Set(tmpForward):CrossProduct(up):Normalize()
+        tmpUp:Set(right):CrossProduct(tmpForward):Normalize()
+
+        me:Set(right, tmpUp, tmpForward:Scale(-1), position)
+
+        return me
+    end
+
+    action ToText returns text
+
+        return "[" + values:Get(M00) + "|" + values:Get(M01) + "|" + values:Get(M02) + "|" + values:Get(M03) + "]
+" + "[" + values:Get(M10) + "|" + values:Get(M11) + "|" + values:Get(M12) + "|" + values:Get(M13) + "]
+" + "[" + values:Get(M20) + "|" + values:Get(M21) + "|" + values:Get(M22) + "|" + values:Get(M23) + "]
+" + "[" + values:Get(M30) + "|" + values:Get(M31) + "|" + values:Get(M32) + "|" + values:Get(M33) + "]"
 
     end
 
-    action SetToWorld (Vector3 position, Vector3 forward, Vector3 up)
-
-        tmpForward:Set(forward)
-        tmpForward:Normalize()
-        right:Set(tmpForward)
-        right:CrossProduct(up)
-        right:Normalize()
-        tmpUp:Set(right)
-        tmpUp:CrossProduct(tmpForward)
-        tmpUp:Normalize()
-
-        tmpForward:Scale(-1)
-        Set(right, tmpUp, tmpForward, position)
-
-    end
-
-    action ToString () returns text
-
-        return "[" + values:Get(M00) + "|" + values:Get(M01) + "|" + values:Get(M02) + "|" + values:Get(M03) + ")
-        " + "[" + values:Get(M10) + "|" + values:Get(M11) + "|" + values:Get(M12) + "|" + values:Get(M13) + ")
-        " + "[" + values:Get(M20) + "|" + values:Get(M21) + "|" + values:Get(M22) + "|" + values:Get(M23) + ")
-        " + "[" + values:Get(M30) + "|" + values:Get(M31) + "|" + values:Get(M32) + "|" + values:Get(M33) + ")"
-
-    end
-
-    action LinearInterpolation (Matrix4 matrix, number alpha)
+    action LinearInterpolation (Matrix4 matrix, number alpha) returns Matrix4
 
         integer i = 0
 
@@ -749,40 +738,30 @@ class Matrix4
             i = i + 1
         end
         
+        return me
     end
 
-    action Average (Matrix4 other, number w)
+    action Average (Matrix4 other, number w) returns Matrix4
 
-//        GetScale(tmpVec)
-//        other:GetScale(tmpForward)
-//
-//        GetRotation(quaternion)
-//        other:GetRotation(quaternion2)
-//
-//        GetTranslation(tmpUp)
-//        other:GetTranslation(right)
-//
-//        tmpForward:Scale(1 - w)
-//        tmpVec:Scale(w)
-//        tmpVec:Add(tmpForward)
-//        SetToScaling(tmpVec)
-//        
-//        quaternion:SphericalLinearInterpolation(quaternion2, 1 - w)
-//        Rotate(quaternion)
-//
-//        right:Scale(1 - w)
-//        tmpUp:Scale(w)
-//        tmpUp:Add(right)
-//        SetToTranslation(tmpUp)
+        GetScale(tmpVec)
+        other:GetScale(tmpForward)
 
+        GetRotation(quaternion)
+        other:GetRotation(quaternion2)
+
+        GetTranslation(tmpUp)
+        other:GetTranslation(right)
+
+        SetToScaling(tmpVec:Scale(w):Add(tmpForward:Scale(1 - w)))
+        Rotate(quaternion:SphericalLinearInterpolation(quaternion2, 1 - w))
+        SetTranslation(tmpUp:Scale(w):Add(right:Scale(1 - w)))
+
+        return me
     end
-
-
-
 
    // action Average (Array<Matrix4>
 
-    action Set (Matrix3 matrix)
+    action Set (Matrix3 matrix) returns Matrix4
 
         Array<number> matrixValues = matrix:values
         
@@ -803,9 +782,10 @@ class Matrix4
         values:Set(14, 0)
         values:Set(15, matrixValues:Get(8))
 
+        return me
     end
 
-    action Set (Affine2 affine)
+    action Set (Affine2 affine) returns Matrix4
 
         values:Set(M00, affine:M00)
         values:Set(M10, affine:M10)
@@ -824,9 +804,10 @@ class Matrix4
         values:Set(M23, 0)
         values:Set(M33, 1)
 
+        return me
     end
 
-    action SetAsAffine (Affine2 affine)
+    action SetAsAffine (Affine2 affine) returns Matrix4
 
         values:Set(M00, affine:M00)
         values:Set(M10, affine:M10)
@@ -835,9 +816,10 @@ class Matrix4
         values:Set(M03, affine:M02)
         values:Set(M13, affine:M12)
 
+        return me
     end
 
-    action SetAsAffine (Matrix4 matrix)
+    action SetAsAffine (Matrix4 matrix) returns Matrix4
 
         Array<number> matrixValues = matrix:values
 
@@ -848,49 +830,52 @@ class Matrix4
         values:Set(M03, matrixValues:Get(M03))
         values:Set(M13, matrixValues:Get(M13))
 
+        return me
     end
 
-    action Scale (Vector3 scale)
+    action Scale (Vector3 scale) returns Matrix4
 
         values:Set(M00, values:Get(M00) * scale:GetX())
         values:Set(M11, values:Get(M11) * scale:GetY())
         values:Set(M22, values:Get(M22) * scale:GetZ())
 
+        return me
     end
 
-    action Scale (number x, number y, number z)
+    action Scale (number x, number y, number z) returns Matrix4
 
         values:Set(M00, values:Get(M00) * x)
         values:Set(M11, values:Get(M11) * y)
         values:Set(M22, values:Get(M22) * z)
 
+        return me
     end
 
-    action Scale (number scale)
+    action Scale (number scale) returns Matrix4
 
         values:Set(M00, values:Get(M00) * scale)
         values:Set(M11, values:Get(M11) * scale)
         values:Set(M22, values:Get(M22) * scale)
 
+        return me
     end
 
-    action GetTranslation () returns Vector3
+    action GetTranslation (Vector3 position) returns Vector3
         
-        Vector3 tmp
-        tmp:Set (values:Get(M03), values:Get(M13), values:Get(M23))
-        return tmp
-
+        position:SetX(values:Get(M03))
+        position:SetY(values:Get(M13))
+        position:SetZ(values:Get(M23))
+        return position
     end
 
 
-
-
-    action GetRotation (Quaternion rotation, boolean normalizeAxes)
-
+    action GetRotation (Quaternion rotation, boolean normalizeAxes) returns Quaternion
+        return rotation:SetFromMatrix(normalizeAxes, me)
     end
 
-      
-
+    action GetRotation(Quaternion rotation) returns Quaternion
+        return rotation:SetFromMatrix(me)
+    end
 
     action GetScaleXSquared () returns number 
         
@@ -919,12 +904,12 @@ class Matrix4
         if values:Get(tmp:M01) <= 0.000001
             if values:Get(tmp:M02) <= 0.000001
                 
-                return math:SquareRoot(values:Get(tmp:M00))
+                return math:AbsoluteValue(values:Get(tmp:M00))
 
             end
         end
 
-        return cast(number, math:SquareRoot(GetScaleXSquared()))
+        return math:SquareRoot(GetScaleXSquared())
 
     end
 
@@ -934,12 +919,12 @@ class Matrix4
         if values:Get(tmp:M10) <= 0.000001
             if values:Get(tmp:M12) <= 0.000001
                 
-                return math:SquareRoot(values:Get(tmp:M11))
+                return math:AbsoluteValue(values:Get(tmp:M11))
 
             end
         end
 
-        return cast(number, math:SquareRoot(GetScaleYSquared()))
+        return math:SquareRoot(GetScaleYSquared())
 
     end
 
@@ -949,84 +934,130 @@ class Matrix4
         if values:Get(tmp:M20) <= 0.000001
             if values:Get(tmp:M21) <= 0.000001
                 
-                return math:SquareRoot(values:Get(tmp:M22))
+                return math:AbsoluteValue(values:Get(tmp:M22))
 
             end
         end
 
-        return cast(number, math:SquareRoot(GetScaleZSquared()))
+        return math:SquareRoot(GetScaleZSquared())
 
     end
 
-    action GetScale () returns Vector3
-
-        Vector3 tmp
-
-        tmp:Set(GetScaleX(), GetScaleY(), GetScaleZ())
-
-        return tmp
+    action GetScale (Vector3 scale) returns Vector3
+    
+        return scale:Set(GetScaleX(), GetScaleY(), GetScaleZ())
 
     end
 
-    action ToNormalMatrix ()
+    action ToNormalMatrix () returns Matrix4
 
         values:Set(M03, 0)
         values:Set(M13, 0)
         values:Set(M23, 0)
 
-        Transpose()
-        Inverse()
+        return Inverse():Transpose()
 
     end
 
-    action Rotate (Vector3 axis, number degrees)
+    action PostmultiplyByTranslation(Vector3 translation) returns Matrix4
+        return Translate(translation:GetX(), translation:GetY(), translation:GetZ())
+    end
+
+    action PostmultilyByTranslation(number x, number y, number z) returns Matrix4
+        temporary:Set(M00, 1)
+        temporary:Set(M01, 0)
+        temporary:Set(M12, 0)
+        temporary:Set(M03, x)
+        temporary:Set(M10, 0)
+        temporary:Set(M11, 1)
+        temporary:Set(M12, 0)
+        temporary:Set(M13, y)
+        temporary:Set(M20, 0)
+        temporary:Set(M21, 0)
+        temporary:Set(M22, 1)
+        temporary:Set(M23, z)
+        temporary:Set(M30, 0)
+        temporary:Set(M31, 0)
+        temporary:Set(M32, 0)
+        temporary:Set(M33, 1)
         
-        if degrees not= 0
-            quaternion:Set(axis, degrees)
-            Rotate(quaternion)
-        end
-
+        Multiply(values, temporary)
+        return me
     end
 
-    action RotateInRadians (Vector3 axis, number radians)
-
-        if radians not= 0
-            quaternion:SetFromAxisRadians(axis, radians)
-            Rotate(quaternion)
-        end
-
-    end
-
-    action Rotate (number axisX, number axisY, number axisZ, number degrees)
-
-        if degrees not= 0
-            quaternion:SetFromAxis(axisX, axisY, axisZ, degrees)
-            Rotate(quaternion)
-        end
+    action Rotate (Vector3 axis, number degrees) returns Matrix4
         
-    end
-
-    action RotateInRadians (number axisX, number axisY, number axisZ, number radians)
-
-        if radians not= 0
-            quaternion:SetFromAxisRadians(axisX, axisY, axisZ, radians)
-            Rotate(quaternion)
+        if degrees = 0
+            return me
         end
-        
+
+        quaternion:Set(axis, degrees)
+        return Rotate(quaternion)
+
     end
 
-    action Rotate (Quaternion rotation)
+    action RotateInRadians (Vector3 axis, number radians) returns Matrix4
+
+        if radians = 0
+            return me
+        end
+
+        quaternion:SetFromAxisRadians(axis, radians)
+        return Rotate(quaternion)
+
+    end
+
+    action Rotate (number axisX, number axisY, number axisZ, number degrees) returns Matrix4
+
+        if degrees = 0
+            return me
+        end
+
+        quaternion:SetFromAxis(axisX, axisY, axisZ, degrees)        
+        return Rotate(quaternion)
+    end
+
+    action RotateInRadians (number axisX, number axisY, number axisZ, number radians) returns Matrix4
+
+        if radians = 0
+            return me
+        end
+
+        quaternion:SetFromAxisRadians(axisX, axisY, axisZ, radians)
+        return Rotate(quaternion)        
+    end
+
+    action Rotate (Quaternion rotation) returns Matrix4
 
         rotation:ToMatrix(temporary)
         Multiply(values, temporary)
-
+        return me
     end
 
-    action Rotate (Vector3 v1, Vector3 v2)
+    action Rotate (Vector3 v1, Vector3 v2) returns Matrix4
+        return Rotate(quaternion:SetFromCross(v1, v2))
+    end
 
-        quaternion:SetFromCross(v1, v2)
-        Rotate(quaternion)
+    action PostMultiplyByScale(number scaleX, number scaleY, number scaleZ) returns Matrix4
+        temporary:Set(M00, scaleX)
+        temporary:Set(M01, 0)
+        temporary:Set(M02, 0)
+        temporary:Set(M03, 0)
+        temporary:Set(M10, 0)
+        temporary:Set(M11, scaleY)
+        temporary:Set(M12, 0)
+        temporary:Set(M13, 0)
+        temporary:Set(M20, 0)
+        temporary:Set(M21, 0)
+        temporary:Set(M22, scaleZ)
+        temporary:Set(M23, 0)
+        temporary:Set(M30, 0)
+        temporary:Set(M31, 0)
+        temporary:Set(M32, 0)
+        temporary:Set(M33, 1)
 
+        Multiply(values, temporary)
+        return me
     end
 
     action Extract4x3Matrix (Array<number> destination)
@@ -1046,7 +1077,10 @@ class Matrix4
 
     end
 
-
+    action Project(Array<number> matrix, Array<number> vector)
+        Project(matrix, vector, 0)
+    end
+    
     action Project(Array<number> matrix, Array<number> vectors, integer offset, integer numVecs, integer stride)
         integer vectorPointer = offset
         integer i = 0
