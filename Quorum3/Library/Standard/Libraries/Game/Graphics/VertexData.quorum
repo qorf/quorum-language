@@ -30,4 +30,7 @@ class VertexData is Disposable
     // Used to invalidate the data when applicable, e.g. due to context loss.
     blueprint action Invalidate
 
+    // Used to load an Array<number> into the VertexData's buffer.
+    blueprint action FillVertexBuffer(Array<number> vertices)
+
 end
