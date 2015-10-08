@@ -948,22 +948,13 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action EnterElseStatement(IfContext context) end
     action ExitElseStatement(IfContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         ConditionalOpcode conditional = ifStack:Peek()
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         conditional:SetElseBlock(recentlyPopped)
     end
 
-    
-
-
     action ExitObjectAssignment(ObjectAssignmentContext context) 
-//        if HasErrors() 
-//            return now
-//        end
-        text name = context:name
+        text name = context:name       
         text object = context:object
         QualifiedName theParent = context:parentName
         CompilerErrorManager manager = GetCompilerErrorManager()
@@ -978,7 +969,6 @@ class QuorumBytecodeListener is QuorumSourceListener
             variable = currentBlock:GetVariable(object)
         end
 
-        
         //this is an assignment to a field in a parent
         if theParent not= undefined
             //get the full static key of the parent
