@@ -23,7 +23,7 @@ class Attribute
     system action GetAttributeAlias(integer /*long?*/ type) returns text
 
     action SetAttribute(integer /*long?*/ setType)
-        //type = setType
+        type = setType
         typeBit = setType:TrailingZeros()
     end
 
