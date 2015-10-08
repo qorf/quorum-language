@@ -2534,14 +2534,26 @@ class TypeChecker
             convert:SetConversion(convert:INCOMPATIBLE)
             text quote = leftKey:GetDoubleQuote()
             if assignment
-
                 result:errorMessage = "Cannot assign a value of type " + quote + 
                     rightKey + quote + "" + " to a variable of type " + quote + leftKey + quote + "."
                 error:SetCurrentType(error:INVALID_OPERATOR)
                 result:errorType = error
             else 
-                result:errorMessage = "The operation " + quote + leftKey + quote + " " + op:GetText()
+                if op:GetOperation() = op:RETURN
+                    if leftKey = "void"
+                        result:errorMessage = "In order to return a value of type " + 
+                            " " + quote + rightKey + quote + " from this action, I think we need the phrase " +
+                            quote + "returns " + rightKey + quote + " before the body."
+                    else 
+                        result:errorMessage = "The action has a return of type " + 
+                            quote + leftKey + "," + quote + " but I think it should be " + quote +  "returns " 
+                            + rightKey + quote + "."
+                    end
+                else 
+                    result:errorMessage = "The operation " + quote + leftKey + quote + " " + op:GetText()
                     + " " + quote + rightKey + quote + ", is not allowed."
+                end
+                
                 error:SetCurrentType(error:INCOMPATIBLE_TYPES)
                 result:errorType = error
             end
