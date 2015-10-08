@@ -58,9 +58,9 @@ public class ModelLoader
         
         modelData.id = json.GetString("id", "");
         ParseMeshes(modelData, json);
-        //parseMaterials(model, json, handle.parent().path());
-        //parseNodes(model, json);
-        //parseAnimations(model, json);
+        ParseMaterials(modelData, json, file.getParent());
+        ParseNodes(modelData, json);
+        ParseAnimations(modelData, json);
         
         return modelData;
     }
@@ -498,7 +498,68 @@ public class ModelLoader
                             ModelNodeKeyframe_ skf = nodeAnim.CreateVector3Keyframe();
                             skf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__keyTime_(keytime);
                             Vector3 tempV3 = new Vector3();
-                            skf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__value_(skf);
+                            tempV3.Set(scale.GetFloat(0), scale.GetFloat(1), scale.GetFloat(2));
+                            skf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__value_(tempV3);
+                            nodeAnim.scaling.Add(skf);
+                        }
+                    }
+                }
+                else // Version 0.2
+                {
+                    JsonValue translationKF = node.Get("translation");
+                    if (translationKF != null && translationKF.IsArray())
+                    {
+                        nodeAnim.translation.SetMaxSize(translationKF.size);
+                        for (JsonValue keyframe = translationKF.child; keyframe != null; keyframe = keyframe.next)
+                        {
+                            ModelNodeKeyframe_ kf = nodeAnim.CreateVector3Keyframe();
+                            nodeAnim.translation.Add(kf);
+                            kf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__keyTime_(keyframe.GetFloat("keytime", 0) / 1000.f);
+                            JsonValue translation = keyframe.Get("value");
+                            if (translation != null && translation.size >= 3)
+                            {
+                                Vector3 tempV3 = new Vector3();
+                                tempV3.Set(translation.GetFloat(0), translation.GetFloat(1), translation.GetFloat(2));
+                                kf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__value_(tempV3);
+                            }
+                        }
+                    }
+                    
+                    JsonValue rotationKF = node.Get("rotation");
+                    if (rotationKF != null && rotationKF.IsArray())
+                    {
+                        nodeAnim.rotation.SetMaxSize(rotationKF.size);
+                        for (JsonValue keyframe = rotationKF.child; keyframe != null; keyframe = keyframe.next)
+                        {
+                            ModelNodeKeyframe_ kf = nodeAnim.CreateQuaternionKeyframe();
+                            nodeAnim.rotation.Add(kf);
+                            kf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__keyTime_(keyframe.GetFloat("keytime", 0f) / 1000.f);
+                            JsonValue rotation = keyframe.Get("value");
+                            if (rotation != null && rotation.size >= 4)
+                            {
+                                Quaternion tempQ = new Quaternion();
+                                tempQ.Set(rotation.GetFloat(0), rotation.GetFloat(1), rotation.GetFloat(2), rotation.GetFloat(3));
+                                kf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__value_(tempQ);
+                            }
+                        }
+                    }
+                    
+                    JsonValue scalingKF = node.Get("scaling");
+                    if (scalingKF != null && scalingKF.IsArray())
+                    {
+                        nodeAnim.scaling.SetMaxSize(scalingKF.size);
+                        for (JsonValue keyframe = scalingKF.child; keyframe != null; keyframe = keyframe.next)
+                        {
+                            ModelNodeKeyframe_ kf = nodeAnim.CreateVector3Keyframe();
+                            nodeAnim.scaling.Add(kf);
+                            kf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__keyTime_(keyframe.GetFloat("keytime", 0f) / 1000.f);
+                            JsonValue scaling = keyframe.Get("value");
+                            if (scaling != null && scaling.size >= 3)
+                            {
+                                Vector3 tempV3 = new Vector3();
+                                tempV3.Set(scaling.GetFloat(0), scaling.GetFloat(1), scaling.GetFloat(2));
+                                kf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__value_(tempV3);
+                            }
                         }
                     }
                 }
@@ -506,65 +567,4 @@ public class ModelLoader
         }
     }
     
-    /*
-    private void parseAnimations (ModelData model, JsonValue json) {
-		...
-						JsonValue scale = keyframe.get("scale");
-						if (scale != null && scale.size == 3) {
-							if (nodeAnim.scaling == null)
-								nodeAnim.scaling = new Array<ModelNodeKeyframe<Vector3>>();
-							ModelNodeKeyframe<Vector3> skf = new ModelNodeKeyframe();
-							skf.keytime = keytime;
-							skf.value = new Vector3(scale.getFloat(0), scale.getFloat(1), scale.getFloat(2));
-							nodeAnim.scaling.add(skf);
-						}
-					}
-				} else { // Version 0.2:
-					JsonValue translationKF = node.get("translation");
-					if (translationKF != null && translationKF.isArray()) {
-						nodeAnim.translation = new Array<ModelNodeKeyframe<Vector3>>();
-						nodeAnim.translation.ensureCapacity(translationKF.size);
-						for (JsonValue keyframe = translationKF.child; keyframe != null; keyframe = keyframe.next) {
-							ModelNodeKeyframe<Vector3> kf = new ModelNodeKeyframe<Vector3>();
-							nodeAnim.translation.add(kf);
-							kf.keytime = keyframe.getFloat("keytime", 0f) / 1000.f;
-							JsonValue translation = keyframe.get("value");
-							if (translation != null && translation.size >= 3)
-								kf.value = new Vector3(translation.getFloat(0), translation.getFloat(1), translation.getFloat(2));
-						}
-					}
-					
-					
-					JsonValue rotationKF = node.get("rotation");
-					if (rotationKF != null && rotationKF.isArray()) {
-						nodeAnim.rotation = new Array<ModelNodeKeyframe<Quaternion>>();
-						nodeAnim.rotation.ensureCapacity(rotationKF.size);
-						for (JsonValue keyframe = rotationKF.child; keyframe != null; keyframe = keyframe.next) {
-							ModelNodeKeyframe<Quaternion> kf = new ModelNodeKeyframe<Quaternion>();
-							nodeAnim.rotation.add(kf);
-							kf.keytime = keyframe.getFloat("keytime", 0f) / 1000.f;
-							JsonValue rotation = keyframe.get("value");
-							if (rotation != null && rotation.size >= 4)
-								kf.value = new Quaternion(rotation.getFloat(0), rotation.getFloat(1), rotation.getFloat(2), rotation.getFloat(3));
-						}
-					}
-					
-					JsonValue scalingKF = node.get("scaling");
-					if (scalingKF != null && scalingKF.isArray()) {
-						nodeAnim.scaling = new Array<ModelNodeKeyframe<Vector3>>();
-						nodeAnim.scaling.ensureCapacity(scalingKF.size);
-						for (JsonValue keyframe = scalingKF.child; keyframe != null; keyframe = keyframe.next) {
-							ModelNodeKeyframe<Vector3> kf = new ModelNodeKeyframe<Vector3>();
-							nodeAnim.scaling.add(kf);
-							kf.keytime = keyframe.getFloat("keytime", 0f) / 1000.f;
-							JsonValue scaling = keyframe.get("value");
-							if (scaling != null && scaling.size >= 3)
-								kf.value = new Vector3(scaling.getFloat(0), scaling.getFloat(1), scaling.getFloat(2));
-						}
-					}
-				}
-			}
-		}
-	}
-    */
 }

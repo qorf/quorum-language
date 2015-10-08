@@ -6,27 +6,6 @@ use Libraries.Game.Graphics.VertexAttribute
 use Libraries.Game.Disposable
 
 class VertexBufferObject is VertexData
-    // This class will almost certainly need to be implemented as a plugin, due
-    // to presence of Java buffer objects.
-    
-    // Definitely within plugin:
-    //private FloatBuffer buffer;
-    //private ByteBuffer byteBuffer;
-
-    // Plugin or not?
-    private boolean ownsBuffer = true
-
-    // OpenGL handle to the buffer, probably plugin.
-    private integer bufferHandle = 0
-
-    // Constant representing OpenGL usage.
-    private integer usage = 0
-
-    // Whether the buffer object has changed and needs to be updated.
-    boolean isDirty = false
-
-    // Whether the buffer object is bound in OpenGL. Probably plugin.
-    boolean isBound = false
 
     system action Dispose
 
@@ -42,7 +21,7 @@ class VertexBufferObject is VertexData
 
     system action GetMaxSize returns integer
 
-    // action GetAttributes returns VertexAttributes
+    system action GetAttributes returns VertexAttributes
 
     system action SetVertices(Array<number> vertices, integer offset, integer count)
 
@@ -59,4 +38,26 @@ class VertexBufferObject is VertexData
     // system action Unbind(ShaderProgram shader, Array<integer> locations)
 
     system action Invalidate
+
+    action FillVertexBuffer(Array<number> vertices)
+        isDirty = true
+        PrepareBridgeArray(vertices:GetSize())
+        integer index = 0
+        repeat vertices:GetSize() times
+            SendToBridgeArray(index, vertices:Get(index))
+            index = index + 1
+        end
+        PopulateVertexBuffer()
+    end
+
+    /* Used to inform the plugin that we are about to send a new array of
+    doubles with the given length. */
+    private system action PrepareBridgeArray(integer length)
+
+    /* Sends a value to be stored in the bridge array at the given index. */
+    private system action SendToBridgeArray(integer index, number value)
+
+    /* Uses the filled values of the bridge array to populate the byte buffer. */
+    private system action PopulateVertexBuffer
+    
 end

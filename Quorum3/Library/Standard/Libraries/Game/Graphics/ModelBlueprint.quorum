@@ -26,7 +26,7 @@ use Libraries.Game.Disposable
 use Libraries.Containers.Array
 
 class ModelBlueprint is Disposable
-    //public Array<Material> materials
+    public Array<Material> materials
     public Array<Node> nodes
     public Array<Animation> animations
     public Array<Mesh> meshes
@@ -36,6 +36,7 @@ class ModelBlueprint is Disposable
     //private ObjectMap<NodePart, ArrayMap<String, Matrix4>> nodePartBones = new ObjectMap<NodePart, ArrayMap<String, Matrix4>>();
 
     action Load(ModelData data)
+        LoadMeshes(data:meshes)
     //    JAVA:
     //    loadMeshes(modelData.meshes);
     //    loadMaterials(modelData.materials, textureProvider);
@@ -53,35 +54,42 @@ class ModelBlueprint is Disposable
     end
 
     private action ConvertMesh(ModelMesh modelMesh)
-        // JAVA:
-        /*
-        int numIndices = 0;
-        for (ModelMeshPart part : modelMesh.parts) {
-                numIndices += part.indices.length;
-        }
-        VertexAttributes attributes = new VertexAttributes(modelMesh.attributes);
-        int numVertices = modelMesh.vertices.length / (attributes.vertexSize / 4);
+        integer indicesCount = 0
+        integer index = 0
+        
+        repeat modelMesh:parts:GetSize() times
+            ModelMeshPart part = modelMesh:parts:Get(index)
+            indicesCount = indicesCount + part:indices:GetSize()
+            index = index + 1
+        end
 
-        Mesh mesh = new Mesh(true, numVertices, numIndices, attributes);
-        meshes.add(mesh);
-        disposables.add(mesh);
+        VertexAttributes attributes
+        attributes:SetAttributes(modelMesh:attributes)
+        integer verticesCount = modelMesh:vertices:GetSize() / (attributes:vertexSize / 4)
 
-        BufferUtils.copy(modelMesh.vertices, mesh.getVerticesBuffer(), modelMesh.vertices.length, 0);
-        int offset = 0;
-        mesh.getIndicesBuffer().clear();
-        for (ModelMeshPart part : modelMesh.parts) {
-                MeshPart meshPart = new MeshPart();
-                meshPart.id = part.id;
-                meshPart.primitiveType = part.primitiveType;
-                meshPart.indexOffset = offset;
-                meshPart.numVertices = part.indices.length;
-                meshPart.mesh = mesh;
-                mesh.getIndicesBuffer().put(part.indices);
-                offset += meshPart.numVertices;
-                meshParts.add(meshPart);
-        }
-        mesh.getIndicesBuffer().position(0);
-        */
+        Mesh mesh
+        mesh:Load(true, verticesCount, indicesCount, attributes)
+        meshes:Add(mesh)
+        disposables:Add(mesh)
+
+        mesh:GetVertexData():FillVertexBuffer(modelMesh:vertices)
+        mesh:GetIndexData():Clear()
+
+        integer offset = 0
+        index = 0
+        repeat modelMesh:parts:GetSize() times
+            ModelMeshPart part = modelMesh:parts:Get(index)
+            MeshPart meshPart
+            meshPart:id = part:id
+            meshPart:primitiveType = part:primitiveType
+            meshPart:indexOffset = offset
+            meshPart:verticesCount = part:indices:GetSize()
+            mesh:GetIndexData():Put(part:indices)
+            offset = offset + meshPart:verticesCount
+            meshParts:Add(meshPart)
+        end
+
+        mesh:GetIndexData():SetPosition(0)
     end
 
     private action LoadMaterials(Array<ModelMaterial> modelMaterials)
@@ -95,6 +103,9 @@ class ModelBlueprint is Disposable
 
     private action ConvertMaterial(ModelMaterial mtl)
         // JAVA:
+        Material result
+        result:id = mtl:id
+        
         /*
             Material result = new Material();
 		result.id = mtl.id;

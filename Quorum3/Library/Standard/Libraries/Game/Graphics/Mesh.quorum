@@ -106,6 +106,14 @@ class Mesh is Disposable
     action Dispose
     //...
     end
+
+    action GetVertexData returns VertexData
+        return vertices
+    end
+
+    action GetIndexData returns IndexData
+        return indices
+    end
 end
 /*
 

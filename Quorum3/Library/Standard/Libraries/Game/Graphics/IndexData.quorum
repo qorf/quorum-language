@@ -23,4 +23,10 @@ class IndexData is Disposable
 
     // Used to force OpenGL to create a new buffer handle. Used for context loss.
     blueprint action Invalidate
+
+    blueprint action Clear
+
+    blueprint action Put(Array<integer> values)
+
+    blueprint action SetPosition(integer position)
 end

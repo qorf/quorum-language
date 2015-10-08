@@ -45,4 +45,23 @@ class IndexBufferObject is IndexData
     // Used to force OpenGL to create a new buffer handle. Used for context loss.
     system action Invalidate
 
+    system action Clear
+
+    action Put(Array<integer> values)
+        PrepareBridgeArray(values:GetSize())
+        integer index = 0
+        repeat values:GetSize() times
+            SendToBridgeArray(index, values:Get(index))
+            index = index + 1
+        end
+        PutBridgeArray()
+    end
+
+    private system action PrepareBridgeArray(integer length)
+
+    private system action SendToBridgeArray(integer index, integer value)
+
+    private system action PutBridgeArray
+
+    system action SetPosition(integer position)
 end
