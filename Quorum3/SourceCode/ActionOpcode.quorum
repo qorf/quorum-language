@@ -140,9 +140,9 @@ class ActionOpcode is QuorumOpcode
             if not block:HasReturnThisBlock() and type:IsVoid()
                 Location loc = GetLocation()
                 if loc not= undefined and methodWriter not= undefined
-                    JavaBytecodeLabel start
-                    methodWriter:VisitLabel(start)
-                    methodWriter:VisitLine(loc:GetLineNumberEnd(), start)
+                    JavaBytecodeLabel start2
+                    methodWriter:VisitLabel(start2)
+                    methodWriter:VisitLine(loc:GetLineNumberEnd(), start2)
                 end
                 methodWriter:VisitInstruction(opcodes:GetReturn())
             end

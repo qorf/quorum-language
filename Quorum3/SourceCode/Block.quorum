@@ -100,7 +100,7 @@ class Block is Location
     end
 
     action Add(Variable variable) returns CompilerError
-        if variables:HasKey(variable:GetStaticKey())
+        if HasVariableExceptField(variable:GetStaticKey())
             CompilerError error
             error:SetLineNumber(variable:GetLineNumber())
             error:SetFile(variable:GetFile())
@@ -110,6 +110,38 @@ class Block is Location
         variables:Add(variable:GetStaticKey(), variable)
         orderedVariables:Add(variable)
         return undefined
+    end
+
+    /*
+        This action computes whether or not a variable of the same name exists
+        in this block or one of its parents. If it does, it returns true, otherwise
+        false.
+    */
+    action HasVariableExceptField(text key) returns boolean
+        Variable variable = variables:GetValue(key)
+        if variable not= undefined
+            return true
+        end
+        //if undefined, check the parents
+        Block parentBlock = GetParentBlock()
+        repeat while parentBlock not= undefined
+            //check for the variable
+            variable = parentBlock:GetVariableThisBlock(key)
+            if variable not= undefined
+                return true
+            end
+            parentBlock = parentBlock:GetParentBlock()
+        end //it isn't in any of the parent blocks, check the action and class
+
+        if parentAction = undefined
+            a = 5
+        end
+        variable = parentAction:GetParameter(key)
+        if variable not= undefined
+            return true
+        end
+
+        return false
     end
 
     action SetExceptionVariable(Variable variable) returns CompilerError

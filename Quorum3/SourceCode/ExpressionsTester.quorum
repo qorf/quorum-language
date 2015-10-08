@@ -117,6 +117,7 @@ class ExpressionsTester
         BlueprintMain()
         ChangeConstant()
         ChangeConstantField()
+        DuplicateVariableDefinition()
         FatInteger()
         DuplicateClassTest()
         InvalidExpression()
@@ -1338,6 +1339,15 @@ class ExpressionsTester
         Array<File> files
         File main
         main:SetPath(path + "ChangeConstant.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action DuplicateVariableDefinition
+        Array<File> files
+        File main
+        main:SetPath(path + "DuplicateVariableDefinition.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

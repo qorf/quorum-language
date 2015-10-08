@@ -142,7 +142,7 @@ class Action is Symbol
             value = value + "<p>" + doc:GetDescription() + "</p>"
             value = value + "<p><strong>Parameters</strong></p>"
             variables = GetParameterIterator()
-            integer i = 0
+            integer i2 = 0
             value = value + "<ul>"
             repeat while variables:HasNext()
                 Variable param = variables:Next()
@@ -156,7 +156,7 @@ class Action is Symbol
                     value = value + "</li>"
                 end
                 
-                i = i + 1
+                i2 = i2 + 1
             end
             value = value + "</ul>"
 

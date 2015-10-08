@@ -202,9 +202,9 @@ class ClassOpcode is QuorumOpcode
                 Type t = var:GetType()
                 text typeDisplay = t:GetDisplayName()
                 result = result + "<li><strong>" + typeDisplay + " " + var:GetName() + "</strong>: "
-                Documentation doc = var:GetDocumentation()
-                if doc not= undefined
-                    result = result + doc:GetDescription()
+                Documentation doc2 = var:GetDocumentation()
+                if doc2 not= undefined
+                    result = result + doc2:GetDescription()
                 end
                 result = result + "</li>" + NL
                 
@@ -229,9 +229,9 @@ class ClassOpcode is QuorumOpcode
             Action act = it:Next()
             text display = act:GetDisplayNameNoReturnAsWeb()
             result = result + "<h2 style=" + dq + "font-size:" + h2Size + "%" + dq + ">" + display + "</h2>" + NL
-            Documentation doc = act:GetDocumentation()
-            if doc not= undefined
-                result = result + doc:GetHeaderAsWeb()
+            Documentation doc2 = act:GetDocumentation()
+            if doc2 not= undefined
+                result = result + doc2:GetHeaderAsWeb()
             end          
 
             Iterator<Variable> params = act:GetParameterIterator()
@@ -242,8 +242,8 @@ class ClassOpcode is QuorumOpcode
                     Variable param = params:Next()
                     result = result + "<li>" + NL
                     result = result + "<strong>" + param:GetDisplayNameWithGenericsAsWeb() + "</strong>"
-                     if doc not= undefined
-                        text value = doc:GetParameterDescription(param:GetName())
+                     if doc2 not= undefined
+                        text value = doc2:GetParameterDescription(param:GetName())
                         if value not= undefined
                             result = result + ": " + value
                         end
@@ -258,8 +258,8 @@ class ClassOpcode is QuorumOpcode
                 text r = returnType:GetStaticKeyWithMappedGenerics()
                 result = result + "<strong><em>Return: </em></strong>"
                 result = result + r
-                if doc not= undefined
-                    result = result + "<p> " + doc:GetReturns() + "</p>"
+                if doc2 not= undefined
+                    result = result + "<p> " + doc2:GetReturns() + "</p>"
                 end
             end
         end
