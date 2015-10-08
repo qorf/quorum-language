@@ -252,9 +252,9 @@ class Compiler
         sandboxedProfiler:Add(time:GetEpochTime()) 
         
         DateTime time2
-        finish = time2:GetEpochTime()
-        total = (finish - start) / 1000.0
-        result:time = total
+        //integer finish = cast(integer, time2:GetEpochTime())
+        //integer total = cast(integer, (finish - start) / 1000.0)
+        result:time = (time2:GetEpochTime() - start) / 1000.0//total
         return result
     end
 
@@ -372,34 +372,34 @@ class Compiler
         text left = split:Get(0)
         text trimmedLeft = left:Trim()
         if clazz not= undefined
-            text line = left
-            integer i = line:GetSize() - 1
+            text line2 = left
+            integer i = line2:GetSize() - 1
             repeat while i >= 0
-                text ch = line:GetCharacter(i)
+                text ch = line2:GetCharacter(i)
                 if ch = "(" or ch = ","
                    or ch = "*" or ch = "/"
                    or ch = "+" or ch = "-"
-                   or ch = " " or IsMod(line, i) 
+                   or ch = " " or IsMod(line2, i) 
                     //make this work for mod --- if it's a d, check backwards and ensure that it's not part of another word
 
                     //split the line again
-                    line = line:GetSubtext(i + 1, line:GetSize())
-                    left = line
-                    line = line:Trim()
-                    split = line:Split(":")
+                    line2 = line2:GetSubtext(i + 1, line2:GetSize())
+                    left = line2
+                    line2 = line2:Trim()
+                    split = line2:Split(":")
                     if split:IsEmpty()
                         return now
                     end
 
-                    if split:GetSize() > 1 or line:Contains(":")
-                        text ch = line:GetCharacter(line:GetSize() - 1)
-                        if ch = ":"
+                    if split:GetSize() > 1 or line2:Contains(":")
+                        text ch2 = line2:GetCharacter(line2:GetSize() - 1)
+                        if ch2 = ":"
                             result:filter = ""
                         else
                             result:filter = split:Get(split:GetSize() - 1)
                         end
                     end
-                    trimmedLeft = line
+                    trimmedLeft = line2
                     i = -1
                 end
                 i = i - 1
@@ -591,15 +591,15 @@ class Compiler
             //add all of the fields from this class
             Iterator<Variable> variables = clazz:GetVariables()
             repeat while variables:HasNext()
-                Variable variable = variables:Next()
-                CodeCompletionItem item = variable:GetCodeCompletionItem(clazz)
+                Variable variable2 = variables:Next()
+                CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
                 text filter = result:filter
                 integer size = filter:GetSize()
                 item:dotOffset = request:caretLocation - size
                 if isCurrentClass
                     result:Add(item)
                 else
-                    if not variable:IsPrivate()
+                    if not variable2:IsPrivate()
                         result:Add(item)
                     end
                 end
@@ -609,17 +609,17 @@ class Compiler
             Iterator<Class> parents = clazz:GetParentClasses()
             repeat while parents:HasNext()
                 Class par = parents:Next()
-                Iterator<Variable> variables = par:GetVariables()
-                repeat while variables:HasNext()
-                    Variable variable = variables:Next()
-                    CodeCompletionItem item = variable:GetCodeCompletionItem(clazz)
+                Iterator<Variable> variables2 = par:GetVariables()
+                repeat while variables2:HasNext()
+                    Variable variable2 = variables2:Next()
+                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
                     text filter = result:filter
                     integer size = filter:GetSize()
                     item:dotOffset = request:caretLocation - size
                     if isCurrentClass
                         result:Add(item)
                     else
-                        if not variable:IsPrivate()
+                        if not variable2:IsPrivate()
                             result:Add(item)
                         end
                     end
@@ -714,50 +714,6 @@ class Compiler
         item:documentationText = "Test"
         return item
     end
-    
-//    private action GetActionCompletionItem(Action act) returns CodeCompletionItem
-//        CodeCompletionItem item
-//        if act:GetParametersSize() = 0
-//            item:isActionWithoutParameters = true
-//        end
-//
-//        if act:IsPublic()
-//            if act:IsBlueprint()
-//                item:SetType(item:PUBLIC_BLUEPRINT_ACTION)
-//            elseif act:IsSystem()
-//                item:SetType(item:PUBLIC_SYSTEM_ACTION)
-//            else
-//                item:SetType(item:PUBLIC_ACTION)
-//            end
-//        else 
-//            if act:IsBlueprint()
-//                item:SetType(item:PRIVATE_BLUEPRINT_ACTION)
-//            elseif act:IsSystem()
-//                item:SetType(item:PRIVATE_SYSTEM_ACTION)
-//            else
-//                item:SetType(item:PRIVATE_ACTION)
-//            end
-//        end
-//
-//        Class clazz = act:GetParentClass()
-//
-//        if clazz not= undefined
-//            if clazz:GetAction(act:GetStaticKey()) not= undefined
-//                item:isBaseClassAction = true
-//            end
-//        end
-//
-//        text signature = act:GetStaticKey()
-//        
-//        text name = act:GetName()
-//
-//        text description = "<h1>" + signature + "</h1>"
-//
-//        item:displayText = name
-//        item:completionText = name
-//        item:documentationText = ""
-//        return item
-//    end
 
     private action GetPackageCompletionItem(text pack) returns CodeCompletionItem
         CodeCompletionItem item
@@ -787,8 +743,8 @@ class Compiler
             if pack:StartsWith(filteredName)
                 CodeCompletionItem item = GetPackageCompletionItem(subpackName)
                 text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size
+                integer size2 = filter:GetSize()
+                item:dotOffset = request:caretLocation - size2
                 result:Add(item)
             end
         end
@@ -1158,9 +1114,9 @@ class Compiler
                         index = index + NL + "<table class=" + dq + "table index-package" + dq + ">"
                         index = index + "<tr><th><h3 class=" + dq + "index_package_title" + dq + ">" + key + "</h3></th></tr>" + NL
                         Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
-                        integer i = 0
+                        integer i2 = 0
                         repeat classes:GetSize() times
-                            Class clazz = classes:Get(i)
+                            Class clazz = classes:Get(i2)
                             index = index + "<tr><td class=" + dq + "primary" + dq + ">" + NL
                             index = index + GetClassLinkFromIndex(clazz)//"<a href=" + dq + "" + dq + ">" + clazz:GetName() + "</a>" 
                             
@@ -1179,7 +1135,7 @@ class Compiler
                             end
 
                             index = index + "</td></tr>"
-                            i = i + 1
+                            i2 = i2 + 1
                         end
                         index = index + "</table>"
                     end

@@ -263,6 +263,11 @@ class QuorumSourceListener
         action does not need to be overriden.
     */
     action SyntaxError(CompilerError error) 
+        text message = error:GetErrorMessage()
+        text sub = "missing 'end' at '<EOF>'"
+        if message = sub
+            error:SetErrorMessage("I think there is an 'end' statement missing at the end of the file.")
+        end
         compilerErrorManager:Add(error)
     end
 end

@@ -27,7 +27,7 @@ public class Game
             System.setProperty("org.lwjgl.librarypath", lwjgl);
             
             String nativeFile;
-            if (os.contains("Mac OS X"))
+            if (os.contains("Mac OS X") || os.contains("Linux"))
                 nativeFile = runLocation + "/jni/libGameEngineCPlugins.so";
             else if (os.contains("Windows"))
                 if (System.getProperty("os.arch").contains("x86"))
@@ -35,9 +35,11 @@ public class Game
                 else
                     nativeFile = runLocation + "\\jni\\libGameEngineCPlugins64.dll";
             else
-                throw new GameRuntimeError("This operating system is not supported for games!");
-            
-            GameState.SetNativePath(nativeFile);
+                //throw new GameRuntimeError("This operating system is not supported for games!");
+                nativeFile = null;
+                
+            if (nativeFile != null)
+                GameState.SetNativePath(nativeFile);
             GameState.SetOperatingSystem(System.getProperty("os.name"));
         } 
         catch (URISyntaxException ex) 
