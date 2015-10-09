@@ -106,6 +106,7 @@ public class QuorumParser extends Parser{
                             int end = next.GetIndexEnd();
                             Severity severity = Severity.ERROR;
                             QuorumError error = new QuorumError(displayName, description, key, fo2, start, end, severity);
+                            error.setError(next);
                             fileErrors.add(error);
                         }
                     }
