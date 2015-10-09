@@ -130,6 +130,9 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action ExitPackageRule(PackageContext context) 
         packageValue = context:name
+        if packageValue not= undefined
+            packageValue:SetLocation(context:GetLocation())
+        end
     end
 
     action EnterFullClassDeclaration(FullClassDeclarationContext context) 

@@ -137,10 +137,13 @@ class Main is WebResponder
         compiler:SetOutputFolder(root)
         File standardLibraryFolder = compiler:GetStandardLibraryFolder()
         compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        compiler:ScanStandardLibrary()
         Array<File> files// = main:GetDirectoryListing()
 
         File actualMain
-        actualMain:SetPath("Library/Tests/Expressions/Fail/RedLine1.quorum")
+        actualMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication2222/SourceCode/")
+        //actualMain:SetPath("Library/Tests/Expressions/Fail/RedLine1.quorum")
+        actualMain:SetPath("main.quorum")
         compiler:SetMain(actualMain)
 
         files:Add(actualMain)
@@ -150,12 +153,12 @@ class Main is WebResponder
         info:sourceLocation = actualMain
         info:source = actualMain:Read()
 
-        File redFail
-        redFail:SetPath("Library/Tests/Expressions/Fail/RedLine2.quorum")
+        //File redFail
+        //redFail:SetPath("Library/Tests/Expressions/Fail/RedLine2.quorum")
         
 
         CompilerResult result = compiler:ParseRepeat(info)
-        info:source = redFail:Read()
+        //info:source = redFail:Read()
 
         repeat 20 times
             result = compiler:ParseRepeat(info)
@@ -283,14 +286,14 @@ class Main is WebResponder
         File standardLibraryFolder = compiler:GetStandardLibraryFolder()
         compiler:SetStandardLibraryFolder(standardLibraryFolder)
         output compiler:GetVersion()
-        //compiler:ScanStandardLibrary()
+        compiler:ScanStandardLibrary()
         File root
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
-        //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication2222/SourceCode/")
-        main:SetPath("Library/Tests/Expressions/Fail/DuplicateVariableDefinition.quorum")
-        //main:SetPath("main.quorum")
+        main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication2222/SourceCode/")
+        //main:SetPath("Library/Tests/Expressions/Fail/DuplicateVariableDefinition.quorum")
+        main:SetPath("main.quorum")
 
         File class2
         class2:SetPath("Library/Tests/Inheritance/Pass/A4.quorum")

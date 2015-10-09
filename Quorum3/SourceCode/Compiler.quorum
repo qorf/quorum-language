@@ -43,6 +43,7 @@ class Compiler
     public constant integer JAVA_BYTECODE = 0
     public constant integer JAVASCRIPT = 1
     public constant integer DOCUMENT = 2
+    boolean hasScannedStandardLibrary = false
 
     integer currentOutputType = 0
     boolean outputSpeechCommands = true
@@ -142,6 +143,9 @@ class Compiler
                 i = i + 1
             end
         end
+
+        //the sandbox has been created, so let the compiler know this.
+        hasScannedStandardLibrary = true
     end
 
     /*
@@ -1013,6 +1017,10 @@ class Compiler
             error:SetColumnNumberEnd(1)
             compilerErrorManager:Add(error)
             return now
+        end
+
+        if hasScannedStandardLibrary
+            symbolTable:SetStandardLibraryCache(sandboxSymbolTable)
         end
 
         i = 0
