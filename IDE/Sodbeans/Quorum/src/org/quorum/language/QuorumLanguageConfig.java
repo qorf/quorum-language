@@ -7,9 +7,11 @@ package org.quorum.language;
 
 import org.netbeans.modules.csl.api.CodeCompletionHandler;
 import org.netbeans.modules.csl.api.HintsProvider;
+import org.netbeans.modules.csl.api.IndexSearcher;
 import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
 import org.netbeans.modules.csl.spi.LanguageRegistration;
 import org.netbeans.modules.parsing.spi.Parser;
+import org.netbeans.modules.parsing.spi.indexing.EmbeddingIndexerFactory;
 
 /**
  *
@@ -23,7 +25,12 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     QuorumLanguageHierarchy language = new QuorumLanguageHierarchy();
     org.netbeans.api.lexer.Language lexerLanguage = language.language();
     QuorumCodeCompletionHandler completion = new QuorumCodeCompletionHandler();
+    QuorumIndexerFactory factory = new QuorumIndexerFactory();
+    QuorumIndexSearcher indexSearcher = new QuorumIndexSearcher();
     
+    public QuorumLanguageConfig() {
+        
+    }
     @Override
     public org.netbeans.api.lexer.Language getLexerLanguage() {
         return lexerLanguage;
@@ -63,4 +70,14 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     public boolean isIdentifierChar(char c) {
         return Character.isJavaIdentifierPart(c);
     }   
+
+    @Override
+    public IndexSearcher getIndexSearcher() {
+        return indexSearcher;
+    }
+
+    @Override
+    public EmbeddingIndexerFactory getIndexerFactory() {
+        return factory;
+    }
 }
