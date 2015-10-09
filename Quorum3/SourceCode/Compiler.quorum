@@ -115,6 +115,71 @@ class Compiler
     end
 
     /*
+        This action scans the system classes available and parses them appropriately.
+    */
+    action ScanStandardLibrary
+        Array<File> lib = CollectStandardLibrary()
+        integer i = 0
+        repeat lib:GetSize() times
+            File file = lib:Get(i)
+            Parser listener
+            ParseSandbox(undefined, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+            i = i + 1
+        end
+
+        TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
+
+        Array<ClassOpcode> classOpcodes
+        if compilerErrorManager:IsCompilationErrorFree()
+            i = 0
+            repeat while i < lib:GetSize()
+                File file = lib:Get(i)
+                QuorumBytecodeListener listener
+                ParseSandbox(undefined, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+                ClassOpcode op = listener:GetClassOpcode()
+                op:SetBuild(buildFolder)
+                classOpcodes:Add(op)
+                i = i + 1
+            end
+        end
+    end
+
+    /*
+        This action collects all files in the standard library and places them 
+        into an array for indexing or other purposes.
+    */
+    private action CollectStandardLibrary returns Array<File>
+        Array<File> files
+        File standardLibraryFolder = GetStandardLibraryFolder()
+        File f1
+        f1:SetWorkingDirectory(standardLibraryFolder:GetWorkingDirectory())
+        f1:SetPath(standardLibraryFolder:GetPath() + "/Libraries")
+        standardLibraryFolder = f1
+
+        Array<File> folders
+        folders:Add(standardLibraryFolder)
+        integer folderIndex = 0
+        done = false
+        repeat while folderIndex < folders:GetSize()
+            File folder = folders:Get(folderIndex)
+            Array<File> listing = folder:GetDirectoryListing()
+            i = 0
+            repeat listing:GetSize() times
+                File file = listing:Get(i)
+                if file:IsDirectory()
+                    folders:Add(file)
+                else
+                    files:Add(file)
+                end
+                i = i + 1
+            end
+            folderIndex = folderIndex + 1
+        end
+
+        return files
+    end
+
+    /*
         This action calls the parsing commands regularly, for example from
         within in an IDE, in a specialized way. Specifically, it first tries
         to parse the text passed in. The single file passed in is the file
