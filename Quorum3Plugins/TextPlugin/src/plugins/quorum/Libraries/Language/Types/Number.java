@@ -51,19 +51,27 @@ public class Number {
         return i;
     }
     
-    public double GetMaximumValue(){
+    public double GetMaximumValue(double self){
         return Double.MAX_VALUE;
     }
     
-    public static double PrimitiveGetMaximumValue(){
+    public static double PrimitiveGetMaximumValue(double self){
         return Double.MAX_VALUE;
     }
     
     public double GetMinimumValue(){
+        return -Double.MAX_VALUE;
+    }
+    
+    public static double PrimitiveGetMinimumValue(double self){
+        return -Double.MAX_VALUE;
+    }
+    
+    public double GetMinimumPositiveValue(){
         return Double.MIN_VALUE;
     }
     
-    public static double PrimitiveGetMinimumValue(){
+    public static double PrimitiveGetMinimumPositiveValue(double self){
         return Double.MIN_VALUE;
     }
     
@@ -79,7 +87,7 @@ public class Number {
         return Double.NEGATIVE_INFINITY;
     }
     
-    public static double PrimitiveGetNegativeInfinityValue(){
+    public static double PrimitiveGetNegativeInfinityValue(double self){
         return Double.NEGATIVE_INFINITY;
     }
     
@@ -87,7 +95,7 @@ public class Number {
         return Double.POSITIVE_INFINITY;
     }
     
-    public static double PrimitiveGetPositiveInfinityValue(){
+    public static double PrimitiveGetPositiveInfinityValue(double self){
         return Double.POSITIVE_INFINITY;
     }
     
@@ -95,7 +103,7 @@ public class Number {
         return Double.SIZE;
     }
     
-    public static int PrimitiveGetNumberOfBits(){
+    public static int PrimitiveGetNumberOfBits(double self){
         return Double.SIZE;
     }
     

@@ -177,11 +177,11 @@ public class Integer {
         return java.lang.Integer.toOctalString(self);
     }
     
-    public static int PrimitiveGetMaximumValue(){
+    public static int PrimitiveGetMaximumValue(int self){
         return java.lang.Integer.MAX_VALUE;
     }
     
-    public static int PrimitiveGetMinimumValue(){
+    public static int PrimitiveGetMinimumValue(int self){
         return java.lang.Integer.MIN_VALUE;
     }
     
