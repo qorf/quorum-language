@@ -5,13 +5,11 @@
  */
 package org.quorum.language;
 
-import javax.swing.text.Position;
 import org.netbeans.editor.BaseDocument;
 import org.netbeans.editor.Utilities;
 import org.netbeans.modules.csl.api.EditList;
 import org.netbeans.modules.csl.api.HintFix;
 import org.netbeans.modules.csl.api.RuleContext;
-import quorum.Libraries.Language.Compile.CompilerError_;
 import quorum.Libraries.Language.Compile.Hints.Hint_;
 
 /**
@@ -19,7 +17,6 @@ import quorum.Libraries.Language.Compile.Hints.Hint_;
  * @author stefika
  */
 public class QuorumHintFix implements HintFix {
-    private CompilerError_ error;
     private Hint_ hint;
     private RuleContext rc;
     
@@ -52,20 +49,6 @@ public class QuorumHintFix implements HintFix {
     @Override
     public boolean isInteractive() {
         return false;
-    }
-
-    /**
-     * @return the error
-     */
-    public CompilerError_ getError() {
-        return error;
-    }
-
-    /**
-     * @param error the error to set
-     */
-    public void setError(CompilerError_ error) {
-        this.error = error;
     }
 
     /**

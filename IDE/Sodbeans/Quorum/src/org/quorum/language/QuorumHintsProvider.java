@@ -6,6 +6,7 @@
 package org.quorum.language;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,20 +61,19 @@ public class QuorumHintsProvider implements HintsProvider{
         Iterator<? extends Error> iterator = errors.iterator();
         while(iterator.hasNext()) {
             QuorumError next = (QuorumError) iterator.next();
-            CompilerError_ error = next.getError();
-            boolean hasHints = error.HasHints();
-            if(hasHints) {
-                Hint hint = getHint(error, rc);
-                hints.add(hint);
-                unhandled.add(next);
-            } else {
-                unhandled.add(next);
-            }
+            unhandled.add(next);
         }
-        //unhandled.addAll(errors);
+        
+        ArrayList<Hint_> quorumHints = result.getHints();
+        Iterator<Hint_> it = quorumHints.iterator();
+        while(it.hasNext()) {
+            Hint_ next = it.next();
+            Hint hint = getHint(next, rc);
+            hints.add(hint);
+        }
     }
     
-    public Hint getHint(final CompilerError_ error, RuleContext rc) {
+    public Hint getHint(final Hint_ hintFromQuorum, RuleContext rc) {
         Rule rule = new Rule() {
             @Override
             public boolean appliesTo(RuleContext rc) {
@@ -82,7 +82,7 @@ public class QuorumHintsProvider implements HintsProvider{
 
             @Override
             public String getDisplayName() {
-                return error.GetDisplayName();
+                return hintFromQuorum.GetDisplayName();
             }
 
             @Override
@@ -95,25 +95,20 @@ public class QuorumHintsProvider implements HintsProvider{
                 return HintSeverity.CURRENT_LINE_WARNING;
             }
         };
-        File file = new File(error.GetAbsolutePath());
+        File file = new File(hintFromQuorum.GetAbsolutePath());
         FileObject fo = FileUtil.toFileObject(file);
-        int start = error.GetIndex();
-        int finish = error.GetIndexEnd();
+        int start = hintFromQuorum.GetIndex();
+        int finish = hintFromQuorum.GetIndexEnd();
         
         List<HintFix> list = new LinkedList<HintFix>();
-        Iterator_ hints = error.GetHintIterator();
-        while(hints.HasNext()) {
-            Hint_ next = (Hint_) hints.Next();
-            QuorumHintFix fix = new QuorumHintFix();
-            fix.setRuleContext(rc);
-            fix.setError(error);
-            fix.setHint(next);
-            list.add(fix);
-        }
+        QuorumHintFix fix = new QuorumHintFix();
+        fix.setRuleContext(rc);
+        fix.setHint(hintFromQuorum);
+        list.add(fix);
+        
         OffsetRange or = new OffsetRange(start,finish);
         int severity = 1;
-        QuorumHint hint = new QuorumHint(rule, error.GetDisplayName(), fo, or, list, severity);
-        
+        QuorumHint hint = new QuorumHint(rule, hintFromQuorum.GetDisplayName(), fo, or, list, severity);
         return hint;
     }
 

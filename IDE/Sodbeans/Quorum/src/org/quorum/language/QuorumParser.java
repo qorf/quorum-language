@@ -27,7 +27,7 @@ import quorum.Libraries.Containers.Blueprints.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerErrorManager_;
 import quorum.Libraries.Language.Compile.CompilerError_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
-import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
+import quorum.Libraries.Language.Compile.Hints.Hint_;
 /**
  *
  * @author stefika
@@ -37,6 +37,7 @@ public class QuorumParser extends Parser{
     Task task;
     SourceModificationEvent sme;
     private ArrayList<QuorumError> fileErrors = new ArrayList<QuorumError>();
+    private ArrayList<Hint_> fileHints = new ArrayList<Hint_>();
     quorum.Libraries.Language.Compile.ProjectInformation info = new quorum.Libraries.Language.Compile.ProjectInformation();
     private static final Logger logger = Logger.getLogger(QuorumParser.class.getName());
     
@@ -84,13 +85,16 @@ public class QuorumParser extends Parser{
                     CompilerResult_ result = compiler.ParseRepeat(info);                 
                     
                     CompilerErrorManager_ errors = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
+                    
+                    //regardless of compiler errors, we could have hints. Handle that
+                    handleHints(errors);
+                    
                     if(errors.IsCompilationErrorFree()) {
                         fileErrors.clear();
                         if(result != null && project instanceof QuorumProject) {
                             QuorumProject qp = (QuorumProject) project;
                             qp.setSandboxCompilerResult(result);
                         }
-                        
                     } else {
                         fileErrors.clear();
                         Iterator_ it = errors.GetIterator();
@@ -117,6 +121,17 @@ public class QuorumParser extends Parser{
         }
     }
 
+    private void handleHints(CompilerErrorManager_ errors) {
+        fileHints.clear();
+        if(errors.HasHints()) {
+            Iterator_ hints = errors.GetHintIterator();
+            while(hints.HasNext()) {
+                Hint_ hint = (Hint_) hints.Next();
+                fileHints.add(hint);
+            }
+        }
+    }
+    
     @Override
     public Result getResult(Task task) throws ParseException {
         return new QuorumParserResult(snapshot, this);
@@ -137,4 +152,7 @@ public class QuorumParser extends Parser{
         return fileErrors;
     }
     
+    public ArrayList<Hint_> getFileHints() {
+        return fileHints;
+    }
 }
