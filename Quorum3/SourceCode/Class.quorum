@@ -1028,13 +1028,13 @@ class Class is Symbol
                 error:SetCompilerErrorType(t)
                 error:SetErrorMessage("I could not locate a type named "
                     +  key + ". Did you forget a use statement?" )
-                FindPossibleUsage(table, error, key)
+                FindPossibleUsage(table, error, key, errors)
                 errors:Add(error)
             end
         end
     end
 
-    private action FindPossibleUsage(SymbolTable table, CompilerError error, text key)
+    private action FindPossibleUsage(SymbolTable table, CompilerError error, text key, CompilerErrorManager errors)
         //check the symbol table cache to see if it exists
         //if it does, see if a suggestion exists.
         SymbolTable cache = undefined
@@ -1050,6 +1050,8 @@ class Class is Symbol
             if possible:GetName() = key
                 //add an editor hint telling the user
                 UseHint hint
+                Location locationCopy = error:CreateLocationCopy()
+                hint:SetLocation(locationCopy)
                 text code = "use " + possible:GetStaticKey()
                 code = code + code:GetCarriageReturn() + code:GetLineFeed()
                 hint:SetCode(code)
@@ -1074,7 +1076,7 @@ class Class is Symbol
                 hint:SetStartOffset(index)
                 hint:SetEndOffset(index)
 
-                error:Add(hint)
+                errors:Add(hint)
             end
         end
     end
@@ -1123,7 +1125,7 @@ class Class is Symbol
                 error:SetCompilerErrorType(t)
                 error:SetErrorMessage("I could not locate a type named "
                     +  key + ". Did you forget a use statement?" )
-                FindPossibleUsage(table, error, key)
+                FindPossibleUsage(table, error, key, errors)
                 errors:Add(error)
             end
         end
@@ -1179,7 +1181,7 @@ class Class is Symbol
                 error:SetCompilerErrorType(t)
                 error:SetErrorMessage("I could not locate a type named "
                     +  key + ". Did you forget a use statement?" )
-                FindPossibleUsage(table, error, key)
+                FindPossibleUsage(table, error, key, errors)
                 errors:Add(error)
             end
         end

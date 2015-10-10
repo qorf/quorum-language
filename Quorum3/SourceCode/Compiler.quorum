@@ -196,6 +196,7 @@ class Compiler
         CompilerResult result
         result:compilerErrorManager = sandboxCompilerErrorManager
         sandboxCompilerErrorManager:Empty()
+        sandboxCompilerErrorManager:EmptyHints()
         result:symbolTable = sandboxSymbolTable
         sandboxTypeChecker:SetSymbolTable(sandboxSymbolTable)
         DateTime time

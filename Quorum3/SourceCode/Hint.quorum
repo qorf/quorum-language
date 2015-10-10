@@ -1,8 +1,9 @@
 package Libraries.Language.Compile.Hints
 
 use Libraries.System.File
+use Libraries.Language.Compile.Location
 
-class Hint
+class Hint is Location
     text message = ""
     integer startOffset = 0
     integer endOffset = 0
@@ -29,6 +30,20 @@ class Hint
 
     action SetEndOffset(integer value)
         endOffset = value
+    end
+
+    action GetAbsolutePath returns text
+        File file = GetFile()
+        if file not= undefined
+            return file:GetAbsolutePath()
+        end
+
+        text value = ""
+        return value
+    end
+
+    action GetStaticKey returns text
+        return GetAbsolutePath()
     end
 
     blueprint action GetInsertionText returns text

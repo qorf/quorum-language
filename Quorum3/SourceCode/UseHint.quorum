@@ -14,7 +14,7 @@ class UseHint is Hint
 
     action SetLibraryName(text name)
         libraryName = name
-        parent:Libraries.Language.Compile.Hints.Hint:message = "Add Use for " + libraryName
+        parent:Libraries.Language.Compile.Hints.Hint:message = "Add use for " + libraryName
     end
 
     action GetLibraryName returns text
