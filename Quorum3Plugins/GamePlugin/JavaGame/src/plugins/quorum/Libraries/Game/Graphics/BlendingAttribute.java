@@ -9,8 +9,10 @@ package plugins.quorum.Libraries.Game.Graphics;
  *
  * @author alleew
  */
-public class BlendedAttribute extends Attribute
+public class BlendingAttribute extends Attribute
 {
+    public java.lang.Object me_ = null;
+    
     public final static int BLENDED = RegisterStatic("blended");
     
     public int GetBlendedValue()

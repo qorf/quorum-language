@@ -11,6 +11,8 @@ package plugins.quorum.Libraries.Game.Graphics;
  */
 public class NumberAttribute extends Attribute
 {
+    public java.lang.Object me_ = null;
+    
     public static final int SHININESS = RegisterStatic("shininess");
     public static final int ALPHA_TEST = RegisterStatic("alphaTest");
     

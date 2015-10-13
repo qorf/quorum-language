@@ -13,7 +13,7 @@ package plugins.quorum.Libraries.Game.Graphics;
  */
 public class ColorAttribute extends Attribute
 {
-    java.lang.Object me_ = null;
+    public java.lang.Object me_ = null;
     
     public final static int DIFFUSE = Attribute.RegisterStatic("diffuseColor");
     public final static int SPECULAR = Attribute.RegisterStatic("specularColor");
