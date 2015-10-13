@@ -14,8 +14,6 @@ class ModelLoader
 
     system action LoadModelData(File file) returns ModelData
 
-    // blueprint action LoadModelData(File file, Parameters p) returns ModelData
-
     action LoadModel(File file) returns ModelBlueprint
         ModelData data = LoadModelData(file)
         if data not= undefined

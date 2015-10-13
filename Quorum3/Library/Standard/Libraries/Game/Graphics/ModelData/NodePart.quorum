@@ -2,6 +2,7 @@ package Libraries.Game.Graphics.ModelData
 
 use Libraries.Compute.Matrix4
 use Libraries.Containers.Array
+use Libraries.Containers.HashTable
 use Libraries.Game.Graphics.ModelData.MeshPart
 use Libraries.Game.Graphics.Material
 
@@ -11,7 +12,7 @@ class NodePart
     public Array<Matrix4> bones
     public boolean enabled = true
 
-    // public ArrayMap<Node, Matrix4> invBoneBindTransforms;
+    public HashTable<Node, Matrix4> invBoneBindTransforms
 
     /** Construct a new NodePart referencing the provided {@link MeshPart} and {@link Material}.
 	 * @param meshPart The MeshPart to reference.

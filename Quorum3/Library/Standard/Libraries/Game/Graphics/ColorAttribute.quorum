@@ -1,6 +1,6 @@
 package Libraries.Game.Graphics
 
-class ColorAttribute 
+class ColorAttribute is Attribute
     public Color color
 
     constant text DIFFUSE_ALIAS = "diffuseColor"
@@ -67,6 +67,20 @@ class ColorAttribute
         return attribute
     end
 
+    action CreateEmissive(Color setColor) returns ColorAttribute
+        ColorAttribute attribute
+        attribute:SetAttribute(GetEmissiveValue(), setColor)
+        return attribute
+    end
+
+    action CreateEmissive(number red, number green, number blue, number alpha) returns ColorAttribute
+        Color setColor
+        setColor:SetColor(red, green, blue, alpha)
+        ColorAttribute attribute
+        attribute:SetAttribute(GetEmissiveValue(), setColor)
+        return attribute
+    end
+
     action SetAttribute(integer setType, Color setColor)
         parent:Attribute:SetAttribute(setType)
         if not SupportsAttribute(setType)
@@ -75,6 +89,11 @@ class ColorAttribute
         if setColor not= undefined
             color = setColor
         end
+    end
+
+    action Copy returns Attribute
+        // ...
+        return undefined
     end
 
     /*

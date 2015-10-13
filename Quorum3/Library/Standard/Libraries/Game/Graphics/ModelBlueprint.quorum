@@ -1,9 +1,13 @@
 package Libraries.Game.Graphics
 
-//import com.badlogic.gdx.assets.loaders.ModelLoader;
 //import com.badlogic.gdx.graphics.GL20;
 //import com.badlogic.gdx.graphics.Mesh;
 use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.ColorAttribute
+use Libraries.Game.Graphics.NumberAttribute
+use Libraries.Game.Graphics.BlendingAttribute
+use Libraries.Game.Graphics.TextureAttribute
+use Libraries.Game.Graphics.TextureDescriptor
 //import com.badlogic.gdx.graphics.VertexAttributes;
 //import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 //import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
@@ -17,13 +21,12 @@ use Libraries.Compute.Matrix4
 use Libraries.Compute.Quaternion
 use Libraries.Compute.Vector3
 //import com.badlogic.gdx.math.collision.BoundingBox;
-//import com.badlogic.gdx.utils.Array;
 //import com.badlogic.gdx.utils.ArrayMap;
 //import com.badlogic.gdx.utils.BufferUtils;
 use Libraries.Game.Disposable
-//import com.badlogic.gdx.utils.GdxRuntimeException;
-//import com.badlogic.gdx.utils.ObjectMap;
 use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Blueprints.Iterator
 
 class ModelBlueprint is Disposable
     public Array<Material> materials
@@ -37,6 +40,7 @@ class ModelBlueprint is Disposable
 
     action Load(ModelData data)
         LoadMeshes(data:meshes)
+        LoadMaterials(data:materials)
     //    JAVA:
     //    loadMeshes(modelData.meshes);
     //    loadMaterials(modelData.materials, textureProvider);
@@ -95,103 +99,139 @@ class ModelBlueprint is Disposable
     private action LoadMaterials(Array<ModelMaterial> modelMaterials)
         integer counter = 0
         repeat modelMaterials:GetSize() times
-            // JAVA:
-            // this.materials.add(convertMaterial(mtl, textureProvider));
+            materials:Add(ConvertMaterial(modelMaterials:Get(counter)))
             counter = counter + 1
         end
     end
 
-    private action ConvertMaterial(ModelMaterial mtl)
-        // JAVA:
+    private action ConvertMaterial(ModelMaterial mtl) returns Material
+
         Material result
         result:id = mtl:id
+
+        ColorAttribute creator
+
+        if mtl:ambient not= undefined
+            result:Add(creator:CreateAmbient(mtl:ambient))
+        end
+        if mtl:diffuse not= undefined
+            result:Add(creator:CreateDiffuse(mtl:diffuse))
+        end
+        if mtl:specular not= undefined
+            result:Add(creator:CreateSpecular(mtl:specular))
+        end
+        if mtl:emissive not= undefined
+            result:Add(creator:CreateEmissive(mtl:emissive))
+        end
+        if mtl:reflection not= undefined
+            result:Add(creator:CreateReflection(mtl:reflection))
+        end
+        if mtl:shininess > 0
+            NumberAttribute temp
+            temp:SetAttribute(temp:GetShininessValue(), mtl:shininess)
+            result:Add(temp)
+        end
+        if mtl:opacity not= 1.0
+            BlendingAttribute temp
+            temp:opacity = mtl:opacity
+            result:Add(temp)
+        end
         
-        /*
-            Material result = new Material();
-		result.id = mtl.id;
-		if (mtl.ambient != null) result.set(new ColorAttribute(ColorAttribute.Ambient, mtl.ambient));
-		if (mtl.diffuse != null) result.set(new ColorAttribute(ColorAttribute.Diffuse, mtl.diffuse));
-		if (mtl.specular != null) result.set(new ColorAttribute(ColorAttribute.Specular, mtl.specular));
-		if (mtl.emissive != null) result.set(new ColorAttribute(ColorAttribute.Emissive, mtl.emissive));
-		if (mtl.reflection != null) result.set(new ColorAttribute(ColorAttribute.Reflection, mtl.reflection));
-		if (mtl.shininess > 0f) result.set(new FloatAttribute(FloatAttribute.Shininess, mtl.shininess));
-		if (mtl.opacity != 1.f) result.set(new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, mtl.opacity));
+        // JAVA:
+        // ObjectMap<String, Texture> textures = new ObjectMap<String, Texture>();
+        HashTable<text, Texture> textures
 
-		ObjectMap<String, Texture> textures = new ObjectMap<String, Texture>();
+        // Comment from libGDX:
+        // FIXME uvScaling/uvTranslation totally ignored
+        
+        if (mtl:textures not= undefined)
+            integer counter = 0
+            ModelTextureData tex = undefined
+            repeat mtl:textures:GetSize() times
+                tex = mtl:textures:Get(counter)
+                
+                Texture texture = undefined
+                if textures:HasKey(tex:fileName)
+                    texture = textures:GetValue(tex:fileName)
+                else
+                    Texture newTexture
+                    texture = newTexture
+                    texture:LoadModelTexture(tex:fileName)
+                    textures:Add(tex:fileName, texture)
+                    disposables:Add(texture)
+                end
 
-		// FIXME uvScaling/uvTranslation totally ignored
-		if (mtl.textures != null) {
-			for (ModelTexture tex : mtl.textures) {
-				Texture texture;
-				if (textures.containsKey(tex.fileName)) {
-					texture = textures.get(tex.fileName);
-				} else {
-					texture = textureProvider.load(tex.fileName);
-					textures.put(tex.fileName, texture);
-					disposables.add(texture);
-				}
+                TextureDescriptor descriptor
+                descriptor:minFilter:ConstructTextureFilter(texture:GetMinimizeFilter():GetValue())
+                descriptor:magFilter:ConstructTextureFilter(texture:GetMagnifyFilter():GetValue())
+                descriptor:uWrap:ConstructTextureWrap(texture:GetHorizontalWrap():GetValue())
+                descriptor:vWrap:ConstructTextureWrap(texture:GetVerticalWrap():GetValue())
+                
+                number offsetU = 0
+                number offsetV = 0
+                number scaleU = 1
+                number scaleV = 1
+                if tex:uvTranslation not= undefined
+                    offsetU = tex:uvTranslation:GetX()
+                    offsetV = tex:uvTranslation:GetY()
+                end
 
-				TextureDescriptor descriptor = new TextureDescriptor(texture);
-				descriptor.minFilter = texture.getMinFilter();
-				descriptor.magFilter = texture.getMagFilter();
-				descriptor.uWrap = texture.getUWrap();
-				descriptor.vWrap = texture.getVWrap();
+                if tex:uvScaling not= undefined
+                    scaleU = tex:uvScaling:GetX()
+                    scaleV = tex:uvScaling:GetY()
+                end
 
-				float offsetU = tex.uvTranslation == null ? 0f : tex.uvTranslation.x;
-				float offsetV = tex.uvTranslation == null ? 0f : tex.uvTranslation.y;
-				float scaleU = tex.uvScaling == null ? 1f : tex.uvScaling.x;
-				float scaleV = tex.uvScaling == null ? 1f : tex.uvScaling.y;
+                integer usageValue = 0
+                TextureAttribute temp
 
-				switch (tex.usage) {
-				case ModelTexture.USAGE_DIFFUSE:
-					result.set(new TextureAttribute(TextureAttribute.Diffuse, descriptor, offsetU, offsetV, scaleU, scaleV));
-					break;
-				case ModelTexture.USAGE_SPECULAR:
-					result.set(new TextureAttribute(TextureAttribute.Specular, descriptor, offsetU, offsetV, scaleU, scaleV));
-					break;
-				case ModelTexture.USAGE_BUMP:
-					result.set(new TextureAttribute(TextureAttribute.Bump, descriptor, offsetU, offsetV, scaleU, scaleV));
-					break;
-				case ModelTexture.USAGE_NORMAL:
-					result.set(new TextureAttribute(TextureAttribute.Normal, descriptor, offsetU, offsetV, scaleU, scaleV));
-					break;
-				case ModelTexture.USAGE_AMBIENT:
-					result.set(new TextureAttribute(TextureAttribute.Ambient, descriptor, offsetU, offsetV, scaleU, scaleV));
-					break;
-				case ModelTexture.USAGE_EMISSIVE:
-					result.set(new TextureAttribute(TextureAttribute.Emissive, descriptor, offsetU, offsetV, scaleU, scaleV));
-					break;
-				case ModelTexture.USAGE_REFLECTION:
-					result.set(new TextureAttribute(TextureAttribute.Reflection, descriptor, offsetU, offsetV, scaleU, scaleV));
-					break;
-				}
-			}
-		}
+                if tex:usage = tex:USAGE_DIFFUSE
+                    usageValue = temp:GetDiffuseValue()
+                elseif tex:usage = tex:USAGE_SPECULAR
+                    usageValue = temp:GetSpecularValue()
+                elseif tex:usage = tex:USAGE_BUMP
+                    usageValue = temp:GetBumpValue()
+                elseif tex:usage = tex:USAGE_NORMAL
+                    usageValue = temp:GetNormalValue()
+                elseif tex:usage = tex:USAGE_AMBIENT
+                    usageValue = temp:GetAmbientValue()
+                elseif tex:usage = tex:USAGE_EMISSIVE
+                    usageValue = temp:GetEmissiveValue()
+                elseif tex:usage = tex:USAGE_REFLECTION
+                    usageValue = temp:GetReflectionValue()
+                end
 
-		return result;
-        */
-    end
+                temp:SetAttribute(usageValue, descriptor, offsetU, offsetV, scaleU, scaleV)
+                result:Add(temp)
 
-    private action LoadNodes(ModelNode modelNodes)
-        //...
-    end
-
-    action GetAnimation(text id) returns Animation
-        integer counter = 0
-        repeat animations:GetSize() times
-            if animations:Get(counter):id:EqualsIgnoringCase(id)
-                return animations:Get(counter)
+                counter = counter + 1
             end
+        end
+
+        return result
+    end
+
+    private action LoadNodes(Array<ModelNode> modelNodes)
+        HashTable<NodePart, HashTable<text, Matrix4>> nodePartBones
+
+        integer counter = 0
+        repeat modelNodes:GetSize() times
+            nodes:Add(LoadNode(modelNodes:Get(counter)))
             counter = counter + 1
         end
+        
+        counter = 0
+        
+        repeat nodePartBones:GetSize() times
+
+        end
+    end
+
+    private action LoadNode(ModelNode modelNode) returns Node
+        // ...
         return undefined
     end
 
-    action Dispose
-        //...
-    end
-    /** 
-        private ObjectMap<NodePart, ArrayMap<String, Matrix4>> nodePartBones = new ObjectMap<NodePart, ArrayMap<String, Matrix4>>();
+    /*
 
 	private void loadNodes (Iterable<ModelNode> modelNodes) {
 		nodePartBones.clear();
@@ -258,6 +298,25 @@ class ModelBlueprint is Disposable
 
 		return node;
 	}
+
+    */
+
+    action GetAnimation(text id) returns Animation
+        integer counter = 0
+        repeat animations:GetSize() times
+            if animations:Get(counter):id:EqualsIgnoringCase(id)
+                return animations:Get(counter)
+            end
+            counter = counter + 1
+        end
+        return undefined
+    end
+
+    action Dispose
+        //...
+    end
+    /** 
+        
 
 	private void loadAnimations (Iterable<ModelAnimation> modelAnimations) {
 		for (final ModelAnimation anim : modelAnimations) {
