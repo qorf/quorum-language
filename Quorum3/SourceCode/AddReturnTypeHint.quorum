@@ -1,8 +1,7 @@
 package Libraries.Language.Compile.Hints
 
-class UseHint is Hint
+class AddReturnTypeHint is Hint
     text code = ""
-    text libraryName = ""
 
     action GetInsertionText returns text
         return code
@@ -12,14 +11,10 @@ class UseHint is Hint
         return 0
     end
 
-    action SetLibraryName(text name)
-        libraryName = name
-        parent:Libraries.Language.Compile.Hints.Hint:message = "Add use for " + libraryName
+    action SetDisplayName(text name)
+        parent:Libraries.Language.Compile.Hints.Hint:message = name
     end
 
-    action GetLibraryName returns text
-        return libraryName
-    end
 
     action SetCode(text statement)
         code = statement
@@ -28,8 +23,8 @@ class UseHint is Hint
     action GetCode returns text
         return code
     end
-    
+
     action InsertAtStartOfLine returns boolean
-        return true
+        return false
     end
 end

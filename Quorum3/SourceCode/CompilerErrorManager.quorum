@@ -69,7 +69,7 @@ class CompilerErrorManager
     action RemoveHintsAtKey(text key) 
         if hintsPerFile:HasKey(key)
             List<Hint> list = hintsPerFile:RemoveKey(key)
-            numberOfErrors = numberOfErrors - list:GetSize()
+            numberOfHints = numberOfHints - list:GetSize()
         end
     end
 

@@ -1073,6 +1073,11 @@ class Class is Symbol
                     index = packageOffset
                 end
 
+                //if the index is not at the start of the file, add
+                //a carriage return and line feed
+                if index not= 0
+                    index = index + 2
+                end
                 hint:SetStartOffset(index)
                 hint:SetEndOffset(index)
 

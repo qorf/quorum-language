@@ -208,7 +208,6 @@ class Compiler
         text locPath = loc:GetAbsolutePath()
 
         //Check if this class is already in there. If so, remove it
-        //if after 
         boolean isSandBoxEmpty = true
         Class inFile = sandboxSymbolTable:GetClassInFile(locPath)
         if inFile not= undefined
