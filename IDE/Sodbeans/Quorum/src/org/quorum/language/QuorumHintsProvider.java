@@ -55,21 +55,22 @@ public class QuorumHintsProvider implements HintsProvider{
         }
         
         List<? extends Error> errors = result.getDiagnostics();
-        if(errors == null || errors.isEmpty()) {
-            return;
-        }
-        Iterator<? extends Error> iterator = errors.iterator();
-        while(iterator.hasNext()) {
-            QuorumError next = (QuorumError) iterator.next();
-            unhandled.add(next);
+        if(errors != null && !errors.isEmpty()) {
+            Iterator<? extends Error> iterator = errors.iterator();
+            while(iterator.hasNext()) {
+                QuorumError next = (QuorumError) iterator.next();
+                unhandled.add(next);
+            }
         }
         
         ArrayList<Hint_> quorumHints = result.getHints();
-        Iterator<Hint_> it = quorumHints.iterator();
-        while(it.hasNext()) {
-            Hint_ next = it.next();
-            Hint hint = getHint(next, rc);
-            hints.add(hint);
+        if(quorumHints != null && !quorumHints.isEmpty()) {
+            Iterator<Hint_> it = quorumHints.iterator();
+            while(it.hasNext()) {
+                Hint_ next = it.next();
+                Hint hint = getHint(next, rc);
+                hints.add(hint);
+            }
         }
     }
     

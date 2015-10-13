@@ -33,11 +33,13 @@ public class QuorumHintFix implements HintFix {
         BaseDocument doc = rc.doc;
         EditList edits = new EditList(doc);
         int offset = hint.GetEndOffset();
-        if(offset != 0) {
-            offset += 2;
+        
+        
+        if(hint.InsertAtStartOfLine()) {
+            int lineStart = Utilities.getRowStart(doc, offset);
+            offset = lineStart;
         }
-        int lineStart = Utilities.getRowStart(doc, offset);
-        edits.replace(lineStart, hint.GetLinesToRemove(), hint.GetInsertionText(), false, 1);
+        edits.replace(offset, hint.GetLinesToRemove(), hint.GetInsertionText(), false, 1);
         edits.apply();
     }
 
