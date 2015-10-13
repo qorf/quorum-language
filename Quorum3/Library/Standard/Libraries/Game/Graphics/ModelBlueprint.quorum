@@ -144,7 +144,7 @@ class ModelBlueprint is Disposable
         // Comment from libGDX:
         // FIXME uvScaling/uvTranslation totally ignored
         
-        if (mtl:textures not= undefined)
+        if mtl:textures not= undefined
             integer counter = 0
             ModelTextureData tex = undefined
             repeat mtl:textures:GetSize() times
@@ -215,91 +215,136 @@ class ModelBlueprint is Disposable
 
         integer counter = 0
         repeat modelNodes:GetSize() times
-            nodes:Add(LoadNode(modelNodes:Get(counter)))
+            nodes:Add(LoadNode(modelNodes:Get(counter), nodePartBones))
             counter = counter + 1
         end
         
-        counter = 0
-        
-        repeat nodePartBones:GetSize() times
+        NodePart key = undefined
+        HashTable<text, Matrix4> value = undefined
+        Iterator<NodePart> keyIterator = nodePartBones:GetKeyIterator()
+        repeat while keyIterator:HasNext()
+            key = keyIterator:Next()
+            value = nodePartBones:GetValue(key)
+            key:invBoneBindTransforms:Empty()
+            
+            text key2 = ""
+            Matrix4 value2 = undefined
+            Iterator<text> keyIterator2 = value:GetKeyIterator()
+            repeat while keyIterator2:HasNext()
+                key2 = keyIterator2:Next()
+                value2 = value:GetValue(key2)
 
+                Matrix4 temp
+                temp:Set(value2)
+                temp:Inverse()
+
+                key:invBoneBindTransforms:Add(GetNode(key2), temp)
+            end
         end
     end
 
-    private action LoadNode(ModelNode modelNode) returns Node
-        // ...
-        return undefined
+    private action LoadNode(ModelNode modelNode, HashTable<NodePart, HashTable<text, Matrix4>> nodePartBones) returns Node
+        Node node
+        node:id = modelNode:id
+
+        if modelNode:translation not= undefined
+            node:translation:Set(modelNode:translation)
+        end
+        if modelNode:rotation not= undefined
+            node:rotation:Set(modelNode:rotation)
+        end
+        if modelNode:scale not= undefined
+            node:scale:Set(modelNode:scale)
+        end
+
+        if modelNode:parts not= undefined
+            integer counter = 0
+            ModelNodePart modelNodePart = undefined
+            repeat modelNode:parts:GetSize() times
+                modelNodePart = modelNode:parts:Get(counter)
+                MeshPart meshPart = undefined
+                Material meshMaterial = undefined
+
+                if modelNodePart:meshPartID not= ""
+                    integer meshCounter = 0
+                    boolean searching = true
+                    MeshPart part = undefined
+                    repeat while searching and meshCounter < meshParts:GetSize()
+                        part = meshParts:Get(meshCounter)
+                        if modelNodePart:meshPartID = part:id
+                            meshPart = part
+                            searching = false
+                        end
+                        meshCounter = meshCounter + 1
+                    end
+                end
+
+                if modelNodePart:materialID not= ""
+                    integer materialCounter = 0
+                    boolean searching = true
+                    Material material = undefined
+                    repeat while searching and materialCounter < materials:GetSize()
+                        material = materials:Get(materialCounter)
+                        if modelNodePart:materialID = material:id
+                            meshMaterial = material
+                            searching = false
+                        end
+                        materialCounter = materialCounter + 1
+                    end
+                end
+
+                if meshPart = undefined or meshMaterial = undefined
+                    alert("Invalid node, node ID: " + node:id)
+                end
+
+                NodePart nodePart
+                nodePart:meshPart = meshPart
+                nodePart:material = meshMaterial
+                node:parts:Add(nodePart)
+                if modelNodePart:bones not= undefined
+                    nodePartBones:Add(nodePart, modelNodePart:bones)
+                end
+
+                counter = counter + 1
+            end
+        end
+
+        if modelNode:children not= undefined
+            integer counter = 0
+            ModelNode child = undefined
+            repeat modelNode:children:GetSize() times
+                child = modelNode:children:Get(counter)
+                node:Add(LoadNode(child, nodePartBones))
+                counter = counter + 1
+            end
+        end
+
+        return node
     end
 
-    /*
+    private action GetNode(text nodeID) returns Node
+        integer counter = 0
+        Node node = undefined
+        repeat nodes:GetSize() times
+            node = nodes:Get(counter)
+            if node:id = nodeID
+                return node
+            end
+            counter = counter + 1
+        end
+        counter = 0
+        Node result = undefined
+        repeat nodes:GetSize() times
+            node = nodes:Get(counter)
+            result = node:GetChild(nodeID)
+            if result not= undefined
+                return result
+            end
+            counter = counter + 1
+        end
 
-	private void loadNodes (Iterable<ModelNode> modelNodes) {
-		nodePartBones.clear();
-		for (ModelNode node : modelNodes) {
-			nodes.add(loadNode(node));
-		}
-		for (ObjectMap.Entry<NodePart, ArrayMap<String, Matrix4>> e : nodePartBones.entries()) {
-			if (e.key.invBoneBindTransforms == null)
-				e.key.invBoneBindTransforms = new ArrayMap<Node, Matrix4>(Node.class, Matrix4.class);
-			e.key.invBoneBindTransforms.clear();
-			for (ObjectMap.Entry<String, Matrix4> b : e.value.entries())
-				e.key.invBoneBindTransforms.put(getNode(b.key), new Matrix4(b.value).inv());
-		}
-	}
-
-	private Node loadNode (ModelNode modelNode) {
-		Node node = new Node();
-		node.id = modelNode.id;
-
-		if (modelNode.translation != null) node.translation.set(modelNode.translation);
-		if (modelNode.rotation != null) node.rotation.set(modelNode.rotation);
-		if (modelNode.scale != null) node.scale.set(modelNode.scale);
-		// FIXME create temporary maps for faster lookup?
-		if (modelNode.parts != null) {
-			for (ModelNodePart modelNodePart : modelNode.parts) {
-				MeshPart meshPart = null;
-				Material meshMaterial = null;
-
-				if (modelNodePart.meshPartId != null) {
-					for (MeshPart part : meshParts) {
-						if (modelNodePart.meshPartId.equals(part.id)) {
-							meshPart = part;
-							break;
-						}
-					}
-				}
-
-				if (modelNodePart.materialId != null) {
-					for (Material material : materials) {
-						if (modelNodePart.materialId.equals(material.id)) {
-							meshMaterial = material;
-							break;
-						}
-					}
-				}
-
-				if (meshPart == null || meshMaterial == null) throw new GdxRuntimeException("Invalid node: " + node.id);
-
-				if (meshPart != null && meshMaterial != null) {
-					NodePart nodePart = new NodePart();
-					nodePart.meshPart = meshPart;
-					nodePart.material = meshMaterial;
-					node.parts.add(nodePart);
-					if (modelNodePart.bones != null) nodePartBones.put(nodePart, modelNodePart.bones);
-				}
-			}
-		}
-
-		if (modelNode.children != null) {
-			for (ModelNode child : modelNode.children) {
-				node.addChild(loadNode(child));
-			}
-		}
-
-		return node;
-	}
-
-    */
+        return result
+    end
 
     action GetAnimation(text id) returns Animation
         integer counter = 0

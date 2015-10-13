@@ -8,7 +8,7 @@ use Libraries.Compute.Quaternion
 
 class Node 
     
-    text id = ""
+    public text id = ""
 
     private Node parentNode = undefined
     private Array<Node> children
@@ -16,19 +16,19 @@ class Node
 
     boolean isAnimated = false
 
-    Vector3 translation
-    Quaternion rotation
-    Vector3 scale
-    Matrix4 localTransform
-    Matrix4 globalTransform
+    public Vector3 translation
+    public Quaternion rotation
+    public Vector3 scale
+    public Matrix4 localTransform
+    public Matrix4 globalTransform
 
-    // Array<NodePart> parts
+    public Array<NodePart> parts
 
     on create
 
 	rotation:Set(0, 0, 0, 1)
 	scale:Set(1, 1, 1)
-	// parts:SetSize(2)
+	parts:SetSize(2)
 
     end
 
