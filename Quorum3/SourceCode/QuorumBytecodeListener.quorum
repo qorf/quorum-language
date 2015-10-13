@@ -1657,7 +1657,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                     AddReturnTypeHint hint
                     hint:SetLocation(context:GetLocation())
                     text val = returnType:GetNameWithMappedGenerics()
-                    text defaultNameChoice = currentBlock:GetNewVariableInBlock("var")
+                    text defaultNameChoice = currentBlock:GetNewVariableInBlock("value")
                     hint:SetCode(val + " " + defaultNameChoice + " = ")
                     Location opLocation = op:GetLocation()
                     hint:SetStartOffset(context:GetLocation():GetIndex())
@@ -1873,7 +1873,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                         AddReturnTypeHint hint
                         hint:SetLocation(context:GetLocation())
                         text val = returnType:GetNameWithMappedGenerics()
-                        text defaultNameChoice = currentBlock:GetNewVariableInBlock("var")
+                        text defaultNameChoice = currentBlock:GetNewVariableInBlock("value")
                         hint:SetCode(val + " " + defaultNameChoice + " = ")
                         Location opLocation = op:GetLocation()
                         hint:SetStartOffset(context:GetLocation():GetIndex())
