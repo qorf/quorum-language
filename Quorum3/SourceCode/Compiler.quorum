@@ -247,15 +247,20 @@ class Compiler
 
         text null = undefined
 
+        HashTable<text, File> newValues
         if inFile = undefined
             i = 0
             repeat while i < files:GetSize()
                 File file = files:Get(i)
                 Parser listener
-                if file:GetAbsolutePath() = locPath
+                text path = file:GetAbsolutePath()
+                if path = locPath
                     ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
                 else 
-                    ParseSandbox(null, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+                    if sandboxSymbolTable:GetClassInFile(path) = undefined
+                        newValues:Add(path, file)
+                        ParseSandbox(null, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+                    end
                 end
                 i = i + 1
             end
@@ -274,14 +279,24 @@ class Compiler
         if inFile = undefined and isSandBoxEmpty
             TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
         else
+
+            Array<Class> justTheseClasses
             Class newParse = sandboxSymbolTable:GetClassInFile(locPath)
             if newParse not= undefined
-                newParse:ResolveUseStatements(sandboxSymbolTable, sandboxCompilerErrorManager)
-                newParse:ResolveAllTypes(sandboxSymbolTable, sandboxCompilerErrorManager)
-                newParse:ComputeVirtualActionTable(sandboxCompilerErrorManager)
-                newParse:ComputeGenericsTables(sandboxCompilerErrorManager)
-                sandboxTypeChecker:Add(newParse)
+                justTheseClasses:Add(newParse)
             end
+
+            //now check all of the files in the newValues hash and resolve them
+            //the same way
+            Iterator<text> it = newValues:GetKeyIterator()
+            repeat while it:HasNext()
+                text path = it:Next()
+                newParse = sandboxSymbolTable:GetClassInFile(path)
+                if newParse not= undefined
+                    justTheseClasses:Add(newParse)
+                end
+            end
+            TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager, justTheseClasses)
         end
 
         sandboxedProfiler:Add(time:GetEpochTime())
@@ -293,8 +308,9 @@ class Compiler
                 repeat while i < allFiles:GetSize()
                     File file = allFiles:Get(i)
                     QuorumBytecodeListener listener
-
-                    if file:GetAbsolutePath() = locPath
+                    text path = file:GetAbsolutePath()
+                    
+                    if path = locPath
                         integer errors = sandboxCompilerErrorManager:GetErrorAmount()
                         ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
                         integer errors2 = sandboxCompilerErrorManager:GetErrorAmount()
@@ -302,7 +318,11 @@ class Compiler
                             lastGoodCompileHash:Add(locPath, sandboxSymbolTable:GetClassInFile(locPath))
                         end
                     else 
-                        ParseSandbox(null, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+                        //check to see if this is already in the cache. If it is, 
+                        //then we don't need to redo this
+                        if sandboxSymbolTable:GetClassInFile(path) = undefined or newValues:HasKey(path)
+                            ParseSandbox(null, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+                        end
                     end
                     i = i + 1
                 end
@@ -1885,6 +1905,33 @@ class Compiler
         end
 
         classes = table:GetClasses()
+        repeat while classes:HasNext()
+            Class next = classes:Next()
+            next:ComputeVirtualActionTable(errors)
+            next:ComputeGenericsTables(errors)
+            types:Add(next)
+        end
+    end
+
+    private action TypeResolution(SymbolTable table, TypeChecker types, CompilerErrorManager errors, Array<Class> justTheseClasses)
+        Iterator<Class> classes = justTheseClasses:GetIterator()
+        repeat while classes:HasNext()
+            Class next = classes:Next()
+            next:ResolveUseStatements(table, errors)
+        end
+
+        classes = justTheseClasses:GetIterator()
+        repeat while classes:HasNext()
+            Class next = classes:Next()
+
+            //because of the way the parent flattening algorithm works,
+            //classes may already be resolved
+            if not next:IsResolved()
+                next:ResolveAllTypes(table, errors)
+            end
+        end
+
+        classes = justTheseClasses:GetIterator()
         repeat while classes:HasNext()
             Class next = classes:Next()
             next:ComputeVirtualActionTable(errors)
