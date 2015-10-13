@@ -29,4 +29,44 @@ public class ColorAttribute extends Attribute
     {
         return (type & MASK) != 0;
     }
+    
+    public int GetDiffuseValue()
+    {
+        return DIFFUSE;
+    }
+    
+    public int GetSpecularValue()
+    {
+        return SPECULAR;
+    }
+    
+    public int GetAmbientValue()
+    {
+        return AMBIENT;
+    }
+    
+    public int GetEmissiveValue()
+    {
+        return EMISSIVE;
+    }
+    
+    public int GetReflectionValue()
+    {
+        return REFLECTION;
+    }
+    
+    public int GetAmbientLightValue()
+    {
+        return AMBIENT_LIGHT;
+    }
+    
+    public int GetFogValue()
+    {
+        return FOG;
+    }
+    
+    public int GetColorAttributeMask()
+    {
+        return MASK;
+    }
 }
