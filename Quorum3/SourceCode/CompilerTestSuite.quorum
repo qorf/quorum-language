@@ -48,6 +48,7 @@ class CompilerTestSuite
     UsePackageTester useChecks
     RandomTester randomChecks
     TableTester tableChecks
+    PhysicsTester physicsChecks
 
     on create
         expressions:SetCompilerTestSuite(me)
@@ -72,6 +73,7 @@ class CompilerTestSuite
         useChecks:SetCompilerTestSuite(me)
         randomChecks:SetCompilerTestSuite(me)
         tableChecks:SetCompilerTestSuite(me)
+        physicsChecks:SetCompilerTestSuite(me)
     end
 
     action Main
@@ -145,6 +147,9 @@ class CompilerTestSuite
         output ""
         output tableChecks:GetName()
         tableChecks:Test()
+        output ""
+        output physicsChecks:GetName()
+        physicsChecks:Test()
         output ""
 
         text EOL = ""

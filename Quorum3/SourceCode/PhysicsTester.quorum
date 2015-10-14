@@ -1,0 +1,65 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Language.Compile.all
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.System.File
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.JarGenerator
+use Libraries.System.StackTraceItem
+
+class PhysicsTester
+    CompilerTestSuite suite = undefined
+    text path = "Library/Tests/Physics/"
+    text passPath = path + "Pass/"
+    text failPath = path + "Fail/"
+
+    action Test
+        path = passPath
+        SamplePassTest()
+//FAIL TESTS
+        path = failPath
+        SampleFailTest()
+    end
+
+    action GetName returns text
+        return "Physics Tests"
+    end
+
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+//INSERT PASS TESTS HERE
+    action SamplePassTest
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SamplePassTest.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+        results:Add(1, "1.0")
+        results:Add(2, "1")
+        results:Add(3, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+//INSERT FAIL TESTS HERE
+    action SampleFailTest
+        Array<File> files
+        File main
+        main:SetPath(path + "SampleFailTest.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+
+end
+
