@@ -599,7 +599,7 @@ class Matrix4
 
     end
 
-    action SetToRotationInRadians (Vector3 axis, number radians) returns Matrix4
+    action SetToRotationRadians (Vector3 axis, number radians) returns Matrix4
 
         if radians = 0
             Identity()
@@ -620,7 +620,7 @@ class Matrix4
 
     end
 
-    action SetToRotationInRadians (number axisX, number axisY, number axisZ, number radians) returns Matrix4
+    action SetToRotationRadians (number axisX, number axisY, number axisZ, number radians) returns Matrix4
 
         if radians = 0
             Identity()
@@ -996,7 +996,7 @@ class Matrix4
 
     end
 
-    action RotateInRadians (Vector3 axis, number radians) returns Matrix4
+    action RotateRadians (Vector3 axis, number radians) returns Matrix4
 
         if radians = 0
             return me
@@ -1017,7 +1017,7 @@ class Matrix4
         return Rotate(quaternion)
     end
 
-    action RotateInRadians (number axisX, number axisY, number axisZ, number radians) returns Matrix4
+    action RotateRadians (number axisX, number axisY, number axisZ, number radians) returns Matrix4
 
         if radians = 0
             return me
