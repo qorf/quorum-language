@@ -12,7 +12,7 @@ class Node
 
     private Node parentNode = undefined
     private Array<Node> children
-    boolean inheritTransform = true
+    public boolean inheritTransform = true
 
     boolean isAnimated = false
 
@@ -60,7 +60,9 @@ class Node
     end
 
     /*
-    This action calculates the local and world transforms for this node.
+    This action calculates the local and world transforms for this node. This
+    does not calculate the transforms of children nodes -- to do that, use
+    CalculateAllTransforms().
     */
     action CalculateTransforms
 	CalculateLocalTransform()
@@ -71,8 +73,8 @@ class Node
     This action calculates the local and world transforms of the entire children
     hierarchy of this node.
     */
-    action CalculateChildrenTransforms
-	Node child
+    private action CalculateChildrenTransforms
+	Node child = undefined
 	integer index = 0
 	repeat while index < children:GetSize()
 	    child = children:Get(index)
@@ -88,6 +90,73 @@ class Node
     action CalculateAllTransforms
         CalculateTransforms()
         CalculateChildrenTransforms()
+    end
+
+    /*
+    public void calculateBoneTransforms (boolean recursive) {
+		for (final NodePart part : parts) {
+			if (part.invBoneBindTransforms == null || part.bones == null || part.invBoneBindTransforms.size != part.bones.length)
+				continue;
+			final int n = part.invBoneBindTransforms.size;
+			for (int i = 0; i < n; i++)
+				part.bones[i].set(part.invBoneBindTransforms.keys[i].globalTransform).mul(part.invBoneBindTransforms.values[i]);
+		}
+		if (recursive) {
+			for (Node child : children) {
+				child.calculateBoneTransforms(true);
+			}
+		}
+	}
+    */
+
+    /*
+    This action calculates the bone transforms for this node. This does not
+    calculate the bone transforms of children nodes -- to do that, use
+    CalculateAllBoneTransforms().
+    */
+    action CalculateBoneTransforms
+        NodePart part = undefined
+        integer index = 0
+        repeat while index < parts:GetSize()
+            part = parts:Get(index)
+            if (part:invBoneBindTransforms not= undefined and part:bones not= undefined and part:invBoneBindTransforms:GetSize() = part:bones:GetSize())
+                integer counter = 0
+                Iterator<Node> keyIterator = part:invBoneBindTransforms:GetKeyIterator()
+                Node key = undefined
+                Matrix4 value = undefined
+                repeat while keyIterator:HasNext()
+                    key = keyIterator:Next()
+                    value = part:invBoneBindTransforms:GetValue(key)
+                    part:bones:Get(counter):Set(key:globalTransform)
+                    part:bones:Get(counter):Multiply(value)
+                    counter = counter + 1
+                end
+            end
+            index = index + 1
+        end
+    end
+
+    /*
+    This action calculates the bone transforms of the entire children
+    hierarchy of this node.
+    */
+    private action CalculateChildrenBoneTransforms
+	Node child = undefined
+	integer index = 0
+	repeat while index < children:GetSize()
+	    child = children:Get(index)
+	    child:CalculateAllBoneTransforms()
+	    index = index + 1
+	end
+    end
+
+    /*
+    This action calculates the bone transforms of this node and for 
+    its entire children hiearchy.
+    */
+    action CalculateAllBoneTransforms
+        CalculateBoneTransforms()
+        CalculateChildrenBoneTransforms()
     end
 
     /*
@@ -229,23 +298,6 @@ class Node
     action GetChildren returns Iterator<Node>
         return children:GetIterator()
     end
-
-    /*
-    public void calculateBoneTransforms (boolean recursive) {
-		for (final NodePart part : parts) {
-			if (part.invBoneBindTransforms == null || part.bones == null || part.invBoneBindTransforms.size != part.bones.length)
-				continue;
-			final int n = part.invBoneBindTransforms.size;
-			for (int i = 0; i < n; i++)
-				part.bones[i].set(part.invBoneBindTransforms.keys[i].globalTransform).mul(part.invBoneBindTransforms.values[i]);
-		}
-		if (recursive) {
-			for (Node child : children) {
-				child.calculateBoneTransforms(true);
-			}
-		}
-	}
-    */
 
 end
 

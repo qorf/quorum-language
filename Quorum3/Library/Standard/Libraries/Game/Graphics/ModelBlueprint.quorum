@@ -41,6 +41,8 @@ class ModelBlueprint is Disposable
     action Load(ModelData data)
         LoadMeshes(data:meshes)
         LoadMaterials(data:materials)
+        LoadNodes(data:nodes)
+        LoadAnimations(data:animations)
     //    JAVA:
     //    loadMeshes(modelData.meshes);
     //    loadMaterials(modelData.materials, textureProvider);
@@ -346,6 +348,140 @@ class ModelBlueprint is Disposable
         return result
     end
 
+    private action LoadAnimations(Array<ModelAnimation> modelAnimations)
+        integer counter = 0
+        ModelAnimation anim = undefined
+        repeat modelAnimations:GetSize() times
+            anim = modelAnimations:Get(counter)
+            
+            Animation animation
+            animation:id = anim:id
+
+            integer counter2 = 0
+            ModelNodeAnimation nanim = undefined
+            repeat anim:nodeAnimations:GetSize() times
+                nanim = anim:nodeAnimations:Get(counter2)
+                Node node = GetNode(nanim:nodeID)
+
+                if node not= undefined
+                    NodeAnimation nodeAnim
+                    nodeAnim:node = node
+
+                    if nanim:translation not= undefined
+                        Array<NodeKeyframe<Vector3>> temp
+                        nodeAnim:translation = temp
+                        temp:SetMaxSize(nanim:translation:GetSize())
+                        
+                        integer counter3 = 0
+                        ModelNodeKeyframe<Vector3> kf = undefined
+                        repeat nanim:translation:GetSize() times
+                            kf = nanim:translation:Get(counter3)
+                            if kf:keyTime > animation:duration
+                                animation:duration = kf:keyTime
+                            end
+
+                            NodeKeyframe<Vector3> tempKF
+                            Vector3 tempV
+                            if kf:value = undefined
+                                tempV:Set(node:translation)
+                            else
+                                tempV:Set(cast(Vector3, kf:value))
+                            end
+                            tempKF:Initialize(kf:keyTime, tempV)
+                            nodeAnim:translation:Add(tempKF)
+
+                            counter3 = counter3 + 1
+                        end
+                    end
+
+                    if nanim:rotation not= undefined
+                        Array<NodeKeyframe<Quaternion>> temp
+                        nodeAnim:rotation = temp
+                        temp:SetMaxSize(nanim:rotation:GetSize())
+
+                        integer counter3 = 0
+                        ModelNodeKeyframe<Quaternion> kf = undefined
+                        repeat nanim:rotation:GetSize() times
+                            kf = nanim:rotation:Get(counter3)
+                            if kf:keyTime > animation:duration
+                                animation:duration = kf:keyTime
+                            end
+
+                            NodeKeyframe<Quaternion> tempKF
+                            Quaternion tempQ
+                            if kf:value = undefined
+                                tempQ:Set(node:rotation)
+                            else
+                                tempQ:Set(cast(Quaternion, kf:value))
+                            end
+                            tempKF:Initialize(kf:keyTime, tempQ)
+                            nodeAnim:rotation:Add(tempKF)
+
+                            counter3 = counter3 + 1
+                        end
+                    end
+
+                    if nanim:scaling not= undefined
+                        Array<NodeKeyframe<Vector3>> temp
+                        nodeAnim:scaling = temp
+                        temp:SetMaxSize(nanim:scaling:GetSize())
+
+                        integer counter3 = 0
+                        ModelNodeKeyframe<Vector3> kf = undefined
+                        repeat nanim:scaling:GetSize() times
+                            kf = nanim:scaling:Get(counter3)
+                            if kf:keyTime > animation:duration
+                                animation:duration = kf:keyTime
+                            end
+
+                            NodeKeyframe<Vector3> tempKF
+                            Vector3 tempV
+                            if kf:value = undefined
+                                tempV:Set(node:scale)
+                            else
+                                tempV:Set(cast(Vector3, kf:value))
+                            end
+                            tempKF:Initialize(kf:keyTime, tempV)
+                            nodeAnim:scaling:Add(tempKF)
+                            
+                            counter3 = counter3 + 1
+                        end
+                    end
+
+                    if (nodeAnim:translation not= undefined and nodeAnim:translation:GetSize() > 0)
+                    or (nodeAnim:rotation not= undefined and nodeAnim:rotation:GetSize() > 0)
+                    or (nodeAnim:scaling not= undefined and nodeAnim:scaling:GetSize() > 0)
+                        animation:nodeAnimations:Add(nodeAnim)
+                    end
+                end
+                counter2 = counter2 + 1
+            end
+
+            if animation:nodeAnimations:GetSize() > 0
+                animations:Add(animation)
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action will calculate the local and world transforms of all Nodes in
+    this model, and then calculate the updated bone matrices.
+    */
+    action CalculateTransforms
+        integer index = 0
+        integer size = nodes:GetSize()
+        repeat size times
+            nodes:Get(index):CalculateAllTransforms()
+            index = index + 1
+        end
+        index = 0
+        repeat size times
+            nodes:Get(index):CalculateAllBoneTransforms()
+            index = index + 1
+        end
+    end
+
     action GetAnimation(text id) returns Animation
         integer counter = 0
         repeat animations:GetSize() times
@@ -361,55 +497,6 @@ class ModelBlueprint is Disposable
         //...
     end
     /** 
-        
-
-	private void loadAnimations (Iterable<ModelAnimation> modelAnimations) {
-		for (final ModelAnimation anim : modelAnimations) {
-			Animation animation = new Animation();
-			animation.id = anim.id;
-			for (ModelNodeAnimation nanim : anim.nodeAnimations) {
-				final Node node = getNode(nanim.nodeId);
-				if (node == null) continue;
-				NodeAnimation nodeAnim = new NodeAnimation();
-				nodeAnim.node = node;
-
-				if (nanim.translation != null) {
-					nodeAnim.translation = new Array<NodeKeyframe<Vector3>>();
-					nodeAnim.translation.ensureCapacity(nanim.translation.size);
-					for (ModelNodeKeyframe<Vector3> kf : nanim.translation) {
-						if (kf.keytime > animation.duration) animation.duration = kf.keytime;
-						nodeAnim.translation.add(new NodeKeyframe<Vector3>(kf.keytime, new Vector3(kf.value == null ? node.translation
-							: kf.value)));
-					}
-				}
-
-				if (nanim.rotation != null) {
-					nodeAnim.rotation = new Array<NodeKeyframe<Quaternion>>();
-					nodeAnim.rotation.ensureCapacity(nanim.rotation.size);
-					for (ModelNodeKeyframe<Quaternion> kf : nanim.rotation) {
-						if (kf.keytime > animation.duration) animation.duration = kf.keytime;
-						nodeAnim.rotation.add(new NodeKeyframe<Quaternion>(kf.keytime, new Quaternion(kf.value == null ? node.rotation
-							: kf.value)));
-					}
-				}
-
-				if (nanim.scaling != null) {
-					nodeAnim.scaling = new Array<NodeKeyframe<Vector3>>();
-					nodeAnim.scaling.ensureCapacity(nanim.scaling.size);
-					for (ModelNodeKeyframe<Vector3> kf : nanim.scaling) {
-						if (kf.keytime > animation.duration) animation.duration = kf.keytime;
-						nodeAnim.scaling.add(new NodeKeyframe<Vector3>(kf.keytime,
-							new Vector3(kf.value == null ? node.scale : kf.value)));
-					}
-				}
-
-				if ((nodeAnim.translation != null && nodeAnim.translation.size > 0)
-					|| (nodeAnim.rotation != null && nodeAnim.rotation.size > 0)
-					|| (nodeAnim.scaling != null && nodeAnim.scaling.size > 0)) animation.nodeAnimations.add(nodeAnim);
-			}
-			if (animation.nodeAnimations.size > 0) animations.add(animation);
-		}
-	}
 
 	/** Adds a {@link Disposable} to be managed and disposed by this Model. Can be used to keep track of manually loaded textures
 	 * for {@link ModelInstance}.
@@ -430,22 +517,7 @@ class ModelBlueprint is Disposable
 		}
 	}
 
-	/** Calculates the local and world transform of all {@link Node} instances in this model, recursively. First each
-	 * {@link Node#localTransform} transform is calculated based on the translation, rotation and scale of each Node. Then each
-	 * {@link Node#calculateWorldTransform()} is calculated, based on the parent's world transform and the local transform of each
-	 * Node. Finally, the animation bone matrices are updated accordingly.</p>
-	 * 
-	 * This method can be used to recalculate all transforms if any of the Node's local properties (translation, rotation, scale)
-	 * was modified. *-
-	public void calculateTransforms () {
-		final int n = nodes.size;
-		for (int i = 0; i < n; i++) {
-			nodes.get(i).calculateTransforms(true);
-		}
-		for (int i = 0; i < n; i++) {
-			nodes.get(i).calculateBoneTransforms(true);
-		}
-	}
+	
 
 	/** Calculate the bounding box of this model instance. This is a potential slow operation, it is advised to cache the result.
 	 * @param out the {@link BoundingBox} that will be set with the bounds.

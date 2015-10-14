@@ -1,0 +1,174 @@
+package Libraries.Game.Graphics
+
+use Libraries.Game.Graphics.ModelData.Node
+use Libraries.Game.Graphics.ModelData.Animation
+use Libraries.Game.Graphics.ModelData.NodePart
+use Libraries.Containers.Array
+use Libraries.Containers.Blueprints.Iterator
+use Libraries.Compute.Matrix4
+
+class Model 
+    
+    public Array<Material> materials
+    public Array<Node> nodes
+    public Array<Animation> animations
+    public ModelBlueprint modelBlueprint = undefined
+    public Matrix4 transform = undefined
+    //public Object userData // Used to pass data to the shader
+
+    private HashTable<NodePart, HashTable<Node, Matrix4>> nodePartBones
+    
+    action Load(ModelBlueprint loader)
+        Load(loader, undefined)
+    end
+
+    action Load(ModelBlueprint loader, Matrix4 matrix)
+        modelBlueprint = loader
+        if matrix = undefined
+            Matrix4 temp
+            transform = temp
+        else
+            transform = matrix
+        end
+
+        CopyNodes(loader:nodes)
+
+        CopyAnimations(loader:animations)
+        CalculateTransforms()
+    end
+
+    private action CopyNodes(Array<Node> copyNodes)
+        nodePartBones:Empty()
+        integer index = 0
+        repeat copyNodes:GetSize() times
+            Node node = copyNodes:Get(index)
+            nodes:Add(CopyNode(node))
+            index = index + 1
+        end
+        SetBones()
+    end
+
+    private action CopyNode(Node node) returns Node
+        Node copy
+        copy:id = node:id
+        copy:inheritTransform = node:inheritTransform
+        copy:translation:Set(node:translation)
+        copy:rotation:Set(node:rotation)
+        copy:scale:Set(node:scale)
+        copy:localTransform:Set(node:localTransform)
+        copy:globalTransform:Set(node:globalTransform)
+        
+        integer index = 0
+        NodePart nodePart = undefined
+        repeat node:parts:GetSize() times
+            nodePart = node:parts:Get(index)
+            copy:parts:Add(copyNodePart(nodePart))
+            index = index + 1
+        end
+
+        Iterator<Node> iterator
+        Node child = undefined
+        repeat while iterator:HasNext()
+            child = iterator:Next()
+            copy:Add(copyNode(child))
+        end
+        return copy
+    end
+
+    private action CopyNodePart(NodePart nodePart) returns NodePart
+        NodePart copy
+        copy:meshPart:id = nodePart:meshPart:id
+        copy:meshPart:indexOffset = nodePart:meshPart:indexOffset
+        copy:meshPart:verticesCount = nodePart:meshPart:verticesCount
+        copy:meshPart:primitiveType = nodePart:meshPart:primitiveType
+        copy:meshPart:mesh = nodePart:meshPart:mesh
+        
+        if nodePart:invBoneBindTransforms not= undefined
+            nodePartBones:Add(copy, nodePart:invBoneBindTransforms)
+        end
+
+        integer index = materials:GetFirstLocation(nodePart:material)
+        if index < 0
+            copy:material = nodePart:material:Copy()
+            materials:Add(copy:material)
+        else
+            copy:material = materials:Get(index)
+        end
+
+        return copy
+    end
+
+    private action SetBones
+        Iterator<NodePart> iterator = nodePartBones:GetKeyIterator()
+        NodePart key = undefined
+        HashTable<Node, Matrix4> value = undefined
+        repeat while iterator:HasNext()
+            key = iterator:Next()
+            value = nodePartBones:GetValue(key)
+            
+            key:invBoneBindTransforms:Empty()
+
+            Iterator<Node> iterator2 = value:GetKeyIterator()
+            Node key2 = undefined
+            Matrix4 value2 = undefined
+            repeat while iterator2:HasNext()
+                key2 = iterator2:Next()
+                value2 = value:GetValue(key2)
+
+                key:invBoneBindTransforms:Add(GetNode(key2:id), value2)
+            end
+
+            key:bones:SetMaxSize(value:GetSize())
+            
+            integer index = 0
+            repeat value:GetSize() times
+                Matrix4 temp
+                key:bones:Set(index, temp)
+                index = index + 1
+            end
+        end
+    end
+
+    private action GetNode(text nodeID) returns Node
+        integer counter = 0
+        Node node = undefined
+        repeat nodes:GetSize() times
+            node = nodes:Get(counter)
+            if node:id = nodeID
+                return node
+            end
+            counter = counter + 1
+        end
+        counter = 0
+        Node result = undefined
+        repeat nodes:GetSize() times
+            node = nodes:Get(counter)
+            result = node:GetChild(nodeID)
+            if result not= undefined
+                return result
+            end
+            counter = counter + 1
+        end
+
+        return result
+    end
+    
+    /*
+    This action will calculate the local and world transforms of all Nodes in
+    this model, and then calculate the updated bone matrices.
+    */
+    action CalculateTransforms
+        integer index = 0
+        integer size = nodes:GetSize()
+        repeat size times
+            nodes:Get(index):CalculateAllTransforms()
+            index = index + 1
+        end
+        index = 0
+        repeat size times
+            nodes:Get(index):CalculateAllBoneTransforms()
+            index = index + 1
+        end
+    end
+
+end
