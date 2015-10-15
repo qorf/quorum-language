@@ -5,6 +5,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.HashTable
 use Libraries.Game.Graphics.ModelData.MeshPart
 use Libraries.Game.Graphics.Material
+use Libraries.Game.Graphics.Renderable
 
 class NodePart 
     public MeshPart meshPart
@@ -14,6 +15,17 @@ class NodePart
 
     public HashTable<Node, Matrix4> invBoneBindTransforms
 
+    action SetRenderable(Renderable out) returns Renderable
+        out:material = material
+        out:mesh = meshPart:mesh
+        out:meshPartOffset = meshPart:indexOffset
+        out:meshPartSize = meshPart:verticesCount
+        out:primitiveType = meshPart:primitiveType
+        out:bones = bones
+
+        return out
+    end
+
     /** Construct a new NodePart referencing the provided {@link MeshPart} and {@link Material}.
 	 * @param meshPart The MeshPart to reference.
 	 * @param material The Material to reference. *-
@@ -22,20 +34,5 @@ class NodePart
 		this.material = material;
 	}
 
-	// FIXME add copy constructor and override #equals.
-
-	/** Convenience method to set the material, mesh, meshPartOffset, meshPartSize, primitiveType and bones members of the specified
-	 * Renderable. The other member of the provided {@link Renderable} remain untouched. Note that the material, mesh and bones
-	 * members are referenced, not copied. Any changes made to those objects will be reflected in both the NodePart and Renderable
-	 * object.
-	 * @param out The Renderable of which to set the members to the values of this NodePart. *-
-	public Renderable setRenderable (final Renderable out) {
-		out.material = material;
-		out.mesh = meshPart.mesh;
-		out.meshPartOffset = meshPart.indexOffset;
-		out.meshPartSize = meshPart.numVertices;
-		out.primitiveType = meshPart.primitiveType;
-		out.bones = bones;
-		return out;
-	}*/
+	*/
 end

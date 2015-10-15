@@ -16,6 +16,9 @@ class Model
     public Matrix4 transform = undefined
     //public Object userData // Used to pass data to the shader
 
+    // Static in libGDX: is this necessary?
+    private boolean defaultShareKeyframes = true
+
     private HashTable<NodePart, HashTable<Node, Matrix4>> nodePartBones
     
     action Load(ModelBlueprint loader)
@@ -32,7 +35,6 @@ class Model
         end
 
         CopyNodes(loader:nodes)
-
         CopyAnimations(loader:animations)
         CalculateTransforms()
     end
@@ -152,6 +154,96 @@ class Model
 
         return result
     end
+
+    private action CopyAnimations(Array<Animation> source)
+        integer index = 0
+        Animation anim = undefined
+        repeat source:GetSize() times
+            anim = source:Get(index)
+
+            Animation animation
+            animation:id = anim:id
+            animation:duration = anim:duration
+
+            integer index2 = 0
+            NodeAnimation nanim = undefined
+            repeat anim:nodeAnimations:GetSize() times
+                nanim = anim:nodeAnimations:Get(index2)
+
+                Node node = GetNode(nanim:node:id)
+                
+                if node not= undefined
+                    NodeAnimation nodeAnim
+                    nodeAnim:node = node
+
+                    if defaultShareKeyFrames
+                        nodeAnim:translation = nanim:translation
+                        nodeAnim:rotation = nanim:rotation
+                        nodeAnim:scaling = nanim:scaling
+                    else
+                        if nanim:translation not= undefined
+                            Array<NodeKeyframe<Vector3>> temp
+                            nodeAnim:translation = temp
+                            integer index = 0
+                            NodeKeyframe<Vector3> kf = undefined
+                            repeat nanim:translation:GetSize() times
+                                kf = nanim:translation:Get(index)
+
+                                NodeKeyframe<Vector3> newKF
+                                newKF:Initialize(kf:keyTime, kf:value)
+                                nodeAnim:translation:Add(newKF)
+
+                                index = index + 1
+                            end
+                        end
+
+                        if nanim:rotation not= undefined
+                            Array<NodeKeyframe<Quaternion>> temp
+                            nodeAnim:rotation = temp
+                            integer index = 0
+                            NodeKeyframe<Quaternion> kf = undefined
+                            repeat nanim:rotation:GetSize() times
+                                kf = nanim:rotation:Get(index)
+
+                                NodeKeyframe<Quaternion> newKF
+                                newKF:Initialize(kf:keyTime, kf:value)
+                                nodeAnim:rotation:Add(newKF)
+
+                                index = index + 1
+                            end
+                        end
+
+                        if nanim:scaling not= undefined
+                            Array<NodeKeyframe<Vector3>> temp
+                            nodeAnim:scaling = temp
+                            integer index = 0
+                            NodeKeyframe<Vector3> kf = undefined
+                            repeat nanim:scaling:GetSize() times
+                                kf = nanim:scaling:Get(index)
+
+                                NodeKeyframe<Vector3> newKF
+                                newKF:Initialize(kf:keyTime, kf:value)
+                                nodeAnim:scaling:Add(newKF)
+
+                                index = index + 1
+                            end
+                        end
+                    end
+
+                    if nodeAnim:translation not= undefined or nodeAnim:rotation not= undefined or nodeAnim:scaling not= undefined
+                        animation:nodeAnimations:Add(nodeAnim)
+                    end
+
+                end
+                if animation:nodeAnimations:GetSize() > 0 
+                    animations:Add(animation)
+                end
+                index2 = index2 + 1
+            end
+
+            index = index + 1
+        end
+    end
     
     /*
     This action will calculate the local and world transforms of all Nodes in
@@ -169,6 +261,52 @@ class Model
             nodes:Get(index):CalculateAllBoneTransforms()
             index = index + 1
         end
+    end
+
+    action GetRenderables(Array<Renderable> renderables)
+        Node node = undefined
+        integer index = 0
+        repeat nodes:GetSize() times
+            node = nodes:Get(index)
+            GetRenderables(node, renderables)
+            index = index + 1
+        end
+    end
+
+    private action GetRenderables(Node node, Array<Renderable> renderables)
+        if node:parts:GetSize() > 0
+            NodePart nodePart = undefined
+            integer index = 0
+            repeat node:parts:GetSize() times
+                nodePart = node:parts:Get(index)
+                if nodePart:enabled
+                    renderables:Add(GetRenderable(node, nodePart))
+                end
+                index = index + 1
+            end
+
+            Iterator<Node> childIterator = node:GetChildren()
+            Node child = undefined
+            repeat while childIterator:HasNext()
+                child = childIterator:Next()
+                GetRenderables(child, renderables)
+            end
+        end
+    end
+
+    private action GetRenderable(node, nodePart) returns Renderable
+        Renderable out
+        nodePart:SetRenderable(out)
+        if nodePart:bones = undefined and transform != undefined
+            out:worldTransform:Set(transform):Multiply(node:globalTransform)
+        elseif transform not= undefined
+            out:worldTransform:Set(transform)
+        else
+            out:worldTransform:Identity()
+        end
+
+        //out:userData = userData
+        return out
     end
 
 end

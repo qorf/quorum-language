@@ -1,0 +1,94 @@
+package Libraries.Game.Graphics
+
+use Libraries.Compute.Frustum
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Quaternion
+use Libraries.Compute.Vector3
+use Libraries.Compute.Ray
+
+class Camera 
+    
+    /*
+    The position of the camera.
+    */
+    public Vector3 position
+
+    /*
+    The unit length direction vector of the camera.
+    */
+    public Vector3 direction
+
+    /*
+    The unit length up vector of the camera.
+    */
+    public Vector3 up
+
+
+    /*
+    The projection matrix of the camera.
+    */
+    public Matrix4 projection
+
+    /*
+    The view matrix of the camera.
+    */
+    public Matrix4 view
+
+    /*
+    The combined projection and view matrix of the camera.
+    */
+    public Matrix4 combined
+
+    /*
+    The inverse of the combined projection and view matrix.
+    */
+    public Matrix4 inverseProjectionView
+
+
+    /*
+    The distance to the near clipping plane. Must be positive.
+    */
+    public number near = 1
+
+    /*
+    The distance to the far clipping plane. Must be positive.
+    */
+    public number far = 100
+
+
+    /*
+    The width of the camera viewport.
+    */
+    public number viewportWidth = 0
+
+    /*
+    The height of the camera viewport.
+    */
+    public number viewportHeight = 0
+
+
+    /*
+    The frustum containing the area which can be viewed by the camera.
+    */
+    Frustum frustum
+
+
+    private Vector3 calcVector
+    private Ray ray
+
+    on create
+        direction:Set(0, 0, -1)
+        up:Set(0, 1, 0)
+    end
+
+    public blueprint action Update
+
+    public action LookAt(number x, number y, number z)
+        // ...
+    end
+
+    public action LookAt(Vector3 target)
+        LookAt(target:GetX(), target:GetY(), target:GetZ())
+    end
+
+end
