@@ -22,6 +22,7 @@ import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.ProjectInformation;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
 import quorum.Libraries.Language.Compile.Symbol.Class_;
+import quorum.Libraries.Language.Compile.Symbol.Documentation_;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
 import quorum.Libraries.System.File_;
 
@@ -67,6 +68,7 @@ public class QuorumStructureScanner implements StructureScanner{
         }
         List<OffsetRange> classRanges = new LinkedList<>();
         List<OffsetRange> actionRanges = new LinkedList<>();
+        List<OffsetRange> documentationRanges = new LinkedList<>();
         
         //add class
         int classStart = clazz.GetIndex();
@@ -74,6 +76,13 @@ public class QuorumStructureScanner implements StructureScanner{
         OffsetRange classRange = new OffsetRange(classStart, classEnd + 1);
         classRanges.add(classRange);
         
+        Documentation_ classDoc = clazz.GetDocumentation();
+        if(classDoc != null) {
+            int index = classDoc.GetIndex();
+            int indexEnd = classDoc.GetIndexEnd();
+            OffsetRange docRange = new OffsetRange(index, indexEnd + 1);
+            documentationRanges.add(docRange);
+        }
         //create the final map
         Map<String, List<OffsetRange>> map = new HashMap<>();
         map.put(QuorumFoldTypeProvider.CLASS.code(), classRanges);
@@ -87,8 +96,21 @@ public class QuorumStructureScanner implements StructureScanner{
             int actionEnd = action.GetIndexEnd();
             OffsetRange actionRange = new OffsetRange(actionStart, actionEnd + 1);
             actionRanges.add(actionRange);
+            Documentation_ actionDoc = action.GetDocumentation();
+            if(actionDoc != null) {
+                int index = actionDoc.GetIndex();
+                int indexEnd = actionDoc.GetIndexEnd();
+                OffsetRange docRange = new OffsetRange(index, indexEnd + 1);
+                documentationRanges.add(docRange);
+            }
         }
-        map.put(QuorumFoldTypeProvider.ACTION.code(), actionRanges);
+        if(!actionRanges.isEmpty()) {
+            map.put(QuorumFoldTypeProvider.ACTION.code(), actionRanges);
+        }
+        
+        if(!documentationRanges.isEmpty()) {
+            map.put(QuorumFoldTypeProvider.DOCUMENTATION.code(), documentationRanges);
+        }
         
         //finally update the document itself with the code folds
         Source snapshotSource = result.getSnapshot().getSource();
