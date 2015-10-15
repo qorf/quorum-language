@@ -20,10 +20,12 @@ import org.quorum.language.structure.QuorumClassStructureItem;
 import quorum.Libraries.Containers.Blueprints.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.ProjectInformation;
+import quorum.Libraries.Language.Compile.QualifiedName_;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
 import quorum.Libraries.Language.Compile.Symbol.Class_;
 import quorum.Libraries.Language.Compile.Symbol.Documentation_;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
+import quorum.Libraries.Language.Object_;
 import quorum.Libraries.System.File_;
 
 /**
@@ -75,6 +77,27 @@ public class QuorumStructureScanner implements StructureScanner{
         int classEnd = clazz.GetIndexEnd();
         OffsetRange classRange = new OffsetRange(classStart, classEnd + 1);
         classRanges.add(classRange);
+        
+        //get all of the unresolved use statements and check their locations
+        Iterator_ unresolved = clazz.GetUnresolvedUseStatements();
+        int useStart = Integer.MAX_VALUE;
+        int useEnd = 0;
+        boolean hasUnresolved = false;
+        while(unresolved.HasNext()) {
+            hasUnresolved = true;
+            QualifiedName_ next = (QualifiedName_) unresolved.Next();
+            if(next.GetIndex() < useStart) {
+                useStart = next.GetIndex();
+            }
+            if(next.GetIndexEnd() > useEnd) {
+                useEnd = next.GetIndexEnd();
+            }
+        }
+        
+        if(hasUnresolved) {
+            OffsetRange useRange = new OffsetRange(useStart, useEnd + 1);
+            classRanges.add(useRange);
+        }
         
         Documentation_ classDoc = clazz.GetDocumentation();
         if(classDoc != null) {
