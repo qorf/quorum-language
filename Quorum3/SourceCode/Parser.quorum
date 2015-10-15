@@ -49,6 +49,7 @@ class Parser is QuorumSourceListener
         text doc = context:document
         if doc not= undefined
             Documentation documentation
+            documentation:SetLocation(context:GetLocation())
             documentation:ParseDocumentation(doc)
             documents:Push(documentation)
         end

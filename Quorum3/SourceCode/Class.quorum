@@ -746,6 +746,7 @@ class Class is Symbol
                     CompilerErrorType errorType
                     errorType:SetCurrentType(errorType:MISSING_USE)
                     error:SetCompilerErrorType(errorType)
+                    FindPossibleUsage(table, error, key, errors)
                     errors:Add(error)
                 end
             else
