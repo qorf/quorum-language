@@ -74,6 +74,9 @@ public class QuorumStructureScanner implements StructureScanner{
         
         //add class
         int classStart = clazz.GetIndex();
+        String classValue = "class " + clazz.GetName();
+        classStart = classStart + classValue.length();
+        
         int classEnd = clazz.GetIndexEnd();
         OffsetRange classRange = new OffsetRange(classStart, classEnd + 1);
         classRanges.add(classRange);
@@ -95,7 +98,7 @@ public class QuorumStructureScanner implements StructureScanner{
         }
         
         if(hasUnresolved) {
-            OffsetRange useRange = new OffsetRange(useStart, useEnd + 1);
+            OffsetRange useRange = new OffsetRange(useStart + 3, useEnd + 1);
             classRanges.add(useRange);
         }
         
@@ -115,8 +118,20 @@ public class QuorumStructureScanner implements StructureScanner{
         Iterator_ actions = clazz.GetActions();
         while(actions.HasNext()) {
             Action_ action = (Action_) actions.Next();
-            int actionStart = action.GetIndex();
+            int actionStart = action.GetIndex() + action.GetDisplayName().length();
+            String text = "action ";
+            actionStart = actionStart + text.length();
+            //This line is somewhat non-obvious. First, we need to know if there
+            //are zero parameters, as if there are, we compute the fold differently.
+            //Second, if there are no parameters, it is probably fine if we hide them, 
+            //since they have no purpose.
+            if(action.GetParametersSize() == 0) { 
+                actionStart = actionStart - 2;//subtract out the parameters.
+            }
+            
             int actionEnd = action.GetIndexEnd();
+            
+            
             OffsetRange actionRange = new OffsetRange(actionStart, actionEnd + 1);
             actionRanges.add(actionRange);
             Documentation_ actionDoc = action.GetDocumentation();
