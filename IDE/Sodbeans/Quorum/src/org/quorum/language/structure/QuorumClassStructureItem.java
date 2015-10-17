@@ -7,6 +7,7 @@ package org.quorum.language.structure;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import javax.swing.ImageIcon;
@@ -16,27 +17,56 @@ import org.netbeans.modules.csl.api.HtmlFormatter;
 import org.netbeans.modules.csl.api.Modifier;
 import org.netbeans.modules.csl.api.StructureItem;
 import org.openide.util.ImageUtilities;
+import quorum.Libraries.Containers.Blueprints.Iterator_;
+import quorum.Libraries.Language.Compile.Symbol.Action_;
+import quorum.Libraries.Language.Compile.Symbol.Variable_;
+import quorum.Libraries.Language.Object_;
 
 /**
  *
  * @author stefika
  */
-public class QuorumClassStructureItem implements StructureItem{
+public class QuorumClassStructureItem implements StructureItem {
 
     private quorum.Libraries.Language.Compile.Symbol.Class_ clazz = null;
     @Override
     public String getName() {
-        return clazz.GetName();
+        return getName(false);
     }
 
     @Override
     public String getSortText() {
-        return clazz.GetName();
+        return getName(false);
+    }
+    
+    private String getName(boolean isHTML) {
+        String name = "";
+        
+        if(isHTML) { 
+            name = clazz.GetName() + " :: ";
+        } else {
+            name = clazz.GetName() + "<i> :: ";
+        }
+        quorum.Libraries.Containers.Blueprints.Iterator_ parents = clazz.GetParentClasses();
+        boolean first = true;
+        while(parents.HasNext()) {
+            quorum.Libraries.Language.Compile.Symbol.Class_ parent = (quorum.Libraries.Language.Compile.Symbol.Class_) parents.Next();
+            if(first) {
+                name = name + parent.GetName();
+            } else {
+                name = name + ", " + parent.GetName();
+            }
+            first = false;
+        }
+        if(isHTML) {
+            name = name + "</i>";
+        }
+        return name;
     }
 
     @Override
     public String getHtml(HtmlFormatter hf) {
-        return clazz.GetName();
+        return getName(true);
     }
 
     @Override
@@ -57,14 +87,49 @@ public class QuorumClassStructureItem implements StructureItem{
 
     @Override
     public boolean isLeaf() {
-        return true;
+        Iterator_ actions = clazz.GetActions();
+        if(actions == null) {
+            return true;
+        }
+        return !actions.HasNext();
     }
 
     @Override
     public List<? extends StructureItem> getNestedItems() {
-        return Collections.EMPTY_LIST;
+        Iterator_ variables = clazz.GetVariables();
+        if(variables == null) {
+            return Collections.EMPTY_LIST;
+        }
+        List<StructureItem> items = new LinkedList<>();
+        while(variables.HasNext()) {
+            Variable_ next = (Variable_) variables.Next();
+            QuorumVariableStructureItem item = new QuorumVariableStructureItem();
+            item.setVariable(next);
+            items.add(item);
+        }
+        
+        Iterator_ actions = clazz.GetActions();
+        if(actions == null) {
+            return Collections.EMPTY_LIST;
+        }
+        
+        while(actions.HasNext()) {
+            Action_ next = (Action_) actions.Next();
+            QuorumActionStructureItem item = new QuorumActionStructureItem();
+            item.setAction(next);
+            items.add(item);
+        }
+        
+        if(clazz.HasConstructor()) {
+            Action_ constructor = clazz.GetConstructor();
+            QuorumActionStructureItem item = new QuorumActionStructureItem();
+            item.setAction(constructor);
+            item.setIsConstructor(true);
+            items.add(item);
+        }
+        return items;
     }
-
+    
     @Override
     public long getPosition() {
         return clazz.GetIndex();
@@ -77,7 +142,7 @@ public class QuorumClassStructureItem implements StructureItem{
 
     @Override
     public ImageIcon getCustomIcon() {
-        return new ImageIcon("org/quorum/resources/class.png", "class");
+        return new ImageIcon(ImageUtilities.loadImage("org/quorum/resources/class.png"));
     }
 
     /**
