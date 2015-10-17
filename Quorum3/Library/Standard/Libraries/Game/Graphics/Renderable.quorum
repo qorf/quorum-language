@@ -55,22 +55,6 @@ class Renderable
         return me
     end
 
-    /*
-    action Compare(Object object) returns CompareResult
-        CompareResult result
-        integer myHash = me:GetHashCode()
-        integer oHash = object:GetHashCode()
-
-        if myHash < oHash
-            result:result = result:SMALLER
-        elseif myHash = oHash
-            result:result = result:EQUAL
-        else
-            result:result = result:LARGER
-        end
-        return result
-    end
-    */
     action Compare(Object object) returns CompareResult
         if not (object is Renderable) or (cam = undefined)
             return parent:Object:Compare(object)
@@ -114,12 +98,24 @@ class Renderable
         Vector3 tempV2
         worldTransform:GetTranslation(tempV1)
         other:worldTransform:GetTranslation(tempV2)
-        /* JAVA:
-        final float dst = (int)(1000f * camera.position.dst2(tmpV1)) - (int)(1000f * camera.position.dst2(tmpV2));
-		final int result = dst < 0 ? -1 : (dst > 0 ? 1 : 0);
-		return b1 ? -result : result;
-        */
-        //TEMPORARY RETURN
-        return undefined
+
+        integer distance = cast(integer, (1000.0 * cam:position:DistanceSquared(tempV1))) - cast(integer, (1000.0 * cam:position:DistanceSquared(tempV2)))
+        if distance = 0
+            result:result = result:EQUAL
+            return result
+        end
+
+        boolean smaller = distance < 0
+        if blend1
+            smaller = not smaller
+        end
+
+        if smaller
+            result:result = result:SMALLER
+        else
+            result:result = result:LARGER
+        end
+
+        return result
     end
 end

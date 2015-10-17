@@ -1,0 +1,32 @@
+package Libraries.Game.Graphics
+
+use Libraries.Compute.Vector3
+use Libraries.Compute.Math
+
+class PerspectiveCamera is Camera
+
+    public number fieldOfView = 67
+
+    private Vector3 calcVector
+
+    action Initialize(number field, number viewportWidth, number viewportHeight)
+        fieldOfView = field
+        parent:Camera:viewportWidth = viewportWidth
+        parent:Camera:viewportHeight = viewportHeight
+        Update()
+    end
+
+    action Update
+        Math math
+        number aspect = viewportWidth / viewportHeight
+        parent:Camera:projection:SetToProjection(math:AbsoluteValue(near), math:AbsoluteValue(far), fieldOfView, aspect)
+        parent:Camera:view:SetToLookAt(parent:Camera:position, calcVector:Set(parent:Camera:position):Add(parent:Camera:direction), parent:Camera:up)
+        parent:Camera:combined:Set(parent:Camera:projection)
+        parent:Camera:combined:Multiply(parent:Camera:view)
+
+        parent:Camera:inverseProjectionView:Set(parent:Camera:combined)
+        parent:Camera:inverseProjectionView:Inverse()
+        parent:Camera:frustum:Update(parent:Camera:inverseProjectionView)
+    end
+
+end

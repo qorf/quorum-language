@@ -1,0 +1,89 @@
+package Libraries.Game.Graphics
+
+use Libraries.Compute.Vector2
+use Libraries.Compute.Vector3
+
+class OrthographicCamera is Camera
+    
+    public number zoom = 1
+
+    on create
+        parent:Camera:near = 0
+    end
+
+    private Vector3 calcVector
+
+    /*
+    Initializes the camera by giving a width and height for the camera to show
+    in virtual space.
+    */
+    action Initialize(number viewportWidth, number viewportHeight)
+        parent:Camera:viewportWidth = viewportWidth
+        parent:Camera:viewportHeight = viewportHeight
+        Update()
+    end
+
+    /*
+    This action recalculates the camera's position and data. This should be used
+    after the camera has been manipulated in any way.
+    */
+    action Update
+        parent:Camera:projection:SetToOrthographic(zoom * -parent:Camera:viewportWidth/2, zoom * parent:Camera:viewportWidth/2,
+            zoom * -parent:Camera:viewportHeight/2, zoom * viewportHeight/2, parent:Camera:near, parent:Camera:far)
+            
+        parent:Camera:view:SetToLookAt(parent:Camera:position, calcVector:Set(parent:Camera:position):Add(parent:Camera:direction), parent:Camera:up)
+        parent:Camera:combined:Set(parent:Camera:projection)
+        parent:Camera:combined:Multiply(parent:Camera:view)
+
+        parent:Camera:inverseProjectionView:Set(parent:Camera:combined)
+        parent:Camera:inverseProjectionView:Inverse()
+        parent:Camera:frustum:Update(parent:Camera:inverseProjectionView)
+    end
+
+    /*
+    This action will set the camera to an orthographic projection using a
+    viewport fitting the game's full width and height.
+    */
+    action SetToOrthographic
+        // NOT YET IMPLEMENTED
+        // SetToOrthographic( SCREEN_WIDTH, SCREEN_HEIGHT)
+    end
+
+    /*
+    This action will set the camera to an orthographic projection using a
+    viewport of the given width and height.
+    */
+    action SetToOrthographic(number viewportWidth, number viewportHeight)
+        // libGDX code originally has a boolean for yDown. We assume it was false.
+        parent:Camera:up:Set(0, 1, 0)
+        parent:Camera:direction:Set(0, 0, -1)
+        
+        parent:Camera:position:Set(zoom * viewportWidth/2.0, zoom * viewportHeight/2.0, 0)
+        parent:Camera:viewportWidth = viewportWidth
+        parent:Camera:viewportHeight = viewportHeight
+        Update()
+    end
+
+    /*
+    This action will rotate the camera by the given number of degrees around the
+    camera's direction vector. If the camera has been SetToOrthographic(), then
+    this vector should be perpendicular to the 2D plane of the screen space.
+    */
+    action Rotate(number degrees)
+        Rotate(parent:Camera:direction, angle)
+    end
+
+    /*
+    This action will move the camera by the given amount on each axis.
+    */
+    action Translate(number x, number y)
+        Translate(x, y, 0)
+    end
+
+    /*
+    This action will move the camera by the amount of the given 2D vector.
+    */
+    action Translate(Vector2 vector)
+        Translate(vector:GetX(), vector:GetY(), 0)
+    end
+end
