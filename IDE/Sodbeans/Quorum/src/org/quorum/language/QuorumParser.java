@@ -38,8 +38,9 @@ public class QuorumParser extends Parser{
     SourceModificationEvent sme;
     private ArrayList<QuorumError> fileErrors = new ArrayList<QuorumError>();
     private ArrayList<Hint_> fileHints = new ArrayList<Hint_>();
-    quorum.Libraries.Language.Compile.ProjectInformation info = new quorum.Libraries.Language.Compile.ProjectInformation();
+    private quorum.Libraries.Language.Compile.ProjectInformation info = new quorum.Libraries.Language.Compile.ProjectInformation();
     private static final Logger logger = Logger.getLogger(QuorumParser.class.getName());
+    CompilerResult_ recentResult = null;
     
     @Override
     public void parse(Snapshot snapshot, Task task, SourceModificationEvent sme) throws ParseException {
@@ -79,10 +80,11 @@ public class QuorumParser extends Parser{
                     quorum.Libraries.System.File sourceFolder = Utility.toQuorumFile(file);
                     Array_ listing = sourceFolder.GetDirectoryListing();
                     
-                    info.Set_Libraries_Language_Compile_ProjectInformation__source_(string);
-                    info.Set_Libraries_Language_Compile_ProjectInformation__sourceLocation_(quorumFile);
-                    info.Set_Libraries_Language_Compile_ProjectInformation__projectFiles_(listing);
-                    CompilerResult_ result = compiler.ParseRepeat(info);                 
+                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__source_(string);
+                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__sourceLocation_(quorumFile);
+                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__projectFiles_(listing);
+                    CompilerResult_ result = compiler.ParseRepeat(getInfo());                 
+                    recentResult = result;
                     
                     CompilerErrorManager_ errors = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
                     
@@ -145,6 +147,10 @@ public class QuorumParser extends Parser{
     public void removeChangeListener(ChangeListener cl) {
     }
 
+    public CompilerResult_ getRecentResult() {
+        return recentResult;
+    }
+    
     /**
      * @return the fileErrors
      */
@@ -154,5 +160,12 @@ public class QuorumParser extends Parser{
     
     public ArrayList<Hint_> getFileHints() {
         return fileHints;
+    }
+
+    /**
+     * @return the info
+     */
+    public quorum.Libraries.Language.Compile.ProjectInformation getInfo() {
+        return info;
     }
 }

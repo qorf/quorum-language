@@ -1068,7 +1068,27 @@ public class JavaToQuorumListener implements QuorumListener {
         if(comment != null) {
             DocumentationContext context = new DocumentationContext();
             context.Set_Libraries_Language_Compile_Context_DocumentationContext__document_(comment.getText());
-            setLocation(ctx, context);
+            if(index - 1 > 0) {
+                Token endToken = tokens.get(index - 1);
+                quorum.Libraries.Language.Compile.Location_ location = context.GetLocation();
+                Token start = comment;
+                Token stop = endToken;
+
+                if(start != null) {
+                    location.SetLineNumber(start.getLine());
+                    location.SetColumnNumber(start.getCharPositionInLine());
+                    location.SetIndex(start.getStartIndex());
+                }
+
+                if(stop != null) {
+                    location.SetLineNumberEnd(stop.getLine());
+                    location.SetColumnNumberEnd(stop.getCharPositionInLine());
+                    location.SetIndexEnd(stop.getStopIndex());
+                }
+
+                location.SetFile(file);
+            }
+            
             if(enter) {
                 listener.EnterDocumentation(context);
             } else {

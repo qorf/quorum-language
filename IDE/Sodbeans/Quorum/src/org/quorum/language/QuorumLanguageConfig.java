@@ -6,8 +6,11 @@
 package org.quorum.language;
 
 import org.netbeans.modules.csl.api.CodeCompletionHandler;
+import org.netbeans.modules.csl.api.DeclarationFinder;
 import org.netbeans.modules.csl.api.HintsProvider;
 import org.netbeans.modules.csl.api.IndexSearcher;
+import org.netbeans.modules.csl.api.SemanticAnalyzer;
+import org.netbeans.modules.csl.api.StructureScanner;
 import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
 import org.netbeans.modules.csl.spi.LanguageRegistration;
 import org.netbeans.modules.parsing.spi.Parser;
@@ -27,6 +30,8 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     QuorumCodeCompletionHandler completion = new QuorumCodeCompletionHandler();
     QuorumIndexerFactory factory = new QuorumIndexerFactory();
     QuorumIndexSearcher indexSearcher = new QuorumIndexSearcher();
+    QuorumSemanticAnalyzer semanticAnalyzer = new QuorumSemanticAnalyzer();
+    QuorumStructureScanner structureScanner = new QuorumStructureScanner();
     
     public QuorumLanguageConfig() {
         
@@ -70,6 +75,26 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     public boolean isIdentifierChar(char c) {
         return Character.isJavaIdentifierPart(c);
     }   
+
+    @Override
+    public SemanticAnalyzer getSemanticAnalyzer() {
+        return semanticAnalyzer; //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public boolean hasStructureScanner() {
+        return true;
+    }
+
+    @Override
+    public DeclarationFinder getDeclarationFinder() {
+        return super.getDeclarationFinder(); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public StructureScanner getStructureScanner() {
+        return structureScanner;
+    } 
 
     @Override
     public IndexSearcher getIndexSearcher() {

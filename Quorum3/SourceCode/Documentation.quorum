@@ -3,8 +3,9 @@ package Libraries.Language.Compile.Symbol
 use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Containers.HashTable
+use Libraries.Language.Compile.Location
 
-class Documentation 
+class Documentation is Location
     public constant text AUTHOR = "Author"
     public constant text PARAMETER = "Parameter"
     public constant text RETURNS = "Returns"
