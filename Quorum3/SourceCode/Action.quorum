@@ -17,6 +17,15 @@ class Action is Symbol
     integer bytecodeLocation = 1 //always start skipping "this"
     boolean isPrivate = false
     boolean isPublic = true
+    Location headerLocation = undefined
+
+    action GetHeaderLocation returns Location
+        return headerLocation
+    end
+
+    action SetHeaderLocation(Location location)
+        headerLocation = location
+    end
 
     action IsPublic returns boolean
         return isPublic

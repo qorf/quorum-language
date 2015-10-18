@@ -400,6 +400,7 @@ class Parser is QuorumSourceListener
         
         currentAction:SetReturnType(context:returnType)
         currentAction:SetName(context:actionName)
+        currentAction:SetHeaderLocation(context:GetLocation())
         CheckName(context:actionName, context:GetLocation())
 
         //add it to the class
