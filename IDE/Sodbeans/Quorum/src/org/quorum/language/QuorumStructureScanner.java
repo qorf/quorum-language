@@ -88,13 +88,20 @@ public class QuorumStructureScanner implements StructureScanner{
         int useEnd = 0;
         boolean hasUnresolved = false;
         while(unresolved.HasNext()) {
-            hasUnresolved = true;
             QualifiedName_ next = (QualifiedName_) unresolved.Next();
-            if(next.GetIndex() < useStart) {
-                useStart = next.GetIndex();
-            }
-            if(next.GetIndexEnd() > useEnd) {
-                useEnd = next.GetIndexEnd();
+            if(next.GetStaticKey().compareTo("Libraries.Language.Object") != 0 &&
+                next.GetStaticKey().compareTo("Libraries.Language.Types.Integer") != 0 &&
+                next.GetStaticKey().compareTo("Libraries.Language.Types.Number") != 0 &&
+                next.GetStaticKey().compareTo("Libraries.Language.Types.Boolean") != 0 &&
+                next.GetStaticKey().compareTo("Libraries.Language.Errors.Error") != 0 &&
+                next.GetStaticKey().compareTo("Libraries.Language.Types.Text") != 0 ) {
+                if(next.GetIndex() < useStart) {
+                    useStart = next.GetIndex();
+                }
+                if(next.GetIndexEnd() > useEnd) {
+                    useEnd = next.GetIndexEnd();
+                }
+                hasUnresolved = true;
             }
         }
         
@@ -126,6 +133,23 @@ public class QuorumStructureScanner implements StructureScanner{
             OffsetRange actionRange = new OffsetRange(actionStart, actionEnd + 1);
             actionRanges.add(actionRange);
             Documentation_ actionDoc = action.GetDocumentation();
+            if(actionDoc != null) {
+                int index = actionDoc.GetIndex();
+                int indexEnd = actionDoc.GetIndexEnd();
+                OffsetRange docRange = new OffsetRange(index, indexEnd + 1);
+                documentationRanges.add(docRange);
+            }
+        }
+        
+        if(clazz.HasConstructor()) {
+            Action_ constructor = clazz.GetConstructor();
+            int actionStart = constructor.GetIndex() + "on create".length();
+            
+            int actionEnd = constructor.GetIndexEnd();
+                        
+            OffsetRange actionRange = new OffsetRange(actionStart, actionEnd + 1);
+            actionRanges.add(actionRange);
+            Documentation_ actionDoc = constructor.GetDocumentation();
             if(actionDoc != null) {
                 int index = actionDoc.GetIndex();
                 int indexEnd = actionDoc.GetIndexEnd();
