@@ -126,18 +126,20 @@ public class QuorumStructureScanner implements StructureScanner{
         Iterator_ actions = clazz.GetActions();
         while(actions.HasNext()) {
             Action_ action = (Action_) actions.Next();
-            int actionStart = action.GetHeaderLocation().GetIndexEnd() + 1;
-            
-            int actionEnd = action.GetIndexEnd();
-                        
-            OffsetRange actionRange = new OffsetRange(actionStart, actionEnd + 1);
-            actionRanges.add(actionRange);
-            Documentation_ actionDoc = action.GetDocumentation();
-            if(actionDoc != null) {
-                int index = actionDoc.GetIndex();
-                int indexEnd = actionDoc.GetIndexEnd();
-                OffsetRange docRange = new OffsetRange(index, indexEnd + 1);
-                documentationRanges.add(docRange);
+            if(action.GetHeaderLocation() != null) {
+                int actionStart = action.GetHeaderLocation().GetIndexEnd() + 1;
+
+                int actionEnd = action.GetIndexEnd();
+
+                OffsetRange actionRange = new OffsetRange(actionStart, actionEnd + 1);
+                actionRanges.add(actionRange);
+                Documentation_ actionDoc = action.GetDocumentation();
+                if(actionDoc != null) {
+                    int index = actionDoc.GetIndex();
+                    int indexEnd = actionDoc.GetIndexEnd();
+                    OffsetRange docRange = new OffsetRange(index, indexEnd + 1);
+                    documentationRanges.add(docRange);
+                }
             }
         }
         
