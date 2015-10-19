@@ -1,0 +1,17 @@
+use Libraries.Compute.Vector2
+
+class Vector2Scale 
+    action Main
+        Vector2 vector
+        vector:Set(3, 6)
+        output vector:Scale(2):ToText()
+
+        vector:Set(3, 6)
+        output vector:Scale(4, 2):ToText()
+
+        vector:Set(3, 6)
+        Vector2 scale
+        scale:Set(4, 2)
+        output vector:Scale(scale):ToText()
+    end
+end

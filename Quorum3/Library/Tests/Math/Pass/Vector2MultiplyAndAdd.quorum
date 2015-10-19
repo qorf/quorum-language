@@ -1,0 +1,19 @@
+use Libraries.Compute.Vector2
+
+class Vector2MultiplyAndAdd 
+    action Main
+        Vector2 baseVector
+        baseVector:Set(4, 5)
+        
+        Vector2 addVector
+        addVector:Set(2, 3)
+        
+        Vector2 multiplyVector
+        multiplyVector:Set(2, 2)
+
+        output baseVector:MultiplyAndAdd(addVector, 2):ToText()
+
+        baseVector:Set(4, 5)
+        output baseVector:MultiplyAndAdd(addVector, multiplyVector):ToText()
+    end
+end

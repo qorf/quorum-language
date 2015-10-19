@@ -1,0 +1,13 @@
+use Libraries.Compute.Vector2
+
+class Vector2Normalize 
+    action Main
+        Vector2 normalVector
+        normalVector:Set(0, 0)
+        output normalVector:Normalize():ToText()
+
+        Vector2 vector
+        vector:Set(3, 4)
+        output vector:Normalize():ToText()
+    end
+end

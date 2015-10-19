@@ -1,0 +1,15 @@
+use Libraries.Compute.Vector2
+
+class Vector2Add 
+    action Main
+        Vector2 vector1
+        Vector2 vector2
+
+        vector1:Set(6, 3)
+        vector2:Set(2, 4)
+        output vector1:Add(vector2):ToText()
+
+        vector1:Set(6, 3)
+        output vector1:Add(2, 4):ToText()
+    end
+end

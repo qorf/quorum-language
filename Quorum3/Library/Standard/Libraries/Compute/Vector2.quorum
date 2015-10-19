@@ -236,7 +236,7 @@ class Vector2
         return x * yValue - y * xValue
     end
 
-   action Angle () returns number
+    action Angle () returns number
         number angle = math:InverseTangent(y, x) / radiansToDegrees
         if angle < 0
             angle = angle + 360
@@ -271,7 +271,7 @@ class Vector2
     end
     
    /* check this */
-   action RotateRadians (number radians) returns Vector2
+    action RotateRadians (number radians) returns Vector2
         number cos = math:Cosine(radians)
         number sin = math:Sine(radians)
         number newX = x * cos - y * sin
@@ -279,7 +279,7 @@ class Vector2
         x = newX
         y = newY
         return me
-   end
+    end
 
     action Rotate90Degrees (integer direction) returns Vector2
         number xValue = x
@@ -373,7 +373,7 @@ class Vector2
         return math:AbsoluteValue(x * other:GetY() - y * other:GetX()) <= 0.000001
     end
     
-   action IsOnLine (Vector2 other, number epsilon) returns boolean
+    action IsOnLine (Vector2 other, number epsilon) returns boolean
         return math:AbsoluteValue(x * other:GetY() - y * other:GetX()) <= epsilon
     end
 
