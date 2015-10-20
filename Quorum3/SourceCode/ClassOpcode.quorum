@@ -316,7 +316,7 @@ class ClassOpcode is QuorumOpcode
     end
 
     action Write
-        integer version = opcodes:GetJavaVersion(8)
+        integer version = opcodes:GetJavaVersion(7)
         integer access = opcodes:GetPublic() + opcodes:GetSuper()
         text interfaceName = converter:ConvertClassNameToInterfaceName(name)
         Array<text> interfaces

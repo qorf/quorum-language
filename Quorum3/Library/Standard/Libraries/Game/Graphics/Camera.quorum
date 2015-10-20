@@ -151,8 +151,8 @@ class Camera
     given as a 3D vector.
     */
     action Rotate(Quaternion quaternion)
-        quaternion:transform(direction)
-        quaternion:transform(up)
+        quaternion:Transform(direction)
+        quaternion:Transform(up)
     end
 
     /*
@@ -165,7 +165,7 @@ class Camera
         calcVector:Subtract(position)
         Translate(calcVector)
         Rotate(axis, degrees)
-        calcVector:Rotate(axis, angle)
+        calcVector:Rotate(axis, degrees)
         Translate(-calcVector:GetX(), -calcVector:GetY(), -calcVector:GetZ())
     end
 
