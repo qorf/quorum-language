@@ -527,7 +527,32 @@ public class GraphicsManager {
       else
           throw new GameRuntimeError("An error occurred while defining 2D image.");
 
-          }
+    }
+    
+    public void glGetIntegerv(int pname, IntBuffer params)
+    {
+        GL11.glGetInteger(pname, params);
+    }
+    
+    public void glActiveTexture (int texture) 
+    {
+        GL13.glActiveTexture(texture);
+    }
+    
+    public void glDepthFunc (int func) 
+    {
+        GL11.glDepthFunc(func);
+    }
+    
+    public void glDepthRangef (float zNear, float zFar) 
+    {
+        GL11.glDepthRange(zNear, zFar);
+    }
+    
+    public void glCullFace (int mode) 
+    {
+        GL11.glCullFace(mode);
+    }
   
     private IntBuffer toIntBuffer (int v[], int offset, int count) 
     {
@@ -537,21 +562,21 @@ public class GraphicsManager {
 	return intBuffer;
     }
 
-	private void ensureBufferCapacity (int numBytes) 
-        {
-            if (buffer == null || buffer.capacity() < numBytes) {
-		buffer = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newByteBuffer(numBytes);
-		floatBuffer = buffer.asFloatBuffer();
-		intBuffer = buffer.asIntBuffer();
-            }
-	}
-
-	private FloatBuffer toFloatBuffer (float v[], int offset, int count) {
-		ensureBufferCapacity(count << 2);
-		floatBuffer.clear();
-		plugins.quorum.Libraries.Game.libGDX.BufferUtils.copy(v, floatBuffer, count, offset);
-		return floatBuffer;
+    private void ensureBufferCapacity (int numBytes) 
+    {
+        if (buffer == null || buffer.capacity() < numBytes) {
+            buffer = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newByteBuffer(numBytes);
+            floatBuffer = buffer.asFloatBuffer();
+            intBuffer = buffer.asIntBuffer();
         }
+    }
+
+    private FloatBuffer toFloatBuffer (float v[], int offset, int count) {
+            ensureBufferCapacity(count << 2);
+            floatBuffer.clear();
+            plugins.quorum.Libraries.Game.libGDX.BufferUtils.copy(v, floatBuffer, count, offset);
+            return floatBuffer;
+    }
         
     // Because this is a utility class to make use of GL20 easier, it makes
     // sense to contain all of the GL20 constants here.  
