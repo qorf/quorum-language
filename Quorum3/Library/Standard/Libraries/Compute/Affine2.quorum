@@ -511,10 +511,6 @@ class Affine2
 
         number determinant = Determinant()
 
-        // if determinant = 0
-        // throw exception
-        // end
-
         number inverseDeterminant = 1.0 / determinant
 
         number tmp00 = M11
@@ -1002,7 +998,7 @@ class Affine2
 
     Attribute: Example
     */
-    action IsIdentityMatrix () returns boolean
+    action IsIdentityMatrix returns boolean
 
         return M00 = 1 and M02 = 0 and M12 = 0 and M11 = 1 and M01 = 0 and M10 = 0
 
@@ -1031,7 +1027,7 @@ class Affine2
 
     Attribute: Example
     */
-    action ToText () returns text
+    action ToText returns text
 
         return "[" + M00 + "|" + M01 + "|" + M02 + "]
 ["+ M10 + "|" + M11 + "|" + M12 + "]

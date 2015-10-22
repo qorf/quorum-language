@@ -44,6 +44,13 @@ class MathTester
         Vector2Scale()
         Vector2MultiplyAndAdd()
         Vector2Distance()
+        Vector2Limit()
+        Vector2SetLength()
+        Vector2CrossProduct()
+        Vector2Angle()
+        Vector2Rotate()
+        Vector2LinearInterpolation()
+        Vector2EqualsAtPrecision()
 
 //FAIL TESTS
         path = failPath
@@ -411,6 +418,90 @@ class MathTester
         results:Add("25.0")
         results:Add("25.0")
         results:Add("25.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector2Limit
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector2Limit.quorum")
+        files:Add(main)
+        results:Add("[2.4000000000000004:3.2]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector2SetLength
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector2SetLength.quorum")
+        files:Add(main)
+        results:Add("[0.6000000000000001:0.8]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector2CrossProduct
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector2CrossProduct.quorum")
+        files:Add(main)
+        results:Add("1.0")
+        results:Add("1.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector2Angle
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector2Angle.quorum")
+        files:Add(main)
+        results:Add("30.000000000000004")
+        results:Add("0.5235987755982989")
+        results:Add("11.309932474020227")
+        results:Add("0.197395559849881")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector2Rotate
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector2Rotate.quorum")
+        files:Add(main)
+        results:Add("[5.062177826491071:5.232050807568877]")
+        results:Add("[5.062177826491071:5.232050807568877]")
+        results:Add("[-2.0:7.0]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector2LinearInterpolation
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector2LinearInterpolation.quorum")
+        files:Add(main)
+        results:Add("[0.75:0.25]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector2EqualsAtPrecision
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector2EqualsAtPrecision.quorum")
+        files:Add(main)
+        results:Add("true")
+        results:Add("true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

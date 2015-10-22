@@ -13,34 +13,34 @@ class Vector3
     Math math
     public constant number ROUNDING_MARGIN = 0.000001
 
-    action GetX () returns number
+    action GetX returns number
         return x
     end
 
-    action GetY () returns number
+    action GetY returns number
         return y
     end
 
-    action GetZ () returns number
+    action GetZ returns number
         return z
     end
 
-    action Set (number xValue, number yValue, number zValue) returns Vector3
+    action Set(number xValue, number yValue, number zValue) returns Vector3
         x = xValue
         y = yValue
         z = zValue
         return me
     end
 
-    action Set (Vector3 vector) returns Vector3
+    action Set(Vector3 vector) returns Vector3
         return Set(vector:GetX(), vector:GetY(), vector:GetZ())
     end
 
-    action Set (Array<number> array) returns Vector3
+    action Set(Array<number> array) returns Vector3
         return Set(array:Get(0), array:Get(1), array:Get(2))
     end
 
-    action Set (Vector2 vector, number z) returns Vector3
+    action Set(Vector2 vector, number z) returns Vector3
         return Set(vector:GetX(), vector:GetY(), z)
     end
 
@@ -56,125 +56,125 @@ class Vector3
         z = newZ
     end
 
-    action Copy () returns Vector3
+    action Copy returns Vector3
         Vector3 temp
         temp:Set(x, y, z)
         return temp
     end
 
-    action Add (Vector3 vector) returns Vector3
+    action Add(Vector3 vector) returns Vector3
         return Add(vector:GetX(), vector:GetY(), vector:GetZ())
     end
 
-    action Add (number xValue, number yValue, number zValue) returns Vector3
+    action Add(number xValue, number yValue, number zValue) returns Vector3
         return Set(x + xValue, y + yValue, z + zValue)
     end
 
-    action Add (number value) returns Vector3
+    action Add(number value) returns Vector3
         return Set(x + value, y + value, z + value)
     end
 
-    action Subtract (Vector3 vector) returns Vector3
+    action Subtract(Vector3 vector) returns Vector3
         return Subtract(vector:GetX(), vector:GetY(), vector:GetZ())
     end
 
-    action Subtract (number xValue, number yValue, number zValue) returns Vector3
+    action Subtract(number xValue, number yValue, number zValue) returns Vector3
         return Set(x - xValue, y - yValue, z - zValue)        
     end
 
-    action Subtract (number value) returns Vector3
+    action Subtract(number value) returns Vector3
         return Set(x - value, y - value, z - value)
     end
 
-    action Scale (number scalar) returns Vector3
+    action Scale(number scalar) returns Vector3
         return Set(x * scalar, y * scalar, z * scalar)
     end
 
-    action Scale (Vector3 vector) returns Vector3
+    action Scale(Vector3 vector) returns Vector3
         return Set(x * vector:GetX(), y * vector:GetY(), z * vector:GetZ())
     end
 
-    action Scale (number vx, number vy, number vz) returns Vector3
+    action Scale(number vx, number vy, number vz) returns Vector3
         return Set(x * vx, y * vy, z * vz)
     end
 
-    action MultiplyAndAdd (Vector3 vec, number scalar) returns Vector3
+    action MultiplyAndAdd(Vector3 vec, number scalar) returns Vector3
         x = x + vec:GetX() * scalar
         y = y + vec:GetY() * scalar
         z = z + vec:GetZ() * scalar
         return me
     end
 
-    action MultiplyAndAdd (Vector3 vec, Vector3 mulVec) returns Vector3
+    action MultiplyAndAdd(Vector3 vec, Vector3 mulVec) returns Vector3
         x = x + vec:GetX() * mulVec:GetX()
         y = y + vec:GetY() * mulVec:GetY()
         z = z + vec:GetZ() * mulVec:GetZ()
         return me
     end
 
-    action Length () returns number
+    action Length returns number
         return math:SquareRoot(x * x + y * y + z * z)
     end
 
-    action Length (number x, number y, number z) returns number
+    action Length(number x, number y, number z) returns number
         return math:SquareRoot(x * x + y * y + z * z)
     end
 
-    action LengthSquared (number x, number y, number z) returns number
+    action LengthSquared(number x, number y, number z) returns number
         return x * x + y * y + z * z
     end
 
-    action LengthSquared () returns number
+    action LengthSquared returns number
         return x * x + y * y + z * z
     end
 
-    action Equals (Vector3 vector) returns boolean
+    action Equals(Vector3 vector) returns boolean
         return x = vector:GetX() and y = vector:GetY() and z = vector:GetZ()
     end
 
-    action Distance (number x1, number y1, number z1, number x2, number y2, number z2) returns number
+    action Distance(number x1, number y1, number z1, number x2, number y2, number z2) returns number
         number a = x2 - x1
         number b = y2 - y1
         number c = z2 - z1
         return math:SquareRoot(a * a + b * b + c * c)
     end
     
-    action Distance (Vector3 vector) returns number
+    action Distance(Vector3 vector) returns number
         number a = vector:GetX() - x
         number b = vector:GetY() - y
         number c = vector:GetZ() - z
         return math:SquareRoot(a * a + b * b + c * c)
     end
 
-    action Distance (number xValue, number yValue, number zValue) returns number
+    action Distance(number xValue, number yValue, number zValue) returns number
         number a = xValue - x
         number b = yValue - y
         number c = zValue - z
         return math:SquareRoot(a * a + b * b + c * c)
     end
 
-    action DistanceSquared (number x1, number y1, number z1, number x2, number y2, number z2)returns number
+    action DistanceSquared(number x1, number y1, number z1, number x2, number y2, number z2)returns number
         number a = x2 - x1
         number b = y2 - y1
         number c = z2 - z1
         return a * a + b * b + c * c
     end
 
-    action DistanceSquared (Vector3 vector) returns number
+    action DistanceSquared(Vector3 vector) returns number
         number a = vector:GetX() - x
         number b = vector:GetY() - y
         number c = vector:GetZ() - z
         return a * a + b * b + c * c
     end
 
-    action DistanceSquared (number xValue, number yValue, number zValue) returns number
+    action DistanceSquared(number xValue, number yValue, number zValue) returns number
         number a = xValue - x
         number b = yValue - y
         number c = zValue - z
         return a * a + b * b + c * c
     end
 
-   action Normalize() returns Vector3
+   action Normalize returns Vector3
         number len2 = me:LengthSquared()
         if len2 = 0.0 or len2 = 1.0
             return me
@@ -183,28 +183,28 @@ class Vector3
         return me:Scale(1.0 / math:SquareRoot(len2))
     end         
 
-    action DotProduct (Vector3 vector) returns number
+    action DotProduct(Vector3 vector) returns number
         return x * vector:GetX() + y * vector:GetY() + z * vector:GetZ()
     end
 
-    action DotProduct (number xValue, number yValue, number zValue) returns number
+    action DotProduct(number xValue, number yValue, number zValue) returns number
         return x * xValue + y * yValue + z * zValue
     end
 
-    action DotProduct (number x1, number y1, number z1, number x2, number y2, number z2) returns number
+    action DotProduct(number x1, number y1, number z1, number x2, number y2, number z2) returns number
         return x1 * x2 + y1 * y2 + z1 * z2
     end
 
     /* Sets Vector3's variables to the cross product of the current variables of Vector3 and the parameters */
-    action CrossProduct (Vector3 vector) returns Vector3
+    action CrossProduct(Vector3 vector) returns Vector3
         return Set(y * vector:GetZ() - z * vector:GetY(), z * vector:GetX() - x * vector:GetZ(), x * vector:GetY() - y * vector:GetX())
     end
 
-    action CrossProduct (number xVal, number yVal, number zVal) returns Vector3
+    action CrossProduct(number xVal, number yVal, number zVal) returns Vector3
         return Set(y * zVal - z * yVal, z * xVal - x * zVal, x * yVal - y * xVal)
     end
 
-    action MultiplyBy4x3Matrix (Array<number> matrix) returns Vector3
+    action MultiplyBy4x3Matrix(Array<number> matrix) returns Vector3
         return Set(x * matrix:Get(0) + y * matrix:Get(3) + z * matrix:Get(6) + matrix:Get(9),
                    x * matrix:Get(1) + y * matrix:Get(4) + z * matrix:Get(7) + matrix:Get(10),
                    x * matrix:Get(2) + y * matrix:Get(5) + z * matrix:Get(8) + matrix:Get(11))
@@ -219,7 +219,7 @@ class Vector3
                    x * l_mat:Get(matrix:M20) + y * l_mat:Get(matrix:M21) + z * l_mat:Get(matrix:M22) + l_mat:Get(matrix:M23))        
     end
         
-    action MultiplyByTranspose (Matrix4 matrix) returns Vector3
+    action MultiplyByTranspose(Matrix4 matrix) returns Vector3
         Array<number> l_mat = matrix:values
 
         return Set(x * l_mat:Get(matrix:M00) + y * l_mat:Get(matrix:M10) + z * l_mat:Get(matrix:M20) + l_mat:Get(matrix:M30),
@@ -227,7 +227,7 @@ class Vector3
                    x * l_mat:Get(matrix:M02) + y * l_mat:Get(matrix:M12) + z * l_mat:Get(matrix:M22) + l_mat:Get(matrix:M32))
     end
  
-    action Multiply (Matrix3 matrix) returns Vector3
+    action Multiply(Matrix3 matrix) returns Vector3
            constant Array<number> leftMatrix = matrix:values
 
            return Set(x * leftMatrix:Get(matrix:M00) + y * leftMatrix:Get(matrix:M01) + z * leftMatrix:Get(matrix:M02),
@@ -236,7 +236,7 @@ class Vector3
 
     end
 
-    action MultiplyByTranspose (Matrix3 matrix) returns Vector3
+    action MultiplyByTranspose(Matrix3 matrix) returns Vector3
         constant Array<number> leftMatrix = matrix:values
         
         return Set(x * leftMatrix:Get(matrix:M00) + y * leftMatrix:Get(matrix:M10) + z * leftMatrix:Get(matrix:M20),
@@ -303,65 +303,65 @@ class Vector3
         return me:Multiply(tempMat)
     end
 
-    action IsUnit() returns boolean
+    action IsUnit returns boolean
         return IsUnit(0.000000001)
     end
 
-    action IsUnit (number margin) returns boolean
+    action IsUnit(number margin) returns boolean
         return math:AbsoluteValue(LengthSquared() - 1.0) < margin
     end
 
-    action IsZero() returns boolean
+    action IsZero returns boolean
         return x = 0 and y = 0 and z = 0
     end
 
-    action IsZero (number margin) returns boolean
+    action IsZero(number margin) returns boolean
         return LengthSquared() < margin
     end
 
-    action IsOnLine (Vector3 other, number epsilon) returns boolean
+    action IsOnLine(Vector3 other, number epsilon) returns boolean
         return LengthSquared(y * other:GetZ() - z * other:GetY(), z * other:GetX() - x * other:GetZ(),
                              x * other:GetY() - y * other:GetX()) <= epsilon
     end
 
-    action IsOnLine (Vector3 other) returns boolean
+    action IsOnLine(Vector3 other) returns boolean
         return LengthSquared(y * other:GetZ() - z * other:GetY(), z * other:GetX() - x * other:GetZ(), 
                              x * other:GetY() - y * other:GetX()) <= ROUNDING_MARGIN
     end
         
-    action IsCollinearOpposite (Vector3 other, number epsilon) returns boolean
+    action IsCollinearOpposite(Vector3 other, number epsilon) returns boolean
         return IsOnLine(other, epsilon) and HasOppositeDirection(other)
     end
 
-    action IsCollinearOpposite (Vector3 other) returns boolean
+    action IsCollinearOpposite(Vector3 other) returns boolean
         return IsOnLine(other) and HasOppositeDirection(other)
     end
 
-    action IsCollinear (Vector3 other, number epsilon) returns boolean
+    action IsCollinear(Vector3 other, number epsilon) returns boolean
         return IsOnLine(other, epsilon) and HasSameDirection(other)
     end
 
-    action IsCollinear (Vector3 other) returns boolean
+    action IsCollinear(Vector3 other) returns boolean
         return IsOnLine(other) and HasSameDirection(other)
     end
 
-    action IsPerpendicular (Vector3 vector) returns boolean
+    action IsPerpendicular(Vector3 vector) returns boolean
         return math:AbsoluteValue(DotProduct(vector)) <= ROUNDING_MARGIN
     end
 
-    action IsPerpendicular (Vector3 vector, number epsilon) returns boolean
+    action IsPerpendicular(Vector3 vector, number epsilon) returns boolean
         return math:AbsoluteValue(DotProduct(vector)) <= epsilon
     end
 
-    action HasSameDirection (Vector3 vector) returns boolean
+    action HasSameDirection(Vector3 vector) returns boolean
         return DotProduct(vector) > 0
     end
 
-    action HasOppositeDirection (Vector3 vector) returns boolean
+    action HasOppositeDirection(Vector3 vector) returns boolean
         return DotProduct(vector) < 0
     end
 
-    action LinearInterpolation (Vector3 target, number alpha) returns Vector3
+    action LinearInterpolation(Vector3 target, number alpha) returns Vector3
         x = x + alpha * (target:GetX() - x)
         y = y + alpha * (target:GetY() - y)
         z = z + alpha * (target:GetZ() - z)
@@ -372,7 +372,7 @@ class Vector3
             return lerp(target, interpolator:apply(0.0, 1.0, alpha)
        end */
 
-    action SphericalLinearInterpolation (Vector3 target, number alpha) returns Vector3
+    action SphericalLinearInterpolation(Vector3 target, number alpha) returns Vector3
         constant number dotProduct = DotProduct(target)
 
         if dotProduct > 0.9995 or dotProduct < -0.9995
@@ -398,7 +398,7 @@ class Vector3
         return Scale(math:Cosine(theta)):Add(tx * dl, ty * dl, tz * dl):Normalize()
     end
 
-    action ToText() returns text
+    action ToText returns text
         return "[" + x + "," + y + "," + z + "]"
     end
 
@@ -452,7 +452,7 @@ class Vector3
             return false
         end */
 
-    action EqualAtPrecision (Vector3 other, number epsilon) returns boolean
+    action EqualAtPrecision(Vector3 other, number epsilon) returns boolean
         if other = undefined
             return false
         end

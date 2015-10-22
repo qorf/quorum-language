@@ -1,10 +1,26 @@
-/* A class representing a vector in 2D space. */
-
 package Libraries.Compute
 
 use Libraries.Compute.all
 use Libraries.Containers.Array
 
+/*
+Vector2 is a class representing a vector in 2D space.
+
+Attribute: Author Amanda Austin
+
+Attribute: Example
+
+use Libraries.Compute.Vector2
+
+Vector2 firstVector
+Vector2 secondVector
+
+firstVector:Set(3.0, 4.0)
+secondVector:Set(2.0, 3.0)
+
+number dotProduct = firstVector:DotProduct(secondVector)
+output dotProduct
+*/
 class Vector2
 
     Math math
@@ -14,63 +30,303 @@ class Vector2
     constant number radiansToDegrees = 180 / math:pi
     constant number degreesToRadians = math:pi / 180
 
+    /*
+    This action returns the current x-coordinate of the vector.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns the x-coordinate of the vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+
+    Vector2 vector
+    vector:Set(4.0, 3.0)
+    number x = vector:GetX()
+    output "The x-coordinate is " + x
+    */
     action GetX returns number
         return x
     end
 
+    /*
+    This action returns the current y-coordinate of the vector.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns the y-coordinate of the vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+
+    Vector2 vector
+    vector:Set(4.0, 3.0)
+    number y = vector:GetY()
+    output "The y-coordinate is " + y
+    */
     action GetY returns number
         return y
     end
 
-    // set the calling vectors coordinates
+    /*
+    This action sets the vector's coordinates to the coordinates of the passed
+    vector.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter vector the vector to use to set the coordinates
+
+    Attribute: Returns the calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+
+    Vector2 firstVector
+    firstVector:Set(2.4, 4.3)
+    
+    Vector2 secondVector
+    secondVector:Set(firstVector)
+    */
     action Set(Vector2 vector) returns Vector2
         x = vector:GetX()
         y = vector:GetY()
         return me
     end
 
+    /*
+    This action sets the x and y coordinates of the vector to the passed x and
+    y values.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter xValue the value to set as the x-coordinate
+    Attribute: Parameter yValue the value to set as the y-coordinate
+
+    Attribute: Returns the calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+    
+    Vector2 vector
+    vector:Set(8.8, 4.2)
+    */
     action Set(number xValue, number yValue) returns Vector2
         x = xValue
         y = yValue
         return me
     end
 
-    // returns a copy of the calling vector
-    action Copy() returns Vector2
+    /*
+    This action returns a copy of the current vector. The new vector's x and
+    y coordinates are the same as the calling vector's x and y coordinates.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns a new vector that is a copy of the calling vector
+
+    Attribute: Example
+    
+    use Libraries.Compute.Vector2
+
+    Vector2 vector
+    vector:Set(4.8, 3.2)
+    
+    Vector2 copyVector
+    copyVector = vector:Copy()
+    */
+    action Copy returns Vector2
         Vector2 vector
-        vector:Set(x,y)
+        vector:Set(me:x, me:y)
         return vector
     end
 
+    /*
+    This action returns the length of the vector with the passed x and y
+    coordinates measured from the origin (0, 0).
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter x The x-coordinate of the vector
+    Attribute: Parameter y The y-coordinate of the vector
+
+    Attribute: Returns The length of the vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+
+    Vector2 vector
+    
+    number length = vector:Length(3.0, 4.0)
+    output "The length of the vector is " + length
+    */
     action Length(number x, number y) returns number
         return math:SquareRoot(x * x + y * y)
     end
 
-    action Length() returns number
+
+    /*
+    This action returns the length of the vector measured from the origin (0, 0)
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns the length of the calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+
+    Vector2 vector
+    vector:Set(3.0, 4.0)
+    
+    number length = vector:Length()
+    output "The length of the vector is " + length
+    */
+    action Length returns number
         return math:SquareRoot(x * x + y * y)
     end
 
+    /*
+    This action returns the square of the length of the vector with the passed x 
+    and y coordinates measured from the origin (0, 0).
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter x The x-coordinate of the vector
+    Attribute: Parameter y The y-coordinate of the vector
+
+    Attribute: Returns The square of the length of the vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+
+    Vector2 vector
+    
+    number lengthSquared = vector:LengthSquared(3.0, 4.0)
+    output "The square of the length of the vector is " + lengthSquared
+    */
     action LengthSquared(number x, number y) returns number
         return x * x + y * y
     end
 
+    /*
+    This action returns the square of the length of the vector measured from the 
+    origin (0, 0).
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns The square of the length of the calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+
+    Vector2 vector
+    vector:Set(3.0, 4.0)
+    
+    number lengthSquared = vector:LengthSquared()
+    output "The square of the length of the vector is " + lengthSquared
+    */
     action LengthSquared() returns number
         return x * x + y * y
     end
 
+    /*
+    This action subtracts the passed vector from the calling vector. For example,
+    if A and B are vectors, then this action will compute A - B. This changes
+    the calling vector to the result of the subtraction. Using the above 
+    example, this results in A = A - B
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter The vector to subtract
+    
+    Attribute: Returns The calling vector after subtraction
+
+    Attribute: Example
+    
+    use Libraries.Compute.Vector2
+    
+    Vector2 firstVector
+    Vector2 secondVector
+
+    firstVector:Set(9.0, 8.0)
+    secondVector:Set(6.0, 5.0)
+    
+    firstVector:Subtract(secondVector)
+    
+    number newX = firstVector:GetX()
+    number newY = firstVector:GetY()
+
+    output "The new vector is: [" newX + ", " + newY + "]"
+    */
     action Subtract(Vector2 vector) returns Vector2
         x = x - vector:GetX()
         y = y - vector:GetY()
         return me
     end
 
+    /*
+    This action subtracts a vector with the passed coordinates from the calling 
+    vector. This action changes the calling vector to the result of the
+    subtraction.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter xValue The x coordinate of the vector to subtract
+    Attribute: Parameter yValue The y coordinate of the vector to subtract
+    
+    Attribute: Returns The calling vector after subtraction
+
+    Attribute: Example
+    
+    use Libraries.Compute.Vector2
+    
+    Vector2 vector
+
+    vector:Set(9.0, 8.0)
+    
+    vector:Subtract(7.3, 2.7)
+    
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+
+    output "The new vector is: [" newX + ", " + newY + "]"
+    */
     action Subtract(number xValue, number yValue) returns Vector2
         x = x - xValue
         y = y - yValue
         return me
     end
 
-    action Normalize() returns Vector2
+    /*
+    This action produces a normalized vector with the same direction as the
+    original vector but with a length of 1. This action changes the calling
+    vector to the normalized vector.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns the normalized vector with a length of 1
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+
+    Vector2 vector
+    vector:Set(23.4, 43.2)
+    vector:Normalize()
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+
+    output "The normalized vector is: [" newX + ", " + newY + "]"
+    */
+    action Normalize returns Vector2
         number length = Length()
         if length not= 0
             x = x / length
@@ -79,12 +335,66 @@ class Vector2
         return me
     end
 
+    /*
+    This action adds the passed vector to the calling vector. This action
+    changes the calling vector to the result of the addition.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter The vector to add
+    
+    Attribute: Returns The calling vector after addition
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+
+    Vector2 firstVector
+    Vector2 secondVector
+
+    firstVector:Set(3.2, 5.5)
+    secondVector:Set(8.3, 4.2)
+    
+    firstVector:Add(secondVector)
+
+    number newX = firstVector:GetX()
+    number newY = firstVector:GetY()
+
+    output "The new vector is: [" newX + ", " + newY + "]"    
+    */
     action Add(Vector2 vector) returns Vector2
         x = x + vector:GetX()
         y = y + vector:GetY()
         return me
     end
 
+
+    /*
+    This action adds the vector with the passed x and y coordinates to the
+    calling vector. This changes the calling vector to the result of the 
+    addition.
+    
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter xValue The x-coordinate of the vector to add
+    Attribute: Parameter yValue The y-coordinate of the vector to add
+
+    Attribute: Returns The calling vector after addition
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+
+    Vector2 vector
+    vector:Set(4.3, 8.1)
+
+    vector:Add(3.3, 9.2)
+    
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+
+    output "The new vector is: [" newX + ", " + newY + "]"
+    */
     action Add(number xValue, number yValue) returns Vector2
         x = x + xValue
         y = y + yValue
@@ -220,24 +530,24 @@ class Vector2
         end
     end
 
-    action Multiply(Matrix3 matrix) returns Vector2
-        number x = me:x + matrix:values:Get(0) + me:y * matrix:values:Get(3) + matrix:values:Get(6)
-        number y = me:x + matrix:values:Get(1) + me:y * matrix:values:Get(4) + matrix:values:Get(7)
-        me:x = x
-        me:y = y
-        return me
-    end
+//    action Multiply(Matrix3 matrix) returns Vector2
+//        number x = me:x + matrix:values:Get(0) + me:y * matrix:values:Get(3) + matrix:values:Get(6)
+//        number y = me:x + matrix:values:Get(1) + me:y * matrix:values:Get(4) + matrix:values:Get(7)
+//        me:x = x
+//        me:y = y
+//        return me
+//    end
 
     action CrossProduct (Vector2 vector) returns number
-        return x * vector:GetY() - y * vector:GetY()
+        return x * vector:GetY() - y * vector:GetX()
     end
 
     action CrossProduct (number xValue, number yValue) returns number
         return x * yValue - y * xValue
     end
 
-    action Angle () returns number
-        number angle = math:InverseTangent(y, x) / radiansToDegrees
+    action Angle returns number
+        number angle = math:InverseTangent(y, x) * radiansToDegrees
         if angle < 0
             angle = angle + 360
         end
@@ -245,7 +555,7 @@ class Vector2
     end
 
     action Angle (Vector2 vector) returns number
-	return math:InverseTangent(CrossProduct(vector), DotProduct(vector)) / radiansToDegrees
+	return math:InverseCosine(me:DotProduct(vector) / (me:Length() * vector:Length())) * radiansToDegrees
     end
 
     action AngleInRadians () returns number
@@ -253,7 +563,7 @@ class Vector2
     end
 
     action AngleInRadians(Vector2 vector) returns number
-        return math:InverseTangent(CrossProduct(vector), DotProduct(vector))
+        return math:InverseCosine(me:DotProduct(vector) / (me:Length() * vector:Length()))
     end
 
     action SetAngle (number degrees) returns Vector2
@@ -323,7 +633,7 @@ class Vector2
             return false
         end */
 
-    action EqualAtPrecision (Vector2 vector, number precision) returns boolean
+    action EqualsAtPrecision (Vector2 vector, number precision) returns boolean
 
         if vector = undefined
             return false
@@ -340,7 +650,7 @@ class Vector2
 
     end
 
-    action EqualAtPrecision (number xValue, number yValue, number precision) returns boolean
+    action EqualsAtPrecision (number xValue, number yValue, number precision) returns boolean
         if math:AbsoluteValue(xValue - x) > precision
             return false
         elseif math:AbsoluteValue(yValue - y) > precision
