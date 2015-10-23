@@ -18,7 +18,7 @@ public class Renderable
     
     public Camera camera;
     
-    // public Shader shader;
+    public Shader shader;
     
     public Camera GetCamera()
     {
@@ -27,7 +27,7 @@ public class Renderable
     
     public void SetNative(Renderable_ other)
     {
-        //shader = ((quorum.Libraries.Game.Graphics.Renderable)other).plugin_.shader;
+        shader = ((quorum.Libraries.Game.Graphics.Renderable)other).plugin_.shader;
     }
     
 }
