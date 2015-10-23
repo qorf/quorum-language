@@ -44,10 +44,14 @@ public class Texture
         glHandle = CreateGLHandle();
     }
 
-    public void Bind() {
-        if (glTarget != gl20.GL_TEXTURE_2D)
-            throw new GameRuntimeError("glTarget was = " + glTarget);
-
+    public void Bind() 
+    {
+        gl20.glBindTexture(glTarget, glHandle);
+    }
+    
+    public void Bind(int unit)
+    {
+        gl20.glActiveTexture(gl20.GL_TEXTURE0 + unit);
         gl20.glBindTexture(glTarget, glHandle);
     }
     

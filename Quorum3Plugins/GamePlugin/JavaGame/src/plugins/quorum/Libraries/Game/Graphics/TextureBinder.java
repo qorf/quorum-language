@@ -51,6 +51,9 @@ public class TextureBinder
     // A texture descriptor used to directly interact with textures.
     private final TextureDescriptor_ tempDescriptor = new TextureDescriptor();
     
+    // The last texture index that was assigned when given a new texture.
+    private int currentTexture = 0;
+    
     /* This constructor is set to use default settings. Because this is only
     ever called by the engine in a single location, it doesn't seem necessary
     to allow for different options currently. */
@@ -101,16 +104,15 @@ public class TextureBinder
         Texture_ texture = textureDesc.texture;
         reused = false;
         
-        // TEMP:
-        result = 0;
-        
         switch (method)
         {
             case ROUND_ROBIN:
-                //result = offset + (index = bindTextureRoundRobin(texture));
+                index = BindTextureRoundRobin(texture);
+                result = offset + index;
                 break;
             case WEIGHTED:
-                //result = offset + (index = bindTextureWeighted(texture));
+                index = BindTextureWeighted(texture);
+                result = offset + index;
                 break;
             default:
                 return -1;
@@ -119,12 +121,12 @@ public class TextureBinder
         if (reused)
         {
             if (rebind)
-                ;//texture.bind(result);
+                ((Texture)texture).plugin_.Bind(result);
             else
                 GameState.nativeGraphics.glActiveTexture(GraphicsManager.GL_TEXTURE0 + result);
         }
-        //texture.UnsafeSetWrap(textureDesc.uWrap, textureDesc.vWrap)
-        //texture.UnsafeSetFilter(textureDesc.minFilter, textureDesc.magFilter)
+        texture.UnsafeSetWrap(textureDesc.uWrap, textureDesc.vWrap);
+        texture.UnsafeSetFilter(textureDesc.minFilter, textureDesc.magFilter);
         return result;
     }
     
@@ -134,4 +136,52 @@ public class TextureBinder
         GameState.nativeGraphics.glGetIntegerv(GraphicsManager.GL_MAX_TEXTURE_IMAGE_UNITS, buffer);
         return buffer.get(0);
     }
+    
+    private final int BindTextureRoundRobin(Texture_ texture)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            final int index = (currentTexture + i) % count;
+            if (textures[index] == texture)
+            {
+                reused = true;
+                return index;
+            }
+        }
+        currentTexture = (currentTexture + 1) % count;
+        textures[currentTexture] = texture;
+        ((Texture)texture).plugin_.Bind(offset + currentTexture);
+        return currentTexture;
+    }
+    
+    private final int BindTextureWeighted(Texture_ texture)
+    {
+        int result = -1;
+        int weight = weights[0];
+        int windex = 0;
+        for (int i = 0; i < count; i++)
+        {
+            if (textures[i] == texture)
+            {
+                result = i;
+                weights[i] += reuseWeight;
+            }
+            else if (weights[i] < 0 || --weights[i] < weight)
+            {
+                weight = weights[i];
+                windex = i;
+            }
+        }
+        if (result < 0)
+        {
+            textures[windex] = texture;
+            weights[windex] = 100;
+            ((Texture)texture).plugin_.Bind(offset + (result = windex));
+        }
+        else
+            reused = true;
+        
+        return result;
+    }
+    
 }
