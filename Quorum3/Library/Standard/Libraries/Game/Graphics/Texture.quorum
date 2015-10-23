@@ -1068,4 +1068,38 @@ class Texture is Disposable
         LoadFromTextureData(data)
     end
 
+    /*
+    This action will set the texture wrapping of this Texture, assuming it is
+    already bound and active. This method sacrifices safety for speed, and
+    should never be used directly by users.
+    */
+    action UnsafeSetWrap(TextureWrap u, TextureWrap v)
+        if u not= undefined and u:GetValue() not= horizontalWrap:GetValue()
+            gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_WRAP_S, u:GetValue())
+            horizontalWrap = u
+        end
+
+        if v not= undefined and v:GetValue() not= verticalWrap:GetValue()
+            gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_WRAP_T, v:GetValue())
+            verticalWrap = v
+        end
+    end
+
+    /*
+    This action will set the texture filter of this Texture, assuming it is
+    already bound and active. This method sacrifices safety for speed, and
+    should never be used directly by users.
+    */
+    action UnsafeSetFilter(TextureFilter min, TextureFilter mag)
+        if min not= undefined and min:GetValue() not= minimizeFilter:GetValue()
+            gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_MIN_FILTER, min:GetValue())
+            minimizeFilter = min
+        end
+
+        if mag not= undefined and mag:GetValue() not= magnifyFilter:GetValue()
+            gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_MAG_FILTER, mag:GetValue())
+            magnifyFilter = mag
+        end
+    end
+
 end

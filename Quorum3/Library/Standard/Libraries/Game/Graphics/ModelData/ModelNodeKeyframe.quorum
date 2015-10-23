@@ -3,4 +3,9 @@ package Libraries.Game.Graphics.ModelData
 class ModelNodeKeyframe<Type>
     public number keyTime = 0
     public Type value = undefined
+
+    action Initialize(number time, Type val)
+        keyTime = time
+        value = val
+    end
 end

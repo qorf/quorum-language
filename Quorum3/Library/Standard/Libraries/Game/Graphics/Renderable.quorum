@@ -36,10 +36,8 @@ class Renderable
     // public Object userData
 
     /*
-    Used solely to sort Renderables based on distance to the currently used camera.
+    Sets this renderable to have all of the same data as the provided renderable.
     */
-    private Camera cam = undefined
-
     action Set(Renderable renderable) returns Renderable
         worldTransform:Set(renderable:worldTransform)
         material = renderable:material
@@ -55,7 +53,12 @@ class Renderable
         return me
     end
 
+    private system action SetNative(Renderable renderable)
+
     action Compare(Object object) returns CompareResult
+
+        Camera cam = GetCamera()
+
         if not (object is Renderable) or (cam = undefined)
             return parent:Object:Compare(object)
         end
@@ -118,4 +121,9 @@ class Renderable
 
         return result
     end
+
+    /*
+    Gets the camera from the plugin. Used for sorting purposes.
+    */
+    private system action GetCamera returns Camera
 end

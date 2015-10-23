@@ -3,9 +3,15 @@ package Libraries.Game.Graphics
 use Libraries.Game.Graphics.ModelData.Node
 use Libraries.Game.Graphics.ModelData.Animation
 use Libraries.Game.Graphics.ModelData.NodePart
+use Libraries.Game.Graphics.ModelData.NodeKeyframe
+use Libraries.Game.Graphics.ModelData.NodeAnimation
+use Libraries.Game.Graphics.ModelData.MeshPart
 use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.HashTable
 use Libraries.Compute.Matrix4
+use Libraries.Compute.Vector3
+use Libraries.Compute.Quaternion
 
 class Model 
     
@@ -64,26 +70,27 @@ class Model
         NodePart nodePart = undefined
         repeat node:parts:GetSize() times
             nodePart = node:parts:Get(index)
-            copy:parts:Add(copyNodePart(nodePart))
+            copy:parts:Add(CopyNodePart(nodePart))
             index = index + 1
         end
 
-        Iterator<Node> iterator
+        Iterator<Node> iterator = node:GetChildren()
         Node child = undefined
         repeat while iterator:HasNext()
             child = iterator:Next()
-            copy:Add(copyNode(child))
+            copy:Add(CopyNode(child))
         end
         return copy
     end
 
     private action CopyNodePart(NodePart nodePart) returns NodePart
         NodePart copy
-        copy:meshPart:id = nodePart:meshPart:id
-        copy:meshPart:indexOffset = nodePart:meshPart:indexOffset
-        copy:meshPart:verticesCount = nodePart:meshPart:verticesCount
-        copy:meshPart:primitiveType = nodePart:meshPart:primitiveType
-        copy:meshPart:mesh = nodePart:meshPart:mesh
+        MeshPart meshPart = copy:meshPart
+        meshPart:id = nodePart:meshPart:id
+        meshPart:indexOffset = nodePart:meshPart:indexOffset
+        meshPart:verticesCount = nodePart:meshPart:verticesCount
+        meshPart:primitiveType = nodePart:meshPart:primitiveType
+        meshPart:mesh = nodePart:meshPart:mesh
         
         if nodePart:invBoneBindTransforms not= undefined
             nodePartBones:Add(copy, nodePart:invBoneBindTransforms)
@@ -176,7 +183,7 @@ class Model
                     NodeAnimation nodeAnim
                     nodeAnim:node = node
 
-                    if defaultShareKeyFrames
+                    if defaultShareKeyframes
                         nodeAnim:translation = nanim:translation
                         nodeAnim:rotation = nanim:rotation
                         nodeAnim:scaling = nanim:scaling
@@ -184,48 +191,48 @@ class Model
                         if nanim:translation not= undefined
                             Array<NodeKeyframe<Vector3>> temp
                             nodeAnim:translation = temp
-                            integer index = 0
+                            integer index3 = 0
                             NodeKeyframe<Vector3> kf = undefined
                             repeat nanim:translation:GetSize() times
-                                kf = nanim:translation:Get(index)
+                                kf = nanim:translation:Get(index3)
 
                                 NodeKeyframe<Vector3> newKF
                                 newKF:Initialize(kf:keyTime, kf:value)
                                 nodeAnim:translation:Add(newKF)
 
-                                index = index + 1
+                                index3 = index3 + 1
                             end
                         end
 
                         if nanim:rotation not= undefined
                             Array<NodeKeyframe<Quaternion>> temp
                             nodeAnim:rotation = temp
-                            integer index = 0
+                            integer index3 = 0
                             NodeKeyframe<Quaternion> kf = undefined
                             repeat nanim:rotation:GetSize() times
-                                kf = nanim:rotation:Get(index)
+                                kf = nanim:rotation:Get(index3)
 
                                 NodeKeyframe<Quaternion> newKF
                                 newKF:Initialize(kf:keyTime, kf:value)
                                 nodeAnim:rotation:Add(newKF)
 
-                                index = index + 1
+                                index3 = index3 + 1
                             end
                         end
 
                         if nanim:scaling not= undefined
                             Array<NodeKeyframe<Vector3>> temp
                             nodeAnim:scaling = temp
-                            integer index = 0
+                            integer index3 = 0
                             NodeKeyframe<Vector3> kf = undefined
                             repeat nanim:scaling:GetSize() times
-                                kf = nanim:scaling:Get(index)
+                                kf = nanim:scaling:Get(index3)
 
                                 NodeKeyframe<Vector3> newKF
                                 newKF:Initialize(kf:keyTime, kf:value)
                                 nodeAnim:scaling:Add(newKF)
 
-                                index = index + 1
+                                index3 = index3 + 1
                             end
                         end
                     end
@@ -294,10 +301,10 @@ class Model
         end
     end
 
-    private action GetRenderable(node, nodePart) returns Renderable
+    private action GetRenderable(Node node, NodePart nodePart) returns Renderable
         Renderable out
         nodePart:SetRenderable(out)
-        if nodePart:bones = undefined and transform != undefined
+        if nodePart:bones = undefined and transform not= undefined
             out:worldTransform:Set(transform):Multiply(node:globalTransform)
         elseif transform not= undefined
             out:worldTransform:Set(transform)
