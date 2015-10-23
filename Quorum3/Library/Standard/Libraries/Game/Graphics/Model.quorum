@@ -197,7 +197,7 @@ class Model
                                 kf = nanim:translation:Get(index3)
 
                                 NodeKeyframe<Vector3> newKF
-                                newKF:Initialize(kf:keyTime, kf:value)
+                                newKF:Initialize(kf:keyTime, cast(Vector3, kf:value))
                                 nodeAnim:translation:Add(newKF)
 
                                 index3 = index3 + 1
@@ -213,7 +213,7 @@ class Model
                                 kf = nanim:rotation:Get(index3)
 
                                 NodeKeyframe<Quaternion> newKF
-                                newKF:Initialize(kf:keyTime, kf:value)
+                                newKF:Initialize(kf:keyTime, cast(Quaternion, kf:value))
                                 nodeAnim:rotation:Add(newKF)
 
                                 index3 = index3 + 1
@@ -229,7 +229,7 @@ class Model
                                 kf = nanim:scaling:Get(index3)
 
                                 NodeKeyframe<Vector3> newKF
-                                newKF:Initialize(kf:keyTime, kf:value)
+                                newKF:Initialize(kf:keyTime, cast(Vector3, kf:value))
                                 nodeAnim:scaling:Add(newKF)
 
                                 index3 = index3 + 1
