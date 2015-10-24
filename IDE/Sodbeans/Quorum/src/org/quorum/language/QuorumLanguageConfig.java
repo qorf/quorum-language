@@ -75,12 +75,12 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     public boolean isIdentifierChar(char c) {
         return Character.isJavaIdentifierPart(c);
     }   
-
+    
     @Override
     public SemanticAnalyzer getSemanticAnalyzer() {
         return semanticAnalyzer; //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public boolean hasStructureScanner() {
         return true;
