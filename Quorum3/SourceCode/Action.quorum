@@ -18,6 +18,15 @@ class Action is Symbol
     boolean isPrivate = false
     boolean isPublic = true
     Location headerLocation = undefined
+    Location nameLocation = undefined
+
+    action GetNameLocation returns Location
+        return nameLocation
+    end
+
+    action SetNameLocation(Location location)
+        nameLocation = location
+    end
 
     action GetHeaderLocation returns Location
         return headerLocation

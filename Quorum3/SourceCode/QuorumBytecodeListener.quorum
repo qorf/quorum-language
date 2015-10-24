@@ -973,6 +973,13 @@ class QuorumBytecodeListener is QuorumSourceListener
             variable = currentBlock:GetVariable(object)
         end
 
+        if variable not= undefined
+            Location useLocation
+            useLocation:SetLocation(context:objectLocation)
+            variable:AddUseLocation(useLocation)
+        end
+
+
         //this is an assignment to a field in a parent
         if theParent not= undefined
             //get the full static key of the parent
@@ -1480,9 +1487,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         a = 5
     end
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         text name = context:name
         Variable variable = undefined
         TypeChecker checker = GetTypeChecker()
@@ -1506,6 +1510,10 @@ class QuorumBytecodeListener is QuorumSourceListener
                 manager:Add(error)
             end
         end
+
+        Location useLocation
+        useLocation:SetLocation(context:variableLocation)
+        variable:AddUseLocation(useLocation)
         variable:SetIsDefined(true)
         Type left = variable:GetType()
 
@@ -2065,6 +2073,10 @@ class QuorumBytecodeListener is QuorumSourceListener
         actionCall:SetLocation(context:GetLocation())
         actionCall:SetMethodWriter(methodWriter)
 
+        if currentClass:GetName() = "Main"
+            a = 5
+        end
+
         if not parentCallStack:IsEmpty()
             ParentVariableFunctionCallContext parentContext = parentCallStack:Peek()
             if parentContext:pop = true
@@ -2248,6 +2260,9 @@ class QuorumBytecodeListener is QuorumSourceListener
                     actionCall:SetField(variable)
                     actionCall:SetFieldHolder(currentClass)
                     actionCall:SetCallingClass(currentClass)
+                    Location useLocation
+                    useLocation:SetLocation(context:GetLocation())
+                    variable:AddUseLocation(useLocation)
                 else
                     CompilerError error
                     error:SetLocation(context:GetLocation())
@@ -2311,6 +2326,9 @@ class QuorumBytecodeListener is QuorumSourceListener
                         actionCall:SetFieldHolder(clazz)
                         actionCall:SetCallingClass(currentClass)
                         actionCall:SetChainedCall(true)
+                        Location useLocation
+                        useLocation:SetLocation(context:GetLocation())
+                        field:AddUseLocation(useLocation)
                     else
                         CompilerError error
                         error:SetLocation(context:GetLocation())

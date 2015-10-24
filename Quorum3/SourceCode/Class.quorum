@@ -42,6 +42,7 @@ class Class is Symbol
     boolean isMainClass = false
     Array<Array<Class>> resolvedParentLevels
     boolean hasBlueprints = false
+    Location nameLocation = undefined
 
     on create
         QualifiedName object
@@ -90,6 +91,14 @@ class Class is Symbol
         errorObject:Add("Error")
 
         AddUnresolvedUseStatement(errorObject)
+    end
+
+    action GetNameLocation returns Location
+        return nameLocation
+    end
+
+    action SetNameLocation(Location location)
+        nameLocation = location
     end
 
     action HasBlueprints returns boolean
