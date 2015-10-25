@@ -22,6 +22,7 @@ import quorum.Libraries.Language.Compile.QualifiedName;
 import quorum.Libraries.Language.Compile.QuorumSourceListener_;
 import quorum.Libraries.Language.Compile.Symbol.Type;
 import quorum.Libraries.Language.Compile.Symbol.Variable;
+import quorum.Libraries.Language.Compile.Symbol.Variable_;
 import quorum.Libraries.Language.Types.Text;
 import quorum.Libraries.System.File_;
 
@@ -1173,6 +1174,7 @@ public class JavaToQuorumListener implements QuorumListener {
             Type type = next.assignment_declaration().type;
             Variable variable = new Variable();
             variable.SetName(next.ID().getText());
+            setLocation(next.ID().getSymbol(), variable);
             variable.SetType(type);
             variable.SetIsParameter(true);
             context.parameters.Add(variable);
@@ -1204,8 +1206,9 @@ public class JavaToQuorumListener implements QuorumListener {
         while(it.hasNext()) {
             QuorumParser.Formal_parameterContext next = it.next();
             Type type = next.assignment_declaration().type;
-            Variable variable = new Variable();
+            Variable_ variable = new Variable();
             variable.SetName(next.ID().getText());
+            setLocation(next.ID().getSymbol(), variable);
             variable.SetType(type);
             variable.SetIsParameter(true);
             context.parameters.Add(variable);
