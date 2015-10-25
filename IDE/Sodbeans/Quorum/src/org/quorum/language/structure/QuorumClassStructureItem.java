@@ -88,10 +88,19 @@ public class QuorumClassStructureItem implements StructureItem {
     @Override
     public boolean isLeaf() {
         Iterator_ actions = clazz.GetActions();
-        if(actions == null) {
-            return true;
+        Iterator_ variables = clazz.GetVariables();
+        if(actions != null && actions.HasNext()) {
+            return false;
         }
-        return !actions.HasNext();
+        
+        if(variables != null && variables.HasNext()) {
+            return false;
+        }
+        
+        if(clazz.HasConstructor()) {
+            return false;
+        }
+        return true;
     }
 
     @Override
