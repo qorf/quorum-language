@@ -1,4 +1,5 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.Location
 
 class VariableFunctionCallContext is ParseContext
     public text name = ""
@@ -7,4 +8,5 @@ class VariableFunctionCallContext is ParseContext
     public boolean isActionCall = false
     public boolean isParentCall = false
     public boolean isSoloCall = false
+    public Location objectLocation
 end

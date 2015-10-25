@@ -1591,10 +1591,14 @@ class QuorumBytecodeListener is QuorumSourceListener
         actionCallStacks:Add(me:currentActionStack, stack)
         currentActionStack = currentActionStack + 1
 
+        if currentClass:GetName() = "Main"
+            a = 5
+        end
+
         text object = context:objectName
         if not (object = undefined)
             ActionCallContext ac
-            ac:SetLocation(context:GetLocation())
+            ac:SetLocation(context:objectLocation)
             ac:isActionCall = false
             ac:name = object
             EnterActionCall(ac)
@@ -1894,10 +1898,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context)
-//        if HasErrors() 
-//            return now
-//        end
-
         Location loc = context:GetLocation()
         isNextVariableReferenceMe = context:hasMe
         Array<ActionCallOpcode> stack
@@ -1908,7 +1908,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     private action AdaptToParentActionCall(ParentVariableFunctionCallContext context, ActionCallOpcode actionCall) returns ActionCallOpcode
-        //actionCall:SetMethodWriter(methodWriter)
         actionCall:SetIsParentCall(true)
 
         boolean hasMe = context:hasMe
@@ -2007,9 +2006,6 @@ class QuorumBytecodeListener is QuorumSourceListener
 
 
     action ExitParentVariableFunctionCall(ParentVariableFunctionCallContext context)
-//        if HasErrors() 
-//            return now
-//        end
         Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
         currentActionStack = currentActionStack - 1
 
@@ -2069,10 +2065,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         ActionCallOpcode actionCall
         actionCall:SetLocation(context:GetLocation())
         actionCall:SetMethodWriter(methodWriter)
-
-        if currentClass:GetName() = "Main"
-            a = 5
-        end
 
         if not parentCallStack:IsEmpty()
             ParentVariableFunctionCallContext parentContext = parentCallStack:Peek()

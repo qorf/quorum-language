@@ -8,23 +8,6 @@ use Libraries.Language.Compile.Hints.Hint
 class CompilerError is Location
     text message = ""
     CompilerErrorType errorType = undefined
-//    List<Hint> hints
-//    
-//    action Add(Hint hint)
-//        hints:Add(hint)
-//    end
-//
-//    action Remove(Hint hint)
-//        hints:Remove(hint)
-//    end
-//
-//    action GetHintIterator returns Iterator<Hint>
-//        return hints:GetIterator()
-//    end
-//
-//    action HasHints returns boolean
-//        return not hints:IsEmpty()
-//    end
 
     action GetCompilerErrorType returns CompilerErrorType
         if errorType not= undefined

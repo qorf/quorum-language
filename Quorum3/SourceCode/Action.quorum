@@ -44,25 +44,29 @@ class Action is Symbol
         List<Variable> list
         //get all variables from all blocks/sub-blocks and toss them in the list.
         //this includes parameters.
-        Iterator<Variable> params = parameters:GetIterator()
-        repeat while params:HasNext()
-            Variable var = params:Next()
-            list:Add(var)
-        end
-
-        params = block:GetVariables()
-        repeat while params:HasNext()
-            Variable var = params:Next()
-            list:Add(var)
-        end
-
-        Iterator<Block> blocks = block:GetBlocks()
-        repeat while blocks:HasNext()
-            Block b = blocks:Next()
-            params = b:GetVariables()
+        if parameters not= undefined
+            Iterator<Variable> params = parameters:GetIterator()
             repeat while params:HasNext()
                 Variable var = params:Next()
                 list:Add(var)
+            end
+        end
+
+        if block not= undefined
+            Iterator<Variable> params = block:GetVariables()
+            repeat while params:HasNext()
+                Variable var = params:Next()
+                list:Add(var)
+            end
+
+            Iterator<Block> blocks = block:GetBlocks()
+            repeat while blocks:HasNext()
+                Block b = blocks:Next()
+                params = b:GetVariables()
+                repeat while params:HasNext()
+                    Variable var = params:Next()
+                    list:Add(var)
+                end
             end
         end
 
