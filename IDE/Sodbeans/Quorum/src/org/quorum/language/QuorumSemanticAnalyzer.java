@@ -78,6 +78,27 @@ public class QuorumSemanticAnalyzer extends SemanticAnalyzer<QuorumParserResult>
                 //useColors.add(ColoringAttributes.METHOD);
                 highlighting.put(useRange, ColoringAttributes.METHOD_SET);
             }
+            
+            Iterator_ locals = next.GetAllLocalVariables();
+            while(locals.HasNext()) {
+                Variable_ var = (Variable_) locals.Next();
+                if(var.IsVisibleToDebugger()) {
+                    int index = var.GetIndex();
+                    int end = var.GetIndexEnd();
+                    OffsetRange range = new OffsetRange(index, end + 1);
+
+                    Set<ColoringAttributes> colors = new HashSet<>();
+                    if(var.IsParameter()) {
+                        colors.add(ColoringAttributes.PARAMETER);
+                    } else {
+                        colors.add(ColoringAttributes.LOCAL_VARIABLE);
+                    }
+                    if(!var.IsUsed()) {
+                        colors.add(ColoringAttributes.UNUSED);
+                    }
+                    highlighting.put(range, colors);
+                }
+            }
         } 
         
         Iterator_ iterator = clazz.GetVariables();
@@ -92,6 +113,9 @@ public class QuorumSemanticAnalyzer extends SemanticAnalyzer<QuorumParserResult>
             OffsetRange range = new OffsetRange(index, end + 1);
             Set<ColoringAttributes> colors = new HashSet<>();
             colors.add(ColoringAttributes.FIELD);
+            if(!next.IsUsed()) {
+                colors.add(ColoringAttributes.UNUSED);
+            }
             highlighting.put(range, colors);
             
             //now create ranges for all of its uses
