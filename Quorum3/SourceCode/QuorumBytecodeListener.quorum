@@ -367,9 +367,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitAlertStatement(AlertContext context)
-//        if HasErrors() 
-//            return now
-//        end
         recentStatementWasReturn = true
         QuorumOpcode op = opcodeStack:Pop()
         if op = undefined

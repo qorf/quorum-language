@@ -30,6 +30,15 @@ class Variable is Symbol
         return useLocations:GetIterator()
     end
 
+    action IsUsed returns boolean
+        //only if greater than 2 because the first usage is the definition
+        if useLocations:GetSize() > 0
+            return true
+        end
+
+        return false
+    end
+
     action IsDefinedInAlwaysBlock returns boolean
         return definedInAlwaysBlock
     end

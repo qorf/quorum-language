@@ -40,6 +40,35 @@ class Action is Symbol
         return isPublic
     end
 
+    action GetAllLocalVariables returns Iterator<Variable>
+        List<Variable> list
+        //get all variables from all blocks/sub-blocks and toss them in the list.
+        //this includes parameters.
+        Iterator<Variable> params = parameters:GetIterator()
+        repeat while params:HasNext()
+            Variable var = params:Next()
+            list:Add(var)
+        end
+
+        params = block:GetVariables()
+        repeat while params:HasNext()
+            Variable var = params:Next()
+            list:Add(var)
+        end
+
+        Iterator<Block> blocks = block:GetBlocks()
+        repeat while blocks:HasNext()
+            Block b = blocks:Next()
+            params = b:GetVariables()
+            repeat while params:HasNext()
+                Variable var = params:Next()
+                list:Add(var)
+            end
+        end
+
+        return list:GetIterator()
+    end
+
     action SetPublic
         isPublic = true
         isPrivate = false
