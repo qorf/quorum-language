@@ -367,9 +367,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitAlertStatement(AlertContext context)
-//        if HasErrors() 
-//            return now
-//        end
         recentStatementWasReturn = true
         QuorumOpcode op = opcodeStack:Pop()
         if op = undefined
@@ -973,6 +970,13 @@ class QuorumBytecodeListener is QuorumSourceListener
             variable = currentBlock:GetVariable(object)
         end
 
+        if variable not= undefined
+            Location useLocation
+            useLocation:SetLocation(context:objectLocation)
+            variable:AddUseLocation(useLocation)
+        end
+
+
         //this is an assignment to a field in a parent
         if theParent not= undefined
             //get the full static key of the parent
@@ -1480,9 +1484,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         a = 5
     end
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         text name = context:name
         Variable variable = undefined
         TypeChecker checker = GetTypeChecker()
@@ -1506,6 +1507,10 @@ class QuorumBytecodeListener is QuorumSourceListener
                 manager:Add(error)
             end
         end
+
+        Location useLocation
+        useLocation:SetLocation(context:variableLocation)
+        variable:AddUseLocation(useLocation)
         variable:SetIsDefined(true)
         Type left = variable:GetType()
 
@@ -1586,10 +1591,14 @@ class QuorumBytecodeListener is QuorumSourceListener
         actionCallStacks:Add(me:currentActionStack, stack)
         currentActionStack = currentActionStack + 1
 
+        if currentClass:GetName() = "Main"
+            a = 5
+        end
+
         text object = context:objectName
         if not (object = undefined)
             ActionCallContext ac
-            ac:SetLocation(context:GetLocation())
+            ac:SetLocation(context:objectLocation)
             ac:isActionCall = false
             ac:name = object
             EnterActionCall(ac)
@@ -1889,10 +1898,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context)
-//        if HasErrors() 
-//            return now
-//        end
-
         Location loc = context:GetLocation()
         isNextVariableReferenceMe = context:hasMe
         Array<ActionCallOpcode> stack
@@ -1903,7 +1908,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     private action AdaptToParentActionCall(ParentVariableFunctionCallContext context, ActionCallOpcode actionCall) returns ActionCallOpcode
-        //actionCall:SetMethodWriter(methodWriter)
         actionCall:SetIsParentCall(true)
 
         boolean hasMe = context:hasMe
@@ -2002,9 +2006,6 @@ class QuorumBytecodeListener is QuorumSourceListener
 
 
     action ExitParentVariableFunctionCall(ParentVariableFunctionCallContext context)
-//        if HasErrors() 
-//            return now
-//        end
         Array<ActionCallOpcode> stack = actionCallStacks:RemoveKey(me:currentActionStack - 1)
         currentActionStack = currentActionStack - 1
 
@@ -2248,6 +2249,9 @@ class QuorumBytecodeListener is QuorumSourceListener
                     actionCall:SetField(variable)
                     actionCall:SetFieldHolder(currentClass)
                     actionCall:SetCallingClass(currentClass)
+                    Location useLocation
+                    useLocation:SetLocation(context:GetLocation())
+                    variable:AddUseLocation(useLocation)
                 else
                     CompilerError error
                     error:SetLocation(context:GetLocation())
@@ -2311,6 +2315,9 @@ class QuorumBytecodeListener is QuorumSourceListener
                         actionCall:SetFieldHolder(clazz)
                         actionCall:SetCallingClass(currentClass)
                         actionCall:SetChainedCall(true)
+                        Location useLocation
+                        useLocation:SetLocation(context:GetLocation())
+                        field:AddUseLocation(useLocation)
                     else
                         CompilerError error
                         error:SetLocation(context:GetLocation())

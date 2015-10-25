@@ -20,6 +20,24 @@ class Variable is Symbol
     boolean isVisibileToDebugger = true
     Class parentClass = undefined
     boolean definedInAlwaysBlock = false
+    List<Location> useLocations
+
+    action AddUseLocation(Location location)
+        useLocations:Add(location)
+    end
+
+    action GetUseLocations returns Iterator<Location>
+        return useLocations:GetIterator()
+    end
+
+    action IsUsed returns boolean
+        //only if greater than 2 because the first usage is the definition
+        if useLocations:GetSize() > 0
+            return true
+        end
+
+        return false
+    end
 
     action IsDefinedInAlwaysBlock returns boolean
         return definedInAlwaysBlock
