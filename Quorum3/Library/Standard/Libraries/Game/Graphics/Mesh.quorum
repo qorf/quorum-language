@@ -114,6 +114,11 @@ class Mesh is Disposable
     action GetIndexData returns IndexData
         return indices
     end
+
+    action GetVertexAttributes returns VertexAttributes
+        return vertices:GetAttributes()
+    end
+
 end
 /*
 
@@ -378,11 +383,6 @@ end
 			if (attributes.get(i).usage == usage) return attributes.get(i);
 
 		return null;
-	}
-
-	/** @return the vertex attributes of this Mesh *-
-	public VertexAttributes getVertexAttributes () {
-		return vertices.getAttributes();
 	}
 
 	/** @return the backing FloatBuffer holding the vertices. Does not have to be a direct buffer on Android! *-

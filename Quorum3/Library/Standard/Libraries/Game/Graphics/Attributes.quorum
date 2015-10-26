@@ -110,6 +110,10 @@ class Attributes
         end
     end
 
+    action Add(Attributes attributes)
+        Add(attributes:GetAttributeArray())
+    end
+
     /*
     This action will remove an Attribute of the given Attribute type from this
     Attributes object.

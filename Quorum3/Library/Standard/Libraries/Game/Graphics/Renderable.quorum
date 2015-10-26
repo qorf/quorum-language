@@ -6,25 +6,18 @@ use Libraries.Compute.Vector3
 use Libraries.Language.Object
 use Libraries.Language.Support.CompareResult
 use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.ModelData.MeshPart
+use Libraries.Game.Graphics.Environment
 
 class Renderable 
     
     public Matrix4 worldTransform
     
-    public Mesh mesh = undefined // plugin?
-
-    public integer meshPartOffset = 0
-    
-    public integer meshPartSize = 0
-
-    /*
-    The OpenGL primitive type, e.g. GL_TRIANGLES, GL_LINES, etc.
-    */
-    public integer primitiveType = 0
+    public MeshPart meshPart = undefined
 
     public Material material = undefined
 
-    // public Environment environment = undefined
+    public Environment environment = undefined
 
     public Array<Matrix4> bones = undefined
 
@@ -41,14 +34,13 @@ class Renderable
     action Set(Renderable renderable) returns Renderable
         worldTransform:Set(renderable:worldTransform)
         material = renderable:material
-        mesh = renderable:mesh
-        meshPartOffset = renderable:meshPartOffset
-        meshPartSize = renderable:meshPartSize
-        primitiveType = renderable:primitiveType
+        meshPart:Set(renderable:meshPart)
         bones = renderable:bones
         //environment = renderable:environment
         //shader = renderable:shader
         //userData = renderable:userData
+
+        SetNative(renderable)
 
         return me
     end

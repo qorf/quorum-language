@@ -20,29 +20,23 @@ class MeshPart
 
     public Mesh mesh = undefined
 
-    /** Construct a new MeshPart, with null values. The MeshPart is unusable until you set all members. **-
-	public MeshPart () {
-	}
+    action Set(MeshPart other)
+        id = other:id
+        mesh = other:mesh
+        indexOffset = other:indexOffset
+        verticesCount = other:verticesCount
+        primitiveType = other:primitiveType
+    end
 
-	/** Construct a new MeshPart and set all its values.
-	 * @param id The id of the new part, may be null.
-	 * @param mesh The mesh which holds all vertices and (optional) indices of this part.
-	 * @param offset The offset within the mesh to this part.
-	 * @param size The size (in total number of vertices) of the part.
-	 * @param type The primitive type of the part (e.g. GL_TRIANGLES, GL_LINE_STRIP, etc.). *-
-	public MeshPart (final String id, final Mesh mesh, final int offset, final int size, final int type) {
-		this.id = id;
-		this.mesh = mesh;
-		this.indexOffset = offset;
-		this.numVertices = size;
-		this.primitiveType = type;
-	}
+    action Set(text id, Mesh mesh, integer offset, integer size, integer type)
+        me:id = id
+        me:mesh = mesh
+        me:indexOffset = offset
+        me:verticesCount = size
+        me:primitiveType = type
+    end
 
-	/** Construct a new MeshPart which is an exact copy of the provided MeshPart.
-	 * @param copyFrom The MeshPart to copy. *-
-	public MeshPart (final MeshPart copyFrom) {
-		this(copyFrom.id, copyFrom.mesh, copyFrom.indexOffset, copyFrom.numVertices, copyFrom.primitiveType);
-	}
+    /*
 
 	/** Compares this MeshPart to the specified MeshPart and returns true if they both reference the same {@link Mesh} and the
 	 * {@link #indexOffset}, {@link #numVertices} and {@link #primitiveType} members are equal. The {@link #id} member is ignored.
