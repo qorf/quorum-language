@@ -144,6 +144,28 @@ class Block is Location
         return false
     end
 
+    action GetNewVariableInBlock(text var) returns text
+        text newVar = var
+
+        integer i = 1
+        boolean done = false
+        repeat while not done
+            Variable variable = GetVariable(newVar)
+            //it looks like this variable is available
+            if variable = undefined
+                return newVar
+            end
+            newVar = var + i
+
+            i = i + 1
+            if i < 0
+                alert("Tried to use an editor hint with a negative value for name")
+            end
+        end
+
+        return newVar
+    end
+
     action SetExceptionVariable(Variable variable) returns CompilerError
         if variables:HasKey(variable:GetStaticKey())
             CompilerError error

@@ -143,6 +143,9 @@ class QualifiedName is Location
             text value = gen:Next()
             new:AddGeneric(value)
         end
+
+        Location location = me:CreateLocationCopy()
+        new:SetLocation(location)
         return new
     end
 end

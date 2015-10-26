@@ -4,15 +4,19 @@ use Libraries.Containers.HashTable
 use Libraries.Containers.List
 use Libraries.System.File
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Hints.Hint
 
 class CompilerErrorManager
-     integer numberOfErrors = 0
-    
+    integer numberOfErrors = 0
+    integer numberOfHints = 0
+
     /*
      * Records the errorsPerFile using the full path of the file as
      * the key and the list for that file as the value.
      */
     HashTable<text, List<CompilerError>> errorsPerFile
+    HashTable<text, List<Hint>> hintsPerFile
+
     File currentFile = undefined
     //text errorKey = ""
     text fileNameKey = ""
@@ -32,6 +36,21 @@ class CompilerErrorManager
         end
     end
 
+    action Add(Hint hint) 
+        if hint not= undefined
+            numberOfHints = numberOfHints + 1
+            List<Hint> l = hintsPerFile:GetValue(hint:GetStaticKey())
+            if(l not= undefined) 
+                l:Add(hint)
+            else 
+                List<Hint> l2
+                l = l2
+                l:Add(hint)
+                hintsPerFile:Add(hint:GetStaticKey(), l)
+            end
+        end
+    end
+
      action RemoveErrorsAtKey(text key) 
         if errorsPerFile:HasKey(key)
             List<CompilerError> list = errorsPerFile:RemoveKey(key)
@@ -47,12 +66,41 @@ class CompilerErrorManager
         return false
     end
 
+    action RemoveHintsAtKey(text key) 
+        if hintsPerFile:HasKey(key)
+            List<Hint> list = hintsPerFile:RemoveKey(key)
+            numberOfHints = numberOfHints - list:GetSize()
+        end
+    end
+
+    action HintsAtKey(text key) returns boolean
+        if hintsPerFile:HasKey(key)
+            return true
+        end
+
+        return false
+    end
+
+    action HasHints returns boolean
+        return numberOfHints > 0
+    end
+
+    action HasErrors returns boolean
+        return numberOfErrors > 0
+    end
+
     action IsCompilationErrorFree returns boolean
         return numberOfErrors = 0
     end
 
     action GetErrorAmount returns integer
         return numberOfErrors
+    end
+
+    action GetHintIterator returns Iterator<Hint>
+        HashListIterator<Hint> iterator
+        iterator:SetHash(me:hintsPerFile)
+        return iterator
     end
     
     action GetIterator returns Iterator<CompilerError>
@@ -67,5 +115,10 @@ class CompilerErrorManager
     action Empty
         numberOfErrors = 0
         errorsPerFile:Empty()
+    end
+
+    action EmptyHints
+        numberOfHints = 0
+        hintsPerFile:Empty()
     end
 end

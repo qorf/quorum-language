@@ -139,10 +139,13 @@ class Main is WebResponder
         compiler:SetOutputFolder(root)
         File standardLibraryFolder = compiler:GetStandardLibraryFolder()
         compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        compiler:ScanStandardLibrary()
         Array<File> files// = main:GetDirectoryListing()
 
         File actualMain
-        actualMain:SetPath("Library/Tests/Expressions/Fail/RedLine1.quorum")
+        actualMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/Bug297/SourceCode/")
+        //actualMain:SetPath("Library/Tests/Expressions/Fail/RedLine1.quorum")
+        actualMain:SetPath("main.quorum")
         compiler:SetMain(actualMain)
 
         files:Add(actualMain)
@@ -152,19 +155,21 @@ class Main is WebResponder
         info:sourceLocation = actualMain
         info:source = actualMain:Read()
 
-        File redFail
-        redFail:SetPath("Library/Tests/Expressions/Fail/RedLine2.quorum")
+        //File redFail
+        //redFail:SetPath("Library/Tests/Expressions/Fail/RedLine2.quorum")
         
 
         CompilerResult result = compiler:ParseRepeat(info)
-        info:source = redFail:Read()
+        //info:source = redFail:Read()
 
-        repeat 20 times
+        Array<number> items
+        repeat 200 times
             result = compiler:ParseRepeat(info)
 
             CompilerErrorManager manager = result:compilerErrorManager
             if manager:IsCompilationErrorFree()
                 output result:time
+                items:Add(result:time)
                 if compiler:GetOutputType() = compiler:JAVASCRIPT
                     output compiler:GetCompiledJavaScript()
                 end
@@ -183,6 +188,14 @@ class Main is WebResponder
                 output value
             end
         end
+
+        i = 0
+        number average = 0
+        repeat items:GetSize() times
+            number time = items:Get(i)
+            average = average + time
+        end
+        output "Average: " + average / items:GetSize()
     end
 
     action CompileGameEngine
@@ -256,6 +269,7 @@ class Main is WebResponder
 
         Compiler compiler
         output compiler:GetVersion() + ", Compile the compiler."
+        compiler:ScanStandardLibrary()
         File main
         main:SetPath("SourceCode")
 
@@ -269,7 +283,14 @@ class Main is WebResponder
         File actualMain
         actualMain:SetPath("SourceCode/main.quorum")
         compiler:SetMain(actualMain)
-        compiler:Compile(files)
+
+        ProjectInformation info
+        info:projectFiles = files
+        info:sourceLocation = actualMain
+        info:source = actualMain:Read()
+        //compiler:Compile(files)
+        CompilerResult result = compiler:ParseRepeat(info)
+
         if compiler:IsCompilationErrorFree()
             output "Build Successful"
             if compiler:GetOutputType() = compiler:JAVASCRIPT
@@ -285,13 +306,14 @@ class Main is WebResponder
         File standardLibraryFolder = compiler:GetStandardLibraryFolder()
         compiler:SetStandardLibraryFolder(standardLibraryFolder)
         output compiler:GetVersion()
+        compiler:ScanStandardLibrary()
         File root
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
-        //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication2222/SourceCode/")
-        main:SetPath("Library/Tests/Expressions/Fail/DuplicateVariableDefinition.quorum")
-        //main:SetPath("main.quorum")
+        main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
+        //main:SetPath("Library/Tests/Expressions/Fail/DuplicateVariableDefinition.quorum")
+        main:SetPath("main.quorum")
 
         File class2
         class2:SetPath("Library/Tests/Inheritance/Pass/A4.quorum")

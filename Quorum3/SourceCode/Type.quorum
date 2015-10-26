@@ -264,6 +264,34 @@ class Type
         return final
     end
 
+    action GetNameWithMappedGenerics returns text
+        text final = ""
+
+        if IsMappedToGeneric()
+            final = mappedGeneric
+        else
+            final = GetName()
+        end
+
+        boolean first = true
+
+        if HasGenerics()
+            final = final + "<"
+            Iterator<Type> gen = generics:GetIterator()
+            repeat while gen:HasNext()
+                Type type = gen:Next()
+                if first
+                    final = final + type:GetNameWithMappedGenerics()
+                    first = false
+                else
+                    final = final + ":" + type:GetNameWithMappedGenerics()
+                end
+            end
+            final = final + ">"
+        end
+        return final
+    end
+
     action GetBytecodeSize returns integer
         if me:IsNumber()
             return 2

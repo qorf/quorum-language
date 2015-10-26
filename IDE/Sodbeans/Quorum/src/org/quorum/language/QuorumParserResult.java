@@ -5,11 +5,13 @@
  */
 package org.quorum.language;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import org.netbeans.modules.csl.api.Error;
 import org.netbeans.modules.csl.spi.ParserResult;
 import org.netbeans.modules.parsing.api.Snapshot;
+import quorum.Libraries.Language.Compile.CompilerResult_;
+import quorum.Libraries.Language.Compile.Hints.Hint_;
 
 /**
  *
@@ -28,10 +30,21 @@ public class QuorumParserResult extends ParserResult {
     public List<? extends Error> getDiagnostics() {
         return parser.getFileErrors();
     }
+    
+    public ArrayList<Hint_> getHints() {
+        return parser.getFileHints();
+    }
+    
+    public CompilerResult_ getRecentResult() {
+        return parser.getRecentResult();
+    }
 
+    public quorum.Libraries.Language.Compile.ProjectInformation getInfo() {
+        return parser.getInfo();
+    }
+    
     @Override
     protected void invalidate() {
         valid = false;
     }
-    
 }

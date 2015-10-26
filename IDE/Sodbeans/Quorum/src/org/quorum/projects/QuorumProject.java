@@ -12,13 +12,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import javax.swing.Icon;
@@ -48,7 +44,6 @@ import org.quorum.actions.Document;
 import org.quorum.actions.Run;
 import org.quorum.support.Utility;
 import quorum.Libraries.System.File_;
-//import CompilerResult_;
 
 /**
  *
@@ -125,6 +120,9 @@ public class QuorumProject implements Project {
         clean = new Clean(this);
         cleanBuild = new CleanBuild(this);
         run = new Run(this);
+        
+        //now index the standard library
+        compiler.ScanStandardLibrary();
     }
 
     public QuorumProjectType getProjectType() {

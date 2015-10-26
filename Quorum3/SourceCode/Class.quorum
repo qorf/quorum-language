@@ -11,6 +11,8 @@ use Libraries.Containers.Array
 use Libraries.System.File
 use Libraries.Language.Compile.Translate.QuorumOpcode
 use Libraries.Language.Support.CompareResult
+use Libraries.Language.Compile.Hints.UseHint
+use Libraries.Language.Compile.Hints.Hint
 
 class Class is Symbol
     QualifiedName packageName
@@ -40,6 +42,7 @@ class Class is Symbol
     boolean isMainClass = false
     Array<Array<Class>> resolvedParentLevels
     boolean hasBlueprints = false
+    Location nameLocation = undefined
 
     on create
         QualifiedName object
@@ -88,6 +91,14 @@ class Class is Symbol
         errorObject:Add("Error")
 
         AddUnresolvedUseStatement(errorObject)
+    end
+
+    action GetNameLocation returns Location
+        return nameLocation
+    end
+
+    action SetNameLocation(Location location)
+        nameLocation = location
     end
 
     action HasBlueprints returns boolean
@@ -744,6 +755,7 @@ class Class is Symbol
                     CompilerErrorType errorType
                     errorType:SetCurrentType(errorType:MISSING_USE)
                     error:SetCompilerErrorType(errorType)
+                    FindPossibleUsage(table, error, key, errors)
                     errors:Add(error)
                 end
             else
@@ -986,6 +998,9 @@ class Class is Symbol
     end
 
     action ResolveType(Location location, Type type, SymbolTable table, CompilerErrorManager errors)
+        if type = undefined
+            return now
+        end
         if not type:IsPrimitive() //if it's a primitive, do nothing
             text key = type:GetStaticKey()
             Class clazz = GetClass(key, table, errors)
@@ -1026,7 +1041,60 @@ class Class is Symbol
                 error:SetCompilerErrorType(t)
                 error:SetErrorMessage("I could not locate a type named "
                     +  key + ". Did you forget a use statement?" )
+                FindPossibleUsage(table, error, key, errors)
                 errors:Add(error)
+            end
+        end
+    end
+
+    private action FindPossibleUsage(SymbolTable table, CompilerError error, text key, CompilerErrorManager errors)
+        //check the symbol table cache to see if it exists
+        //if it does, see if a suggestion exists.
+        SymbolTable cache = undefined
+        if table:HasStandardLibraryCache()
+            cache = table:GetStandardLibraryCache()
+        else
+            cache = table
+        end
+         
+        Iterator<Class> classes = cache:GetClasses()
+        repeat while classes:HasNext()
+            Class possible = classes:Next()
+            if possible:GetName() = key
+                //add an editor hint telling the user
+                UseHint hint
+                Location locationCopy = error:CreateLocationCopy()
+                hint:SetLocation(locationCopy)
+                text code = "use " + possible:GetStaticKey()
+                code = code + code:GetCarriageReturn() + code:GetLineFeed()
+                hint:SetCode(code)
+                hint:SetLibraryName(possible:GetStaticKey())
+
+                integer packageOffset = packageName:GetIndexEnd()
+                //this needs to compute an offset range in whatever way 
+                //NetBeans or other IDEs need them in.
+                Iterator<QualifiedName> uses = unresolvedUseStatements:GetValueIterator()
+                integer index = 0
+                repeat while uses:HasNext()
+                    QualifiedName n = uses:Next()
+                    if n:GetIndexEnd() > index
+                        index = n:GetIndexEnd()
+                    end
+                end
+
+                if packageOffset > index
+                    index = packageOffset
+                end
+
+                //if the index is not at the start of the file, add
+                //a carriage return and line feed
+                if index not= 0
+                    index = index + 2
+                end
+                hint:SetStartOffset(index)
+                hint:SetEndOffset(index)
+
+                errors:Add(hint)
             end
         end
     end
@@ -1075,6 +1143,7 @@ class Class is Symbol
                 error:SetCompilerErrorType(t)
                 error:SetErrorMessage("I could not locate a type named "
                     +  key + ". Did you forget a use statement?" )
+                FindPossibleUsage(table, error, key, errors)
                 errors:Add(error)
             end
         end
@@ -1130,6 +1199,7 @@ class Class is Symbol
                 error:SetCompilerErrorType(t)
                 error:SetErrorMessage("I could not locate a type named "
                     +  key + ". Did you forget a use statement?" )
+                FindPossibleUsage(table, error, key, errors)
                 errors:Add(error)
             end
         end

@@ -40,12 +40,16 @@ class Parser is QuorumSourceListener
 
     action ExitPackageRule(PackageContext context) 
         packageValue = context:name
+        if packageValue not= undefined
+            packageValue:SetLocation(context:GetLocation())
+        end
     end
 
     action EnterDocumentation(DocumentationContext context)
         text doc = context:document
         if doc not= undefined
             Documentation documentation
+            documentation:SetLocation(context:GetLocation())
             documentation:ParseDocumentation(doc)
             documents:Push(documentation)
         end
@@ -91,6 +95,7 @@ class Parser is QuorumSourceListener
         if currentClass = undefined
             return now
         end
+        currentClass:SetNameLocation(context:classNameLocation)
         i = 0
         repeat while i < unresolvedUseStatements:GetSize()
             currentClass:AddUnresolvedUseStatement(unresolvedUseStatements:Get(i))
@@ -390,12 +395,13 @@ class Parser is QuorumSourceListener
         Iterator<Variable> it = headerParams:GetIterator()
         repeat while it:HasNext()
             Variable param = it:Next()
-            param:SetLocation(context:GetLocation())
             currentAction:AddParameter(param)
         end
         
         currentAction:SetReturnType(context:returnType)
         currentAction:SetName(context:actionName)
+        currentAction:SetHeaderLocation(context:GetLocation())
+        currentAction:SetNameLocation(context:actionNameLocation)
         CheckName(context:actionName, context:GetLocation())
 
         //add it to the class
@@ -471,7 +477,7 @@ class Parser is QuorumSourceListener
     action ExitNormalAssignment(NormalAssignmentContext context)
         Variable variable
         variable:SetParentClass(currentClass)
-        variable:SetLocation(context:GetLocation())
+        variable:SetLocation(context:variableLocation)
         if context:isPublic
             variable:SetPublic()
         end
