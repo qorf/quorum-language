@@ -17,9 +17,60 @@ class Action is Symbol
     integer bytecodeLocation = 1 //always start skipping "this"
     boolean isPrivate = false
     boolean isPublic = true
+    Location headerLocation = undefined
+    Location nameLocation = undefined
+
+    action GetNameLocation returns Location
+        return nameLocation
+    end
+
+    action SetNameLocation(Location location)
+        nameLocation = location
+    end
+
+    action GetHeaderLocation returns Location
+        return headerLocation
+    end
+
+    action SetHeaderLocation(Location location)
+        headerLocation = location
+    end
 
     action IsPublic returns boolean
         return isPublic
+    end
+
+    action GetAllLocalVariables returns Iterator<Variable>
+        List<Variable> list
+        //get all variables from all blocks/sub-blocks and toss them in the list.
+        //this includes parameters.
+        if parameters not= undefined
+            Iterator<Variable> params = parameters:GetIterator()
+            repeat while params:HasNext()
+                Variable var = params:Next()
+                list:Add(var)
+            end
+        end
+
+        if block not= undefined
+            Iterator<Variable> params = block:GetVariables()
+            repeat while params:HasNext()
+                Variable var = params:Next()
+                list:Add(var)
+            end
+
+            Iterator<Block> blocks = block:GetBlocks()
+            repeat while blocks:HasNext()
+                Block b = blocks:Next()
+                params = b:GetVariables()
+                repeat while params:HasNext()
+                    Variable var = params:Next()
+                    list:Add(var)
+                end
+            end
+        end
+
+        return list:GetIterator()
     end
 
     action SetPublic

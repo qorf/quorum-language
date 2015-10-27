@@ -17,10 +17,7 @@ class NodePart
 
     action SetRenderable(Renderable out) returns Renderable
         out:material = material
-        out:mesh = meshPart:mesh
-        out:meshPartOffset = meshPart:indexOffset
-        out:meshPartSize = meshPart:verticesCount
-        out:primitiveType = meshPart:primitiveType
+        out:meshPart:Set(meshPart)
         out:bones = bones
 
         return out

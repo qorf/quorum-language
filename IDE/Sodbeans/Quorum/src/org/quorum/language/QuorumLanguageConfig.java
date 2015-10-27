@@ -6,9 +6,16 @@
 package org.quorum.language;
 
 import org.netbeans.modules.csl.api.CodeCompletionHandler;
+import org.netbeans.modules.csl.api.DeclarationFinder;
+import org.netbeans.modules.csl.api.HintsProvider;
+import org.netbeans.modules.csl.api.IndexSearcher;
+import org.netbeans.modules.csl.api.OccurrencesFinder;
+import org.netbeans.modules.csl.api.SemanticAnalyzer;
+import org.netbeans.modules.csl.api.StructureScanner;
 import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
 import org.netbeans.modules.csl.spi.LanguageRegistration;
 import org.netbeans.modules.parsing.spi.Parser;
+import org.netbeans.modules.parsing.spi.indexing.EmbeddingIndexerFactory;
 
 /**
  *
@@ -18,10 +25,19 @@ import org.netbeans.modules.parsing.spi.Parser;
 public class QuorumLanguageConfig extends DefaultLanguageConfig{
     private static final String LINE_COMMENT_PREFIX = "//";
     QuorumParser parser = new QuorumParser();
+    QuorumHintsProvider hints = new QuorumHintsProvider();
     QuorumLanguageHierarchy language = new QuorumLanguageHierarchy();
     org.netbeans.api.lexer.Language lexerLanguage = language.language();
     QuorumCodeCompletionHandler completion = new QuorumCodeCompletionHandler();
+    QuorumIndexerFactory factory = new QuorumIndexerFactory();
+    QuorumIndexSearcher indexSearcher = new QuorumIndexSearcher();
+    QuorumSemanticAnalyzer semanticAnalyzer = new QuorumSemanticAnalyzer();
+    QuorumStructureScanner structureScanner = new QuorumStructureScanner();
+    QuorumOccurrencesFinder occurrencesFinder = new QuorumOccurrencesFinder();
     
+    public QuorumLanguageConfig() {
+        
+    }
     @Override
     public org.netbeans.api.lexer.Language getLexerLanguage() {
         return lexerLanguage;
@@ -35,6 +51,16 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     @Override
     public CodeCompletionHandler getCompletionHandler() {
         return completion;
+    }
+
+    @Override
+    public HintsProvider getHintsProvider() {
+        return hints;
+    }
+
+    @Override
+    public boolean hasHintsProvider() {
+        return true;
     }
     
     @Override
@@ -51,4 +77,44 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     public boolean isIdentifierChar(char c) {
         return Character.isJavaIdentifierPart(c);
     }   
+    
+    @Override
+    public SemanticAnalyzer getSemanticAnalyzer() {
+        return semanticAnalyzer; //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    @Override
+    public boolean hasStructureScanner() {
+        return true;
+    }
+
+    @Override
+    public boolean hasOccurrencesFinder() {
+        return true;
+    }
+
+    @Override
+    public OccurrencesFinder getOccurrencesFinder() {
+        return occurrencesFinder;
+    }
+
+    @Override
+    public DeclarationFinder getDeclarationFinder() {
+        return super.getDeclarationFinder(); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public StructureScanner getStructureScanner() {
+        return structureScanner;
+    } 
+
+    @Override
+    public IndexSearcher getIndexSearcher() {
+        return indexSearcher;
+    }
+
+    @Override
+    public EmbeddingIndexerFactory getIndexerFactory() {
+        return factory;
+    }
 }
