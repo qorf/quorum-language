@@ -9,6 +9,7 @@ import org.netbeans.modules.csl.api.CodeCompletionHandler;
 import org.netbeans.modules.csl.api.DeclarationFinder;
 import org.netbeans.modules.csl.api.HintsProvider;
 import org.netbeans.modules.csl.api.IndexSearcher;
+import org.netbeans.modules.csl.api.OccurrencesFinder;
 import org.netbeans.modules.csl.api.SemanticAnalyzer;
 import org.netbeans.modules.csl.api.StructureScanner;
 import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
@@ -32,6 +33,7 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     QuorumIndexSearcher indexSearcher = new QuorumIndexSearcher();
     QuorumSemanticAnalyzer semanticAnalyzer = new QuorumSemanticAnalyzer();
     QuorumStructureScanner structureScanner = new QuorumStructureScanner();
+    QuorumOccurrencesFinder occurrencesFinder = new QuorumOccurrencesFinder();
     
     public QuorumLanguageConfig() {
         
@@ -84,6 +86,16 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     @Override
     public boolean hasStructureScanner() {
         return true;
+    }
+
+    @Override
+    public boolean hasOccurrencesFinder() {
+        return true;
+    }
+
+    @Override
+    public OccurrencesFinder getOccurrencesFinder() {
+        return occurrencesFinder;
     }
 
     @Override
