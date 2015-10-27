@@ -18,12 +18,10 @@ import org.openide.util.Utilities;
 import quorum.Libraries.Containers.Blueprints.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.Location_;
-import quorum.Libraries.Language.Compile.ProjectInformation;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
 import quorum.Libraries.Language.Compile.Symbol.Class_;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
 import quorum.Libraries.Language.Compile.Symbol.Variable_;
-import quorum.Libraries.System.File_;
 
 /**
  *
@@ -97,8 +95,10 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
             }
         }
         
+        //in this case, no cases were found to highlight.
+        //as such, we should return an empty map to indicate this.
         if(!done) {
-            highlighting = null;
+            highlighting = new HashMap<>();
         }
     }
     

@@ -8,22 +8,22 @@ package org.quorum.language;
 import org.netbeans.modules.csl.api.CodeCompletionHandler;
 import org.netbeans.modules.csl.api.DeclarationFinder;
 import org.netbeans.modules.csl.api.HintsProvider;
-import org.netbeans.modules.csl.api.IndexSearcher;
 import org.netbeans.modules.csl.api.OccurrencesFinder;
 import org.netbeans.modules.csl.api.SemanticAnalyzer;
 import org.netbeans.modules.csl.api.StructureScanner;
 import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
 import org.netbeans.modules.csl.spi.LanguageRegistration;
 import org.netbeans.modules.parsing.spi.Parser;
-import org.netbeans.modules.parsing.spi.indexing.EmbeddingIndexerFactory;
+import static org.quorum.language.QuorumLanguageConfig.QUORUM_MIME_TYPE;
 
 /**
  *
  * @author stefika
  */
-@LanguageRegistration(mimeType = "text/x-quorum")
+@LanguageRegistration(mimeType = QUORUM_MIME_TYPE)
 public class QuorumLanguageConfig extends DefaultLanguageConfig{
     private static final String LINE_COMMENT_PREFIX = "//";
+    public static final String QUORUM_MIME_TYPE = "text/x-quorum";
     QuorumParser parser = new QuorumParser();
     QuorumHintsProvider hints = new QuorumHintsProvider();
     QuorumLanguageHierarchy language = new QuorumLanguageHierarchy();
@@ -34,6 +34,7 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     QuorumSemanticAnalyzer semanticAnalyzer = new QuorumSemanticAnalyzer();
     QuorumStructureScanner structureScanner = new QuorumStructureScanner();
     QuorumOccurrencesFinder occurrencesFinder = new QuorumOccurrencesFinder();
+    QuorumDeclarationFinder finder = new QuorumDeclarationFinder();
     
     public QuorumLanguageConfig() {
         
@@ -100,21 +101,11 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
 
     @Override
     public DeclarationFinder getDeclarationFinder() {
-        return super.getDeclarationFinder(); //To change body of generated methods, choose Tools | Templates.
+        return super.getDeclarationFinder();//finder;
     }
 
     @Override
     public StructureScanner getStructureScanner() {
         return structureScanner;
     } 
-
-//    @Override
-//    public IndexSearcher getIndexSearcher() {
-//        return indexSearcher;
-//    }
-//
-//    @Override
-//    public EmbeddingIndexerFactory getIndexerFactory() {
-//        return factory;
-//    }
 }
