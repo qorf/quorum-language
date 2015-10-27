@@ -7,9 +7,13 @@ class Vector2Add
 
         vector1:Set(6, 3)
         vector2:Set(2, 4)
-        output vector1:Add(vector2):ToText()
+        output ToText(vector1:Add(vector2))
 
         vector1:Set(6, 3)
-        output vector1:Add(2, 4):ToText()
+        output ToText(vector1:Add(2, 4))
+    end
+
+    action ToText(Vector2 vector) returns text
+        return "[" + vector:GetX() + ":" + vector:GetY() + "]"
     end
 end

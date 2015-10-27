@@ -51,6 +51,13 @@ class MathTester
         Vector2Rotate()
         Vector2LinearInterpolation()
         Vector2EqualsAtPrecision()
+        Vector2IsUnit()
+        Vector2IsZero()
+        Vector2IsOnLine()
+        Vector2IsCollinear()
+        Vector2IsCollinearOpposite()
+        Vector2IsPerpendicular()
+        Vector2Direction()
 
 //FAIL TESTS
         path = failPath
@@ -502,6 +509,90 @@ class MathTester
         files:Add(main)
         results:Add("true")
         results:Add("true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector2IsUnit
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector2IsUnit.quorum")
+        files:Add(main)
+        results:Add("The vector is a unit vector.")
+        results:Add("The vector is a unit vector.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector2IsZero
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector2IsZero.quorum")
+        files:Add(main)
+        results:Add("The vector is the zero vector.")
+        results:Add("The vector is the zero vector.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector2IsOnLine
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector2IsOnLine.quorum")
+        files:Add(main)
+        results:Add("The two vectors are on the same line.")
+        results:Add("The two vectors are on the same line.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector2IsCollinear
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector2IsCollinear.quorum")
+        files:Add(main)
+        results:Add("The two vectors are collinear in the same direction")
+        results:Add("The two vectors are collinear in the same direction")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector2IsCollinearOpposite
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector2IsCollinearOpposite.quorum")
+        files:Add(main)
+        results:Add("The two vectors are collinear in the opposite direction")
+        results:Add("The two vectors are collinear in the opposite direction")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector2IsPerpendicular
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector2IsPerpendicular.quorum")
+        files:Add(main)
+        results:Add("The two vectors are perpendicular.")
+        results:Add("The two vectors are perpendicular.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector2Direction
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector2Direction.quorum")
+        files:Add(main)
+        results:Add("The two vectors have opposite directions.")
+        results:Add("The two vectors have the same direction.")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

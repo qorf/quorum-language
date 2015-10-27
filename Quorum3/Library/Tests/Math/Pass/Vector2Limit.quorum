@@ -6,6 +6,10 @@ class Vector2Limit
         vector:Set(3.0, 4.0)
         
         vector:Limit(4)
-        output vector:ToText()
+        output ToText(vector)
+    end
+
+    action ToText(Vector2 vector) returns text
+        return "[" + vector:GetX() + ":" + vector:GetY() + "]"
     end
 end

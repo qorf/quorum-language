@@ -6,10 +6,14 @@ class Vector2Rotate
         Math math
         Vector2 vector
         vector:Set(7, 2)
-        output vector:Rotate(30):ToText()
+        output ToText(vector:Rotate(30))
         vector:Set(7, 2)
-        output vector:RotateRadians(math:pi / 6):ToText()
+        output ToText(vector:RotateRadians(math:pi / 6))
         vector:Set(7, 2)
-        output vector:Rotate90Degrees(true):ToText()
+        output ToText(vector:Rotate90Degrees(true))
+    end
+
+    action ToText(Vector2 vector) returns text
+        return "[" + vector:GetX() + ":" + vector:GetY() + "]"
     end
 end

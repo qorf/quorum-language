@@ -4,14 +4,18 @@ class Vector2Scale
     action Main
         Vector2 vector
         vector:Set(3, 6)
-        output vector:Scale(2):ToText()
+        output ToText(vector:Scale(2))
 
         vector:Set(3, 6)
-        output vector:Scale(4, 2):ToText()
+        output ToText(vector:Scale(4, 2))
 
         vector:Set(3, 6)
         Vector2 scale
         scale:Set(4, 2)
-        output vector:Scale(scale):ToText()
+        output ToText(vector:Scale(scale))
+    end
+
+    action ToText(Vector2 vector) returns text
+        return "[" + vector:GetX() + ":" + vector:GetY() + "]"
     end
 end

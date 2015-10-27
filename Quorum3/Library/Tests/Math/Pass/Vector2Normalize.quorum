@@ -4,10 +4,14 @@ class Vector2Normalize
     action Main
         Vector2 normalVector
         normalVector:Set(0, 0)
-        output normalVector:Normalize():ToText()
+        output ToText(normalVector:Normalize())
 
         Vector2 vector
         vector:Set(3, 4)
-        output vector:Normalize():ToText()
+        output ToText(vector:Normalize())
+    end
+
+    action ToText(Vector2 vector) returns text
+        return "[" + vector:GetX() + ":" + vector:GetY() + "]"
     end
 end

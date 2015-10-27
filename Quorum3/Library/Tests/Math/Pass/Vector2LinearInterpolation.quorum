@@ -6,6 +6,10 @@ class Vector2LinearInterpolation
         vector1:Set(1, 0)
         Vector2 vector2
         vector2:Set(0, 1)
-        output vector1:LinearInterpolation(vector2, 0.25):ToText()
+        output ToText(vector1:LinearInterpolation(vector2, 0.25))
+    end
+
+    action ToText(Vector2 vector) returns text
+        return "[" + vector:GetX() + ":" + vector:GetY() + "]"
     end
 end

@@ -7,10 +7,14 @@ class Vector2Subtract
 
         vector1:Set(5, 3)
         vector2:Set(4, 2)
-        output vector1:Subtract(vector2):ToText()
+        output ToText(vector1:Subtract(vector2))
 
         vector1:Set(7, 4)
-        output vector1:Subtract(4, 2):ToText()
+        output ToText(vector1:Subtract(4, 2))
         
+    end
+
+    action ToText(Vector2 vector) returns text
+        return "[" + vector:GetX() + ":" + vector:GetY() + "]"
     end
 end
