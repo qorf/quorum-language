@@ -12,6 +12,9 @@ import org.netbeans.modules.csl.api.OccurrencesFinder;
 import org.netbeans.modules.csl.api.OffsetRange;
 import org.netbeans.modules.parsing.spi.Scheduler;
 import org.netbeans.modules.parsing.spi.SchedulerEvent;
+import org.openide.filesystems.FileObject;
+import org.openide.util.Lookup;
+import org.openide.util.Utilities;
 import quorum.Libraries.Containers.Blueprints.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.Location_;
@@ -30,6 +33,7 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
     private int caretPosition = 0;
     boolean cancel = false;
     Map<OffsetRange, ColoringAttributes> highlighting = new HashMap<>();
+    FileObject file = null;
     
     @Override
     public void setCaretPosition(int i) {
@@ -49,14 +53,28 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
             return;
         }
         
+        //check to see if we are parsing a different file. We don't want to 
+        //colorize and return something that we are not currently editing.
+        Lookup global = Utilities.actionsGlobalContext();
+        if(global == null) {
+            return;
+        }
+        FileObject lookup = global.lookup(FileObject.class);
+        if(lookup == null) {
+            return;
+        }
+        
+        highlighting = new HashMap<>();
         CompilerResult_ quorumResult = parserResult.getRecentResult();
-        ProjectInformation info = parserResult.getInfo();
-        String source = info.Get_Libraries_Language_Compile_ProjectInformation__source_();
-        File_ loc = info.Get_Libraries_Language_Compile_ProjectInformation__sourceLocation_();
+        if(quorumResult == null) {
+            highlighting = null;
+            return;
+        }
         
         SymbolTable_ table = quorumResult.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
-        Class_ clazz = table.GetClassInFile(loc.GetAbsolutePath());
+        Class_ clazz = table.GetClassInFile(lookup.getPath());
         if(clazz == null) {
+            highlighting = null;
             return;
         }
         
@@ -66,7 +84,6 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
             return;
         }
         
-        highlighting.clear();
         boolean done = checkVariables(iterator);
         
         if(!done) {
@@ -78,6 +95,10 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
                     done = checkVariables(locals);
                 }
             }
+        }
+        
+        if(!done) {
+            highlighting = null;
         }
     }
     

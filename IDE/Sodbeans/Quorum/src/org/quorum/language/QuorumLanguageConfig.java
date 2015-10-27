@@ -108,13 +108,13 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
         return structureScanner;
     } 
 
-    @Override
-    public IndexSearcher getIndexSearcher() {
-        return indexSearcher;
-    }
-
-    @Override
-    public EmbeddingIndexerFactory getIndexerFactory() {
-        return factory;
-    }
+//    @Override
+//    public IndexSearcher getIndexSearcher() {
+//        return indexSearcher;
+//    }
+//
+//    @Override
+//    public EmbeddingIndexerFactory getIndexerFactory() {
+//        return factory;
+//    }
 }
