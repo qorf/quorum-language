@@ -55,4 +55,16 @@ public class Game
         return GameState.GetDisplay().GetSecondsBetweenFrames();
     }
     
+    public int SelectApplicationTypeNative()
+    {
+        String os = System.getProperty("os.name");
+        if (os.contains("Mac OS X") || os.contains("Windows") || os.contains("Linux"))
+            return 1;
+        if (os.contains("iOS"))
+            ;//return new iOSApplication();
+        
+        // Indicate failure to find appropriate application with -1.
+        return -1;
+    }
+    
 }
