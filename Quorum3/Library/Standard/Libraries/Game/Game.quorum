@@ -5,6 +5,10 @@
 
 package Libraries.Game
 
+use Libraries.Game.GameDisplay
+use Libraries.Game.GameStateManager
+use Libraries.Game.Application
+use Libraries.Game.DesktopApplication
 use Libraries.Game.Graphics.Painter
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.GraphicsManager
@@ -134,7 +138,10 @@ class Game
         display:SetConfig(configuration)
         display:SetupDisplay()
 
-        Application application
+        Application application = SelectApplicationType()
+        if application = undefined
+            alert("I could not identify what type of application to use for this operating system!")
+        end
         application:Setup(me, configuration, display)
 
     end
@@ -1012,5 +1019,22 @@ class Game
             counter1 = counter1 + 1
         end
     end
+
+    private action SelectApplicationType returns Application
+        integer type = SelectApplicationTypeNative()
+        if type = 1
+            DesktopApplication app
+            return app
+        end
+        // ... Other options
+
+        if type < 0
+            alert("I could not determine the proper type of Application to use for this OS!")
+        end
+
+        return undefined
+    end
+
+    private system action SelectApplicationTypeNative returns integer
 
 end
