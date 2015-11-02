@@ -483,6 +483,15 @@ class Drawable is TextureRegion, Item
             end
     */
     action SetAlpha(number alpha)
+        SetColor(color:GetRed(), color:GetGreen(), color:GetBlue(), alpha)
+
+        /*
+        The old SetAlpha code. The goal was to set the alpha efficiently by
+        only modifying the alpha bits. This code did not work correctly due to
+        issues in converting the bits between data types between Java and 
+        Quorum. The current code is slower but functional. This should be
+        revisited in the future for optimization.
+
         BitwiseOperations ops
         NumberUtilities utility
 
@@ -500,6 +509,7 @@ class Drawable is TextureRegion, Item
         vertices:Set(C2, colorValue)
         vertices:Set(C3, colorValue)
         vertices:Set(C4, colorValue)
+        */
     end
 
     /*
