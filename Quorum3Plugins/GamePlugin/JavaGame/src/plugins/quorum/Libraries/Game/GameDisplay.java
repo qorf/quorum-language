@@ -49,13 +49,13 @@ public class GameDisplay {
         //try {
             quorum.Libraries.Game.GameDisplay dis = (quorum.Libraries.Game.GameDisplay) me_;
             
-            dis.SetVSync(dis.config.Get_Libraries_Game_ApplicationConfiguration__vSyncEnabled_());
+            dis.SetVSync(dis.config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
             
-            Color_ color = dis.config.Get_Libraries_Game_ApplicationConfiguration__initialBackgroundColor_();
+            Color_ color = dis.config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_();
 
-            boolean displayCreated = SetDisplayMode(dis.config.Get_Libraries_Game_ApplicationConfiguration__width_(),
-                                                    dis.config.Get_Libraries_Game_ApplicationConfiguration__height_(),
-                                                    dis.config.Get_Libraries_Game_ApplicationConfiguration__fullScreen_());
+            boolean displayCreated = SetDisplayMode(dis.config.Get_Libraries_Game_DesktopConfiguration__width_(),
+                                                    dis.config.Get_Libraries_Game_DesktopConfiguration__height_(),
+                                                    dis.config.Get_Libraries_Game_DesktopConfiguration__fullScreen_());
             
             if (!displayCreated)
                 throw new GameRuntimeError("An error ocurred in SetDisplayMode!");
@@ -93,14 +93,14 @@ public class GameDisplay {
 		}*/      
             
             //Set icons
-            Display.setTitle(dis.config.Get_Libraries_Game_ApplicationConfiguration__title_());
-            Display.setResizable(dis.config.Get_Libraries_Game_ApplicationConfiguration__resizable_());
+            Display.setTitle(dis.config.Get_Libraries_Game_DesktopConfiguration__title_());
+            Display.setResizable(dis.config.Get_Libraries_Game_DesktopConfiguration__resizable_());
 
       //Reader beware: Casting double to float here. Since RGB can't be extremely large or
             //               small this shouldn't have any effect on coloring.
             Display.setInitialBackground((float) color.GetRed(), (float) color.GetGreen(), (float) color.GetBlue());
-            Display.setLocation(dis.config.Get_Libraries_Game_ApplicationConfiguration__x_(),
-                    dis.config.Get_Libraries_Game_ApplicationConfiguration__y_());
+            Display.setLocation(dis.config.Get_Libraries_Game_DesktopConfiguration__x_(),
+                    dis.config.Get_Libraries_Game_DesktopConfiguration__y_());
 
             createDisplayPixelFormat(); //Display is actually created in here
             InitiateGLInstances();
@@ -155,7 +155,7 @@ public class GameDisplay {
 				return false;
 			}
 
-			boolean resizable = !fullScreen && quorumDisplay.config.Get_Libraries_Game_ApplicationConfiguration__resizable_();
+			boolean resizable = !fullScreen && quorumDisplay.config.Get_Libraries_Game_DesktopConfiguration__resizable_();
 			
 			Display.setDisplayMode(targetDisplayMode);
 			Display.setFullscreen(fullScreen);
@@ -166,10 +166,10 @@ public class GameDisplay {
 			Display.setResizable(resizable);
 			
 			float scaleFactor = Display.getPixelScaleFactor();
-                        quorumDisplay.config.Set_Libraries_Game_ApplicationConfiguration__width_((int)(targetDisplayMode.getWidth() * scaleFactor));
-                        quorumDisplay.config.Set_Libraries_Game_ApplicationConfiguration__height_((int)(targetDisplayMode.getHeight() * scaleFactor));
+                        quorumDisplay.config.Set_Libraries_Game_DesktopConfiguration__width_((int)(targetDisplayMode.getWidth() * scaleFactor));
+                        quorumDisplay.config.Set_Libraries_Game_DesktopConfiguration__height_((int)(targetDisplayMode.getHeight() * scaleFactor));
 		//	if (GameState.nativeGraphics != null)
-                //            GameState.nativeGraphics.SetDrawingRegion(0, 0, quorumDisplay.config.Get_Libraries_Game_ApplicationConfiguration_width(), quorumDisplay.config.Get_Libraries_Game_ApplicationConfiguration_height());
+                //            GameState.nativeGraphics.SetDrawingRegion(0, 0, quorumDisplay.config.Get_Libraries_Game_DesktopConfiguration_width(), quorumDisplay.config.Get_Libraries_Game_DesktopConfiguration_height());
 			quorumDisplay.resize = true;
 			return true;
 		} catch (LWJGLException e) {
@@ -189,7 +189,7 @@ public class GameDisplay {
         try {
             quorum.Libraries.Game.GameDisplay dis = (quorum.Libraries.Game.GameDisplay) me_;
 
-            if (dis.config.Get_Libraries_Game_ApplicationConfiguration__useGL30_()) {
+            if (dis.config.Get_Libraries_Game_DesktopConfiguration__useGL30_()) {
                 //Do nothing, we dont support GL30 yet.
                 System.out.println("useGL30 was set to true!");
             } else {

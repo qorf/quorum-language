@@ -61,9 +61,11 @@ public class Game
         if (os.contains("Mac OS X") || os.contains("Windows") || os.contains("Linux"))
             return 1;
         if (os.contains("iOS"))
-            ;//return new iOSApplication();
+            return 2;
         
         // Indicate failure to find appropriate application with -1.
+        // DEBUG CODE: Output what the os was.
+        System.out.println("No application type was defined for os: " + os);
         return -1;
     }
     
