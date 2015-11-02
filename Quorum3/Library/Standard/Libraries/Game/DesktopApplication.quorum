@@ -20,9 +20,9 @@ class DesktopApplication is Application
         will begin the game's main loop. This is automatically used by the Game
         class via the Game:StartGame() action.
     */
-    action Setup(Game game, ApplicationConfiguration config, GameDisplay disp)
+    action Setup(Game game, GameDisplay disp)
         
-        parent:Application:Setup(game, config, disp)
+        parent:Application:Setup(game, disp)
 
         MainLoop()
         
@@ -109,7 +109,7 @@ class DesktopApplication is Application
             // graphics.canvas is != null. We skip straight to the else
             // statement for now.
 
-            ApplicationConfiguration configuration
+            DesktopConfiguration configuration
             configuration = parent:Application:display:GetConfig()
 
             configuration:x = parent:Application:display:GetDisplayX()

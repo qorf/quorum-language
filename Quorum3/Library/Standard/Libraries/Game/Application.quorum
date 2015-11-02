@@ -29,11 +29,7 @@ class Application
         will begin the game's main loop. This is automatically used by the Game
         class via the Game:StartGame() action.
     */
-    action Setup(Game game, ApplicationConfiguration config, GameDisplay disp)
-        //load natives?
-        if config:title = ""
-            config:title = "Game"
-        end
+    action Setup(Game game, GameDisplay disp)
 
         display = disp
         manager:SetGameDisplay(disp)

@@ -19,22 +19,22 @@ class GameDisplay
     something new on the screen. */
     public boolean shouldrender = false
 
-    private ApplicationConfiguration config = undefined
+    private DesktopConfiguration config = undefined
     private boolean vsync = false
     
     /* 
-    This action sets the ApplicationConfiguration being used by the game,
+    This action sets the DesktopConfiguration being used by the game,
     which includes data for the screen. 
     */
-    action SetConfig(ApplicationConfiguration conf)
+    action SetConfig(DesktopConfiguration conf)
         config = conf
     end
 
     /*
-    This action returns the ApplicationConfiguration being used by the
+    This action returns the DesktopConfiguration being used by the
     GameDisplay.
     */
-    action GetConfig returns ApplicationConfiguration
+    action GetConfig returns DesktopConfiguration
         return config
     end
 
