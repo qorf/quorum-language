@@ -20,9 +20,9 @@ class DesktopApplication is Application
         will begin the game's main loop. This is automatically used by the Game
         class via the Game:StartGame() action.
     */
-    action Setup(Game game, GameDisplay disp)
+    action Setup(Game game)
         
-        parent:Application:Setup(game, disp)
+        parent:Application:Setup(game)
 
         MainLoop()
         

@@ -15,7 +15,7 @@ class Application
 
     Game game = undefined
     GameDisplay display = undefined
-    integer loglevel = 1 //LOG_INFO
+    //integer loglevel = 1 //LOG_INFO
     GameStateManager manager
     GraphicsManager glmanager = undefined
     boolean running = true
@@ -29,12 +29,12 @@ class Application
         will begin the game's main loop. This is automatically used by the Game
         class via the Game:StartGame() action.
     */
-    action Setup(Game game, GameDisplay disp)
+    action Setup(Game game)
 
-        display = disp
-        manager:SetGameDisplay(disp)
         me:game = game
         
+        display = manager:GetGameDisplay()
+
         //Initialize the game graphics for the rest of the library.
         GraphicsManager temp
         manager:SetGameGraphics(temp)

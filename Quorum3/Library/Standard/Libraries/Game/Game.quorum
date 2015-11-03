@@ -10,6 +10,7 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Application
 use Libraries.Game.DesktopApplication
 use Libraries.Game.IOSApplication
+use Libraries.Game.IOSConfiguration
 use Libraries.Game.Graphics.Painter
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.GraphicsManager
@@ -50,7 +51,8 @@ Attribute: Example
 class Game
 
     public Painter batch = undefined
-    DesktopConfiguration configuration
+    DesktopConfiguration desktopConfig
+    IOSConfiguration iosConfig
     GraphicsManager gl20
 
     public boolean exitRequested = false
@@ -63,47 +65,6 @@ class Game
     private List<CollisionEvent> currentCollisions
 
     on create
-        Color color
-        color = color:Black()
-
-        //configuration:title = "Game"
-        configuration:width = 800
-        configuration:height = 600
-
-        configuration:initialBackgroundColor = color
-/*
-        Properties properties
-        text os = properties:GetOperatingSystemName()
-
-        text path = ""
-        File file = properties:GetRunLocation()
-        file:SetPath("jni")
-        
-        path = file:GetAbsolutePath()
-
-        properties:SetProperty("org.lwjgl.librarypath", path)
-
-        // Setting the path to load the native C files, reusing the file and
-        // path variables.
-        path = ""
-        if os:Contains("Mac OS X")
-            file:SetPath("jni/libGameEngineCPlugins.so")
-        elseif os:Contains("Windows")
-            text bits = properties:GetProperty("os.arch")
-            if bits = "x86"
-                file:SetPath("jni/libGameEngineCPlugins32.dll")
-            else
-                file:SetPath("jni/libGameEngineCPlugins64.dll")
-            end
-        end
-
-        
-        path = file:GetAbsolutePath()
-        
-        GameStateManager manager
-        manager:SetNativePath(path)
-        manager:SetOperatingSystem(os)*/
-
         Panel panel
         panel:SetName("Default Active Panel")
         SetActivePanel(panel)
@@ -131,23 +92,31 @@ class Game
     */
     action StartGame
     
-        if configuration:title = ""
-            configuration:title = "Game"
-        end
-
-        GameStateManager manager
-
-        GameDisplay display
-        manager:SetGameDisplay(display)
-        
-        display:SetConfig(configuration)
-        display:SetupDisplay()
-
         Application application = SelectApplicationType()
         if application = undefined
             alert("I could not identify what type of application to use for this operating system!")
         end
-        application:Setup(me, display)
+
+        GameStateManager manager
+
+        if application is DesktopApplication
+            if desktopConfig:title = ""
+                desktopConfig:title = "Game"
+            end
+
+            GameDisplay display
+            manager:SetGameDisplay(display)
+
+            display:SetConfig(desktopConfig)
+            display:SetupDisplay()
+        elseif application is IOSApplication
+            /* Notes:
+            Will almost certainly need to set up a new type of GameDisplay for
+            iOS. That can be set in the GameStateManager before it is ever needed
+            in the IOSApplication plugin during DidFinishLaunching.
+            */
+        end
+        application:Setup(me)
 
     end
 
@@ -233,11 +202,11 @@ class Game
     end
 
     action SetConfiguration(DesktopConfiguration config)
-        configuration = config
+        desktopConfig = config
     end
 
     action GetConfiguration returns DesktopConfiguration
-        return configuration
+        return desktopConfig
     end
 
     /*
@@ -259,7 +228,7 @@ class Game
         end
     */
     action GetScreenWidth returns integer
-        return configuration:width
+        return desktopConfig:width
     end
 
     /*
@@ -281,7 +250,7 @@ class Game
         end
     */
     action GetScreenHeight returns integer
-        return configuration:height
+        return desktopConfig:height
     end
 
     /*
@@ -813,8 +782,8 @@ class Game
         end
     */
     action SetScreenSize(integer width, integer height)
-        configuration:width = width
-        configuration:height = height
+        desktopConfig:width = width
+        desktopConfig:height = height
         activePanel:SetSize(width, height)
     end
 
@@ -836,7 +805,7 @@ class Game
         end
     */
     action SetVSync(boolean vSync)
-        configuration:vSyncEnabled = vSync
+        desktopConfig:vSyncEnabled = vSync
     end
 
     /*
@@ -858,7 +827,7 @@ class Game
         end
     */
     action EnableResizing(boolean resize)
-        configuration:resizable = resize
+        desktopConfig:resizable = resize
     end
 
     /*
@@ -879,7 +848,7 @@ class Game
         end
     */
     action SetGameName(text name)
-        configuration:title = name
+        desktopConfig:title = name
     end
 
     /*
@@ -901,7 +870,7 @@ class Game
         end
     */
     action EnableTextureAutoResizing(boolean resize)
-        configuration:autoResizeTextures = resize
+        desktopConfig:autoResizeTextures = resize
     end
 
     /*
