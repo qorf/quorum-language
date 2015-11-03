@@ -19,7 +19,7 @@ firstVector:Set(3.0, 4.0)
 secondVector:Set(2.0, 3.0)
 
 number dotProduct = firstVector:DotProduct(secondVector)
-output dotProduct
+output "The dot product is: " + dotProduct
 */
 class Vector2
 
@@ -31,11 +31,11 @@ class Vector2
     constant number degreesToRadians = math:pi / 180
 
     /*
-    This action returns the current x-coordinate of the vector.
+    This action returns the current x component of the vector.
 
     Attribute: Author Amanda Austin
 
-    Attribute: Returns the x-coordinate of the vector
+    Attribute: Returns the x component of the vector
 
     Attribute: Example
 
@@ -44,7 +44,7 @@ class Vector2
     Vector2 vector
     vector:Set(4.0, 3.0)
     number x = vector:GetX()
-    output "The x-coordinate is " + x
+    output "The x component is " + x
 
     */
     action GetX returns number
@@ -52,11 +52,11 @@ class Vector2
     end
 
     /*
-    This action returns the current y-coordinate of the vector.
+    This action returns the current y component of the vector.
 
     Attribute: Author Amanda Austin
 
-    Attribute: Returns the y-coordinate of the vector
+    Attribute: Returns the y component of the vector
 
     Attribute: Example
 
@@ -65,7 +65,7 @@ class Vector2
     Vector2 vector
     vector:Set(4.0, 3.0)
     number y = vector:GetY()
-    output "The y-coordinate is " + y
+    output "The y component is " + y
 
     */
     action GetY returns number
@@ -73,12 +73,12 @@ class Vector2
     end
 
     /*
-    This action sets the vector's coordinates to the coordinates of the passed
+    This action sets the vector's components to the components of the passed
     vector.
 
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter vector the vector to use to set the coordinates
+    Attribute: Parameter vector the vector to use to set the components
 
     Attribute: Returns the calling vector
 
@@ -105,13 +105,13 @@ class Vector2
     end
 
     /*
-    This action sets the x and y coordinates of the vector to the passed x and
+    This action sets the x and y components of the vector to the passed x and
     y values.
 
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter xValue the value to set as the x-coordinate
-    Attribute: Parameter yValue the value to set as the y-coordinate
+    Attribute: Parameter xValue the value to set as the x component
+    Attribute: Parameter yValue the value to set as the y component
 
     Attribute: Returns the calling vector
 
@@ -136,7 +136,7 @@ class Vector2
 
     /*
     This action returns a copy of the current vector. The new vector's x and
-    y coordinates are the same as the calling vector's x and y coordinates.
+    y components are the same as the calling vector's x and y components.
 
     Attribute: Author Amanda Austin
 
@@ -166,12 +166,12 @@ class Vector2
 
     /*
     This action returns the length of the vector with the passed x and y
-    coordinates measured from the origin (0, 0).
+    components measured from the origin (0, 0).
 
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter x The x-coordinate of the vector
-    Attribute: Parameter y The y-coordinate of the vector
+    Attribute: Parameter x The x component of the vector
+    Attribute: Parameter y The y component of the vector
 
     Attribute: Returns The length of the vector
 
@@ -214,12 +214,12 @@ class Vector2
 
     /*
     This action returns the square of the length of the vector with the passed x 
-    and y coordinates measured from the origin (0, 0).
+    and y components measured from the origin (0, 0).
 
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter x The x-coordinate of the vector
-    Attribute: Parameter y The y-coordinate of the vector
+    Attribute: Parameter x The x component of the vector
+    Attribute: Parameter y The y component of the vector
 
     Attribute: Returns The square of the length of the vector
 
@@ -297,14 +297,14 @@ class Vector2
     end
 
     /*
-    This action subtracts a vector with the passed coordinates from the calling 
+    This action subtracts a vector with the passed components from the calling 
     vector. This action changes the calling vector to the result of the
     subtraction.
 
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter xValue The x coordinate of the vector to subtract
-    Attribute: Parameter yValue The y coordinate of the vector to subtract
+    Attribute: Parameter xValue The x component of the vector to subtract
+    Attribute: Parameter yValue The y component of the vector to subtract
     
     Attribute: Returns The calling vector after subtraction
 
@@ -398,14 +398,14 @@ class Vector2
 
 
     /*
-    This action adds the vector with the passed x and y coordinates to the
+    This action adds the vector with the passed x and y components to the
     calling vector. This changes the calling vector to the result of the 
     addition.
     
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter xValue The x-coordinate of the vector to add
-    Attribute: Parameter yValue The y-coordinate of the vector to add
+    Attribute: Parameter xValue The x component of the vector to add
+    Attribute: Parameter yValue The y component of the vector to add
 
     Attribute: Returns The calling vector after addition
 
@@ -432,14 +432,14 @@ class Vector2
 
     /*
     This action computes the dot product of the two vectors given by the passed
-    x and y coordinates.
+    x and y components.
 
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter x1 The x coordinate of the first vector
-    Attribute: Parameter y1 The y coordinate of the first vector
-    Attribute: Parameter x2 The x coordinate of the second vector
-    Attribute: Parameter y2 The y coordinate of the second vector
+    Attribute: Parameter x1 The x component of the first vector
+    Attribute: Parameter y1 The y component of the first vector
+    Attribute: Parameter x2 The x component of the second vector
+    Attribute: Parameter y2 The y component of the second vector
 
     Attribute: Returns The dot product of the two vectors.
 
@@ -487,12 +487,12 @@ class Vector2
 
     /*
     This action computes the dot product between the calling vector and the
-    vector with the passed x and y coordinates.
+    vector with the passed x and y components.
 
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter xValue The x-coordinate of the other vector
-    Attribute: Parameter yValue The y-coordinate of the other vector
+    Attribute: Parameter xValue The x component of the other vector
+    Attribute: Parameter yValue The y component of the other vector
 
     Attribute: Returns The dot product of the two vectors
 
@@ -513,7 +513,7 @@ class Vector2
 
 
     /*
-    This action scales the vector by multiplying the x and y coordinates by the
+    This action scales the vector by multiplying the x and y components by the
     passed scalar value.
 
     Attribute: Author Amanda Austin
@@ -544,13 +544,13 @@ class Vector2
     end
 
     /*
-    This action scales the vector by multiplying the x-coordinate with the
-    passed x value and the y-coordinate with the passed y value.
+    This action scales the vector by multiplying the x component with the
+    passed x value and the y component with the passed y value.
     
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter xValue The value to multiply the x-coordinate by
-    Attribute: Parameter yValue The value to multiply the y-coordinate by
+    Attribute: Parameter xValue The value to multiply the x component by
+    Attribute: Parameter yValue The value to multiply the y component by
 
     Attribute: Returns The calling vector
 
@@ -576,8 +576,8 @@ class Vector2
     end
 
     /*
-    This action scales the vector by multiplying the x-coordinate by the
-    x-coordinate of the passed vector and the y-coordinate by the y-coordinate
+    This action scales the vector by multiplying the x component by the
+    x component of the passed vector and the y component by the y component
     of the passed vector.
 
     Attribute: Author Amanda Austin
@@ -686,14 +686,14 @@ class Vector2
 
     /*
     This action computes the distance between the vectors represented by the
-    passed x and y coordinates.
+    passed x and y components.
 
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter x1 The x-coordinate of the first vector
-    Attribute: Parameter y1 The y-coordinate of the first vector
-    Attribute: Parameter x2 The x-coordinate of the second vector
-    Attribute: Parameter y2 The y-coordinate of the second vector
+    Attribute: Parameter x1 The x component of the first vector
+    Attribute: Parameter y1 The y component of the first vector
+    Attribute: Parameter x2 The x component of the second vector
+    Attribute: Parameter y2 The y component of the second vector
     
     Attribute: Returns The distance between the two vectors
 
@@ -744,12 +744,12 @@ class Vector2
 
     /*
     This action computes the distance between the calling vector and the vector
-    represented by the passed x and y coordinates.
+    represented by the passed x and y components.
     
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter xValue The x-coordinate of the other vector
-    Attribute: Parameter yValue The y-coordinate of the other vector
+    Attribute: Parameter xValue The x component of the other vector
+    Attribute: Parameter yValue The y component of the other vector
     
     Attribute: Returns The distance between the two vectors
 
@@ -773,14 +773,14 @@ class Vector2
 
     /*
     This action computes the square of the distance between the vectors
-    represented by the passed x and y coordinates.
+    represented by the passed x and y components.
 
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter x1 The x-coordinate of the first vector
-    Attribute: Parameter y1 The y-coordinate of the first vector
-    Attribute: Parameter x2 The x-coordinate of the second vector
-    Attribute: Parameter y2 The y-coordinate of the second vector
+    Attribute: Parameter x1 The x component of the first vector
+    Attribute: Parameter y1 The y component of the first vector
+    Attribute: Parameter x2 The x component of the second vector
+    Attribute: Parameter y2 The y component of the second vector
     
     Attribute: Returns The square of the distance between the two vectors
 
@@ -831,12 +831,12 @@ class Vector2
 
     /*
     This action computes the square of the distance between the calling vector
-    and the vector represented by the passed x and y coordinates.
+    and the vector represented by the passed x and y components.
     
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter xValue The x-coordinate of the other vector
-    Attribute: Parameter yValue The y-coordinate of the other vector
+    Attribute: Parameter xValue The x component of the other vector
+    Attribute: Parameter yValue The y component of the other vector
     
     Attribute: Returns The square of the distance between the two vectors
 
@@ -1114,13 +1114,13 @@ class Vector2
 
     /*
     This action computes the 2D cross product of the calling vector and the
-    vector represented by the passed x and y coordinates. This action is mainly
+    vector represented by the passed x and y components. This action is mainly
     necessary for game graphics.
     
     Attribute: Author Amanda Austin
     
-    Attribute: Parameter xValue The x-coordinate of the other vector
-    Attribute: Parameter yValue The y-coordinate of the other vector
+    Attribute: Parameter xValue The x component of the other vector
+    Attribute: Parameter yValue The y component of the other vector
 
     Attribute: Returns The 2D cross product of the vectors
 
@@ -1517,12 +1517,12 @@ class Vector2
 
     /*
     This action determines whether the vector represented by the passed x and
-    y coordinates equals the calling vector to within the passed precision.
+    y components equals the calling vector to within the passed precision.
 
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter xValue The x-coordinate of the other vector
-    Attribute: Parameter yValue The y-coordinate of the other vector
+    Attribute: Parameter xValue The x component of the other vector
+    Attribute: Parameter yValue The y component of the other vector
     Attribute: Parameter precision The desired precision
 
     Attribute: Returns true if the vectors are equal within the passed precision, false otherwise
@@ -1617,7 +1617,7 @@ class Vector2
 
     /*
     This action determines whether the vector is the zero vector, meaning that
-    its x and y coordinates are 0.
+    its x and y components are 0.
 
     Attribute: Author Amanda Austin
 
@@ -1650,7 +1650,7 @@ class Vector2
 
     /*
     This action determines whether the vector is the zero vector to within the
-    passed precision, meaning that its x and y coordinates are 0.
+    passed precision, meaning that its x and y components are 0.
 
     Attribute: Author Amanda Austin
 
@@ -2037,7 +2037,7 @@ class Vector2
 
     /*
     This action sets the vector to the zero vector, meaning both the x and y
-    coordinates will be set to 0.
+    components will be set to 0.
 
     Attribute: Author Amanda Austin
 

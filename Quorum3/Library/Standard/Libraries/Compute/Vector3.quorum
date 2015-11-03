@@ -4,6 +4,28 @@ use Libraries.Compute.all
 use Libraries.Compute.Vector2
 use Libraries.Containers.Array
 
+/*
+Vector3 is a class representing a vector in 3D space.
+
+Attribute: Author Amanda Austin
+
+Attribute: Example
+
+use Libraries.Compute.Vector3
+
+Vector3 vector1
+Vector3 vector2
+
+vector1:Set(2, 6, 9)
+vector2:Set(1, 7, 2)
+
+vector1:CrossProduct(vector2)
+
+number newX = vector1:GetX()
+number newY = vector1:GetY()
+
+output "The cross product of the two vectors is: [" + newX + ", " + newY + "]"
+*/
 class Vector3 
 
     number x = 0
@@ -11,20 +33,101 @@ class Vector3
     number z = 0
 
     Math math
-    public constant number ROUNDING_MARGIN = 0.000001
+    constant number ROUNDING_MARGIN = 0.000001
 
+    /*
+    This action returns the x component of the vector.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns the x component of the vector
+    
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 vector
+    vector:Set(1, 2, 3)
+    
+    number x = vector:GetX()
+    output "The x component is: " + x
+
+    */
     action GetX returns number
         return x
     end
 
+    /*
+    This action returns the y component of the vector.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns the y component of the vector
+    
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 vector
+    vector:Set(1, 2, 3)
+    
+    number y = vector:GetY()
+    output "The y component is: " + y
+
+    */
     action GetY returns number
         return y
     end
 
+    /*
+    This action returns the z component of the vector.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns the z component of the vector
+    
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 vector
+    vector:Set(1, 2, 3)
+    
+    number z = vector:GetZ()
+    output "The z component is: " + z
+
+    */
     action GetZ returns number
         return z
     end
 
+    /*
+    This action sets the x, y, and z components of the vector to the passed x, y,
+    and z values.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter xValue the value to set as the x component
+    Attribute: Parameter yValue the value to set as the y component
+    Attribute: Parameter zValue the value to set as the z component
+
+    Attribute: Returns the calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+    
+    Vector3 vector
+    vector:Set(8.8, 4.2, 9.2)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
+
+    */
     action Set(number xValue, number yValue, number zValue) returns Vector3
         x = xValue
         y = yValue
@@ -32,6 +135,33 @@ class Vector3
         return me
     end
 
+    /*
+    This action sets the vector's components to the components of the passed
+    vector.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter vector the vector to use to set the components
+
+    Attribute: Returns the calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector2 firstVector
+    firstVector:Set(2.4, 4.3, 2.7)
+    
+    Vector2 secondVector
+    secondVector:Set(firstVector)
+
+    number newX = secondVector:GetX()
+    number newY = secondVector:GetY()
+    number newZ = secondVector:GetZ()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
+    */
     action Set(Vector3 vector) returns Vector3
         return Set(vector:GetX(), vector:GetY(), vector:GetZ())
     end
@@ -303,64 +433,507 @@ class Vector3
         return me:Multiply(tempMat)
     end
 
+    /*
+    This action determines whether the vector is a unit vector, meaning it has
+    a length of 1.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns true if the vector is a unit vector, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 vector
+    vector:Set(0.0, 1.0, 0.0)
+
+    boolean isUnit = vector:IsUnit()
+    
+    if isUnit
+        output "The vector is a unit vector."
+    else
+        output "The vector is not a unit vector."
+    end
+
+    */
     action IsUnit returns boolean
         return IsUnit(0.000000001)
     end
 
-    action IsUnit(number margin) returns boolean
-        return math:AbsoluteValue(LengthSquared() - 1.0) < margin
+    /*
+    This action determines whether the vector is a unit vector, meaning it has
+    a length of 1 to within the passed precision.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter precision The desired precision
+
+    Attribute: Returns true if the vector is a unit vector to within the passed precision, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 vector
+    vector:Set(0.0, 1.0, 0.0)
+
+    boolean isUnit = vector:IsUnit(0.00001)
+    
+    if isUnit
+        output "The vector is a unit vector."
+    else
+        output "The vector is not a unit vector."
     end
 
+    */
+    action IsUnit(number precision) returns boolean
+        return math:AbsoluteValue(LengthSquared() - 1.0) < precision
+    end
+
+    /*
+    This action determines whether the vector is the zero vector, meaning that
+    its x, y, and z components are 0.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns true if the vector is the zero vector, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 firstVector
+    Vector3 secondVector
+
+    firstVector:Set(5.0, 6.0, 7.0)
+    secondVector:Set(5.0, 6.0, 7.0)
+
+    firstVector:Subtract(secondVector)
+    
+    boolean isZero = firstVector:IsZero()
+
+    if isZero
+        output "The vector is the zero vector."
+    else
+        output "The vector is not the zero vector."
+    end
+
+    */
     action IsZero returns boolean
         return x = 0 and y = 0 and z = 0
     end
 
-    action IsZero(number margin) returns boolean
-        return LengthSquared() < margin
+    /*
+    This action determines whether the vector is the zero vector to within the
+    passed precision, meaning that its x, y, and z components are 0.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter precision The desired precision
+
+    Attribute: Returns true if the vector is the zero vector to within the passed precision, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 firstVector
+    Vector3 secondVector
+
+    firstVector:Set(5.0, 6.0, 7.0)
+    secondVector:Set(5.0, 6.0, 7.0)
+
+    firstVector:Subtract(secondVector)
+    
+    boolean isZero = firstVector:IsZero(0.00001)
+
+    if isZero
+        output "The vector is the zero vector."
+    else
+        output "The vector is not the zero vector."
     end
 
-    action IsOnLine(Vector3 other, number epsilon) returns boolean
+    */
+    action IsZero(number precision) returns boolean
+        return LengthSquared() < precision
+    end
+
+    /*
+    This action determines whether the passed vector is on the same line as the
+    calling vector to within the passed precision, either in the same or
+    opposite direction
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter other The other vector
+    Attribute: Parameter precision The desired precision
+
+    Attribute: Returns true if the vectors are on the same line, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 firstVector
+    Vector3 secondVector
+    
+    firstVector:Set(1.0, 2.0, 3.0)
+    secondVector:Set(-2.0, -4.0, -6.0)
+
+    boolean onLine = firstVector:IsOnLine(secondVector, 0.00001)
+    
+    if onLine
+        output "The two vectors are on the same line."
+    else
+        output "The two vectors are not on the same line."
+    end
+
+    */
+    action IsOnLine(Vector3 other, number precision) returns boolean
         return LengthSquared(y * other:GetZ() - z * other:GetY(), z * other:GetX() - x * other:GetZ(),
-                             x * other:GetY() - y * other:GetX()) <= epsilon
+                             x * other:GetY() - y * other:GetX()) <= precision
     end
 
+    /*
+    This action determines whether the passed vector is on the same line as the
+    calling vector, either in the same or opposite direction.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter other The other vector
+
+    Attribute: Returns true if the vectors are on the same line, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 firstVector
+    Vector3 secondVector
+    
+    firstVector:Set(1.0, 2.0, 3.0)
+    secondVector:Set(-2.0, -4.0, -6.0)
+
+    boolean onLine = firstVector:IsOnLine(secondVector)
+    
+    if onLine
+        output "The two vectors are on the same line."
+    else
+        output "The two vectors are not on the same line."
+    end
+
+    */
     action IsOnLine(Vector3 other) returns boolean
         return LengthSquared(y * other:GetZ() - z * other:GetY(), z * other:GetX() - x * other:GetZ(), 
                              x * other:GetY() - y * other:GetX()) <= ROUNDING_MARGIN
     end
         
-    action IsCollinearOpposite(Vector3 other, number epsilon) returns boolean
-        return IsOnLine(other, epsilon) and HasOppositeDirection(other)
+    /*
+    This action determines whether the passed vector is collinear in the
+    opposite direction with the calling vector, meaning that it lies on the same
+    line as the calling vector and has the opposite direction as the calling
+    vector to within the passed precision.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter other The other vector
+    Attribute: Parameter precision The desired precision
+
+    Attribute: Returns true if the vectors are collinear in the opposite directions, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 firstVector
+    Vector3 secondVector
+    
+    firstVector:Set(3.0, 4.0, 5.0)
+    secondVector:Set(-6.0, -8.0, -10.0)
+
+    boolean collinearOpposite = firstVector:IsCollinearOpposite(secondVector, 0.00001)
+
+    if collinearOpposite
+        output "The two vectors are collinear in the opposite direction"
+    else
+        output "The two vectors are not collinear in the opposite direction"
     end
 
+    */
+    action IsCollinearOpposite(Vector3 other, number precision) returns boolean
+        return IsOnLine(other, precision) and HasOppositeDirection(other)
+    end
+
+    /*
+    This action determines whether the passed vector is collinear in the
+    opposite direction with the calling vector, meaning that it lies on the same
+    line as the calling vector and has the opposite direction as the calling
+    vector.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter other The other vector
+
+    Attribute: Returns true if the vectors are collinear in the opposite directions, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 firstVector
+    Vector3 secondVector
+    
+    firstVector:Set(3.0, 4.0, 5.0)
+    secondVector:Set(-6.0, -8.0, -10.0)
+
+    boolean collinearOpposite = firstVector:IsCollinearOpposite(secondVector)
+
+    if collinearOpposite
+        output "The two vectors are collinear in the opposite direction"
+    else
+        output "The two vectors are not collinear in the opposite direction"
+    end
+
+    */
     action IsCollinearOpposite(Vector3 other) returns boolean
         return IsOnLine(other) and HasOppositeDirection(other)
     end
 
-    action IsCollinear(Vector3 other, number epsilon) returns boolean
-        return IsOnLine(other, epsilon) and HasSameDirection(other)
+    /*
+    This action determines whether the passed vector is collinear with the
+    calling vector, meaning that it lies on the same line as the calling vector 
+    and has the same direction as the calling vector to within the passed 
+    precision.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter other The other vector
+    Attribute: Parameter precision The desired precision
+
+    Attribute: Returns true if the vectors are collinear, false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 firstVector
+    Vector3 secondVector
+    
+    firstVector:Set(3.0, 4.0, 5.0)
+    secondVector:Set(6.0, 8.0, 10.0)
+
+    boolean collinear = firstVector:IsCollinear(secondVector, 0.00001)
+
+    if collinear
+        output "The two vectors are collinear in the same direction"
+    else
+        output "The two vectors are not collinear in the same direction"
     end
 
+    */
+    action IsCollinear(Vector3 other, number precision) returns boolean
+        return IsOnLine(other, precision) and HasSameDirection(other)
+    end
+
+    /*
+    This action determines whether the passed vector is collinear with the
+    calling vector, meaning that it lies on the same line as the calling vector 
+    and has the same direction as the calling vector.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter other The other vector
+
+    Attribute: Returns true if the vectors are collinear, false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 firstVector
+    Vector3 secondVector
+    
+    firstVector:Set(3.0, 4.0, 5.0)
+    secondVector:Set(6.0, 8.0, 10.0)
+
+    boolean collinear = firstVector:IsCollinear(secondVector)
+
+    if collinear
+        output "The two vectors are collinear in the same direction"
+    else
+        output "The two vectors are not collinear in the same direction"
+    end
+
+    */
     action IsCollinear(Vector3 other) returns boolean
         return IsOnLine(other) and HasSameDirection(other)
     end
 
+    /*
+    This action determines whether the passed vector is perpendicular to the
+    calling vector.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter vector The other vector
+
+    Attribute: Returns true if the two vectors are perpendicular, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 firstVector
+    Vector3 secondVector
+
+    firstVector:Set(1.0, 0.0, 0.0)
+    secondVector:Set(0.0, 1.0, 0.0)
+    
+    boolean isPerpendicular = firstVector:IsPerpendicular(secondVector)
+    
+    if isPerpendicular
+        output "The two vectors are perpendicular."
+    else
+        output "The two vectors are not perpendicular."
+    end
+
+    */
     action IsPerpendicular(Vector3 vector) returns boolean
         return math:AbsoluteValue(DotProduct(vector)) <= ROUNDING_MARGIN
     end
 
-    action IsPerpendicular(Vector3 vector, number epsilon) returns boolean
-        return math:AbsoluteValue(DotProduct(vector)) <= epsilon
+    /*
+    This action determines whether the passed vector is perpendicular to the
+    calling vector to within the passed precision.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter vector The other vector
+    Attribute: Parameter precision The desired precision
+    
+    Attribute: Returns true if the two vectors are perpendicular, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 firstVector
+    Vector3 secondVector
+
+    firstVector:Set(1.0, 0.0, 0.0)
+    secondVector:Set(0.0, 1.0, 0.0)
+    
+    boolean isPerpendicular = firstVector:IsPerpendicular(secondVector, 0.00001)
+    
+    if isPerpendicular
+        output "The two vectors are perpendicular."
+    else
+        output "The two vectors are not perpendicular."
     end
 
+    */
+    action IsPerpendicular(Vector3 vector, number precision) returns boolean
+        return math:AbsoluteValue(DotProduct(vector)) <= precision
+    end
+
+    /*
+    This action determines whether the passed vector has the same direction as
+    the calling vector.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter vector The other vector
+
+    Attribute: Returns true if the two vectors have the same direction, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 firstVector
+    Vector3 secondVector
+    
+    firstVector:Set(3.0, 4.0, 5.0)
+    secondVector:Set(6.0, 8.0, 10.0)
+
+    boolean isSame = firstVector:HasSameDirection(secondVector)
+
+    if isSame
+        output "The two vectors have the same direction."
+    else
+        output "The two vectors do not have the same direction."
+    end
+
+    */
     action HasSameDirection(Vector3 vector) returns boolean
         return DotProduct(vector) > 0
     end
 
+    /*
+    This action determines whether the passed vector has the opposite direction
+    as the calling vector.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter vector The other vector
+
+    Attribute: Returns true if the two vectors have the opposite direction, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+    
+    Vector3 firstVector
+    Vector3 secondVector
+
+    firstVector:Set(3.0, 4.0, 5.0)
+    secondVector:Set(-3.0, -4.0, -5.0)
+    
+    boolean isOpposite = firstVector:HasOppositeDirection(secondVector)
+
+    if isOpposite
+       output "The two vectors have opposite directions." 
+    else
+       output "The two vectors do not have opposite directions."
+    end
+
+    */
     action HasOppositeDirection(Vector3 vector) returns boolean
         return DotProduct(vector) < 0
     end
 
+    /*
+    This action performs a linear interpolation between the calling vector and 
+    the passed target vector by alpha, which is between 0 and 1, inclusive. 
+    This changes the calling vector to the result of the linear interpolation.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter target The target vector
+    Attribute: Parameter alpha The alpha value
+
+    Attribute: Returns The calling vector after linear interpolation
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 vector
+    Vector3 target
+
+    vector:Set(1.0, 2.0, 1.0)
+    target:Set(2.0, 3.0, 1.0)
+    number alpha = 0.5
+
+    vector:LinearInterpolation(target, alpha)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+    */
     action LinearInterpolation(Vector3 target, number alpha) returns Vector3
         x = x + alpha * (target:GetX() - x)
         y = y + alpha * (target:GetY() - y)
@@ -368,10 +941,38 @@ class Vector3
         return me
     end
 
-    /* action interpolate (Vector3 target, number alpha, Interpolation interpolator) returns Vector3
-            return lerp(target, interpolator:apply(0.0, 1.0, alpha)
-       end */
+    /*
+    This action performs a spherical linear interpolation between the calling
+    vector and the passed target vector by alpha, which is between 0 and 1,
+    inclusive. This changes the calling vector to the result of the spherical
+    linear interpolation.
 
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter target The target vector
+    Attribute: Parameter alpha The alpha value
+
+    Attribute: Returns The calling vector after spherical linear interpolation
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 vector
+    Vector3 target
+
+    vector:Set(1.0, 2.0, 1.0)
+    target:Set(2.0, 3.0, 1.0)
+    number alpha = 0.5
+
+    vector:SphericalLinearInterpolation(target, alpha)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+    */
     action SphericalLinearInterpolation(Vector3 target, number alpha) returns Vector3
         constant number dotProduct = DotProduct(target)
 
@@ -398,23 +999,102 @@ class Vector3
         return Scale(math:Cosine(theta)):Add(tx * dl, ty * dl, tz * dl):Normalize()
     end
 
-    action ToText returns text
-        return "[" + x + "," + y + "," + z + "]"
-    end
+    /*
+    This action limits the length of the vector to the passed limit value. This
+    changes the calling vector to have a new length if its old length was
+    greater than the passed limit.
 
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter limit The value to limit the length to
+
+    Attribute: Returns The vector with a new length if its old length was larger than the passed limit
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 vector
+    vector:Set(2.0, 1.0, 2.0)
+    
+    vector:Limit(1.5)
+    
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
+    */
     action Limit(number limit) returns Vector3
-        return Limit2(limit * limit)
+        return LimitSquared(limit * limit)
     end
 
-    action Limit2(number limit2) returns Vector3
-        number len2 = LengthSquared()
-        if len2 > limit2
-            Scale(math:SquareRoot(limit2 / len2))
+    /*
+    This action limits the square of the length of the vector to the passed
+    value, which represents the square of the value to limit the length of the
+    vector to. This changes the calling vector to have a new length if the
+    old length squared was greater than the limit squared.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter limitSquared the square of the limit
+
+    Attribute: Returns the calling vector with a new length if the old length squared was greater than the limit squared
+    
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 vector
+    vector:Set(2.0, 1.0, 2.0)
+    
+    vector:LimitSquared(2.25)
+    
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
+    */
+    action LimitSquared(number limitSquared) returns Vector3
+        number lengthSquared = LengthSquared()
+        if lengthSquared > limitSquared
+            Scale(math:SquareRoot(limitSquared / lengthSquared))
         end
         
         return me
     end
 
+    /*
+    This action clamps the length of the vector to be between the passed minimum
+    and maximum values. This changes the vector if the length of the vector is
+    greater than the maximum or less than the minimum.
+
+    Attribute: Author Amanda Austin
+    
+    Attribute: Parameter min The minimum length
+    Attribute: Parameter max The maximum length
+
+    Attribute: Returns The vector with a new length if the old length was below the minimum or above the maximum
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 vector
+    vector:Set(3.0, 4.0, 5.0)
+    
+    vector:Clamp(0.5, 1.5)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
+    */
     action Clamp(number min, number max) returns Vector3
         number len2 = LengthSquared()
         if len2 = 0.0
@@ -434,24 +1114,37 @@ class Vector3
         return me
     end
 
-    /* action hashCode () returns integer
-        constant integer prime = 31
-        integer result = 1
-        result = prime * result + numberUtils:floatToIntBits(x)
-        result = prime * result + numberUtils:floatToIntBits(y)
-        result = prime * result + numberUtils:floatToIntBits(z)
-        return result
-    end */
+    /*
+    This action determines whether the passed vector equals the calling vector
+    to within the passed precision.
 
-    /* action equals (Object obj) returns boolean
-        Vector3 temp = cpy()
-        if temp = obj
-            return true
-        end
-        if obj = null
-            return false
-        end */
+    Attribute: Author Amanda Austin
 
+    Attribute: Parameter vector The other vector
+    Attribute: Parameter precision The desired precision
+
+    Attribute: Returns true if the vectors are equal within the passed precision, false otherwise
+    
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 firstVector
+    Vector3 secondVector
+
+    firstVector:Set(3.0, 4.0, 5.0)
+    secondVector:Set(6.0, 8.0, 10.0)
+    secondVector:Scale(0.5)
+
+    boolean areEqual = firstVector:EqualsAtPrecision(secondVector, 0.00001)
+    
+    if areEqual
+        output "The two vectors are equal."
+    else
+        output "The two vectors are not equal."
+    end
+
+    */
     action EqualAtPrecision(Vector3 other, number epsilon) returns boolean
         if other = undefined
             return false
@@ -468,20 +1161,72 @@ class Vector3
         return true
     end
 
-    action EqualAtPrecision(number xVal, number yVal, number zVal, number epsilon) returns boolean  
-        if math:AbsoluteValue(xVal - x) > epsilon
+    /*
+    This action determines whether the vector represented by the passed x, y,
+    and z components equals the calling vector to within the passed precision.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter xValue The x component of the other vector
+    Attribute: Parameter yValue The y component of the other vector
+    Attribute: Parameter zValue The z component of the other vector
+    Attribute: Parameter precision The desired precision
+
+    Attribute: Returns true if the vectors are equal within the passed precision, false otherwise
+    
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector3 vector
+
+    vector:Set(3.0, 4.0, 7.5)
+    
+    boolean areEqual = vector:EqualsAtPrecision(3.0, 4.0000001, 7.5000002 0.00001)
+    
+    if areEqual
+        output "The two vectors are equal."
+    else
+        output "The two vectors are not equal."
+    end
+
+    */
+    action EqualAtPrecision(number xVal, number yVal, number zVal, number precision) returns boolean  
+        if math:AbsoluteValue(xVal - x) > precision
             return false
         end
-        if math:AbsoluteValue(yVal - y) > epsilon
+        if math:AbsoluteValue(yVal - y) > precision
             return false
         end
-        if math:AbsoluteValue(zVal - z) > epsilon
+        if math:AbsoluteValue(zVal - z) > precision
             return false
         end
         return true
     end
 
-    action SetToZero returns Vector3
+    /*
+    This action sets the vector to the zero vector, meaning the x, y, and z
+    components will be set to 0.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns The calling vector set to the zero vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+
+    Vector2 vector
+    vector:SetZero()
+    
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
+    */
+    action SetZero returns Vector3
         x = 0
         y = 0
         z = 0

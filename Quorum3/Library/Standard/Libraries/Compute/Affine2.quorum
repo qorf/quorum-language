@@ -129,7 +129,7 @@ class Affine2
 
     Attribute: Example
     */
-    action SetToTranslation (number x, number y) returns Affine2
+    action SetToTranslation(number x, number y) returns Affine2
 
         M00 = 1
         M01 = 0
@@ -151,7 +151,7 @@ class Affine2
 
     Attribute: Example
     */
-    action SetToTranslation (Vector2 vector) returns Affine2
+    action SetToTranslation(Vector2 vector) returns Affine2
 
         return SetToTranslation(vector:GetX(), vector:GetY())
     
@@ -168,7 +168,7 @@ class Affine2
 
     Attribute: Example
     */
-    action SetToScaling (number scaleX, number scaleY) returns Affine2
+    action SetToScaling(number scaleX, number scaleY) returns Affine2
 
         M00 = scaleX
         M01 = 0
@@ -190,7 +190,7 @@ class Affine2
 
     Attribute: Example
     */
-    action SetToScaling (Vector2 scale) returns Affine2
+    action SetToScaling(Vector2 scale) returns Affine2
         
         return SetToScaling(scale:GetX(), scale:GetY())
      
@@ -206,7 +206,7 @@ class Affine2
 
     Attribute: Example
     */
-    action SetToRotation (number degrees) returns Affine2
+    action SetToRotation(number degrees) returns Affine2
         
         number cosine = math:Cosine(math:DegreesToRadians(degrees))
         number sine = math:Sine(math:DegreesToRadians(degrees))
@@ -231,7 +231,7 @@ class Affine2
 
     Attribute: Example
     */
-    action SetToRotationInRadians (number radians) returns Affine2
+    action SetToRotationInRadians(number radians) returns Affine2
 
         number cosine = math:Cosine(radians)
         number sine = math:Sine(radians)
@@ -259,7 +259,7 @@ class Affine2
 
     Attribute: Example
     */
-    action SetToRotation (number cosine, number sine) returns Affine2
+    action SetToRotation(number cosine, number sine) returns Affine2
 
         M00 = cosine
         M01 = sine * -1
@@ -283,7 +283,7 @@ class Affine2
 
     Attribute: Example
     */
-    action SetToShearing (number shearX, number shearY) returns Affine2
+    action SetToShearing(number shearX, number shearY) returns Affine2
         
         M00 = 1
         M01 = shearX
@@ -305,7 +305,7 @@ class Affine2
 
     Attribute: Example
     */
-    action SetToShearing (Vector2 vector) returns Affine2
+    action SetToShearing(Vector2 vector) returns Affine2
 
         return SetToShearing (vector:GetX(), vector:GetY())
         
@@ -388,7 +388,7 @@ class Affine2
 
     Attribute: Example
     */
-    action SetToTranslationRotationRadiansScale (number x, number y, number radians, number scaleX, number scaleY) returns Affine2
+    action SetToTranslationRotationRadiansScale(number x, number y, number radians, number scaleX, number scaleY) returns Affine2
         
         M02 = x
         M12 = y
@@ -447,7 +447,7 @@ class Affine2
 
     Attribute: Example
     */
-    action SetToTranslationScale (number x, number y, number scaleX, number scaleY) returns Affine2
+    action SetToTranslationScale(number x, number y, number scaleX, number scaleY) returns Affine2
         
         M00 = scaleX
         M01 = 0
@@ -471,7 +471,7 @@ class Affine2
 
     Attribute: Example
     */
-    action SetToTranslationScale (Vector2 translation, Vector2 scale) returns Affine2
+    action SetToTranslationScale(Vector2 translation, Vector2 scale) returns Affine2
         
         return SetToTranslationScale (translation:GetX(), translation:GetY(), scale:GetX(), scale:GetY())
        
@@ -488,7 +488,7 @@ class Affine2
 
     Attribute: Example
     */
-    action SetToProduct (Affine2 left, Affine2 right) returns Affine2
+    action SetToProduct(Affine2 left, Affine2 right) returns Affine2
 
         M00 = left:M00 * right:M00 + left:M01 * right:M10
         M01 = left:M00 * right:M01 + left:M01 * right:M11
@@ -541,7 +541,7 @@ class Affine2
 
     Attribute: Example
     */
-    action Multiply (Affine2 affine) returns Affine2
+    action Multiply(Affine2 affine) returns Affine2
         
         number tmp00 = M00 * affine:M00 + M01 * affine:M10
         number tmp01 = M00 * affine:M01 + M01 * affine:M11
@@ -570,7 +570,7 @@ class Affine2
 
     Attribute: Example
     */
-    action PreMultiply (Affine2 affine) returns Affine2
+    action PreMultiply(Affine2 affine) returns Affine2
 
         number tmp00 = affine:M00 * M00 + affine:M01 * M10
         number tmp01 = affine:M00 * M01 + affine:M01 * M11
@@ -599,7 +599,7 @@ class Affine2
 
     Attribute: Example
     */
-    action Translate (number x, number y) returns Affine2
+    action Translate(number x, number y) returns Affine2
 
         M02 = M02 + (M00 * x + M01 * y)
         M12 = M12 + (M10 * x + M11 * y)
@@ -616,7 +616,7 @@ class Affine2
 
     Attribute: Example
     */
-    action Translate (Vector2 translate) returns Affine2
+    action Translate(Vector2 translate) returns Affine2
         
         return Translate (translate:GetX(), translate:GetY())
 
@@ -632,7 +632,7 @@ class Affine2
 
     Attribute: Example
     */
-    action PreTranslate (number x, number y) returns Affine2
+    action PreTranslate(number x, number y) returns Affine2
 
         M02 = M02 + x
         M12 = M12 + y
@@ -649,7 +649,7 @@ class Affine2
 
     Attribute: Example
     */
-    action PreTranslate (Vector2 translate) returns Affine2
+    action PreTranslate(Vector2 translate) returns Affine2
 
         return PreTranslate (translate:GetX(), translate:GetY())
 
@@ -665,7 +665,7 @@ class Affine2
 
     Attribute: Example
     */
-    action Scale (number scaleX, number scaleY) returns Affine2
+    action Scale(number scaleX, number scaleY) returns Affine2
 
         M00 = M00 * scaleX
         M01 = M01 * scaleY
@@ -684,7 +684,7 @@ class Affine2
 
     Attribute: Example
     */
-    action Scale (Vector2 scale) returns Affine2
+    action Scale(Vector2 scale) returns Affine2
 
         return Scale(scale:GetX(), scale:GetY())
         
@@ -700,7 +700,7 @@ class Affine2
 
     Attribute: Example
     */
-    action PreScale (number scaleX, number scaleY) returns Affine2
+    action PreScale(number scaleX, number scaleY) returns Affine2
 
         M00 = M00 * scaleX
         M01 = M01 * scaleX
@@ -721,7 +721,7 @@ class Affine2
 
     Attribute: Example
     */
-    action PreScale (Vector2 scale) returns Affine2
+    action PreScale(Vector2 scale) returns Affine2
         
         return PreScale (scale:GetX(), scale:GetY())
 
@@ -737,7 +737,7 @@ class Affine2
 
     Attribute: Example
     */
-    action Rotate (number degrees) returns Affine2
+    action Rotate(number degrees) returns Affine2
 
         if degrees = 0
             return me
@@ -769,7 +769,7 @@ class Affine2
 
     Attribute: Example
     */
-    action RotateInRadians (number radians) returns Affine2
+    action RotateInRadians(number radians) returns Affine2
 
         if radians = 0
             return me
@@ -801,7 +801,7 @@ class Affine2
 
     Attribute: Example
     */
-    action PreRotate (number degrees) returns Affine2
+    action PreRotate(number degrees) returns Affine2
 
         if degrees = 0
             return me
@@ -838,7 +838,7 @@ class Affine2
 
     Attribute: Example
     */
-    action PreRotateInRadians (number radians) returns Affine2
+    action PreRotateInRadians(number radians) returns Affine2
 
         if radians = 0
             return me
@@ -875,7 +875,7 @@ class Affine2
 
     Attribute: Example
     */
-    action Shear (number shearX, number shearY) returns Affine2
+    action Shear(number shearX, number shearY) returns Affine2
 
         number tmp0 = M00 + shearY * M01
         number tmp1 = M01 + shearX * M00
@@ -899,7 +899,7 @@ class Affine2
 
     Attribute: Example
     */
-    action Shear (Vector2 shear) returns Affine2
+    action Shear(Vector2 shear) returns Affine2
 
         return Shear (shear:GetX(), shear:GetY())
 
@@ -915,7 +915,7 @@ class Affine2
 
     Attribute: Example
     */
-    action PreShear (number shearX, number shearY) returns Affine2
+    action PreShear(number shearX, number shearY) returns Affine2
 
         number tmp00 = M00 + shearX * M10
         number tmp01 = M01 + shearX * M11
@@ -943,7 +943,7 @@ class Affine2
 
     Attribute: Example
     */
-    action PreShear (Vector2 shear) returns Affine2
+    action PreShear(Vector2 shear) returns Affine2
 
         return PreShear (shear:GetX(), shear:GetY())
 
@@ -970,7 +970,7 @@ class Affine2
 
     Attribute: Example
     */
-    action GetTranslation() returns Vector2
+    action GetTranslation returns Vector2
         Vector2 position
         position:Set(M02, M12)
 
@@ -985,7 +985,7 @@ class Affine2
 
     Attribute: Example
     */
-    action IsTranslation () returns boolean
+    action IsTranslation returns boolean
 
         return M00 = 1 and M11 = 1 and M01 = 0 and M10 = 0
 
@@ -1011,7 +1011,7 @@ class Affine2
 
     Attribute: Example
     */
-    action ApplyAffineTransformation (Vector2 point)
+    action ApplyAffineTransformation(Vector2 point)
     
         number x = point:GetX()
         number y = point:GetY()
