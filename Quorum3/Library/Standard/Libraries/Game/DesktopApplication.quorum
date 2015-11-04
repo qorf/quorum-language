@@ -65,14 +65,16 @@ class DesktopApplication is Application
 
     private action MainLoop
 
+        DesktopDisplay display = cast(DesktopDisplay, parent:Application:display)
+
         parent:Application:game:CreateGame()
         
-        parent:Application:display:SetResize(true)
+        display:SetResize(true)
 
-        integer lastWidth = parent:Application:display:GetWidth()
-        integer lastHeight = parent:Application:display:GetHeight()
+        integer lastWidth = display:GetWidth()
+        integer lastHeight = display:GetHeight()
         
-        parent:Application:display:SetLastTime()   //Forced to get nanoseconds from java
+        display:SetLastTime()   //Forced to get nanoseconds from java
 
         
         boolean wasActive = true
@@ -81,13 +83,13 @@ class DesktopApplication is Application
         //The actual workhorse loop.
         repeat until parent:Application:running = false
 
-            parent:Application:display:ProcessMessages()
+            display:ProcessMessages()
 
             //if display:IsCloseRequested() or game:exitRequested
             //    Exit()
             //end
 
-            boolean isActive = parent:Application:display:IsActive()
+            boolean isActive = display:IsActive()
 
             if wasActive and not isActive
                 wasActive = false
@@ -110,18 +112,18 @@ class DesktopApplication is Application
             // statement for now.
 
             DesktopConfiguration configuration
-            configuration = parent:Application:display:GetConfig()
+            configuration = cast(DesktopConfiguration, display:GetConfiguration())
 
-            configuration:x = parent:Application:display:GetDisplayX()
-            configuration:y = parent:Application:display:GetDisplayY()
+            configuration:x = display:GetDisplayX()
+            configuration:y = display:GetDisplayY()
 
             // Note: Using GetDisplayX and GetDisplayY to differentiate between
             // retrieving the current config's x and y and getting the x and y
             // from calling the static Display.
             boolean shouldrender = false
-            if parent:Application:display:GetResize() or parent:Application:display:WasResized() or (parent:Application:display:GetWidth() not= configuration:width) or (parent:Application:display:GetHeight() not= configuration:height)
+            if display:GetResize() or display:WasResized() or (display:GetWidth() not= configuration:width) or (display:GetHeight() not= configuration:height)
 
-                parent:Application:display:SetResize(false)
+                display:SetResize(false)
 
                 // Checking glmanager for NullPointerException
                 // If null, check to see if GraphicsManager's
@@ -132,13 +134,13 @@ class DesktopApplication is Application
 
 
                 if configuration:autoResizeTextures
-                    parent:Application:glmanager:SetDrawingRegion(0,0,parent:Application:display:GetWidth(), parent:Application:display:GetHeight())
+                    parent:Application:glmanager:SetDrawingRegion(0,0,display:GetWidth(), display:GetHeight())
                 end
 
-                parent:Application:display:RequestRendering()
+                display:RequestRendering()
 
-                configuration:width = parent:Application:display:GetWidth()
-                configuration:height = parent:Application:display:GetHeight()
+                configuration:width = display:GetWidth()
+                configuration:height = display:GetHeight()
 
                 // We may want to rename "display:GetWidth" and "display:GetHeight"
                 // to "display:GetDisplayWidth" and "display:GetDisplayHeight"
@@ -149,7 +151,7 @@ class DesktopApplication is Application
                 // Not sure if RequestRendering will need the display's config
                 // already updated. If so, just remove comment from below line:
 
-                parent:Application:display:SetConfig(configuration)
+                display:SetConfiguration(configuration)
 
             end
 
@@ -159,17 +161,17 @@ class DesktopApplication is Application
 
             //input.update()
             //|=
-            if(parent:Application:display:shouldrender)
-                shouldrender = parent:Application:display:shouldrender
+            if(display:shouldrender)
+                shouldrender = display:shouldrender
             end
 
 
             if(shouldrender)
-               parent:Application:display:UpdateTime()
+               display:UpdateTime()
                //increment frame
 
                parent:Application:game:ContinueGame()
-               parent:Application:display:UpdateFalse()
+               display:UpdateFalse()
             end
 
 
@@ -198,15 +200,15 @@ class DesktopApplication is Application
 
             */
 
-            parent:Application:display:SetConfig(configuration)
+            display:SetConfiguration(configuration)
 
-            if parent:Application:display:IsCloseRequested() or parent:Application:game:exitRequested
+            if display:IsCloseRequested() or parent:Application:game:exitRequested
                 Exit()
             end
 
         end 
         
-        parent:Application:display:Destroy()
+        display:Destroy()
         
     end
 

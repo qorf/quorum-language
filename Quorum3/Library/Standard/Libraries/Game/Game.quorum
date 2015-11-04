@@ -6,6 +6,7 @@
 package Libraries.Game
 
 use Libraries.Game.GameDisplay
+use Libraries.Game.DesktopDisplay
 use Libraries.Game.GameStateManager
 use Libraries.Game.Application
 use Libraries.Game.DesktopApplication
@@ -104,10 +105,10 @@ class Game
                 desktopConfig:title = "Game"
             end
 
-            GameDisplay display
+            DesktopDisplay display
             manager:SetGameDisplay(display)
 
-            display:SetConfig(desktopConfig)
+            display:SetConfiguration(desktopConfig)
             display:SetupDisplay()
         elseif application is IOSApplication
             /* Notes:

@@ -2,8 +2,8 @@ package Libraries.Game
 
 class IOSApplication is Application
     
-    action Setup(Game game, GameDisplay disp)
-        parent:Application:Setup(game, disp)
+    action Setup(Game game)
+        parent:Application:Setup(game)
         SetupNative(game)
     end
 

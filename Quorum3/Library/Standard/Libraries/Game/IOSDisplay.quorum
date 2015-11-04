@@ -1,0 +1,162 @@
+package Libraries.Game
+
+class IOSDisplay is GameDisplay
+     
+    private IOSConfiguration config = undefined
+
+    /* 
+    This action sets the ApplicationConfiguration being used by the game,
+    which includes data for the screen. The given parameter must be an
+    IOSConfiguration, or otherwise an error will be thrown.
+    */
+    action SetConfiguration(ApplicationConfiguration conf)
+        if not (conf is IOSConfiguration)
+            alert("Attempted to configure an IOSDisplay with an application configuration that is not used for IOS!")
+        end
+        config = cast(IOSConfiguration, conf)
+    end
+
+    /*
+    This action returns the ApplicationConfiguration being used by the
+    IOSDisplay.
+    */
+    action GetConfiguration returns ApplicationConfiguration
+        return config
+    end
+
+    /*
+    This action initializes the GameDisplay.
+    */
+    //system action SetupDisplay()
+
+    /*
+    This action does nothing on iOS platforms due to limitations of the platform.
+    Because of this, the action always returns false to indicate that the action
+    was unsuccessful for this platform.
+    */
+    action SetDisplayMode(integer width, integer height, boolean fullscreen) returns boolean
+        return false
+    end
+
+    /*
+    This action returns the width of the GameDisplay.
+    */
+    system action GetWidth returns integer
+
+    /*
+    This action returns the height of the GameDisplay.
+    */
+    system action GetHeight returns integer
+
+    /*
+    This action sets vSync on or off for the GameDisplay. Due to the nature of
+    the iOS platform, this action does nothing.
+    */
+    blueprint action SetVSync(boolean vsync)
+
+    /*
+    This action returns whether the GameDisplay is resizable or not. On iOS,
+    this always returns false.
+    */
+    action GetResize returns boolean
+        return false
+    end
+
+    /*
+    This action checks for input events and processes them.
+    */
+    action ProcessMessages
+        alert("Not yet implemented!")
+    end
+
+    /*
+    This action determines if the user has tried to close the window by clicking
+    the window's red close button.
+    */
+    action IsCloseRequested returns boolean
+        alert("Not yet implemented!")
+        return false
+    end
+
+    /*
+    This action returns whether or not the GameDisplay is the currently active
+    application on the system.
+    */
+    action IsActive returns boolean
+        alert("Not yet implemented!")
+        return false
+    end
+
+    /*
+    This action returns the screen x coordinate of the GameDisplay.
+    */
+    action GetDisplayX returns integer
+        return -1
+    end
+
+    /*
+    This action returns the screen y coordinate of the GameDisplay.
+    */
+    action GetDisplayY returns integer
+        return -1
+    end
+
+    /*
+    This action returns whether or not the GameDisplay has been resized.
+    */
+    action WasResized returns boolean
+        return false
+    end
+
+    /*
+    This action tells the GameDisplay to render to the screen.
+    */
+    action RequestRendering
+        alert("Not yet implemented!")
+    end
+
+    /*
+    This action closes the window.
+    */
+    action Destroy
+        alert("Not yet implemented!")
+    end
+
+    /*
+    This action updates the game's timekeeping information.
+    */
+    action UpdateTime
+        alert("Not yet implemented!")
+    end
+
+    /*
+    This action records the time when the action is called, and stores it.
+    */
+    action SetLastTime
+        alert("Not yet implemented!")
+    end
+
+    /*
+    This action updates the game screen without polling the input.
+    */
+    action UpdateFalse
+        alert("Not yet implemented!")
+    end
+
+    /*
+    This action tests how many seconds have passed since the last time that the
+    time was updated.
+    */
+    action GetSecondsBetweenFrames returns number
+        alert("Not yet implemented!")
+        return -1
+    end
+
+    /*
+    This action returns the ratio between screen coordinates and pixels.
+    */
+    action GetPixelScaleFactor returns number
+        alert("Not yet implemented!")
+    end
+
+end
