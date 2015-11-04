@@ -6,6 +6,7 @@
 package plugins.quorum.Libraries.Game;
 
 import quorum.Libraries.Game.Game_;
+import quorum.Libraries.Game.IOSConfiguration_;
 
 import org.robovm.apple.coregraphics.CGSize;
 import org.robovm.apple.uikit.UIApplication;
@@ -31,7 +32,7 @@ public class IOSApplication
     UIApplication uiApp;
     UIWindow uiWindow;
     //IOSViewControllerListener viewControllerListener;
-    //IOSApplicationConfiguration config;
+    IOSConfiguration_ config;
     //IOSGraphics graphics;
     //IOSAudio audio;
     //IOSFiles files;
@@ -62,8 +63,7 @@ public class IOSApplication
         this.uiApp = uiApp;
         
         // Eventually, this line should use the configuration, as in the commented line below.
-        //UIApplication.getSharedApplication().setIdleTimerDisabled(config.preventScreenDimming);
-        UIApplication.getSharedApplication().setIdleTimerDisabled(true);
+        UIApplication.getSharedApplication().setIdleTimerDisabled(config.Get_Libraries_Game_IOSConfiguration__preventScreenDimming_());
         
         //Gdx.app.debug("IOSApplication", "iOS version: " + UIDevice.getCurrentDevice().getSystemVersion());
         
@@ -78,14 +78,12 @@ public class IOSApplication
             if (UIDevice.getCurrentDevice().getUserInterfaceIdiom() == UIUserInterfaceIdiom.Pad) 
             {
                 // it's an iPad!
-                // Below line is dependent on config.
-                //displayScaleFactor = config.displayScaleLargeScreenIfRetina * scale;
+                displayScaleFactor = (float)config.Get_Libraries_Game_IOSConfiguration__largeRetinaDisplayScale_() * scale;
             }
             else
             {
                 // it's an iPod or iPhone
-                // Below line is dependent on config.
-                //displayScaleFactor = config.displayScaleSmallScreenIfRetina * scale;
+                displayScaleFactor = (float)config.Get_Libraries_Game_IOSConfiguration__smallRetinaDisplayScale_() * scale;
             }
         }
         else
@@ -94,14 +92,12 @@ public class IOSApplication
             if (UIDevice.getCurrentDevice().getUserInterfaceIdiom() == UIUserInterfaceIdiom.Pad) 
             {
                 // it's an iPad!
-                // Below line is dependent on config.
-                //displayScaleFactor = config.displayScaleLargeScreenIfNonRetina;
+                displayScaleFactor = (float)config.Get_Libraries_Game_IOSConfiguration__largeNonRetinaDisplayScale_();
             }
             else 
             {
                 // it's an iPod or iPhone
-                // Below line is dependent on config.
-                //displayScaleFactor = config.displayScaleSmallScreenIfNonRetina;
+                displayScaleFactor = (float)config.Get_Libraries_Game_IOSConfiguration__smallNonRetinaDisplayScale_();
             }
         }
         

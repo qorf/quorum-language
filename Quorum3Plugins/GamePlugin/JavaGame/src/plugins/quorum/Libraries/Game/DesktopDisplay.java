@@ -24,7 +24,7 @@ import org.lwjgl.opengl.GL11;
  *
  * @author Taylor Bockman
  */
-public class GameDisplay {
+public class DesktopDisplay {
 
     public java.lang.Object me_ = null;
     
@@ -47,7 +47,7 @@ public class GameDisplay {
     public void SetupDisplay() {
         //Give us access to the display members   
         //try {
-            quorum.Libraries.Game.GameDisplay dis = (quorum.Libraries.Game.GameDisplay) me_;
+            quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
             
             dis.SetVSync(dis.config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
             
@@ -112,7 +112,7 @@ public class GameDisplay {
 
     public boolean SetDisplayMode(int width, int height, boolean fullScreen) 
     {
-        quorum.Libraries.Game.GameDisplay quorumDisplay = (quorum.Libraries.Game.GameDisplay) me_;
+        quorum.Libraries.Game.DesktopDisplay quorumDisplay = (quorum.Libraries.Game.DesktopDisplay) me_;
         
             if (GetWidth() == width && GetHeight() == height && Display.isFullscreen() == fullScreen) {
 			return true;
@@ -179,15 +179,15 @@ public class GameDisplay {
     }
 
     public void SetVSync(boolean vsync) {
-        quorum.Libraries.Game.GameDisplay dis = (quorum.Libraries.Game.GameDisplay) me_;
-        dis.Set_Libraries_Game_GameDisplay__vsync_(vsync);
+        quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
+        dis.Set_Libraries_Game_DesktopDisplay__vsync_(vsync);
         Display.setVSyncEnabled(vsync);
     }
 
     private void createDisplayPixelFormat() {
         //Create the display
         try {
-            quorum.Libraries.Game.GameDisplay dis = (quorum.Libraries.Game.GameDisplay) me_;
+            quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
 
             if (dis.config.Get_Libraries_Game_DesktopConfiguration__useGL30_()) {
                 //Do nothing, we dont support GL30 yet.
