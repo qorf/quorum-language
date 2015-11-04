@@ -54,7 +54,7 @@ class Game
     public Painter batch = undefined
     DesktopConfiguration desktopConfig
     IOSConfiguration iosConfig
-    GraphicsManager gl20
+    GraphicsManager gl20 = undefined
 
     public boolean exitRequested = false
 
@@ -99,11 +99,19 @@ class Game
         end
 
         GameStateManager manager
+        gl20 = manager:GetGameGraphics()
 
         if application is DesktopApplication
             if desktopConfig:title = ""
                 desktopConfig:title = "Game"
             end
+
+            /*
+            New code will set game graphics from initialization.
+            DesktopGraphics graphics
+            manager:SetGameGraphics(graphics)
+            gl20 = graphics
+            */
 
             DesktopDisplay display
             manager:SetGameDisplay(display)

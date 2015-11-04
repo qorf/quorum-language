@@ -35,7 +35,9 @@ class GameDisplay
 
     /*
     This action sets the width and height of the GameDisplay, and optionally
-    makes the game full screen.
+    makes the game full screen. Returns a boolean value indicating whether the
+    action was successful - for example, this should typically work on desktops,
+    but on mobile devices it will fail and return false.
     */
     blueprint action SetDisplayMode(integer width, integer height, 
                                  boolean fullscreen) returns boolean
@@ -60,33 +62,6 @@ class GameDisplay
     This action returns whether the GameDisplay is resizable or not.
     */
     blueprint action GetResize returns boolean
-
-    /*
-    This action checks for input events and processes them.
-    */
-    blueprint action ProcessMessages
-
-    /*
-    This action determines if the user has tried to close the window by clicking
-    the window's red close button.
-    */
-    blueprint action IsCloseRequested returns boolean
-
-    /*
-    This action returns whether or not the GameDisplay is the currently active
-    application on the system.
-    */
-    blueprint action IsActive returns boolean
-
-    /*
-    This action returns the screen x coordinate of the GameDisplay.
-    */
-    blueprint action GetDisplayX returns integer
-
-    /*
-    This action returns the screen y coordinate of the GameDisplay.
-    */
-    blueprint action GetDisplayY returns integer
 
     /*
     This action returns whether or not the GameDisplay has been resized.

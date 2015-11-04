@@ -63,45 +63,6 @@ class IOSDisplay is GameDisplay
     end
 
     /*
-    This action checks for input events and processes them.
-    */
-    action ProcessMessages
-        alert("Not yet implemented!")
-    end
-
-    /*
-    This action determines if the user has tried to close the window by clicking
-    the window's red close button.
-    */
-    action IsCloseRequested returns boolean
-        alert("Not yet implemented!")
-        return false
-    end
-
-    /*
-    This action returns whether or not the GameDisplay is the currently active
-    application on the system.
-    */
-    action IsActive returns boolean
-        alert("Not yet implemented!")
-        return false
-    end
-
-    /*
-    This action returns the screen x coordinate of the GameDisplay.
-    */
-    action GetDisplayX returns integer
-        return -1
-    end
-
-    /*
-    This action returns the screen y coordinate of the GameDisplay.
-    */
-    action GetDisplayY returns integer
-        return -1
-    end
-
-    /*
     This action returns whether or not the GameDisplay has been resized.
     */
     action WasResized returns boolean
@@ -111,9 +72,7 @@ class IOSDisplay is GameDisplay
     /*
     This action tells the GameDisplay to render to the screen.
     */
-    action RequestRendering
-        alert("Not yet implemented!")
-    end
+    system action RequestRendering
 
     /*
     This action closes the window.

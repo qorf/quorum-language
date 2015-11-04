@@ -1,17 +1,16 @@
 package Libraries.Game.Graphics
 
-use Libraries.Game.Graphics.DesktopGraphics
-use Libraries.Game.Graphics.IOSGraphics
-
 /*
 The GraphicsManager class represents a Quorum interface with OpenGL in order to
 draw on the screen. This is used internally by the Game class, and most users
 will not need to interact with this class directly.
 */
-class GraphicsManager
+class IOSGraphics is GraphicsManager
  
   /* Note: Currently adding constants as they are needed. Hex values
            need to be translated to integers */
+
+    /* These are stored in GraphicsManager.
 
     public constant integer GL_NEAREST = 9728
     public constant integer GL_LINEAR = 9729
@@ -28,33 +27,34 @@ class GraphicsManager
     public constant integer GL_TEXTURE_MIN_FILTER = 10241
     public constant integer GL_TEXTURE_WRAP_S = 10242
     public constant integer GL_TEXTURE_WRAP_T = 10243
+    */
   
     /*
     This action sets the color to clear the screen with in OpenGL.
     */
-    blueprint action ClearScreenColor(number red, number green, number blue, number alpha)
+    system action ClearScreenColor(number red, number green, number blue, number alpha)
 
     /*
     This action clears the screen with the currently stored color in OpenGL.
     */
-    blueprint action ClearScreen(integer mask)
+    system action ClearScreen(integer mask)
 
     /*
     This action sets how OpenGL interprets virtual coordinates into screen
     coordinates, by setting the screen as though it were at the given virtual
     coordinates with the given width and height.
     */
-    blueprint action SetDrawingRegion(integer x, integer y, integer width, integer height)
+    system action SetDrawingRegion(integer x, integer y, integer width, integer height)
   
     /*
     Sets how OpenGL stores and loads pixels as a number of bytes.
     */
-    blueprint action PixelStorageMode(integer type, integer parameter)
+    system action PixelStorageMode(integer type, integer parameter)
 
     /*
     Sets an option identified by the parameterType code inside the texture
     identified by the given targetTexture ID using the given parameterValue. 
     */
-    blueprint action SetTextureParameter(integer targetTexture, integer parameterType, integer parameterValue)
+    system action SetTextureParameter(integer targetTexture, integer parameterType, integer parameterValue)
 
 end
