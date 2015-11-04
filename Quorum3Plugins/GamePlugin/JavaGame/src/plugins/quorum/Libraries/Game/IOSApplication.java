@@ -7,6 +7,8 @@ package plugins.quorum.Libraries.Game;
 
 import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.IOSConfiguration_;
+import quorum.Libraries.Game.IOSDisplay_;
+import quorum.Libraries.Game.IOSDisplay;
 
 import org.robovm.apple.coregraphics.CGSize;
 import org.robovm.apple.uikit.UIApplication;
@@ -33,7 +35,7 @@ public class IOSApplication
     UIWindow uiWindow;
     //IOSViewControllerListener viewControllerListener;
     IOSConfiguration_ config;
-    //IOSGraphics graphics;
+    IOSDisplay_ display;
     //IOSAudio audio;
     //IOSFiles files;
     //IOSInput input;
@@ -107,6 +109,9 @@ public class IOSApplication
 
         // setup libgdx
         //this.input = new IOSInput(this);
+        display = new IOSDisplay();
+        GameState.SetDisplay(display);
+        
         //this.graphics = new IOSGraphics(getBounds(null), scale, this, config, input, gl20);
         //this.files = new IOSFiles();
         //this.audio = new IOSAudio(config);
