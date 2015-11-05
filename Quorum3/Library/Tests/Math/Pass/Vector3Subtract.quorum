@@ -1,14 +1,14 @@
 use Libraries.Compute.Vector3
 
-class Vector3Add 
+class Vector3Subtract 
     action Main
         Vector3 firstVector
         Vector3 secondVector
 
-        firstVector:Set(3.2, 5.5, 9.0)
-        secondVector:Set(8.3, 4.2, -7.3)
+        firstVector:Set(9.0, 8.0, 7.0)
+        secondVector:Set(6.0, 5.0, 4.0)
 
-        firstVector:Add(secondVector)
+        firstVector:Subtract(secondVector)
 
         number newX = firstVector:GetX()
         number newY = firstVector:GetY()
@@ -17,9 +17,10 @@ class Vector3Add
         output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
 
         Vector3 vector
-        vector:Set(4.3, 8.1, 6.6)
 
-        vector:Add(3.3, 9.2, -4.3)
+        vector:Set(9.0, 8.0, 7.0)
+
+        vector:Subtract(6.0, 5.0, 4.0)
 
         newX = vector:GetX()
         newY = vector:GetY()
@@ -29,7 +30,7 @@ class Vector3Add
 
         vector:Set(3.5, 5.0, 3.1)
 
-        vector:Add(4.0)
+        vector:Subtract(2.0)
 
         newX = vector:GetX()
         newY = vector:GetY()

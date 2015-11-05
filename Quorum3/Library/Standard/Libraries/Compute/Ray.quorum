@@ -64,10 +64,6 @@ class Ray
         return me
     end
 
-    action ToText returns text
-        return "ray [" + origin:ToText() + ":" + direction:ToText() + "]"
-    end
-
     action Equals(Ray ray) returns boolean
         if ray = me
             return true

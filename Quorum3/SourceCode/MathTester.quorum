@@ -58,6 +58,9 @@ class MathTester
         Vector2IsCollinearOpposite()
         Vector2IsPerpendicular()
         Vector2Direction()
+        Vector3Add()
+        Vector3Subtract()
+        Vector3Scale()
 
 //FAIL TESTS
         path = failPath
@@ -593,6 +596,45 @@ class MathTester
         files:Add(main)
         results:Add("The two vectors have opposite directions.")
         results:Add("The two vectors have the same direction.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector3Add
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3Add.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [11.5, 9.7, 1.7000000000000002]")
+        results:Add("The new vector is: [7.6, 17.299999999999997, 2.3]")
+        results:Add("The new vector is: [7.5, 9.0, 7.1]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector3Subtract
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3Subtract.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [3.0, 3.0, 3.0]")
+        results:Add("The new vector is: [3.0, 3.0, 3.0]")
+        results:Add("The new vector is: [1.5, 3.0, 1.1]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector3Scale
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3Scale.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [4.0, 6.0, 8.0]")
+        results:Add("The new vector is: [6.0, 12.0, 8.0]")
+        results:Add("The new vector is: [6.0, 12.0, 8.0]")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
