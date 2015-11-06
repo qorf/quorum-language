@@ -43,6 +43,9 @@ public class QuorumStructureScanner implements StructureScanner{
         String source = info.Get_Libraries_Language_Compile_ProjectInformation__source_();
         File_ loc = info.Get_Libraries_Language_Compile_ProjectInformation__sourceLocation_();
         
+        if(quorumResult == null) {
+            return Collections.EMPTY_LIST;
+        }
         SymbolTable_ table = quorumResult.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
         Class_ clazz = table.GetClassInFile(loc.GetAbsolutePath());
         if(clazz == null) {
