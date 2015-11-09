@@ -81,7 +81,7 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     
     @Override
     public SemanticAnalyzer getSemanticAnalyzer() {
-        return semanticAnalyzer; //To change body of generated methods, choose Tools | Templates.
+        return semanticAnalyzer;
     }
     
     @Override
@@ -101,7 +101,7 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
 
     @Override
     public DeclarationFinder getDeclarationFinder() {
-        return super.getDeclarationFinder();//finder;
+        return finder;
     }
 
     @Override
