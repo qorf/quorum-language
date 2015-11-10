@@ -1,0 +1,39 @@
+use Libraries.Compute.Vector3
+use Libraries.Compute.Matrix4
+use Libraries.Containers.Array
+
+class Vector3Matrix4Multiply 
+    action Main
+        Vector3 vector
+        Matrix4 matrix
+        Array<number> array
+
+        integer i = 0
+        repeat 16 times
+            array:Add(i)
+            i = i + 1
+        end
+
+        matrix:Set(array)
+
+        vector:Set(3.0, 4.0, 2.0)
+
+        vector:Multiply(matrix)
+
+        number newX = vector:GetX()
+        number newY = vector:GetY()
+        number newZ = vector:GetZ()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
+        vector:Set(3.0, 4.0, 2.0)
+
+        vector:MultiplyByTranspose(matrix)
+
+        newX = vector:GetX()
+        newY = vector:GetY()
+        newZ = vector:GetZ()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+    end
+end

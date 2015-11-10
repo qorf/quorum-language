@@ -149,10 +149,10 @@ class Vector3
 
     use Libraries.Compute.Vector3
 
-    Vector2 firstVector
+    Vector3 firstVector
     firstVector:Set(2.4, 4.3, 2.7)
     
-    Vector2 secondVector
+    Vector3 secondVector
     secondVector:Set(firstVector)
 
     number newX = secondVector:GetX()
@@ -714,7 +714,7 @@ class Vector3
     Vector3 vector
     
     number length = vector:Length(1.0, 2.0, 2.0)
-    output "The square of the length of the vector is " + lengthSquared
+    output "The length of the vector is " + length
 
     */
     action Length(number x, number y, number z) returns number
@@ -737,7 +737,7 @@ class Vector3
 
     use Libraries.Compute.Vector3
 
-    Vector2 vector
+    Vector3 vector
     
     number lengthSquared = vector:LengthSquared(1.0, 2.0, 2.0)
     output "The square of the length of the vector is " + lengthSquared
@@ -851,8 +851,8 @@ class Vector3
     Vector3 vector
     Vector3 otherVector
     
-    vector:Set(4.0, 9.0, 7.0)
-    otherVector:Set(3.0, 7.0, 2.0)
+    vector:Set(2.0, 3.0, 4.0)
+    otherVector:Set(2.0, 5.0, 1.0)
     
     number distance = vector:Distance(otherVector)
     output "The distance is " + distance
@@ -883,9 +883,9 @@ class Vector3
     
     Vector3 vector
     
-    vector:Set(3.0, 7.0, 9.0)
+    vector:Set(2.0, 3.0, 4.0)
     
-    number distance = vector:Distance(7.0, 8.0, 2.0)
+    number distance = vector:Distance(2.0, 5.0, 1.0)
     output "The distance is " + distance
 
     */
@@ -915,7 +915,7 @@ class Vector3
 
     use Libraries.Compute.Vector3
 
-    Vector2 vector
+    Vector3 vector
     number distanceSquared = vector:DistanceSquared(2.0, 3.0, 4.0, 2.0, 5.0, 1.0)
     output "The square of the distance is " + distanceSquared
 
@@ -941,11 +941,11 @@ class Vector3
     
     use Libraries.Compute.Vector3
     
-    Vector2 vector
-    Vector2 otherVector
+    Vector3 vector
+    Vector3 otherVector
     
-    vector:Set(4.0, 9.0, 7.0)
-    otherVector:Set(3.0, 7.0, 2.0)
+    vector:Set(2.0, 3.0, 4.0)
+    otherVector:Set(2.0, 5.0, 1.0)
     
     number distanceSquared = vector:DistanceSquared(otherVector)
     output "The square of the distance is " + distanceSquared
@@ -974,11 +974,11 @@ class Vector3
     
     use Libraries.Compute.Vector3
     
-    Vector2 vector
+    Vector3 vector
     
-    vector:Set(3.0, 7.0, 9.0)
+    vector:Set(2.0, 3.0, 4.0)
     
-    number distanceSquared = vector:DistanceSquared(7.0, 8.0, 2.0)
+    number distanceSquared = vector:DistanceSquared(2.0, 5.0, 1.0)
     output "The square of the distance is " + distanceSquared
 
     */
@@ -1195,7 +1195,7 @@ class Vector3
     matrix:Add(2.0)
     matrix:Add(0.0)
     matrix:Add(0.0)
-    matrix;Add(0.0)
+    matrix:Add(0.0)
     matrix:Add(2.0)
     matrix:Add(0.0)
     matrix:Add(0.0)
@@ -1211,7 +1211,7 @@ class Vector3
     number newY = vector:GetY()
     number newZ = vector:GetZ()
 
-    output "The new vector is: [" + newX + ", " + newY + ", " + newY + "]"
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
 
     */
     action MultiplyBy4x3Matrix(Array<number> matrix) returns Vector3
@@ -2451,7 +2451,7 @@ class Vector3
 
     use Libraries.Compute.Vector3
 
-    Vector2 vector
+    Vector3 vector
     vector:SetZero()
     
     number newX = vector:GetX()
