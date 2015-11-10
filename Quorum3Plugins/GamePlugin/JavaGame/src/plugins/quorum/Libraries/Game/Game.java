@@ -60,13 +60,8 @@ public class Game
         String os = System.getProperty("os.name");
         if (os.contains("Mac OS X") || os.contains("Windows") || os.contains("Linux"))
             return 1;
-        if (os.contains("iOS"))
-            return 2;
-        
-        // Indicate failure to find appropriate application with -1.
-        // DEBUG CODE: Output what the os was.
-        System.out.println("No application type was defined for os: " + os);
-        return -1;
+        else // If no other type is selected, it's assumed that it's iOS.
+            return -1;
     }
     
 }

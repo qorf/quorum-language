@@ -7,8 +7,10 @@ package plugins.quorum.Libraries.Game;
 
 import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.IOSConfiguration_;
+import quorum.Libraries.Game.IOSConfiguration;
 import quorum.Libraries.Game.IOSDisplay_;
 import quorum.Libraries.Game.IOSDisplay;
+import quorum.Libraries.Game.Graphics.IOSGraphics;
 
 import org.robovm.apple.coregraphics.CGSize;
 import org.robovm.apple.uikit.UIApplication;
@@ -62,6 +64,9 @@ public class IOSApplication
     
     final boolean DidFinishLaunching(UIApplication uiApp, UIApplicationLaunchOptions options)
     {
+        display = (IOSDisplay_)GameState.GetDisplay();
+        config = (IOSConfiguration_)display.GetConfiguration();
+        
         this.uiApp = uiApp;
         
         // Eventually, this line should use the configuration, as in the commented line below.
@@ -103,16 +108,15 @@ public class IOSApplication
             }
         }
         
+        plugins.quorum.Libraries.Game.Graphics.IOSGraphics.init();
         //GL20 gl20 = new IOSGLES20();
         //Gdx.gl = gl20;
         //Gdx.gl20 = gl20;
 
         // setup libgdx
         //this.input = new IOSInput(this);
-        display = new IOSDisplay();
-        GameState.SetDisplay(display);
         
-        //this.graphics = new IOSGraphics(getBounds(null), scale, this, config, input, gl20);
+        ((IOSDisplay)display).plugin_.Initialize(GetBounds(null), scale, this, config, ((IOSGraphics)GameState.GetGameGraphics()).plugin_);
         //this.files = new IOSFiles();
         //this.audio = new IOSAudio(config);
         //this.net = new IOSNet(this);
@@ -162,16 +166,14 @@ public class IOSApplication
         {
             orientation = viewController.getInterfaceOrientation();
         }
-        // FIX ME: Change this when config is done.
-        else if (false)//(config.orientationLandscape == config.orientationPortrait) 
+        else if (config.Get_Libraries_Game_IOSConfiguration__landscapeSupported_() == config.Get_Libraries_Game_IOSConfiguration__portraitSupported_()) 
         {
             /*
              * if the app has orientation in any side then we can only check status bar orientation
              */
             orientation = uiApp.getStatusBarOrientation();
         }
-        // FIX ME: Change this when config is done.
-        else if (false)//(config.orientationLandscape) 
+        else if (config.Get_Libraries_Game_IOSConfiguration__landscapeSupported_()) 
         {
             // landscape is true and portrait is false
             orientation = UIInterfaceOrientation.LandscapeRight;
@@ -222,10 +224,9 @@ public class IOSApplication
         OALAudioSession.sharedInstance().forceEndInterruption();
         if (config.allowIpod) {
                 OALSimpleAudio.sharedInstance().setUseHardwareIfAvailable(false);
-        }
-        graphics.makeCurrent();
-        graphics.resume();
-        */
+        }*/
+        ((IOSDisplay)display).plugin_.MakeCurrent();
+        ((IOSDisplay)display).plugin_.Resume();
     }
     
     public void WillEnterForeground (UIApplication uiApp) 
@@ -241,17 +242,19 @@ public class IOSApplication
     {
         /*
         Gdx.app.debug("IOSApplication", "paused");
-        graphics.makeCurrent();
-        graphics.pause();
-        Gdx.gl.glFlush();
         */
+        ((IOSDisplay)display).plugin_.MakeCurrent();
+        ((IOSDisplay)display).plugin_.Pause();
+        ((IOSGraphics)GameState.GetGameGraphics()).plugin_.glFlush();
     }
 
     public void WillTerminate (UIApplication uiApp) 
     {
         /*
         Gdx.app.debug("IOSApplication", "disposed");
-        graphics.makeCurrent();
+        */
+        ((IOSDisplay)display).plugin_.MakeCurrent();
+        /*
         Array<LifecycleListener> listeners = lifecycleListeners;
         synchronized (listeners) {
                 for (LifecycleListener listener : listeners) {
@@ -259,7 +262,7 @@ public class IOSApplication
                 }
         }
         listener.dispose();
-        Gdx.gl.glFlush();
         */
+        ((IOSGraphics)GameState.GetGameGraphics()).plugin_.glFlush();
     }
 }
