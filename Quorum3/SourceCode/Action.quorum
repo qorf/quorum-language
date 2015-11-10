@@ -19,6 +19,15 @@ class Action is Symbol
     boolean isPublic = true
     Location headerLocation = undefined
     Location nameLocation = undefined
+    Location returnLocation = undefined
+
+    action GetReturnLocation returns Location
+        return returnLocation
+    end
+
+    action SetReturnLocation(Location location) 
+        returnLocation = location
+    end
 
     action GetNameLocation returns Location
         return nameLocation
