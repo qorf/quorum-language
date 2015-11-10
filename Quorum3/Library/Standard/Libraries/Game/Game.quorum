@@ -12,6 +12,7 @@ use Libraries.Game.Application
 use Libraries.Game.DesktopApplication
 use Libraries.Game.IOSApplication
 use Libraries.Game.IOSConfiguration
+use Libraries.Game.Graphics.IOSGraphics
 use Libraries.Game.Graphics.Painter
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.GraphicsManager
@@ -124,6 +125,12 @@ class Game
             iOS. That can be set in the GameStateManager before it is ever needed
             in the IOSApplication plugin during DidFinishLaunching.
             */
+            IOSDisplay display
+            manager:SetGameDisplay(display)
+            display:SetConfiguration(iosConfig)
+
+            IOSGraphics iosGraphics
+            manager:SetGameGraphics(iosGraphics)
         end
         application:Setup(me)
 
@@ -1009,15 +1016,11 @@ class Game
             DesktopApplication app
             return app
         end
-        if type = 2
+        if type = -1
             IOSApplication app
             return app
         end
         // ... Other options
-
-        if type < 0
-            alert("I could not determine the proper type of Application to use for this OS!")
-        end
 
         return undefined
     end
