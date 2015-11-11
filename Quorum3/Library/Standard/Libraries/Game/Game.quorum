@@ -10,8 +10,10 @@ use Libraries.Game.DesktopDisplay
 use Libraries.Game.GameStateManager
 use Libraries.Game.Application
 use Libraries.Game.DesktopApplication
+use Libraries.Game.AndroidApplication
 use Libraries.Game.IOSApplication
 use Libraries.Game.IOSConfiguration
+use Libraries.Game.IOSDisplay
 use Libraries.Game.Graphics.IOSGraphics
 use Libraries.Game.Graphics.Painter
 use Libraries.Game.Graphics.Font
@@ -1011,12 +1013,23 @@ class Game
     end
 
     private action SelectApplicationType returns Application
+        /*
+        Current codes:
+        1 = AndroidApplication
+        2 = DesktopApplication
+        3 = IOSApplication
+        */
+
         integer type = SelectApplicationTypeNative()
         if type = 1
+            AndroidApplication app
+            return app
+        end
+        if type = 2
             DesktopApplication app
             return app
         end
-        if type = -1
+        if type = 3
             IOSApplication app
             return app
         end

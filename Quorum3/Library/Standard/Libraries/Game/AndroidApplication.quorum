@@ -1,0 +1,14 @@
+package Libraries.Game
+
+class AndroidApplication is Application 
+    
+    action Setup(Game game)
+        parent:Application:Setup(game)
+        SetupNative(game, parent:Application:display:GetConfiguration())
+    end
+
+    private system action SetupNative(Game game, ApplicationConfiguration config)
+
+    system action Exit
+
+end
