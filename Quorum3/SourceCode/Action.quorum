@@ -20,6 +20,27 @@ class Action is Symbol
     Location headerLocation = undefined
     Location nameLocation = undefined
     Location returnLocation = undefined
+    List<Location> callLocations
+    List<ActionCallResolution> actionCalls
+
+    action AddCallLocation(Location location) 
+        callLocations:Add(location)
+    end
+
+    action GetCallLocationIterator returns Iterator<Location>
+        return callLocations:GetIterator()
+    end
+
+    /*
+        This action receives any action calls that exist inside of this action.
+    */
+    action AddActionCalls(ActionCallResolution call)
+        actionCalls:Add(call)
+    end
+
+    action GetActionCalls returns Iterator<ActionCallResolution>
+        return actionCalls:GetIterator()
+    end
 
     action GetReturnLocation returns Location
         return returnLocation
