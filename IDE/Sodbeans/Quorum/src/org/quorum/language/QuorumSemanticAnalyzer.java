@@ -73,10 +73,12 @@ public class QuorumSemanticAnalyzer extends SemanticAnalyzer<QuorumParserResult>
             if(name != null) {
                 int index = name.GetIndex();
                 int end = name.GetIndexEnd();
-                OffsetRange useRange = new OffsetRange(index, end + 1);
-                //Set<ColoringAttributes> useColors = new HashSet<>();
-                //useColors.add(ColoringAttributes.METHOD);
-                highlighting.put(useRange, ColoringAttributes.METHOD_SET);
+                if(index > -1 && end > -1) {
+                    OffsetRange useRange = new OffsetRange(index, end + 1);
+                    //Set<ColoringAttributes> useColors = new HashSet<>();
+                    //useColors.add(ColoringAttributes.METHOD);
+                    highlighting.put(useRange, ColoringAttributes.METHOD_SET);
+                }
             }
             
             Iterator_ locals = next.GetAllLocalVariables();
