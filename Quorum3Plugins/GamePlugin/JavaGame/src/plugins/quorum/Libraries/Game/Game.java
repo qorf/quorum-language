@@ -58,10 +58,13 @@ public class Game
     public int SelectApplicationTypeNative()
     {
         String os = System.getProperty("os.name");
-        if (os.contains("Mac OS X") || os.contains("Windows") || os.contains("Linux"))
+        String vm = System.getProperty("java.runtime.name");
+        if (vm != null && vm.contains("Android Runtime"))
             return 1;
+        else if (os.contains("Mac OS X") || os.contains("Windows") || os.contains("Linux"))
+            return 2;
         else // If no other type is selected, it's assumed that it's iOS.
-            return -1;
+            return 3;
     }
     
 }
