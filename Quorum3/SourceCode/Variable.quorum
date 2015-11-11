@@ -21,6 +21,7 @@ class Variable is Symbol
     Class parentClass = undefined
     boolean definedInAlwaysBlock = false
     List<Location> useLocations
+    Location typeLocation = undefined
 
     action AddUseLocation(Location location)
         useLocations:Add(location)
@@ -28,6 +29,14 @@ class Variable is Symbol
 
     action GetUseLocations returns Iterator<Location>
         return useLocations:GetIterator()
+    end
+
+    action GetTypeLocation returns Location
+        return typeLocation
+    end
+
+    action SetTypeLocation(Location location)
+        typeLocation = location
     end
 
     action IsUsed returns boolean

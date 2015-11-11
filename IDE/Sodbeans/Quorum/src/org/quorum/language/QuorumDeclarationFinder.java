@@ -22,10 +22,13 @@ import org.openide.util.Utilities;
 import quorum.Libraries.Containers.Blueprints.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.Location_;
+import quorum.Libraries.Language.Compile.QualifiedName_;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
 import quorum.Libraries.Language.Compile.Symbol.Class_;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
+import quorum.Libraries.Language.Compile.Symbol.Type_;
 import quorum.Libraries.Language.Compile.Symbol.Variable_;
+import quorum.Libraries.Language.Object_;
 import quorum.Libraries.System.File_;
 
 /**
@@ -58,27 +61,73 @@ public class QuorumDeclarationFinder implements DeclarationFinder{
             return DeclarationLocation.NONE;
         }
         
+        DeclarationLocation done = null;
         Iterator_ iterator = clazz.GetVariables();
-        if(iterator == null) {
-            return DeclarationLocation.NONE;
+        if(iterator != null) {
+            done = checkVariables(table, iterator, caretPosition);
         }
         
-        DeclarationLocation done = checkVariables(iterator, caretPosition);
+        Iterator_ parents = clazz.GetUnresolvedParents();
+        while(parents.HasNext() && done == DeclarationLocation.NONE) {
+            QualifiedName_ parent = (QualifiedName_) parents.Next();
+            if(parent != null) {
+                int returnIndex = parent.GetIndex();
+                int returnIndexEnd = parent.GetIndexEnd();
+                if(caretPosition >= returnIndex && caretPosition <= returnIndexEnd + 1) {
+                    Class_ parentClazz = clazz.GetValidUseName(parent.GetName());
+                    if(parentClazz != null) {
+                        File_ file = parentClazz.GetFile();
+                        FileObject fo = org.quorum.support.Utility.toFileObject(file);
+                        DeclarationLocation decl = new DeclarationLocation(fo, parentClazz.GetIndex());
+                        return decl;
+                    }
+                }
+            }
+        }
         
         if(done == DeclarationLocation.NONE) {
             Iterator_ actions = clazz.GetActions();
             while(actions != null && actions.HasNext() && done == DeclarationLocation.NONE) {
                 Action_ next = (Action_) actions.Next();
                 if(caretPosition >= next.GetIndex() && caretPosition <= next.GetIndexEnd() + 1) {
-                    Iterator_ locals = next.GetAllLocalVariables();
-                    done = checkVariables(locals, caretPosition);
+                    //first check if we've hit the return type
+                    Type_ returnType = next.GetReturnType();
+                    if(returnType != null && !returnType.IsVoid()) {
+                        Location_ returnLocation = next.GetReturnLocation();
+                        if(returnLocation != null) {
+                            int returnIndex = returnLocation.GetIndex();
+                            int returnIndexEnd = returnLocation.GetIndexEnd();
+                            if(caretPosition >= returnIndex && caretPosition <= returnIndexEnd + 1) {
+                                String key = returnType.GetStaticKey();
+                                Class_ returnClazz = table.GetClass(key);
+                                if(returnClazz != null) {
+                                    File_ file = returnClazz.GetFile();
+                                    FileObject fo = org.quorum.support.Utility.toFileObject(file);
+                                    DeclarationLocation decl = new DeclarationLocation(fo, returnClazz.GetIndex());
+                                    return decl;
+                                }
+                            }
+                        }
+                    }
+                    
+                    //it wasn't the return type, check the parameters
+                    if(done == DeclarationLocation.NONE) {
+                        Iterator_ parameters = next.GetParameterIterator();
+                        done = checkVariables(table, parameters, caretPosition);
+                    }
+                    
+                    //if we still haven't found anything, check the variables
+                    if(done == DeclarationLocation.NONE) {
+                        Iterator_ locals = next.GetAllLocalVariables();
+                        done = checkVariables(table, locals, caretPosition);
+                    }
                 }
             }
         }
         return done;
     }
     
-    public DeclarationLocation checkVariables(Iterator_ iterator, int caretPosition) {
+    public DeclarationLocation checkVariables(SymbolTable_ table, Iterator_ iterator, int caretPosition) {
         DeclarationLocation done = DeclarationLocation.NONE;
         while(iterator.HasNext() && done == DeclarationLocation.NONE) {
             Variable_ next = (Variable_) iterator.Next();
@@ -87,6 +136,25 @@ public class QuorumDeclarationFinder implements DeclarationFinder{
             boolean isIn = false;
             if(caretPosition >= index && caretPosition <= end + 1) {
                 isIn = true;
+            }
+            
+            if(!isIn) {
+                Location_ location = next.GetTypeLocation();
+                if(location != null) {
+                    int typeIndex = location.GetIndex();
+                    int typeIndexEnd = location.GetIndexEnd();
+                    if(caretPosition >= typeIndex && caretPosition <= typeIndexEnd + 1) {
+                        Type_ type = next.GetType();
+                        String key = type.GetStaticKey();
+                        Class_ clazz = table.GetClass(key);
+                        if(clazz != null) {
+                            File_ file = clazz.GetFile();
+                            FileObject fo = org.quorum.support.Utility.toFileObject(file);
+                            DeclarationLocation decl = new DeclarationLocation(fo, clazz.GetIndex());
+                            return decl;
+                        }
+                    }
+                }
             }
             
             if(!isIn) {

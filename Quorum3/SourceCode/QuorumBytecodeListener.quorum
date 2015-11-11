@@ -260,6 +260,11 @@ class QuorumBytecodeListener is QuorumSourceListener
                 GetSymbolTable(), GetCompilerErrorManager())
 
             Action method = currentClass:GetAction(key)
+            Location returnLocation = context:returnLocation
+            if returnLocation not= undefined
+                method:SetReturnLocation(returnLocation)
+            end
+
             currentAction = method
             ActionOpcode actionOpcode
             actionOpcode:SetLocation(context:GetLocation())
@@ -1329,6 +1334,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
 
         Type left = variable:GetType()
+        Location typeLocation = context:typeLocation
+        typeLocation = typeLocation:CreateLocationCopy()
+        variable:SetTypeLocation(typeLocation)
         QuorumOpcode right = undefined
         if context:hasRightHandSide = false
             Type typeOriginal = context:leftHandSide
@@ -1463,14 +1471,12 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         integer location = variable:GetBytecodeLocation()
         Type value = result:result
-        QuorumOpcode qop = result:GetQuorumOpcode()
         AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
         assignment:SetLocation(context:GetLocation())
         assignment:SetClass(currentClass)
         assignment:SetRightHandSide(right)
         assignment:SetType(value)
         assignment:SetMethodWriter(methodWriter)
-        //assignment:SetBytecodeLocation(location)
         assignment:SetVariable(variable)
 
         if isInAction
