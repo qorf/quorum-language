@@ -1328,6 +1328,9 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now
         end
 
+        Location useLocation
+        useLocation:SetLocation(context:variableLocation)
+        variable:AddUseLocation(useLocation)
         variable:SetIsDefined(true)
         if isInAlwaysBlock
             variable:SetDefinedInAlwaysBlock(true)
