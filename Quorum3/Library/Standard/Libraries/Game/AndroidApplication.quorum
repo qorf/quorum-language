@@ -4,6 +4,8 @@ class AndroidApplication is Application
     
     action Setup(Game game)
         parent:Application:Setup(game)
+        GameStateManager manager
+        manager:SetApplication(me)
         SetupNative(game, parent:Application:display:GetConfiguration())
     end
 
