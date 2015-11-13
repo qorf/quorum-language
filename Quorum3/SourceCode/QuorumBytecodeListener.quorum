@@ -263,6 +263,15 @@ class QuorumBytecodeListener is QuorumSourceListener
             Location returnLocation = context:returnLocation
             if returnLocation not= undefined
                 method:SetReturnLocation(returnLocation)
+                Type returnType = method:GetReturnType()
+                if returnType not= undefined
+                    if not returnType:IsPrimitive()
+                        text returnKey = returnType:GetStaticKey()
+                        SymbolTable table = GetSymbolTable()
+                        Class clazz = table:GetClass(returnKey)
+                        clazz:AddUseLocation(returnLocation:CreateLocationCopy())
+                    end
+                end
             end
 
             currentAction = method
@@ -1378,6 +1387,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             else 
                 SymbolTable table = me:GetSymbolTable()
                 Class clazz = table:GetClass(left:GetStaticKey())
+                clazz:AddUseLocation(typeLocation:CreateLocationCopy())
                 CreateObjectOpcode opcode
                 opcode:SetLocation(context:GetLocation())
                 opcode:SetMethodWriter(methodWriter)
