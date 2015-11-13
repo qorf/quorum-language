@@ -1202,6 +1202,7 @@ public class JavaToQuorumListener implements QuorumListener {
             Variable variable = new Variable();
             variable.SetName(next.ID().getText());
             setLocation(next.ID().getSymbol(), variable);
+            variable.AddUseLocation(variable.CreateLocationCopy());
             variable.SetType(type);
             variable.SetIsParameter(true);
             if(next.assignment_declaration() != null) {
@@ -1247,6 +1248,7 @@ public class JavaToQuorumListener implements QuorumListener {
             Variable_ variable = new Variable();
             variable.SetName(next.ID().getText());
             setLocation(next.ID().getSymbol(), variable);
+            variable.AddUseLocation(variable.CreateLocationCopy());
             variable.SetType(type);
             variable.SetIsParameter(true);
             if(next.assignment_declaration() != null) {
