@@ -1,7 +1,9 @@
 package Libraries.Language.Compile.Context
+use Libraries.Language.Compile.Location
 
 class ActionCallContext is ParseContext
     public boolean isSolo = false
     public text name = ""
     public boolean isActionCall = false
+    public Location nameLocation
 end

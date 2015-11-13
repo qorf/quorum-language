@@ -1693,6 +1693,7 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterSolo_method_required_method_part(QuorumParser.Solo_method_required_method_partContext ctx) {
         ActionCallContext context = new ActionCallContext();
         setLocation(ctx, context);
+        setLocation(ctx.var, context.nameLocation);
         listener.EnterActionCall(context);
     }
 
@@ -1703,6 +1704,7 @@ public class JavaToQuorumListener implements QuorumListener {
         String name = ctx.var.getText();
         boolean isActionCall = ctx.LEFT_PAREN() != null;
         context.name = name;
+        setLocation(ctx.var, context.nameLocation);
         context.isActionCall = isActionCall;
 
         listener.ExitActionCall(context);
@@ -1839,6 +1841,7 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterAction_call(QuorumParser.Action_callContext ctx) {
         ActionCallContext context = new ActionCallContext();
         setLocation(ctx, context);
+        setLocation(ctx.var, context.nameLocation);
         listener.EnterActionCall(context);
     }
 
@@ -1849,6 +1852,7 @@ public class JavaToQuorumListener implements QuorumListener {
         String name = ctx.var.getText();
         boolean isActionCall = ctx.LEFT_PAREN() != null;
         context.name = name;
+        setLocation(ctx.var, context.nameLocation);
         context.isActionCall = isActionCall;
 
         listener.ExitActionCall(context);

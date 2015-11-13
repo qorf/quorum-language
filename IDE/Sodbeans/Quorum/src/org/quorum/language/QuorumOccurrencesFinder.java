@@ -18,10 +18,12 @@ import org.openide.util.Utilities;
 import quorum.Libraries.Containers.Blueprints.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.Location_;
+import quorum.Libraries.Language.Compile.Symbol.ActionCallResolution_;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
 import quorum.Libraries.Language.Compile.Symbol.Class_;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
 import quorum.Libraries.Language.Compile.Symbol.Variable_;
+import quorum.Libraries.Language.Object_;
 
 /**
  *
@@ -91,6 +93,52 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
                 if(caretPosition >= next.GetIndex() && caretPosition <= next.GetIndexEnd() + 1) {
                     Iterator_ locals = next.GetAllLocalVariables();
                     done = checkVariables(locals);
+                    
+                    //not a variable, check if I'm clicked on the action name
+                    if(!done) {
+                        Location_ nameLocation = next.GetNameLocation();
+                        if(caretPosition >= nameLocation.GetIndex() && caretPosition <= nameLocation.GetIndexEnd() + 1) {
+                            OffsetRange callRange = new OffsetRange(nameLocation.GetIndex(), nameLocation.GetIndexEnd() + 1);
+                            highlighting.put(callRange, ColoringAttributes.MARK_OCCURRENCES);
+                            
+                            //now grab all the calls in this file and add them.
+                            Iterator_ callLocations = next.GetCallLocationIterator(clazz.GetFile());
+                            while(callLocations != null && callLocations.HasNext()) {
+                                Location_ callLoc = (Location_) callLocations.Next();
+                                OffsetRange callRange2 = new OffsetRange(callLoc.GetIndex(), callLoc.GetIndexEnd() + 1);
+                                highlighting.put(callRange2, ColoringAttributes.MARK_OCCURRENCES);
+                            }
+                            done = true;
+                        }
+                    }
+                    
+                    //check if I'm in an action call
+                    if(!done) {
+                        Iterator_ calls = next.GetActionCalls();
+                        while(calls.HasNext() && !done) {
+                            ActionCallResolution_ call = (ActionCallResolution_) calls.Next();
+                            Location_ loc = call.Get_Libraries_Language_Compile_Symbol_ActionCallResolution__location_();
+                            if(caretPosition >= loc.GetIndex() && caretPosition <= loc.GetIndexEnd() + 1) {
+                                Action_ resolved = call.Get_Libraries_Language_Compile_Symbol_ActionCallResolution__resolvedAction_();
+                                Iterator_ callLocations = resolved.GetCallLocationIterator(clazz.GetFile());
+                                while(callLocations != null && callLocations.HasNext()) {
+                                    Location_ callLoc = (Location_) callLocations.Next();
+                                    OffsetRange callRange = new OffsetRange(callLoc.GetIndex(), callLoc.GetIndexEnd() + 1);
+                                    highlighting.put(callRange, ColoringAttributes.MARK_OCCURRENCES);
+                                }
+                                
+                                //if the action is in this file, highlight its name
+                                Location_ nameLocation = resolved.GetNameLocation();
+                                if(nameLocation.GetFile().GetAbsolutePath().compareTo(clazz.GetFile().GetAbsolutePath())==0) {
+                                    OffsetRange callRange = new OffsetRange(nameLocation.GetIndex(), nameLocation.GetIndexEnd() + 1);
+                                    highlighting.put(callRange, ColoringAttributes.MARK_OCCURRENCES);
+                                }
+                                done = true;
+                            }
+                        }
+                    }
+                    
+                    
                 }
             }
         }

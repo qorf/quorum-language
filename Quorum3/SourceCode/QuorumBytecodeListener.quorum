@@ -2127,6 +2127,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             ComputeInitialParameters(size, actionCall)
             ActionCall call
             call:calledFrom = currentAction
+            call:nameLocation = context:nameLocation:CreateLocationCopy()
             call:SetLocation(context:GetLocation())
             call:actualParameters = actionCall:GetParameterTypes()
             call:name = context:name
