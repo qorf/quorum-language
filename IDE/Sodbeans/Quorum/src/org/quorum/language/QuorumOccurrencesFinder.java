@@ -127,9 +127,6 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
             
             if(isIn) {
                 done = true;
-                OffsetRange range = new OffsetRange(index, end + 1);
-                highlighting.put(range, ColoringAttributes.MARK_OCCURRENCES);
-                
                 //now create ranges for all of its uses
                 Iterator_ uses = next.GetUseLocations();
                 while(uses.HasNext()) {

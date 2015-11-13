@@ -24,6 +24,9 @@ class Variable is Symbol
     Location typeLocation = undefined
 
     action AddUseLocation(Location location)
+        if GetName() = "apple"
+            a = 5
+        end
         useLocations:Add(location)
     end
 

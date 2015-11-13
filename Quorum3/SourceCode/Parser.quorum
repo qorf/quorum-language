@@ -532,7 +532,7 @@ class Parser is QuorumSourceListener
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
         Variable variable
         variable:SetParentClass(currentClass)
-        variable:SetLocation(context:GetLocation())
+        variable:SetLocation(context:variableLocation)
         variable:SetName(context:name)
         CheckName(context:name, context:GetLocation())
         variable:SetIsParameter(false)

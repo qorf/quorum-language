@@ -23,6 +23,8 @@ import quorum.Libraries.Containers.Blueprints.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.Location_;
 import quorum.Libraries.Language.Compile.QualifiedName_;
+import quorum.Libraries.Language.Compile.Symbol.ActionCallResolution_;
+import quorum.Libraries.Language.Compile.Symbol.ActionCall_;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
 import quorum.Libraries.Language.Compile.Symbol.Class_;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
@@ -120,6 +122,25 @@ public class QuorumDeclarationFinder implements DeclarationFinder{
                     if(done == DeclarationLocation.NONE) {
                         Iterator_ locals = next.GetAllLocalVariables();
                         done = checkVariables(table, locals, caretPosition);
+                    }
+                }
+                
+                //check if there are any declarations for this method in this file
+                if(done == DeclarationLocation.NONE) {
+                    Iterator_ calls = next.GetActionCalls();
+                    while(calls.HasNext()) {
+                        ActionCallResolution_  call = (ActionCallResolution_) calls.Next();
+                        Location_ nextLocation = call.Get_Libraries_Language_Compile_Symbol_ActionCallResolution__location_();
+                        int locationIndex = nextLocation.GetIndex();
+                        int locationIndexEnd = nextLocation.GetIndexEnd();
+                        if(caretPosition >= locationIndex && caretPosition <= locationIndexEnd + 1) {
+                            Action_ resolved = call.Get_Libraries_Language_Compile_Symbol_ActionCallResolution__resolvedAction_();
+                            Class_ parentClass = resolved.GetParentClass();
+                            File_ file = parentClass.GetFile();
+                            FileObject fo = org.quorum.support.Utility.toFileObject(file);
+                            DeclarationLocation decl = new DeclarationLocation(fo, resolved.GetIndex());
+                            return decl;
+                        }
                     }
                 }
             }
