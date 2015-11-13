@@ -22,8 +22,10 @@ import quorum.Libraries.Language.Compile.Symbol.ActionCallResolution_;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
 import quorum.Libraries.Language.Compile.Symbol.Class_;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
+import quorum.Libraries.Language.Compile.Symbol.Type_;
 import quorum.Libraries.Language.Compile.Symbol.Variable_;
 import quorum.Libraries.Language.Object_;
+import quorum.Libraries.System.File_;
 
 /**
  *
@@ -84,7 +86,7 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
             return;
         }
         
-        boolean done = checkVariables(iterator);
+        boolean done = checkVariables(iterator, table, clazz.GetFile());
         
         if(!done) {
             Iterator_ actions = clazz.GetActions();
@@ -92,7 +94,7 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
                 Action_ next = (Action_) actions.Next();
                 if(caretPosition >= next.GetIndex() && caretPosition <= next.GetIndexEnd() + 1) {
                     Iterator_ locals = next.GetAllLocalVariables();
-                    done = checkVariables(locals);
+                    done = checkVariables(locals, table, clazz.GetFile());
                     
                     //not a variable, check if I'm clicked on the action name
                     if(!done) {
@@ -150,7 +152,7 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
         }
     }
     
-    public boolean checkVariables(Iterator_ iterator) {
+    public boolean checkVariables(Iterator_ iterator, SymbolTable_ table, File_ file) {
         boolean done = false;
         while(iterator.HasNext() && !done) {
             Variable_ next = (Variable_) iterator.Next();
@@ -159,6 +161,25 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
             boolean isIn = false;
             if(caretPosition >= index && caretPosition <= end + 1) {
                 isIn = true;
+            }
+            
+            Location_ typeLocation = next.GetTypeLocation();
+            if(typeLocation == null) {
+                int a = 54;
+            }
+            if(typeLocation != null && caretPosition >= typeLocation.GetIndex() && caretPosition <= typeLocation.GetIndexEnd() + 1) {
+                Type_ type = next.GetType();
+                String key = type.GetStaticKey();
+                Class_ clazz = table.GetClass(key);
+                if(clazz != null) {
+                    Iterator_ uses = clazz.GetUseLocationIterator(file);
+                    while(uses.HasNext()) {
+                        Location_ use = (Location_) uses.Next();
+                        OffsetRange useRange = new OffsetRange(use.GetIndex(), use.GetIndexEnd() + 1);
+                        highlighting.put(useRange, ColoringAttributes.MARK_OCCURRENCES);
+                    }
+                }
+                return true;
             }
             
             if(!isIn) {
