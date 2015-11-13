@@ -5,6 +5,7 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.CodeCompletionItem
 use Libraries.Language.Support.CompareResult
+use Libraries.System.File
 
 class Action is Symbol
     List<Variable> parameters
@@ -21,14 +22,37 @@ class Action is Symbol
     Location nameLocation = undefined
     Location returnLocation = undefined
     List<Location> callLocations
+    HashTable<text, List<Location>> callLocationHash
     List<ActionCallResolution> actionCalls
 
     action AddCallLocation(Location location) 
-        callLocations:Add(location)
+        File file = location:GetFile()
+        if file = undefined
+           return now //ignore if this isn't supported
+        end
+        text path = file:GetAbsolutePath()
+        List<Location> list = undefined
+        if callLocationHash:HasKey(path)
+            list = callLocationHash:GetValue(path)
+        end
+
+        if list = undefined
+            List<Location> list2
+            list = list2
+            callLocationHash:Add(path, list)
+        end
+
+        list:Add(location)
     end
 
-    action GetCallLocationIterator returns Iterator<Location>
-        return callLocations:GetIterator()
+    action GetCallLocationIterator(File file) returns Iterator<Location>
+        text path = file:GetAbsolutePath()
+        if callLocationHash:HasKey(path)
+            List<Location> loc = callLocationHash:GetValue(path)
+            return loc:GetIterator()
+        end
+
+        return undefined
     end
 
     /*

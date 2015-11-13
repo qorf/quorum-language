@@ -1916,7 +1916,13 @@ class Class is Symbol
             resolution:resolvedAction = finalMatches:Get(0)
             Action final = finalMatches:Get(0)
 
-            final:AddCallLocation(call:CreateLocationCopy())
+            Location nameLocation = call:nameLocation
+            if nameLocation not= undefined
+                resolution:nameLocation = nameLocation:CreateLocationCopy()
+                final:AddCallLocation(resolution:nameLocation)
+            end
+
+            //final:AddCallLocation(call:CreateLocationCopy())
             if call:calledFrom not= undefined
                 Action from = call:calledFrom
                 from:AddActionCalls(resolution)
