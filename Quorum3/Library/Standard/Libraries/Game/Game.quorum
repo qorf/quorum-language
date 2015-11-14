@@ -121,6 +121,8 @@ class Game
 
             display:SetConfiguration(desktopConfig)
             display:SetupDisplay()
+        elseif application is AndroidApplication
+
         elseif application is IOSApplication
             /* Notes:
             Will almost certainly need to set up a new type of GameDisplay for

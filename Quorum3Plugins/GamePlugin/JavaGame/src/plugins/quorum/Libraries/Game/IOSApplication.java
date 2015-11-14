@@ -79,18 +79,31 @@ public class IOSApplication
         
         float scale = (float)(GetIOSVersion() >= 8 ? UIScreen.getMainScreen().getNativeScale() : UIScreen.getMainScreen().getScale());
         
+        /*
+        Scaling values are used as divisors of 1 in order to "flip" the scaling
+        value about 1. The "NOTE ABOUT SCALING" comment in
+        IOSConfiguration.quorum has been copied here for convenience:
+        
+        NOTE ON SCALING:
+        libGDX goes the opposite way with scale, where a smaller scale value will
+        make objects larger on the screen (the logic being you are scaling down the
+        screen size). In our code, we make a larger scaling value cause items to be
+        drawn larger on the screen, thus reducing the effective screen size, in
+        order to maintain consistency with how scaling works with Drawables.
+        */
+        
         if (scale >= 2.0f)
         {
             //Gdx.app.debug("IOSApplication", "scale: " + scale);
             if (UIDevice.getCurrentDevice().getUserInterfaceIdiom() == UIUserInterfaceIdiom.Pad) 
             {
                 // it's an iPad!
-                displayScaleFactor = (float)config.Get_Libraries_Game_IOSConfiguration__largeRetinaDisplayScale_() * scale;
+                displayScaleFactor = (float)(1 / config.Get_Libraries_Game_IOSConfiguration__largeRetinaDisplayScale_()) * scale;
             }
             else
             {
                 // it's an iPod or iPhone
-                displayScaleFactor = (float)config.Get_Libraries_Game_IOSConfiguration__smallRetinaDisplayScale_() * scale;
+                displayScaleFactor = (float)(1 / config.Get_Libraries_Game_IOSConfiguration__smallRetinaDisplayScale_()) * scale;
             }
         }
         else
@@ -99,12 +112,12 @@ public class IOSApplication
             if (UIDevice.getCurrentDevice().getUserInterfaceIdiom() == UIUserInterfaceIdiom.Pad) 
             {
                 // it's an iPad!
-                displayScaleFactor = (float)config.Get_Libraries_Game_IOSConfiguration__largeNonRetinaDisplayScale_();
+                displayScaleFactor = (float)(1 / config.Get_Libraries_Game_IOSConfiguration__largeNonRetinaDisplayScale_());
             }
             else 
             {
                 // it's an iPod or iPhone
-                displayScaleFactor = (float)config.Get_Libraries_Game_IOSConfiguration__smallNonRetinaDisplayScale_();
+                displayScaleFactor = (float)(1 / config.Get_Libraries_Game_IOSConfiguration__smallNonRetinaDisplayScale_());
             }
         }
         
