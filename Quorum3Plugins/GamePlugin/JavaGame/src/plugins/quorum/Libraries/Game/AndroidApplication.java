@@ -24,6 +24,7 @@ import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.ApplicationConfiguration_;
 import quorum.Libraries.Game.AndroidConfiguration;
 import quorum.Libraries.Game.AndroidApplication_;
+import quorum.Libraries.Game.AndroidDisplay_;
 
 import java.lang.reflect.Method;
 
@@ -39,7 +40,7 @@ public class AndroidApplication extends Activity
     
     public AndroidApplication_ quorumApp;
     
-    //protected AndroidGraphics graphics;
+    protected AndroidDisplay_ display;
     //protected AndroidInput input;
     //protected AndroidAudio audio;
     //protected AndroidFiles files;
@@ -64,14 +65,17 @@ public class AndroidApplication extends Activity
         /* 
         SetupNative is only called as part of Setup in the Quorum 
         AndroidApplication, which sets itself in the GameStateManager right
-        before calling this method.
+        before calling this method. It also sets an AndroidDisplay in the
+        GameStateManager.
         */
         quorumApp = (AndroidApplication_)GameState.GetApp();
+        display = (AndroidDisplay_)GameState.GetDisplay();
         
         if (GetVersion() < MINIMUM_SDK) 
         {
             throw new GameRuntimeError("Android API level " + GetVersion() + "was detected, but " + MINIMUM_SDK + " or later is required.");
         }
+        
         //graphics = new AndroidGraphics(this, config, config.resolutionStrategy == null ? new FillResolutionStrategy()
         //        : config.resolutionStrategy);
         //input = AndroidInputFactory.newAndroidInput(this, this, graphics.view, config);
