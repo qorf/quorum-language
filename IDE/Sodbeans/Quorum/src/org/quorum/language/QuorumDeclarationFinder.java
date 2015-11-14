@@ -5,14 +5,12 @@
  */
 package org.quorum.language;
 
-import java.util.HashMap;
 import java.util.List;
 import javax.swing.text.Document;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.api.lexer.TokenSequence;
 import org.netbeans.editor.BaseDocument;
-import org.netbeans.modules.csl.api.ColoringAttributes;
 import org.netbeans.modules.csl.api.DeclarationFinder;
 import org.netbeans.modules.csl.api.OffsetRange;
 import org.netbeans.modules.csl.spi.ParserResult;
@@ -24,13 +22,11 @@ import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.Location_;
 import quorum.Libraries.Language.Compile.QualifiedName_;
 import quorum.Libraries.Language.Compile.Symbol.ActionCallResolution_;
-import quorum.Libraries.Language.Compile.Symbol.ActionCall_;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
 import quorum.Libraries.Language.Compile.Symbol.Class_;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
 import quorum.Libraries.Language.Compile.Symbol.Type_;
 import quorum.Libraries.Language.Compile.Symbol.Variable_;
-import quorum.Libraries.Language.Object_;
 import quorum.Libraries.System.File_;
 
 /**
@@ -58,7 +54,9 @@ public class QuorumDeclarationFinder implements DeclarationFinder{
         }
         
         SymbolTable_ table = quorumResult.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
-        Class_ clazz = table.GetClassInFile(lookup.getPath());
+        String path = lookup.getPath();
+        java.io.File ioFile = new java.io.File(path);
+        Class_ clazz = table.GetClassInFile(ioFile.getAbsolutePath());
         if(clazz == null) {
             return DeclarationLocation.NONE;
         }

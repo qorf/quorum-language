@@ -24,7 +24,6 @@ import quorum.Libraries.Language.Compile.Symbol.Class_;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
 import quorum.Libraries.Language.Compile.Symbol.Type_;
 import quorum.Libraries.Language.Compile.Symbol.Variable_;
-import quorum.Libraries.Language.Object_;
 import quorum.Libraries.System.File_;
 
 /**
@@ -74,7 +73,9 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
         }
         
         SymbolTable_ table = quorumResult.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
-        Class_ clazz = table.GetClassInFile(lookup.getPath());
+        String path = lookup.getPath();
+        java.io.File ioFile = new java.io.File(path);
+        Class_ clazz = table.GetClassInFile(ioFile.getAbsolutePath());
         if(clazz == null) {
             highlighting = null;
             return;
