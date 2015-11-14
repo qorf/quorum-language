@@ -1,0 +1,100 @@
+package Libraries.Game
+
+class AndroidDisplay is GameDisplay
+
+    private AndroidConfiguration config = undefined
+
+    /* 
+    This action sets the AndroidConfiguration being used by the game,
+    which includes data for the screen. If the given ApplicationConfiguration is
+    not an AndroidConfiguration, an error will be thrown.
+    */
+    action SetConfiguration(ApplicationConfiguration conf)
+        if not (conf is AndroidConfiguration)
+            alert("Attempted to configure a DesktopDisplay with an application configuration that is not used for desktops!")
+        end
+        config = cast(AndroidConfiguration, conf)
+    end
+
+    /*
+    This action returns the AndroidConfiguration being used by this
+    AndroidDisplay.
+    */
+    action GetConfiguration returns ApplicationConfiguration
+        return config
+    end
+
+    /*
+    This action normally sets the width and height of the AndroidDisplay, but
+    games on Android devices always fill the screen, so this does nothing. The
+    action will return false to indicate that no action was taken.
+    */
+    action SetDisplayMode(integer width, integer height, boolean fullscreen) returns boolean
+        return false
+    end
+
+    /*
+    This action returns the width of the AndroidDisplay.
+    */
+    system action GetWidth returns integer
+
+    /*
+    This action returns the height of the AndroidDisplay.
+    */
+    system action GetHeight returns integer
+
+    /*
+    This action sets vSync on or off for the AndroidDisplay.
+    */
+    system action SetVSync(boolean vsync)
+
+    /*
+    This action returns whether the AndroidDisplay is resizable or not. This
+    will always return false.
+    */
+    action GetResize returns boolean
+        return false
+    end
+
+    /*
+    This action returns whether or not the AndroidDisplay has been resized.
+    */
+    system action WasResized returns boolean
+
+    /*
+    This action tells the AndroidDisplay to render to the screen.
+    */
+    system action RequestRendering
+
+    /*
+    This action closes the window.
+    */
+    system action Destroy
+
+    /*
+    This action updates the game's timekeeping information.
+    */
+    system action UpdateTime
+
+    /*
+    This action records the time when the action is called, and stores it.
+    */
+    system action SetLastTime
+
+    /*
+    This action updates the game screen without polling the input.
+    */
+    system action UpdateFalse
+
+    /*
+    This action tests how many seconds have passed since the last time that the
+    time was updated.
+    */
+    system action GetSecondsBetweenFrames returns number
+
+    /*
+    This action returns the ratio between screen coordinates and pixels.
+    */
+    system action GetPixelScaleFactor returns number
+
+end
