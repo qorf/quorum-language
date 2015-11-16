@@ -48,6 +48,33 @@ class AndroidConfiguration is ApplicationConfiguration
     public integer maxSimultaneousSounds = 16
 
     /*
+    How wide the engine should try to make the display. If the value is 0, the
+    entire width of the physical screen will be used. Otherwise, if
+    useAspectRatio is true, the display will fill the screen as much as possible
+    while maintaining the ratio of targetWidth/targetHeight. If useAspectRatio
+    is false, the engine will try to make the display the exact target width, if
+    possible. Users may want to use the SetDisplayTo actions for convenience.
+    */
+    public integer targetWidth = 0
+
+    /*
+    How tall the engine should try to make the display. If the value is 0, the
+    entire height of the physical screen will be used. Otherwise, if
+    useAspectRatio is true, the display will fill the screen as much as possible
+    while maintaining the ratio of targetWidth/targetHeight. If useAspectRatio
+    is false, the engine will try to make the display the exact target height, if
+    possible. Users may want to use the SetDisplayTo actions for convenience.
+    */
+    public integer targetHeight = 0
+
+    /*
+    If useAspectRatio is true, the engine will try to set the display to use
+    the largest possible display of the aspect ratio given 
+    (targetWidth/targetHeight).
+    */
+    public boolean useAspectRatio = true
+
+    /*
     TO DO: Implement other resolution strategies. For now, we will default to
     Fill.
 
@@ -72,4 +99,8 @@ class AndroidConfiguration is ApplicationConfiguration
 	public boolean useGLSurfaceView20API18 = false;
     */
 
+    /*
+    SetToScreen actions go here.
+    */
+    
 end
