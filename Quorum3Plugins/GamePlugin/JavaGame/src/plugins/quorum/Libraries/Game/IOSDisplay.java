@@ -121,13 +121,13 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
             }
         }
         
-        @Callback
-        @BindSelector("shouldAutorotateToInterfaceOrientation:")
-        private static boolean shouldAutorotateToInterfaceOrientation(IOSUIViewController self, Selector sel,
-                UIInterfaceOrientation orientation)
-        {
-            return self.shouldAutorotateToInterfaceOrientation(orientation);
-        }
+//        @Callback
+//        @BindSelector("shouldAutorotateToInterfaceOrientation:")
+//        private static boolean shouldAutorotateToInterfaceOrientation(IOSUIViewController self, Selector sel,
+//                UIInterfaceOrientation orientation)
+//        {
+//            return self.shouldAutorotateToInterfaceOrientation(orientation);
+//        }
     }
     
     static class IOSUIView extends GLKView
