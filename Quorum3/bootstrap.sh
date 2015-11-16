@@ -30,9 +30,15 @@ echo "Copying to NetBeans Installation"
 #rm ../../IDE/Sodbeans/Quorum/release/modules/ext/Quorum.jar
 cp Run/Quorum.jar ../../IDE/Sodbeans/Quorum/release/modules/ext/Quorum.jar
 
+#chmod -R +rw ../../IDE/Sodbeans/Quorum/release/modules/Library/Standard/Libraries/
+
 #By default, get rid of the library package and put it back in.
 rm -r ../../IDE/Sodbeans/Quorum/release/modules/Library
 cp -r Library ../../IDE/Sodbeans/Quorum/release/modules
+
+
+#Make the folder and all of its contents read only
+#chmod -R-w ../../IDE/Sodbeans/Quorum/release/modules/Library/Standard/Libraries/
 
 echo "Copying Quorum to its final form."
 mkdir ../Quorum

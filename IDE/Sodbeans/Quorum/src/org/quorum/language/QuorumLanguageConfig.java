@@ -8,6 +8,7 @@ package org.quorum.language;
 import org.netbeans.modules.csl.api.CodeCompletionHandler;
 import org.netbeans.modules.csl.api.DeclarationFinder;
 import org.netbeans.modules.csl.api.HintsProvider;
+import org.netbeans.modules.csl.api.InstantRenamer;
 import org.netbeans.modules.csl.api.OccurrencesFinder;
 import org.netbeans.modules.csl.api.SemanticAnalyzer;
 import org.netbeans.modules.csl.api.StructureScanner;
@@ -35,6 +36,7 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     QuorumStructureScanner structureScanner = new QuorumStructureScanner();
     QuorumOccurrencesFinder occurrencesFinder = new QuorumOccurrencesFinder();
     QuorumDeclarationFinder finder = new QuorumDeclarationFinder();
+    QuorumInstantRenamer renamer = new QuorumInstantRenamer();
     
     public QuorumLanguageConfig() {
         
@@ -108,4 +110,9 @@ public class QuorumLanguageConfig extends DefaultLanguageConfig{
     public StructureScanner getStructureScanner() {
         return structureScanner;
     } 
+
+    @Override
+    public InstantRenamer getInstantRenamer() {
+        return renamer;
+    }
 }

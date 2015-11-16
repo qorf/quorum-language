@@ -7,8 +7,10 @@ package plugins.quorum.Libraries.Game;
 
 import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.IOSConfiguration_;
+import quorum.Libraries.Game.IOSConfiguration;
 import quorum.Libraries.Game.IOSDisplay_;
 import quorum.Libraries.Game.IOSDisplay;
+import quorum.Libraries.Game.Graphics.IOSGraphics;
 
 import org.robovm.apple.coregraphics.CGSize;
 import org.robovm.apple.uikit.UIApplication;
@@ -62,6 +64,9 @@ public class IOSApplication
     
     final boolean DidFinishLaunching(UIApplication uiApp, UIApplicationLaunchOptions options)
     {
+        display = (IOSDisplay_)GameState.GetDisplay();
+        config = (IOSConfiguration_)display.GetConfiguration();
+        
         this.uiApp = uiApp;
         
         // Eventually, this line should use the configuration, as in the commented line below.
@@ -74,18 +79,31 @@ public class IOSApplication
         
         float scale = (float)(GetIOSVersion() >= 8 ? UIScreen.getMainScreen().getNativeScale() : UIScreen.getMainScreen().getScale());
         
+        /*
+        Scaling values are used as divisors of 1 in order to "flip" the scaling
+        value about 1. The "NOTE ABOUT SCALING" comment in
+        IOSConfiguration.quorum has been copied here for convenience:
+        
+        NOTE ON SCALING:
+        libGDX goes the opposite way with scale, where a smaller scale value will
+        make objects larger on the screen (the logic being you are scaling down the
+        screen size). In our code, we make a larger scaling value cause items to be
+        drawn larger on the screen, thus reducing the effective screen size, in
+        order to maintain consistency with how scaling works with Drawables.
+        */
+        
         if (scale >= 2.0f)
         {
             //Gdx.app.debug("IOSApplication", "scale: " + scale);
             if (UIDevice.getCurrentDevice().getUserInterfaceIdiom() == UIUserInterfaceIdiom.Pad) 
             {
                 // it's an iPad!
-                displayScaleFactor = (float)config.Get_Libraries_Game_IOSConfiguration__largeRetinaDisplayScale_() * scale;
+                displayScaleFactor = (float)(1 / config.Get_Libraries_Game_IOSConfiguration__largeRetinaDisplayScale_()) * scale;
             }
             else
             {
                 // it's an iPod or iPhone
-                displayScaleFactor = (float)config.Get_Libraries_Game_IOSConfiguration__smallRetinaDisplayScale_() * scale;
+                displayScaleFactor = (float)(1 / config.Get_Libraries_Game_IOSConfiguration__smallRetinaDisplayScale_()) * scale;
             }
         }
         else
@@ -94,25 +112,24 @@ public class IOSApplication
             if (UIDevice.getCurrentDevice().getUserInterfaceIdiom() == UIUserInterfaceIdiom.Pad) 
             {
                 // it's an iPad!
-                displayScaleFactor = (float)config.Get_Libraries_Game_IOSConfiguration__largeNonRetinaDisplayScale_();
+                displayScaleFactor = (float)(1 / config.Get_Libraries_Game_IOSConfiguration__largeNonRetinaDisplayScale_());
             }
             else 
             {
                 // it's an iPod or iPhone
-                displayScaleFactor = (float)config.Get_Libraries_Game_IOSConfiguration__smallNonRetinaDisplayScale_();
+                displayScaleFactor = (float)(1 / config.Get_Libraries_Game_IOSConfiguration__smallNonRetinaDisplayScale_());
             }
         }
         
+        plugins.quorum.Libraries.Game.Graphics.IOSGraphics.init();
         //GL20 gl20 = new IOSGLES20();
         //Gdx.gl = gl20;
         //Gdx.gl20 = gl20;
 
         // setup libgdx
         //this.input = new IOSInput(this);
-        display = new IOSDisplay();
-        GameState.SetDisplay(display);
         
-        //this.graphics = new IOSGraphics(getBounds(null), scale, this, config, input, gl20);
+        ((IOSDisplay)display).plugin_.Initialize(GetBounds(null), scale, this, config, ((IOSGraphics)GameState.GetGameGraphics()).plugin_);
         //this.files = new IOSFiles();
         //this.audio = new IOSAudio(config);
         //this.net = new IOSNet(this);
@@ -162,16 +179,14 @@ public class IOSApplication
         {
             orientation = viewController.getInterfaceOrientation();
         }
-        // FIX ME: Change this when config is done.
-        else if (false)//(config.orientationLandscape == config.orientationPortrait) 
+        else if (config.Get_Libraries_Game_IOSConfiguration__landscapeSupported_() == config.Get_Libraries_Game_IOSConfiguration__portraitSupported_()) 
         {
             /*
              * if the app has orientation in any side then we can only check status bar orientation
              */
             orientation = uiApp.getStatusBarOrientation();
         }
-        // FIX ME: Change this when config is done.
-        else if (false)//(config.orientationLandscape) 
+        else if (config.Get_Libraries_Game_IOSConfiguration__landscapeSupported_()) 
         {
             // landscape is true and portrait is false
             orientation = UIInterfaceOrientation.LandscapeRight;
@@ -222,10 +237,9 @@ public class IOSApplication
         OALAudioSession.sharedInstance().forceEndInterruption();
         if (config.allowIpod) {
                 OALSimpleAudio.sharedInstance().setUseHardwareIfAvailable(false);
-        }
-        graphics.makeCurrent();
-        graphics.resume();
-        */
+        }*/
+        ((IOSDisplay)display).plugin_.MakeCurrent();
+        ((IOSDisplay)display).plugin_.Resume();
     }
     
     public void WillEnterForeground (UIApplication uiApp) 
@@ -241,17 +255,19 @@ public class IOSApplication
     {
         /*
         Gdx.app.debug("IOSApplication", "paused");
-        graphics.makeCurrent();
-        graphics.pause();
-        Gdx.gl.glFlush();
         */
+        ((IOSDisplay)display).plugin_.MakeCurrent();
+        ((IOSDisplay)display).plugin_.Pause();
+        ((IOSGraphics)GameState.GetGameGraphics()).plugin_.glFlush();
     }
 
     public void WillTerminate (UIApplication uiApp) 
     {
         /*
         Gdx.app.debug("IOSApplication", "disposed");
-        graphics.makeCurrent();
+        */
+        ((IOSDisplay)display).plugin_.MakeCurrent();
+        /*
         Array<LifecycleListener> listeners = lifecycleListeners;
         synchronized (listeners) {
                 for (LifecycleListener listener : listeners) {
@@ -259,7 +275,7 @@ public class IOSApplication
                 }
         }
         listener.dispose();
-        Gdx.gl.glFlush();
         */
+        ((IOSGraphics)GameState.GetGameGraphics()).plugin_.glFlush();
     }
 }

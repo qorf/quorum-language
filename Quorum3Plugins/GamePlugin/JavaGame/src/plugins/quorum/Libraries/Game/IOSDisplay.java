@@ -32,6 +32,7 @@ import org.robovm.apple.opengles.EAGLRenderingAPI;
 
 import plugins.quorum.Libraries.Game.libGDX.HWMachine;
 import plugins.quorum.Libraries.Game.libGDX.IOSDevice;
+import plugins.quorum.Libraries.Game.Graphics.IOSGraphics;
 import quorum.Libraries.Game.IOSConfiguration_;
 
 /**
@@ -140,7 +141,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     
     IOSApplication app;
     //IOSInput input;
-    //IOSGraphicsManager graphics;
+    IOSGraphics graphics;
     int width;
     int height;
     long lastFrameTime;
@@ -169,13 +170,13 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     
     boolean created = false;
     
-    public void Initialize(CGSize bounds, float scale, IOSApplication app, IOSConfiguration_ config/*, IOSInput input, IOSGraphicsManager graphics*/)
+    public void Initialize(CGSize bounds, float scale, IOSApplication app, IOSConfiguration_ config, /* IOSInput input,*/ IOSGraphics graphics)
     {
         this.config = config;
         width = (int)bounds.getWidth();
         height = (int)bounds.getHeight();
         //app.debug(tag, bounds.getWidth() + "x" + bounds.getHeight() + ", " + scale);
-        //this.graphics = graphics;
+        this.graphics = graphics;
         
         context = new EAGLContext(EAGLRenderingAPI.OpenGLES2);
         
@@ -400,11 +401,11 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         To deal with the issue, IOSGraphicsManager stores the last known data of
         the viewport so we can reset it.
         */
-        //graphics.glViewport(IOSGraphicsManager.x, IOSGraphicsManager.y, IOSGraphicsManager.width, IOSGraphicsManager.height);
+        graphics.glViewport(IOSGraphics.x, IOSGraphics.y, IOSGraphics.width, IOSGraphics.height);
         
         if (!created)
         {
-            //graphics.glViewport(0, 0, width, height);
+            graphics.glViewport(0, 0, width, height);
             app.game.CreateGame();
             //app.game.Resize(width, height);
             created = true;

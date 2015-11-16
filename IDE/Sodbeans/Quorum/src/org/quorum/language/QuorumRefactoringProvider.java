@@ -47,7 +47,7 @@ public class QuorumRefactoringProvider extends ActionsImplementationProvider {
     
     @Override
     public void doRename(Lookup lookup) {
-        
+
     }
 
     @Override

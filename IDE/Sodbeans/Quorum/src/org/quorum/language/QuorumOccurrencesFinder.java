@@ -18,10 +18,13 @@ import org.openide.util.Utilities;
 import quorum.Libraries.Containers.Blueprints.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.Location_;
+import quorum.Libraries.Language.Compile.Symbol.ActionCallResolution_;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
 import quorum.Libraries.Language.Compile.Symbol.Class_;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
+import quorum.Libraries.Language.Compile.Symbol.Type_;
 import quorum.Libraries.Language.Compile.Symbol.Variable_;
+import quorum.Libraries.System.File_;
 
 /**
  *
@@ -70,7 +73,9 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
         }
         
         SymbolTable_ table = quorumResult.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
-        Class_ clazz = table.GetClassInFile(lookup.getPath());
+        String path = lookup.getPath();
+        java.io.File ioFile = new java.io.File(path);
+        Class_ clazz = table.GetClassInFile(ioFile.getAbsolutePath());
         if(clazz == null) {
             highlighting = null;
             return;
@@ -82,7 +87,7 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
             return;
         }
         
-        boolean done = checkVariables(iterator);
+        boolean done = checkVariables(iterator, table, clazz.GetFile());
         
         if(!done) {
             Iterator_ actions = clazz.GetActions();
@@ -90,7 +95,53 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
                 Action_ next = (Action_) actions.Next();
                 if(caretPosition >= next.GetIndex() && caretPosition <= next.GetIndexEnd() + 1) {
                     Iterator_ locals = next.GetAllLocalVariables();
-                    done = checkVariables(locals);
+                    done = checkVariables(locals, table, clazz.GetFile());
+                    
+                    //not a variable, check if I'm clicked on the action name
+                    if(!done) {
+                        Location_ nameLocation = next.GetNameLocation();
+                        if(caretPosition >= nameLocation.GetIndex() && caretPosition <= nameLocation.GetIndexEnd() + 1) {
+                            OffsetRange callRange = new OffsetRange(nameLocation.GetIndex(), nameLocation.GetIndexEnd() + 1);
+                            highlighting.put(callRange, ColoringAttributes.MARK_OCCURRENCES);
+                            
+                            //now grab all the calls in this file and add them.
+                            Iterator_ callLocations = next.GetCallLocationIterator(clazz.GetFile());
+                            while(callLocations != null && callLocations.HasNext()) {
+                                Location_ callLoc = (Location_) callLocations.Next();
+                                OffsetRange callRange2 = new OffsetRange(callLoc.GetIndex(), callLoc.GetIndexEnd() + 1);
+                                highlighting.put(callRange2, ColoringAttributes.MARK_OCCURRENCES);
+                            }
+                            done = true;
+                        }
+                    }
+                    
+                    //check if I'm in an action call
+                    if(!done) {
+                        Iterator_ calls = next.GetActionCalls();
+                        while(calls.HasNext() && !done) {
+                            ActionCallResolution_ call = (ActionCallResolution_) calls.Next();
+                            Location_ loc = call.Get_Libraries_Language_Compile_Symbol_ActionCallResolution__location_();
+                            if(caretPosition >= loc.GetIndex() && caretPosition <= loc.GetIndexEnd() + 1) {
+                                Action_ resolved = call.Get_Libraries_Language_Compile_Symbol_ActionCallResolution__resolvedAction_();
+                                Iterator_ callLocations = resolved.GetCallLocationIterator(clazz.GetFile());
+                                while(callLocations != null && callLocations.HasNext()) {
+                                    Location_ callLoc = (Location_) callLocations.Next();
+                                    OffsetRange callRange = new OffsetRange(callLoc.GetIndex(), callLoc.GetIndexEnd() + 1);
+                                    highlighting.put(callRange, ColoringAttributes.MARK_OCCURRENCES);
+                                }
+                                
+                                //if the action is in this file, highlight its name
+                                Location_ nameLocation = resolved.GetNameLocation();
+                                if(nameLocation.GetFile().GetAbsolutePath().compareTo(clazz.GetFile().GetAbsolutePath())==0) {
+                                    OffsetRange callRange = new OffsetRange(nameLocation.GetIndex(), nameLocation.GetIndexEnd() + 1);
+                                    highlighting.put(callRange, ColoringAttributes.MARK_OCCURRENCES);
+                                }
+                                done = true;
+                            }
+                        }
+                    }
+                    
+                    
                 }
             }
         }
@@ -102,7 +153,7 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
         }
     }
     
-    public boolean checkVariables(Iterator_ iterator) {
+    public boolean checkVariables(Iterator_ iterator, SymbolTable_ table, File_ file) {
         boolean done = false;
         while(iterator.HasNext() && !done) {
             Variable_ next = (Variable_) iterator.Next();
@@ -111,6 +162,25 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
             boolean isIn = false;
             if(caretPosition >= index && caretPosition <= end + 1) {
                 isIn = true;
+            }
+            
+            Location_ typeLocation = next.GetTypeLocation();
+            if(typeLocation == null) {
+                int a = 54;
+            }
+            if(typeLocation != null && caretPosition >= typeLocation.GetIndex() && caretPosition <= typeLocation.GetIndexEnd() + 1) {
+                Type_ type = next.GetType();
+                String key = type.GetStaticKey();
+                Class_ clazz = table.GetClass(key);
+                if(clazz != null) {
+                    Iterator_ uses = clazz.GetUseLocationIterator(file);
+                    while(uses.HasNext()) {
+                        Location_ use = (Location_) uses.Next();
+                        OffsetRange useRange = new OffsetRange(use.GetIndex(), use.GetIndexEnd() + 1);
+                        highlighting.put(useRange, ColoringAttributes.MARK_OCCURRENCES);
+                    }
+                }
+                return true;
             }
             
             if(!isIn) {
@@ -127,9 +197,6 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
             
             if(isIn) {
                 done = true;
-                OffsetRange range = new OffsetRange(index, end + 1);
-                highlighting.put(range, ColoringAttributes.MARK_OCCURRENCES);
-                
                 //now create ranges for all of its uses
                 Iterator_ uses = next.GetUseLocations();
                 while(uses.HasNext()) {
