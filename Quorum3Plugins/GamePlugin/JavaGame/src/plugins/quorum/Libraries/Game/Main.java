@@ -16,10 +16,6 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        /*GameDisplay gd = new GameDisplay();
-        System.setProperty("org.lwjgl.librarypath", "/Users/alleew/NetbeansProjects/quorum-libgdx/QuorumRainDrop/native/macosx");
-        String library_path = System.getProperty("org.lwjgl.librarypath");
-        System.out.println(library_path);*/
     }
     
 }
