@@ -52,7 +52,9 @@ class IOSDisplay is GameDisplay
     This action sets vSync on or off for the GameDisplay. Due to the nature of
     the iOS platform, this action does nothing.
     */
-    blueprint action SetVSync(boolean vsync)
+    action SetVSync(boolean vsync)
+
+    end
 
     /*
     This action returns whether the GameDisplay is resizable or not. On iOS,
