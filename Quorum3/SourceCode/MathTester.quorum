@@ -70,6 +70,13 @@ class MathTester
         Vector3MultiplyBy3x4Matrix()
         Vector3Matrix4Multiply()
         Vector3Matrix3Multiply()
+        Vector3Rotate()
+        Vector3IsUnit()
+        Vector3IsZero()
+        Vector3IsOnLine()
+        Vector3IsCollinear()
+        Vector3IsPerpendicular()
+        Vector3HasDirection()
 
 //FAIL TESTS
         path = failPath
@@ -757,6 +764,94 @@ class MathTester
         files:Add(main)
         results:Add("The new vector is: [39.0, 49.0, 59.0]")
         results:Add("The new vector is: [13.0, 43.0, 73.0]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector3Rotate
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3Rotate.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [3.0, -2.121320343559643, 4.949747468305833]")
+        results:Add("The new vector is: [3.0, -2.121320343559643, 4.949747468305833]")
+        results:Add("The new vector is: [3.0, -2.121320343559643, 4.949747468305833]")
+        results:Add("The new vector is: [3.0, -2.121320343559643, 4.949747468305833]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector3IsUnit
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3IsUnit.quorum")
+        files:Add(main)
+        results:Add("The vector is a unit vector.")
+        results:Add("The vector is a unit vector.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector3IsZero
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3IsZero.quorum")
+        files:Add(main)
+        results:Add("The vector is the zero vector.")
+        results:Add("The vector is the zero vector.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector3IsOnLine
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3IsOnLine.quorum")
+        files:Add(main)
+        results:Add("The two vectors are on the same line.")
+        results:Add("The two vectors are on the same line.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector3IsCollinear
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3IsCollinear.quorum")
+        files:Add(main)
+        results:Add("The two vectors are collinear in the opposite direction")
+        results:Add("The two vectors are collinear in the opposite direction")
+        results:Add("The two vectors are collinear in the same direction")
+        results:Add("The two vectors are collinear in the same direction")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector3IsPerpendicular
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3IsPerpendicular.quorum")
+        files:Add(main)
+        results:Add("The two vectors are perpendicular.")
+        results:Add("The two vectors are perpendicular.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector3HasDirection
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3HasDirection.quorum")
+        files:Add(main)
+        results:Add("The two vectors have the same direction.")
+        results:Add("The two vectors have opposite directions.")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

@@ -1428,7 +1428,7 @@ class Vector3
     Quaternion quaternion
 
     vector:Set(3.0, 4.0, 7.0)
-    quaternion:Set(4.0, 3.0, 6,0, 6.0)
+    quaternion:Set(4.0, 3.0, 6.0, 6.0)
 
     vector:Multiply(quaternion)
 
@@ -1578,7 +1578,7 @@ class Vector3
     Vector3 vector
     vector:Set(3.0, 2.0, 5.0)
     
-    vector:Rotate(math:pi / 4, 1, 0, 0)
+    vector:RotateRadians(math:pi / 4, 1, 0, 0)
     
     number newX = vector:GetX()
     number newY = vector:GetY()
@@ -1652,7 +1652,7 @@ class Vector3
     vector:Set(3.0, 2.0, 5.0)
     axis:Set(1.0, 0.0, 0.0)
     
-    vector:Rotate(axis, math:pi / 4)
+    vector:RotateRadians(axis, math:pi / 4)
 
     number newX = vector:GetX()
     number newY = vector:GetY()
@@ -2168,6 +2168,7 @@ class Vector3
     number newZ = vector:GetZ()
 
     output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
     */
     action LinearInterpolation(Vector3 target, number alpha) returns Vector3
         x = x + alpha * (target:GetX() - x)
@@ -2207,6 +2208,7 @@ class Vector3
     number newZ = vector:GetZ()
 
     output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
     */
     action SphericalLinearInterpolation(Vector3 target, number alpha) returns Vector3
         constant number dotProduct = DotProduct(target)
@@ -2226,9 +2228,9 @@ class Vector3
         number dl = 0
 
         if l2 < 0.0001
-            dl = 1.0
+            dl = st * 1.0
         else
-            dl = 1.0 / math:SquareRoot(l2)
+            dl = st * 1.0 / math:SquareRoot(l2)
         end
 
         return Scale(math:Cosine(theta)):Add(tx * dl, ty * dl, tz * dl):Normalize()
