@@ -17,6 +17,10 @@ class NumberToIntegerCast is ExplicitCastOpcode
     end
     
     action WriteJavaScript returns text
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            return "Math.floor(" + opcodeToCast:WriteJavaScript() + ")"
+        end
         return ""
     end
 

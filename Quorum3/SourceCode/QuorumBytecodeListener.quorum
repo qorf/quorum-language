@@ -1070,6 +1070,9 @@ class QuorumBytecodeListener is QuorumSourceListener
             Type value = result:result
             QuorumOpcode qop = result:GetQuorumOpcode()
             AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+            if currentBlock = undefined
+                assignment:SetIsInFieldBlock(true)
+            end
             assignment:SetLocation(context:GetLocation())
             assignment:SetClass(currentClass)
             assignment:SetRightHandSide(right)
@@ -1203,9 +1206,8 @@ class QuorumBytecodeListener is QuorumSourceListener
         Type value = result:result
         QuorumOpcode qop = result:GetQuorumOpcode()
         AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
-
-        if assignment = undefined
-            a = 5
+        if currentBlock = undefined
+            assignment:SetIsInFieldBlock(true)
         end
 
         assignment:SetLocation(context:GetLocation())
@@ -1300,6 +1302,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         Type value = result:result
         QuorumOpcode qop = result:GetQuorumOpcode()
         AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+        if currentBlock = undefined
+            assignment:SetIsInFieldBlock(true)
+        end
         assignment:SetLocation(context:GetLocation())
         assignment:SetClass(currentClass)
         assignment:SetRightHandSide(right)
@@ -1485,6 +1490,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         integer location = variable:GetBytecodeLocation()
         Type value = result:result
         AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+        if currentBlock = undefined
+            assignment:SetIsInFieldBlock(true)
+        end
         assignment:SetLocation(context:GetLocation())
         assignment:SetClass(currentClass)
         assignment:SetRightHandSide(right)
@@ -1585,6 +1593,9 @@ class QuorumBytecodeListener is QuorumSourceListener
             integer location = variable:GetBytecodeLocation()
             Type value = result:result
             AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
+            if currentBlock = undefined
+                assignment:SetIsInFieldBlock(true)
+            end
             assignment:SetLocation(context:GetLocation())
             assignment:SetClass(currentClass)
             assignment:SetRightHandSide(right)
@@ -1660,6 +1671,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         Iterator<ActionCallOpcode> it = stack:GetIterator()
         repeat while it:HasNext()
             ActionCallOpcode op = it:Next()
+            if currentBlock = undefined
+                op:SetIsInFieldBlock(true)
+            end
             ops:Add(op)
         end
 
@@ -1855,6 +1869,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         Iterator<ActionCallOpcode> it = stack:GetIterator()
         repeat while it:HasNext()
             ActionCallOpcode op = it:Next()
+            if currentBlock = undefined
+                op:SetIsInFieldBlock(true)
+            end
             ops:Add(op)
         end
 
@@ -1880,6 +1897,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         Iterator<ActionCallOpcode> it = stack:GetIterator()
         repeat while it:HasNext()
             ActionCallOpcode op = it:Next()
+            if currentBlock = undefined
+                op:SetIsInFieldBlock(true)
+            end
             ops:Add(op)
         end
 
@@ -2033,11 +2053,10 @@ class QuorumBytecodeListener is QuorumSourceListener
         Iterator<ActionCallOpcode> it = stack:GetIterator()
         repeat while it:HasNext()
             ActionCallOpcode op = it:Next()
+            if currentBlock = undefined
+                op:SetIsInFieldBlock(true)
+            end
             ops:Add(op)
-        end
-
-        if ops:GetType() = undefined
-            a = 5
         end
 
         opcodeStack:Push(ops)

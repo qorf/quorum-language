@@ -36,7 +36,13 @@ class CreateObjectOpcode is QuorumOpcode
     action WriteJavaScript returns text
         EOL = ""
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-        text result = "var " + variable:GetName() + " = new " + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+        text result = ""
+        if variable:IsField()
+            result = "this." + variable:GetName() + " = new " + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+        else
+            result = "var " + variable:GetName() + " = new " + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+        end
+        
         return result
     end
 

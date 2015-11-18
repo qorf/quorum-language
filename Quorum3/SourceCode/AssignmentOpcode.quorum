@@ -18,6 +18,15 @@ class AssignmentOpcode is QuorumOpcode
     Class fieldHolder = undefined
     Class parentWithField = undefined
 
+    boolean isInFieldBlock = false
+    action IsInFieldBlock returns boolean
+        return isInFieldBlock
+    end
+
+    action SetIsInFieldBlock(boolean block)
+        isInFieldBlock = block
+    end
+
     action GetImplicitCast returns QuorumOpcode
         return implicitCast
     end
@@ -220,7 +229,11 @@ class AssignmentOpcode is QuorumOpcode
         text result = ""
 
         if variable:IsField()
-            result = result + "this." + variable:GetName()
+            //if isInFieldBlock
+            //    result = result + variable:GetName()
+            //else
+                result = result + "this_." + variable:GetName()
+            //end
         else
             result = result + variable:GetName() 
         end
