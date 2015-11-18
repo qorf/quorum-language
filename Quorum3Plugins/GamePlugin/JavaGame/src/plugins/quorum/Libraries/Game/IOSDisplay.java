@@ -33,6 +33,7 @@ import org.robovm.apple.opengles.EAGLRenderingAPI;
 import plugins.quorum.Libraries.Game.libGDX.HWMachine;
 import plugins.quorum.Libraries.Game.libGDX.IOSDevice;
 import plugins.quorum.Libraries.Game.Graphics.IOSGraphics;
+import quorum.Libraries.Game.Graphics.Painter;
 import quorum.Libraries.Game.IOSConfiguration_;
 
 /**
@@ -41,7 +42,7 @@ import quorum.Libraries.Game.IOSConfiguration_;
  */
 public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewControllerDelegate
 {
-    java.lang.Object me_ = null;
+    public java.lang.Object me_ = null;
     
     // Is this necessary? Original libgdx code below:
     // private static final String tag = "IOSGraphics";
@@ -214,7 +215,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
             @Override
             public void draw(CGRect rect)
             {
-                //IOSDisplay.this.draw(this, rect);
+                IOSDisplay.this.draw(this, rect);
             }
         };
         
@@ -406,6 +407,9 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         if (!created)
         {
             graphics.glViewport(0, 0, width, height);
+            // Create the game's Painter.
+            Painter painter = new Painter();
+            ((quorum.Libraries.Game.IOSApplication)GameState.GetApp()).plugin_.game.Set_Libraries_Game_Game__batch_(painter);
             app.game.CreateGame();
             //app.game.Resize(width, height);
             created = true;
