@@ -6,10 +6,8 @@
 package org.quorum.language;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import org.netbeans.modules.csl.api.ColoringAttributes;
 import org.netbeans.modules.csl.api.InstantRenamer;
 import org.netbeans.modules.csl.api.OffsetRange;
 import org.netbeans.modules.csl.spi.ParserResult;
@@ -19,11 +17,9 @@ import org.openide.util.Utilities;
 import quorum.Libraries.Containers.Blueprints.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.Location_;
-import quorum.Libraries.Language.Compile.Symbol.ActionCallResolution_;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
 import quorum.Libraries.Language.Compile.Symbol.Class_;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
-import quorum.Libraries.Language.Compile.Symbol.Type_;
 import quorum.Libraries.Language.Compile.Symbol.Variable_;
 import quorum.Libraries.System.File_;
 
