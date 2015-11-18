@@ -156,7 +156,7 @@ public class ShaderProgram implements Disposable {
 			addManagedShader(GameState.GetApp(), this);
 		}
                 if (!isCompiled())
-                    throw new GameRuntimeError("Failed to compile shader!");
+                    throw new GameRuntimeError("Failed to compile shader: " + getLog());
 	}
 
 	public ShaderProgram (GameFile vertexShader, GameFile fragmentShader) {
@@ -198,12 +198,13 @@ public class ShaderProgram implements Disposable {
 
 		int compiled = intbuf.get(0);
 		if (compiled == 0) {
-// gl.glGetShaderiv(shader, GL20.GL_INFO_LOG_LENGTH, intbuf);
-// int infoLogLength = intbuf.get(0);
-// if (infoLogLength > 1) {
+                GameState.nativeGraphics.glGetProgramiv(program, GraphicsManager.GL_INFO_LOG_LENGTH, intbuf);
+                int infoLogLength = intbuf.get(0);
+                if (infoLogLength > 1) {
 			String infoLog = gl.glGetShaderInfoLog(shader);
 			log += infoLog;
-// }
+                        log += "Version is: " + GameState.nativeGraphics.glGetString(GraphicsManager.GL_VERSION);
+                    }
 			return -1;
 		}
 
@@ -226,11 +227,11 @@ public class ShaderProgram implements Disposable {
 		gl.glGetProgramiv(program, GraphicsManager.GL_LINK_STATUS, intbuf);
 		int linked = intbuf.get(0);
 		if (linked == 0) {
-// Gdx.gl20.glGetProgramiv(program, GL20.GL_INFO_LOG_LENGTH, intbuf);
-// int infoLogLength = intbuf.get(0);
-// if (infoLogLength > 1) {
+                GameState.nativeGraphics.glGetProgramiv(program, GraphicsManager.GL_INFO_LOG_LENGTH, intbuf);
+                int infoLogLength = intbuf.get(0);
+                if (infoLogLength > 1) {
 			log = GameState.nativeGraphics.glGetProgramInfoLog(program);
-// }
+                    }
 			return -1;
 		}
 
@@ -243,11 +244,11 @@ public class ShaderProgram implements Disposable {
 	 *         have an effect. */
 	public String getLog () {
 		if (isCompiled) {
-// Gdx.gl20.glGetProgramiv(program, GL20.GL_INFO_LOG_LENGTH, intbuf);
-// int infoLogLength = intbuf.get(0);
-// if (infoLogLength > 1) {
+                    GameState.nativeGraphics.glGetProgramiv(program, GraphicsManager.GL_INFO_LOG_LENGTH, intbuf);
+                    int infoLogLength = intbuf.get(0);
+                    if (infoLogLength > 1) {
 			log = GameState.nativeGraphics.glGetProgramInfoLog(program);
-// }
+                    }
 			return log;
 		} else {
 			return log;

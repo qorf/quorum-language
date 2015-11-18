@@ -11,7 +11,7 @@ import java.nio.IntBuffer;
 
 public class IOSGraphics implements GraphicsManager
 {
-    java.lang.Object me_ = null;
+    public java.lang.Object me_ = null;
     
     /* Instead of doing it via constructor, going to call init() manually,
     to avoid having a sensitive method called by creation of a plugin class.

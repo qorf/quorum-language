@@ -8,11 +8,13 @@ package plugins.quorum.Libraries.Game;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.robovm.apple.foundation.Foundation;
+import org.robovm.apple.foundation.NSString;
 
 /**
- *
- * @author alleew
- */
+*
+* @author alleew
+*/
 public class Game 
 {
     static
@@ -20,26 +22,36 @@ public class Game
         try 
         {
             String os = System.getProperty("os.name");
-            
-            java.io.File file = new java.io.File(Game.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-            String runLocation = file.getParentFile().getAbsolutePath();
-            String lwjgl = runLocation + "/jni";
-            System.setProperty("org.lwjgl.librarypath", lwjgl);
-            
+
             String nativeFile;
             if (os.contains("Mac OS X") || os.contains("Linux"))
+            {
+                java.io.File file = new java.io.File(Game.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                String runLocation = file.getParentFile().getAbsolutePath();
+                String lwjgl = runLocation + "/jni";
+                System.setProperty("org.lwjgl.librarypath", lwjgl);
+                
                 nativeFile = runLocation + "/jni/libGameEngineCPlugins.so";
+            }
             else if (os.contains("Windows"))
+            {
+                java.io.File file = new java.io.File(Game.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                String runLocation = file.getParentFile().getAbsolutePath();
+                String lwjgl = runLocation + "/jni";
+                System.setProperty("org.lwjgl.librarypath", lwjgl);
+                
                 if (System.getProperty("os.arch").contains("x86"))
                     nativeFile = runLocation + "\\jni\\libGameEngineCPlugins32.dll";
                 else
                     nativeFile = runLocation + "\\jni\\libGameEngineCPlugins64.dll";
+            }
             else
-                //throw new GameRuntimeError("This operating system is not supported for games!");
+            {
                 nativeFile = null;
-                
+            } 
             if (nativeFile != null)
                 GameState.SetNativePath(nativeFile);
+            
             GameState.SetOperatingSystem(System.getProperty("os.name"));
         } 
         catch (URISyntaxException ex) 

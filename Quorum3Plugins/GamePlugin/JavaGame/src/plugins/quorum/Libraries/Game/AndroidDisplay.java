@@ -18,13 +18,14 @@ import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.View;
 
+import plugins.quorum.Libraries.Game.libGDX.WindowedMean;
 import quorum.Libraries.Game.AndroidConfiguration;
 
 /**
  *
  * @author alleew
  */
-public class AndroidDisplay// implements Renderer
+public class AndroidDisplay implements Renderer
 {
     java.lang.Object me_ = null;
     
@@ -50,7 +51,7 @@ public class AndroidDisplay// implements Renderer
 	protected long frameId = -1;
 	protected int frames = 0;
 	protected int fps;
-	//protected WindowedMean mean = new WindowedMean(5);
+	protected WindowedMean mean = new WindowedMean(5);
 
 	volatile boolean created = false;
 	volatile boolean running = false;
@@ -251,7 +252,7 @@ public class AndroidDisplay// implements Renderer
         Display display = app.getWindowManager().getDefaultDisplay();
         this.width = display.getWidth();
         this.height = display.getHeight();
-        //this.mean = new WindowedMean(5);
+        this.mean = new WindowedMean(5);
         this.lastFrameTime = System.nanoTime();
 
         gl.glViewport(0, 0, this.width, this.height);
@@ -299,59 +300,309 @@ public class AndroidDisplay// implements Renderer
         }
     }
 
-	void Pause()
+    void Pause()
+    {
+        synchronized (synch) 
         {
-            synchronized (synch) 
+            if (!running)
+                return;
+            running = false;
+            pause = true;
+            while (pause) 
             {
-                if (!running)
-                    return;
-                running = false;
-                pause = true;
-                while (pause) 
+                try 
                 {
-                    try 
+                    // TODO: fix deadlock race condition with quick resume/pause.
+                    // Temporary workaround:
+                    // Android ANR time is 5 seconds, so wait up to 4 seconds before assuming
+                    // deadlock and killing process. This can easily be triggered by opening the
+                    // Recent Apps list and then double-tapping the Recent Apps button with
+                    // ~500ms between taps.
+                    synch.wait(4000);
+                    if (pause) 
                     {
-                        // TODO: fix deadlock race condition with quick resume/pause.
-                        // Temporary workaround:
-                        // Android ANR time is 5 seconds, so wait up to 4 seconds before assuming
-                        // deadlock and killing process. This can easily be triggered by opening the
-                        // Recent Apps list and then double-tapping the Recent Apps button with
-                        // ~500ms between taps.
-                        synch.wait(4000);
-                        if (pause) 
-                        {
-                            // pause will never go false if onDrawFrame is never called by the GLThread
-                            // when entering this method, we MUST enforce continuous rendering
-                            //Gdx.app.error(LOG_TAG, "waiting for pause synchronization took too long; assuming deadlock and killing");
-                            android.os.Process.killProcess(android.os.Process.myPid());
-                        }
-                    }
-                    catch (InterruptedException ignored) 
-                    {
-                        //Gdx.app.log(LOG_TAG, "waiting for pause synchronization failed!");
+                        // pause will never go false if onDrawFrame is never called by the GLThread
+                        // when entering this method, we MUST enforce continuous rendering
+                        //Gdx.app.error(LOG_TAG, "waiting for pause synchronization took too long; assuming deadlock and killing");
+                        android.os.Process.killProcess(android.os.Process.myPid());
                     }
                 }
-            }
-	}
-
-	void Destroy() 
-        {
-            synchronized (synch) 
-            {
-                running = false;
-                destroy = true;
-
-                while (destroy) 
+                catch (InterruptedException ignored) 
                 {
-                    try 
-                    {
-                        synch.wait();
-                    }
-                    catch (InterruptedException ex) 
-                    {
-                        //Gdx.app.log(LOG_TAG, "waiting for destroy synchronization failed!");
-                    }
+                    //Gdx.app.log(LOG_TAG, "waiting for pause synchronization failed!");
                 }
             }
-	}
+        }
+    }
+
+    void Destroy() 
+    {
+        synchronized (synch) 
+        {
+            running = false;
+            destroy = true;
+
+            while (destroy) 
+            {
+                try 
+                {
+                    synch.wait();
+                }
+                catch (InterruptedException ex) 
+                {
+                    //Gdx.app.log(LOG_TAG, "waiting for destroy synchronization failed!");
+                }
+            }
+        }
+    }
+    
+    @Override
+    public void onDrawFrame(javax.microedition.khronos.opengles.GL10 gl)
+    {
+        long time = System.nanoTime();
+        deltaTime = (time - lastFrameTime) / 1000000000.0f;
+        lastFrameTime = time;
+        
+        /* After pause deltaTime can have a somewhat huge value that 
+        destabilizes the mean, so we ignore it. */
+        if (!resume)
+            mean.addValue(deltaTime);
+        else
+            deltaTime = 0;
+        
+        boolean lrunning = false;
+        boolean lpause = false;
+        boolean ldestroy = false;
+        boolean lresume = false;
+        
+        synchronized(synch)
+        {
+            lrunning = running;
+            lpause = pause;
+            ldestroy = destroy;
+            lresume = resume;
+            
+            if (resume)
+                resume = false;
+            
+            if (pause)
+            {
+                pause = false;
+                synch.notifyAll();
+            }
+            
+            if (destroy)
+            {
+                destroy = false;
+                synch.notifyAll();
+            }
+        }
+        
+        if (lresume)
+        {
+            /*
+            Array<LifecycleListener> listeners = app.getLifecycleListeners();
+            synchronized (listeners) {
+                    for (LifecycleListener listener : listeners) {
+                            listener.resume();
+                    }
+            }
+            app.getApplicationListener().resume();
+            Gdx.app.log(LOG_TAG, "resumed");
+            */
+        }
+        
+        if (lrunning)
+        {
+            /*
+            synchronized (app.getRunnables()) 
+            {
+                app.getExecutedRunnables().clear();
+                app.getExecutedRunnables().addAll(app.getRunnables());
+                app.getRunnables().clear();
+            }
+
+            for (int i = 0; i < app.getExecutedRunnables().size; i++) 
+            {
+                try 
+                {
+                    app.getExecutedRunnables().get(i).run();
+                }
+                catch (Throwable t) 
+                {
+                    t.printStackTrace();
+                }
+            }
+            */
+            //app.getInput().processEvents();
+            frameId++;
+            app.GetGame().Update(GetDeltaTime());
+        }
+        
+        if (lpause)
+        {
+            /*
+            Array<LifecycleListener> listeners = app.getLifecycleListeners();
+            synchronized (listeners) {
+                    for (LifecycleListener listener : listeners) {
+                            listener.pause();
+                    }
+            }
+            app.getApplicationListener().pause();
+            Gdx.app.log(LOG_TAG, "paused");
+            */
+        }
+        
+        if (ldestroy)
+        {
+            /*
+            Array<LifecycleListener> listeners = app.getLifecycleListeners();
+            synchronized (listeners) {
+                    for (LifecycleListener listener : listeners) {
+                            listener.dispose();
+                    }
+            }
+            app.getApplicationListener().dispose();
+            Gdx.app.log(LOG_TAG, "destroyed");
+            */
+        }
+        
+        if (time - frameStart > 1000000000) 
+        {
+            fps = frames;
+            frames = 0;
+            frameStart = time;
+        }
+        frames++;
+    }
+    
+    public long GetFrameID()
+    {
+            return frameId;
+    }
+
+    public double GetDeltaTime() 
+    {
+        return mean.getMean() == 0 ? deltaTime : mean.getMean();
+    }
+
+    public float GetRawDeltaTime() 
+    {
+        return deltaTime;
+    }
+
+    public int GetFramesPerSecond() 
+    {
+        return fps;
+    }
+
+    /*
+    public void ClearManagedCaches () 
+    {
+            Mesh.clearAllMeshes(app);
+            Texture.clearAllTextures(app);
+            Cubemap.clearAllCubemaps(app);
+            ShaderProgram.clearAllShaderPrograms(app);
+            FrameBuffer.clearAllFrameBuffers(app);
+
+            logManagedCachesStatus();
+    }
+
+    protected void logManagedCachesStatus () {
+            Gdx.app.log(LOG_TAG, Mesh.getManagedStatus());
+            Gdx.app.log(LOG_TAG, Texture.getManagedStatus());
+            Gdx.app.log(LOG_TAG, Cubemap.getManagedStatus());
+            Gdx.app.log(LOG_TAG, ShaderProgram.getManagedStatus());
+            Gdx.app.log(LOG_TAG, FrameBuffer.getManagedStatus());
+    }
+    */
+
+    public View GetView() 
+    {
+        return view;
+    }
+
+    public float GetPPIX() 
+    {
+        return ppiX;
+    }
+
+    public float GetPPIY() 
+    {
+        return ppiY;
+    }
+    
+    public float GetPPCX() 
+    {
+        return ppcX;
+    }
+
+    public float GetPPCY() 
+    {
+        return ppcY;
+    }
+
+    public float GetDensity() 
+    {
+        return density;
+    }
+
+    public boolean SupportsDisplayModeChange() 
+    {
+        return false;
+    }
+
+    /*
+    public BufferFormat getBufferFormat () {
+            return bufferFormat;
+    }
+    */
+
+    public boolean SupportsExtension(String extension) 
+    {
+        if (extensions == null)
+            ;//extensions = Gdx.gl.glGetString(GL10.GL_EXTENSIONS);
+        return extensions.contains(extension);
+    }
+
+    public void SetContinuousRendering(boolean isContinuous) 
+    {
+        if (view != null) 
+        {
+            // ignore setContinuousRendering(false) while pausing
+            this.isContinuous = enforceContinuousRendering || isContinuous;
+            int renderMode = this.isContinuous ? GLSurfaceView.RENDERMODE_CONTINUOUSLY : GLSurfaceView.RENDERMODE_WHEN_DIRTY;
+            /*
+            if (view instanceof GLSurfaceViewAPI18)
+                ((GLSurfaceViewAPI18)view).setRenderMode(renderMode);
+            if (view instanceof GLSurfaceView)
+                ((GLSurfaceView)view).setRenderMode(renderMode);
+            */
+            mean.clear();
+        }
+    }
+
+    public boolean IsContinuousRendering() 
+    {
+        return isContinuous;
+    }
+
+    public void RequestRendering() 
+    {
+        if (view != null) 
+        {
+            /*
+            if (view instanceof GLSurfaceViewAPI18)
+                ((GLSurfaceViewAPI18)view).requestRender();
+            if (view instanceof GLSurfaceView)
+                ((GLSurfaceView)view).requestRender();
+            */
+        }
+    }
+
+    public boolean IsFullscreen() 
+    {
+        return true;
+    }
+
 }

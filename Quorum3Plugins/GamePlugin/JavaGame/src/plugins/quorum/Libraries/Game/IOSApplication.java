@@ -11,6 +11,7 @@ import quorum.Libraries.Game.IOSConfiguration;
 import quorum.Libraries.Game.IOSDisplay_;
 import quorum.Libraries.Game.IOSDisplay;
 import quorum.Libraries.Game.Graphics.IOSGraphics;
+import quorum.Libraries.Game.Graphics.Painter;
 
 import org.robovm.apple.coregraphics.CGSize;
 import org.robovm.apple.uikit.UIApplication;
@@ -28,10 +29,10 @@ import org.robovm.apple.uikit.UIInterfaceOrientation;
  */
 public class IOSApplication 
 {
-    java.lang.Object me_ = null;
+    public java.lang.Object me_ = null;
     
     // Reference to the game so we can call its actions.
-    Game_ game;
+    public Game_ game;
     
     UIApplication uiApp;
     UIWindow uiWindow;
@@ -69,7 +70,6 @@ public class IOSApplication
         
         this.uiApp = uiApp;
         
-        // Eventually, this line should use the configuration, as in the commented line below.
         UIApplication.getSharedApplication().setIdleTimerDisabled(config.Get_Libraries_Game_IOSConfiguration__preventScreenDimming_());
         
         //Gdx.app.debug("IOSApplication", "iOS version: " + UIDevice.getCurrentDevice().getSystemVersion());
@@ -122,9 +122,6 @@ public class IOSApplication
         }
         
         plugins.quorum.Libraries.Game.Graphics.IOSGraphics.init();
-        //GL20 gl20 = new IOSGLES20();
-        //Gdx.gl = gl20;
-        //Gdx.gl20 = gl20;
 
         // setup libgdx
         //this.input = new IOSInput(this);
@@ -143,9 +140,10 @@ public class IOSApplication
         //this.input.setupPeripherals();
 
         this.uiWindow = new UIWindow(UIScreen.getMainScreen().getBounds());
-        //this.uiWindow.setRootViewController(this.graphics.viewController);
+        this.uiWindow.setRootViewController(((IOSDisplay)display).plugin_.viewController);
         this.uiWindow.makeKeyAndVisible();
         //Gdx.app.debug("IOSApplication", "created");
+        
         return true;
     }
     
