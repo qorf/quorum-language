@@ -174,10 +174,12 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
                 Class_ clazz = table.GetClass(key);
                 if(clazz != null) {
                     Iterator_ uses = clazz.GetUseLocationIterator(file);
-                    while(uses.HasNext()) {
-                        Location_ use = (Location_) uses.Next();
-                        OffsetRange useRange = new OffsetRange(use.GetIndex(), use.GetIndexEnd() + 1);
-                        highlighting.put(useRange, ColoringAttributes.MARK_OCCURRENCES);
+                    if(uses != null) {
+                        while(uses.HasNext()) {
+                            Location_ use = (Location_) uses.Next();
+                            OffsetRange useRange = new OffsetRange(use.GetIndex(), use.GetIndexEnd() + 1);
+                            highlighting.put(useRange, ColoringAttributes.MARK_OCCURRENCES);
+                        }
                     }
                 }
                 return true;
