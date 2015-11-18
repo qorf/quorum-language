@@ -68,6 +68,14 @@ class Game
     private List<Item> collisionList
     private List<CollisionEvent> currentCollisions
 
+    /*
+    Current codes:
+    1 = AndroidApplication
+    2 = DesktopApplication
+    3 = IOSApplication
+    */
+    private integer applicationType = -1
+
     on create
         Panel panel
         panel:SetName("Default Active Panel")
@@ -213,7 +221,10 @@ class Game
     end
 
     action ContinueGame
-        ProcessInputEvents()
+        // Only test for mouse/keyboard input on DesktopApplication.
+        if applicationType = 2
+            ProcessInputEvents()
+        end
         UpdateAll()
         Update(GetSecondsBetweenFrames())
         TestForCollisions()
@@ -541,6 +552,12 @@ class Game
     never need to use this action directly.
     */
     private action ProcessInputEvents
+        
+        // If not a DesktopApplication, don't attempt to check mouse/keyboard.
+        if applicationType not= 2
+            return now
+        end
+
         List<MouseEvent> mouseEvents = mouseProcessor:GetCurrentEvents()
         MouseEvent mouseEvent = undefined
         repeat mouseEvents:GetSize() times
@@ -1022,16 +1039,16 @@ class Game
         3 = IOSApplication
         */
 
-        integer type = SelectApplicationTypeNative()
-        if type = 1
+        applicationType = SelectApplicationTypeNative()
+        if applicationType = 1
             AndroidApplication app
             return app
         end
-        if type = 2
+        if applicationType = 2
             DesktopApplication app
             return app
         end
-        if type = 3
+        if applicationType = 3
             IOSApplication app
             return app
         end

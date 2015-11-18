@@ -4,7 +4,6 @@ use Libraries.Containers.Array
 use Libraries.System.DateTime
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
-use Libraries.Game.Graphics.Painter
 
 /*
     This is an internal class used by the Game class to manage several resources
@@ -42,15 +41,6 @@ class Application
 		Gdx.input = input;
 		Gdx.net = net;
         */
-
-        // This has moved into GameDisplay:SetupDisplay().
-        //display:SetVSync(config:vSyncEnabled)
-
-        Painter tempBatch
-        
-        // Necessary to use temporary variable to get around chaining bug
-        Game tempGame = game
-        tempGame:batch = tempBatch
     end
 
     /*
