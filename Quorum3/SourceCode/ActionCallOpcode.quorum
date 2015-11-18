@@ -442,7 +442,11 @@ class ActionCallOpcode is QuorumOpcode
 
         else
             if field:IsField()
-                result = result + "this." + field:GetName()
+                if isChainedCall
+                    result = result + "." + field:GetName()
+                else
+                    result = result + "this." + field:GetName()
+                end
             else
                 result = result + field:GetName()
             end

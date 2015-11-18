@@ -309,9 +309,9 @@ class Main is WebResponder
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
-        main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
-        //main:SetPath("Library/Tests/Actions/Pass/Factorial.quorum")
-        main:SetPath("main.quorum")
+        //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
+        main:SetPath("Library/Tests/Math/Pass/RoundDownToDecimal.quorum")
+        //main:SetPath("main.quorum")
 
         File class2
         class2:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
@@ -328,15 +328,14 @@ class Main is WebResponder
         Array<File> files
 
         files:Add(main)
-        files:Add(class2)
+        //files:Add(class2)
         //files:Add(class3)
         //files:Add(class4)
         //files:Add(class5)
 
         //compiler:SetOutputSpeech(false) //don't speak while in test mode
-        //compiler:SetOutputType(compiler:DOCUMENT)
+        compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:SetMain(main)
-        //compiler:CompileSingle("a = b")
         compiler:Compile(files)
 
         CodeCompletionRequest request

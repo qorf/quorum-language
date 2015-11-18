@@ -1148,10 +1148,36 @@ class Compiler
                     Class mainClazz = me:GetMainClass()
                     text mainClazzName = mainClazz:GetStaticKey()
                     text clazzName = clazz:GetStaticKey()
-                    if clazzName = mainClazzName //keep it simple in the first version.
+                    if clazzName = mainClazzName or clazzName = "Libraries.Compute.Math"
                         result = result + code:WriteJavaScript()
+
+                        //check if this class has a plugin. If it does, include it.
+                        if clazz:HasSystemAction()
+                            File folder = GetStandardLibraryFolder() 
+                            path = folder:GetPath() + "/Plugins/javascript/"
+                            
+                            key = clazz:GetStaticKey()
+                            Array<text> keys = key:Split("\.")
+                            i = 0
+                            repeat keys:GetSize() times
+                                newKey = keys:Get(i)
+                                if i = keys:GetSize() - 1
+                                    path = path + newKey + ".js"
+                                else
+                                    path = path + newKey + "/"
+                                end
+                                i = i + 1
+                            end
+                            File location
+                            location:SetWorkingDirectory(folder:GetWorkingDirectory())
+                            location:SetPath(path)
+                            if location:Exists() 
+                                value = location:Read()
+                                result = result + value + value:GetCarriageReturn() + value:GetLineFeed()
+                            end
+
+                        end
                     end
-                    a = 5
                 end
                 convertedJavaScript = result
             elseif currentOutputType = DOCUMENT

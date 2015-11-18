@@ -186,7 +186,7 @@ class ActionOpcode is QuorumOpcode
 
     action WriteJavaScript returns text
         text result = "this." + method:ConvertActionToJavaScriptName() + " = function "  + "("
-
+        EOL = result:GetCarriageReturn() + result:GetLineFeed()
         Iterator<Variable> parameters = method:GetParameterIterator()
         integer position = 1
         repeat while parameters:HasNext()
@@ -206,6 +206,20 @@ class ActionOpcode is QuorumOpcode
             result = result + opcode:WriteJavaScript()
         end
 
+        if method:IsSystem() //write to a Javascript plugin
+            result = result + "return " + clazz:GetPluginName() + "." + method:ConvertActionToJavaScriptName() 
+                + "("
+            parameters = method:GetParameterIterator()
+            repeat while parameters:HasNext()
+                Variable param = parameters:Next()
+                result = result + param:GetName()
+                if parameters:HasNext()
+                    result = result + ", "
+                end
+            end
+
+            result = result + ");" + EOL
+        end
         result = result + "};
 
 "

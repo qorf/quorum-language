@@ -1006,6 +1006,12 @@ class ClassOpcode is QuorumOpcode
         convertedSource = convertedSource + EOL + "function "
             + clazz:ConvertStaticKeyToUnderScore() + "() {" + EOL
 
+        if clazz:HasSystemAction() //this has a plugin, so instantiate it.
+            //var plugin_ = new plugins_quorum_Libraries_Compute_Math_();
+            convertedSource = convertedSource + "var " + clazz:GetPluginName() + 
+                " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+        end
+
         Iterator<ActionOpcode> actionIterator = actions:GetIterator()
         repeat while actionIterator:HasNext()
             ActionOpcode act = actionIterator:Next()

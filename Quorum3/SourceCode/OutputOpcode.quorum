@@ -49,8 +49,19 @@ class OutputOpcode is QuorumOpcode
         quote = EOL:GetDoubleQuote()
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
         opcodeResult = opcode:WriteJavaScript()
-        JSOutput = OUTPUT_VARIABLE + " += " + opcodeResult + " + " + quote + "<br />" + quote + ";" + EOL
-        return JSOutput
+        text result = ""
+        Type theReturn = opcode:GetType()
+        //due to Javascript's defaults, we need to change the behavior under these conditions
+        if theReturn:IsNumber()
+            text illegal = "illegal_"
+            result = result + illegal + " = "+ opcodeResult + ";" + EOL
+            result = result + OUTPUT_VARIABLE + " += (" + illegal + " % 1 == 0 ? " 
+                + illegal + ".toFixed(1) : " + illegal 
+                + ") + " + quote + "<br />" + quote + ";" + EOL
+        else 
+            result = OUTPUT_VARIABLE + " += " + opcodeResult + " + " + quote + "<br />" + quote + ";" + EOL
+        end
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode
