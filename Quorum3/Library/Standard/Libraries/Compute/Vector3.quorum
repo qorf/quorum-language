@@ -1452,6 +1452,45 @@ class Vector3
     
     Attribute: Returns The vector after projection
 
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+    use Libraries.Compute.Matrix4
+    use Libraries.Containers.Array
+
+    Vector3 vector
+    Matrix4 matrix
+    Array<number> values
+
+    vector:Set(3.0, 4.0, 2.0)
+
+    values:Set(matrix:M00, 2 * 3 / (100 - 0))
+    values:Set(matrix:M01, 0)
+    values:Set(matrix:M02, (100 + 0) / (100 - 0))
+    values:Set(matrix:M03, 0)
+    values:Set(matrix:M10, 0)
+    values:Set(matrix:M11, 2 * 3 / (100 - 0))
+    values:Set(matrix:M12, (100 + 0) / (100 - 0))
+    values:Set(matrix:M13, 0)
+    values:Set(matrix:M20, 0)
+    values:Set(matrix:M21, 0)
+    values:Set(matrix:M22, -1 * (10 + 3) / (10 - 3))
+    values:Set(matrix:M23, -2 * 10 * 3 / (10 - 3))
+    values:Set(matrix:M30, 0)
+    values:Set(matrix:M31, 0)
+    values:Set(matrix:M32, -1)
+    values:Set(matrix:M33, 0)
+    
+    matrix:Set(values)
+
+    vector:Project(matrix)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
     */
     action Project(Matrix4 matrix) returns Vector3
         Array<number> l_mat = matrix:values
@@ -1472,6 +1511,50 @@ class Vector3
 
     Attribute: Returns The vector after rotation
 
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+    use Libraries.Compute.Matrix4
+    use Libraries.Containers.Array
+    use Libraries.Compute.Math
+
+    Math math
+
+    Vector3 vector
+    vector:Set(3, 2, 5)
+
+    Matrix4 matrix
+    
+    Array<number> values
+    values:SetSize(16)
+
+    values:Set(matrix:M00, math:Cosine(math:pi / 4))
+    values:Set(matrix:M01, -1 * math:Sine(math:pi / 4))
+    values:Set(matrix:M02, 0)
+    values:Set(matrix:M03, 1)
+    values:Set(matrix:M10, math:Sine(math:pi / 4))
+    values:Set(matrix:M11, math:Cosine(math:pi / 4))
+    values:Set(matrix:M12, 0)
+    values:Set(matrix:M13, 1)
+    values:Set(matrix:M20, 0)
+    values:Set(matrix:M21, 0)
+    values:Set(matrix:M22, 1)
+    values:Set(matrix:M23, 1)
+    values:Set(matrix:M30, 1)
+    values:Set(matrix:M31, 1)
+    values:Set(matrix:M32, 1)
+    values:Set(matrix:M33, 1)
+    
+    matrix:Set(values)
+
+    vector:Rotate(matrix)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
     */
     action Rotate(Matrix4 matrix) returns Vector3
         Array<number> l_mat = matrix:values
@@ -1491,6 +1574,58 @@ class Vector3
 
     Attribute: Returns The vector after unrotating
 
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+    use Libraries.Compute.Matrix4
+    use Libraries.Containers.Array
+    use Libraries.Compute.Math
+
+    Math math
+
+    Vector3 vector
+    vector:Set(3, 2, 5)
+
+    Matrix4 matrix
+    
+    Array<number> values
+    values:SetSize(16)
+
+    values:Set(matrix:M00, math:Cosine(math:pi / 4))
+    values:Set(matrix:M01, -1 * math:Sine(math:pi / 4))
+    values:Set(matrix:M02, 0)
+    values:Set(matrix:M03, 1)
+    values:Set(matrix:M10, math:Sine(math:pi / 4))
+    values:Set(matrix:M11, math:Cosine(math:pi / 4))
+    values:Set(matrix:M12, 0)
+    values:Set(matrix:M13, 1)
+    values:Set(matrix:M20, 0)
+    values:Set(matrix:M21, 0)
+    values:Set(matrix:M22, 1)
+    values:Set(matrix:M23, 1)
+    values:Set(matrix:M30, 1)
+    values:Set(matrix:M31, 1)
+    values:Set(matrix:M32, 1)
+    values:Set(matrix:M33, 1)
+    
+    matrix:Set(values)
+
+    vector:Rotate(matrix)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
+    vector:Unrotate(matrix)
+
+    newX = vector:GetX()
+    newY = vector:GetY()
+    newZ = vector:GetZ()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
     */
     action Unrotate(Matrix4 matrix) returns Vector3
         Array<number> l_mat = matrix:values
@@ -1502,13 +1637,55 @@ class Vector3
     /*
     This action translates the vector in the direction opposite from the
     translation of the matrix and then multiplies the vector by the first three
-    columns of the matrix.
+    columns of the matrix. This undoes the translations and rotations applied
+    to the vector.
 
     Attribute: Author Amanda Austin
     
     Attribute: Parameter matrix The transformation matrix
 
     Attribute: Returns The vector after untransforming
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector3
+    use Libraries.Compute.Matrix4
+    use Libraries.Containers.Array
+
+    Vector3 vector
+    Matrix4 matrix
+    Array<number> values
+
+    values:Set(matrix:M00, math:Cosine(math:pi / 4))
+    values:Set(matrix:M01, -1 * math:Sine(math:pi / 4))
+    values:Set(matrix:M02, 0)
+    values:Set(matrix:M03, 0)
+    values:Set(matrix:M10, math:Sine(math:pi / 4))
+    values:Set(matrix:M11, math:Cosine(math:pi / 4))
+    values:Set(matrix:M12, 0)
+    values:Set(matrix:M13, 0)
+    values:Set(matrix:M20, 0)
+    values:Set(matrix:M21, 0)
+    values:Set(matrix:M22, 1)
+    values:Set(matrix:M23, 0)
+    values:Set(matrix:M30, 1)
+    values:Set(matrix:M31, 1)
+    values:Set(matrix:M32, 1)
+    values:Set(matrix:M33, 1)
+
+    matrix:Set(values)
+
+    vector:Set(3, 2, 5)
+
+    vector:Rotate(matrix)
+    
+    vector:Untransform(matrix)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
 
     */
     action Untransform(Matrix4 matrix) returns Vector3
@@ -2178,7 +2355,7 @@ class Vector3
     end
 
     /*
-    This action performs a spherical linear interpolation between the calling
+    This action performs a spherical interpolation between the calling
     vector and the passed target vector by alpha, which is between 0 and 1,
     inclusive. This changes the calling vector to the result of the spherical
     linear interpolation.
@@ -2197,9 +2374,9 @@ class Vector3
     Vector3 vector
     Vector3 target
 
-    vector:Set(1.0, 2.0, 1.0)
-    target:Set(2.0, 3.0, 1.0)
-    number alpha = 0.5
+    vector:Set(0.4, 0.3, 0.2)
+    target:Set(0.1, 0.2, 0.3)
+    alpha = 0.5
 
     vector:SphericalLinearInterpolation(target, alpha)
 
@@ -2230,7 +2407,7 @@ class Vector3
         if l2 < 0.0001
             dl = st * 1.0
         else
-            dl = st * 1.0 / math:SquareRoot(l2)
+            dl = st * (1.0 / math:SquareRoot(l2))
         end
 
         return Scale(math:Cosine(theta)):Add(tx * dl, ty * dl, tz * dl):Normalize()
@@ -2321,7 +2498,7 @@ class Vector3
     use Libraries.Compute.Vector3
 
     Vector3 vector
-    vector:Set(3.0, 4.0, 5.0)
+    vector:Set(2.0, 1.0, 2.0)
     
     vector:Clamp(0.5, 1.5)
 
@@ -2382,7 +2559,7 @@ class Vector3
     end
 
     */
-    action EqualAtPrecision(Vector3 other, number epsilon) returns boolean
+    action EqualsAtPrecision(Vector3 other, number epsilon) returns boolean
         if other = undefined
             return false
         end
@@ -2419,7 +2596,7 @@ class Vector3
 
     vector:Set(3.0, 4.0, 7.5)
     
-    boolean areEqual = vector:EqualsAtPrecision(3.0, 4.0000001, 7.5000002 0.00001)
+    boolean areEqual = vector:EqualsAtPrecision(3.0, 4.0000001, 7.5000002, 0.00001)
     
     if areEqual
         output "The two vectors are equal."
@@ -2428,7 +2605,7 @@ class Vector3
     end
 
     */
-    action EqualAtPrecision(number xVal, number yVal, number zVal, number precision) returns boolean  
+    action EqualsAtPrecision(number xVal, number yVal, number zVal, number precision) returns boolean  
         if math:AbsoluteValue(xVal - x) > precision
             return false
         end

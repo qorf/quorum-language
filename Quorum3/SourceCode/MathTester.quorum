@@ -70,6 +70,7 @@ class MathTester
         Vector3MultiplyBy3x4Matrix()
         Vector3Matrix4Multiply()
         Vector3Matrix3Multiply()
+        Vector3Transforms()
         Vector3Rotate()
         Vector3IsUnit()
         Vector3IsZero()
@@ -77,6 +78,10 @@ class MathTester
         Vector3IsCollinear()
         Vector3IsPerpendicular()
         Vector3HasDirection()
+        Vector3Interpolation()
+        Vector3Limit()
+        Vector3Clamp()
+        Vector3EqualsAtPrecision()
 
 //FAIL TESTS
         path = failPath
@@ -768,6 +773,20 @@ class MathTester
         suite:TestJavaScript(files, results)
     end
 
+    action Vector3Transforms
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3Transforms.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [0.7071067811865479, 3.5355339059327378, 5.0]")
+        results:Add("The new vector is: [3.0000000000000004, 2.0, 5.0]")
+        results:Add("The new vector is: [-1.0, -1.0, 5.0]")
+        results:Add("The new vector is: [3.0000000000000004, 2.0, 5.0]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
     action Vector3Rotate
         Array<File> files
         Array<text> results
@@ -852,6 +871,55 @@ class MathTester
         files:Add(main)
         results:Add("The two vectors have the same direction.")
         results:Add("The two vectors have opposite directions.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector3Interpolation
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3Interpolation.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [1.5, 2.5, 1.0]")
+        results:Add("The new vector is: [1.5, 2.5, 1.0]")
+        results:Add("The new vector is: [0.3897723826954489, 0.5603080103534148, 0.7308436380113807]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector3Limit
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3Limit.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [1.0, 0.5, 1.0]")
+        results:Add("The new vector is: [1.0, 0.5, 1.0]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector3Clamp
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3Clamp.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [1.0, 0.5, 1.0]")
+        results:Add("The new vector is: [1.0, 0.5, 1.0]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Vector3EqualsAtPrecision
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector3EqualsAtPrecision.quorum")
+        files:Add(main)
+        results:Add("The two vectors are equal.")
+        results:Add("The two vectors are equal.")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

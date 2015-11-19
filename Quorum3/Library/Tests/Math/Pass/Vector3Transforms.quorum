@@ -1,0 +1,113 @@
+use Libraries.Compute.Vector3
+use Libraries.Compute.Matrix4
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+
+class Vector3Transforms 
+    action Main
+        Math math
+
+        Vector3 vector
+        vector:Set(3, 2, 5)
+
+        Matrix4 matrix
+
+        Array<number> values
+        values:SetSize(16)
+
+        values:Set(matrix:M00, math:Cosine(math:pi / 4))
+        values:Set(matrix:M01, -1 * math:Sine(math:pi / 4))
+        values:Set(matrix:M02, 0)
+        values:Set(matrix:M03, 1)
+        values:Set(matrix:M10, math:Sine(math:pi / 4))
+        values:Set(matrix:M11, math:Cosine(math:pi / 4))
+        values:Set(matrix:M12, 0)
+        values:Set(matrix:M13, 1)
+        values:Set(matrix:M20, 0)
+        values:Set(matrix:M21, 0)
+        values:Set(matrix:M22, 1)
+        values:Set(matrix:M23, 1)
+        values:Set(matrix:M30, 1)
+        values:Set(matrix:M31, 1)
+        values:Set(matrix:M32, 1)
+        values:Set(matrix:M33, 1)
+
+        matrix:Set(values)
+
+        vector:Rotate(matrix)
+
+        number newX = vector:GetX()
+        number newY = vector:GetY()
+        number newZ = vector:GetZ()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
+        vector:Unrotate(matrix)
+
+        newX = vector:GetX()
+        newY = vector:GetY()
+        newZ = vector:GetZ()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
+        vector:Set(3.0, 4.0, 2.0)
+
+        values:Set(matrix:M00, 2 * 3 / (100 - 0))
+        values:Set(matrix:M01, 0)
+        values:Set(matrix:M02, (100 + 0) / (100 - 0))
+        values:Set(matrix:M03, 0)
+        values:Set(matrix:M10, 0)
+        values:Set(matrix:M11, 2 * 3 / (100 - 0))
+        values:Set(matrix:M12, (100 + 0) / (100 - 0))
+        values:Set(matrix:M13, 0)
+        values:Set(matrix:M20, 0)
+        values:Set(matrix:M21, 0)
+        values:Set(matrix:M22, -1 * (10 + 3) / (10 - 3))
+        values:Set(matrix:M23, -2 * 10 * 3 / (10 - 3))
+        values:Set(matrix:M30, 0)
+        values:Set(matrix:M31, 0)
+        values:Set(matrix:M32, -1)
+        values:Set(matrix:M33, 0)
+
+        matrix:Set(values)
+
+        vector:Project(matrix)
+
+        newX = vector:GetX()
+        newY = vector:GetY()
+        newZ = vector:GetZ()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
+        values:Set(matrix:M00, math:Cosine(math:pi / 4))
+        values:Set(matrix:M01, -1 * math:Sine(math:pi / 4))
+        values:Set(matrix:M02, 0)
+        values:Set(matrix:M03, 0)
+        values:Set(matrix:M10, math:Sine(math:pi / 4))
+        values:Set(matrix:M11, math:Cosine(math:pi / 4))
+        values:Set(matrix:M12, 0)
+        values:Set(matrix:M13, 0)
+        values:Set(matrix:M20, 0)
+        values:Set(matrix:M21, 0)
+        values:Set(matrix:M22, 1)
+        values:Set(matrix:M23, 0)
+        values:Set(matrix:M30, 1)
+        values:Set(matrix:M31, 1)
+        values:Set(matrix:M32, 1)
+        values:Set(matrix:M33, 1)
+
+        matrix:Set(values)
+
+        vector:Set(3, 2, 5)
+
+        vector:Rotate(matrix)
+
+        vector:Untransform(matrix)
+
+        newX = vector:GetX()
+        newY = vector:GetY()
+        newZ = vector:GetZ()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+    end
+end
