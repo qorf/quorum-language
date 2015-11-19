@@ -100,7 +100,33 @@ class AndroidConfiguration is ApplicationConfiguration
     */
 
     /*
-    SetToScreen actions go here.
+    This action will set the game display to fill the entire screen of the 
+    device. This is the default screen display mode.
     */
+    action SetScreenToFill
+        targetWidth = 0
+        targetHeight = 0
+        useAspectRatio = false
+    end
+
+    /*
+    This action will set the game display to fill the screen as much as possible
+    while maintaining the given aspect ratio, where the aspect ratio is the 
+    given width divided by the given height.
+    */
+    action SetScreenToAspectRatio(integer width, integer height)
+        targetWidth = width
+        targetHeight = height
+        useAspectRatio = true
+    end
     
+    /*
+    This action will set the game display to appear in the center of the screen
+    with the given width and height.
+    */
+    action SetScreenToSize(integer width, integer height)
+        targetWidth = width
+        targetHeight = height
+    end
+
 end
