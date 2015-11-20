@@ -11,9 +11,9 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
     
     this.IndexOfNative$quorum_text$quorum_text = function(left, right) {
         return left.indexOf(right);
-    }
+    };
 }
 
 String.prototype.IndexOf$quorum_text = function(right) {
     return this.valueOf().indexOf(right);
-}
+};
