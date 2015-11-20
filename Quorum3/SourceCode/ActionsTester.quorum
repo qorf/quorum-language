@@ -357,9 +357,6 @@ class ActionsTester
         results:Add(2, "0")
         results:Add(3, "1.0")
         suite:Test(files, results)
-
-        //change the value for JavaScript
-        results:Set(3, "1")
         suite:TestJavaScript(files, results)
     end
 

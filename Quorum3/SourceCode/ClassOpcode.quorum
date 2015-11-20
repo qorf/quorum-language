@@ -1024,6 +1024,87 @@ class ClassOpcode is QuorumOpcode
         convertedSource = convertedSource + ") {" + EOL
 
         convertedSource = convertedSource + "this_ = this;" + EOL
+
+        //write the parents
+        Iterator<Class> parents = clazz:GetParentClasses()
+        text classBytecodeName = converter:ConvertStaticKeyToBytecodePath(staticKey)
+        
+
+        //initialize all of the parent objects as fields
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
+                text parentName = p:ConvertStaticKeyToParentFieldName()
+                convertedSource = convertedSource + "this." + parentName + " = new " 
+                    + p:ConvertStaticKeyToJavaScriptName() + "();" + EOL
+//                text converted = p:ConvertStaticKeyToBytecodePath()
+//                text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
+//                methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+//                methodWriter:VisitType(opcodes:GetNew(), converted)
+//                methodWriter:VisitInstruction(opcodes:GetDuplicate())
+//
+//                //push false on the parents and call a separate constructor
+//                //methodWriter:VisitInstruction(opcodes:GetIntegerZero())
+//                methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+//                text convertedConstructorParentName = "L" + converted + "_;"
+//                methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), converted, CONSTRUCTOR_JAVA_NAME, "(" + convertedConstructorParentName + ")V", false)
+//                methodWriter:VisitField(opcodes:GetPutField(), classBytecodeName, parentName, convertedParentNameType)
+            end
+        end
+        
+        //now that all parents have been instantiated, get 
+        //their parents and set them appropriately
+        parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
+                text parentName = p:ConvertStaticKeyToParentFieldName()
+                text convertedParentName = p:ConvertStaticKeyToBytecodePath()
+                text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
+
+                Iterator<Class> grandParents = p:GetParentClasses()
+                repeat while grandParents:HasNext()
+                    Class grandParent = grandParents:Next()
+                    text grandParentKey = grandParent:GetStaticKey()
+                    text grandParentName = grandParent:ConvertStaticKeyToParentFieldName()
+                    text convertedGrandParent = grandParent:ConvertStaticKeyToBytecodePathTypeName()
+
+                    //now load the same parents into the grand parents
+//                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+//                    methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), parentName, convertedParentNameType)
+//                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
+//                    methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), grandParentName, convertedGrandParent)
+//                    methodWriter:VisitField(opcodes:GetPutField(), convertedParentName, grandParentName, convertedGrandParent)
+                end
+            end
+        end
+
+        Iterator<Action> it = clazz:GetParentActions()
+        repeat while it:HasNext()
+            Action act = it:Next()
+            Class parentOfMethod = act:GetParentClass()
+            if not parentOfMethod:IsError() or clazz:GetStaticKey() = QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
+                convertedSource = convertedSource + "this." + act:ConvertActionToJavaScriptName()
+                    + " = function("
+
+                Iterator<Variable> params = act:GetParameterIterator()
+                repeat while params:HasNext()
+                    Variable param = params:Next()
+                    convertedSource = convertedSource + param:GetJavaScriptName()
+                end
+
+                convertedSource = convertedSource + ") {" + EOL
+                    + "     return this." + parentOfMethod:ConvertStaticKeyToParentFieldName() + "." 
+                    + act:ConvertActionToJavaScriptName() + "()"
+                    + EOL 
+                    + "}" + EOL
+            end
+        end
+
+
+
         if clazz:HasSystemAction() //this has a plugin, so instantiate it.
             //var plugin_ = new plugins_quorum_Libraries_Compute_Math_();
             convertedSource = convertedSource + "var " + clazz:GetPluginName() + 

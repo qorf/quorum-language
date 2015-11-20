@@ -26,13 +26,13 @@ class Main is WebResponder
     HashTable<text, Array<text>> flagValues
 
     action Main
-        ProcessConsoleFlags()
+        //ProcessConsoleFlags()
         //GenerateDocumentation()
         //CompileRepeatTest()
         //CompileCodeCompletionTest()
         //ProfileTest()
         //ProfileWeb()
-        //CompileHardcodedFile()
+        CompileHardcodedFile()
         //CompileCompiler()
         //CompileSingleTest()
         //CompileGameEngine()
@@ -310,18 +310,19 @@ class Main is WebResponder
         compiler:SetOutputFolder(root)
         File main
         //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
-        main:SetPath("Library/Tests/TypeCheckerGenerated/Pass/ImpAssignBoolObjBoolObj.quorum")
-        //main:SetPath("main.quorum")
+        main:SetPath("Library/Tests/Actions/Pass/HourOfCodePart5.quorum")
+        //main:SetPath("main.quorum") //CallMethodCallingBlueprint
+
 
         File class2
         //class2:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
-        class2:SetPath("Library/Tests/Chaining/Yoda.quorum")
+        class2:SetPath("Library/Tests/Inheritance/Pass/Test1.quorum")
         
         File class3
-        class3:SetPath("Library/Tests/Inheritance/Pass/B4.quorum")
+        class3:SetPath("Library/Tests/Inheritance/Pass/Test2.quorum")
 
         File class4
-        class4:SetPath("Library/Tests/Inheritance/Pass/C4.quorum")
+        class4:SetPath("Library/Tests/Inheritance/Pass/A.quorum")
 
         File class5
         class5:SetPath("Library/Tests/Templating/Fail/D_8.quorum")
@@ -334,7 +335,7 @@ class Main is WebResponder
         //files:Add(class5)
 
         //compiler:SetOutputSpeech(false) //don't speak while in test mode
-        compiler:SetOutputType(compiler:JAVASCRIPT)
+        //compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:SetMain(main)
         compiler:Compile(files)
 
