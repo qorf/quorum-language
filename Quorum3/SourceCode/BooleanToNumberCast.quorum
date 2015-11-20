@@ -18,7 +18,12 @@ class BooleanToNumberCast is ExplicitCastOpcode
     end
     
     action WriteJavaScript returns text
-        return ""
+        text result = ""
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            result = result + opcodeToCast:WriteJavaScript() + "? 1.0 : 0.0"
+        end
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode

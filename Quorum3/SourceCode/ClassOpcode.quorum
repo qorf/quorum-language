@@ -997,14 +997,31 @@ class ClassOpcode is QuorumOpcode
         end
     end
 
+    
     action WriteJavaScript returns text
         constant text OUTPUT_VARIABLE = "OuTpUt_$tRiNg_"
         EOL = ""
         quote = EOL:GetDoubleQuote()
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-        convertedSource = "var " + OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL
+        
+        text convertedSource = ""
+        if clazz:IsProgramStartingClass()
+            convertedSource = "var " + OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL
+        end
         convertedSource = convertedSource + EOL + "function "
-            + clazz:ConvertStaticKeyToUnderScore() + "() {" + EOL
+            + clazz:ConvertStaticKeyToUnderScore() + "(" 
+
+        //if this is a primitive wrapper, put in the wrapping code
+        text value = clazz:GetStaticKey()
+        if value = "Libraries.Language.Types.Integer"
+            or value = "Libraries.Language.Types.Boolean"
+            or value = "Libraries.Language.Types.Number"
+            or value = "Libraries.Language.Types.Text"
+            convertedSource = convertedSource + "optional"
+        end
+
+
+        convertedSource = convertedSource + ") {" + EOL
 
         convertedSource = convertedSource + "this_ = this;" + EOL
         if clazz:HasSystemAction() //this has a plugin, so instantiate it.
@@ -1023,6 +1040,16 @@ class ClassOpcode is QuorumOpcode
         repeat while fieldIterator:HasNext()
             QuorumOpcode field = fieldIterator:Next()
             convertedSource = convertedSource + field:WriteJavaScript()
+        end
+
+        if value = "Libraries.Language.Types.Integer"
+            convertedSource = convertedSource + "this.value = optional === null ? 0: optional;"
+        elseif value = "Libraries.Language.Types.Boolean"
+            convertedSource = convertedSource + "this.value = optional === null ? false: optional;"
+        elseif value = "Libraries.Language.Types.Number"
+            convertedSource = convertedSource + "this.value = optional === null ? 0.0: optional;"
+        elseif value = "Libraries.Language.Types.Text"
+            convertedSource = convertedSource + "this.value = optional === null ? " + quote + quote + ": optional;"
         end
 
         convertedSource = convertedSource + EOL + "};" + EOL

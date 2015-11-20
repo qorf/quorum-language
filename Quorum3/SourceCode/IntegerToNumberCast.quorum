@@ -17,10 +17,10 @@ class IntegerToNumberCast is ExplicitCastOpcode
     end
     
     action WriteJavaScript returns text
-        result = ""
+        text result = ""
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
-            result = result + opcodeToCast:WriteJavaScript()
+            result = result + opcodeToCast:WriteJavaScript() + " * 1.0"
         end
         return result
     end

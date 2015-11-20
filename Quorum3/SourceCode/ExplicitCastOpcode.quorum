@@ -38,7 +38,11 @@ class ExplicitCastOpcode is QuorumOpcode
     end
     
     action WriteJavaScript returns text
-        return opcodeToCast:WriteJavaScript()
+        if opcodeToCast not= undefined
+            return opcodeToCast:WriteJavaScript()
+        else 
+            return ""
+        end
     end
 
     action GetTemplateCopy returns QuorumOpcode
