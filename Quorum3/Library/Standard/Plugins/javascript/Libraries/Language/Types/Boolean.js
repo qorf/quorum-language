@@ -11,9 +11,9 @@ function plugins_quorum_Libraries_Language_Types_Boolean_(optional) {
     
     this.GetHashCode = function() {
         return 0;
-    }
+    };
 }
 
 Boolean.prototype.GetText = function() {
     return this.valueOf() + "";
-}
+};
