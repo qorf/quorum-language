@@ -22,7 +22,8 @@ class NumberToTextCast is ExplicitCastOpcode
         text DQ = result:GetDoubleQuote()
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
-            result = result + opcodeToCast:WriteJavaScript() + " + " + DQ + DQ
+            text temp = opcodeToCast:WriteJavaScript()
+            result = result + "(" + temp  + " % 1 == 0? "+temp + ".toFixed(1) : " + temp + ") + " + DQ + DQ
         end
         return result
     end

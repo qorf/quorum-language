@@ -1151,18 +1151,8 @@ class Compiler
                     Class mainClazz = me:GetMainClass()
                     text mainClazzName = mainClazz:GetStaticKey()
                     text clazzName = clazz:GetStaticKey()
-                    if clazzName = mainClazzName or clazzName = "Libraries.Compute.Math"
-                        or clazzName = "Libraries.Language.Types.Boolean" or clazzName = "AutoboxTempClass"
-                        or clazzName = "Libraries.Language.Types.Integer"
-                        or clazzName = "Libraries.Language.Types.Number"
-                        or clazzName = "Libraries.Language.Types.Text"
-                        or clazzName = "Libraries.Language.Object"
-                        or clazzName = "Yoda"
-                        or clazzName = "A"
-                        or clazzName = "B"
-                        or clazzName = "C"
-                        or clazzName = "Test1"
-                        or clazzName = "Test2"
+                    if not clazzName:Contains("Libraries.Containers")
+                       and not clazzName:Contains("Libraries.System")
                         if mainClazz:GetStaticKey() = clazzName
                             main = code:WriteJavaScript()
                         else

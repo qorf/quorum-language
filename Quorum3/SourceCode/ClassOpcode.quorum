@@ -1009,7 +1009,7 @@ class ClassOpcode is QuorumOpcode
             convertedSource = "var " + OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL
         end
         convertedSource = convertedSource + EOL + "function "
-            + clazz:ConvertStaticKeyToUnderScore() + "(" 
+            + clazz:ConvertStaticKeyToUnderScore() + "(parents" 
 
         //if this is a primitive wrapper, put in the wrapping code
         text value = clazz:GetStaticKey()
@@ -1017,42 +1017,39 @@ class ClassOpcode is QuorumOpcode
             or value = "Libraries.Language.Types.Boolean"
             or value = "Libraries.Language.Types.Number"
             or value = "Libraries.Language.Types.Text"
-            convertedSource = convertedSource + "optional"
+            convertedSource = convertedSource + ", optional"
         end
 
-
         convertedSource = convertedSource + ") {" + EOL
-
         convertedSource = convertedSource + "this_ = this;" + EOL
 
         //write the parents
         Iterator<Class> parents = clazz:GetParentClasses()
         text classBytecodeName = converter:ConvertStaticKeyToBytecodePath(staticKey)
-        
 
-        //initialize all of the parent objects as fields
+        //initialize all of the parent objects as nulls
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
             if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
                 text parentName = p:ConvertStaticKeyToParentFieldName()
-                convertedSource = convertedSource + "this." + parentName + " = new " 
-                    + p:ConvertStaticKeyToJavaScriptName() + "();" + EOL
-//                text converted = p:ConvertStaticKeyToBytecodePath()
-//                text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
-//                methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-//                methodWriter:VisitType(opcodes:GetNew(), converted)
-//                methodWriter:VisitInstruction(opcodes:GetDuplicate())
-//
-//                //push false on the parents and call a separate constructor
-//                //methodWriter:VisitInstruction(opcodes:GetIntegerZero())
-//                methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-//                text convertedConstructorParentName = "L" + converted + "_;"
-//                methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), converted, CONSTRUCTOR_JAVA_NAME, "(" + convertedConstructorParentName + ")V", false)
-//                methodWriter:VisitField(opcodes:GetPutField(), classBytecodeName, parentName, convertedParentNameType)
+                convertedSource = convertedSource + "this." + parentName + " = null;" + EOL
             end
         end
         
+        //initialize all of the parent objects as values, if appropriate
+        convertedSource = convertedSource + "if(parents == null) {" + EOL
+        parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
+                text parentName = p:ConvertStaticKeyToParentFieldName()
+                convertedSource = convertedSource + "   this." + parentName + " = new " 
+                    + p:ConvertStaticKeyToJavaScriptName() + "(false);" + EOL
+            end
+        end
+
         //now that all parents have been instantiated, get 
         //their parents and set them appropriately
         parents = clazz:GetParentClasses()
@@ -1070,16 +1067,15 @@ class ClassOpcode is QuorumOpcode
                     text grandParentKey = grandParent:GetStaticKey()
                     text grandParentName = grandParent:ConvertStaticKeyToParentFieldName()
                     text convertedGrandParent = grandParent:ConvertStaticKeyToBytecodePathTypeName()
-
-                    //now load the same parents into the grand parents
-//                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-//                    methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), parentName, convertedParentNameType)
-//                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-//                    methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), grandParentName, convertedGrandParent)
-//                    methodWriter:VisitField(opcodes:GetPutField(), convertedParentName, grandParentName, convertedGrandParent)
+                    
+                    convertedSource = convertedSource + "   this." + parentName + "." + grandParentName + 
+                        " = this." +  grandParentName + ";" + EOL
+                    convertedSource = convertedSource + "   this." + parentName 
+                        + ".prototype = this;"  + EOL
                 end
             end
         end
+        convertedSource = convertedSource + "}" + EOL
 
         Iterator<Action> it = clazz:GetParentActions()
         repeat while it:HasNext()
@@ -1097,7 +1093,14 @@ class ClassOpcode is QuorumOpcode
 
                 convertedSource = convertedSource + ") {" + EOL
                     + "     return this." + parentOfMethod:ConvertStaticKeyToParentFieldName() + "." 
-                    + act:ConvertActionToJavaScriptName() + "()"
+                    + act:ConvertActionToJavaScriptName() + "("
+                params = act:GetParameterIterator()
+                repeat while params:HasNext()
+                    Variable param = params:Next()
+                    convertedSource = convertedSource + param:GetJavaScriptName()
+                end
+
+                convertedSource = convertedSource + ")"
                     + EOL 
                     + "}" + EOL
             end
@@ -1116,6 +1119,8 @@ class ClassOpcode is QuorumOpcode
             ActionOpcode act = actionIterator:Next()
             convertedSource = convertedSource + act:WriteJavaScript()
         end
+
+        
 
         Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
         repeat while fieldIterator:HasNext()

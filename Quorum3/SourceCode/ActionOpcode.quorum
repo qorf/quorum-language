@@ -149,13 +149,6 @@ class ActionOpcode is QuorumOpcode
         end
         
         methodWriter:VisitLabel(finish)
-
-//        output clazz:GetName() + ", " + method:GetName()
-//
-//        if clazz:GetName() = "PrimitiveCallTest"
-//            a = 5
-//        end
-
         WriteParameterDebuggingTable(start, finish)
         methodWriter:VisitMaxSize(0,0)
         methodWriter:VisitEnd()
@@ -218,10 +211,20 @@ class ActionOpcode is QuorumOpcode
             end
 
             result = result + ");" + EOL
+        elseif method:IsBlueprint()
+            result = result + "return " + "this.prototype." + method:ConvertActionToJavaScriptName() 
+                + "("
+            parameters = method:GetParameterIterator()
+            repeat while parameters:HasNext()
+                Variable param = parameters:Next()
+                result = result + param:GetJavaScriptName()
+                if parameters:HasNext()
+                    result = result + ", "
+                end
+            end
+            result = result + ");" + EOL
         end
-        result = result + "};
-
-"
+        result = result + "};" + EOL
 
         return result
     end

@@ -297,8 +297,6 @@ class ActionCallOpcode is QuorumOpcode
                             act:ConvertActionToBytecodeParameterInterfaceSignature(), false)
                     end
                 end
-            else 
-                //alert("Compiler Bug: Class and Action should not be null at this stage.")
             end
 
             if autoBoxing not= undefined
@@ -343,7 +341,6 @@ class ActionCallOpcode is QuorumOpcode
                     else
                         path = fieldHolder:ConvertStaticKeyToBytecodePath()
                     end
-                    integer a = 0
                 end
 
                 if not isChainedCall
@@ -352,7 +349,6 @@ class ActionCallOpcode is QuorumOpcode
                     else
                         path = callingClass:ConvertStaticKeyToBytecodePath()
                     end
-                    integer a = 0
                 end
                 
                 getterName = fieldHolder:ConvertToActionNameFromField(field, true)
@@ -413,7 +409,6 @@ class ActionCallOpcode is QuorumOpcode
         if isActionCall
             Action act = actionResolution:resolvedAction
             Class clazz = act:GetParentClass()
-
             if not pushOnMe //object call
                 text name = act:ConvertActionToJavaScriptName()
                 if field = undefined
@@ -431,8 +426,6 @@ class ActionCallOpcode is QuorumOpcode
                         result = result + field:GetJavaScriptName() + "." + name + "("
                     end
                 end
-                
-                
             else 
                 text t = "this." + act:ConvertActionToJavaScriptName()
                 result = result + t + "("

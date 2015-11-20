@@ -20,7 +20,7 @@ class IntegerPrimitiveToNumberObjectCast is ExplicitCastOpcode
         text result = "new quorum_Libraries_Language_Types_Number_("
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
-            result = result + opcodeToCast:WriteJavaScript()
+            result = result + "false, " + opcodeToCast:WriteJavaScript()
         end
         return result + ")"
     end
