@@ -17,6 +17,7 @@ import android.opengl.GLSurfaceView.Renderer;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.View;
+import plugins.quorum.Libraries.Game.libGDX.GdxEglConfigChooser;
 
 import plugins.quorum.Libraries.Game.libGDX.WindowedMean;
 import quorum.Libraries.Game.AndroidConfiguration;
@@ -76,7 +77,7 @@ public class AndroidDisplay implements Renderer
     {
         config = configuration;
         app = application;
-        //view = createGLSurfaceView(application, resolutionStrategy);
+        view = CreateGLSurfaceView(application);
         
         // focusableView from libGDX is assumed true.
         view.setFocusable(true);
@@ -86,7 +87,8 @@ public class AndroidDisplay implements Renderer
     protected void PreserveEGLContextOnPause () 
     {
         int sdkVersion = android.os.Build.VERSION.SDK_INT;
-        if ((sdkVersion >= 11 /*&& view instanceof GLSurfaceView20*/)/* || view instanceof GLSurfaceView20API18*/) {
+        if ((sdkVersion >= 11 && view instanceof GLSurfaceView20)/* || view instanceof GLSurfaceView20API18*/) 
+        {
             try 
             {
                 view.getClass().getMethod("setPreserveEGLContextOnPause", boolean.class).invoke(view, true);
@@ -101,10 +103,10 @@ public class AndroidDisplay implements Renderer
     
     protected View CreateGLSurfaceView (AndroidApplication application) 
     {
-        //if (!checkGL20())
-            //throw new GameRuntimeError("Libgdx requires OpenGL ES 2.0");
+        if (!CheckGL20())
+            throw new GameRuntimeError("Libgdx requires OpenGL ES 2.0");
 
-        //EGLConfigChooser configChooser = getEglConfigChooser();
+        EGLConfigChooser configChooser = getEglConfigChooser();
         int sdkVersion = android.os.Build.VERSION.SDK_INT;
         /*
         if (sdkVersion <= 10 && config.useGLSurfaceView20API18) 
@@ -120,12 +122,10 @@ public class AndroidDisplay implements Renderer
         */
         //else ...
         {
-            //GLSurfaceView20 view = new GLSurfaceView20(application.getContext(), resolutionStrategy);
-            //if (configChooser != null)
-                ;//view.setEGLConfigChooser(configChooser);
-            //else
-                ;//view.setEGLConfigChooser(config.r, config.g, config.b, config.a, config.depth, config.stencil);
-            //view.setRenderer(this);
+            GLSurfaceView20 view = new GLSurfaceView20(application.GetContext(), config);
+
+            view.setEGLConfigChooser(configChooser);
+            view.setRenderer(this);
             return view;
         }
     }
@@ -136,7 +136,8 @@ public class AndroidDisplay implements Renderer
         if (view != null) 
         {
         //    if (view instanceof GLSurfaceViewAPI18) ((GLSurfaceViewAPI18)view).onPause();
-        //    if (view instanceof GLSurfaceView) ((GLSurfaceView)view).onPause();
+            if (view instanceof GLSurfaceView)
+                ((GLSurfaceView)view).onPause();
         }
     }
 
@@ -145,16 +146,18 @@ public class AndroidDisplay implements Renderer
         if (view != null) 
         {
         //    if (view instanceof GLSurfaceViewAPI18) ((GLSurfaceViewAPI18)view).onResume();
-        //    if (view instanceof GLSurfaceView) ((GLSurfaceView)view).onResume();
+            if (view instanceof GLSurfaceView)
+                ((GLSurfaceView)view).onResume();
         }
     }
     
-    /*
     protected EGLConfigChooser getEglConfigChooser () 
     {
-        return new GdxEglConfigChooser(config.r, config.g, config.b, config.a, config.depth, config.stencil, config.numSamples);
+        return new GdxEglConfigChooser(config.Get_Libraries_Game_ApplicationConfiguration__r_(), config.Get_Libraries_Game_ApplicationConfiguration__g_(),
+            config.Get_Libraries_Game_ApplicationConfiguration__b_(), config.Get_Libraries_Game_ApplicationConfiguration__a_(),
+            config.Get_Libraries_Game_ApplicationConfiguration__depth_(), config.Get_Libraries_Game_ApplicationConfiguration__stencil_(),
+            config.Get_Libraries_Game_ApplicationConfiguration__samples_());
     }
-    */
 
     private void UpdatePPI() 
     {
@@ -214,7 +217,7 @@ public class AndroidDisplay implements Renderer
        */
     }
 
-    //@Override
+    @Override
     public void onSurfaceChanged (javax.microedition.khronos.opengles.GL10 gl, int width, int height) 
     {
         this.width = width;
@@ -233,7 +236,7 @@ public class AndroidDisplay implements Renderer
         //app.getApplicationListener().resize(width, height);
     }
     
-    //@Override
+    @Override
     public void onSurfaceCreated (javax.microedition.khronos.opengles.GL10 gl, EGLConfig config) 
     {
         eglContext = ((EGL10)EGLContext.getEGL()).eglGetCurrentContext();
