@@ -1140,16 +1140,29 @@ class Compiler
                 
             elseif currentOutputType = JAVASCRIPT
                 text result = ""
+                text plugins = ""
+                text main = ""
                 Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
                 repeat while codes:HasNext()
                     ClassOpcode code = codes:Next()
                     Class clazz = code:GetClass()
 
+                    
                     Class mainClazz = me:GetMainClass()
                     text mainClazzName = mainClazz:GetStaticKey()
                     text clazzName = clazz:GetStaticKey()
                     if clazzName = mainClazzName or clazzName = "Libraries.Compute.Math"
-                        result = result + code:WriteJavaScript()
+                        or clazzName = "Libraries.Language.Types.Boolean" or clazzName = "AutoboxTempClass"
+                        or clazzName = "Libraries.Language.Types.Integer"
+                        or clazzName = "Libraries.Language.Types.Number"
+                        or clazzName = "Libraries.Language.Types.Text"
+                        or clazzName = "Libraries.Language.Object"
+                        or clazzName = "Yoda"
+                        if mainClazz:GetStaticKey() = clazzName
+                            main = code:WriteJavaScript()
+                        else
+                            result = result + code:WriteJavaScript()
+                        end
 
                         //check if this class has a plugin. If it does, include it.
                         if clazz:HasSystemAction()
@@ -1173,13 +1186,13 @@ class Compiler
                             location:SetPath(path)
                             if location:Exists() 
                                 value = location:Read()
-                                result = result + value + value:GetCarriageReturn() + value:GetLineFeed()
+                                plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
                             end
 
                         end
                     end
                 end
-                convertedJavaScript = result
+                convertedJavaScript = plugins + result + main
             elseif currentOutputType = DOCUMENT
                 text result = ""
                 Iterator<ClassOpcode> codes = classOpcodes:GetIterator()

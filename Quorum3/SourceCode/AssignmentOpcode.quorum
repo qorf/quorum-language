@@ -229,13 +229,9 @@ class AssignmentOpcode is QuorumOpcode
         text result = ""
 
         if variable:IsField()
-            //if isInFieldBlock
-            //    result = result + variable:GetName()
-            //else
-                result = result + "this_." + variable:GetName()
-            //end
+            result = result + "this." + variable:GetJavaScriptName()
         else
-            result = result + variable:GetName() 
+            result = result + variable:GetJavaScriptName() 
         end
         result = result + " = " + rightHandSide:WriteJavaScript() + ";"
         EOL = ""

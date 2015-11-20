@@ -88,6 +88,14 @@ class Variable is Symbol
         return locations:GetIterator()
     end
 
+    action GetJavaScriptName returns text
+        name = GetName()
+        if name = "new" or name = "var"
+            return name + "__"
+        end
+        return name
+    end
+
     action GetCodeCompletionItem(Class calledFrom) returns CodeCompletionItem
         CodeCompletionItem item
         

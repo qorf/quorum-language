@@ -1692,6 +1692,16 @@ class Class is Symbol
         This action returns the static key formatted as a class name in 
         Java bytecode.
     */
+    action ConvertStaticKeyToJavaScriptName returns text
+        text key = GetStaticKey()
+        text result = "quorum_" + key:Replace(".", "_") + "_"
+        return result
+    end
+
+    /*
+        This action returns the static key formatted as a class name in 
+        Java bytecode.
+    */
     action ConvertStaticKeyToBytecodePath returns text
         text key = GetStaticKey()
         text result = "quorum/" + key:Replace(".", "/")
