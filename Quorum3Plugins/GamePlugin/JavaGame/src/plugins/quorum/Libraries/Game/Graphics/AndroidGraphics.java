@@ -501,6 +501,8 @@ public class AndroidGraphics implements GraphicsManager
     //This method was pulled directly out of libgdx because it just works as a drop-in.
     public void glTexImage2D (int target, int level, int internalformat, int width, int height, int border, int format, int type,
                   Buffer pixels) {
+        GLES20.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+        
         /*
       if (pixels == null)
         GL11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (ByteBuffer)null);
@@ -519,6 +521,7 @@ public class AndroidGraphics implements GraphicsManager
         */
           }
   
+    /*
     private IntBuffer toIntBuffer (int v[], int offset, int count) 
     {
 	ensureBufferCapacity(count << 2);
@@ -542,4 +545,5 @@ public class AndroidGraphics implements GraphicsManager
 		plugins.quorum.Libraries.Game.libGDX.BufferUtils.copy(v, floatBuffer, count, offset);
 		return floatBuffer;
         }
+        */
 }

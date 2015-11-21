@@ -76,8 +76,7 @@ public class AndroidApplication extends Activity
             throw new GameRuntimeError("Android API level " + GetVersion() + "was detected, but " + MINIMUM_SDK + " or later is required.");
         }
         
-        //graphics = new AndroidGraphics(this, config, config.resolutionStrategy == null ? new FillResolutionStrategy()
-        //        : config.resolutionStrategy);
+        ((quorum.Libraries.Game.AndroidDisplay)display).plugin_.Initialize(this, config);
         //input = AndroidInputFactory.newAndroidInput(this, this, graphics.view, config);
         //audio = new AndroidAudio(this, config);
         //this.getFilesDir(); // workaround for Android bug #10515463
