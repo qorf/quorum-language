@@ -11,6 +11,9 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Application
 use Libraries.Game.DesktopApplication
 use Libraries.Game.AndroidApplication
+use Libraries.Game.AndroidDisplay
+use Libraries.Game.AndroidConfiguration
+use Libraries.Game.Graphics.AndroidGraphics
 use Libraries.Game.IOSApplication
 use Libraries.Game.IOSConfiguration
 use Libraries.Game.IOSDisplay
@@ -57,6 +60,7 @@ class Game
     public Painter batch = undefined
     DesktopConfiguration desktopConfig
     IOSConfiguration iosConfig
+    AndroidConfiguration androidConfig
     GraphicsManager gl20 = undefined
 
     public boolean exitRequested = false
@@ -130,7 +134,14 @@ class Game
             display:SetConfiguration(desktopConfig)
             display:SetupDisplay()
         elseif application is AndroidApplication
+            
+            AndroidDisplay display
+            manager:SetGameDisplay(display)
+            display:SetConfiguration(androidConfig)
 
+            AndroidGraphics graphics
+            manager:SetGameGraphics(graphics)
+            
         elseif application is IOSApplication
             /* Notes:
             Will almost certainly need to set up a new type of GameDisplay for

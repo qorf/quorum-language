@@ -1,5 +1,7 @@
 package Libraries.Game
 
+use Libraries.Game.Graphics.Painter
+
 class AndroidApplication is Application 
     
     action Setup(Game game)
@@ -7,6 +9,9 @@ class AndroidApplication is Application
         GameStateManager manager
         manager:SetApplication(me)
         SetupNative(game, parent:Application:display:GetConfiguration())
+        
+        Painter painter
+        game:batch = painter
     end
 
     private system action SetupNative(Game game, ApplicationConfiguration config)
