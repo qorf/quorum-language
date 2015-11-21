@@ -17,3 +17,21 @@ function plugins_quorum_Libraries_Language_Types_Boolean_(optional) {
 Boolean.prototype.GetText = function() {
     return this.valueOf() + "";
 };
+
+Boolean.prototype.GetValue = function() {
+    return this.valueOf().boolean;
+};
+
+Boolean.prototype.Equals$quorum_boolean = function(value) {
+    return this.valueOf().boolean === value;
+};
+
+Boolean.prototype.Compare$quorum_boolean = function(value) {
+    if (this.valueOf().boolean === value) {
+        //return EQUAL
+    } else if (this.valueOf().boolean === false && this.value === true) {
+        //return SMALLER
+    } else {
+        //return LARGER
+    }
+};
