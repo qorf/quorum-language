@@ -1024,9 +1024,18 @@ class ClassOpcode is QuorumOpcode
         convertedSource = convertedSource + "this_ = this;" + EOL
 
         //write the parents
+        convertedSource = convertedSource + "this.parentNames_ = ["
         Iterator<Class> parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            convertedSource = convertedSource + "'" + parentKey + "', "
+        end
+        convertedSource = convertedSource + " '" + clazz:GetStaticKey() + "'];" + EOL
+        
         text classBytecodeName = converter:ConvertStaticKeyToBytecodePath(staticKey)
 
+        parents = clazz:GetParentClasses()
         //initialize all of the parent objects as nulls
         repeat while parents:HasNext()
             Class p = parents:Next()
