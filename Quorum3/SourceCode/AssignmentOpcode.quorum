@@ -228,6 +228,19 @@ class AssignmentOpcode is QuorumOpcode
     action WriteJavaScript returns text 
         text result = ""
 
+        if isObjectField
+            if variable:IsField()
+                result = result + "this."
+                result = result + variable:GetJavaScriptName() + "." + field:GetJavaScriptName()
+            else
+                result = result + variable:GetJavaScriptName() + "." + field:GetJavaScriptName()
+            end
+            result = result + " = " + rightHandSide:WriteJavaScript() + ";"
+            EOL = ""
+            EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+            result = result + EOL
+            return result
+        end
         if variable:IsField()
             result = result + "this." 
             if parentWithField not= undefined
