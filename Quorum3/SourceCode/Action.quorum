@@ -30,7 +30,17 @@ class Action is Symbol
         if file = undefined
            return now //ignore if this isn't supported
         end
+        index = location:GetIndex()
+        theEnd = location:GetIndexEnd()
+        par = GetParentClass():GetName()
+        act = GetName()
         text path = file:GetAbsolutePath()
+        
+        if act:GetSize() + index - 1 = theEnd
+            a = 5
+        else 
+            a = 5
+        end
         List<Location> list = undefined
         if callLocationHash:HasKey(path)
             list = callLocationHash:GetValue(path)
@@ -43,6 +53,13 @@ class Action is Symbol
         end
 
         list:Add(location)
+    end
+
+    action RemoveCallLocations(File file)
+        text path = file:GetAbsolutePath()
+        if callLocationHash:HasKey(path)
+            callLocationHash:RemoveKey(path)
+        end
     end
 
     action GetCallLocationIterator(File file) returns Iterator<Location>
