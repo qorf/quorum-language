@@ -33,6 +33,7 @@ public class QuorumIndexerFactory extends EmbeddingIndexerFactory{
 
     @Override
     public void scanFinished(Context context) {
+        return;
     }
     
     @Override

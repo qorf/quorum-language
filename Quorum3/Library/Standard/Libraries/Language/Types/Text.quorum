@@ -266,8 +266,8 @@ class Text is Object
         a:SetValue("hello ")
         text result = a:Replace("l", "z")
     */
-    action Replace(text old, text new) returns text
-        return ReplaceNative(value, old, new)
+    action Replace(text old, text replacement) returns text
+        return ReplaceNative(value, old, replacement)
     end
 
     private system action ReplaceNative(text left, text old, text replacement) returns text

@@ -71,7 +71,7 @@ public class QuorumActionStructureItem implements StructureItem {
         name = name + ")";
         
         Type_ ret = action.GetReturnType();
-        if(!ret.IsVoid()) {
+        if(ret != null && !ret.IsVoid()) {
             if(isHTML) {
                 name = name + " : " + ret.GetStaticKey();
             } else {

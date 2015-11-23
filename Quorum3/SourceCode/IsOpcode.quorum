@@ -62,7 +62,13 @@ class IsOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text
-        return ""
+        text result = "global_InstanceOf("
+        if opcode not= undefined
+            result = result + opcode:WriteJavaScript()
+            Type type = opcode:GetType()
+            result = result + "," + "'" + type:GetStaticKey() + "'"
+        end
+        return result + ")"
     end
     
     action GetTemplateCopy returns QuorumOpcode

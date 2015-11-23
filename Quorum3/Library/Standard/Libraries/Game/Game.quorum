@@ -5,6 +5,19 @@
 
 package Libraries.Game
 
+use Libraries.Game.GameDisplay
+use Libraries.Game.DesktopDisplay
+use Libraries.Game.GameStateManager
+use Libraries.Game.Application
+use Libraries.Game.DesktopApplication
+use Libraries.Game.AndroidApplication
+use Libraries.Game.AndroidDisplay
+use Libraries.Game.AndroidConfiguration
+use Libraries.Game.Graphics.AndroidGraphics
+use Libraries.Game.IOSApplication
+use Libraries.Game.IOSConfiguration
+use Libraries.Game.IOSDisplay
+use Libraries.Game.Graphics.IOSGraphics
 use Libraries.Game.Graphics.Painter
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.GraphicsManager
@@ -45,8 +58,10 @@ Attribute: Example
 class Game
 
     public Painter batch = undefined
-    ApplicationConfiguration configuration
-    GraphicsManager gl20
+    DesktopConfiguration desktopConfig
+    IOSConfiguration iosConfig
+    AndroidConfiguration androidConfig
+    GraphicsManager gl20 = undefined
 
     public boolean exitRequested = false
 
@@ -57,48 +72,15 @@ class Game
     private List<Item> collisionList
     private List<CollisionEvent> currentCollisions
 
+    /*
+    Current codes:
+    1 = AndroidApplication
+    2 = DesktopApplication
+    3 = IOSApplication
+    */
+    private integer applicationType = -1
+
     on create
-        Color color
-        color = color:Black()
-
-        //configuration:title = "Game"
-        configuration:width = 800
-        configuration:height = 600
-
-        configuration:initialBackgroundColor = color
-/*
-        Properties properties
-        text os = properties:GetOperatingSystemName()
-
-        text path = ""
-        File file = properties:GetRunLocation()
-        file:SetPath("jni")
-        
-        path = file:GetAbsolutePath()
-
-        properties:SetProperty("org.lwjgl.librarypath", path)
-
-        // Setting the path to load the native C files, reusing the file and
-        // path variables.
-        path = ""
-        if os:Contains("Mac OS X")
-            file:SetPath("jni/libGameEngineCPlugins.so")
-        elseif os:Contains("Windows")
-            text bits = properties:GetProperty("os.arch")
-            if bits = "x86"
-                file:SetPath("jni/libGameEngineCPlugins32.dll")
-            else
-                file:SetPath("jni/libGameEngineCPlugins64.dll")
-            end
-        end
-
-        
-        path = file:GetAbsolutePath()
-        
-        GameStateManager manager
-        manager:SetNativePath(path)
-        manager:SetOperatingSystem(os)*/
-
         Panel panel
         panel:SetName("Default Active Panel")
         SetActivePanel(panel)
@@ -126,16 +108,54 @@ class Game
     */
     action StartGame
     
+        Application application = SelectApplicationType()
+        if application = undefined
+            alert("I could not identify what type of application to use for this operating system!")
+        end
+
         GameStateManager manager
+        gl20 = manager:GetGameGraphics()
 
-        GameDisplay display
-        manager:SetGameDisplay(display)
-        
-        display:SetConfig(configuration)
-        display:SetupDisplay()
+        if application is DesktopApplication
+            if desktopConfig:title = ""
+                desktopConfig:title = "Game"
+            end
 
-        Application application
-        application:Setup(me, configuration, display)
+            /*
+            New code will set game graphics from initialization.
+            DesktopGraphics graphics
+            manager:SetGameGraphics(graphics)
+            gl20 = graphics
+            */
+
+            DesktopDisplay display
+            manager:SetGameDisplay(display)
+
+            display:SetConfiguration(desktopConfig)
+            display:SetupDisplay()
+        elseif application is AndroidApplication
+            
+            AndroidDisplay display
+            manager:SetGameDisplay(display)
+            display:SetConfiguration(androidConfig)
+
+            AndroidGraphics graphics
+            manager:SetGameGraphics(graphics)
+            
+        elseif application is IOSApplication
+            /* Notes:
+            Will almost certainly need to set up a new type of GameDisplay for
+            iOS. That can be set in the GameStateManager before it is ever needed
+            in the IOSApplication plugin during DidFinishLaunching.
+            */
+            IOSDisplay display
+            manager:SetGameDisplay(display)
+            display:SetConfiguration(iosConfig)
+
+            IOSGraphics iosGraphics
+            manager:SetGameGraphics(iosGraphics)
+        end
+        application:Setup(me)
 
     end
 
@@ -212,7 +232,10 @@ class Game
     end
 
     action ContinueGame
-        ProcessInputEvents()
+        // Only test for mouse/keyboard input on DesktopApplication.
+        if applicationType = 2
+            ProcessInputEvents()
+        end
         UpdateAll()
         Update(GetSecondsBetweenFrames())
         TestForCollisions()
@@ -220,12 +243,12 @@ class Game
         DrawAll()
     end
 
-    action SetConfiguration(ApplicationConfiguration config)
-        configuration = config
+    action SetConfiguration(DesktopConfiguration config)
+        desktopConfig = config
     end
 
-    action GetConfiguration returns ApplicationConfiguration
-        return configuration
+    action GetConfiguration returns DesktopConfiguration
+        return desktopConfig
     end
 
     /*
@@ -247,7 +270,7 @@ class Game
         end
     */
     action GetScreenWidth returns integer
-        return configuration:width
+        return desktopConfig:width
     end
 
     /*
@@ -269,7 +292,7 @@ class Game
         end
     */
     action GetScreenHeight returns integer
-        return configuration:height
+        return desktopConfig:height
     end
 
     /*
@@ -540,6 +563,12 @@ class Game
     never need to use this action directly.
     */
     private action ProcessInputEvents
+        
+        // If not a DesktopApplication, don't attempt to check mouse/keyboard.
+        if applicationType not= 2
+            return now
+        end
+
         List<MouseEvent> mouseEvents = mouseProcessor:GetCurrentEvents()
         MouseEvent mouseEvent = undefined
         repeat mouseEvents:GetSize() times
@@ -801,8 +830,8 @@ class Game
         end
     */
     action SetScreenSize(integer width, integer height)
-        configuration:width = width
-        configuration:height = height
+        desktopConfig:width = width
+        desktopConfig:height = height
         activePanel:SetSize(width, height)
     end
 
@@ -824,7 +853,7 @@ class Game
         end
     */
     action SetVSync(boolean vSync)
-        configuration:vSyncEnabled = vSync
+        desktopConfig:vSyncEnabled = vSync
     end
 
     /*
@@ -846,7 +875,7 @@ class Game
         end
     */
     action EnableResizing(boolean resize)
-        configuration:resizable = resize
+        desktopConfig:resizable = resize
     end
 
     /*
@@ -867,7 +896,7 @@ class Game
         end
     */
     action SetGameName(text name)
-        configuration:title = name
+        desktopConfig:title = name
     end
 
     /*
@@ -889,7 +918,7 @@ class Game
         end
     */
     action EnableTextureAutoResizing(boolean resize)
-        configuration:autoResizeTextures = resize
+        desktopConfig:autoResizeTextures = resize
     end
 
     /*
@@ -1012,5 +1041,33 @@ class Game
             counter1 = counter1 + 1
         end
     end
+
+    private action SelectApplicationType returns Application
+        /*
+        Current codes:
+        1 = AndroidApplication
+        2 = DesktopApplication
+        3 = IOSApplication
+        */
+
+        applicationType = SelectApplicationTypeNative()
+        if applicationType = 1
+            AndroidApplication app
+            return app
+        end
+        if applicationType = 2
+            DesktopApplication app
+            return app
+        end
+        if applicationType = 3
+            IOSApplication app
+            return app
+        end
+        // ... Other options
+
+        return undefined
+    end
+
+    private system action SelectApplicationTypeNative returns integer
 
 end

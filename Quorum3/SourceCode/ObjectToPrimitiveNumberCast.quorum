@@ -17,7 +17,14 @@ class ObjectToPrimitiveNumberCast is ExplicitCastOpcode
     end
     
     action WriteJavaScript returns text
-        return ""
+        text result = ""
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            result = result + opcodeToCast:WriteJavaScript() + ".GetValue()"
+        else 
+            result = ".GetValue()"
+        end
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode

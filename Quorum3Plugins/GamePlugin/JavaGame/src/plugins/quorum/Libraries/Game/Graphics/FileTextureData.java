@@ -33,7 +33,7 @@ public class FileTextureData implements TextureData {
    
    public boolean TestForCopyToPowerOfTwo()
    {
-       return copyToPOT && (GameState.GetGameGraphics20Manager() == null);
+       return copyToPOT && (GameState.GetGameGraphics() == null);
    }
    
    @Override

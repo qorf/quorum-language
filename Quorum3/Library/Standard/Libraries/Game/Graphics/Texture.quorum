@@ -1,13 +1,13 @@
 package Libraries.Game.Graphics
 
 use Libraries.Game.Graphics.FileTextureData
-use Libraries.Game.Application
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.PixelMap
 use Libraries.System.File
 use Libraries.Language.Errors.Error
 use Libraries.Game.Disposable
+use Libraries.Game.GameStateManager
 
 /*
 The Texture class represents an image that can be drawn on the screen. Once
@@ -45,7 +45,7 @@ class Texture is Disposable
 
     private TextureData data = undefined
 
-    private GraphicsManager gl20
+    private GraphicsManager gl20 = undefined
 
     TextureFilter minimizeFilter
     TextureFilter magnifyFilter
@@ -53,6 +53,9 @@ class Texture is Disposable
     TextureWrap verticalWrap
 
     on create
+        GameStateManager manager
+        gl20 = manager:GetGameGraphics()
+
         minimizeFilter:ConstructTextureFilter(minimizeFilter:NEAREST)
         magnifyFilter:ConstructTextureFilter(magnifyFilter:NEAREST)
         horizontalWrap:ConstructTextureWrap(horizontalWrap:CLAMP_TO_EDGE)

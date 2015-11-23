@@ -18,7 +18,14 @@ class NumberToTextCast is ExplicitCastOpcode
     end
     
     action WriteJavaScript returns text
-        return ""
+        text result = ""
+        text DQ = result:GetDoubleQuote()
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            text temp = opcodeToCast:WriteJavaScript()
+            result = result + "(" + temp  + " % 1 == 0? "+temp + ".toFixed(1) : " + temp + ") + " + DQ + DQ
+        end
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode

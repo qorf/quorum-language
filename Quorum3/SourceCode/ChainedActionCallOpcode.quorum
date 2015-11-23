@@ -85,7 +85,7 @@ class ChainedActionCallOpcode is QuorumOpcode
             result = result + op:WriteJavaScript()
         end
         if isSoloCall
-            result = result + ";"
+            result = result + ";" + result:GetCarriageReturn() + result:GetLineFeed()
         end
 
         return result

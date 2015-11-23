@@ -37,6 +37,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/Source/BufferUtils.o \
 	${OBJECTDIR}/Source/Font.o \
+	${OBJECTDIR}/Source/IOSGraphics.o \
 	${OBJECTDIR}/Source/Matrix4.o \
 	${OBJECTDIR}/Source/PixelMap.o \
 	${OBJECTDIR}/Source/gdx2d.o \
@@ -79,6 +80,11 @@ ${OBJECTDIR}/Source/Font.o: Source/Font.c
 	${MKDIR} -p ${OBJECTDIR}/Source
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/Font.o Source/Font.c
+
+${OBJECTDIR}/Source/IOSGraphics.o: Source/IOSGraphics.cpp 
+	${MKDIR} -p ${OBJECTDIR}/Source
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/IOSGraphics.o Source/IOSGraphics.cpp
 
 ${OBJECTDIR}/Source/Matrix4.o: Source/Matrix4.cpp 
 	${MKDIR} -p ${OBJECTDIR}/Source

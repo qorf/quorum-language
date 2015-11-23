@@ -5,6 +5,7 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.CodeCompletionItem
 use Libraries.Language.Support.CompareResult
+use Libraries.System.File
 
 class Action is Symbol
     List<Variable> parameters
@@ -19,6 +20,76 @@ class Action is Symbol
     boolean isPublic = true
     Location headerLocation = undefined
     Location nameLocation = undefined
+    Location returnLocation = undefined
+    List<Location> callLocations
+    HashTable<text, List<Location>> callLocationHash
+    List<ActionCallResolution> actionCalls
+
+    action AddCallLocation(Location location) 
+        File file = location:GetFile()
+        if file = undefined
+           return now //ignore if this isn't supported
+        end
+        index = location:GetIndex()
+        theEnd = location:GetIndexEnd()
+        par = GetParentClass():GetName()
+        act = GetName()
+        text path = file:GetAbsolutePath()
+        
+        if act:GetSize() + index - 1 = theEnd
+            a = 5
+        else 
+            a = 5
+        end
+        List<Location> list = undefined
+        if callLocationHash:HasKey(path)
+            list = callLocationHash:GetValue(path)
+        end
+
+        if list = undefined
+            List<Location> list2
+            list = list2
+            callLocationHash:Add(path, list)
+        end
+
+        list:Add(location)
+    end
+
+    action RemoveCallLocations(File file)
+        text path = file:GetAbsolutePath()
+        if callLocationHash:HasKey(path)
+            callLocationHash:RemoveKey(path)
+        end
+    end
+
+    action GetCallLocationIterator(File file) returns Iterator<Location>
+        text path = file:GetAbsolutePath()
+        if callLocationHash:HasKey(path)
+            List<Location> loc = callLocationHash:GetValue(path)
+            return loc:GetIterator()
+        end
+
+        return undefined
+    end
+
+    /*
+        This action receives any action calls that exist inside of this action.
+    */
+    action AddActionCalls(ActionCallResolution call)
+        actionCalls:Add(call)
+    end
+
+    action GetActionCalls returns Iterator<ActionCallResolution>
+        return actionCalls:GetIterator()
+    end
+
+    action GetReturnLocation returns Location
+        return returnLocation
+    end
+
+    action SetReturnLocation(Location location) 
+        returnLocation = location
+    end
 
     action GetNameLocation returns Location
         return nameLocation
@@ -53,24 +124,25 @@ class Action is Symbol
         end
 
         if block not= undefined
-            Iterator<Variable> params = block:GetVariables()
-            repeat while params:HasNext()
-                Variable var = params:Next()
-                list:Add(var)
-            end
-
-            Iterator<Block> blocks = block:GetBlocks()
-            repeat while blocks:HasNext()
-                Block b = blocks:Next()
-                params = b:GetVariables()
-                repeat while params:HasNext()
-                    Variable var = params:Next()
-                    list:Add(var)
-                end
-            end
+            AddVariablesFromBlock(list, block)
         end
 
         return list:GetIterator()
+    end
+
+    private action AddVariablesFromBlock(List<Variable> variables, Block b)
+        i = 0
+        repeat while i < b:GetSubBlockSize()
+            Block b2 = b:GetBlock(i)
+            AddVariablesFromBlock(variables, b2)
+            i = i + 1
+        end
+
+        Iterator<Variable> params = b:GetVariables()
+        repeat while params:HasNext()
+            Variable var = params:Next()
+            variables:Add(var)
+        end
     end
 
     action SetPublic

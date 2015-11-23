@@ -13,6 +13,7 @@ use Libraries.Language.Compile.Translate.QuorumOpcode
 use Libraries.Language.Support.CompareResult
 use Libraries.Language.Compile.Hints.UseHint
 use Libraries.Language.Compile.Hints.Hint
+use Libraries.Containers.List
 
 class Class is Symbol
     QualifiedName packageName
@@ -43,6 +44,7 @@ class Class is Symbol
     Array<Array<Class>> resolvedParentLevels
     boolean hasBlueprints = false
     Location nameLocation = undefined
+    HashTable<text, List<Location>> useLocationHash
 
     on create
         QualifiedName object
@@ -91,6 +93,36 @@ class Class is Symbol
         errorObject:Add("Error")
 
         AddUnresolvedUseStatement(errorObject)
+    end
+
+    action AddUseLocation(Location location) 
+        File file = location:GetFile()
+        if file = undefined
+           return now //ignore if this isn't supported
+        end
+        text path = file:GetAbsolutePath()
+        List<Location> list = undefined
+        if useLocationHash:HasKey(path)
+            list = useLocationHash:GetValue(path)
+        end
+
+        if list = undefined
+            List<Location> list2
+            list = list2
+            useLocationHash:Add(path, list)
+        end
+
+        list:Add(location)
+    end
+
+    action GetUseLocationIterator(File file) returns Iterator<Location>
+        text path = file:GetAbsolutePath()
+        if useLocationHash:HasKey(path)
+            List<Location> loc = useLocationHash:GetValue(path)
+            return loc:GetIterator()
+        end
+
+        return undefined
     end
 
     action GetNameLocation returns Location
@@ -1660,6 +1692,16 @@ class Class is Symbol
         This action returns the static key formatted as a class name in 
         Java bytecode.
     */
+    action ConvertStaticKeyToJavaScriptName returns text
+        text key = GetStaticKey()
+        text result = "quorum_" + key:Replace(".", "_") + "_"
+        return result
+    end
+
+    /*
+        This action returns the static key formatted as a class name in 
+        Java bytecode.
+    */
     action ConvertStaticKeyToBytecodePath returns text
         text key = GetStaticKey()
         text result = "quorum/" + key:Replace(".", "/")
@@ -1787,6 +1829,28 @@ class Class is Symbol
         return packageName:Copy()
     end
 
+    /*
+        This action removes all of the call locations from a particular file
+        to a particular set of actions in this class's available actions. As such, 
+        it removes them both from these actions and those defined and 
+        used by the parent.
+    */
+    action RemoveCallLocationsFromActions(File file)
+        Iterator<Action> it = GetVirtualTable()
+        repeat while it:HasNext()
+            Action value = it:Next()
+            value:RemoveCallLocations(file)
+        end
+    end
+
+    action RemoveCallLocationsFromDependencies(File file)
+        Iterator<Class> value = validUses:GetValueIterator()
+        repeat while value:HasNext()
+            Class c = value:Next()
+            c:RemoveCallLocationsFromActions(file)
+        end
+    end
+
     action ResolveAction(ActionCall call) returns ActionCallResolution
         ActionCallResolution resolution
         Array<Type> parameters = call:actualParameters
@@ -1797,11 +1861,6 @@ class Class is Symbol
             return resolution
         end
         TypeChecker checker = call:checker
-
-        Location location = call
-        if call:name = "Set" and location:GetLineNumber() = 6
-            a = 5
-        end
 
         Array<Action> named //actions with the right name
         Array<integer> scores
@@ -1920,6 +1979,18 @@ class Class is Symbol
         if finalMatches:GetSize() = 1
             resolution:resolvedAction = finalMatches:Get(0)
             Action final = finalMatches:Get(0)
+
+            Location nameLocation = call:nameLocation
+            if nameLocation not= undefined
+                resolution:nameLocation = nameLocation:CreateLocationCopy()
+                final:AddCallLocation(resolution:nameLocation)
+            end
+
+            if call:calledFrom not= undefined
+                Action from = call:calledFrom
+                from:AddActionCalls(resolution)
+            end
+
             //now compute any implicit casts, if there are any
             Array<QuorumOpcode> casts
             Iterator<Variable> variables = final:GetParameterIterator()

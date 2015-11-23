@@ -41,12 +41,12 @@ public class GameStateManager {
 
     public void SetGameGraphics(GraphicsManager_ gl20){
       //JOptionPane.showMessageDialog(null, "Getting game graphics: ");
-      gs.SetGameGraphics20Manager(gl20);
+      gs.SetGameGraphics(gl20);
     }
 
     public GraphicsManager_ GetGameGraphics(){
       //JOptionPane.showMessageDialog(null, "Getting game graphics: ");
-      return gs.GetGameGraphics20Manager();
+      return gs.GetGameGraphics();
     }
   
     public void SetNativePath(String path)
