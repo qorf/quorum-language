@@ -6,6 +6,7 @@
 package org.quorum.language;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import org.netbeans.modules.csl.api.ColoringAttributes;
 import org.netbeans.modules.csl.api.OccurrencesFinder;
@@ -102,14 +103,18 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
                         Location_ nameLocation = next.GetNameLocation();
                         if(caretPosition >= nameLocation.GetIndex() && caretPosition <= nameLocation.GetIndexEnd() + 1) {
                             OffsetRange callRange = new OffsetRange(nameLocation.GetIndex(), nameLocation.GetIndexEnd() + 1);
-                            highlighting.put(callRange, ColoringAttributes.MARK_OCCURRENCES);
+                            addRange(callRange, ColoringAttributes.MARK_OCCURRENCES);
                             
                             //now grab all the calls in this file and add them.
                             Iterator_ callLocations = next.GetCallLocationIterator(clazz.GetFile());
                             while(callLocations != null && callLocations.HasNext()) {
                                 Location_ callLoc = (Location_) callLocations.Next();
-                                OffsetRange callRange2 = new OffsetRange(callLoc.GetIndex(), callLoc.GetIndexEnd() + 1);
-                                highlighting.put(callRange2, ColoringAttributes.MARK_OCCURRENCES);
+                                File_ clazzFile = clazz.GetFile();
+                                File_ locFile = callLoc.GetFile();
+                                if(clazzFile.GetAbsolutePath().compareTo(locFile.GetAbsolutePath()) == 0) {
+                                    OffsetRange callRange2 = new OffsetRange(callLoc.GetIndex(), callLoc.GetIndexEnd() + 1);
+                                    addRange(callRange2, ColoringAttributes.MARK_OCCURRENCES);
+                                }
                             }
                             done = true;
                         }
@@ -127,14 +132,14 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
                                 while(callLocations != null && callLocations.HasNext()) {
                                     Location_ callLoc = (Location_) callLocations.Next();
                                     OffsetRange callRange = new OffsetRange(callLoc.GetIndex(), callLoc.GetIndexEnd() + 1);
-                                    highlighting.put(callRange, ColoringAttributes.MARK_OCCURRENCES);
+                                    addRange(callRange, ColoringAttributes.MARK_OCCURRENCES);
                                 }
                                 
                                 //if the action is in this file, highlight its name
                                 Location_ nameLocation = resolved.GetNameLocation();
                                 if(nameLocation.GetFile().GetAbsolutePath().compareTo(clazz.GetFile().GetAbsolutePath())==0) {
                                     OffsetRange callRange = new OffsetRange(nameLocation.GetIndex(), nameLocation.GetIndexEnd() + 1);
-                                    highlighting.put(callRange, ColoringAttributes.MARK_OCCURRENCES);
+                                    addRange(callRange, ColoringAttributes.MARK_OCCURRENCES);
                                 }
                                 done = true;
                             }
@@ -150,6 +155,12 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
         //as such, we should return an empty map to indicate this.
         if(!done) {
             highlighting = new HashMap<>();
+        }
+    }
+    
+    private void addRange(OffsetRange range, ColoringAttributes color) {
+        if(!highlighting.containsKey(range)) {
+            highlighting.put(range, ColoringAttributes.MARK_OCCURRENCES);
         }
     }
     
@@ -178,7 +189,7 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
                         while(uses.HasNext()) {
                             Location_ use = (Location_) uses.Next();
                             OffsetRange useRange = new OffsetRange(use.GetIndex(), use.GetIndexEnd() + 1);
-                            highlighting.put(useRange, ColoringAttributes.MARK_OCCURRENCES);
+                            addRange(useRange, ColoringAttributes.MARK_OCCURRENCES);
                         }
                     }
                 }
@@ -204,7 +215,7 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
                 while(uses.HasNext()) {
                     Location_ use = (Location_) uses.Next();
                     OffsetRange useRange = new OffsetRange(use.GetIndex(), use.GetIndexEnd() + 1);
-                    highlighting.put(useRange, ColoringAttributes.MARK_OCCURRENCES);
+                    addRange(useRange, ColoringAttributes.MARK_OCCURRENCES);
                 }
             }
         }
