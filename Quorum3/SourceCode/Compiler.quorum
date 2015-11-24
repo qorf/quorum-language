@@ -19,7 +19,7 @@ class Compiler
     constant text DEFAULT_BUILD_FOLDER = "Build"
     constant text DEFAULT_RUN_FOLDER = "Run"
     constant text DEFAULT_STANDARD_LIBRARY_FOLDER = "Library/Standard"
-    constant text WAR_CLASS_DIRECTORY = "WEB-INF/classes"
+    constant text WEB_DIRECTORY = "WEB-INF/classes"
     constant text DOCUMENTATION_FOLDER = "Documents/"
     constant text OBJECT = "Libraries.Language.Object"
     constant text JAR_DEPENDENCY_FOLDER = "libraries"
@@ -34,7 +34,7 @@ class Compiler
     SymbolTable symbolTable
     CompilerErrorManager compilerErrorManager
     TypeChecker checker
-
+    
 
     //Sandbox classes for the parser
     SymbolTable sandboxSymbolTable
@@ -1123,11 +1123,21 @@ class Compiler
 
                     text key = code:GetStaticKey()
                     if build not= undefined
-                        generator:Add(build)
+                        if IsWebApplication()
+                            text path = WEB_DIRECTORY + "/" + build:GetPath()
+                            generator:Add(build, path)
+                        else 
+                            generator:Add(build)
+                        end
                     end
 
                     if buildInterface not= undefined
-                        generator:Add(buildInterface)
+                        if IsWebApplication()
+                            text path = WEB_DIRECTORY + "/" build:GetPath()
+                            generator:Add(buildInterface, path)
+                        else 
+                            generator:Add(buildInterface)
+                        end
                     end
                 end
                 profiler:Add(time:GetEpochTime())
@@ -1521,6 +1531,28 @@ class Compiler
             end
         end
 
+        if IsWebApplication()
+            File servlet
+            servlet:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+            servlet:SetPath("WEB-INF/classes/web/servlet/Processor.class")
+            generator:Add(servlet)
+
+            File glassfish
+            glassfish:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+            glassfish:SetPath("WEB-INF/glassfish-web.xml")
+            generator:Add(glassfish)
+
+            File web
+            web:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+            web:SetPath("WEB-INF/web.xml")
+            generator:Add(web)
+
+            File context
+            context:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+            context:SetPath("META-INF/context.xml")
+            generator:Add(context)
+        end
+
         if hasSpeech or HasSpeechCallInCompile()
             File to
             to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
@@ -1678,7 +1710,12 @@ class Compiler
             File f
             f:SetWorkingDirectory(wd)
             f:SetPath(path)
-            generator:Add(f)
+            if IsWebApplication()
+                text newPath = WEB_DIRECTORY + "/" + f:GetPath()
+                generator:Add(f, newPath)
+            else 
+                generator:Add(f)
+            end
         end
     end
 
