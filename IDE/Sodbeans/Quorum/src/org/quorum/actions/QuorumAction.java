@@ -145,6 +145,13 @@ public abstract class QuorumAction implements Action {
         }
         long start = System.currentTimeMillis();
         compiler.Empty();
+        final QuorumProjectType type = project.getProjectType();
+        if(type == QuorumProjectType.WEB) {
+            compiler.SetIsWebApplication(true);
+        } else {
+            compiler.SetIsWebApplication(false);
+        }
+        
         try {
             compiler.Compile(listing);
         } catch (final Exception e) {
@@ -213,7 +220,6 @@ public abstract class QuorumAction implements Action {
             }
         });
         
-        final QuorumProjectType type = project.getProjectType();
         boolean legos = false;
         if(type == QuorumProjectType.LEGO && compiler.IsCompilationErrorFree()) {
             QuorumToLegoAdapter adapter = new QuorumToLegoAdapter();
