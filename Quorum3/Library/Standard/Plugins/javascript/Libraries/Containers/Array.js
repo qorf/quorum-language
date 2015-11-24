@@ -98,7 +98,7 @@ Array.prototype.AddToEnd = function (value) {
 };
 
 Array.prototype.AddToFront = function (value) {
-    this.push(value);
+    this.unshift(value);
 };
 
 Array.prototype.Copy = function () {
@@ -118,7 +118,7 @@ Array.prototype.GetFromEnd = function () {
 };
 
 Array.prototype.GetIterator = function () {
-    return this.values();
+    //return this.values();
 };
 
 Array.prototype.Has = function (value) {
