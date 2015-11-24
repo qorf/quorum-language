@@ -56,7 +56,12 @@ class AlertOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text
-        return ""
+        text result = ""
+        if opcode not= undefined
+            return "throw " + opcode:WriteJavaScript() + ";"
+        end
+
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode

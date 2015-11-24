@@ -1829,6 +1829,28 @@ class Class is Symbol
         return packageName:Copy()
     end
 
+    /*
+        This action removes all of the call locations from a particular file
+        to a particular set of actions in this class's available actions. As such, 
+        it removes them both from these actions and those defined and 
+        used by the parent.
+    */
+    action RemoveCallLocationsFromActions(File file)
+        Iterator<Action> it = GetVirtualTable()
+        repeat while it:HasNext()
+            Action value = it:Next()
+            value:RemoveCallLocations(file)
+        end
+    end
+
+    action RemoveCallLocationsFromDependencies(File file)
+        Iterator<Class> value = validUses:GetValueIterator()
+        repeat while value:HasNext()
+            Class c = value:Next()
+            c:RemoveCallLocationsFromActions(file)
+        end
+    end
+
     action ResolveAction(ActionCall call) returns ActionCallResolution
         ActionCallResolution resolution
         Array<Type> parameters = call:actualParameters
@@ -1964,7 +1986,6 @@ class Class is Symbol
                 final:AddCallLocation(resolution:nameLocation)
             end
 
-            //final:AddCallLocation(call:CreateLocationCopy())
             if call:calledFrom not= undefined
                 Action from = call:calledFrom
                 from:AddActionCalls(resolution)
