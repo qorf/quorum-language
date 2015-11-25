@@ -310,7 +310,7 @@ class Main is WebResponder
         compiler:SetOutputFolder(root)
         File main
         //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
-        main:SetPath("Library/Tests/List/Pass/Add.quorum")
+        main:SetPath("Library/Tests/Array/Pass/ArrayAdd.quorum")
         //main:SetPath("main.quorum") //CallMethodCallingBlueprint
 
 
@@ -335,8 +335,8 @@ class Main is WebResponder
         //files:Add(class5)
 
         //compiler:SetOutputSpeech(false) //don't speak while in test mode
-        compiler:SetIsWebApplication(true)
-        //compiler:SetOutputType(compiler:JAVASCRIPT)
+        //compiler:SetIsWebApplication(true)
+        compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:SetMain(main)
         compiler:Compile(files)
 

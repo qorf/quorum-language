@@ -66,10 +66,14 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
     this.GetCharacterAt$quorum_text$quorum_integer = function (left, index) {
         return left.charAt(index);
     };
+    
+    this.ParseInteger = function(left) {
+        return parseInt(left);
+    };
 }
 
-String.prototype.ParseInteger$quorum_integer = function(value) {
-    return this.valueOf().value;
+String.prototype.ParseInteger = function() {
+    return parseInt(this.valueOf());
 };
 
 String.prototype.ParseNumber$quorum_number = function(value) {
