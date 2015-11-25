@@ -1,28 +1,29 @@
+
 function plugins_quorum_Libraries_Containers_Array_() {
     this.array_ = [];
     this.SetNative$quorum_integer$quorum_Libraries_Language_Object = function (index, value) {
         if (index >= 0 && index < this.length) {
-            array_[index] = value;
+            this.array_[index] = value;
         } else {
             //out of range
         }
     };
     
     this.GetNative$quorum_integer = function (index) {
-        if (index >= 0 && index < this.length) {
-            return array_[index].valueOf();
+        if (index >= 0 && index < this.array_.length) {
+            return this.array_[index];
         } else {
             //out of range
         }
     };
     
     this.AddNative$quorum_Libraries_Language_Object = function (value) {
-        array_.push(value);
+        this.array_.push(value);
     };
     
     this.AddNative$quorum_integer$quorum_Libraries_Language_Object = function (index, value) {
         if (index >= 0 && index <= this.length) {
-            array_.splice(index, 0, value);
+            this.array_.splice(index, 0, value);
         } else {
             //out of range
         }
@@ -31,15 +32,15 @@ function plugins_quorum_Libraries_Containers_Array_() {
     this.SetSizeNativee$quorum_integer = function (size) {};
     
     this.GetMaxSize = function () {
-        return 0;
+        return Math.floor(Number.MAX_VALUE);
     };
     
     this.GetSize = function () {
-        return 0;
+        return this.array_.length;
     };
     
     this.GetAutoResize = function () {
-        return false;
+        return true;
     };
     
     this.SetAutoResize$quorum_boolean = function (size) {};
@@ -47,16 +48,16 @@ function plugins_quorum_Libraries_Containers_Array_() {
     this.SetMaxSize$quorum_integer = function (size) {};
     
     this.Empty = function () {
-        array_.length = 0;
+        this.array_.length = 0;
     };
     
     this.IsEmpty = function () {
-        return array_.length == 0;
+        return this.array_.length == 0;
     };
     
     this.RemoveAtNative$quorum_integer = function (index) {
         if (index >= 0 && index <= this.length) {
-            return left.splice(index, 1).toString();
+            return this.array_.splice(index, 1).toString();
         } else {
             //out of range
         }
