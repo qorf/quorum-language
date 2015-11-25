@@ -1133,7 +1133,7 @@ class Compiler
 
                     if buildInterface not= undefined
                         if IsWebApplication()
-                            text path = WEB_DIRECTORY + "/" build:GetPath()
+                            text path = WEB_DIRECTORY + "/" + buildInterface:GetPath()
                             generator:Add(buildInterface, path)
                         else 
                             generator:Add(buildInterface)
