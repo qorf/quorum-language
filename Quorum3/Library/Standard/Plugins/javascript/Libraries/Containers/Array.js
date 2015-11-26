@@ -22,7 +22,7 @@ function plugins_quorum_Libraries_Containers_Array_() {
     };
     
     this.AddNative$quorum_integer$quorum_Libraries_Language_Object = function (index, value) {
-        if (index >= 0 && index <= this.length) {
+        if (index >= 0 && index <= this.array_.length) {
             this.array_.splice(index, 0, value);
         } else {
             //out of range
@@ -56,7 +56,7 @@ function plugins_quorum_Libraries_Containers_Array_() {
     };
     
     this.RemoveAtNative$quorum_integer = function (index) {
-        if (index >= 0 && index <= this.length) {
+        if (index >= 0 && index <= this.array_.length) {
             return this.array_.splice(index, 1).toString();
         } else {
             //out of range
