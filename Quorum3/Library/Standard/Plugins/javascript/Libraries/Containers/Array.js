@@ -1,8 +1,10 @@
 
 function plugins_quorum_Libraries_Containers_Array_() {
     this.array_ = [];
+    this.maxSize = 10; //this value is ignored, but it makes the behavior similar to other targets
+    
     this.SetNative$quorum_integer$quorum_Libraries_Language_Object = function (index, value) {
-        if (index >= 0 && index < this.length) {
+        if (index >= 0 && index < this.array_.length) {
             this.array_[index] = value;
         } else {
             //out of range
@@ -29,10 +31,15 @@ function plugins_quorum_Libraries_Containers_Array_() {
         }
     };
     
-    this.SetSizeNativee$quorum_integer = function (size) {};
+    this.SetSizeNative$quorum_integer = function (size) {
+        var value = this.GetSize();
+        for(i = value; i < size; i++) {
+            this.array_.push(null);
+        }
+    };
     
     this.GetMaxSize = function () {
-        return Math.floor(Number.MAX_VALUE);
+        return this.maxSize;
     };
     
     this.GetSize = function () {
@@ -43,9 +50,12 @@ function plugins_quorum_Libraries_Containers_Array_() {
         return true;
     };
     
-    this.SetAutoResize$quorum_boolean = function (size) {};
+    this.SetAutoResize$quorum_boolean = function (resize) {
+    };
     
-    this.SetMaxSize$quorum_integer = function (size) {};
+    this.SetMaxSize$quorum_integer = function (size) {
+        this.maxSize = size;
+    };
     
     this.Empty = function () {
         this.array_.length = 0;
