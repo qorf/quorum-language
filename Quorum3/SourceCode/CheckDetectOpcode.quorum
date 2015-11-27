@@ -316,23 +316,46 @@ class CheckDetectOpcode is QuorumOpcode
             result = result + alwaysBlock:WriteJavaScript()
         end
 
-
-        JavaBytecodeLabel alwaysStart
         boolean hasCatchAll = false
         if not isCheckEmpty
             Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
+            integer detectAmount = 0
+            
             result = result + "catch(e_) {" + EOL
             repeat while it:HasNext()
                 DetectBlockOpcode det = it:Next()
+                if errorBlock not= det
+                    Iterator<Class> detectClasses = det:GetDeclaredDetectsIterator()
+                    result = result + "     if(e_ instanceof "
+                    boolean first = true
+                    repeat while detectClasses:HasNext()
+                        Class classDetect = detectClasses:Next()
+                        text name = classDetect:ConvertStaticKeyToJavaScriptName()
+                        if first
+                            result = result + name
+                        else
+                            result = result + " || e_ instance of " + name
+                        end
+                    end
 
-                result = result + det:WriteJavaScript()
+                    result = result + ") {" + EOL
+                    result = result + det:WriteJavaScript()
+                    result = result + "     }"
+                    detectAmount = detectAmount + 1
+                end
             end
             
 
             //if we have an error block with a catch-all that has been reordered
             //write it now.
             if errorBlock not= undefined
-                result = result + errorBlock:WriteJavaScript()
+                if detectAmount > 0
+                    result = result + " else {" + EOL
+                    result = result + errorBlock:WriteJavaScript()
+                    result = result + " }" + EOL
+                else
+                    result = result + errorBlock:WriteJavaScript()
+                end
             end
 
             result = result + "}" + EOL
