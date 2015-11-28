@@ -12,7 +12,15 @@ function plugins_quorum_Libraries_Language_Types_Integer_(optional) {
     this.GetHashCode = function() {
         return 0;
     };
+    
+    this.GetBinary = function() {
+        return (integer >>> 0).toString(2);
+    };
 }
+
+Number.prototype.GetBinary = function() {
+  return  (this.integer >>> 0).toString(2);
+};
 
 Number.prototype.GetNumber = function() {
   return  this.integer;
