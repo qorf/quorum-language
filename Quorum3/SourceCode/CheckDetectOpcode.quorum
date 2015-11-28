@@ -305,6 +305,8 @@ class CheckDetectOpcode is QuorumOpcode
             end
         end
 
+        constant text checkExceptionName = "e" + GetCheckLabelInteger() + "_"
+
         text null = undefined
         if not isCheckEmpty
             result = result + "try {" + EOL
@@ -314,10 +316,6 @@ class CheckDetectOpcode is QuorumOpcode
             //in this case, we need an empty try block for javascript to accept it
             result = result + "try {}" + EOL
         end
-
-        //if alwaysBlock not= undefined
-        //    result = result + alwaysBlock:WriteJavaScript()
-        //end
 
         boolean hasCatchAll = false
         if not isCheckEmpty //if the block is empty, there's no need to write detect blocks
@@ -332,16 +330,21 @@ class CheckDetectOpcode is QuorumOpcode
                 text exceptionVariableName = value:GetJavaScriptName()
                 if isFirst
                     if value not= undefined
-                        result = result + exceptionVariableName + ") {" + EOL
+                        result = result + checkExceptionName + ") {" + EOL
                     else
-                        result = result + exceptionVariableName + ") {" + EOL
+                        result = result + checkExceptionName + ") {" + EOL
                     end
                     isFirst = false
                 end
 
                 if errorBlock not= det
                     Iterator<Class> detectClasses = det:GetDeclaredDetectsIterator()
-                    result = result + "     if(" + exceptionVariableName + " instanceof "
+                    if detectAmount > 0
+                        result = result + "     else if(" + checkExceptionName + " instanceof "
+                    else
+                        result = result + "     if(" + checkExceptionName + " instanceof "
+                    end
+
                     boolean first = true
                     repeat while detectClasses:HasNext()
                         Class classDetect = detectClasses:Next()
@@ -349,11 +352,12 @@ class CheckDetectOpcode is QuorumOpcode
                         if first
                             result = result + name
                         else
-                            result = result + " || " + exceptionVariableName + " instanceof " + name
+                            result = result + " || " + checkExceptionName + " instanceof " + name
                         end
                     end
 
                     result = result + ") {" + EOL
+                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
                     result = result + det:WriteJavaScript()
                     result = result + "     }"
                     detectAmount = detectAmount + 1
@@ -365,12 +369,22 @@ class CheckDetectOpcode is QuorumOpcode
             //write it now.
             if errorBlock not= undefined
                 if detectAmount > 0
+                    Variable value = errorBlock:GetExceptionVariable()
+                    text exceptionVariableName = value:GetJavaScriptName()
                     result = result + " else {" + EOL
+                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
                     result = result + errorBlock:WriteJavaScript()
                     result = result + " }" + EOL
                 else
+                    Variable value = errorBlock:GetExceptionVariable()
+                    text exceptionVariableName = value:GetJavaScriptName()
+                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
                     result = result + errorBlock:WriteJavaScript()
                 end
+            else
+                result = result + " else {" + EOL
+                result = result + "     throw " + checkExceptionName + ";" + EOL
+                result = result + " }" + EOL
             end
 
             result = result + "}" + EOL

@@ -70,3 +70,23 @@ function global_parseNumber(text) {
         throw error;
     }
 }
+
+function global_CheckCast(from, to) {
+    var names = from.parentNames_;
+    for(i = 0; i < names.length; i++) {
+        if(names[i] == to) {
+            return from;
+        }
+    }
+    var error = new quorum_Libraries_Language_Errors_CastError_();
+    throw error;
+}
+
+function global_ErrorCheck(error) {
+    names = error.parentNames_;
+    if(names == null) {
+        return new quorum_Libraries_Language_Errors_Error_();
+    } else {
+        return error; //it's already a quorum error
+    }
+}
