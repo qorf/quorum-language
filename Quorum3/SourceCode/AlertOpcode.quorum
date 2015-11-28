@@ -57,8 +57,16 @@ class AlertOpcode is QuorumOpcode
 
     action WriteJavaScript returns text
         text result = ""
+        text EOL = result:GetCarriageReturn() + result:GetLineFeed()
         if opcode not= undefined
-            return "throw " + opcode:WriteJavaScript() + ";"
+            Type value = opcode:GetType()
+            if value:IsText()
+                result = result + "var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();" + EOL
+                result = result + " exceptionInstance_.SetErrorMessage$quorum_text(" + opcode:WriteJavaScript() + ");" + EOL
+                result = result +  "throw exceptionInstance_;" + EOL
+            else
+                result = result +  "throw " + opcode:WriteJavaScript() + ";"
+            end
         end
 
         return result

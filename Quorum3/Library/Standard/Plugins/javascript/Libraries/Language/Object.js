@@ -21,10 +21,12 @@ function global_InstanceOf(variable, name) {
 function global_parseInteger(text) {
     text = text.trim();
     if(text == null) {
-        return NaN;
+        var error = new quorum_Libraries_Language_Errors_CastError_();
+        throw error;
     }
     if(text.length == 0) {
-        return NaN;
+        var error = new quorum_Libraries_Language_Errors_CastError_();
+        throw error;
     }
     var index = 0;
     var result = 0;
@@ -49,4 +51,22 @@ function global_parseInteger(text) {
         result = result * -1;
     }
     return result;
+}
+
+function global_parseNumber(text) {
+    text = text.trim();
+    if (text == null) {
+        var error = new quorum_Libraries_Language_Errors_CastError_();
+        throw error;
+    }
+    if (text.length == 0) {
+        var error = new quorum_Libraries_Language_Errors_CastError_();
+        throw error;
+    }
+    if(/^(\-|\+)?([0-9]+(\.[0-9]+)?|Infinity)$/.test(text)) {
+      return Number(text);
+    } else {
+        var error = new quorum_Libraries_Language_Errors_CastError_();
+        throw error;
+    }
 }

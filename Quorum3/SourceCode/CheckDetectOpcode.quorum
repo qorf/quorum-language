@@ -310,23 +310,38 @@ class CheckDetectOpcode is QuorumOpcode
             result = result + "try {" + EOL
             result = result + "     " + block:WriteJavaScript()
             result = result + EOL + "}" + EOL
+        elseif isCheckEmpty and alwaysBlock not= undefined
+            //in this case, we need an empty try block for javascript to accept it
+            result = result + "try {}" + EOL
         end
 
-        if alwaysBlock not= undefined
-            result = result + alwaysBlock:WriteJavaScript()
-        end
+        //if alwaysBlock not= undefined
+        //    result = result + alwaysBlock:WriteJavaScript()
+        //end
 
         boolean hasCatchAll = false
-        if not isCheckEmpty
+        if not isCheckEmpty //if the block is empty, there's no need to write detect blocks
             Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
             integer detectAmount = 0
             
-            result = result + "catch(e_) {" + EOL
+            result = result + "catch("
+            boolean isFirst = true
             repeat while it:HasNext()
                 DetectBlockOpcode det = it:Next()
+                Variable value = det:GetExceptionVariable()
+                text exceptionVariableName = value:GetJavaScriptName()
+                if isFirst
+                    if value not= undefined
+                        result = result + exceptionVariableName + ") {" + EOL
+                    else
+                        result = result + exceptionVariableName + ") {" + EOL
+                    end
+                    isFirst = false
+                end
+
                 if errorBlock not= det
                     Iterator<Class> detectClasses = det:GetDeclaredDetectsIterator()
-                    result = result + "     if(e_ instanceof "
+                    result = result + "     if(" + exceptionVariableName + " instanceof "
                     boolean first = true
                     repeat while detectClasses:HasNext()
                         Class classDetect = detectClasses:Next()
@@ -334,7 +349,7 @@ class CheckDetectOpcode is QuorumOpcode
                         if first
                             result = result + name
                         else
-                            result = result + " || e_ instance of " + name
+                            result = result + " || " + exceptionVariableName + " instanceof " + name
                         end
                     end
 
@@ -359,9 +374,13 @@ class CheckDetectOpcode is QuorumOpcode
             end
 
             result = result + "}" + EOL
-            if alwaysBlock not= undefined
-                alwaysBlock:WriteJavaScript()
-            end
+            
+        end
+
+        if alwaysBlock not= undefined
+            result = result + "finally {" + EOL
+            result = result + alwaysBlock:WriteJavaScript() + EOL
+            result = result + "}" + EOL
         end
 
         return result
