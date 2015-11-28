@@ -1,0 +1,16 @@
+use Libraries.Compute.BitwiseOperations
+
+class Main
+    action Main
+        BitwiseOperations bp
+        integer a = 314
+        integer b = 10
+        integer result = bp:And(a,b)
+        output result:GetBinary()
+        output result
+        b = 137
+        result = bp:And(a,b)
+        output result:GetBinary()
+        output result
+    end
+end

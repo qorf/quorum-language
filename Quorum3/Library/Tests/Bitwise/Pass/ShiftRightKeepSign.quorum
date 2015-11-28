@@ -1,0 +1,16 @@
+use Libraries.Compute.BitwiseOperations
+
+class Main
+    action Main
+        BitwiseOperations bp
+        integer a = 314
+        integer b = 2
+        integer result = bp:ShiftRightKeepSign(a,b)
+        output result:GetBinary()
+        output result
+        a = -314
+        result = bp:ShiftRightKeepSign(a,b)
+        output result:GetBinary()
+        output result
+    end
+end
