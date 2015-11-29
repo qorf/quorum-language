@@ -1,5 +1,5 @@
 function plugins_quorum_Libraries_Language_Types_Text_(optional) {
-    this.text = false;
+    this.text = "";
     
     if(optional === undefined) {
     } else {
@@ -65,6 +65,10 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
     
     this.GetCharacterAt$quorum_text$quorum_integer = function (left, index) {
         return left.charAt(index);
+    };
+    
+    this.GetHashCode = function(left) {
+        return 0;
     };
     
     this.ParseInteger = function(left) {

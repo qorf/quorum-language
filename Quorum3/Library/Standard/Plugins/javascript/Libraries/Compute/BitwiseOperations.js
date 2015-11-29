@@ -23,7 +23,7 @@ function plugins_quorum_Libraries_Compute_BitwiseOperations_() {
         return value >>> amount;
     };
     
-    this.ShiftRightKeepSign$quorum_integer$quorum_integer = function (value, amount) {
+    this.ShiftRightPositive$quorum_integer$quorum_integer = function (value, amount) {
         return value >> amount;
     };
     

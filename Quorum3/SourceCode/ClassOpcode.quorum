@@ -1084,7 +1084,25 @@ class ClassOpcode is QuorumOpcode
                 end
             //end
         end
+
+        //now that all of the parents have had their parent's set, 
+        //call their constructors.
+        parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            text parentName = p:ConvertStaticKeyToParentFieldName()
+
+            if p:HasConstructor()
+                convertedSource = convertedSource + "this." + parentName + ".constructor_();" + EOL
+            end
+        end
+
         convertedSource = convertedSource + "}" + EOL
+
+        if clazz:HasConstructor()
+            convertedSource = convertedSource + constructor:WriteJavaScript()
+        end
 
         Iterator<Action> it = clazz:GetParentActions()
         repeat while it:HasNext()
@@ -1135,6 +1153,10 @@ class ClassOpcode is QuorumOpcode
         repeat while fieldIterator:HasNext()
             QuorumOpcode field = fieldIterator:Next()
             convertedSource = convertedSource + field:WriteJavaScript()
+        end
+
+        if clazz:HasConstructor()
+            convertedSource = convertedSource + "this.constructor_();" + EOL
         end
 
         if value = "Libraries.Language.Types.Integer"

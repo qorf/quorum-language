@@ -179,6 +179,7 @@ class ActionOpcode is QuorumOpcode
 
     action WriteJavaScript returns text
         text result = "this." + method:ConvertActionToJavaScriptName() + " = function "  + "("
+        
         EOL = result:GetCarriageReturn() + result:GetLineFeed()
         Iterator<Variable> parameters = method:GetParameterIterator()
         integer position = 1
