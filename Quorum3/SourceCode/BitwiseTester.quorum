@@ -46,10 +46,8 @@ class BitwiseTester
         File main
         main:SetPath(path + "And.quorum")
         files:Add(main)
-        results:Add(0, "1010")
-        results:Add(1, "10")
-        results:Add(2, "1000")
-        results:Add(3, "8")
+        results:Add(0, "10")
+        results:Add(1, "8")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -60,10 +58,8 @@ class BitwiseTester
         File main
         main:SetPath(path + "ExclusiveOr.quorum")
         files:Add(main)
-        results:Add(0, "100110000")
-        results:Add(1, "304")
-        results:Add(2, "110110011")
-        results:Add(3, "435")
+        results:Add(0, "304")
+        results:Add(1, "435")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -74,8 +70,7 @@ class BitwiseTester
         File main
         main:SetPath(path + "Negate.quorum")
         files:Add(main)
-        results:Add(0, "11111111111111111111111011000101")
-        results:Add(1, "-315")
+        results:Add(0, "-315")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -86,10 +81,8 @@ class BitwiseTester
         File main
         main:SetPath(path + "Or.quorum")
         files:Add(main)
-        results:Add(0, "100111010")
-        results:Add(1, "314")
-        results:Add(2, "110111011")
-        results:Add(3, "443")
+        results:Add(0, "314")
+        results:Add(1, "443")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -100,10 +93,8 @@ class BitwiseTester
         File main
         main:SetPath(path + "ShiftLeft.quorum")
         files:Add(main)
-        results:Add(0, "10011101000")
-        results:Add(1, "1256")
-        results:Add(2, "11111111111111111111101100011000")
-        results:Add(3, "-1256")
+        results:Add(0, "1256")
+        results:Add(1, "-1256")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -114,10 +105,8 @@ class BitwiseTester
         File main
         main:SetPath(path + "ShiftRight.quorum")
         files:Add(main)
-        results:Add(0, "1001110")
-        results:Add(1, "78")
-        results:Add(2, "111111111111111111111110110001")
-        results:Add(3, "-79")
+        results:Add(0, "78")
+        results:Add(1, "-79")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -128,10 +117,8 @@ class BitwiseTester
         File main
         main:SetPath(path + "ShiftRightKeepSign.quorum")
         files:Add(main)
-        results:Add(0, "1001110")
-        results:Add(1, "78")
-        results:Add(2, "11111111111111111111111110110001")
-        results:Add(3, "1073741745")
+        results:Add(0, "78")
+        results:Add(1, "1073741745")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
