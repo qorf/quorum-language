@@ -6,9 +6,11 @@ class Main
         integer a = 314
         integer b = 2
         integer result = bp:ShiftLeft(a,b)
+        output result:GetBinary()
         output result
         a = -314
         result = bp:ShiftLeft(a,b)
+        output result:GetBinary()
         output result
     end
 end
