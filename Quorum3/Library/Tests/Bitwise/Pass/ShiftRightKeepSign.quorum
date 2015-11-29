@@ -5,11 +5,11 @@ class Main
         BitwiseOperations bp
         integer a = 314
         integer b = 2
-        integer result = bp:ShiftRightKeepSign(a,b)
+        integer result = bp:ShiftRightPositive(a,b)
         output result:GetBinary()
         output result
         a = -314
-        result = bp:ShiftRightKeepSign(a,b)
+        result = bp:ShiftRightPositive(a,b)
         output result:GetBinary()
         output result
     end
