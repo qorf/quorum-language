@@ -30,7 +30,7 @@ public class BitwiseOperations {
     public int ShiftRight(int value, int amount) {
         return value >> amount;
     }
-    public int ShiftRightKeepSign(int value, int amount) {
+    public int ShiftRightPositive(int value, int amount) {
         return value >>> amount;
     }
 }
