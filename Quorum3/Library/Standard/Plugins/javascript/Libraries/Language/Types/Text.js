@@ -29,7 +29,7 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
         if (index < left.length && index >= 0)
             return left.indexOf(right, index);
         else
-            return -1; //out of range
+            return -1; /*out of range*/
     };
 
     this.IsEmptyNative$quorum_text = function(left) {
@@ -44,7 +44,7 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
         if (index < left.length && index >= 0)
             return left.substr(index);
         else
-            return -1; //out of range 
+            return -1; /*out of range */
     };
        
     this.TrimNative$quorum_text = function(left) {

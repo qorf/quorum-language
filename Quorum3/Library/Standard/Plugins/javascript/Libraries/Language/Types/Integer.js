@@ -44,11 +44,11 @@ Number.prototype.Equals$quorum_integer = function(value) {
 
 Number.prototype.Compare$quorum_integer = function(value) {
     if (this.valueOf().integer === value) {
-        //return EQUAL
+        /*return EQUAL*/
     } else if (this.valueOf().integer < value) {
-        //return SMALLER
+        /*return SMALLER*/
     } else {
-        //return LARGER
+        /*return LARGER*/
     }
 };
 Number.prototype.GetValue = function() {

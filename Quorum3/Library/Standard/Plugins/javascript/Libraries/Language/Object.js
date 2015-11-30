@@ -42,7 +42,7 @@ function global_parseInteger(text) {
         if(char >= 0 && char < 10) {
             result = result * 10;
             result = result + char;
-        } else { //unlike typical javascript, throw an exception from Quorum
+        } else { /* unlike typical javascript, throw an exception from Quorum */
             var error = new quorum_Libraries_Language_Errors_CastError_();
             throw error;
         }
@@ -87,6 +87,6 @@ function global_ErrorCheck(error) {
     if(names == null) {
         return new quorum_Libraries_Language_Errors_Error_();
     } else {
-        return error; //it's already a quorum error
+        return error; /*it's already a quorum error*/
     }
 }
