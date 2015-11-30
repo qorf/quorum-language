@@ -534,6 +534,11 @@ class Action is Symbol
     end
 
     action ConvertActionToJavaScriptName returns text
+        //this is a special case where we have a constructor. Return a 
+        //different name
+        if GetName() = "on create"
+            return "constructor_"
+        end
         text result = ""
         result = result + GetName()
         Iterator<Variable> params = GetParameterIterator()

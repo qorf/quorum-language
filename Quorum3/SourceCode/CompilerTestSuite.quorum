@@ -21,8 +21,8 @@ class CompilerTestSuite
     integer passed = 0
     integer failed = 0
     
-    boolean testBytecode = true
-    boolean testJavaScript = false
+    boolean testBytecode = false
+    boolean testJavaScript = true
   
     CompilerProfiler summaryProfiler
     Math math
@@ -48,6 +48,7 @@ class CompilerTestSuite
     UsePackageTester useChecks
     RandomTester randomChecks
     TableTester tableChecks
+    BitwiseTester bitwiseChecks
 
     on create
         expressions:SetCompilerTestSuite(me)
@@ -72,6 +73,7 @@ class CompilerTestSuite
         useChecks:SetCompilerTestSuite(me)
         randomChecks:SetCompilerTestSuite(me)
         tableChecks:SetCompilerTestSuite(me)
+        bitwiseChecks:SetCompilerTestSuite(me)
     end
 
     action Main
@@ -145,6 +147,9 @@ class CompilerTestSuite
         output ""
         output tableChecks:GetName()
         tableChecks:Test()
+        output ""
+        output bitwiseChecks:GetName()
+        bitwiseChecks:Test()
         output ""
 
         text EOL = ""

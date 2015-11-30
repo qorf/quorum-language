@@ -1133,7 +1133,7 @@ class Compiler
 
                     if buildInterface not= undefined
                         if IsWebApplication()
-                            text path = WEB_DIRECTORY + "/" build:GetPath()
+                            text path = WEB_DIRECTORY + "/" + buildInterface:GetPath()
                             generator:Add(buildInterface, path)
                         else 
                             generator:Add(buildInterface)
@@ -1194,7 +1194,6 @@ class Compiler
                                 value = location:Read()
                                 plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
                             end
-
                         end
                     end
                 end
@@ -1936,20 +1935,52 @@ class Compiler
                 end
             elseif currentOutputType = JAVASCRIPT
                 text result = ""
+                text plugins = ""
+                text main = ""
                 Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
                 repeat while codes:HasNext()
                     ClassOpcode code = codes:Next()
                     Class clazz = code:GetClass()
 
+                    
                     Class mainClazz = me:GetMainClass()
                     text mainClazzName = mainClazz:GetStaticKey()
                     text clazzName = clazz:GetStaticKey()
-                    if clazzName = mainClazzName //keep it simple in the first version.
-                        result = result + code:WriteJavaScript()
+                    if not clazzName:Contains("Libraries.System")
+                        if mainClazz:GetStaticKey() = clazzName
+                            main = code:WriteJavaScript()
+                        else
+                            result = result + code:WriteJavaScript()
+                        end
+
+                        //check if this class has a plugin. If it does, include it.
+                        if clazz:HasSystemAction()
+                            File folder = GetStandardLibraryFolder() 
+                            path = folder:GetPath() + "/Plugins/javascript/"
+                            
+                            key = clazz:GetStaticKey()
+                            Array<text> keys = key:Split("\.")
+                            i = 0
+                            repeat keys:GetSize() times
+                                newKey = keys:Get(i)
+                                if i = keys:GetSize() - 1
+                                    path = path + newKey + ".js"
+                                else
+                                    path = path + newKey + "/"
+                                end
+                                i = i + 1
+                            end
+                            File location
+                            location:SetWorkingDirectory(folder:GetWorkingDirectory())
+                            location:SetPath(path)
+                            if location:Exists() 
+                                value = location:Read()
+                                plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
+                            end
+                        end
                     end
-                    a = 5
                 end
-                convertedJavaScript = result
+                convertedJavaScript = plugins + result + main
             end
         end
     end

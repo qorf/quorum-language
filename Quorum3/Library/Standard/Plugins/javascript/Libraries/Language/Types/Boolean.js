@@ -28,10 +28,10 @@ Boolean.prototype.Equals$quorum_boolean = function(value) {
 
 Boolean.prototype.Compare$quorum_boolean = function(value) {
     if (this.valueOf().boolean === value) {
-        //return EQUAL
+        /*return EQUAL*/
     } else if (this.valueOf().boolean === false && this.value === true) {
-        //return SMALLER
+        /*return SMALLER*/
     } else {
-        //return LARGER
+        /*return LARGER*/
     }
 };

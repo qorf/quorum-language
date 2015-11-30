@@ -1,5 +1,5 @@
 function plugins_quorum_Libraries_Language_Types_Text_(optional) {
-    this.text = false;
+    this.text = "";
     
     if(optional === undefined) {
     } else {
@@ -29,7 +29,7 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
         if (index < left.length && index >= 0)
             return left.indexOf(right, index);
         else
-            return -1; //out of range
+            return -1; /*out of range*/
     };
 
     this.IsEmptyNative$quorum_text = function(left) {
@@ -44,7 +44,7 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
         if (index < left.length && index >= 0)
             return left.substr(index);
         else
-            return -1; //out of range 
+            return -1; /*out of range */
     };
        
     this.TrimNative$quorum_text = function(left) {
@@ -66,10 +66,18 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
     this.GetCharacterAt$quorum_text$quorum_integer = function (left, index) {
         return left.charAt(index);
     };
+    
+    this.GetHashCode = function(left) {
+        return 0;
+    };
+    
+    this.ParseInteger = function(left) {
+        return parseInt(left);
+    };
 }
 
-String.prototype.ParseInteger$quorum_integer = function(value) {
-    return this.valueOf().value;
+String.prototype.ParseInteger = function() {
+    return parseInt(this.valueOf());
 };
 
 String.prototype.ParseNumber$quorum_number = function(value) {

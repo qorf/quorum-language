@@ -21,7 +21,7 @@ class TextToIntegerCast is ExplicitCastOpcode
         text DQ = result:GetDoubleQuote()
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
-            result = result + "parseInt(" + opcodeToCast:WriteJavaScript() + ")"
+            result = result + "global_parseInteger(" + opcodeToCast:WriteJavaScript() + ")"
         end
         return result
     end

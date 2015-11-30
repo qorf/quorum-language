@@ -12,7 +12,15 @@ function plugins_quorum_Libraries_Language_Types_Integer_(optional) {
     this.GetHashCode = function() {
         return 0;
     };
+    
+    this.GetBinary = function() {
+        return integer.toString(2);
+    };
 }
+
+Number.prototype.GetBinary = function() {
+    return this.valueOf().toString(2);
+};
 
 Number.prototype.GetNumber = function() {
   return  this.integer;
@@ -36,11 +44,11 @@ Number.prototype.Equals$quorum_integer = function(value) {
 
 Number.prototype.Compare$quorum_integer = function(value) {
     if (this.valueOf().integer === value) {
-        //return EQUAL
+        /*return EQUAL*/
     } else if (this.valueOf().integer < value) {
-        //return SMALLER
+        /*return SMALLER*/
     } else {
-        //return LARGER
+        /*return LARGER*/
     }
 };
 Number.prototype.GetValue = function() {

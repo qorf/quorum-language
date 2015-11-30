@@ -90,9 +90,12 @@ class BinaryOpcode is QuorumOpcode
             leftResult = "(global_number_converter_(" + leftResult + "))"
         end
 
-        
-
-        result = result + "(" + leftResult + " " + operator + " " + rightResult + ")"
+        //we have to take the floor, because JavaScript doesn't have integers
+        if leftType:IsInteger() and rightType:IsInteger() and current = op:DIVIDE
+            result = result + "Math.floor(" + leftResult + " " + operator + " " + rightResult + ")"
+        else
+            result = result + "(" + leftResult + " " + operator + " " + rightResult + ")"
+        end
         return result
     end
 

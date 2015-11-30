@@ -1,0 +1,14 @@
+use Libraries.Compute.BitwiseOperations
+
+class Main
+    action Main
+        BitwiseOperations bp
+        integer a = 314
+        integer b = 2
+        integer result = bp:ShiftRight(a,b)
+        output result
+        a = -314
+        result = bp:ShiftRight(a,b)
+        output result
+    end
+end

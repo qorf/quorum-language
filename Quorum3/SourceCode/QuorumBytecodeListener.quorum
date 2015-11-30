@@ -1333,6 +1333,11 @@ class QuorumBytecodeListener is QuorumSourceListener
             variable = currentBlock:GetVariable(name)
         end
 
+        boolean notDefined = false
+        if not variable:IsDefined()
+            notDefined = true
+        end
+
         if variable = undefined
             CompilerError error
             error:SetLocation(context:GetLocation())
@@ -1496,6 +1501,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
         if currentBlock = undefined
             assignment:SetIsInFieldBlock(true)
+        end
+        if notDefined
+            assignment:SetIsNewAssignment(true)
         end
         assignment:SetLocation(context:GetLocation())
         assignment:SetClass(currentClass)

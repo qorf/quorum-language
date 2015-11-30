@@ -19,12 +19,23 @@ class AssignmentOpcode is QuorumOpcode
     Class parentWithField = undefined
 
     boolean isInFieldBlock = false
+    boolean isNewAssignment = false
+
     action IsInFieldBlock returns boolean
         return isInFieldBlock
     end
 
     action SetIsInFieldBlock(boolean block)
         isInFieldBlock = block
+    end
+
+    
+    action IsNewAssignment returns boolean
+        return isNewAssignment
+    end
+
+    action SetIsNewAssignment(boolean block)
+        isNewAssignment = block
     end
 
     action GetImplicitCast returns QuorumOpcode
@@ -251,6 +262,9 @@ class AssignmentOpcode is QuorumOpcode
             end
             result = result + variable:GetJavaScriptName()
         else
+            if isNewAssignment
+                result = result + "var " 
+            end
             result = result + variable:GetJavaScriptName() 
         end
         result = result + " = " + rightHandSide:WriteJavaScript() + ";"
