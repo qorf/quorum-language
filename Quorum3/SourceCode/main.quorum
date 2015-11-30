@@ -656,10 +656,11 @@ For more information on writing programs in Quorum, visit www.quorumlanguage.com
         File library
         //To deploy to a particular server, change this line to the 
         //parent directory for where the standard library is housed.
-        //library:SetWorkingDirectory("/home/stefika/converter")
+        library:SetWorkingDirectory("/home/stefika")
         //library:SetPath("Library/Standard")
-        library:SetWorkingDirectory("/Users/stefika/Repositories/quorum-language/Quorum3")
-        library:SetPath("Library/Standard")
+        //library:SetWorkingDirectory("/Users/stefika/Repositories/quorum-language/Quorum3")
+        library:SetPath("Libraries/Standard")
+        //output library:GetAbsolutePath()
 
         compiler:SetStandardLibraryFolder(library)
         
