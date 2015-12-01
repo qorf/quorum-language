@@ -3,397 +3,445 @@ package Libraries.Compute
 use Libraries.Compute.all
 use Libraries.Containers.Array
 
+/*
+Matrix3 is a class representing a 3x3 matrix.
+
+Attribute: Author Amanda Austin
+
+Attribute: Example
+
+use Libraries.Compute.Matrix3
+use Libraries.Containers.Array
+
+Matrix3 matrixA
+Matrix3 matrixB
+
+Array<number> valuesA
+Array<number> valuesB
+
+integer i = 0
+repeat 9 times
+    valuesA:Add(i)
+    i = i + 2
+end
+
+i = 1
+repeat 9 times
+    valuesB:Add(i)
+    i = i + 2
+end
+
+matrixA:Set(valuesA)
+matrixB:Set(valuesB)
+
+matrixA:Multiply(matrixB)
+
+number a00 = matrixA:values:Get(M00)
+number a01 = matrixA:values:Get(M01)
+number a02 = matrixA:values:Get(M02)
+number a10 = matrixA:values:Get(M10)
+number a11 = matrixA:values:Get(M11)
+number a12 = matrixA:values:Get(M12)
+number a20 = matrixA:values:Get(M20)
+number a21 = matrixA:values:Get(M21)
+number a22 = matrixA:values:Get(M22)
+
+output "The new matrix is:"
+output "|" + a00 + ", " + a01 + ", " + a02 + "|"
+output "|" + a10 + ", " + a11 + ", " + a12 + "|"
+output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+
+*/
 class Matrix3 
     
-    public constant integer M00 = 0
-    public constant integer M01 = 3
-    public constant integer M02 = 6
-    public constant integer M10 = 1
-    public constant integer M11 = 4
-    public constant integer M12 = 7
-    public constant integer M20 = 2
-    public constant integer M21 = 5
-    public constant integer M22 = 8
+    public number a00 = 1
+    public number a01 = 0
+    public number a02 = 0
+    public number a10 = 0
+    public number a11 = 1
+    public number a12 = 0
+    public number a20 = 0
+    public number a21 = 0
+    public number a22 = 1
 
-    public Array<number> values
-    private Array<number> temporary
     Math math
-    
 
-    on create
-        values:SetSize(9)
-        temporary:SetSize(9)
-        IdentityMatrix()
+    /*
+    This action sets the matrix to the identity matrix.
 
-    end
+    Attribute: Author Amanda Austin
 
-    action IdentityMatrix() returns Matrix3
-        values:Set(M00, 1)
-        values:Set(M01, 0)
-        values:Set(M02, 0)
-        values:Set(M10, 0)
-        values:Set(M11, 1)
-        values:Set(M12, 0)
-        values:Set(M20, 0)
-        values:Set(M21, 0)
-        values:Set(M22, 1)
+    Attribute: Returns The matrix as the identity matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix3
+
+    Matrix3 matrix
+    matrix:IdentityMatrix()
+
+
+    */
+    action IdentityMatrix returns Matrix3
+        a00 = 1
+        a01 = 0
+        a02 = 0
+        a10 = 0
+        a11 = 1
+        a12 = 0
+        a20 = 0
+        a21 = 0
+        a22 = 1
         return me
     end
 
-    /* Prints a 3x3 matrix for testings purposes */
-    action PrintValues ()
-        integer i = 0
-        repeat values:GetSize() / 3 times 
-            output values:Get(i) + " , " + values:Get(i+1) + " , " + values:Get(i + 2)
-            i = i + 3
-        end
-    end
+     action Multiply(Matrix3 matrixA, Matrix3 matrixB)
+        number v00 = matrixA:a00 * matrixB:a00 + matrixA:a01 * matrixB:a10 + matrixA:a02 * matrixB:a20
+        number v01 = matrixA:a00 * matrixB:a01 + matrixA:a01 * matrixB:a11 + matrixA:a02 * matrixB:a21
+        number v02 = matrixA:a00 * matrixB:a02 + matrixA:a01 * matrixB:a12 + matrixA:a02 * matrixB:a22
 
-     action Multiply (Array<number> matrixA, Array<number> matrixB)
+        number v10 = matrixA:a10 * matrixB:a00 + matrixA:a11 * matrixB:a10 + matrixA:a12 * matrixB:a20
+        number v11 = matrixA:a10 * matrixB:a01 + matrixA:a11 * matrixB:a11 + matrixA:a12 * matrixB:a21
+        number v12 = matrixA:a10 * matrixB:a02 + matrixA:a11 * matrixB:a12 + matrixA:a12 * matrixB:a22
 
-        number v00 = matrixA:Get(M00) * matrixB:Get(M00) + matrixA:Get(M01) * matrixB:Get(M10) + matrixA:Get(M02) * matrixB:Get(M20)
-        number v01 = matrixA:Get(M00) * matrixB:Get(M01) + matrixA:Get(M01) * matrixB:Get(M11) + matrixA:Get(M02) * matrixB:Get(M21)
-        number v02 = matrixA:Get(M00) * matrixB:Get(M02) + matrixA:Get(M01) * matrixB:Get(M12) + matrixA:Get(M02) * matrixB:Get(M22)
+        number v20 = matrixA:a20 * matrixB:a00 + matrixA:a21 * matrixB:a10 + matrixA:a22 * matrixB:a20
+        number v21 = matrixA:a20 * matrixB:a01 + matrixA:a21 * matrixB:a11 + matrixA:a22 * matrixB:a21
+        number v22 = matrixA:a20 * matrixB:a02 + matrixA:a21 * matrixB:a12 + matrixA:a22 * matrixB:a22
 
-        number v10 = matrixA:Get(M10) * matrixB:Get(M00) + matrixA:Get(M11) * matrixB:Get(M10) + matrixA:Get(M12) * matrixB:Get(M20)
-        number v11 = matrixA:Get(M10) * matrixB:Get(M01) + matrixA:Get(M11) * matrixB:Get(M11) + matrixA:Get(M12) * matrixB:Get(M21)
-        number v12 = matrixA:Get(M10) * matrixB:Get(M02) + matrixA:Get(M11) * matrixB:Get(M12) + matrixA:Get(M12) * matrixB:Get(M22)
-
-        number v20 = matrixA:Get(M20) * matrixB:Get(M00) + matrixA:Get(M21) * matrixB:Get(M10) + matrixA:Get(M22) * matrixB:Get(M20)
-        number v21 = matrixA:Get(M20) * matrixB:Get(M01) + matrixA:Get(M21) * matrixB:Get(M11) + matrixA:Get(M22) * matrixB:Get(M21)
-        number v22 = matrixA:Get(M20) * matrixB:Get(M02) + matrixA:Get(M21) * matrixB:Get(M12) + matrixA:Get(M22) * matrixB:Get(M22)
-
-        matrixA:Set(M00, v00)
-        matrixA:Set(M10, v10)
-        matrixA:Set(M20, v20)
-        matrixA:Set(M01, v01)
-        matrixA:Set(M11, v11)
-        matrixA:Set(M21, v21)
-        matrixA:Set(M02, v02)
-        matrixA:Set(M12, v12)
-        matrixA:Set(M22, v22)
+        a00 = v00
+        a01 = v01
+        a02 = v02
+        a10 = v10
+        a11 = v11
+        a12 = v12
+        a20 = v20
+        a21 = v21
+        a22 = v22
     end
  
     /* Multiplys the calling matrix by the passed in matrix */
-    action Multiply (Matrix3 matrix) returns Matrix3
+    action Multiply(Matrix3 matrix) returns Matrix3
+        number v00 = a00 * matrix:a00 + a01 * matrix:a10 + a02 * matrix:a20
+        number v01 = a00 * matrix:a01 + a01 * matrix:a11 + a02 * matrix:a21
+        number v02 = a00 * matrix:a02 + a01 * matrix:a12 + a02 * matrix:a22
 
-        // Insert the array of passed in matrix into new array variable
-        Array<number> matrixValue = matrix:values
+        number v10 = a10 * matrix:a00 + a11 * matrix:a10 + a12 * matrix:a20
+        number v11 = a10 * matrix:a01 + a11 * matrix:a11 + a12 * matrix:a21
+        number v12 = a10 * matrix:a02 + a11 * matrix:a12 + a12 * matrix:a22
 
-        number v00 = values:Get(M00) * matrixValue:Get(M00) + values:Get(M01) * matrixValue:Get(M10) + values:Get(M02) * matrixValue:Get(M20)
-        number v01 = values:Get(M00) * matrixValue:Get(M01) + values:Get(M01) * matrixValue:Get(M11) + values:Get(M02) * matrixValue:Get(M21)
-        number v02 = values:Get(M00) * matrixValue:Get(M02) + values:Get(M01) * matrixValue:Get(M12) + values:Get(M02) * matrixValue:Get(M22)
+        number v20 = a20 * matrix:a00 + a21 * matrix:a10 + a22 * matrix:a20
+        number v21 = a20 * matrix:a01 + a21 * matrix:a11 + a22 * matrix:a21
+        number v22 = a20 * matrix:a02 + a21 * matrix:a12 + a22 * matrix:a22
 
-        number v10 = values:Get(M10) * matrixValue:Get(M00) + values:Get(M11) * matrixValue:Get(M10) + values:Get(M12) * matrixValue:Get(M20)
-        number v11 = values:Get(M10) * matrixValue:Get(M01) + values:Get(M11) * matrixValue:Get(M11) + values:Get(M12) * matrixValue:Get(M21)
-        number v12 = values:Get(M10) * matrixValue:Get(M02) + values:Get(M11) * matrixValue:Get(M12) + values:Get(M12) * matrixValue:Get(M22)
-
-        number v20 = values:Get(M20) * matrixValue:Get(M00) + values:Get(M21) * matrixValue:Get(M10) + values:Get(M22) * matrixValue:Get(M20)
-        number v21 = values:Get(M20) * matrixValue:Get(M01) + values:Get(M21) * matrixValue:Get(M11) + values:Get(M22) * matrixValue:Get(M21)
-        number v22 = values:Get(M20) * matrixValue:Get(M02) + values:Get(M21) * matrixValue:Get(M12) + values:Get(M22) * matrixValue:Get(M22)
-        
-        values:Set(M00, v00)
-        values:Set(M10, v10)
-        values:Set(M20, v20)
-        values:Set(M01, v01)
-        values:Set(M11, v11)
-        values:Set(M21, v21)
-        values:Set(M02, v02)
-        values:Set(M12, v12)
-        values:Set(M22, v22)
+        a00 = v00
+        a01 = v01
+        a02 = v02
+        a10 = v10
+        a11 = v11
+        a12 = v12
+        a20 = v20
+        a21 = v21
+        a22 = v22
 
         return me
     end 
 
     // Multiplys the passed in matrix by the calling matrix and stores result in calling matrix
-    action MultiplyLeft (Matrix3 matrix) returns Matrix3
+    action MultiplyLeft(Matrix3 matrix) returns Matrix3
+        number v00 = matrix:a00 * a00 + matrix:a01 * a10 + matrix:a02 * a20
+        number v01 = matrix:a00 * a01 + matrix:a01 * a11 + matrix:a02 * a21
+        number v02 = matrix:a00 * a02 + matrix:a01 * a12 + matrix:a02 * a22
 
-       // Insert the array of passed in matrix into new array variable
-        Array<number> matrixValue = matrix:values
+        number v10 = matrix:a10 * a00 + matrix:a11 * a10 + matrix:a12 * a20
+        number v11 = matrix:a10 * a01 + matrix:a11 * a11 + matrix:a12 * a21
+        number v12 = matrix:a10 * a02 + matrix:a11 * a12 + matrix:a12 * a22
 
-        number v00 = matrixValue:Get(M00) * values:Get(M00) + matrixValue:Get(M01) * values:Get(M10) + matrixValue:Get(M02) * values:Get(M20)
-        number v01 = matrixValue:Get(M00) * values:Get(M01) + matrixValue:Get(M01) * values:Get(M11) + matrixValue:Get(M02) * values:Get(M21)
-        number v02 = matrixValue:Get(M00) * values:Get(M02) + matrixValue:Get(M01) * values:Get(M12) + matrixValue:Get(M02) * values:Get(M22)
+        number v20 = matrix:a20 * a00 + matrix:a21 * a10 + matrix:a22 * a20
+        number v21 = matrix:a20 * a01 + matrix:a21 * a11 + matrix:a22 * a21
+        number v22 = matrix:a20 * a02 + matrix:a21 * a12 + matrix:a22 * a22
 
-        number v10 = matrixValue:Get(M10) * values:Get(M00) + matrixValue:Get(M11) * values:Get(M10) + matrixValue:Get(M12) * values:Get(M20)
-        number v11 = matrixValue:Get(M10) * values:Get(M01) + matrixValue:Get(M11) * values:Get(M11) + matrixValue:Get(M12) * values:Get(M21)
-        number v12 = matrixValue:Get(M10) * values:Get(M02) + matrixValue:Get(M11) * values:Get(M12) + matrixValue:Get(M12) * values:Get(M22)
-
-        number v20 = matrixValue:Get(M20) * values:Get(M00) + matrixValue:Get(M21) * values:Get(M10) + matrixValue:Get(M22) * values:Get(M20)
-        number v21 = matrixValue:Get(M20) * values:Get(M01) + matrixValue:Get(M21) * values:Get(M11) + matrixValue:Get(M22) * values:Get(M21)
-        number v22 = matrixValue:Get(M20) * values:Get(M02) + matrixValue:Get(M21) * values:Get(M12) + matrixValue:Get(M22) * values:Get(M22)
-        
-        values:Set(M00, v00)
-        values:Set(M10, v10)
-        values:Set(M20, v20)
-        values:Set(M01, v01)
-        values:Set(M11, v11)
-        values:Set(M21, v21)
-        values:Set(M02, v02)
-        values:Set(M12, v12)
-        values:Set(M22, v22)
+        a00 = v00
+        a01 = v01
+        a02 = v02
+        a10 = v10
+        a11 = v11
+        a12 = v12
+        a20 = v20
+        a21 = v21
+        a22 = v22
 
         return me
     end
 
-    action SetToRotation (number degrees) returns Matrix3
+    action SetToRotation(number degrees) returns Matrix3
         return SetToRotationInRadians(math:DegreesToRadians(degrees))
     end
 
-    action SetToRotation (Vector3 axis, number degrees) returns Matrix3
+    action SetToRotation(Vector3 axis, number degrees) returns Matrix3
         return SetToRotation(axis, math:Cosine(math:DegreesToRadians(degrees)), math:Sine(math:DegreesToRadians(degrees)))
     end
 
-    action SetToRotation (Vector3 axis, number cosine, number sine) returns Matrix3
-        
+    action SetToRotation(Vector3 axis, number cosine, number sine) returns Matrix3        
         number oc = 1.0 - cosine
-        values:Set(M00, oc * axis:GetX() * axis:GetX() + cosine)
-        values:Set(M10, oc * axis:GetX() * axis:GetY() - axis:GetZ() * sine)
-        values:Set(M20, oc * axis:GetZ() * axis:GetX() + axis:GetY() * sine)
-        values:Set(M01, oc * axis:GetX() * axis:GetY() + axis:GetZ() * sine)
-        values:Set(M11, oc * axis:GetY() * axis:GetY() + cosine)
-        values:Set(M21, oc * axis:GetY() * axis:GetZ() - axis:GetX() * sine)
-        values:Set(M02, oc * axis:GetZ() * axis:GetX() - axis:GetY() * sine)
-        values:Set(M12, oc * axis:GetY() * axis:GetZ() + axis:GetX() * sine)
-        values:Set(M22, oc * axis:GetZ() * axis:GetZ() + cosine)
+        a00 = oc * axis:GetX() * axis:GetX() + cosine
+        a01 = oc * axis:GetX() * axis:GetY() - axis:GetZ() * sine
+        a02 = oc * axis:GetZ() * axis:GetX() + axis:GetY() * sine
+        a10 = oc * axis:GetX() * axis:GetY() + axis:GetZ() * sine
+        a11 = oc * axis:GetY() * axis:GetY() + cosine
+        a12 = oc * axis:GetY() * axis:GetZ() - axis:GetX() * sine
+        a20 = oc * axis:GetZ() * axis:GetX() - axis:GetY() * sine
+        a21 = oc * axis:GetY() * axis:GetZ() + axis:GetX() * sine
+        a22 = oc * axis:GetZ() * axis:GetZ() + cosine
 
         return  me
     end
 
-    action SetToRotationInRadians (number radians) returns Matrix3
-
+    action SetToRotationInRadians(number radians) returns Matrix3
         number cosine = math:Cosine(radians)
         number sine = math:Sine(radians)
         
-        values:Set(M00, cosine)
-        values:Set(M10, sine)
-        values:Set(M20, 0)
+        a00 = cosine
+        a10 = sine
+        a20 = 0
 
-        values:Set(M01, sine * -1)
-        values:Set(M11, cosine)
-        values:Set(M21, 0)
+        a01 = sine * -1
+        a11 = cosine
+        a21 = 0
 
-        values:Set(M02, 0)
-        values:Set(M12, 0)
-        values:Set(M22, 1)
+        a02 = 0
+        a12 = 0
+        a22 = 1
 
         return me
     end
         
 
-    action SetToTranslation (number x, number y) returns Matrix3
-        values:Set(M00, 1)
-        values:Set(M10, 0)
-        values:Set(M20, 0)
-        values:Set(M01, 0)
-        values:Set(M11, 1)
-        values:Set(M21, 0)
-        values:Set(M02, x)
-        values:Set(M12, y)
-        values:Set(M22, 1)
-        
-        return me
-    end
-
-    action SetToTranslation (Vector2 translation) returns Matrix3
-        values:Set(M00, 1)
-        values:Set(M10, 0)
-        values:Set(M20, 0)
-        values:Set(M01, 0)
-        values:Set(M11, 1)
-        values:Set(M21, 0)
-        values:Set(M02, translation:GetX())
-        values:Set(M12, translation:GetY())
-        values:Set(M22, 1)
+    action SetToTranslation(number x, number y) returns Matrix3
+        a00 = 1
+        a10 = 0
+        a20 = 0
+        a01 = 0
+        a11 = 1
+        a21 = 0
+        a02 = x
+        a12 = y
+        a22 = 1
 
         return me
     end
 
-    action SetToScaling (number scaleX, number scaleY) returns Matrix3
-        values:Set(M00, scaleX)
-        values:Set(M10, 0)
-        values:Set(M20, 0)
-        values:Set(M01, 0)
-        values:Set(M11, scaleY)
-        values:Set(M21, 0)
-        values:Set(M02, 0)
-        values:Set(M12, 0)
-        values:Set(M22, 1)
+    action SetToTranslation(Vector2 translation) returns Matrix3
+        a00 = 1
+        a10 = 0
+        a20 = 0
+        a01 = 0
+        a11 = 1
+        a21 = 0
+        a02 = translation:GetX()
+        a12 = translation:GetY()
+        a22 = 1
 
         return me
     end
 
-    action SetToScaling (Vector2 scale) returns Matrix3
-        values:Set(M00, scale:GetX())
-        values:Set(M10, 0)
-        values:Set(M20, 0)
-        values:Set(M01, 0)
-        values:Set(M11, scale:GetY())
-        values:Set(M21, 0)
-        values:Set(M02, 0)
-        values:Set(M12, 0)
-        values:Set(M22, 1)
+    action SetToScaling(number scaleX, number scaleY) returns Matrix3
+        a00 = scaleX
+        a01 = 0
+        a02 = 0
+        a10 = 0
+        a11 = scaleY
+        a12 = 0
+        a20 = 0
+        a21 = 0
+        a22 = 1
 
         return me
     end
 
-    action ToText () returns text
-        return "[" + values:Get(M00) + "|" + values:Get(M01) + "|" + values:Get(M02) + "]
-[" + values:Get(M10) + "|" + values:Get(M11) + "|" + values:Get(M12) + "]
-[" + values:Get(M20) + "|" + values:Get(M21) + "|" + values:Get(M22) + "]"
+    action SetToScaling(Vector2 scale) returns Matrix3
+        a00 = scale:GetX()
+        a01 = 0
+        a02 = 0
+        a10 = 0
+        a11 = scale:GetY()
+        a12 = 0
+        a20 = 0
+        a21 = 0
+        a22 = 1
+
+        return me
     end
 
-    action Determinant () returns number
-        return values:Get(M00) * values:Get(M11) * values:Get(M22) + 
-               values:Get(M01) * values:Get(M12) * values:Get(M20) + 
-               values:Get(M02) * values:Get(M10) * values:Get(M21) -
-               values:Get(M00) * values:Get(M12) * values:Get(M21) -
-               values:Get(M01) * values:Get(M10) * values:Get(M22) -
-               values:Get(M02) * values:Get(M11) * values:Get(M20)
+    action Determinant returns number
+        return a00 * a11 * a22 + 
+               a01 * a12 * a20 + 
+               a02 * a10 * a21 -
+               a00 * a12 * a21 -
+               a01 * a10 * a22 -
+               a02 * a11 * a20
     end
 
     /* Inverts the matrix given that the determinant does not equal 0 */
-    action Inverse () returns Matrix3
+    action Inverse returns Matrix3
         number determinant = Determinant()
         
         number inverseDeterminant = 1.0 / determinant
         
-        temporary:Set(M00, values:Get(M11) * values:Get(M22) - values:Get(M21) * values:Get(M12))
-        temporary:Set(M10, values:Get(M20) * values:Get(M12) - values:Get(M10) * values:Get(M22))
-        temporary:Set(M20, values:Get(M10) * values:Get(M21) - values:Get(M20) * values:Get(M11))
-        temporary:Set(M01, values:Get(M21) * values:Get(M02) - values:Get(M01) * values:Get(M22))
-        temporary:Set(M11, values:Get(M00) * values:Get(M22) - values:Get(M20) * values:Get(M02))
-        temporary:Set(M21, values:Get(M20) * values:Get(M01) - values:Get(M00) * values:Get(M21))
-        temporary:Set(M02, values:Get(M01) * values:Get(M12) - values:Get(M11) * values:Get(M02))
-        temporary:Set(M12, values:Get(M10) * values:Get(M02) - values:Get(M00) * values:Get(M12))
-        temporary:Set(M22, values:Get(M00) * values:Get(M11) - values:Get(M10) * values:Get(M01))
+        t00 = a11 * a22 - a21 * a12
+        t10 = a20 * a12 - a10 * a22
+        t20 = a10 * a21 - a20 * a11
+        t01 = a21 * a02 - a01 * a22
+        t11 = a00 * a22 - a20 * a02
+        t21 = a20 * a01 - a00 * a21
+        t02 = a01 * a12 - a11 * a02
+        t12 = a10 * a02 - a00 * a12
+        t22 = a00 * a11 - a10 * a01
         
-        values:Set(M00, inverseDeterminant * temporary:Get(M00))
-        values:Set(M10, inverseDeterminant * temporary:Get(M10))
-        values:Set(M20, inverseDeterminant * temporary:Get(M20))
-        values:Set(M01, inverseDeterminant * temporary:Get(M01))
-        values:Set(M11, inverseDeterminant * temporary:Get(M11))
-        values:Set(M21, inverseDeterminant * temporary:Get(M21))
-        values:Set(M02, inverseDeterminant * temporary:Get(M02))
-        values:Set(M12, inverseDeterminant * temporary:Get(M12))
-        values:Set(M22, inverseDeterminant * temporary:Get(M22))
+        a00 = inverseDeterminant * t00
+        a10 = inverseDeterminant * t10
+        a20 = inverseDeterminant * t20
+        a01 = inverseDeterminant * t01
+        a11 = inverseDeterminant * t11
+        a21 = inverseDeterminant * t21
+        a02 = inverseDeterminant * t02
+        a12 = inverseDeterminant * t12
+        a22 = inverseDeterminant * t22
 
         return me
     end
 
 
     // Copies the values from the array into the values array of the calling matrix
-    action Set (Array<number> array) returns Matrix3
-        values:Set(M00, array:Get(0))
-        values:Set(M10, array:Get(1))
-        values:Set(M20, array:Get(2))
-        values:Set(M01, array:Get(3))
-        values:Set(M11, array:Get(4))
-        values:Set(M21, array:Get(5))
-        values:Set(M02, array:Get(6))
-        values:Set(M12, array:Get(7))
-        values:Set(M22, array:Get(8))
+    action Set(Array<number> array) returns Matrix3
+        a00 = array:Get(0)
+        a01 = array:Get(1)
+        a02 = array:Get(2)
+        a10 = array:Get(3)
+        a11 = array:Get(4)
+        a12 = array:Get(5)
+        a20 = array:Get(6)
+        a21 = array:Get(7)
+        a22 = array:Get(8)
+        return me
+    end
+
+    action Set(number a00, number a01, number a02, number a10, number a11, number a12, number a20, number a21, number a22) returns Matrix3
+        me:a00 = a00
+        me:a01 = a01
+        me:a02 = a02
+        me:a10 = a10
+        me:a11 = a11
+        me:a12 = a12
+        me:a20 = a20
+        me:a21 = a21
+        me:a22 = a22
         return me
     end
 
     // Copies the values array from the passed in matrix
-    action Set (Matrix3 matrix) returns Matrix3
-
-        integer index = 0
-        repeat 9 times
-            values:Set(index, matrix:values:Get(index))
-            index = index + 1
-        end
-
-        return me
-    end
-
-    action Set (Affine2 affine) returns Matrix3
-        values:Set(M00, affine:M00)
-        values:Set(M10, affine:M10)
-        values:Set(M20, 0)
-        values:Set(M01, affine:M01)
-        values:Set(M11, affine:M11)
-        values:Set(M21, 0)
-        values:Set(M02, affine:M02)
-        values:Set(M12, affine:M12)
-        values:Set(M22, 1)
+    action Set(Matrix3 matrix) returns Matrix3
+        a00 = matrix:a00
+        a01 = matrix:a01
+        a02 = matrix:a02
+        a10 = matrix:a10
+        a11 = matrix:a11
+        a12 = matrix:a12
+        a20 = matrix:a20
+        a21 = matrix:a21
+        a22 = matrix:a22
 
         return me
     end
 
-    action Set (Matrix4 matrix) returns Matrix3
-        values:Set(M00, matrix:values:Get(matrix:M00))
-        values:Set(M10, matrix:values:Get(matrix:M10))
-        values:Set(M20, matrix:values:Get(matrix:M20))
-        values:Set(M01, matrix:values:Get(matrix:M01))
-        values:Set(M11, matrix:values:Get(matrix:M11))
-        values:Set(M21, matrix:values:Get(matrix:M21))
-        values:Set(M02, matrix:values:Get(matrix:M02))
-        values:Set(M12, matrix:values:Get(matrix:M12))
-        values:Set(M22, matrix:values:Get(matrix:M22))
+    action Set(Affine2 affine) returns Matrix3
+        a00 = affine:M00
+        a10 = affine:M10
+        a20 = 0
+        a01 = affine:M01
+        a11 = affine:M11
+        a21 = 0
+        a02 = affine:M02
+        a12 = affine:M12
+        a22 = 1
+
+        return me
+    end
+
+    action Set(Matrix4 matrix) returns Matrix3
+        a00 = matrix:values:Get(matrix:M00)
+        a10 = matrix:values:Get(matrix:M10)
+        a20 = matrix:values:Get(matrix:M20)
+        a01 = matrix:values:Get(matrix:M01)
+        a11 = matrix:values:Get(matrix:M11) 
+        a21 = matrix:values:Get(matrix:M21)
+        a02 = matrix:values:Get(matrix:M02)
+        a12 = matrix:values:Get(matrix:M12)
+        a22 = matrix:values:Get(matrix:M22)
         return me
     end
 
 
     /* adds a translational component to the matrix in the 3rd column */
-    action AddTranslationalComponent (Vector2 vector) returns Matrix3
-        values:Set(M02, values:Get(M02) + vector:GetX())
-        values:Set(M12, values:Get(M12) + vector:GetY())
+    action AddTranslationalComponent(Vector2 vector) returns Matrix3
+        a02 = a02 + vector:GetX()
+        a12 = a12 + vector:GetY()
         return me
     end
 
-    action AddTranslationalComponent (number x, number y) returns Matrix3
-        values:Set(M02, values:Get(M02) + x)
-        values:Set(M12, values:Get(M12) + y)
+    action AddTranslationalComponent(number x, number y) returns Matrix3
+        a02 = a02 + x
+        a12 = a12 + y
         return me
     end
 
-    action AddTranslationalComponent (Vector3 vector) returns Matrix3
-        values:Set(M02, values:Get(M02) + vector:GetX())
-        values:Set(M12, values:Get(M12) + vector:GetY())
+    action AddTranslationalComponent(Vector3 vector) returns Matrix3
+        a02 = a02 + vector:GetX()
+        a12 = a12 + vector:GetY()
         return me
     end
 
     /* postmultiplies this matrix by a translation matrix */
-    action Translate (number x, number y) returns Matrix3
+    action Translate(number x, number y) returns Matrix3
+        Matrix3 temporary
 
-        temporary:Set(M00, 1)
-        temporary:Set(M10, 0)
-        temporary:Set(M20, 0)
-        temporary:Set(M01, 0)
-        temporary:Set(M11, 1)
-        temporary:Set(M21, 0)
-        temporary:Set(M02, x)
-        temporary:Set(M12, y)
-        temporary:Set(M22, 1)
+        temporary:a00 = 1
+        temporary:a10 = 0
+        temporary:a20 = 0
+        temporary:a01 = 0
+        temporary:a11 = 1
+        temporary:a21 = 0
+        temporary:a02 = x
+        temporary:a12 = y
+        temporary:a22 = 1
         
-        Multiply(values, temporary)
+        Multiply(me, temporary)
 
         return me
     end
     
-    action Translate (Vector2 translation) returns Matrix3
-        temporary:Set(M00, 1)
-        temporary:Set(M10, 0)
-        temporary:Set(M20, 0)
-        temporary:Set(M01, 0)
-        temporary:Set(M11, 1)
-        temporary:Set(M21, 0)
-        temporary:Set(M02, translation:GetX())
-        temporary:Set(M12, translation:GetY())
-        temporary:Set(M22, 1)
+    action Translate(Vector2 translation) returns Matrix3
+        Matrix3 temporary
 
-        Multiply (values, temporary)
+        temporary:a00 = 1
+        temporary:a10 = 0
+        temporary:a20 = 0
+        temporary:a01 = 0
+        temporary:a11 = 1
+        temporary:a21 = 0
+        temporary:a02 = translation:GetX()
+        temporary:a12 = translation:GetY()
+        temporary:a22 = 1
+        
+        Multiply(me, temporary)
         
         return me
     end
 
-    action Rotate (number degrees) returns Matrix3
+    action Rotate(number degrees) returns Matrix3
        return RotateInRadians(math:DegreesToRadians(degrees))
     end
 
-    action RotateInRadians (number radians) returns Matrix3
+    action RotateInRadians(number radians) returns Matrix3
 
         if radians = 0
             return me
@@ -402,111 +450,112 @@ class Matrix3
         number cos = math:Cosine(radians)
         number sin = math:Sine(radians)
 
-        temporary:Set(M00, cos)
-        temporary:Set(M10, sin)
-        temporary:Set(M20, 0)
-        temporary:Set(M01, sin * -1)
-        temporary:Set(M11, cos)
-        temporary:Set(M21, 0)
-        temporary:Set(M02, 0)
-        temporary:Set(M12, 0)
-        temporary:Set(M22, 1)
+        Matrix3 temporary
 
-        Multiply(values, temporary)
+        temporary:a00 = cos
+        temporary:a10 = sin
+        temporary:a20 = 0
+        temporary:a01 = sin * -1
+        temporary:a11 = cos
+        temporary:a21 = 0
+        temporary:a02 = 0
+        temporary:a12 = 0
+        temporary:a22 = 1
 
-        return me
-    end
-
-    action Scale (number scaleX, number scaleY) returns Matrix3
-        temporary:Set(M00, scaleX)
-        temporary:Set(M10, 0)
-        temporary:Set(M20, 0)
-        temporary:Set(M01, 0)
-        temporary:Set(M11, scaleY)
-        temporary:Set(M21, 0)
-        temporary:Set(M02, 0)
-        temporary:Set(M12, 0)
-        temporary:Set(M22, 1)
-        
-        Multiply (values, temporary)
+        Multiply(me, temporary)
 
         return me
     end
 
-    action Scale (Vector2 scale) returns Matrix3
-        temporary:Set(M00, scale:GetX())
-        temporary:Set(M10, 0)
-        temporary:Set(M20, 0)
-        temporary:Set(M01, 0)
-        temporary:Set(M11, scale:GetY())
-        temporary:Set(M21, 0)
-        temporary:Set(M02, 0)
-        temporary:Set(M12, 0)
-        temporary:Set(M22, 1)
+    action Scale(number scaleX, number scaleY) returns Matrix3
+        Matrix3 temporary
+        temporary:a00 = scaleX
+        temporary:a10 = 0
+        temporary:a20 = 0
+        temporary:a01 = 0
+        temporary:a11 = scaleY
+        temporary:a21 = 0
+        temporary:a02 = 0
+        temporary:a12 = 0
+        temporary:a22 = 1
         
-        Multiply (values, temporary)
-        
+        Multiply(me, temporary)
+
         return me
     end
 
-    action GetValues returns Array<number>
-        return values
+    action Scale(Vector2 scale) returns Matrix3
+        Matrix3 temporary
+        temporary:a00 = scale:GetX()
+        temporary:a10 = 0
+        temporary:a20 = 0
+        temporary:a01 = 0
+        temporary:a11 = scale:GetY()
+        temporary:a21 = 0
+        temporary:a02 = 0
+        temporary:a12 = 0
+        temporary:a22 = 1
+        
+        Multiply(me, temporary)
+        
+        return me
     end
 
     action GetTranslation(Vector2 position) returns Vector2
-        position:Set(values:Get(M02), values:Get(M12))
+        position:Set(a02, a12)
         return position
     end
 
     action GetScale(Vector2 scale) returns Vector2
-        scale:Set(math:SquareRoot(values:Get(M00) * values:Get(M00) + values:Get(M01) * values:Get(M01)),
-                  math:SquareRoot(values:Get(M10) * values:Get(M10) + values:Get(M11) * values:Get(M11))) 
+        scale:Set(math:SquareRoot(a00 * a00 + a01 * a01),
+                  math:SquareRoot(a10 * a10 + a11 * a11))
 
         return scale
     end
 
     action GetRotation returns number
-        return math:RadiansToDegrees(math:InverseTangent(values:Get(M10), values:Get(M00)))
+        return math:RadiansToDegrees(math:InverseTangent(a10, a00))
     end
 
-    action GetRotationInRadians () returns number
-        return math:InverseTangent(values:Get(M10), values:Get(M00))
+    action GetRotationInRadians returns number
+        return math:InverseTangent(a10, a00)
     end
 
-    action SetScale (number scale) returns Matrix3
-        values:Set(M00, values:Get(M00) * scale)
-        values:Set(M11, values:Get(M11) * scale)
+    action SetScale(number scale) returns Matrix3
+        a00 = a00 * scale
+        a11 = a11 * scale
 
         return me
     end
 
-    action SetScale (Vector3 scale) returns Matrix3
-        values:Set(M00, values:Get(M00) * scale:GetX())
-        values:Set(M11, values:Get(M11) * scale:GetY())
+    action SetScale(Vector3 scale) returns Matrix3
+        a00 = a00 * scale:GetX()
+        a11 = a11 * scale:GetY()
 
         return me
     end
 
-    action SetScale (Vector2 scale) returns Matrix3
-        values:Set(M00, values:Get(M00) * scale:GetX())
-        values:Set(M11, values:Get(M11) * scale:GetY())
+    action SetScale(Vector2 scale) returns Matrix3
+        a00 = a00 * scale:GetX()
+        a11 = a11 * scale:GetY()
 
         return me
     end
 
-    action Transpose () returns Matrix3
-        number v01 = values:Get(M10)
-        number v02 = values:Get(M20)
-        number v10 = values:Get(M01)
-        number v12 = values:Get(M21)
-        number v20 = values:Get(M02)
-        number v21 = values:Get(M12)
-        values:Set(M01, v01)
-        values:Set(M02, v02)
-        values:Set(M10, v10)
-        values:Set(M12, v12)
-        values:Set(M20, v20)
-        values:Set(M21, v21)
+    action Transpose returns Matrix3
+        number v01 = a10
+        number v02 = a20
+        number v10 = a01
+        number v12 = a21
+        number v20 = a02
+        number v21 = a12
+
+        a01 = v01
+        a02 = v02
+        a10 = v10
+        a12 = v12
+        a20 = v20
+        a21 = v21
 
         return me
     end

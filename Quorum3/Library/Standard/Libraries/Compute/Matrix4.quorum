@@ -761,26 +761,23 @@ class Matrix4
 
    // action Average (Array<Matrix4>
 
-    action Set (Matrix3 matrix) returns Matrix4
-
-        Array<number> matrixValues = matrix:values
-        
-        values:Set(0, matrixValues:Get(0))
-        values:Set(1, matrixValues:Get(1))
-        values:Set(2, matrixValues:Get(2))
+    action Set (Matrix3 matrix) returns Matrix4        
+        values:Set(0, matrix:a00)
+        values:Set(1, matrix:a10)
+        values:Set(2, matrix:a20)
         values:Set(3, 0)
-        values:Set(4, matrixValues:Get(3))
-        values:Set(5, matrixValues:Get(4))
-        values:Set(6, matrixValues:Get(5))
+        values:Set(4, matrix:a01)
+        values:Set(5, matrix:a11)
+        values:Set(6, matrix:a21)
         values:Set(7, 0)
         values:Set(8, 0)
         values:Set(9, 0)
         values:Set(10, 1)
         values:Set(11, 0)
-        values:Set(12, matrixValues:Get(6))
-        values:Set(13, matrixValues:Get(7))
+        values:Set(12, matrix:a02)
+        values:Set(13, matrix:a12)
         values:Set(14, 0)
-        values:Set(15, matrixValues:Get(8))
+        values:Set(15, matrix:a22)
 
         return me
     end

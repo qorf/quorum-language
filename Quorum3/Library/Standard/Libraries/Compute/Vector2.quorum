@@ -261,8 +261,10 @@ class Vector2
     end
 
     /*
-    This action subtracts the passed vector from the calling vector. This
-    changes the calling vector to the result of the subtraction.
+    This action subtracts the passed vector from the calling vector. For example,
+    if A and B are vectors, then this action will compute A - B. This changes
+    the calling vector to the result of the subtraction. Using the above 
+    example, this results in A = A - B
 
     Attribute: Author Amanda Austin
 
@@ -366,7 +368,7 @@ class Vector2
 
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter vector The vector to add
+    Attribute: Parameter The vector to add
     
     Attribute: Returns The calling vector after addition
 
@@ -652,7 +654,7 @@ class Vector2
     Attribute: Author Amanda Austin
 
     Attribute: Parameter addVector The vector to multiply by the scale vector
-    Attribute: Parameter scaleVector The vector to multiply the add vector by
+    Attribute: Parameter scaleVector The vector to multiply the scale vector by
 
     Attribute: Returns The calling vector after multiplication and addition
 
@@ -1073,8 +1075,8 @@ class Vector2
    
     */
     action Multiply(Matrix3 matrix) returns Vector2
-        number x = me:x + matrix:values:Get(0) + me:y * matrix:values:Get(3) + matrix:values:Get(6)
-        number y = me:x + matrix:values:Get(1) + me:y * matrix:values:Get(4) + matrix:values:Get(7)
+        number x = me:x + matrix:a00 + me:y * matrix:a01 + matrix:a02
+        number y = me:x + matrix:a10 + me:y * matrix:a11 + matrix:a12
         me:x = x
         me:y = y
         return me

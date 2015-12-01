@@ -1353,11 +1353,9 @@ class Vector3
     
     */
     action Multiply(Matrix3 matrix) returns Vector3
-           constant Array<number> leftMatrix = matrix:values
-
-           return Set(x * leftMatrix:Get(matrix:M00) + y * leftMatrix:Get(matrix:M01) + z * leftMatrix:Get(matrix:M02),
-                      x * leftMatrix:Get(matrix:M10) + y * leftMatrix:Get(matrix:M11) + z * leftMatrix:Get(matrix:M12),
-                      x * leftMatrix:Get(matrix:M20) + y * leftMatrix:Get(matrix:M21) + z * leftMatrix:Get(matrix:M22))
+           return Set(x * matrix:a00 + y * matrix:a10 + z * matrix:a20,
+                      x * matrix:a01 + y * matrix:a11 + z * matrix:a21,
+                      x * matrix:a02 + y * matrix:a12 + z * matrix:a22)
 
     end
 
@@ -1402,11 +1400,9 @@ class Vector3
     
     */
     action MultiplyByTranspose(Matrix3 matrix) returns Vector3
-        constant Array<number> leftMatrix = matrix:values
-        
-        return Set(x * leftMatrix:Get(matrix:M00) + y * leftMatrix:Get(matrix:M10) + z * leftMatrix:Get(matrix:M20),
-                   x * leftMatrix:Get(matrix:M01) + y * leftMatrix:Get(matrix:M11) + z * leftMatrix:Get(matrix:M21),
-                   x * leftMatrix:Get(matrix:M02) + y * leftMatrix:Get(matrix:M12) + z * leftMatrix:Get(matrix:M22))
+        return Set(x * matrix:a00 + y * matrix:a01 + z * matrix:a02,
+                   x * matrix:a10 + y * matrix:a11 + z * matrix:a12,
+                   x * matrix:a20 + y * matrix:a21 + z * matrix:a22)
 
     end
 
@@ -1656,30 +1652,28 @@ class Vector3
     Matrix4 matrix
     Array<number> values
 
-    values:Set(matrix:M00, math:Cosine(math:pi / 4))
-    values:Set(matrix:M01, -1 * math:Sine(math:pi / 4))
-    values:Set(matrix:M02, 0)
+    vector:Set(3.0, 4.0, 2.0)
+
+    values:Set(matrix:M00, 2 * 3 / (100 - 0))
+    values:Set(matrix:M01, 0)
+    values:Set(matrix:M02, (100 + 0) / (100 - 0))
     values:Set(matrix:M03, 0)
-    values:Set(matrix:M10, math:Sine(math:pi / 4))
-    values:Set(matrix:M11, math:Cosine(math:pi / 4))
-    values:Set(matrix:M12, 0)
+    values:Set(matrix:M10, 0)
+    values:Set(matrix:M11, 2 * 3 / (100 - 0))
+    values:Set(matrix:M12, (100 + 0) / (100 - 0))
     values:Set(matrix:M13, 0)
     values:Set(matrix:M20, 0)
     values:Set(matrix:M21, 0)
-    values:Set(matrix:M22, 1)
-    values:Set(matrix:M23, 0)
-    values:Set(matrix:M30, 1)
-    values:Set(matrix:M31, 1)
-    values:Set(matrix:M32, 1)
-    values:Set(matrix:M33, 1)
-
+    values:Set(matrix:M22, -1 * (10 + 3) / (10 - 3))
+    values:Set(matrix:M23, -2 * 10 * 3 / (10 - 3))
+    values:Set(matrix:M30, 0)
+    values:Set(matrix:M31, 0)
+    values:Set(matrix:M32, -1)
+    values:Set(matrix:M33, 0)
+    
     matrix:Set(values)
 
-    vector:Set(3, 2, 5)
-
-    vector:Rotate(matrix)
-    
-    vector:Untransform(matrix)
+    vector:Project(matrix)
 
     number newX = vector:GetX()
     number newY = vector:GetY()

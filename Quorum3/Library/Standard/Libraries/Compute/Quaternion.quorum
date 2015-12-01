@@ -323,9 +323,9 @@ class Quaternion
 
     action SetFromMatrix(boolean normalizeAxes, Matrix3 matrix) returns Quaternion
         Matrix3 matrix3
-        return SetFromAxes(normalizeAxes, matrix:values:Get(matrix3:M00), matrix:values:Get(matrix3:M01), matrix:values:Get(matrix3:M02),
-                                          matrix:values:Get(matrix3:M10), matrix:values:Get(matrix3:M11), matrix:values:Get(matrix3:M12), 
-                                          matrix:values:Get(matrix3:M20), matrix:values:Get(matrix3:M21), matrix:values:Get(matrix3:M22))
+        return SetFromAxes(normalizeAxes, matrix:a00, matrix:a01, matrix:a02,
+                                          matrix:a10, matrix:a11, matrix:a12, 
+                                          matrix:a20, matrix:a21, matrix:a22)
     end
 
     action SetFromMatrix(Matrix3 matrix) returns Quaternion
