@@ -1,6 +1,9 @@
 package Libraries.Compute
 
+use Libraries.System.DateTime
 use Libraries.Containers.List
+use Libraries.Containers.Array
+use Libraries.Compute.BitwiseOperations
 //use Libraries.Language.Errors.OutOfBoundsError
 
 /*
@@ -25,8 +28,86 @@ use Libraries.Compute.Random
 */
 
 class Random
-    private system action InitializeNative()
-    private system action RandomIntegerNative(integer maximum) returns integer
+    BitwiseOperations op
+    Array<integer> mt
+    integer index = n+1
+
+    //coeefficients for MT 19937 algorithm (32-bit)
+    integer w = 32                      //word size (bits)
+    integer n = 624                     //degree of recurrence
+    integer m = 397                     //middle word offset
+    integer r = 31                      //separation point (bits in lower bitmask)
+    integer u = 11                      //additional bitshift/mask
+    integer s = 7                       //tempering bitshift
+    integer t = 15                      //tempering bitshift
+    integer l = 18                      //additional bitshift/mask
+    integer f = 1812433253              //initialization constant
+    integer a = -1727483681             //0x9908B0DF (419999967 unsigned)
+    integer b = -1658038656             //0x9D2C5680 (489444992 unsigned)
+    integer c = -272236544              //0xEFC60000 (1875247104 unsigned)
+    integer LowerMask = 2147483647      //0x7FFFFFFF
+    integer UpperMask = LowerMask + 1   //0x80000000
+    integer TopMask = -65536            //0xFFFF0000
+    integer BottomMask = 65535          //0x0000FFFF
+
+    on create
+        // Set up the generator with the time as the default seed value.
+        InitializeNative()
+    end
+
+    private action InitializeNative()
+        // Default seed uses system time
+        mt:SetSize(n)
+        DateTime dt
+        InitArray(dt:GetEpochTime())
+    end
+
+    private action InitArray(number seed)
+        seed = seed mod index:GetMaximumValue()
+        mt:Set(0, cast(integer, seed))
+        integer i = 1
+        repeat n-1 times
+            integer y = op:ExclusiveOr(mt:Get(i-1),op:ShiftRightPositive(mt:Get(i-1),30))
+            mt:Set(i, op:ShiftLeft(op:ShiftRightPositive(op:And(y,TopMask),16)*f,16) + (op:And(y,BottomMask)*f) + i)
+            i = i + 1
+        end
+        Twist()
+    end
+
+    private action Twist()
+        integer y = 0
+        integer i = 0
+        repeat n-m times
+            y = op:Or(op:And(mt:Get(i),UpperMask),op:And(mt:Get(i+1),LowerMask))
+            mt:Set(i,op:ExclusiveOr(op:ExclusiveOr(mt:Get(i+m),op:ShiftRightPositive(y,1)),op:And(y,1)*a))
+            i = i + 1
+        end
+        repeat m-1 times
+            y = op:Or(op:And(mt:Get(i),UpperMask),op:And(mt:Get(i+1),LowerMask))
+            mt:Set(i,op:ExclusiveOr(op:ExclusiveOr(mt:Get(i-(n-m)),op:ShiftRightPositive(y,1)),op:And(y,1)*a))
+            i = i + 1
+        end
+        y = op:Or(op:And(mt:Get(i),UpperMask),op:And(mt:Get(0),LowerMask))
+        mt:Set(i,op:ExclusiveOr(op:ExclusiveOr(mt:Get(m-1),op:ShiftRightPositive(y,1)),op:And(y,1)*a))
+        index = 0
+    end
+
+    private action NextRandom() returns integer
+        if index >= n
+            Twist()
+        end
+        integer y = mt:Get(index)
+        y = op:ExclusiveOr(y,op:ShiftRightPositive(y,u))
+        y = op:ExclusiveOr(y,op:And(op:ShiftLeft(y,s),b))
+        y = op:ExclusiveOr(y,op:And(op:ShiftLeft(y,t),c))
+        y = op:ExclusiveOr(y,op:ShiftRightPositive(y,l))
+        index = index + 1
+        return op:ShiftRightPositive(y,1)  //no long int, shift once for [0,max_int] interval
+    end
+
+    private action RandomIntegerNative(integer maximum) returns integer
+        return cast(integer, RandomNumber() * (maximum + 1))
+    end
 
     /*
     This action sets the seed used to generate random numbers. On creation of
@@ -41,7 +122,9 @@ class Random
     random:SetSeed(1010001) // set the seed to 1010001
 
     */
-    system action SetSeed(number seed)
+    action SetSeed(number seed)
+        InitArray(seed)
+    end
 
     /*
     This action returns a random integer within the range
@@ -55,7 +138,9 @@ class Random
     integer randomNumber = random:RandomInteger()
 
     */
-    system action RandomInteger() returns integer
+    action RandomInteger() returns integer
+        return NextRandom()
+    end
 
     /*
     This action returns a random number within the range 0 to 1.
@@ -68,7 +153,10 @@ class Random
     number randomNumber = random:RandomNumber()
 
     */
-    system action RandomNumber() returns number
+    action RandomNumber() returns number
+        integer max = 0
+        return cast(number, NextRandom()) / max:GetMaximumValue()
+    end
 
     /*
     This action returns a random boolean value. (True or False)
@@ -81,13 +169,14 @@ class Random
     boolean randomBool = random:RandomBoolean()
 
     */
-    system action RandomBoolean() returns boolean
-
-    on create
-        // Set up on the native side--basically, choose a reasonable default
-        // seed value.
-        InitializeNative()
+    action RandomBoolean() returns boolean
+        if NextRandom() mod 2 = 0
+            return false
+        else
+            return true
+        end
     end
+
 
     /*
     This action returns a random integer that is between zero (inclusive) and
@@ -107,7 +196,6 @@ class Random
        //     e:SetErrorMessage("The maximum number must be a positive integer.")
        //     alert(e)
         end
-
         return me:RandomIntegerNative(maximum)
     end
 
