@@ -1,0 +1,92 @@
+use Libraries.Compute.Matrix3
+use Libraries.Compute.Vector3
+use Libraries.Compute.Math
+
+class Matrix3SetToRotation 
+    action Main
+        Matrix3 matrix
+
+        matrix:SetToRotation(45)
+
+        number a00 = matrix:a00
+        number a01 = matrix:a01
+        number a02 = matrix:a02
+        number a10 = matrix:a10
+        number a11 = matrix:a11
+        number a12 = matrix:a12
+        number a20 = matrix:a20
+        number a21 = matrix:a21
+        number a22 = matrix:a22
+
+        output "The new matrix is:"
+        output "|" + a00 + ", " + a01 + ", " + a02 + "|"
+        output "|" + a10 + ", " + a11 + ", " + a12 + "|"
+        output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+
+        Vector3 axis
+        matrix:IdentityMatrix()
+
+        axis:Set(0, 0, 1)
+        matrix:SetToRotation(axis, 45)
+
+        a00 = matrix:a00
+        a01 = matrix:a01
+        a02 = matrix:a02
+        a10 = matrix:a10
+        a11 = matrix:a11
+        a12 = matrix:a12
+        a20 = matrix:a20
+        a21 = matrix:a21
+        a22 = matrix:a22
+
+        output "The new matrix is:"
+        output "|" + a00 + ", " + a01 + ", " + a02 + "|"
+        output "|" + a10 + ", " + a11 + ", " + a12 + "|"
+        output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+
+        Math math
+
+        matrix:IdentityMatrix()
+
+        number cosine = math:SquareRoot(2) / 2
+        number sine = math:SquareRoot(2) / 2
+
+        axis:Set(0, 0, 1)
+
+        matrix:SetToRotation(axis, cosine, sine)
+
+        a00 = matrix:a00
+        a01 = matrix:a01
+        a02 = matrix:a02
+        a10 = matrix:a10
+        a11 = matrix:a11
+        a12 = matrix:a12
+        a20 = matrix:a20
+        a21 = matrix:a21
+        a22 = matrix:a22
+
+        output "The new matrix is:"
+        output "|" + a00 + ", " + a01 + ", " + a02 + "|"
+        output "|" + a10 + ", " + a11 + ", " + a12 + "|"
+        output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+
+        matrix:IdentityMatrix()
+
+        matrix:SetToRotationInRadians(math:pi / 4)
+
+        a00 = matrix:a00
+        a01 = matrix:a01
+        a02 = matrix:a02
+        a10 = matrix:a10
+        a11 = matrix:a11
+        a12 = matrix:a12
+        a20 = matrix:a20
+        a21 = matrix:a21
+        a22 = matrix:a22
+
+        output "The new matrix is:"
+        output "|" + a00 + ", " + a01 + ", " + a02 + "|"
+        output "|" + a10 + ", " + a11 + ", " + a12 + "|"
+        output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    end
+end

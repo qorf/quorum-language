@@ -1,0 +1,49 @@
+use Libraries.Compute.Matrix3
+
+class Matrix3Multiply 
+    action Main
+        Matrix3 matrixA
+        Matrix3 matrixB
+        Matrix3 product
+
+        matrixA:Set(0, 2, 4, 6, 8, 10, 12, 14, 16)
+        matrixB:Set(1, 3, 5, 7, 9, 11, 13, 15, 17)
+
+        product:Multiply(matrixA, matrixB)
+
+        number a00 = product:a00
+        number a01 = product:a01
+        number a02 = product:a02
+        number a10 = product:a10
+        number a11 = product:a11
+        number a12 = product:a12
+        number a20 = product:a20
+        number a21 = product:a21
+        number a22 = product:a22
+
+        output "The new matrix is:"
+        output "|" + a00 + ", " + a01 + ", " + a02 + "|"
+        output "|" + a10 + ", " + a11 + ", " + a12 + "|"
+        output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+
+        matrixA:Set(0, 2, 4, 6, 8, 10, 12, 14, 16)
+        matrixB:Set(1, 3, 5, 7, 9, 11, 13, 15, 17)
+
+        matrixA:Multiply(matrixB)
+
+        a00 = matrixA:a00
+        a01 = matrixA:a01
+        a02 = matrixA:a02
+        a10 = matrixA:a10
+        a11 = matrixA:a11
+        a12 = matrixA:a12
+        a20 = matrixA:a20
+        a21 = matrixA:a21
+        a22 = matrixA:a22
+
+        output "The new matrix is:"
+        output "|" + a00 + ", " + a01 + ", " + a02 + "|"
+        output "|" + a10 + ", " + a11 + ", " + a12 + "|"
+        output "|" + a20 + ", " + a21 + ", " + a22 + "|" 
+    end
+end

@@ -82,6 +82,8 @@ class MathTester
         Vector3Limit()
         Vector3Clamp()
         Vector3EqualsAtPrecision()
+        Matrix3Multiply()
+        Matrix3SetToRotation()
 
 //FAIL TESTS
         path = failPath
@@ -920,6 +922,50 @@ class MathTester
         files:Add(main)
         results:Add("The two vectors are equal.")
         results:Add("The two vectors are equal.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix3Multiply
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix3Multiply.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|66.0, 78.0, 90.0|")
+        results:Add("|192.0, 240.0, 288.0|")
+        results:Add("|318.0, 402.0, 486.0|")
+        results:Add("The new matrix is:")
+        results:Add("|66.0, 78.0, 90.0|")
+        results:Add("|192.0, 240.0, 288.0|")
+        results:Add("|318.0, 402.0, 486.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix3SetToRotation
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix3SetToRotation.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|0.7071067811865476, -0.7071067811865476, 0.0|")
+        results:Add("|0.7071067811865476, 0.7071067811865476, 0.0|")
+        results:Add("|0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|0.7071067811865476, -0.7071067811865476, 0.0|")
+        results:Add("|0.7071067811865476, 0.7071067811865476, 0.0|")
+        results:Add("|0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|0.7071067811865476, -0.7071067811865476, 0.0|")
+        results:Add("|0.7071067811865476, 0.7071067811865476, 0.0|")
+        results:Add("|0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|0.7071067811865476, -0.7071067811865476, 0.0|")
+        results:Add("|0.7071067811865476, 0.7071067811865476, 0.0|")
+        results:Add("|0.0, 0.0, 1.0|")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
