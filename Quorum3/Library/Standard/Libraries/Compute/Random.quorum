@@ -63,7 +63,7 @@ class Random
     end
 
     private action InitArray(number seed)
-        seed = seed mod index:GetMaximumValue()
+        seed = seed mod LowerMask
         mt:Set(0, cast(integer, seed))
         integer i = 1
         repeat n-1 times

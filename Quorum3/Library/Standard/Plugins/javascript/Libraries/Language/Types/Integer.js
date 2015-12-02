@@ -31,11 +31,11 @@ Number.prototype.GetText = function() {
 };
 
 Number.prototype.GetMaximumValue = function() {
-  return  Number.MAX_VALUE;
+  return  2147483647;
 };
 
-Number.prototype.GetMaximumValue = function() {
-  return  Number.MIN_VALUE;
+Number.prototype.GetMinimumValue = function() {
+  return  -2147483648;
 };
 
 Number.prototype.Equals$quorum_integer = function(value) {
