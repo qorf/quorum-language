@@ -38,7 +38,7 @@ function plugins_quorum_Libraries_System_DateTime_() {
     };  
     
     this.GetEpochTime = function () {
-        return Date.now().getUTCMilliseconds();
+        return this.date.getTime();
     };  
     
     this.SetEpochTime$quorum_number = function (value) {
