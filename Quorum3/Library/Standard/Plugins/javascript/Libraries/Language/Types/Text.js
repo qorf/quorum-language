@@ -9,6 +9,10 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
         text = value;
     };
     
+    this.GetSize = function (left) {
+        return text.length;
+    };
+    
     this.ContainsNative$quorum_text$quorum_text = function(left, right) {
         return left.contains(right);
     };
@@ -125,6 +129,10 @@ String.prototype.IndexOf$quorum_text = function(right) {
 };
 
 String.prototype.IndexOf$quorum_text$quorum_text = function(right, index) {
+    return this.valueOf().indexOf(right, index);
+};
+
+String.prototype.IndexOf$quorum_text$quorum_integer = function (right, index) {
     return this.valueOf().indexOf(right, index);
 };
 
