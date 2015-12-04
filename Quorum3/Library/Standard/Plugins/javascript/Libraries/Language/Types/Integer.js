@@ -78,11 +78,24 @@ Number.prototype.BitCount$IntegerPrimitive = function() {
 };
 //system action HighestOneBit returns integer
 Number.prototype.HighestOneBit$IntegerPrimitive = function () {
-    return 0;
+    var num = this.valueOf();
+    var position = 0;
+    while (num != 0) {
+        position++;
+        num = num >> 1;
+    }
+    return Math.pow(2,position-1);
 };
 //system action LowestOneBit returns integer
 Number.prototype.LowestOneBit$IntegerPrimitive = function () {
-    return 0;
+    var num = this.valueOf();
+    var position = 0;
+    while (num != 0) {
+        if (num & 1 == 1) break;
+        position++;
+        num = num >> 1;
+    }
+    return Math.pow(2,position);
 };
 //system action LeadingZeros returns integer
 Number.prototype.LeadingZeros$IntegerPrimitive = function () {
@@ -110,11 +123,11 @@ Number.prototype.GetBinary$IntegerPrimitive = function() {
 };
 //system action GetHex returns text
 Number.prototype.GetHex$IntegerPrimitive = function () {
-    return 0;
+    return this.valueof().toString(16);
 };
 //system action GetOctal returns text
 Number.prototype.GetOctal$IntegerPrimitive = function () {
-    return 0;
+    return this.valueOf().toString(8);
 };
 
 Number.prototype.GetNumber$IntegerPrimitive = function() {
