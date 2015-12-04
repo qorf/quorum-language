@@ -190,7 +190,7 @@ String.prototype.IndexOfNative$quorum_text$quorum_text$quorum_integer = function
 };
 //private system action IsEmptyNative(text left) returns boolean
 String.prototype.IsEmptyNative$quorum_text = function(left) {
-    return (this.valueOf().length === 0 || !this.valueOf().trim());
+    return (left.length === 0 || !left.trim());
 };
 //private system action ReplaceNative(text left, text old, text replacement) returns text
 String.prototype.ReplaceNative$quorum_text$quorum_text$quorum_text = function(left, old, replacement) {
@@ -255,7 +255,7 @@ String.prototype.IndexOf$quorum_text$quorum_integer = function(subText, index) {
 };
 //action IsEmpty() returns boolean
 String.prototype.IsEmpty = function() {
-    return false;
+    return this.valueOf().length == 0;
 };
 
 //action Replace(text old, text replacement) returns text
@@ -282,16 +282,15 @@ String.prototype.EqualsIgnoringCase$quorum_Libraries_Language_Object = function(
     return this.text === value;
 };
 //action Compare(Object object) returns CompareResult
-String.prototype.Compare$quorum_Libraries_Language_Object = function(value) {
+String.prototype.Compare$quorum_Libraries_Language_Object = function (value) {
     var result = new quorum_Libraries_Language_Support_CompareResult_();
-    var thisOne = this.value;
-    
+
     var object = new quorum_Libraries_Language_Types_Text_(false, this.valueOf());
-    
-    var b = global_CheckCast(object, "Libraries.Language.Types.Text");
+
+    var b = global_CheckCast(value, "Libraries.Language.Types.Text");
 
     var other = b.GetValue();
-    var nativeResult = this.valueOf().localeCompare(other.GetValue());
+    var nativeResult = this.valueOf().localeCompare(other);
     if ((nativeResult == 0)) {
         result.result = result.EQUAL;
     }
@@ -304,16 +303,15 @@ String.prototype.Compare$quorum_Libraries_Language_Object = function(value) {
     return result;
 };
 //action CompareIgnoringCase(Object object) returns CompareResult
-String.prototype.Compare$quorum_Libraries_Language_Object = function(value) {
+String.prototype.Compare$quorum_Libraries_Language_Object = function (value) {
     var result = new quorum_Libraries_Language_Support_CompareResult_();
-    var thisOne = this.value;
-    
-    var object = new quorum_Libraries_Language_Types_Text_(false, this.valueOf());
-    
-    var b = global_CheckCast(object, "Libraries.Language.Types.Text");
+
+    var b = global_CheckCast(value, "Libraries.Language.Types.Text");
 
     var other = b.GetValue();
-    var nativeResult = this.valueOf().localeCompare(other.GetValue());
+    var lowerL = other.toLowerCase()
+    var lowerR = this.valueOf().toLowerCase()
+    var nativeResult = lowerL.localeCompare(lowerR);
     if ((nativeResult == 0)) {
         result.result = result.EQUAL;
     }
