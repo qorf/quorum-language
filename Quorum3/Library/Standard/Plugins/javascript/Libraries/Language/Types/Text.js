@@ -136,11 +136,11 @@ String.prototype.GetCharacterNative$quorum_integer$quorum_integer = function(sta
 
 //system action ParseInteger returns integer    
 String.prototype.ParseInteger = function() {
-    return parseInt(this.valueOf());
+    return global_parseInteger(this.valueOf());
 };
 //system action ParseNumber returns number
 String.prototype.ParseNumber = function() {
-    return this.valueOf().value;
+    return global_parseNumber(this.valueOf());
 };
 //system action ParseBoolean returns boolean
 String.prototype.ParseBoolean = function() {
