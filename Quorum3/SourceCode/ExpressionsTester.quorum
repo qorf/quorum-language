@@ -249,8 +249,6 @@ class ExpressionsTester
         results:Add(0, "number is 1.0")
         results:Add(1, "number is 2.0")
         suite:Test(files, results)
-        results:Set(0, "number is 1")
-        results:Set(1, "number is 2")
         suite:TestJavaScript(files, results)
     end
 
@@ -903,8 +901,6 @@ class ExpressionsTester
         results:Add(0, "1")
         results:Add(1, "1")
         suite:Test(files, results)
-        results:Set(0, "1")
-        results:Set(1, "1")
         suite:TestJavaScript(files, results)
     end
 

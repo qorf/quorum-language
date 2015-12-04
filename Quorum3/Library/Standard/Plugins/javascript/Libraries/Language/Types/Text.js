@@ -171,3 +171,25 @@ String.prototype.GetSize = function() {
 String.prototype.GetCharacter$quorum_integer = function(index) {
     return this.valueOf().charAt(index);
 };
+
+String.prototype.Compare$quorum_Libraries_Language_Object = function(value) {
+    var result = new quorum_Libraries_Language_Support_CompareResult_();
+    var thisOne = this.value;
+    
+    var object = new quorum_Libraries_Language_Types_Text_(false, this.valueOf());
+    
+    var b = global_CheckCast(object, "Libraries.Language.Types.Text");
+
+    var other = b.GetValue();
+    var nativeResult = this.valueOf().localeCompare(other.GetValue());
+    if ((nativeResult == 0)) {
+        result.result = result.EQUAL;
+    }
+    else if ((nativeResult < -1)) {
+        result.result = result.SMALLER;
+    }
+    else {
+        result.result = result.LARGER;
+    }
+    return result;
+};

@@ -1160,13 +1160,13 @@ class ClassOpcode is QuorumOpcode
         end
 
         if value = "Libraries.Language.Types.Integer"
-            convertedSource = convertedSource + "this.value = optional === null ? 0: optional;"
+            convertedSource = convertedSource + "this.value = optional == null ? 0: optional;"
         elseif value = "Libraries.Language.Types.Boolean"
-            convertedSource = convertedSource + "this.value = optional === null ? false: optional;"
+            convertedSource = convertedSource + "this.value = optional == null ? false: optional;"
         elseif value = "Libraries.Language.Types.Number"
-            convertedSource = convertedSource + "this.value = optional === null ? 0.0: optional;"
+            convertedSource = convertedSource + "this.value = optional == null ? 0.0: optional;"
         elseif value = "Libraries.Language.Types.Text"
-            convertedSource = convertedSource + "this.value = optional === null ? " + quote + quote + ": optional;"
+            convertedSource = convertedSource + "this.value = optional == null ? " + quote + quote + ": optional;"
         end
 
         convertedSource = convertedSource + EOL + "};" + EOL
