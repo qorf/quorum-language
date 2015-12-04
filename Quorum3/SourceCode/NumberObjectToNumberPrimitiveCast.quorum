@@ -20,7 +20,7 @@ class NumberObjectToNumberPrimitiveCast is ExplicitCastOpcode
         text result = ""
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
-            result = result + opcodeToCast:WriteJavaScript() + ".GetValue()"
+            result = result + WrapGetValue(opcodeToCast)
         end
         return result
     end
