@@ -17,7 +17,7 @@ class TextPrimitiveToTextObjectCast is ExplicitCastOpcode
     end
     
     action WriteJavaScript returns text
-        text result = "new quorum_Libraries_Language_Types_Text_("
+        text result = "new quorum_Libraries_Language_Types_Text_(false, "
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
             result = result + opcodeToCast:WriteJavaScript()
