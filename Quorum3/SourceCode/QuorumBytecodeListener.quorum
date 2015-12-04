@@ -1333,11 +1333,6 @@ class QuorumBytecodeListener is QuorumSourceListener
             variable = currentBlock:GetVariable(name)
         end
 
-        boolean notDefined = false
-        if not variable:IsDefined()
-            notDefined = true
-        end
-
         if variable = undefined
             CompilerError error
             error:SetLocation(context:GetLocation())
@@ -1349,6 +1344,11 @@ class QuorumBytecodeListener is QuorumSourceListener
             CompilerErrorManager manager = GetCompilerErrorManager()
             manager:Add(error)
             return now
+        end
+
+        boolean notDefined = false
+        if not variable:IsDefined()
+            notDefined = true
         end
 
         Location useLocation
