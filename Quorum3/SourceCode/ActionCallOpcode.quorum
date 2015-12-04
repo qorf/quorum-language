@@ -409,7 +409,7 @@ class ActionCallOpcode is QuorumOpcode
         if isActionCall
             Action act = actionResolution:resolvedAction
             Class clazz = act:GetParentClass()
-
+            
             if isParentCall
                 if variableToMakeParentCallOn not= undefined
                     if not variableToMakeParentCallOn:IsField()
@@ -436,7 +436,7 @@ class ActionCallOpcode is QuorumOpcode
                         text value = clazz:ConvertStaticKeyToJavaScriptName()
                         if clazz:GetStaticKey() = "Libraries.Language.Types.Integer"
                             name = name + "$IntegerPrimitive"
-                        elseif clazz:GetStaticKey() = "Libraries.Language.Types.Integer"
+                        elseif clazz:GetStaticKey() = "Libraries.Language.Types.Number"
                             name = name + "$NumberPrimitive"
                         end
                         

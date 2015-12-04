@@ -87,13 +87,9 @@ Number.prototype.GetMaximumValue$NumberPrimitive = function() {
   return Number.MAX_VALUE;
 };
 
-Number.prototype.GetMinimumValue$NumberPrimitive = function() {
-  return Number.MIN_VALUE;
-};
-
 //system action GetMinimumPositiveValue returns number
 Number.prototype.GetMinimumValue$NumberPrimitive = function() {
-  return Number.MIN_VALUE;
+  return -Number.MAX_VALUE;
 };
 //system action GetPositiveInfinityValue returns number
 Number.prototype.GetPositiveInfinityValue$NumberPrimitive = function() {
@@ -122,4 +118,14 @@ Number.prototype.GetHex$NumberPrimitive = function() {
 //system action GetHashCode() returns integer
 Number.prototype.GetHashCode$NumberPrimitive = function() {
   return 0;
+};
+
+Number.prototype.GetInteger$NumberPrimitive = function() {
+  return Math.floor(this.valueOf());
+};
+
+Number.prototype.GetText$NumberPrimitive = function() {
+  var illegal_ = this.valueOf();
+  var res = (illegal_ % 1 == 0 ? illegal_.toFixed(1) : illegal_);
+  return res;
 };

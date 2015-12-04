@@ -185,3 +185,7 @@ Number.prototype.Compare$quorum_Libraries_Language_Object$IntegerPrimitive = fun
 Number.prototype.GetValue$IntegerPrimitive = function() {
     return this.valueOf();
 };
+
+Number.prototype.GetText$IntegerPrimitive = function() {
+    return this.valueOf() + "";
+};
