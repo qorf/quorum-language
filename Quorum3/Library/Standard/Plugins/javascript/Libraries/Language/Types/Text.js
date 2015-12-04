@@ -16,8 +16,8 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
         return this.text.GetCharacterNative$quorum_integer(index);
     };
     //private system action GetSubstringNative(integer startIndex, integer endIndex) returns text
-    this.GetSubstringNative = function (startIndex, endIndex) {
-        return this.text.GetSubstringNative(startIndex, endIndex);
+    this.GetSubstringNative$quorum_integer$quorum_integer = function (startIndex, endIndex) {
+        return this.text.GetSubstringNative$quorum_integer$quorum_integer(startIndex, endIndex);
     };
 
     //system action ParseInteger returns integer 
