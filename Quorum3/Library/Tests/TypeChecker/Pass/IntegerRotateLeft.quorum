@@ -6,5 +6,10 @@ class Main
 
         output t:RotateLeft(2)
         output p:RotateLeft(2)
+        
+        p = p - 1
+        t:SetValue(p)
+        output t:RotateLeft(2)
+        output p:RotateLeft(2)
     end
 end
