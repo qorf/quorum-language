@@ -14,6 +14,8 @@ import quorum.Libraries.Game.Graphics.IOSGraphics;
 import quorum.Libraries.Game.Graphics.Painter;
 
 import org.robovm.apple.coregraphics.CGSize;
+import org.robovm.apple.foundation.Foundation;
+import org.robovm.apple.foundation.NSString;
 import org.robovm.apple.uikit.UIApplication;
 import org.robovm.apple.uikit.UIApplicationLaunchOptions;
 import org.robovm.apple.uikit.UIWindow;
@@ -55,6 +57,21 @@ public class IOSApplication
     //Array<Runnable> runnables = new Array<Runnable>();
     //Array<Runnable> executedRunnables = new Array<Runnable>();
     //Array<LifecycleListener> lifecycleListeners = new Array<LifecycleListener>();
+    
+    public static void SetOperatingSystem()
+    {
+        quorum.Libraries.System.File qFile = new quorum.Libraries.System.File();
+        Foundation.log("%@", new NSString("Default directory + path: " + qFile.GetWorkingDirectory() + " + " + qFile.GetPath()));
+
+        Foundation.log("%@", new NSString("Version is " + System.getProperty("os.version")));
+        Foundation.log("%@", new NSString("Device name is " + UIDevice.getCurrentDevice().getName()));
+        if (UIDevice.getCurrentDevice().getName().contains("Simulator"))
+            GameState.SetOperatingSystem("iOS Simulator");
+        else
+            GameState.SetOperatingSystem("iOS Device");
+
+        Foundation.log("%@", new NSString("Set OS as " + GameState.GetOperatingSystem()));
+    }
     
     public void SetupNative(Game_ game)
     {
