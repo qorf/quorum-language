@@ -40,11 +40,11 @@ function plugins_quorum_Libraries_Language_Types_Integer_(optional) {
     };
     //system action RotateLeft(integer value) returns integer
     this.RotateLeft = function() {
-        return this.integer.RotateLeft$IntegerPrimitive();
+        return this.integer.RotateLeft$quorum_integer$IntegerPrimitive();
     };
     //system action RotateRight(integer value) returns integer
     this.RotateRight = function() {
-        return this.integer.RotateRight$IntegerPrimitive();
+        return this.integer.RotateRight$quorum_integer$IntegerPrimitive();
     };
     //system action GetBinary returns text
     this.GetBinary = function() {
@@ -99,23 +99,33 @@ Number.prototype.LowestOneBit$IntegerPrimitive = function () {
 };
 //system action LeadingZeros returns integer
 Number.prototype.LeadingZeros$IntegerPrimitive = function () {
-    return 0;
+    return 32 - this.valueOf().toString(2).length;
 };
 //system action TrailingZeros returns integer
 Number.prototype.TrailingZeros$IntegerPrimitive = function () {
-    return 0;
+    var num = this.valueOf();
+    var position = 0;
+    while (num != 0) {
+        if (num & 1 == 1) break;
+        position++;
+        num = num >> 1;
+    }
+    return position;
 };
 //system action Reverse returns integer
 Number.prototype.Reverse$IntegerPrimitive = function () {
-    return 0;
+    var str = this.valueOf().toString(2);
+    while (str.length < 32) str = "0" + str;
+    str = str.split('').reverse().join('');
+    return parseInt(str,2) >> 0;
 };
 //system action RotateLeft(integer value) returns integer
-Number.prototype.RotateLeft$IntegerPrimitive = function (value) {
-    return 0;
+Number.prototype.RotateLeft$quorum_integer$IntegerPrimitive = function (value) {
+    return (this.valueOf() >> (32-value) | this.valueOf() << value);
 };
 //system action RotateRight(integer value) returns integer
-Number.prototype.RotateRight$IntegerPrimitive = function (value) {
-    return 0;
+Number.prototype.RotateRight$quorum_integer$IntegerPrimitive = function (value) {
+    return (this.valueOf() << (32-value) | this.valueOf() >> value);
 };
 //system action GetBinary returns text
 Number.prototype.GetBinary$IntegerPrimitive = function() {
