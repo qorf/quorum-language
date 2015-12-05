@@ -116,8 +116,10 @@ class Font
 
         if os:Contains("Windows")
             fontFile:SetWorkingDirectory("C:\Windows\Fonts")
-        elseif os:Contains("Mac OS X")
+        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
             fontFile:SetWorkingDirectory("/Library/Fonts")
+        elseif os:Contains("iOS Device")
+            fontFile:SetWorkingDirectory("/System/Library/Fonts/Cache")
         else
             // Find fonts for a linux system.
         end
@@ -139,8 +141,10 @@ class Font
 
         if os:Contains("Windows")
             fontFile:SetWorkingDirectory("C:\Windows\Fonts")
-        elseif os:Contains("Mac OS X")
+        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
             fontFile:SetWorkingDirectory("/Library/Fonts")
+        elseif os:Contains("iOS Device")
+            fontFile:SetWorkingDirectory("/System/Library/Fonts/Cache")
         else
             // Find fonts for a linux system.
         end
@@ -585,8 +589,12 @@ class Font
             fontDirectory:SetWorkingDirectory("C:\Windows\Fonts")
             fontDirectory:SetPath("")
             fontFiles = fontDirectory:GetDirectoryListing()
-        elseif os:Contains("Mac OS X")
+        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
             fontDirectory:SetWorkingDirectory("/Library/Fonts")
+            fontDirectory:SetPath("")
+            fontFiles = fontDirectory:GetDirectoryListing()
+        elseif os:Contains("iOS Device")
+            fontDirectory:SetWorkingDirectory("/System/Library/Fonts/Cache")
             fontDirectory:SetPath("")
             fontFiles = fontDirectory:GetDirectoryListing()
         else

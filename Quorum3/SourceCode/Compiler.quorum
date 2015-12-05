@@ -1946,7 +1946,9 @@ class Compiler
                     Class mainClazz = me:GetMainClass()
                     text mainClazzName = mainClazz:GetStaticKey()
                     text clazzName = clazz:GetStaticKey()
-                    if not clazzName:Contains("Libraries.System")
+                    if (not clazzName:Contains("Libraries.System") or
+                        clazzName = "Libraries.System.DateTime"
+                        )
                         if mainClazz:GetStaticKey() = clazzName
                             main = code:WriteJavaScript()
                         else

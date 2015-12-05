@@ -48,6 +48,7 @@ public class Game
             }
             else
             {
+                IOSApplication.SetOperatingSystem();
                 /*
                 quorum.Libraries.System.File qFile = new quorum.Libraries.System.File();
                 Foundation.log("%@", new NSString("Default directory + path: " + qFile.GetWorkingDirectory() + " + " + qFile.GetPath()));
