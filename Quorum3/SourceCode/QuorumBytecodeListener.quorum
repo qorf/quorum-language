@@ -1520,8 +1520,8 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterNoTypeAssignment(NoTypeAssignmentContext context) 
-        a = 5
     end
+
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
         text name = context:name
         Variable variable = undefined
@@ -1545,6 +1545,11 @@ class QuorumBytecodeListener is QuorumSourceListener
                 CompilerErrorManager manager = GetCompilerErrorManager()
                 manager:Add(error)
             end
+        end
+
+        boolean notDefined = false
+        if not variable:IsDefined()
+            notDefined = true
         end
 
         Location useLocation
@@ -1607,6 +1612,9 @@ class QuorumBytecodeListener is QuorumSourceListener
             AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
             if currentBlock = undefined
                 assignment:SetIsInFieldBlock(true)
+            end
+            if notDefined
+                assignment:SetIsNewAssignment(true)
             end
             assignment:SetLocation(context:GetLocation())
             assignment:SetClass(currentClass)

@@ -90,3 +90,15 @@ function global_ErrorCheck(error) {
         return error; /*it's already a quorum error*/
     }
 }
+
+function global_GetValue_(value, type) {
+    if (value == null) {
+        if(type == "number" || type == "boolean" || type == "integer") {
+            throw "party foul";
+        } else {
+            return null;
+        }
+    } else {
+        return value.GetValue();
+    }
+}

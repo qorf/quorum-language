@@ -64,7 +64,9 @@ function plugins_quorum_Libraries_Containers_Array_() {
     
     this.RemoveAtNative$quorum_integer = function (index) {
         if (index >= 0 && index <= this.array_.length) {
-            return this.array_.splice(index, 1).toString();
+            var value = this.array_.splice(index, 1);
+            value = value[0];
+            return value;
         } else {
         }
     };

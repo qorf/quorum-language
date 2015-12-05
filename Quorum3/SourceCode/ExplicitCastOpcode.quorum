@@ -49,6 +49,12 @@ class ExplicitCastOpcode is QuorumOpcode
         end
     end
 
+    action WrapGetValue(QuorumOpcode op) returns text
+        text DQ = ""
+        DQ = DQ:GetDoubleQuote()
+        return "global_GetValue_(" + op:WriteJavaScript() + ", " + DQ + GetType():GetStaticKey() + DQ + ")"
+    end
+
     action GetTemplateCopy returns QuorumOpcode
         ExplicitCastOpcode op
         op:SetType(me:GetType())

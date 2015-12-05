@@ -5,36 +5,19 @@ function plugins_quorum_Libraries_Language_Types_Integer_(optional) {
     } else {
         this.integer = optional;
     }
+    
+    //private system action SetValueNative(integer i)
     this.SetValueNative$quorum_integer = function (value) {
         this.integer = value;
     };
-    
-    this.BitCount = function() {
-        var text = Number(this.integer).toString(2)
-        var count = 0;
-        for(i = 0; i < text.length; i++) {
-            var char = text.charAt(i);
-            if(char == "1") {
-                count++;
-            }
-        }
-        return count;
-    };
-    
     //system action GetHashCode() returns integer
     this.GetHashCode = function() {
         return this.integer.GetHashCode$IntegerPrimitive();
     };
-    
-    this.GetBinary = function() {
-        return this.integer.GetBinary$IntegerPrimitive();
-    };
-    
     //system action BitCount returns integer
     this.BitCount = function() {
         return this.integer.BitCount$IntegerPrimitive();
     };
-    //
     //system action HighestOneBit returns integer
     this.HighestOneBit = function() {
         return this.integer.HighestOneBit$IntegerPrimitive();
@@ -77,18 +60,6 @@ function plugins_quorum_Libraries_Language_Types_Integer_(optional) {
     };
 }
 
-Number.prototype.Equals$quorum_Libraries_Language_Object$IntegerPrimitive = function (value) {
-    var b = global_CheckCast(value, "Libraries.Language.Types.Integer");
-
-    var me = this.valueOf();
-    var other = b.GetValue();
-    if ((me == other)) {
-        return true;
-    } else {
-        return false;
-    }
-};
-
 //system action GetHashCode() returns integer
 Number.prototype.GetHashCode$IntegerPrimitive = function () {
     return 0;
@@ -105,14 +76,26 @@ Number.prototype.BitCount$IntegerPrimitive = function() {
     }
     return count;
 };
-
 //system action HighestOneBit returns integer
 Number.prototype.HighestOneBit$IntegerPrimitive = function () {
-    return 0;
+    var num = this.valueOf();
+    var position = 0;
+    while (num != 0) {
+        position++;
+        num = num >> 1;
+    }
+    return Math.pow(2,position-1);
 };
 //system action LowestOneBit returns integer
 Number.prototype.LowestOneBit$IntegerPrimitive = function () {
-    return 0;
+    var num = this.valueOf();
+    var position = 0;
+    while (num != 0) {
+        if (num & 1 == 1) break;
+        position++;
+        num = num >> 1;
+    }
+    return Math.pow(2,position);
 };
 //system action LeadingZeros returns integer
 Number.prototype.LeadingZeros$IntegerPrimitive = function () {
@@ -138,32 +121,27 @@ Number.prototype.RotateRight$IntegerPrimitive = function (value) {
 Number.prototype.GetBinary$IntegerPrimitive = function() {
     return this.valueOf().toString(2);
 };
-
 //system action GetHex returns text
 Number.prototype.GetHex$IntegerPrimitive = function () {
-    return 0;
+    return this.valueof().toString(16);
 };
 //system action GetOctal returns text
 Number.prototype.GetOctal$IntegerPrimitive = function () {
-    return 0;
+    return this.valueOf().toString(8);
 };
 
 Number.prototype.GetNumber$IntegerPrimitive = function() {
   return this.valueOf() * 1.0;
 };
-
 Number.prototype.GetText$IntegerPrimitive = function() {
-  return this.valueOf() * "";
+    return this.valueOf() + "";
 };
-
 Number.prototype.GetMaximumValue$IntegerPrimitive = function() {
   return  2147483647;
 };
-
 Number.prototype.GetMinimumValue$IntegerPrimitive = function() {
   return  -2147483648;
 };
-
 Number.prototype.Compare$quorum_Libraries_Language_Object$IntegerPrimitive = function(value) {
     var result = new quorum_Libraries_Language_Support_CompareResult_();
     var b = global_CheckCast(value, "Libraries.Language.Types.Integer");
@@ -181,11 +159,14 @@ Number.prototype.Compare$quorum_Libraries_Language_Object$IntegerPrimitive = fun
     }
     return result;
 };
+Number.prototype.Equals$quorum_Libraries_Language_Object$IntegerPrimitive = function (value) {
+    var b = global_CheckCast(value, "Libraries.Language.Types.Integer");
 
-Number.prototype.GetValue$IntegerPrimitive = function() {
-    return this.valueOf();
-};
-
-Number.prototype.GetText$IntegerPrimitive = function() {
-    return this.valueOf() + "";
+    var me = this.valueOf();
+    var other = b.GetValue();
+    if ((me == other)) {
+        return true;
+    } else {
+        return false;
+    }
 };

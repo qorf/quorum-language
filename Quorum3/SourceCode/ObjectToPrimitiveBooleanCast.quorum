@@ -20,9 +20,9 @@ class ObjectToPrimitiveBooleanCast is ExplicitCastOpcode
         text result = ""
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
-            result = result + opcodeToCast:WriteJavaScript() + ".GetValue()"
+            result = result + WrapGetValue(opcodeToCast)
         else 
-            result = ".GetValue()"
+            result = ""
         end
         return result
     end
