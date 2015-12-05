@@ -39,12 +39,12 @@ function plugins_quorum_Libraries_Language_Types_Integer_(optional) {
         return this.integer.Reverse$IntegerPrimitive();
     };
     //system action RotateLeft(integer value) returns integer
-    this.RotateLeft = function() {
-        return this.integer.RotateLeft$quorum_integer$IntegerPrimitive();
+    this.RotateLeft$quorum_integer = function(value) {
+        return this.integer.RotateLeft$quorum_integer$IntegerPrimitive(value);
     };
     //system action RotateRight(integer value) returns integer
-    this.RotateRight = function() {
-        return this.integer.RotateRight$quorum_integer$IntegerPrimitive();
+    this.RotateRight$quorum_integer = function(value) {
+        return this.integer.RotateRight$quorum_integer$IntegerPrimitive(value);
     };
     //system action GetBinary returns text
     this.GetBinary = function() {
