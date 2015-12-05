@@ -10,21 +10,18 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
     this.SetValueNative$quorum_text = function (value) {
         this.text = value;
     };
-
     //private system action GetCharacterNative(integer index) returns text
     this.GetCharacterNative$quorum_integer = function (index) {
         return this.text.GetCharacterNative$quorum_integer(index);
     };
     //private system action GetSubstringNative(integer startIndex, integer endIndex) returns text
     this.GetSubstringNative$quorum_integer$quorum_integer = function (startIndex, endIndex) {
-        return this.text.GetSubstringNative$quorum_integer$quorum_integer(startIndex, endIndex);
+        return this.text.GetSubstringNative(startIndex, endIndex);
     };
-
     //system action ParseInteger returns integer 
     this.ParseInteger = function () {
         return this.text.ParseInteger();
     };
-    
     //system action ParseNumber returns number
     this.ParseNumber = function () {
         return this.text.ParseNumber();
@@ -50,7 +47,7 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
         return this.text.GetDoubleQuote();
     };
     //system action GetUnicodeValue(integer twosCompliment) returns text
-    this.GetUnicodeValue = function (value) {
+    this.GetUnicodeValue$quorum_integer = function (value) {
         return this.text.GetUnicodeValue(value);
     };
     //private system action ContainsNative(text lhv, text rhv) returns boolean
@@ -114,7 +111,7 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
         return this.text.GetHashCode();
     };
     //system action GetSubtext(integer startIndex, integer endIndex) returns text
-    this.GetSubtext = function(startIndex, endIndex) {
+    this.GetSubtext$quorum_integer$quorum_integer = function(startIndex, endIndex) {
         return this.text.GetSubtext(startIndex, endIndex);
     };
 }
@@ -133,14 +130,13 @@ String.prototype.GetCharacterNative$quorum_integer = function(index) {
 String.prototype.GetCharacterNative$quorum_integer$quorum_integer = function(startIndex, endIndex) {
     return this.valueOf().charAt(startIndex, endIndex);
 };
-
 //system action ParseInteger returns integer    
 String.prototype.ParseInteger = function() {
-    return global_parseInteger(this.valueOf());
+    return parseInt(this.valueOf());
 };
 //system action ParseNumber returns number
 String.prototype.ParseNumber = function() {
-    return global_parseNumber(this.valueOf());
+    return this.valueOf().value;
 };
 //system action ParseBoolean returns boolean
 String.prototype.ParseBoolean = function() {
@@ -154,7 +150,6 @@ String.prototype.GetLineFeed = function() {
 String.prototype.GetCarriageReturn = function() {
     return String.valueOf().fromCharCode(13);
 };
-
 //system action GetTab() returns text
 String.prototype.GetTab = function() {
     return String.valueOf().fromCharCode(9);
@@ -163,7 +158,6 @@ String.prototype.GetTab = function() {
 String.prototype.GetDoubleQuote = function() {
     return String.valueOf().fromCharCode(34);
 };
-
 //system action GetUnicodeValue(integer twosCompliment) returns text
 String.prototype.GetUnicodeValue$quorum_integer = function(value) {
     return String.valueOf().fromCharCode(value);
@@ -173,11 +167,11 @@ String.prototype.ContainsNative$quorum_text$quorum_text = function(left, right) 
     return this.valueOf().contains(left, right);
 };
 //private system action EndsWithNative(text left, text suffix) returns boolean
-String.prototype.EndsWith$quorum_text$quorum_text = function(left, suffix) {
+String.prototype.EndsWithNative$quorum_text$quorum_text = function(left, suffix) {
     return this.valueOf().endsWith(left, suffix);
 };
 //private system action StartsWithNative(text left, text prefix) returns boolean
-String.prototype.StartsWith$quorum_text$quorum_text = function(left, prefix) {
+String.prototype.StartsWithNative$quorum_text$quorum_text = function(left, prefix) {
     return this.valueOf().startsWith(left, prefix);
 };
 //private system action IndexOfNative(text left, text prefix) returns integer
@@ -257,22 +251,18 @@ String.prototype.IndexOf$quorum_text$quorum_integer = function(subText, index) {
 String.prototype.IsEmpty = function() {
     return this.valueOf().length == 0;
 };
-
 //action Replace(text old, text replacement) returns text
 String.prototype.Replace$quorum_text$quorum_text = function(old, replacement) {
     return "invalid_fix_me";
 };
-
 //action GetSubtext(integer startIndex) returns text
-String.prototype.Replace$quorum_integer = function(startIndex) {
+String.prototype.GetSubtext$quorum_integer = function(startIndex) {
     return "invalid_fix_me";
 };
-
 //action Trim() returns text
 String.prototype.Trim = function() {
     return this.valueOf().trim();
 };
-
 //action Equals(Object object) returns boolean
 String.prototype.Equals$quorum_Libraries_Language_Object = function(value) {
     return this.text === value;
@@ -303,7 +293,7 @@ String.prototype.Compare$quorum_Libraries_Language_Object = function (value) {
     return result;
 };
 //action CompareIgnoringCase(Object object) returns CompareResult
-String.prototype.Compare$quorum_Libraries_Language_Object = function (value) {
+String.prototype.CompareIgnoringCase$quorum_Libraries_Language_Object = function (value) {
     var result = new quorum_Libraries_Language_Support_CompareResult_();
 
     var b = global_CheckCast(value, "Libraries.Language.Types.Text");
@@ -323,7 +313,6 @@ String.prototype.Compare$quorum_Libraries_Language_Object = function (value) {
     }
     return result;
 };
-
 //action GetCharacter(integer index) returns text
 String.prototype.GetCharacter$quorum_integer = function(value) {
     return "a";
