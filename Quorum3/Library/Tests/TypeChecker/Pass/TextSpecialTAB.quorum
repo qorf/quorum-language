@@ -1,0 +1,12 @@
+class Main
+    action Main
+        text p = ""
+        Text t 
+        t:SetValue(p)
+        
+        text str = "start" + p:GetTab() + "end"
+        output str
+        str = "start" + t:GetTab() + "end"
+        output str
+    end
+end

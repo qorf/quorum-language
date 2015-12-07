@@ -10,39 +10,39 @@ class Main
         t2:SetValue(p2)
 
         CompareResult result
-        result = p1:Compare(p2)
-        output result:result = result:SMALLER
-        result = t1:Compare(t2)
-        output result:result = result:SMALLER
+        result = p1:CompareIgnoringCase(p2)
+        output result:result = result:EQUAL
+        result = t1:CompareIgnoringCase(t2)
+        output result:result = result:EQUAL
         
-        p1 = "abc"
-        p2 = "abcdef"
+        p1 = "Abc"
+        p2 = "abcDEF"
         t1:SetValue(p1)
         t2:SetValue(p2)
 
-        result = p1:Compare(p2)
+        result = p1:CompareIgnoringCase(p2)
         output result:result = result:SMALLER
-        result = t1:Compare(t2)
+        result = t1:CompareIgnoringCase(t2)
         output result:result = result:SMALLER
         
-        p1 = "abc"
+        p1 = "Abc"
         p2 = "ab"
         t1:SetValue(p1)
         t2:SetValue(p2)
 
-        result = p1:Compare(p2)
+        result = p1:CompareIgnoringCase(p2)
         output result:result = result:LARGER
-        result = t1:Compare(t2)
+        result = t1:CompareIgnoringCase(t2)
         output result:result = result:LARGER
         
         p1 = "abc"
-        p2 = "abc"
+        p2 = "ABC"
         t1:SetValue(p1)
         t2:SetValue(p2)
 
-        result = p1:Compare(p2)
+        result = p1:CompareIgnoringCase(p2)
         output result:result = result:EQUAL
-        result = t1:Compare(t2)
+        result = t1:CompareIgnoringCase(t2)
         output result:result = result:EQUAL
     end
 end

@@ -177,6 +177,7 @@ class TypeCheckTester
         NumberIsNotANumber()
         ReturningIntegerInPlaceOfNumber()
         TextCompare()
+        TextCompareIgnoringCase()
         TextContains()
         TextEndsWith()
         TextEquals()
@@ -185,9 +186,21 @@ class TypeCheckTester
         TextGetLength()
         TextGetSubtext()
         TextGetSubtextWithEnd()
+        TextIndexOf()
+        TextIndexOfII()
         TextIsEmpty()
+        TextParseBoolean()
+        TextParseInteger()
+        TextParseNumber()
         TextReplace()
         TextSetAndGetValue()
+        TextSpecialCR()
+        TextSpecialDC()
+        TextSpecialLF()
+        TextSpecialTAB()
+        TextSpecialUnicode()
+        TextSplit()
+        TextSplitII()
         TextStartsWith()
         TextToLowerCase()
         TextToUpperCase()
@@ -2164,6 +2177,31 @@ action AutoBoxingAndMethodOverloadingNum
         main:SetPath(path + "TextCompare.quorum")
         files:Add(main)
         results:Add(0, "true")
+        results:Add(1, "true")
+        results:Add(2, "true")
+        results:Add(3, "true")
+        results:Add(4, "true")
+        results:Add(5, "true")
+        results:Add(6, "true")
+        results:Add(7, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TextCompareIgnoringCase
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextCompareIgnoringCase.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "true")
+        results:Add(2, "true")
+        results:Add(3, "true")
+        results:Add(4, "true")
+        results:Add(5, "true")
+        results:Add(6, "true")
+        results:Add(7, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -2176,6 +2214,8 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         results:Add(0, "true")
         results:Add(1, "true")
+        results:Add(2, "false")
+        results:Add(3, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -2199,7 +2239,9 @@ action AutoBoxingAndMethodOverloadingNum
         main:SetPath(path + "TextEquals.quorum")
         files:Add(main)
         results:Add(0, "false")
-        results:Add(1, "true")
+        results:Add(1, "false")
+        results:Add(2, "true")
+        results:Add(3, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -2264,6 +2306,38 @@ action AutoBoxingAndMethodOverloadingNum
         suite:TestJavaScript(files, results)
     end
 
+    action TextIndexOf
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextIndexOf.quorum")
+        files:Add(main)
+        results:Add(0, "4")
+        results:Add(1, "4")
+        results:Add(2, "-1")
+        results:Add(3, "-1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TextIndexOfII
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextIndexOfII.quorum")
+        files:Add(main)
+        results:Add(0, "4")
+        results:Add(1, "4")
+        results:Add(2, "-1")
+        results:Add(3, "-1")
+        results:Add(4, "22")
+        results:Add(5, "22")
+        results:Add(6, "25")
+        results:Add(7, "25")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
     action TextIsEmpty
         Array<File> files
         Array<text> results
@@ -2272,6 +2346,46 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         results:Add(0, "true")
         results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TextParseBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextParseBoolean.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "true")
+        results:Add(2, "false")
+        results:Add(3, "false")
+        results:Add(4, "false")
+        results:Add(5, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TextParseInteger
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextParseInteger.quorum")
+        files:Add(main)
+        results:Add(0, "13")
+        results:Add(1, "13")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TextParseNumber
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextParseNumber.quorum")
+        files:Add(main)
+        results:Add(0, "13.5")
+        results:Add(1, "13.5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -2307,6 +2421,126 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         results:Add(0, "true")
         results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TextSpecialCR
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextSpecialCR.quorum")
+        files:Add(main)
+        text correct = ""
+        correct = "start" + correct:GetUnicodeValue(13)  + "end"
+        results:Add(0, "start")
+        results:Add(1, "end")
+        results:Add(2, "start")
+        results:Add(3, "end")
+        suite:Test(files, results)
+        results:Empty()
+        results:Add(0, correct)
+        results:Add(1, correct)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TextSpecialDC
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextSpecialDC.quorum")
+        files:Add(main)
+        text correct = ""
+        correct = correct:GetUnicodeValue(34)
+        results:Add(0, correct)
+        results:Add(1, correct)
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TextSpecialLF
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextSpecialLF.quorum")
+        files:Add(main)
+        text correct = ""
+        correct = "start" + correct:GetUnicodeValue(10)  + "end"
+        results:Add(0, "start")
+        results:Add(1, "end")
+        results:Add(2, "start")
+        results:Add(3, "end")
+        suite:Test(files, results)
+        results:Empty()
+        results:Add(0, correct)
+        results:Add(1, correct)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TextSpecialTAB
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextSpecialTAB.quorum")
+        files:Add(main)
+        text correct = ""
+        correct = "start" + correct:GetUnicodeValue(9)  + "end"
+        results:Add(0, correct)
+        results:Add(1, correct)
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TextSpecialUnicode
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextSpecialUnicode.quorum")
+        files:Add(main)
+        results:Add(0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        results:Add(1, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TextSplit
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextSplit.quorum")
+        files:Add(main)
+        results:Add(0, "The")
+        results:Add(1, "force")
+        results:Add(2, "is")
+        results:Add(3, "strong")
+        results:Add(4, "with")
+        results:Add(5, "this")
+        results:Add(6, "one.")
+        results:Add(7, "The")
+        results:Add(8, "force")
+        results:Add(9, "is")
+        results:Add(10, "strong")
+        results:Add(11, "with")
+        results:Add(12, "this")
+        results:Add(13, "one.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action TextSplitII
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "TextSplitII.quorum")
+        files:Add(main)
+        results:Add(0, "1")
+        results:Add(1, "2")
+        results:Add(2, "3")
+        results:Add(3, "4")
+        results:Add(4, "1")
+        results:Add(5, "2")
+        results:Add(6, "3")
+        results:Add(7, "4")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
