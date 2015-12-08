@@ -19,11 +19,17 @@ function plugins_quorum_Libraries_Containers_Array_() {
     
     this.AddNative$quorum_Libraries_Language_Object = function (value) {
         this.array_.push(value);
+        if(this.array_.length >= this.maxSize) {
+            this.maxSize = this.maxSize * 2;
+        }
     };
     
     this.AddNative$quorum_integer$quorum_Libraries_Language_Object = function (index, value) {
         if (index >= 0 && index <= this.array_.length) {
             this.array_.splice(index, 0, value);
+            if(this.array_.length >= this.maxSize) {
+                this.maxSize = this.maxSize * 2;
+            }
         } else {
         }
     };
