@@ -14,7 +14,6 @@ import java.io.FileInputStream;
  */
 public abstract class Data {
     
-    static protected AudioManager manager;
     protected boolean isLooping = false;
     protected boolean isPlaying = false;
     protected float volume = 1;
@@ -26,11 +25,6 @@ public abstract class Data {
     protected float x = 0;
     protected float y = 0;
     protected float z = 1;
-    
-    static
-    {
-        manager = new AudioManager();
-    }
     
     public abstract void Play();
     

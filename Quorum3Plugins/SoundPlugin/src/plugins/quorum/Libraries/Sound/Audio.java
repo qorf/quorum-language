@@ -22,18 +22,34 @@ public class Audio {
     
     Data data;
     
+    public static final DataLoader loader;
+    
     static
     {
-        try 
+        String os = System.getProperty("os.name");
+        
+        /*
+        We only need to find LWJGL if we are on a Desktop. If we are on Mac, 
+        OpenAL will be accessed via static library.
+        */
+        if (os.contains("Windows") || os.contains("Mac"))
+            {
+            try 
+            {
+                java.io.File file = new java.io.File(Audio.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                String runLocation = file.getParentFile().getAbsolutePath();
+                String lwjgl = runLocation + "/jni";
+                System.setProperty("org.lwjgl.librarypath", lwjgl);
+            } 
+            catch (URISyntaxException ex) 
+            {
+                Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            loader = new DesktopLoader();
+        }
+        else
         {
-            java.io.File file = new java.io.File(Audio.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-            String runLocation = file.getParentFile().getAbsolutePath();
-            String lwjgl = runLocation + "/jni";
-            System.setProperty("org.lwjgl.librarypath", lwjgl);
-        } 
-        catch (URISyntaxException ex) 
-        {
-            Logger.getLogger(Audio.class.getName()).log(Level.SEVERE, null, ex);
+            loader = new IOSLoader();
         }
         
         /*quorum.Libraries.System.Properties properties = new quorum.Libraries.System.Properties();
@@ -53,28 +69,15 @@ public class Audio {
         if (data != null)
             throw new RuntimeException("An audio file is already loaded! To reuse this variable, call Dispose() before loading a new file.");
         
-        File file = new File(quorumFile.GetAbsolutePath());
-        String fileName = file.getName().toLowerCase();
-        
-        if (fileName.endsWith(".wav"))
-                data = new WavData(file);
-        else if (fileName.endsWith(".ogg"))
-                data = new OggData(file);
-        else 
-            throw new RuntimeException("Can't load file " + file.getAbsolutePath() + " because the file extension is unsupported!");   
+        data = loader.Load(quorumFile);
     }
     
     public void LoadToStream(quorum.Libraries.System.File_ quorumFile)
     {
-        File file = new File(quorumFile.GetAbsolutePath());
-        String fileName = file.getName().toLowerCase();
+        if (data != null)
+            throw new RuntimeException("An audio file is already loaded! To reuse this variable, call Dispose() before loading a new file.");
         
-        if (fileName.endsWith(".wav"))
-                data = new WavStreamingData(file);
-        else if (fileName.endsWith(".ogg"))
-                data = new OggStreamingData(file);
-        else 
-            throw new RuntimeException("Can't load file " + file.getAbsolutePath() + " because the file extension is unsupported!");   
+        data = loader.LoadToStream(quorumFile);
     }
     
     public void Play()

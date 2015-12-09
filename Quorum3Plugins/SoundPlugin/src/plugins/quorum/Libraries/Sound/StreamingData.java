@@ -38,6 +38,13 @@ import static org.lwjgl.openal.AL10.*;
  */
 public abstract class StreamingData extends Data {
     
+    protected static AudioManager manager;
+    
+    static
+    {
+        manager = new AudioManager();
+    }
+    
     static private final int bufferSize = 4096 * 10;
     static private final int bufferCount = 3;
     static private final int bytesPerSample = 2;

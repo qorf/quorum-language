@@ -18,6 +18,13 @@ import static org.lwjgl.openal.AL10.*;
  */
 public abstract class AudioData extends Data {
     
+    protected static AudioManager manager;
+    
+    static
+    {
+        manager = new AudioManager();
+    }
+    
     private int bufferID = -1;
     private long soundID = -1;
     
@@ -369,7 +376,7 @@ public abstract class AudioData extends Data {
     @Override
     public void Update()
     {
-        throw new RuntimeException("This audio was not set for streaming when loaded. Call SetStreaming(true) before calling Load to allow streaming the audio.");
+        throw new RuntimeException("This audio was not set for streaming when loaded. Use LoadToStream to allow streaming the audio.");
     }
     
     /*
