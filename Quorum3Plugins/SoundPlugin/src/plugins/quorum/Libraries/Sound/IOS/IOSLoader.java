@@ -25,7 +25,16 @@ public class IOSLoader implements DataLoader
     @Override
     public Data LoadToStream(File_ quorumFile) 
     {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String path = quorumFile.GetPath().replace('\\', '/');
+        OALAudioTrack track = OALAudioTrack.create();
+        if (track != null) 
+        {
+            if (track.preloadFile(path)) 
+            {
+                return new IOSStreamData(track);
+            }
+        }
+        throw new RuntimeException("Error opening audio file at " + path);
     }
     
 }
