@@ -80,6 +80,7 @@ public abstract class AudioData extends Data {
 	alSourcei(sourceID, AL_LOOPING, isLooping ? AL_TRUE : AL_FALSE);
 	alSourcef(sourceID, AL_GAIN, volume);
 	alSourcePlay(sourceID);
+        SetPitch(pitch);
         //SetHorizontalPosition(pan);
         SetPosition(x, y, z);
     }
