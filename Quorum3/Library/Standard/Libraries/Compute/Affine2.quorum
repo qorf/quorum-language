@@ -81,12 +81,12 @@ class Affine2
 
     */
     action Set(Matrix3 matrix) returns Affine2
-        M00 = matrix:a00
-        M01 = matrix:a01
-        M02 = matrix:a02
-        M10 = matrix:a10
-        M11 = matrix:a11
-        M12 = matrix:a12
+        M00 = matrix:row0column0
+        M01 = matrix:row0column1
+        M02 = matrix:row0column2
+        M10 = matrix:row1column0
+        M11 = matrix:row1column1
+        M12 = matrix:row1column2
 
         return me
     end

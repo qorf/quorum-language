@@ -1075,8 +1075,8 @@ class Vector2
    
     */
     action Multiply(Matrix3 matrix) returns Vector2
-        number x = me:x + matrix:a00 + me:y * matrix:a01 + matrix:a02
-        number y = me:x + matrix:a10 + me:y * matrix:a11 + matrix:a12
+        number x = me:x + matrix:row0column0 + me:y * matrix:row0column1 + matrix:row0column2
+        number y = me:x + matrix:row1column0 + me:y * matrix:row1column1 + matrix:row1column2
         me:x = x
         me:y = y
         return me

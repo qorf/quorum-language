@@ -18,32 +18,32 @@ Matrix3 matrix
 matrix:Set(2, 5, 0, 1, 3, 0, 0, 0, 1)
 matrix:Inverse()
 
-number a00 = matrix:a00
-number a01 = matrix:a01
-number a02 = matrix:a02
-number a10 = matrix:a10
-number a11 = matrix:a11
-number a12 = matrix:a12
-number a20 = matrix:a20
-number a21 = matrix:a21
-number a22 = matrix:a22
+number row0column0 = matrix:row0column0
+number row0column1 = matrix:row0column1
+number row0column2 = matrix:row0column2
+number row1column0 = matrix:row1column0
+number row1column1 = matrix:row1column1
+number row1column2 = matrix:row1column2
+number row2column0 = matrix:row2column0
+number row2column1 = matrix:row2column1
+number row2column2 = matrix:row2column2
 
 output "The new matrix is:"
-output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
 */
 class Matrix3 
-    public number a00 = 1
-    public number a01 = 0
-    public number a02 = 0
-    public number a10 = 0
-    public number a11 = 1
-    public number a12 = 0
-    public number a20 = 0
-    public number a21 = 0
-    public number a22 = 1
+    public number row0column0 = 1
+    public number row0column1 = 0
+    public number row0column2 = 0
+    public number row1column0 = 0
+    public number row1column1 = 1
+    public number row1column2 = 0
+    public number row2column0 = 0
+    public number row2column1 = 0
+    public number row2column2 = 1
 
     Math math
 
@@ -61,32 +61,32 @@ class Matrix3
     Matrix3 matrix
     matrix:IdentityMatrix()
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action IdentityMatrix returns Matrix3
-        a00 = 1
-        a01 = 0
-        a02 = 0
-        a10 = 0
-        a11 = 1
-        a12 = 0
-        a20 = 0
-        a21 = 0
-        a22 = 1
+        row0column0 = 1
+        row0column1 = 0
+        row0column2 = 0
+        row1column0 = 0
+        row1column1 = 1
+        row1column2 = 0
+        row2column0 = 0
+        row2column1 = 0
+        row2column2 = 1
         return me
     end
 
@@ -114,44 +114,44 @@ class Matrix3
 
     product:Multiply(matrixA, matrixB)
 
-    number a00 = product:a00
-    number a01 = product:a01
-    number a02 = product:a02
-    number a10 = product:a10
-    number a11 = product:a11
-    number a12 = product:a12
-    number a20 = product:a20
-    number a21 = product:a21
-    number a22 = product:a22
+    number row0column0 = product:row0column0
+    number row0column1 = product:row0column1
+    number row0column2 = product:row0column2
+    number row1column0 = product:row1column0
+    number row1column1 = product:row1column1
+    number row1column2 = product:row1column2
+    number row2column0 = product:row2column0
+    number row2column1 = product:row2column1
+    number row2column2 = product:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
      action Multiply(Matrix3 matrixA, Matrix3 matrixB) returns Matrix3
-        number v00 = matrixA:a00 * matrixB:a00 + matrixA:a01 * matrixB:a10 + matrixA:a02 * matrixB:a20
-        number v01 = matrixA:a00 * matrixB:a01 + matrixA:a01 * matrixB:a11 + matrixA:a02 * matrixB:a21
-        number v02 = matrixA:a00 * matrixB:a02 + matrixA:a01 * matrixB:a12 + matrixA:a02 * matrixB:a22
+        number v00 = matrixA:row0column0 * matrixB:row0column0 + matrixA:row0column1 * matrixB:row1column0 + matrixA:row0column2 * matrixB:row2column0
+        number v01 = matrixA:row0column0 * matrixB:row0column1 + matrixA:row0column1 * matrixB:row1column1 + matrixA:row0column2 * matrixB:row2column1
+        number v02 = matrixA:row0column0 * matrixB:row0column2 + matrixA:row0column1 * matrixB:row1column2 + matrixA:row0column2 * matrixB:row2column2
 
-        number v10 = matrixA:a10 * matrixB:a00 + matrixA:a11 * matrixB:a10 + matrixA:a12 * matrixB:a20
-        number v11 = matrixA:a10 * matrixB:a01 + matrixA:a11 * matrixB:a11 + matrixA:a12 * matrixB:a21
-        number v12 = matrixA:a10 * matrixB:a02 + matrixA:a11 * matrixB:a12 + matrixA:a12 * matrixB:a22
+        number v10 = matrixA:row1column0 * matrixB:row0column0 + matrixA:row1column1 * matrixB:row1column0 + matrixA:row1column2 * matrixB:row2column0
+        number v11 = matrixA:row1column0 * matrixB:row0column1 + matrixA:row1column1 * matrixB:row1column1 + matrixA:row1column2 * matrixB:row2column1
+        number v12 = matrixA:row1column0 * matrixB:row0column2 + matrixA:row1column1 * matrixB:row1column2 + matrixA:row1column2 * matrixB:row2column2
 
-        number v20 = matrixA:a20 * matrixB:a00 + matrixA:a21 * matrixB:a10 + matrixA:a22 * matrixB:a20
-        number v21 = matrixA:a20 * matrixB:a01 + matrixA:a21 * matrixB:a11 + matrixA:a22 * matrixB:a21
-        number v22 = matrixA:a20 * matrixB:a02 + matrixA:a21 * matrixB:a12 + matrixA:a22 * matrixB:a22
+        number v20 = matrixA:row2column0 * matrixB:row0column0 + matrixA:row2column1 * matrixB:row1column0 + matrixA:row2column2 * matrixB:row2column0
+        number v21 = matrixA:row2column0 * matrixB:row0column1 + matrixA:row2column1 * matrixB:row1column1 + matrixA:row2column2 * matrixB:row2column1
+        number v22 = matrixA:row2column0 * matrixB:row0column2 + matrixA:row2column1 * matrixB:row1column2 + matrixA:row2column2 * matrixB:row2column2
 
-        a00 = v00
-        a01 = v01
-        a02 = v02
-        a10 = v10
-        a11 = v11
-        a12 = v12
-        a20 = v20
-        a21 = v21
-        a22 = v22
+        row0column0 = v00
+        row0column1 = v01
+        row0column2 = v02
+        row1column0 = v10
+        row1column1 = v11
+        row1column2 = v12
+        row2column0 = v20
+        row2column1 = v21
+        row2column2 = v22
 
         return me
     end
@@ -178,44 +178,44 @@ class Matrix3
 
     matrixA:Multiply(matrixB)
 
-    number a00 = matrixA:a00
-    number a01 = matrixA:a01
-    number a02 = matrixA:a02
-    number a10 = matrixA:a10
-    number a11 = matrixA:a11
-    number a12 = matrixA:a12
-    number a20 = matrixA:a20
-    number a21 = matrixA:a21
-    number a22 = matrixA:a22
+    number row0column0 = matrixA:row0column0
+    number row0column1 = matrixA:row0column1
+    number row0column2 = matrixA:row0column2
+    number row1column0 = matrixA:row1column0
+    number row1column1 = matrixA:row1column1
+    number row1column2 = matrixA:row1column2
+    number row2column0 = matrixA:row2column0
+    number row2column1 = matrixA:row2column1
+    number row2column2 = matrixA:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
     
     */
     action Multiply(Matrix3 matrix) returns Matrix3
-        number v00 = a00 * matrix:a00 + a01 * matrix:a10 + a02 * matrix:a20
-        number v01 = a00 * matrix:a01 + a01 * matrix:a11 + a02 * matrix:a21
-        number v02 = a00 * matrix:a02 + a01 * matrix:a12 + a02 * matrix:a22
+        number v00 = row0column0 * matrix:row0column0 + row0column1 * matrix:row1column0 + row0column2 * matrix:row2column0
+        number v01 = row0column0 * matrix:row0column1 + row0column1 * matrix:row1column1 + row0column2 * matrix:row2column1
+        number v02 = row0column0 * matrix:row0column2 + row0column1 * matrix:row1column2 + row0column2 * matrix:row2column2
 
-        number v10 = a10 * matrix:a00 + a11 * matrix:a10 + a12 * matrix:a20
-        number v11 = a10 * matrix:a01 + a11 * matrix:a11 + a12 * matrix:a21
-        number v12 = a10 * matrix:a02 + a11 * matrix:a12 + a12 * matrix:a22
+        number v10 = row1column0 * matrix:row0column0 + row1column1 * matrix:row1column0 + row1column2 * matrix:row2column0
+        number v11 = row1column0 * matrix:row0column1 + row1column1 * matrix:row1column1 + row1column2 * matrix:row2column1
+        number v12 = row1column0 * matrix:row0column2 + row1column1 * matrix:row1column2 + row1column2 * matrix:row2column2
 
-        number v20 = a20 * matrix:a00 + a21 * matrix:a10 + a22 * matrix:a20
-        number v21 = a20 * matrix:a01 + a21 * matrix:a11 + a22 * matrix:a21
-        number v22 = a20 * matrix:a02 + a21 * matrix:a12 + a22 * matrix:a22
+        number v20 = row2column0 * matrix:row0column0 + row2column1 * matrix:row1column0 + row2column2 * matrix:row2column0
+        number v21 = row2column0 * matrix:row0column1 + row2column1 * matrix:row1column1 + row2column2 * matrix:row2column1
+        number v22 = row2column0 * matrix:row0column2 + row2column1 * matrix:row1column2 + row2column2 * matrix:row2column2
 
-        a00 = v00
-        a01 = v01
-        a02 = v02
-        a10 = v10
-        a11 = v11
-        a12 = v12
-        a20 = v20
-        a21 = v21
-        a22 = v22
+        row0column0 = v00
+        row0column1 = v01
+        row0column2 = v02
+        row1column0 = v10
+        row1column1 = v11
+        row1column2 = v12
+        row2column0 = v20
+        row2column1 = v21
+        row2column2 = v22
 
         return me
     end
@@ -239,20 +239,20 @@ class Matrix3
 
     matrix:SetToRotation(45)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
     
     */
     action SetToRotation(number degrees) returns Matrix3
@@ -282,20 +282,20 @@ class Matrix3
     axis:Set(0, 0, 1)
     matrix:SetToRotation(axis, 45)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
     
     */
     action SetToRotation(Vector3 axis, number degrees) returns Matrix3
@@ -333,33 +333,33 @@ class Matrix3
 
     matrix:SetToRotation(axis, cosine, sine)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action SetToRotation(Vector3 axis, number cosine, number sine) returns Matrix3        
         number oc = 1.0 - cosine
-        a00 = oc * axis:GetX() * axis:GetX() + cosine
-        a01 = oc * axis:GetX() * axis:GetY() - axis:GetZ() * sine
-        a02 = oc * axis:GetZ() * axis:GetX() + axis:GetY() * sine
-        a10 = oc * axis:GetX() * axis:GetY() + axis:GetZ() * sine
-        a11 = oc * axis:GetY() * axis:GetY() + cosine
-        a12 = oc * axis:GetY() * axis:GetZ() - axis:GetX() * sine
-        a20 = oc * axis:GetZ() * axis:GetX() - axis:GetY() * sine
-        a21 = oc * axis:GetY() * axis:GetZ() + axis:GetX() * sine
-        a22 = oc * axis:GetZ() * axis:GetZ() + cosine
+        row0column0 = oc * axis:GetX() * axis:GetX() + cosine
+        row0column1 = oc * axis:GetX() * axis:GetY() - axis:GetZ() * sine
+        row0column2 = oc * axis:GetZ() * axis:GetX() + axis:GetY() * sine
+        row1column0 = oc * axis:GetX() * axis:GetY() + axis:GetZ() * sine
+        row1column1 = oc * axis:GetY() * axis:GetY() + cosine
+        row1column2 = oc * axis:GetY() * axis:GetZ() - axis:GetX() * sine
+        row2column0 = oc * axis:GetZ() * axis:GetX() - axis:GetY() * sine
+        row2column1 = oc * axis:GetY() * axis:GetZ() + axis:GetX() * sine
+        row2column2 = oc * axis:GetZ() * axis:GetZ() + cosine
 
         return  me
     end
@@ -386,37 +386,37 @@ class Matrix3
 
     matrix:SetToRotationInRadians(math:pi / 4)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
     
     */
     action SetToRotationInRadians(number radians) returns Matrix3
         number cosine = math:Cosine(radians)
         number sine = math:Sine(radians)
         
-        a00 = cosine
-        a10 = sine
-        a20 = 0
+        row0column0 = cosine
+        row1column0 = sine
+        row2column0 = 0
 
-        a01 = sine * -1
-        a11 = cosine
-        a21 = 0
+        row0column1 = sine * -1
+        row1column1 = cosine
+        row2column1 = 0
 
-        a02 = 0
-        a12 = 0
-        a22 = 1
+        row0column2 = 0
+        row1column2 = 0
+        row2column2 = 1
 
         return me
     end
@@ -441,32 +441,32 @@ class Matrix3
 
     matrix:SetToTranslation(4, 5)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
     
     */
     action SetToTranslation(number x, number y) returns Matrix3
-        a00 = 1
-        a10 = 0
-        a20 = 0
-        a01 = 0
-        a11 = 1
-        a21 = 0
-        a02 = x
-        a12 = y
-        a22 = 1
+        row0column0 = 1
+        row1column0 = 0
+        row2column0 = 0
+        row0column1 = 0
+        row1column1 = 1
+        row2column1 = 0
+        row0column2 = x
+        row1column2 = y
+        row2column2 = 1
 
         return me
     end
@@ -494,32 +494,32 @@ class Matrix3
 
     matrix:SetToTranslation(translation)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action SetToTranslation(Vector2 translation) returns Matrix3
-        a00 = 1
-        a10 = 0
-        a20 = 0
-        a01 = 0
-        a11 = 1
-        a21 = 0
-        a02 = translation:GetX()
-        a12 = translation:GetY()
-        a22 = 1
+        row0column0 = 1
+        row1column0 = 0
+        row2column0 = 0
+        row0column1 = 0
+        row1column1 = 1
+        row2column1 = 0
+        row0column2 = translation:GetX()
+        row1column2 = translation:GetY()
+        row2column2 = 1
 
         return me
     end
@@ -544,32 +544,32 @@ class Matrix3
 
     matrix:SetToScaling(2, 2)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action SetToScaling(number scaleX, number scaleY) returns Matrix3
-        a00 = scaleX
-        a01 = 0
-        a02 = 0
-        a10 = 0
-        a11 = scaleY
-        a12 = 0
-        a20 = 0
-        a21 = 0
-        a22 = 1
+        row0column0 = scaleX
+        row0column1 = 0
+        row0column2 = 0
+        row1column0 = 0
+        row1column1 = scaleY
+        row1column2 = 0
+        row2column0 = 0
+        row2column1 = 0
+        row2column2 = 1
 
         return me
     end
@@ -597,32 +597,32 @@ class Matrix3
 
     matrix:SetToScaling(scale)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action SetToScaling(Vector2 scale) returns Matrix3
-        a00 = scale:GetX()
-        a01 = 0
-        a02 = 0
-        a10 = 0
-        a11 = scale:GetY()
-        a12 = 0
-        a20 = 0
-        a21 = 0
-        a22 = 1
+        row0column0 = scale:GetX()
+        row0column1 = 0
+        row0column2 = 0
+        row1column0 = 0
+        row1column1 = scale:GetY()
+        row1column2 = 0
+        row2column0 = 0
+        row2column1 = 0
+        row2column2 = 1
 
         return me
     end
@@ -648,12 +648,12 @@ class Matrix3
 
     */
     action Determinant returns number
-        return a00 * a11 * a22 + 
-               a01 * a12 * a20 + 
-               a02 * a10 * a21 -
-               a00 * a12 * a21 -
-               a01 * a10 * a22 -
-               a02 * a11 * a20
+        return row0column0 * row1column1 * row2column2 + 
+               row0column1 * row1column2 * row2column0 + 
+               row0column2 * row1column0 * row2column1 -
+               row0column0 * row1column2 * row2column1 -
+               row0column1 * row1column0 * row2column2 -
+               row0column2 * row1column1 * row2column0
     end
 
     /*
@@ -673,20 +673,20 @@ class Matrix3
 
     matrix:Inverse()
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
     
     */
     action Inverse returns Matrix3
@@ -700,25 +700,25 @@ class Matrix3
 
         number inverseDeterminant = 1.0 / determinant
         
-        t00 = a11 * a22 - a21 * a12
-        t10 = a20 * a12 - a10 * a22
-        t20 = a10 * a21 - a20 * a11
-        t01 = a21 * a02 - a01 * a22
-        t11 = a00 * a22 - a20 * a02
-        t21 = a20 * a01 - a00 * a21
-        t02 = a01 * a12 - a11 * a02
-        t12 = a10 * a02 - a00 * a12
-        t22 = a00 * a11 - a10 * a01
+        t00 = row1column1 * row2column2 - row2column1 * row1column2
+        t10 = row2column0 * row1column2 - row1column0 * row2column2
+        t20 = row1column0 * row2column1 - row2column0 * row1column1
+        t01 = row2column1 * row0column2 - row0column1 * row2column2
+        t11 = row0column0 * row2column2 - row2column0 * row0column2
+        t21 = row2column0 * row0column1 - row0column0 * row2column1
+        t02 = row0column1 * row1column2 - row1column1 * row0column2
+        t12 = row1column0 * row0column2 - row0column0 * row1column2
+        t22 = row0column0 * row1column1 - row1column0 * row0column1
         
-        a00 = inverseDeterminant * t00
-        a10 = inverseDeterminant * t10
-        a20 = inverseDeterminant * t20
-        a01 = inverseDeterminant * t01
-        a11 = inverseDeterminant * t11
-        a21 = inverseDeterminant * t21
-        a02 = inverseDeterminant * t02
-        a12 = inverseDeterminant * t12
-        a22 = inverseDeterminant * t22
+        row0column0 = inverseDeterminant * t00
+        row1column0 = inverseDeterminant * t10
+        row2column0 = inverseDeterminant * t20
+        row0column1 = inverseDeterminant * t01
+        row1column1 = inverseDeterminant * t11
+        row2column1 = inverseDeterminant * t21
+        row0column2 = inverseDeterminant * t02
+        row1column2 = inverseDeterminant * t12
+        row2column2 = inverseDeterminant * t22
 
         return me
     end
@@ -755,20 +755,20 @@ class Matrix3
 
     matrix:Set(array)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action Set(Array<number> array) returns Matrix3
@@ -778,15 +778,15 @@ class Matrix3
             alert(matrix)
         end
 
-        a00 = array:Get(0)
-        a01 = array:Get(1)
-        a02 = array:Get(2)
-        a10 = array:Get(3)
-        a11 = array:Get(4)
-        a12 = array:Get(5)
-        a20 = array:Get(6)
-        a21 = array:Get(7)
-        a22 = array:Get(8)
+        row0column0 = array:Get(0)
+        row0column1 = array:Get(1)
+        row0column2 = array:Get(2)
+        row1column0 = array:Get(3)
+        row1column1 = array:Get(4)
+        row1column2 = array:Get(5)
+        row2column0 = array:Get(6)
+        row2column1 = array:Get(7)
+        row2column2 = array:Get(8)
         return me
     end
 
@@ -795,15 +795,15 @@ class Matrix3
 
     Attribute: Author Amanda Austin
 
-    Attribute: Parameter a00 The value of the first row, first column
-    Attribute: Parameter a01 The value of the first row, second column
-    Attribute: Parameter a02 The value of the first row, third column
-    Attribute: Parameter a10 The value of the second row, first column
-    Attribute: Parameter a11 The value of the second row, second column
-    Attribute: Parameter a12 The value of the second row, third column
-    Attribute: Parameter a20 The value of the third row, first column
-    Attribute: Parameter a21 The value of the third row, second column
-    Attribute: Parameter a22 The value of the third row, third column
+    Attribute: Parameter row0column0 The value of the first row, first column
+    Attribute: Parameter row0column1 The value of the first row, second column
+    Attribute: Parameter row0column2 The value of the first row, third column
+    Attribute: Parameter row1column0 The value of the second row, first column
+    Attribute: Parameter row1column1 The value of the second row, second column
+    Attribute: Parameter row1column2 The value of the second row, third column
+    Attribute: Parameter row2column0 The value of the third row, first column
+    Attribute: Parameter row2column1 The value of the third row, second column
+    Attribute: Parameter row2column2 The value of the third row, third column
 
     Attribute: Returns The matrix with the passed values
 
@@ -814,32 +814,32 @@ class Matrix3
     Matrix3 matrix
     matrix:Set(0, 1, 2, 3, 4, 5, 6, 7, 8)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
-    action Set(number a00, number a01, number a02, number a10, number a11, number a12, number a20, number a21, number a22) returns Matrix3
-        me:a00 = a00
-        me:a01 = a01
-        me:a02 = a02
-        me:a10 = a10
-        me:a11 = a11
-        me:a12 = a12
-        me:a20 = a20
-        me:a21 = a21
-        me:a22 = a22
+    action Set(number row0column0, number row0column1, number row0column2, number row1column0, number row1column1, number row1column2, number row2column0, number row2column1, number row2column2) returns Matrix3
+        me:row0column0 = row0column0
+        me:row0column1 = row0column1
+        me:row0column2 = row0column2
+        me:row1column0 = row1column0
+        me:row1column1 = row1column1
+        me:row1column2 = row1column2
+        me:row2column0 = row2column0
+        me:row2column1 = row2column1
+        me:row2column2 = row2column2
         return me
     end
 
@@ -862,32 +862,32 @@ class Matrix3
     copyMatrix:Set(8, 7, 6, 5, 4, 3, 2, 1, 0)
     matrix:Set(copyMatrix)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action Set(Matrix3 matrix) returns Matrix3
-        a00 = matrix:a00
-        a01 = matrix:a01
-        a02 = matrix:a02
-        a10 = matrix:a10
-        a11 = matrix:a11
-        a12 = matrix:a12
-        a20 = matrix:a20
-        a21 = matrix:a21
-        a22 = matrix:a22
+        row0column0 = matrix:row0column0
+        row0column1 = matrix:row0column1
+        row0column2 = matrix:row0column2
+        row1column0 = matrix:row1column0
+        row1column1 = matrix:row1column1
+        row1column2 = matrix:row1column2
+        row2column0 = matrix:row2column0
+        row2column1 = matrix:row2column1
+        row2column2 = matrix:row2column2
 
         return me
     end
@@ -910,33 +910,33 @@ class Matrix3
     copyMatrix:Set(8, 7, 6, 5, 4, 3, 2, 1, 0)
     matrix = copyMatrix:Copy()
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action Copy returns Matrix3
         Matrix3 matrix
-        matrix:a00 = a00
-        matrix:a01 = a01
-        matrix:a02 = a02
-        matrix:a10 = a10
-        matrix:a11 = a11
-        matrix:a12 = a12
-        matrix:a20 = a20
-        matrix:a21 = a21
-        matrix:a22 = a22
+        matrix:row0column0 = row0column0
+        matrix:row0column1 = row0column1
+        matrix:row0column2 = row0column2
+        matrix:row1column0 = row1column0
+        matrix:row1column1 = row1column1
+        matrix:row1column2 = row1column2
+        matrix:row2column0 = row2column0
+        matrix:row2column1 = row2column1
+        matrix:row2column2 = row2column2
 
         return matrix
     end
@@ -964,32 +964,32 @@ class Matrix3
     
     matrix:Set(affine)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action Set(Affine2 affine) returns Matrix3
-        a00 = affine:M00
-        a10 = affine:M10
-        a20 = 0
-        a01 = affine:M01
-        a11 = affine:M11
-        a21 = 0
-        a02 = affine:M02
-        a12 = affine:M12
-        a22 = 1
+        row0column0 = affine:M00
+        row1column0 = affine:M10
+        row2column0 = 0
+        row0column1 = affine:M01
+        row1column1 = affine:M11
+        row2column1 = 0
+        row0column2 = affine:M02
+        row1column2 = affine:M12
+        row2column2 = 1
 
         return me
     end
@@ -1017,32 +1017,32 @@ class Matrix3
 
     matrix:Set(biggerMatrix)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action Set(Matrix4 matrix) returns Matrix3
-        a00 = matrix:values:Get(matrix:M00)
-        a10 = matrix:values:Get(matrix:M10)
-        a20 = matrix:values:Get(matrix:M20)
-        a01 = matrix:values:Get(matrix:M01)
-        a11 = matrix:values:Get(matrix:M11) 
-        a21 = matrix:values:Get(matrix:M21)
-        a02 = matrix:values:Get(matrix:M02)
-        a12 = matrix:values:Get(matrix:M12)
-        a22 = matrix:values:Get(matrix:M22)
+        row0column0 = matrix:values:Get(matrix:M00)
+        row1column0 = matrix:values:Get(matrix:M10)
+        row2column0 = matrix:values:Get(matrix:M20)
+        row0column1 = matrix:values:Get(matrix:M01)
+        row1column1 = matrix:values:Get(matrix:M11) 
+        row2column1 = matrix:values:Get(matrix:M21)
+        row0column2 = matrix:values:Get(matrix:M02)
+        row1column2 = matrix:values:Get(matrix:M12)
+        row2column2 = matrix:values:Get(matrix:M22)
         return me
     end
 
@@ -1070,25 +1070,25 @@ class Matrix3
 
     matrix:AddTranslationalComponent(translation)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
     
     */
     action AddTranslationalComponent(Vector2 vector) returns Matrix3
-        a02 = a02 + vector:GetX()
-        a12 = a12 + vector:GetY()
+        row0column2 = row0column2 + vector:GetX()
+        row1column2 = row1column2 + vector:GetY()
         return me
     end
 
@@ -1113,25 +1113,25 @@ class Matrix3
 
     matrix:AddTranslationalComponent(4, 5)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
     
     */
     action AddTranslationalComponent(number x, number y) returns Matrix3
-        a02 = a02 + x
-        a12 = a12 + y
+        row0column2 = row0column2 + x
+        row1column2 = row1column2 + y
         return me
     end
     
@@ -1158,25 +1158,25 @@ class Matrix3
 
     matrix:AddTranslationalComponent(translation)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action AddTranslationalComponent(Vector3 vector) returns Matrix3
-        a02 = a02 + vector:GetX()
-        a12 = a12 + vector:GetY()
+        row0column2 = row0column2 + vector:GetX()
+        row1column2 = row1column2 + vector:GetY()
         return me
     end
 
@@ -1199,34 +1199,34 @@ class Matrix3
 
     matrix:Translate(4, 5)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action Translate(number x, number y) returns Matrix3
         Matrix3 temporary
 
-        temporary:a00 = 1
-        temporary:a10 = 0
-        temporary:a20 = 0
-        temporary:a01 = 0
-        temporary:a11 = 1
-        temporary:a21 = 0
-        temporary:a02 = x
-        temporary:a12 = y
-        temporary:a22 = 1
+        temporary:row0column0 = 1
+        temporary:row1column0 = 0
+        temporary:row2column0 = 0
+        temporary:row0column1 = 0
+        temporary:row1column1 = 1
+        temporary:row2column1 = 0
+        temporary:row0column2 = x
+        temporary:row1column2 = y
+        temporary:row2column2 = 1
         
         Multiply(me, temporary)
 
@@ -1255,34 +1255,34 @@ class Matrix3
 
     matrix:Translate(translation)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */   
     action Translate(Vector2 translation) returns Matrix3
         Matrix3 temporary
 
-        temporary:a00 = 1
-        temporary:a10 = 0
-        temporary:a20 = 0
-        temporary:a01 = 0
-        temporary:a11 = 1
-        temporary:a21 = 0
-        temporary:a02 = translation:GetX()
-        temporary:a12 = translation:GetY()
-        temporary:a22 = 1
+        temporary:row0column0 = 1
+        temporary:row1column0 = 0
+        temporary:row2column0 = 0
+        temporary:row0column1 = 0
+        temporary:row1column1 = 1
+        temporary:row2column1 = 0
+        temporary:row0column2 = translation:GetX()
+        temporary:row1column2 = translation:GetY()
+        temporary:row2column2 = 1
         
         Multiply(me, temporary)
         
@@ -1307,20 +1307,20 @@ class Matrix3
 
     matrix:Rotate(45)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action Rotate(number degrees) returns Matrix3
@@ -1348,20 +1348,20 @@ class Matrix3
 
     matrix:Rotate(math:pi / 4)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action RotateInRadians(number radians) returns Matrix3
@@ -1374,15 +1374,15 @@ class Matrix3
 
         Matrix3 temporary
 
-        temporary:a00 = cos
-        temporary:a10 = sin
-        temporary:a20 = 0
-        temporary:a01 = sin * -1
-        temporary:a11 = cos
-        temporary:a21 = 0
-        temporary:a02 = 0
-        temporary:a12 = 0
-        temporary:a22 = 1
+        temporary:row0column0 = cos
+        temporary:row1column0 = sin
+        temporary:row2column0 = 0
+        temporary:row0column1 = sin * -1
+        temporary:row1column1 = cos
+        temporary:row2column1 = 0
+        temporary:row0column2 = 0
+        temporary:row1column2 = 0
+        temporary:row2column2 = 1
 
         Multiply(me, temporary)
 
@@ -1409,33 +1409,33 @@ class Matrix3
     
     matrix:Scale(2, 2)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action Scale(number scaleX, number scaleY) returns Matrix3
         Matrix3 temporary
-        temporary:a00 = scaleX
-        temporary:a10 = 0
-        temporary:a20 = 0
-        temporary:a01 = 0
-        temporary:a11 = scaleY
-        temporary:a21 = 0
-        temporary:a02 = 0
-        temporary:a12 = 0
-        temporary:a22 = 1
+        temporary:row0column0 = scaleX
+        temporary:row1column0 = 0
+        temporary:row2column0 = 0
+        temporary:row0column1 = 0
+        temporary:row1column1 = scaleY
+        temporary:row2column1 = 0
+        temporary:row0column2 = 0
+        temporary:row1column2 = 0
+        temporary:row2column2 = 1
         
         Multiply(me, temporary)
 
@@ -1464,33 +1464,33 @@ class Matrix3
     
     matrix:Scale(scale)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action Scale(Vector2 scale) returns Matrix3
         Matrix3 temporary
-        temporary:a00 = scale:GetX()
-        temporary:a10 = 0
-        temporary:a20 = 0
-        temporary:a01 = 0
-        temporary:a11 = scale:GetY()
-        temporary:a21 = 0
-        temporary:a02 = 0
-        temporary:a12 = 0
-        temporary:a22 = 1
+        temporary:row0column0 = scale:GetX()
+        temporary:row1column0 = 0
+        temporary:row2column0 = 0
+        temporary:row0column1 = 0
+        temporary:row1column1 = scale:GetY()
+        temporary:row2column1 = 0
+        temporary:row0column2 = 0
+        temporary:row1column2 = 0
+        temporary:row2column2 = 1
         
         Multiply(me, temporary)
         
@@ -1523,7 +1523,7 @@ class Matrix3
     */
     action GetTranslation returns Vector2
         Vector2 position
-        position:Set(a02, a12)
+        position:Set(row0column2, row1column2)
         return position
     end
 
@@ -1553,8 +1553,8 @@ class Matrix3
     */
     action GetScale returns Vector2
         Vector2 scale
-        scale:Set(math:SquareRoot(a00 * a00 + a01 * a01),
-                  math:SquareRoot(a10 * a10 + a11 * a11))
+        scale:Set(math:SquareRoot(row0column0 * row0column0 + row0column1 * row0column1),
+                  math:SquareRoot(row1column0 * row1column0 + row1column1 * row1column1))
 
         return scale
     end
@@ -1581,7 +1581,7 @@ class Matrix3
 
     */
     action GetRotation returns number
-        return math:RadiansToDegrees(math:InverseTangent(a10, a00))
+        return math:RadiansToDegrees(math:InverseTangent(row1column0, row0column0))
     end
 
     /*
@@ -1606,7 +1606,7 @@ class Matrix3
 
     */
     action GetRotationInRadians returns number
-        return math:InverseTangent(a10, a00)
+        return math:InverseTangent(row1column0, row0column0)
     end
 
     /*
@@ -1629,25 +1629,25 @@ class Matrix3
 
     matrix:SetScale(2)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action SetScale(number scale) returns Matrix3
-        a00 = a00 * scale
-        a11 = a11 * scale
+        row0column0 = row0column0 * scale
+        row1column1 = row1column1 * scale
 
         return me
     end
@@ -1675,25 +1675,25 @@ class Matrix3
 
     matrix:SetScale(scale)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action SetScale(Vector3 scale) returns Matrix3
-        a00 = a00 * scale:GetX()
-        a11 = a11 * scale:GetY()
+        row0column0 = row0column0 * scale:GetX()
+        row1column1 = row1column1 * scale:GetY()
 
         return me
     end
@@ -1721,25 +1721,25 @@ class Matrix3
 
     matrix:SetScale(scale)
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action SetScale(Vector2 scale) returns Matrix3
-        a00 = a00 * scale:GetX()
-        a11 = a11 * scale:GetY()
+        row0column0 = row0column0 * scale:GetX()
+        row1column1 = row1column1 * scale:GetY()
 
         return me
     end
@@ -1761,36 +1761,36 @@ class Matrix3
 
     matrix:Transpose()
 
-    number a00 = matrix:a00
-    number a01 = matrix:a01
-    number a02 = matrix:a02
-    number a10 = matrix:a10
-    number a11 = matrix:a11
-    number a12 = matrix:a12
-    number a20 = matrix:a20
-    number a21 = matrix:a21
-    number a22 = matrix:a22
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
 
     output "The new matrix is:"
-    output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-    output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-    output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
     */
     action Transpose returns Matrix3
-        number v01 = a10
-        number v02 = a20
-        number v10 = a01
-        number v12 = a21
-        number v20 = a02
-        number v21 = a12
+        number v01 = row1column0
+        number v02 = row2column0
+        number v10 = row0column1
+        number v12 = row2column1
+        number v20 = row0column2
+        number v21 = row1column2
 
-        a01 = v01
-        a02 = v02
-        a10 = v10
-        a12 = v12
-        a20 = v20
-        a21 = v21
+        row0column1 = v01
+        row0column2 = v02
+        row1column0 = v10
+        row1column2 = v12
+        row2column0 = v20
+        row2column1 = v21
 
         return me
     end

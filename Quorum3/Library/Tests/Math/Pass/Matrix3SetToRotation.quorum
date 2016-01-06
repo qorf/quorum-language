@@ -8,20 +8,20 @@ class Matrix3SetToRotation
 
         matrix:SetToRotation(45)
 
-        number a00 = matrix:a00
-        number a01 = matrix:a01
-        number a02 = matrix:a02
-        number a10 = matrix:a10
-        number a11 = matrix:a11
-        number a12 = matrix:a12
-        number a20 = matrix:a20
-        number a21 = matrix:a21
-        number a22 = matrix:a22
+        number row0column0 = matrix:row0column0
+        number row0column1 = matrix:row0column1
+        number row0column2 = matrix:row0column2
+        number row1column0 = matrix:row1column0
+        number row1column1 = matrix:row1column1
+        number row1column2 = matrix:row1column2
+        number row2column0 = matrix:row2column0
+        number row2column1 = matrix:row2column1
+        number row2column2 = matrix:row2column2
 
         output "The new matrix is:"
-        output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-        output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-        output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+        output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+        output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+        output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
         Vector3 axis
         matrix:IdentityMatrix()
@@ -29,20 +29,20 @@ class Matrix3SetToRotation
         axis:Set(0, 0, 1)
         matrix:SetToRotation(axis, 45)
 
-        a00 = matrix:a00
-        a01 = matrix:a01
-        a02 = matrix:a02
-        a10 = matrix:a10
-        a11 = matrix:a11
-        a12 = matrix:a12
-        a20 = matrix:a20
-        a21 = matrix:a21
-        a22 = matrix:a22
+        row0column0 = matrix:row0column0
+        row0column1 = matrix:row0column1
+        row0column2 = matrix:row0column2
+        row1column0 = matrix:row1column0
+        row1column1 = matrix:row1column1
+        row1column2 = matrix:row1column2
+        row2column0 = matrix:row2column0
+        row2column1 = matrix:row2column1
+        row2column2 = matrix:row2column2
 
         output "The new matrix is:"
-        output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-        output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-        output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+        output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+        output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+        output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
         Math math
 
@@ -55,38 +55,38 @@ class Matrix3SetToRotation
 
         matrix:SetToRotation(axis, cosine, sine)
 
-        a00 = matrix:a00
-        a01 = matrix:a01
-        a02 = matrix:a02
-        a10 = matrix:a10
-        a11 = matrix:a11
-        a12 = matrix:a12
-        a20 = matrix:a20
-        a21 = matrix:a21
-        a22 = matrix:a22
+        row0column0 = matrix:row0column0
+        row0column1 = matrix:row0column1
+        row0column2 = matrix:row0column2
+        row1column0 = matrix:row1column0
+        row1column1 = matrix:row1column1
+        row1column2 = matrix:row1column2
+        row2column0 = matrix:row2column0
+        row2column1 = matrix:row2column1
+        row2column2 = matrix:row2column2
 
         output "The new matrix is:"
-        output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-        output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-        output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+        output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+        output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+        output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
 
         matrix:IdentityMatrix()
 
         matrix:SetToRotationInRadians(math:pi / 4)
 
-        a00 = matrix:a00
-        a01 = matrix:a01
-        a02 = matrix:a02
-        a10 = matrix:a10
-        a11 = matrix:a11
-        a12 = matrix:a12
-        a20 = matrix:a20
-        a21 = matrix:a21
-        a22 = matrix:a22
+        row0column0 = matrix:row0column0
+        row0column1 = matrix:row0column1
+        row0column2 = matrix:row0column2
+        row1column0 = matrix:row1column0
+        row1column1 = matrix:row1column1
+        row1column2 = matrix:row1column2
+        row2column0 = matrix:row2column0
+        row2column1 = matrix:row2column1
+        row2column2 = matrix:row2column2
 
         output "The new matrix is:"
-        output "|" + a00 + ", " + a01 + ", " + a02 + "|"
-        output "|" + a10 + ", " + a11 + ", " + a12 + "|"
-        output "|" + a20 + ", " + a21 + ", " + a22 + "|"
+        output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + "|"
+        output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + "|"
+        output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + "|"
     end
 end

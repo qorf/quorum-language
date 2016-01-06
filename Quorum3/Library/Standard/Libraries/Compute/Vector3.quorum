@@ -1353,9 +1353,9 @@ class Vector3
     
     */
     action Multiply(Matrix3 matrix) returns Vector3
-           return Set(x * matrix:a00 + y * matrix:a10 + z * matrix:a20,
-                      x * matrix:a01 + y * matrix:a11 + z * matrix:a21,
-                      x * matrix:a02 + y * matrix:a12 + z * matrix:a22)
+           return Set(x * matrix:row0column0 + y * matrix:row1column0 + z * matrix:row2column0,
+                      x * matrix:row0column1 + y * matrix:row1column1 + z * matrix:row2column1,
+                      x * matrix:row0column2 + y * matrix:row1column2 + z * matrix:row2column2)
 
     end
 
@@ -1400,9 +1400,9 @@ class Vector3
     
     */
     action MultiplyByTranspose(Matrix3 matrix) returns Vector3
-        return Set(x * matrix:a00 + y * matrix:a01 + z * matrix:a02,
-                   x * matrix:a10 + y * matrix:a11 + z * matrix:a12,
-                   x * matrix:a20 + y * matrix:a21 + z * matrix:a22)
+        return Set(x * matrix:row0column0 + y * matrix:row0column1 + z * matrix:row0column2,
+                   x * matrix:row1column0 + y * matrix:row1column1 + z * matrix:row1column2,
+                   x * matrix:row2column0 + y * matrix:row2column1 + z * matrix:row2column2)
 
     end
 

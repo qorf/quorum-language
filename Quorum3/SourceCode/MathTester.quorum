@@ -84,6 +84,8 @@ class MathTester
         Vector3EqualsAtPrecision()
         Matrix3Multiply()
         Matrix3SetToRotation()
+        Matrix3Determinant()
+        Matrix3Inverse()
 
 //FAIL TESTS
         path = failPath
@@ -966,6 +968,32 @@ class MathTester
         results:Add("|0.7071067811865476, -0.7071067811865476, 0.0|")
         results:Add("|0.7071067811865476, 0.7071067811865476, 0.0|")
         results:Add("|0.0, 0.0, 1.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix3Determinant
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix3Determinant.quorum")
+        files:Add(main)
+        results:Add("The determinant of the matrix is 1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix3Inverse
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix3Inverse.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|3.0, -5.0, 0.0|")
+        results:Add("|-1.0, 2.0, 0.0|")
+        results:Add("|0.0, 0.0, 1.0|")
+        results:Add("Matrix is not invertable if the determinant computes to 0.")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
