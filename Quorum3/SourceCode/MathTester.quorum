@@ -88,6 +88,8 @@ class MathTester
         Matrix3Inverse()
         Matrix3Translate()
         Matrix3Rotate()
+        Matrix3Scale()
+        Matrix3Transpose()
 
 //FAIL TESTS
         path = failPath
@@ -1036,6 +1038,39 @@ class MathTester
         results:Add("|10.606601717798213, 0.7071067811865488, 9.0|")
         results:Add("The rotation is 18.43494882292201")
         results:Add("The rotation in radians is 0.3217505543966422")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix3Scale
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix3Scale.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|2.0, 4.0, 3.0|")
+        results:Add("|8.0, 10.0, 6.0|")
+        results:Add("|14.0, 16.0, 9.0|")
+        results:Add("The new matrix is:")
+        results:Add("|2.0, 4.0, 3.0|")
+        results:Add("|8.0, 10.0, 6.0|")
+        results:Add("|14.0, 16.0, 9.0|")
+        results:Add("The scale is [4.47213595499958, 12.806248474865697]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix3Transpose
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix3Transpose.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|0.0, 3.0, 6.0|")
+        results:Add("|1.0, 4.0, 7.0|")
+        results:Add("|2.0, 5.0, 8.0|")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
