@@ -86,6 +86,8 @@ class MathTester
         Matrix3SetToRotation()
         Matrix3Determinant()
         Matrix3Inverse()
+        Matrix3Translate()
+        Matrix3Rotate()
 
 //FAIL TESTS
         path = failPath
@@ -994,6 +996,46 @@ class MathTester
         results:Add("|-1.0, 2.0, 0.0|")
         results:Add("|0.0, 0.0, 1.0|")
         results:Add("Matrix is not invertable if the determinant computes to 0.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix3Translate
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix3Translate.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|1.0, 2.0, 8.0|")
+        results:Add("|4.0, 5.0, 20.0|")
+        results:Add("|7.0, 8.0, 32.0|")
+        results:Add("The new matrix is:")
+        results:Add("|1.0, 2.0, 8.0|")
+        results:Add("|4.0, 5.0, 20.0|")
+        results:Add("|7.0, 8.0, 32.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix3Rotate
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix3Rotate.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|2.1213203435596424, 0.7071067811865477, 3.0|")
+        results:Add("|6.363961030678928, 0.7071067811865479, 6.0|")
+        results:Add("|10.606601717798213, 0.7071067811865488, 9.0|")
+        results:Add("The rotation is 18.43494882292201")
+        results:Add("The rotation in radians is 0.3217505543966422")
+        results:Add("The new matrix is:")
+        results:Add("|2.1213203435596424, 0.7071067811865477, 3.0|")
+        results:Add("|6.363961030678928, 0.7071067811865479, 6.0|")
+        results:Add("|10.606601717798213, 0.7071067811865488, 9.0|")
+        results:Add("The rotation is 18.43494882292201")
+        results:Add("The rotation in radians is 0.3217505543966422")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

@@ -1346,7 +1346,7 @@ class Matrix3
     Matrix3 matrix
     matrix:IdentityMatrix()
 
-    matrix:Rotate(math:pi / 4)
+    matrix:RotateInRadians(math:pi / 4)
 
     number row0column0 = matrix:row0column0
     number row0column1 = matrix:row0column1
@@ -1384,9 +1384,7 @@ class Matrix3
         temporary:row1column2 = 0
         temporary:row2column2 = 1
 
-        Multiply(me, temporary)
-
-        return me
+        return Multiply(temporary)
     end
 
     /*
@@ -1581,7 +1579,7 @@ class Matrix3
 
     */
     action GetRotation returns number
-        return math:RadiansToDegrees(math:InverseTangent(row1column0, row0column0))
+        return math:InverseTangent(row1column0, row0column0) * 180 / math:pi
     end
 
     /*
