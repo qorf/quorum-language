@@ -7,115 +7,88 @@ use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
 use Libraries.Compute.Affine2
 use Libraries.Compute.Quaternion
-use Libraries.Language.Errors.Error
+use Libraries.Language.Errors.MatrixError
 
-class Matrix4 
-    
-
-    public constant integer M00 = 0
-    public constant integer M01 = 4
-    public constant integer M02 = 8
-    public constant integer M03 = 12
-    public constant integer M10 = 1
-    public constant integer M11 = 5
-    public constant integer M12 = 9
-    public constant integer M13 = 13
-    public constant integer M20 = 2
-    public constant integer M21 = 6
-    public constant integer M22 = 10
-    public constant integer M23 = 14
-    public constant integer M30 = 3
-    public constant integer M31 = 7
-    public constant integer M32 = 11
-    public constant integer M33 = 15
-
-    public Array<number> values
-    public Array<number> temporary
+class Matrix4   
+    public number row0column0 = 1
+    public number row0column1 = 0
+    public number row0column2 = 0
+    public number row0column3 = 0
+    public number row1column0 = 0
+    public number row1column1 = 1
+    public number row1column2 = 0
+    public number row1column3 = 0
+    public number row2column0 = 0
+    public number row2column1 = 0
+    public number row2column2 = 1
+    public number row2column3 = 0
+    public number row3column0 = 0
+    public number row3column1 = 0
+    public number row3column2 = 0
+    public number row3column3 = 1
 
     Math math
 
-    Quaternion quaternion
-    Quaternion quaternion2
+   action Set(Matrix4 matrix) returns Matrix4
+        row0column0 = matrix:row0column0
+        row0column1 = matrix:row0column1
+        row0column2 = matrix:row0column2
+        row0column3 = matrix:row0column3
+        row1column0 = matrix:row1column0
+        row1column1 = matrix:row1column1
+        row1column2 = matrix:row1column2
+        row1column2 = matrix:row1column3
+        row2column0 = matrix:row2column0
+        row2column1 = matrix:row2column1
+        row2column2 = matrix:row2column2
+        row2column3 = matrix:row2column3
+        row3column0 = matrix:row3column0
+        row3column1 = matrix:row3column1
+        row3column2 = matrix:row3column2
+        row3column3 = matrix:row3column3
 
-    Vector3 l_vez
-    Vector3 l_vex
-    Vector3 l_vey
-
-    Vector3 tmpVec
-    Matrix4 tmpMat = undefined
-
-    Vector3 right
-    Vector3 tmpForward
-    Vector3 tmpUp
-
-    on create
-
-        values:SetSize(16)
-        temporary:SetSize(16)
-        values:Set(M00, 1.0)
-        values:Set(M01, 0)
-        values:Set(M02, 0)
-        values:Set(M03, 0)
-        values:Set(M10, 0)
-        values:Set(M11, 1.0)
-        values:Set(M12, 0)
-        values:Set(M13, 0)
-        values:Set(M20, 0)
-        values:Set(M21, 0)
-        values:Set(M22, 1.0)
-        values:Set(M23, 0)
-        values:Set(M30, 0)
-        values:Set(M31, 0)
-        values:Set(M32, 0)
-        values:Set(M33, 1.0)
-
-    end
-
-    action PrintValues ()
-        output values:Get(M00) + " " + values:Get(M01) + " " + values:Get(M02) + " " + values:Get(M03)
-        output values:Get(M10) + " " + values:Get(M11) + " " + values:Get(M12) + " " + values:Get(M13)
-        output values:Get(M20) + " " + values:Get(M21) + " " + values:Get(M22) + " " + values:Get(M23)
-        output values:Get(M30) + " " + values:Get(M31) + " " + values:Get(M32) + " " + values:Get(M33)
-
-    end
-
-
-   action Set (Matrix4 matrix) returns Matrix4
-        return Set(matrix:values)
+        return me
     end
 
     action Set (Array<number> array) returns Matrix4
-
-        integer i = 0
-        repeat 16 times
-            values:Set(i, array:Get(i))
-            i = i + 1
+        if array:GetSize() not= 16
+            MatrixError matrix
+            matrix:SetErrorMessage("The array must have exactly 16 values to be converted to a Matrix4 object.")
+            alert(matrix)
         end
+
+        row0column0 = array:Get(0)
+        row0column1 = array:Get(1)
+        row0column2 = array:Get(2)
+        row0column3 = array:Get(3)
+        row1column0 = array:Get(4)
+        row1column1 = array:Get(5)
+        row1column2 = array:Get(6)
+        row1column3 = array:Get(7)
+        row2column0 = array:Get(8)
+        row2column1 = array:Get(9)
+        row2column2 = array:Get(10)
+        row2column3 = array:Get(11)
+        row3column0 = array:Get(12)
+        row3column1 = array:Get(13)
+        row3column2 = array:Get(14)
+        row3column3 = array:Get(15)
         return me
-
     end
 
-    action Set (Quaternion quaternion) returns Matrix4
-
+    action Set(Quaternion quaternion) returns Matrix4
         return Set(quaternion:GetX(), quaternion:GetY(), quaternion:GetZ(), quaternion:GetW())
-
     end
 
-    action Set (number quaternionX, number quaternionY, number quaternionZ, number quaternionW) returns Matrix4
-    
+    action Set(number quaternionX, number quaternionY, number quaternionZ, number quaternionW) returns Matrix4    
         return Set(0.0, 0.0, 0.0, quaternionX, quaternionY, quaternionZ, quaternionW)
-
     end
 
-    action Set (Vector3 position, Quaternion orientation) returns Matrix4
-
+    action Set(Vector3 position, Quaternion orientation) returns Matrix4
         return Set(position:GetX(), position:GetY(), position:GetZ(), orientation:GetX(), orientation:GetY(), orientation:GetZ(), orientation:GetW())
-
     end
 
-    action Set (number translationX, number translationY, number translationZ, number quaternionX, number quaternionY, number quaternionZ, number quaternionW) returns Matrix4
-
-        constant number xs = quaternionX * 2.0
+    action Set(number translationX, number translationY, number translationZ, number quaternionX, number quaternionY, number quaternionZ, number quaternionW) returns Matrix4        constant number xs = quaternionX * 2.0
         constant number ys = quaternionY * 2.0
         constant number zs = quaternionZ * 2.0
         constant number wx = quaternionW * xs
@@ -128,39 +101,35 @@ class Matrix4
         constant number yz = quaternionY * zs
         constant number zz = quaternionZ * zs
 
-        values:Set(M00, (1.0 - (yy + zz)))
-        values:Set(M01, (xy - wz))
-        values:Set(M02, (xz + wy))
-        values:Set(M03, translationX)
+        row0column0 = (1.0 - (yy + zz))
+        row0column1 = (xy - wz)
+        row0column2 = (xz + wy)
+        row0column3 = translationX
 
-        values:Set(M10, (xy + wz))
-        values:Set(M11, (1.0 - (xx + zz)))
-        values:Set(M12, (yz - wx))
-        values:Set(M13, translationY)
+        row1column0 = (xy + wz)
+        row1column1 = (1.0 - (xx + zz))
+        row1column2 = (yz - wx)
+        row1column3 = translationY
 
-        values:Set(M20, (xz - wy))
-        values:Set(M21, (yz + wx))
-        values:Set(M22, (1.0 - (xx + yy)))
-        values:Set(M23, translationZ)
+        row2column0 = (xz - wy)
+        row2column1 = (yz + wx)
+        row2column2 = (1.0 - (xx + yy))
+        row2column3 = translationZ
 
-        values:Set(M30, 0.0)
-        values:Set(M31, 0.0)
-        values:Set(M32, 0.0)
-        values:Set(M33, 1.0)
+        row3column0 = 0.0
+        row3column1 = 0.0
+        row3column2 = 0.0
+        row3column3 = 1.0
 
         return me
-
     end
 
-    action Set (Vector3 position, Quaternion orientation, Vector3 scale) returns Matrix4
-
-        return Set (position:GetX(), position:GetY(), position:GetZ(), orientation:GetX(), orientation:GetY(), orientation:GetZ(), orientation:GetW(), scale:GetX(), scale:GetY(), scale:GetZ())
-
+    action Set(Vector3 position, Quaternion orientation, Vector3 scale) returns Matrix4
+        return Set(position:GetX(), position:GetY(), position:GetZ(), orientation:GetX(), orientation:GetY(), orientation:GetZ(), orientation:GetW(), scale:GetX(), scale:GetY(), scale:GetZ())
     end
 
-    action Set (number translationX, number translationY, number translationZ, number quaternionX, number quaternionY,
-                number quaternionZ, number quaternionW, number scaleX, number scaleY, number scaleZ) returns Matrix4
-
+    action Set(number translationX, number translationY, number translationZ, number quaternionX, number quaternionY,
+               number quaternionZ, number quaternionW, number scaleX, number scaleY, number scaleZ) returns Matrix4
         constant number xs = quaternionX * 2.0
         constant number ys = quaternionY * 2.0
         constant number zs = quaternionZ * 2.0
@@ -174,120 +143,120 @@ class Matrix4
         constant number yz = quaternionY * zs
         constant number zz = quaternionZ * zs
         
-        values:Set(M00, scaleX * (1.0 - (yy + zz)))
-        values:Set(M01, scaleY * (xy - wz))
-        values:Set(M02, scaleZ * (xz + wy))
-        values:Set(M03, translationX)
-        values:Set(M10, scaleX * (xy + wz))
-        values:Set(M11, scaleY * (1.0 - (xx + zz)))
-        values:Set(M12, scaleZ * (yz - wx))
-        values:Set(M13, translationY)
-        values:Set(M20, scaleX * (xz - wy))
-        values:Set(M21, scaleY * (yz + wx))
-        values:Set(M22, scaleZ * (1.0 - (xx + yy)))
-        values:Set(M23, translationZ)
-        values:Set(M30, 0.0)
-        values:Set(M31, 0.0)
-        values:Set(M32, 0.0)
-        values:Set(M33, 1.00)
+        row0column0 = scaleX * (1.0 - (yy + zz))
+        row0column1 = scaleY * (xy - wz)
+        row0column2 = scaleZ * (xz + wy)
+        row0column3 = translationX
+
+        row1column0 = scaleX * (xy + wz)
+        row1column1 = scaleY * (1.0 - (xx + zz))
+        row1column2 = scaleZ * (yz - wx)
+        row1column3 = translationY
+
+        row2column0 = scaleX * (xz - wy)
+        row2column1 = scaleY * (yz + wx)
+        row2column2 = scaleZ * (1.0 - (xx + yy))
+        row2column3 = translationZ
+
+        row3column0 = 0.0
+        row3column1 = 0.0
+        row3column2 = 0.0
+        row3column3 = 1.00
 
         return me
     end
 
-    action Set (Vector3 xAxis, Vector3 yAxis, Vector3 zAxis, Vector3 position) returns Matrix4
+    action Set(Vector3 xAxis, Vector3 yAxis, Vector3 zAxis, Vector3 position) returns Matrix4
+        row0column0 = xAxis:GetX()
+        row0column1 = xAxis:GetY()
+        row0column2 = xAxis:GetZ()
+        row0column2 = position:GetX()
 
-        values:Set(M00, xAxis:GetX())
-        values:Set(M01, xAxis:GetY())
-        values:Set(M02, xAxis:GetZ())
-        values:Set(M10, yAxis:GetX())
-        values:Set(M11, yAxis:GetY())
-        values:Set(M12, yAxis:GetZ())
-        values:Set(M20, zAxis:GetX())
-        values:Set(M21, zAxis:GetY())
-        values:Set(M22, zAxis:GetZ())
-        values:Set(M03, position:GetX())
-        values:Set(M13, position:GetY())
-        values:Set(M23, position:GetZ())
-        values:Set(M30, 0)
-        values:Set(M31, 0)
-        values:Set(M32, 0)
-        values:Set(M33, 1)
+        row1column0 = yAxis:GetX()
+        row1column1 = yAxis:GetY()
+        row1column2 = yAxis:GetZ()
+        row1column3 = position:GetY()
+
+        row2column0 = zAxis:GetX()
+        row2column1 = zAxis:GetY()
+        row2column2 = zAxis:GetZ()
+        row2column3 = position:GetZ()
+
+        row3column0 = 0
+        row3column1 = 0
+        row3column2 = 0
+        row3column3 = 1
 
         return me
     end
 
-    action Copy () returns Matrix4
+    action Copy returns Matrix4
         Matrix4 ret
         return ret:Set(me)   
     end
 
-    action Translate (Vector3 vector) returns Matrix4
-
-        values:Set(M03, values:Get(M03) + vector:GetX())
-        values:Set(M13, values:Get(M13) + vector:GetY())
-        values:Set(M23, values:Get(M23) + vector:GetZ())
-
-        return me
-    
-    end
-
-    action Translate (number x, number y, number z) returns Matrix4
-        
-        values:Set(M03, values:Get(M03) + x)
-        values:Set(M13, values:Get(M13) + y)
-        values:Set(M23, values:Get(M23) + z)
+    action Translate(Vector3 vector) returns Matrix4
+        row0column3 = row0column3 + vector:GetX()
+        row1column3 = row1column3 + vector:GetY()
+        row2column3 = row2column3 + vector:GetZ()
 
         return me
-
     end
 
-    action GetValues returns Array<number>
+    action Translate(number x, number y, number z) returns Matrix4        
+        row0column3 = row0column3 + x
+        row1column3 = row1column3 + y
+        row2column3 = row2column3 + z
 
-        return values
-
+        return me
     end
 
     action Multiply(Matrix4 matrix) returns Matrix4
-        Multiply(me:values, matrix:values)
+        return Multiply(me, matrix)
+    end
+
+    action Multiply(Matrix4 matrixA, Matrix4 matrixB) returns Matrix4
+        number v00 = matrixA:row0column0 * matrixB:row0column0 + matrixA:row0column1 * matrixB:row1column0 + matrixA:row0column2 * matrixB:row2column0 + matrixA:row0column3 * matrixB:row3column0
+        number v01 = matrixA:row0column0 * matrixB:row0column1 + matrixA:row0column1 * matrixB:row1column1 + matrixA:row0column2 * matrixB:row2column1 + matrixA:row0column3 * matrixB:row3column1
+        number v02 = matrixA:row0column0 * matrixB:row0column2 + matrixA:row0column1 * matrixB:row1column2 + matrixA:row0column2 * matrixB:row2column2 + matrixA:row0column3 * matrixB:row3column2
+        number v03 = matrixA:row0column0 * matrixB:row0column3 + matrixA:row0column1 * matrixB:row1column3 + matrixA:row0column2 * matrixB:row2column3 + matrixA:row0column3 * matrixB:row3column3
+
+        number v10 = matrixA:row1column0 * matrixB:row0column0 + matrixA:row1column1 * matrixB:row1column0 + matrixA:row1column2 * matrixB:row2column0 + matrixA:row1column3 * matrixB:row3column0
+        number v11 = matrixA:row1column0 * matrixB:row0column1 + matrixA:row1column1 * matrixB:row1column1 + matrixA:row1column2 * matrixB:row2column1 + matrixA:row1column3 * matrixB:row3column1
+        number v12 = matrixA:row1column0 * matrixB:row0column2 + matrixA:row1column1 * matrixB:row1column2 + matrixA:row1column2 * matrixB:row2column2 + matrixA:row1column3 * matrixB:row3column2
+        number v13 = matrixA:row1column0 * matrixB:row0column3 + matrixA:row1column1 * matrixB:row1column3 + matrixA:row1column2 * matrixB:row2column3 + matrixA:row1column3 * matrixB:row3column3
+
+        number v20 = matrixA:row2column0 * matrixB:row0column0 + matrixA:row2column1 * matrixB:row1column0 + matrixA:row2column2 * matrixB:row2column0 + matrixA:row2column3 * matrixB:row3column0
+        number v21 = matrixA:row2column0 * matrixB:row0column1 + matrixA:row2column1 * matrixB:row1column1 + matrixA:row2column2 * matrixB:row2column1 + matrixA:row2column3 * matrixB:row3column1
+        number v22 = matrixA:row2column0 * matrixB:row0column2 + matrixA:row2column1 * matrixB:row1column2 + matrixA:row2column2 * matrixB:row2column2 + matrixA:row2column3 * matrixB:row3column2
+        number v23 = matrixA:row2column0 * matrixB:row0column3 + matrixA:row2column1 * matrixB:row1column3 + matrixA:row2column2 * matrixB:row2column3 + matrixA:row2column3 * matrixB:row3column3
+
+        number v30 = matrixA:row3column0 * matrixB:row0column0 + matrixA:row3column1 * matrixB:row1column0 + matrixA:row3column2 * matrixB:row2column0 + matrixA:row3column3 * matrixB:row3column0
+        number v31 = matrixA:row3column0 * matrixB:row0column1 + matrixA:row3column1 * matrixB:row1column1 + matrixA:row3column2 * matrixB:row2column1 + matrixA:row3column3 * matrixB:row3column1
+        number v32 = matrixA:row3column0 * matrixB:row0column2 + matrixA:row3column1 * matrixB:row1column2 + matrixA:row3column2 * matrixB:row2column3 + matrixA:row3column3 * matrixB:row3column2
+        number v33 = matrixA:row3column0 * matrixB:row0column3 + matrixA:row3column2 * matrixB:row1column3 + matrixA:row3column2 * matrixB:row2column3 + matrixA:row3column3 * matrixB:row3column3
+
+        row0column0 = v00
+        row0column1 = v01
+        row0column2 = v02
+        row0column3 = v03
+        row1column0 = v10
+        row1column1 = v11
+        row1column2 = v12
+        row1column3 = v13
+        row2column0 = v20
+        row2column1 = v21
+        row2column2 = v22
+        row2column3 = v23
+        row3column0 = v30
+        row3column1 = v31
+        row3column2 = v32
+        row3column3 = v33
+
         return me
     end
 
-    action Multiply (Array<number> values, Array<number> other)
-
-	Array<number> temp
-	temp:SetSize(16)
-	temp:Set(M00, values:Get(M00) * other:Get(M00) + values:Get(M01) * other:Get(M10) + values:Get(M02) * other:Get(M20) + values:Get(M03) * other:Get(M30))
-	temp:Set(M01, values:Get(M00) * other:Get(M01) + values:Get(M01) * other:Get(M11) + values:Get(M02) * other:Get(M21) + values:Get(M03) * other:Get(M31))
-	temp:Set(M02, values:Get(M00) * other:Get(M02) + values:Get(M01) * other:Get(M12) + values:Get(M02) * other:Get(M22) + values:Get(M03) * other:Get(M32))
-	temp:Set(M03, values:Get(M00) * other:Get(M03) + values:Get(M01) * other:Get(M13) + values:Get(M02) * other:Get(M23) + values:Get(M03) * other:Get(M33))
-	temp:Set(M10, values:Get(M10) * other:Get(M00) + values:Get(M11) * other:Get(M10) + values:Get(M12) * other:Get(M20) + values:Get(M13) * other:Get(M30))
-	temp:Set(M11, values:Get(M10) * other:Get(M01) + values:Get(M11) * other:Get(M11) + values:Get(M12) * other:Get(M21) + values:Get(M13) * other:Get(M31))
-	temp:Set(M12, values:Get(M10) * other:Get(M02) + values:Get(M11) * other:Get(M12) + values:Get(M12) * other:Get(M22) + values:Get(M13) * other:Get(M32))
-	temp:Set(M13, values:Get(M10) * other:Get(M03) + values:Get(M11) * other:Get(M13) + values:Get(M12) * other:Get(M23) + values:Get(M13) * other:Get(M33))
-	temp:Set(M20, values:Get(M20) * other:Get(M00) + values:Get(M21) * other:Get(M10) + values:Get(M22) * other:Get(M20) + values:Get(M23) * other:Get(M30))
-	temp:Set(M21, values:Get(M20) * other:Get(M01) + values:Get(M21) * other:Get(M11) + values:Get(M22) * other:Get(M21) + values:Get(M23) * other:Get(M31))
-	temp:Set(M22, values:Get(M20) * other:Get(M02) + values:Get(M21) * other:Get(M12) + values:Get(M22) * other:Get(M22) + values:Get(M23) * other:Get(M32))
-	temp:Set(M23, values:Get(M20) * other:Get(M03) + values:Get(M21) * other:Get(M13) + values:Get(M22) * other:Get(M23) + values:Get(M23) * other:Get(M33))
-	temp:Set(M30, values:Get(M30) * other:Get(M00) + values:Get(M31) * other:Get(M10) + values:Get(M32) * other:Get(M20) + values:Get(M33) * other:Get(M30))
-	temp:Set(M31, values:Get(M30) * other:Get(M01) + values:Get(M31) * other:Get(M11) + values:Get(M32) * other:Get(M21) + values:Get(M33) * other:Get(M31))
-	temp:Set(M32, values:Get(M30) * other:Get(M02) + values:Get(M31) * other:Get(M12) + values:Get(M32) * other:Get(M22) + values:Get(M33) * other:Get(M32))
-	temp:Set(M33, values:Get(M30) * other:Get(M03) + values:Get(M31) * other:Get(M13) + values:Get(M32) * other:Get(M23) + values:Get(M33) * other:Get(M33))
-
-	integer i = 0
-        repeat 16 times
-            values:Set(i, temp:Get(i))
-            i = i + 1
-        end
-    end
-
-    action MultiplyLeft(Matrix4 matrix) returns Matrix4
-        Matrix4 tempMatrix
-        tempMatrix:Set(matrix)
-        Multiply(tempMatrix:values, me:values)
-        return Set(tempMatrix)
-    end
-
-    action Transpose () returns Matrix4
+    action Transpose returns Matrix4
 
         temporary:Set(M00, values:Get(M00))
         temporary:Set(M01, values:Get(M10))
@@ -310,7 +279,7 @@ class Matrix4
 
     end
 
-    action Identity () returns Matrix4
+    action IdentityMatrix returns Matrix4
 
         values:Set(M00, 1)
         values:Set(M01, 0)
