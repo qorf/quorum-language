@@ -233,8 +233,7 @@ class Quaternion
         return me
     end
 
-    action ToMatrix(Array<number> matrix)
-        Matrix4 matrix4
+    action ToMatrix(Matrix4 matrix)
 
         number xx = x * x
         number xy = x * y
@@ -246,22 +245,22 @@ class Quaternion
         number zz = z * z
         number zw = z * w
 
-        matrix:Set(matrix4:M00, 1 - 2 * (yy + zz))
-        matrix:Set(matrix4:M01, 2 * (xy - zw))
-        matrix:Set(matrix4:M02, 2 * (xz + yw))
-        matrix:Set(matrix4:M03, 0)
-        matrix:Set(matrix4:M10, 2 * (xy + zw))
-        matrix:Set(matrix4:M11, 1 - 2 * (xx + zz))
-        matrix:Set(matrix4:M12, 2 * (yz - xw))
-        matrix:Set(matrix4:M13, 0)
-        matrix:Set(matrix4:M20, 2 * (xz - yw))
-        matrix:Set(matrix4:M21, 2 * (yz + xw))
-        matrix:Set(matrix4:M22, 1 - 2 * (xx + yy))
-        matrix:Set(matrix4:M23, 0)
-        matrix:Set(matrix4:M30, 0)
-        matrix:Set(matrix4:M31, 0)
-        matrix:Set(matrix4:M32, 0)
-        matrix:Set(matrix4:M33, 1)        
+        matrix:row0column0 = 1 - 2 * (yy + zz)
+        matrix:row0column1 = 2 * (xy - zw)
+        matrix:row0column2 = 2 * (xz + yw)
+        matrix:row0column3 = 0
+        matrix:row1column0 = 2 * (xy + zw)
+        matrix:row1column1 = 1 - 2 * (xx + zz)
+        matrix:row1column2 = 2 * (yz - xw)
+        matrix:row1column3 = 0
+        matrix:row2column0 = 2 * (xz - yw)
+        matrix:row2column1 = 2 * (yz + xw)
+        matrix:row2column2 = 1 - 2 * (xx + yy)
+        matrix:row2column3 = 0
+        matrix:row3column0 = 0
+        matrix:row3column1 = 0
+        matrix:row3column2 = 0
+        matrix:row3column3 = 1
     end
 
     action SetToIdentity returns Quaternion
@@ -312,9 +311,9 @@ class Quaternion
 
     action SetFromMatrix(boolean normalizeAxes, Matrix4 matrix) returns Quaternion
         Matrix4 matrix4
-        return SetFromAxes(normalizeAxes, matrix:values:Get(matrix4:M00), matrix:values:Get(matrix4:M01), matrix:values:Get(matrix4:M02),
-                                          matrix:values:Get(matrix4:M10), matrix:values:Get(matrix4:M11), matrix:values:Get(matrix4:M12), 
-                                          matrix:values:Get(matrix4:M20), matrix:values:Get(matrix4:M21), matrix:values:Get(matrix4:M22))
+        return SetFromAxes(normalizeAxes, matrix:row0column0, matrix:row0column1, matrix:row0column2,
+                                          matrix:row1column0, matrix:row1column1, matrix:row1column2, 
+                                          matrix:row2column0, matrix:row2column1, matrix:row2column2)
     end
 
     action SetFromMatrix(Matrix4 matrix) returns Quaternion

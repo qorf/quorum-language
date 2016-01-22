@@ -1258,12 +1258,10 @@ class Vector3
     output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
 
     */
-    action Multiply(Matrix4 matrix) returns Vector3        
-        Array<number> l_mat = matrix:values
-
-        return Set(x * l_mat:Get(matrix:M00) + y * l_mat:Get(matrix:M01) + z * l_mat:Get(matrix:M02) + l_mat:Get(matrix:M03),
-                   x * l_mat:Get(matrix:M10) + y * l_mat:Get(matrix:M11) + z * l_mat:Get(matrix:M12) + l_mat:Get(matrix:M13),
-                   x * l_mat:Get(matrix:M20) + y * l_mat:Get(matrix:M21) + z * l_mat:Get(matrix:M22) + l_mat:Get(matrix:M23))        
+    action Multiply(Matrix4 matrix) returns Vector3
+        return Set(x * matrix:row0column0 + y * matrix:row0column1 + z * matrix:row0column2 + matrix:row0column3,
+                   x * matrix:row1column0 + y * matrix:row1column1 + z * matrix:row1column2 + matrix:row1column3,
+                   x * matrix:row2column0 + y * matrix:row2column1 + z * matrix:row2column2 + matrix:row2column3)      
     end
         
     /*
@@ -1305,11 +1303,9 @@ class Vector3
 
     */
     action MultiplyByTranspose(Matrix4 matrix) returns Vector3
-        Array<number> l_mat = matrix:values
-
-        return Set(x * l_mat:Get(matrix:M00) + y * l_mat:Get(matrix:M10) + z * l_mat:Get(matrix:M20) + l_mat:Get(matrix:M30),
-                   x * l_mat:Get(matrix:M01) + y * l_mat:Get(matrix:M11) + z * l_mat:Get(matrix:M21) + l_mat:Get(matrix:M31),
-                   x * l_mat:Get(matrix:M02) + y * l_mat:Get(matrix:M12) + z * l_mat:Get(matrix:M22) + l_mat:Get(matrix:M32))
+        return Set(x * matrix:row0column0 + y * matrix:row1column0 + z * matrix:row2column0 + matrix:row3column0,
+                   x * matrix:row0column1 + y * matrix:row1column1 + z * matrix:row2column1 + matrix:row3column1,
+                   x * matrix:row0column2 + y * matrix:row1column2 + z * matrix:row2column2 + matrix:row3column2)
     end
  
     /*
@@ -1489,11 +1485,10 @@ class Vector3
 
     */
     action Project(Matrix4 matrix) returns Vector3
-        Array<number> l_mat = matrix:values
-        number l_w = 1.0 / (x * l_mat:Get(matrix:M30) + y * l_mat:Get(matrix:M31) + z * l_mat:Get(matrix:M32) + l_mat:Get(matrix:M33))
-        return me:Set((x * l_mat:Get(matrix:M00) + y * l_mat:Get(matrix:M01) + z * l_mat:Get(matrix:M02) + l_mat:Get(matrix:M03)) * l_w,
-                      (x * l_mat:Get(matrix:M10) + y * l_mat:Get(matrix:M11) + z * l_mat:Get(matrix:M12) + l_mat:Get(matrix:M13)) * l_w,
-                      (x * l_mat:Get(matrix:M20) + y * l_mat:Get(matrix:M21) + z * l_mat:Get(matrix:M22) + l_mat:Get(matrix:M23)) * l_w)
+        number l_w = 1.0 / (x * matrix:row3column0 + y * matrix:row3column1 + z * matrix:row3column2 + matrix:row3column3)
+        return me:Set((x * matrix:row0column0 + y * matrix:row0column1 + z * matrix:row0column2 + matrix:row0column3) * l_w,
+                      (x * matrix:row1column0 + y * matrix:row1column1 + z * matrix:row1column2 + matrix:row1column3) * l_w,
+                      (x * matrix:row2column0 + y * matrix:row2column1 + z * matrix:row2column2 + matrix:row2column3) * l_w)
     end
     
     /*
@@ -1553,10 +1548,9 @@ class Vector3
 
     */
     action Rotate(Matrix4 matrix) returns Vector3
-        Array<number> l_mat = matrix:values
-        return me:Set(x * l_mat:Get(matrix:M00) + y * l_mat:Get(matrix:M01) + z * l_mat:Get(matrix:M02),
-                      x * l_mat:Get(matrix:M10) + y * l_mat:Get(matrix:M11) + z * l_mat:Get(matrix:M12),
-                      x * l_mat:Get(matrix:M20) + y * l_mat:Get(matrix:M21) + z * l_mat:Get(matrix:M22))
+        return me:Set(x * matrix:row0column0 + y * matrix:row0column1 + z * matrix:row0column2,
+                      x * matrix:row1column0 + y * matrix:row1column1 + z * matrix:row1column2,
+                      x * matrix:row2column0 + y * matrix:row2column1 + z * matrix:row2column2)
     end
 
     /*
@@ -1624,10 +1618,9 @@ class Vector3
 
     */
     action Unrotate(Matrix4 matrix) returns Vector3
-        Array<number> l_mat = matrix:values
-        return me:Set(x * l_mat:Get(matrix:M00) + y * l_mat:Get(matrix:M10) + z * l_mat:Get(matrix:M20),
-                      x * l_mat:Get(matrix:M01) + y * l_mat:Get(matrix:M11) + z * l_mat:Get(matrix:M21),
-                      x * l_mat:Get(matrix:M02) + y * l_mat:Get(matrix:M12) + z * l_mat:Get(matrix:M22))
+        return me:Set(x * matrix:row0column0 + y * matrix:row1column0 + z * matrix:row2column0,
+                      x * matrix:row0column1 + y * matrix:row1column1 + z * matrix:row2column1,
+                      x * matrix:row0column2 + y * matrix:row1column2 + z * matrix:row2column2)
     end
 
     /*
@@ -1683,13 +1676,12 @@ class Vector3
 
     */
     action Untransform(Matrix4 matrix) returns Vector3
-        Array<number> l_mat = matrix:values
-        x = x - l_mat:Get(matrix:M03)
-        y = y - l_mat:Get(matrix:M03)
-        z = z - l_mat:Get(matrix:M03)
-        return me:Set(x * l_mat:Get(matrix:M00) + y * l_mat:Get(matrix:M10) + z * l_mat:Get(matrix:M20),
-                      x * l_mat:Get(matrix:M01) + y * l_mat:Get(matrix:M11) + z * l_mat:Get(matrix:M21),
-                      x * l_mat:Get(matrix:M02) + y * l_mat:Get(matrix:M12) + z * l_mat:Get(matrix:M22))
+        x = x - matrix:row0column3
+        y = y - matrix:row0column3
+        z = z - matrix:row0column3
+        return me:Set(x * matrix:row0column0 + y * matrix:row1column0 + z * matrix:row2column0,
+                      x * matrix:row0column1 + y * matrix:row1column1 + z * matrix:row2column1,
+                      x * matrix:row0column2 + y * matrix:row1column2 + z * matrix:row2column2)
     end
 
     /*

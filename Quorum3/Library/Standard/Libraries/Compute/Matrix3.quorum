@@ -1034,15 +1034,15 @@ class Matrix3
 
     */
     action Set(Matrix4 matrix) returns Matrix3
-        row0column0 = matrix:values:Get(matrix:M00)
-        row1column0 = matrix:values:Get(matrix:M10)
-        row2column0 = matrix:values:Get(matrix:M20)
-        row0column1 = matrix:values:Get(matrix:M01)
-        row1column1 = matrix:values:Get(matrix:M11) 
-        row2column1 = matrix:values:Get(matrix:M21)
-        row0column2 = matrix:values:Get(matrix:M02)
-        row1column2 = matrix:values:Get(matrix:M12)
-        row2column2 = matrix:values:Get(matrix:M22)
+        row0column0 = matrix:row0column0
+        row1column0 = matrix:row1column0
+        row2column0 = matrix:row2column0
+        row0column1 = matrix:row0column1
+        row1column1 = matrix:row1column1 
+        row2column1 = matrix:row2column1
+        row0column2 = matrix:row0column2
+        row1column2 = matrix:row1column2
+        row2column2 = matrix:row2column2
         return me
     end
 
@@ -1403,7 +1403,7 @@ class Matrix3
     use Libraries.Compute.Matrix3
 
     Matrix3 matrix
-    matrix:Set(1, 2, 3, 4, 5, 6, 7, 8, 9)
+    matrix:IdentityMatrix()
     
     matrix:Scale(2, 2)
 
@@ -1457,7 +1457,7 @@ class Matrix3
     Matrix3 matrix
     Vector2 scale
 
-    matrix:Set(1, 2, 3, 4, 5, 6, 7, 8, 9)
+    matrix:IdentityMatrix()
     scale:Set(2, 2)
     
     matrix:Scale(scale)

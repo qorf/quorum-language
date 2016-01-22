@@ -102,15 +102,12 @@ class Affine2
     Attribute: Example
     */
     action Set(Matrix4 matrix) returns Affine2
-
-        Array<number> matrixValues = matrix:values
-
-        M00 = matrixValues:Get(matrix:M00)
-        M01 = matrixValues:Get(matrix:M01)
-        M02 = matrixValues:Get(matrix:M03)
-        M10 = matrixValues:Get(matrix:M10)
-        M11 = matrixValues:Get(matrix:M11)
-        M12 = matrixValues:Get(matrix:M13)
+        M00 = matrix:row0column0
+        M01 = matrix:row0column1
+        M02 = matrix:row0column3
+        M10 = matrix:row1column0
+        M11 = matrix:row1column1
+        M12 = matrix:row1column3
 
         return me
     end
