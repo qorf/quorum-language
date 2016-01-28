@@ -763,8 +763,8 @@ class MathTester
         File main
         main:SetPath(path + "Vector3Matrix4Multiply.quorum")
         files:Add(main)
-        results:Add("The new vector is: [44.0, 54.0, 64.0]")
         results:Add("The new vector is: [11.0, 51.0, 91.0]")
+        results:Add("The new vector is: [44.0, 54.0, 64.0]")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -775,8 +775,8 @@ class MathTester
         File main
         main:SetPath(path + "Vector3Matrix3Multiply.quorum")
         files:Add(main)
-        results:Add("The new vector is: [39.0, 49.0, 59.0]")
         results:Add("The new vector is: [13.0, 43.0, 73.0]")
+        results:Add("The new vector is: [39.0, 49.0, 59.0]")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

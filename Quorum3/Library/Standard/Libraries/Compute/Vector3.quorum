@@ -1261,7 +1261,7 @@ class Vector3
     action Multiply(Matrix4 matrix) returns Vector3
         return Set(x * matrix:row0column0 + y * matrix:row0column1 + z * matrix:row0column2 + matrix:row0column3,
                    x * matrix:row1column0 + y * matrix:row1column1 + z * matrix:row1column2 + matrix:row1column3,
-                   x * matrix:row2column0 + y * matrix:row2column1 + z * matrix:row2column2 + matrix:row2column3)      
+                   x * matrix:row2column0 + y * matrix:row2column1 + z * matrix:row2column2 + matrix:row2column3)    
     end
         
     /*
@@ -1349,10 +1349,9 @@ class Vector3
     
     */
     action Multiply(Matrix3 matrix) returns Vector3
-           return Set(x * matrix:row0column0 + y * matrix:row1column0 + z * matrix:row2column0,
-                      x * matrix:row0column1 + y * matrix:row1column1 + z * matrix:row2column1,
-                      x * matrix:row0column2 + y * matrix:row1column2 + z * matrix:row2column2)
-
+        return Set(x * matrix:row0column0 + y * matrix:row0column1 + z * matrix:row0column2,
+                   x * matrix:row1column0 + y * matrix:row1column1 + z * matrix:row1column2,
+                   x * matrix:row2column0 + y * matrix:row2column1 + z * matrix:row2column2)
     end
 
     /*
@@ -1396,10 +1395,9 @@ class Vector3
     
     */
     action MultiplyByTranspose(Matrix3 matrix) returns Vector3
-        return Set(x * matrix:row0column0 + y * matrix:row0column1 + z * matrix:row0column2,
-                   x * matrix:row1column0 + y * matrix:row1column1 + z * matrix:row1column2,
-                   x * matrix:row2column0 + y * matrix:row2column1 + z * matrix:row2column2)
-
+        return Set(x * matrix:row0column0 + y * matrix:row1column0 + z * matrix:row2column0,
+                   x * matrix:row0column1 + y * matrix:row1column1 + z * matrix:row2column1,
+                   x * matrix:row0column2 + y * matrix:row1column2 + z * matrix:row2column2)
     end
 
     /*
