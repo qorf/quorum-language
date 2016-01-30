@@ -101,7 +101,7 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
                     //not a variable, check if I'm clicked on the action name
                     if(!done) {
                         Location_ nameLocation = next.GetNameLocation();
-                        if(caretPosition >= nameLocation.GetIndex() && caretPosition <= nameLocation.GetIndexEnd() + 1) {
+                        if(nameLocation != null && caretPosition >= nameLocation.GetIndex() && caretPosition <= nameLocation.GetIndexEnd() + 1) {
                             OffsetRange callRange = new OffsetRange(nameLocation.GetIndex(), nameLocation.GetIndexEnd() + 1);
                             addRange(callRange, ColoringAttributes.MARK_OCCURRENCES);
                             
