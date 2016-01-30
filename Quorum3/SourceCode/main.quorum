@@ -14,6 +14,7 @@ use Libraries.Compute.Math
 use Libraries.Containers.HashTable
 use Libraries.Language.Errors.OutOfBoundsError
 use Libraries.Language.Compile.Test.CompilerTestSuite
+use Libraries.System.SystemHelper
 //use Libraries.Game.Game
 
 class Main is WebResponder
@@ -141,7 +142,7 @@ class Main is WebResponder
         Array<File> files// = main:GetDirectoryListing()
 
         File actualMain
-        actualMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/Bug297/SourceCode/")
+        actualMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/QUOR270/SourceCode")
         //actualMain:SetPath("Library/Tests/Expressions/Fail/RedLine1.quorum")
         actualMain:SetPath("main.quorum")
         compiler:SetMain(actualMain)
@@ -159,14 +160,21 @@ class Main is WebResponder
 
         CompilerResult result = compiler:ParseRepeat(info)
         //info:source = redFail:Read()
-
+        SystemHelper help
         Array<number> items
-        repeat 200 times
+        repeat 1000 times
+            help:RequestGarbageCollection()
             result = compiler:ParseRepeat(info)
 
             CompilerErrorManager manager = result:compilerErrorManager
             if manager:IsCompilationErrorFree()
-                output result:time
+                text time = "" + result:time
+                text freeMemory = "" + help:GetFreeMemory()
+                text totalMemory = "" + help:GetTotalMemory()
+                text maxMemory = "" + help:GetMaximumMemory()
+                //output "Time: " + result:time + " Free: " + freeMemory + 
+                //    " Total: " + totalMemory + " Max: " + maxMemory
+                output freeMemory
                 items:Add(result:time)
                 if compiler:GetOutputType() = compiler:JAVASCRIPT
                     output compiler:GetCompiledJavaScript()
@@ -310,7 +318,7 @@ class Main is WebResponder
         compiler:SetOutputFolder(root)
         File main
         //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
-        main:SetPath("Library/Tests/Array/Pass/ArrayAddLots.quorum")
+        main:SetPath("Library/Tests/Expressions/Pass/Say.quorum")
         //main:SetPath("main.quorum") //CallMethodCallingBlueprint
 
         File class2
