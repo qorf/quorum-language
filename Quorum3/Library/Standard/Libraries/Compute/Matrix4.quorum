@@ -1354,6 +1354,48 @@ class Matrix4
     end
 
     /*
+    This action sets the matrix to a projection matrix with the near and far
+    planes, the field of view height, and the aspect ratio. 
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter nearPlane The near plane
+    Attribute: Parameter farPlane The far plane
+    Attribute: Parameter fieldOfViewHeight The height of the field of view
+    Attribute: Parameter aspectRatio the aspect ratio
+
+    Attribute: Returns The matrix as a projection matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+
+    Matrix4 matrix
+
+    matrix:SetToProjection(0, 1, 10, 2)
+    
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
 
     */
     action SetToProjection(number nearPlane, number farPlane, number fieldOfViewHeight, number aspectRatio) returns Matrix4
@@ -1385,6 +1427,55 @@ class Matrix4
         return me
     end
 
+    /*
+    Sets the matrix to a projection matrix with a near/far plane, and left, bottom, 
+    right and top specifying the points on the near plane that are mapped to the 
+    lower left and upper right corners of the viewport. This allows a projection
+    matrix to be created with an off-center vanishing point.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter left The left point of the near plane
+    Attribute: Parameter right The right point of the near plane
+    Attribute: Parameter bottom The bottom of the near plane
+    Attribute: Parameter top The top of the near plane
+    Attribute: Parameter near The near plane
+    Attribute: Parameter far The far plane
+
+    Attribute: Returns The matrix as a projection matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+
+    Matrix4 matrix
+
+    matrix:SetToProjection(0, 10, 0, 10, 0, 1)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
     action SetToProjection(number left, number right, number bottom, number top, number near, number far) returns Matrix4
         number x = 2.0 * near / (right - left)
         number y = 2.0 * near / (top - bottom)
@@ -1416,14 +1507,154 @@ class Matrix4
         return me
     end
 
+    /*
+    This action sets the matrix to an orthographic projection matrix with an
+    origin at (x, y) with the given width and height. The near and far plane
+    are set to 0 and 1, respectively.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter x The x-coordinate of the origin
+    Attribute: Parameter y The y-coordinate of the origin
+    Attribute: Parameter width The width
+    Attribute: Parameter height The height
+
+    Attribute: Returns The matrix as a 2D orthographic projection matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+
+    Matrix4 matrix
+
+    matrix:SetToOrthographic2D(0, 0, 100, 100)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
     action SetToOrthographic2D(number x, number y, number width, number height) returns Matrix4
         return SetToOrthographic(x, x + width, y, y + height, 0, 1)
     end
 
+    /*
+    This action sets the matrix to an orthographic projection matrix with an
+    origin at (x, y) with the given width and height and the given near and
+    far planes.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter x The x-coordinate of the origin
+    Attribute: Parameter y The y-coordinate of the origin
+    Attribute: Parameter width The width
+    Attribute: Parameter height The height
+    Attribute: Parameter near The near plane
+    Attribute: Parameter far The far plane
+
+    Attribute: Returns The matrix as a 2D orthographic projection matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+
+    Matrix4 matrix
+
+    matrix:SetToOrthographic2D(0, 0, 100, 100, 0, 1)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
     action SetToOrthographic2D(number x, number y, number width, number height, number near, number far) returns Matrix4
         return SetToOrthographic(x, x + width, y, y + height, near, far)
     end
 
+    /*
+    This action sets the matrix to an orthographic projection matrix.
+
+    Attribute: Author Amanda Austin
+    
+    Attribute: Parameter left The left clipping plane   
+    Attribute: Parameter right The right clipping plane
+    Attribute: Parameter bottom The bottom clipping plane
+    Attribute: Parameter top The top clipping plane
+    Attribute: Parameter near The near plane
+    Attribute: Parameter far The far plane
+
+    Attribute: Returns The matrix as an orthographic projection matrix
+    
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+    
+    Matrix4 matrix
+
+    matrix:SetToOrthographic(0, 1, 0, 1, 0, 1)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
     action SetToOrthographic(number left, number right, number bottom, number top, number near, number far) returns Matrix4    
         IdentityMatrix()
         number x_orth = 2 / (right - left)
@@ -1457,6 +1688,51 @@ class Matrix4
         return me
     end
 
+    /*
+    This action sets the translational component of the matrix to the given
+    translation vector.
+
+    Attribute: Author Amanda Austin
+    
+    Attribute: Parameter vector The translation vector
+
+    Attribute: Returns The matrix with the translation component
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vctor3
+
+    Matrix4 matrix
+    Vector3 vector
+
+    vector:Set(1, 2, 3)
+    matrix:SetTranslation(vector)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
     action SetTranslation(Vector3 vector) returns Matrix4
         row0column3 = vector:GetX()
         row1column3 = vector:GetY()
@@ -1465,6 +1741,50 @@ class Matrix4
         return me
     end
 
+    /*
+    This action sets the translational component of the matrix to the given
+    translation vector.
+
+    Attribute: Author Amanda Austin
+    
+    Attribute: Parameter x The x-component of the translation
+    Attribute: Parameter y The y-component of the translation
+    Attribute: Parameter z The z-component of the translation
+
+    Attribute: Returns The matrix with the translation component
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+
+    Matrix4 matrix
+
+    matrix:SetTranslation(1, 2, 3)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
     action SetTranslation(number x, number y, number z) returns Matrix4
         row0column3 = x
         row1column3 = y
@@ -1473,6 +1793,51 @@ class Matrix4
         return me
     end
 
+    /*
+    This action sets the matrix to the translation matrix with the passed
+    translation
+
+    Attribute: Author Amanda Austin
+    
+    Attribute: Parameter vector The translation vector
+
+    Attribute: Returns The matrix as a translation matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vector3
+
+    Matrix4 matrix
+    Vector3 vector
+    
+    vector:Set(1, 2, 3)
+    matrix:SetToTranslation(vector)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
     action SetToTranslation(Vector3 vector) returns Matrix4
         IdentityMatrix()
         row0column3 = vector:GetX()
@@ -1482,6 +1847,50 @@ class Matrix4
         return me
     end
 
+    /*
+    This action sets the matrix to the translation matrix with the passed
+    translation
+
+    Attribute: Author Amanda Austin
+    
+    Attribute: Parameter x The x-component of the translation
+    Attribute: Parameter y The y-component of the translation
+    Attribute: Parameter z The z-component of the translation
+
+    Attribute: Returns The matrix as a translation matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+
+    Matrix4 matrix
+
+    matrix:SetToTranslation(1, 2, 3)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
     action SetToTranslation(number x, number y, number z) returns Matrix4
         IdentityMatrix()
         row0column3 = x
@@ -1491,6 +1900,55 @@ class Matrix4
         return me
     end
 
+    /*
+    This action sets the matrix to the translation and scaling matrix with the
+    passed translations and scales.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter translation The translation vector
+    Attribute: Parameter scaling The scaling vector
+
+    Attribute: Returns the matrix as a translation and scaling matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vector3
+
+    Matrix4 matrix
+    Vector3 translation
+    Vector3 scaling
+
+    translation:Set(1, 2, 3)
+    scaling:Set(3, 3, 3)
+
+    matrix:SetToTranslationAndScaling(translation, scaling)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
     action SetToTranslationAndScaling(Vector3 translation, Vector3 scaling) returns Matrix4
         IdentityMatrix()
         row0column3 = translation:GetX()
@@ -1503,7 +1961,55 @@ class Matrix4
         return me
     end
 
-    action SetToTranslationAndScaling(number translationX, number translationY, number translationZ, number scalingX, number scalingY, number scalingZ) returns Matrix4
+    /*
+    This action sets the matrix to the translation and scaling matrix with the
+    passed translations and scales.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter translationX The x-component of the translation vector
+    Attribute: Parameter translationY The y-component of the translation vector
+    Attribute: Parameter translationZ The z-component of the translation vector
+    Attribute: Parameter scalingX The x-component of the scaling vector
+    Attribute: Parameter scalingY The y-component of the scaling vector
+    Attribute: Parameter scalingZ The z-component of the scaling vector
+
+    Attribute: Returns the matrix as a translation and scaling matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+
+    Matrix4 matrix
+
+    matrix:SetToTranslationAndScaling(1, 2, 3, 3, 3, 3)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
+    action SetToTranslationAndScaling(number translationX, number translationY, number translationZ, 
+                                      number scalingX, number scalingY, number scalingZ) returns Matrix4
         IdentityMatrix()
         row0column3 = translationX
         row1column3 = translationY
