@@ -164,11 +164,11 @@ class File
 
     action SetWorkingDirectory(text path)
         boolean result = SetWorkingDirectoryNative(path)
-        if not result
-            FileNotFoundError e
-            e:SetErrorMessage("The working directory specified does not exist, or does not correspond to a directory: " + path)
-            alert(e)
-        end
+        //if not result
+        //    FileNotFoundError e
+        //    e:SetErrorMessage("The working directory specified does not exist, or does not correspond to a directory: " + path)
+        //    alert(e)
+        //end
     end
 
     /*
