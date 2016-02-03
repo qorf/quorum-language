@@ -22,6 +22,7 @@ class Main is WebResponder
     public constant text COMPILE_FLAG = "-compile"
     public constant text WEB_FLAG = "-web"
     public constant text JAVASCRIPT_FLAG = "-javascript"
+    public constant text LIBRARY_FLAG = "-library"
     public constant text TEST_FLAG = "-test"
     public constant text HELP_FLAG = "-help"
     HashTable<text, Array<text>> flagValues
@@ -169,12 +170,13 @@ class Main is WebResponder
             CompilerErrorManager manager = result:compilerErrorManager
             if manager:IsCompilationErrorFree()
                 text time = "" + result:time
-                text freeMemory = "" + help:GetFreeMemory()
-                text totalMemory = "" + help:GetTotalMemory()
-                text maxMemory = "" + help:GetMaximumMemory()
-                //output "Time: " + result:time + " Free: " + freeMemory + 
-                //    " Total: " + totalMemory + " Max: " + maxMemory
-                output freeMemory
+//                text freeMemory = "" + help:GetFreeMemory()
+//                text totalMemory = "" + help:GetTotalMemory()
+//                text maxMemory = "" + help:GetMaximumMemory()
+//                output "Time: " + result:time + " Free: " + freeMemory + 
+//                    " Total: " + totalMemory + " Max: " + maxMemory
+
+//                output freeMemory
                 items:Add(result:time)
                 if compiler:GetOutputType() = compiler:JAVASCRIPT
                     output compiler:GetCompiledJavaScript()
@@ -493,8 +495,23 @@ class Main is WebResponder
         root:SetPath("")
         compiler:SetOutputFolder(root)
 
-        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
-        compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        if flagValues:HasKey(LIBRARY_FLAG)
+            Array<text> names = flagValues:GetValue(LIBRARY_FLAG)
+            if names:GetSize() not= 1
+                output "I noticed the library flag was used, but it does not have exactly 1 value."
+                return now
+            else
+                path = names:Get(0)
+                File libraryPath
+                libraryPath:SetWorkingDirectory(path)
+                libraryPath:SetPath("Standard")
+                compiler:SetStandardLibraryFolder(libraryPath)
+            end
+        else 
+            File standardLibraryFolder = compiler:GetStandardLibraryFolder()
+            compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        end
+        
         output compiler:GetVersion()
 
         File main = files:Get(0)
