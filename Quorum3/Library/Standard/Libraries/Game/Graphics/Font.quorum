@@ -583,8 +583,6 @@ class Font
         Array<File> fontFiles = undefined
         File fontDirectory
 
-        output "OS = " + os
-
         if os:Contains("Windows")
             fontDirectory:SetWorkingDirectory("C:\Windows\Fonts")
             fontDirectory:SetPath("")

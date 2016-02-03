@@ -1161,12 +1161,11 @@ class Item
 
         Item parentItem
         Item child
-        Item child
         Item grandchild
         parentItem:Add(child)
         child:Add(grandchild)
         grandchild:SetHeight(100)
-        grandchild:SetPosition(100)
+        grandchild:SetWidth(100)
         Item temp = parentItem:GetItemAt(75, 75)
 
     */

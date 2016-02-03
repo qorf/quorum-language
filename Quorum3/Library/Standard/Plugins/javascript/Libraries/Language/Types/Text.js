@@ -217,9 +217,11 @@ String.prototype.EqualsIgnoringCaseNative$quorum_text$quorum_text = function(lef
 };
 //private system action CompareInt(text left, text right, boolean isIgnoringCase) returns integer
 String.prototype.CompareInt$quorum_text$quorum_text$quorum_boolean = function(left, right, isIgnoringCase) {
-    if (isIgnoringCase == false)
-        return left.localeCompare(right);
-    else
+    if (isIgnoringCase == false) {
+        result = left.localeCompare(right);
+        if (result != 0 && left.toLowerCase() == right.toLowerCase()) result *= -1;
+        return result;
+    } else
         return left.toLowerCase().localeCompare(right.toLowerCase());
 };
 //system action GetSize() returns integer
@@ -317,5 +319,10 @@ String.prototype.GetCharacter$quorum_integer = function(value) {
 };
 //action Split(text delimiter) returns Array<text>
 String.prototype.Split$quorum_text = function(value) {
-    return this.split(value);
+    var result = this.split(value);
+    var resultArray = new quorum_Libraries_Containers_Array_();
+    for (i = 0; i < result.length; i++) {
+        resultArray.Add$quorum_Libraries_Language_Object(new quorum_Libraries_Language_Types_Text_(false, result[i]));
+    }
+    return resultArray;
 };

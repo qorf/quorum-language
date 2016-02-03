@@ -17,6 +17,9 @@ use Libraries.Game.Graphics.AndroidGraphics
 use Libraries.Game.IOSApplication
 use Libraries.Game.IOSConfiguration
 use Libraries.Game.IOSDisplay
+use Libraries.Game.GameInput
+use Libraries.Game.DesktopInput
+use Libraries.Game.IOSInput
 use Libraries.Game.Graphics.IOSGraphics
 use Libraries.Game.Graphics.Painter
 use Libraries.Game.Graphics.Font
@@ -28,9 +31,7 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.System.File
 use Libraries.System.Properties
 use Libraries.Interface.Panel
-use Libraries.Interface.Events.KeyboardProcessor
 use Libraries.Interface.Events.KeyboardListener
-use Libraries.Interface.Events.MouseProcessor
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
@@ -67,8 +68,7 @@ class Game
 
     // Variables used for Panels and the event system.
     private Panel activePanel = undefined
-    private KeyboardProcessor keyboardProcessor
-    private MouseProcessor mouseProcessor
+    private GameInput gameInput = undefined
     private List<Item> collisionList
     private List<CollisionEvent> currentCollisions
 
@@ -83,7 +83,15 @@ class Game
     on create
         Panel panel
         panel:SetName("Default Active Panel")
-        SetActivePanel(panel)
+
+        /* 
+        The variable is set here, however it's not fully initialized until 
+        StartGame where it's set using SetActivePanel(). This is because the
+        GameInput hasn't yet been set for this game (which SetActivePanel()
+        requires), but the activePanel variable must be available for use by 
+        SetScreenSize().
+        */
+        activePanel = panel
     end
 
     /*
@@ -112,6 +120,12 @@ class Game
         if application = undefined
             alert("I could not identify what type of application to use for this operating system!")
         end
+        
+        /*
+        We can use SetActivePanel now that the GameInput has been set up
+        by SelectApplicationType().
+        */
+        SetActivePanel(activePanel)
 
         GameStateManager manager
         gl20 = manager:GetGameGraphics()
@@ -232,10 +246,8 @@ class Game
     end
 
     action ContinueGame
-        // Only test for mouse/keyboard input on DesktopApplication.
-        if applicationType = 2
-            ProcessInputEvents()
-        end
+        gameInput:ProcessInputEvents()
+
         UpdateAll()
         Update(GetSecondsBetweenFrames())
         TestForCollisions()
@@ -533,17 +545,15 @@ class Game
     */
     action SetActivePanel(Panel panel)
         if activePanel not= undefined
-            //activePanel:keyboardProcessor = undefined
-            //activePanel:mouseProcessor = undefined
             activePanel:Disable()
         end
-        //panel:keyboardProcessor = keyboardProcessor
-        //panel:mouseProcessor = mouseProcessor
+
         panel:SetPosition(0,0)
         panel:SetWidth(GetScreenWidth())
         panel:SetHeight(GetScreenHeight())
         activePanel = panel
         activePanel:Enable()
+        gameInput:SetActivePanel(activePanel)
     end
 
     /*
@@ -563,24 +573,7 @@ class Game
     never need to use this action directly.
     */
     private action ProcessInputEvents
-        
-        // If not a DesktopApplication, don't attempt to check mouse/keyboard.
-        if applicationType not= 2
-            return now
-        end
-
-        List<MouseEvent> mouseEvents = mouseProcessor:GetCurrentEvents()
-        MouseEvent mouseEvent = undefined
-        repeat mouseEvents:GetSize() times
-            mouseEvent = mouseEvents:RemoveFromFront()
-            Item temp = activePanel:GetItemAt(mouseEvent:GetX(), mouseEvent:GetY())
-            if temp not= undefined
-                temp:ProcessMouseEvent(mouseEvent)
-            end
-        end
-
-        keyboardProcessor:Update()
-        keyboardProcessor:ProcessEvents()
+        gameInput:ProcessInputEvents()
     end
 
     /*
@@ -691,7 +684,7 @@ class Game
         end
     */
     action AddKeyboardListener(KeyboardListener listener)
-        keyboardProcessor:AddListener(listener)
+        gameInput:AddKeyboardListener(listener)
     end
 
     /*
@@ -810,7 +803,7 @@ class Game
         end
     */
     action RemoveKeyboardListener(KeyboardListener listener)
-        keyboardProcessor:RemoveListener(listener)
+        gameInput:RemoveKeyboardListener(listener)
     end
 
     /*
@@ -1042,6 +1035,10 @@ class Game
         end
     end
 
+    /*
+    This action will set the type of Application that should be running, as well
+    as setting the type of GameInput to use.
+    */
     private action SelectApplicationType returns Application
         /*
         Current codes:
@@ -1050,22 +1047,30 @@ class Game
         3 = IOSApplication
         */
 
+        Application app = undefined
+
         applicationType = SelectApplicationTypeNative()
         if applicationType = 1
-            AndroidApplication app
-            return app
+            AndroidApplication android
+            app = android
+            // AndroidInput androidInput
+            // gameInput = androidInput
         end
         if applicationType = 2
-            DesktopApplication app
-            return app
+            DesktopApplication desktop
+            app = desktop
+            DesktopInput desktopInput
+            gameInput = desktopInput
         end
         if applicationType = 3
-            IOSApplication app
-            return app
+            IOSApplication ios
+            app = ios
+            IOSInput iosInput
+            gameInput = iosInput
         end
         // ... Other options
 
-        return undefined
+        return app
     end
 
     private system action SelectApplicationTypeNative returns integer

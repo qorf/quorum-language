@@ -7,18 +7,18 @@ use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Painter
 
 /*
-    This is an internal class used by the Game class to manage several resources
-    that must be unique. It is responsible for initial set up, execution of the
-    main loop, and exiting a game. Most users will never use this class directly.
+This is an internal class used by the Game class to manage several resources
+that must be unique. It is responsible for initial set up, execution of the
+main loop, and exiting a game. Most users will never use this class directly.
 
-    This particular implementation of Application is meant for use on Desktops.
+This particular implementation of Application is meant for use on Desktops.
 */
 class DesktopApplication is Application
 
     /*
-        The Setup action is used for initial set up of the Game's resources, and
-        will begin the game's main loop. This is automatically used by the Game
-        class via the Game:StartGame() action.
+    The Setup action is used for initial set up of the Game's resources, and
+    will begin the game's main loop. This is automatically used by the Game
+    class via the Game:StartGame() action.
     */
     action Setup(Game game)
         
@@ -216,8 +216,8 @@ class DesktopApplication is Application
     end
 
     /*
-        This action tells the game to close at the end of the next iteration of
-        the MainLoop. It is called automatically by the Game class's Exit action.
+    This action tells the game to close at the end of the next iteration of
+    the MainLoop. It is called automatically by the Game class's Exit action.
     */
     action Exit()
         parent:Application:running = false

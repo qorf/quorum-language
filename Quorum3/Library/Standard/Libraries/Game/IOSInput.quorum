@@ -1,0 +1,42 @@
+package Libraries.Game
+
+use Libraries.Interface.Events.KeyboardListener
+
+/*
+This class automatically handles input and notifies event listeners for Games
+running on iOS platforms (e.g. iPhones, iPads). Most users shouldn't need 
+access to this class. For users who want to test input themselves at specific 
+times, use an InputMonitor instead.
+*/
+class IOSInput is GameInput
+
+    /*
+    This action will identify all input events that have occurred and notify
+    all relevant event listeners. For certain kinds of input, e.g. mouse or
+    touch input, only listeners that were added to the active panel will be
+    notified. This action is called automatically by the Game class, so most
+    users will never need to use this action directly.
+    */
+    action ProcessInputEvents
+
+    end
+
+    /*
+    This action will add a KeyboardListener to the IOSInput. The IOSInput will
+    notify the KeyboardListener if keys are pressed on the keyboard. This action
+    is automatically called by the Game class when needed.
+    */
+    action AddKeyboardListener(KeyboardListener listener)
+
+    end
+
+    /*
+    This action will remove a KeyboardListener from the IOSInput. The IOSInput
+    will no longer notify the given KeyboardListener of KeyboardEvents. This 
+    action is automatically called by the Game class when needed.
+    */
+    action RemoveKeyboardListener(KeyboardListener listener)
+
+    end
+
+end
