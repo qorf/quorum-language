@@ -23,6 +23,7 @@ class Class is Symbol
     HashTable<text, Array<Type>> parentGenerics
     HashTable<text, HashTable<integer, integer>> parentGenericMap = undefined
     HashTable<text, Variable> fields
+    HashTable<text, Class> dependencies
     Action constructor = undefined
     boolean hasMain = false
     HashTable<text, QualifiedName> unresolvedUseStatements
@@ -1359,24 +1360,14 @@ class Class is Symbol
         end
 
         if clazz not= undefined
+            //check to make sure that this class is listed in our dependencies
+            //if it is not, but it is valid, then add it.
+            if not dependencies:HasKey(clazz:GetStaticKey())
+                dependencies:Add(clazz:GetStaticKey(), clazz)
+            end
             return clazz
         end
 
-//        if clazz = undefined
-//            CompilerError error
-//            CompilerErrorType t
-//            t:SetCurrentType(t:MISSING_USE)
-//            error:SetCompilerErrorType(t)
-//            text a = ""
-//            a = a:GetDoubleQuote()
-//            from = GetStaticKey()
-//            error:SetErrorMessage("The class name " + a + key + a + 
-//                " could not be found from the class " + from + ". Did you forget a use statement?") 
-//            error:SetLocation(me)
-//            errors:Add(error)
-//        end
-        //if we still have not found the class, then it cannot be found, 
-        //which is an error
         return undefined
     end
 
@@ -1836,7 +1827,14 @@ class Class is Symbol
         used by the parent.
     */
     action RemoveCallLocationsFromActions(File file)
-        Iterator<Action> it = GetVirtualTable()
+        Iterator<Action> it = GetActions()
+        repeat while it:HasNext()
+            Action value = it:Next()
+            value:RemoveCallLocations(file)
+        end
+
+        //now get all of the parents and do those
+        it = GetParentActions()
         repeat while it:HasNext()
             Action value = it:Next()
             value:RemoveCallLocations(file)
@@ -1844,7 +1842,7 @@ class Class is Symbol
     end
 
     action RemoveCallLocationsFromDependencies(File file)
-        Iterator<Class> value = validUses:GetValueIterator()
+        Iterator<Class> value = dependencies:GetValueIterator()
         repeat while value:HasNext()
             Class c = value:Next()
             c:RemoveCallLocationsFromActions(file)
@@ -1983,6 +1981,10 @@ class Class is Symbol
             Location nameLocation = call:nameLocation
             if nameLocation not= undefined
                 resolution:nameLocation = nameLocation:CreateLocationCopy()
+                if final:GetName() = "Evaluate"
+                    a = 5
+                end
+
                 final:AddCallLocation(resolution:nameLocation)
             end
 
