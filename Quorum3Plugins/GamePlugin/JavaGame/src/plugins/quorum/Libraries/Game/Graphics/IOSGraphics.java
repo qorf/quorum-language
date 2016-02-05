@@ -8,6 +8,8 @@ package plugins.quorum.Libraries.Game.Graphics;
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import org.robovm.apple.foundation.Foundation;
+import org.robovm.apple.foundation.NSString;
 
 public class IOSGraphics implements GraphicsManager
 {
@@ -275,7 +277,7 @@ public class IOSGraphics implements GraphicsManager
 
     public native void glStencilOpSeparate ( int face, int fail, int zfail, int zpass );
 
-    public native void glTexImage2D ( int target, int level, int internalformat, int width, int height, int border, int format, int type, Buffer pixels );
+    public native void glTexImage2D(int target, int level, int internalformat, int width, int height, int border, int format, int type, Buffer pixels);
 
     public void SetTextureParameter(int targetTexture, int parameterType, int parameterValue)
     {
