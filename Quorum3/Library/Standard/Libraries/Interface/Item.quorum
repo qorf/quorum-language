@@ -54,7 +54,6 @@ class Item
     List<MouseListener> mouseListeners
     List<MouseMovementListener> mouseMoveListeners
     List<MouseWheelListener> mouseWheelListeners
-    //List<KeyboardListener> keyboardListeners
     List<TouchListener> touchListeners
     
     private number originX = 0.0
@@ -538,45 +537,6 @@ class Item
         mouseWheelListeners:Remove(listener)
     end
 
-    /* This action adds a KeyboardListener to the Item. Any time this Item
-    receives a KeyboardEvent, all of the KeyboardListeners will be notified.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        use Libraries.Interface.Events.KeyboardListener
-        Item myItem
-        KeyboardListener listener
-        myItem:AddKeyboardListener(listener)
-    */ /*
-    action AddKeyboardListener(KeyboardListener listener)
-        keyboardListeners:Add(listener)
-    end*/
-
-    /* This action removes a KeyboardListener from the Item. The listener will
-    no longer receive any notification if the Item gets a KeyboardEvent.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        use Libraries.Interface.Events.KeyboardListener
-        Item myItem
-        KeyboardListener listener
-        myItem:AddKeyboardListener(listener)
-        myItem:RemoveKeyboardListener(listener)
-    */ /*
-    action RemoveKeyboardListener(KeyboardListener listener)
-        keyboardListeners:Remove(listener)
-    end */
-
-//    action AddTouchListener(TouchListener listener)
-//        touchListeners:Add(listener)
-//    end
-
-//    action RemoveTouchListener(TouchListener listener)
-//        touchListeners:Remove(listener)
-//    end
-
     /*  This action takes a mouse event and handles it. It will first test to 
     see if the mouse event took place within the bounds of this Item. If so, it
     will notify any MouseListeners of the event. If the event was not contained
@@ -662,42 +622,75 @@ class Item
         end
     end
 
-    /*  This action takes a keyboard event and passes it to all KeyboardListeners
-    that were added to this Item. 
+    /* This action adds a TouchListener to the Item. If the Item ever receives a
+    TouchEvent, the listener will be notified.
 
     Attribute: Example
 
         use Libraries.Interface.Item
-        use Libraries.Interface.Events.KeyboardEvent
-        use Libraries.Interface.Events.KeyboardListener
+        use Libraries.Interface.Events.TouchListener
         Item myItem
-        KeyboardListener listener
-        myItem:AddKeyboardListener(listener)
-        KeyboardEvent event
-        event:eventType = event:PRESSED_KEY
-        myItem:ProcessKeyboardEvent(event)
-    
-    */ /*
-    action ProcessKeyboardEvent(KeyboardEvent event)
-        
-        Iterator<KeyboardListener> iterator = keyboardListeners:GetIterator()
+        TouchListener listener
+        myItem:AddTouchListener(listener)
+    */
+    action AddTouchListener(TouchListener listener)
+        touchListeners:Add(listener)
+    end
 
-        if event:eventType = event:PRESSED_KEY
-            repeat while iterator:HasNext()
-                iterator:Next():PressedKey(event)
-            end
+    /* This action removes a TouchListener from the Item. The listener will no
+    longer receive notification if the Item gets a TouchEvent.
 
-        elseif event:eventType = event:RELEASED_KEY
-            repeat while iterator:HasNext()
-                iterator:Next():ReleasedKey(event)
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.TouchListener
+        Item myItem
+        TouchListener listener
+        myItem:AddTouchListener(listener)
+        myItem:RemoveTouchListener(listener)
+    */
+    action RemoveTouchListener(TouchListener listener)
+        touchListeners:Remove(listener)
+    end
+
+    action ProcessTouchEvent(TouchEvent event)
+
+        if not Contains(event:GetX(), event:GetY())
+            if parentItem not= undefined
+                parentItem:ProcessTouchEvent(event)
             end
+            
+            return now
         end
 
-    end */
+        Iterator<TouchListener> iterator = touchListeners:GetIterator()
+        if iterator:HasNext()
+            event:SetEventHandled(true)
 
-//    action ProcessTouchEvent(TouchEvent event)
-//        // NOT YET IMPLEMENTED
-//    end
+            if event:eventType = event:BEGAN
+                repeat while iterator:HasNext()
+                    iterator:Next():TouchBegan(event)
+                end
+
+            elseif event:eventType = event:MOVED or event:eventType = event:STATIONARY
+                repeat while iterator:HasNext()
+                    iterator:Next():TouchContinued(event)
+                end
+
+            elseif event:eventType = event:ENDED or event:eventType = event:CANCELLED
+                repeat while iterator:HasNext()
+                    iterator:Next():TouchFinished(event)
+                end
+
+            end
+
+        end
+
+
+        if not event:WasEventHandled() and parentItem not= undefined
+            parentItem:ProcessTouchEvent(event)
+        end
+    end
 
     /*  This action updates the item. It takes a number parameter that should
     indicate how many seconds have passed since the last time this action was
