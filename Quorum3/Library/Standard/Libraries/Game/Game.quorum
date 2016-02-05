@@ -38,6 +38,7 @@ use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Item
 use Libraries.Interface.Events.CollisionEvent
+use Libraries.Interface.Events.TouchListener
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -72,12 +73,10 @@ class Game
     private List<Item> collisionList
     private List<CollisionEvent> currentCollisions
 
-    /*
-    Current codes:
-    1 = AndroidApplication
-    2 = DesktopApplication
-    3 = IOSApplication
-    */
+    private constant integer ANDROID_APPLICATION = 1
+    private constant integer DESKTOP_APPLICATION = 2
+    private constant integer IOS_APPLICATION = 3
+
     private integer applicationType = -1
 
     on create
@@ -120,12 +119,6 @@ class Game
         if application = undefined
             alert("I could not identify what type of application to use for this operating system!")
         end
-        
-        /*
-        We can use SetActivePanel now that the GameInput has been set up
-        by SelectApplicationType().
-        */
-        SetActivePanel(activePanel)
 
         GameStateManager manager
         gl20 = manager:GetGameGraphics()
@@ -142,6 +135,10 @@ class Game
             gl20 = graphics
             */
 
+            DesktopInput newInput
+            gameInput = newInput
+            manager:SetInput(gameInput)
+
             DesktopDisplay display
             manager:SetGameDisplay(display)
 
@@ -149,6 +146,10 @@ class Game
             display:SetupDisplay()
         elseif application is AndroidApplication
             
+            // AndroidInput newInput
+            // gameInput = newInput
+            // manager:SetInput(gameInput)
+
             AndroidDisplay display
             manager:SetGameDisplay(display)
             display:SetConfiguration(androidConfig)
@@ -157,11 +158,11 @@ class Game
             manager:SetGameGraphics(graphics)
             
         elseif application is IOSApplication
-            /* Notes:
-            Will almost certainly need to set up a new type of GameDisplay for
-            iOS. That can be set in the GameStateManager before it is ever needed
-            in the IOSApplication plugin during DidFinishLaunching.
-            */
+            
+            IOSInput newInput
+            gameInput = newInput
+            manager:SetInput(newInput)
+
             IOSDisplay display
             manager:SetGameDisplay(display)
             display:SetConfiguration(iosConfig)
@@ -169,8 +170,13 @@ class Game
             IOSGraphics iosGraphics
             manager:SetGameGraphics(iosGraphics)
         end
-        application:Setup(me)
 
+        /*
+        We can use SetActivePanel now that the GameInput has been set up.
+        */
+        SetActivePanel(activePanel)
+
+        application:Setup(me)
     end
 
     /*
@@ -282,7 +288,9 @@ class Game
         end
     */
     action GetScreenWidth returns integer
-        return desktopConfig:width
+        GameStateManager manager
+        integer width = manager:GetGameDisplay():GetWidth()
+        return width
     end
 
     /*
@@ -304,7 +312,9 @@ class Game
         end
     */
     action GetScreenHeight returns integer
-        return desktopConfig:height
+        GameStateManager manager
+        integer height = manager:GetGameDisplay():GetHeight()
+        return height
     end
 
     /*
@@ -807,6 +817,63 @@ class Game
     end
 
     /*
+    This action adds a TouchListener to the Game's active Panel. The touch
+    listener will be notified when the user interacts with a touch screen 
+    so long as it is a part of the active Panel.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+
+        class Main is Game
+
+            TouchListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(listener)
+            end
+            
+        end
+    */
+    action AddTouchListener(TouchListener listener)
+        activePanel:AddTouchListener(listener)
+    end
+
+    /*
+    This action removes a TouchListener from the Game's active Panel. The
+    listener will no longer receive TouchEvents from the active Panel.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+
+        class Main is Game
+
+            TouchListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(listener)
+
+                RemoveTouchListener(listener)
+            end
+            
+        end
+    */
+    action RemoveTouchListener(TouchListener listener)
+        activePanel:RemoveTouchListener(listener)
+    end
+
+    /*
     This action sets the starting screen size of the game. The default screen
     size is 800 by 600. This action should be called before calling StartGame().
 
@@ -1040,37 +1107,23 @@ class Game
     as setting the type of GameInput to use.
     */
     private action SelectApplicationType returns Application
-        /*
-        Current codes:
-        1 = AndroidApplication
-        2 = DesktopApplication
-        3 = IOSApplication
-        */
-
-        Application app = undefined
 
         applicationType = SelectApplicationTypeNative()
-        if applicationType = 1
-            AndroidApplication android
-            app = android
-            // AndroidInput androidInput
-            // gameInput = androidInput
+        if applicationType = ANDROID_APPLICATION
+            AndroidApplication app
+            return app
         end
-        if applicationType = 2
-            DesktopApplication desktop
-            app = desktop
-            DesktopInput desktopInput
-            gameInput = desktopInput
+        if applicationType = DESKTOP_APPLICATION
+            DesktopApplication app
+            return app
         end
-        if applicationType = 3
-            IOSApplication ios
-            app = ios
-            IOSInput iosInput
-            gameInput = iosInput
+        if applicationType = IOS_APPLICATION
+            IOSApplication app
+            return app
         end
         // ... Other options
 
-        return app
+        return undefined
     end
 
     private system action SelectApplicationTypeNative returns integer

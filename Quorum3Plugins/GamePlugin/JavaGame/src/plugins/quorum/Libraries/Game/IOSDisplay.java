@@ -76,6 +76,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
             //if (app.viewControllerListener != null) app.viewControllerListener.viewDidAppear(animated);
         }
         
+        /*
         @Override
         public void didRotate(UIInterfaceOrientation orientation)
         {
@@ -87,6 +88,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
             display.MakeCurrent();
             //app.listener.resize(display.width, display.height);
         }
+        */
         
         @Override
         public UIInterfaceOrientationMask getSupportedInterfaceOrientations()
@@ -123,6 +125,18 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
             }
         }
         
+        @Override
+        public void viewDidLayoutSubviews () 
+        {
+            super.viewDidLayoutSubviews();
+            // get the view size and update graphics
+            CGRect bounds = app.GetBounds();
+            display.width = (int)bounds.getWidth();
+            display.height = (int)bounds.getHeight();
+            display.MakeCurrent();
+            //app.listener.resize(graphics.width, graphics.height);
+        }
+        
 //        @Callback
 //        @BindSelector("shouldAutorotateToInterfaceOrientation:")
 //        private static boolean shouldAutorotateToInterfaceOrientation(IOSUIViewController self, Selector sel,
@@ -141,7 +155,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     }
     
     IOSApplication app;
-    //IOSInput input;
+    IOSInput input;
     IOSGraphics graphics;
     int width;
     int height;
@@ -171,12 +185,15 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     
     boolean created = false;
     
-    public void Initialize(CGSize bounds, float scale, IOSApplication app, IOSConfiguration_ config, /* IOSInput input,*/ IOSGraphics graphics)
+    public void Initialize(float scale, IOSApplication app, IOSConfiguration_ config, IOSInput input, IOSGraphics graphics)
     {
         this.config = config;
+        
+        final CGRect bounds = app.GetBounds();
+        
         width = (int)bounds.getWidth();
         height = (int)bounds.getHeight();
-        //app.debug(tag, bounds.getWidth() + "x" + bounds.getHeight() + ", " + scale);
+        
         this.graphics = graphics;
         
         context = new EAGLContext(EAGLRenderingAPI.OpenGLES2);
@@ -186,30 +203,30 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         the proper input handler (when it is implemented) and will call upon
         this class to draw itself.
         */
-        view = new GLKView(new CGRect(new CGPoint(0,0), bounds), context)
+        view = new GLKView(new CGRect(0, 0, bounds.getWidth(), bounds.getHeight()), context)
         {
             @Method(selector = "touchesBegan:withEvent:")
             public void touchesBegan(@Pointer long touches, UIEvent event)
             {
-                //IOSDisplay.this.input.touchDown(touches, event);
+                IOSDisplay.this.input.OnTouch(touches);
             }
             
             @Method(selector = "touchesCancelled:withEvent:")
             public void touchesCancelled(@Pointer long touches, UIEvent event)
             {
-                //IOSDisplay.this.input.touchUp(touches, event);
+                IOSDisplay.this.input.OnTouch(touches);
             }
             
             @Method(selector = "touchesEnded:withEvent:")
             public void touchesEnded(@Pointer long touches, UIEvent event)
             {
-                //IOSDisplay.this.input.touchUp(touches, event);
+                IOSDisplay.this.input.OnTouch(touches);
             }
             
             @Method(selector = "touchesMoved:withEvent:")
             public void touchesMoved(@Pointer long touches, UIEvent event)
             {
-                //IOSDisplay.this.input.touchMoved(touches, event);
+                IOSDisplay.this.input.OnTouch(touches);
             }
             
             @Override
@@ -253,8 +270,6 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
                 view.setDrawableDepthFormat(GLKViewDrawableDepthFormat.None);         
         }
         
-        //public constant integer STENCIL_8 = 8
-        //public constant integer SAMPLE_4X = 4
         // Set the stencil format.
         switch(config.Get_Libraries_Game_IOSConfiguration__stencilFormat_())
         {
@@ -287,7 +302,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         viewController.setPreferredFramesPerSecond(config.Get_Libraries_Game_IOSConfiguration__preferredFramesPerSecond_());
         
         this.app = app;
-        //this.input = input;
+        this.input = input;
         
         int r = 0, g = 0, b = 0, a = 0, depth = 0, stencil = 0, samples = 0;
         if (config.Get_Libraries_Game_IOSConfiguration__colorFormat_() == config.Get_Libraries_Game_IOSConfiguration__RGB565_())
@@ -399,7 +414,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         MakeCurrent();
         /*
         GLKView resets the viewport on each draw call, so we have to set it back.
-        To deal with the issue, IOSGraphicsManager stores the last known data of
+        To deal with the issue, IOSGraphics stores the last known data of
         the viewport so we can reset it.
         */
         graphics.glViewport(IOSGraphics.x, IOSGraphics.y, IOSGraphics.width, IOSGraphics.height);
@@ -410,6 +425,10 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
             // Create the game's Painter.
             Painter painter = new Painter();
             ((quorum.Libraries.Game.IOSApplication)GameState.GetApp()).plugin_.game.Set_Libraries_Game_Game__batch_(painter);
+            
+            // Before calling CreateGame, we need to make sure the default active Panel is the right size.
+            app.game.GetActivePanel().SetSize(GetWidth(), GetHeight());
+            
             app.game.CreateGame();
             //app.game.Resize(width, height);
             created = true;
@@ -431,9 +450,9 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
             frames = 0;
         }
         
-        // NOTE: It may not be correct to process input events here, because
-        // input is processed during ContinueGame() in Game.quorum.
-        //input.processEvents();
+        // NOTE: ProcessEvents sets up the List of events for the input. Actual
+        // input handling is processed during ContinueGame() in Game.quorum.
+        input.ProcessEvents();
         frameID++;
         app.game.ContinueGame();
     }

@@ -51,10 +51,14 @@ class MouseEvent
     /* What caused the event, e.g., CLICKED_MOUSE, MOVED_MOUSE, etc. */
     public integer eventType = 0
 
+    /* The x-coordinate of the mouse event on the screen. */
     integer x = 0
+    /* The y-coordinate of the mouse event on the screen. */
     integer y = 0
 
+    /* How far the mouse has moved on the x-coordinate system since the last event. */
     integer movementX = 0
+    /* How far the mouse has moved on the y-coordinate system since the last event. */
     integer movementY = 0
 
     boolean eventHandled = false

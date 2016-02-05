@@ -1,6 +1,10 @@
 package Libraries.Game
 
+use Libraries.Containers.List
+use Libraries.Interface.Events.TouchEvent
 use Libraries.Interface.Events.KeyboardListener
+use Libraries.Interface.Item
+use Libraries.Interface.Panel
 
 /*
 This class automatically handles input and notifies event listeners for Games
@@ -10,6 +14,12 @@ times, use an InputMonitor instead.
 */
 class IOSInput is GameInput
 
+    List<TouchEvent> touchEvents
+
+    on create
+        InitializePlugin(touchEvents)
+    end
+
     /*
     This action will identify all input events that have occurred and notify
     all relevant event listeners. For certain kinds of input, e.g. mouse or
@@ -18,7 +28,20 @@ class IOSInput is GameInput
     users will never need to use this action directly.
     */
     action ProcessInputEvents
+        if touchEvents:IsEmpty()
+            return now
+        end
 
+        Panel activePanel = parent:GameInput:activePanel
+        TouchEvent event = undefined
+
+        repeat touchEvents:GetSize() times
+            event = touchEvents:RemoveFromFront()
+            Item temp = activePanel:GetItemAt(event:GetX(), event:GetY())
+            if temp not= undefined
+                temp:ProcessTouchEvent(event)
+            end
+        end
     end
 
     /*
@@ -38,5 +61,7 @@ class IOSInput is GameInput
     action RemoveKeyboardListener(KeyboardListener listener)
 
     end
+
+    private system action InitializePlugin(List<TouchEvent> list)
 
 end

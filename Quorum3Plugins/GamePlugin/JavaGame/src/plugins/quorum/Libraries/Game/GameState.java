@@ -13,7 +13,7 @@ import quorum.Libraries.Game.Graphics.DesktopGraphics;
 import quorum.Libraries.Game.Graphics.IOSGraphics;
 import quorum.Libraries.Game.Application_;
 import quorum.Libraries.Game.GameDisplay_;
-import quorum.Libraries.Game.InputMonitor_;
+import quorum.Libraries.Game.GameInput_;
 
 import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 
@@ -35,6 +35,7 @@ public class GameState {
     private static GameDisplay_ display;
     private static GraphicsManager_ gameGraphics;
     //private static GraphicsManager_ GameGraphics20Manager;
+    private static GameInput_ gameInput;
 
     private static String nativePath;
     private static String operatingSystem;
@@ -112,19 +113,15 @@ public class GameState {
       gameGraphics = aGameGraphics;
     }
 
-    /**
-     * @return the GameGraphics20Manager
-     *
-    public static GraphicsManager_ GetGameGraphics20Manager() {
-      return GameGraphics20Manager;
-    }*/
-
-    /**
-     * @param aGameGraphics20Manager the GameGraphics20Manager to set
-     *
-    public static void SetGameGraphics20Manager(GraphicsManager_ aGameGraphics20Manager) {
-      GameGraphics20Manager = aGameGraphics20Manager;
-    }*/
+    public static void SetInput(GameInput_ input)
+    {
+        gameInput = input;
+    }
+    
+    public static GameInput_ GetInput()
+    {
+        return gameInput;
+    }
   
     public static void SetNativePath(String path)
     {
