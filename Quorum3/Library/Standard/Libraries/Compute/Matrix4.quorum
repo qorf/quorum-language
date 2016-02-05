@@ -132,7 +132,7 @@ class Matrix4
         row1column0 = matrix:row1column0
         row1column1 = matrix:row1column1
         row1column2 = matrix:row1column2
-        row1column2 = matrix:row1column3
+        row1column3 = matrix:row1column3
         row2column0 = matrix:row2column0
         row2column1 = matrix:row2column1
         row2column2 = matrix:row2column2
@@ -226,12 +226,13 @@ class Matrix4
 
     /*
     This action sets the values of the matrix using the values of the passed
-    array. The values of the array are used in order to set the matrix values
-    row by row. For example, the first element in the array is used to set the
-    cell of the matrix in the first row and first column, the second element is
-    used to set the cell of the matrix in the first row and second column, the
-    third element for the first row and third column, the fourth element for the
-    second row and first column, etc.
+    array. The array is assumed to be in row order. That is, the values of the 
+    array are used in order to set the matrix values row by row. For example, 
+    the first element in the array is used to set the cell of the matrix in the 
+    first row and first column, the second element is used to set the cell of 
+    the matrix in the first row and second column, the third element for the 
+    first row and third column, the fourth element for the second row and first 
+    column, etc.
 
     Attribute: Author Amanda Austin
 
@@ -504,7 +505,8 @@ class Matrix4
     output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
 
     */
-    action Set(number translationX, number translationY, number translationZ, number quaternionX, number quaternionY, number quaternionZ, number quaternionW) returns Matrix4        constant number xs = quaternionX * 2.0
+    action Set(number translationX, number translationY, number translationZ, number quaternionX, number quaternionY, number quaternionZ, number quaternionW) returns Matrix4        
+        constant number xs = quaternionX * 2.0
         constant number ys = quaternionY * 2.0
         constant number zs = quaternionZ * 2.0
         constant number wx = quaternionW * xs
@@ -679,7 +681,7 @@ class Matrix4
         row3column0 = 0.0
         row3column1 = 0.0
         row3column2 = 0.0
-        row3column3 = 1.00
+        row3column3 = 1.0
 
         return me
     end
@@ -1031,8 +1033,8 @@ class Matrix4
 
         number v30 = matrixA:row3column0 * matrixB:row0column0 + matrixA:row3column1 * matrixB:row1column0 + matrixA:row3column2 * matrixB:row2column0 + matrixA:row3column3 * matrixB:row3column0
         number v31 = matrixA:row3column0 * matrixB:row0column1 + matrixA:row3column1 * matrixB:row1column1 + matrixA:row3column2 * matrixB:row2column1 + matrixA:row3column3 * matrixB:row3column1
-        number v32 = matrixA:row3column0 * matrixB:row0column2 + matrixA:row3column1 * matrixB:row1column2 + matrixA:row3column2 * matrixB:row2column3 + matrixA:row3column3 * matrixB:row3column2
-        number v33 = matrixA:row3column0 * matrixB:row0column3 + matrixA:row3column2 * matrixB:row1column3 + matrixA:row3column2 * matrixB:row2column3 + matrixA:row3column3 * matrixB:row3column3
+        number v32 = matrixA:row3column0 * matrixB:row0column2 + matrixA:row3column1 * matrixB:row1column2 + matrixA:row3column2 * matrixB:row2column2 + matrixA:row3column3 * matrixB:row3column2
+        number v33 = matrixA:row3column0 * matrixB:row0column3 + matrixA:row3column1 * matrixB:row1column3 + matrixA:row3column2 * matrixB:row2column3 + matrixA:row3column3 * matrixB:row3column3
 
         row0column0 = v00
         row0column1 = v01
@@ -1063,7 +1065,7 @@ class Matrix4
 
     Attribute: Example
 
-    use Libraries.compute.Matrix4
+    use Libraries.Compute.Matrix4
 
     Matrix4 matrix
 
@@ -1096,18 +1098,31 @@ class Matrix4
    
     */
     action Transpose returns Matrix4
-        row0column1 = row1column0
-        row0column2 = row2column0
-        row0column3 = row3column0
-        row1column0 = row0column1
-        row1column2 = row2column1
-        row1column3 = row3column1
-        row2column0 = row0column2
-        row2column1 = row1column2
-        row2column3 = row3column2
-        row3column0 = row0column3
-        row3column1 = row1column3
-        row3column2 = row2column3
+        number tempRow0column1 = row1column0
+        number tempRow0column2 = row2column0
+        number tempRow0column3 = row3column0
+        number tempRow1column0 = row0column1
+        number tempRow1column2 = row2column1
+        number tempRow1column3 = row3column1
+        number tempRow2column0 = row0column2
+        number tempRow2column1 = row1column2
+        number tempRow2column3 = row3column2
+        number tempRow3column0 = row0column3
+        number tempRow3column1 = row1column3
+        number tempRow3column2 = row2column3
+
+        row0column1 = tempRow0column1
+        row0column2 = tempRow0column2
+        row0column3 = tempRow0column3
+        row1column0 = tempRow1column0
+        row1column2 = tempRow1column2
+        row1column3 = tempRow1column3
+        row2column0 = tempRow2column0
+        row2column1 = tempRow2column1
+        row2column3 = tempRow2column3
+        row3column0 = tempRow3column0
+        row3column1 = tempRow3column1
+        row3column2 = tempRow3column2
         
         return me
     end
@@ -1339,9 +1354,9 @@ class Matrix4
 
     matrix:Set(2, 5, 0, 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
 
-    number determinant = matrix:Determinant3x3()
+    number determinant3x3 = matrix:Determinant3x3()
 
-    output "The determinant of the 3x3 upper left matrix is " + determinant
+    output "The determinant of the 3x3 upper left matrix is " + determinant3x3
     
     */
     action Determinant3x3 returns number
@@ -3630,6 +3645,55 @@ class Matrix4
         return Inverse():Transpose()
     end
 
+    /*
+    This action rotates the matrix around the given axis by the given angle in
+    degrees.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter axis The axis to rotate around
+    Attribute: Parameter degrees The angle to rotate in degrees
+
+    Attribute: Returns The matrix rotated
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vector3
+
+    Matrix4 matrix
+    Vector3 axis
+
+    axis:Set(0, 0, 1)
+
+    matrix:Set(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+
+    matrix:Rotate(axis, 90)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
     action Rotate(Vector3 axis, number degrees) returns Matrix4        
         if degrees = 0
             return me
@@ -3639,6 +3703,58 @@ class Matrix4
         return Rotate(quaternion)
     end
 
+    /*
+    This action rotates the matrix around the given axis by the given angle in
+    radians.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter axis The axis to rotate around
+    Attribute: Parameter radians The angle to rotate in radians
+
+    Attribute: Returns The matrix rotated
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vector3
+    use Libraries.Compute.Math
+
+    Math math
+
+    Matrix4 matrix
+    Vector3 axis
+
+    axis:Set(0, 0, 1)
+
+    matrix:Set(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+
+    matrix:RotateRadians(axis, math:pi / 2)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
     action RotateRadians(Vector3 axis, number radians) returns Matrix4
         if radians = 0
             return me
@@ -3648,6 +3764,53 @@ class Matrix4
         return Rotate(quaternion)
     end
 
+    /*
+    This action rotates the matrix around the given axis by the given angle in
+    degrees.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter axisX The x-component of the axis
+    Attribute: Parameter axisY The y-component of the axis
+    Attribute: Parameter axisZ The z-component of the axis
+    Attribute: Parameter degrees The angle to rotate in degrees
+
+    Attribute: Returns The matrix rotated
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+
+    Matrix4 matrix
+
+    matrix:Set(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+
+    matrix:Rotate(0, 0, 1, 90)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
     action Rotate(number axisX, number axisY, number axisZ, number degrees) returns Matrix4
         if degrees = 0
             return me
@@ -3657,6 +3820,56 @@ class Matrix4
         return Rotate(quaternion)
     end
 
+    /*
+    This action rotates the matrix around the given axis by the given angle in
+    radians.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter axisX The x-component of the axis
+    Attribute: Parameter axisY The y-component of the axis
+    Attribute: Parameter axisZ The z-component of the axis
+    Attribute: Parameter degrees The angle to rotate in radians
+
+    Attribute: Returns The matrix rotated
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Math
+
+    Math math
+
+    Matrix4 matrix
+
+    matrix:Set(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+
+    matrix:RotateRadians(0, 0, 1, math:pi / 2)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
     action RotateRadians(number axisX, number axisY, number axisZ, number radians) returns Matrix4
         if radians = 0
             return me
@@ -3666,39 +3879,161 @@ class Matrix4
         return Rotate(quaternion)        
     end
 
+    /*
+    This action rotates the matrix by the given quaternion specifying the
+    rotation.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter rotation The rotation quaternion
+
+    Attribute: Returns The matrix rotated
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Quaternion
+    
+    Matrix4 matrix
+    Quaternion quaternion
+
+    quaternion:Set(1, 2, 3, 4)
+    matrix:Set(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+
+    matrix:Rotate(quaternion)
+
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
     action Rotate(Quaternion rotation) returns Matrix4
-//        Matrix4 temporary
-//        rotation:ToMatrix(temporary)
-//        Multiply(values, temporary)
+        Matrix4 temporary =  rotation:ToMatrix()
+        Multiply(me, temporary)
         return me
     end
 
-    action Rotate(Vector3 v1, Vector3 v2) returns Matrix4
-        return Rotate(quaternion:SetFromCross(v1, v2))
+    /*
+    This action rotates the matrix by the rotation between the two passed
+    vectors.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter base The base vector
+    Attribute: Parameter target The target vector
+
+    Attribute: Returns The matrix rotated
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vector3
+
+    Matrix4 matrix
+    Vector3 base
+    Vector3 target
+
+    base:Set(1, 0, 0)
+    target:Set(0, 1, 0)
+
+    matrix:Set(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+
+    matrix:Rotate(base, target)
+
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
+    action Rotate(Vector3 base, Vector3 target) returns Matrix4
+        return Rotate(quaternion:SetFromCross(base, target))
     end
 
-    action Project(Array<number> matrix, Array<number> vector)
-        Project(matrix, vector, 0)
-    end
-    
-    action Project(Array<number> matrix, Array<number> vectors, integer offset, integer numVecs, integer stride)
-        integer vectorPointer = offset
-        integer i = 0
-        repeat numVecs times
-            Project(matrix, vectors, vectorPointer)
-            i = i + 1
-            vectorPointer = vectorPointer + stride
-        end
-    end
+    /*
+    This action performs a projection with the given matrix and vector. The
+    result is stored in the vector.
 
-    action Project(Array<number> matrix, Array<number> vectors, integer vectorPointer)
-//        number inv_w = 1.0 / (vectors:Get(vectorPointer) * matrix:Get(M30) + vectors:Get(vectorPointer + 1) * matrix:Get(M31) + vectors:Get(vectorPointer + 2) * matrix:Get(M32) + matrix:Get(M33))
-//        number x = (vectors:Get(vectorPointer + 0) * matrix:Get(M00) + vectors:Get(vectorPointer + 1) * matrix:Get(M01) + vectors:Get(vectorPointer + 2) * matrix:Get(M02) + matrix:Get(M03)) * inv_w
-//        number y = (vectors:Get(vectorPointer + 0) * matrix:Get(M10) + vectors:Get(vectorPointer + 1) * matrix:Get(M11) + vectors:Get(vectorPointer + 2) * matrix:Get(M12) + matrix:Get(M13)) * inv_w
-//        number z = (vectors:Get(vectorPointer + 0) * matrix:Get(M20) + vectors:Get(vectorPointer + 1) * matrix:Get(M21) + vectors:Get(vectorPointer + 2) * matrix:Get(M22) + matrix:Get(M23)) * inv_w
-//        vectors:Set(vectorPointer + 0, x)
-//        vectors:Set(vectorPointer + 1, y)
-//        vectors:Set(vectorPointer + 2, z)
+    Attribute: Parameter matrix The matrix
+    Attribute: Parameter vector The vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vector3
+
+    Vector3 vector
+    Matrix4 matrix
+
+    vector:Set(3.0, 4.0, 2.0)
+
+    matrix:row0column0 = 2 * 3 / (100 - 0)
+    matrix:row0column1 = 0
+    matrix:row0column2 = (100 + 0) / (100 - 0)
+    matrix:row0column3 = 0
+    matrix:row1column0 = 0
+    matrix:row1column1 = 2 * 3 / (100 - 0)
+    matrix:row1column2 = (100 + 0) / (100 - 0)
+    matrix:row1column3 = 0
+    matrix:row2column0 = 0
+    matrix:row2column1 = 0
+    matrix:row2column2 = -1 * (10 + 3) / (10 - 3)
+    matrix:row2column3 = -2 * 10 * 3 / (10 - 3)
+    matrix:row3column0 = 0
+    matrix:row3column1 = 0
+    matrix:row3column2 = -1
+    matrix:row3column3 = 0
+
+    matrix:Project(matrix, vector)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
+    */
+    action Project(Matrix4 matrix, Vector3 vector)
+        number inv_w = 1.0 / (vector:GetX() * matrix:row3column0 + vector:GetY() * matrix:row3column1 + vector:GetZ() * matrix:row3column2 + matrix:row3column3)
+        number x = (vector:GetX() * matrix:row0column0 + vector:GetY() * matrix:row0column1 + vector:GetZ() * matrix:row0column2 + matrix:row0column3) * inv_w
+        number y = (vector:GetX() * matrix:row1column0 + vector:GetY() * matrix:row1column1 + vector:GetZ() * matrix:row1column2 + matrix:row1column3) * inv_w
+        number z = (vector:GetX() * matrix:row2column0 + vector:GetY() * matrix:row2column1 + vector:GetZ() * matrix:row2column2 + matrix:row2column3) * inv_w
+        vector:Set(x, y, z)
     end
       
 end

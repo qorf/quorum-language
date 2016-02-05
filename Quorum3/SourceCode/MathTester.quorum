@@ -90,6 +90,13 @@ class MathTester
         Matrix3Rotate()
         Matrix3Scale()
         Matrix3Transpose()
+        Matrix4SetWithQuaternion()
+        Matrix4AddTranslate()
+        Matrix4Multiply()
+        Matrix4Transpose()
+        Matrix4Inverse()
+        Matrix4SetToProjection()
+        Matrix4SetToOrthographic()
 
 //FAIL TESTS
         path = failPath
@@ -1071,6 +1078,163 @@ class MathTester
         results:Add("|0.0, 3.0, 6.0|")
         results:Add("|1.0, 4.0, 7.0|")
         results:Add("|2.0, 5.0, 8.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix4SetWithQuaternion
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix4SetWithQuaternion.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|-25.0, -20.0, 22.0, 0.0|")
+        results:Add("|28.0, -19.0, 4.0, 0.0|")
+        results:Add("|-10.0, 20.0, -9.0, 0.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|-25.0, -20.0, 22.0, 0.0|")
+        results:Add("|28.0, -19.0, 4.0, 0.0|")
+        results:Add("|-10.0, 20.0, -9.0, 0.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|-1.0, 0.0, 0.0, 1.0|")
+        results:Add("|0.0, -1.0, 0.0, 2.0|")
+        results:Add("|0.0, 0.0, 1.0, 3.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|-1.0, 0.0, 0.0, 1.0|")
+        results:Add("|0.0, -1.0, 0.0, 2.0|")
+        results:Add("|0.0, 0.0, 1.0, 3.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|-2.0, 0.0, 0.0, 1.0|")
+        results:Add("|0.0, -2.0, 0.0, 2.0|")
+        results:Add("|0.0, 0.0, 2.0, 3.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|-2.0, 0.0, 0.0, 1.0|")
+        results:Add("|0.0, -2.0, 0.0, 2.0|")
+        results:Add("|0.0, 0.0, 2.0, 3.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix4AddTranslate
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix4AddTranslate.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|1.0, 0.0, 0.0, 1.0|")
+        results:Add("|0.0, 1.0, 0.0, 2.0|")
+        results:Add("|0.0, 0.0, 1.0, 4.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|1.0, 0.0, 0.0, 1.0|")
+        results:Add("|0.0, 1.0, 0.0, 2.0|")
+        results:Add("|0.0, 0.0, 1.0, 4.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix4Multiply
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix4Multiply.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|34.0, 28.0, 22.0, 16.0|")
+        results:Add("|178.0, 156.0, 134.0, 112.0|")
+        results:Add("|322.0, 284.0, 246.0, 208.0|")
+        results:Add("|466.0, 412.0, 358.0, 304.0|")
+        results:Add("The new matrix is:")
+        results:Add("|34.0, 28.0, 22.0, 16.0|")
+        results:Add("|178.0, 156.0, 134.0, 112.0|")
+        results:Add("|322.0, 284.0, 246.0, 208.0|")
+        results:Add("|466.0, 412.0, 358.0, 304.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix4Transpose
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix4Transpose.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|0.0, 4.0, 8.0, 12.0|")
+        results:Add("|1.0, 5.0, 9.0, 13.0|")
+        results:Add("|2.0, 6.0, 10.0, 14.0|")
+        results:Add("|3.0, 7.0, 11.0, 15.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix4Inverse
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix4Inverse.quorum")
+        files:Add(main)
+        results:Add("The determinant is 1.0")
+        results:Add("The determinant of the 3x3 upper left matrix is 1.0")
+        results:Add("The new matrix is:")
+        results:Add("|3.0, -5.0, 0.0, 0.0|")
+        results:Add("|-1.0, 2.0, 0.0, 0.0|")
+        results:Add("|0.0, 0.0, 1.0, 0.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix4SetToProjection
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix4SetToProjection.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|5.7150261513806715, 0.0, 0.0, 0.0|")
+        results:Add("|0.0, 11.430052302761343, 0.0, 0.0|")
+        results:Add("|0.0, 0.0, -1.0, -0.0|")
+        results:Add("|0.0, 0.0, -1.0, 0.0|")
+        results:Add("The new matrix is:")
+        results:Add("|0.0, 0.0, 1.0, 0.0|")
+        results:Add("|0.0, 0.0, 1.0, 0.0|")
+        results:Add("|0.0, 0.0, -1.0, -0.0|")
+        results:Add("|0.0, 0.0, -1.0, 0.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix4SetToOrthographic
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix4SetToOrthographic.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|0.02, 0.0, 0.0, -1.0|")
+        results:Add("|0.0, 0.02, 0.0, -1.0|")
+        results:Add("|0.0, 0.0, -2.0, -1.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|0.02, 0.0, 0.0, -1.0|")
+        results:Add("|0.0, 0.02, 0.0, -1.0|")
+        results:Add("|0.0, 0.0, -2.0, -1.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|2.0, 0.0, 0.0, -1.0|")
+        results:Add("|0.0, 2.0, 0.0, -1.0|")
+        results:Add("|0.0, 0.0, -2.0, -1.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
