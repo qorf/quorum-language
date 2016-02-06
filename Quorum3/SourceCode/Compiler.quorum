@@ -212,6 +212,9 @@ class Compiler
         Class inFile = sandboxSymbolTable:GetClassInFile(locPath)
         if inFile not= undefined
             sandboxSymbolTable:RemoveClass(inFile:GetStaticKey())
+            //remove all of the location tables from this class
+            inFile:RemoveCallLocationsFromActions(loc)
+            inFile:RemoveCallLocationsFromDependencies(loc)
         else //the file isn't in there. Check if the symbol table has other classes
             isSandBoxEmpty = sandboxSymbolTable:IsEmpty()
         end

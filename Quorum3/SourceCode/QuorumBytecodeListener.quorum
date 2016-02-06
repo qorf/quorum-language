@@ -166,10 +166,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         currentClassOpcode:SetPackage(packageValue)
         currentClassOpcode:SetClassWriter(classWriter)
         currentClassOpcode:SetInterfaceWriter(interfaceWriter)
-
-        //remove all of the location tables from this class
-        currentClass:RemoveCallLocationsFromActions(GetFile())
-        currentClass:RemoveCallLocationsFromDependencies(GetFile())
     end
 
     action EnterNoActionsNoClass(NoActionsNoClassContext context) 
