@@ -618,6 +618,7 @@ public class IOSInput
                 TouchEvent event = touchEventPool.obtain();
                 event.x = locX;
                 event.y = locY;
+                event.eventHandled = false;
 
                 /*
                     The following values are used from TouchEvent.quorum:
