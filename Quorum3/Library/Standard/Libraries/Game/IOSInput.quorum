@@ -28,6 +28,7 @@ class IOSInput is GameInput
     users will never need to use this action directly.
     */
     action ProcessInputEvents
+        // Note: touchEvents is automatically filled with events in plugins.
         if touchEvents:IsEmpty()
             return now
         end
