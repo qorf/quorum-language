@@ -616,7 +616,10 @@ class Font
         repeat while glyphs:HasNext()
             temp = glyphs:Next()
             tempDrawable = temp:drawable
-            tempDrawable:Dispose()
+
+            if tempDrawable not= undefined
+                tempDrawable:Dispose()
+            end
         end
         glyphTable:Empty()
     end
