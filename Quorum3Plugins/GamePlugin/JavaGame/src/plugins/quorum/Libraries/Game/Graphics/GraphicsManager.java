@@ -52,6 +52,8 @@ public interface GraphicsManager {
 
     //Actually glViewport
     public void SetDrawingRegion(int x, int y, int width, int height);
+    
+    public void glActiveTexture(int texture);
 
     public int glGenTexture();
 
@@ -194,6 +196,14 @@ public interface GraphicsManager {
     //This method was pulled directly out of libgdx because it just works as a drop-in.
     public void glTexImage2D (int target, int level, int internalformat, int width, int height, int border, int format, int type,
                   Buffer pixels);
+    
+    public void glGetIntegerv(int pname, IntBuffer params);
+    
+    public void glDepthFunc(int func);
+    
+    public void glDepthRangef(float zNear, float zFar);
+    
+    public void glCullFace(int mode);
         
     // Because this is a utility class to make use of GL20 easier, it makes
     // sense to contain all of the GL20 constants here.  

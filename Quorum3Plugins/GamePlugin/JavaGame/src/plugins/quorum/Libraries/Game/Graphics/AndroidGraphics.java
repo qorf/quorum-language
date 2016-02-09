@@ -63,6 +63,11 @@ public class AndroidGraphics implements GraphicsManager
     public void SetDrawingRegion(int x, int y, int width, int height){
         GLES20.glViewport(x, y, width, height);
     }
+    
+    public void glActiveTexture(int texture)
+    {
+        GLES20.glActiveTexture(texture);
+    }
 
     public int glGenTexture()
     {
@@ -500,7 +505,8 @@ public class AndroidGraphics implements GraphicsManager
 
     //This method was pulled directly out of libgdx because it just works as a drop-in.
     public void glTexImage2D (int target, int level, int internalformat, int width, int height, int border, int format, int type,
-                  Buffer pixels) {
+                  Buffer pixels) 
+    {
         GLES20.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
         
         /*
@@ -519,7 +525,27 @@ public class AndroidGraphics implements GraphicsManager
       else
           throw new GameRuntimeError("An error occurred while defining 2D image.");
         */
-          }
+    }
+    
+    public void glGetIntegerv(int pname, IntBuffer params)
+    {
+        GLES20.glGetIntegerv(pname, params);
+    }
+    
+    public void glDepthFunc(int func)
+    {
+        GLES20.glDepthFunc(func);
+    }
+    
+    public void glDepthRangef (float zNear, float zFar) 
+    {
+        GLES20.glDepthRangef(zNear, zFar);
+    }
+    
+    public void glCullFace (int mode) 
+    {
+        GLES20.glCullFace(mode);
+    }
   
     /*
     private IntBuffer toIntBuffer (int v[], int offset, int count) 

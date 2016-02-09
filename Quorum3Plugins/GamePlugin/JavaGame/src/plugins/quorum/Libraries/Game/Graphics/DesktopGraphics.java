@@ -41,16 +41,18 @@ public class DesktopGraphics implements GraphicsManager {
     private IntBuffer intBuffer = null;
 
     //Sets the OpenGL Clear Screen color when wiping the screen
-    public void ClearScreenColor(float red, float green, float blue, float alpha){
-      GL11.glClearColor(red, green, blue, alpha);
+    public void ClearScreenColor(float red, float green, float blue, float alpha)
+    {
+        GL11.glClearColor(red, green, blue, alpha);
     }
 
-    public void glBindTexture (int target, int texture) {
-                  GL11.glBindTexture(target, texture);
+    public void glBindTexture (int target, int texture) 
+    {
+        GL11.glBindTexture(target, texture);
     }
 
     public void PixelStorageMode(int type, int parameter) {
-      GL11.glPixelStorei(type, parameter);
+        GL11.glPixelStorei(type, parameter);
     }
     
     public String glGetString (int name) 
@@ -68,12 +70,17 @@ public class DesktopGraphics implements GraphicsManager {
 
     //Actually performs the screen clearing
     public void ClearScreen(int mask){
-      GL11.glClear(mask);
+        GL11.glClear(mask);
     }
 
     //Actually glViewport
     public void SetDrawingRegion(int x, int y, int width, int height){
-      GL11.glViewport(x, y, width, height);
+        GL11.glViewport(x, y, width, height);
+    }
+    
+    public void glActiveTexture(int texture)
+    {
+        GL13.glActiveTexture(texture);
     }
 
     public int glGenTexture()
@@ -82,17 +89,17 @@ public class DesktopGraphics implements GraphicsManager {
     }
 
     public void glGenTextures (int n, IntBuffer textures) {
-      GL11.glGenTextures(textures);
+        GL11.glGenTextures(textures);
     }
 
     public int glGenBuffer () 
     {
-      return GL15.glGenBuffers();
+        return GL15.glGenBuffers();
     }
 
     public void glBindBuffer (int target, int buffer) 
     {
-      GL15.glBindBuffer(target, buffer);
+        GL15.glBindBuffer(target, buffer);
     }
     
     public void glBufferData (int target, int size, Buffer data, int usage) 
@@ -506,23 +513,44 @@ public class DesktopGraphics implements GraphicsManager {
 
     //This method was pulled directly out of libgdx because it just works as a drop-in.
     public void glTexImage2D (int target, int level, int internalformat, int width, int height, int border, int format, int type,
-                  Buffer pixels) {
-      if (pixels == null)
-        GL11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (ByteBuffer)null);
-      else if (pixels instanceof ByteBuffer)
-       GL11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (ByteBuffer)pixels);
-      else if (pixels instanceof ShortBuffer)
-       GL11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (ShortBuffer)pixels);
-      else if (pixels instanceof IntBuffer)
-       GL11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (IntBuffer)pixels);
-      else if (pixels instanceof FloatBuffer)
-       GL11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (FloatBuffer)pixels);
-      else if (pixels instanceof DoubleBuffer)
-       GL11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (DoubleBuffer)pixels);
-      else
-          throw new GameRuntimeError("An error occurred while defining 2D image.");
+                  Buffer pixels) 
+    {
+        if (pixels == null)
+            GL11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (ByteBuffer)null);
+        else if (pixels instanceof ByteBuffer)
+            GL11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (ByteBuffer)pixels);
+        else if (pixels instanceof ShortBuffer)
+            GL11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (ShortBuffer)pixels);
+        else if (pixels instanceof IntBuffer)
+            GL11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (IntBuffer)pixels);
+        else if (pixels instanceof FloatBuffer)
+            GL11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (FloatBuffer)pixels);
+        else if (pixels instanceof DoubleBuffer)
+            GL11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (DoubleBuffer)pixels);
+        else
+            throw new GameRuntimeError("An error occurred while defining 2D image.");
 
-          }
+    }
+    
+    public void glGetIntegerv(int pname, IntBuffer params)
+    {
+        GL11.glGetInteger(pname, params);
+    }
+    
+    public void glDepthFunc (int func) 
+    {
+        GL11.glDepthFunc(func);
+    }
+    
+    public void glDepthRangef (float zNear, float zFar) 
+    {
+        GL11.glDepthRange(zNear, zFar);
+    }
+    
+    public void glCullFace (int mode) 
+    {
+        GL11.glCullFace(mode);
+    }
   
     private IntBuffer toIntBuffer (int v[], int offset, int count) 
     {
