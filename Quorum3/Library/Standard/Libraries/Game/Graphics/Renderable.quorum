@@ -89,10 +89,8 @@ class Renderable
             end
         end
 
-        Vector3 tempV1
-        Vector3 tempV2
-        worldTransform:GetTranslation(tempV1)
-        other:worldTransform:GetTranslation(tempV2)
+        Vector3 tempV1 = worldTransform:GetTranslation()
+        Vector3 tempV2 = other:worldTransform:GetTranslation()
 
         integer distance = cast(integer, (1000.0 * cam:position:DistanceSquared(tempV1))) - cast(integer, (1000.0 * cam:position:DistanceSquared(tempV2)))
         if distance = 0

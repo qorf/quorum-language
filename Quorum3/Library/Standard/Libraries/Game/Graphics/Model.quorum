@@ -309,7 +309,7 @@ class Model
         elseif transform not= undefined
             out:worldTransform:Set(transform)
         else
-            out:worldTransform:Identity()
+            out:worldTransform:IdentityMatrix()
         end
 
         //out:userData = userData
