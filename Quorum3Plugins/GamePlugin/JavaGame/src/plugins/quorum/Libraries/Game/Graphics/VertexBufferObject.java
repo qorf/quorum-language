@@ -9,7 +9,9 @@ import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.GameState;
 import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
+import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 
+import quorum.Libraries.Game.Graphics.VertexAttribute_;
 import quorum.Libraries.Game.Graphics.VertexAttributes;
 
 import java.nio.Buffer;
@@ -93,6 +95,60 @@ public class VertexBufferObject
     public int GetMaxSize()
     {
         return byteBuffer.capacity() / attributes.vertexSize;
+    }
+    
+    public void Bind(ShaderProgram shader, int[] locations) 
+    {
+        final GraphicsManager gl = GameState.nativeGraphics;
+
+        gl.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, bufferHandle);
+        
+        if (isDirty) 
+        {
+            byteBuffer.limit(buffer.limit() * 4);
+            gl.glBufferData(GraphicsManager.GL_ARRAY_BUFFER, byteBuffer.limit(), byteBuffer, usage);
+            isDirty = false;
+        }
+
+        final int numAttributes = attributes.GetSize();
+		
+        if (locations == null) 
+        {
+            for (int i = 0; i < numAttributes; i++) 
+            {
+                final VertexAttribute_ attribute = attributes.GetAttribute(i);
+                final int location = shader.getAttributeLocation(attribute.Get_Libraries_Game_Graphics_VertexAttribute__alias_());
+		
+                if (location < 0)
+                    continue;
+		
+                shader.enableVertexAttribute(location);
+
+                shader.setVertexAttribute(location, attribute.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_(),
+                    attribute.Get_Libraries_Game_Graphics_VertexAttribute__type_(), attribute.Get_Libraries_Game_Graphics_VertexAttribute__normalized_(),
+                    attributes.vertexSize, attribute.Get_Libraries_Game_Graphics_VertexAttribute__offset_());
+            }
+
+        }
+        else
+        {
+            for (int i = 0; i < numAttributes; i++) 
+            {
+                final VertexAttribute_ attribute = attributes.GetAttribute(i);
+                final int location = locations[i];
+                
+                if (location < 0) 
+                    continue;
+		
+                shader.enableVertexAttribute(location);
+
+                shader.setVertexAttribute(location, attribute.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_(),
+                    attribute.Get_Libraries_Game_Graphics_VertexAttribute__type_(), attribute.Get_Libraries_Game_Graphics_VertexAttribute__normalized_(),
+                    attributes.vertexSize, attribute.Get_Libraries_Game_Graphics_VertexAttribute__offset_());
+            }
+        }
+		
+        isBound = true;
     }
     
     public void PrepareBridgeArray(int length)

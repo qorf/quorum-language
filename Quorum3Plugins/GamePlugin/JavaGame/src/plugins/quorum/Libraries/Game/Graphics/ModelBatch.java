@@ -77,7 +77,7 @@ public class ModelBatch
     public void Flush()
     {
         renderables.Sort();
-        // Shader currentShader = null;
+        Shader currentShader = null;
         for (int i = 0; i < renderables.GetSize(); i++)
         {
             Renderable_ renderable = (Renderable_)renderables.Get(i);
