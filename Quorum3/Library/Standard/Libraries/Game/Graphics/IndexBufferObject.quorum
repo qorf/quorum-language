@@ -4,20 +4,11 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.IndexData
 
 class IndexBufferObject is IndexData
-    
-    // Plugin side:
-    // ShortBuffer buffer
-    // ByteBuffer byteBuffer
-    // int bufferHandle
 
     boolean isDirect = true
-
     boolean isDirty = true
-
     boolean isBound = false
-
     integer usage = 0
-    
     private boolean empty = true
 
     system action Dispose
@@ -32,11 +23,12 @@ class IndexBufferObject is IndexData
 
     system action GetMaxSize returns integer
 
-    system action SetIndices(Array<integer> indices, integer offset, integer count)
-    
-    // blueprint action SetIndices(ShortBuffer) (?)
+    action SetIndices(Array<integer> indices, integer offset, integer count)
+        SendToBridgeArray(indices)
+        SetIndicesNative(offset, count)
+    end
 
-    // blueprint action GetBuffer returns ShortBuffer (?)
+    system action SetIndicesNative(integer offset, integer count)
 
     system action Bind
 
@@ -49,15 +41,21 @@ class IndexBufferObject is IndexData
 
     action Put(Array<integer> values)
         PrepareBridgeArray(values:GetSize())
-        integer index = 0
-        repeat values:GetSize() times
-            SendToBridgeArray(index, values:Get(index))
-            index = index + 1
-        end
+        SendToBridgeArray(values)
         PutBridgeArray()
     end
 
     private system action PrepareBridgeArray(integer length)
+
+    /* Sends an entire Quorum array to be stored in the bridge array within the plugins. */
+    private action SendToBridgeArray(Array<integer> array)
+        PrepareBridgeArray(array:GetSize())
+        integer index = 0
+        repeat array:GetSize() times
+            SendToBridgeArray(index, array:Get(index))
+            index = index + 1
+        end
+    end
 
     private system action SendToBridgeArray(integer index, integer value)
 

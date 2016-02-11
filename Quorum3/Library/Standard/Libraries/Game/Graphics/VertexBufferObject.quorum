@@ -23,30 +23,24 @@ class VertexBufferObject is VertexData
 
     system action GetAttributes returns VertexAttributes
 
-    system action SetVertices(Array<number> vertices, integer offset, integer count)
+    action SetVertices(Array<number> vertices, integer offset, integer count)
+        SendToBridgeArray(vertices)
+        SetVerticesNative(offset, count)
+    end
 
-    system action UpdateVertices(integer targetOffset, Array<number> vertices, integer sourceOffset, integer count)
+    system action SetVerticesNative(integer offset, integer count)
 
-    // action GetBuffer returns FloatBuffer
+    action UpdateVertices(integer targetOffset, Array<number> vertices, integer sourceOffset, integer count)
+        SendToBridgeArray(vertices)
+        UpdateVerticesNative(targetOffset, sourceOffset, count)
+    end
 
-    // system action Bind(ShaderProgram shader)
-
-    // system action Bind(ShaderProgram shader, Array<integer> locations
-
-    // system action Unbind(ShaderProgram shader)
-
-    // system action Unbind(ShaderProgram shader, Array<integer> locations)
+    system action UpdateVerticesNative(integer targetOffset, integer sourceOffset, integer count)
 
     system action Invalidate
 
     action FillVertexBuffer(Array<number> vertices)
-        isDirty = true
-        PrepareBridgeArray(vertices:GetSize())
-        integer index = 0
-        repeat vertices:GetSize() times
-            SendToBridgeArray(index, vertices:Get(index))
-            index = index + 1
-        end
+        SendToBridgeArray(vertices)
         PopulateVertexBuffer()
     end
 
@@ -54,10 +48,20 @@ class VertexBufferObject is VertexData
     doubles with the given length. */
     private system action PrepareBridgeArray(integer length)
 
+    /* Sends an entire Quorum array to be stored in the bridge array within the plugins. */
+    private action SendToBridgeArray(Array<number> array)
+        PrepareBridgeArray(array:GetSize())
+        integer index = 0
+        repeat array:GetSize() times
+            SendToBridgeArray(index, array:Get(index))
+            index = index + 1
+        end
+    end
+
     /* Sends a value to be stored in the bridge array at the given index. */
     private system action SendToBridgeArray(integer index, number value)
 
     /* Uses the filled values of the bridge array to populate the byte buffer. */
     private system action PopulateVertexBuffer
-    
+
 end
