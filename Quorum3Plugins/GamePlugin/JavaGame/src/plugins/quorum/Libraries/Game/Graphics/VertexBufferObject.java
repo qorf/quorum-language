@@ -11,6 +11,7 @@ import plugins.quorum.Libraries.Game.GameState;
 import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 
+import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.VertexAttribute_;
 import quorum.Libraries.Game.Graphics.VertexAttributes;
 
@@ -22,7 +23,7 @@ import java.nio.FloatBuffer;
  *
  * @author alleew
  */
-public class VertexBufferObject 
+public class VertexBufferObject extends VertexData
 {
     private VertexAttributes attributes;
     private FloatBuffer buffer;
@@ -82,21 +83,51 @@ public class VertexBufferObject
         return buffer;
     }
     
+    @Override
     public VertexAttributes GetAttributes()
     {
         return attributes;
     }
     
+    @Override
     public int GetSize()
     {
         return buffer.limit() * 4 / attributes.vertexSize;
     }
     
+    @Override
     public int GetMaxSize()
     {
         return byteBuffer.capacity() / attributes.vertexSize;
     }
     
+    public void SetVerticesNative(int offset, int count)
+    {
+        isDirty = true;
+        BufferUtils.copy(bridgeArray, byteBuffer, count, offset);
+        buffer.position(0);
+        buffer.limit(count);
+        BufferChanged();
+    }
+    
+    public void UpdateVerticesNative(int targetOffset, int sourceOffset, int count)
+    {
+        isDirty = true;
+        final int pos = byteBuffer.position();
+        byteBuffer.position(targetOffset * 4);
+        BufferUtils.copy(bridgeArray, sourceOffset, count, byteBuffer);
+        byteBuffer.position(pos);
+        buffer.position(0);
+        BufferChanged();
+    }
+    
+    @Override
+    public void Bind(ShaderProgram shader)
+    {
+        Bind(shader, null);
+    }
+    
+    @Override
     public void Bind(ShaderProgram shader, int[] locations) 
     {
         final GraphicsManager gl = GameState.nativeGraphics;
@@ -151,6 +182,56 @@ public class VertexBufferObject
         isBound = true;
     }
     
+    @Override
+    public void Unbind(final ShaderProgram shader) 
+    {
+        Unbind(shader, null);
+    }
+
+    @Override
+    public void Unbind(final ShaderProgram shader, final int[] locations) 
+    {
+        final GraphicsManager gl = GameState.nativeGraphics;
+        final int numAttributes = attributes.GetSize();
+        if (locations == null) 
+        {
+            for (int i = 0; i < numAttributes; i++) 
+            {
+                shader.disableVertexAttribute(attributes.GetAttribute(i).Get_Libraries_Game_Graphics_VertexAttribute__alias_());
+            }
+        }
+        else 
+        {
+            for (int i = 0; i < numAttributes; i++) 
+            {
+                final int location = locations[i];
+                if (location >= 0)
+                    shader.disableVertexAttribute(location);
+            }
+        }
+        
+        gl.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, 0);
+        isBound = false;
+    }
+    
+    @Override
+    public void Invalidate()
+    {
+        bufferHandle = GameState.nativeGraphics.glGenBuffer();
+        isDirty = true;
+    }
+    
+    @Override
+    public void Dispose()
+    {
+        GraphicsManager gl = GameState.nativeGraphics;
+        gl.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, 0);
+        gl.glDeleteBuffer(bufferHandle);
+        bufferHandle = 0;
+        if (ownsBuffer)
+            BufferUtils.disposeUnsafeByteBuffer(byteBuffer);
+    }
+
     public void PrepareBridgeArray(int length)
     {
         bridgeArray = new float[length];
@@ -163,6 +244,17 @@ public class VertexBufferObject
     
     public void PopulateVertexBuffer()
     {
+        isDirty = true;
         BufferUtils.copy(bridgeArray, buffer, bridgeArray.length, 0);
     }
+    
+    private void BufferChanged() 
+    {
+        if (isBound) 
+        {
+            GameState.nativeGraphics.glBufferData(GraphicsManager.GL_ARRAY_BUFFER, byteBuffer.limit(), byteBuffer, usage);
+            isDirty = false;
+        }
+    }
+
 }

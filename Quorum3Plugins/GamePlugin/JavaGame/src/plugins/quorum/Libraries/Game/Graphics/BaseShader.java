@@ -28,6 +28,7 @@ import plugins.quorum.Libraries.Game.libGDX.Array;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.libGDX.IntArray;
 import plugins.quorum.Libraries.Game.libGDX.IntIntMap;
+import quorum.Libraries.Game.Graphics.VertexData_;
 
 public abstract class BaseShader implements Shader 
 {
@@ -289,6 +290,10 @@ public abstract class BaseShader implements Shader
             {
                 if (currentMesh != null)
                 {
+                    VertexData data = ((quorum.Libraries.Game.Graphics.VertexData)currentMesh.vertices).plugin_;
+                    data.Bind(program, tempArray.items);
+                    if (currentMesh.indices.GetSize() > 0)
+                        ;
                     //((quorum.Libraries.Game.Graphics.VertexBufferObject)currentMesh.vertices).plugin_.Bind(program, tempArray.items);
                     //currentMesh.Unbind(program, tempArray.items);
                 }
