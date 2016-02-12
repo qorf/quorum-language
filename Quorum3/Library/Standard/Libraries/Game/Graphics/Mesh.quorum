@@ -38,6 +38,10 @@ class Mesh is Disposable
     boolean autoBind = true
     boolean isVertexArray = false
 
+    on create
+        SetQuorumReference(me)
+    end
+
     action Load(VertexData vertices, IndexData indices, boolean isVertexArray)
         me:vertices = vertices
         me:indices = indices
@@ -104,7 +108,8 @@ class Mesh is Disposable
     end
 
     action Dispose
-    //...
+        vertices:Dispose()
+        indices:Dispose()
     end
 
     action GetVertexData returns VertexData
@@ -118,6 +123,12 @@ class Mesh is Disposable
     action GetVertexAttributes returns VertexAttributes
         return vertices:GetAttributes()
     end
+
+    /*
+    This action is used during creation to pass a reference of this object down
+    to the corresponding plugin class.
+    */
+    private system action SetQuorumReference(Mesh mesh)
 
 end
 /*
