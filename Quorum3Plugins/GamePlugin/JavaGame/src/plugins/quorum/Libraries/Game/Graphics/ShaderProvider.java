@@ -32,7 +32,7 @@ public abstract class ShaderProvider
     {
         for (Shader shader: shaders)
         {
-            shader.dispose();
+            shader.Dispose();
         }
         shaders.clear();
     }

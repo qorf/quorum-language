@@ -5,6 +5,7 @@
  */
 package plugins.quorum.Libraries.Game.Graphics;
 
+import java.nio.FloatBuffer;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 
@@ -74,6 +75,12 @@ public class VertexData
 
     /** Disposes this VertexData and all its associated OpenGL resources. */
     public void Dispose()
+    {
+        throw new GameRuntimeError("This action hasn't been implemented for this class!");
+    }
+    
+    /** Returns the underlying FloatBuffer used by this VertexData. */
+    public FloatBuffer GetBuffer()
     {
         throw new GameRuntimeError("This action hasn't been implemented for this class!");
     }

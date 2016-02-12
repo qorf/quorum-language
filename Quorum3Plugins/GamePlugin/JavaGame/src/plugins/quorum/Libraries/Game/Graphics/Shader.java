@@ -10,11 +10,9 @@ import quorum.Libraries.Game.Graphics.Renderable_;
 //import com.badlogic.gdx.graphics.g3d.utils.BaseShaderProvider;
 //import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 //import com.badlogic.gdx.graphics.g3d.utils.ShaderProvider;
-import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
-import plugins.quorum.Libraries.Game.libGDX.Disposable;
 
-public interface Shader extends Disposable {
-	
+public interface Shader
+{
 	void Initialize();
 
 	int CompareTo (Shader other); // TODO: probably better to add some weight value to sort on
@@ -26,4 +24,6 @@ public interface Shader extends Disposable {
 	void Render(final Renderable_ renderable);
 
 	void End();
+        
+        void Dispose();
 }

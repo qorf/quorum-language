@@ -5,6 +5,7 @@
  */
 package plugins.quorum.Libraries.Game.Graphics;
 
+import java.nio.ShortBuffer;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 
 /**
@@ -51,6 +52,12 @@ public class IndexData
 
     /** Disposes this IndexData and all its associated OpenGL resources. */
     public void Dispose()
+    {
+        throw new GameRuntimeError("This action hasn't been implemented for this class!");
+    }
+    
+    /** Returns the underlying ShortBuffer used by this IndexData. */
+    public ShortBuffer GetBuffer()
     {
         throw new GameRuntimeError("This action hasn't been implemented for this class!");
     }

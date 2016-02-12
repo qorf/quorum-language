@@ -286,158 +286,182 @@ public abstract class BaseShader implements Shader
             if (setters.get(u = localUniforms.get(i)) != null)
                 setters.get(u).Set(this, u, renderable, combinedAttributes);
             
-            if (currentMesh != ((MeshPart)renderable.meshPart).mesh) 
+            if (currentMesh != ((Mesh)((MeshPart)renderable.meshPart).mesh))
             {
                 if (currentMesh != null)
-                {
-                    VertexData data = ((quorum.Libraries.Game.Graphics.VertexData)currentMesh.vertices).plugin_;
-                    data.Bind(program, tempArray.items);
-                    if (currentMesh.indices.GetSize() > 0)
-                        ;
-                    //((quorum.Libraries.Game.Graphics.VertexBufferObject)currentMesh.vertices).plugin_.Bind(program, tempArray.items);
-                    //currentMesh.Unbind(program, tempArray.items);
-                }
+                    currentMesh.plugin_.Unbind(program, tempArray.items);
                 
-                //currentMesh = ((MeshPart)renderable.meshPart).mesh;
-                //currentMesh.bind(program, getAttributeLocations((VertexAttributes)((MeshPart)renderable.meshPart).mesh.GetVertexAttributes()));
+                currentMesh = ((Mesh)((MeshPart)renderable.meshPart).mesh);
+                
+                int[] temp = GetAttributeLocations((VertexAttributes)renderable.meshPart.Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_().GetVertexAttributes());
+                currentMesh.plugin_.Bind(program, temp);
             }
 
-            //renderable.meshPart.render(program, false);
-            
+            MeshPart meshPart = ((MeshPart)renderable.meshPart);
+            ((Mesh)meshPart.mesh).plugin_.Render(program, meshPart.primitiveType, meshPart.indexOffset, meshPart.verticesCount, false);            
     }
 
-	@Override
-	public void End () {
-                /* FIX ME:
-		if (currentMesh != null) {
-			currentMesh.unbind(program, tempArray.items);
-			currentMesh = null;
-		}
-                */
-		program.end();
-	}
+    @Override
+    public void End () 
+    {
+        if (currentMesh != null) 
+        {
+            currentMesh.plugin_.Unbind(program, tempArray.items);
+            currentMesh = null;
+        }
+        program.end();
+    }
 
-	@Override
-	public void dispose () {
-		program = null;
-		uniforms.clear();
-		validators.clear();
-		setters.clear();
-		localUniforms.clear();
-		globalUniforms.clear();
-		locations = null;
-	}
+    @Override
+    public void Dispose () 
+    {
+        program = null;
+        uniforms.clear();
+        validators.clear();
+        setters.clear();
+        localUniforms.clear();
+        globalUniforms.clear();
+        locations = null;
+    }
 
-	/** Whether this Shader instance implements the specified uniform, only valid after a call to init(). */
-	public final boolean has (final int inputID) {
-		return inputID >= 0 && inputID < locations.length && locations[inputID] >= 0;
-	}
+    /** Whether this Shader instance implements the specified uniform, only valid after a call to init(). */
+    public final boolean Has (final int inputID) 
+    {
+        return inputID >= 0 && inputID < locations.length && locations[inputID] >= 0;
+    }
 
-	public final int loc (final int inputID) {
-		return (inputID >= 0 && inputID < locations.length) ? locations[inputID] : -1;
-	}
+    public final int Location (final int inputID) 
+    {
+        return (inputID >= 0 && inputID < locations.length) ? locations[inputID] : -1;
+    }
 
-        /* FIX ME:
-	public final boolean set (final int uniform, final Matrix4 value) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformMatrix(locations[uniform], value);
-		return true;
-	}
-        */
+    /* FIX ME:
+    public final boolean Set (final int uniform, final Matrix4 value) 
+    {
+        if (locations[uniform] < 0)
+            return false;
 
-        /* FIX ME:
-	public final boolean set (final int uniform, final Matrix3 value) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformMatrix(locations[uniform], value);
-		return true;
-	}
-        */
+        program.setUniformMatrix(locations[uniform], value);
+        return true;
+    }
+    */
 
-        /* FIX ME:
-	public final boolean set (final int uniform, final Vector3 value) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformf(locations[uniform], value);
-		return true;
-	}
-        */
+    /* FIX ME:
+    public final boolean set (final int uniform, final Matrix3 value) {
+            if (locations[uniform] < 0) return false;
+            program.setUniformMatrix(locations[uniform], value);
+            return true;
+    }
+    */
 
-        /* FIX ME:
-	public final boolean set (final int uniform, final Vector2 value) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformf(locations[uniform], value);
-		return true;
-	}
-        */
+    /* FIX ME:
+    public final boolean set (final int uniform, final Vector3 value) {
+            if (locations[uniform] < 0) return false;
+            program.setUniformf(locations[uniform], value);
+            return true;
+    }
+    */
 
-        /* FIX ME:
-	public final boolean set (final int uniform, final Color value) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformf(locations[uniform], value);
-		return true;
-	}
-        */
+    /* FIX ME:
+    public final boolean set (final int uniform, final Vector2 value) {
+            if (locations[uniform] < 0) return false;
+            program.setUniformf(locations[uniform], value);
+            return true;
+    }
+    */
 
-	public final boolean set (final int uniform, final float value) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformf(locations[uniform], value);
-		return true;
-	}
+    /* FIX ME:
+    public final boolean set (final int uniform, final Color value) {
+            if (locations[uniform] < 0) return false;
+            program.setUniformf(locations[uniform], value);
+            return true;
+    }
+    */
 
-	public final boolean set (final int uniform, final float v1, final float v2) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformf(locations[uniform], v1, v2);
-		return true;
-	}
+    public final boolean Set(final int uniform, final float value) 
+    {
+        if (locations[uniform] < 0)
+            return false;
 
-	public final boolean set (final int uniform, final float v1, final float v2, final float v3) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformf(locations[uniform], v1, v2, v3);
-		return true;
-	}
+        program.setUniformf(locations[uniform], value);
+        return true;
+    }
 
-	public final boolean set (final int uniform, final float v1, final float v2, final float v3, final float v4) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformf(locations[uniform], v1, v2, v3, v4);
-		return true;
-	}
+    public final boolean Set(final int uniform, final float v1, final float v2) 
+    {
+        if (locations[uniform] < 0)
+            return false;
 
-	public final boolean set (final int uniform, final int value) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformi(locations[uniform], value);
-		return true;
-	}
+        program.setUniformf(locations[uniform], v1, v2);
+        return true;
+    }
 
-	public final boolean set (final int uniform, final int v1, final int v2) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformi(locations[uniform], v1, v2);
-		return true;
-	}
+    public final boolean Set(final int uniform, final float v1, final float v2, final float v3) 
+    {
+        if (locations[uniform] < 0)
+            return false;
 
-	public final boolean set (final int uniform, final int v1, final int v2, final int v3) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformi(locations[uniform], v1, v2, v3);
-		return true;
-	}
+        program.setUniformf(locations[uniform], v1, v2, v3);
+        return true;
+    }
 
-	public final boolean set (final int uniform, final int v1, final int v2, final int v3, final int v4) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformi(locations[uniform], v1, v2, v3, v4);
-		return true;
-	}
+    public final boolean Set(final int uniform, final float v1, final float v2, final float v3, final float v4) 
+    {
+        if (locations[uniform] < 0) 
+            return false;
+        program.setUniformf(locations[uniform], v1, v2, v3, v4);
+        return true;
+    }
 
-        /* FIX ME:
-	public final boolean set (final int uniform, final TextureDescriptor textureDesc) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformi(locations[uniform], context.textureBinder.bind(textureDesc));
-		return true;
-	}
-        */
+    public final boolean Set(final int uniform, final int value) 
+    {
+        if (locations[uniform] < 0)
+            return false;
+        
+        program.setUniformi(locations[uniform], value);
+        return true;
+    }
 
-        /* FIX ME:
-	public final boolean set (final int uniform, final GLTexture texture) {
-		if (locations[uniform] < 0) return false;
-		program.setUniformi(locations[uniform], context.textureBinder.bind(texture));
-		return true;
-	}
-        */
+    public final boolean Set(final int uniform, final int v1, final int v2) 
+    {
+        if (locations[uniform] < 0)
+            return false;
+            
+        program.setUniformi(locations[uniform], v1, v2);
+        return true;
+    }
+
+    public final boolean Set(final int uniform, final int v1, final int v2, final int v3) 
+    {
+        if (locations[uniform] < 0)
+            return false;
+            
+        program.setUniformi(locations[uniform], v1, v2, v3);
+        return true;
+    }
+
+    public final boolean Set(final int uniform, final int v1, final int v2, final int v3, final int v4) 
+    {
+        if (locations[uniform] < 0)
+            return false;
+            
+        program.setUniformi(locations[uniform], v1, v2, v3, v4);
+        return true;
+    }
+
+    /* FIX ME:
+    public final boolean set (final int uniform, final TextureDescriptor textureDesc) {
+            if (locations[uniform] < 0) return false;
+            program.setUniformi(locations[uniform], context.textureBinder.bind(textureDesc));
+            return true;
+    }
+    */
+
+    /* FIX ME:
+    public final boolean set (final int uniform, final GLTexture texture) {
+            if (locations[uniform] < 0) return false;
+            program.setUniformi(locations[uniform], context.textureBinder.bind(texture));
+            return true;
+    }
+    */
 }
