@@ -39,10 +39,15 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 */
 
+import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
+import quorum.Libraries.Compute.Matrix3_;
+import quorum.Libraries.Compute.Matrix4;
+import quorum.Libraries.Compute.Matrix4_;
 import quorum.Libraries.Game.Graphics.Attributes;
 import quorum.Libraries.Game.Graphics.BlendingAttribute;
 import quorum.Libraries.Game.Graphics.ColorAttribute;
 import quorum.Libraries.Game.Graphics.NumberAttribute;
+import quorum.Libraries.Game.Graphics.Renderable_;
 import quorum.Libraries.Game.Graphics.TextureAttribute;
 
 public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShader 
@@ -151,126 +156,112 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 
 	public static class Setters 
         {
-            /*
             public final static Setter projTrans = new GlobalSetter() 
             {
-                    @Override
-                    public void Set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) 
-                    {
-                        shader.Set(inputID, shader.camera.projection);
-                    }
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    shader.Set(inputID, shader.camera.projection);
+                }
             };
-            */
 
-            /*
             public final static Setter viewTrans = new GlobalSetter() 
             {
                 @Override
-                public void Set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) 
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
                     shader.Set(inputID, shader.camera.view);
                 }
             };
-            */
             
-            /*
             public final static Setter projViewTrans = new GlobalSetter() 
             {
                 @Override
-                public void Set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) {
                     shader.Set(inputID, shader.camera.combined);
                 }
             };
-            */
             
-            /*
             public final static Setter cameraPosition = new GlobalSetter() 
             {
                 @Override
-                public void Set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) 
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
                     shader.Set(inputID, (float)shader.camera.position.GetX(), (float)shader.camera.position.GetY(), (float)shader.camera.position.GetZ(),
                         1.1881f / (float)(shader.camera.far * shader.camera.far));
                 }
             };
-            */
             
-            /*
             public final static Setter cameraDirection = new GlobalSetter() 
             {
                 @Override
-                public void Set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) 
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
                     shader.Set(inputID, shader.camera.direction);
                 }
             };
-            */
                 
-            /*
             public final static Setter cameraUp = new GlobalSetter() 
             {
                 @Override
-                public void Set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) 
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
                     shader.Set(inputID, shader.camera.up);
                 }
             };
-            */
                 
-            /*
             public final static Setter worldTrans = new LocalSetter() 
             {
                 @Override
-                public void Set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) 
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                    shader.Set(inputID, renderable.worldTransform);
+                    shader.Set(inputID, renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
                 }
             };
-            */
             
-            /*
             public final static Setter viewWorldTrans = new LocalSetter() 
             {
-                final Matrix4 temp = new Matrix4();
+                final Matrix4_ temp = new Matrix4();
 
                 @Override
-                public void Set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) 
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                    shader.Set(inputID, temp.set(shader.camera.view).mul(renderable.worldTransform));
+                    temp.Set(shader.camera.view);
+                    temp.Multiply(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
+                    shader.Set(inputID, temp);
                 }
             };
-            */
             
-            /*
             public final static Setter projViewWorldTrans = new LocalSetter() 
             {
-                final Matrix4 temp = new Matrix4();
+                final Matrix4_ temp = new Matrix4();
 
                 @Override
-                public void Set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) 
+                public void Set (BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                    shader.set(inputID, temp.set(shader.camera.combined).mul(renderable.worldTransform));
+                    temp.Set(shader.camera.combined);
+                    temp.Multiply(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
+                    shader.Set(inputID, temp);
                 }
             };
-            */
             
-            /*
             public final static Setter normalMatrix = new LocalSetter() 
             {
-                private final Matrix3 tmpM = new Matrix3();
+                private final Matrix3_ temp = new quorum.Libraries.Compute.Matrix3();
 
                 @Override
-                public void Set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) 
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                    shader.Set(inputID, tmpM.set(renderable.worldTransform).inv().transpose());
+                    temp.Set(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
+                    temp.Inverse();
+                    temp.Transpose();
+                    shader.Set(inputID, temp);
                 }
             };
-            */
 
-            /*
             public static class Bones extends LocalSetter 
             {
-                private final static Matrix4 idtMatrix = new Matrix4();
+                private final static Matrix4_ idtMatrix = new Matrix4();
                 public final float bones[];
 
                 public Bones (final int numBones) 
@@ -279,18 +270,21 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
                 }
 
                 @Override
-                public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) 
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
                     for (int i = 0; i < bones.length; i++) 
                     {
+                        /*
                         final int idx = i / 16;
-                        bones[i] = (renderable.bones == null || idx >= renderable.bones.length || renderable.bones[idx] == null) ? idtMatrix.val[i % 16]
-                            : renderable.bones[idx].val[i % 16];
+                        bones[i] = (renderable.Get_Libraries_Game_Graphics_Renderable__bones_() == null
+                            || idx >= renderable.Get_Libraries_Game_Graphics_Renderable__bones_().GetSize() 
+                            || renderable.Get_Libraries_Game_Graphics_Renderable__bones_().Get(idx) == null)
+                            ? idtMatrix.val[i % 16]: renderable.bones[idx].val[i % 16];
+                        */
                     }
-                    shader.program.setUniformMatrix4fv(shader.loc(inputID), bones, 0, bones.length);
+                    //shader.program.setUniformMatrix4fv(shader.loc(inputID), bones, 0, bones.length);
                 }
             }
-            */
 
             /*
 		public final static Setter shininess = new LocalSetter() {
@@ -549,7 +543,7 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 	protected final int u_shadowMapProjViewTrans = register(new Uniform("u_shadowMapProjViewTrans"));
 	protected final int u_shadowTexture = register(new Uniform("u_shadowTexture"));
 	protected final int u_shadowPCFOffset = register(new Uniform("u_shadowPCFOffset"));
-	*/
+        */
         // FIXME Cache vertex attribute locations...
 
 	protected int dirLightsLoc;
@@ -593,89 +587,95 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 
 	public DefaultShader (final Renderable renderable) 
         {
-	//	this(renderable, new Config());
+            this(renderable, new Config());
 	}
 
-        /*
-	public DefaultShader (final Renderable renderable, final Config config) {
-		this(renderable, config, createPrefix(renderable, config));
+	public DefaultShader (final Renderable renderable, final Config config) 
+        {
+            //this(renderable, config, createPrefix(renderable, config));
 	}
 
-	public DefaultShader (final Renderable renderable, final Config config, final String prefix) {
-		this(renderable, config, prefix, config.vertexShader != null ? config.vertexShader : getDefaultVertexShader(),
-			config.fragmentShader != null ? config.fragmentShader : getDefaultFragmentShader());
+	public DefaultShader (final Renderable renderable, final Config config, final String prefix) 
+        {
+            this(renderable, config, prefix, config.vertexShader != null ? config.vertexShader : getDefaultVertexShader(),
+                config.fragmentShader != null ? config.fragmentShader : getDefaultFragmentShader());
 	}
 
-	public DefaultShader (final Renderable renderable, final Config config, final String prefix, final String vertexShader,
-		final String fragmentShader) {
+	public DefaultShader (final Renderable renderable, final Config config, final String prefix, final String vertexShader, final String fragmentShader) 
+        {
 		this(renderable, config, new ShaderProgram(prefix + vertexShader, prefix + fragmentShader));
 	}
 
-	public DefaultShader (final Renderable renderable, final Config config, final ShaderProgram shaderProgram) {
-		final Attributes attributes = combineAttributes(renderable);
-		this.config = config;
-		this.program = shaderProgram;
-		this.lighting = renderable.environment != null;
-		this.environmentCubemap = attributes.has(CubemapAttribute.EnvironmentMap)
-			|| (lighting && attributes.has(CubemapAttribute.EnvironmentMap));
-		this.shadowMap = lighting && renderable.environment.shadowMap != null;
-		this.renderable = renderable;
-		attributesMask = attributes.getMask() | optionalAttributes;
-		vertexMask = renderable.meshPart.mesh.getVertexAttributes().getMask();
+	public DefaultShader (final Renderable renderable, final Config config, final ShaderProgram shaderProgram) 
+        {
+            /*
+            final Attributes attributes = combineAttributes(renderable);
+            this.config = config;
+            this.program = shaderProgram;
+            this.lighting = renderable.environment != null;
+            this.environmentCubemap = attributes.has(CubemapAttribute.EnvironmentMap)
+                    || (lighting && attributes.has(CubemapAttribute.EnvironmentMap));
+            this.shadowMap = lighting && renderable.environment.shadowMap != null;
+            this.renderable = renderable;
+            attributesMask = attributes.getMask() | optionalAttributes;
+            vertexMask = renderable.meshPart.mesh.getVertexAttributes().getMask();
 
-		this.directionalLights = new DirectionalLight[lighting && config.numDirectionalLights > 0 ? config.numDirectionalLights : 0];
-		for (int i = 0; i < directionalLights.length; i++)
-			directionalLights[i] = new DirectionalLight();
-		this.pointLights = new PointLight[lighting && config.numPointLights > 0 ? config.numPointLights : 0];
-		for (int i = 0; i < pointLights.length; i++)
-			pointLights[i] = new PointLight();
-		this.spotLights = new SpotLight[lighting && config.numSpotLights > 0 ? config.numSpotLights : 0];
-		for (int i = 0; i < spotLights.length; i++)
-			spotLights[i] = new SpotLight();
+            this.directionalLights = new DirectionalLight[lighting && config.numDirectionalLights > 0 ? config.numDirectionalLights : 0];
+            for (int i = 0; i < directionalLights.length; i++)
+                    directionalLights[i] = new DirectionalLight();
+            this.pointLights = new PointLight[lighting && config.numPointLights > 0 ? config.numPointLights : 0];
+            for (int i = 0; i < pointLights.length; i++)
+                    pointLights[i] = new PointLight();
+            this.spotLights = new SpotLight[lighting && config.numSpotLights > 0 ? config.numSpotLights : 0];
+            for (int i = 0; i < spotLights.length; i++)
+                    spotLights[i] = new SpotLight();
 
-		if (!config.ignoreUnimplemented && (implementedFlags & attributesMask) != attributesMask)
-			throw new GdxRuntimeException("Some attributes not implemented yet (" + attributesMask + ")");
+            if (!config.ignoreUnimplemented && (implementedFlags & attributesMask) != attributesMask)
+                    throw new GdxRuntimeException("Some attributes not implemented yet (" + attributesMask + ")");
 
-		// Global uniforms
-		u_projTrans = register(Inputs.projTrans, Setters.projTrans);
-		u_viewTrans = register(Inputs.viewTrans, Setters.viewTrans);
-		u_projViewTrans = register(Inputs.projViewTrans, Setters.projViewTrans);
-		u_cameraPosition = register(Inputs.cameraPosition, Setters.cameraPosition);
-		u_cameraDirection = register(Inputs.cameraDirection, Setters.cameraDirection);
-		u_cameraUp = register(Inputs.cameraUp, Setters.cameraUp);
-		u_time = register(new Uniform("u_time"));
-		// Object uniforms
-		u_worldTrans = register(Inputs.worldTrans, Setters.worldTrans);
-		u_viewWorldTrans = register(Inputs.viewWorldTrans, Setters.viewWorldTrans);
-		u_projViewWorldTrans = register(Inputs.projViewWorldTrans, Setters.projViewWorldTrans);
-		u_normalMatrix = register(Inputs.normalMatrix, Setters.normalMatrix);
-		u_bones = (renderable.bones != null && config.numBones > 0) ? register(Inputs.bones, new Setters.Bones(config.numBones))
-			: -1;
+            // Global uniforms
+            u_projTrans = Register(Inputs.projTrans, Setters.projTrans);
+            u_viewTrans = Register(Inputs.viewTrans, Setters.viewTrans);
+            u_projViewTrans = Register(Inputs.projViewTrans, Setters.projViewTrans);
+            u_cameraPosition = Register(Inputs.cameraPosition, Setters.cameraPosition);
+            u_cameraDirection = Register(Inputs.cameraDirection, Setters.cameraDirection);
+            u_cameraUp = Register(Inputs.cameraUp, Setters.cameraUp);
+            u_time = Register(new Uniform("u_time"));
+            // Object uniforms
+            u_worldTrans = Register(Inputs.worldTrans, Setters.worldTrans);
+            u_viewWorldTrans = Register(Inputs.viewWorldTrans, Setters.viewWorldTrans);
+            u_projViewWorldTrans = Register(Inputs.projViewWorldTrans, Setters.projViewWorldTrans);
+            u_normalMatrix = Register(Inputs.normalMatrix, Setters.normalMatrix);
+            u_bones = (renderable.bones != null && config.numBones > 0) ? register(Inputs.bones, new Setters.Bones(config.numBones))
+                    : -1;
 
-		u_shininess = register(Inputs.shininess, Setters.shininess);
-		u_opacity = register(Inputs.opacity);
-		u_diffuseColor = register(Inputs.diffuseColor, Setters.diffuseColor);
-		u_diffuseTexture = register(Inputs.diffuseTexture, Setters.diffuseTexture);
-		u_diffuseUVTransform = register(Inputs.diffuseUVTransform, Setters.diffuseUVTransform);
-		u_specularColor = register(Inputs.specularColor, Setters.specularColor);
-		u_specularTexture = register(Inputs.specularTexture, Setters.specularTexture);
-		u_specularUVTransform = register(Inputs.specularUVTransform, Setters.specularUVTransform);
-		u_emissiveColor = register(Inputs.emissiveColor, Setters.emissiveColor);
-		u_emissiveTexture = register(Inputs.emissiveTexture, Setters.emissiveTexture);
-		u_emissiveUVTransform = register(Inputs.emissiveUVTransform, Setters.emissiveUVTransform);
-		u_reflectionColor = register(Inputs.reflectionColor, Setters.reflectionColor);
-		u_reflectionTexture = register(Inputs.reflectionTexture, Setters.reflectionTexture);
-		u_reflectionUVTransform = register(Inputs.reflectionUVTransform, Setters.reflectionUVTransform);
-		u_normalTexture = register(Inputs.normalTexture, Setters.normalTexture);
-		u_normalUVTransform = register(Inputs.normalUVTransform, Setters.normalUVTransform);
-		u_ambientTexture = register(Inputs.ambientTexture, Setters.ambientTexture);
-		u_ambientUVTransform = register(Inputs.ambientUVTransform, Setters.ambientUVTransform);
-		u_alphaTest = register(Inputs.alphaTest);
+            u_shininess = register(Inputs.shininess, Setters.shininess);
+            u_opacity = register(Inputs.opacity);
+            u_diffuseColor = register(Inputs.diffuseColor, Setters.diffuseColor);
+            u_diffuseTexture = register(Inputs.diffuseTexture, Setters.diffuseTexture);
+            u_diffuseUVTransform = register(Inputs.diffuseUVTransform, Setters.diffuseUVTransform);
+            u_specularColor = register(Inputs.specularColor, Setters.specularColor);
+            u_specularTexture = register(Inputs.specularTexture, Setters.specularTexture);
+            u_specularUVTransform = register(Inputs.specularUVTransform, Setters.specularUVTransform);
+            u_emissiveColor = register(Inputs.emissiveColor, Setters.emissiveColor);
+            u_emissiveTexture = register(Inputs.emissiveTexture, Setters.emissiveTexture);
+            u_emissiveUVTransform = register(Inputs.emissiveUVTransform, Setters.emissiveUVTransform);
+            u_reflectionColor = register(Inputs.reflectionColor, Setters.reflectionColor);
+            u_reflectionTexture = register(Inputs.reflectionTexture, Setters.reflectionTexture);
+            u_reflectionUVTransform = register(Inputs.reflectionUVTransform, Setters.reflectionUVTransform);
+            u_normalTexture = register(Inputs.normalTexture, Setters.normalTexture);
+            u_normalUVTransform = register(Inputs.normalUVTransform, Setters.normalUVTransform);
+            u_ambientTexture = register(Inputs.ambientTexture, Setters.ambientTexture);
+            u_ambientUVTransform = register(Inputs.ambientUVTransform, Setters.ambientUVTransform);
+            u_alphaTest = register(Inputs.alphaTest);
 
-		u_ambientCubemap = lighting ? register(Inputs.ambientCube, new Setters.ACubemap(config.numDirectionalLights,
-			config.numPointLights)) : -1;
-		u_environmentCubemap = environmentCubemap ? register(Inputs.environmentCubemap, Setters.environmentCubemap) : -1;
+            u_ambientCubemap = lighting ? register(Inputs.ambientCube, new Setters.ACubemap(config.numDirectionalLights,
+                    config.numPointLights)) : -1;
+            u_environmentCubemap = environmentCubemap ? register(Inputs.environmentCubemap, Setters.environmentCubemap) : -1;
+            */
 	}
+        
+        /*
 
 	@Override
 	public void init () {

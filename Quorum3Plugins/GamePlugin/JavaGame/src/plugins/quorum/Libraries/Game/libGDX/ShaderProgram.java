@@ -554,6 +554,46 @@ public class ShaderProgram implements Disposable {
 		checkManaged();
 		gl.glUniformMatrix3fv(location, 1, transpose, matrix.val, 0);
 	}
+        
+        /*
+        A custom implementation of this method that uses the matrix's value
+        array directly, rather than requiring the Matrix object.
+        */
+        public void setUniformMatrix4(int location, float[] matrix) 
+        {
+		setUniformMatrix4(location, matrix, false);
+	}
+
+        /*
+        A custom implementation of this method that uses the matrix's value
+        array directly, rather than requiring the Matrix object.
+        */
+	public void setUniformMatrix4(int location, float[] matrix, boolean transpose) 
+        {
+		GraphicsManager gl = GameState.nativeGraphics;
+		checkManaged();
+		gl.glUniformMatrix4fv(location, 1, transpose, matrix, 0);
+	}
+        
+        /*
+        A custom implementation of this method that uses the matrix's value
+        array directly, rather than requiring the Matrix object.
+        */
+        public void setUniformMatrix3 (int location, float[] matrix) 
+        {
+		setUniformMatrix3(location, matrix, false);
+	}
+
+        /*
+        A custom implementation of this method that uses the matrix's value
+        array directly, rather than requiring the Matrix object.
+        */
+	public void setUniformMatrix3 (int location, float[] matrix, boolean transpose) 
+        {
+		GraphicsManager gl = GameState.nativeGraphics;
+		checkManaged();
+		gl.glUniformMatrix3fv(location, 1, transpose, matrix, 0);
+	}
 
 	/** Sets an array of uniform matrices with the given name. Throws an IllegalArgumentException in case it is not called in
 	 * between a {@link #begin()}/{@link #end()} block.
@@ -624,13 +664,13 @@ public class ShaderProgram implements Disposable {
 	 * 
 	 * @param name the name of the uniform
 	 * @param values r, g, b and a as the first through fourth values respectively */
-	/*public void setUniformf (String name, quorum.Libraries.Game.Graphics.Color_ values) {
+	public void setUniformf (String name, quorum.Libraries.Game.Graphics.Color_ values) {
 		setUniformf(name, (float)values.GetRed(), (float)values.GetGreen(), (float)values.GetBlue(), (float)values.GetAlpha());
 	}
 
 	public void setUniformf (int location, quorum.Libraries.Game.Graphics.Color_ values) {
 		setUniformf(location, (float)values.GetRed(), (float)values.GetGreen(), (float)values.GetBlue(), (float)values.GetAlpha());
-	}*/
+	}
         
         public void setAttributef (String name, quorum.Libraries.Game.Graphics.Color_ values) {
 		setAttributef(name, (float)values.GetRed(), (float)values.GetGreen(), (float)values.GetBlue(), (float)values.GetAlpha());

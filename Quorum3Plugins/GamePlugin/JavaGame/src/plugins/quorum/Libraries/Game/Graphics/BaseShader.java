@@ -28,6 +28,11 @@ import plugins.quorum.Libraries.Game.libGDX.Array;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.libGDX.IntArray;
 import plugins.quorum.Libraries.Game.libGDX.IntIntMap;
+import quorum.Libraries.Compute.Matrix3_;
+import quorum.Libraries.Compute.Matrix4_;
+import quorum.Libraries.Compute.Vector2_;
+import quorum.Libraries.Compute.Vector3_;
+import quorum.Libraries.Game.Graphics.Color_;
 import quorum.Libraries.Game.Graphics.VertexData_;
 
 public abstract class BaseShader implements Shader 
@@ -35,7 +40,7 @@ public abstract class BaseShader implements Shader
     public interface Validator 
     {
         /** @return True if the input is valid for the renderable, false otherwise. */
-        boolean Validate (final BaseShader shader, final int inputID, final Renderable renderable);
+        boolean Validate (final BaseShader shader, final int inputID, final Renderable_ renderable);
     }
 
     public interface Setter 
@@ -43,7 +48,7 @@ public abstract class BaseShader implements Shader
         /** @return True if the uniform only has to be set once per render call, false if the uniform must be set for each renderable. */
         boolean IsGlobal(final BaseShader shader, final int inputID);
 
-        void Set(final BaseShader shader, final int inputID, final Renderable renderable, final Attributes combinedAttributes);
+        void Set(final BaseShader shader, final int inputID, final Renderable_ renderable, final Attributes combinedAttributes);
     }
 
     public abstract static class GlobalSetter implements Setter 
@@ -95,10 +100,11 @@ public abstract class BaseShader implements Shader
         }
 
         @Override
-        public boolean Validate (final BaseShader shader, final int inputID, final Renderable renderable) 
+        public boolean Validate (final BaseShader shader, final int inputID, final Renderable_ renderable) 
         {
-            final long matFlags = (renderable != null && renderable.material != null) ? renderable.material.GetMask() : 0;
-            final long envFlags = (renderable != null && renderable.environment != null) ? renderable.environment.GetMask() : 0;
+            Renderable r = (Renderable)renderable;
+            final long matFlags = (renderable != null && r.material != null) ? r.material.GetMask() : 0;
+            final long envFlags = (renderable != null && r.environment != null) ? r.environment.GetMask() : 0;
             return ((matFlags & materialMask) == materialMask) && ((envFlags & environmentMask) == environmentMask)
                 && (((matFlags | envFlags) & overallMask) == overallMask);
         }
@@ -335,48 +341,68 @@ public abstract class BaseShader implements Shader
         return (inputID >= 0 && inputID < locations.length) ? locations[inputID] : -1;
     }
 
-    /* FIX ME:
-    public final boolean Set (final int uniform, final Matrix4 value) 
+    /*
+        public void setUniformMatrix (int location, Matrix4 matrix, boolean transpose) 
+        {
+                GraphicsManager gl = GameState.nativeGraphics;
+                checkManaged();
+                gl.glUniformMatrix4fv(location, 1, transpose, matrix.val, 0);
+        }
+
+        public void setUniformMatrix4fv (int location, float[] values, int offset, int length) 
+        {
+                GraphicsManager gl = GameState.nativeGraphics;
+                checkManaged();
+                gl.glUniformMatrix4fv(location, length / 16, false, values, offset);
+        }
+    */
+    
+    public final boolean Set(final int uniform, final Matrix4_ value) 
     {
         if (locations[uniform] < 0)
             return false;
 
-        program.setUniformMatrix(locations[uniform], value);
+        float[] temp = ConvertMatrix4ToArray(value);
+        
+        program.setUniformMatrix4(locations[uniform], temp);
         return true;
     }
-    */
 
-    /* FIX ME:
-    public final boolean set (final int uniform, final Matrix3 value) {
-            if (locations[uniform] < 0) return false;
-            program.setUniformMatrix(locations[uniform], value);
-            return true;
+    public final boolean Set(final int uniform, final Matrix3_ value) 
+    {
+        if (locations[uniform] < 0)
+            return false;
+        
+        float[] temp = ConvertMatrix3ToArray(value);
+        
+        program.setUniformMatrix3(locations[uniform], temp);
+        return true;
     }
-    */
 
-    /* FIX ME:
-    public final boolean set (final int uniform, final Vector3 value) {
-            if (locations[uniform] < 0) return false;
-            program.setUniformf(locations[uniform], value);
-            return true;
-    }
-    */
+    public final boolean Set(final int uniform, final Vector3_ value) 
+    {
+        if (locations[uniform] < 0)
+            return false;
 
-    /* FIX ME:
-    public final boolean set (final int uniform, final Vector2 value) {
-            if (locations[uniform] < 0) return false;
-            program.setUniformf(locations[uniform], value);
-            return true;
+        program.setUniformf(locations[uniform], (float)value.GetX(), (float)value.GetY(), (float)value.GetZ());
+        return true;
     }
-    */
 
-    /* FIX ME:
-    public final boolean set (final int uniform, final Color value) {
-            if (locations[uniform] < 0) return false;
-            program.setUniformf(locations[uniform], value);
-            return true;
+    public final boolean Set(final int uniform, final Vector2_ value) 
+    {
+        if (locations[uniform] < 0)
+            return false;
+        program.setUniformf(locations[uniform], (float)value.GetX(), (float)value.GetY());
+        return true;
     }
-    */
+
+    public final boolean Set(final int uniform, final Color_ value) {
+        if (locations[uniform] < 0)
+            return false;
+
+        program.setUniformf(locations[uniform], value);
+        return true;
+    }
 
     public final boolean Set(final int uniform, final float value) 
     {
@@ -464,4 +490,25 @@ public abstract class BaseShader implements Shader
             return true;
     }
     */
+    
+    private float[] ConvertMatrix4ToArray(Matrix4_ matrix)
+    {
+        Matrix4 m = (Matrix4)matrix;
+        // OpenGL expects the matrix to be stored in column-major format.
+        float[] temp = {(float)m.row0column0, (float)m.row1column0, (float)m.row2column0, (float)m.row3column0,
+                        (float)m.row0column1, (float)m.row1column1, (float)m.row2column1, (float)m.row3column1,
+                        (float)m.row0column2, (float)m.row1column2, (float)m.row2column2, (float)m.row3column2,
+                        (float)m.row0column3, (float)m.row1column3, (float)m.row2column3, (float)m.row3column3};
+        return temp;
+    }
+    
+    private float[] ConvertMatrix3ToArray(Matrix3_ matrix)
+    {
+        Matrix3 m = (Matrix3)matrix;
+        // OpenGL expects the matrix to be stored in column-major format.
+        float[] temp = {(float)m.row0column0, (float)m.row1column0, (float)m.row2column0,
+                        (float)m.row0column1, (float)m.row1column1, (float)m.row2column1,
+                        (float)m.row0column2, (float)m.row1column2, (float)m.row2column2};
+        return temp;
+    }
 }
