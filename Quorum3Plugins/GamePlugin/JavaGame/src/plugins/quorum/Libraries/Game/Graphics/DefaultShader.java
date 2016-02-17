@@ -274,189 +274,235 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
                 {
                     for (int i = 0; i < bones.length; i++) 
                     {
-                        /*
+                        
                         final int idx = i / 16;
                         bones[i] = (renderable.Get_Libraries_Game_Graphics_Renderable__bones_() == null
                             || idx >= renderable.Get_Libraries_Game_Graphics_Renderable__bones_().GetSize() 
                             || renderable.Get_Libraries_Game_Graphics_Renderable__bones_().Get(idx) == null)
-                            ? idtMatrix.val[i % 16]: renderable.bones[idx].val[i % 16];
-                        */
+                            ? GetMatrixValue(idtMatrix, i % 16)
+                            : GetMatrixValue(((Matrix4_)renderable.Get_Libraries_Game_Graphics_Renderable__bones_().Get(idx)), i % 16);
+                        
                     }
-                    //shader.program.setUniformMatrix4fv(shader.loc(inputID), bones, 0, bones.length);
+                    shader.program.setUniformMatrix4fv(shader.Location(inputID), bones, 0, bones.length);
                 }
             }
 
+            public final static Setter shininess = new LocalSetter() 
+            {   
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    shader.Set(inputID, (float)((NumberAttribute)(combinedAttributes.GetAttribute(numberAttribute.GetShininessValue()))).value);
+                }
+            };
+                
+            public final static Setter diffuseColor = new LocalSetter() 
+            {
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    shader.Set(inputID, ((ColorAttribute)(combinedAttributes.GetAttribute(colorAttribute.GetDiffuseValue()))).color);
+                }
+            };
+            
+            public final static Setter diffuseTexture = new LocalSetter() 
+            {
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    final int unit = shader.context.textureBinder.Bind(((TextureAttribute)(combinedAttributes.GetAttribute(textureAttribute.GetDiffuseValue()))).descriptor);
+                    shader.Set(inputID, unit);
+                }
+            };
+                
+            public final static Setter diffuseUVTransform = new LocalSetter() 
+            {   
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    final TextureAttribute ta = (TextureAttribute)(combinedAttributes.GetAttribute(textureAttribute.GetDiffuseValue()));
+                    shader.Set(inputID, (float)ta.offsetU, (float)ta.offsetV, (float)ta.scaleU, (float)ta.scaleV);
+                }
+            };
+                
+            public final static Setter specularColor = new LocalSetter() 
+            {
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    shader.Set(inputID, ((ColorAttribute)(combinedAttributes.GetAttribute(colorAttribute.GetSpecularValue()))).color);
+                }
+            };
+            
+            public final static Setter specularTexture = new LocalSetter() 
+            {
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    final int unit = shader.context.textureBinder.Bind(((TextureAttribute)(combinedAttributes.GetAttribute(textureAttribute.GetSpecularValue()))).descriptor);
+                    shader.Set(inputID, unit);
+                }
+            };
+                
+            public final static Setter specularUVTransform = new LocalSetter() 
+            {
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    final TextureAttribute ta = (TextureAttribute)(combinedAttributes.GetAttribute(textureAttribute.GetSpecularValue()));
+                    shader.Set(inputID, (float)ta.offsetU, (float)ta.offsetV, (float)ta.scaleU, (float)ta.scaleV);
+                }
+            };
+                
+            public final static Setter emissiveColor = new LocalSetter() 
+            {
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    shader.Set(inputID, ((ColorAttribute)(combinedAttributes.GetAttribute(colorAttribute.GetEmissiveValue()))).color);
+                }
+            };
+            
+            public final static Setter emissiveTexture = new LocalSetter() 
+            {
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    final int unit = shader.context.textureBinder.Bind(((TextureAttribute)(combinedAttributes.GetAttribute(textureAttribute.GetEmissiveValue()))).descriptor);
+                    shader.Set(inputID, unit);
+                }
+            };
+            
+            public final static Setter emissiveUVTransform = new LocalSetter() 
+            {
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    final TextureAttribute ta = (TextureAttribute)(combinedAttributes.GetAttribute(textureAttribute.GetEmissiveValue()));
+                    shader.Set(inputID, (float)ta.offsetU, (float)ta.offsetV, (float)ta.scaleU, (float)ta.scaleV);
+                }
+            };
+            
+            public final static Setter reflectionColor = new LocalSetter() 
+            {
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    shader.Set(inputID, ((ColorAttribute)(combinedAttributes.GetAttribute(colorAttribute.GetReflectionValue()))).color);
+                }
+            };
+		
+            public final static Setter reflectionTexture = new LocalSetter() 
+            {
+                @Override
+                public void Set (BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    final int unit = shader.context.textureBinder.Bind(((TextureAttribute)(combinedAttributes.GetAttribute(textureAttribute.GetReflectionValue()))).descriptor);
+                    shader.Set(inputID, unit);
+                }
+            };
+		
+            public final static Setter reflectionUVTransform = new LocalSetter() 
+            {
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    final TextureAttribute ta = (TextureAttribute)(combinedAttributes.GetAttribute(textureAttribute.GetReflectionValue()));
+                    shader.Set(inputID, (float)ta.offsetU, (float)ta.offsetV, (float)ta.scaleU, (float)ta.scaleV);
+                }
+            };
+		
+            public final static Setter normalTexture = new LocalSetter() 
+            {
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                        final int unit = shader.context.textureBinder.Bind(((TextureAttribute)(combinedAttributes.GetAttribute(textureAttribute.GetNormalValue()))).descriptor);
+                        shader.Set(inputID, unit);
+                }
+            };
+		
+            public final static Setter normalUVTransform = new LocalSetter() 
+            {
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    final TextureAttribute ta = (TextureAttribute)(combinedAttributes.GetAttribute(textureAttribute.GetNormalValue()));
+                    shader.Set(inputID, (float)ta.offsetU, (float)ta.offsetV, (float)ta.scaleU, (float)ta.scaleV);
+                }
+            };
+		
+            public final static Setter ambientTexture = new LocalSetter() 
+            {
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    final int unit = shader.context.textureBinder.Bind(((TextureAttribute)(combinedAttributes.GetAttribute(textureAttribute.GetAmbientValue()))).descriptor);
+                    shader.Set(inputID, unit);
+                }
+            };
+            
+            public final static Setter ambientUVTransform = new LocalSetter() 
+            {
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    final TextureAttribute ta = (TextureAttribute)(combinedAttributes.GetAttribute(textureAttribute.GetAmbientValue()));
+                    shader.Set(inputID, (float)ta.offsetU, (float)ta.offsetV, (float)ta.scaleU, (float)ta.scaleV);
+                }
+            };
+
             /*
-		public final static Setter shininess = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				shader.set(inputID, ((FloatAttribute)(combinedAttributes.get(FloatAttribute.Shininess))).value);
-			}
-		};
-		public final static Setter diffuseColor = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				shader.set(inputID, ((ColorAttribute)(combinedAttributes.get(ColorAttribute.Diffuse))).color);
-			}
-		};
-		public final static Setter diffuseTexture = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				final int unit = shader.context.textureBinder.bind(((TextureAttribute)(combinedAttributes
-					.get(TextureAttribute.Diffuse))).textureDescription);
-				shader.set(inputID, unit);
-			}
-		};
-		public final static Setter diffuseUVTransform = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				final TextureAttribute ta = (TextureAttribute)(combinedAttributes.get(TextureAttribute.Diffuse));
-				shader.set(inputID, ta.offsetU, ta.offsetV, ta.scaleU, ta.scaleV);
-			}
-		};
-		public final static Setter specularColor = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				shader.set(inputID, ((ColorAttribute)(combinedAttributes.get(ColorAttribute.Specular))).color);
-			}
-		};
-		public final static Setter specularTexture = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				final int unit = shader.context.textureBinder.bind(((TextureAttribute)(combinedAttributes
-					.get(TextureAttribute.Specular))).textureDescription);
-				shader.set(inputID, unit);
-			}
-		};
-		public final static Setter specularUVTransform = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				final TextureAttribute ta = (TextureAttribute)(combinedAttributes.get(TextureAttribute.Specular));
-				shader.set(inputID, ta.offsetU, ta.offsetV, ta.scaleU, ta.scaleV);
-			}
-		};
-		public final static Setter emissiveColor = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				shader.set(inputID, ((ColorAttribute)(combinedAttributes.get(ColorAttribute.Emissive))).color);
-			}
-		};
-		public final static Setter emissiveTexture = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				final int unit = shader.context.textureBinder.bind(((TextureAttribute)(combinedAttributes
-					.get(TextureAttribute.Emissive))).textureDescription);
-				shader.set(inputID, unit);
-			}
-		};
-		public final static Setter emissiveUVTransform = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				final TextureAttribute ta = (TextureAttribute)(combinedAttributes.get(TextureAttribute.Emissive));
-				shader.set(inputID, ta.offsetU, ta.offsetV, ta.scaleU, ta.scaleV);
-			}
-		};
-		public final static Setter reflectionColor = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				shader.set(inputID, ((ColorAttribute)(combinedAttributes.get(ColorAttribute.Reflection))).color);
-			}
-		};
-		public final static Setter reflectionTexture = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				final int unit = shader.context.textureBinder.bind(((TextureAttribute)(combinedAttributes
-					.get(TextureAttribute.Reflection))).textureDescription);
-				shader.set(inputID, unit);
-			}
-		};
-		public final static Setter reflectionUVTransform = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				final TextureAttribute ta = (TextureAttribute)(combinedAttributes.get(TextureAttribute.Reflection));
-				shader.set(inputID, ta.offsetU, ta.offsetV, ta.scaleU, ta.scaleV);
-			}
-		};
-		public final static Setter normalTexture = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				final int unit = shader.context.textureBinder.bind(((TextureAttribute)(combinedAttributes
-					.get(TextureAttribute.Normal))).textureDescription);
-				shader.set(inputID, unit);
-			}
-		};
-		public final static Setter normalUVTransform = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				final TextureAttribute ta = (TextureAttribute)(combinedAttributes.get(TextureAttribute.Normal));
-				shader.set(inputID, ta.offsetU, ta.offsetV, ta.scaleU, ta.scaleV);
-			}
-		};
-		public final static Setter ambientTexture = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				final int unit = shader.context.textureBinder.bind(((TextureAttribute)(combinedAttributes
-					.get(TextureAttribute.Ambient))).textureDescription);
-				shader.set(inputID, unit);
-			}
-		};
-		public final static Setter ambientUVTransform = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				final TextureAttribute ta = (TextureAttribute)(combinedAttributes.get(TextureAttribute.Ambient));
-				shader.set(inputID, ta.offsetU, ta.offsetV, ta.scaleU, ta.scaleV);
-			}
-		};
+            public static class ACubemap extends LocalSetter 
+            {
+                    private final static float ones[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+                    private final AmbientCubemap cacheAmbientCubemap = new AmbientCubemap();
+                    private final static Vector3 tmpV1 = new Vector3();
+                    public final int dirLightsOffset;
+                    public final int pointLightsOffset;
 
-		public static class ACubemap extends LocalSetter {
-			private final static float ones[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-			private final AmbientCubemap cacheAmbientCubemap = new AmbientCubemap();
-			private final static Vector3 tmpV1 = new Vector3();
-			public final int dirLightsOffset;
-			public final int pointLightsOffset;
+                    public ACubemap (final int dirLightsOffset, final int pointLightsOffset) {
+                            this.dirLightsOffset = dirLightsOffset;
+                            this.pointLightsOffset = pointLightsOffset;
+                    }
 
-			public ACubemap (final int dirLightsOffset, final int pointLightsOffset) {
-				this.dirLightsOffset = dirLightsOffset;
-				this.pointLightsOffset = pointLightsOffset;
-			}
+                    @Override
+                    public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                            if (renderable.environment == null)
+                                    shader.program.setUniform3fv(shader.loc(inputID), ones, 0, ones.length);
+                            else {
+                                    renderable.worldTransform.getTranslation(tmpV1);
+                                    if (combinedAttributes.has(ColorAttribute.AmbientLight))
+                                            cacheAmbientCubemap.set(((ColorAttribute)combinedAttributes.get(ColorAttribute.AmbientLight)).color);
 
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				if (renderable.environment == null)
-					shader.program.setUniform3fv(shader.loc(inputID), ones, 0, ones.length);
-				else {
-					renderable.worldTransform.getTranslation(tmpV1);
-					if (combinedAttributes.has(ColorAttribute.AmbientLight))
-						cacheAmbientCubemap.set(((ColorAttribute)combinedAttributes.get(ColorAttribute.AmbientLight)).color);
+                                    if (combinedAttributes.has(DirectionalLightsAttribute.Type)) {
+                                            Array<DirectionalLight> lights = ((DirectionalLightsAttribute)combinedAttributes
+                                                    .get(DirectionalLightsAttribute.Type)).lights;
+                                            for (int i = dirLightsOffset; i < lights.size; i++)
+                                                    cacheAmbientCubemap.add(lights.get(i).color, lights.get(i).direction);
+                                    }
 
-					if (combinedAttributes.has(DirectionalLightsAttribute.Type)) {
-						Array<DirectionalLight> lights = ((DirectionalLightsAttribute)combinedAttributes
-							.get(DirectionalLightsAttribute.Type)).lights;
-						for (int i = dirLightsOffset; i < lights.size; i++)
-							cacheAmbientCubemap.add(lights.get(i).color, lights.get(i).direction);
-					}
+                                    if (combinedAttributes.has(PointLightsAttribute.Type)) {
+                                            Array<PointLight> lights = ((PointLightsAttribute)combinedAttributes.get(PointLightsAttribute.Type)).lights;
+                                            for (int i = pointLightsOffset; i < lights.size; i++)
+                                                    cacheAmbientCubemap.add(lights.get(i).color, lights.get(i).position, tmpV1, lights.get(i).intensity);
+                                    }
 
-					if (combinedAttributes.has(PointLightsAttribute.Type)) {
-						Array<PointLight> lights = ((PointLightsAttribute)combinedAttributes.get(PointLightsAttribute.Type)).lights;
-						for (int i = pointLightsOffset; i < lights.size; i++)
-							cacheAmbientCubemap.add(lights.get(i).color, lights.get(i).position, tmpV1, lights.get(i).intensity);
-					}
-
-					cacheAmbientCubemap.clamp();
-					shader.program.setUniform3fv(shader.loc(inputID), cacheAmbientCubemap.data, 0, cacheAmbientCubemap.data.length);
-				}
-			}
-		}
-
-		public final static Setter environmentCubemap = new LocalSetter() {
-			@Override
-			public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-				if (combinedAttributes.has(CubemapAttribute.EnvironmentMap)) {
-					shader.set(inputID, shader.context.textureBinder.bind(((CubemapAttribute)combinedAttributes
-						.get(CubemapAttribute.EnvironmentMap)).textureDescription));
-				}
-			}
-		};
+                                    cacheAmbientCubemap.clamp();
+                                    shader.program.setUniform3fv(shader.loc(inputID), cacheAmbientCubemap.data, 0, cacheAmbientCubemap.data.length);
+                            }
+                    }
+            }
+            
+            public final static Setter environmentCubemap = new LocalSetter() {
+                    @Override
+                    public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                            if (combinedAttributes.has(CubemapAttribute.EnvironmentMap)) {
+                                    shader.set(inputID, shader.context.textureBinder.bind(((CubemapAttribute)combinedAttributes
+                                            .get(CubemapAttribute.EnvironmentMap)).textureDescription));
+                            }
+                    }
+            };
             
             */
 	}
@@ -477,15 +523,12 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 		return defaultFragmentShader;
 	}
 
-        /*
-	protected static long implementedFlags = BlendingAttribute.Type | TextureAttribute.Diffuse | ColorAttribute.Diffuse
-		| ColorAttribute.Specular | FloatAttribute.Shininess;
-        */
+	protected static long implementedFlags;
         
 	/** @deprecated Replaced by {@link Config#defaultCullFace} Set to 0 to disable culling */
-	//@Deprecated public static int defaultCullFace = GL20.GL_BACK;
+	@Deprecated public static int defaultCullFace = GraphicsManager.GL_BACK;
 	/** @deprecated Replaced by {@link Config#defaultDepthFunc} Set to 0 to disable depth test */
-	//@Deprecated public static int defaultDepthFunc = GL20.GL_LEQUAL;
+	@Deprecated public static int defaultDepthFunc = GraphicsManager.GL_LEQUAL;
 
         /*
 	// Global uniforms
@@ -584,6 +627,18 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 	*/
         /** Attributes which are not required but always supported. */
 	//private final static long optionalAttributes = IntAttribute.CullFace | DepthTestAttribute.Type;
+        
+        public final static BlendingAttribute blendingAttribute = new BlendingAttribute();
+        public final static TextureAttribute textureAttribute = new TextureAttribute();
+        public final static ColorAttribute colorAttribute = new ColorAttribute();
+        public final static NumberAttribute numberAttribute = new NumberAttribute();
+        
+        static
+        {   
+            implementedFlags = blendingAttribute.GetBlendedValue() | textureAttribute.GetDiffuseValue()
+                | colorAttribute.GetDiffuseValue() | colorAttribute.GetSpecularValue() 
+                | numberAttribute.GetShininessValue();
+        }
 
 	public DefaultShader (final Renderable renderable) 
         {
@@ -995,4 +1050,47 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 		config.defaultDepthFunc = depthFunc;
 	}
         */
+        
+        /*
+        Returns a single value of a matrix given an integer representing the
+        index of a column-major array.
+        */
+        private static float GetMatrixValue(Matrix4_ matrix, int index)
+        {
+            switch(index)
+            {
+                case 0:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row0column0_();
+                case 1:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row1column0_();
+                case 2:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row2column0_();
+                case 3:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row3column0_();
+                case 4:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row0column1_();
+                case 5:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row1column1_();
+                case 6:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row2column1_();
+                case 7:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row3column1_(); 
+                case 8:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row0column2_();
+                case 9:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row1column2_();
+                case 10:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row2column2_();
+                case 11:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row3column2_();
+                case 12:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row0column3_();
+                case 13:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row1column3_();
+                case 14:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row2column3_();
+                default:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row3column3_();
+            }
+        }
 }
