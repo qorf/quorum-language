@@ -39,6 +39,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 */
 
+import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 import quorum.Libraries.Compute.Matrix3_;
 import quorum.Libraries.Compute.Matrix4;
@@ -47,8 +48,12 @@ import quorum.Libraries.Game.Graphics.Attributes;
 import quorum.Libraries.Game.Graphics.BlendingAttribute;
 import quorum.Libraries.Game.Graphics.ColorAttribute;
 import quorum.Libraries.Game.Graphics.NumberAttribute;
+import quorum.Libraries.Game.Graphics.IntegerAttribute;
+import quorum.Libraries.Game.Graphics.DepthTestAttribute;
 import quorum.Libraries.Game.Graphics.Renderable_;
 import quorum.Libraries.Game.Graphics.TextureAttribute;
+import quorum.Libraries.Game.Graphics.VertexAttribute;
+import quorum.Libraries.Game.Graphics.VertexAttributes;
 
 public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShader 
 {
@@ -529,8 +534,7 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 	@Deprecated public static int defaultCullFace = GraphicsManager.GL_BACK;
 	/** @deprecated Replaced by {@link Config#defaultDepthFunc} Set to 0 to disable depth test */
 	@Deprecated public static int defaultDepthFunc = GraphicsManager.GL_LEQUAL;
-
-        /*
+        
 	// Global uniforms
 	public final int u_projTrans;
 	public final int u_viewTrans;
@@ -566,27 +570,26 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 	public final int u_ambientUVTransform;
 	public final int u_alphaTest;
 	// Lighting uniforms
-	protected final int u_ambientCubemap;
-	protected final int u_environmentCubemap;
-	protected final int u_dirLights0color = register(new Uniform("u_dirLights[0].color"));
-	protected final int u_dirLights0direction = register(new Uniform("u_dirLights[0].direction"));
-	protected final int u_dirLights1color = register(new Uniform("u_dirLights[1].color"));
-	protected final int u_pointLights0color = register(new Uniform("u_pointLights[0].color"));
-	protected final int u_pointLights0position = register(new Uniform("u_pointLights[0].position"));
-	protected final int u_pointLights0intensity = register(new Uniform("u_pointLights[0].intensity"));
-	protected final int u_pointLights1color = register(new Uniform("u_pointLights[1].color"));
-	protected final int u_spotLights0color = register(new Uniform("u_spotLights[0].color"));
-	protected final int u_spotLights0position = register(new Uniform("u_spotLights[0].position"));
-	protected final int u_spotLights0intensity = register(new Uniform("u_spotLights[0].intensity"));
-	protected final int u_spotLights0direction = register(new Uniform("u_spotLights[0].direction"));
-	protected final int u_spotLights0cutoffAngle = register(new Uniform("u_spotLights[0].cutoffAngle"));
-	protected final int u_spotLights0exponent = register(new Uniform("u_spotLights[0].exponent"));
-	protected final int u_spotLights1color = register(new Uniform("u_spotLights[1].color"));
-	protected final int u_fogColor = register(new Uniform("u_fogColor"));
-	protected final int u_shadowMapProjViewTrans = register(new Uniform("u_shadowMapProjViewTrans"));
-	protected final int u_shadowTexture = register(new Uniform("u_shadowTexture"));
-	protected final int u_shadowPCFOffset = register(new Uniform("u_shadowPCFOffset"));
-        */
+	//protected final int u_ambientCubemap;
+	//protected final int u_environmentCubemap;
+	protected final int u_dirLights0color = Register(new Uniform("u_dirLights[0].color"));
+	protected final int u_dirLights0direction = Register(new Uniform("u_dirLights[0].direction"));
+	protected final int u_dirLights1color = Register(new Uniform("u_dirLights[1].color"));
+	protected final int u_pointLights0color = Register(new Uniform("u_pointLights[0].color"));
+	protected final int u_pointLights0position = Register(new Uniform("u_pointLights[0].position"));
+	protected final int u_pointLights0intensity = Register(new Uniform("u_pointLights[0].intensity"));
+	protected final int u_pointLights1color = Register(new Uniform("u_pointLights[1].color"));
+	protected final int u_spotLights0color = Register(new Uniform("u_spotLights[0].color"));
+	protected final int u_spotLights0position = Register(new Uniform("u_spotLights[0].position"));
+	protected final int u_spotLights0intensity = Register(new Uniform("u_spotLights[0].intensity"));
+	protected final int u_spotLights0direction = Register(new Uniform("u_spotLights[0].direction"));
+	protected final int u_spotLights0cutoffAngle = Register(new Uniform("u_spotLights[0].cutoffAngle"));
+	protected final int u_spotLights0exponent = Register(new Uniform("u_spotLights[0].exponent"));
+	protected final int u_spotLights1color = Register(new Uniform("u_spotLights[1].color"));
+	protected final int u_fogColor = Register(new Uniform("u_fogColor"));
+	protected final int u_shadowMapProjViewTrans = Register(new Uniform("u_shadowMapProjViewTrans"));
+	protected final int u_shadowTexture = Register(new Uniform("u_shadowTexture"));
+	protected final int u_shadowPCFOffset = Register(new Uniform("u_shadowPCFOffset"));
         // FIXME Cache vertex attribute locations...
 
 	protected int dirLightsLoc;
@@ -618,63 +621,72 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
         */
         
 	/** The renderable used to create this shader, invalid after the call to init */
-	private Renderable renderable;
+	private Renderable_ renderable;
 	/** The attributes that this shader supports */
-        /*
 	protected final long attributesMask;
 	private long vertexMask;
 	protected final Config config;
-	*/
+        
         /** Attributes which are not required but always supported. */
-	//private final static long optionalAttributes = IntAttribute.CullFace | DepthTestAttribute.Type;
+	private final static long optionalAttributes;
         
         public final static BlendingAttribute blendingAttribute = new BlendingAttribute();
         public final static TextureAttribute textureAttribute = new TextureAttribute();
         public final static ColorAttribute colorAttribute = new ColorAttribute();
         public final static NumberAttribute numberAttribute = new NumberAttribute();
+        public final static IntegerAttribute integerAttribute = new IntegerAttribute();
+        public final static DepthTestAttribute depthTestAttribute = new DepthTestAttribute();
+        
+        private final static Attributes tmpAttributes = new Attributes();
+        private final static VertexAttributes usage = new VertexAttributes();
         
         static
         {   
             implementedFlags = blendingAttribute.GetBlendedValue() | textureAttribute.GetDiffuseValue()
                 | colorAttribute.GetDiffuseValue() | colorAttribute.GetSpecularValue() 
                 | numberAttribute.GetShininessValue();
+            
+            optionalAttributes = integerAttribute.GetCullFaceValue() | depthTestAttribute.GetDepthTestValue();
         }
 
-	public DefaultShader (final Renderable renderable) 
+	public DefaultShader (final Renderable_ renderable) 
         {
             this(renderable, new Config());
 	}
 
-	public DefaultShader (final Renderable renderable, final Config config) 
+	public DefaultShader (final Renderable_ renderable, final Config config) 
         {
-            //this(renderable, config, createPrefix(renderable, config));
+            this(renderable, config, CreatePrefix(renderable, config));
 	}
 
-	public DefaultShader (final Renderable renderable, final Config config, final String prefix) 
+	public DefaultShader (final Renderable_ renderable, final Config config, final String prefix) 
         {
             this(renderable, config, prefix, config.vertexShader != null ? config.vertexShader : getDefaultVertexShader(),
                 config.fragmentShader != null ? config.fragmentShader : getDefaultFragmentShader());
 	}
 
-	public DefaultShader (final Renderable renderable, final Config config, final String prefix, final String vertexShader, final String fragmentShader) 
+	public DefaultShader (final Renderable_ renderable, final Config config, final String prefix, final String vertexShader, final String fragmentShader) 
         {
 		this(renderable, config, new ShaderProgram(prefix + vertexShader, prefix + fragmentShader));
 	}
 
-	public DefaultShader (final Renderable renderable, final Config config, final ShaderProgram shaderProgram) 
+	public DefaultShader (final Renderable_ renderable, final Config config, final ShaderProgram shaderProgram) 
         {
-            /*
-            final Attributes attributes = combineAttributes(renderable);
+            final Attributes attributes = CombineAttributes(renderable);
             this.config = config;
             this.program = shaderProgram;
+            /*
             this.lighting = renderable.environment != null;
             this.environmentCubemap = attributes.has(CubemapAttribute.EnvironmentMap)
                     || (lighting && attributes.has(CubemapAttribute.EnvironmentMap));
             this.shadowMap = lighting && renderable.environment.shadowMap != null;
+            */
             this.renderable = renderable;
-            attributesMask = attributes.getMask() | optionalAttributes;
-            vertexMask = renderable.meshPart.mesh.getVertexAttributes().getMask();
+            attributesMask = attributes.GetMask() | optionalAttributes;
+            vertexMask = renderable.Get_Libraries_Game_Graphics_Renderable__meshPart_()
+                    .Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_().GetVertexAttributes().GetMask();
 
+            /*
             this.directionalLights = new DirectionalLight[lighting && config.numDirectionalLights > 0 ? config.numDirectionalLights : 0];
             for (int i = 0; i < directionalLights.length; i++)
                     directionalLights[i] = new DirectionalLight();
@@ -684,9 +696,10 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
             this.spotLights = new SpotLight[lighting && config.numSpotLights > 0 ? config.numSpotLights : 0];
             for (int i = 0; i < spotLights.length; i++)
                     spotLights[i] = new SpotLight();
+            */
 
             if (!config.ignoreUnimplemented && (implementedFlags & attributesMask) != attributesMask)
-                    throw new GdxRuntimeException("Some attributes not implemented yet (" + attributesMask + ")");
+                    throw new GameRuntimeError("Some attributes not implemented yet (" + attributesMask + ")");
 
             // Global uniforms
             u_projTrans = Register(Inputs.projTrans, Setters.projTrans);
@@ -701,29 +714,30 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
             u_viewWorldTrans = Register(Inputs.viewWorldTrans, Setters.viewWorldTrans);
             u_projViewWorldTrans = Register(Inputs.projViewWorldTrans, Setters.projViewWorldTrans);
             u_normalMatrix = Register(Inputs.normalMatrix, Setters.normalMatrix);
-            u_bones = (renderable.bones != null && config.numBones > 0) ? register(Inputs.bones, new Setters.Bones(config.numBones))
-                    : -1;
+            u_bones = (renderable.Get_Libraries_Game_Graphics_Renderable__bones_() != null && config.numBones > 0)
+                ? Register(Inputs.bones, new Setters.Bones(config.numBones)) : -1;
 
-            u_shininess = register(Inputs.shininess, Setters.shininess);
-            u_opacity = register(Inputs.opacity);
-            u_diffuseColor = register(Inputs.diffuseColor, Setters.diffuseColor);
-            u_diffuseTexture = register(Inputs.diffuseTexture, Setters.diffuseTexture);
-            u_diffuseUVTransform = register(Inputs.diffuseUVTransform, Setters.diffuseUVTransform);
-            u_specularColor = register(Inputs.specularColor, Setters.specularColor);
-            u_specularTexture = register(Inputs.specularTexture, Setters.specularTexture);
-            u_specularUVTransform = register(Inputs.specularUVTransform, Setters.specularUVTransform);
-            u_emissiveColor = register(Inputs.emissiveColor, Setters.emissiveColor);
-            u_emissiveTexture = register(Inputs.emissiveTexture, Setters.emissiveTexture);
-            u_emissiveUVTransform = register(Inputs.emissiveUVTransform, Setters.emissiveUVTransform);
-            u_reflectionColor = register(Inputs.reflectionColor, Setters.reflectionColor);
-            u_reflectionTexture = register(Inputs.reflectionTexture, Setters.reflectionTexture);
-            u_reflectionUVTransform = register(Inputs.reflectionUVTransform, Setters.reflectionUVTransform);
-            u_normalTexture = register(Inputs.normalTexture, Setters.normalTexture);
-            u_normalUVTransform = register(Inputs.normalUVTransform, Setters.normalUVTransform);
-            u_ambientTexture = register(Inputs.ambientTexture, Setters.ambientTexture);
-            u_ambientUVTransform = register(Inputs.ambientUVTransform, Setters.ambientUVTransform);
-            u_alphaTest = register(Inputs.alphaTest);
+            u_shininess = Register(Inputs.shininess, Setters.shininess);
+            u_opacity = Register(Inputs.opacity);
+            u_diffuseColor = Register(Inputs.diffuseColor, Setters.diffuseColor);
+            u_diffuseTexture = Register(Inputs.diffuseTexture, Setters.diffuseTexture);
+            u_diffuseUVTransform = Register(Inputs.diffuseUVTransform, Setters.diffuseUVTransform);
+            u_specularColor = Register(Inputs.specularColor, Setters.specularColor);
+            u_specularTexture = Register(Inputs.specularTexture, Setters.specularTexture);
+            u_specularUVTransform = Register(Inputs.specularUVTransform, Setters.specularUVTransform);
+            u_emissiveColor = Register(Inputs.emissiveColor, Setters.emissiveColor);
+            u_emissiveTexture = Register(Inputs.emissiveTexture, Setters.emissiveTexture);
+            u_emissiveUVTransform = Register(Inputs.emissiveUVTransform, Setters.emissiveUVTransform);
+            u_reflectionColor = Register(Inputs.reflectionColor, Setters.reflectionColor);
+            u_reflectionTexture = Register(Inputs.reflectionTexture, Setters.reflectionTexture);
+            u_reflectionUVTransform = Register(Inputs.reflectionUVTransform, Setters.reflectionUVTransform);
+            u_normalTexture = Register(Inputs.normalTexture, Setters.normalTexture);
+            u_normalUVTransform = Register(Inputs.normalUVTransform, Setters.normalUVTransform);
+            u_ambientTexture = Register(Inputs.ambientTexture, Setters.ambientTexture);
+            u_ambientUVTransform = Register(Inputs.ambientUVTransform, Setters.ambientUVTransform);
+            u_alphaTest = Register(Inputs.alphaTest);
 
+            /*
             u_ambientCubemap = lighting ? register(Inputs.ambientCube, new Setters.ACubemap(config.numDirectionalLights,
                     config.numPointLights)) : -1;
             u_environmentCubemap = environmentCubemap ? register(Inputs.environmentCubemap, Setters.environmentCubemap) : -1;
@@ -762,120 +776,161 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 		spotLightsSize = loc(u_spotLights1color) - spotLightsLoc;
 		if (spotLightsSize < 0) spotLightsSize = 0;
 	}
+        
+        */
 
-	private static final boolean and (final long mask, final long flag) {
+	private static final boolean And (final long mask, final long flag) {
 		return (mask & flag) == flag;
 	}
 
-	private static final boolean or (final long mask, final long flag) {
+	private static final boolean Or (final long mask, final long flag) {
 		return (mask & flag) != 0;
 	}
 
-	private final static Attributes tmpAttributes = new Attributes();
-
 	// TODO: Perhaps move responsibility for combining attributes to RenderableProvider?
-	private static final Attributes combineAttributes (final Renderable renderable) {
-		tmpAttributes.clear();
-		if (renderable.environment != null) tmpAttributes.set(renderable.environment);
-		if (renderable.material != null) tmpAttributes.set(renderable.material);
-		return tmpAttributes;
+	private static final Attributes CombineAttributes (final Renderable_ renderable) 
+        {
+            tmpAttributes.Empty();
+            if (renderable.Get_Libraries_Game_Graphics_Renderable__environment_() != null)
+                tmpAttributes.Add(renderable.Get_Libraries_Game_Graphics_Renderable__environment_());
+            if (renderable.Get_Libraries_Game_Graphics_Renderable__material_() != null)
+                tmpAttributes.Add(renderable.Get_Libraries_Game_Graphics_Renderable__material_());
+
+            return tmpAttributes;
 	}
 
-	public static String createPrefix (final Renderable renderable, final Config config) {
-		final Attributes attributes = combineAttributes(renderable);
-		String prefix = "";
-		final long attributesMask = attributes.getMask();
-		final long vertexMask = renderable.meshPart.mesh.getVertexAttributes().getMask();
-		if (and(vertexMask, Usage.Position)) prefix += "#define positionFlag\n";
-		if (or(vertexMask, Usage.ColorUnpacked | Usage.ColorPacked)) prefix += "#define colorFlag\n";
-		if (and(vertexMask, Usage.BiNormal)) prefix += "#define binormalFlag\n";
-		if (and(vertexMask, Usage.Tangent)) prefix += "#define tangentFlag\n";
-		if (and(vertexMask, Usage.Normal)) prefix += "#define normalFlag\n";
-		if (and(vertexMask, Usage.Normal) || and(vertexMask, Usage.Tangent | Usage.BiNormal)) {
-			if (renderable.environment != null) {
-				prefix += "#define lightingFlag\n";
-				prefix += "#define ambientCubemapFlag\n";
-				prefix += "#define numDirectionalLights " + config.numDirectionalLights + "\n";
-				prefix += "#define numPointLights " + config.numPointLights + "\n";
-				prefix += "#define numSpotLights " + config.numSpotLights + "\n";
-				if (attributes.has(ColorAttribute.Fog)) {
-					prefix += "#define fogFlag\n";
-				}
-				if (renderable.environment.shadowMap != null) prefix += "#define shadowMapFlag\n";
-				if (attributes.has(CubemapAttribute.EnvironmentMap)) prefix += "#define environmentCubemapFlag\n";
-			}
-		}
-		final int n = renderable.meshPart.mesh.getVertexAttributes().size();
-		for (int i = 0; i < n; i++) {
-			final VertexAttribute attr = renderable.meshPart.mesh.getVertexAttributes().get(i);
-			if (attr.usage == Usage.BoneWeight)
-				prefix += "#define boneWeight" + attr.unit + "Flag\n";
-			else if (attr.usage == Usage.TextureCoordinates) prefix += "#define texCoord" + attr.unit + "Flag\n";
-		}
-		if ((attributesMask & BlendingAttribute.Type) == BlendingAttribute.Type)
-			prefix += "#define " + BlendingAttribute.Alias + "Flag\n";
-		if ((attributesMask & TextureAttribute.Diffuse) == TextureAttribute.Diffuse) {
-			prefix += "#define " + TextureAttribute.DiffuseAlias + "Flag\n";
-			prefix += "#define " + TextureAttribute.DiffuseAlias + "Coord texCoord0\n"; // FIXME implement UV mapping
-		}
-		if ((attributesMask & TextureAttribute.Specular) == TextureAttribute.Specular) {
-			prefix += "#define " + TextureAttribute.SpecularAlias + "Flag\n";
-			prefix += "#define " + TextureAttribute.SpecularAlias + "Coord texCoord0\n"; // FIXME implement UV mapping
-		}
-		if ((attributesMask & TextureAttribute.Normal) == TextureAttribute.Normal) {
-			prefix += "#define " + TextureAttribute.NormalAlias + "Flag\n";
-			prefix += "#define " + TextureAttribute.NormalAlias + "Coord texCoord0\n"; // FIXME implement UV mapping
-		}
-		if ((attributesMask & TextureAttribute.Emissive) == TextureAttribute.Emissive) {
-			prefix += "#define " + TextureAttribute.EmissiveAlias + "Flag\n";
-			prefix += "#define " + TextureAttribute.EmissiveAlias + "Coord texCoord0\n"; // FIXME implement UV mapping
-		}
-		if ((attributesMask & TextureAttribute.Reflection) == TextureAttribute.Reflection) {
-			prefix += "#define " + TextureAttribute.ReflectionAlias + "Flag\n";
-			prefix += "#define " + TextureAttribute.ReflectionAlias + "Coord texCoord0\n"; // FIXME implement UV mapping
-		}
-		if ((attributesMask & TextureAttribute.Ambient) == TextureAttribute.Ambient) {
-			prefix += "#define " + TextureAttribute.AmbientAlias + "Flag\n";
-			prefix += "#define " + TextureAttribute.AmbientAlias + "Coord texCoord0\n"; // FIXME implement UV mapping
-		}
-		if ((attributesMask & ColorAttribute.Diffuse) == ColorAttribute.Diffuse)
-			prefix += "#define " + ColorAttribute.DiffuseAlias + "Flag\n";
-		if ((attributesMask & ColorAttribute.Specular) == ColorAttribute.Specular)
-			prefix += "#define " + ColorAttribute.SpecularAlias + "Flag\n";
-		if ((attributesMask & ColorAttribute.Emissive) == ColorAttribute.Emissive)
-			prefix += "#define " + ColorAttribute.EmissiveAlias + "Flag\n";
-		if ((attributesMask & ColorAttribute.Reflection) == ColorAttribute.Reflection)
-			prefix += "#define " + ColorAttribute.ReflectionAlias + "Flag\n";
-		if ((attributesMask & FloatAttribute.Shininess) == FloatAttribute.Shininess)
-			prefix += "#define " + FloatAttribute.ShininessAlias + "Flag\n";
-		if ((attributesMask & FloatAttribute.AlphaTest) == FloatAttribute.AlphaTest)
-			prefix += "#define " + FloatAttribute.AlphaTestAlias + "Flag\n";
-		if (renderable.bones != null && config.numBones > 0) prefix += "#define numBones " + config.numBones + "\n";
-		return prefix;
+	public static String CreatePrefix(final Renderable_ renderable, final Config config) 
+        {   
+            final Attributes attributes = CombineAttributes(renderable);
+            String prefix = "";
+            final long attributesMask = attributes.GetMask();
+            final long vertexMask = renderable.Get_Libraries_Game_Graphics_Renderable__meshPart_()
+                .Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_().GetVertexAttributes().GetMask();
+            if (And(vertexMask, usage.POSITION))
+                prefix += "#define positionFlag\n";
+            if (Or(vertexMask, usage.COLOR_PACKED | usage.COLOR_UNPACKED))
+                prefix += "#define colorFlag\n";
+            if (And(vertexMask, usage.BINORMAL))
+                prefix += "#define binormalFlag\n";
+            if (And(vertexMask, usage.TANGENT))
+                prefix += "#define tangentFlag\n";
+            if (And(vertexMask, usage.NORMAL))
+                prefix += "#define normalFlag\n";
+            if (And(vertexMask, usage.NORMAL) || And(vertexMask, usage.TANGENT | usage.BINORMAL)) 
+            {
+                if (renderable.Get_Libraries_Game_Graphics_Renderable__environment_() != null) 
+                {
+                    prefix += "#define lightingFlag\n";
+                    prefix += "#define ambientCubemapFlag\n";
+                    prefix += "#define numDirectionalLights " + config.numDirectionalLights + "\n";
+                    prefix += "#define numPointLights " + config.numPointLights + "\n";
+                    prefix += "#define numSpotLights " + config.numSpotLights + "\n";
+                    if (attributes.HasAttribute(colorAttribute.GetFogValue())) 
+                    {
+                        prefix += "#define fogFlag\n";
+                    }
+                    //if (renderable.Get_Libraries_Game_Graphics_Renderable__environment_().shadowMap != null) prefix += "#define shadowMapFlag\n";
+                    //if (attributes.has(CubemapAttribute.EnvironmentMap)) prefix += "#define environmentCubemapFlag\n";
+                }
+            }
+            
+            final int n = renderable.Get_Libraries_Game_Graphics_Renderable__meshPart_().Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_()
+                .GetVertexAttributes().GetSize();
+            
+            for (int i = 0; i < n; i++) 
+            {
+                final VertexAttribute attr = (VertexAttribute)renderable.Get_Libraries_Game_Graphics_Renderable__meshPart_()
+                    .Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_().GetVertexAttributes().GetAttribute(i);
+                if (attr.usage == usage.BONE_WEIGHT)
+                    prefix += "#define boneWeight" + attr.unit + "Flag\n";
+                else if (attr.usage == usage.TEXTURE_COORDINATES)
+                    prefix += "#define texCoord" + attr.unit + "Flag\n";
+            }
+            
+            if ((attributesMask & blendingAttribute.GetBlendedValue()) == blendingAttribute.GetBlendedValue())
+                prefix += "#define " + blendingAttribute.ALIAS + "Flag\n";
+            if ((attributesMask & textureAttribute.GetDiffuseValue()) == textureAttribute.GetDiffuseValue()) 
+            {
+                prefix += "#define " + textureAttribute.DIFFUSE_ALIAS + "Flag\n";
+                prefix += "#define " + textureAttribute.DIFFUSE_ALIAS + "Coord texCoord0\n"; // FIXME implement UV mapping
+            }
+            if ((attributesMask & textureAttribute.GetSpecularValue()) == textureAttribute.GetSpecularValue()) 
+            {
+                prefix += "#define " + textureAttribute.SPECULAR_ALIAS + "Flag\n";
+                prefix += "#define " + textureAttribute.SPECULAR_ALIAS + "Coord texCoord0\n"; // FIXME implement UV mapping
+            }
+            if ((attributesMask & textureAttribute.GetNormalValue()) == textureAttribute.GetNormalValue()) 
+            {
+                prefix += "#define " + textureAttribute.NORMAL_ALIAS + "Flag\n";
+                prefix += "#define " + textureAttribute.NORMAL_ALIAS + "Coord texCoord0\n"; // FIXME implement UV mapping
+            }
+            if ((attributesMask & textureAttribute.GetEmissiveValue()) == textureAttribute.GetEmissiveValue()) 
+            {
+                prefix += "#define " + textureAttribute.EMISSIVE_ALIAS + "Flag\n";
+                prefix += "#define " + textureAttribute.EMISSIVE_ALIAS + "Coord texCoord0\n"; // FIXME implement UV mapping
+            }
+            if ((attributesMask & textureAttribute.GetReflectionValue()) == textureAttribute.GetReflectionValue())
+            {
+                prefix += "#define " + textureAttribute.REFLECTION_ALIAS + "Flag\n";
+                prefix += "#define " + textureAttribute.REFLECTION_ALIAS + "Coord texCoord0\n"; // FIXME implement UV mapping
+            }
+            if ((attributesMask & textureAttribute.GetAmbientValue()) == textureAttribute.GetAmbientValue()) 
+            {
+                prefix += "#define " + textureAttribute.AMBIENT_ALIAS + "Flag\n";
+                prefix += "#define " + textureAttribute.AMBIENT_ALIAS + "Coord texCoord0\n"; // FIXME implement UV mapping
+            }
+            if ((attributesMask & colorAttribute.GetDiffuseValue()) == colorAttribute.GetDiffuseValue())
+                prefix += "#define " + colorAttribute.DIFFUSE_ALIAS + "Flag\n";
+            if ((attributesMask & colorAttribute.GetSpecularValue()) == colorAttribute.GetSpecularValue())
+                prefix += "#define " + colorAttribute.SPECULAR_ALIAS + "Flag\n";
+            if ((attributesMask & colorAttribute.GetEmissiveValue()) == colorAttribute.GetEmissiveValue())
+                prefix += "#define " + colorAttribute.EMISSIVE_ALIAS + "Flag\n";
+            if ((attributesMask & colorAttribute.GetReflectionValue()) == colorAttribute.GetReflectionValue())
+                prefix += "#define " + colorAttribute.REFLECTION_ALIAS + "Flag\n";
+            if ((attributesMask & numberAttribute.GetShininessValue()) == numberAttribute.GetShininessValue())
+                prefix += "#define " + numberAttribute.SHININESS_ALIAS + "Flag\n";
+            if ((attributesMask & numberAttribute.GetAlphaTestValue()) == numberAttribute.GetAlphaTestValue())
+                prefix += "#define " + numberAttribute.ALPHA_TEST_ALIAS + "Flag\n";
+            if (renderable.Get_Libraries_Game_Graphics_Renderable__bones_() != null && config.numBones > 0)
+                prefix += "#define numBones " + config.numBones + "\n";
+            
+            return prefix;
+	}
+
+        /*
+	@Override
+	public boolean CanRender (final Renderable_ renderable) 
+        {
+            final Attributes attributes = CombineAttributes(renderable);
+            return (attributesMask == (attributes.GetMask() | optionalAttributes)) && (vertexMask == renderable.
+                Get_Libraries_Game_Graphics_Renderable__meshPart_().Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_()
+                .GetVertexAttributes().GetMask()) && (renderable.Get_Libraries_Game_Graphics_Renderable__environment_() != null) == lighting;
+	}
+        */
+
+	@Override
+	public int CompareTo(Shader other) 
+        {
+            if (other == null) 
+                return -1;
+            if (other == this) 
+                return 0;
+            
+            return 0; // FIXME compare shaders on their impact on performance
 	}
 
 	@Override
-	public boolean canRender (final Renderable renderable) {
-		final Attributes attributes = combineAttributes(renderable);
-		return (attributesMask == (attributes.getMask() | optionalAttributes))
-			&& (vertexMask == renderable.meshPart.mesh.getVertexAttributes().getMask()) && (renderable.environment != null) == lighting;
+	public boolean equals (Object obj)
+        {
+            return (obj instanceof DefaultShader) ? equals((DefaultShader)obj) : false;
 	}
 
-	@Override
-	public int compareTo (Shader other) {
-		if (other == null) return -1;
-		if (other == this) return 0;
-		return 0; // FIXME compare shaders on their impact on performance
+	public boolean equals (DefaultShader obj) 
+        {
+            return (obj == this);
 	}
-
-	@Override
-	public boolean equals (Object obj) {
-		return (obj instanceof DefaultShader) ? equals((DefaultShader)obj) : false;
-	}
-
-	public boolean equals (DefaultShader obj) {
-		return (obj == this);
-	}
+        
+        /*
 
 	private Matrix3 normalMatrix = new Matrix3();
 	private Camera camera;
