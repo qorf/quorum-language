@@ -3,6 +3,7 @@ package Libraries.Game.Graphics
 use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Game.Graphics.VertexAttribute
+use Libraries.Compute.BitwiseOperations
 
 class VertexAttributes 
     
@@ -20,7 +21,8 @@ class VertexAttributes
 
     public integer vertexSize = 0
 
-    // private long mask = -1 
+    // The cached value of the GetMask action. 
+    private integer mask = -1 
 
     // private ReadOnlyIterable<VertexAttribute> iterable
 
@@ -68,6 +70,28 @@ class VertexAttributes
 
     action GetIterator returns Iterator<VertexAttribute>
         return attributes:GetIterator()
+    end
+
+    /*
+    This action will return an integer mask based on the contained
+    VertexAttribute objects. The integer mask is calculated by using bitwise
+    Or operations on the usage value of each VertexAttribute.
+    */
+    action GetMask returns integer
+        if mask = -1
+            BitwiseOperations bits
+            integer index = 0
+            integer result = 0
+
+            repeat while index < attributes:GetSize()
+                result = bits:Or(result, attributes:Get(index):usage)
+                index = index + 1
+            end
+
+            mask = result
+        end
+
+        return mask
     end
 
     private action CalculateOffsets returns integer
