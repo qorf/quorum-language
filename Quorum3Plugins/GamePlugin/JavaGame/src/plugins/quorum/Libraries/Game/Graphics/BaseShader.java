@@ -190,7 +190,7 @@ public abstract class BaseShader implements Shader
     }
 
     /** Initialize this shader, causing all registered uniforms/attributes to be fetched. */
-    public void Initialize(final ShaderProgram program, final Renderable renderable) 
+    public void Initialize(final ShaderProgram program, final Renderable_ renderable) 
     {
         if (locations != null)
             throw new GameRuntimeError("Already initialized");
@@ -231,7 +231,7 @@ public abstract class BaseShader implements Shader
         
         if (renderable != null) 
         {
-            final VertexAttributes attrs = (VertexAttributes)((MeshPart)renderable.meshPart).mesh.GetVertexAttributes();
+            final VertexAttributes attrs = (VertexAttributes)((MeshPart)((Renderable)renderable).meshPart).mesh.GetVertexAttributes();
             final int c = attrs.GetSize();
             
             for (int i = 0; i < c; i++) 
@@ -286,25 +286,25 @@ public abstract class BaseShader implements Shader
         Render(renderable, combinedAttributes);
     }
 
-    public void Render (Renderable renderable, final Attributes combinedAttributes) 
+    public void Render (Renderable_ renderable, final Attributes combinedAttributes) 
     {
         for (int u, i = 0; i < localUniforms.size; ++i)
             if (setters.get(u = localUniforms.get(i)) != null)
                 setters.get(u).Set(this, u, renderable, combinedAttributes);
             
-            if (currentMesh != ((Mesh)((MeshPart)renderable.meshPart).mesh))
-            {
-                if (currentMesh != null)
-                    currentMesh.plugin_.Unbind(program, tempArray.items);
-                
-                currentMesh = ((Mesh)((MeshPart)renderable.meshPart).mesh);
-                
-                int[] temp = GetAttributeLocations((VertexAttributes)renderable.meshPart.Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_().GetVertexAttributes());
-                currentMesh.plugin_.Bind(program, temp);
-            }
+        if (currentMesh != ((Mesh)((MeshPart)((Renderable)renderable).meshPart).mesh))
+        {
+            if (currentMesh != null)
+                currentMesh.plugin_.Unbind(program, tempArray.items);
 
-            MeshPart meshPart = ((MeshPart)renderable.meshPart);
-            ((Mesh)meshPart.mesh).plugin_.Render(program, meshPart.primitiveType, meshPart.indexOffset, meshPart.verticesCount, false);            
+            currentMesh = ((Mesh)((MeshPart)((Renderable)renderable).meshPart).mesh);
+
+            int[] temp = GetAttributeLocations((VertexAttributes)((Renderable)renderable).meshPart.Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_().GetVertexAttributes());
+            currentMesh.plugin_.Bind(program, temp);
+        }
+
+        MeshPart meshPart = ((MeshPart)((Renderable)renderable).meshPart);
+        ((Mesh)meshPart.mesh).plugin_.Render(program, meshPart.primitiveType, meshPart.indexOffset, meshPart.verticesCount, false);            
     }
 
     @Override

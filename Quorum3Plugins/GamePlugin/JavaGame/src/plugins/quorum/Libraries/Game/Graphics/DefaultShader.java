@@ -5,47 +5,17 @@
  */
 package plugins.quorum.Libraries.Game.Graphics;
 
-/*
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.VertexAttribute;
-import com.badlogic.gdx.graphics.VertexAttributes.Usage;
-import com.badlogic.gdx.graphics.g3d.Attribute;
-import com.badlogic.gdx.graphics.g3d.Attributes;
-import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Renderable;
-import com.badlogic.gdx.graphics.g3d.Shader;
-import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.CubemapAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.DirectionalLightsAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.SpotLightsAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
-import com.badlogic.gdx.graphics.g3d.environment.AmbientCubemap;
-import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.g3d.environment.PointLight;
-import com.badlogic.gdx.graphics.g3d.environment.SpotLight;
-import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import com.badlogic.gdx.math.Matrix3;
-import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.GdxRuntimeException;
-*/
-
 import plugins.quorum.Libraries.Game.GameRuntimeError;
+import plugins.quorum.Libraries.Game.GameState;
 import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
+import quorum.Libraries.Compute.Matrix3;
 import quorum.Libraries.Compute.Matrix3_;
 import quorum.Libraries.Compute.Matrix4;
 import quorum.Libraries.Compute.Matrix4_;
+import quorum.Libraries.Compute.Vector3;
 import quorum.Libraries.Game.Graphics.Attributes;
 import quorum.Libraries.Game.Graphics.BlendingAttribute;
+import quorum.Libraries.Game.Graphics.Camera_;
 import quorum.Libraries.Game.Graphics.ColorAttribute;
 import quorum.Libraries.Game.Graphics.NumberAttribute;
 import quorum.Libraries.Game.Graphics.IntegerAttribute;
@@ -457,59 +427,63 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
                 }
             };
 
-            /*
             public static class ACubemap extends LocalSetter 
             {
-                    private final static float ones[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-                    private final AmbientCubemap cacheAmbientCubemap = new AmbientCubemap();
-                    private final static Vector3 tmpV1 = new Vector3();
-                    public final int dirLightsOffset;
-                    public final int pointLightsOffset;
+                private final static float ones[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+                private final AmbientCubemap cacheAmbientCubemap = new AmbientCubemap();
+                private static Vector3 tmpV1;
+                public final int dirLightsOffset;
+                public final int pointLightsOffset;
 
-                    public ACubemap (final int dirLightsOffset, final int pointLightsOffset) {
-                            this.dirLightsOffset = dirLightsOffset;
-                            this.pointLightsOffset = pointLightsOffset;
+                public ACubemap (final int dirLightsOffset, final int pointLightsOffset) 
+                {
+                    this.dirLightsOffset = dirLightsOffset;
+                    this.pointLightsOffset = pointLightsOffset;
+                }
+
+                @Override
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    if (renderable.Get_Libraries_Game_Graphics_Renderable__environment_() == null)
+                        shader.program.setUniform3fv(shader.Location(inputID), ones, 0, ones.length);
+                    else 
+                    {
+                        tmpV1 = (Vector3)renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_().GetTranslation();
+                        if (combinedAttributes.HasAttribute(colorAttribute.GetAmbientLightValue()))
+                            cacheAmbientCubemap.Set(((ColorAttribute)combinedAttributes.GetAttribute(colorAttribute.GetAmbientLightValue())).color);
+
+                        if (combinedAttributes.HasAttribute(DirectionalLightsAttribute.Type)) 
+                        {
+                            Array<DirectionalLight> lights = ((DirectionalLightsAttribute)combinedAttributes
+                                .get(DirectionalLightsAttribute.Type)).lights;
+                            for (int i = dirLightsOffset; i < lights.size; i++)
+                                cacheAmbientCubemap.add(lights.get(i).color, lights.get(i).direction);
+                        }
+
+                        if (combinedAttributes.has(PointLightsAttribute.Type)) {
+                                Array<PointLight> lights = ((PointLightsAttribute)combinedAttributes.get(PointLightsAttribute.Type)).lights;
+                                for (int i = pointLightsOffset; i < lights.size; i++)
+                                        cacheAmbientCubemap.add(lights.get(i).color, lights.get(i).position, tmpV1, lights.get(i).intensity);
+                        }
+
+                        cacheAmbientCubemap.clamp();
+                        shader.program.setUniform3fv(shader.Location(inputID), cacheAmbientCubemap.data, 0, cacheAmbientCubemap.data.length);
                     }
-
-                    @Override
-                    public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-                            if (renderable.environment == null)
-                                    shader.program.setUniform3fv(shader.loc(inputID), ones, 0, ones.length);
-                            else {
-                                    renderable.worldTransform.getTranslation(tmpV1);
-                                    if (combinedAttributes.has(ColorAttribute.AmbientLight))
-                                            cacheAmbientCubemap.set(((ColorAttribute)combinedAttributes.get(ColorAttribute.AmbientLight)).color);
-
-                                    if (combinedAttributes.has(DirectionalLightsAttribute.Type)) {
-                                            Array<DirectionalLight> lights = ((DirectionalLightsAttribute)combinedAttributes
-                                                    .get(DirectionalLightsAttribute.Type)).lights;
-                                            for (int i = dirLightsOffset; i < lights.size; i++)
-                                                    cacheAmbientCubemap.add(lights.get(i).color, lights.get(i).direction);
-                                    }
-
-                                    if (combinedAttributes.has(PointLightsAttribute.Type)) {
-                                            Array<PointLight> lights = ((PointLightsAttribute)combinedAttributes.get(PointLightsAttribute.Type)).lights;
-                                            for (int i = pointLightsOffset; i < lights.size; i++)
-                                                    cacheAmbientCubemap.add(lights.get(i).color, lights.get(i).position, tmpV1, lights.get(i).intensity);
-                                    }
-
-                                    cacheAmbientCubemap.clamp();
-                                    shader.program.setUniform3fv(shader.loc(inputID), cacheAmbientCubemap.data, 0, cacheAmbientCubemap.data.length);
-                            }
-                    }
+                }
             }
             
-            public final static Setter environmentCubemap = new LocalSetter() {
-                    @Override
-                    public void set (BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-                            if (combinedAttributes.has(CubemapAttribute.EnvironmentMap)) {
-                                    shader.set(inputID, shader.context.textureBinder.bind(((CubemapAttribute)combinedAttributes
-                                            .get(CubemapAttribute.EnvironmentMap)).textureDescription));
-                            }
+            public final static Setter environmentCubemap = new LocalSetter() 
+            {
+                @Override
+                public void Set (BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    if (combinedAttributes.HasAttribute(CubemapAttribute.EnvironmentMap)) 
+                    {
+                        shader.Set(inputID, shader.context.textureBinder.bind(((CubemapAttribute)combinedAttributes
+                            .get(CubemapAttribute.EnvironmentMap)).textureDescription));
                     }
+                }
             };
-            
-            */
 	}
 
 	private static String defaultVertexShader = null;
@@ -640,6 +614,11 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
         private final static Attributes tmpAttributes = new Attributes();
         private final static VertexAttributes usage = new VertexAttributes();
         
+        private Matrix3 normalMatrix = new Matrix3();
+	private Camera_ camera;
+	private float time;
+	private boolean lightsSet;
+        
         static
         {   
             implementedFlags = blendingAttribute.GetBlendedValue() | textureAttribute.GetDiffuseValue()
@@ -744,40 +723,40 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
             */
 	}
         
-        /*
-
 	@Override
-	public void init () {
-		final ShaderProgram program = this.program;
-		this.program = null;
-		init(program, renderable);
-		renderable = null;
+	public void Initialize() 
+        {
+            final ShaderProgram program = this.program;
+            this.program = null;
+            Initialize(program, renderable);
+            renderable = null;
 
-		dirLightsLoc = loc(u_dirLights0color);
-		dirLightsColorOffset = loc(u_dirLights0color) - dirLightsLoc;
-		dirLightsDirectionOffset = loc(u_dirLights0direction) - dirLightsLoc;
-		dirLightsSize = loc(u_dirLights1color) - dirLightsLoc;
-		if (dirLightsSize < 0) dirLightsSize = 0;
+            dirLightsLoc = Location(u_dirLights0color);
+            dirLightsColorOffset = Location(u_dirLights0color) - dirLightsLoc;
+            dirLightsDirectionOffset = Location(u_dirLights0direction) - dirLightsLoc;
+            dirLightsSize = Location(u_dirLights1color) - dirLightsLoc;
+            if (dirLightsSize < 0) 
+                dirLightsSize = 0;
 
-		pointLightsLoc = loc(u_pointLights0color);
-		pointLightsColorOffset = loc(u_pointLights0color) - pointLightsLoc;
-		pointLightsPositionOffset = loc(u_pointLights0position) - pointLightsLoc;
-		pointLightsIntensityOffset = has(u_pointLights0intensity) ? loc(u_pointLights0intensity) - pointLightsLoc : -1;
-		pointLightsSize = loc(u_pointLights1color) - pointLightsLoc;
-		if (pointLightsSize < 0) pointLightsSize = 0;
+            pointLightsLoc = Location(u_pointLights0color);
+            pointLightsColorOffset = Location(u_pointLights0color) - pointLightsLoc;
+            pointLightsPositionOffset = Location(u_pointLights0position) - pointLightsLoc;
+            pointLightsIntensityOffset = Has(u_pointLights0intensity) ? Location(u_pointLights0intensity) - pointLightsLoc : -1;
+            pointLightsSize = Location(u_pointLights1color) - pointLightsLoc;
+            if (pointLightsSize < 0)
+                pointLightsSize = 0;
 
-		spotLightsLoc = loc(u_spotLights0color);
-		spotLightsColorOffset = loc(u_spotLights0color) - spotLightsLoc;
-		spotLightsPositionOffset = loc(u_spotLights0position) - spotLightsLoc;
-		spotLightsDirectionOffset = loc(u_spotLights0direction) - spotLightsLoc;
-		spotLightsIntensityOffset = has(u_spotLights0intensity) ? loc(u_spotLights0intensity) - spotLightsLoc : -1;
-		spotLightsCutoffAngleOffset = loc(u_spotLights0cutoffAngle) - spotLightsLoc;
-		spotLightsExponentOffset = loc(u_spotLights0exponent) - spotLightsLoc;
-		spotLightsSize = loc(u_spotLights1color) - spotLightsLoc;
-		if (spotLightsSize < 0) spotLightsSize = 0;
+            spotLightsLoc = Location(u_spotLights0color);
+            spotLightsColorOffset = Location(u_spotLights0color) - spotLightsLoc;
+            spotLightsPositionOffset = Location(u_spotLights0position) - spotLightsLoc;
+            spotLightsDirectionOffset = Location(u_spotLights0direction) - spotLightsLoc;
+            spotLightsIntensityOffset = Has(u_spotLights0intensity) ? Location(u_spotLights0intensity) - spotLightsLoc : -1;
+            spotLightsCutoffAngleOffset = Location(u_spotLights0cutoffAngle) - spotLightsLoc;
+            spotLightsExponentOffset = Location(u_spotLights0exponent) - spotLightsLoc;
+            spotLightsSize = Location(u_spotLights1color) - spotLightsLoc;
+            if (spotLightsSize < 0)
+                spotLightsSize = 0;
 	}
-        
-        */
 
 	private static final boolean And (final long mask, final long flag) {
 		return (mask & flag) == flag;
@@ -930,71 +909,85 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
             return (obj == this);
 	}
         
+	@Override
+	public void Begin(final Camera_ camera, final RenderContext context) 
+        {
+            super.Begin(camera, context);
+
+            /*
+            for (final DirectionalLight dirLight : directionalLights)
+                    dirLight.set(0, 0, 0, 0, -1, 0);
+            for (final PointLight pointLight : pointLights)
+                    pointLight.set(0, 0, 0, 0, 0, 0, 0);
+            for (final SpotLight spotLight : spotLights)
+                    spotLight.set(0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0);
+            */
+            lightsSet = false;
+
+            if (Has(u_time))
+                Set(u_time, time += (float)GameState.GetDisplay().GetSecondsBetweenFrames());
+	}
+
+	@Override
+	public void Render(Renderable_ renderable, Attributes combinedAttributes) 
+        {
+		if (!combinedAttributes.HasAttribute(blendingAttribute.GetBlendedValue()))
+			context.SetBlending(false, GraphicsManager.GL_SRC_ALPHA, GraphicsManager.GL_ONE_MINUS_SRC_ALPHA);
+		BindMaterial(combinedAttributes);
+		//if (lighting)
+                //    bindLights(renderable, combinedAttributes);
+		
+                super.Render(renderable, combinedAttributes);
+	}
+
+	@Override
+	public void End () 
+        {
+            super.End();
+	}
+        
+	protected void BindMaterial (final Attributes attributes) 
+        {
+            int cullFace = config.defaultCullFace == -1 ? defaultCullFace : config.defaultCullFace;
+            int depthFunc = config.defaultDepthFunc == -1 ? defaultDepthFunc : config.defaultDepthFunc;
+            float depthRangeNear = 0f;
+            float depthRangeFar = 1f;
+            boolean depthMask = true;
+
+            quorum.Libraries.Containers.Array_ attributeArray = attributes.GetAttributeArray();
+            
+            for (int i = 0; i < attributeArray.GetSize(); i++)
+            {
+                quorum.Libraries.Game.Graphics.Attribute_ attr = (quorum.Libraries.Game.Graphics.Attribute_)attributeArray.Get(i);
+                
+                final long t = attr.Get_Libraries_Game_Graphics_Attribute__type_();
+                if ((t & (long)blendingAttribute.GetBlendedValue()) == t) 
+                {
+                    context.SetBlending(true, ((BlendingAttribute)attr).sourceFunction, ((BlendingAttribute)attr).destFunction);
+                    Set(u_opacity, (float)((BlendingAttribute)attr).opacity);
+                }
+                else if ((t & integerAttribute.GetCullFaceValue()) == integerAttribute.GetCullFaceValue())
+                    cullFace = ((IntegerAttribute)attr).value;
+                else if ((t & numberAttribute.GetAlphaTestValue()) == numberAttribute.GetAlphaTestValue())
+                    Set(u_alphaTest, (float)((NumberAttribute)attr).value);
+                else if ((t & depthTestAttribute.GetDepthTestValue()) == depthTestAttribute.GetDepthTestValue()) 
+                {
+                    DepthTestAttribute dta = (DepthTestAttribute)attr;
+                    depthFunc = dta.depthFunction;
+                    depthRangeNear = dta.depthRangeNear;
+                    depthRangeFar = dta.depthRangeFar;
+                    depthMask = dta.depthMask;
+                } 
+                else if (!config.ignoreUnimplemented)
+                    throw new GameRuntimeError("Unknown material attribute: " + attr.toString());
+            }
+
+            context.SetCullFace(cullFace);
+            context.SetDepthTest(depthFunc, depthRangeNear, depthRangeFar);
+            context.SetDepthMask(depthMask);
+	}
+        
         /*
-
-	private Matrix3 normalMatrix = new Matrix3();
-	private Camera camera;
-	private float time;
-	private boolean lightsSet;
-
-	@Override
-	public void begin (final Camera camera, final RenderContext context) {
-		super.begin(camera, context);
-
-		for (final DirectionalLight dirLight : directionalLights)
-			dirLight.set(0, 0, 0, 0, -1, 0);
-		for (final PointLight pointLight : pointLights)
-			pointLight.set(0, 0, 0, 0, 0, 0, 0);
-		for (final SpotLight spotLight : spotLights)
-			spotLight.set(0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0);
-		lightsSet = false;
-
-		if (has(u_time)) set(u_time, time += Gdx.graphics.getDeltaTime());
-	}
-
-	@Override
-	public void render (Renderable renderable, Attributes combinedAttributes) {
-		if (!combinedAttributes.has(BlendingAttribute.Type))
-			context.setBlending(false, GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-		bindMaterial(combinedAttributes);
-		if (lighting) bindLights(renderable, combinedAttributes);
-		super.render(renderable, combinedAttributes);
-	}
-
-	@Override
-	public void end () {
-		super.end();
-	}
-
-	protected void bindMaterial (final Attributes attributes) {
-		int cullFace = config.defaultCullFace == -1 ? defaultCullFace : config.defaultCullFace;
-		int depthFunc = config.defaultDepthFunc == -1 ? defaultDepthFunc : config.defaultDepthFunc;
-		float depthRangeNear = 0f;
-		float depthRangeFar = 1f;
-		boolean depthMask = true;
-
-		for (final Attribute attr : attributes) {
-			final long t = attr.type;
-			if (BlendingAttribute.is(t)) {
-				context.setBlending(true, ((BlendingAttribute)attr).sourceFunction, ((BlendingAttribute)attr).destFunction);
-				set(u_opacity, ((BlendingAttribute)attr).opacity);
-			} else if ((t & IntAttribute.CullFace) == IntAttribute.CullFace)
-				cullFace = ((IntAttribute)attr).value;
-			else if ((t & FloatAttribute.AlphaTest) == FloatAttribute.AlphaTest)
-				set(u_alphaTest, ((FloatAttribute)attr).value);
-			else if ((t & DepthTestAttribute.Type) == DepthTestAttribute.Type) {
-				DepthTestAttribute dta = (DepthTestAttribute)attr;
-				depthFunc = dta.depthFunc;
-				depthRangeNear = dta.depthRangeNear;
-				depthRangeFar = dta.depthRangeFar;
-				depthMask = dta.depthMask;
-			} else if (!config.ignoreUnimplemented) throw new GdxRuntimeException("Unknown material attribute: " + attr.toString());
-		}
-
-		context.setCullFace(cullFace);
-		context.setDepthTest(depthFunc, depthRangeNear, depthRangeFar);
-		context.setDepthMask(depthMask);
-	}
 
 	private final Vector3 tmpV1 = new Vector3();
 
@@ -1082,29 +1075,34 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 
 		lightsSet = true;
 	}
+        */
 
 	@Override
-	public void dispose () {
-		program.dispose();
-		super.dispose();
+	public void Dispose ()
+        {
+            program.dispose();
+            super.Dispose();
 	}
 
-	public int getDefaultCullFace () {
-		return config.defaultCullFace == -1 ? defaultCullFace : config.defaultCullFace;
+	public int GetDefaultCullFace () 
+        {
+            return config.defaultCullFace == -1 ? defaultCullFace : config.defaultCullFace;
 	}
 
-	public void setDefaultCullFace (int cullFace) {
-		config.defaultCullFace = cullFace;
+	public void SetDefaultCullFace (int cullFace) 
+        {
+            config.defaultCullFace = cullFace;
 	}
 
-	public int getDefaultDepthFunc () {
-		return config.defaultDepthFunc == -1 ? defaultDepthFunc : config.defaultDepthFunc;
+	public int GetDefaultDepthFunc () 
+        {
+            return config.defaultDepthFunc == -1 ? defaultDepthFunc : config.defaultDepthFunc;
 	}
 
-	public void setDefaultDepthFunc (int depthFunc) {
-		config.defaultDepthFunc = depthFunc;
+	public void SetDefaultDepthFunc (int depthFunc) 
+        {
+            config.defaultDepthFunc = depthFunc;
 	}
-        */
         
         /*
         Returns a single value of a matrix given an integer representing the
