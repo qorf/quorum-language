@@ -8,75 +8,75 @@ class PointLight is BaseLight
     /*
     Where the light is currently positioned in 3D space.
     */
-//    public Vector3 position
-//
-//    /*
-//    How bright the light is.
-//    */
-//    public number intensity = 0
-//
-//    /*
-//    This action will position the light in 3D space at the given x, y, and z
-//    values.
-//    */
-//    action SetPosition(number x, number y, number z)
-//        position:Set(x, y, z)
-//    end
-//
-//    /*
-//    This action will position the light in 3D space at the point indicated by
-//    the given Vector3 object.
-//    */
-//    action SetPosition(Vector3 newPosition)
-//        position:Set(newPosition)
-//    end
-//
-//    /*
-//    This action will return the current position of this object in 3D space.
-//    The position is returned as a Vector3 object.
-//    */
-//    action GetPosition returns Vector3
-//        return position
-//    end
-//
-//    /*
-//    This action will set the intensity of this light, which indicates how bright
-//    it is.
-//    */
-//    action SetIntensity(number newIntensity)
-//        intensity = newIntensity
-//    end
-//
-//    /*
-//    This action returns the intensity of this light. The intensity is a measure
-//    of the brightness of the light.
-//    */
-//    action GetIntensity returns number
-//        return intensity
-//    end
-//
-//    /*
-//    This action will set the color, position, and intensity of this light by
-//    copying the attributes of the given PointLight.
-//    */
-//    action SetLight(PointLight copyFrom)
-//        SetLight(copyFrom:GetColor(), copyFrom:position, copyFrom:intensity)
-//    end
-//
-//    /*
-//    This action will set the color, position, and intensity of this light to
-//    match the given values.
-//    */
-//    action SetLight(Color newColor, Vector3 newPosition, number newIntensity)
-//        if newColor not= undefined
-//            color:SetColor(newColor)
-//        end
-//
-//        if position not= undefined
-//            position:Set(newPosition)
-//        end
-//
-//        intensity = newIntensity
-//    end
+    public Vector3 position
+
+    /*
+    How bright the light is.
+    */
+    public number intensity = 0
+
+    /*
+    This action will position the light in 3D space at the given x, y, and z
+    values.
+    */
+    action SetPosition(number x, number y, number z)
+        position:Set(x, y, z)
+    end
+
+    /*
+    This action will position the light in 3D space at the point indicated by
+    the given Vector3 object.
+    */
+    action SetPosition(Vector3 newPosition)
+        position:Set(newPosition)
+    end
+
+    /*
+    This action will return the current position of this object in 3D space.
+    The position is returned as a Vector3 object.
+    */
+    action GetPosition returns Vector3
+        return position
+    end
+
+    /*
+    This action will set the intensity of this light, which indicates how bright
+    it is.
+    */
+    action SetIntensity(number newIntensity)
+        intensity = newIntensity
+    end
+
+    /*
+    This action returns the intensity of this light. The intensity is a measure
+    of the brightness of the light.
+    */
+    action GetIntensity returns number
+        return intensity
+    end
+
+    /*
+    This action will set the color, position, and intensity of this light by
+    copying the attributes of the given PointLight.
+    */
+    action SetLight(PointLight copyFrom)
+        SetLight(copyFrom:GetColor(), copyFrom:position, copyFrom:intensity)
+    end
+
+    /*
+    This action will set the color, position, and intensity of this light to
+    match the given values.
+    */
+    action SetLight(Color newColor, Vector3 newPosition, number newIntensity)
+        if newColor not= undefined
+            SetColor(newColor)
+        end
+
+        if position not= undefined
+            position:Set(newPosition)
+        end
+
+        intensity = newIntensity
+    end
 
 end
