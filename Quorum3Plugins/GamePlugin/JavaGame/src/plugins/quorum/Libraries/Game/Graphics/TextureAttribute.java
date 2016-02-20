@@ -7,7 +7,7 @@ package plugins.quorum.Libraries.Game.Graphics;
 
 /**
  *
- * @author Bill
+ * @author alleew
  */
 public class TextureAttribute extends Attribute
 {
