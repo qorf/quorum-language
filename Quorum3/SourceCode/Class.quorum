@@ -1846,6 +1846,14 @@ class Class is Symbol
         repeat while value:HasNext()
             Class c = value:Next()
             c:RemoveCallLocationsFromActions(file)
+            c:RemoveUseLocations(file)
+        end
+    end
+
+    action RemoveUseLocations(File file)
+        text path = file:GetAbsolutePath()
+        if useLocationHash:HasKey(path)
+            useLocationHash:RemoveKey(path)
         end
     end
 
