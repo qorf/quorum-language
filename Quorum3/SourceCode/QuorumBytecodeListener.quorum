@@ -1359,6 +1359,13 @@ class QuorumBytecodeListener is QuorumSourceListener
         Location typeLocation = context:typeLocation
         typeLocation = typeLocation:CreateLocationCopy()
         variable:SetTypeLocation(typeLocation)
+
+        if not left:IsPrimitive()
+            SymbolTable table = me:GetSymbolTable()
+            Class clazz = table:GetClass(left:GetStaticKey())
+            clazz:AddUseLocation(typeLocation:CreateLocationCopy())
+        end
+
         QuorumOpcode right = undefined
         if context:hasRightHandSide = false
             Type typeOriginal = context:leftHandSide
