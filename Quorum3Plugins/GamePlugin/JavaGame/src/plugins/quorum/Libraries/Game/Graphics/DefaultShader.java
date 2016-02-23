@@ -13,6 +13,7 @@ import quorum.Libraries.Compute.Matrix3_;
 import quorum.Libraries.Compute.Matrix4;
 import quorum.Libraries.Compute.Matrix4_;
 import quorum.Libraries.Compute.Vector3;
+import quorum.Libraries.Game.Graphics.AmbientCubemap;
 import quorum.Libraries.Game.Graphics.Attributes;
 import quorum.Libraries.Game.Graphics.BlendingAttribute;
 import quorum.Libraries.Game.Graphics.Camera_;
@@ -20,12 +21,17 @@ import quorum.Libraries.Game.Graphics.ColorAttribute;
 import quorum.Libraries.Game.Graphics.NumberAttribute;
 import quorum.Libraries.Game.Graphics.IntegerAttribute;
 import quorum.Libraries.Game.Graphics.DepthTestAttribute;
+import quorum.Libraries.Game.Graphics.DirectionalLight;
+import quorum.Libraries.Game.Graphics.DirectionalLightsAttribute;
+import quorum.Libraries.Game.Graphics.Environment_;
+import quorum.Libraries.Game.Graphics.PointLight;
+import quorum.Libraries.Game.Graphics.PointLightsAttribute;
 import quorum.Libraries.Game.Graphics.Renderable_;
 import quorum.Libraries.Game.Graphics.TextureAttribute;
 import quorum.Libraries.Game.Graphics.VertexAttribute;
 import quorum.Libraries.Game.Graphics.VertexAttributes;
 
-public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShader 
+public class DefaultShader extends BaseShader 
 {
     public static class Config 
     {
@@ -434,7 +440,9 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
                 private static Vector3 tmpV1;
                 public final int dirLightsOffset;
                 public final int pointLightsOffset;
-
+                private static DirectionalLightsAttribute directionalLightsAttribute = new DirectionalLightsAttribute();
+                private static PointLightsAttribute pointLightsAttribute = new PointLightsAttribute();
+                
                 public ACubemap (final int dirLightsOffset, final int pointLightsOffset) 
                 {
                     this.dirLightsOffset = dirLightsOffset;
@@ -450,28 +458,36 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
                     {
                         tmpV1 = (Vector3)renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_().GetTranslation();
                         if (combinedAttributes.HasAttribute(colorAttribute.GetAmbientLightValue()))
-                            cacheAmbientCubemap.Set(((ColorAttribute)combinedAttributes.GetAttribute(colorAttribute.GetAmbientLightValue())).color);
+                            cacheAmbientCubemap.SetColor(((ColorAttribute)combinedAttributes.GetAttribute(colorAttribute.GetAmbientLightValue())).color);
 
-                        if (combinedAttributes.HasAttribute(DirectionalLightsAttribute.Type)) 
+                        if (combinedAttributes.HasAttribute(directionalLightsAttribute.GetDirectionalLightsValue())) 
                         {
-                            Array<DirectionalLight> lights = ((DirectionalLightsAttribute)combinedAttributes
-                                .get(DirectionalLightsAttribute.Type)).lights;
-                            for (int i = dirLightsOffset; i < lights.size; i++)
-                                cacheAmbientCubemap.add(lights.get(i).color, lights.get(i).direction);
+                            quorum.Libraries.Containers.Array_ lights = ((DirectionalLightsAttribute)combinedAttributes
+                                .GetAttribute(directionalLightsAttribute.GetDirectionalLightsValue())).lights;
+                            for (int i = dirLightsOffset; i < lights.GetSize(); i++)
+                                cacheAmbientCubemap.Add(((DirectionalLight)lights.Get(i)).GetColor(),
+                                    ((DirectionalLight)lights.Get(i)).direction);
                         }
 
-                        if (combinedAttributes.has(PointLightsAttribute.Type)) {
-                                Array<PointLight> lights = ((PointLightsAttribute)combinedAttributes.get(PointLightsAttribute.Type)).lights;
-                                for (int i = pointLightsOffset; i < lights.size; i++)
-                                        cacheAmbientCubemap.add(lights.get(i).color, lights.get(i).position, tmpV1, lights.get(i).intensity);
+                        if (combinedAttributes.HasAttribute(pointLightsAttribute.GetPointLightsValue())) 
+                        {
+                            quorum.Libraries.Containers.Array_ lights = ((PointLightsAttribute)combinedAttributes.GetAttribute(pointLightsAttribute.GetPointLightsValue())).lights;
+                            for (int i = pointLightsOffset; i < lights.GetSize(); i++)
+                                cacheAmbientCubemap.Add(((PointLight)lights.Get(i)).GetColor(), ((PointLight)lights.Get(i)).position,
+                                    tmpV1, ((PointLight)lights.Get(i)).intensity);
                         }
 
-                        cacheAmbientCubemap.clamp();
-                        shader.program.setUniform3fv(shader.Location(inputID), cacheAmbientCubemap.data, 0, cacheAmbientCubemap.data.length);
+                        cacheAmbientCubemap.Clamp();
+                        float[] temp = new float[cacheAmbientCubemap.data.GetSize()];
+                        for (int i = 0; i < temp.length; i++)
+                            temp[i] = (float)cacheAmbientCubemap.GetDataAtIndex(i);
+                        
+                        shader.program.setUniform3fv(shader.Location(inputID), temp, 0, temp.length);
                     }
                 }
             }
             
+            /*
             public final static Setter environmentCubemap = new LocalSetter() 
             {
                 @Override
@@ -484,22 +500,25 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
                     }
                 }
             };
+            */
 	}
 
 	private static String defaultVertexShader = null;
 
-	public static String getDefaultVertexShader () {
-		if (defaultVertexShader == null)
-			;//defaultVertexShader = Gdx.files.classpath("com/badlogic/gdx/graphics/g3d/shaders/default.vertex.glsl").readString();
-		return defaultVertexShader;
+	public static String GetDefaultVertexShader () 
+        {
+            if (defaultVertexShader == null)
+                DefaultGLSLStrings.GetDefaultVertexShader();
+            return defaultVertexShader;
 	}
 
 	private static String defaultFragmentShader = null;
 
-	public static String getDefaultFragmentShader () {
-		if (defaultFragmentShader == null)
-			;//defaultFragmentShader = Gdx.files.classpath("com/badlogic/gdx/graphics/g3d/shaders/default.fragment.glsl").readString();
-		return defaultFragmentShader;
+	public static String GetDefaultFragmentShader () 
+        {
+            if (defaultFragmentShader == null)
+                DefaultGLSLStrings.GetDefaultFragmentShader();
+            return defaultFragmentShader;
 	}
 
 	protected static long implementedFlags;
@@ -544,7 +563,7 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 	public final int u_ambientUVTransform;
 	public final int u_alphaTest;
 	// Lighting uniforms
-	//protected final int u_ambientCubemap;
+	protected final int u_ambientCubemap;
 	//protected final int u_environmentCubemap;
 	protected final int u_dirLights0color = Register(new Uniform("u_dirLights[0].color"));
 	protected final int u_dirLights0direction = Register(new Uniform("u_dirLights[0].direction"));
@@ -584,15 +603,13 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 	protected int spotLightsExponentOffset;
 	protected int spotLightsSize;
 
-        /*
 	protected final boolean lighting;
-	protected final boolean environmentCubemap;
-	protected final boolean shadowMap;
+	//protected final boolean environmentCubemap;
+	//protected final boolean shadowMap;
 	protected final AmbientCubemap ambientCubemap = new AmbientCubemap();
 	protected final DirectionalLight directionalLights[];
 	protected final PointLight pointLights[];
-	protected final SpotLight spotLights[];
-        */
+	//protected final SpotLight spotLights[];
         
 	/** The renderable used to create this shader, invalid after the call to init */
 	private Renderable_ renderable;
@@ -610,6 +627,8 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
         public final static NumberAttribute numberAttribute = new NumberAttribute();
         public final static IntegerAttribute integerAttribute = new IntegerAttribute();
         public final static DepthTestAttribute depthTestAttribute = new DepthTestAttribute();
+        public final static PointLightsAttribute pointLightsAttribute = new PointLightsAttribute();
+        public final static DirectionalLightsAttribute directionalLightsAttribute = new DirectionalLightsAttribute();
         
         private final static Attributes tmpAttributes = new Attributes();
         private final static VertexAttributes usage = new VertexAttributes();
@@ -618,6 +637,8 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 	private Camera_ camera;
 	private float time;
 	private boolean lightsSet;
+        private final Vector3 tmpV1 = new Vector3();
+        
         
         static
         {   
@@ -640,8 +661,8 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 
 	public DefaultShader (final Renderable_ renderable, final Config config, final String prefix) 
         {
-            this(renderable, config, prefix, config.vertexShader != null ? config.vertexShader : getDefaultVertexShader(),
-                config.fragmentShader != null ? config.fragmentShader : getDefaultFragmentShader());
+            this(renderable, config, prefix, config.vertexShader != null ? config.vertexShader : GetDefaultVertexShader(),
+                config.fragmentShader != null ? config.fragmentShader : GetDefaultFragmentShader());
 	}
 
 	public DefaultShader (final Renderable_ renderable, final Config config, final String prefix, final String vertexShader, final String fragmentShader) 
@@ -654,8 +675,8 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
             final Attributes attributes = CombineAttributes(renderable);
             this.config = config;
             this.program = shaderProgram;
+            this.lighting = renderable.Get_Libraries_Game_Graphics_Renderable__environment_() != null;
             /*
-            this.lighting = renderable.environment != null;
             this.environmentCubemap = attributes.has(CubemapAttribute.EnvironmentMap)
                     || (lighting && attributes.has(CubemapAttribute.EnvironmentMap));
             this.shadowMap = lighting && renderable.environment.shadowMap != null;
@@ -665,18 +686,18 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
             vertexMask = renderable.Get_Libraries_Game_Graphics_Renderable__meshPart_()
                     .Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_().GetVertexAttributes().GetMask();
 
-            /*
             this.directionalLights = new DirectionalLight[lighting && config.numDirectionalLights > 0 ? config.numDirectionalLights : 0];
             for (int i = 0; i < directionalLights.length; i++)
                     directionalLights[i] = new DirectionalLight();
             this.pointLights = new PointLight[lighting && config.numPointLights > 0 ? config.numPointLights : 0];
             for (int i = 0; i < pointLights.length; i++)
                     pointLights[i] = new PointLight();
+            /*
             this.spotLights = new SpotLight[lighting && config.numSpotLights > 0 ? config.numSpotLights : 0];
             for (int i = 0; i < spotLights.length; i++)
                     spotLights[i] = new SpotLight();
             */
-
+            
             if (!config.ignoreUnimplemented && (implementedFlags & attributesMask) != attributesMask)
                     throw new GameRuntimeError("Some attributes not implemented yet (" + attributesMask + ")");
 
@@ -716,11 +737,9 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
             u_ambientUVTransform = Register(Inputs.ambientUVTransform, Setters.ambientUVTransform);
             u_alphaTest = Register(Inputs.alphaTest);
 
-            /*
-            u_ambientCubemap = lighting ? register(Inputs.ambientCube, new Setters.ACubemap(config.numDirectionalLights,
+            u_ambientCubemap = lighting ? Register(Inputs.ambientCube, new Setters.ACubemap(config.numDirectionalLights,
                     config.numPointLights)) : -1;
-            u_environmentCubemap = environmentCubemap ? register(Inputs.environmentCubemap, Setters.environmentCubemap) : -1;
-            */
+            //u_environmentCubemap = environmentCubemap ? register(Inputs.environmentCubemap, Setters.environmentCubemap) : -1;
 	}
         
 	@Override
@@ -876,7 +895,6 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
             return prefix;
 	}
 
-        /*
 	@Override
 	public boolean CanRender (final Renderable_ renderable) 
         {
@@ -885,7 +903,6 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
                 Get_Libraries_Game_Graphics_Renderable__meshPart_().Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_()
                 .GetVertexAttributes().GetMask()) && (renderable.Get_Libraries_Game_Graphics_Renderable__environment_() != null) == lighting;
 	}
-        */
 
 	@Override
 	public int CompareTo(Shader other) 
@@ -914,11 +931,11 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
         {
             super.Begin(camera, context);
 
-            /*
             for (final DirectionalLight dirLight : directionalLights)
-                    dirLight.set(0, 0, 0, 0, -1, 0);
+                    dirLight.SetLight(0, 0, 0, 0, -1, 0);
             for (final PointLight pointLight : pointLights)
-                    pointLight.set(0, 0, 0, 0, 0, 0, 0);
+                    pointLight.SetLight(0, 0, 0, 0, 0, 0, 0);
+            /*
             for (final SpotLight spotLight : spotLights)
                     spotLight.set(0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0);
             */
@@ -934,8 +951,8 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
 		if (!combinedAttributes.HasAttribute(blendingAttribute.GetBlendedValue()))
 			context.SetBlending(false, GraphicsManager.GL_SRC_ALPHA, GraphicsManager.GL_ONE_MINUS_SRC_ALPHA);
 		BindMaterial(combinedAttributes);
-		//if (lighting)
-                //    bindLights(renderable, combinedAttributes);
+		if (lighting)
+                    BindLights(renderable, combinedAttributes);
 		
                 super.Render(renderable, combinedAttributes);
 	}
@@ -986,96 +1003,122 @@ public /*FIX ME: Remove Abstract*/abstract class DefaultShader extends BaseShade
             context.SetDepthTest(depthFunc, depthRangeNear, depthRangeFar);
             context.SetDepthMask(depthMask);
 	}
-        
-        /*
 
-	private final Vector3 tmpV1 = new Vector3();
+	protected void BindLights (final Renderable_ renderable, final Attributes attributes) 
+        {
+            final Environment_ lights = renderable.Get_Libraries_Game_Graphics_Renderable__environment_();
+            final DirectionalLightsAttribute dla = (DirectionalLightsAttribute)attributes.GetAttribute(directionalLightsAttribute.GetDirectionalLightsValue());
+            final quorum.Libraries.Containers.Array_ dirs = dla == null ? null : dla.lights;
+            final PointLightsAttribute pla = (PointLightsAttribute)attributes.GetAttribute(pointLightsAttribute.GetPointLightsValue());
+            final quorum.Libraries.Containers.Array_ points = pla == null ? null : pla.lights;
+            /*
+            final SpotLightsAttribute sla = attributes.get(SpotLightsAttribute.class, SpotLightsAttribute.Type);
+            final Array<SpotLight> spots = sla == null ? null : sla.lights;
+            */
+                
+            if (dirLightsLoc >= 0) 
+            {
+                for (int i = 0; i < directionalLights.length; i++) 
+                {
+                    if (dirs == null || i >= dirs.GetSize()) 
+                    {
+                        if (lightsSet && (float)directionalLights[i].GetColor().GetRed() == 0f 
+                            && (float)directionalLights[i].GetColor().GetGreen() == 0f
+                            && (float)directionalLights[i].GetColor().GetBlue() == 0f)
+                            continue;
+                        
+                        directionalLights[i].GetColor().SetColor(0, 0, 0, 1);
+                    } 
+                    else if (lightsSet && directionalLights[i].equals(dirs.Get(i)))
+                        continue;
+                    else
+                        directionalLights[i].SetLight((DirectionalLight)dirs.Get(i));
 
-	protected void bindLights (final Renderable renderable, final Attributes attributes) {
-		final Environment lights = renderable.environment;
-		final DirectionalLightsAttribute dla = attributes.get(DirectionalLightsAttribute.class, DirectionalLightsAttribute.Type);
-		final Array<DirectionalLight> dirs = dla == null ? null : dla.lights;
-		final PointLightsAttribute pla = attributes.get(PointLightsAttribute.class, PointLightsAttribute.Type);
-		final Array<PointLight> points = pla == null ? null : pla.lights;
-		final SpotLightsAttribute sla = attributes.get(SpotLightsAttribute.class, SpotLightsAttribute.Type);
-		final Array<SpotLight> spots = sla == null ? null : sla.lights;
+                    int idx = dirLightsLoc + i * dirLightsSize;
+                    program.setUniformf(idx + dirLightsColorOffset, (float)directionalLights[i].GetColor().GetRed(), 
+                        (float)directionalLights[i].GetColor().GetGreen(), (float)directionalLights[i].GetColor().GetBlue());
+                    program.setUniformf(idx + dirLightsDirectionOffset, (float)directionalLights[i].direction.GetX(),
+                        (float)directionalLights[i].direction.GetY(), (float)directionalLights[i].direction.GetZ());
+                    
+                    if (dirLightsSize <= 0) 
+                        break;
+                }
+            }
 
-		if (dirLightsLoc >= 0) {
-			for (int i = 0; i < directionalLights.length; i++) {
-				if (dirs == null || i >= dirs.size) {
-					if (lightsSet && directionalLights[i].color.r == 0f && directionalLights[i].color.g == 0f
-						&& directionalLights[i].color.b == 0f) continue;
-					directionalLights[i].color.set(0, 0, 0, 1);
-				} else if (lightsSet && directionalLights[i].equals(dirs.get(i)))
-					continue;
-				else
-					directionalLights[i].set(dirs.get(i));
+            if (pointLightsLoc >= 0) 
+            {
+                for (int i = 0; i < pointLights.length; i++) 
+                {
+                    if (points == null || i >= points.GetSize()) 
+                    {
+                        if (lightsSet && pointLights[i].intensity == 0f) 
+                            continue;
+                        pointLights[i].intensity = 0f;
+                    }
+                    else if (lightsSet && pointLights[i].equals(points.Get(i)))
+                        continue;
+                    else
+                        pointLights[i].SetLight((PointLight)points.Get(i));
 
-				int idx = dirLightsLoc + i * dirLightsSize;
-				program.setUniformf(idx + dirLightsColorOffset, directionalLights[i].color.r, directionalLights[i].color.g,
-					directionalLights[i].color.b);
-				program.setUniformf(idx + dirLightsDirectionOffset, directionalLights[i].direction.x,
-					directionalLights[i].direction.y, directionalLights[i].direction.z);
-				if (dirLightsSize <= 0) break;
-			}
-		}
+                    int idx = pointLightsLoc + i * pointLightsSize;
+                    program.setUniformf(idx + pointLightsColorOffset, (float)(pointLights[i].GetColor().GetRed() * pointLights[i].intensity),
+                        (float)(pointLights[i].GetColor().GetGreen() * pointLights[i].intensity), (float)(pointLights[i].GetColor().GetBlue() * pointLights[i].intensity));
+                    program.setUniformf(idx + pointLightsPositionOffset, (float)pointLights[i].position.GetX(), (float)pointLights[i].position.GetY(),
+                        (float)pointLights[i].position.GetZ());
+                    if (pointLightsIntensityOffset >= 0)
+                        program.setUniformf(idx + pointLightsIntensityOffset, (float)pointLights[i].intensity);
+                    
+                    if (pointLightsSize <= 0) 
+                        break;
+                }
+            }
 
-		if (pointLightsLoc >= 0) {
-			for (int i = 0; i < pointLights.length; i++) {
-				if (points == null || i >= points.size) {
-					if (lightsSet && pointLights[i].intensity == 0f) continue;
-					pointLights[i].intensity = 0f;
-				} else if (lightsSet && pointLights[i].equals(points.get(i)))
-					continue;
-				else
-					pointLights[i].set(points.get(i));
+            /*
+            if (spotLightsLoc >= 0) 
+            {
+                for (int i = 0; i < spotLights.length; i++) 
+                {
+                    if (spots == null || i >= spots.size) 
+                    {
+                        if (lightsSet && spotLights[i].intensity == 0f) 
+                            continue;
+                        spotLights[i].intensity = 0f;
+                    } 
+                    else if (lightsSet && spotLights[i].equals(spots.get(i)))
+                        continue;
+                    else
+                        spotLights[i].set(spots.get(i));
 
-				int idx = pointLightsLoc + i * pointLightsSize;
-				program.setUniformf(idx + pointLightsColorOffset, pointLights[i].color.r * pointLights[i].intensity,
-					pointLights[i].color.g * pointLights[i].intensity, pointLights[i].color.b * pointLights[i].intensity);
-				program.setUniformf(idx + pointLightsPositionOffset, pointLights[i].position.x, pointLights[i].position.y,
-					pointLights[i].position.z);
-				if (pointLightsIntensityOffset >= 0) program.setUniformf(idx + pointLightsIntensityOffset, pointLights[i].intensity);
-				if (pointLightsSize <= 0) break;
-			}
-		}
+                    int idx = spotLightsLoc + i * spotLightsSize;
+                    program.setUniformf(idx + spotLightsColorOffset, spotLights[i].color.r * spotLights[i].intensity,
+                        spotLights[i].color.g * spotLights[i].intensity, spotLights[i].color.b * spotLights[i].intensity);
+                    program.setUniformf(idx + spotLightsPositionOffset, spotLights[i].position);
+                    program.setUniformf(idx + spotLightsDirectionOffset, spotLights[i].direction);
+                    program.setUniformf(idx + spotLightsCutoffAngleOffset, spotLights[i].cutoffAngle);
+                    program.setUniformf(idx + spotLightsExponentOffset, spotLights[i].exponent);
+                    if (spotLightsIntensityOffset >= 0)
+                        program.setUniformf(idx + spotLightsIntensityOffset, spotLights[i].intensity);
+                    if (spotLightsSize <= 0) break;
+                }
+            }
+            */
 
-		if (spotLightsLoc >= 0) {
-			for (int i = 0; i < spotLights.length; i++) {
-				if (spots == null || i >= spots.size) {
-					if (lightsSet && spotLights[i].intensity == 0f) continue;
-					spotLights[i].intensity = 0f;
-				} else if (lightsSet && spotLights[i].equals(spots.get(i)))
-					continue;
-				else
-					spotLights[i].set(spots.get(i));
+            if (attributes.HasAttribute(colorAttribute.GetFogValue())) 
+            {
+                Set(u_fogColor, ((ColorAttribute)attributes.GetAttribute(colorAttribute.GetFogValue())).color);
+            }
 
-				int idx = spotLightsLoc + i * spotLightsSize;
-				program.setUniformf(idx + spotLightsColorOffset, spotLights[i].color.r * spotLights[i].intensity,
-					spotLights[i].color.g * spotLights[i].intensity, spotLights[i].color.b * spotLights[i].intensity);
-				program.setUniformf(idx + spotLightsPositionOffset, spotLights[i].position);
-				program.setUniformf(idx + spotLightsDirectionOffset, spotLights[i].direction);
-				program.setUniformf(idx + spotLightsCutoffAngleOffset, spotLights[i].cutoffAngle);
-				program.setUniformf(idx + spotLightsExponentOffset, spotLights[i].exponent);
-				if (spotLightsIntensityOffset >= 0)
-					program.setUniformf(idx + spotLightsIntensityOffset, spotLights[i].intensity);
-				if (spotLightsSize <= 0) break;
-			}
-		}
+            /*
+            if (lights != null && lights.shadowMap != null) 
+            {
+                set(u_shadowMapProjViewTrans, lights.shadowMap.getProjViewTrans());
+                set(u_shadowTexture, lights.shadowMap.getDepthMap());
+                set(u_shadowPCFOffset, 1.f / (2f * lights.shadowMap.getDepthMap().texture.getWidth()));
+            }
+            */
 
-		if (attributes.has(ColorAttribute.Fog)) {
-			set(u_fogColor, ((ColorAttribute)attributes.get(ColorAttribute.Fog)).color);
-		}
-
-		if (lights != null && lights.shadowMap != null) {
-			set(u_shadowMapProjViewTrans, lights.shadowMap.getProjViewTrans());
-			set(u_shadowTexture, lights.shadowMap.getDepthMap());
-			set(u_shadowPCFOffset, 1.f / (2f * lights.shadowMap.getDepthMap().texture.getWidth()));
-		}
-
-		lightsSet = true;
+            lightsSet = true;
 	}
-        */
 
 	@Override
 	public void Dispose ()

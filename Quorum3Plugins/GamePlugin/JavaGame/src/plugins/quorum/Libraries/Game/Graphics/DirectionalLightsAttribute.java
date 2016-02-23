@@ -15,7 +15,7 @@ public class DirectionalLightsAttribute extends Attribute
     
     public final static int DIRECTIONAL_LIGHTS = RegisterStatic("directionalLights");
     
-    public int GetBlendedValue()
+    public int GetDirectionalLightsValue()
     {
         return DIRECTIONAL_LIGHTS;
     }
