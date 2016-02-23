@@ -79,4 +79,17 @@ class PointLight is BaseLight
         intensity = newIntensity
     end
 
+    /*
+    This action will set the color, position, and intensity of this light. The 
+    first three values are the red, green, and blue values, respectively, of the 
+    color to set the light to. The following three values are the x, y, and z 
+    coordinates to position the light at. The last value is the intensity of the
+    light.
+    */
+    action SetLight(number red, number green, number blue, number x, number y, number z, number newIntensity)
+        SetColor(red, green, blue, 1)
+        position:Set(x, y, z)
+        intensity = newIntensity
+    end
+
 end

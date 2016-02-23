@@ -33,6 +33,18 @@ class AmbientCubemap
         end
     end
 
+    action GetData returns Array<number>
+        return data
+    end
+
+    /*
+    Returns an element of the array at the given index. This is included to make
+    it easier to access the data from the plugins.
+    */
+    action GetDataAtIndex(integer index) returns number
+        return data:Get(index)
+    end
+
     action SetColor(Color newColor)
         SetColor(newColor:GetRed(), newColor:GetGreen(), newColor:GetBlue())
     end

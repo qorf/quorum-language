@@ -53,4 +53,16 @@ class DirectionalLight is BaseLight
         end
     end
 
+    /*
+    This action will set both the color and direction of this light. The first
+    three values are the red, green, and blue values, respectively, of the color
+    to set the light to. The following three values are the x, y, and z values
+    of the direction vector of the light.
+    */
+    action SetLight(number red, number green, number blue, number x, number y, number z)
+        SetColor(red, green, blue, 1)
+        direction:Set(x, y, z)
+        direction:Normalize()
+    end
+
 end
