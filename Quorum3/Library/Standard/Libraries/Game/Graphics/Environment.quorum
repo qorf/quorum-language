@@ -105,7 +105,7 @@ class Environment is Attributes
     action Remove(DirectionalLight light)
         DirectionalLightsAttribute lightsAttribute
         if HasAttribute(lightsAttribute:GetDirectionalLightsValue())
-            lightsAttribute = cast(DirectionalLightsAttribute, GetAttribute(lightsAttribute:GetDirectionalLightsValue())
+            lightsAttribute = cast(DirectionalLightsAttribute, GetAttribute(lightsAttribute:GetDirectionalLightsValue()))
             lightsAttribute:lights:Remove(light)
             if lightsAttribute:lights:GetSize() = 0
                 Remove(lightsAttribute:GetDirectionalLightsValue())
@@ -121,7 +121,7 @@ class Environment is Attributes
     action Remove(PointLight light)
         PointLightsAttribute lightsAttribute
         if HasAttribute(lightsAttribute:GetPointLightsValue())
-            lightsAttribute = cast(PointLightsAttribute, GetAttribute(lightsAttribute:GetPointLightsValue())
+            lightsAttribute = cast(PointLightsAttribute, GetAttribute(lightsAttribute:GetPointLightsValue()))
             lightsAttribute:lights:Remove(light)
             if lightsAttribute:lights:GetSize() = 0
                 Remove(lightsAttribute:GetPointLightsValue())
