@@ -5,7 +5,7 @@
  */
 package plugins.quorum.Libraries.Game.Graphics;
 
-import quorum.Libraries.Game.Graphics.Camera;
+import quorum.Libraries.Game.Graphics.Camera_;
 import quorum.Libraries.Game.Graphics.Renderable_;
 
 /**
@@ -16,11 +16,11 @@ public class Renderable
 {
     java.lang.Object me_ = null;
     
-    public Camera camera;
+    public Camera_ camera;
     
     public Shader shader;
     
-    public Camera GetCamera()
+    public Camera_ GetCamera()
     {
         return camera;
     }

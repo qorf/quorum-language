@@ -120,7 +120,7 @@ public abstract class BaseShader implements Shader
 
     public ShaderProgram program;
     public RenderContext context;
-    public Camera camera;
+    public Camera_ camera;
     private Mesh currentMesh;
     
     private Attributes combinedAttributes = new Attributes();
@@ -247,7 +247,7 @@ public abstract class BaseShader implements Shader
     @Override
     public void Begin(Camera_ camera, RenderContext context) 
     {
-        this.camera = (Camera)camera;
+        this.camera = camera;
         this.context = context;
         program.begin();
         currentMesh = null;

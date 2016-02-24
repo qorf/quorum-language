@@ -142,7 +142,7 @@ public class DefaultShader extends BaseShader
                 @Override
                 public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                    shader.Set(inputID, shader.camera.projection);
+                    shader.Set(inputID, shader.camera.Get_Libraries_Game_Graphics_Camera__projection_());
                 }
             };
 
@@ -151,7 +151,7 @@ public class DefaultShader extends BaseShader
                 @Override
                 public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                    shader.Set(inputID, shader.camera.view);
+                    shader.Set(inputID, shader.camera.Get_Libraries_Game_Graphics_Camera__view_());
                 }
             };
             
@@ -159,7 +159,7 @@ public class DefaultShader extends BaseShader
             {
                 @Override
                 public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) {
-                    shader.Set(inputID, shader.camera.combined);
+                    shader.Set(inputID, shader.camera.Get_Libraries_Game_Graphics_Camera__combined_());
                 }
             };
             
@@ -168,8 +168,10 @@ public class DefaultShader extends BaseShader
                 @Override
                 public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                    shader.Set(inputID, (float)shader.camera.position.GetX(), (float)shader.camera.position.GetY(), (float)shader.camera.position.GetZ(),
-                        1.1881f / (float)(shader.camera.far * shader.camera.far));
+                    shader.Set(inputID, (float)shader.camera.Get_Libraries_Game_Graphics_Camera__position_().GetX(),
+                        (float)shader.camera.Get_Libraries_Game_Graphics_Camera__position_().GetY(), 
+                        (float)shader.camera.Get_Libraries_Game_Graphics_Camera__position_().GetZ(),
+                        1.1881f / (float)(shader.camera.Get_Libraries_Game_Graphics_Camera__far_() * shader.camera.Get_Libraries_Game_Graphics_Camera__far_()));
                 }
             };
             
@@ -178,7 +180,7 @@ public class DefaultShader extends BaseShader
                 @Override
                 public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                    shader.Set(inputID, shader.camera.direction);
+                    shader.Set(inputID, shader.camera.Get_Libraries_Game_Graphics_Camera__direction_());
                 }
             };
                 
@@ -187,7 +189,7 @@ public class DefaultShader extends BaseShader
                 @Override
                 public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                    shader.Set(inputID, shader.camera.up);
+                    shader.Set(inputID, shader.camera.Get_Libraries_Game_Graphics_Camera__up_());
                 }
             };
                 
@@ -207,7 +209,7 @@ public class DefaultShader extends BaseShader
                 @Override
                 public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                    temp.Set(shader.camera.view);
+                    temp.Set(shader.camera.Get_Libraries_Game_Graphics_Camera__view_());
                     temp.Multiply(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
                     shader.Set(inputID, temp);
                 }
@@ -220,7 +222,7 @@ public class DefaultShader extends BaseShader
                 @Override
                 public void Set (BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                    temp.Set(shader.camera.combined);
+                    temp.Set(shader.camera.Get_Libraries_Game_Graphics_Camera__combined_());
                     temp.Multiply(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
                     shader.Set(inputID, temp);
                 }

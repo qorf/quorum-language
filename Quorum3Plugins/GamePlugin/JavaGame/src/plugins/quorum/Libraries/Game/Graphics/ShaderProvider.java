@@ -9,16 +9,20 @@ import quorum.Libraries.Game.Graphics.Renderable_;
 import quorum.Libraries.Game.Graphics.Renderable;
 import plugins.quorum.Libraries.Game.libGDX.Array;
 
-public abstract class ShaderProvider 
+public class ShaderProvider 
 {
     protected Array<Shader> shaders = new Array<Shader>();
+    public final DefaultShader.Config config = new DefaultShader.Config();
     
     public Shader GetShader(Renderable_ renderable)
     {
         Shader suggestedShader = ((Renderable)renderable).plugin_.shader;
-        if (suggestedShader != null && suggestedShader.CanRender(renderable)) return suggestedShader;
-        for (Shader shader : shaders) {
-                if (shader.CanRender(renderable)) return shader;
+        if (suggestedShader != null && suggestedShader.CanRender(renderable))
+            return suggestedShader;
+        for (Shader shader : shaders) 
+        {
+            if (shader.CanRender(renderable))
+                return shader;
         }
         final Shader shader = CreateShader(renderable);
         shader.Initialize();
@@ -26,7 +30,10 @@ public abstract class ShaderProvider
         return shader;
     }
     
-    protected abstract Shader CreateShader(final Renderable_ renderable);
+    protected Shader CreateShader(final Renderable_ renderable)
+    {
+        return new DefaultShader(renderable, config);
+    }
     
     public void Dispose()
     {

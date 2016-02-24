@@ -21,7 +21,7 @@ public class ModelBatch
     java.lang.Object me_ = null;
     
     protected RenderContext context = new RenderContext();
-    //protected ShaderProvider shaderProvider = new ShaderProvider();
+    protected ShaderProvider shaderProvider = new ShaderProvider();
     
     private boolean isRendering = false;
     
@@ -30,7 +30,7 @@ public class ModelBatch
     
     private Array_ renderables;
     
-    private Camera camera;
+    private Camera_ camera;
     
     public void Initialize(ModelBatch_ batch, Array_ array)
     {
@@ -48,10 +48,10 @@ public class ModelBatch
         if (isRendering && renderables.GetSize() > 0)
             Flush();
         
-        camera = (Camera)cam;
+        camera = cam;
     }
     
-    public Camera GetCamera()
+    public Camera_ GetCamera()
     {
         return camera;
     }
@@ -81,17 +81,26 @@ public class ModelBatch
         for (int i = 0; i < renderables.GetSize(); i++)
         {
             Renderable_ renderable = (Renderable_)renderables.Get(i);
-            /*
-            if (currentShader != renderable.shader) {
-				if (currentShader != null) currentShader.end();
-				currentShader = renderable.shader;
-				currentShader.begin(camera, context);
-			}
-			currentShader.render(renderable);
-            */
+            Renderable renderPlugin = ((quorum.Libraries.Game.Graphics.Renderable)renderable).plugin_;
+            if (currentShader != renderPlugin.shader) 
+            {
+                if (currentShader != null)
+                    currentShader.End();
+                currentShader = renderPlugin.shader;
+                currentShader.Begin(camera, context);
+            }
+            currentShader.Render(renderable);
         }
-        // if (currentShader != null) currentShader.end();
+        if (currentShader != null)
+            currentShader.End();
         
         renderables.Empty();
+    }
+    
+    public void RenderNative(Renderable_ renderable)
+    {
+        Renderable renderPlugin = ((quorum.Libraries.Game.Graphics.Renderable)renderable).plugin_;
+        renderPlugin.camera = camera;
+        renderPlugin.shader = shaderProvider.GetShader(renderable);
     }
 }
