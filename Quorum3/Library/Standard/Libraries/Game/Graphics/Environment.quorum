@@ -1,5 +1,6 @@
 package Libraries.Game.Graphics
 
+use Libraries.Containers.Array
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.DirectionalLightsAttribute
 use Libraries.Game.Graphics.PointLight
@@ -26,76 +27,76 @@ class Environment is Attributes
         end
     end
 
-//    /*
-//    This action will add an array of lights to the environment. Each light must
-//    be usable by the Environment. The Environment can use DirectionalLight and
-//    PointLight.
-//    */
-//    action Add(Array<BaseLight> array)
-//        integer index = 0
-//        repeat array:GetSize() times
-//            Add(array:Get(index))
-//            index = index + 1
-//        end
-//    end
-//
-//    /*
-//    Adds a DirectionalLight to this environment.
-//    */
-//    action Add(DirectionalLight light)
-//        DirectionalLightsAttribute newAttribute
-//        DirectionalLightsAttribute lightsAttribute = cast(DirectionalLightsAttribute, GetAttribute(newAttribute:GetDirectionalLightsValue())
-//        if lightsAttribute = undefined
-//            Add(newAttribute)
-//            newAttribute:lights:Add(light)
-//        else
-//            lightsAttribute:lights:Add(light)
-//        end
-//    end
-//
-//    /*
-//    Adds a PointLight to this environment.
-//    */
-//    action Add(PointLight light)
-//        PointLightsAttribute newAttribute
-//        PointLightsAttribute lightsAttribute = cast(PointLightsAttribute, GetAttribute(newAttribute:GetPointLightsValue())
-//        if lightsAttribute = undefined
-//            Add(newAttribute)
-//            newAttribute:lights:Add(light)
-//        else
-//            lightsAttribute:lights:Add(light)
-//        end
-//    end
-//
-//    /*
-//    This action will remove a light from the environment. The given light must
-//    be usable by the Environment, i.e. it is a DirectionalLight or PointLight.
-//    If the given light was not a part of the Environment before using Remove,
-//    nothing will happen.
-//    */
-//    action Remove(BaseLight light)
-//        if light is DirectionalLight
-//            Remove(cast(DirectionalLight, light))
-//        elseif light is PointLight
-//            Remove(cast(PointLight, light))
-//        else
-//            alert("I couldn't identify the type of this light! I can use DirectionalLight or PointLight.")
-//        end
-//    end
-//
-//    /*
-//    This action will remove each light that is present in the given array from
-//    the Environment. Each light must be usable by the Environment, i.e., it is a
-//    DirectionalLight or PointLight. Otherwise, an error will be alerted. Lights
-//    that are present in the array but not in the Environment will have no effect.
-//    */
-//    action Remove(Array<BaseLight> array)
-//        integer index = 0
-//        repeat array:GetSize() times
-//            Remove(array:Get(index))
-//            index = index + 1
-//        end
-//    end
+    /*
+    This action will add an array of lights to the environment. Each light must
+    be usable by the Environment. The Environment can use DirectionalLight and
+    PointLight.
+    */
+    action Add(Array<BaseLight> array)
+        integer index = 0
+        repeat array:GetSize() times
+            Add(array:Get(index))
+            index = index + 1
+        end
+    end
+
+    /*
+    Adds a DirectionalLight to this environment.
+    */
+    action Add(DirectionalLight light)
+        DirectionalLightsAttribute newAttribute
+        DirectionalLightsAttribute lightsAttribute = cast(DirectionalLightsAttribute, GetAttribute(newAttribute:GetDirectionalLightsValue()))
+        if lightsAttribute = undefined
+            Add(newAttribute)
+            newAttribute:lights:Add(light)
+        else
+            lightsAttribute:lights:Add(light)
+        end
+    end
+
+    /*
+    Adds a PointLight to this environment.
+    */
+    action Add(PointLight light)
+        PointLightsAttribute newAttribute
+        PointLightsAttribute lightsAttribute = cast(PointLightsAttribute, GetAttribute(newAttribute:GetPointLightsValue()))
+        if lightsAttribute = undefined
+            Add(newAttribute)
+            newAttribute:lights:Add(light)
+        else
+            lightsAttribute:lights:Add(light)
+        end
+    end
+
+    /*
+    This action will remove a light from the environment. The given light must
+    be usable by the Environment, i.e. it is a DirectionalLight or PointLight.
+    If the given light was not a part of the Environment before using Remove,
+    nothing will happen.
+    */
+    action Remove(BaseLight light)
+        if light is DirectionalLight
+            Remove(cast(DirectionalLight, light))
+        elseif light is PointLight
+            Remove(cast(PointLight, light))
+        else
+            alert("I couldn't identify the type of this light! I can use DirectionalLight or PointLight.")
+        end
+    end
+
+    /*
+    This action will remove each light that is present in the given array from
+    the Environment. Each light must be usable by the Environment, i.e., it is a
+    DirectionalLight or PointLight. Otherwise, an error will be alerted. Lights
+    that are present in the array but not in the Environment will have no effect.
+    */
+    action Remove(Array<BaseLight> array)
+        integer index = 0
+        repeat array:GetSize() times
+            Remove(array:Get(index))
+            index = index + 1
+        end
+    end
 
     /*
     This action will remove the given DirectionalLight from the Environment. If

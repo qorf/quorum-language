@@ -7,8 +7,6 @@ class ModelBatch is Disposable
     
     private Array<Renderable> renderables
 
-    // private ShaderProvider shaderProvider
-
     on create
         Initialize(me, renderables)
     end
@@ -32,14 +30,14 @@ class ModelBatch is Disposable
         model:GetRenderables(renderables)
         
         integer index = offset
-        Camera cam = GetCamera()
         repeat while index < renderables:GetSize()
             Renderable renderable = renderables:Get(index)
-            // renderable:SetCamera(cam)
-            // renderable.shader = shaderProvider.getShader(renderable)
+            RenderNative(renderable)
             index = index + 1
         end
     end
+
+    private system action RenderNative(Renderable renderable)
 
     /*
     This action will set the camera for the ModelBatch. When rendering, the 
@@ -77,7 +75,7 @@ class ModelBatch is Disposable
 
     /*
     Used to pass this object down to its plugin counterpart, which makes it
-    easier to access. Also passes the renderables array, giving both quorum and
+    easier to access. Also passes the renderables array, giving both Quorum and
     Java access to the array without making it public.
     */
     private system action Initialize(ModelBatch batch, Array<Renderable> render)
