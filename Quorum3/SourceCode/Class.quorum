@@ -392,6 +392,9 @@ class Class is Symbol
         CompilerError error
         error:SetLineNumber(method:GetLineNumber())
         error:SetFile(method:GetFile())
+        error:SetLineNumberEnd(method:GetLineNumber())
+        error:SetColumnNumber(method:GetColumnNumber())
+        error:SetColumnNumber(method:GetColumnNumber())
         error:SetErrorMessage("Action " + method:GetDisplayName() + " has already been defined.")
         return error
     end
@@ -1616,8 +1619,7 @@ class Class is Symbol
     action Add(Variable variable) returns CompilerError
         if fields:HasKey(variable:GetStaticKey())
             CompilerError error
-            error:SetLineNumber(variable:GetLineNumber())
-            error:SetFile(variable:GetFile())
+            error:SetLocation(variable)
             error:SetErrorMessage("Variable " + variable:GetDisplayName() + " has already been defined in class " + me:GetDisplayName())
             return error
         end
