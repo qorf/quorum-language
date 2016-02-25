@@ -18,8 +18,8 @@ class PerspectiveCamera is Camera
 
     action Update
         Math math
-        number aspect = viewportWidth / viewportHeight
-        parent:Camera:projection:SetToProjection(math:AbsoluteValue(near), math:AbsoluteValue(far), fieldOfView, aspect)
+        number aspect = parent:Camera:viewportWidth / parent:Camera:viewportHeight
+        parent:Camera:projection:SetToProjection(math:AbsoluteValue(parent:Camera:near), math:AbsoluteValue(parent:Camera:far), fieldOfView, aspect)
         parent:Camera:view:SetToLookAt(parent:Camera:position, calcVector:Set(parent:Camera:position):Add(parent:Camera:direction), parent:Camera:up)
         parent:Camera:combined:Set(parent:Camera:projection)
         parent:Camera:combined:Multiply(parent:Camera:view)

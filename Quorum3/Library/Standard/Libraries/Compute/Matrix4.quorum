@@ -2696,6 +2696,12 @@ class Matrix4
     action SetToLookAt(Vector3 position, Vector3 target, Vector3 up) returns Matrix4
         tmpVec:Set(target):Subtract(position)
         SetToLookAt(tmpVec, up)
+
+        if tmpMat = undefined
+            Matrix4 newMatrix
+            tmpMat = newMatrix
+        end
+
         me:Multiply(tmpMat:SetToTranslation(-1 * position:GetX(), -1 * position:GetY(), -1 * position:GetZ()))
 
         return me

@@ -38,6 +38,10 @@ use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Item
 use Libraries.Interface.Events.CollisionEvent
 
+// 3D TESTING CODE!
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.ModelBatch
+
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
 just display a gray screen. To make your own game, you should make a new class
@@ -155,6 +159,10 @@ class Game
             IOSGraphics iosGraphics
             manager:SetGameGraphics(iosGraphics)
         end
+        // 3D TESTING CODE
+        ModelBatch newBatch
+        SetModelBatch(newBatch)
+
         application:Setup(me)
 
     end
@@ -241,6 +249,8 @@ class Game
         TestForCollisions()
         ClearScreen()
         DrawAll()
+        // 3D TESTING CODE!
+        Render3D()
     end
 
     action SetConfiguration(DesktopConfiguration config)
@@ -1069,5 +1079,41 @@ class Game
     end
 
     private system action SelectApplicationTypeNative returns integer
+
+    /*
+    CODE USED FOR 3D TESTING! 
+    */
+
+    List<Model> modelList
+    ModelBatch modelBatch = undefined
+
+    action GetModelBatch returns ModelBatch
+        return modelBatch
+    end
+
+    action SetModelBatch(ModelBatch batch)
+        modelBatch = batch
+    end
+
+    action AddModel(Model model)
+        modelList:Add(model)
+    end
+
+    private action Render3D
+        if modelList:GetSize() = 0
+            return now
+        end
+
+        Iterator<Model> modelIterator = modelList:GetIterator()
+
+        modelBatch:Begin()
+
+        repeat while modelIterator:HasNext()
+            Model model = modelIterator:Next()
+            modelBatch:Render(model)
+        end
+
+        modelBatch:End()
+    end
 
 end

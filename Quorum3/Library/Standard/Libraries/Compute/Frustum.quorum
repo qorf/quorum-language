@@ -89,7 +89,25 @@ class Frustum
         planes:Add(plane3)
         planes:Add(plane4)
         planes:Add(plane5)
-        planes:Add(plane6)    
+        planes:Add(plane6)
+
+        // New Vector3 instances to instantiate the planePoints array.
+        Vector3 pp0
+        Vector3 pp1
+        Vector3 pp2
+        Vector3 pp3
+        Vector3 pp4
+        Vector3 pp5
+        Vector3 pp6
+        Vector3 pp7
+        planePoints:Add(pp0)
+        planePoints:Add(pp1)
+        planePoints:Add(pp2)
+        planePoints:Add(pp3)
+        planePoints:Add(pp4)
+        planePoints:Add(pp5)
+        planePoints:Add(pp6)
+        planePoints:Add(pp7)
     end
 
     action Update(Matrix4 inverseProjectionView)
