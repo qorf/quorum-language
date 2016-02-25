@@ -534,17 +534,18 @@ public class JsonReader
 			int lineNumber = 1;
 			for (int i = 0; i < p; i++)
 				if (data[i] == '\n') lineNumber++;
-			throw new GameRuntimeError("Error parsing JSON on line " + lineNumber + " near: "
-				+ new String(data, p, Math.min(256, pe - p)), parseRuntimeEx);
+			int start = Math.max(0, p - 32);
+			throw new RuntimeException("Error parsing JSON on line " + lineNumber + " near: "
+				+ new String(data, start, p - start) + "*ERROR*" + new String(data, p, Math.min(64, pe - p)), parseRuntimeEx);
 		} else if (elements.size != 0) {
 			JsonValue element = elements.peek();
 			elements.clear();
 			if (element != null && element.IsObject())
-				throw new GameRuntimeError("Error parsing JSON, unmatched brace.");
+				throw new RuntimeException("Error parsing JSON, unmatched brace.");
 			else
-				throw new GameRuntimeError("Error parsing JSON, unmatched bracket.");
+				throw new RuntimeException("Error parsing JSON, unmatched bracket.");
 		} else if (parseRuntimeEx != null) {
-			throw new GameRuntimeError("Error parsing JSON: " + new String(data), parseRuntimeEx);
+			throw new RuntimeException("Error parsing JSON: " + new String(data), parseRuntimeEx);
 		}
 		return root;
 	}

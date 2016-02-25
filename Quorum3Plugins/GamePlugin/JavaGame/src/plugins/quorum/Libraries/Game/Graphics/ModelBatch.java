@@ -18,7 +18,7 @@ import quorum.Libraries.Containers.Array_;
  */
 public class ModelBatch 
 {
-    java.lang.Object me_ = null;
+    public java.lang.Object me_ = null;
     
     protected RenderContext context = new RenderContext();
     protected ShaderProvider shaderProvider = new ShaderProvider();
