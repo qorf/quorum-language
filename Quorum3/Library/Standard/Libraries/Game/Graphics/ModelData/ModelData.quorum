@@ -14,6 +14,10 @@ class ModelData
     public Array<ModelNode> nodes
     public Array<ModelAnimation> animations
 
+    on create
+        version:SetSize(2)
+    end
+
     action AddMesh(ModelMesh mesh)
         integer counter = 0
         repeat meshes:GetSize() times

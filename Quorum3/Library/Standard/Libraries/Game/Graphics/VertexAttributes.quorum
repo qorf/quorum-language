@@ -31,6 +31,7 @@ class VertexAttributes
             alert("SetAttributes requires an array with at least one element.")
         end
         
+        attributes:SetSize(array:GetSize())
         integer counter = 0
 
         repeat array:GetSize() times
@@ -95,7 +96,21 @@ class VertexAttributes
     end
 
     private action CalculateOffsets returns integer
-        return 0
+        integer count = 0
+        integer index = 0
+
+        repeat attributes:GetSize() times
+            VertexAttribute attribute = attributes:Get(index)
+            attribute:offset = count
+            if attribute:usage = COLOR_PACKED
+                count = count + 4
+            else
+                count = count + 4 * attribute:componentCount
+            end
+            index = index + 1
+        end
+
+        return count
     end
 
 end
