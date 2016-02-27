@@ -13,7 +13,7 @@ import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.VertexAttribute_;
-import quorum.Libraries.Game.Graphics.VertexAttributes;
+import quorum.Libraries.Game.Graphics.VertexAttributes_;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -25,7 +25,7 @@ import java.nio.FloatBuffer;
  */
 public class VertexBufferObject extends VertexData
 {
-    private VertexAttributes attributes;
+    private VertexAttributes_ attributes;
     private FloatBuffer buffer;
     private ByteBuffer byteBuffer;
     private int bufferHandle;
@@ -37,17 +37,17 @@ public class VertexBufferObject extends VertexData
     // Acts as a "bridge" for communicating Arrays between Quorum and the plugin.
     private float[] bridgeArray = null;
     
-    public void Load(boolean isStatic, int numVertices, VertexAttributes attributes)
+    public void Load(boolean isStatic, int numVertices, VertexAttributes_ attributes)
     {
         bufferHandle = GameState.nativeGraphics.glGenBuffer();
         
-        ByteBuffer data = BufferUtils.newUnsafeByteBuffer(attributes.vertexSize * numVertices);
+        ByteBuffer data = BufferUtils.newUnsafeByteBuffer(attributes.Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_() * numVertices);
         data.limit(0);
         SetBuffer(data, true, attributes);
         SetUsage(isStatic ? GraphicsManager.GL_STATIC_DRAW : GraphicsManager.GL_DYNAMIC_DRAW);
     }
     
-    protected void SetBuffer(Buffer data, boolean ownsBuffer, VertexAttributes value)
+    protected void SetBuffer(Buffer data, boolean ownsBuffer, VertexAttributes_ value)
     {
         if (isBound)
             throw new GameRuntimeError("Cannot change attributes of a VertexBufferObject while it is bound.");
@@ -84,7 +84,7 @@ public class VertexBufferObject extends VertexData
     }
     
     @Override
-    public VertexAttributes GetAttributes()
+    public VertexAttributes_ GetAttributes()
     {
         return attributes;
     }
@@ -92,13 +92,13 @@ public class VertexBufferObject extends VertexData
     @Override
     public int GetSize()
     {
-        return buffer.limit() * 4 / attributes.vertexSize;
+        return buffer.limit() * 4 / attributes.Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_();
     }
     
     @Override
     public int GetMaxSize()
     {
-        return byteBuffer.capacity() / attributes.vertexSize;
+        return byteBuffer.capacity() / attributes.Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_();
     }
     
     public void SetVerticesNative(int offset, int count)
@@ -157,7 +157,7 @@ public class VertexBufferObject extends VertexData
 
                 shader.setVertexAttribute(location, attribute.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_(),
                     attribute.Get_Libraries_Game_Graphics_VertexAttribute__type_(), attribute.Get_Libraries_Game_Graphics_VertexAttribute__normalized_(),
-                    attributes.vertexSize, attribute.Get_Libraries_Game_Graphics_VertexAttribute__offset_());
+                    attributes.Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_(), attribute.Get_Libraries_Game_Graphics_VertexAttribute__offset_());
             }
 
         }
@@ -175,7 +175,7 @@ public class VertexBufferObject extends VertexData
 
                 shader.setVertexAttribute(location, attribute.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_(),
                     attribute.Get_Libraries_Game_Graphics_VertexAttribute__type_(), attribute.Get_Libraries_Game_Graphics_VertexAttribute__normalized_(),
-                    attributes.vertexSize, attribute.Get_Libraries_Game_Graphics_VertexAttribute__offset_());
+                    attributes.Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_(), attribute.Get_Libraries_Game_Graphics_VertexAttribute__offset_());
             }
         }
 		

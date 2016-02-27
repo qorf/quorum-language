@@ -39,7 +39,8 @@ public class ModelLoader
     
     public static final short VERSION_HIGH = 0;
     public static final short VERSION_LOW = 1;
-    protected final JsonReader reader = new JsonReader();
+    protected final JsonReader jsonReader = new JsonReader();
+    protected final G3dbReader g3dbReader = new G3dbReader();
     
     private final Quaternion tempQ = new Quaternion();
     
@@ -47,7 +48,15 @@ public class ModelLoader
     {
         File file = new File(quorumFile.GetAbsolutePath());
         
-        JsonValue json = reader.parse(file);
+        JsonValue json;
+        
+        if (file.getAbsolutePath().endsWith(".g3dj"))
+            json = jsonReader.parse(file);
+        else if (file.getAbsolutePath().endsWith(".g3db"))
+            json = g3dbReader.parse(file);
+        else
+            throw new GameRuntimeError("I couldn't recognize the extension of this model!");
+        
         ModelData modelData = new ModelData();
         JsonValue version = json.Require("version");
         modelData.SetVersion(0, (int)version.GetShort(0));
@@ -82,6 +91,7 @@ public class ModelLoader
                 ParseAttributes(attributes, jsonMesh.attributes);
                 
                 float[] vertexArray = mesh.Require("vertices").AsFloatArray();
+                jsonMesh.vertices.SetSize(vertexArray.length);
                 for (int i = 0; i < vertexArray.length; i++)
                     jsonMesh.SetVertex(i, vertexArray[i]);
                 
@@ -109,6 +119,7 @@ public class ModelLoader
                     jsonPart.primitiveType = ParseType(type);
                     
                     short[] indices = meshPart.Require("indices").AsShortArray();
+                    jsonPart.indices.SetSize(indices.length);
                     for (int i = 0; i < indices.length; i++)
                         jsonPart.SetIndex(i, indices[i]);
                         
@@ -186,10 +197,12 @@ public class ModelLoader
         JsonValue materials = json.Get("materials");
         if (materials == null)
         {
+            System.out.println("Materials was null!");
             // Could possibly create a default material in this case -- libGDX does not handle this currently.
         }
         else
         {
+            System.out.println("Materials wasn't null!");
             modelData.materials.SetSize(materials.size);
             for (JsonValue material = materials.child; material != null; material = material.next)
             {

@@ -17,8 +17,8 @@ import quorum.Libraries.Game.Graphics.Mesh_;
  */
 public class Mesh 
 {
-    java.lang.Object me_ = null;
-    quorum.Libraries.Game.Graphics.Mesh quorumMesh = null;
+    public java.lang.Object me_ = null;
+    private quorum.Libraries.Game.Graphics.Mesh quorumMesh = null;
     
     /*
     An action used by the Quorum mesh class during creation. This will ensure
