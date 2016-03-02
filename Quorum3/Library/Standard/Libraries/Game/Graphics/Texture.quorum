@@ -192,7 +192,9 @@ class Texture is Disposable
         end
     */
     action LoadModelTexture(text fileName)
-        LoadFromFile(fileName)
+        File tempFile
+        text filePath = fileName:Replace(tempFile:GetWorkingDirectory(), "")
+        LoadFromFile(filePath)
 
         TextureFilter minFilter
         minFilter:ConstructTextureFilter(minFilter:LINEAR)
