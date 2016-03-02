@@ -1,0 +1,42 @@
+package Libraries.Web.Server
+
+use Libraries.Web.Server.WebRequest
+
+/*
+    This class is used typically by a subclass and indicates that the 
+    subclass can accept connections in from the web. It has one method, 
+    which is to respond to a request from the web.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main is WebResponder
+        action Respond(WebRequest request) returns WebResponse
+          WebPage page
+          WebResonse response
+          response:SetPageText(page:Generate())
+          return response
+        end
+    end
+*/
+class WebResponder 
+
+    /*
+        This action responds to a web request with a web response. The web 
+        response must contain the raw HTML that we would like sent back to 
+        the client.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebResponder
+            action Respond(WebRequest request) returns WebResponse
+              WebPage page
+              WebResonse response
+              response:SetPageText(page:Generate())
+              return response
+            end
+        end
+    */
+    blueprint action Respond(WebRequest request) returns WebResponse
+end
