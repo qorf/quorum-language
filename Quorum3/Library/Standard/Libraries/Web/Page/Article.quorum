@@ -124,7 +124,7 @@ class Article is WebTag
             end
         end
     */
-    action addLink(text linkText, text linkDestination) returns Link
+    action AddLink(text linkText, text linkDestination) returns Link
         Link link
         link:SetAddress(linkDestination)
         link:AddText(linkText)
@@ -158,10 +158,13 @@ class Article is WebTag
             end
         end
     */
-    action addHeading(text headerText, text headingScale) returns Heading
+    action AddHeading(text headerText, integer headingLevel) returns Heading
         Heading heading
         heading:AddText(headerText)
-        heading:SetScale(headingScale)          //should this be error checked and why is it a text parameter
+        if headingLevel > 6 or headingLevel < 1
+            alert("Invalid heading level. This integer must be between 1 and 6, inclusive.")
+        end
+        heading:SetScale("" + headingLevel)
         parent:WebTag:tags:Add(heading)
         return heading
     end
@@ -190,7 +193,7 @@ class Article is WebTag
             end
         end
     */
-    action addHeading(text headerText) returns Heading
+    action AddHeading(text headerText) returns Heading
         Heading heading
         heading:AddText(headerText)
         parent:WebTag:tags:Add(heading)

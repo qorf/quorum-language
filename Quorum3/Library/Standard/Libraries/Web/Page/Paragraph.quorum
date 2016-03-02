@@ -35,7 +35,7 @@ class Paragraph is WebTag
         return result
     end
 
-    action addLink(text linkText, text linkDestination) returns Link
+    action AddLink(text linkText, text linkDestination) returns Link
         Link link
         link:SetAddress(linkDestination)
         link:AddText(linkText)
