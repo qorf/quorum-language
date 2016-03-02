@@ -1,0 +1,12 @@
+package Libraries.Web.Server
+
+class WebResponse 
+    text page = ""
+    action GetPageText() returns text 
+        return page
+    end
+
+    action SetPageText(text page) 
+        me:page = page
+    end
+end

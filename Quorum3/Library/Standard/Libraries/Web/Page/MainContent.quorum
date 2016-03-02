@@ -1,0 +1,1830 @@
+package Libraries.Web.Page
+
+use Libraries.Web.Page.WebTag
+use Libraries.Web.Page.Attributes
+/*
+The MainContent class represents HTML's (Hypertext Markup Language) main tag which 
+contains a section in the body with content unique to the page. It is a way to
+specify content that directly relates to the central idea of the webpage.
+You can find more information about this tag at: 
+    <a href="http://www.w3schools.com/tags/tag_main.asp">The main tag</a>.
+
+Attribute: Example
+use Libraries.Web.Page.all
+class Main
+   action main
+      WebPage page
+      
+      Paragraph p
+      p:SetDescription("Some text that is related to the main idea of the page")
+
+      MainContent mainContent
+      mainContent:SetStyle("color:#0000FF")
+      mainContent:Add(p)
+      
+      page:AddToBody(mainContent)
+      output page:Generate()
+   end
+end
+*/
+class MainContent is WebTag
+    action Generate returns text
+        text result = "<main "
+        Attributes attributes = parent:WebTag:GetAttributes()
+        attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + "</main>"
+        return result
+    end
+
+    action AddParagraph(text t) returns Paragraph
+        Paragraph p
+        p:AddText(t)
+        parent:WebTag:tags:Add(p)
+        return p
+    end
+
+    action AddImage(text imageSource, text description) returns Image
+        Image image
+        image:SetAddress(imageSource)
+        image:SetAlternate(description)
+        parent:WebTag:tags:Add(image)
+        return image
+    end
+
+    action addLink(text linkText, text linkDestination) returns Link
+        Link link
+        link:SetAddress(linkDestination)
+        link:AddText(linkText)
+        parent:WebTag:tags:Add(link)
+        return link
+    end
+
+    action addHeading(text headerText, text headingLevel) returns Heading
+        Heading heading
+        heading:AddText(headerText)
+        heading:SetScale(headingLevel)          //should this be error checked and why is it a text parameter
+        parent:WebTag:tags:Add(heading)
+        return heading
+    end
+
+    action addHeading(text headerText) returns Heading
+        Heading heading
+        heading:AddText(headerText)
+        parent:WebTag:tags:Add(heading)
+        return heading
+    end
+
+    /*
+    This action places a Link object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Link link
+            body:Add(link)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Link content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Abbreviation object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Abbreviation abbreviation
+            body:Add(abbreviation)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Abbreviation content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an OwnerAddress object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            OwnerAddress ownerAddress
+            body:Add(ownerAddress)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(OwnerAddress content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an Area object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Area area
+            body:Add(area)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Area content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an Article object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Article article
+            body:Add(article)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Article content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an Aside object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Aside aside
+            body:Add(aside)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Aside content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an Audio object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Audio audio
+            body:Add(audio)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Audio content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Bold object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Bold bold
+            body:Add(bold)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Bold content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a BiDirectionalIsolation object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            BiDirectionalIsolation biDirectionalIsolation
+            body:Add(biDirectionalIsolation)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(BiDirectionalIsolation content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a BiDirectionalOverride object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            BiDirectionalOverride biDirectionalOverride
+            body:Add(biDirectionalOverride)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(BiDirectionalOverride content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a BlockQuote object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            BlockQuote blockQuote
+            body:Add(blockQuote)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(BlockQuote content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a LineBreak object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            LineBreak lineBreak
+            body:Add(lineBreak)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(LineBreak content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Button object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Button button
+            body:Add(button)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Button content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Canvas object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Canvas canvas
+            body:Add(canvas)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Canvas content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Cite object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Cite cite
+            body:Add(cite)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Cite content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a CodeBlock object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            CodeBlock codeBlock
+            body:Add(codeBlock)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(CodeBlock content)
+        parent:WebTag:tags:Add(content)
+    end
+    
+    /*
+    This action places a ListOptions object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            ListOptions listOptions
+            body:Add(listOptions)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(ListOptions content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Deleted object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Deleted deleted
+            body:Add(deleted)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Deleted content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a DefinitionTerm object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            DefinitionTerm definitionTerm
+            body:Add(definitionTerm)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(DefinitionTerm content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Division object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Division division
+            body:Add(division)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Division content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a DefinitionList object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            DefinitionList definitionList
+            body:Add(definitionList)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(DefinitionList content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an Emphasize object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Emphasize emphasize
+            body:Add(emphasize)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Emphasize content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an Embed object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Embed embed
+            body:Add(embed)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Embed content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a FieldSet object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            FieldSet fieldSet
+            body:Add(fieldSet)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(FieldSet content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Figure object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Figure figure
+            body:Add(figure)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Figure content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Footer object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Footer footer
+            body:Add(footer)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Footer content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Form object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Form form
+            body:Add(form)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Form content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Heading object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Heading heading
+            body:Add(heading)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Heading content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Header object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Header header
+            body:Add(header)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Header content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a PageBreak object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            PageBreak pageBreak
+            body:Add(pageBreak)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(PageBreak content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an Italic object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Italic italic
+            body:Add(italic)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Italic content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an InlineFrame object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            InlineFrame inlineFrame
+            body:Add(inlineFrame)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(InlineFrame content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an Image object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Image image
+            body:Add(image)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Image content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an Input object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Input input
+            body:Add(input)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Input content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an Inserted object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Inserted inserted
+            body:Add(inserted)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Inserted content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a KeyboardInput object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            KeyboardInput keyboardInput
+            body:Add(keyboardInput)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(KeyboardInput content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a KeyGenerator object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            KeyGenerator keyGenerator
+            body:Add(keyGenerator)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(KeyGenerator content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Label object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Label label
+            body:Add(label)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Label content)
+        parent:WebTag:tags:Add(content)
+    end
+
+
+    /*
+    This action places a MainContent object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            MainContent mainContent
+            body:Add(mainContent)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(MainContent content)
+        parent:WebTag:tags:Add(content)
+    end
+
+
+    /*
+    This action places an ImageMap object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            ImageMap imageMap
+            body:Add(imageMap)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(ImageMap content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Highlight object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Highlight highlight
+            body:Add(highlight)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Highlight content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a PerformanceGauge object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            PerformanceGauge performanceGauge
+            body:Add(performanceGauge)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(PerformanceGauge content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a NavigationLink object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            NavigationLink navigationLink
+            body:Add(navigationLink)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(NavigationLink content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a NoScript object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            NoScript noScript
+            body:Add(noScript)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(NoScript content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an EmbedContent object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            EmbedContent embedContent
+            body:Add(embedContent)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(EmbedContent content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Paragraph object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Paragraph paragraph
+            body:Add(paragraph)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Paragraph content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a PreformattedText object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            PreformattedText preformattedText
+            body:Add(preformattedText)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(PreformattedText content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a ProgressBar object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            ProgressBar progressBar
+            body:Add(progressBar)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(ProgressBar content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Quote object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Quote quote
+            body:Add(quote)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Quote content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Ruby object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Ruby ruby
+            body:Add(ruby)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Ruby content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a StrikeThrough object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            StrikeThrough strikeThrough
+            body:Add(strikeThrough)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(StrikeThrough content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a SampleOutput object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            SampleOutput sampleOutput
+            body:Add(sampleOutput)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(SampleOutput content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Script object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Script script
+            body:Add(script)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Script content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Section object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Section section
+            body:Add(section)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Section content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Select object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Select select
+            body:Add(select)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Select content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a SmallText object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            SmallText smallText
+            body:Add(smallText)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(SmallText content)
+        parent:WebTag:tags:Add(content)
+    end
+    
+    /*
+    This action places a Span object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Span span
+            body:Add(span)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Span content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a StrongText object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            StrongText strongText
+            body:Add(strongText)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(StrongText content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a SubscriptText object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            SubscriptText subscriptText
+            body:Add(subscriptText)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(SubscriptText content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a SuperscriptText object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            SuperscriptText superscriptText
+            body:Add(superscriptText)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(SuperscriptText content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a WebTable object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            WebTable webTable
+            body:Add(webTable)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(WebTable content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a HiddenContent object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            HiddenContent hiddenContent
+            body:Add(hiddenContent)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(HiddenContent content)
+        parent:WebTag:tags:Add(content)
+    end
+    
+    /*
+    This action places a TextArea object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            TextArea textArea
+            body:Add(textArea)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(TextArea content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Time object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Time time
+            body:Add(time)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Time content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an UnderlineText object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            UnderlineText underlineText
+            body:Add(underlineText)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(UnderlineText content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an UnorderedList object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            UnorderedList unorderedList
+            body:Add(unorderedList)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(UnorderedList content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places an OrderedList object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            OrderedList orderedList
+            body:Add(orderedList)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(OrderedList content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Variable object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Variable variable
+            body:Add(variable)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Variable content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a Video object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            Video video
+            body:Add(video)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(Video content)
+        parent:WebTag:tags:Add(content)
+    end
+
+    /*
+    This action places a WordBreak object inside of a MainContent object.
+
+    Attribute: Parameter content specifies what will be added to the page.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            WebPage page
+            Body body = page:GetBody()
+
+            WordBreak wordBreak
+            body:Add(wordBreak)
+
+            text value = page:Generate()
+            output value
+        end
+    end
+    */
+    action Add(WordBreak content)
+        parent:WebTag:tags:Add(content)
+    end
+end
