@@ -197,13 +197,10 @@ public class ModelLoader
         JsonValue materials = json.Get("materials");
         if (materials == null)
         {
-            System.out.println("Materials was null!");
             // Could possibly create a default material in this case -- libGDX does not handle this currently.
         }
         else
         {
-            System.out.println("Materials wasn't null!");
-            modelData.materials.SetSize(materials.size);
             for (JsonValue material = materials.child; material != null; material = material.next)
             {
                 ModelMaterial jsonMaterial = new ModelMaterial();
@@ -332,7 +329,6 @@ public class ModelLoader
         JsonValue nodes = json.Get("nodes");
         if (nodes != null)
         {
-            modelData.nodes.SetSize(nodes.size);
             for (JsonValue node = nodes.child; node != null; node = node.next)
                 modelData.nodes.Add(ParseNodesRecursively(node));
         }
