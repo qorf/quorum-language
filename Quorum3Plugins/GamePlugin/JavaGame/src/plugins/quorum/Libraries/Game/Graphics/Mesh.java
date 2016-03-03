@@ -69,9 +69,13 @@ public class Mesh
         else
         {
             if (quorumMesh.indices.GetSize() > 0)
+            {
                 GameState.nativeGraphics.glDrawElements(primitiveType, count, GraphicsManager.GL_UNSIGNED_SHORT, offset * 2);
+            }
             else
+            {
                 GameState.nativeGraphics.glDrawArrays(primitiveType, offset, count);
+            }
         }
 
         if (autoBind)
@@ -85,9 +89,9 @@ public class Mesh
     
     public void Bind(final ShaderProgram shader, final int[] locations)
     {
-        ((quorum.Libraries.Game.Graphics.VertexData)quorumMesh.vertices).plugin_.Bind(shader, locations);
+        ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.Bind(shader, locations);
         if (quorumMesh.indices.GetSize() > 0)
-            ((quorum.Libraries.Game.Graphics.IndexData)quorumMesh.indices).plugin_.Bind();
+            ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.Bind();
     }
     
     public void Unbind(final ShaderProgram shader)
@@ -97,8 +101,8 @@ public class Mesh
     
     public void Unbind(final ShaderProgram shader, final int[] locations)
     {
-        ((quorum.Libraries.Game.Graphics.VertexData)quorumMesh.vertices).plugin_.Unbind(shader, locations);
+        ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.Unbind(shader, locations);
         if (quorumMesh.indices.GetSize() > 0)
-            ((quorum.Libraries.Game.Graphics.IndexData)quorumMesh.indices).plugin_.Unbind();
+            ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.Unbind();
     }
 }

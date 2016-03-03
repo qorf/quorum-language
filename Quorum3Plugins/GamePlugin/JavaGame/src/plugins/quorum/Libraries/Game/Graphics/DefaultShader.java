@@ -510,7 +510,7 @@ public class DefaultShader extends BaseShader
 	public static String GetDefaultVertexShader () 
         {
             if (defaultVertexShader == null)
-                DefaultGLSLStrings.GetDefaultVertexShader();
+                defaultVertexShader = DefaultGLSLStrings.GetDefaultVertexShader();
             return defaultVertexShader;
 	}
 
@@ -519,7 +519,7 @@ public class DefaultShader extends BaseShader
 	public static String GetDefaultFragmentShader () 
         {
             if (defaultFragmentShader == null)
-                DefaultGLSLStrings.GetDefaultFragmentShader();
+                defaultFragmentShader = DefaultGLSLStrings.GetDefaultFragmentShader();
             return defaultFragmentShader;
 	}
 
@@ -669,7 +669,7 @@ public class DefaultShader extends BaseShader
 
 	public DefaultShader (final Renderable_ renderable, final Config config, final String prefix, final String vertexShader, final String fragmentShader) 
         {
-		this(renderable, config, new ShaderProgram(prefix + vertexShader, prefix + fragmentShader));
+            this(renderable, config, new ShaderProgram(prefix + vertexShader, prefix + fragmentShader));
 	}
 
 	public DefaultShader (final Renderable_ renderable, final Config config, final ShaderProgram shaderProgram) 
@@ -950,13 +950,13 @@ public class DefaultShader extends BaseShader
 	@Override
 	public void Render(Renderable_ renderable, Attributes combinedAttributes) 
         {
-		if (!combinedAttributes.HasAttribute(blendingAttribute.GetBlendedValue()))
-			context.SetBlending(false, GraphicsManager.GL_SRC_ALPHA, GraphicsManager.GL_ONE_MINUS_SRC_ALPHA);
-		BindMaterial(combinedAttributes);
-		if (lighting)
-                    BindLights(renderable, combinedAttributes);
-		
-                super.Render(renderable, combinedAttributes);
+            if (!combinedAttributes.HasAttribute(blendingAttribute.GetBlendedValue()))
+                context.SetBlending(false, GraphicsManager.GL_SRC_ALPHA, GraphicsManager.GL_ONE_MINUS_SRC_ALPHA);
+            BindMaterial(combinedAttributes);
+            if (lighting)
+                BindLights(renderable, combinedAttributes);
+
+            super.Render(renderable, combinedAttributes);
 	}
 
 	@Override

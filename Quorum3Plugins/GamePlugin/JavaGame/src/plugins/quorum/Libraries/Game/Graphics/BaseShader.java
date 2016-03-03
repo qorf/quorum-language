@@ -274,15 +274,21 @@ public abstract class BaseShader implements Shader
     {
         Renderable renderable = (Renderable)param;
         if (renderable.worldTransform.Determinant3x3() == 0)
+        {
             return;
+        }
         
         combinedAttributes.Empty();
         
         if (renderable.environment != null)
+        {
             combinedAttributes.Add(renderable.environment);
+        }
         if (renderable.material != null)
+        {
             combinedAttributes.Add(renderable.material);
-
+        }
+        
         Render(renderable, combinedAttributes);
     }
 

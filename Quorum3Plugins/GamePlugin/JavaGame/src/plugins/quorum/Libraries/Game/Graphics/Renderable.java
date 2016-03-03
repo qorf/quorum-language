@@ -14,7 +14,7 @@ import quorum.Libraries.Game.Graphics.Renderable_;
  */
 public class Renderable 
 {
-    java.lang.Object me_ = null;
+    public java.lang.Object me_ = null;
     
     public Camera_ camera;
     

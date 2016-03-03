@@ -15,7 +15,7 @@ public class PointLightsAttribute extends Attribute
     
     public final static int POINT_LIGHTS = RegisterStatic("pointLights");
     
-    public int GetBlendedValue()
+    public int GetPointLightsValue()
     {
         return POINT_LIGHTS;
     }

@@ -13,10 +13,10 @@ public class DepthTestAttribute extends Attribute
 {
     public java.lang.Object me_ = null;
     
-    public final static int CULL_FACE = RegisterStatic("depthTest");
+    public final static int DEPTH_TEST = RegisterStatic("depthTest");
     
-    public int GetCullFaceValue()
+    public int GetDepthTestValue()
     {
-        return CULL_FACE;
+        return DEPTH_TEST;
     }
 }

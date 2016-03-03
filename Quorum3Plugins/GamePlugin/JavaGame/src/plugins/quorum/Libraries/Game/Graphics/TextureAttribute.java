@@ -18,9 +18,9 @@ public class TextureAttribute extends Attribute
     public static final int BUMP_TEXTURE = RegisterStatic("bumpTexture");
     public static final int NORMAL_TEXTURE = RegisterStatic("normalTexture");
     public static final int AMBIENT_TEXTURE = RegisterStatic("ambientTexture");
-    public static final int EMISSIVE_ALIAS = RegisterStatic("emissiveTexture");
-    public static final int REFLECTION_ALIAS = RegisterStatic("reflectionTexture");
-    public static final int MASK = DIFFUSE_TEXTURE | SPECULAR_TEXTURE | BUMP_TEXTURE | NORMAL_TEXTURE | AMBIENT_TEXTURE | EMISSIVE_ALIAS | REFLECTION_ALIAS;
+    public static final int EMISSIVE_TEXTURE = RegisterStatic("emissiveTexture");
+    public static final int REFLECTION_TEXTURE = RegisterStatic("reflectionTexture");
+    public static final int MASK = DIFFUSE_TEXTURE | SPECULAR_TEXTURE | BUMP_TEXTURE | NORMAL_TEXTURE | AMBIENT_TEXTURE | EMISSIVE_TEXTURE | REFLECTION_TEXTURE;
     
     public int GetDiffuseValue()
     {
@@ -49,7 +49,12 @@ public class TextureAttribute extends Attribute
     
     public int GetEmissiveValue()
     {
-        return REFLECTION_ALIAS;
+        return EMISSIVE_TEXTURE;
+    }
+    
+    public int GetReflectionValue()
+    {
+        return REFLECTION_TEXTURE;
     }
     
     public int GetAttributeMask()
