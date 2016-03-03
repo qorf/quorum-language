@@ -38,8 +38,12 @@ class BlendingAttribute is Attribute
     system action GetBlendedValue returns integer
 
     action Copy returns Attribute
-        // ...
-        return undefined
+        BlendingAttribute new
+        new:blended = blended
+        new:sourceFunction = sourceFunction
+        new:destFunction = destFunction
+        new:opacity = opacity
+        return new
     end
 
 end

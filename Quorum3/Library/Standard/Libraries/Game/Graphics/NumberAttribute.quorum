@@ -25,8 +25,9 @@ class NumberAttribute is Attribute
     end
 
     action Copy returns Attribute
-        // ...
-        return undefined
+        NumberAttribute new
+        new:SetAttribute(parent:Attribute:type, value)
+        return new
     end
 
     /*

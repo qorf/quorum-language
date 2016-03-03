@@ -91,6 +91,7 @@ class ModelBlueprint is Disposable
             meshPart:primitiveType = part:primitiveType
             meshPart:indexOffset = offset
             meshPart:verticesCount = part:indices:GetSize()
+            meshPart:mesh = mesh
             mesh:GetIndexData():Put(part:indices)
             offset = offset + meshPart:verticesCount
             meshParts:Add(meshPart)

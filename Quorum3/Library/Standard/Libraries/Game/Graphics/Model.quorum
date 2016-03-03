@@ -273,6 +273,7 @@ class Model
     action GetRenderables(Array<Renderable> renderables)
         Node node = undefined
         integer index = 0
+        //output "Nodes size = " + nodes:GetSize()
         repeat nodes:GetSize() times
             node = nodes:Get(index)
             GetRenderables(node, renderables)
@@ -291,13 +292,13 @@ class Model
                 end
                 index = index + 1
             end
+        end
 
-            Iterator<Node> childIterator = node:GetChildren()
-            Node child = undefined
-            repeat while childIterator:HasNext()
-                child = childIterator:Next()
-                GetRenderables(child, renderables)
-            end
+        Iterator<Node> childIterator = node:GetChildren()
+        Node child = undefined
+        repeat while childIterator:HasNext()
+            child = childIterator:Next()
+            GetRenderables(child, renderables)
         end
     end
 

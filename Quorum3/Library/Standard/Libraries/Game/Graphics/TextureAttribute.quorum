@@ -134,8 +134,9 @@ class TextureAttribute is Attribute
     end
 
     action Copy returns Attribute
-        // ...
-        return undefined
+        TextureAttribute new
+        new:SetAttribute(parent:Attribute:type, descriptor, offsetU, offsetV, scaleU, scaleV)
+        return new
     end
 
     /*

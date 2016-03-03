@@ -92,8 +92,9 @@ class ColorAttribute is Attribute
     end
 
     action Copy returns Attribute
-        // ...
-        return undefined
+        ColorAttribute new
+        new:SetAttribute(parent:Attribute:type, color)
+        return new
     end
 
     /*

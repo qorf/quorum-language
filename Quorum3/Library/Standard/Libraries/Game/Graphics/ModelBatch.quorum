@@ -2,6 +2,9 @@ package Libraries.Game.Graphics
 
 use Libraries.Containers.Array
 use Libraries.Game.Disposable
+use Libraries.Game.Graphics.IntegerAttribute
+use Libraries.Game.Graphics.DepthTestAttribute
+use Libraries.Game.Graphics.Environment
 
 class ModelBatch is Disposable
     
@@ -30,7 +33,10 @@ class ModelBatch is Disposable
         model:GetRenderables(renderables)
         
         integer index = offset
+        //output "Start index = " + index
+        //output "Renderables size = " + renderables:GetSize()
         repeat while index < renderables:GetSize()
+            //output "Rendering index = " + index
             Renderable renderable = renderables:Get(index)
             RenderNative(renderable)
             index = index + 1
