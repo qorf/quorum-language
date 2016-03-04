@@ -97,6 +97,11 @@ class MathTester
         Matrix4Inverse()
         Matrix4SetToProjection()
         Matrix4SetToOrthographic()
+        Matrix4SetToRotation()
+        Matrix4SetFromEulerAngles()
+        Matrix4SetToLookAt()
+        Matrix4Average()
+        Matrix4Rotate()
 
 //FAIL TESTS
         path = failPath
@@ -1238,5 +1243,162 @@ class MathTester
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
+
+    action Matrix4SetToRotation
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix4SetToRotation.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|0.7071067811865475, -0.7071067811865476, 0.0, 0.0|")
+        results:Add("|0.7071067811865476, 0.7071067811865475, 0.0, 0.0|")
+        results:Add("|0.0, 0.0, 1.0, 0.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|0.7071067811865475, -0.7071067811865476, 0.0, 0.0|")
+        results:Add("|0.7071067811865476, 0.7071067811865475, 0.0, 0.0|")
+        results:Add("|0.0, 0.0, 1.0, 0.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|0.7071067811865475, -0.7071067811865476, 0.0, 0.0|")
+        results:Add("|0.7071067811865476, 0.7071067811865475, 0.0, 0.0|")
+        results:Add("|0.0, 0.0, 1.0, 0.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|0.7071067811865475, -0.7071067811865476, 0.0, 0.0|")
+        results:Add("|0.7071067811865476, 0.7071067811865475, 0.0, 0.0|")
+        results:Add("|0.0, 0.0, 1.0, 0.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|0.9788598718308968, 0.08291568431333474, 0.1869714967957726, 0.0|")
+        results:Add("|-0.09982778684861726, 0.9915439487323587, 0.08291568431333476, 0.0|")
+        results:Add("|-0.17851544552813134, -0.09982778684861729, 0.9788598718308968, 0.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|0.9788598718308968, 0.08291568431333474, 0.1869714967957726, 0.0|")
+        results:Add("|-0.09982778684861726, 0.9915439487323587, 0.08291568431333476, 0.0|")
+        results:Add("|-0.17851544552813134, -0.09982778684861729, 0.9788598718308968, 0.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix4SetFromEulerAngles
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix4SetFromEulerAngles.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|-0.7071067811865475, -0.7071067811865476, 1.1102230246251565E-16, 0.0|")
+        results:Add("|0.0, -2.220446049250313E-16, -1.0, 0.0|")
+        results:Add("|0.7071067811865476, -0.7071067811865475, 2.220446049250313E-16, 0.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|-0.7071067811865475, -0.7071067811865476, 1.1102230246251565E-16, 0.0|")
+        results:Add("|0.0, -2.220446049250313E-16, -1.0, 0.0|")
+        results:Add("|0.7071067811865476, -0.7071067811865475, 2.220446049250313E-16, 0.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end    
+
+    action Matrix4SetToLookAt
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix4SetToLookAt.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|-1.0, 0.0, 0.0, 0.0|")
+        results:Add("|0.0, 1.0, -0.0, 0.0|")
+        results:Add("|-0.0, -0.0, -1.0, 0.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|-1.0, 0.0, 0.0, 0.0|")
+        results:Add("|0.0, 1.0, 0.0, 0.0|")
+        results:Add("|0.0, 0.0, -1.0, 1.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        results:Add("The new matrix is:")
+        results:Add("|0.0, 0.0, 1.0, 0.0|")
+        results:Add("|0.0, 1.0, 0.0, 0.0|")
+        results:Add("|-1.0, -0.0, -0.0, 0.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end    
+
+    action Matrix4Average
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix4Average.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|7.5, 7.5, 7.5, 7.5|")
+        results:Add("|7.5, 7.5, 7.5, 7.5|")
+        results:Add("|7.5, 7.5, 7.5, 7.5|")
+        results:Add("|7.5, 7.5, 7.5, 7.5|")
+        results:Add("The new matrix is:")
+        results:Add("|0.11575816135991306, -1.7641895839453572, 11.824703211173118, 1.5|")
+        results:Add("|-1.0941039340485426, 2.9894006549001704, 2.4444565406566983, 1.5|")
+        results:Add("|-6.559165191542826, -2.1863883971809424, -0.26198769464331617, 1.5|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix4Rotate
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix4Rotate.quorum")
+        files:Add(main)
+        results:Add("The new matrix is:")
+        results:Add("|1.0, 2.220446049250313E-16, 2.0, 3.0|")
+        results:Add("|5.000000000000001, -3.999999999999999, 6.0, 7.0|")
+        results:Add("|9.000000000000002, -7.999999999999998, 10.0, 11.0|")
+        results:Add("|13.000000000000004, -11.999999999999996, 14.0, 15.0|")
+        results:Add("The new matrix is:")
+        results:Add("|1.0, 2.220446049250313E-16, 2.0, 3.0|")
+        results:Add("|5.000000000000001, -3.999999999999999, 6.0, 7.0|")
+        results:Add("|9.000000000000002, -7.999999999999998, 10.0, 11.0|")
+        results:Add("|13.000000000000004, -11.999999999999996, 14.0, 15.0|")
+        results:Add("The new matrix is:")
+        results:Add("|1.0, 2.220446049250313E-16, 2.0, 3.0|")
+        results:Add("|5.000000000000001, -3.999999999999999, 6.0, 7.0|")
+        results:Add("|9.000000000000002, -7.999999999999998, 10.0, 11.0|")
+        results:Add("|13.000000000000004, -11.999999999999996, 14.0, 15.0|")
+        results:Add("The new matrix is:")
+        results:Add("|1.0, 2.220446049250313E-16, 2.0, 3.0|")
+        results:Add("|5.000000000000001, -3.999999999999999, 6.0, 7.0|")
+        results:Add("|9.000000000000002, -7.999999999999998, 10.0, 11.0|")
+        results:Add("|13.000000000000004, -11.999999999999996, 14.0, 15.0|")
+        results:Add("The new matrix is:")
+        results:Add("|8.0, 21.0, -14.0, 3.0|")
+        results:Add("|-20.0, -55.0, 54.0, 7.0|")
+        results:Add("|-48.0, -131.0, 122.0, 11.0|")
+        results:Add("|-76.0, -207.0, 190.0, 15.0|")
+        results:Add("The new matrix is:")
+        results:Add("|-0.45685867790487994, 0.7918883750351242, 2.0406354279751286, 3.0|")
+        results:Add("|2.345207879911713, 4.690415759823429, 7.035623639735146, 7.0|")
+        results:Add("|5.147274437728306, 8.588943144611733, 12.030611851495163, 11.0|")
+        results:Add("|7.949340995544899, 12.487470529400039, 17.02560006325518, 15.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action Matrix4Project
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Matrix4Project.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [-1.0, -1.0, 5.0]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
 end
 
