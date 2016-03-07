@@ -33,7 +33,7 @@ end
 class WebPageHeader is WebGenerator, GlobalAttributeAccepter
 
     Title title
-    StylesheetLink link = undefined
+    List<StylesheetLink> linkList
     List<MetaData> metaList
     List<Script> scriptList
     List<Base> baseList
@@ -71,6 +71,57 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
     */
     action Remove(MetaData value)
         metaList:Remove(value)
+    end
+
+    /*
+        This action adds a link to a stylesheet to the header.
+
+        Attribute: Parameter value The header meta data. 
+
+        Attribute: Example
+        use Libraries.Web.Page.WebPageHeader
+        use Libraries.Web.Page.StylesheetLink
+        WebPageHeader header
+        StylesheetLink md
+        header:Add(md)
+        
+    */
+    action Add(StylesheetLink value)
+        linkList:Add(value)
+    end
+
+    /*
+        This action removes the first instance of the links to stylesheets found in the
+        meta list.
+
+        Attribute: Parameter value The meta data element. 
+
+        Attribute: Example
+        use Libraries.Web.Page.WebPageHeader
+        use Libraries.Web.Page.StylesheetLink
+        WebPageHeader header
+        StylesheetLink item
+        header:Remove(item)
+    */
+    action Remove(StylesheetLink value)
+        linkList:Remove(value)
+    end
+
+    /*
+        This action adds a link to a stylesheet to the header.
+
+        Attribute: Parameter value The header meta data. 
+
+        Attribute: Example
+        use Libraries.Web.Page.WebPageHeader
+        WebPageHeader header
+        header:AddStylesheetLink("style.css")
+    */
+    action AddStylesheetLink(text path)
+        StylesheetLink link
+        link:SetType("text/css")
+        link:SetAddress(path)
+        linkList:Add(link)
     end
 
     /*
@@ -201,10 +252,6 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         return title
     end
 
-//    action GetstyleSheetLink returns StylesheetLink
-//        return link
-//    end
-
     /*
         This action sets the title for the header. This field is required.
 
@@ -222,10 +269,6 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         me:title = title
     end
 
-//    action SetStylesheetLink(StylesheetLink link)
-//        me:link = link
-//    end
-
     /*
         This action sets the text of the title in the header.
 
@@ -241,21 +284,6 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
     action SetTitleHeaderValue(text value)
         title:AddText(value)
     end
-
-    /*
-        This action gets the title text of the header.
-
-        Attribute: Returns The title. 
-
-        Attribute: Example
-        use Libraries.Web.Page.WebPageHeader
-        WebPageHeader header
-        output header:GetTitleHeaderValue()
-        
-    */
-//    action GetTitleHeaderValue() returns text
-//        return title:GetDescription()
-//    end
 
     action Generate returns text
         
