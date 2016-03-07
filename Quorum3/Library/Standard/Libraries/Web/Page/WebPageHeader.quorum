@@ -286,7 +286,6 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
     end
 
     action Generate returns text
-        
         text result = "<head " + me:GenerateAttributes() + ">" 
 
         if title not= undefined
@@ -306,12 +305,19 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
         end
 
         if baseList:GetSize() > 1
-        alert("Can not have more than 1 base on a page")
+            alert("Can not have more than 1 base on a page")
         end
+
         Iterator<Base> itBase = baseList:GetIterator()
         repeat while itBase:HasNext()
             Base base = itBase:Next()
             result = result + base:Generate()
+        end
+
+        Iterator<StylesheetLink> itLink = linkList:GetIterator()
+        repeat while itLink:HasNext()
+            StylesheetLink style = itLink:Next()
+            result = result + style:Generate()
         end
         
         return result + "</head>"
