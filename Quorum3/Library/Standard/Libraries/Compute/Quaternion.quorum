@@ -6,6 +6,26 @@ use Libraries.Compute.Vector3
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Matrix3
 
+
+/*
+Quaternion is a class representing a quaternion, which are useful for 3D computer
+graphics.
+
+Attribute: Author Amanda Austin
+
+Attribute: Example
+
+use Libraries.Compute.Quaternion
+
+Quaternion quaternion
+
+quaternion:Set(1, 2, 3, 4)
+
+number length = quaternion:Length()
+
+output "The length of the quaternion is " + length
+
+*/
 class Quaternion    
     number x = 0
     number y = 0
@@ -16,60 +36,352 @@ class Quaternion
 
     Math math
 
-    action Set(number a, number b, number c, number d) returns Quaternion
-	x = a
-	y = b
-	z = c
-	w = d
+    /*
+    This action sets the quaternion's values to the passed values.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter x The value to set as the quaternion's x
+    Attribute: Parameter y The value to set as the quaternion's y
+    Attribute: Parameter z The value to set as the quaternion's z
+    Attribute: Parameter w The value to set as the quaternion's w
+
+    Attribute: Returns The quaternion after setting
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    quaternion:Set(1, 2, 3, 4)
+
+    number x = quaternion:GetX()
+    number y = quaternion:GetY()
+    number z = quaternion:GetZ()
+    number w = quaternion:GetW()
+    
+    output "The quaternion is: [" + x + ", " + y + ", " + z + ", " + w + "]"
+
+    */
+    action Set(number x, number y, number z, number w) returns Quaternion
+	me:x = x
+	me:y = y
+	me:z = z
+	me:w = w
         return me
     end
 
-    action Set(Quaternion quad) returns Quaternion
-        return Set(quad:GetX(), quad:GetY(), quad:GetZ(), quad:GetW())
+    /*
+    This action sets the quaternion using the x, y, z, and w values from the
+    passed quaternion.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter quaternion The quaternion to use to set the values of this quaternion
+    
+    Attribute: Returns The quaternion after setting
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+    Quaternion setQuaternion
+
+    setQuaternion:Set(1, 2, 3, 4)
+
+    quaternion:Set(setQuaternion)
+
+    number x = quaternion:GetX()
+    number y = quaternion:GetY()
+    number z = quaternion:GetZ()
+    number w = quaternion:GetW()
+    
+    output "The quaternion is: [" + x + ", " + y + ", " + z + ", " + w + "]"
+
+    */
+    action Set(Quaternion quaternion) returns Quaternion
+        return Set(quaternion:GetX(), quaternion:GetY(), quaternion:GetZ(), quaternion:GetW())
     end
 
+    /*
+    This action sets the quaternion from the given axis and the angle around the
+    axis.
+
+    Attribute: Author Amanda Austin
+    
+    Attribute: Parameter axis The axis
+    Attribute: Parameter angle The angle around the axis in degrees
+
+    Attribute: Returns The quaternion after setting
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+    use Libraries.Compute.Vector3
+
+    Quaternion quaternion
+
+    Vector3 axis
+    axis:Set(1, 0, 0)
+
+    quaternion:Set(axis, 45)
+
+    number x = quaternion:GetX()
+    number y = quaternion:GetY()
+    number z = quaternion:GetZ()
+    number w = quaternion:GetW()
+    
+    output "The quaternion is: [" + x + ", " + y + ", " + z + ", " + w + "]"
+
+    */
     action Set(Vector3 axis, number angle) returns Quaternion
         return SetFromAxis(axis:GetX(), axis:GetY(), axis:GetZ(), angle)
     end
 
+    /*
+    This action creates and returns a copy of the quaternion.
+    
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns a new quaternion that is a copy of this quaternion
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+    quaternion:Set(1, 2, 3, 4)
+
+    Quaternion copy
+    
+    copy = quaternion:Copy()
+
+    number x = copy:GetX()
+    number y = copy:GetY()
+    number z = copy:GetZ()
+    number w = copy:GetW()
+    
+    output "The quaternion is: [" + x + ", " + y + ", " + z + ", " + w + "]"
+
+    */
     action Copy returns Quaternion
         Quaternion ret
         ret:Set(me)
         return ret
     end
 
+    /*
+    This action gets the x value of the quaternion
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns The x value of the quaternion
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    quaternion:Set(1, 2, 3, 4)
+
+    number x = quaternion:GetX()
+
+    output "The x value of the quaternion is " + x
+
+    */
     action GetX returns number
 	return x
     end
 
+    /*
+    This action gets the y value of the quaternion
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns The y value of the quaternion
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    quaternion:Set(1, 2, 3, 4)
+
+    number y = quaternion:GetY()
+
+    output "The y value of the quaternion is " + y
+
+    */
     action GetY returns number
 	return y
     end
 
+    /*
+    This action gets the z value of the quaternion
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns The z value of the quaternion
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    quaternion:Set(1, 2, 3, 4)
+
+    number z = quaternion:GetZ()
+
+    output "The z value of the quaternion is " + z
+
+    */
     action GetZ returns number
 	return z
     end
 
+    /*
+    This action gets the w value of the quaternion
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns The w value of the quaternion
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    quaternion:Set(1, 2, 3, 4)
+
+    number w = quaternion:GetW()
+
+    output "The w value of the quaternion is " + w
+
+    */
     action GetW returns number
 	return w
     end
 
-    action Length(number a, number b, number c, number d) returns number
-        return math:SquareRoot(a * a + b * b + c * c + d * d)
+    /*
+    This action returns the length of the quaternion with the passed x, y, z,
+    and w values.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter x The x value of the quaternion
+    Attribute: Parameter y The y value of the quaternion
+    Attribute: Parameter z The z value of the quaternion
+    Attribute: Parameter w The w value of the quaternion
+
+    Attribute: Returns The length of the quaternion
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    number length = quaternion:Length(1, 2, 3, 4)
+    
+    output "The length of the quaternion is " + length
+
+    */
+    action Length(number x, number y, number z, number w) returns number
+        return math:SquareRoot(x * x + y * y + z * z + w * w)
     end
 
+
+    /*
+    This action returns the length of the quaternion.
+    
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns The length of the quaternion
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    quaternion:Set(1, 2, 3, 4)
+
+    number length = quaternion:Length()
+    
+    output "The length of the quaternion is " + length
+
+    */
     action Length returns number
         return math:SquareRoot(x * x + y * y + z * z + w * w)
     end
 
-    action ToText returns text
-        return "[" + x + "|" + y + "|" + z + "|" + w + "]"
-    end
+    /*
+    This action sets the quaternion to the given euler angles in degrees
 
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter yaw The rotation around the y-axis in degrees
+    Attribute: Parameter pitch The rotation around the x-axis in degrees
+    Attribute: Parameter roll The rotation around the z-axis in degrees
+
+    Attribute: Returns The quaternion after setting
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    quaternion:SetEulerAngles(45, 30, 60)
+
+    number x = quaternion:GetX()
+    number y = quaternion:GetY()
+    number z = quaternion:GetZ()
+    number w = quaternion:GetW()
+    
+    output "The quaternion is: [" + x + ", " + y + ", " + z + ", " + w + "]"
+    
+    */
     action SetEulerAngles(number yaw, number pitch, number roll) returns Quaternion
         return SetEulerAnglesRadians(yaw * math:pi / 180, pitch * math:pi / 180, roll * math:pi / 180)
     end
 
+    /*
+    This action sets the quaternion to the given euler angles in radians
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter yaw The rotation around the y-axis in radians
+    Attribute: Parameter pitch The rotation around the x-axis in radians
+    Attribute: Parameter roll The rotation around the z-axis in radians
+
+    Attribute: Returns The quaternion after setting
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+    use Libraries.Compute.Math
+
+    Math math
+
+    Quaternion quaternion
+
+    quaternion:SetEulerAnglesRadians(math:pi / 4, math:pi / 6, math:pi / 3)
+
+    number x = quaternion:GetX()
+    number y = quaternion:GetY()
+    number z = quaternion:GetZ()
+    number w = quaternion:GetW()
+    
+    output "The quaternion is: [" + x + ", " + y + ", " + z + ", " + w + "]"
+    
+    */
     action SetEulerAnglesRadians(number yaw, number pitch, number roll) returns Quaternion
         number hr = roll * 0.5
         number shr = math:Sine(hr)
@@ -92,6 +404,30 @@ class Quaternion
         return me
     end
 
+    /*
+    This action gets the pole of the gimbal lock if there is one.
+
+    Attribute: Returns: 1 for the north pole, -1 for the south pole, 0 if there is no gimbal lock
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    quaternion:Set(1, 2, 3, 4)
+
+    number pole = quaternion:GetGimbalPole()
+
+    if pole = 1
+        output "The gimbal pole is the north pole."
+    elseif pole = -1
+        output "The gimbal pole is the south pole."
+    else
+        output "There is no gimbal pole."
+    end
+
+    */
     action GetGimbalPole returns integer
         number t = y * x + z * w
         if t > 0.499
@@ -103,7 +439,30 @@ class Quaternion
         end
     end
 
-    action GetRollRad returns number
+    /*
+    This action gets the roll euler angle in radians, which is the rotation around
+    the z-axis. The quaternion must be normalized before calling this action.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns The rotation around the z-axis in radians
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    quaternion:Set(1, 2, 3, 4)
+
+    quaternion:Normalize()
+
+    number roll = quaternion:GetRollRadians()
+
+    output "The roll in radians is " + roll
+
+    */
+    action GetRollRadians returns number
         integer pole = GetGimbalPole()
         if pole = 0
             return math:InverseTangent(2.0 * (w * z + y * x), 1.0 - 2.0 *(x * x + z * z))
@@ -112,11 +471,57 @@ class Quaternion
         end
     end
 
+    /*
+    This action gets the roll euler angle in degrees, which is the rotation around
+    the z-axis. The quaternion must be normalized before calling this action.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns The rotation around the z-axis in degrees
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    quaternion:Set(1, 2, 3, 4)
+
+    quaternion:Normalize()
+
+    number roll = quaternion:GetRoll()
+
+    output "The roll in degrees is " + roll
+
+    */
     action GetRoll returns number
         return GetRollRad() * 180 / math:pi
     end
 
-    action GetPitchRad returns number
+    /*
+    This action gets the pitch euler angle in radians, which is the rotation around
+    the x-axis. The quaternion must be normalized before calling this action.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns The rotation around the x-axis in radians
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    quaternion:Set(1, 2, 3, 4)
+
+    quaternion:Normalize()
+
+    number pitch = quaternion:GetPitchRadians()
+
+    output "The pitch in radians is " + pitch
+
+    */
+    action GetPitchRadians returns number
         integer pole = GetGimbalPole()
         if pole = 0
             return math:InverseSine(Clamp(2.0 * (w * x + z * y), -1.0, 1.0))
@@ -125,11 +530,57 @@ class Quaternion
         end
     end
 
+    /*
+    This action gets the pitch euler angle in degrees, which is the rotation around
+    the x-axis. The quaternion must be normalized before calling this action.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns The rotation around the x-axis in degrees
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    quaternion:Set(1, 2, 3, 4)
+
+    quaternion:Normalize()
+
+    number pitch = quaternion:GetPitch()
+
+    output "The pitch in degrees is " + pitch
+
+    */
     action GetPitch returns number
         return GetPitchRad() * 180 / math:pi
     end
 
-    action GetYawRad returns number
+    /*
+    This action gets the yaw euler angle in radians, which is the rotation around
+    the y-axis. The quaternion must be normalized before calling this action.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns The rotation around the y-axis in radians
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    quaternion:Set(1, 2, 3, 4)
+
+    quaternion:Normalize()
+
+    number yaw = quaternion:GetYawRadians()
+
+    output "The yaw in radians is " + yaw
+
+    */
+    action GetYawRadians returns number
         if GetGimbalPole() = 0
             return math:InverseTangent(2.0 * (y * w + x * z), 1.0 - 2.0 * (y * y + x * x))
         else
@@ -137,12 +588,35 @@ class Quaternion
         end
     end
 
+    /*
+    This action gets the yaw euler angle in degrees, which is the rotation around
+    the y-axis. The quaternion must be normalized before calling this action.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Returns The rotation around the y-axis in degrees
+
+    Attribute: Example
+
+    use Libraries.Compute.Quaternion
+
+    Quaternion quaternion
+
+    quaternion:Set(1, 2, 3, 4)
+
+    quaternion:Normalize()
+
+    number yaw = quaternion:GetYaw()
+
+    output "The yaw in degrees is " + yaw
+
+    */
     action GetYaw returns number
         return GetYawRad() * 180 / math:pi
     end
 
-    action LengthSquared(number a, number b, number c, number d) returns number
-        return a * a + b * b + c * c + d * d
+    action LengthSquared(number x, number y, number z, number w) returns number
+        return x * x + y * y + z * z + w * w
     end
     
     action LengthSquared returns number
@@ -191,29 +665,11 @@ class Quaternion
         return me
     end
 
-    action Multiply(number a, number b, number c, number d) returns Quaternion
-        number newX = me:GetW() * a + me:GetX() * d + me:GetY() * c - me:GetZ() * b
-        number newY = me:GetW() * b + me:GetY() * d + me:GetZ() * a - me:GetX() * c
-        number newZ = me:GetW() * c + me:GetZ() * d + me:GetX() * b - me:GetY() * a
-        number newW = me:GetW() * d - me:GetX() * a - me:GetY() * b - me:GetZ() * c
-        me:Set(newX, newY, newZ, newW)
-        return me
-    end
-
-    action MultiplyLeft(Quaternion other) returns Quaternion
-        number newX = other:GetW() * me:GetX() + other:GetX() * me:GetW() + other:GetY() * me:GetZ() - other:GetZ() * me:GetY()
-        number newY = other:GetW() * me:GetY() + other:GetY() * me:GetW() + other:GetZ() * me:GetX() - other:GetX() * me:GetZ()
-        number newZ = other:GetW() * me:GetZ() + other:GetZ() * me:GetW() + other:GetX() * me:GetY() - other:GetY() * me:GetX()
-        number newW = other:GetW() * me:GetW() - other:GetX() * me:GetX() - other:GetY() * me:GetY() - other:GetZ() * me:GetZ()
-        me:Set(newX, newY, newZ, newW)
-        return me
-    end
-
-    action MultiplyLeft(number a, number b, number c, number d) returns Quaternion
-        number newX = d * me:GetX() + a * me:GetW() + b * me:GetZ() - c * me:GetY()
-        number newY = d * me:GetY() + b * me:GetW() + c * me:GetX() - a * me:GetZ()
-        number newZ = d * me:GetZ() + c * me:GetW() + a * me:GetY() - b * me:GetX()
-        number newW = d * me:GetW() - a * me:GetX() - b * me:GetY() - c * me:GetZ()
+    action Multiply(number x, number y, number z, number w) returns Quaternion
+        number newX = me:GetW() * x + me:GetX() * w + me:GetY() * z - me:GetZ() * y
+        number newY = me:GetW() * y + me:GetY() * w + me:GetZ() * x - me:GetX() * z
+        number newZ = me:GetW() * z + me:GetZ() * w + me:GetX() * y - me:GetY() * x
+        number newW = me:GetW() * w - me:GetX() * x - me:GetY() * y - me:GetZ() * z
         me:Set(newX, newY, newZ, newW)
         return me
     end
@@ -226,11 +682,11 @@ class Quaternion
         return me
     end
 
-    action Add(number qx, number qy, number qz, number qw) returns Quaternion
-        me:x = me:x + qx
-        me:y = me:y + qy
-        me:z = me:z + qz
-        me:w = me:w + qw
+    action Add(number x, number y, number z, number w) returns Quaternion
+        me:x = me:x + x
+        me:y = me:y + y
+        me:z = me:z + z
+        me:w = me:w + w
         return me
     end
 
