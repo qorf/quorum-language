@@ -250,8 +250,6 @@ class StylesheetLink is WebTag
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"
-        result = result + me:GenerateNestedTags()
-        result = result + "</link>"
         return result
     end
 end
