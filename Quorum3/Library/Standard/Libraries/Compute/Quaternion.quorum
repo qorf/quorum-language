@@ -495,7 +495,7 @@ class Quaternion
 
     */
     action GetRoll returns number
-        return GetRollRad() * 180 / math:pi
+        return GetRollRadians() * 180 / math:pi
     end
 
     /*
@@ -554,7 +554,7 @@ class Quaternion
 
     */
     action GetPitch returns number
-        return GetPitchRad() * 180 / math:pi
+        return GetPitchRadians() * 180 / math:pi
     end
 
     /*
@@ -612,7 +612,7 @@ class Quaternion
 
     */
     action GetYaw returns number
-        return GetYawRad() * 180 / math:pi
+        return GetYawRadians() * 180 / math:pi
     end
 
     action LengthSquared(number x, number y, number z, number w) returns number
@@ -648,7 +648,12 @@ class Quaternion
 
         temp2:Set(me)
         temp2:Conjugate()
-        temp2:MultiplyLeft(temp1:Set(vector:GetX(), vector:GetY(), vector:GetZ(), 0)):MultiplyLeft(me)
+
+        temp1:Set(vector:GetX(), vector:GetY(), vector:GetZ(), 0)
+        temp1:Multiply(temp2)
+        me:Multiply(temp1)
+
+//        temp2:MultiplyLeft(temp1:Set(vector:GetX(), vector:GetY(), vector:GetZ(), 0)):MultiplyLeft(me)
 
         vector:SetX(temp2:GetX())
         vector:SetY(temp2:GetY())
@@ -1006,7 +1011,10 @@ class Quaternion
 
         number d = temp:DotProduct(me:x, me:y, me:z, axisX, axisY, axisZ)
         twist:Set(axisX * d, axisY * d, axisZ * d, me:w):Normalize()
-        swing:Set(twist):Conjugate():MultiplyLeft(me)
+
+        swing:Set(twist):Conjugate()
+        me:Multiply(swing)
+//        swing:Set(twist):Conjugate():MultiplyLeft(me)
     end
 
     action GetSwingTwist(Vector3 axis, Quaternion swing, Quaternion twist)
