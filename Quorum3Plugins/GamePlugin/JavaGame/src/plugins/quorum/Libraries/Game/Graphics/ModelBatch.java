@@ -11,6 +11,7 @@ import quorum.Libraries.Game.Graphics.Camera_;
 import quorum.Libraries.Game.Graphics.Camera;
 import quorum.Libraries.Game.Graphics.Renderable_;
 import quorum.Libraries.Containers.Array_;
+import quorum.Libraries.Game.Graphics.Environment_;
 
 /**
  *
@@ -22,6 +23,7 @@ public class ModelBatch
     
     protected RenderContext context = new RenderContext();
     protected ShaderProvider shaderProvider = new ShaderProvider();
+    protected Environment_ environment = null;
     
     private boolean isRendering = false;
     
@@ -54,6 +56,16 @@ public class ModelBatch
     public Camera_ GetCamera()
     {
         return camera;
+    }
+    
+    public void SetEnvironment(Environment_ environ)
+    {
+        environment = environ;
+    }
+    
+    public Environment_ GetEnvironment()
+    {
+        return environment;
     }
     
     public void Begin()
@@ -99,6 +111,7 @@ public class ModelBatch
     
     public void RenderNative(Renderable_ renderable)
     {
+        renderable.Set_Libraries_Game_Graphics_Renderable__environment_(environment);
         Renderable renderPlugin = ((quorum.Libraries.Game.Graphics.Renderable)renderable).plugin_;
         renderPlugin.camera = camera;
         renderPlugin.shader = shaderProvider.GetShader(renderable);

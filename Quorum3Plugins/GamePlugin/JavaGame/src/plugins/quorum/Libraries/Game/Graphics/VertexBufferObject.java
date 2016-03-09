@@ -135,7 +135,7 @@ public class VertexBufferObject extends VertexData
         gl.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, bufferHandle);
         
         if (isDirty) 
-        {
+        {   
             byteBuffer.limit(buffer.limit() * 4);
             gl.glBufferData(GraphicsManager.GL_ARRAY_BUFFER, byteBuffer.limit(), byteBuffer, usage);
             isDirty = false;
@@ -170,7 +170,7 @@ public class VertexBufferObject extends VertexData
                 
                 if (location < 0) 
                     continue;
-		
+	
                 shader.enableVertexAttribute(location);
 
                 shader.setVertexAttribute(location, attribute.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_(),
