@@ -1,18 +1,11 @@
-package Libraries.Web
+package Libraries.Web.Server
 
 class WebResponse 
     text page = ""
-
-    /*
-        This action returns the raw HTML representation of a web page request.
-    */
     action GetPageText() returns text 
         return page
     end
 
-    /*
-        This action sets the raw HTML representation of this web page.
-    */
     action SetPageText(text page) 
         me:page = page
     end

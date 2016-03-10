@@ -25,7 +25,7 @@ class Main
 
       //add a TableRow to the header
       TableRow row
-      tBody:Add(row)
+      tpage:Add(row)
 
       table:Add(caption)
       table:Add(tBody)
@@ -56,10 +56,10 @@ class TableBody is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             TableRow tableRow
-            body:Add(tableRow)
+            page:Add(tableRow)
 
             text value = page:Generate()
             output value
@@ -81,10 +81,10 @@ class TableBody is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             HiddenContent hiddenContent
-            body:Add(hiddenContent)
+            page:Add(hiddenContent)
 
             text value = page:Generate()
             output value
@@ -106,10 +106,10 @@ class TableBody is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Script script
-            body:Add(script)
+            page:Add(script)
 
             text value = page:Generate()
             output value

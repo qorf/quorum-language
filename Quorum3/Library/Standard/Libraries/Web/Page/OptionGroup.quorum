@@ -186,10 +186,10 @@ class OptionGroup is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Option option
-            body:Add(option)
+            page:Add(option)
 
             text value = page:Generate()
             output value
@@ -211,10 +211,10 @@ class OptionGroup is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             HiddenContent hiddenContent
-            body:Add(hiddenContent)
+            page:Add(hiddenContent)
 
             text value = page:Generate()
             output value
@@ -236,10 +236,10 @@ class OptionGroup is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Script script
-            body:Add(script)
+            page:Add(script)
 
             text value = page:Generate()
             output value

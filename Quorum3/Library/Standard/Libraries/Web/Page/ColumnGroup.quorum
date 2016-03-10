@@ -89,10 +89,10 @@ class ColumnGroup is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Column column
-            body:Add(column)
+            page:Add(column)
 
             text value = page:Generate()
             output value
@@ -114,10 +114,10 @@ class ColumnGroup is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             HiddenContent hiddenContent
-            body:Add(hiddenContent)
+            page:Add(hiddenContent)
 
             text value = page:Generate()
             output value

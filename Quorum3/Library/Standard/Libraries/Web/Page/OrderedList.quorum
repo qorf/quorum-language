@@ -160,6 +160,30 @@ class OrderedList is WebTag
     end
 
 
+    /*
+        This action adds a ListItem with the specified text and to an OrderedList object.
+
+        Attribute: Parameter listItemText specifies the text that will appear in the ListItem object
+
+        Attribute: Returns the generated ListItem object for any further manipulation
+
+        Attribute: Example
+
+        use Libraries.Web.Page.all
+        class Main
+            action Main
+                WebPage page
+                OrderedList ol
+
+                
+                ol:AddListItem("List Item 1")
+                page:Add(ol)
+
+                text value = page:Generate()
+                output value
+            end
+        end
+    */
     action AddListItem(text listItemText) returns ListItem
         ListItem listItem
         listItem:AddText(listItemText)
@@ -167,6 +191,32 @@ class OrderedList is WebTag
         return listItem
     end
 
+    /*
+        This action adds a ListItem that has a Link inside of it with the specified link text and location to an OrderedList object.
+
+        Attribute: Parameter linkText specifies the text that will appear in the ListItem object as a link
+
+        Attribute: Parameter linkDestination specifies where the link leads to
+
+        Attribute: Returns the generated ListItem object (which has the Link object inside of it) for any further manipulation
+
+        Attribute: Example
+
+        use Libraries.Web.Page.all
+        class Main
+            action Main
+                WebPage page
+                OrderedList ol
+
+                
+                ol:AddListItemLink("Quorum Reference Page", "www.quorumlanguage.com/reference.php")
+                page:Add(ol)
+
+                text value = page:Generate()
+                output value
+            end
+        end
+    */
     action AddListItemLink(text linkText, text linkDestination) returns ListItem
         Link link
         link:SetAddress(linkDestination)
@@ -189,10 +239,10 @@ class OrderedList is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Script script
-            body:Add(script)
+            page:Add(script)
 
             text value = page:Generate()
             output value
@@ -214,10 +264,10 @@ class OrderedList is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             HiddenContent hiddenContent
-            body:Add(hiddenContent)
+            page:Add(hiddenContent)
 
             text value = page:Generate()
             output value

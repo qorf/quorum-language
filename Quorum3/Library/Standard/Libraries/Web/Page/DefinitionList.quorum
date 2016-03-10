@@ -51,10 +51,10 @@ class DefinitionList is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             DefinitionTerm definitionTerm
-            body:Add(definitionTerm)
+            page:Add(definitionTerm)
 
             text value = page:Generate()
             output value

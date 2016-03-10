@@ -5,7 +5,7 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.Web.Page.WebGenerator
 use Libraries.Web.Page.GlobalAttributeAccepter
 use Libraries.Web.Page.MetaData
-use Libraries.Web.Page.StylesheetLink
+use Libraries.Web.Page.HeaderLink
 use Libraries.Web.Page.Title
 use Libraries.Web.Page.Script
 use Libraries.Web.Page.Base
@@ -33,7 +33,7 @@ end
 class WebPageHeader is WebGenerator, GlobalAttributeAccepter
 
     Title title
-    List<StylesheetLink> linkList
+    List<HeaderLink> linkList
     List<MetaData> metaList
     List<Script> scriptList
     List<Base> baseList
@@ -80,13 +80,13 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
 
         Attribute: Example
         use Libraries.Web.Page.WebPageHeader
-        use Libraries.Web.Page.StylesheetLink
+        use Libraries.Web.Page.HeaderLink
         WebPageHeader header
-        StylesheetLink md
+        HeaderLink md
         header:Add(md)
         
     */
-    action Add(StylesheetLink value)
+    action Add(HeaderLink value)
         linkList:Add(value)
     end
 
@@ -98,30 +98,57 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
 
         Attribute: Example
         use Libraries.Web.Page.WebPageHeader
-        use Libraries.Web.Page.StylesheetLink
+        use Libraries.Web.Page.HeaderLink
         WebPageHeader header
-        StylesheetLink item
+        HeaderLink item
         header:Remove(item)
     */
-    action Remove(StylesheetLink value)
+    action Remove(HeaderLink value)
         linkList:Remove(value)
     end
 
     /*
-        This action adds a link to a stylesheet to the header.
+        This action adds a link to a stylesheet in the header.
 
-        Attribute: Parameter value The header meta data. 
+        Attribute: Parameter path The location of the stylesheet being added.
+        
+        Attribute: Returns The generated link for any further manipulation
 
         Attribute: Example
         use Libraries.Web.Page.WebPageHeader
+
         WebPageHeader header
-        header:AddStylesheetLink("style.css")
+        header:AddStylesheet("style.css")
     */
-    action AddStylesheetLink(text path)
-        StylesheetLink link
+    action AddStylesheet(text path) returns HeaderLink
+        HeaderLink link
+        link:SetRelationship("stylesheet")
         link:SetType("text/css")
         link:SetAddress(path)
         linkList:Add(link)
+        return link
+    end
+
+    /*
+        This action adds a link to an icon in the header. This is sometimes referred to as a "favicon".
+
+        Attribute: Parameter path The location of the stylesheet being added. The file extension must be .ico
+        
+        Attribute: Returns The generated link for any further manipulation
+
+        Attribute: Example
+        use Libraries.Web.Page.WebPageHeader
+
+        WebPageHeader header
+        header:AddIcon("favicon.ico")
+    */
+    action AddIcon(text path) returns HeaderLink
+        HeaderLink link
+        link:SetRelationship("icon")
+        link:SetType("image/x-icon")
+        link:SetAddress(path)
+        linkList:Add(link)
+        return link
     end
 
     /*
@@ -314,9 +341,9 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
             result = result + base:Generate()
         end
 
-        Iterator<StylesheetLink> itLink = linkList:GetIterator()
+        Iterator<HeaderLink> itLink = linkList:GetIterator()
         repeat while itLink:HasNext()
-            StylesheetLink style = itLink:Next()
+            HeaderLink style = itLink:Next()
             result = result + style:Generate()
         end
         

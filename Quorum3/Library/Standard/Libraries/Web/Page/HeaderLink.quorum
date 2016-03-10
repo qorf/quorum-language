@@ -16,7 +16,7 @@ class Main
    action main
       WebPage page
       
-      StylesheetLink link
+      HeaderLink link
       link:SetAddress("style.css")
 
       page:AddToBody(link)
@@ -24,7 +24,7 @@ class Main
    end
 end
 */
-class StylesheetLink is WebTag
+class HeaderLink is WebTag
     constant text addressTag = "href"
     constant text languageCode = "hreflang"
     constant text media = "media"
@@ -45,10 +45,10 @@ class StylesheetLink is WebTag
         Attribute: Returns The stylesheet address. 
 
         Attribute: Example
-        use Libraries.Web.Page.StylesheetLink
+        use Libraries.Web.Page.HeaderLink
         use Libraries.Web.Page.Attribute
 
-        StylesheetLink link
+        HeaderLink link
         Attribute result = link:GetAddress()
         
     */
@@ -62,10 +62,10 @@ class StylesheetLink is WebTag
         Attribute: Returns The language code. 
 
         Attribute: Example
-        use Libraries.Web.Page.StylesheetLink
+        use Libraries.Web.Page.HeaderLink
         use Libraries.Web.Page.Attribute
 
-        StylesheetLink link
+        HeaderLink link
         Attribute result = link:GetLanguageCode()
         
     */
@@ -79,10 +79,10 @@ class StylesheetLink is WebTag
         Attribute: Returns The displaying media type. 
 
         Attribute: Example
-        use Libraries.Web.Page.StylesheetLink
+        use Libraries.Web.Page.HeaderLink
         use Libraries.Web.Page.Attribute
 
-        StylesheetLink link
+        HeaderLink link
         Attribute result = link:GetMedia()
         
     */
@@ -97,10 +97,10 @@ class StylesheetLink is WebTag
         Attribute: Returns The relationship. 
 
         Attribute: Example
-        use Libraries.Web.Page.StylesheetLink
+        use Libraries.Web.Page.HeaderLink
         use Libraries.Web.Page.Attribute
 
-        StylesheetLink link
+        HeaderLink link
         Attribute result = link:GetRelationship()
         
     */
@@ -114,10 +114,10 @@ class StylesheetLink is WebTag
         Attribute: Returns The resource size. 
 
         Attribute: Example
-        use Libraries.Web.Page.StylesheetLink
+        use Libraries.Web.Page.HeaderLink
         use Libraries.Web.Page.Attribute
 
-        StylesheetLink link
+        HeaderLink link
         Attribute result = link:GetLinkedResourceSize()
         
     */
@@ -131,10 +131,10 @@ class StylesheetLink is WebTag
         Attribute: Returns The MIME type. 
 
         Attribute: Example
-        use Libraries.Web.Page.StylesheetLink
+        use Libraries.Web.Page.HeaderLink
         use Libraries.Web.Page.Attribute
 
-        StylesheetLink link
+        HeaderLink link
         Attribute result = link:GetType()
         
     */
@@ -148,10 +148,10 @@ class StylesheetLink is WebTag
         Attribute: Parameter value The location of the linked stylesheet. 
 
         Attribute: Example
-        use Libraries.Web.Page.StylesheetLink
+        use Libraries.Web.Page.HeaderLink
         use Libraries.Web.Page.Attribute
 
-        StylesheetLink s
+        HeaderLink s
         s:SetAddress("style.css")
         
     */
@@ -165,10 +165,10 @@ class StylesheetLink is WebTag
         Attribute: Parameter value The language code. 
 
         Attribute: Example
-        use Libraries.Web.Page.StylesheetLink
+        use Libraries.Web.Page.HeaderLink
         use Libraries.Web.Page.Attribute
 
-        StylesheetLink s
+        HeaderLink s
         s:SetLanguageCode("en")
         
     */
@@ -182,10 +182,10 @@ class StylesheetLink is WebTag
         Attribute: Parameter value The media of the linked stylesheet. 
 
         Attribute: Example
-        use Libraries.Web.Page.StylesheetLink
+        use Libraries.Web.Page.HeaderLink
         use Libraries.Web.Page.Attribute
 
-        StylesheetLink s
+        HeaderLink s
         s:SetMedia("print")
         
     */
@@ -200,10 +200,10 @@ class StylesheetLink is WebTag
         Attribute: Parameter value The relationship. 
 
         Attribute: Example
-        use Libraries.Web.Page.StylesheetLink
+        use Libraries.Web.Page.HeaderLink
         use Libraries.Web.Page.Attribute
 
-        StylesheetLink s
+        HeaderLink s
         s:SetRelationship("stylesheet")
         
     */
@@ -217,10 +217,10 @@ class StylesheetLink is WebTag
         Attribute: Parameter value The size. 
 
         Attribute: Example
-        use Libraries.Web.Page.StylesheetLink
+        use Libraries.Web.Page.HeaderLink
         use Libraries.Web.Page.Attribute
 
-        StylesheetLink s
+        HeaderLink s
         s:SetLinkedResourceSize("5x5")
         
     */
@@ -234,16 +234,18 @@ class StylesheetLink is WebTag
         Attribute: Parameter value The MIME type of the linked stylesheet. 
 
         Attribute: Example
-        use Libraries.Web.Page.StylesheetLink
+        use Libraries.Web.Page.HeaderLink
         use Libraries.Web.Page.Attribute
 
-        StylesheetLink s
+        HeaderLink s
         s:SetType("text/css")
         
     */
     action SetType(text value)
         AddAttribute(type, value)
     end
+
+    
 
     action Generate returns text
         text result = "<link " 

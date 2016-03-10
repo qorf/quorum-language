@@ -36,6 +36,30 @@ class Footer is WebTag
         return result
     end
 
+    /*
+        This action adds a Paragraph with the specified text to a Footer object.
+
+        Attribute: Parameter paragraphText specifies the content of the paragraph being added
+
+        Attribute: Returns the generated Paragraph object for any further manipulation
+
+        Attribute: Example
+
+        use Libraries.Web.Page.all
+        class Main
+            action Main
+                WebPage page
+                Footer footer
+
+                
+                footer:AddParagraph("This is a cool paragraph!")
+                page:Add(footer)
+
+                text value = page:Generate()
+                output value
+            end
+        end
+    */
     action AddParagraph(text t) returns Paragraph
         Paragraph p
         p:AddText(t)
@@ -43,6 +67,32 @@ class Footer is WebTag
         return p
     end
 
+    /*
+        This action adds an Image with the specified source and description to a Footer object.
+
+        Attribute: Parameter imageSource specifies the location of the image to be used
+
+        Attribute: Parameter description describes what the image is about
+
+        Attribute: Returns the generated Image object for any further manipulation
+
+        Attribute: Example
+
+        use Libraries.Web.Page.all
+        class Main
+            action Main
+                WebPage page
+                Footer footer
+
+                
+                footer:AddImage("images/family.jpg", "A photo with my family members")
+                page:Add(footer)
+
+                text value = page:Generate()
+                output value
+            end
+        end
+    */
     action AddImage(text imageSource, text description) returns Image
         Image image
         image:SetAddress(imageSource)
@@ -51,6 +101,32 @@ class Footer is WebTag
         return image
     end
 
+    /*
+        This action adds a Link with the specified destination and link text to a Footer object.
+
+        Attribute: Parameter linkText specifies the text that will appear as a link
+
+        Attribute: Parameter linkDestination specifies where the link will go to
+
+        Attribute: Returns the generated Link object for any further manipulation
+
+        Attribute: Example
+
+        use Libraries.Web.Page.all
+        class Main
+            action Main
+                WebPage page
+                Footer footer
+
+                
+                footer:AddLink("The Quorum Programming Language", "https://www.quorumlanguage.com")
+                page:Add(footer)
+
+                text value = page:Generate()
+                output value
+            end
+        end
+    */
     action AddLink(text linkText, text linkDestination) returns Link
         Link link
         link:SetAddress(linkDestination)
@@ -59,6 +135,32 @@ class Footer is WebTag
         return link
     end
 
+    /*
+        This action adds a Heading with the specified text and heading scale to a Footer object.
+
+        Attribute: Parameter headerText specifies the text that will appear in the Heading object
+
+        Attribute: Parameter headingScale specifies the size of the Heading text, from 1 to 6
+
+        Attribute: Returns the generated Heading object for any further manipulation
+
+        Attribute: Example
+
+        use Libraries.Web.Page.all
+        class Main
+            action Main
+                WebPage page
+                Footer footer
+
+                
+                footer:AddHeading("The Quorum Programming Language", "2")
+                page:Add(footer)
+
+                text value = page:Generate()
+                output value
+            end
+        end
+    */
     action AddHeading(text headerText, integer headingLevel) returns Heading
         Heading heading
         heading:AddText(headerText)
@@ -70,6 +172,30 @@ class Footer is WebTag
         return heading
     end
 
+    /*
+        This action adds a Heading with the specified text and default scale of 6 to a Footer object.
+
+        Attribute: Parameter headerText specifies the text that will appear in the Heading object
+
+        Attribute: Returns the generated Heading object for any further manipulation
+
+        Attribute: Example
+
+        use Libraries.Web.Page.all
+        class Main
+            action Main
+                WebPage page
+                Footer footer
+
+                
+                footer:AddHeading("The Quorum Programming Language")
+                page:Add(footer)
+
+                text value = page:Generate()
+                output value
+            end
+        end
+    */
     action AddHeading(text headerText) returns Heading
         Heading heading
         heading:AddText(headerText)
@@ -88,10 +214,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Link link
-            body:Add(link)
+            page:Add(link)
 
             text value = page:Generate()
             output value
@@ -113,10 +239,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Abbreviation abbreviation
-            body:Add(abbreviation)
+            page:Add(abbreviation)
 
             text value = page:Generate()
             output value
@@ -138,10 +264,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             OwnerAddress ownerAddress
-            body:Add(ownerAddress)
+            page:Add(ownerAddress)
 
             text value = page:Generate()
             output value
@@ -163,10 +289,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Area area
-            body:Add(area)
+            page:Add(area)
 
             text value = page:Generate()
             output value
@@ -188,10 +314,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Article article
-            body:Add(article)
+            page:Add(article)
 
             text value = page:Generate()
             output value
@@ -213,10 +339,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Aside aside
-            body:Add(aside)
+            page:Add(aside)
 
             text value = page:Generate()
             output value
@@ -238,10 +364,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Audio audio
-            body:Add(audio)
+            page:Add(audio)
 
             text value = page:Generate()
             output value
@@ -263,10 +389,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Bold bold
-            body:Add(bold)
+            page:Add(bold)
 
             text value = page:Generate()
             output value
@@ -288,10 +414,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             BiDirectionalIsolation biDirectionalIsolation
-            body:Add(biDirectionalIsolation)
+            page:Add(biDirectionalIsolation)
 
             text value = page:Generate()
             output value
@@ -313,10 +439,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             BiDirectionalOverride biDirectionalOverride
-            body:Add(biDirectionalOverride)
+            page:Add(biDirectionalOverride)
 
             text value = page:Generate()
             output value
@@ -338,10 +464,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             BlockQuote blockQuote
-            body:Add(blockQuote)
+            page:Add(blockQuote)
 
             text value = page:Generate()
             output value
@@ -363,10 +489,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             LineBreak lineBreak
-            body:Add(lineBreak)
+            page:Add(lineBreak)
 
             text value = page:Generate()
             output value
@@ -388,10 +514,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Button button
-            body:Add(button)
+            page:Add(button)
 
             text value = page:Generate()
             output value
@@ -413,10 +539,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Canvas canvas
-            body:Add(canvas)
+            page:Add(canvas)
 
             text value = page:Generate()
             output value
@@ -438,10 +564,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Cite cite
-            body:Add(cite)
+            page:Add(cite)
 
             text value = page:Generate()
             output value
@@ -463,10 +589,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             CodeBlock codeBlock
-            body:Add(codeBlock)
+            page:Add(codeBlock)
 
             text value = page:Generate()
             output value
@@ -488,10 +614,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             ListOptions listOptions
-            body:Add(listOptions)
+            page:Add(listOptions)
 
             text value = page:Generate()
             output value
@@ -513,10 +639,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Deleted deleted
-            body:Add(deleted)
+            page:Add(deleted)
 
             text value = page:Generate()
             output value
@@ -538,10 +664,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             DefinitionTerm definitionTerm
-            body:Add(definitionTerm)
+            page:Add(definitionTerm)
 
             text value = page:Generate()
             output value
@@ -563,10 +689,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Division division
-            body:Add(division)
+            page:Add(division)
 
             text value = page:Generate()
             output value
@@ -588,10 +714,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             DefinitionList definitionList
-            body:Add(definitionList)
+            page:Add(definitionList)
 
             text value = page:Generate()
             output value
@@ -613,10 +739,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Emphasize emphasize
-            body:Add(emphasize)
+            page:Add(emphasize)
 
             text value = page:Generate()
             output value
@@ -638,10 +764,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Embed embed
-            body:Add(embed)
+            page:Add(embed)
 
             text value = page:Generate()
             output value
@@ -663,10 +789,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             FieldSet fieldSet
-            body:Add(fieldSet)
+            page:Add(fieldSet)
 
             text value = page:Generate()
             output value
@@ -688,10 +814,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Figure figure
-            body:Add(figure)
+            page:Add(figure)
 
             text value = page:Generate()
             output value
@@ -721,10 +847,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Form form
-            body:Add(form)
+            page:Add(form)
 
             text value = page:Generate()
             output value
@@ -746,10 +872,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Heading heading
-            body:Add(heading)
+            page:Add(heading)
 
             text value = page:Generate()
             output value
@@ -771,10 +897,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             PageBreak pageBreak
-            body:Add(pageBreak)
+            page:Add(pageBreak)
 
             text value = page:Generate()
             output value
@@ -796,10 +922,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Italic italic
-            body:Add(italic)
+            page:Add(italic)
 
             text value = page:Generate()
             output value
@@ -821,10 +947,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             InlineFrame inlineFrame
-            body:Add(inlineFrame)
+            page:Add(inlineFrame)
 
             text value = page:Generate()
             output value
@@ -846,10 +972,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Image image
-            body:Add(image)
+            page:Add(image)
 
             text value = page:Generate()
             output value
@@ -871,10 +997,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Input input
-            body:Add(input)
+            page:Add(input)
 
             text value = page:Generate()
             output value
@@ -896,10 +1022,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Inserted inserted
-            body:Add(inserted)
+            page:Add(inserted)
 
             text value = page:Generate()
             output value
@@ -921,10 +1047,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             KeyboardInput keyboardInput
-            body:Add(keyboardInput)
+            page:Add(keyboardInput)
 
             text value = page:Generate()
             output value
@@ -946,10 +1072,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             KeyGenerator keyGenerator
-            body:Add(keyGenerator)
+            page:Add(keyGenerator)
 
             text value = page:Generate()
             output value
@@ -971,10 +1097,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Label label
-            body:Add(label)
+            page:Add(label)
 
             text value = page:Generate()
             output value
@@ -996,10 +1122,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             ImageMap imageMap
-            body:Add(imageMap)
+            page:Add(imageMap)
 
             text value = page:Generate()
             output value
@@ -1021,10 +1147,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Highlight highlight
-            body:Add(highlight)
+            page:Add(highlight)
 
             text value = page:Generate()
             output value
@@ -1046,10 +1172,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             PerformanceGauge performanceGauge
-            body:Add(performanceGauge)
+            page:Add(performanceGauge)
 
             text value = page:Generate()
             output value
@@ -1061,7 +1187,7 @@ class Footer is WebTag
     end
 
     /*
-    This action places a NavigationLink object inside of a Footer object.
+    This action places a NavigationDivision object inside of a Footer object.
 
     Attribute: Parameter content specifies what will be added to the page.
 
@@ -1071,17 +1197,17 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
-            NavigationLink navigationLink
-            body:Add(navigationLink)
+            NavigationDivision navigationDivision
+            page:Add(navigationDivision)
 
             text value = page:Generate()
             output value
         end
     end
     */
-    action Add(NavigationLink content)
+    action Add(NavigationDivision content)
         parent:WebTag:tags:Add(content)
     end
 
@@ -1096,10 +1222,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             NoScript noScript
-            body:Add(noScript)
+            page:Add(noScript)
 
             text value = page:Generate()
             output value
@@ -1121,10 +1247,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             EmbedContent embedContent
-            body:Add(embedContent)
+            page:Add(embedContent)
 
             text value = page:Generate()
             output value
@@ -1146,10 +1272,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Paragraph paragraph
-            body:Add(paragraph)
+            page:Add(paragraph)
 
             text value = page:Generate()
             output value
@@ -1171,10 +1297,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             PreformattedText preformattedText
-            body:Add(preformattedText)
+            page:Add(preformattedText)
 
             text value = page:Generate()
             output value
@@ -1196,10 +1322,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             ProgressBar progressBar
-            body:Add(progressBar)
+            page:Add(progressBar)
 
             text value = page:Generate()
             output value
@@ -1221,10 +1347,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Quote quote
-            body:Add(quote)
+            page:Add(quote)
 
             text value = page:Generate()
             output value
@@ -1246,10 +1372,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Ruby ruby
-            body:Add(ruby)
+            page:Add(ruby)
 
             text value = page:Generate()
             output value
@@ -1271,10 +1397,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             StrikeThrough strikeThrough
-            body:Add(strikeThrough)
+            page:Add(strikeThrough)
 
             text value = page:Generate()
             output value
@@ -1296,10 +1422,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             SampleOutput sampleOutput
-            body:Add(sampleOutput)
+            page:Add(sampleOutput)
 
             text value = page:Generate()
             output value
@@ -1321,10 +1447,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Script script
-            body:Add(script)
+            page:Add(script)
 
             text value = page:Generate()
             output value
@@ -1346,10 +1472,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Section section
-            body:Add(section)
+            page:Add(section)
 
             text value = page:Generate()
             output value
@@ -1371,10 +1497,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Select select
-            body:Add(select)
+            page:Add(select)
 
             text value = page:Generate()
             output value
@@ -1396,10 +1522,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             SmallText smallText
-            body:Add(smallText)
+            page:Add(smallText)
 
             text value = page:Generate()
             output value
@@ -1421,10 +1547,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Span span
-            body:Add(span)
+            page:Add(span)
 
             text value = page:Generate()
             output value
@@ -1446,10 +1572,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             StrongText strongText
-            body:Add(strongText)
+            page:Add(strongText)
 
             text value = page:Generate()
             output value
@@ -1471,10 +1597,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             SubscriptText subscriptText
-            body:Add(subscriptText)
+            page:Add(subscriptText)
 
             text value = page:Generate()
             output value
@@ -1496,10 +1622,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             SuperscriptText superscriptText
-            body:Add(superscriptText)
+            page:Add(superscriptText)
 
             text value = page:Generate()
             output value
@@ -1521,10 +1647,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             WebTable webTable
-            body:Add(webTable)
+            page:Add(webTable)
 
             text value = page:Generate()
             output value
@@ -1546,10 +1672,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             HiddenContent hiddenContent
-            body:Add(hiddenContent)
+            page:Add(hiddenContent)
 
             text value = page:Generate()
             output value
@@ -1571,10 +1697,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             TextArea textArea
-            body:Add(textArea)
+            page:Add(textArea)
 
             text value = page:Generate()
             output value
@@ -1596,10 +1722,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Time time
-            body:Add(time)
+            page:Add(time)
 
             text value = page:Generate()
             output value
@@ -1621,10 +1747,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             UnderlineText underlineText
-            body:Add(underlineText)
+            page:Add(underlineText)
 
             text value = page:Generate()
             output value
@@ -1646,10 +1772,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             UnorderedList unorderedList
-            body:Add(unorderedList)
+            page:Add(unorderedList)
 
             text value = page:Generate()
             output value
@@ -1671,10 +1797,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             OrderedList orderedList
-            body:Add(orderedList)
+            page:Add(orderedList)
 
             text value = page:Generate()
             output value
@@ -1696,10 +1822,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Variable variable
-            body:Add(variable)
+            page:Add(variable)
 
             text value = page:Generate()
             output value
@@ -1721,10 +1847,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Video video
-            body:Add(video)
+            page:Add(video)
 
             text value = page:Generate()
             output value
@@ -1746,10 +1872,10 @@ class Footer is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             WordBreak wordBreak
-            body:Add(wordBreak)
+            page:Add(wordBreak)
 
             text value = page:Generate()
             output value

@@ -146,8 +146,8 @@ class WebTable is WebTag
                 WebTable table
                 TableCaption caption
 
-                Body body = page:GetBody()
-                body:Add(table)
+                
+                page:Add(table)
                 caption:SetDescription("This is a table!")
                 table:Add(caption)
 
@@ -175,8 +175,8 @@ class WebTable is WebTag
                 ColumnGroup group
                 Column column
 
-                Body body = page:GetBody()
-                body:Add(table)
+                
+                page:Add(table)
                 group:Add(column)
                 table:Add(group)
                 text value = page:Generate()
@@ -203,8 +203,8 @@ class WebTable is WebTag
                 WebTable table
                 TableHeader header
 
-                Body body = page:GetBody()
-                body:Add(table)
+                
+                page:Add(table)
                 header:SetDescription("My Table")
                 table:Add(header)
                 text value = page:Generate()
@@ -230,8 +230,8 @@ class WebTable is WebTag
                 WebTable table
                 TableFooter footer
 
-                Body body = page:GetBody()
-                body:Add(table)
+                
+                page:Add(table)
                 footer:SetDescription("Table 1: A list of things")
                 table:Add(footer)
                 text value = page:Generate()
@@ -261,10 +261,10 @@ class WebTable is WebTag
                 TableBody tbody
                 TableRow row
 
-                Body body = page:GetBody()
-                body:Add(table)
+                
+                page:Add(table)
                 table:Add(tbody)
-                tbody:Add(row)
+                tpage:Add(row)
                 text value = page:Generate()
                 output value
             end
@@ -290,8 +290,8 @@ class WebTable is WebTag
                 WebTable table
                 TableRow row
 
-                Body body = page:GetBody()
-                body:Add(table)
+                
+                page:Add(table)
                 table:Add(row)
                 text value = page:Generate()
                 output value

@@ -47,10 +47,10 @@ class TableRow is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             TableHeaderCell tableHeaderCell
-            body:Add(tableHeaderCell)
+            page:Add(tableHeaderCell)
 
             text value = page:Generate()
             output value
@@ -72,10 +72,10 @@ class TableRow is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             TableData tableData
-            body:Add(tableData)
+            page:Add(tableData)
 
             text value = page:Generate()
             output value
@@ -97,10 +97,10 @@ class TableRow is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             HiddenContent hiddenContent
-            body:Add(hiddenContent)
+            page:Add(hiddenContent)
 
             text value = page:Generate()
             output value
@@ -122,10 +122,10 @@ class TableRow is WebTag
     class Main
         action Main
             WebPage page
-            Body body = page:GetBody()
+            
 
             Script script
-            body:Add(script)
+            page:Add(script)
 
             text value = page:Generate()
             output value
