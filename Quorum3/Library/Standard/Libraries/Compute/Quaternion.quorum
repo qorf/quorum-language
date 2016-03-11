@@ -465,7 +465,7 @@ class Quaternion
     action GetRollRadians returns number
         integer pole = GetGimbalPole()
         if pole = 0
-            return math:InverseTangent(2.0 * (w * z + y * x), 1.0 - 2.0 *(x * x + z * z))
+            return math:InverseTangent(1.0 - 2.0 * (x * x + z * z), 2.0 * (w * z + y * x))
         else
             return pole * 2.0 * math:InverseTangent(y, w)
         end
@@ -524,7 +524,7 @@ class Quaternion
     action GetPitchRadians returns number
         integer pole = GetGimbalPole()
         if pole = 0
-            return math:InverseSine(Clamp(2.0 * (w * x + z * y), -1.0, 1.0))
+            return math:InverseSine(Clamp(2.0 * (w * x - z * y), -1.0, 1.0))
         else
             return pole * math:pi * 0.5
         end
@@ -582,7 +582,7 @@ class Quaternion
     */
     action GetYawRadians returns number
         if GetGimbalPole() = 0
-            return math:InverseTangent(2.0 * (y * w + x * z), 1.0 - 2.0 * (y * y + x * x))
+            return math:InverseTangent(1.0 - 2.0 * (y * y + x * x), 2.0 * (y * w + x * z))
         else
             return 0.0
         end
@@ -771,15 +771,18 @@ class Quaternion
         temp2:Set(me)
         temp2:Conjugate()
 
+        Quaternion temp3
+        temp3:Set(me)
+
         temp1:Set(vector:GetX(), vector:GetY(), vector:GetZ(), 0)
         temp1:Multiply(temp2)
-        me:Multiply(temp1)
+        temp3:Multiply(temp1)
 
 //        temp2:MultiplyLeft(temp1:Set(vector:GetX(), vector:GetY(), vector:GetZ(), 0)):MultiplyLeft(me)
 
-        vector:SetX(temp2:GetX())
-        vector:SetY(temp2:GetY())
-        vector:SetZ(temp2:GetZ())
+        vector:SetX(temp3:GetX())
+        vector:SetY(temp3:GetY())
+        vector:SetZ(temp3:GetZ())
         return vector
     end
 
@@ -1711,7 +1714,7 @@ class Quaternion
     quaternions:Add(quaternion3)
     quaternions:Add(quaternion4)
 
-    quaternion1:SphericalLinterInterpolation(quaternions)
+    quaternion1:SphericalLinearInterpolation(quaternions)
 
     number x = quaternion1:GetX()
     number y = quaternion1:GetY()
@@ -1756,7 +1759,7 @@ class Quaternion
     use Libraries.Containers.Array
 
     Array<Quaternion> quaternions
-    Array<Quaternion> weights
+    Array<number> weights
 
     Quaternion quaternion1
     quaternion1:Set(1, 2, 3, 4)
@@ -1778,7 +1781,7 @@ class Quaternion
     weights:Add(0.5)
     weights:Add(0.5)
 
-    quaternion1:SphericalLinterInterpolation(quaternions, weights)
+    quaternion1:SphericalLinearInterpolation(quaternions, weights)
 
     number x = quaternion1:GetX()
     number y = quaternion1:GetY()
@@ -2148,10 +2151,12 @@ class Quaternion
     number swingX = swing:GetX()
     number swingY = swing:GetY()
     number swingZ = swing:GetZ()
+    number swingW = swing:GetW()
 
     number twistX = twist:GetX()
     number twistY = twist:GetY()
     number twistZ = twist:GetZ()
+    number twistW = twist:GetW()
 
     output "The swing is [" + swingX + ", " + swingY + ", " + swingZ + ", " + swingW + "]"
     output "The twist is [" + twistX + ", " + twistY + ", " + twistZ + ", " + twistW + "]"
@@ -2161,11 +2166,14 @@ class Quaternion
         Vector3 temp
 
         number d = temp:DotProduct(me:x, me:y, me:z, axisX, axisY, axisZ)
+
         twist:Set(axisX * d, axisY * d, axisZ * d, me:w):Normalize()
 
+        Quaternion tempQuat
+        tempQuat:Set(me)
+
         swing:Set(twist):Conjugate()
-        me:Multiply(swing)
-//        swing:Set(twist):Conjugate():MultiplyLeft(me)
+        swing:Set(tempQuat:Multiply(swing))
     end
 
     /*
@@ -2201,10 +2209,12 @@ class Quaternion
     number swingX = swing:GetX()
     number swingY = swing:GetY()
     number swingZ = swing:GetZ()
+    number swingW = swing:GetW()
 
     number twistX = twist:GetX()
     number twistY = twist:GetY()
     number twistZ = twist:GetZ()
+    number twistW = twist:GetW()
 
     output "The swing is [" + swingX + ", " + swingY + ", " + swingZ + ", " + swingW + "]"
     output "The twist is [" + twistX + ", " + twistY + ", " + twistZ + ", " + twistW + "]"
@@ -2308,7 +2318,7 @@ class Quaternion
 
     */
     action GetAngleAround(number axisX, number axisY, number axisZ) returns number
-        return GetAngleAroundRadians(axisX, axisY, axisZ) * 180 * math:pi
+        return GetAngleAroundRadians(axisX, axisY, axisZ) * 180 / math:pi
     end
 
     /*
