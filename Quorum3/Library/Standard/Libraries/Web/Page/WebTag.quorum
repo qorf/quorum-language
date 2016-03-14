@@ -120,52 +120,10 @@ class WebTag is GlobalAttributeAccepter
         Iterator<WebTag> iterator = tags:GetIterator()
         repeat while iterator:HasNext()
             WebTag tag = iterator:Next()
-            result = result + tag:Generate() +
-"
-"
+            result = result + tag:Generate()
         end
         return result
     end
-
-    /*
-        This action gets the description text set for this WebTag.
-
-        Attribute: Returns The text contained in the WebTag. 
-
-        Attribute: Example
-        use Libraries.Web.Page.TableRow
-        use Libraries.Web.Page.TableData
-
-        //TableRow and TableData are both WebTags
-        TableRow row
-        TableData cell
-        cell:SetDescription("name")
-        row:Add(cell)
-        output row:GetDescription()
-    */
-//    action GetDescription returns text
-//        return description
-//    end
-
-    /*
-        This action sets the description text for this WebTag.
-
-        Attribute: Parameter value The text contained in the WebTag. 
-
-        Attribute: Example
-        use Libraries.Web.Page.TableRow
-        use Libraries.Web.Page.TableData
-
-        //TableRow and TableData are both WebTags
-        TableRow row
-        TableData cell
-        cell:SetDescription("name")
-        row:Add(cell)
-        
-    */
-//    action SetDescription(text value)
-//        me:description = value
-//    end
 
     /*
         This action sets the description text for this WebTag.
@@ -184,7 +142,6 @@ class WebTag is GlobalAttributeAccepter
         
     */
     action AddText(text value)
-//        me:description = me:description + value
         PlainText t
         t:SetText(value)
         tags:Add(t)
