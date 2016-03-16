@@ -1,0 +1,32 @@
+use Libraries.Compute.Quaternion
+use Libraries.Compute.Vector3
+
+class QuaternionSetFromCross 
+    action Main
+        Quaternion quaternion
+
+        Vector3 first
+        Vector3 second
+
+        first:Set(2, 3, 4)
+        second:Set(5, 7, 1)
+
+        quaternion:SetFromCross(first, second)
+
+        number x = quaternion:GetX()
+        number y = quaternion:GetY()
+        number z = quaternion:GetZ()
+        number w = quaternion:GetW()
+
+        output "The quaternion is [" + x + ", " + y + ", " + z + ", " + w + "]"
+
+        quaternion:SetFromCross(2, 3, 4, 5, 7, 1)
+
+        x = quaternion:GetX()
+        y = quaternion:GetY()
+        z = quaternion:GetZ()
+        w = quaternion:GetW()
+
+        output "The quaternion is [" + x + ", " + y + ", " + z + ", " + w + "]"        
+    end
+end

@@ -102,6 +102,33 @@ class MathTester
         Matrix4SetToLookAt()
         Matrix4Average()
         Matrix4Rotate()
+        Matrix4Project()
+        QuaternionSetEulerAngles()
+        QuaternionGetGimbalPole()
+        QuaternionGetEulerAngles()
+        QuaternionNormalize()
+        QuaternionTransform()
+        QuaternionMultiply()
+        QuaternionToMatrix()
+        QuaternionSetFromAxis()
+        QuaternionSetFromMatrix()
+        QuaternionSetFromAxes()
+        QuaternionSetFromCross()
+        QuaternionSphericalLinearInterpolation()
+        QuaternionExponent()
+        QuaternionGetAxisAngle()
+        QuaternionGetAngle()
+        QuaternionGetSwingTwist()
+        QuaternionGetAngleAround()
+        Affine2SetToRotation()
+        Affine2SetToTranslationRotationScale()
+        Affine2SetToProduct()
+        Affine2Inverse()
+        Affine2Multiply()
+        Affine2Rotate()
+        Affine2Shear()
+        Affine2ApplyTo()
+
 
 //FAIL TESTS
         path = failPath
@@ -1399,6 +1426,363 @@ class MathTester
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
+
+    action QuaternionSetEulerAngles
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionSetEulerAngles.quorum")
+        files:Add(main)
+        results:Add("The quaternion is: [0.3919038373291199, 0.20056212114657512, 0.3604234056503559, 0.8223631719059994]")
+        results:Add("The quaternion is: [0.3919038373291199, 0.20056212114657512, 0.3604234056503559, 0.8223631719059994]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action QuaternionGetGimbalPole
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionGetGimbalPole.quorum")
+        files:Add(main)
+        results:Add("The gimbal pole is the north pole.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action QuaternionGetEulerAngles
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionGetEulerAngles.quorum")
+        files:Add(main)
+        results:Add("The roll in radians is 1.227772386374193")
+        results:Add("The roll in degrees is 70.34617594194668")
+        results:Add("The pitch in radians is -0.13373158940994156")
+        results:Add("The pitch in degrees is -7.662255660766067")
+        results:Add("The yaw in radians is 0.8329812666744315")
+        results:Add("The yaw in degrees is 47.72631099390626")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action QuaternionNormalize
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionNormalize.quorum")
+        files:Add(main)
+        results:Add("The new quaternion is: [0.18257418583505536, 0.3651483716701107, 0.5477225575051661, 0.7302967433402214]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action QuaternionTransform
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionTransform.quorum")
+        files:Add(main)
+        results:Add("The transformed vector is [86.0, 152.0, 190.0]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action QuaternionMultiply
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionMultiply.quorum")
+        files:Add(main)
+        results:Add("The product is: [24.0, 48.0, 48.0, -6.0]")
+        results:Add("The product is: [24.0, 48.0, 48.0, -6.0]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action QuaternionToMatrix
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionToMatrix.quorum")
+        files:Add(main)
+        results:Add("The matrix is:")
+        results:Add("|-25.0, -20.0, 22.0, 0.0|")
+        results:Add("|28.0, -19.0, 4.0, 0.0|")
+        results:Add("|-10.0, 20.0, -9.0, 0.0|")
+        results:Add("|0.0, 0.0, 0.0, 1.0|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action QuaternionSetFromAxis
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionSetFromAxis.quorum")
+        files:Add(main)
+        results:Add("The quaternion is [0.3826834323650898, 0.0, 0.0, 0.9238795325112867]")
+        results:Add("The quaternion is [0.3826834323650898, 0.0, 0.0, 0.9238795325112867]")
+        results:Add("The quaternion is [0.3826834323650898, 0.0, 0.0, 0.9238795325112867]")
+        results:Add("The quaternion is [0.3826834323650898, 0.0, 0.0, 0.9238795325112867]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+
+    action QuaternionSetFromMatrix
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionSetFromMatrix.quorum")
+        files:Add(main)
+        results:Add("The quaternion is [-0.21659436524456718, 0.21659436524456718, 0.0, 0.9013032363068559]")
+        results:Add("The quaternion is [-0.6933752452815365, 0.6933752452815365, 0.0, 1.8027756377319946]")
+        results:Add("The quaternion is [-0.21659436524456718, 0.21659436524456718, 0.0, 0.9013032363068559]")
+        results:Add("The quaternion is [-0.6933752452815365, 0.6933752452815365, 0.0, 1.8027756377319946]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action QuaternionSetFromAxes
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionSetFromAxes.quorum")
+        files:Add(main)
+        results:Add("The quaternion is [-0.21661042662595198, 0.21661042662595198, 0.0, 0.9013878188659973]")
+        results:Add("The quaternion is [-0.21659436524456718, 0.21659436524456718, 0.0, 0.9013032363068559]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action QuaternionSetFromCross
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionSetFromCross.quorum")
+        files:Add(main)
+        results:Add("The quaternion is [-0.0, 0.0, -0.0, 1.0]")
+        results:Add("The quaternion is [-0.0, 0.0, -0.0, 1.0]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action QuaternionSphericalLinearInterpolation
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionSphericalLinearInterpolation.quorum")
+        files:Add(main)
+        results:Add("The quaternion is [3.0, 3.0, 4.5, 3.0]")
+        results:Add("The quaternion is [0.412477069552747, 0.4817732923488282, 0.5161791159471296, 0.5756008010180224]")
+        results:Add("The quaternion is [0.49610975749544167, 0.593056264489908, 0.6197791828954832, 0.13428752777714478]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action QuaternionExponent
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionExponent.quorum")
+        files:Add(main)
+        results:Add("The quaternion is [0.2069174106130627, 0.4138348212261254, 0.6207522318391882, -0.6329238442281923]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action QuaternionGetAxisAngle
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionGetAxisAngle.quorum")
+        files:Add(main)
+        results:Add("The rotation axis is [0.26726124191242434, 0.5345224838248487, 0.8017837257372731]")
+        results:Add("The rotation angle is 86.17744627072567 degrees")
+        results:Add("The rotation axis is [0.26726124191242434, 0.5345224838248487, 0.8017837257372731]")
+        results:Add("The rotation angle is 1.5040801783846716 radians")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action QuaternionGetAngle
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionGetAngle.quorum")
+        files:Add(main)
+        results:Add("The angle in radians is 1.5040801783846716")
+        results:Add("The angle in degrees is 86.17744627072567")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action QuaternionGetSwingTwist
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionGetSwingTwist.quorum")
+        files:Add(main)
+        results:Add("The swing is [-0.3999999999999999, 2.2, 4.440892098500626E-16, 5.0]")
+        results:Add("The twist is [0.0, 0.0, 0.6, 0.8]")
+        results:Add("The swing is [0.714955374358625, -1.0817354548846119, 1.5707755622525925, 5.084422420624721]")
+        results:Add("The twist is [0.2870452804116414, 0.5023292407203724, 0.21528396030873104, 0.7867166944615355]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end    
+
+    action QuaternionGetAngleAround
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "QuaternionGetAngleAround.quorum")
+        files:Add(main)
+        results:Add("The rotation around is 0.48995732625372845")
+        results:Add("The rotation around is 1.32213578603848")
+        results:Add("The rotation around is 28.072486935852968")
+        results:Add("The rotation around is 75.75280048321653")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end   
+
+    action Affine2SetToRotation
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Affine2SetToRotation.quorum")
+        files:Add(main)
+        results:Add("The affine is: ")
+        results:Add("|0.7071067811865476, -0.7071067811865475, 0.0|")
+        results:Add("|0.7071067811865475, 0.7071067811865476, 0.0|")
+        results:Add("|0, 0, 1|")
+        results:Add("The affine is: ")
+        results:Add("|0.7071067811865476, -0.7071067811865475, 0.0|")
+        results:Add("|0.7071067811865475, 0.7071067811865476, 0.0|")
+        results:Add("|0, 0, 1|")
+        results:Add("The affine is: ")
+        results:Add("|0.7071067811865476, -0.7071067811865476, 0.0|")
+        results:Add("|0.7071067811865476, 0.7071067811865476, 0.0|")
+        results:Add("|0, 0, 1|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end   
+
+    action Affine2SetToTranslationRotationScale
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Affine2SetToTranslationRotationScale.quorum")
+        files:Add(main)
+        results:Add("The affine is: ")
+        results:Add("|1.4142135623730951, -1.414213562373095, 3.0|")
+        results:Add("|1.414213562373095, 1.4142135623730951, 3.0|")
+        results:Add("|0, 0, 1|")
+        results:Add("The affine is: ")
+        results:Add("|1.4142135623730951, -1.414213562373095, 3.0|")
+        results:Add("|1.414213562373095, 1.4142135623730951, 3.0|")
+        results:Add("|0, 0, 1|")
+        results:Add("The affine is: ")
+        results:Add("|1.4142135623730951, -1.414213562373095, 3.0|")
+        results:Add("|1.414213562373095, 1.4142135623730951, 3.0|")
+        results:Add("|0, 0, 1|")
+        results:Add("The affine is: ")
+        results:Add("|1.4142135623730951, -1.414213562373095, 3.0|")
+        results:Add("|1.414213562373095, 1.4142135623730951, 3.0|")
+        results:Add("|0, 0, 1|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end   
+
+    action Affine2SetToProduct
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Affine2SetToProduct.quorum")
+        files:Add(main)
+        results:Add("The affine is: ")
+        results:Add("|2.8284271247461903, -2.82842712474619, 7.0|")
+        results:Add("|2.82842712474619, 2.8284271247461903, 9.0|")
+        results:Add("|0, 0, 1|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end   
+
+    action Affine2Inverse
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Affine2Inverse.quorum")
+        files:Add(main)
+        results:Add("The affine is: ")
+        results:Add("|0.3535533905932738, 0.35355339059327373, -2.121320343559643|")
+        results:Add("|-0.35355339059327373, 0.3535533905932738, -2.220446049250313E-16|")
+        results:Add("|0, 0, 1|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end  
+
+    action Affine2Multiply
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Affine2Multiply.quorum")
+        files:Add(main)
+        results:Add("The affine is: ")
+        results:Add("|6.3639610306789285, -6.363961030678928, 2.0000000000000004|")
+        results:Add("|6.363961030678928, 6.3639610306789285, 6.242640687119286|")
+        results:Add("|0, 0, 1|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end  
+
+    action Affine2Rotate
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Affine2Rotate.quorum")
+        files:Add(main)
+        results:Add("The affine is: ")
+        results:Add("|-1.414213562373095, -1.4142135623730951, 3.0|")
+        results:Add("|1.4142135623730951, -1.414213562373095, 3.0|")
+        results:Add("|0, 0, 1|")
+        results:Add("The affine is: ")
+        results:Add("|-1.414213562373095, -1.4142135623730951, 3.0|")
+        results:Add("|1.4142135623730951, -1.414213562373095, 3.0|")
+        results:Add("|0, 0, 1|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end  
+
+    action Affine2Shear
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Affine2Shear.quorum")
+        files:Add(main)
+        results:Add("The affine is: ")
+        results:Add("|-1.4142135623730947, 1.4142135623730954, 3.0|")
+        results:Add("|4.242640687119286, 4.242640687119285, 3.0|")
+        results:Add("|0, 0, 1|")
+        results:Add("The affine is: ")
+        results:Add("|-1.4142135623730947, 1.4142135623730954, 3.0|")
+        results:Add("|4.242640687119286, 4.242640687119285, 3.0|")
+        results:Add("|0, 0, 1|")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end  
+
+    action Affine2ApplyTo
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Affine2ApplyTo.quorum")
+        files:Add(main)
+        results:Add("The new point is [1.585786437626906, 12.899494936611665]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end  
+
 
 end
 
