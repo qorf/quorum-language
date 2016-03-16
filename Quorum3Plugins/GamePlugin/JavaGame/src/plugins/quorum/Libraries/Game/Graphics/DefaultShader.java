@@ -478,11 +478,13 @@ public class DefaultShader extends BaseShader
                                 cacheAmbientCubemap.Add(((PointLight)lights.Get(i)).GetColor(), ((PointLight)lights.Get(i)).position,
                                     tmpV1, ((PointLight)lights.Get(i)).intensity);
                         }
-
+                        
                         cacheAmbientCubemap.Clamp();
                         float[] temp = new float[cacheAmbientCubemap.data.GetSize()];
                         for (int i = 0; i < temp.length; i++)
+                        {
                             temp[i] = (float)cacheAmbientCubemap.GetDataAtIndex(i);
+                        }
                         
                         shader.program.setUniform3fv(shader.Location(inputID), temp, 0, temp.length);
                     }
@@ -1035,8 +1037,20 @@ public class DefaultShader extends BaseShader
                         continue;
                     else
                         directionalLights[i].SetLight((DirectionalLight)dirs.Get(i));
-
+                    
                     int idx = dirLightsLoc + i * dirLightsSize;
+                    
+//                    System.out.println("\ndirectionalLight " + i);
+//                    System.out.println("Color 1: " + (idx + dirLightsColorOffset));
+//                    System.out.println("Color 2: " + directionalLights[i].GetColor().GetRed());
+//                    System.out.println("Color 3: " + directionalLights[i].GetColor().GetGreen());
+//                    System.out.println("Color 4: " + directionalLights[i].GetColor().GetBlue());
+//
+//                    System.out.println("\nDirection 1: " + (idx + dirLightsDirectionOffset));
+//                    System.out.println("Direction 2: " + directionalLights[i].direction.GetX());
+//                    System.out.println("Direction 3: " + directionalLights[i].direction.GetY());
+//                    System.out.println("Direction 4: " + directionalLights[i].direction.GetZ());
+                    
                     program.setUniformf(idx + dirLightsColorOffset, (float)directionalLights[i].GetColor().GetRed(), 
                         (float)directionalLights[i].GetColor().GetGreen(), (float)directionalLights[i].GetColor().GetBlue());
                     program.setUniformf(idx + dirLightsDirectionOffset, (float)directionalLights[i].direction.GetX(),
@@ -1063,6 +1077,18 @@ public class DefaultShader extends BaseShader
                         pointLights[i].SetLight((PointLight)points.Get(i));
 
                     int idx = pointLightsLoc + i * pointLightsSize;
+                    
+//                    System.out.println("\npointLight " + i);
+//                    System.out.println("Color 1: " + (idx + pointLightsColorOffset));
+//                    System.out.println("Color 2: " + pointLights[i].GetColor().GetRed() + " * " + pointLights[i].intensity);
+//                    System.out.println("Color 3: " + pointLights[i].GetColor().GetGreen() + " * " + pointLights[i].intensity);
+//                    System.out.println("Color 4: " + pointLights[i].GetColor().GetBlue() + " * " + pointLights[i].intensity);
+//
+//                    System.out.println("\nPosition 1: " + (idx + pointLightsPositionOffset));
+//                    System.out.println("Position 2: " + pointLights[i].position.GetX());
+//                    System.out.println("Position 3: " + pointLights[i].position.GetY());
+//                    System.out.println("Position 4: " + pointLights[i].position.GetZ());
+                    
                     program.setUniformf(idx + pointLightsColorOffset, (float)(pointLights[i].GetColor().GetRed() * pointLights[i].intensity),
                         (float)(pointLights[i].GetColor().GetGreen() * pointLights[i].intensity), (float)(pointLights[i].GetColor().GetBlue() * pointLights[i].intensity));
                     program.setUniformf(idx + pointLightsPositionOffset, (float)pointLights[i].position.GetX(), (float)pointLights[i].position.GetY(),

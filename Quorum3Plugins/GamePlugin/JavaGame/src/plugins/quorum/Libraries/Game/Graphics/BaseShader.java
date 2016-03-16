@@ -143,7 +143,7 @@ public abstract class BaseShader implements Shader
         
         uniforms.add(alias);
         validators.add(validator);
-        setters.add(setter);
+        setters.add(setter);       
         return uniforms.size - 1;
     }
 
@@ -296,8 +296,9 @@ public abstract class BaseShader implements Shader
     {
         for (int u, i = 0; i < localUniforms.size; ++i)
             if (setters.get(u = localUniforms.get(i)) != null)
+            {
                 setters.get(u).Set(this, u, renderable, combinedAttributes);
-            
+            }
         if (currentMesh != ((Mesh)((MeshPart)((Renderable)renderable).meshPart).mesh))
         {
             if (currentMesh != null)
@@ -406,6 +407,7 @@ public abstract class BaseShader implements Shader
         if (locations[uniform] < 0)
             return false;
 
+        //System.out.println("Setting uniform " + uniform + " at location " + locations[uniform]);
         program.setUniformf(locations[uniform], value);
         return true;
     }

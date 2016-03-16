@@ -180,7 +180,7 @@ public class TextureBinder
         }
         else
             reused = true;
-        
+
         return result;
     }
     
