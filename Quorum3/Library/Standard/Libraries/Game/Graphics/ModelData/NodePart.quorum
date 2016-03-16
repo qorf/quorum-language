@@ -10,7 +10,7 @@ use Libraries.Game.Graphics.Renderable
 class NodePart 
     public MeshPart meshPart
     public Material material
-    public Array<Matrix4> bones
+    public Array<Matrix4> bones = undefined
     public boolean enabled = true
 
     public HashTable<Node, Matrix4> invBoneBindTransforms

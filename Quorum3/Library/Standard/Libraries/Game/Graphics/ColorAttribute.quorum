@@ -81,6 +81,34 @@ class ColorAttribute is Attribute
         return attribute
     end
 
+    action CreateAmbientLight(Color setColor) returns ColorAttribute
+        ColorAttribute attribute
+        attribute:SetAttribute(GetAmbientLightValue(), setColor)
+        return attribute
+    end
+
+    action CreateAmbientLight(number red, number green, number blue, number alpha) returns ColorAttribute
+        Color setColor
+        setColor:SetColor(red, green, blue, alpha)
+        ColorAttribute attribute
+        attribute:SetAttribute(GetAmbientLightValue(), setColor)
+        return attribute
+    end
+
+    action CreateFog(Color setColor) returns ColorAttribute
+        ColorAttribute attribute
+        attribute:SetAttribute(GetFogValue(), setColor)
+        return attribute
+    end
+
+    action CreateFog(number red, number green, number blue, number alpha) returns ColorAttribute
+        Color setColor
+        setColor:SetColor(red, green, blue, alpha)
+        ColorAttribute attribute
+        attribute:SetAttribute(GetFogValue(), setColor)
+        return attribute
+    end
+
     action SetAttribute(integer setType, Color setColor)
         parent:Attribute:SetAttribute(setType)
         if not SupportsAttribute(setType)

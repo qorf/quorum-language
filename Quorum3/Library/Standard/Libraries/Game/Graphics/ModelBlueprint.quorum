@@ -166,6 +166,7 @@ class ModelBlueprint is Disposable
                 end
 
                 TextureDescriptor descriptor
+                descriptor:texture = texture
                 descriptor:minFilter:ConstructTextureFilter(texture:GetMinimizeFilter():GetValue())
                 descriptor:magFilter:ConstructTextureFilter(texture:GetMagnifyFilter():GetValue())
                 descriptor:uWrap:ConstructTextureWrap(texture:GetHorizontalWrap():GetValue())
