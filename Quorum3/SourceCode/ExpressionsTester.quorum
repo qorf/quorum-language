@@ -45,6 +45,7 @@ class ExpressionsTester
         EqualIntInt()
         EqualTextText()
         Expression()
+        GetMaxNumberValue()
         GTDoubleDouble()
         GTDoubleInt()
         GTEDoubleDouble()
@@ -473,6 +474,17 @@ class ExpressionsTester
         main:SetPath(path + "Expression.quorum")
         files:Add(main)
         results:Add(0, "15")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action GetMaxNumberValue 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GetMaxNumberValue.quorum")
+        files:Add(main)
+        results:Add(0, "1.7976931348623157E308")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
