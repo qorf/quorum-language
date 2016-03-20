@@ -83,19 +83,19 @@ class Main is WebResponder
         Array<File> files = main:GetDirectoryListing()
 
         File actualMain
-        actualMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/RedLineTest")
+        actualMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication")
         actualMain:SetPath("/SourceCode/main.quorum")
 
         File mygame
-        mygame:SetWorkingDirectory("/Users/stefika/NetBeansProjects/RedLineTest")
-        mygame:SetPath("/SourceCode/MyGame.quorum")
+        mygame:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication")
+        mygame:SetPath("/SourceCode/Test.quorum")
         //actualMain:SetPath("Library/Tests/CodeCompletion/Pass/GrabAllContainers.quorum")
         compiler:SetMain(actualMain)
 
-        File failMain
-        failMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/RedLineTest")
-        failMain:SetPath("/Other/main.quorum")
-        text failSource = failMain:Read()
+        //File failMain
+        //failMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/RedLineTest")
+        //failMain:SetPath("/Other/main.quorum")
+        //text failSource = failMain:Read()
 
         ProjectInformation info
         info:projectFiles = files
@@ -107,19 +107,19 @@ class Main is WebResponder
         info:source = actualMain:Read()
         
         CodeCompletionRequest cc
-        cc:caretLocation = 122
+        cc:caretLocation = 14
         cc:fileKey = actualMain:GetAbsolutePath()
         cc:source = actualMain:Read()
 
         CompilerResult result = compiler:ParseRepeat(info)
 
-        info:source = failSource
-        text out = failSource:GetSubtext(0, cc:caretLocation)
-        output out
+        //info:source = failSource
+        //text out = failSource:GetSubtext(0, cc:caretLocation)
+        //output out
         result = compiler:ParseRepeat(info)
 
         check
-            cc:source = failSource
+            cc:source = mygame:Read()
             CodeCompletionResult ccr2 = compiler:Request(cc)
             Iterator<CodeCompletionItem> it = ccr2:GetIterator()
             repeat while it:HasNext()

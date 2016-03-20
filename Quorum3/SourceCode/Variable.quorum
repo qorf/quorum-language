@@ -123,6 +123,10 @@ class Variable is Symbol
         end
 
         Type type = GetType()
+        if type = undefined
+            item:displayText = name
+            return item
+        end
         text docs = ""
         //no resolution is required here because variables are resolved
         //actions require an additional step because they are tied to a

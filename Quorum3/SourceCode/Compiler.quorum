@@ -680,20 +680,21 @@ class Compiler
             boolean isCurrentClass, Action insideMethod)
 
         if clazz not= undefined
-
             //add all of the fields from this class
             Iterator<Variable> variables = clazz:GetVariables()
             repeat while variables:HasNext()
                 Variable variable2 = variables:Next()
-                CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
-                text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size
-                if isCurrentClass
-                    result:Add(item)
-                else
-                    if not variable2:IsPrivate()
+                if variable2:GetType() not= undefined
+                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+                    text filter = result:filter
+                    integer size = filter:GetSize()
+                    item:dotOffset = request:caretLocation - size
+                    if isCurrentClass
                         result:Add(item)
+                    else
+                        if not variable2:IsPrivate()
+                            result:Add(item)
+                        end
                     end
                 end
             end
@@ -705,15 +706,17 @@ class Compiler
                 Iterator<Variable> variables2 = par:GetVariables()
                 repeat while variables2:HasNext()
                     Variable variable2 = variables2:Next()
-                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
-                    text filter = result:filter
-                    integer size = filter:GetSize()
-                    item:dotOffset = request:caretLocation - size
-                    if isCurrentClass
-                        result:Add(item)
-                    else
-                        if not variable2:IsPrivate()
+                    if variable2:GetType() not= undefined
+                        CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+                        text filter = result:filter
+                        integer size = filter:GetSize()
+                        item:dotOffset = request:caretLocation - size
+                        if isCurrentClass
                             result:Add(item)
+                        else
+                            if not variable2:IsPrivate()
+                                result:Add(item)
+                            end
                         end
                     end
                 end
@@ -743,8 +746,6 @@ class Compiler
                 end
             end
         end
-
-
     end
 
     private action GetLineBeforeCursor(integer loc, text source) returns text
