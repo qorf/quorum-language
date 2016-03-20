@@ -114,22 +114,26 @@ public class QuorumSemanticAnalyzer extends SemanticAnalyzer<QuorumParserResult>
             Variable_ next = (Variable_) iterator.Next();
             int index = next.GetIndex();
             int end = next.GetIndexEnd();
-            OffsetRange range = new OffsetRange(index, end + 1);
-            Set<ColoringAttributes> colors = new HashSet<>();
-            colors.add(ColoringAttributes.FIELD);
-            if(!next.IsUsed()) {
-                colors.add(ColoringAttributes.UNUSED);
+            if(index != -1 && end != -1) {
+                OffsetRange range = new OffsetRange(index, end + 1);
+                Set<ColoringAttributes> colors = new HashSet<>();
+                colors.add(ColoringAttributes.FIELD);
+                if(!next.IsUsed()) {
+                    colors.add(ColoringAttributes.UNUSED);
+                }
+                highlighting.put(range, colors);
             }
-            highlighting.put(range, colors);
             
             //now create ranges for all of its uses
             Iterator_ uses = next.GetUseLocations();
             while(uses.HasNext()) {
                 Location_ use = (Location_) uses.Next();
-                OffsetRange useRange = new OffsetRange(use.GetIndex(), use.GetIndexEnd() + 1);
-                Set<ColoringAttributes> useColors = new HashSet<>();
-                useColors.add(ColoringAttributes.FIELD);
-                highlighting.put(useRange, useColors);
+                if(use.GetIndex() != -1 && use.GetIndexEnd() != -1) {
+                    OffsetRange useRange = new OffsetRange(use.GetIndex(), use.GetIndexEnd() + 1);
+                    Set<ColoringAttributes> useColors = new HashSet<>();
+                    useColors.add(ColoringAttributes.FIELD);
+                    highlighting.put(useRange, useColors);
+                }
             }
         }
     }
