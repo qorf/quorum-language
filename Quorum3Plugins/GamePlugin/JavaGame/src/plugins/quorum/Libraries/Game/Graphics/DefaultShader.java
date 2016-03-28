@@ -936,9 +936,16 @@ public class DefaultShader extends BaseShader
             super.Begin(camera, context);
 
             for (final DirectionalLight dirLight : directionalLights)
-                    dirLight.SetLight(0, 0, 0, 0, -1, 0);
+            {
+                dirLight.SetColor(0, 0, 0, 1);
+                dirLight.SetDirection(0, -1, 0);
+            }
             for (final PointLight pointLight : pointLights)
-                    pointLight.SetLight(0, 0, 0, 0, 0, 0, 0);
+            {
+                pointLight.SetColor(0, 0, 0, 0);
+                pointLight.SetPosition(0, 0, 0);
+                pointLight.SetIntensity(0);
+            }
             /*
             for (final SpotLight spotLight : spotLights)
                     spotLight.set(0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0);
