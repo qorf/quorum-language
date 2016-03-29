@@ -7,8 +7,9 @@ use Libraries.Compute.Plane
 use Libraries.Compute.Vector3
 
 /* 
-    A truncated rectangular pyramid (i.e., a pyramid with the top chopped off) used to 
-    define the viewable region and its projection onto the screen.
+    A Frustum is a  truncated rectangular pyramid (i.e., a pyramid with the top 
+    chopped off) used to define the viewable region and its projection onto the 
+    screen.
 */
 class Frustum 
 
@@ -110,6 +111,15 @@ class Frustum
         planePoints:Add(pp7)
     end
 
+    /*
+    This action updates the clipping planes based on the given inverse combined
+    projection and view matrix, like one gotten from an orthographic or
+    perspective camera
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter inverseProjectionView te combined projection and view matrices
+    */
     action Update(Matrix4 inverseProjectionView)
         Object o = clipSpacePlanePointsArray:Copy()
         planePointsArray = cast(Array<number>, o)
@@ -138,10 +148,29 @@ class Frustum
     end
 
 
+    /*
+    This action determines whether the passed point lies in the frustum.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter point The point to test
+
+    Attribute: Returns true if the point is in the frustum, false otherwise
+    */
     action PointInFrustum(Vector3 point) returns boolean
         return PointInFrustum(point:GetX(), point:GetY(), point:GetZ())
     end
 
+    /*
+    This action determines wither the point with the passed x, y, and z
+    coordinates lies in the frustum.
+
+    Attribute: Parameter x The x component of the point to test
+    Attribute: Parameter y The y component of the point to test
+    Attribute: Parameter z The z component of the point to test
+
+    Attribute: Returns true if the point is in the frustum, false otherwise
+    */
     action PointInFrustum(number x, number y, number z) returns boolean
         Plane plane
         integer i = 0
@@ -155,15 +184,39 @@ class Frustum
         return true
     end
 
+    /*
+    This action determines whether the sphere with the passed center and radius
+    lies in the frustum.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter center The center of the sphere
+    Attribute: Parameter radius The radius of the sphere
+
+    Attribute: Returns true if the sphere lies in the frustum, false otherwise
+    */
     action SphereInFrustum(Vector3 center, number radius) returns boolean
         return SphereInFrustum(center:GetX(), center:GetY(), center:GetZ(), radius)
     end
 
+    /*
+    This action determines whether the sphere with its center at the passed x,
+    y, and z coordinates and radius lies in the frustum.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter x The x coordinate of the center of the sphere
+    Attribute: Parameter y The y coordinate of the center of the sphere
+    Attribute: Parameter z The z coordinate of the center of the sphere
+    Attribute: Parameter radius The radius of the sphere
+
+    Attribute: Returns true if the sphere lies in the frustum, false otherwise
+    */
     action SphereInFrustum(number x, number y, number z, number radius) returns boolean
         integer i = 0
         repeat 6 times
             Plane plane = planes:Get(i)
-            if plane:GetNormal():GetX() * x + plane:GetNormal():GetY() * y + plane:GetNormal():GetZ() * z < -1 * radius - plane:GetD()
+            if plane:GetNormal():GetX() * x + plane:GetNormal():GetY() * y + plane:GetNormal():GetZ() * z < -1 * radius - plane:GetDistance()
                 return false
             end
             i = i + 1
@@ -171,15 +224,41 @@ class Frustum
         return true
     end
 
+    /*
+    This action determines whether the sphere with the passed center and radius
+    lies within the frustum without checking whether it is behind the near and
+    far clipping plane.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter center The center of the sphere
+    Attribute: Parameter radius The radius of the sphere
+
+    Attribute: Returns true if the sphere is in the frustum, false otherwise
+    */
     action SphereInFrustumWithoutNearFar(Vector3 center, number radius) returns boolean
         return SphereInFrustumWithoutNearFar(center:GetX(), center:GetY(), center:GetZ(), radius)
     end
 
+    /*
+    This action determines whether the sphere with the passed center and radius
+    lies within the frustum without checking whether it is behind the near and
+    far clipping plane.
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter x The x coordinate of the center of the sphere
+    Attribute: Parameter y The y coordinate of the center of the sphere
+    Attribute: Parameter z The z coordinate of the center of the sphere
+    Attribute: Parameter radius The radius of the sphere
+
+    Attribute: Returns true if the sphere is in the frustum, false otherwise
+    */
     action SphereInFrustumWithoutNearFar(number x, number y, number z, number radius) returns boolean
         integer i = 2
         repeat 4 times
             Plane plane = planes:Get(i)
-            if plane:GetNormal():GetX() * x + plane:GetNormal():GetY() * y + plane:GetNormal():GetZ() * z < -1 * radius - plane:GetD()
+            if plane:GetNormal():GetX() * x + plane:GetNormal():GetY() * y + plane:GetNormal():GetZ() * z < -1 * radius - plane:GetDistance()
                 return false
             end
             i = i + 1
