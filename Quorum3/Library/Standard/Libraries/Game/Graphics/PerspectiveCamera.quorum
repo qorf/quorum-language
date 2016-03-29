@@ -5,28 +5,53 @@ use Libraries.Compute.Math
 
 class PerspectiveCamera is Camera
 
-    public number fieldOfView = 67
+    number fieldOfView = 67
 
     private Vector3 calcVector
 
+    /*
+    This action will set the field of view of the camera to the given angle.
+    The provided angle is assumed to be in degrees.
+    */
+    action SetFieldOfView(number angle)
+        fieldOfView = angle
+    end
+
+    /*
+    This action will return the field of view of the camera to the given angle.
+    The field of view is measured in degrees.
+    */
+    action GetFieldOfView returns number
+        return fieldOfView
+    end
+
+    /*
+    Initializes the camera by giving an angle in degrees to represent the field
+    of view, as well as the width and height for the camera to show in virtual
+    space.
+    */
     action Initialize(number field, number viewportWidth, number viewportHeight)
         fieldOfView = field
-        parent:Camera:viewportWidth = viewportWidth
-        parent:Camera:viewportHeight = viewportHeight
+        SetWidth(viewportWidth)
+        SetHeight(viewportHeight)
         Update()
     end
 
+    /*
+    This action recalculates the camera's position and data. This should be used
+    after the camera has been manipulated in any way.
+    */
     action Update
         Math math
-        number aspect = parent:Camera:viewportWidth / parent:Camera:viewportHeight
-        parent:Camera:projection:SetToProjection(math:AbsoluteValue(parent:Camera:near), math:AbsoluteValue(parent:Camera:far), fieldOfView, aspect)
-        parent:Camera:view:SetToLookAt(parent:Camera:position, calcVector:Set(parent:Camera:position):Add(parent:Camera:direction), parent:Camera:up)
-        parent:Camera:combined:Set(parent:Camera:projection)
-        parent:Camera:combined:Multiply(parent:Camera:view)
+        number aspect = GetWidth() / GetHeight()
+        GetProjectionMatrix():SetToProjection(math:AbsoluteValue(GetNear()), math:AbsoluteValue(GetFar()), fieldOfView, aspect)
+        GetViewMatrix():SetToLookAt(GetPosition(), calcVector:Set(GetPosition()):Add(GetDirection()), GetUp())
+        GetCombinedMatrix():Set(GetProjectionMatrix())
+        GetCombinedMatrix():Multiply(GetViewMatrix())
 
-        parent:Camera:inverseProjectionView:Set(parent:Camera:combined)
-        parent:Camera:inverseProjectionView:Inverse()
-        parent:Camera:frustum:Update(parent:Camera:inverseProjectionView)
+        GetInverseCombinedMatrix():Set(GetCombinedMatrix())
+        GetInverseCombinedMatrix():Inverse()
+        GetFrustum():Update(GetInverseCombinedMatrix())
     end
 
 end
