@@ -1,0 +1,32 @@
+package Libraries.Game.Graphics
+
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorAttribute
+
+class AmbientLight 
+    
+    ColorAttribute attribute
+
+    on create
+        attribute:SetAttribute(attribute:GetAmbientLightValue())
+    end
+
+    action SetColor(Color color)
+        attribute:color = color
+    end
+
+    action SetColor(number red, number green, number blue, number alpha)
+        Color color
+        color:SetColor(red, green, blue, alpha)
+        attribute:color = color
+    end
+
+    action GetColor returns Color
+        return attribute:color
+    end
+
+    action GetAmbientLightAttribute returns ColorAttribute
+        return attribute
+    end
+
+end

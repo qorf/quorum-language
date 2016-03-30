@@ -131,4 +131,19 @@ class Environment is Attributes
         end
     end
 
+    /*
+    This action will add ambient lighting to the Environment.
+    */
+    action Add(AmbientLight light)
+        Add(light:GetAmbientLightAttribute())
+    end
+
+    /*
+    This action will remove all ambient lighting from this Environment.
+    */
+    action RemoveAmbientLight
+        ColorAttribute color
+        Remove(color:GetAmbientLightValue())
+    end
+
 end
