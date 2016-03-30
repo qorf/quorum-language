@@ -30,6 +30,7 @@ import static plugins.quorum.Libraries.Language.Compile.QuorumLexer.IF;
 import static plugins.quorum.Libraries.Language.Compile.QuorumLexer.LEFT_PAREN;
 import static plugins.quorum.Libraries.Language.Compile.QuorumLexer.NATIVE;
 import static plugins.quorum.Libraries.Language.Compile.QuorumLexer.NEWLINE;
+import static plugins.quorum.Libraries.Language.Compile.QuorumLexer.ON;
 import static plugins.quorum.Libraries.Language.Compile.QuorumLexer.REPEAT;
 import static plugins.quorum.Libraries.Language.Compile.QuorumLexer.RIGHT_PAREN;
 import static plugins.quorum.Libraries.Language.Compile.QuorumLexer.WS;
@@ -51,6 +52,7 @@ public class QuorumBracesMatcher implements BracesMatcher {
     QuorumBracesMatcher(MatcherContext mc) {
         context = mc;
         endMatchers.add(CLASS);
+        endMatchers.add(ON);
         endMatchers.add(ACTION);
         endMatchers.add(REPEAT);
         endMatchers.add(IF);
@@ -58,6 +60,7 @@ public class QuorumBracesMatcher implements BracesMatcher {
 
         matches.put(CLASS, END);
         matches.put(ACTION, END);
+        matches.put(ON, END);
         matches.put(REPEAT, END);
         matches.put(IF, END);
         matches.put(CHECK, END);
@@ -66,6 +69,7 @@ public class QuorumBracesMatcher implements BracesMatcher {
 
         backwardMatches.put(CLASS, END);
         backwardMatches.put(ACTION, END);
+        backwardMatches.put(ON, END);
         backwardMatches.put(REPEAT, END);
         backwardMatches.put(IF, END);
         backwardMatches.put(CHECK, END);
@@ -73,6 +77,7 @@ public class QuorumBracesMatcher implements BracesMatcher {
         HashMap<Integer, Integer> classEndMatchers = new HashMap<>();
         classEndMatchers.put(CLASS, END);
         classEndMatchers.put(ACTION, END);
+        classEndMatchers.put(ON, END);
         classEndMatchers.put(REPEAT, END);
         classEndMatchers.put(IF, END);
         classEndMatchers.put(ELSE_IF, END);
@@ -119,6 +124,8 @@ public class QuorumBracesMatcher implements BracesMatcher {
 
             QuorumTokenId id = token.id();
             if (id.ordinal() == CLASS) {
+                return new int[]{tokens.offset(), tokens.offset() + token.length()};
+            } else if (id.ordinal() == ON) {
                 return new int[]{tokens.offset(), tokens.offset() + token.length()};
             } else if (id.ordinal() == NATIVE) {
                 return new int[]{tokens.offset(), tokens.offset() + token.length()};
@@ -182,6 +189,8 @@ public class QuorumBracesMatcher implements BracesMatcher {
             QuorumTokenId id = token.id();
             if (id.ordinal() == CLASS) {
                 return findMatch(tokens, CLASS);
+            } else if (id.ordinal() == ON) {
+                return findMatch(tokens, ON);
             } else if (id.ordinal() == BLUEPRINT) {
                 return findMatch(tokens, BLUEPRINT);
             } else if (id.ordinal() == NATIVE) {

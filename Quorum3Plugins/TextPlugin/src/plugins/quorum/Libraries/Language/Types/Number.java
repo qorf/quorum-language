@@ -51,7 +51,7 @@ public class Number {
         return i;
     }
     
-    public double GetMaximumValue(double self){
+    public double GetMaximumValue(){
         return Double.MAX_VALUE;
     }
     

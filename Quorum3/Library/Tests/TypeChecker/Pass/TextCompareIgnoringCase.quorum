@@ -1,0 +1,48 @@
+use Libraries.Language.Support.CompareResult
+
+class Main
+    action Main
+        Text t1 
+        Text t2
+        text p1 = "abc"
+        text p2 = "Abc"
+        t1:SetValue(p1)
+        t2:SetValue(p2)
+
+        CompareResult result
+        result = p1:CompareIgnoringCase(p2)
+        output result:result = result:EQUAL
+        result = t1:CompareIgnoringCase(t2)
+        output result:result = result:EQUAL
+        
+        p1 = "Abc"
+        p2 = "abcDEF"
+        t1:SetValue(p1)
+        t2:SetValue(p2)
+
+        result = p1:CompareIgnoringCase(p2)
+        output result:result = result:SMALLER
+        result = t1:CompareIgnoringCase(t2)
+        output result:result = result:SMALLER
+        
+        p1 = "Abc"
+        p2 = "ab"
+        t1:SetValue(p1)
+        t2:SetValue(p2)
+
+        result = p1:CompareIgnoringCase(p2)
+        output result:result = result:LARGER
+        result = t1:CompareIgnoringCase(t2)
+        output result:result = result:LARGER
+        
+        p1 = "abc"
+        p2 = "ABC"
+        t1:SetValue(p1)
+        t2:SetValue(p2)
+
+        result = p1:CompareIgnoringCase(p2)
+        output result:result = result:EQUAL
+        result = t1:CompareIgnoringCase(t2)
+        output result:result = result:EQUAL
+    end
+end

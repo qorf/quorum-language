@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import quorum.Libraries.Web.WebRequest;
-import quorum.Libraries.Web.WebResponse$Interface;
+import quorum.Libraries.Web.WebResponse_;
 
 /**
  * This Servlet class gathers HTTP requests and sends them to a WebResponder
@@ -30,7 +30,7 @@ import quorum.Libraries.Web.WebResponse$Interface;
  * @author Andreas Stefik
  */
 public class Processor extends HttpServlet {
-    quorum.Libraries.Web.WebResponder$Interface main;
+    quorum.Libraries.Web.WebResponder_ main;
     public Processor() {
         
     }
@@ -61,7 +61,7 @@ public class Processor extends HttpServlet {
             if(clazz == null) {
                 return;
             }
-            main = (quorum.Libraries.Web.WebResponder$Interface) clazz.newInstance();
+            main = (quorum.Libraries.Web.WebResponder_) clazz.newInstance();
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException  | SecurityException | IllegalArgumentException ex) {
             Logger.getLogger(Processor.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -90,7 +90,7 @@ public class Processor extends HttpServlet {
         }
         
         if(main != null) {
-            WebResponse$Interface quorumResponse = main.Respond(quorumRequest);
+            WebResponse_ quorumResponse = main.Respond(quorumRequest);
             try {
                 String text = quorumResponse.GetPageText();
                 out.println(text);

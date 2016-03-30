@@ -8,8 +8,9 @@ package plugins.quorum.Libraries.Game;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.robovm.apple.foundation.Foundation;
-import org.robovm.apple.foundation.NSString;
+//import org.robovm.apple.foundation.Foundation;
+//import org.robovm.apple.foundation.NSString;
+//import org.robovm.apple.uikit.UIDevice;
 
 /**
 *
@@ -47,12 +48,27 @@ public class Game
             }
             else
             {
+                IOSApplication.SetOperatingSystem();
+                /*
+                quorum.Libraries.System.File qFile = new quorum.Libraries.System.File();
+                Foundation.log("%@", new NSString("Default directory + path: " + qFile.GetWorkingDirectory() + " + " + qFile.GetPath()));
+                
+                Foundation.log("%@", new NSString("Version is " + System.getProperty("os.version")));
+                Foundation.log("%@", new NSString("Device name is " + UIDevice.getCurrentDevice().getName()));
+                if (UIDevice.getCurrentDevice().getName().contains("Simulator"))
+                    GameState.SetOperatingSystem("iOS Simulator");
+                else
+                    GameState.SetOperatingSystem("iOS Device");
+                
+                Foundation.log("%@", new NSString("Set OS as " + GameState.GetOperatingSystem()));
+                */
                 nativeFile = null;
             } 
             if (nativeFile != null)
+            {
                 GameState.SetNativePath(nativeFile);
-            
-            GameState.SetOperatingSystem(System.getProperty("os.name"));
+                GameState.SetOperatingSystem(System.getProperty("os.name"));
+            }
         } 
         catch (URISyntaxException ex) 
         {

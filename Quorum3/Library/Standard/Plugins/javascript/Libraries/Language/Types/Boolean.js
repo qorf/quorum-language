@@ -22,16 +22,24 @@ Boolean.prototype.GetValue = function() {
     return this.valueOf().boolean;
 };
 
-Boolean.prototype.Equals$quorum_boolean = function(value) {
+Boolean.prototype.Equals$quorum_Libraries_Language_Object = function (value) {
     return this.valueOf().boolean === value;
 };
 
-Boolean.prototype.Compare$quorum_boolean = function(value) {
-    if (this.valueOf().boolean === value) {
-        //return EQUAL
-    } else if (this.valueOf().boolean === false && this.value === true) {
-        //return SMALLER
-    } else {
-        //return LARGER
+Boolean.prototype.Compare$quorum_Libraries_Language_Object = function(value) {
+    var result = new quorum_Libraries_Language_Support_CompareResult_();
+    var b = global_CheckCast(value, "Libraries.Language.Types.Boolean");
+    
+    var me = this.valueOf();
+    var other = b.GetValue();
+    if ((me == other)) {
+        result.result = result.EQUAL;
     }
+    else if ((me < other)) {
+        result.result = result.SMALLER;
+    }
+    else {
+        result.result = result.LARGER;
+    }
+    return result;
 };

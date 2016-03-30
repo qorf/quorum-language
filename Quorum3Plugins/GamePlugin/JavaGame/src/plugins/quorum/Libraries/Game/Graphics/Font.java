@@ -380,26 +380,35 @@ public class Font {
     public quorum.Libraries.Game.Graphics.Glyph_ GetGlyphNative(String character)
     {        
         char target = character.charAt(0);
+        quorum.Libraries.Game.Graphics.Glyph glyph = new quorum.Libraries.Game.Graphics.Glyph();
         
         ByteBuffer bitmap = LoadBitmap(bitmapData, target, faceHandle);
         
-        quorum.Libraries.Game.Graphics.PixelMap pixmap = new quorum.Libraries.Game.Graphics.PixelMap();
-        plugins.quorum.Libraries.Game.Graphics.PixelMap map = pixmap.plugin_;
-            
-        map.LoadFromFontBitmap(bitmap, (int)bitmapData[3], (int)bitmapData[2], 1);
+        // Since the space is just open space, there's no need to load it in a drawable.
+        if (target != ' ')
+        {
+            quorum.Libraries.Game.Graphics.PixelMap pixmap = new quorum.Libraries.Game.Graphics.PixelMap();
+            plugins.quorum.Libraries.Game.Graphics.PixelMap map = pixmap.plugin_;
 
-        quorum.Libraries.Game.Graphics.FileTextureData texData = new quorum.Libraries.Game.Graphics.FileTextureData();
-        texData.InitializeFileTextureData(null, pixmap, null, false);
-        texData.SetDisposalState(false);
+            map.LoadFromFontBitmap(bitmap, (int)bitmapData[3], (int)bitmapData[2], 1);
 
-        quorum.Libraries.Game.Graphics.Texture texture = new quorum.Libraries.Game.Graphics.Texture();
-        texture.LoadFromTextureData(texData);
+            quorum.Libraries.Game.Graphics.FileTextureData texData = new quorum.Libraries.Game.Graphics.FileTextureData();
+            texData.InitializeFileTextureData(null, pixmap, null, false);
+            texData.SetDisposalState(false);
 
-        quorum.Libraries.Game.Graphics.Drawable sprite = new quorum.Libraries.Game.Graphics.Drawable();
-        sprite.Load(texture);
+            quorum.Libraries.Game.Graphics.Texture texture = new quorum.Libraries.Game.Graphics.Texture();
+            texture.LoadFromTextureData(texData);
 
-        quorum.Libraries.Game.Graphics.Glyph glyph = new quorum.Libraries.Game.Graphics.Glyph();
-        glyph.drawable = sprite;
+            quorum.Libraries.Game.Graphics.Drawable sprite = new quorum.Libraries.Game.Graphics.Drawable();
+            sprite.Load(texture);
+        
+            glyph.drawable = sprite;
+        }
+        else
+        {
+            glyph.drawable = null;
+        }
+        
         glyph.horizontalAdvance = (int)(bitmapData[4] >> 6);
         glyph.verticalAdvance = (int)(bitmapData[5] >> 6);
         glyph.lengthToGlyph = (int)bitmapData[0];

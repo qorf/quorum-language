@@ -22,6 +22,10 @@ class DetectBlockOpcode is QuorumOpcode
         end
     end
 
+    action GetDeclaredDetectsIterator returns Iterator<Class>
+        return declaredDetects:GetIterator()
+    end
+
     action AddDetect(Class clazz)
         declaredDetects:Add(clazz)
     end

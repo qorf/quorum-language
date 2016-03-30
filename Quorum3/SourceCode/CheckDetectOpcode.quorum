@@ -305,40 +305,96 @@ class CheckDetectOpcode is QuorumOpcode
             end
         end
 
+        constant text checkExceptionName = "e" + GetCheckLabelInteger() + "_"
+
         text null = undefined
         if not isCheckEmpty
             result = result + "try {" + EOL
             result = result + "     " + block:WriteJavaScript()
             result = result + EOL + "}" + EOL
+        elseif isCheckEmpty and alwaysBlock not= undefined
+            //in this case, we need an empty try block for javascript to accept it
+            result = result + "try {}" + EOL
         end
 
-        if alwaysBlock not= undefined
-            result = result + alwaysBlock:WriteJavaScript()
-        end
-
-
-        JavaBytecodeLabel alwaysStart
         boolean hasCatchAll = false
-        if not isCheckEmpty
+        if not isCheckEmpty //if the block is empty, there's no need to write detect blocks
             Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
-            result = result + "catch(e_) {" + EOL
+            integer detectAmount = 0
+            
+            result = result + "catch("
+            boolean isFirst = true
             repeat while it:HasNext()
                 DetectBlockOpcode det = it:Next()
+                Variable value = det:GetExceptionVariable()
+                text exceptionVariableName = value:GetJavaScriptName()
+                if isFirst
+                    if value not= undefined
+                        result = result + checkExceptionName + ") {" + EOL
+                    else
+                        result = result + checkExceptionName + ") {" + EOL
+                    end
+                    isFirst = false
+                end
 
-                result = result + det:WriteJavaScript()
+                if errorBlock not= det
+                    Iterator<Class> detectClasses = det:GetDeclaredDetectsIterator()
+                    if detectAmount > 0
+                        result = result + "     else if(" + checkExceptionName + " instanceof "
+                    else
+                        result = result + "     if(" + checkExceptionName + " instanceof "
+                    end
+
+                    boolean first = true
+                    repeat while detectClasses:HasNext()
+                        Class classDetect = detectClasses:Next()
+                        text name = classDetect:ConvertStaticKeyToJavaScriptName()
+                        if first
+                            result = result + name
+                        else
+                            result = result + " || " + checkExceptionName + " instanceof " + name
+                        end
+                    end
+
+                    result = result + ") {" + EOL
+                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
+                    result = result + det:WriteJavaScript()
+                    result = result + "     }"
+                    detectAmount = detectAmount + 1
+                end
             end
             
 
             //if we have an error block with a catch-all that has been reordered
             //write it now.
             if errorBlock not= undefined
-                result = result + errorBlock:WriteJavaScript()
+                if detectAmount > 0
+                    Variable value = errorBlock:GetExceptionVariable()
+                    text exceptionVariableName = value:GetJavaScriptName()
+                    result = result + " else {" + EOL
+                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
+                    result = result + errorBlock:WriteJavaScript()
+                    result = result + " }" + EOL
+                else
+                    Variable value = errorBlock:GetExceptionVariable()
+                    text exceptionVariableName = value:GetJavaScriptName()
+                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
+                    result = result + errorBlock:WriteJavaScript()
+                end
+            else
+                result = result + " else {" + EOL
+                result = result + "     throw " + checkExceptionName + ";" + EOL
+                result = result + " }" + EOL
             end
 
             result = result + "}" + EOL
-            if alwaysBlock not= undefined
-                alwaysBlock:WriteJavaScript()
-            end
+            
+        end
+
+        if alwaysBlock not= undefined
+            result = result + "finally {" + EOL
+            result = result + alwaysBlock:WriteJavaScript() + EOL
+            result = result + "}" + EOL
         end
 
         return result

@@ -6,9 +6,9 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
 
 /*
-    This is an internal class used by the Game class to manage several resources
-    that must be unique. It is responsible for initial set up, execution of the
-    main loop, and exiting a game. Most users will never use this class directly.
+This is an internal class used by the Game class to manage several resources
+that must be unique. It is responsible for initial set up, execution of the
+main loop, and exiting a game. Most users will never use this class directly.
 */
 class Application 
 
@@ -24,9 +24,9 @@ class Application
     end
 
     /*
-        The Setup action is used for initial set up of the Game's resources, and
-        will begin the game's main loop. This is automatically used by the Game
-        class via the Game:StartGame() action.
+    The Setup action is used for initial set up of the Game's resources, and
+    will begin the game's main loop. This is automatically used by the Game
+    class via the Game:StartGame() action.
     */
     action Setup(Game game)
 
@@ -44,14 +44,14 @@ class Application
     end
 
     /*
-        This action tells the game to close at the end of the next iteration of
-        the MainLoop. It is called automatically by the Game class's Exit action.
+    This action tells the game to close at the end of the next iteration of
+    the MainLoop. It is called automatically by the Game class's Exit action.
     */
     blueprint action Exit
 
     /*
-        This action queries OpenGL to see if any errors have ocurred in the
-        graphics pipeline, and is used for debugging only.
+    This action queries OpenGL to see if any errors have ocurred in the
+    graphics pipeline, and is used for debugging only.
     */
     system action CheckForErrors
 

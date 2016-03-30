@@ -146,12 +146,13 @@ class IOSConfiguration is ApplicationConfiguration
     public number smallNonRetinaDisplayScale = 1.0
 
     // NOTE: in libGDX, useAccelerometer and useCompass default to true, not false.
+    // NOTE: Accelerometer not yet implemented. First pass on iOS input is for touch only.
 
     /*
     Whether or not the application should use the device's accelerometer. By
     default, this value is false.
     */
-    public boolean useAccelerometer = false
+    //public boolean useAccelerometer = false
 
     /*
     Whether or not the application should use the device's compass. By default,
@@ -163,7 +164,7 @@ class IOSConfiguration is ApplicationConfiguration
     How many seconds should pass before each update to the accelerometer, if
     useAccelerometer is true.
     */
-    public number accelerometerUpdate = 0.05
+    //public number accelerometerUpdate = 0.05
 
     /*
     How many seconds should pass before each update to the compass, if 

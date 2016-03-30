@@ -166,10 +166,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         currentClassOpcode:SetPackage(packageValue)
         currentClassOpcode:SetClassWriter(classWriter)
         currentClassOpcode:SetInterfaceWriter(interfaceWriter)
-
-        //remove all of the location tables from this class
-        currentClass:RemoveCallLocationsFromActions(GetFile())
-        currentClass:RemoveCallLocationsFromDependencies(GetFile())
     end
 
     action EnterNoActionsNoClass(NoActionsNoClassContext context) 
@@ -1346,6 +1342,11 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now
         end
 
+        boolean notDefined = false
+        if not variable:IsDefined()
+            notDefined = true
+        end
+
         Location useLocation
         useLocation:SetLocation(context:variableLocation)
         variable:AddUseLocation(useLocation)
@@ -1358,6 +1359,13 @@ class QuorumBytecodeListener is QuorumSourceListener
         Location typeLocation = context:typeLocation
         typeLocation = typeLocation:CreateLocationCopy()
         variable:SetTypeLocation(typeLocation)
+
+        if not left:IsPrimitive()
+            SymbolTable table = me:GetSymbolTable()
+            Class clazz = table:GetClass(left:GetStaticKey())
+            clazz:AddUseLocation(typeLocation:CreateLocationCopy())
+        end
+
         QuorumOpcode right = undefined
         if context:hasRightHandSide = false
             Type typeOriginal = context:leftHandSide
@@ -1497,6 +1505,9 @@ class QuorumBytecodeListener is QuorumSourceListener
         if currentBlock = undefined
             assignment:SetIsInFieldBlock(true)
         end
+        if notDefined
+            assignment:SetIsNewAssignment(true)
+        end
         assignment:SetLocation(context:GetLocation())
         assignment:SetClass(currentClass)
         assignment:SetRightHandSide(right)
@@ -1512,8 +1523,8 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterNoTypeAssignment(NoTypeAssignmentContext context) 
-        a = 5
     end
+
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) 
         text name = context:name
         Variable variable = undefined
@@ -1537,6 +1548,11 @@ class QuorumBytecodeListener is QuorumSourceListener
                 CompilerErrorManager manager = GetCompilerErrorManager()
                 manager:Add(error)
             end
+        end
+
+        boolean notDefined = false
+        if not variable:IsDefined()
+            notDefined = true
         end
 
         Location useLocation
@@ -1599,6 +1615,9 @@ class QuorumBytecodeListener is QuorumSourceListener
             AssignmentOpcode assignment = cast(AssignmentOpcode, result:GetQuorumOpcode())
             if currentBlock = undefined
                 assignment:SetIsInFieldBlock(true)
+            end
+            if notDefined
+                assignment:SetIsNewAssignment(true)
             end
             assignment:SetLocation(context:GetLocation())
             assignment:SetClass(currentClass)

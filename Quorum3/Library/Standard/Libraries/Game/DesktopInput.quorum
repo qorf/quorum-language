@@ -1,0 +1,65 @@
+package Libraries.Game
+
+use Libraries.Containers.List
+use Libraries.Interface.Item
+use Libraries.Interface.Panel
+use Libraries.Interface.Events.KeyboardListener
+use Libraries.Interface.Events.KeyboardProcessor
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.MouseProcessor
+
+/*
+This class automatically handles input and notifies event listeners for Games
+running on Desktop platforms (e.g. Windows, Mac). Most users shouldn't need 
+access to this class. For users who want to test input themselves at specific 
+times, use an InputMonitor instead.
+*/
+class DesktopInput is GameInput
+
+    private KeyboardProcessor keyboardProcessor
+    private MouseProcessor mouseProcessor
+
+    /*
+    This action will identify all input events that have occurred and notify
+    all relevant event listeners. For certain kinds of input, e.g. mouse or
+    touch input, only listeners that were added to the active panel will be
+    notified. This action is called automatically by the Game class, so most
+    users will never need to use this action directly.
+    */
+    action ProcessInputEvents
+        Panel activePanel = parent:GameInput:activePanel
+        List<MouseEvent> mouseEvents = mouseProcessor:GetCurrentEvents()
+        MouseEvent mouseEvent = undefined
+
+        repeat mouseEvents:GetSize() times
+            mouseEvent = mouseEvents:RemoveFromFront()
+            Item temp = activePanel:GetItemAt(mouseEvent:GetX(), mouseEvent:GetY())
+            if temp not= undefined
+                temp:ProcessMouseEvent(mouseEvent)
+            end
+        end
+
+        keyboardProcessor:Update()
+        keyboardProcessor:ProcessEvents()
+    end
+
+    /*
+    This action will add a KeyboardListener to the DesktopInput. The 
+    DesktopInput will notify the KeyboardListener if keys are pressed on the 
+    keyboard. This action is automatically called by the Game class when needed.
+    */
+    action AddKeyboardListener(KeyboardListener listener)
+        keyboardProcessor:AddListener(listener)
+    end
+
+    /*
+    This action will remove a KeyboardListener from the DesktopInput. The
+    DesktopInput will no longer notify the given KeyboardListener of 
+    KeyboardEvents. This action is automatically called by the Game class when 
+    needed.
+    */
+    action RemoveKeyboardListener(KeyboardListener listener)
+        keyboardProcessor:RemoveListener(listener)
+    end
+
+end

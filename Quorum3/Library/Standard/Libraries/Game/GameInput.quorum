@@ -1,0 +1,58 @@
+package Libraries.Game
+
+use Libraries.Interface.Panel
+use Libraries.Interface.Events.KeyboardListener
+
+/*
+This class is the base interface for how the Game will automatically handle
+input and notify event listeners. Most users shouldn't need access to this
+class. For users who want to test input themselves at specific times, use
+an InputMonitor instead.
+*/
+class GameInput
+
+    Panel activePanel = undefined
+
+    /*
+    For certain types of input, e.g. mouse or touch input, the
+    GameInput object will only test for the appropriate types of listeners
+    that are present on the active panel. This action will set the active
+    panel so the GameInput will notify its listeners. The Game class
+    calls this automatically when necessary, so users shouldn't need to use
+    this action directly.
+    */
+    action SetActivePanel(Panel panel)
+        activePanel = panel
+    end
+
+    /*
+    This action will return the active panel currently stored by the GameInput.
+    */
+    action GetActivePanel returns Panel
+        return activePanel
+    end
+
+    /*
+    This action will identify all input events that have occurred and notify
+    all relevant event listeners. For certain kinds of input, e.g. mouse or
+    touch input, only listeners that were added to the active panel will be
+    notified. This action is called automatically by the Game class, so most
+    users will never need to use this action directly.
+    */
+    blueprint action ProcessInputEvents
+
+    /*
+    This action will add a KeyboardListener to the GameInput. The GameInput will
+    notify the KeyboardListener if keys are pressed on the keyboard. This action
+    is automatically called by the Game class when needed.
+    */
+    blueprint action AddKeyboardListener(KeyboardListener listener)
+
+    /*
+    This action will remove a KeyboardListener from the GameInput. The GameInput
+    will no longer notify the given KeyboardListener of KeyboardEvents. This 
+    action is automatically called by the Game class when needed.
+    */
+    blueprint action RemoveKeyboardListener(KeyboardListener listener)
+
+end

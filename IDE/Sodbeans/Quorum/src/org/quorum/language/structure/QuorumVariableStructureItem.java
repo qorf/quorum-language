@@ -43,6 +43,9 @@ public class QuorumVariableStructureItem implements StructureItem {
     public String getName(boolean isHTML) {
         String name = variable.GetName() + " : ";
         quorum.Libraries.Language.Compile.Symbol.Type_ type = variable.GetType();
+        if(type == null) {
+            return "";
+        }
         name = name + type.GetDisplayName();
         return name;
     }

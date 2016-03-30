@@ -1040,10 +1040,10 @@ class ClassOpcode is QuorumOpcode
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
-            if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
+            //if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
                 text parentName = p:ConvertStaticKeyToParentFieldName()
                 convertedSource = convertedSource + "this." + parentName + " = null;" + EOL
-            end
+            //end
         end
         
         //initialize all of the parent objects as values, if appropriate
@@ -1052,11 +1052,11 @@ class ClassOpcode is QuorumOpcode
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
-            if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
+            //if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
                 text parentName = p:ConvertStaticKeyToParentFieldName()
                 convertedSource = convertedSource + "   this." + parentName + " = new " 
                     + p:ConvertStaticKeyToJavaScriptName() + "(false);" + EOL
-            end
+            //end
         end
 
         //now that all parents have been instantiated, get 
@@ -1065,7 +1065,7 @@ class ClassOpcode is QuorumOpcode
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
-            if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
+            //if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
                 text parentName = p:ConvertStaticKeyToParentFieldName()
                 text convertedParentName = p:ConvertStaticKeyToBytecodePath()
                 text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
@@ -1082,15 +1082,33 @@ class ClassOpcode is QuorumOpcode
                     convertedSource = convertedSource + "   this." + parentName 
                         + ".prototype = this;"  + EOL
                 end
+            //end
+        end
+
+        //now that all of the parents have had their parent's set, 
+        //call their constructors.
+        parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            text parentName = p:ConvertStaticKeyToParentFieldName()
+
+            if p:HasConstructor()
+                convertedSource = convertedSource + "this." + parentName + ".constructor_();" + EOL
             end
         end
+
         convertedSource = convertedSource + "}" + EOL
+
+        if clazz:HasConstructor()
+            convertedSource = convertedSource + constructor:WriteJavaScript()
+        end
 
         Iterator<Action> it = clazz:GetParentActions()
         repeat while it:HasNext()
             Action act = it:Next()
             Class parentOfMethod = act:GetParentClass()
-            if not parentOfMethod:IsError() or clazz:GetStaticKey() = QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
+            //if not parentOfMethod:IsError() or clazz:GetStaticKey() = QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
                 convertedSource = convertedSource + "this." + act:ConvertActionToJavaScriptName()
                     + " = function("
 
@@ -1112,7 +1130,7 @@ class ClassOpcode is QuorumOpcode
                 convertedSource = convertedSource + ")"
                     + EOL 
                     + "}" + EOL
-            end
+            //end
         end
 
 
@@ -1137,14 +1155,18 @@ class ClassOpcode is QuorumOpcode
             convertedSource = convertedSource + field:WriteJavaScript()
         end
 
+        if clazz:HasConstructor()
+            convertedSource = convertedSource + "this.constructor_();" + EOL
+        end
+
         if value = "Libraries.Language.Types.Integer"
-            convertedSource = convertedSource + "this.value = optional === null ? 0: optional;"
+            convertedSource = convertedSource + "this.value = optional == null ? 0: optional;"
         elseif value = "Libraries.Language.Types.Boolean"
-            convertedSource = convertedSource + "this.value = optional === null ? false: optional;"
+            convertedSource = convertedSource + "this.value = optional == null ? false: optional;"
         elseif value = "Libraries.Language.Types.Number"
-            convertedSource = convertedSource + "this.value = optional === null ? 0.0: optional;"
+            convertedSource = convertedSource + "this.value = optional == null ? 0.0: optional;"
         elseif value = "Libraries.Language.Types.Text"
-            convertedSource = convertedSource + "this.value = optional === null ? " + quote + quote + ": optional;"
+            convertedSource = convertedSource + "this.value = optional == null ? " + quote + quote + ": optional;"
         end
 
         convertedSource = convertedSource + EOL + "};" + EOL

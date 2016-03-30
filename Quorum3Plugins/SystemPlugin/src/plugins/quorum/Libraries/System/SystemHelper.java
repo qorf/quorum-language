@@ -30,4 +30,19 @@ public class SystemHelper
         System.gc();
     }
     
+    public double GetFreeMemory() {
+        return Runtime.getRuntime().freeMemory();
+    }
+    
+    public double GetMaximumMemory() {
+        return Runtime.getRuntime().maxMemory();
+    }
+    
+    public double GetTotalMemory() {
+        return Runtime.getRuntime().totalMemory();
+    }
+    
+    public int GetAvailableProcessors() {
+        return Runtime.getRuntime().availableProcessors();
+    }
 }

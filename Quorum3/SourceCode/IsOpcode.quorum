@@ -66,7 +66,7 @@ class IsOpcode is QuorumOpcode
         if opcode not= undefined
             result = result + opcode:WriteJavaScript()
             Type type = opcode:GetType()
-            result = result + "," + "'" + type:GetStaticKey() + "'"
+            result = result + "," + "'" + castTo:GetStaticKey() + "'"
         end
         return result + ")"
     end

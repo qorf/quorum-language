@@ -17,6 +17,9 @@ use Libraries.Game.Graphics.AndroidGraphics
 use Libraries.Game.IOSApplication
 use Libraries.Game.IOSConfiguration
 use Libraries.Game.IOSDisplay
+use Libraries.Game.GameInput
+use Libraries.Game.DesktopInput
+use Libraries.Game.IOSInput
 use Libraries.Game.Graphics.IOSGraphics
 use Libraries.Game.Graphics.Painter
 use Libraries.Game.Graphics.Font
@@ -28,15 +31,14 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.System.File
 use Libraries.System.Properties
 use Libraries.Interface.Panel
-use Libraries.Interface.Events.KeyboardProcessor
 use Libraries.Interface.Events.KeyboardListener
-use Libraries.Interface.Events.MouseProcessor
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Item
 use Libraries.Interface.Events.CollisionEvent
+use Libraries.Interface.Events.TouchListener
 
 // 3D TESTING CODE!
 use Libraries.Game.Graphics.Model
@@ -71,23 +73,28 @@ class Game
 
     // Variables used for Panels and the event system.
     private Panel activePanel = undefined
-    private KeyboardProcessor keyboardProcessor
-    private MouseProcessor mouseProcessor
+    private GameInput gameInput = undefined
     private List<Item> collisionList
     private List<CollisionEvent> currentCollisions
 
-    /*
-    Current codes:
-    1 = AndroidApplication
-    2 = DesktopApplication
-    3 = IOSApplication
-    */
+    private constant integer ANDROID_APPLICATION = 1
+    private constant integer DESKTOP_APPLICATION = 2
+    private constant integer IOS_APPLICATION = 3
+
     private integer applicationType = -1
 
     on create
         Panel panel
         panel:SetName("Default Active Panel")
-        SetActivePanel(panel)
+
+        /* 
+        The variable is set here, however it's not fully initialized until 
+        StartGame where it's set using SetActivePanel(). This is because the
+        GameInput hasn't yet been set for this game (which SetActivePanel()
+        requires), but the activePanel variable must be available for use by 
+        SetScreenSize().
+        */
+        activePanel = panel
     end
 
     /*
@@ -132,6 +139,10 @@ class Game
             gl20 = graphics
             */
 
+            DesktopInput newInput
+            gameInput = newInput
+            manager:SetInput(gameInput)
+
             DesktopDisplay display
             manager:SetGameDisplay(display)
 
@@ -139,6 +150,10 @@ class Game
             display:SetupDisplay()
         elseif application is AndroidApplication
             
+            // AndroidInput newInput
+            // gameInput = newInput
+            // manager:SetInput(gameInput)
+
             AndroidDisplay display
             manager:SetGameDisplay(display)
             display:SetConfiguration(androidConfig)
@@ -147,11 +162,11 @@ class Game
             manager:SetGameGraphics(graphics)
             
         elseif application is IOSApplication
-            /* Notes:
-            Will almost certainly need to set up a new type of GameDisplay for
-            iOS. That can be set in the GameStateManager before it is ever needed
-            in the IOSApplication plugin during DidFinishLaunching.
-            */
+            
+            IOSInput newInput
+            gameInput = newInput
+            manager:SetInput(newInput)
+
             IOSDisplay display
             manager:SetGameDisplay(display)
             display:SetConfiguration(iosConfig)
@@ -159,12 +174,19 @@ class Game
             IOSGraphics iosGraphics
             manager:SetGameGraphics(iosGraphics)
         end
+
         // 3D TESTING CODE
         ModelBatch newBatch
         SetModelBatch(newBatch)
 
         application:Setup(me)
 
+        /*
+        We can use SetActivePanel now that the GameInput has been set up.
+        */
+        SetActivePanel(activePanel)
+
+        application:Setup(me)
     end
 
     /*
@@ -246,10 +268,8 @@ class Game
     end
 
     action ContinueGame
-        // Only test for mouse/keyboard input on DesktopApplication.
-        if applicationType = 2
-            ProcessInputEvents()
-        end
+        gameInput:ProcessInputEvents()
+
         UpdateAll()
         Update(GetSecondsBetweenFrames())
         TestForCollisions()
@@ -286,7 +306,9 @@ class Game
         end
     */
     action GetScreenWidth returns integer
-        return desktopConfig:width
+        GameStateManager manager
+        integer width = manager:GetGameDisplay():GetWidth()
+        return width
     end
 
     /*
@@ -308,7 +330,9 @@ class Game
         end
     */
     action GetScreenHeight returns integer
-        return desktopConfig:height
+        GameStateManager manager
+        integer height = manager:GetGameDisplay():GetHeight()
+        return height
     end
 
     /*
@@ -549,17 +573,15 @@ class Game
     */
     action SetActivePanel(Panel panel)
         if activePanel not= undefined
-            //activePanel:keyboardProcessor = undefined
-            //activePanel:mouseProcessor = undefined
             activePanel:Disable()
         end
-        //panel:keyboardProcessor = keyboardProcessor
-        //panel:mouseProcessor = mouseProcessor
+
         panel:SetPosition(0,0)
         panel:SetWidth(GetScreenWidth())
         panel:SetHeight(GetScreenHeight())
         activePanel = panel
         activePanel:Enable()
+        gameInput:SetActivePanel(activePanel)
     end
 
     /*
@@ -579,24 +601,7 @@ class Game
     never need to use this action directly.
     */
     private action ProcessInputEvents
-        
-        // If not a DesktopApplication, don't attempt to check mouse/keyboard.
-        if applicationType not= 2
-            return now
-        end
-
-        List<MouseEvent> mouseEvents = mouseProcessor:GetCurrentEvents()
-        MouseEvent mouseEvent = undefined
-        repeat mouseEvents:GetSize() times
-            mouseEvent = mouseEvents:RemoveFromFront()
-            Item temp = activePanel:GetItemAt(mouseEvent:GetX(), mouseEvent:GetY())
-            if temp not= undefined
-                temp:ProcessMouseEvent(mouseEvent)
-            end
-        end
-
-        keyboardProcessor:Update()
-        keyboardProcessor:ProcessEvents()
+        gameInput:ProcessInputEvents()
     end
 
     /*
@@ -707,7 +712,7 @@ class Game
         end
     */
     action AddKeyboardListener(KeyboardListener listener)
-        keyboardProcessor:AddListener(listener)
+        gameInput:AddKeyboardListener(listener)
     end
 
     /*
@@ -826,7 +831,64 @@ class Game
         end
     */
     action RemoveKeyboardListener(KeyboardListener listener)
-        keyboardProcessor:RemoveListener(listener)
+        gameInput:RemoveKeyboardListener(listener)
+    end
+
+    /*
+    This action adds a TouchListener to the Game's active Panel. The touch
+    listener will be notified when the user interacts with a touch screen 
+    so long as it is a part of the active Panel.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+
+        class Main is Game
+
+            TouchListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(listener)
+            end
+            
+        end
+    */
+    action AddTouchListener(TouchListener listener)
+        activePanel:AddTouchListener(listener)
+    end
+
+    /*
+    This action removes a TouchListener from the Game's active Panel. The
+    listener will no longer receive TouchEvents from the active Panel.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TouchListener
+
+        class Main is Game
+
+            TouchListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTouchListener(listener)
+
+                RemoveTouchListener(listener)
+            end
+            
+        end
+    */
+    action RemoveTouchListener(TouchListener listener)
+        activePanel:RemoveTouchListener(listener)
     end
 
     /*
@@ -1058,24 +1120,22 @@ class Game
         end
     end
 
+    /*
+    This action will set the type of Application that should be running, as well
+    as setting the type of GameInput to use.
+    */
     private action SelectApplicationType returns Application
-        /*
-        Current codes:
-        1 = AndroidApplication
-        2 = DesktopApplication
-        3 = IOSApplication
-        */
 
         applicationType = SelectApplicationTypeNative()
-        if applicationType = 1
+        if applicationType = ANDROID_APPLICATION
             AndroidApplication app
             return app
         end
-        if applicationType = 2
+        if applicationType = DESKTOP_APPLICATION
             DesktopApplication app
             return app
         end
-        if applicationType = 3
+        if applicationType = IOS_APPLICATION
             IOSApplication app
             return app
         end

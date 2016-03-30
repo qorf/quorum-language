@@ -45,6 +45,7 @@ class ExpressionsTester
         EqualIntInt()
         EqualTextText()
         Expression()
+        GetMaxNumberValue()
         GTDoubleDouble()
         GTDoubleInt()
         GTEDoubleDouble()
@@ -249,8 +250,6 @@ class ExpressionsTester
         results:Add(0, "number is 1.0")
         results:Add(1, "number is 2.0")
         suite:Test(files, results)
-        results:Set(0, "number is 1")
-        results:Set(1, "number is 2")
         suite:TestJavaScript(files, results)
     end
 
@@ -475,6 +474,17 @@ class ExpressionsTester
         main:SetPath(path + "Expression.quorum")
         files:Add(main)
         results:Add(0, "15")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action GetMaxNumberValue 
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "GetMaxNumberValue.quorum")
+        files:Add(main)
+        results:Add(0, "1.7976931348623157E308")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -903,8 +913,6 @@ class ExpressionsTester
         results:Add(0, "1")
         results:Add(1, "1")
         suite:Test(files, results)
-        results:Set(0, "1")
-        results:Set(1, "1")
         suite:TestJavaScript(files, results)
     end
 

@@ -13,7 +13,9 @@ import quorum.Libraries.Game.IOSDisplay;
 import quorum.Libraries.Game.Graphics.IOSGraphics;
 import quorum.Libraries.Game.Graphics.Painter;
 
-import org.robovm.apple.coregraphics.CGSize;
+import org.robovm.apple.coregraphics.CGRect;
+import org.robovm.apple.foundation.Foundation;
+import org.robovm.apple.foundation.NSString;
 import org.robovm.apple.uikit.UIApplication;
 import org.robovm.apple.uikit.UIApplicationLaunchOptions;
 import org.robovm.apple.uikit.UIWindow;
@@ -39,7 +41,6 @@ public class IOSApplication
     //IOSViewControllerListener viewControllerListener;
     IOSConfiguration_ config;
     IOSDisplay_ display;
-    //IOSAudio audio;
     //IOSFiles files;
     //IOSInput input;
     //IOSNet net;
@@ -51,10 +52,28 @@ public class IOSApplication
     // Reference to the delegate -- may not be necessary.
     IOSDelegate delegate;
     
+    private CGRect lastScreenBounds = null;
+    
     // Are these necessary?
     //Array<Runnable> runnables = new Array<Runnable>();
     //Array<Runnable> executedRunnables = new Array<Runnable>();
     //Array<LifecycleListener> lifecycleListeners = new Array<LifecycleListener>();
+    
+    public static void SetOperatingSystem()
+    {
+        quorum.Libraries.System.File qFile = new quorum.Libraries.System.File();
+        /*
+        Foundation.log("%@", new NSString("Default directory + path: " + qFile.GetWorkingDirectory() + " + " + qFile.GetPath()));
+        Foundation.log("%@", new NSString("Version is " + System.getProperty("os.version")));
+        Foundation.log("%@", new NSString("Device name is " + UIDevice.getCurrentDevice().getName()));
+        */
+        if (UIDevice.getCurrentDevice().getName().contains("Simulator"))
+            GameState.SetOperatingSystem("iOS Simulator");
+        else
+            GameState.SetOperatingSystem("iOS Device");
+
+        //Foundation.log("%@", new NSString("Set OS as " + GameState.GetOperatingSystem()));
+    }
     
     public void SetupNative(Game_ game)
     {
@@ -126,7 +145,9 @@ public class IOSApplication
         // setup libgdx
         //this.input = new IOSInput(this);
         
-        ((IOSDisplay)display).plugin_.Initialize(GetBounds(null), scale, this, config, ((IOSGraphics)GameState.GetGameGraphics()).plugin_);
+        IOSInput input = ((quorum.Libraries.Game.IOSInput)GameState.GetInput()).plugin_;
+        input.Initialize(this);
+        ((IOSDisplay)display).plugin_.Initialize(scale, this, config, input, ((IOSGraphics)GameState.GetGameGraphics()).plugin_);
         //this.files = new IOSFiles();
         //this.audio = new IOSAudio(config);
         //this.net = new IOSNet(this);
@@ -166,64 +187,58 @@ public class IOSApplication
         return uiWindow;
     }
     
-    public CGSize GetBounds(UIViewController viewController)
+    public CGRect GetBounds()
     {
         // or screen size (always portrait)
-        CGSize bounds = UIScreen.getMainScreen().getApplicationFrame().getSize();
+        final CGRect screenBounds = UIScreen.getMainScreen().getBounds();
+        final CGRect statusBarFrame = uiApp.getStatusBarFrame();
+        final UIInterfaceOrientation statusBarOrientation = uiApp.getStatusBarOrientation();
+        
+        double statusBarHeight = Math.min(statusBarFrame.getWidth(), statusBarFrame.getHeight());
+        
+        double screenWidth = screenBounds.getWidth();
+        double screenHeight = screenBounds.getHeight();
 
-        // determine orientation and resulting width + height
-        UIInterfaceOrientation orientation;
-        if (viewController != null) 
-        {
-            orientation = viewController.getInterfaceOrientation();
-        }
-        else if (config.Get_Libraries_Game_IOSConfiguration__landscapeSupported_() == config.Get_Libraries_Game_IOSConfiguration__portraitSupported_()) 
-        {
-            /*
-             * if the app has orientation in any side then we can only check status bar orientation
-             */
-            orientation = uiApp.getStatusBarOrientation();
-        }
-        else if (config.Get_Libraries_Game_IOSConfiguration__landscapeSupported_()) 
-        {
-            // landscape is true and portrait is false
-            orientation = UIInterfaceOrientation.LandscapeRight;
-        } else 
-        {
-            // Portrait is true and landscape is false
-            orientation = UIInterfaceOrientation.Portrait;
-        }
-        int width;
-        int height;
-        switch (orientation) 
+        // Make sure that the orientation is consistent with ratios. Should be, but may not be on older iOS versions
+        switch (statusBarOrientation) 
         {
             case LandscapeLeft:
             case LandscapeRight:
-                height = (int)bounds.getWidth();
-                width = (int)bounds.getHeight();
-                if (width < height) 
+                if (screenHeight > screenWidth) 
                 {
-                        width = (int)bounds.getWidth();
-                        height = (int)bounds.getHeight();
+                    // Swap the reported screen height and screen width.
+                    double tmp = screenHeight;
+                    screenHeight = screenWidth;
+                    screenWidth = tmp;
                 }
-                break;
-            default:
-                // assume portrait
-                width = (int)bounds.getWidth();
-                height = (int)bounds.getHeight();
         }
 
-        //Gdx.app.debug("IOSApplication", "Unscaled View: " + orientation.toString() + " " + width + "x" + height);
-
         // update width/height depending on display scaling selected
-        width *= displayScaleFactor;
-        height *= displayScaleFactor;
+        screenWidth *= displayScaleFactor;
+        screenHeight *= displayScaleFactor;
 
-        // log screen dimensions
-        //Gdx.app.debug("IOSApplication", "View: " + orientation.toString() + " " + width + "x" + height);
+        if (statusBarHeight != 0.0) 
+        {
+            //debug("IOSApplication", "Status bar is visible (height = " + statusBarHeight + ")");
+            statusBarHeight *= displayScaleFactor;
+            screenHeight -= statusBarHeight;
+        } 
+        else 
+        {
+            //debug("IOSApplication", "Status bar is not visible");
+        }
 
-        // return resulting view size (based on orientation)
-        return new CGSize(width, height);
+        //debug("IOSApplication", "Total computed bounds are w=" + screenWidth + " h=" + screenHeight);
+
+        return lastScreenBounds = new CGRect(0.0, statusBarHeight, screenWidth, screenHeight);
+    }
+    
+    public CGRect GetCachedBounds()
+    {
+        if(lastScreenBounds == null)
+            return GetBounds();
+        else
+            return lastScreenBounds;
     }
     
     public void DidBecomeActive(UIApplication uiApp)

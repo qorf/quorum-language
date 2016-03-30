@@ -19,7 +19,7 @@ class Compiler
     constant text DEFAULT_BUILD_FOLDER = "Build"
     constant text DEFAULT_RUN_FOLDER = "Run"
     constant text DEFAULT_STANDARD_LIBRARY_FOLDER = "Library/Standard"
-    constant text WAR_CLASS_DIRECTORY = "WEB-INF/classes"
+    constant text WEB_DIRECTORY = "WEB-INF/classes"
     constant text DOCUMENTATION_FOLDER = "Documents/"
     constant text OBJECT = "Libraries.Language.Object"
     constant text JAR_DEPENDENCY_FOLDER = "libraries"
@@ -34,7 +34,7 @@ class Compiler
     SymbolTable symbolTable
     CompilerErrorManager compilerErrorManager
     TypeChecker checker
-
+    
 
     //Sandbox classes for the parser
     SymbolTable sandboxSymbolTable
@@ -212,6 +212,10 @@ class Compiler
         Class inFile = sandboxSymbolTable:GetClassInFile(locPath)
         if inFile not= undefined
             sandboxSymbolTable:RemoveClass(inFile:GetStaticKey())
+            //remove all of the location tables from this class
+            inFile:RemoveUseLocations(loc)
+            inFile:RemoveCallLocationsFromActions(loc)
+            inFile:RemoveCallLocationsFromDependencies(loc)
         else //the file isn't in there. Check if the symbol table has other classes
             isSandBoxEmpty = sandboxSymbolTable:IsEmpty()
         end
@@ -676,20 +680,21 @@ class Compiler
             boolean isCurrentClass, Action insideMethod)
 
         if clazz not= undefined
-
             //add all of the fields from this class
             Iterator<Variable> variables = clazz:GetVariables()
             repeat while variables:HasNext()
                 Variable variable2 = variables:Next()
-                CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
-                text filter = result:filter
-                integer size = filter:GetSize()
-                item:dotOffset = request:caretLocation - size
-                if isCurrentClass
-                    result:Add(item)
-                else
-                    if not variable2:IsPrivate()
+                if variable2:GetType() not= undefined
+                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+                    text filter = result:filter
+                    integer size = filter:GetSize()
+                    item:dotOffset = request:caretLocation - size
+                    if isCurrentClass
                         result:Add(item)
+                    else
+                        if not variable2:IsPrivate()
+                            result:Add(item)
+                        end
                     end
                 end
             end
@@ -701,15 +706,17 @@ class Compiler
                 Iterator<Variable> variables2 = par:GetVariables()
                 repeat while variables2:HasNext()
                     Variable variable2 = variables2:Next()
-                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
-                    text filter = result:filter
-                    integer size = filter:GetSize()
-                    item:dotOffset = request:caretLocation - size
-                    if isCurrentClass
-                        result:Add(item)
-                    else
-                        if not variable2:IsPrivate()
+                    if variable2:GetType() not= undefined
+                        CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+                        text filter = result:filter
+                        integer size = filter:GetSize()
+                        item:dotOffset = request:caretLocation - size
+                        if isCurrentClass
                             result:Add(item)
+                        else
+                            if not variable2:IsPrivate()
+                                result:Add(item)
+                            end
                         end
                     end
                 end
@@ -739,8 +746,6 @@ class Compiler
                 end
             end
         end
-
-
     end
 
     private action GetLineBeforeCursor(integer loc, text source) returns text
@@ -1123,11 +1128,21 @@ class Compiler
 
                     text key = code:GetStaticKey()
                     if build not= undefined
-                        generator:Add(build)
+                        if IsWebApplication()
+                            text path = WEB_DIRECTORY + "/" + build:GetPath()
+                            generator:Add(build, path)
+                        else 
+                            generator:Add(build)
+                        end
                     end
 
                     if buildInterface not= undefined
-                        generator:Add(buildInterface)
+                        if IsWebApplication()
+                            text path = WEB_DIRECTORY + "/" + buildInterface:GetPath()
+                            generator:Add(buildInterface, path)
+                        else 
+                            generator:Add(buildInterface)
+                        end
                     end
                 end
                 profiler:Add(time:GetEpochTime())
@@ -1151,9 +1166,9 @@ class Compiler
                     Class mainClazz = me:GetMainClass()
                     text mainClazzName = mainClazz:GetStaticKey()
                     text clazzName = clazz:GetStaticKey()
-                    if //not clazzName:Contains("Libraries.Containers")
-                       //and 
-                       not clazzName:Contains("Libraries.System")
+                    if (not clazzName:Contains("Libraries.System") or
+                        clazzName = "Libraries.System.DateTime"
+                        )
                         if mainClazz:GetStaticKey() = clazzName
                             main = code:WriteJavaScript()
                         else
@@ -1184,7 +1199,6 @@ class Compiler
                                 value = location:Read()
                                 plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
                             end
-
                         end
                     end
                 end
@@ -1521,6 +1535,28 @@ class Compiler
             end
         end
 
+        if IsWebApplication()
+            File servlet
+            servlet:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+            servlet:SetPath("WEB-INF/classes/web/servlet/Processor.class")
+            generator:Add(servlet)
+
+            File glassfish
+            glassfish:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+            glassfish:SetPath("WEB-INF/glassfish-web.xml")
+            generator:Add(glassfish)
+
+            File web
+            web:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+            web:SetPath("WEB-INF/web.xml")
+            generator:Add(web)
+
+            File context
+            context:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+            context:SetPath("META-INF/context.xml")
+            generator:Add(context)
+        end
+
         if hasSpeech or HasSpeechCallInCompile()
             File to
             to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
@@ -1678,7 +1714,12 @@ class Compiler
             File f
             f:SetWorkingDirectory(wd)
             f:SetPath(path)
-            generator:Add(f)
+            if IsWebApplication()
+                text newPath = WEB_DIRECTORY + "/" + f:GetPath()
+                generator:Add(f, newPath)
+            else 
+                generator:Add(f)
+            end
         end
     end
 
@@ -1899,20 +1940,54 @@ class Compiler
                 end
             elseif currentOutputType = JAVASCRIPT
                 text result = ""
+                text plugins = ""
+                text main = ""
                 Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
                 repeat while codes:HasNext()
                     ClassOpcode code = codes:Next()
                     Class clazz = code:GetClass()
 
+                    
                     Class mainClazz = me:GetMainClass()
                     text mainClazzName = mainClazz:GetStaticKey()
                     text clazzName = clazz:GetStaticKey()
-                    if clazzName = mainClazzName //keep it simple in the first version.
-                        result = result + code:WriteJavaScript()
+                    if (not clazzName:Contains("Libraries.System") or
+                        clazzName = "Libraries.System.DateTime"
+                        )
+                        if mainClazz:GetStaticKey() = clazzName
+                            main = code:WriteJavaScript()
+                        else
+                            result = result + code:WriteJavaScript()
+                        end
+
+                        //check if this class has a plugin. If it does, include it.
+                        if clazz:HasSystemAction()
+                            File folder = GetStandardLibraryFolder() 
+                            path = folder:GetPath() + "/Plugins/javascript/"
+                            
+                            key = clazz:GetStaticKey()
+                            Array<text> keys = key:Split("\.")
+                            i = 0
+                            repeat keys:GetSize() times
+                                newKey = keys:Get(i)
+                                if i = keys:GetSize() - 1
+                                    path = path + newKey + ".js"
+                                else
+                                    path = path + newKey + "/"
+                                end
+                                i = i + 1
+                            end
+                            File location
+                            location:SetWorkingDirectory(folder:GetWorkingDirectory())
+                            location:SetPath(path)
+                            if location:Exists() 
+                                value = location:Read()
+                                plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
+                            end
+                        end
                     end
-                    a = 5
                 end
-                convertedJavaScript = result
+                convertedJavaScript = plugins + result + main
             end
         end
     end
