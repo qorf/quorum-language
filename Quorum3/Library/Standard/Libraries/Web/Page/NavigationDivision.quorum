@@ -171,7 +171,7 @@ class NavigationDivision is WebTag
         if headingLevel > 6 or headingLevel < 1
             alert("Invalid heading level. This integer must be between 1 and 6, inclusive.")
         end
-        heading:SetScale("" + headingLevel)
+        heading:SetScale(headingLevel)
         parent:WebTag:tags:Add(heading)
         return heading
     end
