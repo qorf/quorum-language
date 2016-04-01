@@ -1,7 +1,213 @@
 package Libraries.Interface
 
 use Libraries.Interface.Item
+use Libraries.Containers.Array
+use Libraries.Containers.Blueprints.Iterator
 
 class Item3D is Item
-    
+//
+//    private Item3D parentItem = undefined
+//    private Array<Item3D> children
+//
+//    /*
+//    This action sets a reference to the parent item. It is called automatically
+//    when an Item3D is added as a child to another Item3D. Most users will not
+//    need to use this action directly.
+//    */
+//    action SetParent(Item3D newItem)
+//        parentItem = newItem
+//    end
+//
+//    /*  
+//    This action returns the parent of this Item3D. An Item3D gets a parent when
+//    it is added to another Item using the Add action.
+//
+//    Attribute: Example
+//
+//        use Libraries.Interface.Item3D
+//
+//        Item3D parentItem
+//        Item3D child
+//        parentItem:Add(child)
+//        Item3D item = child:GetParent()
+//        
+//    */
+//    action GetParent returns Item3D
+//        return parentItem
+//    end
+//
+//    /*  
+//    This action adds a different Item3D into this one. This makes a few things happen.
+//        1. The added item will get this item as its parent.
+//        2. The added item's x and y coordinates will become relative to this Item.
+//        3. Most actions on this Item will also affect the added Item.
+//
+//    Attribute: Example
+//
+//        use Libraries.Interface.Item3D
+//
+//        Item3D parentItem
+//        Item3D child
+//        parentItem:Add(child)
+//        
+//    */
+//    action Add(Item3D newItem)
+//        children:Add(newItem)
+//        newItem:SetParent(me)
+//        newItem:PrepareVertices()
+//        newItem:SetOffset(x + offsetX, y + offsetY)
+//    end
+//
+//    /*  
+//    This action adds a different Item3D into this one, storing the added Item3D
+//    at a specific index in the internal array.
+//
+//    Attribute: Example
+//
+//        use Libraries.Interface.Item3D
+//
+//        Item3D parentItem
+//        Item3D child
+//        parentItem:Add(0, child)
+//        
+//    */
+//    action Add(integer index, Item3D newItem)
+//        children:Add(index, newItem)
+//        newItem:SetParent(me)
+//        newItem:PrepareVertices()
+//        newItem:SetOffset(x + offsetX, y + offsetY)
+//    end
+//
+//    /*  
+//    This action removes an Item3D that was previously added to this Item3D. 
+//
+//    Attribute: Returns Whether or not the Item was found and removed.
+//
+//    Attribute: Example
+//
+//        use Libraries.Interface.Item3D
+//
+//        Item3D parentItem
+//        Item3D child1
+//        Item3D child2
+//        parentItem:Add(child1)
+//        parentItem:Add(child2)
+//        parentItem:Remove(child1)
+//    */
+//    action Remove(Item3D removed) returns boolean
+//        boolean success = children:Remove(removed)
+//        removed:SetParent(undefined)
+//        return success
+//    end
+//
+//    /*  This action removes an Item that was previously added to this Item by
+//    finding it at the given index in the internal array of children Items.
+//
+//    Attribute: Returns The Item that was removed.
+//
+//    Attribute: Example
+//
+//        use Libraries.Interface.Item
+//
+//        Item parentItem
+//        Item child1
+//        Item child2
+//        parentItem:Add(child1)
+//        parentItem:Add(child2)
+//        parentItem:Remove(0)
+//    */
+//    action Remove(integer index) returns Item3D
+//        Item temp = children:RemoveAt(index)
+//        temp:SetParent(undefined)
+//        return temp
+//    end
+//
+//    /*  
+//    This action returns an Item3D that was previously added to this Item3D by
+//    finding it at the given index in the internal array of children Items.
+//
+//    Attribute: Example
+//
+//        use Libraries.Interface.Item3D
+//
+//        Item3D parentItem
+//        Item3D child1
+//        Item3D child2
+//        parentItem:Add(child1)
+//        parentItem:Add(child2)
+//        Item temp = parentItem:GetItem(0)
+//    */
+//    action GetItem(integer index) returns Item3D
+//        return children:Get(index)
+//    end
+//
+//    /*  
+//    This action returns an iterator containing all the items contained in
+//    this Item3D.
+//
+//    Attribute: Example
+//
+//        use Libraries.Interface.Item3D
+//        use Libraries.Containers.Blueprints.Iterator
+//
+//        Item3D parentItem
+//        Item3D child1
+//        Item3D child2
+//        parentItem:Add(child1)
+//        parentItem:Add(child2)
+//        Iterator<Item3D> iterator = parentItem:GetItems()
+//    */
+//    action GetItems returns Iterator<Item3D>
+//        return children:GetIterator()
+//    end
+//
+//    /*  
+//    This action returns the number of items contained in this Item3D.
+//
+//    Attribute: Example
+//
+//        use Libraries.Interface.Item3D
+//
+//        Item3D parentItem
+//        Item3D child1
+//        Item3D child2
+//        parentItem:Add(child1)
+//        parentItem:Add(child2)
+//        integer size = parentItem:GetItemCount()
+//    */
+//    action GetItemCount returns integer
+//        return children:GetSize()
+//    end
+//
+//    /*  
+//    This action sets a value inside the internal item array of this Item3D.
+//
+//    Attribute: Example
+//
+//        use Libraries.Interface.Item3D
+//
+//        Item3D parentItem
+//        Item3D child1
+//        Item3D child2
+//        parentItem:Add(child1)
+//        parentItem:SetItem(0, child2)
+//    */
+//    action SetItem(integer index, Item3D newItem)
+//        children:Set(index, newItem)
+//    end
+//
+//    /*  This action returns whether or not any items are contained in this Item.
+//
+//    Attribute: Example
+//
+//        use Libraries.Interface.Item3D
+//
+//        Item3D parentItem
+//        Item3D child1
+//        parentItem:Add(child1)
+//        boolean wasEmpty = parentItem:IsEmpty()
+//    */
+//    action IsEmpty returns boolean
+//        return children:IsEmpty()
+//    end
 end
