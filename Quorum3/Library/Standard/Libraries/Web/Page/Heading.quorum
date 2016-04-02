@@ -30,7 +30,7 @@ class Main
 end
 */
 class Heading is WebTag
-    private text scale = "6"
+    private integer scale = 6
 
     /*
         This action sets the scale of the header. A scale of 1 is equivalent to the 
@@ -46,7 +46,7 @@ class Heading is WebTag
         heading:SetScale(1)
         
     */
-    action SetScale(text value)
+    action SetScale(integer value)
         scale = value
     end
 
@@ -58,6 +58,38 @@ class Heading is WebTag
         result = result + me:GenerateNestedTags()
         result = result + "</h"+scale+">"
         return result
+    end
+
+    /*
+        This action adds a Link with the specified destination and link text to a Heading object.
+
+        Attribute: Parameter linkText specifies the text that will appear as a link
+
+        Attribute: Parameter linkDestination specifies where the link will go to
+
+        Attribute: Returns the generated Link object for any further manipulation
+
+        Attribute: Example
+
+        use Libraries.Web.Page.all
+        class Main
+            action Main
+                Heading heading
+                
+                heading:AddLink("The Quorum Programming Language", "https://www.quorumlanguage.com")
+                Add(heading)
+
+                text value = page:Generate()
+                output value
+            end
+        end
+    */
+    action AddLink(text linkText, text linkDestination) returns Link
+        Link link
+        link:SetAddress(linkDestination)
+        link:AddText(linkText)
+        parent:WebTag:tags:Add(link)
+        return link
     end
 
     /*

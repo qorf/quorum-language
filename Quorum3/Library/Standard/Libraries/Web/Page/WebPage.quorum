@@ -199,10 +199,7 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
 
     action Generate returns text
         text result = documentType:Generate()
-        result = result + 
-"
-"
-        +   "<html "
+        result = result + "<html "
         Attributes attributes = me:GetAttributes()
         result = result + attributes:Generate()
         result = result + ">"
@@ -212,9 +209,7 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         end
 
         result = result + body:Generate()
-        return result + 
-"
-"       + "</html>"
+        return result + "</html>"
     end
 
     /*
