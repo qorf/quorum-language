@@ -36,7 +36,7 @@ use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.MouseEvent
-use Libraries.Interface.Item
+use Libraries.Interface.Item2D
 use Libraries.Interface.Events.CollisionEvent
 use Libraries.Interface.Events.TouchListener
 
@@ -74,7 +74,7 @@ class Game
     // Variables used for Panels and the event system.
     private Panel activePanel = undefined
     private GameInput gameInput = undefined
-    private List<Item> collisionList
+    private List<Item2D> collisionList
     private List<CollisionEvent> currentCollisions
 
     private constant integer ANDROID_APPLICATION = 1
@@ -210,7 +210,7 @@ class Game
             end
         end
     */
-    action Add(Item item)
+    action Add(Item2D item)
         activePanel:Add(item)
     end
 
@@ -240,7 +240,7 @@ class Game
             end
         end
     */
-    action Remove(Item item)
+    action Remove(Item2D item)
         activePanel:Remove(item)
     end
 
@@ -1024,7 +1024,7 @@ class Game
 
         end
     */
-    action AddCollisionListener(Item item)
+    action AddCollisionListener(Item2D item)
         collisionList:Add(item)
     end
 
@@ -1056,15 +1056,15 @@ class Game
 
         end
     */
-    action RemoveCollisionListener(Item item)
+    action RemoveCollisionListener(Item2D item)
         collisionList:Remove(item)
     end
 
     private action TestForCollisions
         integer counter1 = 0
         integer counter2 = 1
-        Item item1 = undefined
-        Item item2 = undefined
+        Item2D item1 = undefined
+        Item2D item2 = undefined
 
         repeat collisionList:GetSize() times
             item1 = collisionList:Get(counter1)

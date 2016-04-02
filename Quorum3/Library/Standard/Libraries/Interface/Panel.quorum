@@ -2,6 +2,7 @@ package Libraries.Interface
 
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Item2D
 
 /*
     The Panel class is an extension of the Libraries.Interface.Item class, and
@@ -27,7 +28,7 @@ use Libraries.Game.Graphics.Drawable
 
         end
 */
-class Panel is Item
+class Panel is Item2D
     
     boolean hasBorder = false
     boolean hasBackground = false
