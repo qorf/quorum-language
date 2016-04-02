@@ -21,6 +21,22 @@ class Documentation is Location
         return description
     end
 
+    /*
+        This action returns the first sentence from the description.
+    */
+    action GetShortDescription returns text
+        short = ""
+        i = 0
+        repeat while i < description:GetSize()
+            if description:GetCharacter(i) = "."
+                short = description:GetSubtext(0, i) + "."
+                return short
+            end
+            i = i + 1
+        end
+        return short
+    end
+
     action GetHeaderAsWeb returns text
         text result = ""
         text dq = result:GetDoubleQuote()
