@@ -473,9 +473,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitOutputStatement(OutputContext context)
-//        if HasErrors() 
-//            return now
-//        end
         QuorumOpcode op = opcodeStack:Pop()
         if op = undefined
             return now //This cannot be determined, but the error has been issued already.
@@ -487,6 +484,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         end
         if type:IsPrimitive()
             OutputOpcode out
+            out:SetLocation(context:GetLocation())
             out:SetOpcode(op)
             out:SetMethodWriter(methodWriter)
             currentBlockOpcode:Add(out)
@@ -503,9 +501,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitSayStatement(SayContext context)
-//        if HasErrors() 
-//            return now
-//        end
         QuorumOpcode op = opcodeStack:Pop()
         if op = undefined
             return now //This cannot be determined, but the error has been issued already.
@@ -518,6 +513,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         if type:IsPrimitive()
             SayOpcode out
+            out:SetLocation(context:GetLocation())
             hasSayStatement = true
             if not outputSpeechCommands
                 out:SetOutputSpeech(outputSpeechCommands)
