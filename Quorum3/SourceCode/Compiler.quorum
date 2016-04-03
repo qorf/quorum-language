@@ -376,17 +376,6 @@ class Compiler
         result:prefix = line
         text trimmed = line:Trim()
         request:line = trimmed
-//
-//        text sub = line:GetSubtext(0, request:startOffset - 1)
-//        boolean isDot = false
-//
-//        if sub:GetSize() > 0
-//            text index = sub:GetCharacter(sub:GetSize() - 1)
-//            if index = "."
-//                isDot = true
-//            end
-//        end
-//        
         boolean isUse = trimmed:StartsWith("use")
         boolean isPackage = trimmed:StartsWith("package")
 
@@ -506,8 +495,28 @@ class Compiler
                     Block block = GetBlockAtIndex(method:GetBlock(), request:caretLocation)
                     if block not= undefined
                         Variable variable = block:GetVariable(trimmedLeft)
-                        if variable not= undefined
+                        if variable not= undefined and not lastCompileFailed
                             AddVariableAsClass(variable, request, result)
+                        //in this case, we've found the variable, but the last compile
+                        //failed. Use the cached version. This assumption needs 
+                        //to be tested carefully to see how well it works in practice.
+                        //It does appear to fix the case where types are being 
+                        //inferred, but not recognized properly in the incomplete
+                        //failed build.
+                        elseif variable not= undefined and lastCompileFailed
+                            Action methodCached = GetActionAtIndex(clazzCached, request:caretLocation)
+                            if methodCached = undefined
+                                return now
+                            end
+                            Block blockCached = GetBlockAtIndex(methodCached:GetBlock(), request:caretLocation)
+                            if blockCached = undefined
+                                return now
+                            end
+                            Variable variableCached = blockCached:GetVariable(trimmedLeft)
+                            if variableCached = undefined
+                                return now
+                            end
+                            AddVariableAsClass(variableCached, request, result)
                         //if we can't find the variable and the last compile
                         //failed, check the cache. Maybe it has some information
                         elseif variable = undefined and lastCompileFailed and classNotFound not= true
@@ -531,42 +540,6 @@ class Compiler
         end
     end
 
-//    private action GetPartialLine(text line) returns text
-//        text result = ""
-//
-//        integer i = line:GetSize() - 1
-//        repeat while i >= 0
-//            text ch = line:GetCharacter(i)
-//            if ch = "(" or ch = ","
-//               or ch = "*" or ch = "/"
-//               or ch = "+" or ch = "-"
-//               or ch = " " or IsMod(line, i) 
-//                //make this work for mod --- if it's a d, check backwards and ensure that it's not part of another word
-//                
-//                //split the line again
-//                line = line:GetSubtext(i + 1, line:GetSize() - 1)
-//                line = line:Trim()
-//                
-////                //resplit it
-////                partialLine = partialLine.trim();
-////                split = partialLine.split(":");
-////                if(split.length == 0) {
-////                    return; //the string is garbage, so return
-////                }
-////                left = split[0];
-////                if (split.length > 1 || !partialLine.contains(":")) {
-////                    result.setFilter(split[split.length - 1]);
-////                } else {
-////                    result.setFilter("");
-////                }
-////                i = -1; //finish early.
-//                end
-//            i = i - 1
-//        end
-//
-//        return result
-//    end
-
     private action IsMod(text partial, integer i) returns boolean
         if i - 3 < 0
             return false
@@ -583,13 +556,45 @@ class Compiler
     end
 
     private action AddVariableAsClass(Variable variable, CodeCompletionRequest request, CodeCompletionResult result)
-
         Type type = variable:GetType()
         if type not= undefined
             text key = type:GetStaticKey()
             Class varClass = sandboxSymbolTable:GetClass(key)
             if varClass not= undefined
                 AddClassToResult(variable, request, result, varClass, false, undefined)
+            elseif type:IsPrimitive() and varClass = undefined
+                Class clazz = undefined
+                if type:IsInteger()
+                    clazz = sandboxSymbolTable:GetClass(type:INTEGER_OBJECT_KEY)
+                elseif type:IsNumber()
+                    clazz = sandboxSymbolTable:GetClass(type:NUMBER_OBJECT_KEY)
+                elseif type:IsBoolean()
+                    clazz = sandboxSymbolTable:GetClass(type:BOOLEAN_OBJECT_KEY)
+                else type:IsText()
+                    clazz = sandboxSymbolTable:GetClass(type:TEXT_OBJECT_KEY)
+                end
+
+                //if this is the current class, load all methods, public or private
+                //if this is a variable, load only its public methods.
+                Iterator<Action> actions = clazz:GetVirtualTable()
+                repeat while actions:HasNext()
+                    Action act = actions:Next()
+                    CodeCompletionItem item = act:GetCodeCompletionItem(variable)
+                    text filter = result:filter
+                    integer size = filter:GetSize()
+                    item:dotOffset = request:caretLocation - size
+
+                    //is this action in the base class or the v-table?
+                    if clazz:HasAction(act:GetStaticKey())
+                        item:isBaseClassAction = true
+                    end
+
+                    //unlike other locations, this cannot possibly be
+                    //the "current" class.
+                    if  not act:IsPrivate() and act:GetName() not= "GetValue" and act:GetName() not= "SetValue"
+                        result:Add(item)
+                    end
+                end
             end
         end
     end
@@ -963,35 +968,7 @@ class Compiler
         else 
             text valueNoFilter = trim:GetSubtext(0, trim:GetSize() - filterSize - 1)
             AddSubpackagesAndClasses(request, result, valueNoFilter)
-            //AddCustomClasses(request, result, valueNoFilter)
         end
-
-//        final String root = this.standardLibrary.getStandardLibraryRootName();
-//        if (split.length == 1) {
-//            String left = split[0];
-//            if (left.matches("\\s*") || result.getFilter().length() != 0) {
-//                CodeCompletionItem item = new CodeCompletionItem();
-//                item.setCodeCompletionType(CodeCompletionType.PACKAGE);
-//                item.setCompletion(root);
-//                item.setDisplayName(root);
-//                result.add(item);
-//                addCustomClasses(result, request, root);
-//
-//            } else if (left.equals(root)) {
-//                addSubpackagesAndClasses(result, standardLibrary.getStandardLibraryRootName());
-//                addCustomClasses(result, request, standardLibrary.getStandardLibraryRootName());
-//            }
-//        } 
-
-//        if (split.length > 0 && line.length() != 0) {
-//            if (line.charAt(line.length() - 1) == '.') {
-//                result.setFilter("");
-//            } else {
-//                result.setFilter(split[split.length - 1]);
-//            }
-//        }
-
-        a = 5
     end
 
 
@@ -2095,16 +2072,6 @@ class Compiler
         HashTable<text, File> unparsed
 
         Iterator<Class> classes = table:GetClasses()
-//        repeat while classes:HasNext()
-//            Class clazz = classes:Next()
-//            File classFile = clazz:GetFile()
-//            text path = classFile:GetAbsolutePath()
-//            if not parsed:HasKey(path)
-//                parsed:Add(path, clazz:GetFile())
-//            end
-//        end
-//
-//        classes = table:GetClasses()
         repeat while classes:HasNext()
             //gather up all the classes on the system and check their
             //use statements for classes we don't know about

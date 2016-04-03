@@ -101,10 +101,10 @@ class Main is WebResponder
         //actualMain:SetPath("Library/Tests/CodeCompletion/Pass/GrabAllContainers.quorum")
         compiler:SetMain(actualMain)
 
-        //File failMain
-        //failMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/RedLineTest")
-        //failMain:SetPath("/Other/main.quorum")
-        //text failSource = failMain:Read()
+        File failMain
+        failMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication")
+        failMain:SetPath("/Fails/main.quorum")
+        text failSource = failMain:Read()
 
         ProjectInformation info
         info:projectFiles = files
@@ -116,19 +116,19 @@ class Main is WebResponder
         info:source = actualMain:Read()
         
         CodeCompletionRequest cc
-        cc:caretLocation = 14
+        cc:caretLocation = 334
         cc:fileKey = actualMain:GetAbsolutePath()
         cc:source = actualMain:Read()
 
         CompilerResult result = compiler:ParseRepeat(info)
 
-        //info:source = failSource
-        //text out = failSource:GetSubtext(0, cc:caretLocation)
+        info:source = failSource
+        text out = failSource:GetSubtext(0, cc:caretLocation)
         //output out
         result = compiler:ParseRepeat(info)
 
         check
-            cc:source = mygame:Read()
+            cc:source = failSource
             CodeCompletionResult ccr2 = compiler:Request(cc)
             Iterator<CodeCompletionItem> it = ccr2:GetIterator()
             repeat while it:HasNext()
