@@ -490,6 +490,15 @@ class Compiler
             Action method = GetActionAtIndex(clazz, request:caretLocation)
             if left = "me" or left:IsEmpty() or trimmedLeft:IsEmpty()
                 AddClassToResult(undefined, request, result, clazz, true, method)
+            elseif left = "parent"
+                //if this is a parent line, get all of the items on it, split
+                //by colons and start chaining through.
+                if split not= undefined and split:GetSize() > 1 and split:GetSize() < 4
+                    text parentName = split:Get(1)
+                    AddParentClassesToResult(parentName, request, result, clazz, true, method)
+                else
+                    AddParentClassesToResult(undefined, request, result, clazz, true, method)
+                end
             else
                 if method not= undefined
                     Block block = GetBlockAtIndex(method:GetBlock(), request:caretLocation)
@@ -679,10 +688,90 @@ class Compiler
         return act
     end
 
+    private action AddParentClassesToResult(text parentName, 
+        CodeCompletionRequest request, 
+        CodeCompletionResult result, Class clazz, 
+        boolean isCurrentClass, Action insideMethod)
+
+        if clazz not= undefined
+
+            if parentName = undefined
+                Iterator<Class> value = clazz:GetParentClasses()
+                repeat while value:HasNext()
+                    Class theParent = value:Next()
+
+                    CodeCompletionItem item
+
+                    name = theParent:GetName()
+                    key = theParent:GetStaticKey()
+                    item:displayText = name
+                    item:completionText = key
+
+                    text filter = result:filter
+                    integer size = filter:GetSize()
+                    item:dotOffset = request:caretLocation - size
+                    result:Add(item)
+                end
+            else //in this case, we have the parent name and are 
+                 //looking for its operations
+                Class value = clazz:GetValidUseName(parentName)
+                if value not= undefined
+                    Class validParent = clazz:GetParentClass(value:GetStaticKey())
+                    if validParent not= undefined
+                        AddParentClassToResult(undefined, request, result, value, insideMethod)
+                    end
+                end
+
+            end
+        end
+        
+    end
+
+    private action AddParentClassToResult(Variable variable, 
+        CodeCompletionRequest request, 
+        CodeCompletionResult result, Class clazz, Action insideMethod)
+
+        if clazz not= undefined
+            //add all of the fields from this class
+            Iterator<Variable> variables = clazz:GetVariables()
+            repeat while variables:HasNext()
+                Variable variable2 = variables:Next()
+                if variable2:GetType() not= undefined
+                    CodeCompletionItem item = variable2:GetCodeCompletionItem(clazz)
+                    text filter = result:filter
+                    integer size = filter:GetSize()
+                    item:dotOffset = request:caretLocation - size
+                    result:Add(item)
+                end
+            end
+
+            //there is no need to load parent information here, because this 
+            //is the parent. Given then, load only the base methods.
+            //if this is the current class, load all methods, public or private
+            //if this is a variable, load only its public methods.
+            Iterator<Action> actions = clazz:GetVirtualTable()
+            repeat while actions:HasNext()
+                Action act = actions:Next()
+                CodeCompletionItem item = act:GetCodeCompletionItem(variable)
+                text filter = result:filter
+                integer size = filter:GetSize()
+                item:dotOffset = request:caretLocation - size
+
+                //In this case, mark the methods in the base class, 
+                //but still show anything in this parent's v-table.
+                if clazz:HasAction(act:GetStaticKey())
+                    item:isBaseClassAction = true
+                end
+
+                result:Add(item)
+            end
+        end
+    end
+
     private action AddClassToResult(Variable variable, 
-            CodeCompletionRequest request, 
-            CodeCompletionResult result, Class clazz, 
-            boolean isCurrentClass, Action insideMethod)
+        CodeCompletionRequest request, 
+        CodeCompletionResult result, Class clazz, 
+        boolean isCurrentClass, Action insideMethod)
 
         if clazz not= undefined
             //add all of the fields from this class
