@@ -714,11 +714,19 @@ class Compiler
                 end
             else //in this case, we have the parent name and are 
                  //looking for its operations
-                Class value = clazz:GetValidUseName(parentName)
+                 
+                 //first check if they put in the full static key
+                Class value = clazz:GetParentClass(parentName)
+
                 if value not= undefined
-                    Class validParent = clazz:GetParentClass(value:GetStaticKey())
-                    if validParent not= undefined
-                        AddParentClassToResult(undefined, request, result, value, insideMethod)
+                    AddParentClassToResult(undefined, request, result, value, insideMethod)
+                else
+                    value = clazz:GetValidUseName(parentName)
+                    if value not= undefined
+                        Class validParent = clazz:GetParentClass(value:GetStaticKey())
+                        if validParent not= undefined
+                            AddParentClassToResult(undefined, request, result, value, insideMethod)
+                        end
                     end
                 end
 
