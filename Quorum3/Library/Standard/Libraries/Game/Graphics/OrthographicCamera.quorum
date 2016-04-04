@@ -29,7 +29,7 @@ class OrthographicCamera is Camera
     */
     action Update
         parent:Camera:projection:SetToOrthographic(zoom * -parent:Camera:viewportWidth/2, zoom * parent:Camera:viewportWidth/2,
-            zoom * -parent:Camera:viewportHeight/2, zoom * viewportHeight/2, parent:Camera:near, parent:Camera:far)
+            zoom * -parent:Camera:viewportHeight/2, zoom * parent:Camera:viewportHeight/2, parent:Camera:near, parent:Camera:far)
             
         parent:Camera:view:SetToLookAt(parent:Camera:position, calcVector:Set(parent:Camera:position):Add(parent:Camera:direction), parent:Camera:up)
         parent:Camera:combined:Set(parent:Camera:projection)
@@ -70,7 +70,7 @@ class OrthographicCamera is Camera
     this vector should be perpendicular to the 2D plane of the screen space.
     */
     action Rotate(number degrees)
-        Rotate(parent:Camera:direction, angle)
+        Rotate(parent:Camera:direction, degrees)
     end
 
     /*
