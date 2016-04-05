@@ -1176,9 +1176,9 @@ class Input is WebTag, FormAttributeAccepter, MouseAttributeAccepter, KeyboardAt
         text result = "<input " 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
-        result = result + attributeText + ">"
-        result = result + me:GenerateNestedTags()
-        result = result + "</input>"
+        result = result + attributeText + "/>"
+//        result = result + me:GenerateNestedTags()
+//        result = result + "</input>"
         return result
     end
 end
