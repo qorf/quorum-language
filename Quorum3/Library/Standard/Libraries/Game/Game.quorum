@@ -570,15 +570,10 @@ class Game
         end
     */
     action SetActivePanel(Panel panel)
-        if activePanel not= undefined
-            activePanel:Disable()
-        end
-
         panel:SetPosition(0,0)
         panel:SetWidth(GetScreenWidth())
         panel:SetHeight(GetScreenHeight())
         activePanel = panel
-        activePanel:Enable()
         gameInput:SetActivePanel(activePanel)
     end
 

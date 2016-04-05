@@ -158,7 +158,7 @@ class TextBox is Panel, KeyboardListener
             if cursorIndex = 0
                 lineCursor:SetPosition(response:GetX(), response:GetY())
             else
-                Item temp = response:GetItem(cursorIndex - 1)
+                Item2D temp = response:GetItem(cursorIndex - 1)
                 lineCursor:SetPosition(response:GetX() + temp:GetX() + temp:GetWidth(), response:GetY() + temp:GetY())
             end
         else

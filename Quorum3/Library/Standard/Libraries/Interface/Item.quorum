@@ -1,6 +1,5 @@
 package Libraries.Interface
 
-use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Interface.Events.MouseListener
@@ -35,26 +34,14 @@ use Libraries.Compute.Math
 */
 class Item 
 
-    private number x = 0
-    private number y = 0
-    private number z = 0
-    private number width = 0
-    private number height = 0
-    private number depth = 0
-    private number offsetX = 0
-    private number offsetY = 0
-    private number offsetZ = 0
-    private boolean flipX = false
-    private boolean flipY = false
-    private boolean flipZ = false
-    private text name = "Unnamed"
-    private boolean visible = true
-    private boolean enabled = true
+    text name = "Unnamed"
+    text description = ""
+    boolean visible = true
 
-    List<MouseListener> mouseListeners
-    List<MouseMovementListener> mouseMoveListeners
-    List<MouseWheelListener> mouseWheelListeners
-    List<TouchListener> touchListeners
+    Array<MouseListener> mouseListeners
+    Array<MouseMovementListener> mouseMoveListeners
+    Array<MouseWheelListener> mouseWheelListeners
+    Array<TouchListener> touchListeners
 
     /*
     This action is used internally to allow the Item class to pass actions to
@@ -118,397 +105,126 @@ class Item
 
     Attribute: Example
 
-        use Libraries.Interface.Item
-        Item myItem
+        use Libraries.Interface.Item2D
+        Item2D myItem
         myItem:SetX(35.0)
     */
-    action SetX(number setX)
-        MoveX(setX - x)
-    end
+    blueprint action SetX(number setX)
 
     /*
     This action sets the Y coordinate of the Item.
 
     Attribute: Example
 
-        use Libraries.Interface.Item
-        Item myItem
+        use Libraries.Interface.Item2D
+        Item2D myItem
         myItem:SetY(210.0)
     */
-    action SetY(number setY)
-        MoveY(setY - y)
-    end
+    blueprint action SetY(number setY)
 
-    /* An Item can also represent an object in three dimensional space, but 
-    currently this functionality is not supported. When it is, this action will
-    set the Z coordinate of the Item. */
-    action SetZ(number setZ)
-        MoveZ(setZ - z)
-    end
+    /*
+    This action sets the Z coordinate of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetZ(180.0)
+    */
+    blueprint action SetZ(number setZ)
 
     /*
     This action returns the currently set X coordinate of the Item.
 
     Attribute: Example
 
-        use Libraries.Interface.Item
-        Item myItem
+        use Libraries.Interface.Item2D
+        Item2D myItem
         number value = myItem:GetX()
     */
-    action GetX returns number
-        return x
-    end
+    blueprint action GetX returns number
 
     /*
     This action returns the currently set Y coordinate of the Item.
 
     Attribute: Example
 
-        use Libraries.Interface.Item
-        Item myItem
+        use Libraries.Interface.Item2D
+        Item2D myItem
         number value = myItem:GetY()
     */
-    action GetY returns number
-        return y
-    end
-
-//    action GetZ returns number
-//        return z
-//    end
+    blueprint action GetY returns number
 
     /*
-    This action will set both the X coordinate and the Y coordinate of the Item,
+    This action returns the currently set Z coordinate of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        number value = myItem:GetZ()
+    */
+    blueprint action GetZ returns number
+
+    /*
+    This action will set both the X, Y, and Z coordinates of the Item,
     in that order.
 
     Attribute: Example
 
-        use Libraries.Interface.Item
-        Item myItem
-        myItem:SetPosition(30, 70)
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetPosition(30, 70, 45)
     */
-    action SetPosition(number setX, number setY)
-        Move(setX - GetX(), setY - GetY())
-    end
-
-//    action SetPosition(number newX, number newY, number newZ)
-//        SetPosition(newX, newY)
-//        z = newZ
-//    end
-
-    /*
-    This action will set the width of the Item.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        Item myItem
-        myItem:SetWidth(50)
-    */
-    action SetWidth(number newWidth)
-        width = newWidth
-    end
-
-    /*
-    This action will set the height of the Item.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        Item myItem
-        myItem:SetHeight(70)
-    */
-    action SetHeight(number newHeight)
-        height = newHeight
-    end
-
-//    action SetDepth(number newDepth)
-//        depth = newDepth
-//    end
-
-    /*
-    This action will set the X coordinate of the Item so that the center of the
-    Item is aligned with the given X coordinate value.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        Item myItem
-        myItem:SetCenterX(70)
-    */
-    action SetCenterX(number setX)
-        SetX(setX - width / 2.0)
-    end
-
-    /*
-    This action will set the Y coordinate of the Item so that the center of the
-    Item is aligned with the given Y coordinate value.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        Item myItem
-        myItem:SetCenterY(65)
-    */
-    action SetCenterY(number setY)
-        SetY(setY - height / 2.0)
-    end
-
-    /*
-    This action will set the X and Y coordinates of the Item so that the center
-    of the Item is located at the given X, Y coordinates.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        Item myItem
-        myItem:SetCenter(70, 40)
-    */
-    action SetCenter(number setX, number setY)
-        SetCenterX(setX)
-        SetCenterY(setY)
-    end
-
-    /*
-    This action returns the x coordinate of the center of this Item.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        Item myItem
-        myItem:SetWidth(20)
-        myItem:SetX(100)
-        number x = myItem:GetCenterX()
-    */
-    action GetCenterX returns number
-        return x - GetWidth()/2
-    end
-
-    /*
-    This action returns the y coordinate of the center of this Item.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        Item myItem
-        myItem:SetHeight(20)
-        myItem:SetY(100)
-        number y = myItem:GetCenterY()
-    */
-    action GetCenterY returns number
-        return y - GetHeight()/2
-    end
-    
-    /*
-    This action will return the currently set width of the Item.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        Item myItem
-        number width = myItem:GetWidth()
-    */
-    action GetWidth returns number
-        return width
-    end
-
-    /*
-    This action will return the currently set height of the Item.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        Item myItem
-        number height = myItem:GetHeight()
-    */
-    action GetHeight returns number
-        return height
-    end
-
-//    action GetDepth returns number
-//        return depth
-//    end
+    blueprint action SetPosition(number newX, number newY, number newZ)
 
     /* 
-    This action sets the X offset of the Item. The offset tells the Item
-    where to relate its X position to. In other words, the X offset is where an
-    X coordinate of 0 is for this Item. This is automatically set when using an
-    action to add an Item to another Item.
+    This action returns the Item's global x coordinate. This is the actual world
+    coordinate that the item exists at after it has been offset by its parent's
+    position. If this Item doesn't have a parent, and the offset hasn't been set
+    manually, this is the same as GetX().
 
     Attribute: Example
 
         use Libraries.Interface.Item2D
         Item2D myItem
-        myItem:SetOffsetX(100)
-    */
-    action SetOffsetX(number xAmount)
-        offsetX = xAmount
-
-        integer counter = 0
-        repeat GetItemCount() times
-            GetChildAsItem(counter):SetOffsetX(x + xAmount)
-            counter = counter + 1
-        end
-    end
-
-    /* This action sets the Y offset of the item. The offset tells the Item
-    where to relate its Y position to. In other words, the Y offset is where a
-    Y coordinate of 0 is for this item. This is automatically set when using an
-    action to add an Item to another Item.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item2D
-        Item2D myItem
-        myItem:SetOffsetY(75)
-    */
-    action SetOffsetY(number yAmount)
-        offsetY = yAmount
-
-        integer counter = 0
-        repeat GetItemCount() times
-            GetChildAsItem(counter):SetOffsetY(y + yAmount)
-            counter = counter + 1
-        end
-    end
-
-    /* This action sets the Z offset of the item. The offset tells the Item
-    where to relate its Z position to. In other words, the Z offset is where a
-    Z coordinate of 0 is for this item. This is automatically set when using an
-    action to add an Item to another Item.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item3D
-        Item3D myItem
-        myItem:SetOffsetZ(75)
-    */
-    action SetOffsetZ(number zAmount)
-        offsetY = zAmount
-
-        integer counter = 0
-        repeat GetItemCount() times
-            GetChildAsItem(counter):SetOffsetZ(z + zAmount)
-            counter = counter + 1
-        end
-    end
-
-    /* 
-    This action returns the X offset of the Item. The offset tells the Item
-    where to relate its X position to. In other words, the X offset is where an
-    X coordinate of 0 is for this Item. This is automatically set when using an
-    action to add an Item to another Item.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item2D
-        Item2D myItem
-        myItem:SetOffsetX(100)
-        number offset = myItem:GetOffsetX()
-    */
-    action GetOffsetX returns number
-        return offsetX
-    end
-
-    /* This action returns the Y offset of the item. The offset tells the Item
-    where to relate its Y position to. In other words, the Y offset is where a
-    Y coordinate of 0 is for this item. This is automatically set when using an
-    action to add an Item to another Item.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item2D
-        Item2D myItem
-        myItem:SetOffsetY(75)
-        number offset = myItem:GetOffsetY()
-    */
-    action GetOffsetY returns number
-        return offsetY
-    end
-
-    /* This action returns the Z offset of the item. The offset tells the Item
-    where to relate its Z position to. In other words, the Z offset is where a
-    Z coordinate of 0 is for this item. This is automatically set when using an
-    action to add an Item to another Item.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item3D
-        Item3D myItem
-        myItem:SetOffsetZ(75)
-        number offset = myItem:GetOffsetZ()
-    */
-    action GetOffsetZ returns number
-        return offsetZ
-    end
-
-    /* This action will set both the X and Y offsets of the item, respectively.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item2D
-        Item2D myItem
-        myItem:SetOffset(100, 75)
-    */
-    action SetOffset(number xAmount, number yAmount)
-        offsetX = xAmount
-        offsetY = yAmount
-
-        integer counter = 0
-        repeat GetItemCount() times
-            GetChildAsItem(counter):SetOffset(x + xAmount, y + yAmount)
-            counter = counter + 1
-        end
-    end
-
-    /* This action will set the X, Y, and Z offsets of the item, respectively.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item3D
-        Item3D myItem
-        myItem:SetOffset(100, 75, 30)
-    */
-    action SetOffset(number xAmount, number yAmount, number zAmount)
-        offsetX = xAmount
-        offsetY = yAmount
-        offsetZ = zAmount
-
-        integer counter = 0
-        repeat GetItemCount() times
-            GetChildAsItem(counter):SetOffset(x + xAmount, y + yAmount, z + zAmount)
-            counter = counter + 1
-        end
-    end
-
-    /* This action returns the Item's global x coordinate, or where the Item is
-    located at after applying the x offset.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        Item myItem
         myItem:SetOffsetX(100)
         myItem:SetX(30)
         number globalX = myItem:GetGlobalX()
     */
-    action GetGlobalX returns number
-        return GetX() + offsetX
-    end
+    blueprint action GetGlobalX returns number
 
-    /* This action returns the Item's global y coordinate, or where the Item is
-    located at after applying the y offset.
+    /*
+    This action returns the Item's global y coordinate. This is the actual world
+    coordinate that the item exists at after it has been offset by its parent's
+    position. If this Item doesn't have a parent, and the offset hasn't been set
+    manually, this is the same as GetY().
 
     Attribute: Example
 
-        use Libraries.Interface.Item
-        Item myItem
+        use Libraries.Interface.Item2D
+        Item2D myItem
         myItem:SetOffsetY(60)
         myItem:SetX(90)
         number globalY = myItem:GetGlobalY()
     */
-    action GetGlobalY returns number
-        return GetY() + offsetY
-    end
+    blueprint action GetGlobalY returns number
+
+    /*
+    This action returns the Item's global z coordinate. This is the actual world
+    coordinate that the item exists at after it has been offset by its parent's
+    position. If this Item doesn't have a parent, and the offset hasn't been set
+    manually, this is the same as GetZ().
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetOffsetZ(40)
+        myItem:SetX(50)
+        number globalZ = myItem:GetGlobalZ()
+    */
+    blueprint action GetGlobalZ returns number
 
     /* This action adds a MouseListener to the Item. If the Item ever receives
     a MouseEvent due to a mouse click, the mouse listener will be notified.
@@ -825,48 +541,6 @@ class Item
         return visible
     end
 
-    /*  This action indicates that an Item should currently be active. Items are
-    set to enabled by default.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-
-        Item item
-        item:Enable()
-    */
-    action Enable
-        enabled = true
-    end
-
-    /*  This action indicates that an Item should currently be inactive. Items
-    are set to enabled by default.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-
-        Item item
-        item:Disable()
-    */
-    action Disable
-        enabled = false
-    end
-
-    /*  This action returns whether or not the Item is currently enabled.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-
-        Item item
-        item:Disable()
-        boolean active = item:IsEnabled()
-    */
-    action IsEnabled returns boolean
-        return enabled
-    end
-
     /*  This action sets the internal name of the Item.
 
     Attribute: Example
@@ -894,6 +568,33 @@ class Item
         return name
     end
 
+    /*  This action sets the internal description of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item item
+        item:SetDescription("Used for demo purposes.")
+    */
+    action SetDescription(text newDescription)
+        description = newDescription
+    end
+
+    /*  
+    This action returns the current internal description of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item item
+        item:SetDescription("Used for demo purposes.")
+        output "My item's description is : " + item:GetDescription()
+    */
+    action GetDescription returns text
+        return description
+    end
 
 //    action GetItemAt(number x, number y, number z) returns Item
 //        integer counter = children:GetSize()
@@ -968,27 +669,6 @@ class Item
         Empty()
     end
 
-
-    /*
-    action SetBoundingBox(number newX, number newY, number newZ, number newWidth, number newHeight, number newDepth)
-        // NOT YET IMPLEMENTED
-    end*/
-
-    /*
-    This action will set the width and height of the Item, respectively.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item2D
-
-        Item2D myItem
-        myItem:SetSize(100, 50)
-    */
-    action SetSize(integer newWidth, integer newHeight)
-        width = newWidth
-        height = newHeight
-    end
-
     /*
     This action will increase the x-coordinate of this Item by the given amount.
 
@@ -1000,10 +680,7 @@ class Item
         myItem:SetX(50)
         myItem:MoveX(25)
     */
-    action MoveX(number xAmount)
-        x = x + xAmount
-        SetOffsetX(offsetX)
-    end
+    blueprint action MoveX(number xAmount)
 
     /*
     This action will increase the y-coordinate of this Item by the given amount.
@@ -1016,10 +693,7 @@ class Item
         myItem:SetY(50)
         myItem:MoveY(25)
     */
-    action MoveY(number yAmount)
-        y = y + yAmount
-        SetOffsetY(offsetY)
-    end
+    blueprint action MoveY(number yAmount)
 
     /*
     This action will increase the z-coordinate of this Item by the given amount.
@@ -1032,147 +706,6 @@ class Item
         myItem:SetZ(50)
         myItem:MoveZ(25)
     */
-    action MoveZ(number zAmount)
-        z = z + zAmount
-        SetOffsetZ(offsetZ)
-    end
-
-    /*
-    This action will increase the x and y coordinates of this Item by the given
-    amounts.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item2D
-
-        Item2D myItem
-        myItem:SetX(50)
-        myItem:SetY(80)
-        myItem:Move(25, -20)
-    */
-    action Move(number xAmount, number yAmount)
-        x = x + xAmount
-        y = y + yAmount
-        SetOffset(offsetX, offsetY)
-    end
-
-    /*
-    This action will set the Item to be flipped across the X-axis according to
-    the boolean. If the boolean value is false, the Item will be set to its
-    unflipped state. If it is true, the Item will be set to its flipped state.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        
-        Item myItem
-        myItem:SetFlipX(true)
-    */
-    action SetFlipX(boolean flip)
-        if IsFlippedX() not= flip
-            FlipX()
-        end
-    end
-
-    /*
-    This action will set the Item to be flipped across the Y-axis according to
-    the boolean. If the boolean value is false, the Item will be set to its
-    unflipped state. If it is true, the Item will be set to its flipped state.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        
-        Item myItem
-        myItem:SetFlipY(true)
-    */
-    action SetFlipY(boolean flip)
-        if IsFlippedY() not= flip
-            FlipY()
-        end
-    end
-
-    /*
-    This action will flip the Item across the X-axis. This flip is represented
-    by the internal vertices of the Item. For classes that inherit from Item and
-    can draw on the screen, this will flip the drawn image on the screen.
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        
-        Item myItem
-        myItem:FlipX()
-    */
-    action FlipX
-        flipX = not flipX
-
-        integer counter = 0
-        repeat GetItemCount() times
-            GetChildAsItem(counter):FlipX()
-            counter = counter + 1
-        end
-    end
-
-    /*
-    This action will flip the Item across the Y-axis. This flip is represented
-    by the internal vertices of the Item. For classes that inherit from Item and
-    can draw on the screen, this will flip the drawn image on the screen.
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        
-        Item myItem
-        myItem:FlipY()
-    */
-    action FlipY
-        flipY = not flipY
-
-        integer counter = 0
-        repeat GetItemCount() times
-            GetChildAsItem(counter):FlipY()
-            counter = counter + 1
-        end
-    end
-
-    /*
-    action FlipZ
-        flipZ = not flipZ
-
-        Iterator<Item> childIterator = GetItems()
-        repeat while childIterator:HasNext()
-            childIterator:Next():FlipZ()
-        end
-    end*/
-
-    /*
-    This action will return if the Item is currently flipped across the x-axis.
-
-        use Libraries.Interface.Item
-        
-        Item myItem
-        myItem:FlipX()
-        boolean flip = myItem:IsFlippedX()
-    */
-    action IsFlippedX returns boolean
-        return flipX
-    end
-
-    /*
-    This action will return if the Item is currently flipped across the y-axis.
-
-        use Libraries.Interface.Item
-        
-        Item myItem
-        myItem:FlipY()
-        boolean flip = myItem:IsFlippedY()
-    */
-    action IsFlippedY returns boolean
-        return flipY
-    end
-
-    /*
-    action IsFlippedZ returns boolean
-        return flipZ
-    end*/
+    blueprint action MoveZ(number zAmount)
 
 end

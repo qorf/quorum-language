@@ -18,6 +18,13 @@ class Item2D is Item
     private Item2D parentItem = undefined
     private Array<Item2D> children
 
+    number x = 0
+    number y = 0
+    number z = 0
+    number offsetX = 0
+    number offsetY = 0
+    number width = 0
+    number height = 0
     number originX = 0.0
     number originY = 0.0
     number rotation = 0.0
@@ -25,6 +32,8 @@ class Item2D is Item
     number scaleY = 1
     number scaleOffsetX = 0
     number scaleOffsetY = 0
+    boolean flipX = false
+    boolean flipY = false
 
     private boolean verticesChanged = true
     private Rectangle bounds
@@ -61,6 +70,659 @@ class Item2D is Item
     constant integer C4 = 17
     constant integer U4 = 18
     constant integer V4 = 19
+
+    /*
+    This action sets the X coordinate of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetX(35.0)
+    */
+    action SetX(number setX)
+        MoveX(setX - x)
+    end
+
+    /*
+    This action sets the Y coordinate of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetY(210.0)
+    */
+    action SetY(number setY)
+        MoveY(setY - y)
+    end
+
+    /*
+    This action sets the Z value of the Item2D. For Item2D, the z value is used
+    during layer sorting to determine ordering, where lower z values will be 
+    placed first.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetZ(3)
+    */
+    action SetZ(number setZ)
+        MoveZ(setZ - z)
+    end
+
+    /*
+    This action returns the currently set X coordinate of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        number value = myItem:GetX()
+    */
+    action GetX returns number
+        return x
+    end
+
+    /*
+    This action returns the currently set Y coordinate of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        number value = myItem:GetY()
+    */
+    action GetY returns number
+        return y
+    end
+
+    /*
+    This action returns the currently set Z value of this Item2D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        number value = myItem:GetZ()
+    */
+    action GetZ returns number
+        return z
+    end
+
+    /*
+    This action will set both the X coordinate and the Y coordinate of the Item,
+    in that order.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetPosition(30, 70)
+    */
+    action SetPosition(number setX, number setY)
+        Move(setX - GetX(), setY - GetY())
+    end
+
+    /*
+    This action will set both the X and Y coordinates of this Item2D, and will
+    additionally set the Z value of this Item2D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetPosition(30, 70, 3)
+    */
+    action SetPosition(number setX, number setY, number setZ)
+        Move(setX - GetX(), setY - GetY())
+        SetZ(setZ)
+    end
+
+    /*
+    This action will set the width of the Item2D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetWidth(50)
+    */
+    action SetWidth(number newWidth)
+        width = newWidth
+    end
+
+    /*
+    This action will set the height of the Item2D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetHeight(70)
+    */
+    action SetHeight(number newHeight)
+        height = newHeight
+    end
+
+    /*
+    This action will set the X coordinate of the Item so that the center of the
+    Item is aligned with the given X coordinate value.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetCenterX(70)
+    */
+    action SetCenterX(number setX)
+        SetX(setX - width / 2.0)
+    end
+
+    /*
+    This action will set the Y coordinate of the Item so that the center of the
+    Item is aligned with the given Y coordinate value.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetCenterY(65)
+    */
+    action SetCenterY(number setY)
+        SetY(setY - height / 2.0)
+    end
+
+    /*
+    This action will set the X and Y coordinates of the Item so that the center
+    of the Item is located at the given X, Y coordinates.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item myItem
+        myItem:SetCenter(70, 40)
+    */
+    action SetCenter(number setX, number setY)
+        SetCenterX(setX)
+        SetCenterY(setY)
+    end
+
+    /*
+    This action returns the x coordinate of the center of this Item2D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetWidth(20)
+        myItem:SetX(100)
+        number x = myItem:GetCenterX()
+    */
+    action GetCenterX returns number
+        return x - GetWidth()/2
+    end
+
+    /*
+    This action returns the y coordinate of the center of this Item2D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetHeight(20)
+        myItem:SetY(100)
+        number y = myItem:GetCenterY()
+    */
+    action GetCenterY returns number
+        return y - GetHeight()/2
+    end
+    
+    /*
+    This action will return the currently set width of the Item2D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        number width = myItem:GetWidth()
+    */
+    action GetWidth returns number
+        return width
+    end
+
+    /*
+    This action will return the currently set height of the Item2D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        number height = myItem:GetHeight()
+    */
+    action GetHeight returns number
+        return height
+    end
+
+    /* 
+    This action sets the X offset of the Item. The offset tells the Item
+    where to relate its X position to. In other words, the X offset is where an
+    X coordinate of 0 is for this Item. This is automatically set when using an
+    action to add an Item to another Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetOffsetX(100)
+    */
+    action SetOffsetX(number xAmount)
+        if xAmount not= offsetX and verticesChanged = false
+            number adjust = xAmount - offsetX
+
+            vertices:Set(X1, vertices:Get(X1) + adjust)
+            vertices:Set(X2, vertices:Get(X2) + adjust)
+            vertices:Set(X3, vertices:Get(X3) + adjust)
+            vertices:Set(X4, vertices:Get(X4) + adjust)
+        end
+
+        offsetX = xAmount
+
+        integer counter = 0
+        repeat children:GetSize() times
+            children:Get(counter):SetOffsetX(x + xAmount)
+            counter = counter + 1
+        end
+    end
+
+    /* 
+    This action sets the Y offset of the item. The offset tells the Item
+    where to relate its Y position to. In other words, the Y offset is where a
+    Y coordinate of 0 is for this item. This is automatically set when using an
+    action to add an Item to another Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetOffsetY(75)
+    */
+    action SetOffsetY(number yAmount)
+        if yAmount not= offsetY and verticesChanged = false
+            number adjust = yAmount - offsetY
+        
+            vertices:Set(Y1, vertices:Get(Y1) + adjust)
+            vertices:Set(Y2, vertices:Get(Y2) + adjust)
+            vertices:Set(Y3, vertices:Get(Y3) + adjust)
+            vertices:Set(Y4, vertices:Get(Y4) + adjust)
+        end
+
+        offsetY = yAmount
+
+        integer counter = 0
+        repeat children:GetSize() times
+            children:Get(counter):SetOffsetY(y + yAmount)
+            counter = counter + 1
+        end
+    end
+
+    /* 
+    This action returns the X offset of the Item. The offset tells the Item
+    where to relate its X position to. In other words, the X offset is where an
+    X coordinate of 0 is for this Item. This is automatically set when using an
+    action to add an Item to another Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetOffsetX(100)
+        number offset = myItem:GetOffsetX()
+    */
+    action GetOffsetX returns number
+        return offsetX
+    end
+
+    /* This action returns the Y offset of the item. The offset tells the Item
+    where to relate its Y position to. In other words, the Y offset is where a
+    Y coordinate of 0 is for this item. This is automatically set when using an
+    action to add an Item to another Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetOffsetY(75)
+        number offset = myItem:GetOffsetY()
+    */
+    action GetOffsetY returns number
+        return offsetY
+    end
+
+    
+    /* This action will set both the X and Y offsets of the item, respectively.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetOffset(100, 75)
+    */
+    action SetOffset(number xAmount, number yAmount)
+        if (xAmount not= offsetX or yAmount not= offsetY) and verticesChanged = false
+            Array<number> vertices = GetVertices()
+            number adjustX = xAmount - GetOffsetX()
+            number adjustY = yAmount - GetOffsetY()
+            
+            vertices:Set(X1, vertices:Get(X1) + adjustX)
+            vertices:Set(Y1, vertices:Get(Y1) + adjustY)
+
+            vertices:Set(X2, vertices:Get(X2) + adjustX)
+            vertices:Set(Y2, vertices:Get(Y2) + adjustY)
+
+            vertices:Set(X3, vertices:Get(X3) + adjustX)
+            vertices:Set(Y3, vertices:Get(Y3) + adjustY)
+
+            vertices:Set(X4, vertices:Get(X4) + adjustX)
+            vertices:Set(Y4, vertices:Get(Y4) + adjustY)
+        end
+
+        offsetX = xAmount
+        offsetY = yAmount
+
+        integer counter = 0
+        repeat children:GetSize() times
+            children:Get(counter):SetOffset(x + xAmount, y + yAmount)
+            counter = counter + 1
+        end
+    end
+
+    
+    /* 
+    This action returns the Item's global x coordinate. This is the actual world
+    coordinate that the item exists at after it has been offset by its parent's
+    position. If this Item doesn't have a parent, and the offset hasn't been set
+    manually, this is the same as GetX().
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetOffsetX(100)
+        myItem:SetX(30)
+        number globalX = myItem:GetGlobalX()
+    */
+    action GetGlobalX returns number
+        return GetX() + offsetX
+    end
+
+    /*
+    This action returns the Item's global y coordinate. This is the actual world
+    coordinate that the item exists at after it has been offset by its parent's
+    position. If this Item doesn't have a parent, and the offset hasn't been set
+    manually, this is the same as GetY().
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        Item2D myItem
+        myItem:SetOffsetY(60)
+        myItem:SetX(90)
+        number globalY = myItem:GetGlobalY()
+    */
+    action GetGlobalY returns number
+        return GetY() + offsetY
+    end
+
+    /*
+    This action returns the Item's global z value. For an Item2D, this simply
+    returns the Item2D's current z value.
+    */
+    action GetGlobalZ returns number
+        return z
+    end
+
+    /*
+    This action will set the width and height of the Item2D, respectively.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D myItem
+        myItem:SetSize(100, 50)
+    */
+    action SetSize(integer newWidth, integer newHeight)
+        width = newWidth
+        height = newHeight
+
+        if verticesChanged = false
+            number parentX = x
+            number parentY = y
+            number x2 = parentX + width
+            number y2 = parentY + height
+
+            vertices:Set(X1, parentX)
+            vertices:Set(Y1, parentY)
+
+            vertices:Set(X2, parentX)
+            vertices:Set(Y2, y2)
+
+            vertices:Set(X3, x2)
+            vertices:Set(Y3, y2)
+
+            vertices:Set(X4, x2)
+            vertices:Set(Y4, parentY)
+
+            if rotation not= 0 or scaleX not= 1 or scaleY not= 1
+                verticesChanged = true
+            end
+        end
+    end
+
+    /*
+    This action will increase the x-coordinate of this Item by the given amount.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D myItem
+        myItem:SetX(50)
+        myItem:MoveX(25)
+    */
+    action MoveX(number xAmount)
+        if verticesChanged = false
+            vertices:Set(X1, vertices:Get(X1) + xAmount)
+            vertices:Set(X2, vertices:Get(X2) + xAmount)
+            vertices:Set(X3, vertices:Get(X3) + xAmount)
+            vertices:Set(X4, vertices:Get(X4) + xAmount)
+        end
+
+        x = x + xAmount
+        SetOffsetX(offsetX)
+    end
+
+    /*
+    This action will increase the y-coordinate of this Item by the given amount.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D myItem
+        myItem:SetY(50)
+        myItem:MoveY(25)
+    */
+    action MoveY(number yAmount)
+        if verticesChanged = false
+            vertices:Set(Y1, vertices:Get(Y1) + yAmount)
+            vertices:Set(Y2, vertices:Get(Y2) + yAmount)
+            vertices:Set(Y3, vertices:Get(Y3) + yAmount)
+            vertices:Set(Y4, vertices:Get(Y4) + yAmount)
+        end
+
+        y = y + yAmount
+        SetOffsetY(offsetY)
+    end
+
+    /*
+    This action will increase the z-coordinate of this Item by the given amount.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item@D
+
+        Item2D myItem
+        myItem:SetZ(5)
+        myItem:MoveZ(2)
+    */
+    action MoveZ(number zAmount)
+        z = z + zAmount
+    end
+
+    /*
+    This action will increase the x and y coordinates of this Item by the given
+    amounts.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D myItem
+        myItem:SetX(50)
+        myItem:SetY(80)
+        myItem:Move(25, -20)
+    */
+    action Move(number xAmount, number yAmount)
+        if verticesChanged = false
+            
+            vertices:Set(X1, vertices:Get(X1) + xAmount)
+            vertices:Set(Y1, vertices:Get(Y1) + yAmount)
+
+            vertices:Set(X2, vertices:Get(X2) + xAmount)
+            vertices:Set(Y2, vertices:Get(Y2) + yAmount)
+
+            vertices:Set(X3, vertices:Get(X3) + xAmount)
+            vertices:Set(Y3, vertices:Get(Y3) + yAmount)
+
+            vertices:Set(X4, vertices:Get(X4) + xAmount)
+            vertices:Set(Y4, vertices:Get(Y4) + yAmount)
+        end
+
+        x = x + xAmount
+        y = y + yAmount
+        SetOffset(offsetX, offsetY)
+    end
+
+    /*
+    This action will set the Item2D to be flipped across the X-axis according to
+    the boolean. If the boolean value is false, the Item2D will be set to its
+    unflipped state. If it is true, the Item will be set to its flipped state.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        
+        Item2D myItem
+        myItem:SetFlipX(true)
+    */
+    action SetFlipX(boolean flip)
+        if IsFlippedX() not= flip
+            FlipX()
+        end
+    end
+
+    /*
+    This action will set the Item2D to be flipped across the Y-axis according to
+    the boolean. If the boolean value is false, the Item2D will be set to its
+    unflipped state. If it is true, the Item will be set to its flipped state.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        
+        Item2D myItem
+        myItem:SetFlipY(true)
+    */
+    action SetFlipY(boolean flip)
+        if IsFlippedY() not= flip
+            FlipY()
+        end
+    end
+
+    /*
+    This action will flip the Item2D across the X-axis. This flip is represented
+    by the internal vertices of the Item2D. For classes that inherit from Item and
+    can draw on the screen, this will flip the drawn image on the screen.
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        
+        Item2D myItem
+        myItem:FlipX()
+    */
+    action FlipX
+        flipX = not flipX
+
+        integer counter = 0
+        repeat children:GetSize() times
+            children:Get(counter):FlipX()
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action will flip the Item2D across the Y-axis. This flip is represented
+    by the internal vertices of the Item2D. For classes that inherit from Item and
+    can draw on the screen, this will flip the drawn image on the screen.
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        
+        Item2D myItem
+        myItem:FlipY()
+    */
+    action FlipY
+        flipY = not flipY
+
+        integer counter = 0
+        repeat children:GetSize() times
+            children:Get(counter):FlipY()
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action will return if the Item2D is currently flipped across the x-axis.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        
+        Item2D myItem
+        myItem:FlipX()
+        boolean flip = myItem:IsFlippedX()
+    */
+    action IsFlippedX returns boolean
+        return flipX
+    end
+
+    /*
+    This action will return if the Item2D is currently flipped across the y-axis.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        
+        Item2D myItem
+        myItem:FlipY()
+        boolean flip = myItem:IsFlippedY()
+    */
+    action IsFlippedY returns boolean
+        return flipY
+    end
 
     /*
     This action sets a reference to the parent item. It is called automatically
@@ -386,85 +1048,6 @@ class Item2D is Item
         return vertices
     end
 
-    /* 
-    This action sets the X offset of the Item2D. The offset tells the Item2D
-    where to relate its X position to. In other words, the X offset is where an
-    X coordinate of 0 is for this Item. This is automatically set when using an
-    action to add an Item2D to another Item2D, e.g. Add(Item2D).
-
-    Attribute: Example
-
-        use Libraries.Interface.Item2D
-        Item2D myItem
-        myItem:SetOffsetX(100)
-    */
-    action SetOffsetX(number xAmount)
-        if xAmount not= GetOffsetX() and verticesChanged = false
-            number adjust = xAmount - GetOffsetX()
-
-            vertices:Set(X1, vertices:Get(X1) + adjust)
-            vertices:Set(X2, vertices:Get(X2) + adjust)
-            vertices:Set(X3, vertices:Get(X3) + adjust)
-            vertices:Set(X4, vertices:Get(X4) + adjust)
-        end
-
-        parent:Item:SetOffsetX(xAmount)
-    end
-
-    /* This action sets the Y offset of the item. The offset tells the Item2D
-    where to relate its Y position to. In other words, the Y offset is where an
-    Y coordinate of 0 is for this item. This is automatically set when using an
-    action to add an Item2D to another Item2D, e.g. Add(Item2D).
-
-    Attribute: Example
-
-        use Libraries.Interface.Item2D
-        Item2D myItem
-        myItem:SetOffsetY(75)
-    */
-    action SetOffsetY(number yAmount)
-        if yAmount not= GetOffsetY() and verticesChanged = false
-            number adjust = yAmount - GetOffsetY()
-        
-            vertices:Set(Y1, vertices:Get(Y1) + adjust)
-            vertices:Set(Y2, vertices:Get(Y2) + adjust)
-            vertices:Set(Y3, vertices:Get(Y3) + adjust)
-            vertices:Set(Y4, vertices:Get(Y4) + adjust)
-        end
-
-        parent:Item:SetOffsetY(yAmount)
-    end
-
-    /* This action will set both the X and Y offsets of the Item2D, respectively.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item2D
-        Item2D myItem
-        myItem:SetOffset(100, 75)
-    */
-    action SetOffset(number xAmount, number yAmount)
-        if (xAmount not= GetOffsetX() or yAmount not= GetOffsetY()) and verticesChanged = false
-            Array<number> vertices = GetVertices()
-            number adjustX = xAmount - GetOffsetX()
-            number adjustY = yAmount - GetOffsetY()
-            
-            vertices:Set(X1, vertices:Get(X1) + adjustX)
-            vertices:Set(Y1, vertices:Get(Y1) + adjustY)
-
-            vertices:Set(X2, vertices:Get(X2) + adjustX)
-            vertices:Set(Y2, vertices:Get(Y2) + adjustY)
-
-            vertices:Set(X3, vertices:Get(X3) + adjustX)
-            vertices:Set(Y3, vertices:Get(Y3) + adjustY)
-
-            vertices:Set(X4, vertices:Get(X4) + adjustX)
-            vertices:Set(Y4, vertices:Get(Y4) + adjustY)
-        end
-        
-        parent:Item:SetOffset(xAmount, yAmount)
-    end
-
     /*  
     This action tests if a point in global x,y coordinates is contained
     inside this Item2D. The global coordinates are considered to be the x and y
@@ -715,118 +1298,6 @@ class Item2D is Item
             verticesChanged = true
         end
 
-    end
-
-    /*
-    This action will set the width and height of the Item, respectively.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-
-        Item myItem
-        myItem:SetSize(100, 50)
-    */
-    action SetSize(integer newWidth, integer newHeight)
-
-        parent:Item:SetSize(newWidth, newHeight)
-
-        if verticesChanged = false
-            number parentX = GetX()
-            number parentY = GetY()
-            number x2 = parentX + GetWidth()
-            number y2 = parentY + GetHeight()
-
-            vertices:Set(X1, parentX)
-            vertices:Set(Y1, parentY)
-
-            vertices:Set(X2, parentX)
-            vertices:Set(Y2, y2)
-
-            vertices:Set(X3, x2)
-            vertices:Set(Y3, y2)
-
-            vertices:Set(X4, x2)
-            vertices:Set(Y4, parentY)
-
-            if rotation not= 0 or scaleX not= 1 or scaleY not= 1
-                verticesChanged = true
-            end
-        end
-
-    end
-
-    /*
-    This action will increase the x-coordinate of this Item by the given amount.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item
-
-        Item myItem
-        myItem:SetX(50)
-        myItem:MoveX(25)
-    */
-    action MoveX(number xAmount)
-        if verticesChanged = false
-            vertices:Set(X1, vertices:Get(X1) + xAmount)
-            vertices:Set(X2, vertices:Get(X2) + xAmount)
-            vertices:Set(X3, vertices:Get(X3) + xAmount)
-            vertices:Set(X4, vertices:Get(X4) + xAmount)
-        end
-        parent:Item:MoveX(xAmount)
-    end
-
-    /*
-    This action will increase the y-coordinate of this Item by the given amount.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item2D
-
-        Item2D myItem
-        myItem:SetY(50)
-        myItem:MoveY(25)
-    */
-    action MoveY(number yAmount)
-        if verticesChanged = false
-            vertices:Set(Y1, vertices:Get(Y1) + yAmount)
-            vertices:Set(Y2, vertices:Get(Y2) + yAmount)
-            vertices:Set(Y3, vertices:Get(Y3) + yAmount)
-            vertices:Set(Y4, vertices:Get(Y4) + yAmount)
-        end
-        parent:Item:MoveY(yAmount)
-    end
-
-    /*
-    This action will increase the x and y coordinates of this Item by the given
-    amounts.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item2D
-
-        Item2D myItem
-        myItem:SetX(50)
-        myItem:SetY(80)
-        myItem:Move(25, -20)
-    */
-    action Move(number xAmount, number yAmount)
-        if verticesChanged = false
-            
-            vertices:Set(X1, vertices:Get(X1) + xAmount)
-            vertices:Set(Y1, vertices:Get(Y1) + yAmount)
-
-            vertices:Set(X2, vertices:Get(X2) + xAmount)
-            vertices:Set(Y2, vertices:Get(Y2) + yAmount)
-
-            vertices:Set(X3, vertices:Get(X3) + xAmount)
-            vertices:Set(Y3, vertices:Get(Y3) + yAmount)
-
-            vertices:Set(X4, vertices:Get(X4) + xAmount)
-            vertices:Set(Y4, vertices:Get(Y4) + yAmount)
-        end
-        parent:Item:Move(xAmount, yAmount)
     end
 
     /*

@@ -256,7 +256,7 @@ class Drawable is TextureRegion, Item2D
 
         Math math
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
-        SetOrigin(parent:Item:width / 2.0, parent:Item:height / 2.0)
+        SetOrigin(parent:Item2D:width / 2.0, parent:Item2D:height / 2.0)
     end
 
     /*
@@ -294,7 +294,7 @@ class Drawable is TextureRegion, Item2D
         SetRegion(region)
         //SetColor(1, 1, 1, 1)
         SetSize(region:GetRegionWidth(), region:GetRegionHeight())
-        SetOrigin(parent:Item:width / 2.0, parent:Item:height / 2.0)
+        SetOrigin(parent:Item2D:width / 2.0, parent:Item2D:height / 2.0)
     end
 
     /*
@@ -334,7 +334,7 @@ class Drawable is TextureRegion, Item2D
         //SetColor(1, 1, 1, 1)
         Math math
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
-        SetOrigin(parent:Item:width / 2.0, parent:Item:height / 2.0)
+        SetOrigin(parent:Item2D:width / 2.0, parent:Item2D:height / 2.0)
     end
 
     /*
