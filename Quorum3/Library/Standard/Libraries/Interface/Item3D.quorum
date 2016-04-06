@@ -3,211 +3,583 @@ package Libraries.Interface
 use Libraries.Interface.Item
 use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Vector3
+use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.MouseEvent
 
 class Item3D is Item
-//
-//    private Item3D parentItem = undefined
-//    private Array<Item3D> children
-//
-//    /*
-//    This action sets a reference to the parent item. It is called automatically
-//    when an Item3D is added as a child to another Item3D. Most users will not
-//    need to use this action directly.
-//    */
-//    action SetParent(Item3D newItem)
-//        parentItem = newItem
-//    end
-//
-//    /*  
-//    This action returns the parent of this Item3D. An Item3D gets a parent when
-//    it is added to another Item using the Add action.
-//
-//    Attribute: Example
-//
-//        use Libraries.Interface.Item3D
-//
-//        Item3D parentItem
-//        Item3D child
-//        parentItem:Add(child)
-//        Item3D item = child:GetParent()
-//        
-//    */
-//    action GetParent returns Item3D
-//        return parentItem
-//    end
-//
-//    /*  
-//    This action adds a different Item3D into this one. This makes a few things happen.
-//        1. The added item will get this item as its parent.
-//        2. The added item's x and y coordinates will become relative to this Item.
-//        3. Most actions on this Item will also affect the added Item.
-//
-//    Attribute: Example
-//
-//        use Libraries.Interface.Item3D
-//
-//        Item3D parentItem
-//        Item3D child
-//        parentItem:Add(child)
-//        
-//    */
-//    action Add(Item3D newItem)
-//        children:Add(newItem)
-//        newItem:SetParent(me)
-//        newItem:PrepareVertices()
-//        newItem:SetOffset(x + offsetX, y + offsetY)
-//    end
-//
-//    /*  
-//    This action adds a different Item3D into this one, storing the added Item3D
-//    at a specific index in the internal array.
-//
-//    Attribute: Example
-//
-//        use Libraries.Interface.Item3D
-//
-//        Item3D parentItem
-//        Item3D child
-//        parentItem:Add(0, child)
-//        
-//    */
-//    action Add(integer index, Item3D newItem)
-//        children:Add(index, newItem)
-//        newItem:SetParent(me)
-//        newItem:PrepareVertices()
-//        newItem:SetOffset(x + offsetX, y + offsetY)
-//    end
-//
-//    /*  
-//    This action removes an Item3D that was previously added to this Item3D. 
-//
-//    Attribute: Returns Whether or not the Item was found and removed.
-//
-//    Attribute: Example
-//
-//        use Libraries.Interface.Item3D
-//
-//        Item3D parentItem
-//        Item3D child1
-//        Item3D child2
-//        parentItem:Add(child1)
-//        parentItem:Add(child2)
-//        parentItem:Remove(child1)
-//    */
-//    action Remove(Item3D removed) returns boolean
-//        boolean success = children:Remove(removed)
-//        removed:SetParent(undefined)
-//        return success
-//    end
-//
-//    /*  This action removes an Item that was previously added to this Item by
-//    finding it at the given index in the internal array of children Items.
-//
-//    Attribute: Returns The Item that was removed.
-//
-//    Attribute: Example
-//
-//        use Libraries.Interface.Item
-//
-//        Item parentItem
-//        Item child1
-//        Item child2
-//        parentItem:Add(child1)
-//        parentItem:Add(child2)
-//        parentItem:Remove(0)
-//    */
-//    action Remove(integer index) returns Item3D
-//        Item temp = children:RemoveAt(index)
-//        temp:SetParent(undefined)
-//        return temp
-//    end
-//
-//    /*  
-//    This action returns an Item3D that was previously added to this Item3D by
-//    finding it at the given index in the internal array of children Items.
-//
-//    Attribute: Example
-//
-//        use Libraries.Interface.Item3D
-//
-//        Item3D parentItem
-//        Item3D child1
-//        Item3D child2
-//        parentItem:Add(child1)
-//        parentItem:Add(child2)
-//        Item temp = parentItem:GetItem(0)
-//    */
-//    action GetItem(integer index) returns Item3D
-//        return children:Get(index)
-//    end
-//
-//    /*  
-//    This action returns an iterator containing all the items contained in
-//    this Item3D.
-//
-//    Attribute: Example
-//
-//        use Libraries.Interface.Item3D
-//        use Libraries.Containers.Blueprints.Iterator
-//
-//        Item3D parentItem
-//        Item3D child1
-//        Item3D child2
-//        parentItem:Add(child1)
-//        parentItem:Add(child2)
-//        Iterator<Item3D> iterator = parentItem:GetItems()
-//    */
-//    action GetItems returns Iterator<Item3D>
-//        return children:GetIterator()
-//    end
-//
-//    /*  
-//    This action returns the number of items contained in this Item3D.
-//
-//    Attribute: Example
-//
-//        use Libraries.Interface.Item3D
-//
-//        Item3D parentItem
-//        Item3D child1
-//        Item3D child2
-//        parentItem:Add(child1)
-//        parentItem:Add(child2)
-//        integer size = parentItem:GetItemCount()
-//    */
-//    action GetItemCount returns integer
-//        return children:GetSize()
-//    end
-//
-//    /*  
-//    This action sets a value inside the internal item array of this Item3D.
-//
-//    Attribute: Example
-//
-//        use Libraries.Interface.Item3D
-//
-//        Item3D parentItem
-//        Item3D child1
-//        Item3D child2
-//        parentItem:Add(child1)
-//        parentItem:SetItem(0, child2)
-//    */
-//    action SetItem(integer index, Item3D newItem)
-//        children:Set(index, newItem)
-//    end
-//
-//    /*  This action returns whether or not any items are contained in this Item.
-//
-//    Attribute: Example
-//
-//        use Libraries.Interface.Item3D
-//
-//        Item3D parentItem
-//        Item3D child1
-//        parentItem:Add(child1)
-//        boolean wasEmpty = parentItem:IsEmpty()
-//    */
-//    action IsEmpty returns boolean
-//        return children:IsEmpty()
-//    end
+
+    number x = 0
+    number y = 0
+    number z = 0
+    number width = 0
+    number height = 0
+    number depth = 0
+    number offsetX = 0
+    number offsetY = 0
+    number offsetZ = 0
+    Matrix4 transform
+
+    private Item3D parentItem = undefined
+    private Array<Item3D> children
+
+    private action GetChildAsItem(integer index) returns Item
+        return children:Get(index)
+    end
+
+    /*
+    This action sets the X coordinate of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetX(35.0)
+    */
+    action SetX(number setX)
+        MoveX(setX - x)
+    end
+
+    /*
+    This action sets the Y coordinate of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetY(210.0)
+    */
+    action SetY(number setY)
+        MoveY(setY - y)
+    end
+
+    /*
+    This action sets the Z coordinate of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetZ(210.0)
+    */
+    action SetZ(number setZ)
+        MoveZ(setZ - z)
+    end
+
+    /*
+    This action will increase the x-coordinate of this Item by the given amount.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D myItem
+        myItem:SetX(50)
+        myItem:MoveX(25)
+    */
+    action MoveX(number xAmount)
+        transform:Translate(xAmount, 0, 0)
+
+        x = x + xAmount
+        SetOffsetX(offsetX)
+    end
+
+    /*
+    This action will increase the y-coordinate of this Item by the given amount.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D myItem
+        myItem:SetY(50)
+        myItem:MoveY(25)
+    */
+    action MoveY(number yAmount)
+        transform:Translate(0, yAmount, 0)
+
+        y = y + yAmount
+        SetOffsetY(offsetY)
+    end
+
+    /*
+    This action will increase the z-coordinate of this Item by the given amount.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D myItem
+        myItem:SetZ(50)
+        myItem:MoveZ(25)
+    */
+    action MoveZ(number zAmount)
+        transform:Translate(0, zAmount, 0)
+
+        z = z + zAmount
+        SetOffsetZ(offsetZ)
+    end
+
+    /*
+    This action will increase the x, y, and z coordinates of this Item by the 
+    given amounts.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D myItem
+        myItem:SetPosition(50, 25, 80)
+        myItem:Move(25, 15, -20)
+    */
+    action Move(number xAmount, number yAmount, number zAmount)
+        transform:Translate(xAmount, yAmount, zAmount)
+
+        x = x + xAmount
+        y = y + yAmount
+        z = z + zAmount
+        SetOffset(offsetX, offsetY, offsetZ)
+    end
+
+    /*
+    This action will increase the x, y, and z coordinates of this Item by the 
+    values inside the given Vector3.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        use Libraries.Compute.Vector3
+
+        Item3D myItem
+        Vector3 vector
+        vector:Set(25, 15, -20)
+        myItem:SetPosition(50, 25, 80)
+        myItem:Move(vector)
+    */
+    action Move(Vector3 vector)
+        transform:Translate(vector)
+
+        x = x + vector:GetX()
+        y = y + vector:GetY()
+        z = z + vector:GetZ()
+        SetOffset(offsetX, offsetY, offsetZ)
+    end
+
+    /* 
+    This action sets the X offset of the Item. The offset tells the Item
+    where to relate its X position to. In other words, the X offset is where an
+    X coordinate of 0 is for this Item. This is automatically set when using an
+    action to add an Item to another Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetOffsetX(100)
+    */
+    action SetOffsetX(number xAmount)
+        if xAmount not= offsetX
+            number adjust = xAmount - offsetX
+
+            transform:Translate(adjust, 0, 0)
+        end
+
+        offsetX = xAmount
+
+        integer counter = 0
+        repeat children:GetSize() times
+            children:Get(counter):SetOffsetX(x + xAmount)
+            counter = counter + 1
+        end
+    end
+
+    /* 
+    This action sets the Y offset of the item. The offset tells the Item
+    where to relate its Y position to. In other words, the Y offset is where a
+    Y coordinate of 0 is for this item. This is automatically set when using an
+    action to add an Item to another Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetOffsetY(75)
+    */
+    action SetOffsetY(number yAmount)
+        if yAmount not= offsetY
+            number adjust = yAmount - offsetY
+        
+            transform:Translate(0, adjust, 0)
+        end
+
+        offsetY = yAmount
+
+        integer counter = 0
+        repeat children:GetSize() times
+            children:Get(counter):SetOffsetY(y + yAmount)
+            counter = counter + 1
+        end
+    end
+
+    /* 
+    This action sets the Z offset of the item. The offset tells the Item
+    where to relate its Z position to. In other words, the Z offset is where a
+    Z coordinate of 0 is for this item. This is automatically set when using an
+    action to add an Item to another Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetOffsetY(75)
+    */
+    action SetOffsetZ(number zAmount)
+        if zAmount not= offsetZ
+            number adjust = zAmount - offsetZ
+        
+            transform:Translate(0, 0, adjust)
+        end
+
+        offsetZ = zAmount
+
+        integer counter = 0
+        repeat children:GetSize() times
+            children:Get(counter):SetOffsetZ(z + zAmount)
+            counter = counter + 1
+        end
+    end
+
+    /* 
+    This action sets the Z offset of the item. The offset tells the Item
+    where to relate its Z position to. In other words, the Z offset is where a
+    Z coordinate of 0 is for this item. This is automatically set when using an
+    action to add an Item to another Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetOffsetY(75)
+    */
+    action SetOffset(number xAmount, number yAmount, number zAmount)
+        if xAmount not= offsetX or yAmount not= offsetY or zAmount not= offsetZ
+            transform:Translate(xAmount - offsetX, yAmount - offsetY, zAmount - offsetZ)
+        end
+
+        offsetX = xAmount
+        offsetY = yAmount
+        offsetZ = zAmount
+
+        integer counter = 0
+        repeat children:GetSize() times
+            children:Get(counter):SetOffset(x + xAmount, y + yAmount, z + zAmount)
+            counter = counter + 1
+        end
+    end
+
+    /* 
+    This action returns the X offset of the Item. The offset tells the Item
+    where to relate its X position to. In other words, the X offset is where an
+    X coordinate of 0 is for this Item. This is automatically set when using an
+    action to add an Item to another Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetOffsetX(100)
+        number offset = myItem:GetOffsetX()
+    */
+    action GetOffsetX returns number
+        return offsetX
+    end
+
+    /* 
+    This action returns the Y offset of the item. The offset tells the Item
+    where to relate its Y position to. In other words, the Y offset is where a
+    Y coordinate of 0 is for this item. This is automatically set when using an
+    action to add an Item to another Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetOffsetY(75)
+        number offset = myItem:GetOffsetY()
+    */
+    action GetOffsetY returns number
+        return offsetY
+    end
+
+    /* 
+    This action returns the Z offset of the item. The offset tells the Item
+    where to relate its Z position to. In other words, the Z offset is where a
+    Z coordinate of 0 is for this item. This is automatically set when using an
+    action to add an Item to another Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetOffsetZ(75)
+        number offset = myItem:GetOffsetZ()
+    */
+    action GetOffsetZ returns number
+        return offsetZ
+    end
+
+    /*
+    This action sets a reference to the parent item. It is called automatically
+    when an Item3D is added as a child to another Item3D. Most users will not
+    need to use this action directly.
+    */
+    action SetParent(Item3D newItem)
+        parentItem = newItem
+    end
+
+    /*  
+    This action returns the parent of this Item3D. An Item3D gets a parent when
+    it is added to another Item using the Add action.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D parentItem
+        Item3D child
+        parentItem:Add(child)
+        Item3D item = child:GetParent()
+        
+    */
+    action GetParent returns Item3D
+        return parentItem
+    end
+
+    /*  
+    This action adds a different Item3D into this one. This makes a few things happen.
+        1. The added item will get this item as its parent.
+        2. The added item's x and y coordinates will become relative to this Item.
+        3. Most actions on this Item will also affect the added Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D parentItem
+        Item3D child
+        parentItem:Add(child)
+        
+    */
+    action Add(Item3D newItem)
+        children:Add(newItem)
+        newItem:SetParent(me)
+        newItem:SetOffset(x + offsetX, y + offsetY, z + offsetZ)
+    end
+
+    /*  
+    This action adds a different Item3D into this one, storing the added Item3D
+    at a specific index in the internal array.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D parentItem
+        Item3D child
+        parentItem:Add(0, child)
+        
+    */
+    action Add(integer index, Item3D newItem)
+        children:Add(index, newItem)
+        newItem:SetParent(me)
+        newItem:SetOffset(x + offsetX, y + offsetY, z + offsetZ)
+    end
+
+    /*  
+    This action removes an Item3D that was previously added to this Item3D. 
+
+    Attribute: Returns Whether or not the Item was found and removed.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D parentItem
+        Item3D child1
+        Item3D child2
+        parentItem:Add(child1)
+        parentItem:Add(child2)
+        parentItem:Remove(child1)
+    */
+    action Remove(Item3D removed) returns boolean
+        boolean success = children:Remove(removed)
+        removed:SetParent(undefined)
+        return success
+    end
+
+    /*  This action removes an Item that was previously added to this Item by
+    finding it at the given index in the internal array of children Items.
+
+    Attribute: Returns The Item that was removed.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item parentItem
+        Item child1
+        Item child2
+        parentItem:Add(child1)
+        parentItem:Add(child2)
+        parentItem:Remove(0)
+    */
+    action Remove(integer index) returns Item3D
+        Item3D temp = children:RemoveAt(index)
+        temp:SetParent(undefined)
+        return temp
+    end
+
+    /*  
+    This action returns an Item3D that was previously added to this Item3D by
+    finding it at the given index in the internal array of children Items.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D parentItem
+        Item3D child1
+        Item3D child2
+        parentItem:Add(child1)
+        parentItem:Add(child2)
+        Item3D temp = parentItem:GetItem(0)
+    */
+    action GetItem(integer index) returns Item3D
+        return children:Get(index)
+    end
+
+    /*  
+    This action returns an iterator containing all the items contained in
+    this Item3D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        use Libraries.Containers.Blueprints.Iterator
+
+        Item3D parentItem
+        Item3D child1
+        Item3D child2
+        parentItem:Add(child1)
+        parentItem:Add(child2)
+        Iterator<Item3D> iterator = parentItem:GetItems()
+    */
+    action GetItems returns Iterator<Item3D>
+        return children:GetIterator()
+    end
+
+    /*  
+    This action returns the number of items contained in this Item3D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D parentItem
+        Item3D child1
+        Item3D child2
+        parentItem:Add(child1)
+        parentItem:Add(child2)
+        integer size = parentItem:GetItemCount()
+    */
+    action GetItemCount returns integer
+        return children:GetSize()
+    end
+
+    /*  
+    This action sets a value inside the internal item array of this Item3D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D parentItem
+        Item3D child1
+        Item3D child2
+        parentItem:Add(child1)
+        parentItem:SetItem(0, child2)
+    */
+    action SetItem(integer index, Item3D newItem)
+        children:Set(index, newItem)
+    end
+
+    /*
+    This action will remove all Items from this Item's children hierarchy. Note
+    that this will not empty the hierarchies of the contained Items.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D parentItem
+        Item3D child1
+        Item3D child2
+        Item3D grandchild
+        parentItem:Add(child1)
+        parentItem:Add(child2)
+        child1:Add(grandChild)
+        parentItem:Empty()
+    */
+    action Empty
+        children:Empty()
+    end
+
+    /*  This action returns whether or not any items are contained in this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D parentItem
+        Item3D child1
+        parentItem:Add(child1)
+        boolean wasEmpty = parentItem:IsEmpty()
+    */
+    action IsEmpty returns boolean
+        return children:IsEmpty()
+    end
+
+    /*
+    FIX ME: Needs comments
+    */
+    action ProcessTouchEvent(TouchEvent event)
+
+    end
+
+    /*  
+    This action takes a mouse event and handles it. It will first test to 
+    see if the mouse event took place within the bounds of this Item. If so, it
+    will notify any MouseListeners of the event. If the event was not contained
+    within this Item, or if there are no MouseListeners on this Item, the Item
+    will ask its parent Item to process the mouse event, if there is a parent.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        use Libraries.Interface.Events.MouseEvent
+        use Libraries.Interface.Events.MouseListener
+        Item2D myItem
+        MouseListener listener
+        myItem:AddMouseListener(listener)
+        MouseEvent event
+        event:eventType = event:CLICKED_MOUSE
+        myItem:ProcessMouseEvent(event)
+    
+    */
+    action ProcessMouseEvent(MouseEvent event)
+
+    end
+
+    
 end
