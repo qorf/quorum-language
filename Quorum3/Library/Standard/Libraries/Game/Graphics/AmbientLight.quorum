@@ -3,7 +3,7 @@ package Libraries.Game.Graphics
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorAttribute
 
-class AmbientLight 
+class AmbientLight is BaseLight
     
     ColorAttribute attribute
 
@@ -12,20 +12,16 @@ class AmbientLight
     end
 
     action SetColor(Color color)
+        parent:BaseLight:SetColor(color)
         attribute:color = color
     end
 
     action SetColor(number red, number green, number blue, number alpha)
-        Color color
-        color:SetColor(red, green, blue, alpha)
-        attribute:color = color
+        parent:BaseLight:SetColor(red, green, blue, alpha)
+        attribute:color = GetColor()
     end
 
-    action GetColor returns Color
-        return attribute:color
-    end
-
-    action GetAmbientLightAttribute returns ColorAttribute
+    action GetAttribute returns ColorAttribute
         return attribute
     end
 

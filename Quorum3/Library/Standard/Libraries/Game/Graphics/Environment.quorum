@@ -23,6 +23,8 @@ class Environment is Attributes
             Add(cast(DirectionalLight, light))
         elseif light is PointLight
             Add(cast(PointLight, light))
+        elseif light is AmbientLight
+            Add(cast(AmbientLight, light))
         else
             alert("I couldn't identify the type of this light! I can use DirectionalLight or PointLight.")
         end
@@ -135,13 +137,20 @@ class Environment is Attributes
     This action will add ambient lighting to the Environment.
     */
     action Add(AmbientLight light)
-        Add(light:GetAmbientLightAttribute())
+        Add(light:GetAttribute())
     end
 
     /*
     This action will remove all ambient lighting from this Environment.
     */
-    action RemoveAmbientLight
+    action Remove(AmbientLight light)
+        RemoveAmbientLighting()
+    end
+
+    /*
+    This action will remove all ambient lighting from this Environment.
+    */
+    action RemoveAmbientLighting
         ColorAttribute color
         Remove(color:GetAmbientLightValue())
     end

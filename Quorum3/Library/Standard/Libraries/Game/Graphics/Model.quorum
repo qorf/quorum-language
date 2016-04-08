@@ -12,20 +12,41 @@ use Libraries.Containers.HashTable
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Vector3
 use Libraries.Compute.Quaternion
+use Libraries.Interface.Item3D
 
-class Model 
+class Model is Item3D
     
-    public Array<Material> materials
-    public Array<Node> nodes
-    public Array<Animation> animations
-    public ModelBlueprint modelBlueprint = undefined
-    public Matrix4 transform = undefined
+    Array<Material> materials
+    Array<Node> nodes
+    Array<Animation> animations
+    ModelBlueprint modelBlueprint = undefined
+    //public Matrix4 transform = undefined
     //public Object userData // Used to pass data to the shader
 
     // Static in libGDX: is this necessary?
     private boolean defaultShareKeyframes = true
 
     private HashTable<NodePart, HashTable<Node, Matrix4>> nodePartBones
+
+    action GetMaterials returns Array<Material>
+        return materials
+    end
+
+    action GetNodes returns Array<Node>
+        return nodes
+    end
+
+    action GetAnimations returns Array<Animation>
+        return animations
+    end
+
+    action SetModelBlueprint(ModelBlueprint schematic)
+        modelBlueprint = schematic
+    end
+
+    action GetModelBlueprint returns ModelBlueprint
+        return modelBlueprint
+    end
     
     action Load(ModelBlueprint loader)
         Load(loader, undefined)
@@ -33,11 +54,8 @@ class Model
 
     action Load(ModelBlueprint loader, Matrix4 matrix)
         modelBlueprint = loader
-        if matrix = undefined
-            Matrix4 temp
-            transform = temp
-        else
-            transform = matrix
+        if matrix not= undefined
+            GetTransform():Set(matrix)
         end
 
         CopyNodes(loader:nodes)
@@ -305,10 +323,10 @@ class Model
     private action GetRenderable(Node node, NodePart nodePart) returns Renderable
         Renderable out
         nodePart:SetRenderable(out)
-        if nodePart:bones = undefined and transform not= undefined
-            out:worldTransform:Set(transform):Multiply(node:globalTransform)
-        elseif transform not= undefined
-            out:worldTransform:Set(transform)
+        if nodePart:bones = undefined and GetTransform() not= undefined
+            out:worldTransform:Set(GetTransform()):Multiply(node:globalTransform)
+        elseif GetTransform() not= undefined
+            out:worldTransform:Set(GetTransform())
         else
             out:worldTransform:IdentityMatrix()
         end

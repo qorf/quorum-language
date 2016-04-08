@@ -546,6 +546,21 @@ class Item3D is Item
         return parentItem
     end
 
+    /*
+    This action will return the Matrix4 containing the transformations applied
+    to the Item3D, including its global position, rotation, and scaling.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        use Libraries.Compute.Matrix4
+        Item3D myItem
+        Matrix4 matrix = myItem:GetTransform()
+    */
+    action GetTransform returns Matrix4
+        return transform
+    end
+
     /*  
     This action adds a different Item3D into this one. This makes a few things happen.
         1. The added item will get this item as its parent.
