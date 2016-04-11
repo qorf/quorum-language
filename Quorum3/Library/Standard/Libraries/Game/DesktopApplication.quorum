@@ -4,7 +4,7 @@ use Libraries.Containers.Array
 use Libraries.System.DateTime
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
-use Libraries.Game.Graphics.Painter
+use Libraries.Game.Graphics.Painter2D
 
 /*
 This is an internal class used by the Game class to manage several resources
@@ -24,7 +24,7 @@ class DesktopApplication is Application
         
         parent:Application:Setup(game)
 
-        Painter tempBatch
+        Painter2D tempBatch
         game:batch = tempBatch
 
         MainLoop()

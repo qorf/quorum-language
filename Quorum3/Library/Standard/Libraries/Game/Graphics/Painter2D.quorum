@@ -1,25 +1,25 @@
 package Libraries.Game.Graphics
 
 /*
-The Painter class is used to draw Drawable objects on the screen. The Game class
-provides a default Painter, which is passed to Items and Drawables via their
-Draw action. It is highly recommended to use that Painter when using the Game
+The Painter2D class is used to draw Drawable objects on the screen. The Game class
+provides a default Painter2D, which is passed to Items and Drawables via their
+Draw action. It is highly recommended to use that Painter2D when using the Game
 class. 
 
 Note that when using the Game class, in most cases it is not necessary to ever 
-use the Painter class manually, as the Game class will automatically draw
+use the Painter2D class manually, as the Game class will automatically draw
 Drawables that have been added to it.
 
 Attribute: Example
 
-    use Libraries.Game.Graphics.Painter
+    use Libraries.Game.Graphics.Painter2D
     use Libraries.Game.Graphics.Drawable
     use Libraries.Game.Graphics.Color
     use Libraries.Game.Game
 
     class Main is Game
 
-        Painter myPainter = undefined
+        Painter2D myPainter = undefined
         Drawable square
 
         action Main
@@ -42,7 +42,7 @@ Attribute: Example
 
     end
 */
-class Painter 
+class Painter2D 
     
     Texture lastTexture = undefined
 
@@ -62,14 +62,14 @@ class Painter
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Painter
+        use Libraries.Game.Graphics.Painter2D
         use Libraries.Game.Graphics.Drawable
         use Libraries.Game.Graphics.Color
         use Libraries.Game.Game
 
         class Main is Game
 
-            Painter myPainter = undefined
+            Painter2D myPainter = undefined
             Drawable square
 
             action Main
@@ -102,14 +102,14 @@ class Painter
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Painter
+        use Libraries.Game.Graphics.Painter2D
         use Libraries.Game.Graphics.Drawable
         use Libraries.Game.Graphics.Color
         use Libraries.Game.Game
 
         class Main is Game
 
-            Painter myPainter = undefined
+            Painter2D myPainter = undefined
             Drawable square
 
             action Main
@@ -133,18 +133,18 @@ class Painter
     system action SetColor(number red, number green, number blue, number alpha)
 
     /*
-    This action returns the current color filter on the Painter. The default
+    This action returns the current color filter on the Painter2D. The default
     color filter is white.
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Painter
+        use Libraries.Game.Graphics.Painter2D
         use Libraries.Game.Graphics.Color
         use Libraries.Game.Game
 
         class Main is Game
 
-            Painter myPainter = undefined
+            Painter2D myPainter = undefined
             Color color
 
             action Main
@@ -164,18 +164,18 @@ class Painter
     end
 
     /*
-    This action returns whether the Painter is currently active for drawing. A
-    Painter becomes active for drawing after calling Painter:Begin(), and stays
-    active until Painter:End() is called.
+    This action returns whether the Painter2D is currently active for drawing. A
+    Painter2D becomes active for drawing after calling Painter2D:Begin(), and stays
+    active until Painter2D:End() is called.
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Painter
+        use Libraries.Game.Graphics.Painter2D
         use Libraries.Game.Game
 
         class Main is Game
 
-            Painter myPainter = undefined
+            Painter2D myPainter = undefined
             Drawable square
 
             action Main
@@ -185,7 +185,7 @@ class Painter
             action CreateGame
                 myPainter = parent:Game:batch
                 myPainter:Begin()
-                output "Is Painter drawing? " + myPainter:IsDrawing()
+                output "Is Painter2D drawing? " + myPainter:IsDrawing()
                 myPainter:End()
             end
 
@@ -196,17 +196,17 @@ class Painter
     end
 
     /*
-    This action returns whether the Painter is currently set to use blending in
+    This action returns whether the Painter2D is currently set to use blending in
     OpenGL for the pictures that are being drawn.
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Painter
+        use Libraries.Game.Graphics.Painter2D
         use Libraries.Game.Game
 
         class Main is Game
 
-            Painter myPainter = undefined
+            Painter2D myPainter = undefined
             Drawable square
 
             action Main
@@ -215,7 +215,7 @@ class Painter
 
             action CreateGame
                 myPainter = parent:Game:batch
-                output "Is Painter blending? " + myPainter:IsBlendingEnabled()
+                output "Is Painter2D blending? " + myPainter:IsBlendingEnabled()
             end
 
         end
@@ -223,19 +223,19 @@ class Painter
     system action IsBlendingEnabled returns boolean
 
     /*
-    Initializes the Painter with default settings. The Painter can not be used
-    until it is initialized with this action. Note that the default Painter
+    Initializes the Painter2D with default settings. The Painter2D can not be used
+    until it is initialized with this action. Note that the default Painter2D
     provided by the Game class will already be loaded with this action, so you
-    never have to call this action on that Painter.
+    never have to call this action on that Painter2D.
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Painter
+        use Libraries.Game.Graphics.Painter2D
         use Libraries.Game.Game
 
         class Main is Game
 
-            Painter myNewPainter
+            Painter2D myNewPainter
 
             action Main
                 StartGame()
@@ -250,17 +250,17 @@ class Painter
     system action LoadDefaultPainter
 
     /*
-    Activates this Painter so it may draw items. If the Painter is already
+    Activates this Painter2D so it may draw items. If the Painter2D is already
     active, this will cause an error.
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Painter
+        use Libraries.Game.Graphics.Painter2D
         use Libraries.Game.Game
 
         class Main is Game
 
-            Painter myPainter = undefined
+            Painter2D myPainter = undefined
 
             action Main
                 StartGame()
@@ -277,17 +277,17 @@ class Painter
     system action Begin
 
     /*
-    Deactivates this Painter. A deactivated Painter can not draw. If the Painter
+    Deactivates this Painter2D. A deactivated Painter2D can not draw. If the Painter2D
     is already deactived, this will cause an error.
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Painter
+        use Libraries.Game.Graphics.Painter2D
         use Libraries.Game.Game
 
         class Main is Game
 
-            Painter myPainter = undefined
+            Painter2D myPainter = undefined
 
             action Main
                 StartGame()
@@ -304,7 +304,7 @@ class Painter
     system action End
 
     /*
-    Draws a Drawable on the screen. A Painter must be activated with Begin()
+    Draws a Drawable on the screen. A Painter2D must be activated with Begin()
     before it can draw. When using this in the game engine, this should be used
     inside the Draw action of a class inheriting from Item. If it is drawn as
     part of the normal update process, the image will draw, then immediately be
@@ -327,13 +327,13 @@ class Painter
     system action Draw(TextureRegion drawRegion, number drawX, number drawY)
 
     /*
-    Disposes of the plugin data stored by the Painter, freeing up resources when
-    the Painter is no longer needed. This should never be called on the default
-    Painter provided by the Game class.
+    Disposes of the plugin data stored by the Painter2D, freeing up resources when
+    the Painter2D is no longer needed. This should never be called on the default
+    Painter2D provided by the Game class.
 
     Attribute: Example
 
-        use Libraries.Game.Graphics.Painter
+        use Libraries.Game.Graphics.Painter2D
         use Libraries.Game.Game
 
         class Main is Game
@@ -343,7 +343,7 @@ class Painter
             end
 
             action CreateGame
-                Painter myNewPainter
+                Painter2D myNewPainter
                 myNewPainter:LoadDefaultPainter()
                 myNewPainter:Dispose()
             end
@@ -353,7 +353,7 @@ class Painter
     system action Dispose
 
     /*
-    This action forces the Painter to immediately draw all images it has stored
+    This action forces the Painter2D to immediately draw all images it has stored
     inside of it that are awaiting processing.
     */
     system action Flush

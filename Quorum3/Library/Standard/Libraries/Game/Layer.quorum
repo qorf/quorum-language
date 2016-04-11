@@ -1,0 +1,75 @@
+package Libraries.Game
+
+use Libraries.Game.Graphics.Camera
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.TouchEvent
+
+class Layer 
+    
+    boolean visible = true
+
+    /*
+    This action will update all of the items contained within this Layer. The
+    given number of seconds will be passed to each updated item.
+    */
+    blueprint action Update(number seconds)
+
+    /*
+    This action will draw all items in this Layer on the screen (if they can be
+    drawn and they aren't hidden). If the Layer is currently hidden, then this
+    action will do nothing.
+    */
+    blueprint action Draw
+
+    /*
+    This action will hide the Layer. This will prevent the Layer from appearing
+    when asked to draw.
+    */
+    action Hide
+        visible = false
+    end
+
+    /*
+    This action will show the Layer. When Draw is called on a Layer which is
+    showing, its items will appear on the screen. Layers begin showing by default.
+    */
+    action Show
+        visible = true
+    end
+
+    /*
+    This action will return if the current layer is currently visible or not.
+    Layers which are showing will be drawn on the screen automatically by the
+    Game class. Layers begin showing by default.
+    */
+    action IsShowing returns boolean
+        return visible
+    end
+
+    /*
+    This action will set the camera being used by this Layer. The camera is used
+    to determine what will be drawn on the screen. Objects will be drawn on the
+    screen as they are seen by the Layer's set camera.
+    */
+    blueprint action SetCamera(Camera camera)
+
+    /*
+    This action will return the camera being used by this Layer. The camera is used
+    to determine what will be drawn on the screen. Objects will be drawn on the
+    screen as they are seen by the Layer's set camera.
+    */
+    blueprint action GetCamera returns Camera
+
+    /*
+    This action will notify mouse listeners that are a part of this layer of the
+    given mouse event.
+    */
+    blueprint action ProcessMouseEvent(MouseEvent event)
+
+    /*
+    This action will notify touch listeners that are a part of this layer of the
+    given touch event.
+    */
+    blueprint action ProcessTouchEvent(TouchEvent event)
+
+end

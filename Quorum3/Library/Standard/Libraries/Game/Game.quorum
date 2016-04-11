@@ -21,7 +21,7 @@ use Libraries.Game.GameInput
 use Libraries.Game.DesktopInput
 use Libraries.Game.IOSInput
 use Libraries.Game.Graphics.IOSGraphics
-use Libraries.Game.Graphics.Painter
+use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Color
@@ -63,7 +63,7 @@ Attribute: Example
 */
 class Game
 
-    public Painter batch = undefined
+    public Painter2D batch = undefined
     DesktopConfiguration desktopConfig
     IOSConfiguration iosConfig
     AndroidConfiguration androidConfig

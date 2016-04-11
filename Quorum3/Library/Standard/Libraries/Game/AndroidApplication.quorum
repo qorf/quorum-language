@@ -1,6 +1,6 @@
 package Libraries.Game
 
-use Libraries.Game.Graphics.Painter
+use Libraries.Game.Graphics.Painter2D
 
 class AndroidApplication is Application 
     
@@ -10,7 +10,7 @@ class AndroidApplication is Application
         manager:SetApplication(me)
         SetupNative(game, parent:Application:display:GetConfiguration())
         
-        Painter painter
+        Painter2D painter
         game:batch = painter
     end
 

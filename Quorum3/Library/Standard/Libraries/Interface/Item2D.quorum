@@ -11,7 +11,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Compute.Math
 use Libraries.Game.Shapes.Rectangle
-use Libraries.Game.Graphics.Painter
+use Libraries.Game.Graphics.Painter2D
 
 class Item2D is Item
     
@@ -1952,7 +1952,7 @@ class Item2D is Item
     Libraries.Game.Graphics.Drawable class, can be. To see how they draw, see
     their documentation.
     */
-    action Draw(Painter painter)
+    action Draw(Painter2D painter)
         PrepareVertices()
     
         if not IsShowing()
