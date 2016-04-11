@@ -11,7 +11,7 @@ import quorum.Libraries.Game.IOSConfiguration;
 import quorum.Libraries.Game.IOSDisplay_;
 import quorum.Libraries.Game.IOSDisplay;
 import quorum.Libraries.Game.Graphics.IOSGraphics;
-import quorum.Libraries.Game.Graphics.Painter;
+import quorum.Libraries.Game.Graphics.Painter2D;
 
 import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.foundation.Foundation;

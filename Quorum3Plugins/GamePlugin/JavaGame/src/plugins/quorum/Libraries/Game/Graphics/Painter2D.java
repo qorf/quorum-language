@@ -15,7 +15,7 @@ import plugins.quorum.Libraries.Game.libGDX.Matrix4;
  *
  * @author alleew
  */
-public class Painter 
+public class Painter2D 
 {
     public java.lang.Object me_ = null;
     
@@ -48,7 +48,7 @@ public class Painter
     int totalRenderCalls = 0;
     int maxSpritesInBatch = 0;
     
-    public Painter()
+    public Painter2D()
     {
         // The default constructor in Java does nothing. Note that the default
         // constructor in Quorum, however, will call LoadDefaultPainter().
@@ -56,7 +56,7 @@ public class Painter
     
     public void LoadDefaultPainter()
     {
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         SetColor(quorumBatch.color);
         
@@ -92,7 +92,7 @@ public class Painter
         ownsShader = true;
     }
     
-    /** Returns a new instance of the default shader used by Painter for GL2 when no shader is specified. */
+    /** Returns a new instance of the default shader used by Painter2D for GL2 when no shader is specified. */
     static public ShaderProgram CreateDefaultShader () 
     {
 	String vertexShader = "attribute vec4 " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
@@ -130,7 +130,7 @@ public class Painter
     
     public void Begin()
     {
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         if (quorumBatch.IsDrawing())
             throw new GameRuntimeError("This batch is already drawing! Call End() before calling Begin() again.");
@@ -147,7 +147,7 @@ public class Painter
     
     public void End()
     {
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         if (!quorumBatch.IsDrawing())
             throw new GameRuntimeError("This batch isn't drawing yet! Call Begin() before calling End().");
@@ -171,7 +171,7 @@ public class Painter
     
     public void SetColor(quorum.Libraries.Game.Graphics.Color_ newColor)
     {
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         quorumBatch.color = newColor;
         colorValue = (float)quorumBatch.color.EncodeColorAsNumber();
@@ -179,7 +179,7 @@ public class Painter
     
     public void SetColor(double r, double g, double b, double a)
     {
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         quorumBatch.color.SetColor(r, g, b, a);
         colorValue = (float)quorumBatch.color.EncodeColorAsNumber();
@@ -193,10 +193,10 @@ public class Painter
     public void Draw (quorum.Libraries.Game.Graphics.Drawable_ drawable, double globalOffsetX, double globalOffsetY, boolean forceUpdate)
     {
         
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
 	if (!quorumBatch.IsDrawing())
-            throw new GameRuntimeError("Painter.Begin() must be called before Draw.");
+            throw new GameRuntimeError("Painter2D.Begin() must be called before Draw.");
 
         int verticesLength = vertices.length;
         if (drawable.GetTexture() != quorumBatch.lastTexture) {
@@ -230,10 +230,10 @@ public class Painter
     /*public void Draw (quorum.Libraries.Game.Graphics.Sprite_ sprite) 
     {
         
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
 	if (!quorumBatch.IsDrawing())
-            throw new GameRuntimeError("Painter.Begin() must be called before Draw.");
+            throw new GameRuntimeError("Painter2D.Begin() must be called before Draw.");
 
         int verticesLength = vertices.length;
         if (sprite.GetTexture() != quorumBatch.lastTexture)
@@ -269,10 +269,10 @@ public class Painter
     public void Draw(quorum.Libraries.Game.Graphics.Texture_ drawTexture, double xValue, double yValue, double width, double height)
     {
         
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         if (!quorumBatch.IsDrawing())
-            throw new GameRuntimeError("Painter.Begin() must be called before Draw.");
+            throw new GameRuntimeError("Painter2D.Begin() must be called before Draw.");
         
         float[] vertices = this.vertices;
         
@@ -327,10 +327,10 @@ public class Painter
     
     public void Draw(quorum.Libraries.Game.Graphics.TextureRegion_ region, double xValue, double yValue, double width, double height)
     {
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         if (!quorumBatch.IsDrawing())
-            throw new GameRuntimeError("Painter.Begin() must be called before Draw.");
+            throw new GameRuntimeError("Painter2D.Begin() must be called before Draw.");
 
 	float[] vertices = this.vertices;
 
@@ -380,7 +380,7 @@ public class Painter
     
     public void Flush()
     {
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         
         if (index == 0)
@@ -462,7 +462,7 @@ public class Painter
         
     protected void SwitchTexture (quorum.Libraries.Game.Graphics.Texture_ texture) 
     {
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         Flush();
         quorumBatch.lastTexture = texture;
         inverseTexWidth = 1.0f / (float)texture.GetWidth();
@@ -481,7 +481,7 @@ public class Painter
 
     public void SetProjectionMatrix (Matrix4 projection) 
     {
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
 	if (quorumBatch.IsDrawing()) 
             Flush();
@@ -492,7 +492,7 @@ public class Painter
 
     public void SetTransformMatrix (Matrix4 transform) 
     {
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
 	if (quorumBatch.IsDrawing()) 
                 Flush();
@@ -518,7 +518,7 @@ public class Painter
 
     public void SetShader (ShaderProgram shader) 
     {
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
 	if (quorumBatch.IsDrawing()) 
         {
@@ -546,7 +546,7 @@ public class Painter
     
     public void TintShader(quorum.Libraries.Game.Graphics.Color_ color)
     {
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         if (quorumBatch.IsDrawing())
             this.shader.setAttributef(ShaderProgram.COLOR_ATTRIBUTE, color);
@@ -554,7 +554,7 @@ public class Painter
     
     public void ResetShaderTint()
     {
-        final quorum.Libraries.Game.Graphics.Painter quorumBatch = (quorum.Libraries.Game.Graphics.Painter) me_;
+        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         if (quorumBatch.IsDrawing())
             this.shader.setAttributef(ShaderProgram.COLOR_ATTRIBUTE, 1.0f, 1.0f, 1.0f, 1.0f);

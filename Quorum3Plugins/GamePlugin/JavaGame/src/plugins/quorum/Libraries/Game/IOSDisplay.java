@@ -33,7 +33,7 @@ import org.robovm.apple.opengles.EAGLRenderingAPI;
 import plugins.quorum.Libraries.Game.libGDX.HWMachine;
 import plugins.quorum.Libraries.Game.libGDX.IOSDevice;
 import plugins.quorum.Libraries.Game.Graphics.IOSGraphics;
-import quorum.Libraries.Game.Graphics.Painter;
+import quorum.Libraries.Game.Graphics.Painter2D;
 import quorum.Libraries.Game.IOSConfiguration_;
 
 /**
@@ -422,8 +422,8 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         if (!created)
         {
             graphics.glViewport(0, 0, width, height);
-            // Create the game's Painter.
-            Painter painter = new Painter();
+            // Create the game's Painter2D.
+            Painter2D painter = new Painter2D();
             ((quorum.Libraries.Game.IOSApplication)GameState.GetApp()).plugin_.game.Set_Libraries_Game_Game__batch_(painter);
             
             // Before calling CreateGame, we need to make sure the default active Panel is the right size.
