@@ -6,7 +6,7 @@
 package plugins.quorum.Libraries.Game.Graphics;
 
 import plugins.quorum.Libraries.Game.GameRuntimeError;
-import quorum.Libraries.Game.Graphics.ModelBatch_;
+import quorum.Libraries.Game.Graphics.Painter3D_;
 import quorum.Libraries.Game.Graphics.Camera_;
 import quorum.Libraries.Game.Graphics.Camera;
 import quorum.Libraries.Game.Graphics.Renderable_;
@@ -17,7 +17,7 @@ import quorum.Libraries.Game.Graphics.Environment_;
  *
  * @author alleew
  */
-public class ModelBatch 
+public class Painter3D 
 {
     public java.lang.Object me_ = null;
     
@@ -28,15 +28,15 @@ public class ModelBatch
     private boolean isRendering = false;
     
     // A convenient way to access the quorum side.
-    private quorum.Libraries.Game.Graphics.ModelBatch quorumBatch;
+    private quorum.Libraries.Game.Graphics.Painter3D quorumBatch;
     
     private Array_ renderables;
     
     private Camera_ camera;
     
-    public void Initialize(ModelBatch_ batch, Array_ array)
+    public void Initialize(Painter3D_ batch, Array_ array)
     {
-        quorumBatch = (quorum.Libraries.Game.Graphics.ModelBatch)batch;
+        quorumBatch = (quorum.Libraries.Game.Graphics.Painter3D)batch;
         renderables = array;
     }
     
@@ -71,9 +71,9 @@ public class ModelBatch
     public void Begin()
     {
         if (isRendering)
-            throw new GameRuntimeError("The ModelBatch is already rendering! Call End() before calling Begin() again.");
+            throw new GameRuntimeError("The Painter3D is already rendering! Call End() before calling Begin() again.");
         if (camera == null)
-            throw new GameRuntimeError("The ModelBatch must have a camera set before calling Begin().");
+            throw new GameRuntimeError("The Painter3D must have a camera set before calling Begin().");
         
         context.Begin();
         isRendering = true;
