@@ -368,67 +368,100 @@ class Camera
     end
 
     /*
+    This action will translate a point given in screen coordinates to the world
+    space. The calculated point will be on the near plane of the camera.
+    */
+    action ScreenToWorldCoordinates(number x, number y) returns Vector3
+        Vector3 vector
+        vector:Set(x, y, 0)
+        return ScreenToWorldCoordinates(vector)
+    end
 
-	/** Function to translate a point given in screen coordinates to world space. It's the same as GLU gluUnProject, but does not
-	 * rely on OpenGL. The x- and y-coordinate of vec are assumed to be in screen coordinates (origin is the top left corner, y
-	 * pointing down, x pointing to the right) as reported by the touch methods in {@link Input}. A z-coordinate of 0 will return a
-	 * point on the near plane, a z-coordinate of 1 will return a point on the far plane. This method allows you to specify the
-	 * viewport position and dimensions in the coordinate system expected by {@link GL20#glViewport(int, int, int, int)}, with the
-	 * origin in the bottom left corner of the screen.
-	 * @param screenCoords the point in screen coordinates (origin top left)
-	 * @param viewportX the coordinate of the bottom left corner of the viewport in glViewport coordinates.
-	 * @param viewportY the coordinate of the bottom left corner of the viewport in glViewport coordinates.
-	 * @param viewportWidth the width of the viewport in pixels
-	 * @param viewportHeight the height of the viewport in pixels *-
-	public Vector3 unproject (Vector3 screenCoords, float viewportX, float viewportY, float viewportWidth, float viewportHeight) {
-		float x = screenCoords.x, y = screenCoords.y;
-		x = x - viewportX;
-		y = Gdx.graphics.getHeight() - y - 1;
-		y = y - viewportY;
-		screenCoords.x = (2 * x) / viewportWidth - 1;
-		screenCoords.y = (2 * y) / viewportHeight - 1;
-		screenCoords.z = 2 * screenCoords.z - 1;
-		screenCoords.prj(invProjectionView);
-		return screenCoords;
-	}
+    /*
+    This action will translate a point given in screen coordinates to the world
+    space. If the action is passed a true boolean value, the calculated point
+    will be on the near clipping plane of the camera. Otherwise, it will be on
+    the far plane.
+    */
+    action ScreenToWorldCoordinates(number x, number y, boolean useNearPlane) returns Vector3
+        Vector3 vector
+        if useNearPlane
+            vector:Set(x, y, 0)
+        else
+            vector:Set(x, y, 1)
+        end
+        return ScreenToWorldCoordinates(vector)
+    end
 
-	/** Function to translate a point given in screen coordinates to world space. It's the same as GLU gluUnProject but does not
-	 * rely on OpenGL. The viewport is assumed to span the whole screen and is fetched from {@link Graphics#getWidth()} and
-	 * {@link Graphics#getHeight()}. The x- and y-coordinate of vec are assumed to be in screen coordinates (origin is the top left
-	 * corner, y pointing down, x pointing to the right) as reported by the touch methods in {@link Input}. A z-coordinate of 0
-	 * will return a point on the near plane, a z-coordinate of 1 will return a point on the far plane.
-	 * @param screenCoords the point in screen coordinates *-
-	public Vector3 unproject (Vector3 screenCoords) {
-		unproject(screenCoords, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		return screenCoords;
-	}
+    /*
+    This action will translate a point given in screen coordinates to the world
+    space. The z-coordinate of the given coordinates will be used to determine
+    if the world coordinate returned should be on the near or far plane of the
+    camera. A z-coordinate of 0 will get a point on the near plane, and a
+    z-coordinate of 1 will get a point on the far plane. The calculated point
+    will be contained in the Vector3 object that was passed as a parameter.
+    */
+    action ScreenToWorldCoordinates(Vector3 coords) returns Vector3
+        return ScreenToWorldCoordinates(coords, 0, 0, GetWidth(), GetHeight())
+    end
 
-	/** Projects the {@link Vector3} given in world space to screen coordinates. It's the same as GLU gluProject with one small
-	 * deviation: The viewport is assumed to span the whole screen. The screen coordinate system has its origin in the
-	 * <b>bottom</b> left, with the y-axis pointing <b>upwards</b> and the x-axis pointing to the right. This makes it easily
-	 * useable in conjunction with {@link Batch} and similar classes. *-
-	public Vector3 project (Vector3 worldCoords) {
-		project(worldCoords, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		return worldCoords;
-	}
+    /*
+    This action will translate a point given in screen coordinates to the world
+    space. The z-coordinate of the given coordinates will be used to determine
+    if the world coordinate returned should be on the near or far plane of the
+    camera. A z-coordinate of 0 will get a point on the near plane, and a
+    z-coordinate of 1 will get a point on the far plane. The calculated point
+    will be contained in the Vector3 object that was passed as a parameter.
 
-	/** Projects the {@link Vector3} given in world space to screen coordinates. It's the same as GLU gluProject with one small
-	 * deviation: The viewport is assumed to span the whole screen. The screen coordinate system has its origin in the
-	 * <b>bottom</b> left, with the y-axis pointing <b>upwards</b> and the x-axis pointing to the right. This makes it easily
-	 * useable in conjunction with {@link Batch} and similar classes. This method allows you to specify the viewport position and
-	 * dimensions in the coordinate system expected by {@link GL20#glViewport(int, int, int, int)}, with the origin in the bottom
-	 * left corner of the screen.
-	 * @param viewportX the coordinate of the bottom left corner of the viewport in glViewport coordinates.
-	 * @param viewportY the coordinate of the bottom left corner of the viewport in glViewport coordinates.
-	 * @param viewportWidth the width of the viewport in pixels
-	 * @param viewportHeight the height of the viewport in pixels *-
-	public Vector3 project (Vector3 worldCoords, float viewportX, float viewportY, float viewportWidth, float viewportHeight) {
-		worldCoords.prj(combined);
-		worldCoords.x = viewportWidth * (worldCoords.x + 1) / 2 + viewportX;
-		worldCoords.y = viewportHeight * (worldCoords.y + 1) / 2 + viewportY;
-		worldCoords.z = (worldCoords.z + 1) / 2;
-		return worldCoords;
-	}
+    This action also takes the position of the viewport's origin as x and y
+    coordinates, and the width and height of the viewport.
+    */
+    action ScreenToWorldCoordinates(Vector3 coords, number viewportX, number viewportY, number viewportWidth, number viewportHeight) returns Vector3
+        number x = coords:GetX() - viewportX
+        number y = coords:GetY() - viewportY
+        coords:SetX((2 * x) / viewportWidth - 1)
+        coords:SetY((2 * y) / viewportHeight - 1)
+        coords:SetZ(2 * coords:GetZ() - 1)
+        coords:Project(inverseProjectionView)
+        return coords
+    end
+
+    /*
+    This action will return the screen coordinates of a point in the world space.
+    The returned point will be stored in a new Vector3 object.
+    */
+    action WorldToScreenCoordinates(number x, number y, number z) returns Vector3
+        Vector3 temp
+        temp:Set(x, y, z)
+        return WorldToScreenCoordinates(temp)
+    end
+
+    /*
+    This action will return the screen coordinates of a point in the world space.
+    The returned point will be stored in the same coordinate vector used to
+    indicate the world coordinates. 
+    */
+    action WorldToScreenCoordinates(Vector3 coords) returns Vector3
+        return WorldToScreenCoordinates(coords, 0, 0, GetWidth(), GetHeight())
+    end
+
+    /*
+    This action will return the screen coordinates of a point in the world space.
+    The returned point will be stored in the same coordinate vector used to
+    indicate the world coordinates. 
+
+    This action will calculate the point using the given position and dimensions
+    of the viewport.
+    */
+    action WorldToScreenCoordinates(Vector3 coords, number viewportX, number viewportY, number viewportWidth, number viewportHeight) returns Vector3
+        coords:Project(combined)
+        coords:SetX(viewportWidth * (coords:GetX() + 1) / 2 + viewportX)
+        coords:SetY(viewportHeight * (coords:GetY() + 1) / 2 + viewportY)
+        coords:SetZ((coords:GetZ() + 1) / 2)
+        return coords
+    end
+
+    /*
 
 	/** Creates a picking {@link Ray} from the coordinates given in screen coordinates. It is assumed that the viewport spans the
 	 * whole screen. The screen coordinates origin is assumed to be in the top left corner, its y-axis pointing down, the x-axis

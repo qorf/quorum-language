@@ -42,7 +42,7 @@ use Libraries.Interface.Events.TouchListener
 
 // 3D TESTING CODE!
 use Libraries.Game.Graphics.Model
-use Libraries.Game.Graphics.ModelBatch
+use Libraries.Game.Graphics.Painter3D
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -176,7 +176,7 @@ class Game
         end
 
         // 3D TESTING CODE
-        ModelBatch newBatch
+        Painter3D newBatch
         SetModelBatch(newBatch)
 
         /*
@@ -1144,13 +1144,13 @@ class Game
     */
 
     List<Model> modelList
-    ModelBatch modelBatch = undefined
+    Painter3D modelBatch = undefined
 
-    action GetModelBatch returns ModelBatch
+    action GetModelBatch returns Painter3D
         return modelBatch
     end
 
-    action SetModelBatch(ModelBatch batch)
+    action SetModelBatch(Painter3D batch)
         modelBatch = batch
     end
 

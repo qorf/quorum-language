@@ -8,6 +8,7 @@ use Libraries.Compute.Vector3
 use Libraries.Compute.Math
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Interface.Events.MouseEvent
+use Libraries.Game.Graphics.Painter3D
 
 class Item3D is Item
 
@@ -983,5 +984,24 @@ class Item3D is Item
         Vector3 vector
         vector:Set(scaleX, scaleY, scaleZ)
         Scale(vector, scaleChildren)
+    end
+
+    /*
+    This action is used to draw this Item on the screen, and then draw all of
+    the Item's children hierarchy on the screen. Note that Items themselves can
+    not be drawn, but some classes that extend the Item class, such as the
+    Libraries.Game.Graphics.Model class, can be. To see how they draw, see
+    their documentation.
+    */
+    action Draw(Painter3D painter)
+        if not IsShowing()
+            return now
+        end
+
+        integer counter = 0
+        repeat children:GetSize() times
+            children:Get(counter):Draw(painter)
+            counter = counter + 1
+        end
     end
 end

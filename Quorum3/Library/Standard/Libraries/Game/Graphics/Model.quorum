@@ -335,4 +335,19 @@ class Model is Item3D
         return out
     end
 
+    /*
+    The Draw action is what makes a Model appear on the screen. This action
+    will automatically be called by the Game class if the Model has been
+    added to the Game with the Add(Item) action. 
+    */
+    action Draw(Painter3D painter)
+        if not IsShowing()
+            return now
+        end
+
+        painter:Render(me)
+
+        parent:Item3D:Draw(painter)
+    end
+
 end

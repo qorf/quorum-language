@@ -1,22 +1,21 @@
 package Libraries.Game
 
 use Libraries.Game.Graphics.Camera
-use Libraries.Game.Graphics.OrthographicCamera
+use Libraries.Game.Graphics.PerspectiveCamera
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Containers.Array
-use Libraries.Interface.Item2D
-use Libraries.Game.Graphics.Painter2D
-use Libraries.Compute.Vector3
+use Libraries.Interface.Item3D
+use Libraries.Game.Graphics.Painter3D
 
-class Layer2D is Layer
+class Layer3D is Layer
 
-    Array<Item2D> items
+    Array<Item3D> items
     Camera camera = undefined
-    Painter2D painter
+    Painter3D painter
 
     on create
-        OrthographicCamera cam
+        PerspectiveCamera cam
         camera = cam
     end
 
@@ -31,7 +30,7 @@ class Layer2D is Layer
             counter = counter + 1
         end
     end
-    
+
     /*
     This action will draw all items in this Layer on the screen (if they can be
     drawn and they aren't hidden). If the Layer is currently hidden, then this
@@ -41,9 +40,10 @@ class Layer2D is Layer
         if not IsShowing()
             return now
         end
-
-        camera:Update()
         
+        camera:Update()
+        painter:SetCamera(camera)
+
         painter:Begin()
 
         integer counter = 0
@@ -78,22 +78,11 @@ class Layer2D is Layer
     given mouse event.
     */
     action ProcessMouseEvent(MouseEvent event)
-    
-        boolean processing = true
-        integer counter = items:GetSize()
-        Item2D temp = undefined
-
-        Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
-
-        repeat while counter > 0 and processing
-            counter = counter - 1
-            temp = items:Get(counter):GetItemAt(pointVector:GetX(), pointVector:GetY())
-
-            if temp not= undefined
-                temp:ProcessMouseEvent(event)
-                processing = not event:WasEventHandled()
-            end
-        end
+        /*
+        To be implemented - requires BoundingBox, Ray, and Intersector (or the
+        functionality of Intersector). Ray is used to get the PickRay from the
+        Camera.
+        */
     end
 
     /*
@@ -101,22 +90,11 @@ class Layer2D is Layer
     given touch event.
     */
     action ProcessTouchEvent(TouchEvent event)
-        
-        boolean processing = true
-        integer counter = items:GetSize()
-        Item2D temp = undefined
-
-        Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
-
-        repeat while counter > 0 and processing
-            counter = counter - 1
-            temp = items:Get(counter):GetItemAt(pointVector:GetX(), pointVector:GetY())
-
-            if temp not= undefined
-                temp:ProcessTouchEvent(event)
-                processing = not event:WasEventHandled()
-            end
-        end
+        /*
+        To be implemented - requires BoundingBox, Ray, and Intersector (or the
+        functionality of Intersector). Ray is used to get the PickRay from the
+        Camera.
+        */
     end
 
 end
