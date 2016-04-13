@@ -27,6 +27,7 @@ use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.List
+use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.System.File
 use Libraries.System.Properties
@@ -76,6 +77,11 @@ class Game
     private GameInput gameInput = undefined
     private List<Item2D> collisionList
     private List<CollisionEvent> currentCollisions
+
+    // Variables for the Layer system.
+    private Array<Layer> layers
+    private Layer2D currentLayer2D = undefined
+    private Layer3D currentLayer3D = undefined
 
     private constant integer ANDROID_APPLICATION = 1
     private constant integer DESKTOP_APPLICATION = 2
@@ -1173,6 +1179,111 @@ class Game
         end
 
         modelBatch:End()
+    end
+
+    /*
+    This action sets the game to use the default layers. The default layers
+    consist of a single 3D layer, with a single 2D layer on top of it.
+    */
+    action SetDefaultLayers
+        layers:Empty()
+        
+        Layer3D layer3D
+        Layer2D layer2D
+        
+        layers:Add(layer3D)
+        layers:Add(layer2D)
+
+        currentLayer3D = layer3D
+        currentLayer2D = layer2D
+    end
+
+    /*
+    This action will add a new Layer to the Game. It will be added on top of all
+    other layers currently in the game.
+    */
+    action AddLayer(Layer layer)
+        layers:Add(layer)
+    end
+
+    /*
+    This action will remove the given Layer from the Game.
+    */
+    action RemoveLayer(Layer layer)
+        layers:Remove(layer)
+    end
+
+    /*
+    This action will add the given Layer to the Game at the given index.
+    */
+    action AddLayer(integer index, Layer layer)
+        layers:Add(index, layer)
+    end
+
+    /*
+    This action will remove the Layer stored in the Game at the given index
+    within the internal layer array, where the first element (at index 0) of the
+    array is the bottom layer, and further elements of the array are placed on
+    top of previous elements.
+    */
+    action RemoveLayer(integer index)
+        layers:RemoveAt(index)
+    end
+
+    /*
+    This action will set the given index to use the given Layer, overwriting any
+    Layer that was already at that index. This will not force disposal of any
+    resources that the Layer's items may have been using. 
+    */
+    action SetLayer(integer index, Layer layer)
+        layers:Set(index, layer)
+    end
+
+    /*
+    This action will set the currently active Layer2D. The current Layer2D will
+    receive the effect of actions such as Add(Item2D) or Remove(Item2D), which
+    do not specify which Layer to act upon. Other actions that specify an index
+    or a Layer to act upon will ignore this setting.
+    */
+    action SetCurrentLayer2D(Layer2D layer)
+        currentLayer2D = layer
+    end
+
+    /*
+    This action will set the currently active Layer3D. The current Layer3D will
+    receive the effect of actions such as Add(Item3D) or Remove(Item3D), which
+    do not specify which Layer to act upon. Other actions that specify an index
+    or a Layer to act upon will ignore this setting.
+    */
+    action SetCurrentLayer3D(Layer3D layer)
+        currentLayer3D = layer
+    end
+
+    /*
+    This action will return the current Layer2D which will be used during
+    actions that require a Layer if the user does not specify one, e.g., using
+    the Add(Item2D) action.
+    */
+    action GetCurrentLayer2D returns Layer2D
+        return currentLayer2D
+    end
+
+    /*
+    This action will return the current Layer3D which will be used during
+    actions that require a Layer if the user does not specify one, e.g., using
+    the Add(Item3D) action.
+    */
+    action GetCurrentLayer3D returns Layer3D
+        return currentLayer3D
+    end
+
+    /*
+    This action will return an iterator containing the Game's layers. The first
+    Layer in the iterator will be the bottom Layer, and each following Layer
+    in the iterator will be the Layer on top of the previous one.
+    */
+    action GetLayerIterator returns Iterator<Layer>
+        return layers:GetIterator()
     end
 
 end

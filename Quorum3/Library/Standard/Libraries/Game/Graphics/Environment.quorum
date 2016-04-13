@@ -14,11 +14,11 @@ class Environment is Attributes
 
     /*
     This action will add a light to the environment. It can accept any light
-    that inherits from BaseLight as a parameter, but the Environment can only   
+    that inherits from Light as a parameter, but the Environment can only   
     use lights that are either DirectionalLight or PointLight. If the given
     light can't be used by the Environment, an error will be alerted.
     */
-    action Add(BaseLight light)
+    action Add(Light light)
         if light is DirectionalLight
             Add(cast(DirectionalLight, light))
         elseif light is PointLight
@@ -35,7 +35,7 @@ class Environment is Attributes
     be usable by the Environment. The Environment can use DirectionalLight and
     PointLight.
     */
-    action Add(Array<BaseLight> array)
+    action Add(Array<Light> array)
         integer index = 0
         repeat array:GetSize() times
             Add(array:Get(index))
@@ -77,11 +77,13 @@ class Environment is Attributes
     If the given light was not a part of the Environment before using Remove,
     nothing will happen.
     */
-    action Remove(BaseLight light)
+    action Remove(Light light)
         if light is DirectionalLight
             Remove(cast(DirectionalLight, light))
         elseif light is PointLight
             Remove(cast(PointLight, light))
+        elseif light is AmbientLight
+            Remove(cast(AmbientLight, light))
         else
             alert("I couldn't identify the type of this light! I can use DirectionalLight or PointLight.")
         end
@@ -93,7 +95,7 @@ class Environment is Attributes
     DirectionalLight or PointLight. Otherwise, an error will be alerted. Lights
     that are present in the array but not in the Environment will have no effect.
     */
-    action Remove(Array<BaseLight> array)
+    action Remove(Array<Light> array)
         integer index = 0
         repeat array:GetSize() times
             Remove(array:Get(index))

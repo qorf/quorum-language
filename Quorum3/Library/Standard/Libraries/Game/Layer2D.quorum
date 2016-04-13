@@ -8,6 +8,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Compute.Vector3
+use Libraries.Containers.Blueprints.Iterator
 
 class Layer2D is Layer
 
@@ -18,6 +19,49 @@ class Layer2D is Layer
     on create
         OrthographicCamera cam
         camera = cam
+    end
+
+    /*
+    This action will add an Item2D to this Layer. It will be updated along with
+    the rest of the layer, and will be drawn on the screen (if it is visible and
+    possible to draw the given Item2D).
+    */
+    action Add(Item2D item)
+        items:Add(item)
+    end
+
+    /*
+    This action will remove an Item2D from this Layer. If the item was not a
+    part of this layer, this action will have no effect.
+    */
+    action Remove(Item2D item)
+        items:Remove(item)
+    end
+
+    /*
+    This action will get an Item2D stored in the Layer at a given index in the
+    layer's internal array of children.
+    */
+    action Get(integer index) returns Item2D
+        return items:Get(index)
+    end
+
+    /*
+    This action will return an iterator of all the Item2D's stored inside this
+    Layer.
+    */
+    action GetIterator returns Iterator<Item2D>
+        return items:GetIterator()
+    end
+
+    /*
+    This action will set the value of the internal children array to be the
+    given Item2D. The previous value will be overwritten. If the index does not
+    exist in the array (e.g., the given index is larger than the number of items
+    stored in this layer), an error will be thrown.
+    */
+    action Set(integer index, Item2D item)
+        items:Set(index, item)
     end
 
     /*

@@ -9,6 +9,8 @@ use Libraries.Compute.Math
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Game.Graphics.Painter3D
+use Libraries.Game.Graphics.Light
+use Libraries.Game.Graphics.PointLight
 
 class Item3D is Item
 
@@ -1001,6 +1003,36 @@ class Item3D is Item
         integer counter = 0
         repeat children:GetSize() times
             children:Get(counter):Draw(painter)
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action will return an array of all Light objects contained in the
+    children hierarchy of this Item3D. If this object is a Light, it will
+    also be included as the first item in the array.
+    */
+    action GetPointLights returns Array<Light>
+        Array<Light> array
+        GetLights(array)
+        return array
+    end
+
+    /*
+    This action will find all of the Light objects contained in the
+    children hierarchy of this Item3D and add it to the end of the given array.
+    If this object is a Light, it will be added to the array first before
+    adding any descendents where are Lights.
+    */
+    action GetLights(Array<Light> array)
+        if me is PointLight
+            PointLight temp = cast(PointLight, me)
+            array:Add(temp)
+        end
+
+        integer counter = 0
+        repeat children:GetSize() times
+            children:Get(counter):GetLights(array)
             counter = counter + 1
         end
     end

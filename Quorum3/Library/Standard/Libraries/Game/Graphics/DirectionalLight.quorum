@@ -1,9 +1,9 @@
 package Libraries.Game.Graphics
 
-use Libraries.Game.Graphics.BaseLight
+use Libraries.Game.Graphics.Light
 use Libraries.Compute.Vector3
 
-class DirectionalLight is BaseLight
+class DirectionalLight is Light
     
     public Vector3 direction
 
@@ -31,11 +31,13 @@ class DirectionalLight is BaseLight
     end
 
     /*
-    This action will set the color and direction of this DirectionalLight by
-    copying the color and direction of the given DirectionalLight object.
+    This action will create a copy of this DirectionalLight with the same color
+    and direction as this light.
     */
-    action SetLight(DirectionalLight copyFrom)
-        SetLight(copyFrom:GetColor(), copyFrom:GetDirection())
+    action Copy returns DirectionalLight
+        DirectionalLight copy
+        copy:SetLight(GetColor(), GetDirection())
+        return copy
     end
 
     /*
