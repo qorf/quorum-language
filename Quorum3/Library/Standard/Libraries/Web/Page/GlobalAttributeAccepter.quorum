@@ -328,6 +328,27 @@ class GlobalAttributeAccepter is AttributeAccepter
     end
 
     /*
+        Adds to the ClassAttribute attribute. Multiple class names can be listed in the passed text, separated by a space.
+
+        Attribute: Parameter value The classes to be added to the element
+
+        Attribute: Example
+
+        use Libraries.Web.Page.GlobalAttributeAccepter
+        use Libraries.Web.Page.Attribute
+
+        GlobalAttributeAccepter accept
+        accept:AddClassAttribute("myClass")
+    */
+    action AddClassAttribute(text value)
+        if GetClassAttribute() not= undefined
+            SetClassAttribute(GetClassAttribute():GetValue() + " " + value)
+        else
+            SetClassAttribute(value)
+        end
+    end
+
+    /*
         Sets the ContentEditable attribute. Specifies wether content in an
         element is editable.
 
