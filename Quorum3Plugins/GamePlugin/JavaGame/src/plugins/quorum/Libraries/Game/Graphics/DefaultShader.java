@@ -475,7 +475,7 @@ public class DefaultShader extends BaseShader
                         {
                             quorum.Libraries.Containers.Array_ lights = ((PointLightsAttribute)combinedAttributes.GetAttribute(pointLightsAttribute.GetPointLightsValue())).lights;
                             for (int i = pointLightsOffset; i < lights.GetSize(); i++)
-                                cacheAmbientCubemap.Add(((PointLight)lights.Get(i)).GetColor(), ((PointLight)lights.Get(i)).position,
+                                cacheAmbientCubemap.Add(((PointLight)lights.Get(i)).GetColor(), ((PointLight)lights.Get(i)).GetGlobalPosition(),
                                     tmpV1, ((PointLight)lights.Get(i)).intensity);
                         }
                         
@@ -1043,7 +1043,10 @@ public class DefaultShader extends BaseShader
                     else if (lightsSet && directionalLights[i].equals(dirs.Get(i)))
                         continue;
                     else
-                        directionalLights[i].SetLight((DirectionalLight)dirs.Get(i));
+                    {
+                        DirectionalLight tempDir = (DirectionalLight)dirs.Get(i);
+                        directionalLights[i].SetLight(tempDir.GetColor(), tempDir.GetDirection());
+                    }
                     
                     int idx = dirLightsLoc + i * dirLightsSize;
                     
@@ -1074,15 +1077,19 @@ public class DefaultShader extends BaseShader
                 {
                     if (points == null || i >= points.GetSize()) 
                     {
-                        if (lightsSet && pointLights[i].intensity == 0f) 
+                        if (lightsSet && pointLights[i].GetIntensity() == 0) 
                             continue;
-                        pointLights[i].intensity = 0f;
+                        pointLights[i].SetIntensity(0);
                     }
                     else if (lightsSet && pointLights[i].equals(points.Get(i)))
                         continue;
                     else
-                        pointLights[i].SetLight((PointLight)points.Get(i));
-
+                    {
+                        PointLight tempPoint = (PointLight)points.Get(i);
+                        pointLights[i].SetLight(tempPoint.GetColor(), tempPoint.GetPosition(), tempPoint.GetIntensity());
+                        pointLights[i].SetOffset(tempPoint.GetOffsetX(), tempPoint.GetOffsetY(), tempPoint.GetOffsetZ());
+                    }
+                    
                     int idx = pointLightsLoc + i * pointLightsSize;
                     
 //                    System.out.println("\npointLight " + i);
@@ -1096,12 +1103,15 @@ public class DefaultShader extends BaseShader
 //                    System.out.println("Position 3: " + pointLights[i].position.GetY());
 //                    System.out.println("Position 4: " + pointLights[i].position.GetZ());
                     
-                    program.setUniformf(idx + pointLightsColorOffset, (float)(pointLights[i].GetColor().GetRed() * pointLights[i].intensity),
-                        (float)(pointLights[i].GetColor().GetGreen() * pointLights[i].intensity), (float)(pointLights[i].GetColor().GetBlue() * pointLights[i].intensity));
-                    program.setUniformf(idx + pointLightsPositionOffset, (float)pointLights[i].position.GetX(), (float)pointLights[i].position.GetY(),
-                        (float)pointLights[i].position.GetZ());
+                    double intensity = pointLights[i].GetIntensity();
+                    
+                    program.setUniformf(idx + pointLightsColorOffset, (float)(pointLights[i].GetColor().GetRed() * intensity),
+                        (float)(pointLights[i].GetColor().GetGreen() * intensity), (float)(pointLights[i].GetColor().GetBlue() * intensity));
+                    program.setUniformf(idx + pointLightsPositionOffset, (float)pointLights[i].GetGlobalX(), (float)pointLights[i].GetGlobalY(),
+                        (float)pointLights[i].GetGlobalZ());
+                    
                     if (pointLightsIntensityOffset >= 0)
-                        program.setUniformf(idx + pointLightsIntensityOffset, (float)pointLights[i].intensity);
+                        program.setUniformf(idx + pointLightsIntensityOffset, (float)pointLights[i].GetIntensity());
                     
                     if (pointLightsSize <= 0) 
                         break;
