@@ -7,6 +7,7 @@ package org.quorum.language.structure;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import javax.swing.ImageIcon;
@@ -16,19 +17,22 @@ import org.netbeans.modules.csl.api.HtmlFormatter;
 import org.netbeans.modules.csl.api.Modifier;
 import org.netbeans.modules.csl.api.StructureItem;
 import org.openide.util.ImageUtilities;
+import quorum.Libraries.Containers.Blueprints.Iterator_;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
+import quorum.Libraries.Language.Compile.Symbol.Block_;
 import quorum.Libraries.Language.Compile.Symbol.Type_;
 
 /**
  *
  * @author stefika
  */
-public class QuorumActionStructureItem implements StructureItem {
+public class QuorumActionStructureItem implements StructureItem.CollapsedDefault {
     private Action_ action = null;
     private boolean isConstructor = false;
     
     @Override
     public String getName() {
+        
         return getName(false);
     }
 
@@ -102,12 +106,31 @@ public class QuorumActionStructureItem implements StructureItem {
 
     @Override
     public boolean isLeaf() {
-        return true;
+        Block_ block = action.GetBlock();
+        int size = block.GetSubBlockSize();
+        if(size == 0) {
+            return true;
+        }
+        return false;
     }
 
     @Override
     public List<? extends StructureItem> getNestedItems() {
-        return Collections.EMPTY_LIST;
+        Block_ block = action.GetBlock();
+        int size = block.GetSubBlockSize();
+        if(size == 0) {
+            return Collections.EMPTY_LIST;
+        }
+        
+        List<StructureItem> items = new LinkedList<>();
+        Iterator_ it = block.GetBlocks();
+        while(it.HasNext()) {
+            Block_ next = (Block_) it.Next();
+            QuorumBlockStructureItem item = new QuorumBlockStructureItem();
+            item.setBlock(next);
+            items.add(item);
+        }
+        return items;
     }
 
     @Override
@@ -127,6 +150,11 @@ public class QuorumActionStructureItem implements StructureItem {
         } else {
             return new ImageIcon(ImageUtilities.loadImage("org/quorum/resources/methodPublic.png"));
         }
+    }
+    
+    @Override
+    public boolean isCollapsedByDefault() {
+        return true;
     }
 
     /**

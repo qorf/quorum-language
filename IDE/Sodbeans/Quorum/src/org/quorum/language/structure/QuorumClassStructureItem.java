@@ -20,13 +20,12 @@ import org.openide.util.ImageUtilities;
 import quorum.Libraries.Containers.Blueprints.Iterator_;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
 import quorum.Libraries.Language.Compile.Symbol.Variable_;
-import quorum.Libraries.Language.Object_;
 
 /**
  *
  * @author stefika
  */
-public class QuorumClassStructureItem implements StructureItem {
+public class QuorumClassStructureItem implements StructureItem.CollapsedDefault {
 
     private quorum.Libraries.Language.Compile.Symbol.Class_ clazz = null;
     @Override
@@ -166,6 +165,11 @@ public class QuorumClassStructureItem implements StructureItem {
      */
     public void setClazz(quorum.Libraries.Language.Compile.Symbol.Class_ clazz) {
         this.clazz = clazz;
+    }
+
+    @Override
+    public boolean isCollapsedByDefault() {
+        return false;
     }
     
 }
