@@ -613,9 +613,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitLoopStatement(LoopContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         LoopOpcode loop = loopStack:Pop()
         QuorumOpcode qop = opcodeStack:Pop()
         if qop = undefined
@@ -664,6 +661,14 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         loop:SetExpression(qop)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
+        Block value = recentlyPopped:GetBlock()
+        if loop:IsTimes()
+            value:SetBlockType(value:REPEAT_TIMES)
+        elseif loop:IsWhile()
+            value:SetBlockType(value:REPEAT_WHILE)
+        else
+            value:SetBlockType(value:REPEAT_UNTIL)
+        end
         loop:SetBlock(recentlyPopped)
         
         currentBlockOpcode:Add(loop)
@@ -682,6 +687,8 @@ class QuorumBytecodeListener is QuorumSourceListener
         checkOp:SetLocation(context:GetLocation())
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         checkOp:SetBlock(recentlyPopped)
+        Block value = recentlyPopped:GetBlock()
+        value:SetBlockType(value:CHECK)
         currentBlockOpcode:Add(checkOp)
         checkCount = checkCount + 1
     end
@@ -696,6 +703,8 @@ class QuorumBytecodeListener is QuorumSourceListener
         op:SetMethodWriter(methodWriter)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         op:SetBlock(recentlyPopped)
+        Block value = recentlyPopped:GetBlock()
+        value:SetBlockType(value:DETECT)
         integer loc = recentlyPoppedBlock:GetBytecodeLocation()
         Type type
 
@@ -809,9 +818,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action ExitAlwaysStatement(AlwaysStatementContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         CheckDetectOpcode checkOp = checkStack:Peek()
 
         DetectBlockOpcode op
@@ -822,6 +828,8 @@ class QuorumBytecodeListener is QuorumSourceListener
         Variable exceptionVariable = recentlyPoppedBlock:GetExceptionVariable()
         op:SetExceptionVariable(exceptionVariable)
         op:SetBlock(recentlyPopped)
+        Block value = recentlyPopped:GetBlock()
+        value:SetBlockType(value:ALWAYS)
 
         checkOp:SetAlwaysBlock(op)
         isInAlwaysBlock = false
@@ -838,9 +846,6 @@ class QuorumBytecodeListener is QuorumSourceListener
     
 
     action ExitIfStatement(IfContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         ConditionalOpcode conditional = ifStack:Pop()
         QuorumOpcode qop = opcodeStack:Pop()
 
@@ -874,6 +879,8 @@ class QuorumBytecodeListener is QuorumSourceListener
         conditional:SetExpression(qop)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
         conditional:SetBlock(recentlyPopped)
+        Block value = recentlyPopped:GetBlock()
+        value:SetBlockType(value:IF)
 
         Type t = currentAction:GetReturnType()
         if not t:IsVoid()
@@ -918,9 +925,6 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action EnterElseIfStatement(IfContext context) end
     action ExitElseIfStatement(IfContext context) 
-//        if HasErrors() 
-//            return now
-//        end
         ConditionalOpcode conditional = ifStack:Peek()
         QuorumOpcode qop = opcodeStack:Pop()
         if qop = undefined
@@ -954,6 +958,8 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         qop:SetIsIfExpression(true)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
+        Block value = recentlyPopped:GetBlock()
+        value:SetBlockType(value:ELSE_IF)
         conditional:AddElseIf(qop, recentlyPopped)
     end
 
@@ -961,6 +967,8 @@ class QuorumBytecodeListener is QuorumSourceListener
     action ExitElseStatement(IfContext context) 
         ConditionalOpcode conditional = ifStack:Peek()
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
+        Block value = recentlyPopped:GetBlock()
+        value:SetBlockType(value:ELSE)
         conditional:SetElseBlock(recentlyPopped)
     end
 

@@ -21,6 +21,30 @@ class Block is Location
     boolean hasReturnThisBlock = false
     boolean hasIssuedReturnError = false
     boolean isReturnSatisfied = true
+    public constant integer REPEAT_TIMES = 0
+    public constant integer REPEAT_WHILE = 1
+    public constant integer REPEAT_UNTIL = 2
+    public constant integer IF = 3
+    public constant integer ELSE_IF = 4
+    public constant integer ELSE = 5
+    public constant integer CHECK = 6
+    public constant integer DETECT = 7
+    public constant integer ALWAYS = 8
+
+    integer blockType = -1
+
+    action GetBlockType returns integer
+        return blockType
+    end
+
+    action SetBlockType(integer value)
+        if value < REPEAT_TIMES or value > ALWAYS
+            alert("Invalid block type")
+        end
+
+        blockType = value
+    end
+
 
     action IsReturnSatisfied returns boolean
         return isReturnSatisfied
