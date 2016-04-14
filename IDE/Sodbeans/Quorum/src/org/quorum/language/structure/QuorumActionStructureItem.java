@@ -107,9 +107,11 @@ public class QuorumActionStructureItem implements StructureItem.CollapsedDefault
     @Override
     public boolean isLeaf() {
         Block_ block = action.GetBlock();
-        int size = block.GetSubBlockSize();
-        if(size == 0) {
-            return true;
+        if(block != null) {
+            int size = block.GetSubBlockSize();
+            if(size == 0) {
+                return true;
+            }
         }
         return false;
     }
@@ -117,20 +119,24 @@ public class QuorumActionStructureItem implements StructureItem.CollapsedDefault
     @Override
     public List<? extends StructureItem> getNestedItems() {
         Block_ block = action.GetBlock();
-        int size = block.GetSubBlockSize();
-        if(size == 0) {
+        if(block != null) {
+            int size = block.GetSubBlockSize();
+            if(size == 0) {
+                return Collections.EMPTY_LIST;
+            }
+
+            List<StructureItem> items = new LinkedList<>();
+            Iterator_ it = block.GetBlocks();
+            while(it.HasNext()) {
+                Block_ next = (Block_) it.Next();
+                QuorumBlockStructureItem item = new QuorumBlockStructureItem();
+                item.setBlock(next);
+                items.add(item);
+            }
+            return items;
+        } else {
             return Collections.EMPTY_LIST;
         }
-        
-        List<StructureItem> items = new LinkedList<>();
-        Iterator_ it = block.GetBlocks();
-        while(it.HasNext()) {
-            Block_ next = (Block_) it.Next();
-            QuorumBlockStructureItem item = new QuorumBlockStructureItem();
-            item.setBlock(next);
-            items.add(item);
-        }
-        return items;
     }
 
     @Override
