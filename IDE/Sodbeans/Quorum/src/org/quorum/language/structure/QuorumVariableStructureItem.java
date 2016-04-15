@@ -22,7 +22,7 @@ import quorum.Libraries.Language.Compile.Symbol.Variable_;
  *
  * @author stefika
  */
-public class QuorumVariableStructureItem implements StructureItem {
+public class QuorumVariableStructureItem implements StructureItem.CollapsedDefault {
     private Variable_ variable;
     
     @Override
@@ -112,6 +112,11 @@ public class QuorumVariableStructureItem implements StructureItem {
      */
     public void setVariable(Variable_ variable) {
         this.variable = variable;
+    }
+
+    @Override
+    public boolean isCollapsedByDefault() {
+        return true;
     }
     
 }
