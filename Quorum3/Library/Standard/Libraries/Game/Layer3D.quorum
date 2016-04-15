@@ -11,6 +11,10 @@ use Libraries.Game.Graphics.Environment
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Game.Graphics.Light
 use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.DirectionalLight
+use Libraries.Game.Graphics.AmbientLight
+use Libraries.Game.Graphics.DirectionalLightsAttribute
+use Libraries.Game.Graphics.PointLightsAttribute
 
 class Layer3D is Layer
 
@@ -200,7 +204,7 @@ class Layer3D is Layer
     This action will add the given light to the Layer3D. It will be used during
     lighting of all objects on the layer.
     */
-    action Add(Light light)
+    action Add(DirectionalLight light)
         environment:Add(light)
     end
     
@@ -210,5 +214,106 @@ class Layer3D is Layer
     */
     action Add(PointLight light)
         Add(cast(Item3D, light))
+    end
+
+    /*
+    This action will remove the given DirectionalLight from the Layer3D.
+    */
+    action Remove(DirectionalLight light)
+        environment:Remove(light)
+    end
+
+    /*
+    This action will remove the given PointLight from the Layer3D. It will no
+    longer be part of the item hierarchy of this Layer, and will no longer
+    provide lighting in the scene.
+    */
+    action Remove(PointLight light)
+        Remove(cast(Item3D, light))
+    end
+
+    /*
+    This action will set the ambient lighting present in this Layer. If the
+    layer already had ambient lighting, it will be overwritten.
+    */
+    action SetAmbientLight(AmbientLight light)
+        environment:Add(light)
+    end
+
+    /*
+    This action will remove all ambient lighting from the Layer.
+    */
+    action RemoveAmbientLight
+        environment:RemoveAmbientLight()
+    end
+    
+    /*
+    This action will return the AmbientLighting of the scene. If the scene
+    doesn't have any ambient lighting, then this action will return undefined.
+    */
+    action GetAmbientLight returns AmbientLight
+        return environment:GetAmbientLight()
+    end
+
+    /*
+    This action will get an iterator containing all of the DirectionalLights
+    stored inside this layer.
+    */
+    action GetDirectionalLights returns Iterator<DirectionalLight>
+        DirectionalLightsAttribute temp
+        DirectionalLightsAttribute dlAttribute = (cast(DirectionalLightsAttribute, environment:GetAttribute(temp:GetDirectionalLightsValue())))
+        if dlAttribute not= undefined
+            return dlAttribute:lights:GetIterator()
+        else
+            return temp:lights:GetIterator()
+        end
+    end
+
+    /*
+    This action will get an iterator containing all of the PointLights
+    stored inside this layer.
+    */
+    action GetPointLights returns Iterator<PointLight>
+        PointLightsAttribute temp
+        PointLightsAttribute plAttribute = (cast(PointLightsAttribute, environment:GetAttribute(temp:GetPointLightsValue())))
+        if plAttribute not= undefined
+            return plAttribute:lights:GetIterator()
+        else
+            return temp:lights:GetIterator()
+        end
+    end
+
+    /*
+    This action will return a directional light stored at the given index in the
+    Layer's array of directional lights. Each type of light stored in the Layer
+    is kept in a separate array from other types. If there are no directional
+    lights added to this layer, or if the index is out of bounds, this action
+    will produce an error.
+    */
+    action GetDirectionalLight(integer index) returns DirectionalLight
+        DirectionalLightsAttribute dlAttribute
+        dlAttribute = (cast(DirectionalLightsAttribute, environment:GetAttribute(dlAttribute:GetDirectionalLightsValue())))
+        if dlAttribute = undefined
+            alert("You asked me to retrieve a directional light, but there are none added to this Layer!")
+        end
+
+        return dlAttribute:lights:Get(index)
+    end
+
+    /*
+    This action will return a point light stored at the given index in the
+    Layer's array of point lights. Each type of light stored in the Layer
+    is kept in a separate array from other types. If there are no directional
+    lights added to this layer, or if the index is out of bounds, this action
+    will produce an error.
+    */
+    action GetPointLight(integer index) returns PointLight
+        PointLightsAttribute plAttribute
+        plAttribute = (cast(PointLightsAttribute, environment:GetAttribute(plAttribute:GetPointLightsValue())))
+        if plAttribute = undefined
+            alert("You asked me to retrieve a point light, but there are none added to this Layer!")
+        end
+
+        return plAttribute:lights:Get(index)
     end
 end
