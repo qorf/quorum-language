@@ -146,15 +146,26 @@ class Environment is Attributes
     This action will remove all ambient lighting from this Environment.
     */
     action Remove(AmbientLight light)
-        RemoveAmbientLighting()
+        RemoveAmbientLight()
     end
 
     /*
     This action will remove all ambient lighting from this Environment.
     */
-    action RemoveAmbientLighting
+    action RemoveAmbientLight
         ColorAttribute color
         Remove(color:GetAmbientLightValue())
+    end
+
+    /*
+    Gets the AmbientLight set for this environment. If none is set, will return
+    undefined.
+    */
+    action GetAmbientLight returns AmbientLight
+        AmbientLight light
+        ColorAttribute colorAttribute = cast(ColorAttribute, GetAttribute(light:GetAttribute():GetAmbientLightValue()))
+        light:GetAttribute():SetAttribute(colorAttribute:GetAmbientLightValue(), colorAttribute:color)
+        return light
     end
 
 end
