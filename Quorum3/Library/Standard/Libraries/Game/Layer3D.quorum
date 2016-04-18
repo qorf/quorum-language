@@ -4,6 +4,10 @@ use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.PerspectiveCamera
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseWheelListener
+use Libraries.Interface.Events.TouchListener
 use Libraries.Containers.Array
 use Libraries.Interface.Item3D
 use Libraries.Game.Graphics.Painter3D
@@ -19,6 +23,10 @@ use Libraries.Game.Graphics.PointLightsAttribute
 class Layer3D is Layer
 
     Array<Item3D> items
+    Array<MouseListener> mouseListeners
+    Array<MouseMovementListener> mouseMovementListeners
+    Array<MouseWheelListener> mouseWheelListeners
+    Array<TouchListener> touchListeners
     Camera camera = undefined
     Painter3D painter
     Environment environment
@@ -198,6 +206,84 @@ class Layer3D is Layer
         functionality of Intersector). Ray is used to get the PickRay from the
         Camera.
         */
+    end
+
+    /*
+    This action will add a MouseListener to the layer. When the layer receives a
+    mouse event, it will first try to find the topmost item which can handle the
+    event. If the event is not handled, then all MouseListeners in the layer 
+    will receive the event.
+    */
+    action AddMouseListener(MouseListener listener)
+        mouseListeners:Add(listener)
+    end
+
+    /*
+    This action will add a MouseMovementListener to the layer. When the layer
+    receives a mouse event, it will first try to find the topmost item which can
+    handle the event. If the event is not handled, then all 
+    MouseMovementListeners in the layer will receive the event.
+    */
+    action AddMouseMovementListener(MouseMovementListener listener)
+        mouseMovementListeners:Add(listener)
+    end
+
+    /*
+    This action will add a MouseWheelListener to the layer. When the layer
+    receives a mouse event, it will first try to find the topmost item which can
+    handle the event. If the event is not handled, then all 
+    MouseWheelListeners in the layer will receive the event.
+    */
+    action AddMouseWheelListener(MouseWheelListener listener)
+        mouseWheelListeners:Add(listener)
+    end
+
+    /*
+    This action will add a TouchListener to the layer. When the layer
+    receives a touch event, it will first try to find the topmost item which can
+    handle the event. If the event is not handled, then all 
+    TouchListeners in the layer will receive the event.
+    */
+    action AddTouchListener(TouchListener listener)
+        touchListeners:Add(listener)
+    end
+    
+    /*
+    This action will remove a MouseListener from the layer. The listener will no
+    longer receive events from the layer. If the given MouseListener is not on
+    the layer before calling this action, then this action will have no effect.
+    */
+    action RemoveMouseListener(MouseListener listener)
+        mouseListeners:Remove(listener)
+    end
+
+    /*
+    This action will remove a MouseMovementListener from the layer. The listener
+    will no longer receive events from the layer. If the given 
+    MouseMovementListener is not on the layer before calling this action, then 
+    this action will have no effect.
+    */
+    action RemoveMouseMovementListener(MouseMovementListener listener)
+        mouseMovementListeners:Remove(listener)
+    end
+
+    /*
+    This action will remove a MouseWheelListener from the layer. The listener 
+    will no longer receive events from the layer. If the given 
+    MouseWheelListener is not on the layer before calling this action, then this
+    action will have no effect.
+    */
+    action RemoveMouseWheelListener(MouseWheelListener listener)
+        mouseWheelListeners:Remove(listener)
+    end
+
+    /*
+    This action will remove a TouchListener from the layer. The listener will no
+    longer receive events from the layer. If the given TouchListener is not on
+    the layer before calling this action, then this action will have no effect.
+    */
+    action RemoveTouchListener(TouchListener listener)
+        touchListeners:Remove(listener)
     end
 
     /*

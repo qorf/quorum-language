@@ -38,12 +38,12 @@ use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Item2D
+use Libraries.Interface.Item3D
 use Libraries.Interface.Events.CollisionEvent
 use Libraries.Interface.Events.TouchListener
-
-// 3D TESTING CODE!
-use Libraries.Game.Graphics.Model
-use Libraries.Game.Graphics.Painter3D
+use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.DirectionalLight
+use Libraries.Game.Graphics.AmbientLight
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -64,19 +64,24 @@ Attribute: Example
 */
 class Game
 
-    public Painter2D batch = undefined
+    //public Painter2D batch = undefined
     DesktopConfiguration desktopConfig
     IOSConfiguration iosConfig
     AndroidConfiguration androidConfig
     GraphicsManager gl20 = undefined
+    GameStateManager manager
 
     public boolean exitRequested = false
 
     // Variables used for Panels and the event system.
-    private Panel activePanel = undefined
+    //private Panel activePanel = undefined
     private GameInput gameInput = undefined
     private List<Item2D> collisionList
     private List<CollisionEvent> currentCollisions
+    private Array<MouseListener> mouseListeners
+    private Array<MouseMovementListener> mouseMovementListeners
+    private Array<MouseWheelListener> mouseWheelListeners
+    private Array<TouchListener> touchListeners
 
     // Variables for the Layer system.
     private Array<Layer> layers
@@ -90,17 +95,17 @@ class Game
     private integer applicationType = -1
 
     on create
-        Panel panel
-        panel:SetName("Default Active Panel")
-
-        /* 
-        The variable is set here, however it's not fully initialized until 
-        StartGame where it's set using SetActivePanel(). This is because the
-        GameInput hasn't yet been set for this game (which SetActivePanel()
-        requires), but the activePanel variable must be available for use by 
-        SetScreenSize().
-        */
-        activePanel = panel
+//        Panel panel
+//        panel:SetName("Default Active Panel")
+//
+//        /* 
+//        The variable is set here, however it's not fully initialized until 
+//        StartGame where it's set using SetActivePanel(). This is because the
+//        GameInput hasn't yet been set for this game (which SetActivePanel()
+//        requires), but the activePanel variable must be available for use by 
+//        SetScreenSize().
+//        */
+//        activePanel = panel
     end
 
     /*
@@ -182,13 +187,13 @@ class Game
         end
 
         // 3D TESTING CODE
-        Painter3D newBatch
-        SetModelBatch(newBatch)
+//        Painter3D newBatch
+//        SetModelBatch(newBatch)
 
         /*
         We can use SetActivePanel now that the GameInput has been set up.
         */
-        SetActivePanel(activePanel)
+//        SetActivePanel(activePanel)
 
         application:Setup(me)
     end
@@ -217,7 +222,34 @@ class Game
         end
     */
     action Add(Item2D item)
-        activePanel:Add(item)
+        currentLayer2D:Add(item)
+    end
+
+    /*
+    The Add action will add an item to the Game. This will make the game handle
+    the item for many tasks. For example, adding a Model to the game will
+    make it draw on the screen.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Model
+
+        class Main is Game
+            Model car
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                car:Load("sedan.g3db")
+                Add(car)
+            end
+        end
+    */
+    action Add(Item3D item)
+        currentLayer3D:Add(item)
     end
 
     /*
@@ -247,20 +279,50 @@ class Game
         end
     */
     action Remove(Item2D item)
-        activePanel:Remove(item)
+        currentLayer2D:Remove(item)
     end
 
-    action DrawAll
+    /*
+    The Remove action will remove an item that was put into the game using the
+    Add action. For example, removing a Model will make the game engine stop
+    drawing it.
 
-        batch:Begin()
+    Attribute: Example
 
-        activePanel:Draw(batch)
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Model
 
-        batch:End()
+        class Main is Game
+            Model car
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                car:Load("sedan.g3db")
+                Add(car)
+
+                // If we don't have this remove command, the bunny will draw.
+                Remove(car)
+            end
+        end
+    */
+    action Remove(Item3D item)
+        currentLayer3D:Remove(item)
+    end
+
+    private action DrawAll
+        output "DRAW ALL - UNIMPLEMENTED"
+//        batch:Begin()
+//
+//        activePanel:Draw(batch)
+//
+//        batch:End()
 
     end
 
-    action ClearScreen
+    private action ClearScreen
         gl20:ClearScreenColor(0.85,0.85,0.85,0)
         /*
         16640 is the result of an OR operation on GL_COLOR_BUFFER_BIT and 
@@ -280,14 +342,22 @@ class Game
         ClearScreen()
         DrawAll()
         // 3D TESTING CODE!
-        Render3D()
+        // Render3D()
     end
 
+    /*
+    This action will set the game configuration when run on desktop platforms.
+    The configuration contains data that affect many technical details of the
+    game, such as how large the screen will be.
+    */
     action SetConfiguration(DesktopConfiguration config)
         desktopConfig = config
     end
 
-    action GetConfiguration returns DesktopConfiguration
+    /*
+    This action will return the game's configuration for desktop platforms.
+    */
+    action GetDesktopConfiguration returns DesktopConfiguration
         return desktopConfig
     end
 
@@ -310,9 +380,7 @@ class Game
         end
     */
     action GetScreenWidth returns integer
-        GameStateManager manager
-        integer width = manager:GetGameDisplay():GetWidth()
-        return width
+        return manager:GetGameDisplay():GetWidth()
     end
 
     /*
@@ -334,15 +402,14 @@ class Game
         end
     */
     action GetScreenHeight returns integer
-        GameStateManager manager
-        integer height = manager:GetGameDisplay():GetHeight()
-        return height
+        return manager:GetGameDisplay():GetHeight()
     end
 
     /*
-    Using SetColorFilter will tint all drawn objects on the screen that do not
-    have their own custom color tint. For example, using a red color filter will
-    make all objects drawn in the game appear to be more red.
+    Using SetColorFilter will tint all drawn objects on the currently active 
+    Layer2D that do not have their own custom color tint. For example, using a 
+    red color filter will make all objects drawn on the currently active Layer2D
+    to appear to be more red.
 
     Attribute: Example
 
@@ -370,7 +437,7 @@ class Game
         end
     */
     action SetColorFilter(Color newColor)
-        batch:SetColor(newColor)
+        currentLayer2D:SetColorFilter(newColor)
     end
 
     /*
@@ -407,7 +474,7 @@ class Game
         end
     */
     action SetColorFilter(number r, number g, number b, number a)
-        batch:SetColor(r, g, b, a)
+        currentLayer2D:SetColorFilter(r, g, b, a)
     end
 
     /*
@@ -522,75 +589,14 @@ class Game
     end
 
     /*
-    GetActivePanel returns the currently active Panel object. The Game class
-    always has one Panel that is considered active. The active Panel will have
-    all of its children drawn and updated. When Items are added to the Game,
-    they are actually added to the active Panel.
-
-    Attribute: Example
-
-        use Libraries.Game.Game
-        use Libraries.Interface.Panel
-
-        class Main is Game
-
-            Panel myPanel = undefined
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                myPanel = GetActivePanel()
-            end
-            
-        end
-    */
-    action GetActivePanel returns Panel
-        return activePanel
-    end
-
-    /*
-    SetActivePanel sets the currently active Panel object. The Game class
-    always has one Panel that is considered active. The active Panel will have
-    all of its children drawn and updated. When Items are added to the Game,
-    they are actually added to the active Panel.
-
-    Attribute: Example
-
-        use Libraries.Game.Game
-        use Libraries.Interface.Panel
-
-        class Main is Game
-
-            Panel myPanel
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                SetActivePanel(myPanel)
-            end
-            
-        end
-    */
-    action SetActivePanel(Panel panel)
-        panel:SetPosition(0,0)
-        panel:SetWidth(GetScreenWidth())
-        panel:SetHeight(GetScreenHeight())
-        activePanel = panel
-        gameInput:SetActivePanel(activePanel)
-    end
-
-    /*
     This action updates the active Panel and all of the Items that have been
     added to the active Panel. This is called automatically by the Game class 
     as part of the main loop, so most users will never need to use this action
     directly.
     */
     private action UpdateAll
-        activePanel:UpdateAll(GetSecondsBetweenFrames())
+        output "UpdateAll - NOT YET IMPLEMENTED"
+        //activePanel:UpdateAll(GetSecondsBetweenFrames())
     end
 
     /*
@@ -604,9 +610,9 @@ class Game
     end
 
     /*
-    This action adds a MouseListener to the Game's active Panel. The mouse
-    listener will be notified of mouse buttons being clicked and released 
-    so long as it is a part of the active Panel.
+    This action adds a MouseListener to the Game. The mouse listener will be
+    notified of mouse buttons being clicked and released, so long as the event
+    is not handled by any listeners in the layers.
 
     Attribute: Example
 
@@ -628,13 +634,13 @@ class Game
         end
     */
     action AddMouseListener(MouseListener listener)
-        activePanel:AddMouseListener(listener)
+        mouseListeners:Add(listener)
     end
 
     /*
-    This action adds a MouseMovementListener to the Game's active Panel. The
-    listener will be notified of mouse movement and dragging so long as it is a
-    part of the active Panel.
+    This action adds a MouseMovementListener to the Game. The listener will be 
+    notified of mouse movement and dragging, so long as the event is not handled
+    by any listeners in the layers.
 
     Attribute: Example
 
@@ -656,13 +662,13 @@ class Game
         end
     */
     action AddMouseMovementListener(MouseMovementListener listener)
-        activePanel:AddMouseMovementListener(listener)
+        mouseMovementListeners:Add(listener)
     end
 
     /*
-    This action adds a MouseWheelListener to the Game's active Panel. The
-    listener will be notified of mouse wheel scrolling so long as it is a
-    part of the active Panel.
+    This action adds a MouseWheelListener to the Game. The listener will be
+    notified of mouse wheel scrolling, so long as the event is not handled by
+    any listeners in the layers.
 
     Attribute: Example
 
@@ -684,7 +690,7 @@ class Game
         end
     */
     action AddMouseWheelListener(MouseWheelListener listener)
-        activePanel:AddMouseWheelListener(listener)
+        mouseWheelListeners:Add(listener)
     end
 
     /*
@@ -715,9 +721,9 @@ class Game
     end
 
     /*
-    This action removes a MouseListener from the Game's active Panel. The
-    listener will no longer receive events for mouse clicks and releases from
-    the active Panel.
+    This action removes a MouseListener from the Game. The mouse listener will 
+    no longer receive mouse events from the Game. If the given MouseListener was
+    not part of the Game, then this will have no effect.
 
     Attribute: Example
 
@@ -741,13 +747,13 @@ class Game
         end
     */
     action RemoveMouseListener(MouseListener listener)
-        activePanel:RemoveMouseListener(listener)
+        mouseListeners:Remove(listener)
     end
 
     /*
-    This action removes a MouseMovementListener from the Game's active Panel.
-    The listener will no longer receive events for mouse movement and dragging
-    from the active Panel.
+    This action removes a MouseMovementListener from the Game. The listener will
+    no longer receive events from the Game. If the given MouseMovementListener
+    was not part of the Game, then this will have no effect.
 
     Attribute: Example
 
@@ -771,13 +777,13 @@ class Game
         end
     */
     action RemoveMouseMovementListener(MouseMovementListener listener)
-        activePanel:RemoveMouseMovementListener(listener)
+        mouseMovementListeners:Remove(listener)
     end
 
     /*
-    This action removes a MouseWheelListener to the Game's active Panel. The
-    listener will no longer receive events for mouse wheel scrolling from
-    the active Panel.
+    This action removes a MouseWheelListener from the Game. The listener will no
+    longer receive events from the Game. If the given MouseWheelListener is not
+    part of the Game, then this will have no effect.
 
     Attribute: Example
 
@@ -801,7 +807,7 @@ class Game
         end
     */
     action RemoveMouseWheelListener(MouseWheelListener listener)
-        activePanel:RemoveMouseWheelListener(listener)
+        mouseWheelListeners:Remove(listener)
     end
 
     /*
@@ -834,9 +840,9 @@ class Game
     end
 
     /*
-    This action adds a TouchListener to the Game's active Panel. The touch
-    listener will be notified when the user interacts with a touch screen 
-    so long as it is a part of the active Panel.
+    This action adds a TouchListener to the Game. The touch listener will be
+    notified when the user interacts with a touch screen, so long as the event
+    is not handled by any items in the layers.
 
     Attribute: Example
 
@@ -858,12 +864,13 @@ class Game
         end
     */
     action AddTouchListener(TouchListener listener)
-        activePanel:AddTouchListener(listener)
+        touchListeners:Add(listener)
     end
 
     /*
-    This action removes a TouchListener from the Game's active Panel. The
-    listener will no longer receive TouchEvents from the active Panel.
+    This action removes a TouchListener from the Game. The listener will no
+    longer receive TouchEvents from the Game. If the given TouchListener is not
+    a part of the Game, this action will have no effect.
 
     Attribute: Example
 
@@ -887,7 +894,7 @@ class Game
         end
     */
     action RemoveTouchListener(TouchListener listener)
-        activePanel:RemoveTouchListener(listener)
+        touchListeners:Remove(listener)
     end
 
     /*
@@ -909,13 +916,13 @@ class Game
     action SetScreenSize(integer width, integer height)
         desktopConfig:width = width
         desktopConfig:height = height
-        activePanel:SetSize(width, height)
     end
 
     /*
     This action enables or disables vSync in the game. Passing a value of true
     enables it, a value of false disables it. vSync is enabled by default. 
-    This action should be called before calling StartGame().
+    This action should be called before calling StartGame(). This option is only
+    used when the game is run on desktops.
 
     Attribute: Example
 
@@ -936,7 +943,8 @@ class Game
     /*
     This action enables or disables resizing the game window by dragging the
     edges of the screen. Passing a value of true enables it, a value of false
-    disables it. Resizing is disabled by default. 
+    disables it. Resizing is disabled by default. It is only relevant for games
+    which are run on desktops.
     This action should be called before calling StartGame().
 
     Attribute: Example
@@ -980,7 +988,7 @@ class Game
     This action enables or disables auto resizing of textures if the game window
     is resized. Passing a value of true enables it, a value of false disables it.
     Texture auto resizing is enabled by default. This action should be called
-    before calling StartGame().
+    before calling StartGame(). This option is only relevant on desktop platforms.
 
     Attribute: Example
 
@@ -1149,43 +1157,43 @@ class Game
     CODE USED FOR 3D TESTING! 
     */
 
-    List<Model> modelList
-    Painter3D modelBatch = undefined
-
-    action GetModelBatch returns Painter3D
-        return modelBatch
-    end
-
-    action SetModelBatch(Painter3D batch)
-        modelBatch = batch
-    end
-
-    action AddModel(Model model)
-        modelList:Add(model)
-    end
-
-    private action Render3D
-        if modelList:GetSize() = 0
-            return now
-        end
-
-        Iterator<Model> modelIterator = modelList:GetIterator()
-
-        modelBatch:Begin()
-
-        repeat while modelIterator:HasNext()
-            Model model = modelIterator:Next()
-            modelBatch:Render(model)
-        end
-
-        modelBatch:End()
-    end
+//    List<Model> modelList
+//    Painter3D modelBatch = undefined
+//
+//    action GetModelBatch returns Painter3D
+//        return modelBatch
+//    end
+//
+//    action SetModelBatch(Painter3D batch)
+//        modelBatch = batch
+//    end
+//
+//    action AddModel(Model model)
+//        modelList:Add(model)
+//    end
+//
+//    private action Render3D
+//        if modelList:GetSize() = 0
+//            return now
+//        end
+//
+//        Iterator<Model> modelIterator = modelList:GetIterator()
+//
+//        modelBatch:Begin()
+//
+//        repeat while modelIterator:HasNext()
+//            Model model = modelIterator:Next()
+//            modelBatch:Render(model)
+//        end
+//
+//        modelBatch:End()
+//    end
 
     /*
     This action sets the game to use the default layers. The default layers
     consist of a single 3D layer, with a single 2D layer on top of it.
     */
-    action SetDefaultLayers
+    action InitializeLayers
         layers:Empty()
         
         Layer3D layer3D
@@ -1284,6 +1292,93 @@ class Game
     */
     action GetLayerIterator returns Iterator<Layer>
         return layers:GetIterator()
+    end
+
+    /*
+    This action will add a DirectionalLight to the currently active Layer3D.
+    */
+    action Add(DirectionalLight light)
+        currentLayer3D:Add(light)
+    end
+
+    /*
+    This action will add a PointLight to the currently active Layer3D.
+    */
+    action Add(PointLight light)
+        currentLayer3D:Add(light)
+    end
+
+    /*
+    This action will set the ambient light on the currently active Layer3D.
+    */
+    action SetAmbientLight(AmbientLight light)
+        currentLayer3D:SetAmbientLight(light)
+    end
+
+    /*
+    This action will remove a DirectionalLight from the currently active Layer3D.
+    */
+    action Remove(DirectionalLight light)
+        currentLayer3D:Remove(light)
+    end
+
+    /*
+    This action will remove a PointLight from the currently active Layer3D.
+    */
+    action Remove(PointLight light)
+        currentLayer3D:Remove(light)
+    end
+
+    /*
+    This action will remove the ambient lighting from the currently active
+    Layer3D.
+    */
+    action RemoveAmbientLight
+        currentLayer3D:RemoveAmbientLight()
+    end
+
+    /*
+    This action will get a DirectionalLight from the currently active Layer3D, which
+    is stored at the given index inside the layer. If there are no DirectionalLights
+    within the layer, or if the index is out of bounds, then an error will be
+    thrown.
+    */
+    action GetDirectionalLight(integer index) returns DirectionalLight
+        return currentLayer3D:GetDirectionalLight(index)
+    end
+
+    /*
+    This action will get a PointLight from the currently active Layer3D, which
+    is stored at the given index inside the layer. If there are no PointLights
+    within the layer, or if the index is out of bounds, then an error will be
+    thrown.
+    */
+    action GetPointLight(integer index) returns PointLight
+        return currentLayer3D:GetPointLight(index)
+    end
+
+    /*
+    This action will return a new AmbientLight object which contains the ambient
+    lighting data of the currently active Layer3D.
+    */
+    action GetAmbientLight returns AmbientLight
+        return currentLayer3D:GetAmbientLight()
+    end
+
+    /*
+    This action will return an iterator containing all of the DirectionalLight
+    objects stored within the currently active Layer3D.
+    */
+    action GetDirectionalLights returns Iterator<DirectionalLight>
+        return currentLayer3D:GetDirectionalLights()
+    end
+
+    /*
+    This action will return an iterator containing all of the PointLight
+    objects stored within the currently active Layer3D.
+    */
+    action GetPointLights returns Iterator<PointLight>
+        return currentLayer3D:GetPointLights()
     end
 
 end
