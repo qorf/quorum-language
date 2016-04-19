@@ -9,7 +9,8 @@ import plugins.quorum.Libraries.Game.libGDX.VertexAttribute;
 import plugins.quorum.Libraries.Game.libGDX.VertexAttributes.Usage;
 import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 import plugins.quorum.Libraries.Game.libGDX.Matrix4;
-
+import quorum.Libraries.Compute.Matrix4_;
+import quorum.Libraries.Game.Graphics.Camera_;
 
 /**
  *
@@ -33,6 +34,9 @@ public class Painter2D
     private final Matrix4 transformMatrix = new Matrix4();
     private final Matrix4 projectionMatrix = new Matrix4();
     private final Matrix4 combinedMatrix = new Matrix4();
+    
+    // Used for ApplyCamera.
+    private final static Matrix4 calcMatrix = new Matrix4();
     
     private boolean blendingDisabled = false;
     private int blendSourceFunction = GraphicsManager.GL_SRC_ALPHA;
@@ -507,7 +511,7 @@ public class Painter2D
 	if (customShader != null) 
         {
             customShader.setUniformMatrix("u_projTrans", combinedMatrix);
-	customShader.setUniformi("u_texture", 0);
+            customShader.setUniformi("u_texture", 0);
 	}
         else 
         {
@@ -559,6 +563,58 @@ public class Painter2D
         if (quorumBatch.IsDrawing())
             this.shader.setAttributef(ShaderProgram.COLOR_ATTRIBUTE, 1.0f, 1.0f, 1.0f, 1.0f);
     }
+    
+    public void ApplyCamera(Camera_ camera)
+    {
+        float[] temp = new float[16];
+        for(int i = 0; i < 16; i++)
+            temp[i] = GetMatrixValue(camera.GetCombinedMatrix(), i);
         
+        calcMatrix.set(temp);
+        SetProjectionMatrix(calcMatrix);
+    }
+        
+    /*
+        Returns a single value of a matrix given an integer representing the
+        index of a column-major array.
+        */
+        private static float GetMatrixValue(Matrix4_ matrix, int index)
+        {
+            switch(index)
+            {
+                case 0:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row0column0_();
+                case 1:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row1column0_();
+                case 2:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row2column0_();
+                case 3:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row3column0_();
+                case 4:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row0column1_();
+                case 5:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row1column1_();
+                case 6:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row2column1_();
+                case 7:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row3column1_(); 
+                case 8:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row0column2_();
+                case 9:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row1column2_();
+                case 10:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row2column2_();
+                case 11:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row3column2_();
+                case 12:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row0column3_();
+                case 13:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row1column3_();
+                case 14:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row2column3_();
+                default:
+                    return (float)matrix.Get_Libraries_Compute_Matrix4__row3column3_();
+            }
+        }
 }
 
