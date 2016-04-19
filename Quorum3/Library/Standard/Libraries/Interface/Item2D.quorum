@@ -1236,17 +1236,17 @@ class Item2D is Item
 
             if event:eventType = event:BEGAN
                 repeat while iterator:HasNext()
-                    iterator:Next():TouchBegan(event)
+                    iterator:Next():BeganTouch(event)
                 end
 
             elseif event:eventType = event:MOVED or event:eventType = event:STATIONARY
                 repeat while iterator:HasNext()
-                    iterator:Next():TouchContinued(event)
+                    iterator:Next():ContinuedTouch(event)
                 end
 
             elseif event:eventType = event:ENDED or event:eventType = event:CANCELLED
                 repeat while iterator:HasNext()
-                    iterator:Next():TouchFinished(event)
+                    iterator:Next():EndedTouch(event)
                 end
 
             end

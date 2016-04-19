@@ -44,6 +44,7 @@ use Libraries.Interface.Events.TouchListener
 use Libraries.Game.Graphics.PointLight
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.AmbientLight
+use Libraries.Game.Graphics.Camera
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -78,10 +79,6 @@ class Game
     private GameInput gameInput = undefined
     private List<Item2D> collisionList
     private List<CollisionEvent> currentCollisions
-    private Array<MouseListener> mouseListeners
-    private Array<MouseMovementListener> mouseMovementListeners
-    private Array<MouseWheelListener> mouseWheelListeners
-    private Array<TouchListener> touchListeners
 
     // Variables for the Layer system.
     private Array<Layer> layers
@@ -93,20 +90,6 @@ class Game
     private constant integer IOS_APPLICATION = 3
 
     private integer applicationType = -1
-
-    on create
-//        Panel panel
-//        panel:SetName("Default Active Panel")
-//
-//        /* 
-//        The variable is set here, however it's not fully initialized until 
-//        StartGame where it's set using SetActivePanel(). This is because the
-//        GameInput hasn't yet been set for this game (which SetActivePanel()
-//        requires), but the activePanel variable must be available for use by 
-//        SetScreenSize().
-//        */
-//        activePanel = panel
-    end
 
     /*
     The StartGame action will start your game. Specifically, it does this:
@@ -142,13 +125,6 @@ class Game
             if desktopConfig:title = ""
                 desktopConfig:title = "Game"
             end
-
-            /*
-            New code will set game graphics from initialization.
-            DesktopGraphics graphics
-            manager:SetGameGraphics(graphics)
-            gl20 = graphics
-            */
 
             DesktopInput newInput
             gameInput = newInput
@@ -186,14 +162,13 @@ class Game
             manager:SetGameGraphics(iosGraphics)
         end
 
-        // 3D TESTING CODE
-//        Painter3D newBatch
-//        SetModelBatch(newBatch)
-
         /*
-        We can use SetActivePanel now that the GameInput has been set up.
+        We pass a reference to the layers array to the GameInput. This will 
+        allow it to properly test input on items in the game. Because it is an
+        object reference, future changes to the array of layers will also be
+        reflected in the GameInput.
         */
-//        SetActivePanel(activePanel)
+        gameInput:SetLayers(layers)
 
         application:Setup(me)
     end
@@ -312,16 +287,20 @@ class Game
         currentLayer3D:Remove(item)
     end
 
+    /*
+    Draws all layers on the screen. Called from ContinueGame.
+    */
     private action DrawAll
-        output "DRAW ALL - UNIMPLEMENTED"
-//        batch:Begin()
-//
-//        activePanel:Draw(batch)
-//
-//        batch:End()
-
+        integer counter = 0
+        repeat layers:GetSize() times
+            layers:Get(counter):Draw()
+            counter = counter + 1
+        end
     end
 
+    /*
+    Clears out the old pixel data. Called from ContinueGame.
+    */
     private action ClearScreen
         gl20:ClearScreenColor(0.85,0.85,0.85,0)
         /*
@@ -333,6 +312,11 @@ class Game
         gl20:ClearScreen(16640)
     end
 
+    /*
+    This action is used by the Game to regularly handle core engine processes.
+    It is automatically called by the Game when necessary, and should never be
+    used by users.
+    */
     action ContinueGame
         gameInput:ProcessInputEvents()
 
@@ -341,8 +325,6 @@ class Game
         TestForCollisions()
         ClearScreen()
         DrawAll()
-        // 3D TESTING CODE!
-        // Render3D()
     end
 
     /*
@@ -595,8 +577,11 @@ class Game
     directly.
     */
     private action UpdateAll
-        output "UpdateAll - NOT YET IMPLEMENTED"
-        //activePanel:UpdateAll(GetSecondsBetweenFrames())
+        integer counter = 0
+        repeat layers:GetSize() times
+            layers:Get(counter):Update(GetSecondsBetweenFrames())
+            counter = counter + 1
+        end
     end
 
     /*
@@ -634,7 +619,7 @@ class Game
         end
     */
     action AddMouseListener(MouseListener listener)
-        mouseListeners:Add(listener)
+        gameInput:AddMouseListener(listener)
     end
 
     /*
@@ -662,7 +647,7 @@ class Game
         end
     */
     action AddMouseMovementListener(MouseMovementListener listener)
-        mouseMovementListeners:Add(listener)
+        gameInput:AddMouseMovementListener(listener)
     end
 
     /*
@@ -690,7 +675,7 @@ class Game
         end
     */
     action AddMouseWheelListener(MouseWheelListener listener)
-        mouseWheelListeners:Add(listener)
+        gameInput:AddMouseWheelListener(listener)
     end
 
     /*
@@ -747,7 +732,7 @@ class Game
         end
     */
     action RemoveMouseListener(MouseListener listener)
-        mouseListeners:Remove(listener)
+        gameInput:RemoveMouseListener(listener)
     end
 
     /*
@@ -777,7 +762,7 @@ class Game
         end
     */
     action RemoveMouseMovementListener(MouseMovementListener listener)
-        mouseMovementListeners:Remove(listener)
+        gameInput:RemoveMouseMovementListener(listener)
     end
 
     /*
@@ -807,7 +792,7 @@ class Game
         end
     */
     action RemoveMouseWheelListener(MouseWheelListener listener)
-        mouseWheelListeners:Remove(listener)
+        gameInput:RemoveMouseWheelListener(listener)
     end
 
     /*
@@ -864,7 +849,7 @@ class Game
         end
     */
     action AddTouchListener(TouchListener listener)
-        touchListeners:Add(listener)
+        gameInput:AddTouchListener(listener)
     end
 
     /*
@@ -894,7 +879,7 @@ class Game
         end
     */
     action RemoveTouchListener(TouchListener listener)
-        touchListeners:Remove(listener)
+        gameInput:RemoveTouchListener(listener)
     end
 
     /*
@@ -1154,42 +1139,6 @@ class Game
     private system action SelectApplicationTypeNative returns integer
 
     /*
-    CODE USED FOR 3D TESTING! 
-    */
-
-//    List<Model> modelList
-//    Painter3D modelBatch = undefined
-//
-//    action GetModelBatch returns Painter3D
-//        return modelBatch
-//    end
-//
-//    action SetModelBatch(Painter3D batch)
-//        modelBatch = batch
-//    end
-//
-//    action AddModel(Model model)
-//        modelList:Add(model)
-//    end
-//
-//    private action Render3D
-//        if modelList:GetSize() = 0
-//            return now
-//        end
-//
-//        Iterator<Model> modelIterator = modelList:GetIterator()
-//
-//        modelBatch:Begin()
-//
-//        repeat while modelIterator:HasNext()
-//            Model model = modelIterator:Next()
-//            modelBatch:Render(model)
-//        end
-//
-//        modelBatch:End()
-//    end
-
-    /*
     This action sets the game to use the default layers. The default layers
     consist of a single 3D layer, with a single 2D layer on top of it.
     */
@@ -1283,6 +1232,20 @@ class Game
     */
     action GetCurrentLayer3D returns Layer3D
         return currentLayer3D
+    end
+
+    /*
+    This action will return the camera that is a part of the current Layer2D.
+    */
+    action GetCamera2D returns Camera
+        return currentLayer2D:GetCamera()
+    end
+
+    /*
+    This action will return the camera that is a part of the current Layer3D.
+    */
+    action GetCamera3D returns Camera
+        return currentLayer3D:GetCamera()
     end
 
     /*
