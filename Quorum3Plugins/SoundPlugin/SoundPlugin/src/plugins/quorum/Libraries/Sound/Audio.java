@@ -255,4 +255,38 @@ public class Audio {
         data.Update();
     }
     
+    public void SetListenerPosition(double x, double y, double z)
+    {
+        AudioManager.SetListenerPosition(x, y, z);
+    }
+    
+    public void SetListenerX(double x)
+    {
+        AudioManager.SetListenerPosition(x, AudioManager.GetListenerY(), AudioManager.GetListenerZ());
+    }
+    
+    public void SetListenerY(double y)
+    {
+        AudioManager.SetListenerPosition(AudioManager.GetListenerX(), y, AudioManager.GetListenerZ());
+    }
+    
+    public void SetListenerZ(double z)
+    {
+        AudioManager.SetListenerPosition(AudioManager.GetListenerX(), AudioManager.GetListenerY(), z);
+    }
+    
+    public double GetListenerX()
+    {
+        return AudioManager.GetListenerX();
+    }
+    
+    public double GetListenerY()
+    {
+        return AudioManager.GetListenerY();
+    }
+    
+    public double GetListenerZ()
+    {
+        return AudioManager.GetListenerZ();
+    }
 }
