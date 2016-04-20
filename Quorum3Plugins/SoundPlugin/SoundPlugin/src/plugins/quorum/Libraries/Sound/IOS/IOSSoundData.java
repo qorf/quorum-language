@@ -148,6 +148,41 @@ public class IOSSoundData extends Data
     }
     
     @Override
+    public void EnableDoppler()
+    {
+        if (dopplerEnabled)
+            return;
+        
+        dopplerEnabled = true;
+        SetVelocity(velocityX, velocityY, velocityZ);
+    }
+    
+    @Override
+    public void DisableDoppler()
+    {
+        if (!dopplerEnabled)
+            return;
+        
+        dopplerEnabled = false;
+        
+        ALSource source;
+        if ((source = GetSoundSource(soundID)) != null)
+            source.setVelocity(0, 0, 0);
+    }
+    
+    @Override
+    public void SetVelocity(float newX, float newY, float newZ)
+    {
+        velocityX = newX;
+        velocityY = newY;
+        velocityZ = newZ;
+        
+        ALSource source;
+        if ((source = GetSoundSource(soundID)) != null)
+            source.setVelocity(newX, newY, newZ);
+    }
+    
+    @Override
     public void SetHorizontalPosition(float position) 
     {
         this.pan = position;

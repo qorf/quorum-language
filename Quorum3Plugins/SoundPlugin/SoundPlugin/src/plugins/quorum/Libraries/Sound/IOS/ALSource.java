@@ -63,6 +63,9 @@ public class ALSource extends NSObject
     @Method(selector = "setPosition:y:z:")
     public native void setPosition(float x, float y, float z);
     
+    @Method(selector = "setVelocity:y:z")
+    public native void setVelocity(float x, float y, float z);
+    
     @Property(selector = "playing")
     public native boolean isPlaying();
 }

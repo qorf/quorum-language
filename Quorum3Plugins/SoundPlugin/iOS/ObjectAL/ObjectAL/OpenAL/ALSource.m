@@ -807,6 +807,11 @@ initFailed:
 	}
 }
 
+- (void) setVelocity:(float)x y:(float)y z:(float)z
+{
+    [self setVelocity:alvector(x, y, z)];
+}
+
 - (float) reverbSendLevel
 {
 	OPTIONALLY_SYNCHRONIZED(self)

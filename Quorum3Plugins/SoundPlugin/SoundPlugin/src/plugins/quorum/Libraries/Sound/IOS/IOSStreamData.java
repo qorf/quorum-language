@@ -178,6 +178,28 @@ class IOSStreamData extends Data
     {
         SetHorizontalPosition(newX);
     }
+    
+    @Override
+    public void EnableDoppler()
+    {
+        dopplerEnabled = true;
+    }
+    
+    @Override
+    public void DisableDoppler()
+    {
+        dopplerEnabled = true;
+    }
+    
+    /*
+    Due to limitations of the current implementation, it is not possible to set
+    velocity for this kind of audio.
+    */
+    @Override
+    public void SetVelocity(float newX, float newY, float newZ)
+    {
+        
+    }
 
     @Override
     public boolean IsStreaming() 

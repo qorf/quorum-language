@@ -80,8 +80,11 @@ public abstract class AudioData extends Data {
 	alSourcei(sourceID, AL_LOOPING, isLooping ? AL_TRUE : AL_FALSE);
 	alSourcef(sourceID, AL_GAIN, volume);
 	alSourcePlay(sourceID);
+        
+        if (dopplerEnabled)
+            SetVelocity(velocityX, velocityY, velocityZ);
+    
         SetPitch(pitch);
-        //SetHorizontalPosition(pan);
         SetPosition(x, y, z);
     }
     
@@ -343,6 +346,52 @@ public abstract class AudioData extends Data {
         this.z = newZ;
         
         manager.UpdatePosition(soundID, newX, newY, newZ);
+    }
+    
+    @Override
+    public void EnableDoppler()
+    {
+        if (dopplerEnabled)
+            return;
+        
+        dopplerEnabled = true;
+        SetVelocity(velocityX, velocityY, velocityZ);
+    }
+    
+    @Override
+    public void DisableDoppler()
+    {
+        if (!dopplerEnabled || manager.noDevice)
+            return;
+        
+        dopplerEnabled = false;
+        
+        if (!manager.SoundIDIsActive((soundID)))
+        {
+            int sourceID = manager.ObtainSource(false);
+            soundID = (long)manager.sourceToSoundID.get(sourceID);
+        }
+        
+        manager.SetSoundVelocity(soundID, 0, 0, 0);
+    }
+    
+    @Override
+    public void SetVelocity(float newX, float newY, float newZ)
+    {
+        if (manager.noDevice)
+            return;
+        
+        if (!manager.SoundIDIsActive((soundID)))
+        {
+            int sourceID = manager.ObtainSource(false);
+            soundID = (long)manager.sourceToSoundID.get(sourceID);
+        }
+        
+        velocityX = newX;
+        velocityY = newY;
+        velocityZ = newZ;
+        
+        manager.SetSoundVelocity(soundID, newX, newY, newZ);
     }
     
     // Returns the duration of the sound in seconds.
