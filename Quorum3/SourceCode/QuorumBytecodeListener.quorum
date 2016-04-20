@@ -1124,7 +1124,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                         errorType:SetCurrentType(errorType:MISSING_VARIABLE)
                         error:SetCompilerErrorType(errorType)
                         error:SetErrorMessage("I could not find a variable named " +
-                        object + " to assign to in the class " + type:GetStaticKey() + ".")
+                        name + " to assign to in " + object + ", of class " + type:GetStaticKey() + ".")
                         manager:Add(error)
                         return now
                     end
@@ -1145,7 +1145,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 CompilerErrorType errorType
                 errorType:SetCurrentType(errorType:MISSING_VARIABLE)
                 error:SetCompilerErrorType(errorType)
-                error:SetErrorMessage("I noticed that you are trying to use the field "
+                error:SetErrorMessage("I noticed that you are trying to assign to the field "
                     + object + ", in the variable named "
                     + name + " but " + name + " does not exist.")
                 manager:Add(error)
