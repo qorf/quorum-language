@@ -30,6 +30,16 @@ public class AudioManager {
     private static double listenerY = 0;
     private static double listenerZ = 0;
     
+    /*
+    These static variables contain the last set velocity of the listener.
+    The velocity is NOT automatically updated by OpenAL! It must be set and
+    maintained manually.
+    */
+    private static double listenerVelocityX = 0;
+    private static double listenerVelocityY = 0;
+    private static double listenerVelocityZ = 0;
+    private static boolean listenerDopplerEnabled = true;
+    
     // These variables are an "IntArray" in libGDX. We have this class already
     // in Libraries/Games/libGDX, but to avoid dependency on the game engine for
     // basic audio, we will instead use a standard array.
@@ -314,6 +324,16 @@ public class AudioManager {
         
         AL10.alSource3f(sourceID, AL10.AL_POSITION, newX, newY, newZ);
     }
+    
+    public void SetSoundVelocity(long soundID, float newX, float newY, float newZ)
+    {
+        if (!SoundIDIsActive(soundID))
+            return;
+        
+        int sourceID = (int)soundIDToSource.get(soundID);
+        
+        AL10.alSource3f(sourceID, AL10.AL_VELOCITY, newX, newY, newZ);
+    }
 
     public void Dispose () 
     {
@@ -397,6 +417,54 @@ public class AudioManager {
     public static double GetListenerZ()
     {
         return listenerZ;
+    }
+    
+    public static void SetListenerVelocity(double x, double y, double z)
+    {
+        listenerVelocityX = x;
+        listenerVelocityY = y;
+        listenerVelocityZ = z;
+        
+        if (listenerDopplerEnabled)
+            alListener3f(AL_VELOCITY, (float)x, (float)y, (float)z);
+    }
+    
+    public static double GetListenerVelocityX()
+    {
+        return listenerVelocityX;
+    }
+    
+    public static double GetListenerVelocityY()
+    {
+        return listenerVelocityY;
+    }
+    
+    public static double GetListenerVelocityZ()
+    {
+        return listenerVelocityZ;
+    }
+    
+    public static void EnableListenerDoppler()
+    {
+        if (listenerDopplerEnabled)
+            return;
+        
+        listenerDopplerEnabled = true;
+        SetListenerVelocity(listenerVelocityX, listenerVelocityY, listenerVelocityZ);
+    }
+    
+    public static void DisableListenerDoppler()
+    {
+        if (!listenerDopplerEnabled)
+            return;
+        
+        listenerDopplerEnabled = false;
+        alListener3f(AL_VELOCITY, 0, 0, 0);
+    }
+    
+    public static boolean IsListenerDopplerEnabled()
+    {
+        return listenerDopplerEnabled;
     }
     
     /*

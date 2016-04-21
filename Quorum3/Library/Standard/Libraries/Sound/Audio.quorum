@@ -3,6 +3,7 @@ package Libraries.Sound
 use Libraries.System.File
 use Libraries.System.Properties
 use Libraries.System.SystemHelper
+use Libraries.Compute.Vector3
 
 /*
 The Audio class can be used to play sound files and change how they are played.
@@ -787,6 +788,47 @@ class Audio
     system action SetPosition(number newX, number newY, number newZ)
 
     /*
+    SetPosition uses the X, Y, and Z coordinates contained in a Vector3 object
+    to place the sound at a specific point in 3D virtual space. The distance and
+    location of the sound relative to the listener's coordinates will affect the
+    volume of the sound as well as how it plays though speakers or headphones.
+
+    Using Balance, Fade, Rotation, or X,Y,Z coordinates are all exclusive of
+    each other, and using one will override any others used previously.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+    use Libraries.Compute.Vector3
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We always have to load a sound before use.
+    audio:Load("noise.ogg")
+
+    // For this example, we will load our point into a Vector3 object.
+    Vector3 vector
+
+    // Our point will be located 2 units to the left, 4 units in front of, and 1
+    // unit above the listener.
+    vector:Set(-2, 4, 1)
+
+    // Now we can set our audio's position with the Vector3.
+    audio:SetPosition(vector)
+
+    // After we load the file, we can play it with a call to PlayUntilDone().
+    audio:PlayUntilDone()
+
+    // Once we're finished with an audio file, we need to let the computer know.
+    audio:Dispose()
+    */
+    action SetPosition(Vector3 position)
+        SetPosition(position:GetX(), position:GetY(), position:GetZ())
+    end
+
+    /*
         GetX returns the current location of the sound in the X plane in virtual
         3D space.
 
@@ -862,6 +904,526 @@ class Audio
         number z = audio:GetZ()
     */
     system action GetZ returns number
+
+    /*
+        EnableDoppler will make the audio automatically calculate doppler shift 
+        for this audio. Doppler is enabled by default for audio, but will have 
+        no effect until the user provides the velocity of the audio via an 
+        action, such as SetVelocity(Vector3).
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio audio
+        audio:Load("Sound.wav")
+
+        // We need to set the velocity of the audio in order to hear the doppler effect.
+        audio:SetVelocity(4, 0, -2)
+
+        // Doppler is already enabled by default, so this call would only be needed
+        // if we had previously disabled the doppler effect on this audio.
+        audio:EnableDoppler()
+    */
+    system action EnableDoppler
+
+    /*
+        DisableDoppler will stop the audio from automatically calculating 
+        doppler shift.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio audio
+        audio:Load("Sound.wav")
+
+        // The doppler effect is only noticable if the audio has velocity.
+        audio:SetVelocity(4, 0, -2)
+
+        // Because we disable the doppler effect here, the velocity we just set will
+        // have no effect.
+        audio:DisableDoppler()
+    */
+    system action DisableDoppler
+
+    /*
+        IsDopplerEnabled will return whether or not the audio is currently set
+        to use the doppler effect while playing. Note that by default, audio
+        will use doppler effects.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio audio
+        audio:Load("Ping.ogg")
+
+        // We will store our result in a new boolean variable. Since we haven't
+        // changed the doppler for the audio, it should return it's default
+        // state, which is true.
+        boolean doppler = audio:IsDopplerEnabled()
+    */
+    system action IsDopplerEnabled returns boolean
+    
+
+    /*
+        SetVelocityX will set the velocity of the audio along the x-axis in 3D 
+        space. The velocity is measured in meters per seconds, and is used to
+        calculate doppler effects. If doppler is disabled, then the audio's 
+        velocity is ignored. Note that setting the velocity of audio will NOT 
+        automatically update the position of the audio over time!
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // To use audio, we need to create an object for it first.
+        Audio audio
+        
+        // We always have to load a sound before use.
+        audio:Load("Car.wav")
+
+        // For this example, we will make the sound move 20 meters per second
+        // to the left.
+        audio:SetVelocityX(20)
+    */
+    system action SetVelocityX(number x)
+
+    /*
+        SetVelocityY will set the velocity of the audio along the y-axis in 3D 
+        space. The velocity is measured in meters per seconds, and is used to
+        calculate doppler effects. If doppler is disabled, then the audio's 
+        velocity is ignored. Note that setting the velocity of audio will NOT 
+        automatically update the position of the audio over time!
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // To use audio, we need to create an object for it first.
+        Audio audio
+        
+        // We always have to load a sound before use.
+        audio:Load("Car.wav")
+
+        // For this example, we will make the sound move 20 meters per second
+        // along the y-axis.
+        audio:SetVelocityY(20)
+    */
+    system action SetVelocityY(number y)
+
+    /*
+        SetVelocityZ will set the velocity of the audio along the z-axis in 3D 
+        space. The velocity is measured in meters per seconds, and is used to
+        calculate doppler effects. If doppler is disabled, then the audio's 
+        velocity is ignored. Note that setting the velocity of audio will NOT 
+        automatically update the position of the audio over time!
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // To use audio, we need to create an object for it first.
+        Audio audio
+        
+        // We always have to load a sound before use.
+        audio:Load("Car.wav")
+
+        // For this example, we will make the sound move 20 meters per second
+        // along the z-axis.
+        audio:SetVelocityZ(20)
+    */
+    system action SetVelocityZ(number z)
+
+    /*
+        SetVelocity will set the velocity of the audio in 3D space along the X,
+        Y, and Z axes. The velocity is measured in meters per seconds, and is 
+        used to calculate doppler effects. If doppler is disabled, then the 
+        audio's velocity is ignored. Note that setting the velocity of audio 
+        will NOT automatically update the position of the audio over time!
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // To use audio, we need to create an object for it first.
+        Audio audio
+        
+        // We always have to load a sound before use.
+        audio:Load("Car.wav")
+
+        // Now we set the velocity of our audio. All numbers are measured in
+        // meters per second.
+        audio:SetVelocity(20, 5, 8)
+    */
+    system action SetVelocity(number x, number y, number z)
+
+    /*
+        SetVelocity will set the velocity of the audio in 3D space along the X,
+        Y, and Z axes. The velocity is measured in meters per seconds, and is 
+        used to calculate doppler effects. If doppler is disabled, then the 
+        audio's velocity is ignored. Note that setting the velocity of audio 
+        will NOT automatically update the position of the audio over time!
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+        use Libraries.Compute.Vector3
+
+        // To use audio, we need to create an object for it first.
+        Audio audio
+
+        // In this example, we will set the velocity using a Vector3 object.
+        Vector3 velocity
+        
+        // We always have to load a sound before use.
+        audio:Load("Car.wav")
+
+        // We can now set our vector with our velocity. All numbers are measured
+        // in meters per second.
+        velocity:Set(20, 5, 8)
+
+        // Now we set the velocity of our audio using our vector.
+        audio:SetVelocity(velocity)
+    */
+    action SetVelocity(Vector3 velocity)
+        SetVelocity(velocity:GetX(), velocity:GetY(), velocity:GetZ())
+    end
+
+    /*
+        SetListenerX sets the x-coordinate of the listener in 3D space. When 
+        audio is played, how it sounds to the user is dependent on both the 
+        position of the audio and where the listener is positioned. The 
+        listener's position is universal to all audio - or in other words, if 
+        you change the position of the listener for one audio object, it adjusts
+        the position of the listener for ALL audio objects. 
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // In this example, we will use two audio objects. 
+        Audio buzzer
+        buzzer:Load("Buzzer.wav")
+        Audio bell
+        bell:Load("Bell.ogg")
+
+        // We will now set the listener's x position. We could do this with
+        // either of our audio objects.
+        buzzer:SetListenerX(3)
+
+        // Now when we play our audio, both sounds should come from the left
+        // side in 3D space - this is because both sounds are at their default
+        // location of 0, 0, 0, but the listener is 3 units to the right.
+        buzzer:PlayUntilDone()
+        bell:PlayUntilDone()
+    */
+    system action SetListenerX(number x)
+
+    /*
+        SetListenerY sets the y-coordinate of the listener in 3D space. When 
+        audio is played, how it sounds to the user is dependent on both the 
+        position of the audio and where the listener is positioned. The 
+        listener's position is universal to all audio - or in other words, if 
+        you change the position of the listener for one audio object, it adjusts
+        the position of the listener for ALL audio objects. 
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // In this example, we will use two audio objects. 
+        Audio buzzer
+        buzzer:Load("Buzzer.wav")
+        Audio bell
+        bell:Load("Bell.ogg")
+
+        // We will now set the listener's x position. We could do this with
+        // either of our audio objects.
+        buzzer:SetListenerY(3)
+
+        // Now when we play our audio, both sounds are affected by the new
+        // position of the listener.
+        buzzer:PlayUntilDone()
+        bell:PlayUntilDone()
+    */
+    system action SetListenerY(number y)
+
+    /*
+        SetListenerZ sets the z-coordinate of the listener in 3D space. When 
+        audio is played, how it sounds to the user is dependent on both the 
+        position of the audio and where the listener is positioned. The 
+        listener's position is universal to all audio - or in other words, if 
+        you change the position of the listener for one audio object, it adjusts
+        the position of the listener for ALL audio objects. 
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // In this example, we will use two audio objects. 
+        Audio buzzer
+        buzzer:Load("Buzzer.wav")
+        Audio bell
+        bell:Load("Bell.ogg")
+
+        // We will now set the listener's x position. We could do this with
+        // either of our audio objects.
+        buzzer:SetListenerZ(3)
+
+        // Now when we play our audio, both sounds are affected by the new
+        // position of the listener.
+        buzzer:PlayUntilDone()
+        bell:PlayUntilDone()
+    */
+    system action SetListenerZ(number z)
+
+    /*
+        SetListenerPosition sets the X, Y, and Z coordinates of the listener in
+        3D space. When audio is played, how it sounds to the user is dependent 
+        on both the position of the audio and where the listener is positioned. 
+        The listener's position is universal to all audio - or in other words, 
+        if you change the position of the listener for one audio object, it 
+        adjusts the position of the listener for ALL audio objects. 
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // In this example, we will use two audio objects. 
+        Audio buzzer
+        buzzer:Load("Buzzer.wav")
+        Audio bell
+        bell:Load("Bell.ogg")
+
+        // We will now set the listener's position. Although we can set all 3
+        // coordinates with this action, we will set just the x-coordinate for
+        // this example. This is the same as using SetListenerX(3)
+        buzzer:SetListenerX(3, 0, 0)
+
+        // Now when we play our audio, both sounds should come from the left
+        // side in 3D space - this is because both sounds are at their default
+        // location of 0, 0, 0, but the listener is 3 units to the right.
+        buzzer:PlayUntilDone()
+        bell:PlayUntilDone()
+    */
+    system action SetListenerPosition(number x, number y, number z)
+
+    /*
+        SetListenerPosition sets the X, Y, and Z coordinates of the listener in
+        3D space. When audio is played, how it sounds to the user is dependent 
+        on both the position of the audio and where the listener is positioned. 
+        The listener's position is universal to all audio - or in other words, 
+        if you change the position of the listener for one audio object, it 
+        adjusts the position of the listener for ALL audio objects. 
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // In this example, we will use two audio objects. 
+        Audio buzzer
+        buzzer:Load("Buzzer.wav")
+        Audio bell
+        bell:Load("Bell.ogg")
+
+        // We will now set the listener's position. Although we can set all 3
+        // coordinates with this action, we will set just the x-coordinate for
+        // this example. This is the same as using SetListenerX(3)
+        buzzer:SetListenerX(3, 0, 0)
+
+        // Now when we play our audio, both sounds should come from the left
+        // side in 3D space - this is because both sounds are at their default
+        // location of 0, 0, 0, but the listener is 3 units to the right.
+        buzzer:PlayUntilDone()
+        bell:PlayUntilDone()
+    */
+    action SetListenerPosition(Vector3 vector)
+        SetListenerPosition(vector:GetX(), vector:GetY(), vector:GetZ())
+    end
+
+    /*
+        SetListenerVelocityX will set the listener's velocity along the x-axis.
+        Just like individual objects, the listener can have velocity, which will
+        be used during calculation of doppler shift. The listener is universal
+        to all audio objects, which means that setting the listener in one
+        audio object will set it for ALL audio objects. The velocity is measured
+        as meters per second.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio flute
+        flute:Load("Flute.ogg")
+        
+        // The listener is given a velocity of 15 meters per second along the
+        // x-axis.
+        flute:SetListenerVelocityX(15)
+    */
+    system action SetListenerVelocityX(number x)
+
+    /*
+        SetListenerVelocityY will set the listener's velocity along the y-axis.
+        Just like individual objects, the listener can have velocity, which will
+        be used during calculation of doppler shift. The listener is universal
+        to all audio objects, which means that setting the listener in one
+        audio object will set it for ALL audio objects. The velocity is measured
+        as meters per second.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio flute
+        flute:Load("Flute.ogg")
+        
+        // The listener is given a velocity of 8 meters per second along the
+        // y-axis.
+        flute:SetListenerVelocityX(8)
+    */
+    system action SetListenerVelocityY(number x)
+
+    /*
+        SetListenerVelocityZ will set the listener's velocity along the z-axis.
+        Just like individual objects, the listener can have velocity, which will
+        be used during calculation of doppler shift. The listener is universal
+        to all audio objects, which means that setting the listener in one
+        audio object will set it for ALL audio objects. The velocity is measured
+        as meters per second.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio flute
+        flute:Load("Flute.ogg")
+        
+        // The listener is given a velocity of 11 meters per second along the
+        // z-axis.
+        flute:SetListenerVelocityZ(11)
+    */
+    system action SetListenerVelocityZ(number z)
+
+    /*
+        SetListenerVelocity will set the listener's velocity in 3D space.
+        Just like individual objects, the listener can have velocity, which will
+        be used during calculation of doppler shift. The listener is universal
+        to all audio objects, which means that setting the listener in one
+        audio object will set it for ALL audio objects. The velocity is measured
+        as meters per second.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio flute
+        flute:Load("Flute.ogg")
+        
+        // The listener is given a velocity of 15 meters per second along the
+        // x-axis, 8 meters per second along the y-axis, and 11 meters-per-second
+        // along the z-axis.
+        flute:SetListenerVelocityX(15, 8, 11)
+    */
+    system action SetListenerVelocity(number x, number y, number z)
+
+    /*
+        SetListenerVelocity will set the listener's velocity in 3D space.
+        Just like individual objects, the listener can have velocity, which will
+        be used during calculation of doppler shift. The listener is universal
+        to all audio objects, which means that setting the listener in one
+        audio object will set it for ALL audio objects. The velocity is measured
+        as meters per second.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+        use Libraries.Compute.Vector3
+
+        Audio flute
+        flute:Load("Flute.ogg")
+
+        Vector3 vector
+        vector:Set(15, 8, 11)
+        
+        // The listener is given a velocity of 15 meters per second along the
+        // x-axis, 8 meters per second along the y-axis, and 11 meters-per-second
+        // along the z-axis.
+        flute:SetListenerVelocityX(vector)
+    */
+    action SetListenerVelocity(Vector3 vector)
+        SetListenerVelocity(vector:GetX(), vector:GetY(), vector:GetZ())
+    end
+
+    /*
+        EnableListenerDoppler will make the audio engine consider the velocity
+        of the listener when calculating doppler effects. The listener is
+        universal to all audio objects, which means that if you enable doppler
+        calculations for the listener, it will enable it when calculating
+        doppler for ALL audio objects. By default, the listener already has
+        doppler enabled, but this will have no effect until the listener is
+        given a velocity.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio audio
+        audio:Load("Whale.wav")
+
+        // In order to hear the doppler effect in action, the listener needs
+        // to have velocity.
+        audio:SetListenerVelocity(5, 0, 4)
+
+        // We now enable the doppler effect for the listener -- by default, this
+        // is already on, so this is only needed if we'd previously disabled it.
+        audio:EnableListenerDoppler()
+    */
+    system action EnableListenerDoppler
+
+    /*
+        DisableListenerDoppler will make the audio engine stop using the
+        velocity of the listener when calculating doppler effect. This will NOT
+        stop the engine from using the velocity of other audio objects that do
+        have doppler enabled when calculating the doppler shift. The listener
+        is universal to all audio objects, so disabling doppler effect on the
+        listener will be in effect during calculation of doppler shift for ALL
+        audio objects.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio audio
+        audio:Load("Whale.wav")
+
+        // In order to hear the doppler effect in action, the listener needs
+        // to have velocity.
+        audio:SetListenerVelocity(5, 0, 4)
+
+        // Because we are now disabling the doppler effect on the listener, the
+        // velocity we gave it will have no effect.
+        audio:DisableListenerDoppler()
+    */
+    system action DisableListenerDoppler
+
+    /*
+        This action will return whether or not the listener is currently using 
+        its velocity during doppler shift calculations. By default, this will be 
+        true.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio audio
+
+        // We'll store the value in a boolean. Because we haven't disabled the
+        // doppler, it should give us the default value, which is true.
+        boolean doppler = audio:IsListenerDopplerEnabled()
+    */
+    system action IsListenerDopplerEnabled returns boolean
 
     /*
         SetRotation sets a sound to play at a point in 3D space such that it

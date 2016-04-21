@@ -95,6 +95,10 @@ public abstract class StreamingData extends Data {
             }
 			
             alSourcei(sourceID, AL_LOOPING, AL_FALSE);
+            
+            if (dopplerEnabled)
+                SetVelocity(velocityX, velocityY, velocityZ);
+            
             SetVolume(volume);
             //SetHorizontalPosition(pan);
             SetPosition(x, y, z);
@@ -289,6 +293,40 @@ public abstract class StreamingData extends Data {
         alSource3f(sourceID, AL_POSITION, newX, newY, newZ);
         
         alSourcef(sourceID, AL_GAIN, volume);
+    }
+    
+    @Override
+    public void EnableDoppler()
+    {
+        if (dopplerEnabled)
+            return;
+        
+        dopplerEnabled = true;
+        SetVelocity(velocityX, velocityY, velocityZ);
+    }
+    
+    @Override
+    public void DisableDoppler()
+    {
+        if (!dopplerEnabled || manager.noDevice || sourceID == -1)
+            return;
+        
+        alSource3f(sourceID, AL_VELOCITY, 0, 0, 0);
+    }
+    
+    @Override
+    public void SetVelocity(float newX, float newY, float newZ)
+    {
+        if (manager.noDevice)
+            return;
+        if (sourceID == -1)
+            return;
+        
+        velocityX = newX;
+        velocityY = newY;
+        velocityZ = newZ;
+        
+        alSource3f(sourceID, AL_VELOCITY, newX, newY, newZ);
     }
 
     public void SetPosition (float position) 

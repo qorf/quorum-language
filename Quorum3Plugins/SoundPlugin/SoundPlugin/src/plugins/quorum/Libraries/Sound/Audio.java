@@ -198,6 +198,41 @@ public class Audio {
         data.SetPosition((float)newX, (float)newY, (float)newZ);
     }
     
+    public void EnableDoppler()
+    {
+        data.EnableDoppler();
+    }
+    
+    public void DisableDoppler()
+    {
+        data.DisableDoppler();
+    }
+    
+    public boolean IsDopplerEnabled()
+    {
+        return data.IsDopplerEnabled();
+    }
+    
+    public void SetVelocityX(double x)
+    {
+        data.SetVelocityX((float)x);
+    }
+    
+    public void SetVelocityY(double y)
+    {
+        data.SetVelocityY((float)y);
+    }
+    
+    public void SetVelocityZ(double z)
+    {
+        data.SetVelocityZ((float)z);
+    }
+    
+    public void SetVelocity(double x, double y, double z)
+    {
+        data.SetVelocity((float)x, (float)y, (float)z);
+    }
+    
     public void SetRotation(double rotation)
     {
         data.SetRotation(rotation);
@@ -288,5 +323,55 @@ public class Audio {
     public double GetListenerZ()
     {
         return AudioManager.GetListenerZ();
+    }
+    
+    public void SetListenerVelocity(double x, double y, double z)
+    {
+        AudioManager.SetListenerVelocity(x, y, z);
+    }
+    
+    public void SetListenerVelocityX(double x)
+    {
+        SetListenerVelocity(x, AudioManager.GetListenerVelocityY(), AudioManager.GetListenerVelocityZ());
+    }
+    
+    public void SetListenerVelocityY(double y)
+    {
+        SetListenerVelocity(AudioManager.GetListenerVelocityX(), y, AudioManager.GetListenerVelocityZ());
+    }
+    
+    public void SetListenerVelocityZ(double z)
+    {
+        SetListenerVelocity(AudioManager.GetListenerVelocityX(), AudioManager.GetListenerVelocityY(), z);
+    }
+    
+    public double GetListenerVelocityX()
+    {
+        return AudioManager.GetListenerVelocityX();
+    }
+    
+    public double GetListenerVelocityY()
+    {
+        return AudioManager.GetListenerVelocityY();
+    }
+    
+    public double GetListenerVelocityZ()
+    {
+        return AudioManager.GetListenerVelocityZ();
+    }
+    
+    public void EnableListenerDoppler()
+    {
+        AudioManager.EnableListenerDoppler();
+    }
+    
+    public void DisableListenerDoppler()
+    {
+        AudioManager.DisableListenerDoppler();
+    }
+    
+    public boolean IsListenerDopplerEnabled()
+    {
+        return AudioManager.IsListenerDopplerEnabled();
     }
 }
