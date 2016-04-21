@@ -102,7 +102,10 @@ class Item3D is Item
     end
 
     /*
-    This action will return the x-coordinate of this Item3D.
+    GetX will return the X coordinate of this Item3D in 3D space. Note that if
+    if this object has been added to an Item3D, then this coordinate is 
+    relative to the parent item - to get the non-relative X coordinate, use the
+    GetGlobalX() action instead.
 
     Attribute: Example
 
@@ -117,7 +120,10 @@ class Item3D is Item
     end
 
     /*
-    This action will return the y-coordinate of this Item3D.
+    GetY will return the Y coordinate of this Item3D in 3D space. Note that if
+    if this object has been added to an Item3D, then this coordinate is 
+    relative to the parent item - to get the non-relative Y coordinate, use the
+    GetGlobalY() action instead.
 
     Attribute: Example
 
@@ -132,7 +138,10 @@ class Item3D is Item
     end
 
     /*
-    This action will return the z-coordinate of this Item3D.
+    GetZ will return the Z coordinate of this Item3D in 3D space. Note that if
+    if this object has been added to an Item3D, then this coordinate is 
+    relative to the parent item - to get the non-relative Z coordinate, use the
+    GetGlobalZ() action instead.
 
     Attribute: Example
 
@@ -147,7 +156,11 @@ class Item3D is Item
     end
 
     /*
-    This action will return the position of this Item3D as a Vector3 object.
+    GetPosition will return a Vector3 object containing the X, Y, and Z
+    coordinates of this Item3D object. Note that if this object has been
+    added to an Item3D, then this coordinate is relative to the parent item -
+    to get the non-relative coordinates, use the GetGlobalPosition() action
+    instead.
 
     Attribute: Example
 
@@ -329,7 +342,7 @@ class Item3D is Item
 
         use Libraries.Interface.Item3D
         Item3D myItem
-        myItem:SetOffsetY(75)
+        myItem:SetOffsetZ(75)
     */
     action SetOffsetZ(number zAmount)
         if zAmount not= offsetZ

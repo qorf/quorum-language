@@ -906,6 +906,36 @@ class Audio
     system action GetZ returns number
 
     /*
+        GetPosition will return the position of the Audio in 3D space. The
+        position will be returned as a Vector3 object.
+
+        Using Balance, Fade, Rotation, or X,Y,Z coordinates are all exclusive of
+        each other, and using one will override any others used previously.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+        use Libraries.Compute.Vector3
+
+        // To use audio, we'll first need to create an object for it.
+        Audio audio
+
+        // We always have to load a sound before use.
+        audio:Load("noise.ogg")
+
+        // For this example, we will place the audio at the coordinates 3, -2, 5.
+        audio:SetPosition(3, -2, 5)
+
+        // We can get the position of the audio as a Vector3 with GetPosition().
+        Vector3 vector = audio:GetPosition()
+    */
+    action GetPosition returns Vector3
+        Vector3 vector
+        vector:Set(GetX(), GetY(), GetZ())
+        return vector
+    end
+
+    /*
         EnableDoppler will make the audio automatically calculate doppler shift 
         for this audio. Doppler is enabled by default for audio, but will have 
         no effect until the user provides the velocity of the audio via an 
@@ -1089,6 +1119,71 @@ class Audio
     */
     action SetVelocity(Vector3 velocity)
         SetVelocity(velocity:GetX(), velocity:GetY(), velocity:GetZ())
+    end
+
+    /*
+    GetVelocityX returns the velocity of this Audio object along the X axis in
+    3D space. The velocity is measured in meters per second. The velocity must
+    be set manually - it will NOT be calculated automatically!
+
+    Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio audio
+        audio:Load("Tone.wav")
+
+        audio:SetVelocityX(30)
+
+        number speed = audio:GetVelocityX()
+    */
+    system action GetVelocityX returns number
+
+    /*
+    GetVelocityY returns the velocity of this Audio object along the Y axis in
+    3D space. The velocity is measured in meters per second. The velocity must
+    be set manually - it will NOT be calculated automatically!
+
+    Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio audio
+        audio:Load("Tone.wav")
+
+        audio:SetVelocityY(30)
+
+        number speed = audio:GetVelocityY()
+    */
+    system action GetVelocityY returns number
+
+    /*
+    GetVelocityZ returns the velocity of this Audio object along the Z axis in
+    3D space. The velocity is measured in meters per second. The velocity must
+    be set manually - it will NOT be calculated automatically!
+
+    Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio audio
+        audio:Load("Tone.wav")
+
+        audio:SetVelocityZ(30)
+
+        number speed = audio:GetVelocityZ()
+    */
+    system action GetVelocityZ returns number
+
+    /*
+    GetVelocity returns a Vector3 object describing the velocity of this Audio
+    object in 3D space. The velocity is measured in meters per second. The 
+    velocity must be set manually - it will NOT be calculated automatically!
+    */
+    action GetVelocity returns Vector3
+        Vector3 vector
+        vector:Set(GetVelocityX(), GetVelocityY(), GetVelocityZ())
+        return vector
     end
 
     /*

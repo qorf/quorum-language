@@ -233,6 +233,21 @@ public class Audio {
         data.SetVelocity((float)x, (float)y, (float)z);
     }
     
+    public double GetVelocityX()
+    {
+        return data.velocityX;
+    }
+    
+    public double GetVelocityY()
+    {
+        return data.velocityY;
+    }
+
+    public double GetVelocityZ()
+    {
+        return data.velocityZ;
+    }
+    
     public void SetRotation(double rotation)
     {
         data.SetRotation(rotation);
