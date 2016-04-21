@@ -144,6 +144,9 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         header:SetTitleHeaderValue(value)
     end
 
+    action AddMetaData(MetaData meta)
+        header:Add(meta)
+    end
     /*
         This action gets the header of this webpage.
 
