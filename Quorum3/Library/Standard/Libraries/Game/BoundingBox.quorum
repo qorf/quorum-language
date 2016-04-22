@@ -1,0 +1,354 @@
+package Libraries.Game
+
+use Libraries.Compute.Vector3
+use Libraries.Compute.Matrix4
+use Libraries.Containers.Array
+
+class BoundingBox
+
+    private Vector3 calcVector
+
+    Vector3 minimum
+    Vector3 maximum
+
+    Vector3 center
+    Vector3 dimensions
+
+    /*
+    GetCenter will return a Vector3 object containing the point at the center
+    of the BoundingBox.
+    */
+    action GetCenter returns Vector3
+        return center
+    end
+
+    /*
+    GetCenterX will return the X coordinate of the center of the BoundingBox.
+    */
+    action GetCenterX returns number
+        return center:GetX()
+    end
+
+    /*
+    GetCenterY will return the Y coordinate of the center of the BoundingBox.
+    */
+    action GetCenterY returns number
+        return center:GetY()
+    end
+
+    /*
+    GetCenterZ will return the Z coordinate of the center of the BoundingBox.
+    */
+    action GetCenterZ returns number
+        return center:GetZ()
+    end
+
+    /*
+    GetDimensions will return the width, height, and depth of the BoundingBox,
+    stored within a Vector3 object.
+    */
+    action GetDimensions returns Vector3
+        return dimensions
+    end
+
+    /*
+    GetWidth will return the width of the BoundingBox.
+    */
+    action GetWidth returns number
+        return dimensions:GetX()
+    end
+
+    /*
+    GetHeight will return the height of the BoundingBox.
+    */
+    action GetHeight returns number
+        return dimensions:GetY()
+    end
+
+    /*
+    GetDepth will return the height of the BoundingBox.
+    */
+    action GetDepth returns number
+        return dimensions:GetZ()
+    end
+
+    /*
+    GetMinimum will return the "minimum" point of the BoundingBox. This is
+    specifically the point of the BoundingBox with the lowest X, Y, and Z
+    values. The point will be returned as a Vector3.
+    */
+    action GetMinimum returns Vector3
+        return minimum
+    end
+
+    /*
+    GetMaximum will return the "maximum" point of the BoundingBox. This is
+    specifically the point of the BoundingBox with the highest X, Y, and Z
+    values. The point will be returned as a Vector3.
+    */
+    action GetMaximum returns Vector3
+        return maximum
+    end
+
+    /*
+    The Copy action will return a new BoundingBox with the same bounds as this
+    BoundingBox.
+    */
+    action Copy returns BoundingBox
+        BoundingBox temp
+        temp:Set(me)
+        return temp
+    end
+
+    /*
+    When provided with a BoundingBox as a parameter, the Set action will set the
+    BoundingBox to match the bounds of the parameter.
+    */
+    action Set(BoundingBox bounds)
+        Set(bounds:GetMinimum(), bounds:GetMaximum())
+    end
+
+    /*
+    The Set action can be provided with a pair of vectors to set the bounds of
+    this BoundingBox. The first vector should represent the "minimum" point of
+    the bounds, or the point with the lowest X, Y, and Z values. The second
+    vector should represent the "maximum" point of the bounsd, or the point with
+    the highest X, Y, and Z values.
+    */
+    action Set(Vector3 min, Vector3 max)
+        number minX = min:GetX()
+        number minY = min:GetY()
+        number minZ = min:GetZ()
+
+        number maxX = max:GetX()
+        number maxY = max:GetY()
+        number maxZ = max:GetZ()
+
+        if maxX < minX
+            minX = maxX
+            maxX = min:GetX()
+        end
+
+        if maxY < minY
+            minY = maxY
+            maxY = min:GetY()
+        end
+
+        if maxZ < minZ
+            minZ = maxZ
+            maxZ = min:GetZ()
+        end
+
+        minimum:Set(minX, minY, minZ)
+        maximum:Set(maxX, maxY, maxZ)
+
+        center:Set(minimum)
+        center:Add(maximum)
+        center:Scale(0.5)
+
+        dimensions:Set(maximum)
+        dimensions:Subtract(minimum)
+    end
+
+    /*
+    Providing the Set action with an array of points will set the BoundingBox to
+    the minimum possible size that contains all of the given points.
+    */
+    action Set(Array<Vector3> points)
+       Invalidate()
+        
+        integer counter = 0
+        repeat points:GetSize() times
+            Extend(points:Get(counter))
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action will invalidate the BoundingBox, making its minimum values to
+    positive infinity and setting its maximum values to negative infinity.
+    */
+    action Invalidate
+        number temp = 0
+        temp = temp:GetPositiveInfinityValue()
+        minimum:Set(temp, temp, temp)
+        temp = temp:GetNegativeInfinityValue()
+        maximum:Set(temp, temp, temp)
+
+        center:Set(0, 0, 0)
+        dimensions:Set(0, 0, 0)
+    end
+
+    /*
+    This action will extend the BoundingBox to include the given point.
+    */
+    action Extend(Vector3 point)
+
+        number tempX = minimum:GetX()
+        number tempY = minimum:GetY()
+        number tempZ = minimum:GetZ()
+
+        if point:GetX() < tempX
+            tempX = point:GetX()
+        end
+
+        if point:GetY() < tempY
+            tempY = point:GetY()
+        end
+
+        if point:GetZ() < tempZ
+            tempZ = point:GetZ()
+        end
+
+        minimum:Set(tempX, tempY, tempZ)
+
+        tempX = maximum:GetX()
+        tempY = maximum:GetY()
+        tempZ = maximum:GetZ()
+
+        if point:GetX() > tempX
+            tempX = point:GetX()
+        end
+
+        if point:GetY() > tempY
+            tempY = point:GetY()
+        end
+
+        if point:GetZ() > tempZ
+            tempZ = point:GetZ()
+        end
+
+        maximum:Set(tempX, tempY, tempZ)
+
+        Set(minimum, maximum)
+    end
+
+    /*
+    This action will extend the BoundingBox to contain the provided bounds.
+    */
+    action Extend(BoundingBox bounds)
+        Extend(bounds:GetMinimum())
+        Extend(bounds:GetMaximum())
+    end
+
+    /*
+    This action will clear out the values of the BoundingBox, resetting all of
+    its values to zero.
+    */
+    action Clear
+        minimum:Set(0, 0, 0)
+        maximum:Set(0, 0, 0)
+        Set(minimum, maximum)
+    end
+
+    /*
+    This action will return whether or not the BoundingBox defines a real,
+    3-dimensional area. This requires all of the values of the "minimum" point
+    to be less than the values of the "maximum" point.
+    */
+    action IsValid returns boolean
+        return minimum:GetX() < maximum:GetX() and minimum:GetY() < maximum:GetY() and minimum:GetZ() < maximum:GetZ()
+    end
+
+    /*
+
+	public BoundingBox ext (Vector3 center, float radius) {
+		return this.set(min.set(min(min.x, center.x - radius), min(min.y, center.y - radius), min(min.z, center.z - radius)),
+			max.set(max(max.x, center.x + radius), max(max.y, center.y + radius), max(max.z, center.z + radius)));
+	}
+
+	public BoundingBox ext (BoundingBox bounds, Matrix4 transform) {
+		ext(tmpVector.set(bounds.min.x, bounds.min.y, bounds.min.z).mul(transform));
+		ext(tmpVector.set(bounds.min.x, bounds.min.y, bounds.max.z).mul(transform));
+		ext(tmpVector.set(bounds.min.x, bounds.max.y, bounds.min.z).mul(transform));
+		ext(tmpVector.set(bounds.min.x, bounds.max.y, bounds.max.z).mul(transform));
+		ext(tmpVector.set(bounds.max.x, bounds.min.y, bounds.min.z).mul(transform));
+		ext(tmpVector.set(bounds.max.x, bounds.min.y, bounds.max.z).mul(transform));
+		ext(tmpVector.set(bounds.max.x, bounds.max.y, bounds.min.z).mul(transform));
+		ext(tmpVector.set(bounds.max.x, bounds.max.y, bounds.max.z).mul(transform));
+		return this;
+	}
+
+	public BoundingBox mul (Matrix4 transform) {
+		final float x0 = min.x, y0 = min.y, z0 = min.z, x1 = max.x, y1 = max.y, z1 = max.z;
+		inf();
+		ext(tmpVector.set(x0, y0, z0).mul(transform));
+		ext(tmpVector.set(x0, y0, z1).mul(transform));
+		ext(tmpVector.set(x0, y1, z0).mul(transform));
+		ext(tmpVector.set(x0, y1, z1).mul(transform));
+		ext(tmpVector.set(x1, y0, z0).mul(transform));
+		ext(tmpVector.set(x1, y0, z1).mul(transform));
+		ext(tmpVector.set(x1, y1, z0).mul(transform));
+		ext(tmpVector.set(x1, y1, z1).mul(transform));
+		return this;
+	}
+
+	public boolean contains (BoundingBox b) {
+		return !isValid()
+			|| (min.x <= b.min.x && min.y <= b.min.y && min.z <= b.min.z && max.x >= b.max.x && max.y >= b.max.y && max.z >= b.max.z);
+	}
+
+	public boolean intersects (BoundingBox b) {
+		if (!isValid()) return false;
+
+		// test using SAT (separating axis theorem)
+
+		float lx = Math.abs(this.cnt.x - b.cnt.x);
+		float sumx = (this.dim.x / 2.0f) + (b.dim.x / 2.0f);
+
+		float ly = Math.abs(this.cnt.y - b.cnt.y);
+		float sumy = (this.dim.y / 2.0f) + (b.dim.y / 2.0f);
+
+		float lz = Math.abs(this.cnt.z - b.cnt.z);
+		float sumz = (this.dim.z / 2.0f) + (b.dim.z / 2.0f);
+
+		return (lx <= sumx && ly <= sumy && lz <= sumz);
+
+	}
+
+	public boolean contains (Vector3 v) {
+		return min.x <= v.x && max.x >= v.x && min.y <= v.y && max.y >= v.y && min.z <= v.z && max.z >= v.z;
+	}
+
+	@Override
+	public String toString () {
+		return "[" + min + "|" + max + "]";
+	}
+
+	public BoundingBox ext (float x, float y, float z) {
+		return this.set(min.set(min(min.x, x), min(min.y, y), min(min.z, z)), max.set(max(max.x, x), max(max.y, y), max(max.z, z)));
+	}
+
+        public Vector3 getCorner000 (final Vector3 out) {
+		return out.set(min.x, min.y, min.z);
+	}
+
+	public Vector3 getCorner001 (final Vector3 out) {
+		return out.set(min.x, min.y, max.z);
+	}
+
+	public Vector3 getCorner010 (final Vector3 out) {
+		return out.set(min.x, max.y, min.z);
+	}
+
+	public Vector3 getCorner011 (final Vector3 out) {
+		return out.set(min.x, max.y, max.z);
+	}
+
+	public Vector3 getCorner100 (final Vector3 out) {
+		return out.set(max.x, min.y, min.z);
+	}
+
+	public Vector3 getCorner101 (final Vector3 out) {
+		return out.set(max.x, min.y, max.z);
+	}
+
+	public Vector3 getCorner110 (final Vector3 out) {
+		return out.set(max.x, max.y, min.z);
+	}
+
+	public Vector3 getCorner111 (final Vector3 out) {
+		return out.set(max.x, max.y, max.z);
+	}
+    */
+end
