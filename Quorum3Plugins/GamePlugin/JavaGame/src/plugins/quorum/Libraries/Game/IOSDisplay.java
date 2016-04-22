@@ -424,10 +424,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
             graphics.glViewport(0, 0, width, height);
             // Create the game's Painter2D.
             Painter2D painter = new Painter2D();
-            ((quorum.Libraries.Game.IOSApplication)GameState.GetApp()).plugin_.game.Set_Libraries_Game_Game__batch_(painter);
-            
-            // Before calling CreateGame, we need to make sure the default active Panel is the right size.
-            app.game.GetActivePanel().SetSize(GetWidth(), GetHeight());
+            ((quorum.Libraries.Game.IOSApplication)GameState.GetApp()).plugin_.game.InitializeLayers();
             
             app.game.CreateGame();
             //app.game.Resize(width, height);

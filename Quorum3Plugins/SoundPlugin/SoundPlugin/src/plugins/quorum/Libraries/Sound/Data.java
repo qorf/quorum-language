@@ -22,6 +22,11 @@ public abstract class Data {
     protected float pitch = 1;
     protected double rotation = 0;
     
+    protected boolean dopplerEnabled = true;
+    protected float velocityX = 0;
+    protected float velocityY = 0;
+    protected float velocityZ = 0;
+    
     protected float x = 0;
     protected float y = 0;
     protected float z = 1;
@@ -72,6 +77,23 @@ public abstract class Data {
         return z;
     }
     
+    public void SetVelocityX(float newX)
+    {
+        SetVelocity(newX, velocityY, velocityZ);
+    }
+    
+    public void SetVelocityY(float newY)
+    {
+        SetVelocity(velocityX, newY, velocityZ);
+    }
+    
+    public void SetVelocityZ(float newZ)
+    {
+        SetVelocity(velocityX, velocityY, newZ);
+    }
+    
+    public abstract void SetVelocity(float x, float y, float z);
+    
     public void SetRotation(double rotation)
     {
         this.rotation = rotation;
@@ -117,6 +139,15 @@ public abstract class Data {
     {
         return rotation;
     }
+    
+    public boolean IsDopplerEnabled()
+    {
+        return dopplerEnabled;
+    }
+    
+    public abstract void EnableDoppler();
+    
+    public abstract void DisableDoppler();
     
     public abstract boolean IsPlaying();
     

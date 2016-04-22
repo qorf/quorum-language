@@ -9,6 +9,7 @@ class OrthographicCamera is Camera
 
     on create
         parent:Camera:near = 0
+        SetPosition(GetWidth()/2, GetHeight()/2, 0)
     end
 
     private Vector3 calcVector
@@ -76,14 +77,14 @@ class OrthographicCamera is Camera
     /*
     This action will move the camera by the given amount on each axis.
     */
-    action Translate(number x, number y)
-        Translate(x, y, 0)
+    action Move(number x, number y)
+        Move(x, y, 0)
     end
 
     /*
     This action will move the camera by the amount of the given 2D vector.
     */
-    action Translate(Vector2 vector)
-        Translate(vector:GetX(), vector:GetY(), 0)
+    action Move(Vector2 vector)
+        Move(vector:GetX(), vector:GetY(), 0)
     end
 end

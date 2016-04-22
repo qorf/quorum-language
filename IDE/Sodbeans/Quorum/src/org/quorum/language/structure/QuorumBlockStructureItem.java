@@ -35,30 +35,26 @@ public class QuorumBlockStructureItem implements CollapsedDefault {
 
     public String getName(boolean isHTML) {
         String result = "";
-        if(isHTML) {
-            if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__REPEAT_TIMES_()) {
-                return result + "repeat times";
-            } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__REPEAT_WHILE_()) {
-                return result + "repeat while";
-            } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__REPEAT_UNTIL_()) {
-                return result + "repeat until";
-            } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__IF_())  {
-                return result + "if";
-            } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__ELSE_IF_())  {
-                return result + "elseif";
-            } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__ELSE_()) {
-                return result + "else";
-            } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__CHECK_()) {
-                return result + "check";
-            } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__DETECT_()) {
-                return result + "detect";
-            } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__ALWAYS_()) {
-                return result + "detect";
-            } else {
-                return "Unknown control structure";
-            }
+        if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__REPEAT_TIMES_()) {
+            return result + "repeat times";
+        } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__REPEAT_WHILE_()) {
+            return result + "repeat while";
+        } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__REPEAT_UNTIL_()) {
+            return result + "repeat until";
+        } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__IF_())  {
+            return result + "if";
+        } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__ELSE_IF_())  {
+            return result + "elseif";
+        } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__ELSE_()) {
+            return result + "else";
+        } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__CHECK_()) {
+            return result + "check";
+        } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__DETECT_()) {
+            return result + "detect";
+        } else if(block.GetBlockType() == block.Get_Libraries_Language_Compile_Symbol_Block__ALWAYS_()) {
+            return result + "detect";
         } else {
-            return getPaddedNumber();
+            return "Unknown control structure";
         }
     }
     

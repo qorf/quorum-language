@@ -6,6 +6,7 @@ use Libraries.Compute.Quaternion
 use Libraries.Compute.Vector3
 use Libraries.Compute.Ray
 use Libraries.Compute.Math
+use Libraries.Game.GameStateManager
 
 class Camera 
     
@@ -80,6 +81,10 @@ class Camera
     on create
         direction:Set(0, 0, -1)
         up:Set(0, 1, 0)
+
+        GameStateManager manager
+        viewportWidth = manager:GetGameDisplay():GetWidth()
+        viewportHeight = manager:GetGameDisplay():GetHeight()
     end
 
     blueprint action Update
@@ -163,10 +168,10 @@ class Camera
     action RotateAround(Vector3 point, Vector3 axis, number degrees)
         calcVector:Set(point)
         calcVector:Subtract(position)
-        Translate(calcVector)
+        Move(calcVector)
         Rotate(axis, degrees)
         calcVector:Rotate(axis, degrees)
-        Translate(-calcVector:GetX(), -calcVector:GetY(), -calcVector:GetZ())
+        Move(-calcVector:GetX(), -calcVector:GetY(), -calcVector:GetZ())
     end
 
     /*
@@ -181,14 +186,14 @@ class Camera
     /*
     This action moves the camera by the given amount on each axis.
     */
-    action Translate(number x, number y, number z)
+    action Move(number x, number y, number z)
         position:Add(x, y, z)
     end
     
     /*
     This action moves the camera by the given vector.
     */
-    action Translate(Vector3 vector)
+    action Move(Vector3 vector)
         position:Add(vector)
     end
 

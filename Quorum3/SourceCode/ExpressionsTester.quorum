@@ -122,6 +122,8 @@ class ExpressionsTester
         FatInteger()
         DuplicateClassTest()
         InvalidExpression()
+        InvalidFieldName()
+        InvalidFieldName2()
         InvalidVariableName()
         MainNotCapitalized()
         MissingActionParen()
@@ -1368,6 +1370,29 @@ class ExpressionsTester
         File main
         main:SetPath(path + "InvalidExpression.quorum")
         files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action InvalidFieldName
+        Array<File> files
+        File main
+        main:SetPath(path + "InvalidFieldName.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action InvalidFieldName2
+        Array<File> files
+        File main
+        main:SetPath(path + "InvalidFieldName2.quorum")
+
+        File class2
+        class2:SetPath(path + "A.quorum")
+
+        files:Add(main)
+        files:Add(class2)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
     end

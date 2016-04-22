@@ -144,6 +144,9 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         header:SetTitleHeaderValue(value)
     end
 
+    action AddMetaData(MetaData meta)
+        header:Add(meta)
+    end
     /*
         This action gets the header of this webpage.
 
@@ -217,7 +220,7 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
 
         Attribute: Parameter path The location of the stylesheet being added.
         
-        Attribute: Returns The generated link for any further manipulation
+        Attribute: Returns The generated HeaderLink for any further manipulation
 
         Attribute: Example
         use Libraries.Web.Page.all
@@ -227,6 +230,26 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
     */
     action AddStylesheet(text path) returns HeaderLink
         return me:header:AddStylesheet(path)
+    end
+    
+    /*
+        This action adds a script in the header.
+
+        Attribute: Parameter path The location of the script being added.
+        
+        Attribute: Returns The generated Script for any further manipulation
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        WebPage page
+        page:AddScript("script.js")
+    */
+    action AddScript(text path) returns Script
+        Script script
+        script:SetAddress(path)
+        me:header:Add(script)
+        return script
     end
 
     /*

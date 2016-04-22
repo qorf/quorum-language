@@ -13,7 +13,7 @@ class TouchListener
     This action is used to respond to a TouchEvent where the user's finger has
     just touched the screen.
     */
-    action TouchBegan(TouchEvent event)
+    action BeganTouch(TouchEvent event)
 
     end
 
@@ -21,7 +21,7 @@ class TouchListener
     This action is used to respond to a TouchEvent where the user's finger has
     just been lifted off of the screen.
     */
-    action TouchFinished(TouchEvent event)
+    action EndedTouch(TouchEvent event)
 
     end
 
@@ -31,7 +31,7 @@ class TouchListener
     keeping their finger stationary on the screen, or moving it across the
     screen.
     */
-    action TouchContinued(TouchEvent event)
+    action ContinuedTouch(TouchEvent event)
 
     end
 

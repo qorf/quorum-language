@@ -1,8 +1,13 @@
 package Libraries.Game
 
+use Libraries.Containers.Array
 use Libraries.Containers.List
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Interface.Events.KeyboardListener
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseWheelListener
+use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Item
 use Libraries.Interface.Panel
 
@@ -14,6 +19,7 @@ times, use an InputMonitor instead.
 */
 class IOSInput is GameInput
 
+    Array<TouchListener> touchListeners
     List<TouchEvent> touchEvents
 
     on create
@@ -33,16 +39,51 @@ class IOSInput is GameInput
             return now
         end
 
-        Panel activePanel = parent:GameInput:activePanel
-        TouchEvent event = undefined
+        Array<Layer> layers = parent:GameInput:layers
+        TouchEvent touchEvent = undefined
 
         repeat touchEvents:GetSize() times
-            event = touchEvents:RemoveFromFront()
-            Item temp = activePanel:GetItemAt(event:GetX(), event:GetY())
-            if temp not= undefined
-                temp:ProcessTouchEvent(event)
+            touchEvent = touchEvents:RemoveFromFront()
+
+            integer counter = layers:GetSize()
+            repeat while counter > 0 and not touchEvent:WasEventHandled()
+                counter = counter - 1
+                layers:Get(counter):ProcessTouchEvent(touchEvent)
             end
+
+            if not touchEvent:WasEventHandled()
+                
+            end        
         end
+    end
+
+    /*
+    This action will forward a touch event to all of the TouchListeners that
+    have been added directly to the IOSInput.
+    */
+    private action NotifyTouchListeners(TouchEvent event)
+        integer counter = 0
+
+        if event:eventType = event:MOVED or event:eventType = event:STATIONARY
+            repeat touchListeners:GetSize() times
+                touchListeners:Get(counter):ContinuedTouch(event)
+                counter = counter + 1
+            end
+
+        elseif event:eventType = event:ENDED or event:eventType = event:CANCELLED
+            repeat touchListeners:GetSize() times
+                touchListeners:Get(counter):EndedTouch(event)
+                counter = counter + 1
+            end
+
+        else
+            repeat touchListeners:GetSize() times
+                touchListeners:Get(counter):BeganTouch(event)
+                counter = counter + 1
+            end
+
+        end
+
     end
 
     /*
@@ -51,7 +92,7 @@ class IOSInput is GameInput
     is automatically called by the Game class when needed.
     */
     action AddKeyboardListener(KeyboardListener listener)
-
+        // Do nothing - Keyboard isn't supported on iOS currently.
     end
 
     /*
@@ -60,7 +101,80 @@ class IOSInput is GameInput
     action is automatically called by the Game class when needed.
     */
     action RemoveKeyboardListener(KeyboardListener listener)
+        // Do nothing - Keyboard isn't supported on iOS currently.
+    end
 
+    /*
+    This action adds a MouseListener directly to the GameInput. Note that
+    mouse isn't supported on iOS devices - if the Game is running on iOS, this
+    action will be ignored.
+    */
+    action AddMouseListener(MouseListener listener)
+        // Do nothing - mouse isn't supported on iOS.
+    end
+
+    /*
+    This action adds a MouseMovementListener directly to the GameInput. Note that
+    mouse isn't supported on iOS devices - if the Game is running on iOS, this
+    action will be ignored.
+    */
+    action AddMouseMovementListener(MouseMovementListener listener)
+        // Do nothing - mouse isn't supported on iOS.
+    end
+
+    /*
+    This action adds a MouseWheelListener directly to the GameInput. Note that
+    mouse isn't supported on iOS devices - if the Game is running on iOS,
+    this action will be ignored.
+    */
+    action AddMouseWheelListener(MouseWheelListener listener)
+        // Do nothing - mouse isn't supported on iOS.
+    end
+
+    /*
+    This action adds a TouchListener directly to the GameInput. When the
+    GameInput receives a touch event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    TouchListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    action AddTouchListener(TouchListener listener)
+        touchListeners:Add(listener)
+    end
+
+    /*
+    This action removes a MouseListener from the GameInput. Note that
+    mouse isn't supported on iOS devices - if the Game is running on iOS, this
+    action will be ignored.
+    */
+    action RemoveMouseListener(MouseListener listener)
+        // Do nothing - mouse isn't supported on iOS.
+    end
+
+    /*
+    This action removes a MouseMovementListener from the GameInput. Note that
+    mouse isn't supported on iOS devices - if the Game is running on iOS, this
+    action will be ignored.
+    */
+    action RemoveMouseMovementListener(MouseMovementListener listener)
+        // Do nothing - mouse isn't supported on iOS.
+    end
+
+    /*
+    This action removes a MouseWheelListener from the GameInput. Note that
+    mouse isn't supported on iOS devices - if the Game is running on iOS, this
+    action will be ignored.
+    */
+    action RemoveMouseWheelListener(MouseWheelListener listener)
+        // Do nothing - mouse isn't supported on iOS.
+    end
+
+    /*
+    This action removes a TouchListener from the GameInput. The listener will
+    no longer receive events from the GameInput.
+    */
+    action RemoveTouchListener(TouchListener listener)
+        touchListeners:Remove(listener)
     end
 
     private system action InitializePlugin(List<TouchEvent> list)

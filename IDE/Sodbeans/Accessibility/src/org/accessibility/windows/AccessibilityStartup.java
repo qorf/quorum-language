@@ -47,6 +47,7 @@ public class AccessibilityStartup extends javax.swing.JDialog {
             }
         });
 
+        selfVoiceCheckBox.setSelected(true);
         org.openide.awt.Mnemonics.setLocalizedText(selfVoiceCheckBox, org.openide.util.NbBundle.getMessage(AccessibilityStartup.class, "AccessibilityStartup.selfVoiceCheckBox.text")); // NOI18N
         selfVoiceCheckBox.setToolTipText(org.openide.util.NbBundle.getMessage(AccessibilityStartup.class, "AccessibilityStartup.selfVoiceCheckBox.toolTipText")); // NOI18N
 

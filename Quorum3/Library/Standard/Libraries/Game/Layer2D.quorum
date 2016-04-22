@@ -4,15 +4,24 @@ use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.OrthographicCamera
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseWheelListener
+use Libraries.Interface.Events.TouchListener
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Painter2D
+use Libraries.Game.Graphics.Color
 use Libraries.Compute.Vector3
 use Libraries.Containers.Blueprints.Iterator
 
 class Layer2D is Layer
 
     Array<Item2D> items
+    Array<MouseListener> mouseListeners
+    Array<MouseMovementListener> mouseMovementListeners
+    Array<MouseWheelListener> mouseWheelListeners
+    Array<TouchListener> touchListeners
     Camera camera = undefined
     Painter2D painter
 
@@ -87,6 +96,7 @@ class Layer2D is Layer
         end
 
         camera:Update()
+        painter:ApplyCamera(camera)
         
         painter:Begin()
 
@@ -163,4 +173,103 @@ class Layer2D is Layer
         end
     end
 
+    /*
+    This action will add a MouseListener to the layer. When the layer receives a
+    mouse event, it will first try to find the topmost item which can handle the
+    event. If the event is not handled, then all MouseListeners in the layer 
+    will receive the event.
+    */
+    action AddMouseListener(MouseListener listener)
+        mouseListeners:Add(listener)
+    end
+
+    /*
+    This action will add a MouseMovementListener to the layer. When the layer
+    receives a mouse event, it will first try to find the topmost item which can
+    handle the event. If the event is not handled, then all 
+    MouseMovementListeners in the layer will receive the event.
+    */
+    action AddMouseMovementListener(MouseMovementListener listener)
+        mouseMovementListeners:Add(listener)
+    end
+
+    /*
+    This action will add a MouseWheelListener to the layer. When the layer
+    receives a mouse event, it will first try to find the topmost item which can
+    handle the event. If the event is not handled, then all 
+    MouseWheelListeners in the layer will receive the event.
+    */
+    action AddMouseWheelListener(MouseWheelListener listener)
+        mouseWheelListeners:Add(listener)
+    end
+
+    /*
+    This action will add a TouchListener to the layer. When the layer
+    receives a touch event, it will first try to find the topmost item which can
+    handle the event. If the event is not handled, then all 
+    TouchListeners in the layer will receive the event.
+    */
+    action AddTouchListener(TouchListener listener)
+        touchListeners:Add(listener)
+    end
+    
+    /*
+    This action will remove a MouseListener from the layer. The listener will no
+    longer receive events from the layer. If the given MouseListener is not on
+    the layer before calling this action, then this action will have no effect.
+    */
+    action RemoveMouseListener(MouseListener listener)
+        mouseListeners:Remove(listener)
+    end
+
+    /*
+    This action will remove a MouseMovementListener from the layer. The listener
+    will no longer receive events from the layer. If the given 
+    MouseMovementListener is not on the layer before calling this action, then 
+    this action will have no effect.
+    */
+    action RemoveMouseMovementListener(MouseMovementListener listener)
+        mouseMovementListeners:Remove(listener)
+    end
+
+    /*
+    This action will remove a MouseWheelListener from the layer. The listener 
+    will no longer receive events from the layer. If the given 
+    MouseWheelListener is not on the layer before calling this action, then this
+    action will have no effect.
+    */
+    action RemoveMouseWheelListener(MouseWheelListener listener)
+        mouseWheelListeners:Remove(listener)
+    end
+
+    /*
+    This action will remove a TouchListener from the layer. The listener will no
+    longer receive events from the layer. If the given TouchListener is not on
+    the layer before calling this action, then this action will have no effect.
+    */
+    action RemoveTouchListener(TouchListener listener)
+        touchListeners:Remove(listener)
+    end
+
+    /*
+    Using SetColorFilter will tint all drawn objects on the layer that do not
+    have their own custom color tint. For example, using a red color filter will
+    make all objects drawn on the layer to appear to be more red.
+    */
+    action SetColorFilter(Color color)
+        painter:SetColor(color)
+    end
+
+    /*
+    SetColorFilter can be called using four number parameters instead of a
+    color object. The four parameters are the red, green, blue, and opacity
+    of the filter, respectively. All four of the parameters should be between 0
+    and 1, representing between 0% and 100% of that color component. For example,
+    a value of 0 for red means that the tinting color will have no red, while a
+    value of 1 will have all red components. An opacity of 0 is totally
+    transparent, while an opacity of 1 will be totally visible. 
+    */
+    action SetColorFilter(number red, number green, number blue, number alpha)
+        painter:SetColor(red, green, blue, alpha)
+    end
 end

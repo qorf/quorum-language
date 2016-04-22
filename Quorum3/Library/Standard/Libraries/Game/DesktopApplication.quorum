@@ -24,8 +24,7 @@ class DesktopApplication is Application
         
         parent:Application:Setup(game)
 
-        Painter2D tempBatch
-        game:batch = tempBatch
+        game:InitializeLayers()
 
         MainLoop()
         

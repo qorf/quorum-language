@@ -25,6 +25,21 @@ public class AudioManager {
     private final int deviceBufferSize;
     private final int deviceBufferCount;
     
+    // These static variables contain the last set position of the listener.
+    private static double listenerX = 0;
+    private static double listenerY = 0;
+    private static double listenerZ = 0;
+    
+    /*
+    These static variables contain the last set velocity of the listener.
+    The velocity is NOT automatically updated by OpenAL! It must be set and
+    maintained manually.
+    */
+    private static double listenerVelocityX = 0;
+    private static double listenerVelocityY = 0;
+    private static double listenerVelocityZ = 0;
+    private static boolean listenerDopplerEnabled = true;
+    
     // These variables are an "IntArray" in libGDX. We have this class already
     // in Libraries/Games/libGDX, but to avoid dependency on the game engine for
     // basic audio, we will instead use a standard array.
@@ -309,6 +324,16 @@ public class AudioManager {
         
         AL10.alSource3f(sourceID, AL10.AL_POSITION, newX, newY, newZ);
     }
+    
+    public void SetSoundVelocity(long soundID, float newX, float newY, float newZ)
+    {
+        if (!SoundIDIsActive(soundID))
+            return;
+        
+        int sourceID = (int)soundIDToSource.get(soundID);
+        
+        AL10.alSource3f(sourceID, AL10.AL_VELOCITY, newX, newY, newZ);
+    }
 
     public void Dispose () 
     {
@@ -329,44 +354,118 @@ public class AudioManager {
         AL.destroy();
         while (AL.isCreated()) 
         {
-            try {
-                    Thread.sleep(10);
-                } 
-            catch (InterruptedException e) 
-                {/*Ignored exception*/}
-            }
-	}
-        
-        /** Retains a list of the most recently played sounds and stops the sound played least recently if necessary for a new sound to
-	 * play */
-	protected void Retain (AudioData sound, boolean stop) 
-        {
-            // Move the pointer ahead and wrap
-            mostRecentSound++;
-            mostRecentSound %= recentSounds.length;
-
-            if (stop) 
+            try 
             {
-                // Stop the least recent sound (the one we are about to bump off the buffer)
-                if (recentSounds[mostRecentSound] != null) recentSounds[mostRecentSound].Stop();
+                Thread.sleep(10);
+            } 
+            catch (InterruptedException e) 
+            {
+            // Ignored exception
             }
-
-            recentSounds[mostRecentSound] = sound;
-	}
-        
-        // Removes the disposed sound from the least recently played list 
-	public void Forget(AudioData sound) 
-        {
-		for (int i = 0; i < recentSounds.length; i++) {
-			if (recentSounds[i] == sound) recentSounds[i] = null;
-		}
-	}
-        
-        // Tests if the given soundID is active and has a reserved source.
-        public boolean SoundIDIsActive(long soundID)
-        {
-            return soundIDToSource.containsKey(soundID);
         }
+    }
+        
+    /** Retains a list of the most recently played sounds and stops the sound played least recently if necessary for a new sound to
+     * play */
+    protected void Retain (AudioData sound, boolean stop) 
+    {
+        // Move the pointer ahead and wrap
+        mostRecentSound++;
+        mostRecentSound %= recentSounds.length;
+
+        if (stop) 
+        {
+            // Stop the least recent sound (the one we are about to bump off the buffer)
+            if (recentSounds[mostRecentSound] != null) recentSounds[mostRecentSound].Stop();
+        }
+
+        recentSounds[mostRecentSound] = sound;
+    }
+        
+    // Removes the disposed sound from the least recently played list 
+    public void Forget(AudioData sound) 
+    {
+            for (int i = 0; i < recentSounds.length; i++) {
+                    if (recentSounds[i] == sound) recentSounds[i] = null;
+            }
+    }
+
+    // Tests if the given soundID is active and has a reserved source.
+    public boolean SoundIDIsActive(long soundID)
+    {
+        return soundIDToSource.containsKey(soundID);
+    }
+    
+    public static void SetListenerPosition(double x, double y, double z)
+    {
+        listenerX = x;
+        listenerY = y;
+        listenerZ = z;
+        alListener3f(AL_POSITION, (float)x, (float)y, (float)z);
+    }
+    
+    public static double GetListenerX()
+    {
+        return listenerX;
+    }
+    
+    public static double GetListenerY()
+    {
+        return listenerY;
+    }
+    
+    public static double GetListenerZ()
+    {
+        return listenerZ;
+    }
+    
+    public static void SetListenerVelocity(double x, double y, double z)
+    {
+        listenerVelocityX = x;
+        listenerVelocityY = y;
+        listenerVelocityZ = z;
+        
+        if (listenerDopplerEnabled)
+            alListener3f(AL_VELOCITY, (float)x, (float)y, (float)z);
+    }
+    
+    public static double GetListenerVelocityX()
+    {
+        return listenerVelocityX;
+    }
+    
+    public static double GetListenerVelocityY()
+    {
+        return listenerVelocityY;
+    }
+    
+    public static double GetListenerVelocityZ()
+    {
+        return listenerVelocityZ;
+    }
+    
+    public static void EnableListenerDoppler()
+    {
+        if (listenerDopplerEnabled)
+            return;
+        
+        listenerDopplerEnabled = true;
+        SetListenerVelocity(listenerVelocityX, listenerVelocityY, listenerVelocityZ);
+    }
+    
+    public static void DisableListenerDoppler()
+    {
+        if (!listenerDopplerEnabled)
+            return;
+        
+        listenerDopplerEnabled = false;
+        alListener3f(AL_VELOCITY, 0, 0, 0);
+    }
+    
+    public static boolean IsListenerDopplerEnabled()
+    {
+        return listenerDopplerEnabled;
+    }
     
     /*
 
