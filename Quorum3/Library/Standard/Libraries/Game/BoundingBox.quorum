@@ -3,10 +3,12 @@ package Libraries.Game
 use Libraries.Compute.Vector3
 use Libraries.Compute.Matrix4
 use Libraries.Containers.Array
+use Libraries.Compute.Math
 
 class BoundingBox
 
     private Vector3 calcVector
+    Math math
 
     Vector3 minimum
     Vector3 maximum
@@ -232,6 +234,128 @@ class BoundingBox
     end
 
     /*
+    This action will extend the BoundingBox to contain a sphere denoted by a
+    center point and a radius.
+    */
+    action Extend(Vector3 center, number radius)
+
+        number tempX = minimum:GetX()
+        number tempY = minimum:GetY()
+        number tempZ = minimum:GetZ()
+
+        if (center:GetX() - radius) < tempX
+            tempX = center:GetX() - radius
+        end
+
+        if (center:GetY() - radius) < tempY
+            tempY = center:GetY() - radius
+        end
+
+        if (center:GetZ() - radius) < tempZ
+            tempZ = center:GetZ() - radius
+        end
+
+        minimum:Set(tempX, tempY, tempZ)
+
+        tempX = maximum:GetX()
+        tempY = maximum:GetY()
+        tempZ = maximum:GetZ()
+
+        if (center:GetX() + radius) > tempX
+            tempX = center:GetX() + radius
+        end
+        
+        if (center:GetY() + radius) > tempY
+            tempY = center:GetY() + radius
+        end
+
+        if (center:GetZ() + radius) > tempZ
+            tempZ = center:GetZ() + radius
+        end
+
+        maximum:Set(tempX, tempY, tempZ)
+
+        Set(minimum, maximum)
+    end
+
+    /*
+    This action will extend the BoundingBox to contain the given BoundingBox,
+    offset by the given Matrix4.
+    */
+    action Extend(BoundingBox bounds, Matrix4 transform)
+        Vector3 min = bounds:GetMinimum()
+        Vector3 max = bounds:GetMaximum()
+
+        calcVector:Set(min:GetX(), min:GetY(), min:GetZ()):Multiply(transform)
+        Extend(calcVector)
+
+        calcVector:Set(min:GetX(), min:GetY(), max:GetZ()):Multiply(transform)
+        Extend(calcVector)
+
+        calcVector:Set(min:GetX(), max:GetY(), min:GetZ()):Multiply(transform)
+        Extend(calcVector)
+
+        calcVector:Set(min:GetX(), max:GetY(), max:GetZ()):Multiply(transform)
+        Extend(calcVector)
+
+        calcVector:Set(max:GetX(), min:GetY(), min:GetZ()):Multiply(transform)
+        Extend(calcVector)
+
+        calcVector:Set(max:GetX(), min:GetY(), max:GetZ()):Multiply(transform)
+        Extend(calcVector)
+
+        calcVector:Set(max:GetX(), max:GetY(), min:GetZ()):Multiply(transform)
+        Extend(calcVector)
+
+        calcVector:Set(max:GetX(), max:GetY(), max:GetZ()):Multiply(transform)
+        Extend(calcVector)
+    end
+
+    /*
+    This action will extend the BoundingBox to contain the point at the given
+    X, Y, and Z coordinates.
+    */
+    action Extend(number x, number y, number z)
+        number tempX = minimum:GetX()
+        number tempY = minimum:GetY()
+        number tempZ = minimum:GetZ()
+
+        if x < tempX
+            tempX = x
+        end
+
+        if y < tempY
+            tempY = y
+        end
+
+        if z < tempZ
+            tempZ = z
+        end
+
+        minimum:Set(tempX, tempY, tempZ)
+
+        tempX = maximum:GetX()
+        tempY = maximum:GetY()
+        tempZ = maximum:GetZ()
+        
+        if x > tempX
+            tempX = x
+        end
+
+        if y > tempY
+            tempY = y
+        end
+
+        if z > tempZ
+            tempZ = z
+        end
+
+        maximum:Set(tempX, tempY, tempZ)
+
+        Set(minimum, maximum)
+    end
+
+    /*
     This action will clear out the values of the BoundingBox, resetting all of
     its values to zero.
     */
@@ -251,104 +375,95 @@ class BoundingBox
     end
 
     /*
-
-	public BoundingBox ext (Vector3 center, float radius) {
-		return this.set(min.set(min(min.x, center.x - radius), min(min.y, center.y - radius), min(min.z, center.z - radius)),
-			max.set(max(max.x, center.x + radius), max(max.y, center.y + radius), max(max.z, center.z + radius)));
-	}
-
-	public BoundingBox ext (BoundingBox bounds, Matrix4 transform) {
-		ext(tmpVector.set(bounds.min.x, bounds.min.y, bounds.min.z).mul(transform));
-		ext(tmpVector.set(bounds.min.x, bounds.min.y, bounds.max.z).mul(transform));
-		ext(tmpVector.set(bounds.min.x, bounds.max.y, bounds.min.z).mul(transform));
-		ext(tmpVector.set(bounds.min.x, bounds.max.y, bounds.max.z).mul(transform));
-		ext(tmpVector.set(bounds.max.x, bounds.min.y, bounds.min.z).mul(transform));
-		ext(tmpVector.set(bounds.max.x, bounds.min.y, bounds.max.z).mul(transform));
-		ext(tmpVector.set(bounds.max.x, bounds.max.y, bounds.min.z).mul(transform));
-		ext(tmpVector.set(bounds.max.x, bounds.max.y, bounds.max.z).mul(transform));
-		return this;
-	}
-
-	public BoundingBox mul (Matrix4 transform) {
-		final float x0 = min.x, y0 = min.y, z0 = min.z, x1 = max.x, y1 = max.y, z1 = max.z;
-		inf();
-		ext(tmpVector.set(x0, y0, z0).mul(transform));
-		ext(tmpVector.set(x0, y0, z1).mul(transform));
-		ext(tmpVector.set(x0, y1, z0).mul(transform));
-		ext(tmpVector.set(x0, y1, z1).mul(transform));
-		ext(tmpVector.set(x1, y0, z0).mul(transform));
-		ext(tmpVector.set(x1, y0, z1).mul(transform));
-		ext(tmpVector.set(x1, y1, z0).mul(transform));
-		ext(tmpVector.set(x1, y1, z1).mul(transform));
-		return this;
-	}
-
-	public boolean contains (BoundingBox b) {
-		return !isValid()
-			|| (min.x <= b.min.x && min.y <= b.min.y && min.z <= b.min.z && max.x >= b.max.x && max.y >= b.max.y && max.z >= b.max.z);
-	}
-
-	public boolean intersects (BoundingBox b) {
-		if (!isValid()) return false;
-
-		// test using SAT (separating axis theorem)
-
-		float lx = Math.abs(this.cnt.x - b.cnt.x);
-		float sumx = (this.dim.x / 2.0f) + (b.dim.x / 2.0f);
-
-		float ly = Math.abs(this.cnt.y - b.cnt.y);
-		float sumy = (this.dim.y / 2.0f) + (b.dim.y / 2.0f);
-
-		float lz = Math.abs(this.cnt.z - b.cnt.z);
-		float sumz = (this.dim.z / 2.0f) + (b.dim.z / 2.0f);
-
-		return (lx <= sumx && ly <= sumy && lz <= sumz);
-
-	}
-
-	public boolean contains (Vector3 v) {
-		return min.x <= v.x && max.x >= v.x && min.y <= v.y && max.y >= v.y && min.z <= v.z && max.z >= v.z;
-	}
-
-	@Override
-	public String toString () {
-		return "[" + min + "|" + max + "]";
-	}
-
-	public BoundingBox ext (float x, float y, float z) {
-		return this.set(min.set(min(min.x, x), min(min.y, y), min(min.z, z)), max.set(max(max.x, x), max(max.y, y), max(max.z, z)));
-	}
-
-        public Vector3 getCorner000 (final Vector3 out) {
-		return out.set(min.x, min.y, min.z);
-	}
-
-	public Vector3 getCorner001 (final Vector3 out) {
-		return out.set(min.x, min.y, max.z);
-	}
-
-	public Vector3 getCorner010 (final Vector3 out) {
-		return out.set(min.x, max.y, min.z);
-	}
-
-	public Vector3 getCorner011 (final Vector3 out) {
-		return out.set(min.x, max.y, max.z);
-	}
-
-	public Vector3 getCorner100 (final Vector3 out) {
-		return out.set(max.x, min.y, min.z);
-	}
-
-	public Vector3 getCorner101 (final Vector3 out) {
-		return out.set(max.x, min.y, max.z);
-	}
-
-	public Vector3 getCorner110 (final Vector3 out) {
-		return out.set(max.x, max.y, min.z);
-	}
-
-	public Vector3 getCorner111 (final Vector3 out) {
-		return out.set(max.x, max.y, max.z);
-	}
+    This action will multiply the size of the region of the BoundingBox by the
+    values contained in the given Matrix4.
     */
+    action Multiply(Matrix4 transform)
+        number x0 = minimum:GetX()
+        number x1 = maximum:GetX()
+        number y0 = minimum:GetY()
+        number y1 = maximum:GetY()
+        number z0 = minimum:GetZ()
+        number z1 = maximum:GetZ()
+
+        Invalidate()
+        
+        calcVector:Set(x0, y0, z0):Multiply(transform)
+        Extend(calcVector)
+
+        calcVector:Set(x0, y0, z1):Multiply(transform)
+        Extend(calcVector)
+        
+        calcVector:Set(x0, y1, z0):Multiply(transform)
+        Extend(calcVector)
+
+        calcVector:Set(x0, y1, z1):Multiply(transform)
+        Extend(calcVector)
+
+        calcVector:Set(x1, y0, z0):Multiply(transform)
+        Extend(calcVector)
+
+        calcVector:Set(x1, y0, z1):Multiply(transform)
+        Extend(calcVector)
+        
+        calcVector:Set(x1, y1, z0):Multiply(transform)
+        Extend(calcVector)
+
+        calcVector:Set(x1, y1, z1):Multiply(transform)
+        Extend(calcVector)
+    end
+
+    /*
+    This action will test to see if this BoundingBox totally contains a given
+    BoundingBox. If any part of the given BoundingBox is outside this one, it
+    will return false.
+    */
+    action Contains(BoundingBox bounds) returns boolean
+        if not IsValid()
+            return false
+        end
+
+        Vector3 min = bounds:GetMinimum()
+        Vector3 max = bounds:GetMaximum()
+
+        return minimum:GetX() <= min:GetX() and minimum:GetY() <= min:GetY() and minimum:GetZ() <= min:GetZ()
+            and maximum:GetX() >= max:GetX() and maximum:GetX() >= max:GetY() and maximum:GetZ() >= max:GetZ()
+    end
+
+    /*
+    This action will test to see if the point indicated by the given Vector3 is
+    contained inside this BoundingBox.
+    */
+    action Contains(Vector3 point) returns boolean
+        if not IsValid()
+            return false
+        end
+
+        return minimum:GetX() <= point:GetX() and minimum:GetY() <= point:GetY() and minimum:GetZ() <= point:GetZ()
+            and maximum:GetX() >= point:GetX() and maximum:GetY() >= point:GetY() and maximum:GetZ() >= point:GetZ()
+    end
+
+    /*
+    This action will test to see if this BoundingBox intersects with the given
+    BoundingBox.
+    */
+    action Intersects(BoundingBox bounds) returns boolean
+        if not IsValid()
+            return false
+        end
+
+        // This is tested using the Separating Axis Theorem.
+
+        number lx = math:AbsoluteValue(center:GetX() - bounds:GetCenter():GetX())
+        number sumx = (dimensions:GetX() / 2) + (bounds:GetDimensions():GetX() / 2)
+
+        number ly = math:AbsoluteValue(center:GetY() - bounds:GetCenter():GetY())
+        number sumy = (dimensions:GetY() / 2) + (bounds:GetDimensions():GetY() / 2)
+
+        number lz = math:AbsoluteValue(center:GetZ() - bounds:GetCenter():GetZ())
+        number sumz = (dimensions:GetZ() / 2) + (bounds:GetDimensions():GetZ() / 2)
+        
+        return lx <= sumx and ly <= sumy and lz <= sumz
+    end
+
 end
