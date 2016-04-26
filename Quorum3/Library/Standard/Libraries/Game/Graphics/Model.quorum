@@ -13,6 +13,7 @@ use Libraries.Compute.Matrix4
 use Libraries.Compute.Vector3
 use Libraries.Compute.Quaternion
 use Libraries.Interface.Item3D
+use Libraries.Game.BoundingBox
 
 class Model is Item3D
     
@@ -349,5 +350,47 @@ class Model is Item3D
 
         parent:Item3D:Draw(painter)
     end
+
+    /*
+    CalculateBoundingBox will create a new BoundingBox object that contains the
+    bounds of the Model.
+    */
+    action CalculateBoundingBox returns BoundingBox
+        BoundingBox box
+        return CalculateBoundingBox(box)
+    end
+
+    /*
+    CalculateBoundingBox will compute the bounds of this Model, and then store
+    them inside the provided BoundingBox object. If any data was previously
+    stored in this BoundingBox, it will be overwritten.
+    */
+    action CalculateBoundingBox(BoundingBox box) returns BoundingBox
+        box:Invalidate()
+        return ExtendBoundingBox(box)
+    end
+
+    /*
+    ExtendBoundingBox will expand the bounds of the given BoundingBox to fully
+    encapsulate the bounds of this Model.
+    */
+    action ExtendBoundingBox(BoundingBox box) returns BoundingBox
+        integer counter = 0
+
+        repeat nodes:GetSize() times
+            nodes:Get(counter):ExtendBoundingBox(box)
+        end
+
+        return box
+    end
+
+    /*
+    public BoundingBox extendBoundingBox (final BoundingBox out) {
+		final int n = nodes.size;
+		for (int i = 0; i < n; i++)
+			nodes.get(i).extendBoundingBox(out);
+		return out;
+	}
+    */
 
 end

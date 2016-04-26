@@ -1,28 +1,16 @@
 package Libraries.Game.Graphics
 
-//import com.badlogic.gdx.graphics.GL20;
-//import com.badlogic.gdx.graphics.Mesh;
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.ColorAttribute
 use Libraries.Game.Graphics.NumberAttribute
 use Libraries.Game.Graphics.BlendingAttribute
 use Libraries.Game.Graphics.TextureAttribute
 use Libraries.Game.Graphics.TextureDescriptor
-//import com.badlogic.gdx.graphics.VertexAttributes;
-//import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
-//import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-//import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
-//import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 use Libraries.Game.Graphics.ModelData.all
-//import com.badlogic.gdx.graphics.g3d.utils.TextureDescriptor;
-//import com.badlogic.gdx.graphics.g3d.utils.TextureProvider;
-//import com.badlogic.gdx.graphics.g3d.utils.TextureProvider.FileTextureProvider;
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Quaternion
 use Libraries.Compute.Vector3
-//import com.badlogic.gdx.math.collision.BoundingBox;
-//import com.badlogic.gdx.utils.ArrayMap;
-//import com.badlogic.gdx.utils.BufferUtils;
+use Libraries.Game.BoundingBox
 use Libraries.Game.Disposable
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
@@ -499,6 +487,40 @@ class ModelBlueprint is Disposable
     action Dispose
         //...
     end
+
+    /*
+    CalculateBoundingBox will create a new BoundingBox object that contains the
+    bounds of the Model.
+    */
+    action CalculateBoundingBox returns BoundingBox
+        BoundingBox box
+        return CalculateBoundingBox(box)
+    end
+
+    /*
+    CalculateBoundingBox will compute the bounds of this Model, and then store
+    them inside the provided BoundingBox object. If any data was previously
+    stored in this BoundingBox, it will be overwritten.
+    */
+    action CalculateBoundingBox(BoundingBox box) returns BoundingBox
+        box:Invalidate()
+        return ExtendBoundingBox(box)
+    end
+
+    /*
+    ExtendBoundingBox will expand the bounds of the given BoundingBox to fully
+    encapsulate the bounds of this Model.
+    */
+    action ExtendBoundingBox(BoundingBox box) returns BoundingBox
+        integer counter = 0
+
+        repeat nodes:GetSize() times
+            nodes:Get(counter):ExtendBoundingBox(box)
+        end
+
+        return box
+    end
+
     /** 
 
 	/** Adds a {@link Disposable} to be managed and disposed by this Model. Can be used to keep track of manually loaded textures

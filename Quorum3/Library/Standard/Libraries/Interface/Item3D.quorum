@@ -5,6 +5,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Vector3
+use Libraries.Compute.Ray
 use Libraries.Compute.Math
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Interface.Events.MouseEvent
@@ -859,12 +860,14 @@ class Item3D is Item
             */
             repeat children:GetSize() times
                 child = children:Get(counter)
+                Vector3 localOffset = child:GetGlobalPosition()
+                localOffset:Subtract(globalOffset)
                 
-                temp:Set(vector):CrossProduct(child:GetPosition()):Scale(sin)
-                rotation = child:GetPosition():Scale(cos)
+                temp:Set(vector):CrossProduct(localOffset):Scale(sin)
+                rotation = localOffset:Scale(cos)
                 rotation:Add(temp)
                 temp:Set(vector)
-                temp:Scale((1 - cos) * temp:DotProduct(child:GetPosition()))
+                temp:Scale((1 - cos) * temp:DotProduct(localOffset))
                 rotation:Add(temp)
                 
                 rotation:Add(globalOffset):Subtract(child:GetPosition())
@@ -959,7 +962,25 @@ class Item3D is Item
         transform:Scale(vector)
 
         if scaleChildren and not children:IsEmpty()
-            // FIX ME: Not implemented yet - requires BoundingBox for width/height/depth
+            Matrix4 transform = undefined
+            integer counter = 0
+            repeat children:GetSize() times
+                Item3D child = children:Get(counter)
+                transform = child:GetTransform()
+
+                Vector3 temp = child:GetPosition()
+                Vector3 scale = transform:GetScale()
+                scale:Scale(vector)
+                temp:Scale(scale)
+                temp:Subtract(child:GetPosition())
+                temp:Add(GetGlobalPosition())
+                child:SetOffset(temp)
+
+
+                child:Scale(vector, true)
+
+                counter = counter + 1
+            end
         end
     end
 
