@@ -19,6 +19,8 @@ use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.DirectionalLightsAttribute
 use Libraries.Game.Graphics.PointLightsAttribute
+use Libraries.Compute.Ray
+use Libraries.Compute.Vector3
 
 class Layer3D is Layer
 
@@ -38,6 +40,11 @@ class Layer3D is Layer
     should be emptied after each use.
     */
     Array<Light> lightGatheringArray
+
+    /*
+    This array is used when processing mouse or touch events. It stores 
+    */
+    Array<Item3D> processingArray
 
     on create
         PerspectiveCamera cam
@@ -189,11 +196,8 @@ class Layer3D is Layer
     given mouse event.
     */
     action ProcessMouseEvent(MouseEvent event)
-        /*
-        To be implemented - requires BoundingBox, Ray, and Intersector (or the
-        functionality of Intersector). Ray is used to get the PickRay from the
-        Camera.
-        */
+        Ray ray = camera:GetPickRay(event:GetX(), event:GetY())
+        
     end
 
     /*
@@ -206,6 +210,63 @@ class Layer3D is Layer
         functionality of Intersector). Ray is used to get the PickRay from the
         Camera.
         */
+    end
+
+    /*
+    This action will test if the given ray intersects with an Item3D. This
+    intersection is tested using the base, axis-aligned dimensions of the item.
+    It will not properly reflect changes made due to scaling or rotation, and
+    assumes the Item is a box-like shape.
+    */
+    private action RayIntersectsItem(Ray ray, Item3D item) returns boolean
+        number divX = 1.0 / ray:GetDirection():GetX()
+        number divY = 1.0 / ray:GetDirection():GetY()
+        number divZ = 1.0 / ray:GetDirection():GetZ()
+
+        number minX = ((item:GetGlobalX() - item:GetWidth() * 0.5) - ray:GetOrigin():GetX()) * divX
+        number maxX = ((item:GetGlobalX() + item:GetWidth() * 0.5) - ray:GetOrigin():GetX()) * divX
+        
+        if minX > maxX
+            number temp = minX
+            minX = maxX
+            maxX = temp
+        end
+
+        number minY = ((item:GetGlobalY() - item:GetHeight() * 0.5) - ray:GetOrigin():GetY()) * divY
+        number maxY = ((item:GetGlobalY() + item:GetHeight() * 0.5) - ray:GetOrigin():GetY()) * divY
+
+        if minY > maxY
+            number temp = minY
+            minY = maxY
+            maxY = temp
+        end
+
+        number minZ = ((item:GetGlobalZ() - item:GetDepth() * 0.5) - ray:GetOrigin():GetZ()) * divZ
+        number maxZ = ((item:GetGlobalZ() + item:GetDepth() * 0.5) - ray:GetOrigin():GetZ()) * divZ
+
+        if minZ > maxZ
+            number temp = minZ
+            minZ = maxZ
+            maxZ = temp
+        end
+
+        number min = minX
+        if minY < min
+            min = minY
+        end
+        if minZ < min
+            min = minZ
+        end
+
+        number max = maxX
+        if maxY > max
+            max = maxY
+        end
+        if maxZ > max
+            max = maxZ
+        end
+
+        return max >= 0 and max >= min
     end
 
     /*

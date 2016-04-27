@@ -76,7 +76,6 @@ class Camera
 
 
     private Vector3 calcVector
-    private Ray ray
 
     on create
         direction:Set(0, 0, -1)
@@ -464,6 +463,31 @@ class Camera
         coords:SetY(viewportHeight * (coords:GetY() + 1) / 2 + viewportY)
         coords:SetZ((coords:GetZ() + 1) / 2)
         return coords
+    end
+
+    /*
+    GetPickRay will return a ray that begins at the given screen coordinates and
+    points in the direction that the camera is viewing. The Ray's position will
+    be in world coordinates.
+    */
+    action GetPickRay(number screenX, number screenY) returns Ray
+        return GetPickRay(screenX, screenY, 0, 0, GetWidth(), GetHeight())
+    end
+
+    /*
+    GetPickRay will return a ray that begins at the given screen coordinates and
+    points in the direction that the camera is viewing. The Ray's position will
+    be in world coordinates.
+
+    This action will calculate the point using the given position and dimensions
+    of the viewport.
+    */
+    action GetPickRay(number screenX, number screenY, number viewportX, number viewportY, number viewportWidth, number viewportHeight) returns Ray
+        Ray ray
+        ScreenToWorldCoordinates(ray:GetOrigin():Set(screenX, screenY, 0), viewportX, viewportY, viewportWidth, viewportHeight)
+        ScreenToWorldCoordinates(ray:GetDirection():Set(screenX, screenY, 1), viewportX, viewportY, viewportWidth, viewportHeight)
+        ray:GetDirection():Subtract(ray:GetOrigin()):Normalize()
+        return ray
     end
 
     /*

@@ -99,7 +99,7 @@ class Item3D is Item
         myItem:SetPosition(vector)
     */
     action SetPosition(Vector3 vector)
-        Move(vector)
+        SetPosition(vector:GetX(), vector:GetY(), vector:GetZ())
     end
 
     /*
@@ -176,6 +176,142 @@ class Item3D is Item
         Vector3 position
         position:Set(x, y, z)
         return position
+    end
+
+    /*
+    This action sets the width of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetWidth(35.0)
+    */
+    action SetWidth(number setWidth)
+        width = setWidth
+    end
+
+    /*
+    This action sets the height of the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetHeight(210.0)
+    */
+    action SetHeight(number setHeight)
+        height = setHeight
+    end
+
+    /*
+    This action sets the depth the Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetDepth(210.0)
+    */
+    action SetDepth(number setDepth)
+        depth = setDepth
+    end
+
+    /*
+    This action sets the width, height, and depth of the Item3D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        myItem:SetDimensions(50, 200, 35)
+    */
+    action SetDimensions(number setWidth, number setHeight, number setDepth)
+        width = setWidth
+        height = setHeight
+        depth = setDepth
+    end
+
+    /*
+    This action sets the width, height, and depth of the Item3D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        use Libraries.Compute.Vector3
+        Item3D myItem
+        Vector3 vector
+        vector:Set(50, 200, 35)
+        myItem:SetDimensions(vector)
+    */
+    action SetDimensions(Vector3 vector)
+        width = vector:GetX()
+        height = vector:GetY()
+        depth = vector:GetZ()
+    end
+
+    /*
+    GetWidth will return the width of this Item3D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D myItem
+        myItem:SetWidth(50)
+        number width = myItem:GetWidth()
+    */
+    action GetWidth returns number
+        return width
+    end
+
+    /*
+    GetHeight will return the height of this Item3D.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D myItem
+        myItem:SetHeight(50)
+        number height = myItem:GetHeight()
+    */
+    action GetHeight returns number
+        return height
+    end
+
+    /*
+    GetDepth will return the depth of this Item3D. 
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+
+        Item3D myItem
+        myItem:SetDepth(50)
+        number depth = myItem:GetDepth()
+    */
+    action GetDepth returns number
+        return depth
+    end
+
+    /*
+    GetDimensions will return a Vector3 object containing the width, height, and
+    depth of this Item3D object. 
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        use Libraries.Compute.Vector3
+
+        Item3D myItem
+        myItem:SetWidth(50)
+        Vector3 vector = myItem:GetDimensions()
+    */
+    action GetDimensions returns Vector3
+        Vector3 dimensions
+        dimensions:Set(width, height, depth)
+        return dimensions
     end
 
     /*
