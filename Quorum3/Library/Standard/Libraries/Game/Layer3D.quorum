@@ -21,6 +21,7 @@ use Libraries.Game.Graphics.DirectionalLightsAttribute
 use Libraries.Game.Graphics.PointLightsAttribute
 use Libraries.Compute.Ray
 use Libraries.Compute.Vector3
+use Libraries.Game.SortableContainer
 
 class Layer3D is Layer
 
@@ -42,9 +43,11 @@ class Layer3D is Layer
     Array<Light> lightGatheringArray
 
     /*
-    This array is used when processing mouse or touch events. It stores 
+    This array is used when processing mouse or touch events. It stores the
+    possible candidates for mouse and touch events. Since it will be reused
+    often, it must be emptied after each use.
     */
-    Array<Item3D> processingArray
+    Array<SortableContainer<number, Item3D>> eventTargetArray
 
     on create
         PerspectiveCamera cam
@@ -62,16 +65,9 @@ class Layer3D is Layer
     possible to draw the given Item3D).
     */
     action Add(Item3D item)
+        item:SetLayer(me)
         items:Add(item)
-
-        // Find all lights in the item's children hierarchy.
-        item:GetLights(lightGatheringArray)
-
-        // Add all found lights to the environment.
-        environment:Add(lightGatheringArray)
-
-        // Empty the array after, to allow for re-use.
-        lightGatheringArray:Empty()
+        EnableItemLighting(item)
     end
 
     /*
@@ -79,16 +75,9 @@ class Layer3D is Layer
     part of this layer, this action will have no effect.
     */
     action Remove(Item3D item)
+        item:SetLayer(undefined)
         items:Remove(item)
-
-        // Find all lights in the item's children hierarchy.
-        item:GetLights(lightGatheringArray)
-
-        // Remove all found lights from the environment.
-        environment:Remove(lightGatheringArray)
-
-        // Empty the array after, to allow for re-use.
-        lightGatheringArray:Empty()
+        DisableItemLighting(item)
     end
 
     /*
@@ -120,9 +109,8 @@ class Layer3D is Layer
         */
         Item3D oldItem = items:Get(index)
         if oldItem not= undefined
-            oldItem:GetLights(lightGatheringArray)
-            environment:Remove(lightGatheringArray)
-            lightGatheringArray:Empty()
+            item:SetLayer(undefined)
+            DisableItemLighting(oldItem)
         end
 
         items:Set(index, item)
@@ -131,10 +119,43 @@ class Layer3D is Layer
         We now also add the new item's lighting data to the environment.
         */
         if item not= undefined
-            item:GetLights(lightGatheringArray)
-            environment:Remove(lightGatheringArray)
-            lightGatheringArray:Empty()
+            item:SetLayer(me)
+            EnableItemLighting(item)
         end
+    end
+
+    /*
+    This action will enable lighting for the given Item3D (if it is a light)
+    and any of its children (if they are lights). This action is called
+    automatically by the Layer when adding or removing items. Most users will
+    never need to use this action directly.
+    */
+    action EnableItemLighting(Item3D item)
+        // Find all lights in the item's children hierarchy.
+        item:GetLights(lightGatheringArray)
+
+        // Add all found lights to the environment.
+        environment:Add(lightGatheringArray)
+
+        // Empty the array after, to allow for re-use.
+        lightGatheringArray:Empty()
+    end
+
+    /*
+    This action will disable lighting for the given Item3D (if it is a light)
+    and any of its children (if they are lights). This action is called
+    automatically by the Layer when adding or removing items. Most users will
+    never need to use this action directly.
+    */
+    action DisableItemLighting(Item3D item)
+        // Find all lights in the item's children hierarchy.
+        item:GetLights(lightGatheringArray)
+
+        // Remove all found lights from the environment.
+        environment:Remove(lightGatheringArray)
+
+        // Empty the array after, to allow for re-use.
+        lightGatheringArray:Empty()
     end
 
     /*
@@ -192,13 +213,85 @@ class Layer3D is Layer
     end
 
     /*
+        boolean processing = true
+        integer counter = items:GetSize()
+        Item2D temp = undefined
+
+        Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
+
+        repeat while counter > 0 and processing
+            counter = counter - 1
+            temp = items:Get(counter):GetItemAt(pointVector:GetX(), pointVector:GetY())
+
+            if temp not= undefined
+                temp:ProcessMouseEvent(event)
+                processing = not event:WasEventHandled()
+            end
+        end
+    */
+
+    /*
     This action will notify mouse listeners that are a part of this layer of the
     given mouse event.
     */
     action ProcessMouseEvent(MouseEvent event)
         Ray ray = camera:GetPickRay(event:GetX(), event:GetY())
-        
+        Vector3 origin = ray:GetOrigin()
+
+        integer counter = 0
+        Item3D temp = undefined
+
+        repeat items:GetSize() times
+            temp = items:Get(counter)
+            if RayIntersectsItem(ray, temp)
+                SortableContainer<number, Item3D> container
+                container:Set(origin:DistanceSquared(temp:GetGlobalPosition()), temp)
+                eventTargetArray:Add(container)
+            end
+
+            counter = counter + 1
+        end
+
+        if eventTargetArray:GetSize() not= 0
+            eventTargetArray:Sort()
+            boolean processing = true
+            counter = 0
+            repeat while processing and counter < eventTargetArray:GetSize()
+                eventTargetArray:Get(counter):GetValue():ProcessMouseEvent(event)
+                processing = not event:WasEventHandled()
+                counter = counter + 1
+            end
+
+            eventTargetArray:Empty()
+        end
     end
+
+    /*
+    public int getObject (int screenX, int screenY) {
+        Ray ray = cam.getPickRay(screenX, screenY);
+
+        int result = -1;
+        float distance = -1;
+
+        for (int i = 0; i < instances.size; ++i) {
+            final GameObject instance = instances.get(i);
+
+            instance.transform.getTranslation(position);
+            position.add(instance.center);
+
+            float dist2 = ray.origin.dst2(position);
+            if (distance >= 0f && dist2 > distance)
+                continue;
+
+            if (Intersector.intersectRaySphere(ray, position, instance.radius, null)) {
+                result = i;
+                distance = dist2;
+            }
+        }
+
+        return result;
+    }
+    */
 
     /*
     This action will notify touch listeners that are a part of this layer of the
@@ -210,6 +303,20 @@ class Layer3D is Layer
         functionality of Intersector). Ray is used to get the PickRay from the
         Camera.
         */
+    end
+
+    /*
+    This action recursively finds all children in the hierarchy of the given
+    Item3D. The found items are appended to the provided array. The provided
+    Item3D is also automatically added to the array.
+    */
+    private action GetChildrenHierarchy(Item3D item, Array<Item3D> array)
+        array:Add(item)
+        integer counter = 0
+        repeat item:GetItemCount() times
+            GetChildrenHierarchy(item:GetItem(counter), array)
+            counter = counter + 1
+        end
     end
 
     /*

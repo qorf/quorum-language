@@ -12,6 +12,7 @@ use Libraries.Containers.Blueprints.Iterator
 use Libraries.Compute.Math
 use Libraries.Game.Shapes.Rectangle
 use Libraries.Game.Graphics.Painter2D
+use Libraries.Game.Layer2D
 
 class Item2D is Item
     
@@ -34,6 +35,7 @@ class Item2D is Item
     number scaleOffsetY = 0
     boolean flipX = false
     boolean flipY = false
+    Layer2D layer = undefined
 
     private boolean verticesChanged = true
     private Rectangle bounds
@@ -769,6 +771,7 @@ class Item2D is Item
     action Add(Item2D newItem)
         children:Add(newItem)
         newItem:SetParent(me)
+        newItem:SetLayer(layer)
         newItem:PrepareVertices()
         newItem:SetOffset(GetX() + GetOffsetX(), GetY() + GetOffsetY())
     end
@@ -790,6 +793,7 @@ class Item2D is Item
         children:Add(index, newItem)
         newItem:SetParent(me)
         newItem:PrepareVertices()
+        newItem:SetLayer(layer)
         newItem:SetOffset(GetX() + GetOffsetX(), GetY() + GetOffsetY())
     end
 
@@ -812,6 +816,8 @@ class Item2D is Item
     action Remove(Item2D removed) returns boolean
         boolean success = children:Remove(removed)
         removed:SetParent(undefined)
+        removed:SetLayer(layer)
+        removed:SetOffset(0, 0)
         return success
     end
 
@@ -834,6 +840,8 @@ class Item2D is Item
     action Remove(integer index) returns Item2D
         Item2D temp = children:RemoveAt(index)
         temp:SetParent(undefined)
+        temp:SetLayer(undefined)
+        temp:SetOffset(0, 0)
         return temp
     end
 
@@ -917,6 +925,9 @@ class Item2D is Item
     */
     action SetItem(integer index, Item2D newItem)
         children:Set(index, newItem)
+        newItem:SetParent(me)
+        newItem:SetLayer(layer)
+        newItem:SetOffset(x + offsetX, y + offsetY)
     end
 
     /*  This action returns whether or not any items are contained in this Item.
@@ -1964,5 +1975,22 @@ class Item2D is Item
             children:Get(counter):Draw(painter)
             counter = counter + 1
         end
+    end
+
+    /*
+    This action is used by the Game libraries to create a reference to the layer
+    that this Item2D exists on. It is automatically called as needed by the
+    Layer2D class. Most users will never need to use this action directly.
+    */
+    action SetLayer(Layer2D parentLayer)
+        layer = parentLayer
+    end
+
+    /*
+    This action returns the current Layer2D that this Item2D is a part of in the
+    Game libraries. 
+    */
+    action GetLayer returns Layer2D
+        return layer
     end
 end

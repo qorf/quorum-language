@@ -36,6 +36,7 @@ class Layer2D is Layer
     possible to draw the given Item2D).
     */
     action Add(Item2D item)
+        item:SetLayer(me)
         items:Add(item)
     end
 
@@ -44,6 +45,7 @@ class Layer2D is Layer
     part of this layer, this action will have no effect.
     */
     action Remove(Item2D item)
+        item:SetLayer(undefined)
         items:Remove(item)
     end
 
