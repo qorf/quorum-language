@@ -21,7 +21,7 @@ use Libraries.Game.Graphics.DirectionalLightsAttribute
 use Libraries.Game.Graphics.PointLightsAttribute
 use Libraries.Compute.Ray
 use Libraries.Compute.Vector3
-use Libraries.Game.SortableContainer
+use Libraries.Containers.Support.SortableContainer
 
 class Layer3D is Layer
 
@@ -241,8 +241,20 @@ class Layer3D is Layer
         integer counter = 0
         Item3D temp = undefined
 
+        /*
+        TO-DO: This array of all items is regenerated for each mouse event
+        processed. It would be more efficient to maintain this array
+        independently of this action.
+        */
+        Array<Item3D> allItems
         repeat items:GetSize() times
-            temp = items:Get(counter)
+            GetChildrenHierarchy(items:Get(counter), allItems)
+            counter = counter + 1
+        end
+        counter = 0
+
+        repeat allItems:GetSize() times
+            temp = allItems:Get(counter)
             if RayIntersectsItem(ray, temp)
                 SortableContainer<number, Item3D> container
                 container:Set(origin:DistanceSquared(temp:GetGlobalPosition()), temp)
@@ -265,33 +277,6 @@ class Layer3D is Layer
             eventTargetArray:Empty()
         end
     end
-
-    /*
-    public int getObject (int screenX, int screenY) {
-        Ray ray = cam.getPickRay(screenX, screenY);
-
-        int result = -1;
-        float distance = -1;
-
-        for (int i = 0; i < instances.size; ++i) {
-            final GameObject instance = instances.get(i);
-
-            instance.transform.getTranslation(position);
-            position.add(instance.center);
-
-            float dist2 = ray.origin.dst2(position);
-            if (distance >= 0f && dist2 > distance)
-                continue;
-
-            if (Intersector.intersectRaySphere(ray, position, instance.radius, null)) {
-                result = i;
-                distance = dist2;
-            }
-        }
-
-        return result;
-    }
-    */
 
     /*
     This action will notify touch listeners that are a part of this layer of the
@@ -358,18 +343,18 @@ class Layer3D is Layer
         end
 
         number min = minX
-        if minY < min
+        if minY > min
             min = minY
         end
-        if minZ < min
+        if minZ > min
             min = minZ
         end
 
         number max = maxX
-        if maxY > max
+        if maxY < max
             max = maxY
         end
-        if maxZ > max
+        if maxZ < max
             max = maxZ
         end
 
