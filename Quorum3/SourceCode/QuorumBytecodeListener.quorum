@@ -1378,7 +1378,20 @@ class QuorumBytecodeListener is QuorumSourceListener
         if not left:IsPrimitive()
             SymbolTable table = me:GetSymbolTable()
             Class clazz = table:GetClass(left:GetStaticKey())
-            clazz:AddUseLocation(typeLocation:CreateLocationCopy())
+            if clazz not= undefined
+                clazz:AddUseLocation(typeLocation:CreateLocationCopy())
+            else 
+                CompilerError error
+                error:SetLocation(context:GetLocation())
+                CompilerErrorType t
+                t:SetCurrentType(t:MISSING_CLASS)
+                error:SetCompilerErrorType(t)
+                text message = "I could not locate the class " + left:GetStaticKey()
+                error:SetErrorMessage(message)
+                CompilerErrorManager manager = GetCompilerErrorManager()
+                manager:Add(error)
+                return now
+            end
         end
 
         QuorumOpcode right = undefined
