@@ -6,8 +6,6 @@ use Libraries.System.File
 use Libraries.Game.Graphics.ModelBlueprint
 
 class ModelLoader 
-    //protected Array<ObjectMap.Entry<String, ModelData>> items = new Array<ObjectMap.Entry<String, ModelData>>();
-    //protected ModelParameters defaultParameters = new ModelParameters()
 
     public constant integer VERSION_HIGH = 0
     public constant integer VERSION_LOW = 1
@@ -23,27 +21,5 @@ class ModelLoader
         end
         return undefined
     end
-
-    /*action ParseModel(File file) returns ModelData
-        //JsonValue json = reader.parse(handle);
-        ModelData model
-        //JsonValue version = json.require("version");
-        //model.version[0] = version.getShort(0);
-        //model.version[1] = version.getShort(1);
-        if model:version:Get(0) not= VERSION_HIGH or model:version:Get(1) not= VERSION_LOW
-            alert("This model version is not supported!")
-        end
-
-        //model.id = json.getString("id", "");
-        //ParseMeshes(model, json)
-        //ParseMaterials(model, json, file:GetWorkingDirectory())
-        //ParseNodes(model, json)
-        //ParseAnimations(model, json)
-        return model
-    end*/
-
-    // system action ParseModel(File file) returns ModelData
-
-    // action GetDependencies (?)
 
 end

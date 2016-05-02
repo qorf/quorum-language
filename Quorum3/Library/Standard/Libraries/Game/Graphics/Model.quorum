@@ -14,6 +14,7 @@ use Libraries.Compute.Vector3
 use Libraries.Compute.Quaternion
 use Libraries.Interface.Item3D
 use Libraries.Game.BoundingBox
+use Libraries.System.File
 
 class Model is Item3D
     
@@ -48,6 +49,31 @@ class Model is Item3D
     action GetModelBlueprint returns ModelBlueprint
         return modelBlueprint
     end
+
+    /*
+    This action will load Model using the data from the given model file.
+    */
+    action Load(File file)
+        ModelBlueprint schematic = GetCachedBlueprint(file)
+        Load(schematic)
+    end
+
+    /*
+    This action will load the Model file with the given file name from the
+    default file directory.
+    */
+    action Load(text fileName)
+        File file
+        file:SetPath(fileName)
+        Load(file)
+    end
+
+    /*
+    This action will search the cached blueprint hash table for a ModelBlueprint
+    that was loaded from the given file. If the blueprint was not loaded before,
+    it will be loaded and cached.
+    */
+    private system action GetCachedBlueprint(File file) returns ModelBlueprint
     
     action Load(ModelBlueprint loader)
         Load(loader, undefined)
