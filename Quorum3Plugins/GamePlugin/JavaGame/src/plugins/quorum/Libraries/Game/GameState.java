@@ -67,7 +67,7 @@ public class GameState {
     // This is never accessed directly through Quorum. It is only accessed through
     // Java. Thus it is place here instead of in GameStateManager.
     // As a temporary hack, this is initialized in GameStateManager:SetApplication.
-    public static GameFileHandler fileHandler;
+    public static GameFileHandler  fileHandler = new LWJGLFileHandler();
 
     //Getters/setters so GameState can be used properly from Quorum.
 

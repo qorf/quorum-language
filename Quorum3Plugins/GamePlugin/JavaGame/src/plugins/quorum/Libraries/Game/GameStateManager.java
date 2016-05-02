@@ -26,7 +26,6 @@ public class GameStateManager
     public void SetApplication(Application_ app)
     {
         gs.SetApp(app);
-        gs.fileHandler = new LWJGLFileHandler();
     }
 
     public Application_ GetApplication()
