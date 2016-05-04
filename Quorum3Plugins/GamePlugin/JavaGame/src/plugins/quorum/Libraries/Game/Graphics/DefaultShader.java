@@ -454,7 +454,7 @@ public class DefaultShader extends BaseShader
                 @Override
                 public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                    if (renderable.Get_Libraries_Game_Graphics_Renderable__environment_() == null)
+                    if (renderable.Get_Libraries_Game_Graphics_Renderable__environment_() == null || !renderable.Get_Libraries_Game_Graphics_Renderable__environment_().ContainsLighting())
                         shader.program.setUniform3fv(shader.Location(inputID), ones, 0, ones.length);
                     else 
                     {
