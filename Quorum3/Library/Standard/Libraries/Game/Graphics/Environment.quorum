@@ -13,6 +13,13 @@ The Environment class is a set of Attributes that specifically handles lighting.
 class Environment is Attributes
 
     /*
+    This boolean indicates whether the Environment currently contains any
+    lighting sources, or has ambient lighting set. The value is only computed
+    when changes are made to the lighting, and then cached here.
+    */
+    boolean containsLighting = false
+
+    /*
     This action will add a light to the environment. It can accept any light
     that inherits from Light as a parameter, but the Environment can only   
     use lights that are either DirectionalLight or PointLight. If the given
@@ -55,6 +62,8 @@ class Environment is Attributes
         else
             lightsAttribute:lights:Add(light)
         end
+
+        containsLighting = true
     end
 
     /*
@@ -69,6 +78,8 @@ class Environment is Attributes
         else
             lightsAttribute:lights:Add(light)
         end
+
+        containsLighting = true
     end
 
     /*
@@ -117,6 +128,8 @@ class Environment is Attributes
                 Remove(lightsAttribute:GetDirectionalLightsValue())
             end
         end
+
+        containsLighting = TestContainsLighting()
     end
 
     /*
@@ -133,6 +146,8 @@ class Environment is Attributes
                 Remove(lightsAttribute:GetPointLightsValue())
             end
         end
+
+        containsLighting = TestContainsLighting()
     end
 
     /*
@@ -140,6 +155,7 @@ class Environment is Attributes
     */
     action Add(AmbientLight light)
         Add(light:GetAttribute())
+        containsLighting = true
     end
 
     /*
@@ -147,6 +163,7 @@ class Environment is Attributes
     */
     action Remove(AmbientLight light)
         RemoveAmbientLight()
+        containsLighting = TestContainsLighting()
     end
 
     /*
@@ -155,6 +172,7 @@ class Environment is Attributes
     action RemoveAmbientLight
         ColorAttribute color
         Remove(color:GetAmbientLightValue())
+        containsLighting = TestContainsLighting()
     end
 
     /*
@@ -166,6 +184,37 @@ class Environment is Attributes
         ColorAttribute colorAttribute = cast(ColorAttribute, GetAttribute(light:GetAttribute():GetAmbientLightValue()))
         light:GetAttribute():SetAttribute(colorAttribute:GetAmbientLightValue(), colorAttribute:color)
         return light
+    end
+
+    /*
+    This action will return whether the Environment currently contains any
+    lighting elements. An Environment that contains no lighting elements will
+    be ignored during rendering. 
+    */
+    action ContainsLighting returns boolean
+        return containsLighting
+    end
+
+    /*
+    This action tests whether the Environment currently contains any lighting.
+    */
+    private action TestContainsLighting returns boolean
+        ColorAttribute coat
+        if HasAttribute(coat:GetAmbientLightValue())
+            return true
+        end
+
+        DirectionalLightsAttribute dlat
+        if HasAttribute(dlat:GetDirectionalLightsValue())
+            return true
+        end
+
+        PointLightsAttribute plat
+        if HasAttribute(plat:GetPointLightsValue())
+            return true
+        end
+
+        return false
     end
 
 end
