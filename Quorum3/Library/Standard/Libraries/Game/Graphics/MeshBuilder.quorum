@@ -2,6 +2,7 @@ package Libraries.Game.Graphics
 
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.VertexAttribute
 use Libraries.Game.Graphics.VertexAttributes
 use Libraries.Game.Graphics.ModelData.MeshPart
 use Libraries.Compute.Matrix4
@@ -27,7 +28,7 @@ class MeshBuilder
     private Color tempColor
 
     // The VertexAttributes of the mesh being constructed.
-    private VertexAttributes attributes
+    private VertexAttributes attributes = undefined
 
     // The vertices of the mesh being constructed.
     private Array<number> vertices
@@ -66,7 +67,7 @@ class MeshBuilder
     private integer colorSize = 0
 
     // The count of number components in a vertex before the packed color component, or -1 if there is none.
-    private integer packedColorOffset = -1
+    private integer colorPackedOffset = -1
 
     // The count of number components in a vertex before the texture coordinates, or -1 if there are none.
     private integer textureCoordinatesOffset = -1
@@ -98,11 +99,8 @@ class MeshBuilder
     private Matrix4 positionTransform
     private Matrix3 normalTransform
     private BoundingBox bounds
-end
 
-/*
-
-	/** @param usage bitwise mask of the {@link com.badlogic.gdx.graphics.VertexAttributes.Usage}, only Position, Color, Normal and
+    /** @param usage bitwise mask of the {@link com.badlogic.gdx.graphics.VertexAttributes.Usage}, only Position, Color, Normal and
 	 *           TextureCoordinates is supported. *-
 	public static VertexAttributes createAttributes (long usage) {
 		final Array<VertexAttribute> attrs = new Array<VertexAttribute>();
@@ -122,135 +120,186 @@ end
 		return new VertexAttributes(attributes);
 	}
 
-	/** Begin building a mesh. Call {@link #part(String, int)} to start a {@link MeshPart}.
+        /** Begin building a mesh. Call {@link #part(String, int)} to start a {@link MeshPart}.
 	 * @param attributes bitwise mask of the {@link com.badlogic.gdx.graphics.VertexAttributes.Usage}, only Position, Color, Normal
 	 *           and TextureCoordinates is supported. *-
 	public void begin (final long attributes) {
 		begin(createAttributes(attributes), -1);
 	}
 
-	/** Begin building a mesh. Call {@link #part(String, int)} to start a {@link MeshPart}. *-
-	public void begin (final VertexAttributes attributes) {
-		begin(attributes, -1);
-	}
-
-	/** Begin building a mesh.
+        /** Begin building a mesh.
 	 * @param attributes bitwise mask of the {@link com.badlogic.gdx.graphics.VertexAttributes.Usage}, only Position, Color, Normal
 	 *           and TextureCoordinates is supported. *-
 	public void begin (final long attributes, int primitiveType) {
 		begin(createAttributes(attributes), primitiveType);
 	}
+    */
 
-	/** Begin building a mesh *-
-	public void begin (final VertexAttributes attributes, int primitiveType) {
-		if (this.attributes != null) throw new RuntimeException("Call end() first");
-		this.attributes = attributes;
-		this.vertices.clear();
-		this.indices.clear();
-		this.parts.clear();
-		this.vindex = 0;
-		this.lastIndex = -1;
-		this.istart = 0;
-		this.part = null;
-		this.stride = attributes.vertexSize / 4;
-		if (this.vertex == null || this.vertex.length < stride) this.vertex = new float[stride];
-		VertexAttribute a = attributes.findByUsage(Usage.Position);
-		if (a == null) throw new GdxRuntimeException("Cannot build mesh without position attribute");
-		posOffset = a.offset / 4;
-		posSize = a.numComponents;
-		a = attributes.findByUsage(Usage.Normal);
-		norOffset = a == null ? -1 : a.offset / 4;
-		a = attributes.findByUsage(Usage.BiNormal);
-		biNorOffset = a == null ? -1 : a.offset / 4;
-		a = attributes.findByUsage(Usage.Tangent);
-		tangentOffset = a == null ? -1 : a.offset / 4;
-		a = attributes.findByUsage(Usage.ColorUnpacked);
-		colOffset = a == null ? -1 : a.offset / 4;
-		colSize = a == null ? 0 : a.numComponents;
-		a = attributes.findByUsage(Usage.ColorPacked);
-		cpOffset = a == null ? -1 : a.offset / 4;
-		a = attributes.findByUsage(Usage.TextureCoordinates);
-		uvOffset = a == null ? -1 : a.offset / 4;
-		setColor(null);
-		setVertexTransform(null);
-		setUVRange(null);
-		this.primitiveType = primitiveType;
-		bounds.inf();
-	}
+    /*
+    This action informs the MeshBuilder to begin constructing a new mesh. If a
+    mesh is already in construction, this will throw an error.
+    */
+    action Begin(VertexAttributes vAttributes)
+        Begin(vAttributes, -1)
+    end
 
-	private void endpart () {
-		if (part != null) {
-			bounds.getCenter(part.center);
-			bounds.getDimensions(part.halfExtents).scl(0.5f);
-			part.radius = part.halfExtents.len();
-			bounds.inf();
-			part.offset = istart;
-			part.size = indices.size - istart;
-			istart = indices.size;
-			part = null;
-		}
-	}
+    /*
+    This action informs the MeshBuilder to begin constructing a new mesh. If a
+    mesh is already in construction, this will throw an error.
+    */
+    action Begin(VertexAttributes vAttributes, integer type)
+        if attributes not= undefined
+            alert("I can't begin building a new Mesh because there is already one under construction!")
+        end
 
-	/** Starts a new MeshPart. The mesh part is not usable until end() is called. This will reset the current color and vertex
-	 * transformation.
-	 * @see #part(String, int, MeshPart) *-
-	public MeshPart part (final String id, int primitiveType) {
-		return part(id, primitiveType, new MeshPart());
-	}
+        attributes = vAttributes
+        vertices:Empty()
+        indices:Empty()
+        parts:Empty()
+        vertexIndex = 0
+        lastIndex = -1
+        indexStart = 0
+        part = undefined
+        vertexSize = attributes:vertexSize / 4
 
-	/** Starts a new MeshPart. The mesh part is not usable until end() is called. This will reset the current color and vertex
-	 * transformation.
-	 * @param id The id (name) of the part
-	 * @param primitiveType e.g. {@link GL20#GL_TRIANGLES} or {@link GL20#GL_LINES}
-	 * @param meshPart The part to receive the result *-
-	public MeshPart part (final String id, final int primitiveType, MeshPart meshPart) {
-		if (this.attributes == null) throw new RuntimeException("Call begin() first");
-		endpart();
+        if vertex = undefined or vertex:GetSize() < vertexSize
+            Array<number> newVertexArray
+            newVertexArray:SetSize(vertexSize)
+            vertex = newVertexArray
+        end
 
-		part = meshPart;
-		part.id = id;
-		this.primitiveType = part.primitiveType = primitiveType;
-		parts.add(part);
+        VertexAttribute attribute = attributes:FindByUsage(attributes:POSITION)
+        if attribute = undefined
+            alert("I was told to construct a mesh without a Position attribute, but that attribute is required.")
+        end
+        positionOffset = attribute:offset / 4
+        positionSize = attribute:componentCount
 
-		setColor(null);
-		setVertexTransform(null);
-		setUVRange(null);
+        attribute = attributes:FindByUsage(attributes:NORMAL)
+        if attribute = undefined
+            normalOffset = -1
+        else
+            normalOffset = attribute:offset / 4
+        end
 
-		return part;
-	}
+        attribute = attributes:FindByUsage(attributes:BINORMAL)
+        if attribute = undefined
+            binormalOffset = -1
+        else
+            binormalOffset = attribute:offset / 4
+        end
 
-	/** End building the mesh and returns the mesh
-	 * @param mesh The mesh to receive the built vertices and indices, must have the same attributes and must be big enough to hold
-	 *           the data, any existing data will be overwritten. *-
-	public Mesh end (Mesh mesh) {
-		endpart();
+        attribute = attributes:FindByUsage(attributes:TANGENT)
+        if attribute = undefined
+            tangentOffset = -1
+        else
+            tangentOffset = attribute:offset / 4
+        end
 
-		if (attributes == null) throw new GdxRuntimeException("Call begin() first");
-		if (!attributes.equals(mesh.getVertexAttributes())) throw new GdxRuntimeException("Mesh attributes don't match");
-		if ((mesh.getMaxVertices() * stride) < vertices.size)
-			throw new GdxRuntimeException("Mesh can't hold enough vertices: " + mesh.getMaxVertices() + " * " + stride + " < "
-				+ vertices.size);
-		if (mesh.getMaxIndices() < indices.size)
-			throw new GdxRuntimeException("Mesh can't hold enough indices: " + mesh.getMaxIndices() + " < " + indices.size);
+        attribute = attributes:FindByUsage(attributes:COLOR_UNPACKED)
+        if attribute = undefined
+            colorOffset = -1
+        else
+            colorOffset = attribute:offset / 4
+        end
 
-		mesh.setVertices(vertices.items, 0, vertices.size);
-		mesh.setIndices(indices.items, 0, indices.size);
+        attribute = attributes:FindByUsage(attributes:COLOR_PACKED)
+        if attribute = undefined
+            colorPackedOffset = -1
+        else
+            colorPackedOffset = attribute:offset / 4
+        end
 
-		for (MeshPart p : parts)
-			p.mesh = mesh;
-		parts.clear();
+        attribute = attributes:FindByUsage(attributes:TEXTURE_COORDINATES)
+        if attribute = undefined
+            textureCoordinatesOffset = -1
+        else
+            textureCoordinatesOffset = attribute:offset / 4
+        end
+        
+        //SetColor(undefined)
+        //SetUVRange(undefined)
+        primitiveType = type
+        bounds:Invalidate()
+    end
 
-		attributes = null;
-		vertices.clear();
-		indices.clear();
+    private action EndPart
+        if part not= undefined
+            /* The following lines of code set fields in the MeshPart that exist
+            in libGDX, but that we do not currently use or have.
 
-		return mesh;
-	}
+            part:center = bounds:GetCenter()
+            part:halfExtents = bounds:GetDimensions():Scale(0.5)
+            part:radius = part:halfExtents:Length()
+            */
+            bounds:Invalidate()
+            part:indexOffset = indicesStart
+            part:verticesCount = indices:GetSize() - indicesStart
+            indicesStart = indices:GetSize()
+            part = undefined
+        end
+    end
 
-	/** End building the mesh and returns the mesh *-
-	public Mesh end () {
-		return end(new Mesh(true, vertices.size / stride, indices.size, attributes));
-	}
+    /*
+    This action will start constructing a new MeshPart for the Mesh. The new
+    MeshPart will still not be usable until End() is called. This will reset
+    any current color and vertex transformations.
+    */
+    action NewPart(text id, integer type) returns MeshPart
+        if attributes = undefined
+            alert("I can't begin constructing a new MeshPart if I'm not currently building a Mesh. Call Begin() before using NewPart().")
+        end
+        EndPart()
+
+        MeshPart newPart
+        part = newPart
+        part:id = id
+        primitiveType = type
+        part:primitiveType = type
+        parts:Add(part)
+
+        //SetColor(undefined)
+        //SetVertexTransform(undefined)
+        //SetUVRange(undefined)
+        
+        return part
+    end
+    
+    /*
+    This action will finish construction of the current Mesh, and then return it.
+    */
+    action End returns Mesh
+        if attributes = undefined
+            alert("I must begin constructing a Mesh before I can finish it - call Begin() first.")
+        end
+
+        Mesh newMesh
+        newMesh:Load(true, vertices:GetSize() / vertexSize, indices:GetSize(), attributes)
+
+        EndPart()
+        
+        newMesh:SetVertices(vertices)
+        newMesh:SetIndices(indices)
+
+        integer counter = 0
+        MeshPart meshPart = undefined
+        repeat parts:GetSize() times
+            meshPart = parts:Get(counter)
+            meshPart:mesh = newMesh
+            counter = counter + 1
+        end
+        parts:Empty()
+
+        attributes = undefined
+        vertices:Empty()
+        indices:Empty()
+
+        return newMesh
+    end
+
+end
+
+/*
 
 	/** Clears the data being built up until now, including the vertices, indices and all parts. Must be called in between the call
 	 * to #begin and #end. Any builder calls made from the last call to #begin up until now are practically discarded. The state

@@ -113,4 +113,29 @@ class VertexAttributes
         return count
     end
 
+    action Equals(Object object) returns boolean
+        if parent:Object:Equals(object)
+            return true
+        end
+
+        if not (object is VertexAttributes)
+            return false
+        end
+
+        VertexAttributes other = cast(VertexAttributes, object)
+        if GetSize() not= other:GetSize()
+            return false
+        end
+
+        integer counter = 0
+        repeat GetSize() times
+            if not attributes:Get(counter):Equals(other:GetAttribute(counter))
+                return false
+            end
+            counter = counter + 1
+        end
+
+        return true
+    end
+
 end

@@ -21,7 +21,9 @@ class BoundingBox
     of the BoundingBox.
     */
     action GetCenter returns Vector3
-        return center
+        Vector3 new
+        new:Set(center)
+        return new
     end
 
     /*
@@ -50,7 +52,9 @@ class BoundingBox
     stored within a Vector3 object.
     */
     action GetDimensions returns Vector3
-        return dimensions
+        Vector3 new
+        new:Set(dimensions)
+        return new
     end
 
     /*
