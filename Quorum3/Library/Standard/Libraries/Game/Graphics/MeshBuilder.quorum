@@ -2,14 +2,37 @@ package Libraries.Game.Graphics
 
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.TextureRegion
 use Libraries.Game.Graphics.VertexAttribute
 use Libraries.Game.Graphics.VertexAttributes
 use Libraries.Game.Graphics.ModelData.MeshPart
+use Libraries.Compute.Math
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Matrix3
+use Libraries.Compute.Vector3
 use Libraries.Game.BoundingBox
+use Libraries.Game.NumberUtilities
 
 class MeshBuilder 
+
+    /*
+    The POINTS value is one of the possible primitive type values. It is used to
+    indicate that each vertex of the Mesh should be considered an individual
+    point, separate from the other vertices.
+    */
+    public constant integer POINTS = 0
+
+    /*
+    The LINES value is one of the possible primitive type values. The Mesh will
+    form lines using pairs of vertices.
+    */
+    public constant integer LINES = 1
+
+    /*
+    The TRIANGLES value is one of the possible primitive type values. The Mesh
+    will form triangles from triplets of vertices.
+    */
+    public constant integer TRIANGLES = 4
     
     // An array used to temporarily store indices during operations.
     private Array<integer> tempIndices
@@ -85,7 +108,10 @@ class MeshBuilder
     private boolean hasColor = false
 
     // The current primitiveType being used to describe the mesh.
-    private integer primitiveType = 0
+    private integer primitiveType = TRIANGLES
+
+    // The last index which was used during Mesh construction.
+    private integer lastIndex = -1
 
     // The UV range used for texture coordinates during construction.
     private number uOffset = 0
@@ -99,6 +125,10 @@ class MeshBuilder
     private Matrix4 positionTransform
     private Matrix3 normalTransform
     private BoundingBox bounds
+
+    private Math math
+    private NumberUtilities numberUtilities
+    private Vector3 calcVector
 
     /** @param usage bitwise mask of the {@link com.badlogic.gdx.graphics.VertexAttributes.Usage}, only Position, Color, Normal and
 	 *           TextureCoordinates is supported. *-
@@ -145,7 +175,11 @@ class MeshBuilder
 
     /*
     This action informs the MeshBuilder to begin constructing a new mesh. If a
-    mesh is already in construction, this will throw an error.
+    mesh is already in construction, this will throw an error. The
+    VertexAttributes must contain at least a Position attribute, and can also
+    contain Normal, Binormal, Tangent, ColorUnpacked, ColorPacked, or
+    TextureCoordinates attributes. The type should be one of the primitive type
+    constants in the MeshBuilder: POINTS, LINES, or TRIANGLES.
     */
     action Begin(VertexAttributes vAttributes, integer type)
         if attributes not= undefined
@@ -297,244 +331,351 @@ class MeshBuilder
         return newMesh
     end
 
+    /*
+    Empties the data being built up until now, including the vertices, indices,
+    and all parts. Must be called between Begin() and End() to have any effect.
+    This effectively discards all work done since the initial Begin(), but will
+    not reset state such as UV region, color, or vertex transform.
+    */
+    action Empty
+        vertices:Empty()
+        indices:Empty()
+        parts:Empty()
+        vertexIndex = 0
+        lastIndex = -1
+        indicesStart = 0
+        part = undefined
+    end
+
+    /*
+    This action will return the amount of number components that makes up each
+    vertex.
+    */
+    action GetVertexSize returns integer
+        return vertexSize
+    end
+
+    /*
+    This action returns the number of vertices that have been built so far for
+    the current Mesh under construction. This will only return a valid result
+    if used between calls to Begin() and End().
+    */
+    action GetVerticesCount returns number
+        return vertices:GetSize() / vertexSize
+    end
+
+    /*
+    This action will return a copy of all of the vertices built so far. This
+    action must be called between Begin() and End() - otherwise, an error will
+    be thrown.
+    */
+    action GetVertices returns Array<number>
+        return vertices
+    end
+
+    /*
+    This action will return the number of indices that has been built so far in
+    the Mesh currently under construction. This is only valid between calls to
+    Begin() and End().
+    */
+    action GetIndicesCount returns integer
+        return indices:GetSize()
+    end
+
+    /*
+    This action will return a copy of the indices that have been built so far.
+    This action is only valid between calls to Begin() and End() - otherwise,
+    this action will throw an error.
+    */
+    action GetIndices returns Array<integer>
+        return indices
+    end
+
+    /*
+    This action will return the attributes that were given for the current Mesh
+    under construction. If there isn't a Mesh currently being built, this will
+    be undefined.
+    */
+    action GetAttributes returns VertexAttributes
+        return attributes
+    end
+
+    /*
+    This action will return the MeshPart currently under construction by the
+    MeshBuilder. If there isn't a MeshPart under construction, then this will be
+    undefined.
+    */
+    action GetMeshPart returns MeshPart
+        return part
+    end
+
+    /*
+    This action will return the primitive type being used to define the geometry
+    of the current Mesh under construction. The primitive type is an integer 
+    value that represents an OpenGL constant, such as TRIANGLES.
+    */
+    action GetPrimitiveType returns integer
+        return primitiveType
+    end
+
+    /*
+    This action will set the color value of the vertices that are created during
+    Mesh construction. The color is made of a red, green, blue, and alpha (or
+    transparency) component.
+    */
+    action SetColor(number red, number green, number blue, number alpha)
+        color:SetColor(red, green, blue, alpha)
+        hasColor = not (red = 1.0 and green = 1.0 and blue = 1.0 and alpha = 1.0)
+    end
+
+    /*
+    This action will set the color value of the vertices that are created during
+    Mesh construction.
+    */
+    action SetColor(Color newColor)
+        color:SetColor(newColor:GetRed(), newColor:GetGreen(), newColor:GetBlue(), newColor:GetAlpha())
+        hasColor = not (newColor:GetRed() = 1.0 and newColor:GetGreen() = 1.0 and newColor:GetBlue() = 1.0 and newColor:GetAlpha() = 1.0)
+    end
+
+    // TO-DO: Better clarify what this action does.
+    /*
+    This action will set the UV range that will be applied to the vertices of
+    the Mesh under construction. The UV values are used to determine how a 
+    texture should be mapped onto the Mesh.
+    */
+    action SetUVRange(number u1, number v1, number u2, number v2)
+        uOffset = u1
+        vOffset = v1
+        uScale = u2 - u1
+        vScale = v2 - v1
+        number errorMargin = 0.000001
+        hasUVTransform = not (math:AbsoluteValue(u1) < errorMargin
+                          and math:AbsoluteValue(v1) < errorMargin
+                          and math:AbsoluteValue(u2 - 1.0) < errorMargin
+                          and math:AbsoluteValue(v2 - 1.0) < errorMargin)
+    end
+
+    // TO-DO: Better clarify what this action does.
+    /*
+    This action will set the UV range that will be applied to the vertices of
+    the Mesh under construction. The UV values are used to determine how a 
+    texture should be mapped onto the Mesh.
+    */
+    action SetUVRange(TextureRegion region)
+        if region = undefined
+            hasUVTransform = false
+            uOffset = 0
+            vOffset = 0
+            uScale = 1
+            vScale = 1
+        else
+            SetUVRange(region:GetLeftSide(), region:GetTopSide(), region:GetRightSide(), region:GetBottomSide())
+        end
+    end
+
+    /*
+    This action will return a new Matrix4 object containing a copy of the vertex
+    transformation matrix that the current Mesh being built is using.
+    */
+    action GetVertexTransform returns Matrix4
+        Matrix4 new
+        new:Set(positionTransform)
+        return new
+    end
+
+    /*
+    This action will set the transformation matrix for the vertices of the Mesh
+    that is under construction.
+    */
+    action SetVertexTransform(Matrix4 transform)
+        if transform not= undefined
+            vertexTransformationEnabled = true
+            positionTransform:Set(transform)
+            normalTransform:Set(transform):Inverse():Transpose()
+        else
+            vertexTransformationEnabled = false
+            positionTransform:IdentityMatrix()
+            normalTransform:IdentityMatrix()
+        end
+    end
+
+    /*
+    This action will return whether or not the Mesh under construction is
+    currently using a Matrix4 to transform its vertices.
+    */
+    action IsVertexTransformationEnabled returns boolean
+        return vertexTransformationEnabled
+    end
+
+    /*
+    This action will set the MeshBuilder to allow for vertex transformation
+    using a Matrix4 object.
+    */
+    action SetVertexTransformationEnabled(boolean enabled)
+        vertexTransformationEnabled = enabled
+    end
+
+    /*
+    This action will ensure that the current Mesh under construction will
+    support the given number of vertices.
+    */
+    action EnsureVerticesCapacity(integer numVertices)
+        vertices:SetMaxSize(numVertices * vertexSize)
+    end
+
+    /*
+    This action will ensure that the current Mesh under construction will
+    support the given number of indices.
+    */
+    action EnsureIndices(integer numIndices)
+        indices:SetMaxSize(numIndices)
+    end
+
+    /*
+    This action will guarantee that the Mesh under construction will have the
+    proper number of indices to form the given number of triangles, based on
+    what primitive type has already been set for the Mesh.
+    */
+    action EnsureTriangleIndices(integer numTriangles)
+        if primitiveType = LINES
+            EnsureIndices(6 * numTriangles)
+        elseif primitiveType = TRIANGLES or primitiveType = POINTS
+            EnsureIndices(3 * numTriangles)
+        else
+            alert("The MeshBuilder was given an invalid primitive type - the supported values are the POINTS, LINES, or TRIANGLES constants.")
+        end
+    end
+  
+    /*
+    This action will guarantee that the Mesh under construction will have the
+    proper number of indices to form the given number of rectangles, based on
+    what primitive type has already been set for the Mesh.
+    */
+    action EnsureRectangleIndices(integer numRectangles)
+        if primitiveType = POINTS
+            EnsureIndices(4 * numRectangles)
+        elseif primitiveType = LINES
+            EnsureIndices(8 * numRectangles)
+        elseif primitiveType = TRIANGLES
+            EnsureIndices(6 * numRectangles)
+        else
+            alert("The MeshBuilder was given an invalid primitive type - the supported values are the POINTS, LINES, or TRIANGLES constants.")
+        end
+    end
+
+    /*
+    This action will return what the last index used was during the construction
+    of a Mesh.
+    */
+    action GetLastIndex returns integer
+        return lastIndex
+    end
+    
+    private action TransformPosition(Array<number> values, integer offset, integer size, Matrix4 transform)
+        if size > 2
+            calcVector:Set(values:Get(offset), values:Get(offset + 1), values:Get(offset + 2))
+            calcVector:Multiply(transform)
+            values:Set(offset, calcVector:GetX())
+            values:Set(offset + 1, calcVector:GetY())
+            values:Set(offset + 2, calcVector:GetZ())
+        elseif size > 1
+            calcVector:Set(values:Get(offset), values:Get(offset + 1), 0)
+            calcVector:Multiply(transform)
+            values:Set(offset, calcVector:GetX())
+            values:Set(offset + 1, calcVector:GetY())
+        else
+            calcVector:Set(values:Get(offset), 0, 0)
+            calcVector:Multiply(transform)
+            values:Set(offset, calcVector:GetX())
+        end
+    end
+
+    private action TransformNormal(Array<number> values, integer offset, integer size, Matrix3 transform)
+        if size > 2
+            calcVector:Set(values:Get(offset), values:Get(offset + 1), values:Get(offset + 2))
+            calcVector:Multiply(transform)
+            calcVector:Normalize()
+            values:Set(offset, calcVector:GetX())
+            values:Set(offset + 1, calcVector:GetY())
+            values:Set(offset + 2, calcVector:GetZ())
+        elseif size > 1
+            calcVector:Set(values:Get(offset), values:Get(offset + 1), 0)
+            calcVector:Multiply(transform)
+            calcVector:Normalize()
+            values:Set(offset, calcVector:GetX())
+            values:Set(offset + 1, calcVector:GetY())
+        else
+            calcVector:Set(values:Get(offset), 0, 0)
+            calcVector:Multiply(transform)
+            calcVector:Normalize()
+            values:Set(offset, calcVector:GetX())
+        end
+    end
+
+    private action AddVertex(Array<number> values, integer offset)
+        integer originalSize = vertices:GetSize()
+        
+        integer counter = 0
+        repeat values:GetSize() times
+            vertices:Add(values:Get(counter))
+            counter = counter + 1
+        end
+
+        lastIndex = vertexIndex
+
+        if vertexTransformationEnabled
+            TransformPosition(vertices, originalSize + positionOffset, positionSize, positionTransform)
+            
+            if normalOffset >= 0
+                TransformNormal(vertices, originalSize + normalOffset, 3, normalTransform)
+            end
+
+            if binormalOffset >= 0
+                TransformNormal(vertices, originalSize + binormalOffset, 3, normalTransform)
+            end
+
+            if tangentOffset >= 0
+                TransformNormal(vertices, originalSize + tangentOffset, 3, normalTransform)
+            end
+        end
+
+        number x = vertices:Get(originalSize + positionOffset)
+        number y = 0
+        number z = 0
+        if positionSize > 1
+            y = vertices:Get(originalSize + positionOffset + 1)
+            if positionSize > 2
+                z = vertices:Get(originalSize + positionOffset + 2)
+            end
+        end
+        bounds:Extend(x, y, z)
+
+        if hasColor
+            if colorOffset >= 0
+                vertices:Set(originalSize + colorOffset, vertices:Get(originalSize + colorOffset) * color:GetRed())
+                vertices:Set(originalSize + colorOffset + 1, vertices:Get(originalSize + colorOffset + 1) * color:GetGreen())
+                vertices:Set(originalSize + colorOffset + 2, vertices:Get(originalSize + colorOffset + 2) * color:GetBlue())
+                if colorSize > 3
+                    vertices:Set(originalSize + colorOffset + 3, vertices:Get(originalSize + colorOffset + 3) * color:GetAlpha())
+                end
+            elseif colorPackedOffset >= 0
+                tempColor:SetColorFromCode(numberUtilities:EncodeNumberAsInteger(vertices:Get(originalSize + colorPackedOffset)))
+                tempColor:SetColor(tempColor:GetRed() * color:GetRed(), tempColor:GetGreen() * color:GetGreen(),
+                    tempColor:GetBlue() * color:GetBlue(), tempColor:GetAlpha() * color:GetAlpha())
+
+                vertices:Set(originalSize + colorPackedOffset, tempColor:EncodeColorAsNumber())
+            end
+        end
+
+        if hasUVTransform and textureCoordinatesOffset >= 0
+            vertices:Set(originalSize + textureCoordinatesOffset, uOffset + uScale * vertices:Get(originalSize + textureCoordinatesOffset))
+            vertices:Set(originalSize + textureCoordinatesOffset + 1, vOffset + vScale * vertices:Get(originalSize + textureCoordinatesOffset + 1))
+        end
+    end
+
 end
 
 /*
-
-	/** Clears the data being built up until now, including the vertices, indices and all parts. Must be called in between the call
-	 * to #begin and #end. Any builder calls made from the last call to #begin up until now are practically discarded. The state
-	 * (e.g. UV region, color, vertex transform) will remain unchanged. *-
-	public void clear () {
-		this.vertices.clear();
-		this.indices.clear();
-		this.parts.clear();
-		this.vindex = 0;
-		this.lastIndex = -1;
-		this.istart = 0;
-		this.part = null;
-	}
-
-	/** @return the size in number of floats of one vertex, multiply by four to get the size in bytes. *-
-	public int getFloatsPerVertex () {
-		return stride;
-	}
-
-	/** @return The number of vertices built up until now, only valid in between the call to begin() and end(). *-
-	public int getNumVertices () {
-		return vertices.size / stride;
-	}
-
-	/** Get a copy of the vertices built so far.
-	 * @param out The float array to receive the copy of the vertices, must be at least `destOffset` + {@link #getNumVertices()} *
-	 *           {@link #getFloatsPerVertex()} in size.
-	 * @param destOffset The offset (number of floats) in the out array where to start copying *-
-	public void getVertices (float[] out, int destOffset) {
-		if (attributes == null) throw new GdxRuntimeException("Must be called in between #begin and #end");
-		if ((destOffset < 0) || (destOffset > out.length - vertices.size))
-			throw new GdxRuntimeException("Array to small or offset out of range");
-		System.arraycopy(vertices.items, 0, out, destOffset, vertices.size);
-	}
-
-	/** Provides direct access to the vertices array being built, use with care. The size of the array might be bigger, do not rely
-	 * on the length of the array. Instead use {@link #getFloatsPerVertex()} * {@link #getNumVertices()} to calculate the usable
-	 * size of the array. Must be called in between the call to #begin and #end. *-
-	protected float[] getVertices () {
-		return vertices.items;
-	}
-
-	/** @return The number of indices built up until now, only valid in between the call to begin() and end(). *-
-	public int getNumIndices () {
-		return indices.size;
-	}
-
-	/** Get a copy of the indices built so far.
-	 * @param out The short array to receive the copy of the indices, must be at least `destOffset` + {@link #getNumIndices()} in
-	 *           size.
-	 * @param destOffset The offset (number of shorts) in the out array where to start copying *-
-	public void getIndices (short[] out, int destOffset) {
-		if (attributes == null) throw new GdxRuntimeException("Must be called in between #begin and #end");
-		if ((destOffset < 0) || (destOffset > out.length - indices.size))
-			throw new GdxRuntimeException("Array to small or offset out of range");
-		System.arraycopy(indices.items, 0, out, destOffset, indices.size);
-	}
-
-	/** Provides direct access to the indices array being built, use with care. The size of the array might be bigger, do not rely
-	 * on the length of the array. Instead use {@link #getNumIndices()} to calculate the usable size of the array. Must be called
-	 * in between the call to #begin and #end. *-
-	protected short[] getIndices () {
-		return indices.items;
-	}
-
-	@Override
-	public VertexAttributes getAttributes () {
-		return attributes;
-	}
-
-	@Override
-	public MeshPart getMeshPart () {
-		return part;
-	}
-
-	@Override
-	public int getPrimitiveType () {
-		return primitiveType;
-	}
-
-	@Override
-	public void setColor (float r, float g, float b, float a) {
-		color.set(r, g, b, a);
-		hasColor = !color.equals(Color.WHITE);
-	}
-
-	@Override
-	public void setColor (final Color color) {
-		this.color.set(!(hasColor = (color != null)) ? Color.WHITE : color);
-	}
-
-	@Override
-	public void setUVRange (float u1, float v1, float u2, float v2) {
-		uOffset = u1;
-		vOffset = v1;
-		uScale = u2 - u1;
-		vScale = v2 - v1;
-		hasUVTransform = !(MathUtils.isZero(u1) && MathUtils.isZero(v1) && MathUtils.isEqual(u2, 1f) && MathUtils.isEqual(v2, 1f));
-	}
-
-	@Override
-	public void setUVRange (TextureRegion region) {
-		if (!(hasUVTransform = (region != null))) {
-			uOffset = vOffset = 0f;
-			uScale = vScale = 1f;
-		} else
-			setUVRange(region.getU(), region.getV(), region.getU2(), region.getV2());
-	}
-
-	@Override
-	public Matrix4 getVertexTransform (Matrix4 out) {
-		return out.set(positionTransform);
-	}
-
-	@Override
-	public void setVertexTransform (Matrix4 transform) {
-		if ((vertexTransformationEnabled = (transform != null)) == true) {
-			positionTransform.set(transform);
-			normalTransform.set(transform).inv().transpose();
-		} else {
-			positionTransform.idt();
-			normalTransform.idt();
-		}
-	}
-
-	@Override
-	public boolean isVertexTransformationEnabled () {
-		return vertexTransformationEnabled;
-	}
-
-	@Override
-	public void setVertexTransformationEnabled (boolean enabled) {
-		vertexTransformationEnabled = enabled;
-	}
-
-	@Override
-	public void ensureVertices (int numVertices) {
-		vertices.ensureCapacity(stride * numVertices);
-	}
-
-	@Override
-	public void ensureIndices (int numIndices) {
-		indices.ensureCapacity(numIndices);
-	}
-
-	@Override
-	public void ensureCapacity (int numVertices, int numIndices) {
-		ensureVertices(numVertices);
-		ensureIndices(numIndices);
-	}
-
-	@Override
-	public void ensureTriangleIndices (int numTriangles) {
-		if (primitiveType == GL20.GL_LINES)
-			ensureIndices(6 * numTriangles);
-		else if (primitiveType == GL20.GL_TRIANGLES || primitiveType == GL20.GL_POINTS)
-			ensureIndices(3 * numTriangles);
-		else
-			throw new GdxRuntimeException("Incorrect primtive type");
-	}
-
-	/** @deprecated use {@link #ensureVertices(int)} followed by {@link #ensureTriangleIndices(int)} instead. *-
-	@Deprecated
-	public void ensureTriangles (int numVertices, int numTriangles) {
-		ensureVertices(numVertices);
-		ensureTriangleIndices(numTriangles);
-	}
-
-	/** @deprecated use {@link #ensureVertices(int)} followed by {@link #ensureTriangleIndices(int)} instead. *-
-	@Deprecated
-	public void ensureTriangles (int numTriangles) {
-		ensureVertices(3 * numTriangles);
-		ensureTriangleIndices(numTriangles);
-	}
-
-	@Override
-	public void ensureRectangleIndices (int numRectangles) {
-		if (primitiveType == GL20.GL_POINTS)
-			ensureIndices(4 * numRectangles);
-		else if (primitiveType == GL20.GL_LINES)
-			ensureIndices(8 * numRectangles);
-		else
-			// GL_TRIANGLES
-			ensureIndices(6 * numRectangles);
-	}
-
-	/** @deprecated use {@link #ensureVertices(int)} followed by {@link #ensureRectangleIndices(int)} instead. *-
-	@Deprecated
-	public void ensureRectangles (int numVertices, int numRectangles) {
-		ensureVertices(numVertices);
-		ensureRectangleIndices(numRectangles);
-	}
-
-	/** @deprecated use {@link #ensureVertices(int)} followed by {@link #ensureRectangleIndices(int)} instead. *-
-	public void ensureRectangles (int numRectangles) {
-		ensureVertices(4 * numRectangles);
-		ensureRectangleIndices(numRectangles);
-	}
-
-	private short lastIndex = -1;
-
-	@Override
-	public short lastIndex () {
-		return lastIndex;
-	}
-
-	private final static Vector3 vTmp = new Vector3();
-
-	private final static void transformPosition (final float[] values, final int offset, final int size, Matrix4 transform) {
-		if (size > 2) {
-			vTmp.set(values[offset], values[offset + 1], values[offset + 2]).mul(transform);
-			values[offset] = vTmp.x;
-			values[offset + 1] = vTmp.y;
-			values[offset + 2] = vTmp.z;
-		} else if (size > 1) {
-			vTmp.set(values[offset], values[offset + 1], 0).mul(transform);
-			values[offset] = vTmp.x;
-			values[offset + 1] = vTmp.y;
-		} else
-			values[offset] = vTmp.set(values[offset], 0, 0).mul(transform).x;
-	}
-
-	private final static void transformNormal (final float[] values, final int offset, final int size, Matrix3 transform) {
-		if (size > 2) {
-			vTmp.set(values[offset], values[offset + 1], values[offset + 2]).mul(transform).nor();
-			values[offset] = vTmp.x;
-			values[offset + 1] = vTmp.y;
-			values[offset + 2] = vTmp.z;
-		} else if (size > 1) {
-			vTmp.set(values[offset], values[offset + 1], 0).mul(transform).nor();
-			values[offset] = vTmp.x;
-			values[offset + 1] = vTmp.y;
-		} else
-			values[offset] = vTmp.set(values[offset], 0, 0).mul(transform).nor().x;
-	}
 
 	private final void addVertex (final float[] values, final int offset) {
 		final int o = vertices.size;

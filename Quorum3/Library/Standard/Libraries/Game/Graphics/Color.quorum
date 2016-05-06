@@ -105,18 +105,19 @@ class Color
     action directly.
     */
     action SetColorFromCode(integer code)
-        // Note: For future optimization, replace bit shifting with static values.
+        /*
+        The constants used in this action have these binary values:
+        255:        00000000000000000000000011111111
+        65280:      00000000000000001111111100000000
+        16711680:   00000000111111110000000000000000
+        -16777216:  11111111000000000000000000000000
+        */
         BitwiseOperations ops
 
-        integer bitMask = 255
-        alpha = ops:And(bitMask, code) / 255.0
-        bitMask = ops:ShiftLeft(8, bitMask)
-        blue = ops:And(bitMask, code) / 255.0
-        bitMask = ops:ShiftLeft(8, bitMask)
-        green = ops:And(bitMask, code) / 255.0
-        bitMask = ops:ShiftLeft(8, bitMask)
-        red = ops:And(bitMask, code) / 255.0
-
+        alpha = ops:And(code, 255) / 255.0
+        blue = ops:And(code, 65280) / 255.0
+        green = ops:And(code, 16711680) / 255.0
+        red = ops:And(code, -16777216) / 255.0
     end
 
     /*

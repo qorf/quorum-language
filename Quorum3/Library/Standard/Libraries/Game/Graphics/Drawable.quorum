@@ -839,7 +839,7 @@ class Drawable is TextureRegion, Item2D
         vertices:Set(U2, vertices:Get(U4))
         vertices:Set(U4, temp)
 
-        parent:Item:FlipX()
+        parent:Item2D:FlipX()
     end
 
     /*
@@ -878,7 +878,7 @@ class Drawable is TextureRegion, Item2D
         vertices:Set(V2, vertices:Get(V4))
         vertices:Set(V4, temp)
 
-        parent:Item:FlipY()
+        parent:Item2D:FlipY()
     end
 
     /*
@@ -1106,7 +1106,7 @@ class Drawable is TextureRegion, Item2D
             end
     */
     action IsFlippedX returns boolean
-        return parent:Item:IsFlippedX()
+        return parent:Item2D:IsFlippedX()
     end
 
     /*
@@ -1133,7 +1133,7 @@ class Drawable is TextureRegion, Item2D
             end
     */
     action IsFlippedY returns boolean
-        return parent:Item:IsFlippedY()
+        return parent:Item2D:IsFlippedY()
     end
 
     /*
