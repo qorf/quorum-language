@@ -10,6 +10,7 @@ use Libraries.Compute.Math
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Matrix3
 use Libraries.Compute.Vector3
+use Libraries.Compute.Vector2
 use Libraries.Game.BoundingBox
 use Libraries.Game.NumberUtilities
 
@@ -517,18 +518,20 @@ class MeshBuilder
 
     /*
     This action will ensure that the current Mesh under construction will
-    support the given number of vertices.
+    have enough room to store the given number of vertices, in addition to what
+    it is currently storing.
     */
-    action EnsureVerticesCapacity(integer numVertices)
-        vertices:SetMaxSize(numVertices * vertexSize)
+    action EnsureVertices(integer numVertices)
+        vertices:SetMaxSize(vertices:GetSize() + numVertices * vertexSize)
     end
 
     /*
     This action will ensure that the current Mesh under construction will
-    support the given number of indices.
+    support all of its current indices, plus the given number of additional
+    indices.
     */
     action EnsureIndices(integer numIndices)
-        indices:SetMaxSize(numIndices)
+        indices:SetMaxSize(indices:GetSize() + numIndices)
     end
 
     /*
@@ -673,154 +676,267 @@ class MeshBuilder
         end
     end
 
+    /*
+    This action will create a new vertex and add it to the Mesh currently under
+    construction. The index of the newly created vertex will be returned.
+    */
+    action AddVertex(Vector3 pos, Vector3 norm, Color col, Vector2 uv) returns integer
+        if vertexIndex = vertexIndex:GetMaximumValue()
+            alert("I can't add another vertex to the mesh because I've already used the maximum possible.")
+        end
+
+        vertex:Set(positionOffset, pos:GetX())
+        
+        if positionSize > 1
+            vertex:Set(positionOffset + 1, pos:GetY())
+            if positionSize > 2
+                vertex:Set(positionOffset + 2, pos:GetZ())
+            end
+        end
+
+        if normalOffset >= 0
+            if norm = undefined
+                calcVector:Set(pos):Normalize()
+                vertex:Set(normalOffset, calcVector:GetX())
+                vertex:Set(normalOffset + 1, calcVector:GetY())
+                vertex:Set(normalOffset + 2, calcVector:GetZ())
+            else
+                vertex:Set(normalOffset, norm:GetX())
+                vertex:Set(normalOffset + 1, norm:GetY())
+                vertex:Set(normalOffset + 2, norm:GetZ())
+            end
+        end
+
+        if colorOffset >= 0
+            if color = undefined
+                vertex:Set(colorOffset, 1.0)
+                vertex:Set(colorOffset + 1, 1.0)
+                vertex:Set(colorOffset + 2, 1.0)
+                if colorSize > 3
+                    vertex:Set(colorOffset + 3, 1.0)
+                end
+            else
+                vertex:Set(colorOffset, col:GetRed())
+                vertex:Set(colorOffset + 1, col:GetGreen())
+                vertex:Set(colorOffset + 2, col:GetBlue())
+                if colorSize > 3
+                    vertex:Set(colorOffset + 3, col:GetAlpha())
+                end
+            end
+        elseif colorPackedOffset >= 0
+            if col = undefined
+                Color newColor = color:White()
+                vertex:Set(colorPackedOffset, newColor:EncodeColorAsNumber())
+            else
+                vertex:Set(colorPackedOffset, col:EncodeColorAsNumber())
+            end
+        end
+
+        if uv not= undefined and textureCoordinatesOffset >= 0
+            vertex:Set(textureCoordinatesOffset, uv:GetX())
+            vertex:Set(textureCoordinatesOffset + 1, uv:GetY())
+        end
+
+        AddVertex(vertex, 0)
+        return lastIndex
+    end
+
+    /*
+    This action will add a new index to the indices of the Mesh under
+    construction. 
+    */
+    action AddIndex(integer value)
+        indices:Add(value)
+    end
+
+    /*
+    This action will create a new line between the two given indices in the Mesh
+    under construction. This is only valid if the primitive type being used is
+    LINES - otherwise, an error will be thrown.
+    */
+    action AddLine(integer index1, integer index2)
+        if primitiveType not= LINES
+            alert("I can't add a line to the Mesh because the primitive type used to define the Mesh is not LINES!")
+        end
+
+        EnsureIndices(2)
+        indices:Add(index1)
+        indices:Add(index2)
+    end
+
+    /*
+    This action will create a new triangle between the three given indices in
+    the Mesh under construction. This is only valid if the primitive type being
+    used is either POINTS, LINES, or TRIANGLES. Otherwise, an error will be
+    thrown.
+    */
+    action AddTriangle(integer index1, integer index2, integer index3)
+        if primitiveType = TRIANGLES or primitiveType = POINTS
+            EnsureIndices(3)
+            indices:Add(index1)
+            indices:Add(index2)
+            indices:Add(index3)
+        elseif primitiveType = LINES
+            EnsureIndices(6)
+            indices:Add(index1)
+            indices:Add(index2)
+            indices:Add(index2)
+            indices:Add(index3)
+            indices:Add(index3)
+            indices:Add(index1)
+        else
+            alert("I was asked to add a triangle, but I can only do that if the primitive type I'm using is POINTS, LINES, or TRIANGLES.")
+        end
+    end
+
+    /*
+    This action will add a new Rectangle to the Mesh under construction, using
+    the given indices to form the rectangle. The supported primitive types are
+    POINTS, LINES, and TRIANGLES - any other primitive type will throw an error.
+    */
+    action AddRectangle(integer corner00, integer corner10, integer corner11, integer corner01)
+        if primitiveType = TRIANGLES
+            EnsureIndices(6)
+            indices:Add(corner00)
+            indices:Add(corner10)
+            indices:Add(corner11)
+            indices:Add(corner11)
+            indices:Add(corner01)
+            indices:Add(corner00)
+        elseif primitiveType = LINES
+            EnsureIndices(8)
+            indices:Add(corner00)
+            indices:Add(corner10)
+            indices:Add(corner10)
+            indices:Add(corner11)
+            indices:Add(corner11)
+            indices:Add(corner01)
+            indices:Add(corner01)
+            indices:Add(corner00)
+        elseif primitiveType = POINTS
+            EnsureIndices(4)
+            indices:Add(corner00)
+            indices:Add(corner10)
+            indices:Add(corner11)
+            indices:Add(corner01)
+        else
+            alert("I was given an invalid primitive type for construction rectangles - the supported primitive types are POINTS, LINES, and TRIANGLES.")
+        end
+    end
+
+    /*
+    This action will add the geometry of an existing Mesh to the Mesh that is
+    currently under construction by the MeshBuilder.
+    */
+    action AddMesh(Mesh mesh)
+        AddMesh(mesh, 0, mesh:GetIndicesCount())
+    end
+
+    /*
+    This action will add an existing MeshPart to the Mesh that is currently
+    under construction by the MeshBuilder.
+    */
+    action AddMesh(MeshPart meshPart)
+        if meshPart:primitiveType not= primitiveType
+            alert("The primitive type of the MeshPart doesn't match the primitive type being used by the Mesh under construction.")
+        end
+
+        AddMesh(meshPart:mesh, meshPart:indexOffset, meshPart:verticesCount)
+    end
+
+    /*
+    This action will add an existing MeshPart to the Mesh that is currently
+    under construction by the MeshBuilder.
+    */
+    action AddMesh(Mesh mesh, integer indexOffset, integer numIndices)
+        if not attributes:Equals(mesh:GetVertexAttributes())
+            alert("The vertex attributes of the given Mesh do not match the vertex attributes of the Mesh under construction.")
+        end
+
+        if numIndices <= 0
+            return now
+        end
+
+        integer numberCount = mesh:GetVerticesCount() * vertexSize
+        tempVertices:Empty()
+        tempVertices:SetMaxSize(numberCount)
+        // mesh:GetVertices(tempVertices)
+
+        tempIndices:Empty()
+        tempIndices:SetMaxSize(numIndices)
+        // mesh:GetIndices(indexOffset, numIndices, tempIndices, 0)
+
+        AddMesh(tempVertices, tempIndices, 0, numIndices)
+    end
+
+    /*
+    This action will add the given vertex and index arrays to the geometry of
+    the Mesh currently under construction by the MeshBuilder.
+    */
+    action AddMesh(Array<number> vertices, Array<integer> indicies, integer indexOffset, integer numIndices)
+        // if indicesMap = undefined
+        //      ...
+        // else
+        //  indicesMap:Empty()
+        //  indicesMap:SetMaxSize(numIndices)
+        // end
+
+        EnsureIndices(numIndices)
+        integer numVertices = vertices:GetSize() / vertexSize
+        if numVertices < numIndices
+            EnsureVertices(numVertices)
+        else
+            EnsureVertices(numIndices)
+        end
+
+        integer counter = 0
+        repeat numIndices times
+            integer sidx = indices:Get(indexOffset + counter)
+//            integer didx = indicesMap:Get(sidx, -1)
+//            if didx < 0
+//                AddVertex(vertices, sidx * vertexSize)
+//                didx = lastIndex
+//                //indicesMap:Set(sidx, lastIndex)
+//            end
+//        
+//            AddIndex(didx)
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action will add the given vertex and index arrays to the geometry of
+    the Mesh currently under construction by the MeshBuilder.
+    */
+    action AddMesh(Array<number> vertices, Array<integer> indices)
+        integer offset = lastIndex + 1
+
+        integer numVertices = vertices:GetSize() / vertexSize
+        EnsureVertices(numVertices)
+
+        integer counter = 0
+        repeat while counter < vertices:GetSize()
+            AddVertex(vertices, counter)
+            counter = counter + vertexSize
+        end
+
+        EnsureIndices(indices:GetSize())
+        
+        counter = 0
+        repeat while counter < indices:GetSize()
+            AddIndex(indices:Get(counter) + offset)
+            counter = counter + 1
+        end
+    end
+
 end
 
 /*
-
-	private final void addVertex (final float[] values, final int offset) {
-		final int o = vertices.size;
-		vertices.addAll(values, offset, stride);
-		lastIndex = (short)(vindex++);
-
-		if (vertexTransformationEnabled) {
-			transformPosition(vertices.items, o + posOffset, posSize, positionTransform);
-			if (norOffset >= 0) transformNormal(vertices.items, o + norOffset, 3, normalTransform);
-			if (biNorOffset >= 0) transformNormal(vertices.items, o + biNorOffset, 3, normalTransform);
-			if (tangentOffset >= 0) transformNormal(vertices.items, o + tangentOffset, 3, normalTransform);
-		}
-
-		final float x = vertices.items[o + posOffset];
-		final float y = (posSize > 1) ? vertices.items[o + posOffset + 1] : 0f;
-		final float z = (posSize > 2) ? vertices.items[o + posOffset + 2] : 0f;
-		bounds.ext(x, y, z);
-
-		if (hasColor) {
-			if (colOffset >= 0) {
-				vertices.items[o + colOffset] *= color.r;
-				vertices.items[o + colOffset + 1] *= color.g;
-				vertices.items[o + colOffset + 2] *= color.b;
-				if (colSize > 3) vertices.items[o + colOffset + 3] *= color.a;
-			} else if (cpOffset >= 0) {
-				vertices.items[o + cpOffset] = tempC1.set(NumberUtils.floatToIntColor(vertices.items[o + cpOffset])).mul(color)
-					.toFloatBits();
-			}
-		}
-
-		if (hasUVTransform && uvOffset >= 0) {
-			vertices.items[o + uvOffset] = uOffset + uScale * vertices.items[o + uvOffset];
-			vertices.items[o + uvOffset + 1] = vOffset + vScale * vertices.items[o + uvOffset + 1];
-		}
-	}
-
-	private final Vector3 tmpNormal = new Vector3();
-
-	@Override
-	public short vertex (Vector3 pos, Vector3 nor, Color col, Vector2 uv) {
-		if (vindex >= Short.MAX_VALUE) throw new GdxRuntimeException("Too many vertices used");
-
-		vertex[posOffset] = pos.x;
-		if (posSize > 1) vertex[posOffset + 1] = pos.y;
-		if (posSize > 2) vertex[posOffset + 2] = pos.z;
-
-		if (norOffset >= 0) {
-			if (nor == null) nor = tmpNormal.set(pos).nor();
-			vertex[norOffset] = nor.x;
-			vertex[norOffset + 1] = nor.y;
-			vertex[norOffset + 2] = nor.z;
-		}
-
-		if (colOffset >= 0) {
-			if (col == null) col = Color.WHITE;
-			vertex[colOffset] = col.r;
-			vertex[colOffset + 1] = col.g;
-			vertex[colOffset + 2] = col.b;
-			if (colSize > 3) vertex[colOffset + 3] = col.a;
-		} else if (cpOffset > 0) {
-			if (col == null) col = Color.WHITE;
-			vertex[cpOffset] = col.toFloatBits(); // FIXME cache packed color?
-		}
-
-		if (uv != null && uvOffset >= 0) {
-			vertex[uvOffset] = uv.x;
-			vertex[uvOffset + 1] = uv.y;
-		}
-
-		addVertex(vertex, 0);
-		return lastIndex;
-	}
-
-	@Override
-	public short vertex (final float... values) {
-		final int n = values.length - stride;
-		for (int i = 0; i <= n; i += stride)
-			addVertex(values, i);
-		return lastIndex;
-	}
 
 	@Override
 	public short vertex (final VertexInfo info) {
 		return vertex(info.hasPosition ? info.position : null, info.hasNormal ? info.normal : null, info.hasColor ? info.color
 			: null, info.hasUV ? info.uv : null);
-	}
-
-	@Override
-	public void index (final short value) {
-		indices.add(value);
-	}
-
-	@Override
-	public void index (final short value1, final short value2) {
-		ensureIndices(2);
-		indices.add(value1);
-		indices.add(value2);
-	}
-
-	@Override
-	public void index (final short value1, final short value2, final short value3) {
-		ensureIndices(3);
-		indices.add(value1);
-		indices.add(value2);
-		indices.add(value3);
-	}
-
-	@Override
-	public void index (final short value1, final short value2, final short value3, final short value4) {
-		ensureIndices(4);
-		indices.add(value1);
-		indices.add(value2);
-		indices.add(value3);
-		indices.add(value4);
-	}
-
-	@Override
-	public void index (short value1, short value2, short value3, short value4, short value5, short value6) {
-		ensureIndices(6);
-		indices.add(value1);
-		indices.add(value2);
-		indices.add(value3);
-		indices.add(value4);
-		indices.add(value5);
-		indices.add(value6);
-	}
-
-	@Override
-	public void index (short value1, short value2, short value3, short value4, short value5, short value6, short value7,
-		short value8) {
-		ensureIndices(8);
-		indices.add(value1);
-		indices.add(value2);
-		indices.add(value3);
-		indices.add(value4);
-		indices.add(value5);
-		indices.add(value6);
-		indices.add(value7);
-		indices.add(value8);
-	}
-
-	@Override
-	public void line (short index1, short index2) {
-		if (primitiveType != GL20.GL_LINES) throw new GdxRuntimeException("Incorrect primitive type");
-		index(index1, index2);
 	}
 
 	@Override
@@ -845,16 +961,6 @@ end
 	}
 
 	@Override
-	public void triangle (short index1, short index2, short index3) {
-		if (primitiveType == GL20.GL_TRIANGLES || primitiveType == GL20.GL_POINTS) {
-			index(index1, index2, index3);
-		} else if (primitiveType == GL20.GL_LINES) {
-			index(index1, index2, index2, index3, index3, index1);
-		} else
-			throw new GdxRuntimeException("Incorrect primitive type");
-	}
-
-	@Override
 	public void triangle (VertexInfo p1, VertexInfo p2, VertexInfo p3) {
 		ensureVertices(3);
 		triangle(vertex(p1), vertex(p2), vertex(p3));
@@ -868,18 +974,6 @@ end
 	@Override
 	public void triangle (Vector3 p1, Color c1, Vector3 p2, Color c2, Vector3 p3, Color c3) {
 		triangle(vertTmp1.set(p1, null, c1, null), vertTmp2.set(p2, null, c2, null), vertTmp3.set(p3, null, c3, null));
-	}
-
-	@Override
-	public void rect (short corner00, short corner10, short corner11, short corner01) {
-		if (primitiveType == GL20.GL_TRIANGLES) {
-			index(corner00, corner10, corner11, corner11, corner01, corner00);
-		} else if (primitiveType == GL20.GL_LINES) {
-			index(corner00, corner10, corner10, corner11, corner11, corner01, corner01, corner00);
-		} else if (primitiveType == GL20.GL_POINTS) {
-			index(corner00, corner10, corner11, corner01);
-		} else
-			throw new GdxRuntimeException("Incorrect primitive type");
 	}
 
 	@Override
@@ -903,76 +997,6 @@ end
 				.set(null, null, null, null).setPos(x01, y01, z01).setNor(normalX, normalY, normalZ).setUV(0f, 0f));
 	}
 
-	@Override
-	public void addMesh (Mesh mesh) {
-		addMesh(mesh, 0, mesh.getNumIndices());
-	}
-
-	@Override
-	public void addMesh (MeshPart meshpart) {
-		if (meshpart.primitiveType != primitiveType) throw new GdxRuntimeException("Primitive type doesn't match");
-		addMesh(meshpart.mesh, meshpart.offset, meshpart.size);
-	}
-
-	@Override
-	public void addMesh (Mesh mesh, int indexOffset, int numIndices) {
-		if (!attributes.equals(mesh.getVertexAttributes())) throw new GdxRuntimeException("Vertex attributes do not match");
-		if (numIndices <= 0) return; // silently ignore an empty mesh part
-
-		// FIXME don't triple copy, instead move the copy to jni
-		int numFloats = mesh.getNumVertices() * stride;
-		tmpVertices.clear();
-		tmpVertices.ensureCapacity(numFloats);
-		tmpVertices.size = numFloats;
-		mesh.getVertices(tmpVertices.items);
-
-		tmpIndices.clear();
-		tmpIndices.ensureCapacity(numIndices);
-		tmpIndices.size = numIndices;
-		mesh.getIndices(indexOffset, numIndices, tmpIndices.items, 0);
-
-		addMesh(tmpVertices.items, tmpIndices.items, 0, numIndices);
-	}
-
-	private static IntIntMap indicesMap = null;
-
-	@Override
-	public void addMesh (float[] vertices, short[] indices, int indexOffset, int numIndices) {
-		if (indicesMap == null)
-			indicesMap = new IntIntMap(numIndices);
-		else {
-			indicesMap.clear();
-			indicesMap.ensureCapacity(numIndices);
-		}
-		ensureIndices(numIndices);
-		final int numVertices = vertices.length / stride;
-		ensureVertices(numVertices < numIndices ? numVertices : numIndices);
-		for (int i = 0; i < numIndices; i++) {
-			final int sidx = indices[indexOffset + i];
-			int didx = indicesMap.get(sidx, -1);
-			if (didx < 0) {
-				addVertex(vertices, sidx * stride);
-				indicesMap.put(sidx, didx = lastIndex);
-			}
-			index((short)didx);
-		}
-	}
-
-	@Override
-	public void addMesh (float[] vertices, short[] indices) {
-		final short offset = (short)(lastIndex + 1);
-
-		final int numVertices = vertices.length / stride;
-		ensureVertices(numVertices);
-		for (int v = 0; v < vertices.length; v += stride)
-			addVertex(vertices, v);
-
-		ensureIndices(indices.length);
-		for (int i = 0; i < indices.length; ++i)
-			index((short)(indices[i] + offset));
-	}
-
-	
 	// TODO: The following methods are deprecated and will be removed in a future release
 	
 	@Override

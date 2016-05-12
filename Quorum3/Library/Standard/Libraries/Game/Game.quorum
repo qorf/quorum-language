@@ -1249,6 +1249,20 @@ class Game
     end
 
     /*
+    This action will set the camera that is being used by the current Layer2D.
+    */
+    action SetCamera2D(Camera cam)
+        currentLayer2D:SetCamera(cam)
+    end
+
+    /*
+    This action will set the camera that is being used by the current Layer3D.
+    */
+    action SetCamera3D(Camera cam)
+        currentLayer3D:SetCamera(cam)
+    end
+
+    /*
     This action will return an iterator containing the Game's layers. The first
     Layer in the iterator will be the bottom Layer, and each following Layer
     in the iterator will be the Layer on top of the previous one.
