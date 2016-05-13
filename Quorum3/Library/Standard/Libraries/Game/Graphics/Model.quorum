@@ -75,6 +75,13 @@ class Model is Item3D
     it will be loaded and cached.
     */
     private system action GetCachedBlueprint(File file) returns ModelBlueprint
+
+    /*
+    This action will return the base (that is, unscaled) dimensions of the axis
+    aligned bounding box of the ModelBlueprint. This will return a cached value
+    if there is one, or compute the dimensions then cache the result.
+    */
+    private system action GetCachedDimensions(ModelBlueprint schematic) returns Vector3
     
     action Load(ModelBlueprint loader)
         Load(loader, undefined)
@@ -89,6 +96,8 @@ class Model is Item3D
         CopyNodes(loader:nodes)
         CopyAnimations(loader:animations)
         CalculateTransforms()
+
+        SetDimensions(GetCachedDimensions(loader))
     end
 
     private action CopyNodes(Array<Node> copyNodes)

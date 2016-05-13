@@ -42,11 +42,11 @@ class MeshBuilder
     private Array<number> tempVertices
 
 
-    // A collection of temporary VertexBuilder objects used during operations.
-    // private VertexBuilder vertTemp1
-    // private VertexBuilder vertTemp2
-    // private VertexBuilder vertTemp3
-    // private VertexBuilder vertTemp4
+    // A collection of temporary VertexSchematic objects used during operations.
+    private VertexSchematic vertTemp1
+    private VertexSchematic vertTemp2
+    private VertexSchematic vertTemp3
+    private VertexSchematic vertTemp4
 
     // A temporary Color object used during operations.
     private Color tempColor
@@ -742,6 +742,36 @@ class MeshBuilder
     end
 
     /*
+    This action will add the vertex described by the given VertexSchematic to
+    the Mesh currently under construction. This action will return the index of
+    the newly added vertex.
+    */
+    action AddVertex(VertexSchematic schematic) returns integer
+        Vector3 position = undefined
+        Vector3 normal = undefined
+        Color color = undefined
+        Vector2 uv = undefined
+
+        if schematic:HasPosition()
+            position = schematic:GetPosition()
+        end
+
+        if schematic:HasNormal()
+            normal = schematic:GetNormal()
+        end
+
+        if schematic:HasColor()
+            color = schematic:GetColor()
+        end
+
+        if schematic:HasTextureCoordinates()
+            uv = schematic:GetTextureCoordinates()
+        end
+
+        return AddVertex(position, normal, color, uv)
+    end
+
+    /*
     This action will add a new index to the indices of the Mesh under
     construction. 
     */
@@ -762,6 +792,49 @@ class MeshBuilder
         EnsureIndices(2)
         indices:Add(index1)
         indices:Add(index2)
+    end
+
+    /*
+    This action will add two new vertices to the current Mesh under
+    construction, and then create a line between them. This is only valid if the
+    primitive type being used is LINES - otherwise, an error will be thrown.
+    */
+    action AddLine(VertexSchematic point1, VertexSchematic point2)
+        EnsureVertices(2)
+        AddLine(AddVertex(point1), AddVertex(point2))
+    end
+
+    /*
+    This action will add two new vertices to the current Mesh under
+    construction, and then create a line between them. This is only valid if the
+    primitive type being used is LINES - otherwise, an error will be thrown.
+    */
+    action AddLine(Vector3 point1, Vector3 point2)
+        vertTemp1:Set(point1, undefined, undefined, undefined)
+        vertTemp2:Set(point2, undefined, undefined, undefined)
+        AddLine(vertTemp1, vertTemp2)
+    end
+
+    /*
+    This action will add two new vertices to the current Mesh under
+    construction, and then create a line between them. This is only valid if the
+    primitive type being used is LINES - otherwise, an error will be thrown.
+    */
+    action AddLine(number x1, number y1, number z1, number x2, number y2, number z2)
+        vertTemp1:Set(undefined, undefined, undefined, undefined):SetPosition(x1, y1, z1)
+        vertTemp2:Set(undefined, undefined, undefined, undefined):SetPosition(x2, y2, z2)
+        AddLine(vertTemp1, vertTemp2)
+    end
+
+    /*
+    This action will add two new vertices to the current Mesh under
+    construction, and then create a line between them. This is only valid if the
+    primitive type being used is LINES - otherwise, an error will be thrown.
+    */
+    action AddLine(Vector3 point1, Color color1, Vector3 point2, Color color2)
+        vertTemp1:Set(point1, undefined, color1, undefined)
+        vertTemp2:Set(point2, undefined, color1, undefined)
+        AddLine(vertTemp1, vertTemp2)
     end
 
     /*
@@ -828,81 +901,81 @@ class MeshBuilder
     This action will add the geometry of an existing Mesh to the Mesh that is
     currently under construction by the MeshBuilder.
     */
-    action AddMesh(Mesh mesh)
-        AddMesh(mesh, 0, mesh:GetIndicesCount())
-    end
+//    action AddMesh(Mesh mesh)
+//        AddMesh(mesh, 0, mesh:GetIndicesCount())
+//    end
 
     /*
     This action will add an existing MeshPart to the Mesh that is currently
     under construction by the MeshBuilder.
     */
-    action AddMesh(MeshPart meshPart)
-        if meshPart:primitiveType not= primitiveType
-            alert("The primitive type of the MeshPart doesn't match the primitive type being used by the Mesh under construction.")
-        end
-
-        AddMesh(meshPart:mesh, meshPart:indexOffset, meshPart:verticesCount)
-    end
+//    action AddMesh(MeshPart meshPart)
+//        if meshPart:primitiveType not= primitiveType
+//            alert("The primitive type of the MeshPart doesn't match the primitive type being used by the Mesh under construction.")
+//        end
+//
+//        AddMesh(meshPart:mesh, meshPart:indexOffset, meshPart:verticesCount)
+//    end
 
     /*
     This action will add an existing MeshPart to the Mesh that is currently
     under construction by the MeshBuilder.
     */
-    action AddMesh(Mesh mesh, integer indexOffset, integer numIndices)
-        if not attributes:Equals(mesh:GetVertexAttributes())
-            alert("The vertex attributes of the given Mesh do not match the vertex attributes of the Mesh under construction.")
-        end
-
-        if numIndices <= 0
-            return now
-        end
-
-        integer numberCount = mesh:GetVerticesCount() * vertexSize
-        tempVertices:Empty()
-        tempVertices:SetMaxSize(numberCount)
-        // mesh:GetVertices(tempVertices)
-
-        tempIndices:Empty()
-        tempIndices:SetMaxSize(numIndices)
-        // mesh:GetIndices(indexOffset, numIndices, tempIndices, 0)
-
-        AddMesh(tempVertices, tempIndices, 0, numIndices)
-    end
+//    action AddMesh(Mesh mesh, integer indexOffset, integer numIndices)
+//        if not attributes:Equals(mesh:GetVertexAttributes())
+//            alert("The vertex attributes of the given Mesh do not match the vertex attributes of the Mesh under construction.")
+//        end
+//
+//        if numIndices <= 0
+//            return now
+//        end
+//
+//        integer numberCount = mesh:GetVerticesCount() * vertexSize
+//        tempVertices:Empty()
+//        tempVertices:SetMaxSize(numberCount)
+//        // mesh:GetVertices(tempVertices)
+//
+//        tempIndices:Empty()
+//        tempIndices:SetMaxSize(numIndices)
+//        // mesh:GetIndices(indexOffset, numIndices, tempIndices, 0)
+//
+//        AddMesh(tempVertices, tempIndices, 0, numIndices)
+//    end
 
     /*
     This action will add the given vertex and index arrays to the geometry of
     the Mesh currently under construction by the MeshBuilder.
     */
-    action AddMesh(Array<number> vertices, Array<integer> indicies, integer indexOffset, integer numIndices)
-        // if indicesMap = undefined
-        //      ...
-        // else
-        //  indicesMap:Empty()
-        //  indicesMap:SetMaxSize(numIndices)
-        // end
-
-        EnsureIndices(numIndices)
-        integer numVertices = vertices:GetSize() / vertexSize
-        if numVertices < numIndices
-            EnsureVertices(numVertices)
-        else
-            EnsureVertices(numIndices)
-        end
-
-        integer counter = 0
-        repeat numIndices times
-            integer sidx = indices:Get(indexOffset + counter)
-//            integer didx = indicesMap:Get(sidx, -1)
-//            if didx < 0
-//                AddVertex(vertices, sidx * vertexSize)
-//                didx = lastIndex
-//                //indicesMap:Set(sidx, lastIndex)
-//            end
-//        
-//            AddIndex(didx)
-            counter = counter + 1
-        end
-    end
+//    action AddMesh(Array<number> vertices, Array<integer> indicies, integer indexOffset, integer numIndices)
+//        // if indicesMap = undefined
+//        //      ...
+//        // else
+//        //  indicesMap:Empty()
+//        //  indicesMap:SetMaxSize(numIndices)
+//        // end
+//
+//        EnsureIndices(numIndices)
+//        integer numVertices = vertices:GetSize() / vertexSize
+//        if numVertices < numIndices
+//            EnsureVertices(numVertices)
+//        else
+//            EnsureVertices(numIndices)
+//        end
+//
+//        integer counter = 0
+//        repeat numIndices times
+//            integer sidx = indices:Get(indexOffset + counter)
+////            integer didx = indicesMap:Get(sidx, -1)
+////            if didx < 0
+////                AddVertex(vertices, sidx * vertexSize)
+////                didx = lastIndex
+////                //indicesMap:Set(sidx, lastIndex)
+////            end
+////        
+////            AddIndex(didx)
+//            counter = counter + 1
+//        end
+//    end
 
     /*
     This action will add the given vertex and index arrays to the geometry of
@@ -932,34 +1005,6 @@ class MeshBuilder
 end
 
 /*
-
-	@Override
-	public short vertex (final VertexInfo info) {
-		return vertex(info.hasPosition ? info.position : null, info.hasNormal ? info.normal : null, info.hasColor ? info.color
-			: null, info.hasUV ? info.uv : null);
-	}
-
-	@Override
-	public void line (VertexInfo p1, VertexInfo p2) {
-		ensureVertices(2);
-		line(vertex(p1), vertex(p2));
-	}
-
-	@Override
-	public void line (Vector3 p1, Vector3 p2) {
-		line(vertTmp1.set(p1, null, null, null), vertTmp2.set(p2, null, null, null));
-	}
-
-	@Override
-	public void line (float x1, float y1, float z1, float x2, float y2, float z2) {
-		line(vertTmp1.set(null, null, null, null).setPos(x1, y1, z1), vertTmp2.set(null, null, null, null).setPos(x2, y2, z2));
-	}
-
-	@Override
-	public void line (Vector3 p1, Color c1, Vector3 p2, Color c2) {
-		line(vertTmp1.set(p1, null, c1, null), vertTmp2.set(p2, null, c2, null));
-	}
-
 	@Override
 	public void triangle (VertexInfo p1, VertexInfo p2, VertexInfo p3) {
 		ensureVertices(3);
