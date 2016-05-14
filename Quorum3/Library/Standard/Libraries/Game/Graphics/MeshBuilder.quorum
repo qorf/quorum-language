@@ -11,6 +11,7 @@ use Libraries.Compute.Matrix4
 use Libraries.Compute.Matrix3
 use Libraries.Compute.Vector3
 use Libraries.Compute.Vector2
+use Libraries.Compute.BitwiseOperations
 use Libraries.Game.BoundingBox
 use Libraries.Game.NumberUtilities
 
@@ -47,6 +48,20 @@ class MeshBuilder
     private VertexSchematic vertTemp2
     private VertexSchematic vertTemp3
     private VertexSchematic vertTemp4
+    private VertexSchematic vertTemp5
+    private VertexSchematic vertTemp6
+    private VertexSchematic vertTemp7
+    private VertexSchematic vertTemp8
+
+    // A collection of Vector3 objects used during calculations.
+    private Vector3 tempVector1
+    private Vector3 tempVector2
+    private Vector3 tempVector3
+    private Vector3 tempVector4
+    private Vector3 tempVector5
+    private Vector3 tempVector6
+    private Vector3 tempVector7
+    private Vector3 tempVector8
 
     // A temporary Color object used during operations.
     private Color tempColor
@@ -128,28 +143,12 @@ class MeshBuilder
     private BoundingBox bounds
 
     private Math math
+    private BitwiseOperations bits
     private NumberUtilities numberUtilities
-    private Vector3 calcVector
+    private Vector3 calcVector1
+    private Vector3 calcVector2
 
-    /** @param usage bitwise mask of the {@link com.badlogic.gdx.graphics.VertexAttributes.Usage}, only Position, Color, Normal and
-	 *           TextureCoordinates is supported. *-
-	public static VertexAttributes createAttributes (long usage) {
-		final Array<VertexAttribute> attrs = new Array<VertexAttribute>();
-		if ((usage & Usage.Position) == Usage.Position)
-			attrs.add(new VertexAttribute(Usage.Position, 3, ShaderProgram.POSITION_ATTRIBUTE));
-		if ((usage & Usage.ColorUnpacked) == Usage.ColorUnpacked)
-			attrs.add(new VertexAttribute(Usage.ColorUnpacked, 4, ShaderProgram.COLOR_ATTRIBUTE));
-		if ((usage & Usage.ColorPacked) == Usage.ColorPacked)
-			attrs.add(new VertexAttribute(Usage.ColorPacked, 4, ShaderProgram.COLOR_ATTRIBUTE));
-		if ((usage & Usage.Normal) == Usage.Normal)
-			attrs.add(new VertexAttribute(Usage.Normal, 3, ShaderProgram.NORMAL_ATTRIBUTE));
-		if ((usage & Usage.TextureCoordinates) == Usage.TextureCoordinates)
-			attrs.add(new VertexAttribute(Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + "0"));
-		final VertexAttribute attributes[] = new VertexAttribute[attrs.size];
-		for (int i = 0; i < attributes.length; i++)
-			attributes[i] = attrs.get(i);
-		return new VertexAttributes(attributes);
-	}
+    /*
 
         /** Begin building a mesh. Call {@link #part(String, int)} to start a {@link MeshPart}.
 	 * @param attributes bitwise mask of the {@link com.badlogic.gdx.graphics.VertexAttributes.Usage}, only Position, Color, Normal
@@ -293,9 +292,9 @@ class MeshBuilder
         part:primitiveType = type
         parts:Add(part)
 
-        //SetColor(undefined)
-        //SetVertexTransform(undefined)
-        //SetUVRange(undefined)
+        SetColor(undefined)
+        SetVertexTransform(undefined)
+        SetUVRange(undefined)
         
         return part
     end
@@ -576,42 +575,42 @@ class MeshBuilder
     
     private action TransformPosition(Array<number> values, integer offset, integer size, Matrix4 transform)
         if size > 2
-            calcVector:Set(values:Get(offset), values:Get(offset + 1), values:Get(offset + 2))
-            calcVector:Multiply(transform)
-            values:Set(offset, calcVector:GetX())
-            values:Set(offset + 1, calcVector:GetY())
-            values:Set(offset + 2, calcVector:GetZ())
+            calcVector1:Set(values:Get(offset), values:Get(offset + 1), values:Get(offset + 2))
+            calcVector1:Multiply(transform)
+            values:Set(offset, calcVector1:GetX())
+            values:Set(offset + 1, calcVector1:GetY())
+            values:Set(offset + 2, calcVector1:GetZ())
         elseif size > 1
-            calcVector:Set(values:Get(offset), values:Get(offset + 1), 0)
-            calcVector:Multiply(transform)
-            values:Set(offset, calcVector:GetX())
-            values:Set(offset + 1, calcVector:GetY())
+            calcVector1:Set(values:Get(offset), values:Get(offset + 1), 0)
+            calcVector1:Multiply(transform)
+            values:Set(offset, calcVector1:GetX())
+            values:Set(offset + 1, calcVector1:GetY())
         else
-            calcVector:Set(values:Get(offset), 0, 0)
-            calcVector:Multiply(transform)
-            values:Set(offset, calcVector:GetX())
+            calcVector1:Set(values:Get(offset), 0, 0)
+            calcVector1:Multiply(transform)
+            values:Set(offset, calcVector1:GetX())
         end
     end
 
     private action TransformNormal(Array<number> values, integer offset, integer size, Matrix3 transform)
         if size > 2
-            calcVector:Set(values:Get(offset), values:Get(offset + 1), values:Get(offset + 2))
-            calcVector:Multiply(transform)
-            calcVector:Normalize()
-            values:Set(offset, calcVector:GetX())
-            values:Set(offset + 1, calcVector:GetY())
-            values:Set(offset + 2, calcVector:GetZ())
+            calcVector1:Set(values:Get(offset), values:Get(offset + 1), values:Get(offset + 2))
+            calcVector1:Multiply(transform)
+            calcVector1:Normalize()
+            values:Set(offset, calcVector1:GetX())
+            values:Set(offset + 1, calcVector1:GetY())
+            values:Set(offset + 2, calcVector1:GetZ())
         elseif size > 1
-            calcVector:Set(values:Get(offset), values:Get(offset + 1), 0)
-            calcVector:Multiply(transform)
-            calcVector:Normalize()
-            values:Set(offset, calcVector:GetX())
-            values:Set(offset + 1, calcVector:GetY())
+            calcVector1:Set(values:Get(offset), values:Get(offset + 1), 0)
+            calcVector1:Multiply(transform)
+            calcVector1:Normalize()
+            values:Set(offset, calcVector1:GetX())
+            values:Set(offset + 1, calcVector1:GetY())
         else
-            calcVector:Set(values:Get(offset), 0, 0)
-            calcVector:Multiply(transform)
-            calcVector:Normalize()
-            values:Set(offset, calcVector:GetX())
+            calcVector1:Set(values:Get(offset), 0, 0)
+            calcVector1:Multiply(transform)
+            calcVector1:Normalize()
+            values:Set(offset, calcVector1:GetX())
         end
     end
 
@@ -696,10 +695,10 @@ class MeshBuilder
 
         if normalOffset >= 0
             if norm = undefined
-                calcVector:Set(pos):Normalize()
-                vertex:Set(normalOffset, calcVector:GetX())
-                vertex:Set(normalOffset + 1, calcVector:GetY())
-                vertex:Set(normalOffset + 2, calcVector:GetZ())
+                calcVector1:Set(pos):Normalize()
+                vertex:Set(normalOffset, calcVector1:GetX())
+                vertex:Set(normalOffset + 1, calcVector1:GetY())
+                vertex:Set(normalOffset + 2, calcVector1:GetZ())
             else
                 vertex:Set(normalOffset, norm:GetX())
                 vertex:Set(normalOffset + 1, norm:GetY())
@@ -863,11 +862,45 @@ class MeshBuilder
     end
 
     /*
+    This action will add three new vertices to the Mesh under construction, and
+    create a triangle between them. The primitive type used must be POINTS,
+    LINES, or TRIANGLES. Otherwise, an error will be thrown.
+    */
+    action AddTriangle(VertexSchematic point1, VertexSchematic point2, VertexSchematic point3)
+        EnsureVertices(3)
+        AddTriangle(AddVertex(point1), AddVertex(point2), AddVertex(point3))
+    end
+
+    /*
+    This action will add three new vertices to the Mesh under construction, and
+    create a triangle between them. The primitive type used must be POINTS,
+    LINES, or TRIANGLES. Otherwise, an error will be thrown.
+    */
+    action AddTriangle(Vector3 point1, Vector3 point2, Vector3 point3)
+        vertTemp1:Set(point1, undefined, undefined, undefined)
+        vertTemp2:Set(point2, undefined, undefined, undefined)
+        vertTemp3:Set(point3, undefined, undefined, undefined)
+        AddTriangle(AddVertex(vertTemp1), AddVertex(vertTemp2), AddVertex(vertTemp3))
+    end
+
+    /*
+    This action will add three new vertices to the Mesh under construction, and
+    create a triangle between them. The primitive type used must be POINTS,
+    LINES, or TRIANGLES. Otherwise, an error will be thrown.
+    */
+    action AddTriangle(Vector3 point1, Color color1, Vector3 point2, Color color2, Vector3 point3, Color color3)
+        vertTemp1:Set(point1, undefined, color1, undefined)
+        vertTemp2:Set(point2, undefined, color2, undefined)
+        vertTemp3:Set(point3, undefined, color3, undefined)
+        AddTriangle(AddVertex(vertTemp1), AddVertex(vertTemp2), AddVertex(vertTemp3))
+    end
+
+    /*
     This action will add a new Rectangle to the Mesh under construction, using
     the given indices to form the rectangle. The supported primitive types are
     POINTS, LINES, and TRIANGLES - any other primitive type will throw an error.
     */
-    action AddRectangle(integer corner00, integer corner10, integer corner11, integer corner01)
+    action BuildRectangle(integer corner00, integer corner10, integer corner11, integer corner01)
         if primitiveType = TRIANGLES
             EnsureIndices(6)
             indices:Add(corner00)
@@ -895,6 +928,32 @@ class MeshBuilder
         else
             alert("I was given an invalid primitive type for construction rectangles - the supported primitive types are POINTS, LINES, and TRIANGLES.")
         end
+    end
+
+    /*
+    This action will add four new vertices to the Mesh under construction, and
+    form a rectangle between them. The primitive type used must be POINTS,
+    LINES, or TRIANGLES - otherwise, an error will be thrown.
+    */
+    action BuildRectangle(VertexSchematic corner00, VertexSchematic corner10, VertexSchematic corner11, VertexSchematic corner01)
+        EnsureVertices(4)
+        BuildRectangle(AddVertex(corner00), AddVertex(corner10), AddVertex(corner11), AddVertex(corner01))
+    end
+
+    /*
+    This action will add four new vertices to the Mesh under construction, and
+    form a rectangle between them. The primitive type used must be POINTS,
+    LINES, or TRIANGLES - otherwise, an error will be thrown.
+    */
+    action BuildRectangle(Vector3 corner00, Vector3 corner10, Vector3 corner11, Vector3 corner01, Vector3 normal)
+        vertTemp1:Set(corner00, normal, undefined, undefined)
+        vertTemp1:SetTextureCoordinates(0, 1)
+        vertTemp2:Set(corner10, normal, undefined, undefined)
+        vertTemp2:SetTextureCoordinates(1, 1)
+        vertTemp3:Set(corner11, normal, undefined, undefined)
+        vertTemp3:SetTextureCoordinates(1, 0)
+        vertTemp4:Set(corner01, normal, undefined, undefined)
+        vertTemp4:SetTextureCoordinates(0, 0)
     end
 
     /*
@@ -933,11 +992,11 @@ class MeshBuilder
 //        integer numberCount = mesh:GetVerticesCount() * vertexSize
 //        tempVertices:Empty()
 //        tempVertices:SetMaxSize(numberCount)
-//        // mesh:GetVertices(tempVertices)
+//        mesh:GetVertices(tempVertices)
 //
 //        tempIndices:Empty()
 //        tempIndices:SetMaxSize(numIndices)
-//        // mesh:GetIndices(indexOffset, numIndices, tempIndices, 0)
+//        mesh:GetIndices(indexOffset, numIndices, tempIndices, 0)
 //
 //        AddMesh(tempVertices, tempIndices, 0, numIndices)
 //    end
@@ -947,12 +1006,12 @@ class MeshBuilder
     the Mesh currently under construction by the MeshBuilder.
     */
 //    action AddMesh(Array<number> vertices, Array<integer> indicies, integer indexOffset, integer numIndices)
-//        // if indicesMap = undefined
-//        //      ...
-//        // else
-//        //  indicesMap:Empty()
-//        //  indicesMap:SetMaxSize(numIndices)
-//        // end
+//         if indicesMap = undefined
+//              ...
+//         else
+//            indicesMap:Empty()
+//            indicesMap:SetMaxSize(numIndices)
+//         end
 //
 //        EnsureIndices(numIndices)
 //        integer numVertices = vertices:GetSize() / vertexSize
@@ -965,14 +1024,14 @@ class MeshBuilder
 //        integer counter = 0
 //        repeat numIndices times
 //            integer sidx = indices:Get(indexOffset + counter)
-////            integer didx = indicesMap:Get(sidx, -1)
-////            if didx < 0
-////                AddVertex(vertices, sidx * vertexSize)
-////                didx = lastIndex
-////                //indicesMap:Set(sidx, lastIndex)
-////            end
-////        
-////            AddIndex(didx)
+//            integer didx = indicesMap:Get(sidx, -1)
+//            if didx < 0
+//                AddVertex(vertices, sidx * vertexSize)
+//                didx = lastIndex
+//                //indicesMap:Set(sidx, lastIndex)
+//            end
+//        
+//            AddIndex(didx)
 //            counter = counter + 1
 //        end
 //    end
@@ -1002,46 +1061,112 @@ class MeshBuilder
         end
     end
 
+    /*
+    This action will create a box using the 8 provided vertices.
+    */
+    action BuildBox(VertexSchematic corner000, VertexSchematic corner010, VertexSchematic corner100, VertexSchematic corner110,
+                    VertexSchematic corner001, VertexSchematic corner011, VertexSchematic corner101, VertexSchematic corner111)
+        
+        EnsureVertices(8)
+        integer i000 = AddVertex(corner000)
+        integer i100 = AddVertex(corner100)
+        integer i110 = AddVertex(corner110)
+        integer i010 = AddVertex(corner010)
+        integer i001 = AddVertex(corner001)
+        integer i101 = AddVertex(corner101)
+        integer i111 = AddVertex(corner111)
+        integer i011 = AddVertex(corner011)
+
+        if primitiveType = LINES
+            EnsureIndices(24)
+            BuildRectangle(i000, i100, i110, i010)
+            BuildRectangle(i101, i001, i011, i111)
+            EnsureIndices(8)
+            indices:Add(i000)
+            indices:Add(i001)
+            indices:Add(i010)
+            indices:Add(i011)
+            indices:Add(i110)
+            indices:Add(i111)
+            indices:Add(i100)
+            indices:Add(i101)
+        elseif primitiveType = POINTS
+            EnsureRectangleIndices(2)
+            BuildRectangle(i000, i100, i110, i010)
+            BuildRectangle(i101, i001, i011, i111)
+        elseif primitiveType = TRIANGLES
+            EnsureRectangleIndices(6)
+            BuildRectangle(i000, i100, i110, i010)
+            BuildRectangle(i101, i001, i011, i111)
+            BuildRectangle(i000, i010, i011, i001)
+            BuildRectangle(i101, i111, i110, i100)
+            BuildRectangle(i101, i100, i000, i001)
+            BuildRectangle(i110, i111, i011, i010)
+        else
+            alert("I did not recognize the primitive type used to construct the box - the valid values are POINTS, LINES, and TRIANGLES.")
+        end
+    end
+
+    /*
+    This action will create a box using the 8 provided vertices.
+    */
+    action BuildBox(Vector3 corner000, Vector3 corner010, Vector3 corner100, Vector3 corner110,
+                    Vector3 corner001, Vector3 corner011, Vector3 corner101, Vector3 corner111)
+
+        if (bits:And(attributes:GetMask(), (bits:Or(attributes:NORMAL, bits:Or(attributes:BINORMAL, bits:Or(attributes:TANGENT, attributes:TEXTURE_COORDINATES)))))) = 0
+            vertTemp1:Set(corner000, undefined, undefined, undefined)
+            vertTemp2:Set(corner010, undefined, undefined, undefined)
+            vertTemp3:Set(corner100, undefined, undefined, undefined)
+            vertTemp4:Set(corner110, undefined, undefined, undefined)
+            vertTemp5:Set(corner001, undefined, undefined, undefined)
+            vertTemp6:Set(corner011, undefined, undefined, undefined)
+            vertTemp7:Set(corner101, undefined, undefined, undefined)
+            vertTemp8:Set(corner111, undefined, undefined, undefined)
+            BuildBox(vertTemp1, vertTemp2, vertTemp3, vertTemp4, vertTemp5, vertTemp6, vertTemp7, vertTemp8)
+        else
+            EnsureVertices(24)
+            EnsureRectangleIndices(6)
+            Vector3 norm = calcVector1:Set(corner000):LinearInterpolation(corner110, 0.5):Subtract(calcVector2:Set(corner001):LinearInterpolation(corner111, 0.5)):Normalize()
+            BuildRectangle(corner000, corner010, corner110, corner100, norm)
+            BuildRectangle(corner011, corner001, corner101, corner111, norm:Scale(-1))
+            norm = calcVector1:Set(corner000):LinearInterpolation(corner101, 0.5):Subtract(calcVector2:Set(corner010):LinearInterpolation(corner111, 0.5)):Normalize()
+            BuildRectangle(corner001, corner000, corner100, corner101, norm)
+            BuildRectangle(corner010, corner011, corner111, corner110, norm:Scale(-1))
+            norm = calcVector1:Set(corner000):LinearInterpolation(corner011, 0.5):Subtract(calcVector2:Set(corner100):LinearInterpolation(corner111, 0.5)):Normalize()
+            BuildRectangle(corner001, corner011, corner010, corner000, norm)
+            BuildRectangle(corner100, corner110, corner111, corner101, norm:Scale(-1))
+        end
+    end
+
+    /*
+    This action will build a box with the given width, height, and depth.
+    */
+    action BuildBox(number width, number height, number depth)
+        BuildBox(0, 0, 0, width, height, depth)
+    end
+
+    /*
+    This action will build a box at the provided coordinates with the given
+    width, height, and depth.
+    */
+    action BuildBox(number x, number y, number z, number width, number height, number depth)
+        number halfWidth = width * 0.5
+        number halfHeight = height * 0.5
+        number halfDepth = depth * 0.5
+        number x0 = x - halfWidth
+        number y0 = y - halfHeight
+        number z0 = z - halfDepth
+        number x1 = x + halfWidth
+        number y1 = y + halfHeight
+        number z1 = z + halfDepth
+
+        BuildBox(tempVector1:Set(x0, y0, z0), tempVector2:Set(x0, y1, z0), tempVector3:Set(x1, y0, z0), tempVector4:Set(x1, y1, z0),
+                 tempVector5:Set(x0, y0, z1), tempVector6:Set(x0, y1, z1), tempVector7:Set(x1, y0, z1), tempVector8:Set(x1, y1, z1))
+    end
+
 end
 
 /*
-	@Override
-	public void triangle (VertexInfo p1, VertexInfo p2, VertexInfo p3) {
-		ensureVertices(3);
-		triangle(vertex(p1), vertex(p2), vertex(p3));
-	}
-
-	@Override
-	public void triangle (Vector3 p1, Vector3 p2, Vector3 p3) {
-		triangle(vertTmp1.set(p1, null, null, null), vertTmp2.set(p2, null, null, null), vertTmp3.set(p3, null, null, null));
-	}
-
-	@Override
-	public void triangle (Vector3 p1, Color c1, Vector3 p2, Color c2, Vector3 p3, Color c3) {
-		triangle(vertTmp1.set(p1, null, c1, null), vertTmp2.set(p2, null, c2, null), vertTmp3.set(p3, null, c3, null));
-	}
-
-	@Override
-	public void rect (VertexInfo corner00, VertexInfo corner10, VertexInfo corner11, VertexInfo corner01) {
-		ensureVertices(4);
-		rect(vertex(corner00), vertex(corner10), vertex(corner11), vertex(corner01));
-	}
-
-	@Override
-	public void rect (Vector3 corner00, Vector3 corner10, Vector3 corner11, Vector3 corner01, Vector3 normal) {
-		rect(vertTmp1.set(corner00, normal, null, null).setUV(0f, 1f), vertTmp2.set(corner10, normal, null, null).setUV(1f, 1f),
-			vertTmp3.set(corner11, normal, null, null).setUV(1f, 0f), vertTmp4.set(corner01, normal, null, null).setUV(0f, 0f));
-	}
-
-	@Override
-	public void rect (float x00, float y00, float z00, float x10, float y10, float z10, float x11, float y11, float z11,
-		float x01, float y01, float z01, float normalX, float normalY, float normalZ) {
-		rect(vertTmp1.set(null, null, null, null).setPos(x00, y00, z00).setNor(normalX, normalY, normalZ).setUV(0f, 1f), vertTmp2
-			.set(null, null, null, null).setPos(x10, y10, z10).setNor(normalX, normalY, normalZ).setUV(1f, 1f),
-			vertTmp3.set(null, null, null, null).setPos(x11, y11, z11).setNor(normalX, normalY, normalZ).setUV(1f, 0f), vertTmp4
-				.set(null, null, null, null).setPos(x01, y01, z01).setNor(normalX, normalY, normalZ).setUV(0f, 0f));
-	}
-
 	// TODO: The following methods are deprecated and will be removed in a future release
 	
 	@Override
@@ -1063,38 +1188,6 @@ end
 	public void patch (float x00, float y00, float z00, float x10, float y10, float z10, float x11, float y11, float z11,
 		float x01, float y01, float z01, float normalX, float normalY, float normalZ, int divisionsU, int divisionsV) {
 		PatchShapeBuilder.build(this, x00, y00, z00, x10, y10, z10, x11, y11, z11, x01, y01, z01, normalX, normalY, normalZ, divisionsU, divisionsV);
-	}
-	
-	@Override
-	@Deprecated
-	public void box (VertexInfo corner000, VertexInfo corner010, VertexInfo corner100, VertexInfo corner110, VertexInfo corner001,
-		VertexInfo corner011, VertexInfo corner101, VertexInfo corner111) {
-		BoxShapeBuilder.build(this, corner000, corner010, corner100, corner110, corner001, corner011, corner101, corner111);
-	}
-
-	@Override
-	@Deprecated
-	public void box (Vector3 corner000, Vector3 corner010, Vector3 corner100, Vector3 corner110, Vector3 corner001,
-		Vector3 corner011, Vector3 corner101, Vector3 corner111) {
-		BoxShapeBuilder.build(this, corner000, corner010, corner100, corner110, corner001, corner011, corner101, corner111);
-	}
-
-	@Override
-	@Deprecated
-	public void box (Matrix4 transform) {
-		BoxShapeBuilder.build(this, transform);
-	}
-
-	@Override
-	@Deprecated
-	public void box (float width, float height, float depth) {
-		BoxShapeBuilder.build(this, width, height, depth);
-	}
-
-	@Override
-	@Deprecated
-	public void box (float x, float y, float z, float width, float height, float depth) {
-		BoxShapeBuilder.build(this, x, y, z, width, height, depth);
 	}
 
 	@Override
