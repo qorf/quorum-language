@@ -41,12 +41,70 @@ class Layer2D is Layer
     end
 
     /*
+    This action will add an Item2D to this Layer at the index location. It will be updated along with
+    the rest of the layer, and will be drawn on the screen (if it is visible and
+    possible to draw the given Item2D).
+    */
+    action Add(integer index, Item2D item)
+        item:SetLayer(me)
+        items:Add(index, item)
+    end
+
+    /*
+    This action will add an Item2D to this Layer at index 0. It will be updated along with
+    the rest of the layer, and will be drawn on the screen (if it is visible and
+    possible to draw the given Item2D).
+    */
+    action AddToFront(Item2D item)
+        item:SetLayer(me)
+        items:AddToFront(item)
+    end
+
+    /*
+    This action will clear all the items in this layer.
+    */
+    action Empty()
+        Iterator<Item2D> it = items:GetIterator()
+        repeat while it:HasNext()
+            it:Next():SetLayer(undefined)
+        end
+        items:Empty()
+    end
+
+    /*
     This action will remove an Item2D from this Layer. If the item was not a
     part of this layer, this action will have no effect.
     */
-    action Remove(Item2D item)
+    action Remove(Item2D item) returns boolean
         item:SetLayer(undefined)
-        items:Remove(item)
+        return items:Remove(item)
+    end
+
+    /*
+    This action will remove an Item2D at the index location from this Layer and return that item
+    */
+    action RemoveAt(integer index) returns Item2D
+        Item2D item = items:RemoveAt(index)
+        item:SetLayer(undefined)
+        return item
+    end 
+
+    /*
+    This action will remove an Item2D at the front of the list of items in Layer and return that item
+    */
+    action RemoveFromFront() returns Item2D
+        Item2D item = items:RemoveFromFront()
+        item:SetLayer(undefined)
+        return item
+    end
+
+    /*
+    This action will remove an Item2D at the end of the list of items in Layer and return that item
+    */
+    action RemoveFromEnd() returns Item2D
+        Item2D item = items:RemoveFromEnd()
+        item:SetLayer(undefined)
+        return item
     end
 
     /*
@@ -58,11 +116,39 @@ class Layer2D is Layer
     end
 
     /*
+    This action will return the first Item2D in the layer
+    */
+    action GetFromFront() returns Item2D
+        return items:GetFromFront()
+    end
+
+    /*
+    This action will return the last Item2D in the layer
+    */
+    action GetFromEnd() returns Item2D
+        return items:GetFromEnd()
+    end
+
+    /*
     This action will return an iterator of all the Item2D's stored inside this
     Layer.
     */
     action GetIterator returns Iterator<Item2D>
         return items:GetIterator()
+    end
+
+    /*
+    This action will return the number of items in the layer
+    */
+    action GetSize returns integer
+        return items:GetSize()
+    end
+
+    /*
+    This action will return true if there are items in the list or false if not
+    */
+    action IsEmpty returns boolean
+        return items:IsEmpty()
     end
 
     /*
