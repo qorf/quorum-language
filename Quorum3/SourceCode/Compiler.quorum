@@ -515,14 +515,17 @@ class Compiler
                         elseif variable not= undefined and lastCompileFailed
                             Action methodCached = GetActionAtIndex(clazzCached, request:caretLocation)
                             if methodCached = undefined
+                                AddVariableAsClass(variable, request, result)
                                 return now
                             end
                             Block blockCached = GetBlockAtIndex(methodCached:GetBlock(), request:caretLocation)
                             if blockCached = undefined
+                                AddVariableAsClass(variable, request, result)
                                 return now
                             end
                             Variable variableCached = blockCached:GetVariable(trimmedLeft)
                             if variableCached = undefined
+                                AddVariableAsClass(variable, request, result)
                                 return now
                             end
                             AddVariableAsClass(variableCached, request, result)

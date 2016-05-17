@@ -4,6 +4,7 @@ use Libraries.Containers.Array
 use Libraries.Language.Compile.Translate.QuorumOpcode
 use Libraries.Language.Compile.Location
 use Libraries.Containers.Blueprints.Iterator
+use Libraries.Language.Compile.Translate.ActionCallOpcode
 
 /*
     This class contains information about action calls, allowing the compiler
@@ -19,6 +20,7 @@ class ActionCall is Location
     public Location nameLocation = undefined
     public Location actionCallLocation = undefined
     public Action calledFrom = undefined
+    public ActionCallOpcode opcode = undefined
 
     action GetSignature returns text
         text sig = name 

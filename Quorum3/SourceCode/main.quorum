@@ -89,8 +89,8 @@ class Main is WebResponder
         actualMain:SetPath("/SourceCode/main.quorum")
 
         File mygame
-        mygame:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication")
-        mygame:SetPath("/SourceCode/Test.quorum")
+        //mygame:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication")
+        //mygame:SetPath("/SourceCode/Test.quorum")
         //actualMain:SetPath("Library/Tests/CodeCompletion/Pass/GrabAllContainers.quorum")
         compiler:SetMain(actualMain)
 
@@ -109,7 +109,7 @@ class Main is WebResponder
         info:source = actualMain:Read()
         
         CodeCompletionRequest cc
-        cc:caretLocation = 256
+        cc:caretLocation = 50
         cc:fileKey = actualMain:GetAbsolutePath()
         cc:source = actualMain:Read()
 
@@ -354,7 +354,7 @@ class Main is WebResponder
         compiler:SetOutputFolder(root)
         File main
         //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
-        main:SetPath("Library/Tests/Expressions/Fail/InvalidFieldName2.quorum")
+        main:SetPath("Library/Tests/Inheritance/Fail/InvalidParentName.quorum")
         //main:SetPath("main.quorum") //CallMethodCallingBlueprint
 
         File class2

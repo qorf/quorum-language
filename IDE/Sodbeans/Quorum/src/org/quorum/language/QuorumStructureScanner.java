@@ -88,8 +88,10 @@ public class QuorumStructureScanner implements StructureScanner{
         classStart = classStart + classValue.length();
         
         int classEnd = clazz.GetIndexEnd();
-        OffsetRange classRange = new OffsetRange(classStart, classEnd + 1);
-        classRanges.add(classRange);
+        if(classStart <= classEnd) {
+            OffsetRange classRange = new OffsetRange(classStart, classEnd + 1);
+            classRanges.add(classRange);
+        }
         
         //get all of the unresolved use statements and check their locations
         Iterator_ unresolved = clazz.GetUnresolvedUseStatements();

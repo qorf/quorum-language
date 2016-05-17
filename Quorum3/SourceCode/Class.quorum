@@ -14,6 +14,7 @@ use Libraries.Language.Support.CompareResult
 use Libraries.Language.Compile.Hints.UseHint
 use Libraries.Language.Compile.Hints.Hint
 use Libraries.Containers.List
+use Libraries.Language.Compile.Translate.ActionCallOpcode
 
 class Class is Symbol
     QualifiedName packageName
@@ -1255,12 +1256,6 @@ class Class is Symbol
                 if clazz not= undefined //if it is, an error has been issued
                     final = final + ":" + clazz:GetStaticKey()
                 end
-
-                //does the type have generics
-                //if type:HasGenerics()
-                //    Iterator<Type> generics = type:GetGenerics()
-                //    final = final + GetGenericKey(generics, table, errors)
-                //end
             end
         end
 
@@ -1873,7 +1868,16 @@ class Class is Symbol
         Array<Action> named //actions with the right name
         Array<integer> scores
         Array<Action> matches
-        Iterator<Action> all = virtualActions:GetValueIterator()
+        Iterator<Action> all = undefined
+        ActionCallOpcode code = call:opcode
+        //this is an explicit call to the parent, so only grab that table.
+        if code not= undefined and code:IsParentCall()
+            Class par = code:GetParentToCallOn()
+            all = par:GetVirtualTable()
+        else 
+            all = virtualActions:GetValueIterator()
+        end
+        
         repeat while all:HasNext()
             Action act = all:Next()
             if act:GetName() = call:name //the name is right
