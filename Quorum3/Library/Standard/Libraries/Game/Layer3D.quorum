@@ -70,6 +70,37 @@ class Layer3D is Layer
         EnableItemLighting(item)
     end
 
+/*
+    This action will add an Item3D to this Layer at the index location. It will be updated along with
+    the rest of the layer, and will be drawn on the screen (if it is visible and
+    possible to draw the given Item3D).
+    */
+    action Add(integer index, Item3D item)
+        item:SetLayer(me)
+        items:Add(index, item)
+    end
+
+    /*
+    This action will add an Item3D to this Layer at index 0. It will be updated along with
+    the rest of the layer, and will be drawn on the screen (if it is visible and
+    possible to draw the given Item3D).
+    */
+    action AddToFront(Item3D item)
+        item:SetLayer(me)
+        items:AddToFront(item)
+    end
+
+    /*
+    This action will clear all the items in this layer.
+    */
+    action Empty()
+        Iterator<Item3D> it = items:GetIterator()
+        repeat while it:HasNext()
+            it:Next():SetLayer(undefined)
+        end
+        items:Empty()
+    end
+
     /*
     This action will remove an Item3D from this Layer. If the item was not a
     part of this layer, this action will have no effect.
@@ -81,6 +112,23 @@ class Layer3D is Layer
     end
 
     /*
+    This action will remove an Item3D at the index location from this Layer and return that item
+    */
+    action RemoveAt(integer index) returns Item3D
+        Item3D item = items:RemoveAt(index)
+        item:SetLayer(undefined)
+        return item
+    end 
+
+    /*
+    This action will remove an Item3D at the front of the list of items in Layer and return that item
+    */
+    action RemoveFromFront() returns Item3D
+        Item3D item = items:RemoveFromFront()
+        item:SetLayer(undefined)
+        return item
+    end
+    /*
     This action will get an Item3D stored in the Layer at a given index in the
     layer's internal array of children.
     */
@@ -89,11 +137,39 @@ class Layer3D is Layer
     end
 
     /*
+    This action will return the first Item3D in the layer
+    */
+    action GetFromFront() returns Item3D
+        return items:GetFromFront()
+    end
+
+    /*
+    This action will return the last Item3D in the layer
+    */
+    action GetFromEnd() returns Item3D
+        return items:GetFromEnd()
+    end
+
+    /*
     This action will return an iterator of all the Item3D's stored inside this
     Layer.
     */
     action GetIterator returns Iterator<Item3D>
         return items:GetIterator()
+    end
+
+    /*
+    This action will return the number of items in the layer
+    */
+    action GetSize returns integer
+        return items:GetSize()
+    end
+
+    /*
+    This action will return true if there are items in the list or false if not
+    */
+    action IsEmpty returns boolean
+        return items:IsEmpty()
     end
 
     /*
