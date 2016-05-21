@@ -120,6 +120,7 @@ class ExpressionsTester
         ChangeConstantField()
         DuplicateVariableDefinition()
         FatInteger()
+        FakeAction()
         DuplicateClassTest()
         InvalidExpression()
         InvalidFieldName()
@@ -1360,6 +1361,18 @@ class ExpressionsTester
         Array<File> files
         File main
         main:SetPath(path + "FatInteger.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action FakeAction 
+        Array<File> files
+        File main
+        main:SetPath(path + "FatInteger.quorum")
+        File file2
+        file2:SetPath(path + "APublicValue.quorum")
+
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

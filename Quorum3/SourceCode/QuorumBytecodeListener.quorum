@@ -1209,6 +1209,12 @@ class QuorumBytecodeListener is QuorumSourceListener
             end
         end
 
+        //No error is needed here because we've already caught it 
+        //under other circumstances.
+        if right2 = undefined
+            return now
+        end
+
         TypeCheckResult result = checker:Check(field:GetType(), right2:GetType(), undefined, true) 
         CompilerError error = result:GetCompilerError(context:GetLocation())
 
