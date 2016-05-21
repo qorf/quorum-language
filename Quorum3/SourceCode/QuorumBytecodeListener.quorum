@@ -1436,6 +1436,23 @@ class QuorumBytecodeListener is QuorumSourceListener
                 CompilerErrorManager manager = GetCompilerErrorManager()
                 manager:Add(error)
             else 
+                if left:IsMappedToGeneric()
+                    //we can't allow this to be instantiated, throw an error
+                    CompilerError error
+                    error:SetLocation(context:GetLocation())
+                    CompilerErrorType t
+                    t:SetCurrentType(t:INSTANTIATE_GENERIC)
+                    error:SetCompilerErrorType(t)
+                    text message = "The variable " + name
+                        +   " is a generic type. Because I cannot determine its " 
+                        +   " type at compile time, I cannot instantiate it. If I did "
+                        +   " not prevent this, your program could crash when you ran it."
+                    error:SetErrorMessage(message)
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(error)
+                    return now
+                end
+
                 SymbolTable table = me:GetSymbolTable()
                 Class clazz = table:GetClass(left:GetStaticKey())
                 clazz:AddUseLocation(typeLocation:CreateLocationCopy())

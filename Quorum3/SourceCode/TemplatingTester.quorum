@@ -63,6 +63,7 @@ class TemplatingTester
         PassTextTakesBoolean_6()
         PassTextTakesInteger_3()
         PassTextTakesNumber_8()
+        PrimitiveGenericMain()
         TypeCheckTemplatedChildOfTempClass_12()
         TypeCheckUntemplatedChildOfTempClass_11()
     end
@@ -685,6 +686,19 @@ class TemplatingTester
         File dependent1
         main:SetPath(path + "PassTextTakesInteger_3.quorum")
         dependent1:SetPath(path + "Test_1.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action PrimitiveGenericMain()
+        Array<File> files
+        File main
+        File dependent1
+        main:SetPath(path + "PrimitiveGenericMain.quorum")
+        dependent1:SetPath(path + "PrimitiveGenericClass.quorum")
         files:Add(main)
         files:Add(dependent1)
 
