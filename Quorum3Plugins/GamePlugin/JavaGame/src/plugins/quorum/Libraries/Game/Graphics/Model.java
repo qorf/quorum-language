@@ -10,8 +10,10 @@ import quorum.Libraries.Compute.Vector3_;
 import quorum.Libraries.System.File_;
 import quorum.Libraries.Game.Graphics.Model_;
 import quorum.Libraries.Game.Graphics.ModelLoader;
+import quorum.Libraries.Game.Graphics.ModelBuilder;
 import quorum.Libraries.Game.Graphics.ModelBlueprint_;
 import quorum.Libraries.Game.BoundingBox;
+import quorum.Libraries.Game.Graphics.Color_;
 
 /**
  *
@@ -22,6 +24,7 @@ public class Model
     public java.lang.Object me_ = null;
     
     private final static ModelLoader loader = new ModelLoader();
+    private final static ModelBuilder builder = new ModelBuilder();
     private final static Hashtable<String, ModelBlueprint_> hashTable = new Hashtable();
     private final static Hashtable<ModelBlueprint_, Vector3_> dimensionsTable = new Hashtable();
     private final static BoundingBox calcBox = new BoundingBox();
@@ -33,6 +36,19 @@ public class Model
         {
             blueprint = loader.LoadModel(file);
             hashTable.put(file.GetAbsolutePath(), blueprint);
+        }
+        return blueprint;
+    }
+    
+    public ModelBlueprint_ GetCachedBox(double width, double height, double depth, Color_ color)
+    {
+        String searchKey = ":BOX:" + width + ":" + height + ":" + depth;
+        
+        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        if (blueprint == null)
+        {
+            blueprint = builder.CreateBox(width, height, depth, color);
+            hashTable.put(searchKey, blueprint);
         }
         return blueprint;
     }

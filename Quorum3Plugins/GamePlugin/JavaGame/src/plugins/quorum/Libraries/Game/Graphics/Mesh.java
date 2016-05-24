@@ -165,7 +165,7 @@ public class Mesh
         int numIndices = quorumMesh.GetIndicesCount();
         
         if (offset < 0 || count < 1 || offset + count > numIndices)
-            throw new GameRuntimeError("Invalid parameter(s) to ExtendBoundingBox - offset = " + offset + ", count = " + count + "max = " + numIndices);
+            throw new GameRuntimeError("Invalid parameter(s) to ExtendBoundingBox - offset = " + offset + ", count = " + count + ", max = " + numIndices);
 
         final FloatBuffer verts = ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.GetBuffer();
         final ShortBuffer index = ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.GetBuffer();
