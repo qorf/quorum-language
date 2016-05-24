@@ -7,6 +7,7 @@ use Libraries.Game.Graphics.ModelData.NodeKeyframe
 use Libraries.Game.Graphics.ModelData.NodeAnimation
 use Libraries.Game.Graphics.ModelData.MeshPart
 use Libraries.Game.Graphics.ModelLoader
+use Libraries.Game.Graphics.ModelBuilder
 use Libraries.Containers.Array
 use Libraries.Containers.Blueprints.Iterator
 use Libraries.Containers.HashTable
@@ -52,7 +53,7 @@ class Model is Item3D
     end
 
     /*
-    This action will load Model using the data from the given model file.
+    This action will load the Model using the data from the given model file.
     */
     action Load(File file)
         ModelBlueprint schematic = GetCachedBlueprint(file)
@@ -83,10 +84,49 @@ class Model is Item3D
     */
     private system action GetCachedDimensions(ModelBlueprint schematic) returns Vector3
     
+    /*
+    This action will load the Model with a box with the given width, height,
+    depth, and color.
+    */
+    action LoadBox(number width, number height, number depth, Color color)
+        ModelBlueprint schematic = GetCachedBox(width, height, depth, color)
+        Load(schematic)
+        SetDiffuseColor(color)
+    end
+
+    /*
+    This action will set the diffuse color of any Materials being used by this
+    Model. Used after loading a cached primitive shape, in case the cached shape
+    was built with a different color than this one.
+    */
+    private action SetDiffuseColor(Color color)
+        integer counter = 0
+        repeat materials:GetSize() times
+            Material material = materials:Get(counter)
+            ColorAttribute attribute
+            if material:HasAttribute(attribute:GetDiffuseValue())
+                attribute = cast(ColorAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
+                attribute:SetAttribute(attribute:GetDiffuseValue(), color)
+            end
+            counter = counter + 1
+        end
+    end
+
+    private system action GetCachedBox(number width, number height, number depth, Color color) returns ModelBlueprint
+
+    /*
+    This action will load this Model using the data contained in the given
+    ModelBlueprint.
+    */
     action Load(ModelBlueprint loader)
         Load(loader, undefined)
     end
 
+    /*
+    This action will load this Model using the data contained in the given
+    ModelBlueprint, and set its transform using the given Matrix4 (if it is
+    defined).
+    */
     action Load(ModelBlueprint loader, Matrix4 matrix)
         modelBlueprint = loader
         if matrix not= undefined

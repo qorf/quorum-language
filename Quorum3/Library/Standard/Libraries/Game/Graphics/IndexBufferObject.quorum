@@ -25,10 +25,10 @@ class IndexBufferObject is IndexData
 
     action SetIndices(Array<integer> indices, integer offset, integer count)
         SendToBridgeArray(indices)
-        SetIndicesNative(offset, count)
+        SetIndices(offset, count)
     end
 
-    system action SetIndicesNative(integer offset, integer count)
+    private system action SetIndices(integer offset, integer count)
 
     system action Bind
 

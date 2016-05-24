@@ -433,8 +433,13 @@ class MeshBuilder
     Mesh construction.
     */
     action SetColor(Color newColor)
-        color:SetColor(newColor:GetRed(), newColor:GetGreen(), newColor:GetBlue(), newColor:GetAlpha())
-        hasColor = not (newColor:GetRed() = 1.0 and newColor:GetGreen() = 1.0 and newColor:GetBlue() = 1.0 and newColor:GetAlpha() = 1.0)
+        if newColor not= undefined
+            color:SetColor(newColor:GetRed(), newColor:GetGreen(), newColor:GetBlue(), newColor:GetAlpha())
+        else
+            color:SetColor(1.0, 1.0, 1.0, 1.0)
+        end
+
+        hasColor = not (color:GetRed() = 1.0 and color:GetGreen() = 1.0 and color:GetBlue() = 1.0 and color:GetAlpha() = 1.0)
     end
 
     // TO-DO: Better clarify what this action does.
@@ -624,6 +629,7 @@ class MeshBuilder
         end
 
         lastIndex = vertexIndex
+        vertexIndex = vertexIndex + 1
 
         if vertexTransformationEnabled
             TransformPosition(vertices, originalSize + positionOffset, positionSize, positionTransform)
@@ -954,6 +960,7 @@ class MeshBuilder
         vertTemp3:SetTextureCoordinates(1, 0)
         vertTemp4:Set(corner01, normal, undefined, undefined)
         vertTemp4:SetTextureCoordinates(0, 0)
+        BuildRectangle(vertTemp1, vertTemp2, vertTemp3, vertTemp4)
     end
 
     /*
@@ -1164,9 +1171,119 @@ class MeshBuilder
                  tempVector5:Set(x0, y0, z1), tempVector6:Set(x0, y1, z1), tempVector7:Set(x1, y0, z1), tempVector8:Set(x1, y1, z1))
     end
 
+//    /*
+//    This action will build a cylinder shape with the given width, height, and
+//    depth. The curve of the cylinder will be made using the provided number of
+//    divisions to approximate the curve using straight edges.
+//    */
+//    action BuildCylinder(number width, number height, number depth, integer divisions)
+//        BuildCylinder(width, height, depth, divisions, 0, 360)
+//    end
+//
+//    /*
+//    This action will build a cylinder shape with the given width, height, and
+//    depth. The curve of the cylinder will be made using the provided number of
+//    divisions to form straight edges from the starting angle to the ending angle
+//    (in degrees).
+//    */
+//    action BuildCylinder(number width, number height, number depth, integer divisions, number angleFrom, number angleTo)
+//        BuildCylinder(width, height, depth, divisions, angleFrom, angleTo, true)
+//    end
+//
+//    /*
+//    This action will build a cylinder shape with the given width, height, and
+//    depth. The curve of the cylinder will be made using the provided number of
+//    divisions to form straight edges from the starting angle to the ending angle
+//    (in degrees). If the provided boolean is true, the cylinder will be closed
+//    (the ends will be capped). Otherwise, the cylinder will be open (the ends
+//    will not be capped).
+//    */
+//    action BuildCylinder(number width, number height, number depth, integer divisions, number angleFrom, number angleTo, boolean close)
+//        number halfWidth = width * 0.5
+//        number halfHeight = height * 0.5
+//        number halfDepth = depth * 0.5
+//        number startAngle = math:DegreesToRadians(angleFrom)
+//        number step = math:DegreesToRadians(angleTo - angleFrom) / divisions
+//        number divisionStep = 1.0 / divisions
+//        number u = 0
+//        number angle = 0
+//        
+//        VertexSchematic current1 = vertTemp3
+//        current1:Set(undefined, undefined, undefined, undefined)
+//        current1:SetTextureCoordinates(0, 0)
+//        current1:SetPosition(0, 0, 0)
+//        current1:SetNormal(0, 1, 0)
+//
+//        VertexSchematic current2 = vertTemp4
+//        current2:Set(undefined, undefined, undefined, undefined)
+//        current2:SetTextureCoordinates(0, 0)
+//        current2:SetPosition(0, 0, 0)
+//        current2:SetNormal(0, 1, 0)
+//
+//        integer i1 = 0
+//        integer i2 = 0
+//        integer i3 = 0
+//        integer i4 = 0
+//
+//        EnsureVertices(2 * (divisions + 1))
+//        EnsureRectangleIndices(divisions)
+//
+//        integer counter = 0
+//        repeat while counter <= divisions
+//            angle = startAngle + step * counter
+//            u = 1.0 - divisionStep * counter
+//            current1:SetPosition(math:Cosine(angle) * halfWidth, -halfHeight, math:Sine(angle) * halfDepth)
+//            current1:SetNormal(current1:GetPosition():Normalize())
+//            current1:SetTextureCoordinates(u, 1)
+//            
+//            current2:SetPosition(current1:GetPosition():GetX(), halfHeight, current1:GetPosition():GetZ())
+//            current2:SetNormal(current1:GetNormal())
+//            current2:SetTextureCoordinates(u, 0)
+//
+//            i2 = AddVertex(current1)
+//            i1 = AddVertex(current2)
+//            if counter not= 0
+//                AddRectangle(i3, i1, i2, i4)
+//            end
+//
+//            i4 = i2
+//            i3 = i1
+//
+//            counter = counter + 1
+//        end
+//    end
 end
 
 /*
+
+		builder.ensureVertices(2 * (divisions + 1));
+		builder.ensureRectangleIndices(divisions);
+		for (int i = 0; i <= divisions; i++) {
+			angle = ao + step * i;
+			u = 1f - us * i;
+			curr1.position.set(MathUtils.cos(angle) * hw, 0f, MathUtils.sin(angle) * hd);
+			curr1.normal.set(curr1.position).nor();
+			curr1.position.y = -hh;
+			curr1.uv.set(u, 1);
+			curr2.position.set(curr1.position);
+			curr2.normal.set(curr1.normal);
+			curr2.position.y = hh;
+			curr2.uv.set(u, 0);
+			i2 = builder.vertex(curr1);
+			i1 = builder.vertex(curr2);
+			if (i != 0) builder.rect(i3, i1, i2, i4); // FIXME don't duplicate lines and points
+			i4 = i2;
+			i3 = i1;
+		}
+		if (close) {
+			EllipseShapeBuilder.build(builder, width, depth, 0, 0, divisions, 0, hh, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, angleFrom,
+				angleTo);
+			EllipseShapeBuilder.build(builder, width, depth, 0, 0, divisions, 0, -hh, 0, 0, -1, 0, -1, 0, 0, 0, 0, 1,
+				180f - angleTo, 180f - angleFrom);
+		}
+	}
+}
+
 	// TODO: The following methods are deprecated and will be removed in a future release
 	
 	@Override
@@ -1339,24 +1456,6 @@ end
 		float binormalX, float binormalY, float binormalZ, float angleFrom, float angleTo) {
 		EllipseShapeBuilder.build(this, width, height, innerWidth, innerHeight, divisions, centerX, centerY, centerZ, normalX,
 			normalY, normalZ, tangentX, tangentY, tangentZ, binormalX, binormalY, binormalZ, angleFrom, angleTo);
-	}
-
-	@Override
-	@Deprecated
-	public void cylinder (float width, float height, float depth, int divisions) {
-		CylinderShapeBuilder.build(this, width, height, depth, divisions);
-	}
-
-	@Override
-	@Deprecated
-	public void cylinder (float width, float height, float depth, int divisions, float angleFrom, float angleTo) {
-		CylinderShapeBuilder.build(this, width, height, depth, divisions, angleFrom, angleTo);
-	}
-
-	@Override
-	@Deprecated
-	public void cylinder (float width, float height, float depth, int divisions, float angleFrom, float angleTo, boolean close) {
-		CylinderShapeBuilder.build(this, width, height, depth, divisions, angleFrom, angleTo, close);
 	}
 
 	@Override
