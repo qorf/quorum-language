@@ -53,6 +53,24 @@ class Vector2
     end
 
     /*
+    This action sets the x component of the vector to the passed value
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter x The value to set as the x component
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+
+    Vector2 vector
+    vector:SetX(3)
+    */
+    action SetX(number x)
+        me:x = x
+    end
+
+    /*
     This action returns the current y component of the vector.
 
     Attribute: Author Amanda Austin
@@ -71,6 +89,24 @@ class Vector2
     */
     action GetY returns number
         return y
+    end
+
+    /*
+    This action sets the y component of the vector to the passed value
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter y The value to set as the y component
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+
+    Vector2 vector
+    vector:SetY(3)
+    */
+    action SetY(number y)
+        me:y = y
     end
 
     /*
