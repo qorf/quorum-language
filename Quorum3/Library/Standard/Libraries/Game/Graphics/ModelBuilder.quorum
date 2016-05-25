@@ -295,45 +295,45 @@ class ModelBuilder
         return CreateBox(width, height, depth, TRIANGLES, material, mask)
     end
 
-//    /*
-//    This action will create a new ModelBlueprint with a single node containing a
-//    cylinder shape. The cylinder will be made using the given width, height, and
-//    depth. The primitive type used to form the cylinder will be TRIANGLES.
-//    */
-//    action CreateCylinder(number width, number height, number depth, integer divisions, Material material, integer attributesMask) returns ModelBlueprint
-//        return CreateCylinder(width, height, depth, divisions, TRIANGLES, material, attributesMask)
-//    end
-//
-//    /*
-//    This action will create a new ModelBlueprint with a single node containing a
-//    cylinder shape. The cylinder will be made using the given width, height, and
-//    depth, and using the provided primitive type, Material, and attributes.
-//    */
-//    action CreateCylinder(number width, number height, number depth, integer divisions, integer primitiveType, Material material, integer attributesMask) returns ModelBlueprint
-//        return CreateCylinder(width, height, depth, divisions, primitiveType, material, attributesMask, 0, 360)
-//    end
-//
-//    /*
-//    This action will create a new ModelBlueprint with a single node containing a
-//    cylinder shape. The cylinder will be made using the given width, height, and
-//    depth, and using the provided Material and attributes. The cylinder will go
-//    from the starting angle provided to the ending angle provided, in degrees.
-//    */
-//    action CreateCylinder(number width, number height, number depth, integer divisions, Material material, integer attributesMask, number angleFrom, number angleTo) returns ModelBlueprint
-//        return CreateCylinder(width, height, depth, divisions, TRIANGLES, material, attributesMask, angleFrom, angleTo)
-//    end
-//
-//    /*
-//    This action will create a new ModelBlueprint with a single node containing a
-//    cylinder shape. The cylinder will be constructed with the given width,
-//    height, and depth, and using the provided Material and other parameters to
-//    build the model.
-//    */
-//    action CreateCylinder(number width, number height, number depth, integer divisions, integer primitiveType, Material material, integer attributesMask, number angleFrom, number angleTo) returns ModelBlueprint
-//        Begin()
-//        NewPart("cylinder", primitiveType, attributesMask, material):BuildCylinder(width, height, depth, divisions, angleFrom, angleTo)
-//        return End()
-//    end
+    /*
+    This action will create a new ModelBlueprint with a single node containing a
+    cylinder shape. The cylinder will be made using the given width, height, and
+    depth. The primitive type used to form the cylinder will be TRIANGLES.
+    */
+    action CreateCylinder(number width, number height, number depth, integer divisions, Material material, integer attributesMask) returns ModelBlueprint
+        return CreateCylinder(width, height, depth, divisions, TRIANGLES, material, attributesMask)
+    end
+
+    /*
+    This action will create a new ModelBlueprint with a single node containing a
+    cylinder shape. The cylinder will be made using the given width, height, and
+    depth, and using the provided primitive type, Material, and attributes.
+    */
+    action CreateCylinder(number width, number height, number depth, integer divisions, integer primitiveType, Material material, integer attributesMask) returns ModelBlueprint
+        return CreateCylinder(width, height, depth, divisions, primitiveType, material, attributesMask, 0, 360)
+    end
+
+    /*
+    This action will create a new ModelBlueprint with a single node containing a
+    cylinder shape. The cylinder will be made using the given width, height, and
+    depth, and using the provided Material and attributes. The cylinder will go
+    from the starting angle provided to the ending angle provided, in degrees.
+    */
+    action CreateCylinder(number width, number height, number depth, integer divisions, Material material, integer attributesMask, number angleFrom, number angleTo) returns ModelBlueprint
+        return CreateCylinder(width, height, depth, divisions, TRIANGLES, material, attributesMask, angleFrom, angleTo)
+    end
+
+    /*
+    This action will create a new ModelBlueprint with a single node containing a
+    cylinder shape. The cylinder will be constructed with the given width,
+    height, and depth, and using the provided Material and other parameters to
+    build the model.
+    */
+    action CreateCylinder(number width, number height, number depth, integer divisions, integer primitiveType, Material material, integer attributesMask, number angleFrom, number angleTo) returns ModelBlueprint
+        Begin()
+        AddPart("cylinder", primitiveType, attributesMask, material):BuildCylinder(width, height, depth, divisions, angleFrom, angleTo)
+        return End()
+    end
     
 end
 
