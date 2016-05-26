@@ -40,6 +40,14 @@ public class AudioManager {
     private static double listenerVelocityZ = 0;
     private static boolean listenerDopplerEnabled = true;
     
+    // These static variables contain the last set orientation of the listener.
+    private static double listenerDirectionX = 0;
+    private static double listenerDirectionY = 0;
+    private static double listenerDirectionZ = -1;
+    private static double listenerUpX = 0;
+    private static double listenerUpY = 1;
+    private static double listenerUpZ = 0;
+    
     // These variables are an "IntArray" in libGDX. We have this class already
     // in Libraries/Games/libGDX, but to avoid dependency on the game engine for
     // basic audio, we will instead use a standard array.
@@ -468,11 +476,57 @@ public class AudioManager {
     }
     
     /*
-
-	
-
-	
-
+    FloatBuffer orientation = (FloatBuffer)BufferUtils.createFloatBuffer(6)
+            .put(new float[] {0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f}).flip();
+        alListener(AL_ORIENTATION, orientation);
+    */
+    public static void SetListenerDirection(double x, double y, double z)
+    {
+        FloatBuffer orientation = (FloatBuffer)BufferUtils.createFloatBuffer(6)
+            .put(new float[] {(float)x, (float)y, (float)z, (float)listenerUpX, (float)listenerUpY, (float)listenerUpZ}).flip();
+        
+        alListener(AL_ORIENTATION, orientation);
+    }
+    
+    public static void SetListenerUp(double x, double y, double z)
+    {
+        FloatBuffer orientation = (FloatBuffer)BufferUtils.createFloatBuffer(6)
+            .put(new float[] {(float)listenerDirectionX, (float)listenerDirectionY, (float)listenerDirectionZ, (float)x, (float)y, (float)z}).flip();
+        
+        alListener(AL_ORIENTATION, orientation);
+    }
+    
+    public static double GetListenerDirectionX()
+    {
+        return listenerDirectionX;
+    }
+    
+    public static double GetListenerDirectionY()
+    {
+        return listenerDirectionY;
+    }
+    
+    public static double GetListenerDirectionZ()
+    {
+        return listenerDirectionZ;
+    }
+    
+    public static double GetListenerUpX()
+    {
+        return listenerUpX;
+    }
+    
+    public static double GetListenerUpY()
+    {
+        return listenerUpY;
+    }
+    
+    public static double GetListenerUpZ()
+    {
+        return listenerUpZ;
+    }
+    
+    /*
 	public AudioDevice newAudioDevice (int sampleRate, final boolean isMono) {
 		if (noDevice) return new AudioDevice() {
 			@Override

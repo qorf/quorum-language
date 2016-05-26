@@ -95,6 +95,46 @@ class Model is Item3D
     end
 
     /*
+    This action will load the Model with a box with the given width, height,
+    and depth. The box will use the texture located in the provided file.
+    */
+    action LoadBox(number width, number height, number depth, File textureFile)
+        Texture texture
+        texture:LoadFromFile(textureFile)
+        LoadBox(width, height, depth, texture)
+    end
+
+    /*
+    This action will load the Model with a box with the given width, height,
+    and depth. The box will use the texture located at the provided file path.
+    */
+    action LoadBox(number width, number height, number depth, text textureFile)
+        Texture texture
+        texture:LoadFromFile(textureFile)
+        LoadBox(width, height, depth, texture)
+    end
+
+    /*
+    This action will load the Model with a box with the given width, height,
+    and depth. The box will use the texture that has been loaded by the given
+    Drawable.
+    */
+    action LoadBox(number width, number height, number depth, Drawable drawable)
+        Texture texture = drawable:GetTexture()
+        LoadBox(width, height, depth, texture)
+    end
+
+    /*
+    This action will load the Model with a box with the given width, height,
+    depth, and texture.
+    */
+    action LoadBox(number width, number height, number depth, Texture texture)
+        ModelBlueprint schematic = GetCachedBox(width, height, depth, texture)
+        Load(schematic)
+        SetTexture(texture)
+    end
+
+    /*
     This action will load the Model with a cylinder with the given width,
     height, depth, and color. The default cylinder will be made using 16
     straight sides to simulate the curve of the cylinder.
@@ -116,6 +156,90 @@ class Model is Item3D
     end
 
     /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The provided number of divisions will be used to simulate the
+    curve of the cylinder - the more divisions used, the smoother the curve will
+    appear.
+    */
+    action LoadCylinder(number width, number height, number depth, integer divisions, File textureFile)
+        Texture texture
+        texture:LoadFromFile(textureFile)
+        LoadCylinder(width, height, depth, divisions, texture)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The provided number of divisions will be used to simulate the
+    curve of the cylinder - the more divisions used, the smoother the curve will
+    appear.
+    */
+    action LoadCylinder(number width, number height, number depth, integer divisions, text textureFile)
+        Texture texture
+        texture:LoadFromFile(textureFile)
+        LoadCylinder(width, height, depth, divisions, texture)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The provided number of divisions will be used to simulate the
+    curve of the cylinder - the more divisions used, the smoother the curve will
+    appear.
+    */
+    action LoadCylinder(number width, number height, number depth, integer divisions, Drawable drawable)
+        Texture texture = drawable:GetTexture()
+        LoadCylinder(width, height, depth, divisions, texture)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The provided number of divisions will be used to simulate the
+    curve of the cylinder - the more divisions used, the smoother the curve will
+    appear.
+    */
+    action LoadCylinder(number width, number height, number depth, integer divisions, Texture texture)
+        ModelBlueprint schematic = GetCachedCylinder(width, height, depth, divisions, texture)
+        Load(schematic)
+        SetTexture(texture)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The provided number of divisions will be used to simulate the
+    curve of the cylinder - the more divisions used, the smoother the curve will
+    appear.
+    */
+    action LoadCylinder(number width, number height, number depth, File textureFile)
+        LoadCylinder(width, height, depth, 16, textureFile)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The curve of the cylinder will be approximated using 16
+    straight edges.
+    */
+    action LoadCylinder(number width, number height, number depth, text textureFile)
+        LoadCylinder(width, height, depth, 16, textureFile)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The curve of the cylinder will be approximated using 16
+    straight edges.
+    */
+    action LoadCylinder(number width, number height, number depth, Drawable drawable)
+        LoadCylinder(width, height, depth, 16, drawable)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The curve of the cylinder will be approximated using 16
+    straight edges.
+    */
+    action LoadCylinder(number width, number height, number depth, Texture texture)
+        LoadCylinder(width, height, depth, 16, texture)
+    end
+
+    /*
     This action will set the diffuse color of any Materials being used by this
     Model. Used after loading a cached primitive shape, in case the cached shape
     was built with a different color than this one.
@@ -133,9 +257,31 @@ class Model is Item3D
         end
     end
 
+    /*
+    This action will set the texture of any Materials being used by this Model.
+    This is used after loading a cached primitive shape, in case the cached
+    shape was using a different texture than this one.
+    */
+    private action SetTexture(Texture texture)
+        integer counter = 0
+        repeat materials:GetSize() times
+            Material material = materials:Get(counter)
+            TextureAttribute attribute
+            if material:HasAttribute(attribute:GetDiffuseValue())
+                attribute = cast(TextureAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
+                attribute:SetAttribute(attribute:GetDiffuseValue(), texture)
+            end
+            counter = counter + 1
+        end
+    end
+
     private system action GetCachedBox(number width, number height, number depth, Color color) returns ModelBlueprint
 
     private system action GetCachedCylinder(number width, number height, number depth, integer divisions, Color color) returns ModelBlueprint
+
+    private system action GetCachedBox(number width, number height, number depth, Texture texture) returns ModelBlueprint
+
+    private system action GetCachedCylinder(number width, number height, number depth, integer divisions, Texture texture) returns ModelBlueprint
 
     /*
     This action will load this Model using the data contained in the given

@@ -14,6 +14,7 @@ import quorum.Libraries.Game.Graphics.ModelBuilder;
 import quorum.Libraries.Game.Graphics.ModelBlueprint_;
 import quorum.Libraries.Game.BoundingBox;
 import quorum.Libraries.Game.Graphics.Color_;
+import quorum.Libraries.Game.Graphics.Texture_;
 
 /**
  *
@@ -42,7 +43,7 @@ public class Model
     
     public ModelBlueprint_ GetCachedBox(double width, double height, double depth, Color_ color)
     {
-        String searchKey = ":BOX:" + width + ":" + height + ":" + depth;
+        String searchKey = ":BOX:DIFFUSE:" + width + ":" + height + ":" + depth;
         
         ModelBlueprint_ blueprint = hashTable.get(searchKey);
         if (blueprint == null)
@@ -53,14 +54,40 @@ public class Model
         return blueprint;
     }
     
+    public ModelBlueprint_ GetCachedBox(double width, double height, double depth, Texture_ texture)
+    {
+        String searchKey = ":BOX:TEXTURED:" + width + ":" + height + ":" + depth;
+        
+        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        if (blueprint == null)
+        {
+            blueprint = builder.CreateBox(width, height, depth, texture);
+            hashTable.put(searchKey, blueprint);
+        }
+        return blueprint;
+    }
+    
     public ModelBlueprint_ GetCachedCylinder(double width, double height, double depth, int divisions, Color_ color)
     {
-        String searchKey = ":CYLINDER:" + width + ":" + height + ":" + depth + ":" + divisions;
+        String searchKey = ":CYLINDER:DIFFUSE:" + width + ":" + height + ":" + depth + ":" + divisions;
         
         ModelBlueprint_ blueprint = hashTable.get(searchKey);
         if (blueprint == null)
         {
             blueprint = builder.CreateCylinder(width, height, depth, divisions, color);
+            hashTable.put(searchKey, blueprint);
+        }
+        return blueprint;
+    }
+    
+    public ModelBlueprint_ GetCachedCylinder(double width, double height, double depth, int divisions, Texture_ texture)
+    {
+        String searchKey = ":CYLINDER:TEXTURED:" + width + ":" + height + ":" + depth + ":" + divisions;
+        
+        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        if (blueprint == null)
+        {
+            blueprint = builder.CreateCylinder(width, height, depth, divisions, texture);
             hashTable.put(searchKey, blueprint);
         }
         return blueprint;

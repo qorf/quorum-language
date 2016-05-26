@@ -389,4 +389,44 @@ public class Audio {
     {
         return AudioManager.IsListenerDopplerEnabled();
     }
+    
+    public void SetListenerDirection(double x, double y, double z)
+    {
+        AudioManager.SetListenerDirection(x, y, z);
+    }
+    
+    public void SetListenerUp(double x, double y, double z)
+    {
+        AudioManager.SetListenerUp(x, y, z);
+    }
+    
+    public double GetListenerDirectionX()
+    {
+        return AudioManager.GetListenerDirectionX();
+    }
+    
+    public double GetListenerDirectionY()
+    {
+        return AudioManager.GetListenerDirectionY();
+    }
+    
+    public double GetListenerDirectionZ()
+    {
+        return AudioManager.GetListenerDirectionZ();
+    }
+    
+    public double GetListenerUpX()
+    {
+        return AudioManager.GetListenerUpX();
+    }
+    
+    public double GetListenerUpY()
+    {
+        return AudioManager.GetListenerUpY();
+    }
+    
+    public double GetListenerUpZ()
+    {
+        return AudioManager.GetListenerUpZ();
+    }
 }

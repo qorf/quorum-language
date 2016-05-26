@@ -1521,6 +1521,154 @@ class Audio
     system action IsListenerDopplerEnabled returns boolean
 
     /*
+        This action will return the current x coordinate of the listener in
+        virtual 3D space.
+    */
+    system action GetListenerX returns number
+
+    /*
+        This action will return the current x coordinate of the listener in
+        virtual 3D space.
+    */
+    system action GetListenerY returns number
+
+    /*
+        This action will return the current x coordinate of the listener in
+        virtual 3D space.
+    */
+    system action GetListenerZ returns number
+
+    /*
+        This action will return the current coordinates of the listener in
+        virtual 3D space. The returned result will be stored in a new Vector3.
+    */
+    action GetListenerPosition returns Vector3
+        Vector3 vector
+        vector:Set(GetListenerX(), GetListenerY(), GetListenerZ())
+        return vector
+    end
+
+    /*
+        This action will return the current x velocity of the listener in
+        virtual 3D space.
+    */
+    system action GetListenerVelocityX returns number
+
+    /*
+        This action will return the current y velocity of the listener in
+        virtual 3D space.
+    */
+    system action GetListenerVelocityY returns number
+
+    /*
+        This action will return the current z velocity of the listener in
+        virtual 3D space.
+    */
+    system action GetListenerVelocityZ returns number
+
+    /*
+        This action will return the current velocity of the listener in
+        virtual 3D space. The returned result will be stored in a new Vector3.
+    */
+    action GetListenerVelocity returns Vector3
+        Vector3 vector
+        vector:Set(GetListenerVelocityX(), GetListenerVelocityY(), GetListenerVelocityZ())
+        return vector
+    end
+
+    /*
+        SetListenerDirection sets the direction the listener is facing in
+        virtual 3D space. This will affect which direction audio seems to come
+        through speakers or headphones when listening to 3D audio.
+    */
+    system action SetListenerDirection(number x, number y, number z)
+
+    /*
+        SetListenerDirection sets the direction the listener is facing in
+        virtual 3D space. This will affect which direction audio seems to come
+        through speakers or headphones when listening to 3D audio.
+    */
+    action SetListenerDirection(Vector3 direction)
+        SetListenerDirection(direction:GetX(), direction:GetY(), direction:GetZ())
+    end
+
+    /*
+        This action will get the x-component of the direction that the listener
+        is currently facing in.
+    */
+    system action GetListenerDirectionX returns number
+
+    /*
+        This action will get the y-component of the direction that the listener
+        is currently facing in.
+    */
+    system action GetListenerDirectionY returns number
+
+    /*
+        This action will get the z-component of the direction that the listener
+        is currently facing in.
+    */
+    system action GetListenerDirectionZ returns number
+
+    /*
+        This action will get the direction that the listener
+        is currently facing in.
+    */
+    action GetListenerDirection returns Vector3
+        Vector3 vector
+        vector:Set(GetListenerDirectionX(), GetListenerDirectionY(), GetListenerDirectionZ())
+        return vector
+    end
+
+    /*
+        SetListenerUp sets the direction which is considered to be directly "up"
+        from the listener. This should always be perpendicular to the direction
+        that the listener is facing. This is used in combination with the
+        listener direction to determine how audio should be played through the
+        user's speakers or headphones.
+    */
+    system action SetListenerUp(number x, number y, number z)
+
+    /*
+        SetListenerUp sets the direction which is considered to be directly "up"
+        from the listener. This should always be perpendicular to the direction
+        that the listener is facing. This is used in combination with the
+        listener direction to determine how audio should be played through the
+        user's speakers or headphones.
+    */
+    action SetListenerUp(Vector3 up)
+        SetListenerUp(up:GetX(), up:GetY(), up:GetZ())
+    end
+
+    /*
+        This action will get the x-component of the direction that the listener
+        currently considers "up".
+    */
+    system action GetListenerUpX returns number
+
+    /*
+        This action will get the y-component of the direction that the listener
+        currently considers "up".
+    */
+    system action GetListenerUpY returns number
+
+    /*
+        This action will get the z-component of the direction that the listener
+        currently considers "up".
+    */
+    system action GetListenerUpZ returns number
+
+    /*
+        This action will get the direction that the listener
+        currently considers "up".
+    */
+    action GetListenerUp returns Vector3
+        Vector3 vector
+        vector:Set(GetListenerUpX(), GetListenerUpY(), GetListenerUpZ())
+        return vector
+    end
+
+    /*
         SetRotation sets a sound to play at a point in 3D space such that it
         has constant volume and is located a given number of degrees from the
         listener, where 0 degrees is directly in front of the listener and the

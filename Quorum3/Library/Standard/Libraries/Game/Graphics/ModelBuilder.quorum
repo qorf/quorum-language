@@ -296,6 +296,34 @@ class ModelBuilder
     end
 
     /*
+    This action will create a box with the given width, height, and depth, and
+    applies the given Texture to it.
+    */
+    action CreateBox(number width, number height, number depth, Texture texture) returns ModelBlueprint
+        Material material
+        TextureAttribute textureAttribute
+        TextureDescriptor descriptor
+
+        TextureFilter minFilter
+        TextureFilter magFilter
+        minFilter:ConstructTextureFilter(minFilter:LINEAR)
+        magFilter:ConstructTextureFilter(magFilter:LINEAR)
+        TextureWrap uWrap
+        TextureWrap vWrap
+        uWrap:ConstructTextureWrap(uWrap:REPEAT)
+        vWrap:ConstructTextureWrap(vWrap:REPEAT)
+        descriptor:SetDescriptor(texture, minFilter, magFilter, uWrap, vWrap)
+
+        textureAttribute = textureAttribute:CreateDiffuse(descriptor)
+        material:Add(textureAttribute)
+
+        VertexAttributes attributes
+        integer mask = bits:Or(bits:Or(attributes:POSITION, attributes:NORMAL), attributes:TEXTURE_COORDINATES)
+
+        return CreateBox(width, height, depth, TRIANGLES, material, mask)
+    end
+
+    /*
     This action will create a new ModelBlueprint with a single node containing a
     cylinder shape. The cylinder will be made using the given width, height, and
     depth. The primitive type used to form the cylinder will be TRIANGLES.
@@ -351,6 +379,38 @@ class ModelBuilder
         VertexAttributes attributes
         integer mask = bits:Or(attributes:POSITION, attributes:NORMAL)
         return CreateCylinder(width, height, depth, divisions, TRIANGLES, material, mask, 0, 360)
+    end
+
+    /*
+    This action will create a new ModelBlueprint with a single node containing a
+    cylinder shape. The cylinder will be constructed with the given width,
+    height, and depth. The curve of the cylinder will be approximated with
+    straight edges, using the provided number of divisions. A larger count of
+    divisions will use more edges to create a smoother curve. The created
+    cylinder will then be wrapped with the provided Texture.
+    */
+    action CreateCylinder(number width, number height, number depth, integer divisions, Texture texture) returns ModelBlueprint
+        Material material
+        TextureAttribute textureAttribute
+        TextureDescriptor descriptor
+
+        TextureFilter minFilter
+        TextureFilter magFilter
+        minFilter:ConstructTextureFilter(minFilter:LINEAR)
+        magFilter:ConstructTextureFilter(magFilter:LINEAR)
+        TextureWrap uWrap
+        TextureWrap vWrap
+        uWrap:ConstructTextureWrap(uWrap:REPEAT)
+        vWrap:ConstructTextureWrap(vWrap:REPEAT)
+        descriptor:SetDescriptor(texture, minFilter, magFilter, uWrap, vWrap)
+
+        textureAttribute = textureAttribute:CreateDiffuse(descriptor)
+        material:Add(textureAttribute)
+
+        VertexAttributes attributes
+        integer mask = bits:Or(bits:Or(attributes:POSITION, attributes:NORMAL), attributes:TEXTURE_COORDINATES)
+
+        return CreateCylinder(width, height, depth, divisions, TRIANGLES, material, mask)
     end
     
 end
