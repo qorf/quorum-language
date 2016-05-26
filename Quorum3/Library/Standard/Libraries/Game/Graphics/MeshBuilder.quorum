@@ -1232,8 +1232,9 @@ class MeshBuilder
         repeat while counter <= divisions
             angle = startAngle + step * counter
             u = 1.0 - divisionStep * counter
-            current1:SetPosition(math:Cosine(angle) * halfWidth, -halfHeight, math:Sine(angle) * halfDepth)
-            current1:SetNormal(current1:GetPosition():Normalize())
+            current1:SetPosition(math:Cosine(angle) * halfWidth, 0, math:Sine(angle) * halfDepth)
+            current1:SetNormal(tempVector8:Set(current1:GetPosition()):Normalize())
+            current1:GetPosition():SetY(-halfHeight)
             current1:SetTextureCoordinates(u, 1)
             
             current2:SetPosition(current1:GetPosition():GetX(), halfHeight, current1:GetPosition():GetZ())
@@ -1430,8 +1431,6 @@ class MeshBuilder
             currEx:GetPosition():Add(sxEx:GetX() * x + syEx:GetX() * y, sxEx:GetY() * x + syEx:GetY() * y,
                 sxEx:GetZ() * x + syEx:GetZ() * y)
             currEx:SetTextureCoordinates(0.5 + 0.5 * x, 0.5 + 0.5 * y)
-
-            output "Current vertex position: " + math:Round(currEx:GetPosition():GetX(), 5) + ", " + math:Round(currEx:GetPosition():GetY(), 5) + ", " + math:Round(currEx:GetPosition():GetZ(), 5)
 
             i1 = AddVertex(currEx)
             

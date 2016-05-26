@@ -334,6 +334,24 @@ class ModelBuilder
         AddPart("cylinder", primitiveType, attributesMask, material):BuildCylinder(width, height, depth, divisions, angleFrom, angleTo)
         return End()
     end
+
+    /*
+    This action will create a new ModelBlueprint with a single node containing a
+    cylinder shape. The cylinder will be constructed with the given width,
+    height, and depth. The curve of the cylinder will be approximated with
+    straight edges, using the provided number of divisions. A larger count of
+    divisions will use more edges to create a smoother curve. The created
+    cylinder will be a single diffuse color, matching the provided Color object.
+    */
+    action CreateCylinder(number width, number height, number depth, integer divisions, Color color) returns ModelBlueprint
+        Material material
+        ColorAttribute attribute
+        attribute:SetAttribute(attribute:GetDiffuseValue(), color)
+        material:Add(attribute)
+        VertexAttributes attributes
+        integer mask = bits:Or(attributes:POSITION, attributes:NORMAL)
+        return CreateCylinder(width, height, depth, divisions, TRIANGLES, material, mask, 0, 360)
+    end
     
 end
 

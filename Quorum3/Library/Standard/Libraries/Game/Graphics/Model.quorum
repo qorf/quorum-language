@@ -95,6 +95,27 @@ class Model is Item3D
     end
 
     /*
+    This action will load the Model with a cylinder with the given width,
+    height, depth, and color. The default cylinder will be made using 16
+    straight sides to simulate the curve of the cylinder.
+    */
+    action LoadCylinder(number width, number height, number depth, Color color)
+        LoadCylinder(width, height, depth, 16, color)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and color. The provided number of divisions will be used to simulate the
+    curve of the cylinder - the more divisions used, the smoother the curve will
+    appear.
+    */
+    action LoadCylinder(number width, number height, number depth, integer divisions, Color color)
+        ModelBlueprint schematic = GetCachedCylinder(width, height, depth, divisions, color)
+        Load(schematic)
+        SetDiffuseColor(color)
+    end
+
+    /*
     This action will set the diffuse color of any Materials being used by this
     Model. Used after loading a cached primitive shape, in case the cached shape
     was built with a different color than this one.
@@ -113,6 +134,8 @@ class Model is Item3D
     end
 
     private system action GetCachedBox(number width, number height, number depth, Color color) returns ModelBlueprint
+
+    private system action GetCachedCylinder(number width, number height, number depth, integer divisions, Color color) returns ModelBlueprint
 
     /*
     This action will load this Model using the data contained in the given
