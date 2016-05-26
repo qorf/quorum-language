@@ -53,6 +53,19 @@ public class Model
         return blueprint;
     }
     
+    public ModelBlueprint_ GetCachedCylinder(double width, double height, double depth, int divisions, Color_ color)
+    {
+        String searchKey = ":CYLINDER:" + width + ":" + height + ":" + depth + ":" + divisions;
+        
+        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        if (blueprint == null)
+        {
+            blueprint = builder.CreateCylinder(width, height, depth, divisions, color);
+            hashTable.put(searchKey, blueprint);
+        }
+        return blueprint;
+    }
+    
     public Vector3_ GetCachedDimensions(ModelBlueprint_ blueprint)
     {
         Vector3_ vector = dimensionsTable.get(blueprint);

@@ -125,7 +125,7 @@ public class Mesh
         
         final FloatBuffer verts = ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.GetVertexData()).plugin_.GetBuffer();
         
-        VertexAttribute_ posAttrib = quorumMesh.GetVertexAttributes().GetAttribute(quorumMesh.GetVertexAttributes().Get_Libraries_Game_Graphics_VertexAttributes__POSITION_());
+        VertexAttribute_ posAttrib = quorumMesh.GetVertexAttributes().FindByUsage(quorumMesh.GetVertexAttributes().Get_Libraries_Game_Graphics_VertexAttributes__POSITION_());
         final int offset = posAttrib.Get_Libraries_Game_Graphics_VertexAttribute__offset_() / 4;
         final int vertexSize = quorumMesh.vertices.GetAttributes().Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_();
         int index = offset;
@@ -169,7 +169,7 @@ public class Mesh
 
         final FloatBuffer verts = ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.GetBuffer();
         final ShortBuffer index = ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.GetBuffer();
-        final VertexAttribute_ posAttrib = quorumMesh.GetVertexAttributes().GetAttribute(quorumMesh.GetVertexAttributes().Get_Libraries_Game_Graphics_VertexAttributes__POSITION_());
+        final VertexAttribute_ posAttrib = quorumMesh.GetVertexAttributes().FindByUsage(quorumMesh.GetVertexAttributes().Get_Libraries_Game_Graphics_VertexAttributes__POSITION_());
         
         final int posOffset = posAttrib.Get_Libraries_Game_Graphics_VertexAttribute__offset_() / 4;
         final int vertexSize = quorumMesh.vertices.GetAttributes().Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_() / 4;
