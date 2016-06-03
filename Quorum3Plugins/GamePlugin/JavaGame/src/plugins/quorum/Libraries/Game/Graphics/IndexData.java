@@ -5,7 +5,7 @@
  */
 package plugins.quorum.Libraries.Game.Graphics;
 
-import java.nio.ShortBuffer;
+import java.nio.IntBuffer;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 
 /**
@@ -57,7 +57,7 @@ public class IndexData
     }
     
     /** Returns the underlying ShortBuffer used by this IndexData. */
-    public ShortBuffer GetBuffer()
+    public IntBuffer GetBuffer()
     {
         throw new GameRuntimeError("This action hasn't been implemented for this class!");
     }

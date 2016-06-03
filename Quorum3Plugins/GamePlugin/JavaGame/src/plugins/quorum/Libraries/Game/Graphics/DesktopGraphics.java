@@ -491,6 +491,8 @@ public class DesktopGraphics implements GraphicsManager {
             GL11.glDrawElements(mode, ((ByteBuffer)indices).asShortBuffer()); // FIXME yay...
         else if (indices instanceof ByteBuffer && type == GL_UNSIGNED_BYTE)
             GL11.glDrawElements(mode, (ByteBuffer)indices);
+        else if (indices instanceof IntBuffer && type == GL_UNSIGNED_INT)
+            GL11.glDrawElements(mode, (IntBuffer)indices);
 	else
             throw new GameRuntimeError("Can't use " + indices.getClass().getName()
 			+ " with this method. Use ShortBuffer or ByteBuffer instead. Blame LWJGL");

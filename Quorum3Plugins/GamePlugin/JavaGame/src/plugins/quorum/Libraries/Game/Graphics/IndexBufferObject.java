@@ -6,7 +6,7 @@
 package plugins.quorum.Libraries.Game.Graphics;
 
 import java.nio.Buffer;
-import java.nio.ShortBuffer;
+import java.nio.IntBuffer;
 import java.nio.ByteBuffer;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.GameState;
@@ -18,7 +18,7 @@ import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
  */
 public class IndexBufferObject extends IndexData
 {
-    ShortBuffer buffer;
+    IntBuffer buffer;
     ByteBuffer byteBuffer;
     int bufferHandle;
     boolean isDirect;
@@ -27,7 +27,7 @@ public class IndexBufferObject extends IndexData
     int usage;
     
     private boolean empty;
-    private short[] bridgeArray = null;
+    private int[] bridgeArray = null;
     
     public void Load(boolean isStatic, int maxIndices)
     {
@@ -35,10 +35,10 @@ public class IndexBufferObject extends IndexData
         if (empty)
             maxIndices = 1; // Avoid allocating a zero-sized buffer due to a bug in Android's ART < Android 5.0
         
-        byteBuffer = BufferUtils.newUnsafeByteBuffer(maxIndices * 2);
+        byteBuffer = BufferUtils.newUnsafeByteBuffer(maxIndices * 4);
         isDirect = true;
         
-        buffer = byteBuffer.asShortBuffer();
+        buffer = byteBuffer.asIntBuffer();
         buffer.flip();
         byteBuffer.flip();
         bufferHandle = GameState.nativeGraphics.glGenBuffer();
@@ -62,6 +62,9 @@ public class IndexBufferObject extends IndexData
     {
         isDirty = true;
         buffer.clear();
+//        System.out.println("bridgeArray.length = " + bridgeArray.length);
+//        System.out.println("offset = " + offset);
+//        System.out.println("count = " + count);
         buffer.put(bridgeArray, offset, count);
         buffer.flip();
         byteBuffer.position(0);
@@ -74,7 +77,7 @@ public class IndexBufferObject extends IndexData
         }
     }
 
-    public void SetIndices (ShortBuffer indices) 
+    public void SetIndices (IntBuffer indices) 
     {
         isDirty = true;
         int pos = indices.position();
@@ -91,7 +94,7 @@ public class IndexBufferObject extends IndexData
         }
     }
     
-    public ShortBuffer GetBuffer()
+    public IntBuffer GetBuffer()
     {
         isDirty = true;
         return buffer;
@@ -114,7 +117,7 @@ public class IndexBufferObject extends IndexData
         
         if (isDirty) 
         {
-            byteBuffer.limit(buffer.limit() * 2);
+            byteBuffer.limit(buffer.limit() * 4);
             gl.glBufferData(GraphicsManager.GL_ELEMENT_ARRAY_BUFFER, byteBuffer.limit(), byteBuffer, usage);
             isDirty = false;
         }
@@ -147,12 +150,12 @@ public class IndexBufferObject extends IndexData
     
     public void PrepareBridgeArray(int length)
     {
-        bridgeArray = new short[length];
+        bridgeArray = new int[length];
     }
     
     public void SendToBridgeArray(int index, int value)
     {
-        bridgeArray[index] = (short)value;
+        bridgeArray[index] = value;
     }
     
     public void PutBridgeArray()
