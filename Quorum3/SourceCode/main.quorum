@@ -331,8 +331,10 @@ class Main is WebResponder
         info:sourceLocation = actualMain
         info:source = actualMain:Read()
         //compiler:Compile(files)
-        CompilerResult result = compiler:ParseRepeat(info)
-
+        compiler:Compile(files)
+        CompilerProfiler profiler = compiler:GetCompilerProfiler()
+        profiler:OutputTimes()
+        
         if compiler:IsCompilationErrorFree()
             output "Build Successful"
             if compiler:GetOutputType() = compiler:JAVASCRIPT
