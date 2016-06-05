@@ -16,7 +16,7 @@ import org.netbeans.modules.parsing.spi.SchedulerEvent;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
-import quorum.Libraries.Containers.Blueprints.Iterator_;
+import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.Location_;
 import quorum.Libraries.Language.Compile.Symbol.ActionCallResolution_;

@@ -41,7 +41,7 @@ import org.quorum.projects.QuorumProject;
 import org.quorum.projects.QuorumProjectType;
 import org.quorum.windows.CompilerErrorTopComponent;
 import quorum.Libraries.Containers.Array_;
-import quorum.Libraries.Containers.Blueprints.Iterator_;
+import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerErrorManager_;
 import quorum.Libraries.Language.Object_;
 

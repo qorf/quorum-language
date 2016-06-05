@@ -23,7 +23,7 @@ import org.openide.util.Lookup;
 import org.quorum.projects.QuorumProject;
 import org.quorum.support.Utility;
 import quorum.Libraries.Containers.Array_;
-import quorum.Libraries.Containers.Blueprints.Iterator_;
+import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerErrorManager_;
 import quorum.Libraries.Language.Compile.CompilerError_;
 import quorum.Libraries.Language.Compile.CompilerResult_;

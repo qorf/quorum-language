@@ -21,7 +21,7 @@ import org.netbeans.modules.csl.api.RuleContext;
 import org.netbeans.modules.csl.spi.ParserResult;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import quorum.Libraries.Containers.Blueprints.Iterator_;
+import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerError_;
 import quorum.Libraries.Language.Compile.Hints.Hint_;
 import quorum.Libraries.Language.Object_;

@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.netbeans.modules.csl.api.CodeCompletionResult;
 import org.netbeans.modules.csl.api.CompletionProposal;
-import quorum.Libraries.Containers.Blueprints.Iterator_;
+import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.CodeCompletionResult_;
 import quorum.Libraries.Language.Object_;
 import quorum.Libraries.Language.Compile.CodeCompletionItem_;

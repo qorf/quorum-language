@@ -17,7 +17,7 @@ import org.netbeans.modules.csl.api.HtmlFormatter;
 import org.netbeans.modules.csl.api.Modifier;
 import org.netbeans.modules.csl.api.StructureItem;
 import org.openide.util.ImageUtilities;
-import quorum.Libraries.Containers.Blueprints.Iterator_;
+import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
 import quorum.Libraries.Language.Compile.Symbol.Variable_;
 
@@ -46,7 +46,7 @@ public class QuorumClassStructureItem implements StructureItem.CollapsedDefault 
         } else {
             name = clazz.GetName() + "<i> :: ";
         }
-        quorum.Libraries.Containers.Blueprints.Iterator_ parents = clazz.GetParentClasses();
+        quorum.Libraries.Containers.Iterator_ parents = clazz.GetParentClasses();
         boolean first = true;
         while(parents.HasNext()) {
             quorum.Libraries.Language.Compile.Symbol.Class_ parent = (quorum.Libraries.Language.Compile.Symbol.Class_) parents.Next();
