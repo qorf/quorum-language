@@ -1,8 +1,7 @@
 package Libraries.Containers
 
-use Libraries.Containers.Blueprints.ArrayBlueprint
 use Libraries.Language.Errors.InvalidLocationError
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Containers.Support.ArrayIterator
 use Libraries.Language.Support.CompareResult
 
@@ -440,7 +439,7 @@ class Array <Type>
 
         Attribute: Example
         use Libraries.Containers.Array
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
 
         Array<integer> myArray
         myArray:SetSize(4)

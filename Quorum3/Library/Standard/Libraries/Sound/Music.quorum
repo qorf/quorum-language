@@ -5,7 +5,7 @@ use Libraries.System.File
 use Libraries.Sound.Note
 use Libraries.Sound.Chord
 use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Sound.Instrument
 use Libraries.Sound.Track
 
@@ -371,7 +371,7 @@ class Music
         Attribute: Example
         use Libraries.Sound.Music
         use Libraries.Sound.Track
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
         Music muse
         Iterator<Track> tracks = muse:GetTracks()
     */
@@ -409,7 +409,7 @@ class Music
         Attribute: Example
         use Libraries.Sound.Music
         use Libraries.Sound.Instrument
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
         Music muse
         Iterator<Instrument> instruments = muse:GetInstruments()
         output "Here are all the available instruments:"

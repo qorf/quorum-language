@@ -3,7 +3,7 @@ package Libraries.Language.Compile
 use Libraries.Language.Compile.Parser
 use Libraries.System.File
 use Libraries.System.DateTime
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.Web.WebResponder
 use Libraries.Web.WebResponse
@@ -33,14 +33,14 @@ class Main is WebResponder
     HashTable<text, Array<text>> flagValues
 
     action Main
-        //ProcessConsoleFlags()
+        ProcessConsoleFlags()
         //GenerateDocumentation()
         //CompileRepeatTest()
         //CompileCodeCompletionTest()
         //ProfileTest()
         //ProfileWeb()
         //CompileHardcodedFile()
-        CompileCompiler()
+        //CompileCompiler()
         //CompileSingleTest()
         //CompileGameEngine()
     end

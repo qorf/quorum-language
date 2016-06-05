@@ -1,8 +1,7 @@
 package Libraries.Containers
 
-use Libraries.Containers.Blueprints.StackBlueprint
 use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Containers.Support.ListNode
 
 /*
@@ -27,7 +26,7 @@ class Main
    end
 end
 */
-class Stack<Type> is StackBlueprint<Type>
+class Stack<Type>
     List<Type> list
 
     /*
@@ -90,7 +89,7 @@ class Stack<Type> is StackBlueprint<Type>
 
         Attribute: Example
         use Libraries.Containers.Stack
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
         Stack<integer> myStack
         myStack:Add(12)
         myStack:Add(13)
