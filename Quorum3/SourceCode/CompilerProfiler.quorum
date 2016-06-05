@@ -23,6 +23,7 @@ class CompilerProfiler
     constant text BYTECODE_WRITE_TIME_NAME = "Write Bytecode to Disk"
     constant text PACKAGING_TIME_NAME = "Packaging"
     
+    integer profilesAdded = 0
     on create
         phaseHash:Add(START_TIME, START_TIME_NAME)
         phaseHash:Add(PARSING_TIME, PARSING_TIME_NAME)
@@ -47,6 +48,7 @@ class CompilerProfiler
     end
 
     action Add(CompilerProfiler profiler)
+        profilesAdded = profilesAdded + 1
         number start = 0
         number previous = 0
         i = 0
@@ -106,6 +108,23 @@ class CompilerProfiler
             output name + ": " + value + " seconds"
             i = i + 1
         end
+    end
+
+    action OutputTabTimeAverages
+        i = 0
+        text total = ""
+        repeat timing:GetSize() times
+            number value = 0
+            if profilesAdded not= 0
+                value = timing:Get(i) / profilesAdded
+            else
+                value = timing:Get(i)
+            end
+
+            total = total + "   " + value
+            i = i + 1
+        end
+        output total
     end
 
     action Empty

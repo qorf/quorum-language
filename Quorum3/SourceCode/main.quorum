@@ -308,10 +308,9 @@ class Main is WebResponder
     end
 
     private action CompileCompiler
-
         Compiler compiler
         output compiler:GetVersion() + ", Compile the compiler."
-        compiler:ScanStandardLibrary()
+        //compiler:ScanStandardLibrary()
         File main
         main:SetPath("SourceCode")
 
@@ -330,11 +329,18 @@ class Main is WebResponder
         info:projectFiles = files
         info:sourceLocation = actualMain
         info:source = actualMain:Read()
-        //compiler:Compile(files)
-        compiler:Compile(files)
-        CompilerProfiler profiler = compiler:GetCompilerProfiler()
-        profiler:OutputTimes()
+        CompilerProfiler summaryProfiler
+        i = 1
+        repeat 10 times
+            output "Compile: " + i
+            compiler:Compile(files)
+            CompilerProfiler profiler = compiler:GetCompilerProfiler()
+            summaryProfiler:Add(profiler)
+            compiler:Empty()
+            i = i + 1
+        end
         
+        summaryProfiler:OutputTabTimeAverages()
         if compiler:IsCompilationErrorFree()
             output "Build Successful"
             if compiler:GetOutputType() = compiler:JAVASCRIPT
