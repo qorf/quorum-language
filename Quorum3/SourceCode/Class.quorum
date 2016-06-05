@@ -47,6 +47,9 @@ class Class is Symbol
     boolean hasBlueprints = false
     Location nameLocation = undefined
     HashTable<text, List<Location>> useLocationHash
+    text staticKey = ""
+    text staticKeyUnderscores = ""
+    text staticKeySlashes = ""
 
     on create
         QualifiedName object
@@ -438,16 +441,28 @@ class Class is Symbol
     end
 
     action ConvertToActionNameFromField(Variable variable, boolean isGetter) returns text
-        text result = ""
-
         if isGetter
-            result = result + "Get_"
+            return "Get_" + staticKeyUnderscores + "__" + variable:GetName() + "_"
         else
-            result = result + "Set_"
+            return "Set_" + staticKeyUnderscores + "__" + variable:GetName() + "_"
         end
-        
-        result = result + ConvertStaticKeyToFieldPath() + "_" + variable:GetName() + "_"
-        return result
+    end
+
+    action SetName(text name)
+        parent:Symbol:name = name
+        CalculateStaticKey()
+    end
+
+    private action CalculateStaticKey
+        text pack = packageName:GetStaticKey()
+        if pack:IsEmpty()
+            staticKey =  me:GetName()
+        else 
+            staticKey = pack + "." + me:GetName()
+        end
+
+        staticKeyUnderscores = staticKey:Replace(".", "_")
+        staticKeySlashes = staticKey:Replace(".", "/")
     end
 
     action AddUnresolvedParent(QualifiedName name)
@@ -1669,11 +1684,7 @@ class Class is Symbol
     end
 
     action GetStaticKey returns text
-        text pack = packageName:GetStaticKey()
-        if pack:IsEmpty()
-            return me:GetName()
-        end
-        return pack + "." + me:GetName()
+        return staticKey
     end
 
     /*
@@ -1681,9 +1692,7 @@ class Class is Symbol
         Java bytecode.
     */
     action ConvertStaticKeyToJavaScriptName returns text
-        text key = GetStaticKey()
-        text result = "quorum_" + key:Replace(".", "_") + "_"
-        return result
+        return "quorum_" + staticKeyUnderscores + "_"
     end
 
     /*
@@ -1691,15 +1700,11 @@ class Class is Symbol
         Java bytecode.
     */
     action ConvertStaticKeyToBytecodePath returns text
-        text key = GetStaticKey()
-        text result = "quorum/" + key:Replace(".", "/")
-        return result
+        return "quorum/" + staticKeySlashes
     end
 
     action ConvertStaticKeyToUnderScore returns text
-        text key = GetStaticKey()
-        text result = "quorum_" + key:Replace(".", "_") + "_"
-        return result
+        return "quorum_" + staticKeyUnderscores + "_"
     end
     
     /*
@@ -1707,9 +1712,7 @@ class Class is Symbol
         the style of a field.
     */
     action ConvertStaticKeyToFieldPath returns text
-        text key = GetStaticKey()
-        text result = key:Replace(".", "_") + "_"
-        return result
+        return staticKeyUnderscores + "_"
     end
 
     /*
@@ -1717,9 +1720,7 @@ class Class is Symbol
         Java bytecode.
     */
     action ConvertStaticKeyToBytecodeInterfacePath returns text
-        text key = GetStaticKey()
-        text result = "quorum/" + key:Replace(".", "/") + "_"
-        return result
+        return "quorum/" + staticKeySlashes + "_"
     end
 
     /*
@@ -1727,9 +1728,7 @@ class Class is Symbol
         Java bytecode.
     */
     action ConvertStaticKeyToPluginPath returns text
-        text key = GetStaticKey()
-        text result = "plugins/quorum/" + key:Replace(".", "/")
-        return result
+        return "plugins/quorum/" + staticKeySlashes
     end
 
     /*
@@ -1737,9 +1736,7 @@ class Class is Symbol
         Java bytecode.
     */
     action ConvertStaticKeyToPluginPathTypeName returns text
-        text key = GetStaticKey()
-        text result = "Lplugins/quorum/" + key:Replace(".", "/") + ";"
-        return result
+        return "Lplugins/quorum/" + staticKeySlashes + ";"
     end
 
     /*
@@ -1754,9 +1751,7 @@ class Class is Symbol
         Java bytecode.
     */
     action ConvertStaticKeyToBytecodePathTypeName returns text
-        text key = GetStaticKey()
-        text result = "Lquorum/" + key:Replace(".", "/") + ";"
-        return result
+        return "Lquorum/" + staticKeySlashes + ";"
     end
 
     /*
@@ -1764,9 +1759,7 @@ class Class is Symbol
         Java bytecode. This version acts as an interface type.
     */
     action ConvertStaticKeyToBytecodePathTypeNameInterface returns text
-        text key = GetStaticKey()
-        text result = "Lquorum/" + key:Replace(".", "/") + "_;"
-        return result
+        return "Lquorum/" + staticKeySlashes + "_;"
     end
 
     action GetHiddenVariableName() returns text
@@ -1777,24 +1770,20 @@ class Class is Symbol
         This action converts the static key of this class to a 
         name that can be used by the compiler as a class field name.
         An example would be that Libraries.Language.Object becomes
-        Libraries_Language_Object_.
+        Libraries_Language_Object__.
     */
     action ConvertStaticKeyToParentFieldName returns text
-        text key = GetStaticKey()
-        text result = key:Replace(".", "_") + "__"
-        return result
+        return staticKeyUnderscores + "__"
     end
 
     /*
         This action converts the static key of this class to a 
         name that can be used by the compiler as a class field name.
         An example would be that Libraries.Language.Object becomes
-        Libraries_Language_Object_.
+        Libraries_Language_Object__.
     */
     action ConvertStaticKeyToParentFieldInterfaceName returns text
-        text key = GetStaticKey()
-        text result = key:Replace(".", "_") + "__"
-        return result
+        return staticKeyUnderscores + "__"
     end
 
     /*
@@ -2231,6 +2220,7 @@ class Class is Symbol
 
     action SetPackage(QualifiedName pack)
         packageName = pack:Copy()
+        CalculateStaticKey()
     end
 
     action Compare(Object object) returns CompareResult
