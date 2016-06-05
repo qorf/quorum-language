@@ -1,6 +1,7 @@
 package Libraries.System.Blueprints
+
 use Libraries.System.File
-use Libraries.Containers.Blueprints.Indexed
+use Libraries.Containers.Array
 
 /*
 Inheriting from FileReaderBlueprint provides a standard interface for reading
@@ -19,7 +20,7 @@ class FileReaderBlueprint
 
     blueprint action ReadLine() returns text
 
-    blueprint action ReadLines() returns Indexed<text>
+    blueprint action ReadLines() returns Array<text>
 
     blueprint action IsAtEndOfFile() returns boolean
 end
