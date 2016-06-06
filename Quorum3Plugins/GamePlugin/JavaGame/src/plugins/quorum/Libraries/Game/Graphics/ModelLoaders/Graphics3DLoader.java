@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package plugins.quorum.Libraries.Game.Graphics;
+package plugins.quorum.Libraries.Game.Graphics.ModelLoaders;
 
 import quorum.Libraries.Game.Graphics.ModelData.ModelData_;
 import quorum.Libraries.Game.Graphics.ModelData.ModelData;
@@ -26,6 +26,7 @@ import quorum.Libraries.Compute.Quaternion;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.System.File_;
 
+import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import java.io.File;
 
@@ -33,7 +34,7 @@ import java.io.File;
  *
  * @author alleew
  */
-public class ModelLoader 
+public class Graphics3DLoader 
 {
     public java.lang.Object me_ = null;
     

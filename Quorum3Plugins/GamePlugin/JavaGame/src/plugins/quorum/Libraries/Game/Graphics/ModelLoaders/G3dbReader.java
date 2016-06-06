@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package plugins.quorum.Libraries.Game.Graphics;
+package plugins.quorum.Libraries.Game.Graphics.ModelLoaders;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;

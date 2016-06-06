@@ -1,4 +1,4 @@
-package plugins.quorum.Libraries.Game.Graphics;
+package plugins.quorum.Libraries.Game.Graphics.ModelLoaders;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,8 +7,8 @@ import java.io.Reader;
 import java.io.File;
 import java.io.FileInputStream;
 
-import plugins.quorum.Libraries.Game.Graphics.JsonValue;
-import plugins.quorum.Libraries.Game.Graphics.JsonValue.ValueType;
+import plugins.quorum.Libraries.Game.Graphics.ModelLoaders.JsonValue;
+import plugins.quorum.Libraries.Game.Graphics.ModelLoaders.JsonValue.ValueType;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.libGDX.Array;
 
