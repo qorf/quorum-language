@@ -1,0 +1,58 @@
+package Libraries.Game.Graphics.ModelLoaders.WavefrontObject
+use Libraries.Containers.Stack
+
+class MaterialListener
+    action EnterStart end
+    action ExitStart end
+    action Enter end
+    action Exit end
+
+    action EnterNewMaterial end
+    action ExitNewMaterial end
+
+    action EnterAmbientLighting end
+    action ExitAmbientLighting end
+
+    action EnterDiffuseLighting end
+    action ExitDiffuseLighting end
+
+    action EnterSpecularLighting end
+    action ExitSpecularLighting end
+
+    action EnterIllumination end
+    action ExitIllumination end
+
+    action EnterShininess end
+    action ExitShininess end
+
+    action EnterOpticalDensity end
+    action ExitOpticalDensity end
+
+    action EnterTextureAmbient end
+    action ExitTextureAmbient end
+
+    action EnterTextureSpecular end
+    action ExitTextureSpecular end
+
+    action EnterTextureDiffuse end
+    action ExitTextureDiffuse end
+
+    action EnterTextureSpecularExponent end
+    action ExitTextureSpecularExponent end
+
+    action EnterTextureAntiAlias end
+    action ExitTextureAntiAlias end
+
+    action EnterTransmissionFilter end
+    action ExitTransmissionFilter end
+
+    action VisitOn(ModelToken token) end
+
+    action VisitOff(ModelToken token) end
+
+    action VisitID(ModelToken token) end
+
+    action VisitNumber(ModelToken terminal) end
+
+    action VisitError(ModelError error) end
+end

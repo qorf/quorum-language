@@ -1,0 +1,41 @@
+package Libraries.Game.Graphics.ModelLoaders.WavefrontObject
+
+class WavefrontObjectListener
+    action EnterStart end
+    action ExitStart end
+
+    action EnterGroup end
+    action ExitGroup end
+
+    action EnterMaterialLibrary end
+    action ExitMaterialLibrary end
+
+    action EnterUseMaterial end
+    action ExitUseMaterial end
+
+    action EnterObject end
+    action ExitObject end
+
+    action EnterFace end
+    action ExitFace end
+
+    action EnterFacePart end
+    action ExitFacePart end
+
+    action EnterVertex end
+    action ExitVertex end
+
+    action EnterVertexNormal end
+    action ExitVertexNormal end
+
+    action EnterVertexTexture end
+    action ExitVertexTexture end
+
+    action VisitForwardSlash(ModelToken token) end
+
+    action VisitID(ModelToken token) end
+
+    action VisitNumber(ModelToken terminal) end
+
+    action VisitError(ModelError error) end
+end
