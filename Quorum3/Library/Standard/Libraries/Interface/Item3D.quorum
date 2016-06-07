@@ -368,8 +368,8 @@ class Item3D is Item
         myItem:MoveZ(25)
     */
     action MoveZ(number zAmount)
-        transform:Translate(0, 0, zAmount)
-        //transform:Translate(0, 0, -zAmount)
+        //transform:Translate(0, 0, zAmount)
+        transform:Translate(0, 0, -zAmount)
 
         z = z + zAmount
         SetOffsetZ(offsetZ)
@@ -388,8 +388,8 @@ class Item3D is Item
         myItem:Move(25, 15, -20)
     */
     action Move(number xAmount, number yAmount, number zAmount)
-        transform:Translate(xAmount, yAmount, zAmount)
-        //transform:Translate(xAmount, yAmount, -zAmount)
+        //transform:Translate(xAmount, yAmount, zAmount)
+        transform:Translate(xAmount, yAmount, -zAmount)
 
         x = x + xAmount
         y = y + yAmount
@@ -413,7 +413,8 @@ class Item3D is Item
         myItem:Move(vector)
     */
     action Move(Vector3 vector)
-        transform:Translate(vector)
+        //transform:Translate(vector)
+        transform:Translate(vector:GetX(), vector:GetY(), vector:GetZ() * -1)
 
         x = x + vector:GetX()
         y = y + vector:GetY()
@@ -493,8 +494,8 @@ class Item3D is Item
         if zAmount not= offsetZ
             number adjust = zAmount - offsetZ
         
-            transform:Translate(0, 0, adjust)
-            //transform:Translate(0, 0, -adjust)
+            //transform:Translate(0, 0, adjust)
+            transform:Translate(0, 0, -adjust)
         end
 
         offsetZ = zAmount
@@ -520,8 +521,8 @@ class Item3D is Item
     */
     action SetOffset(number xAmount, number yAmount, number zAmount)
         if xAmount not= offsetX or yAmount not= offsetY or zAmount not= offsetZ
-            transform:Translate(xAmount - offsetX, yAmount - offsetY, zAmount - offsetZ)
-            //transform:Translate(xAmount - offsetX, yAmount - offsetY, -(zAmount - offsetZ))
+            //transform:Translate(xAmount - offsetX, yAmount - offsetY, zAmount - offsetZ)
+            transform:Translate(xAmount - offsetX, yAmount - offsetY, -(zAmount - offsetZ))
         end
 
         offsetX = xAmount
@@ -659,8 +660,8 @@ class Item3D is Item
         number z = myItem:GetGlobalZ()
     */
     action GetGlobalZ returns number
-        return transform:row2column3
-        //return transform:row2column3 * -1
+        //return transform:row2column3
+        return transform:row2column3 * -1
     end
 
     /*
@@ -680,8 +681,8 @@ class Item3D is Item
         Vector3 position = myItem:GetGlobalPosition()
     */
     action GetGlobalPosition returns Vector3
-        return transform:GetTranslation()
-        //return transform:GetTranslation():Scale(0, 0, -1)
+        //return transform:GetTranslation()
+        return transform:GetTranslation():Scale(1, 1, -1)
     end
 
     /*
@@ -1087,6 +1088,7 @@ class Item3D is Item
             repeat children:GetSize() times
                 child = children:Get(counter)
                 Vector3 localOffset = child:GetGlobalPosition()
+                output "localOffset = " + localOffset:GetX() + ", " + localOffset:GetY() + ", " + localOffset:GetZ()
                 localOffset:Subtract(globalOffset)
                 
                 temp:Set(vector):CrossProduct(localOffset):Scale(sin)
@@ -1097,6 +1099,8 @@ class Item3D is Item
                 rotation:Add(temp)
                 
                 rotation:Add(globalOffset):Subtract(child:GetPosition())
+
+                output "rotation = " + rotation:GetX() + ", " + rotation:GetY() + ", " + rotation:GetZ()
 
                 child:SetOffset(rotation)
                 child:Rotate(vector, degrees, true)

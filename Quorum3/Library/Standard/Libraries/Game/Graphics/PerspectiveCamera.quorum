@@ -8,9 +8,9 @@ class PerspectiveCamera is Camera
     number fieldOfView = 67
 
     private Vector3 calcVector
-//    private Vector3 negatedPosition
-//    private Vector3 negatedDirection
-//    private Vector3 negatedUp
+    private Vector3 negatedPosition
+    private Vector3 negatedDirection
+    private Vector3 negatedUp
 
     /*
     This action will set the field of view of the camera to the given angle.
@@ -45,23 +45,20 @@ class PerspectiveCamera is Camera
     after the camera has been manipulated in any way.
     */
     action Update
-//        Vector3 negatedPosition
-//        negatedPosition:Set(GetPosition())
-//        negatedPosition:SetZ(negatedPosition:GetZ() * -1)
-//
-//        Vector3 negatedDirection
-//        negatedDirection:Set(GetDirection())
-//        negatedDirection:SetZ(negatedDirection:GetZ() * -1)
-//
-//        Vector3 negatedUp
-//        negatedUp:Set(GetUp())
-//        negatedUp:SetZ(negatedUp:GetZ() * -1)
+        negatedPosition:Set(GetPosition())
+        negatedPosition:SetZ(negatedPosition:GetZ() * -1)
+
+        negatedDirection:Set(GetDirection())
+        negatedDirection:SetZ(negatedDirection:GetZ() * -1)
+
+        negatedUp:Set(GetUp())
+        negatedUp:SetZ(negatedUp:GetZ() * -1)
 
         Math math
         number aspect = GetWidth() / GetHeight()
         GetProjectionMatrix():SetToProjection(math:AbsoluteValue(GetNear()), math:AbsoluteValue(GetFar()), fieldOfView, aspect)
-        //GetViewMatrix():SetToLookAt(negatedPosition, calcVector:Set(negatedPosition):Add(negatedDirection), negatedUp)
-        GetViewMatrix():SetToLookAt(GetPosition(), calcVector:Set(GetPosition()):Add(GetDirection()), GetUp())
+        GetViewMatrix():SetToLookAt(negatedPosition, calcVector:Set(negatedPosition):Add(negatedDirection), negatedUp)
+        //GetViewMatrix():SetToLookAt(GetPosition(), calcVector:Set(GetPosition()):Add(GetDirection()), GetUp())
         GetCombinedMatrix():Set(GetProjectionMatrix())
         GetCombinedMatrix():Multiply(GetViewMatrix())
 

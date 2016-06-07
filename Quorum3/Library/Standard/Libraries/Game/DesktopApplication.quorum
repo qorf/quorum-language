@@ -80,10 +80,11 @@ class DesktopApplication is Application
 
         
         boolean wasActive = true
-        
 
         //The actual workhorse loop.
         repeat until parent:Application:running = false
+
+            //parent:Application:glmanager:SetDrawingRegion(0, 0, display:GetWidth(), display:GetHeight())
 
             display:ProcessMessages()
 
@@ -136,7 +137,7 @@ class DesktopApplication is Application
 
 
                 if configuration:autoResizeTextures
-                    parent:Application:glmanager:SetDrawingRegion(0,0,display:GetWidth(), display:GetHeight())
+                    parent:Application:glmanager:SetDrawingRegion(0, 0, display:GetWidth(), display:GetHeight())
                 end
 
                 display:RequestRendering()
@@ -172,8 +173,15 @@ class DesktopApplication is Application
                display:UpdateTime()
                //increment frame
 
+               // Temporary fix to full screen games not using the full viewport area.
+               if configuration:fullScreen
+                   parent:Application:glmanager:SetDrawingRegion(0, 0, display:GetWidth(), display:GetHeight())
+               end
+
                parent:Application:game:ContinueGame()
+               //parent:Application:glmanager:SetDrawingRegion(0, 0, display:GetWidth(), display:GetHeight())
                display:UpdateFalse()
+               //parent:Application:glmanager:SetDrawingRegion(0, 0, display:GetWidth(), display:GetHeight())
             end
 
 

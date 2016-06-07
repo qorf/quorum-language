@@ -904,6 +904,16 @@ class Game
     end
 
     /*
+    This action sets whether the game should launch in full screen or windowed
+    mode on desktop platforms (e.g. Windows or Mac) when the game is started.
+    By default, games are windowed. This action should be called before calling
+    StartGame().
+    */
+    action SetFullScreen(boolean fullScreen)
+        desktopConfig:fullScreen = fullScreen
+    end
+
+    /*
     This action enables or disables vSync in the game. Passing a value of true
     enables it, a value of false disables it. vSync is enabled by default. 
     This action should be called before calling StartGame(). This option is only
