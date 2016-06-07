@@ -114,68 +114,84 @@ public class DesktopDisplay {
     {
         quorum.Libraries.Game.DesktopDisplay quorumDisplay = (quorum.Libraries.Game.DesktopDisplay) me_;
         
-            if (GetWidth() == width && GetHeight() == height && Display.isFullscreen() == fullScreen) {
-			return true;
-		}
+        if (GetWidth() == width && GetHeight() == height && Display.isFullscreen() == fullScreen) 
+        {
+            return true;
+        }
 
-		try {
-			org.lwjgl.opengl.DisplayMode targetDisplayMode = null;
+        try 
+        {
+            org.lwjgl.opengl.DisplayMode targetDisplayMode = null;
 
-			if (fullScreen) {
-                                
-				org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
-				int freq = 0;
+            if (fullScreen) 
+            {
+                org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
+                int freq = 0;
 
-				for (int i = 0; i < modes.length; i++) {
-					org.lwjgl.opengl.DisplayMode current = modes[i];
+                for (int i = 0; i < modes.length; i++) 
+                {
+                    org.lwjgl.opengl.DisplayMode current = modes[i];
 
-					if ((current.getWidth() == width) && (current.getHeight() == height)) {
-						if ((targetDisplayMode == null) || (current.getFrequency() >= freq)) {
-							if ((targetDisplayMode == null) || (current.getBitsPerPixel() > targetDisplayMode.getBitsPerPixel())) {
-								targetDisplayMode = current;
-								freq = targetDisplayMode.getFrequency();
-							}
-						}
+                    if ((current.getWidth() == width) && (current.getHeight() == height)) 
+                    {
+                        if ((targetDisplayMode == null) || (current.getFrequency() >= freq)) 
+                        {
+                            if ((targetDisplayMode == null) || (current.getBitsPerPixel() > targetDisplayMode.getBitsPerPixel())) 
+                            {
+                                targetDisplayMode = current;
+                                freq = targetDisplayMode.getFrequency();
+                            }
+                        }
 
-						// if we've found a match for bpp and frequence against the
-						// original display mode then it's probably best to go for this one
-						// since it's most likely compatible with the monitor
-						if ((current.getBitsPerPixel() == Display.getDesktopDisplayMode().getBitsPerPixel())
-							&& (current.getFrequency() == Display.getDesktopDisplayMode().getFrequency())) {
-							targetDisplayMode = current;
-							break;
-						}
-					}
-				}
-			} else {
-				targetDisplayMode = new org.lwjgl.opengl.DisplayMode(width, height);
-			}
+                        // if we've found a match for bpp and frequence against the
+                        // original display mode then it's probably best to go for this one
+                        // since it's most likely compatible with the monitor
+                        if ((current.getBitsPerPixel() == Display.getDesktopDisplayMode().getBitsPerPixel())
+                            && (current.getFrequency() == Display.getDesktopDisplayMode().getFrequency())) 
+                        {
+                            targetDisplayMode = current;
+                            break;
+                        }
+                    }
+                }
+            }
+            else 
+            {
+                targetDisplayMode = new org.lwjgl.opengl.DisplayMode(width, height);
+            }
 
-			if (targetDisplayMode == null) {
-				return false;
-			}
+            if (targetDisplayMode == null) 
+            {
+                return false;
+            }
 
-			boolean resizable = !fullScreen && quorumDisplay.config.Get_Libraries_Game_DesktopConfiguration__resizable_();
-			
-			Display.setDisplayMode(targetDisplayMode);
-			Display.setFullscreen(fullScreen);
-			// Workaround for bug in LWJGL whereby resizable state is lost on DisplayMode change
-			if (resizable == Display.isResizable()) {
-				Display.setResizable(!resizable);
-			}
-			Display.setResizable(resizable);
-			
-			float scaleFactor = Display.getPixelScaleFactor();
-                        quorumDisplay.config.Set_Libraries_Game_DesktopConfiguration__width_((int)(targetDisplayMode.getWidth() * scaleFactor));
-                        quorumDisplay.config.Set_Libraries_Game_DesktopConfiguration__height_((int)(targetDisplayMode.getHeight() * scaleFactor));
-		//	if (GameState.nativeGraphics != null)
-                //            GameState.nativeGraphics.SetDrawingRegion(0, 0, quorumDisplay.config.Get_Libraries_Game_DesktopConfiguration_width(), quorumDisplay.config.Get_Libraries_Game_DesktopConfiguration_height());
-			quorumDisplay.resize = true;
-			return true;
-		} catch (LWJGLException e) {
-                        System.out.println("Error in SetDisplayMode!");
-			return false;
-		}
+            boolean resizable = !fullScreen && quorumDisplay.config.Get_Libraries_Game_DesktopConfiguration__resizable_();
+	    
+            Display.setDisplayMode(targetDisplayMode);
+            Display.setFullscreen(fullScreen);
+            // Workaround for bug in LWJGL whereby resizable state is lost on DisplayMode change
+            if (resizable == Display.isResizable()) {
+                    Display.setResizable(!resizable);
+            }
+            Display.setResizable(resizable);
+
+            float scaleFactor = Display.getPixelScaleFactor();
+            quorumDisplay.config.Set_Libraries_Game_DesktopConfiguration__width_((int)(targetDisplayMode.getWidth() * scaleFactor));
+            quorumDisplay.config.Set_Libraries_Game_DesktopConfiguration__height_((int)(targetDisplayMode.getHeight() * scaleFactor));
+            
+            quorumDisplay.resize = true;
+            return true;
+        }
+        catch (LWJGLException e) 
+        {
+            System.out.println("Error in SetDisplayMode!");
+            return false;
+        }
+    }
+    
+    public DisplayMode GetDesktopDisplayMode() 
+    {
+        return Display.getDesktopDisplayMode();
     }
 
     public void SetVSync(boolean vsync) {
@@ -184,30 +200,34 @@ public class DesktopDisplay {
         Display.setVSyncEnabled(vsync);
     }
 
-    private void createDisplayPixelFormat() {
+    private void createDisplayPixelFormat() 
+    {
         //Create the display
-        try {
+        try 
+        {
             quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
 
-            if (dis.config.Get_Libraries_Game_DesktopConfiguration__useGL30_()) {
+            if (dis.config.Get_Libraries_Game_DesktopConfiguration__useGL30_()) 
+            {
                 //Do nothing, we dont support GL30 yet.
                 System.out.println("useGL30 was set to true!");
-            } else {
- 
+            }
+            else 
+            {
                 Display.create(new PixelFormat(
-                        dis.config.Get_Libraries_Game_ApplicationConfiguration__r_()
-                        + dis.config.Get_Libraries_Game_ApplicationConfiguration__g_()
-                        + dis.config.Get_Libraries_Game_ApplicationConfiguration__b_(),
-                        dis.config.Get_Libraries_Game_ApplicationConfiguration__a_(),
-                        dis.config.Get_Libraries_Game_ApplicationConfiguration__depth_(),
-                        dis.config.Get_Libraries_Game_ApplicationConfiguration__stencil_(),
-                        dis.config.Get_Libraries_Game_ApplicationConfiguration__samples_()));
+                    dis.config.Get_Libraries_Game_ApplicationConfiguration__r_()
+                    + dis.config.Get_Libraries_Game_ApplicationConfiguration__g_()
+                    + dis.config.Get_Libraries_Game_ApplicationConfiguration__b_(),
+                    dis.config.Get_Libraries_Game_ApplicationConfiguration__a_(),
+                    dis.config.Get_Libraries_Game_ApplicationConfiguration__depth_(),
+                    dis.config.Get_Libraries_Game_ApplicationConfiguration__stencil_(),
+                    dis.config.Get_Libraries_Game_ApplicationConfiguration__samples_()));
               
-     
-  
             }
 
-        } catch (LWJGLException e) {
+        }
+        catch (LWJGLException e) 
+        {
             e.printStackTrace();
             Display.destroy();
             throw new GameRuntimeError("createDisplayPixelFormat crashed!");

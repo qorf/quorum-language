@@ -1064,7 +1064,7 @@ public class DefaultShader extends BaseShader
                     program.setUniformf(idx + dirLightsColorOffset, (float)directionalLights[i].GetColor().GetRed(), 
                         (float)directionalLights[i].GetColor().GetGreen(), (float)directionalLights[i].GetColor().GetBlue());
                     program.setUniformf(idx + dirLightsDirectionOffset, (float)directionalLights[i].direction.GetX(),
-                        (float)directionalLights[i].direction.GetY(), (float)directionalLights[i].direction.GetZ());
+                        (float)directionalLights[i].direction.GetY(), (float)(directionalLights[i].direction.GetZ() * -1));
                     
                     if (dirLightsSize <= 0) 
                         break;
@@ -1108,7 +1108,7 @@ public class DefaultShader extends BaseShader
                     program.setUniformf(idx + pointLightsColorOffset, (float)(pointLights[i].GetColor().GetRed() * intensity),
                         (float)(pointLights[i].GetColor().GetGreen() * intensity), (float)(pointLights[i].GetColor().GetBlue() * intensity));
                     program.setUniformf(idx + pointLightsPositionOffset, (float)pointLights[i].GetGlobalX(), (float)pointLights[i].GetGlobalY(),
-                        (float)pointLights[i].GetGlobalZ());
+                        (float)pointLights[i].GetGlobalZ() * -1);
                     
                     if (pointLightsIntensityOffset >= 0)
                         program.setUniformf(idx + pointLightsIntensityOffset, (float)pointLights[i].GetIntensity());
