@@ -175,7 +175,7 @@ public class Audio {
     
     public void SetZ(double newZ)
     {
-        data.SetZ((float)newZ);
+        data.SetZ((float)newZ * -1);
     }
     
     public double GetX()
@@ -190,12 +190,12 @@ public class Audio {
     
     public double GetZ()
     {
-        return data.GetZ();
+        return data.GetZ() * -1;
     }
     
     public void SetPosition(double newX, double newY, double newZ)
     {
-        data.SetPosition((float)newX, (float)newY, (float)newZ);
+        data.SetPosition((float)newX, (float)newY, (float)newZ * -1);
     }
     
     public void EnableDoppler()
@@ -225,12 +225,12 @@ public class Audio {
     
     public void SetVelocityZ(double z)
     {
-        data.SetVelocityZ((float)z);
+        data.SetVelocityZ((float)z * -1);
     }
     
     public void SetVelocity(double x, double y, double z)
     {
-        data.SetVelocity((float)x, (float)y, (float)z);
+        data.SetVelocity((float)x, (float)y, (float)z * -1);
     }
     
     public double GetVelocityX()
@@ -245,7 +245,7 @@ public class Audio {
 
     public double GetVelocityZ()
     {
-        return data.velocityZ;
+        return data.velocityZ * -1;
     }
     
     public void SetRotation(double rotation)
@@ -307,7 +307,7 @@ public class Audio {
     
     public void SetListenerPosition(double x, double y, double z)
     {
-        AudioManager.SetListenerPosition(x, y, z);
+        AudioManager.SetListenerPosition(x, y, z * -1);
     }
     
     public void SetListenerX(double x)
@@ -322,7 +322,7 @@ public class Audio {
     
     public void SetListenerZ(double z)
     {
-        AudioManager.SetListenerPosition(AudioManager.GetListenerX(), AudioManager.GetListenerY(), z);
+        AudioManager.SetListenerPosition(AudioManager.GetListenerX(), AudioManager.GetListenerY(), z * -1);
     }
     
     public double GetListenerX()
@@ -337,12 +337,12 @@ public class Audio {
     
     public double GetListenerZ()
     {
-        return AudioManager.GetListenerZ();
+        return AudioManager.GetListenerZ() * -1;
     }
     
     public void SetListenerVelocity(double x, double y, double z)
     {
-        AudioManager.SetListenerVelocity(x, y, z);
+        AudioManager.SetListenerVelocity(x, y, z * -1);
     }
     
     public void SetListenerVelocityX(double x)
@@ -357,7 +357,7 @@ public class Audio {
     
     public void SetListenerVelocityZ(double z)
     {
-        SetListenerVelocity(AudioManager.GetListenerVelocityX(), AudioManager.GetListenerVelocityY(), z);
+        SetListenerVelocity(AudioManager.GetListenerVelocityX(), AudioManager.GetListenerVelocityY(), z * -1);
     }
     
     public double GetListenerVelocityX()
@@ -372,7 +372,7 @@ public class Audio {
     
     public double GetListenerVelocityZ()
     {
-        return AudioManager.GetListenerVelocityZ();
+        return AudioManager.GetListenerVelocityZ() * -1;
     }
     
     public void EnableListenerDoppler()
@@ -392,12 +392,12 @@ public class Audio {
     
     public void SetListenerDirection(double x, double y, double z)
     {
-        AudioManager.SetListenerDirection(x, y, z);
+        AudioManager.SetListenerDirection(x, y, z * -1);
     }
     
     public void SetListenerUp(double x, double y, double z)
     {
-        AudioManager.SetListenerUp(x, y, z);
+        AudioManager.SetListenerUp(x, y, z * -1);
     }
     
     public double GetListenerDirectionX()
@@ -412,7 +412,7 @@ public class Audio {
     
     public double GetListenerDirectionZ()
     {
-        return AudioManager.GetListenerDirectionZ();
+        return AudioManager.GetListenerDirectionZ() * -1;
     }
     
     public double GetListenerUpX()
@@ -427,6 +427,6 @@ public class Audio {
     
     public double GetListenerUpZ()
     {
-        return AudioManager.GetListenerUpZ();
+        return AudioManager.GetListenerUpZ() * -1;
     }
 }
