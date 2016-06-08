@@ -13,6 +13,9 @@ class OrthographicCamera is Camera
     end
 
     private Vector3 calcVector
+//    private Vector3 negatedPosition
+//    private Vector3 negatedDirection
+//    private Vector3 negatedUp
 
     /*
     Initializes the camera by giving a width and height for the camera to show
@@ -29,9 +32,14 @@ class OrthographicCamera is Camera
     after the camera has been manipulated in any way.
     */
     action Update
+//        negatedPosition:Set(parent:Camera:position):Scale(1, 1, -1)
+//        negatedDirection:Set(parent:Camera:direction):Scale(1, 1, -1)
+//        negatedUp:Set(parent:Camera:up):Scale(1, 1, -1)
+
         parent:Camera:projection:SetToOrthographic(zoom * -parent:Camera:viewportWidth/2, zoom * parent:Camera:viewportWidth/2,
             zoom * -parent:Camera:viewportHeight/2, zoom * parent:Camera:viewportHeight/2, parent:Camera:near, parent:Camera:far)
             
+        //parent:Camera:view:SetToLookAt(negatedPosition, calcVector:Set(negatedPosition):Add(negatedDirection), negatedUp)
         parent:Camera:view:SetToLookAt(parent:Camera:position, calcVector:Set(parent:Camera:position):Add(parent:Camera:direction), parent:Camera:up)
         parent:Camera:combined:Set(parent:Camera:projection)
         parent:Camera:combined:Multiply(parent:Camera:view)

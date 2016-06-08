@@ -43,6 +43,40 @@ Attribute: Example
 */
 class Texture is Disposable
 
+    /*
+    Actions to Override in Cubemap:
+
+    LoadFromFile(text) - Keep
+    LoadFromFile(File) - Override
+    LoadFromFile(File, Format, boolean) - Override
+    LoadModelTexture(text) - ?
+    LoadModelTexture(File) - ?
+    GetWidth - Override
+    GetHeight - Override
+    GetDepth - NEW
+
+    // Following are overridden just to access private actions:
+    Bind - Override
+    BindToDefault - Override
+    CreateGLHandle
+    SetGL20Info
+    GetGLTarget
+    GetGLHandle
+
+    SetFilter(TextureFilter, TextureFilter) - Keep
+    SetWrap(TextureWrap, TextureWrap) - Override
+    SetWrap(TextureWrap, TextureWrap, TextureWrap) - NEW
+    GetMinimizeFilter - Keep
+    GetMagnifyFilter - Keep
+    GetHorizontalWrap - Keep
+    GetVerticalWrap - Keep
+    GetDepthWrap - NEW
+    Dispose - ?
+    Load<Shape> - Keep
+    UnsafeSetWrap(TextureWrap, TextureWrap) - Keep
+    UnsafeSetFilter(TextureFilter, TextureFilter) - Keep
+    */
+
     private TextureData data = undefined
 
     private GraphicsManager gl20 = undefined
@@ -61,8 +95,6 @@ class Texture is Disposable
         horizontalWrap:ConstructTextureWrap(horizontalWrap:CLAMP_TO_EDGE)
         verticalWrap:ConstructTextureWrap(verticalWrap:CLAMP_TO_EDGE)
     end
-
-    system action GetDepth() returns integer
 
     /*
     This action loads a Texture from a file path given as text. The file path
@@ -160,7 +192,7 @@ class Texture is Disposable
             end
         end
     */
-    action LoadFromFile(File file, Format format, boolean useMipMaps)
+    private action LoadFromFile(File file, Format format, boolean useMipMaps)
         LoadFromTextureData(CreateTextureData(file, format, useMipMaps))
     end
 
@@ -538,54 +570,6 @@ class Texture is Disposable
     action GetVerticalWrap returns TextureWrap
         return verticalWrap
     end
-/*
-    action UseCustomColor returns boolean
-        return false
-    end
-
-    action GetTexture returns Texture
-        return me
-    end*/
-
-    /*action PrepareVertices
-
-        Array<number> vertices = GetVertices()
-
-        number x = GetX()
-        number y = GetY()
-
-        number x2 = x + GetWidth()
-        number y2 = y + GetHeight()
-
-        number u = 0
-        number v = 1
-        number u2 = 1
-        number v2 = 0
-
-        vertices:Set(0, x)
-        vertices:Set(1, y)
-        // Index 2 is automatically handled by the drawing SpriteBatch.
-        vertices:Set(3, u)
-        vertices:Set(4, v)
-
-        vertices:Set(5, x)
-        vertices:Set(6, y2)
-        // Index 7 is automatically handled by the drawing SpriteBatch.
-        vertices:Set(8, u)
-        vertices:Set(9, v2)
-
-        vertices:Set(10, x2)
-        vertices:Set(11, y2)
-        // Index 12 is automatically handled by the drawing SpriteBatch.
-        vertices:Set(13, u2)
-        vertices:Set(14, v2)
-
-        vertices:Set(15, x2)
-        vertices:Set(16, y)
-        // Index 17 is automatically handled by the drawing SpriteBatch.
-        vertices:Set(18, u2)
-        vertices:Set(19, v)
-    end*/
 
     /*
     This action will release the memory used to store pixel information for this

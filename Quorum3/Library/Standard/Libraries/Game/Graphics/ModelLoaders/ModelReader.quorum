@@ -36,6 +36,23 @@ class ModelReader
     ModelBuilder modelBuilder
     Graphics3DLoader g3dLoader
 
+    /*
+    The Read action will read a file containing model data and return a
+    ModelBlueprint. The supported file extensions are obj, g3db, and g3dj. If
+    the given file is not supported, then this action will return undefined.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.ModelLoaders.ModelReader
+        use Libraries.Game.Graphics.ModelBlueprint
+        use Libraries.System.File
+
+        File file
+        file:SetPath("model.obj")
+        
+        ModelReader reader
+        ModelBlueprint schematic = reader:Read(file)
+    */
     action Read(File file) returns ModelBlueprint
         text value = file:GetFileExtension()
         if value = "obj"
