@@ -140,7 +140,7 @@ class ModelReader
         modelBuilder:Begin()
 
         if materials:GetSize() > 0
-            repeat while counter < materials:GetSize()
+            repeat while counter < materialIndices:GetSize()
                 text currentMaterialAlias = materialNames:Get(counter)
                 integer materialCounter = 0
                 boolean searching = true
@@ -207,7 +207,14 @@ class ModelReader
 
                 if currentMaterial:HasTransparency()
                     BlendingAttribute attribute
-                    attribute:opacity = currentMaterial:GetTransparency()
+                    attribute:opacity = (1 - currentMaterial:GetTransparency())
+                    attribute:SetAttribute(attribute:GetBlendedValue())
+                    graphicsMaterial:Add(attribute)
+                end
+
+                if currentMaterial:HasDissolve()
+                    BlendingAttribute attribute
+                    attribute:opacity = currentMaterial:GetDissolve()
                     attribute:SetAttribute(attribute:GetBlendedValue())
                     graphicsMaterial:Add(attribute)
                 end
