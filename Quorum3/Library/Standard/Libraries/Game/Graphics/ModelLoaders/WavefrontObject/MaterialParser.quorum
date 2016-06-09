@@ -41,6 +41,8 @@ class MaterialParser
             DiffuseLighting()
         elseif token:tokenID = lexer:SPECULAR_LIGHTING
             SpecularLighting()
+        elseif token:tokenID = lexer:EMISSIVE_LIGHTING
+            EmissiveLighting()
         elseif token:tokenID = lexer:ILLUMINATION
             Illumination()
         elseif token:tokenID = lexer:SHININESS
@@ -55,6 +57,10 @@ class MaterialParser
             TextureDiffuse()
         elseif token:tokenID = lexer:TEXTURE_SPECULAR_EXPONENT
             TextureSpecularExponent()
+        elseif token:tokenID = lexer:TRANSPARENCY
+            Transparency()
+        elseif token:tokenID = lexer:DISSOLVE
+            Dissolve()
         elseif token:tokenID = lexer:TEXTURE_ANTI_ALIAS
             TextureAntiAlias()
         elseif token:tokenID = lexer:TRANSMISSION_FILTER
@@ -144,10 +150,29 @@ class MaterialParser
         Vector()
         listener:ExitSpecularLighting()
     end
+
+    action Transparency
+        listener:EnterTransparency()
+        Number()
+        listener:ExitTransparency()
+    end
+
+    action Dissolve
+        listener:EnterDissolve()
+        Number()
+        listener:ExitDissolve()
+    end
+
     action Illumination
         listener:EnterIllumination()
         Number()
         listener:ExitIllumination()
+    end
+
+    action EmissiveLighting
+        listener:EnterEmissiveLighting()
+        Vector()
+        listener:ExitEmissiveLighting()
     end
 
     action Shininess

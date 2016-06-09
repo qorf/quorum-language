@@ -25,6 +25,8 @@ class MaterialLexer
     public constant integer ON = 18
     public constant integer OFF = 19
     public constant integer OPTICAL_DENSITY = 20
+    public constant integer EMISSIVE_LIGHTING = 21
+    public constant integer DISSOLVE = 21
 
     Array<ModelToken> tokens
     MaterialListener listener = undefined
@@ -178,12 +180,24 @@ class MaterialLexer
                     end
                 end
 
-                i = j - 1
-                token:tokenID = NUMBER
-                token:value = string
-                tokens:Add(token)
+                text testIfID = ID(value, i)
+                if testIfID:GetSize() > string:GetSize()
+                    i = i + testIfID:GetSize()
+                    token:tokenID = ID
+                    token:value = testIfID
+                    tokens:Add(token)
+                else
+                    i = j - 1
+                    token:tokenID = NUMBER
+                    token:value = string
+                    tokens:Add(token)
+                end
+//                i = j - 1
+//                token:tokenID = NUMBER
+//                token:value = string
+//                tokens:Add(token)
             elseif IsAlphaNumeric(char)
-                text other = ID(value, i)
+                text other = IDSlashes(value, i)
                 i = i + other:GetSize()
 
                 if other = "newmtl"
@@ -209,6 +223,10 @@ class MaterialLexer
                 elseif other = "Ks"
                     token:tokenID = SPECULAR_LIGHTING
                     token:value = "Ks"
+                    tokens:Add(token)
+                elseif other = "Ke"
+                    token:tokenID = EMISSIVE_LIGHTING
+                    token:value = "Ke"
                     tokens:Add(token)
                 elseif other = "Tf"
                     token:tokenID = TRANSMISSION_FILTER
@@ -247,7 +265,7 @@ class MaterialLexer
                     token:value = "Ni"
                     tokens:Add(token)
                 elseif other = "d"
-                    token:tokenID = TRANSPARENCY
+                    token:tokenID = DISSOLVE
                     token:value = "d"
                     tokens:Add(token)
                 elseif other = "Tr"
@@ -288,6 +306,50 @@ class MaterialLexer
         return false
     end
 
+    private action IsAlphaNumericSlashes(text char) returns boolean
+        if  char = "0" or char = "1" or char = "2" or char = "3" or char = "4" or
+            char = "5" or char = "6" or char = "7" or char = "8" or char = "9"
+            return true
+        end
+
+        //this is an ugly hack, which will be removed in a future release
+        char = char:ToLowerCase()
+        if  char = "a" or char = "b" or char = "c" or char = "d" or char = "e" or
+            char = "f" or char = "g" or char = "h" or char = "i" or char = "j" or
+            char = "k" or char = "l" or char = "m" or char = "n" or char = "o" or
+            char = "p" or char = "q" or char = "r" or char = "s" or char = "t" or
+            char = "u" or char = "v" or char = "w" or char = "x" or char = "y" or
+            char  = "z"
+            return true
+        end
+
+        //allow for a couple special characters
+        if char = "_" or char = "-" or char = "." or char = "/" or char = "\"
+            return true
+        end
+        
+        return false
+    end
+
+    private action IDSlashes(text value, integer index) returns text
+        text other = value:GetCharacter(index)
+        boolean done = false
+        j = index + 1
+        repeat while j < value:GetSize() and not done
+            char2 = value:GetCharacter(j)
+            boolean alpha = IsAlphaNumeric(char2)
+            if alpha
+                other = other + char2
+            else
+                done = true
+                j = j - 1
+            end
+            j = j + 1
+        end
+
+        return other
+    end
+
     private action IsAlphaNumeric(text char) returns boolean
         if  char = "0" or char = "1" or char = "2" or char = "3" or char = "4" or
             char = "5" or char = "6" or char = "7" or char = "8" or char = "9"
@@ -306,7 +368,7 @@ class MaterialLexer
         end
 
         //allow for a couple special characters
-        if char = "_" or char = "." or char = "/" or char = "\"
+        if char = "_" or char = "-" or char = "."
             return true
         end
         
@@ -334,15 +396,15 @@ class MaterialLexer
 
     action ThrowError(integer line, integer column, integer index, text message)
         if listener not= undefined
-//            JavaScriptObjectNotationError error
-//            error:SetLineNumber(line)
-//            error:SetColumnNumber(column)
-//            error:SetIndex(index)
-//            error:SetLineNumberEnd(line)
-//            error:SetColumnNumberEnd(column)
-//            error:SetIndexEnd(index)
-//            error:SetErrorMessage(message)
-//            listener:VisitError(error)
+            ModelError error
+            error:SetLineNumber(line)
+            error:SetColumnNumber(column)
+            error:SetIndex(index)
+            error:SetLineNumberEnd(line)
+            error:SetColumnNumberEnd(column)
+            error:SetIndexEnd(index)
+            error:SetErrorMessage(message)
+            listener:VisitError(error)
         end
     end
 end

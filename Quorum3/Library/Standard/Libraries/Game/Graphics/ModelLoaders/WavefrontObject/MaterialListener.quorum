@@ -1,7 +1,11 @@
 package Libraries.Game.Graphics.ModelLoaders.WavefrontObject
 use Libraries.Containers.Stack
+use Libraries.Containers.Iterator
+use Libraries.Containers.Array
 
 class MaterialListener
+    Array<ModelError> errors
+
     action EnterStart end
     action ExitStart end
     action Enter end
@@ -18,6 +22,15 @@ class MaterialListener
 
     action EnterSpecularLighting end
     action ExitSpecularLighting end
+
+    action EnterEmissiveLighting end
+    action ExitEmissiveLighting end
+
+    action EnterTransparency end
+    action ExitTransparency end
+
+    action EnterDissolve end
+    action ExitDissolve end
 
     action EnterIllumination end
     action ExitIllumination end
@@ -54,5 +67,27 @@ class MaterialListener
 
     action VisitNumber(ModelToken terminal) end
 
-    action VisitError(ModelError error) end
+    action VisitError(ModelError error) 
+        errors:Add(error)
+    end
+
+    action HasErrors returns boolean
+        return errors:GetSize() > 0
+    end
+
+    action GetErrors returns Iterator<ModelError>
+        return errors:GetIterator()
+    end
+
+    action AlertOnErrors
+        if HasErrors()
+            Iterator<ModelError> value = GetErrors()
+            text total = ""
+            repeat while value:HasNext()
+                ModelError error = value:Next()
+                total = total + ": "  + error:GetErrorMessage() + " "
+            end
+            alert(total)
+        end
+    end
 end

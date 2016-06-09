@@ -4,7 +4,6 @@ use Libraries.Containers.HashTable
 use Libraries.Compute.Vector3
 use Libraries.Containers.Array
 
-
 class MaterialConverterListener is MaterialListener
     Stack<integer> state
     Material material = undefined
@@ -60,13 +59,41 @@ class MaterialConverterListener is MaterialListener
         state:Pop()
     end
 
+    action EnterEmissiveLighting 
+        state:Push(lexer:EMISSIVE_LIGHTING)
+        positions:Add(lexer:EMISSIVE_LIGHTING, 0)
+        material:SetHasSpecularColor(true)
+    end
+
+    action ExitEmissiveLighting 
+        state:Pop()
+    end
+
     action EnterIllumination 
         state:Push(lexer:ILLUMINATION)
     end
-
+    
     action ExitIllumination 
         state:Pop()
     end
+
+    action EnterTransparency 
+        state:Push(lexer:TRANSPARENCY)
+    end
+
+    action ExitTransparency 
+        state:Pop()
+    end
+
+    action EnterDissolve
+        state:Push(lexer:DISSOLVE)
+    end
+
+    action ExitDissolve 
+        state:Pop()
+    end
+
+    
 
     action EnterShininess 
         state:Push(lexer:SHININESS)
@@ -171,6 +198,8 @@ class MaterialConverterListener is MaterialListener
             material:SetShininess(cast(number, token:value))
         elseif state:Peek() = lexer:TRANSPARENCY
             material:SetTransparency(cast(number, token:value))
+        elseif state:Peek() = lexer:DISSOLVE
+            material:SetDissolve(cast(number, token:value))
         elseif state:Peek() = lexer:AMBIENT_LIGHTING
             integer value = positions:GetValue(lexer:AMBIENT_LIGHTING)
             Vector3 vector = material:GetAmbientColor()
@@ -186,6 +215,11 @@ class MaterialConverterListener is MaterialListener
             Vector3 vector = material:GetSpecularColor()
             SetPositionValue(value, token, vector)
             positions:Add(lexer:SPECULAR_LIGHTING, value + 1)
+        elseif state:Peek() = lexer:EMISSIVE_LIGHTING
+            integer value = positions:GetValue(lexer:EMISSIVE_LIGHTING)
+            Vector3 vector = material:GetEmissiveColor()
+            SetPositionValue(value, token, vector)
+            positions:Add(lexer:EMISSIVE_LIGHTING, value + 1)
         elseif state:Peek() = lexer:TRANSMISSION_FILTER
             integer value = positions:GetValue(lexer:TRANSMISSION_FILTER)
             Vector3 vector = material:GetTransmissionFilter()
@@ -203,6 +237,4 @@ class MaterialConverterListener is MaterialListener
             vector:SetZ(cast(number, token:value))
         end
     end
-
-    action VisitError(ModelError error) end
 end

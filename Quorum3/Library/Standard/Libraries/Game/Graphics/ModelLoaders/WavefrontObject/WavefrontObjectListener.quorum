@@ -1,6 +1,10 @@
 package Libraries.Game.Graphics.ModelLoaders.WavefrontObject
 
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+
 class WavefrontObjectListener
+    Array<ModelError> errors
     action EnterStart end
     action ExitStart end
 
@@ -37,5 +41,27 @@ class WavefrontObjectListener
 
     action VisitNumber(ModelToken terminal) end
 
-    action VisitError(ModelError error) end
+    action VisitError(ModelError error) 
+        errors:Add(error)
+    end
+
+    action HasErrors returns boolean
+        return errors:GetSize() > 0
+    end
+
+    action GetErrors returns Iterator<ModelError>
+        return errors:GetIterator()
+    end
+
+    action AlertOnErrors
+        if HasErrors()
+            Iterator<ModelError> value = GetErrors()
+            text total = ""
+            repeat while value:HasNext()
+                ModelError error = value:Next()
+                total = total + error:GetErrorMessage()
+            end
+            alert(total)
+        end
+    end
 end

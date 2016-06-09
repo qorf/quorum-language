@@ -9,6 +9,8 @@ class Material
     boolean hasDiffuseColor = false
     Vector3 specularColor
     boolean hasSpecularColor = false
+    Vector3 emissiveColor
+    boolean hasEmissiveColor = false
     Vector3 transmissionFilter
     boolean hasTransmissionFilter = false
     integer illumination = 1
@@ -17,6 +19,8 @@ class Material
     boolean hasShininess = false
     number transparency = 0.0
     boolean hasTransparency = false
+    number dissolve = 0.0
+    boolean hasDissolve = false
     number opticalDensity = 10.0
     boolean hasOpticalDensity = false
     text textureAmbient = ""
@@ -76,6 +80,18 @@ class Material
         me:hasSpecularColor = hasSpecularColor
     end
 
+    action GetEmissiveColor returns Vector3
+        return emissiveColor
+    end
+
+    action HasEmissiveColor returns boolean
+        return hasEmissiveColor
+    end
+
+    action SetHasEmissiveColor(boolean hasSpecularColor)
+        me:hasEmissiveColor = hasEmissiveColor
+    end
+
     action GetTransmissionFilter returns Vector3
         return transmissionFilter
     end
@@ -125,6 +141,19 @@ class Material
 
     action HasTransparency returns boolean
         return hasTransparency
+    end
+
+    action GetDissolve returns number
+        return dissolve
+    end
+
+    action SetDissolve(number dissolve)
+        me:dissolve = dissolve
+        hasDissolve = true
+    end
+
+    action HasDissolve returns boolean
+        return hasDissolve
     end
 
     action GetOpticalDensity returns number
