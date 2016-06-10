@@ -148,18 +148,31 @@ public class DefaultShader extends BaseShader
 
             public final static Setter viewTrans = new GlobalSetter() 
             {
+                private final Matrix4_ matrix = new Matrix4();
+                
                 @Override
                 public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                    shader.Set(inputID, shader.camera.Get_Libraries_Game_Graphics_Camera__view_());
+                    //shader.Set(inputID, shader.camera.Get_Libraries_Game_Graphics_Camera__view_());
+                    
+                    matrix.Set(shader.camera.Get_Libraries_Game_Graphics_Camera__view_());
+                    DefaultShader.InvertViewZ(matrix);
+                    shader.Set(inputID, matrix);
                 }
             };
             
             public final static Setter projViewTrans = new GlobalSetter() 
             {
+                private final Matrix4_ matrix = new Matrix4();
+                
                 @Override
-                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) {
-                    shader.Set(inputID, shader.camera.Get_Libraries_Game_Graphics_Camera__combined_());
+                public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
+                {
+                    //shader.Set(inputID, shader.camera.Get_Libraries_Game_Graphics_Camera__combined_());
+                    
+                    matrix.Set(shader.camera.Get_Libraries_Game_Graphics_Camera__combined_());
+                    DefaultShader.InvertViewZ(matrix);
+                    shader.Set(inputID, matrix);
                 }
             };
             
@@ -195,22 +208,36 @@ public class DefaultShader extends BaseShader
                 
             public final static Setter worldTrans = new LocalSetter() 
             {
+                private final Matrix4_ matrix = new Matrix4();
+                
                 @Override
                 public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                    shader.Set(inputID, renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
+                    //shader.Set(inputID, renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
+                    
+                    matrix.Set(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
+                    DefaultShader.InvertPositionZ(matrix);
+                    shader.Set(inputID, matrix);
                 }
             };
             
             public final static Setter viewWorldTrans = new LocalSetter() 
             {
                 final Matrix4_ temp = new Matrix4();
+                final Matrix4_ temp2 = new Matrix4();
 
                 @Override
                 public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
+                    // temp.Set(shader.camera.Get_Libraries_Game_Graphics_Camera__view_());
+                    // temp.Multiply(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
+                    // shader.Set(inputID, temp);
+                    
                     temp.Set(shader.camera.Get_Libraries_Game_Graphics_Camera__view_());
-                    temp.Multiply(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
+                    DefaultShader.InvertViewZ(temp);
+                    temp2.Set(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
+                    DefaultShader.InvertPositionZ(temp2);
+                    temp.Multiply(temp2);
                     shader.Set(inputID, temp);
                 }
             };
@@ -218,12 +245,20 @@ public class DefaultShader extends BaseShader
             public final static Setter projViewWorldTrans = new LocalSetter() 
             {
                 final Matrix4_ temp = new Matrix4();
+                final Matrix4_ temp2 = new Matrix4();
 
                 @Override
                 public void Set (BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
+                    //temp.Set(shader.camera.Get_Libraries_Game_Graphics_Camera__combined_());
+                    //temp.Multiply(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
+                    //shader.Set(inputID, temp)
+                    
                     temp.Set(shader.camera.Get_Libraries_Game_Graphics_Camera__combined_());
-                    temp.Multiply(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
+                    DefaultShader.InvertViewZ(temp);
+                    temp2.Set(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
+                    DefaultShader.InvertPositionZ(temp2);
+                    temp.Multiply(temp2);
                     shader.Set(inputID, temp);
                 }
             };
@@ -400,8 +435,8 @@ public class DefaultShader extends BaseShader
                 @Override
                 public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
-                        final int unit = shader.context.textureBinder.Bind(((TextureAttribute)(combinedAttributes.GetAttribute(textureAttribute.GetNormalValue()))).descriptor);
-                        shader.Set(inputID, unit);
+                    final int unit = shader.context.textureBinder.Bind(((TextureAttribute)(combinedAttributes.GetAttribute(textureAttribute.GetNormalValue()))).descriptor);
+                    shader.Set(inputID, unit);
                 }
             };
 		
@@ -459,6 +494,7 @@ public class DefaultShader extends BaseShader
                     else 
                     {
                         tmpV1 = (Vector3)renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_().GetTranslation();
+                        tmpV1.Scale(1, 1, -1);
                         if (combinedAttributes.HasAttribute(colorAttribute.GetAmbientLightValue()))
                             cacheAmbientCubemap.SetColor(((ColorAttribute)combinedAttributes.GetAttribute(colorAttribute.GetAmbientLightValue())).color);
 
@@ -1063,10 +1099,10 @@ public class DefaultShader extends BaseShader
                     
                     program.setUniformf(idx + dirLightsColorOffset, (float)directionalLights[i].GetColor().GetRed(), 
                         (float)directionalLights[i].GetColor().GetGreen(), (float)directionalLights[i].GetColor().GetBlue());
-                    program.setUniformf(idx + dirLightsDirectionOffset, (float)directionalLights[i].direction.GetX(),
-                        (float)directionalLights[i].direction.GetY(), (float)directionalLights[i].direction.GetZ());
                     //program.setUniformf(idx + dirLightsDirectionOffset, (float)directionalLights[i].direction.GetX(),
-                    //    (float)directionalLights[i].direction.GetY(), (float)(directionalLights[i].direction.GetZ() * -1));
+                    //    (float)directionalLights[i].direction.GetY(), (float)directionalLights[i].direction.GetZ());
+                    program.setUniformf(idx + dirLightsDirectionOffset, (float)directionalLights[i].direction.GetX(),
+                        (float)directionalLights[i].direction.GetY(), (float)(directionalLights[i].direction.GetZ() * -1));
                     
                     if (dirLightsSize <= 0) 
                         break;
@@ -1109,10 +1145,10 @@ public class DefaultShader extends BaseShader
                     
                     program.setUniformf(idx + pointLightsColorOffset, (float)(pointLights[i].GetColor().GetRed() * intensity),
                         (float)(pointLights[i].GetColor().GetGreen() * intensity), (float)(pointLights[i].GetColor().GetBlue() * intensity));
-                    program.setUniformf(idx + pointLightsPositionOffset, (float)pointLights[i].GetGlobalX(), (float)pointLights[i].GetGlobalY(),
-                        (float)pointLights[i].GetGlobalZ());
                     //program.setUniformf(idx + pointLightsPositionOffset, (float)pointLights[i].GetGlobalX(), (float)pointLights[i].GetGlobalY(),
-                    //   (float)pointLights[i].GetGlobalZ() * -1);
+                    //    (float)pointLights[i].GetGlobalZ());
+                    program.setUniformf(idx + pointLightsPositionOffset, (float)pointLights[i].GetGlobalX(), (float)pointLights[i].GetGlobalY(),
+                       (float)pointLights[i].GetGlobalZ() * -1);
                     
                     if (pointLightsIntensityOffset >= 0)
                         program.setUniformf(idx + pointLightsIntensityOffset, (float)pointLights[i].GetIntensity());
@@ -1237,5 +1273,30 @@ public class DefaultShader extends BaseShader
                 default:
                     return (float)matrix.Get_Libraries_Compute_Matrix4__row3column3_();
             }
+        }
+        
+        /*
+        Negates the first row and third column of the matrix. This is used for
+        the camera's view matrix or the combined projection/view matrix, to
+        effectively invert the z-axis.
+        */
+        public static void InvertViewZ(Matrix4_ m)
+        {
+            m.Set_Libraries_Compute_Matrix4__row0column0_(m.Get_Libraries_Compute_Matrix4__row0column0_() * -1);
+            m.Set_Libraries_Compute_Matrix4__row0column1_(m.Get_Libraries_Compute_Matrix4__row0column1_() * -1);
+            m.Set_Libraries_Compute_Matrix4__row0column3_(m.Get_Libraries_Compute_Matrix4__row0column3_() * -1);
+            
+            m.Set_Libraries_Compute_Matrix4__row1column2_(m.Get_Libraries_Compute_Matrix4__row1column2_() * -1);
+            m.Set_Libraries_Compute_Matrix4__row2column2_(m.Get_Libraries_Compute_Matrix4__row2column2_() * -1);
+            m.Set_Libraries_Compute_Matrix4__row3column2_(m.Get_Libraries_Compute_Matrix4__row3column2_() * -1);
+        }
+        
+        /*
+        Negates the Z coordinate of a world transform for a Renderable or object
+        with a similar transform.
+        */
+        public static void InvertPositionZ(Matrix4_ m)
+        {
+            m.Set_Libraries_Compute_Matrix4__row2column3_(m.Get_Libraries_Compute_Matrix4__row2column3_() * -1);
         }
 }
