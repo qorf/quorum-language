@@ -1088,7 +1088,6 @@ class Item3D is Item
             repeat children:GetSize() times
                 child = children:Get(counter)
                 Vector3 localOffset = child:GetGlobalPosition()
-                output "localOffset = " + localOffset:GetX() + ", " + localOffset:GetY() + ", " + localOffset:GetZ()
                 localOffset:Subtract(globalOffset)
                 
                 temp:Set(vector):CrossProduct(localOffset):Scale(sin)
@@ -1099,8 +1098,6 @@ class Item3D is Item
                 rotation:Add(temp)
                 
                 rotation:Add(globalOffset):Subtract(child:GetPosition())
-
-                output "rotation = " + rotation:GetX() + ", " + rotation:GetY() + ", " + rotation:GetZ()
 
                 child:SetOffset(rotation)
                 child:Rotate(vector, degrees, true)

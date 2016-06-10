@@ -10,9 +10,6 @@ class PerspectiveCamera is Camera
 
     Math math
     private Vector3 calcVector
-    private Vector3 negatedPosition
-    private Vector3 negatedDirection
-    private Vector3 negatedUp
 
     /*
     This action will set the field of view of the camera to the given angle.
@@ -47,18 +44,8 @@ class PerspectiveCamera is Camera
     after the camera has been manipulated in any way.
     */
     action Update
-//        negatedPosition:Set(GetPosition())
-//        negatedPosition:SetZ(negatedPosition:GetZ() * -1)
-//
-//        negatedDirection:Set(GetDirection())
-//        negatedDirection:SetZ(negatedDirection:GetZ() * -1)
-//
-//        negatedUp:Set(GetUp())
-//        negatedUp:SetZ(negatedUp:GetZ() * -1)
-
         number aspect = GetWidth() / GetHeight()
         GetProjectionMatrix():SetToProjection(math:AbsoluteValue(GetNear()), math:AbsoluteValue(GetFar()), fieldOfView, aspect)
-        //GetViewMatrix():SetToLookAt(negatedPosition, calcVector:Set(negatedPosition):Add(negatedDirection), negatedUp)
         GetViewMatrix():SetToLookAt(GetPosition(), calcVector:Set(GetPosition()):Add(GetDirection()), GetUp())
         GetCombinedMatrix():Set(GetProjectionMatrix())
         GetCombinedMatrix():Multiply(GetViewMatrix())
@@ -66,62 +53,6 @@ class PerspectiveCamera is Camera
         GetInverseCombinedMatrix():Set(GetCombinedMatrix())
         GetInverseCombinedMatrix():Inverse()
         GetFrustum():Update(GetInverseCombinedMatrix())
-
-//        OutputVector3(GetPosition(), "Position")
-//        OutputVector3(GetDirection(), "Direction")
-//        OutputVector3(GetUp(), "Up")
-//        OutputMatrix(GetProjectionMatrix(), "Projection")
-//        OutputMatrix(GetViewMatrix(), "View")
-//        OutputMatrix(GetCombinedMatrix(), "Combined")
-//        OutputMatrix(GetInverseCombinedMatrix(), "Inverse")
-
-        //UpdateNegated()
-    end
-
-    private action UpdateNegated
-        Matrix4 proj
-        Matrix4 view
-        Matrix4 comb
-        Matrix4 invC
-
-        negatedPosition:Set(GetPosition())
-        negatedPosition:SetZ(negatedPosition:GetZ() * -1)
-
-        negatedDirection:Set(GetDirection())
-        negatedDirection:SetZ(negatedDirection:GetZ() * -1)
-
-        negatedUp:Set(GetUp())
-        negatedUp:SetZ(negatedUp:GetZ() * -1)
-
-        number aspect = GetWidth() / GetHeight()
-        proj:SetToProjection(math:AbsoluteValue(GetNear()), math:AbsoluteValue(GetFar()), fieldOfView, aspect)
-        view:SetToLookAt(negatedPosition, calcVector:Set(negatedPosition):Add(negatedDirection), negatedUp)
-        //GetViewMatrix():SetToLookAt(GetPosition(), calcVector:Set(GetPosition()):Add(GetDirection()), GetUp())
-        comb:Set(proj)
-        comb:Multiply(view)
-
-        invC:Set(comb)
-        invC:Inverse()
-
-        OutputMatrix(proj, "Z-Flipped Projection")
-        OutputMatrix(view, "Z-Flipped View")
-        OutputMatrix(comb, "Z-Flipped Combined")
-        OutputMatrix(invC, "Z-Flipped Inverse")
-    end
-
-    private action OutputVector3(Vector3 v, text name)
-        output "Outputting Vector3 " + name + ": "
-        output v:GetX() + ", " + v:GetY() + ", " + v:GetZ()
-        output ""
-    end
-
-    private action OutputMatrix(Matrix4 m, text name)
-        output "Outputting Matrix " + name + ": "
-        output m:row0column0 + ", " + m:row0column1 + ", " + m:row0column2 + ", " + m:row0column3
-        output m:row1column0 + ", " + m:row1column1 + ", " + m:row1column2 + ", " + m:row1column3
-        output m:row2column0 + ", " + m:row2column1 + ", " + m:row2column2 + ", " + m:row2column3
-        output m:row3column0 + ", " + m:row3column1 + ", " + m:row3column2 + ", " + m:row3column3
-        output ""
     end
 
 end
