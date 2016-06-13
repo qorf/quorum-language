@@ -24,6 +24,7 @@ import quorum.Libraries.Game.Graphics.DepthTestAttribute;
 import quorum.Libraries.Game.Graphics.DirectionalLight;
 import quorum.Libraries.Game.Graphics.DirectionalLightsAttribute;
 import quorum.Libraries.Game.Graphics.Environment_;
+import quorum.Libraries.Game.Graphics.OrthographicCamera_;
 import quorum.Libraries.Game.Graphics.PointLight;
 import quorum.Libraries.Game.Graphics.PointLightsAttribute;
 import quorum.Libraries.Game.Graphics.Renderable_;
@@ -234,8 +235,8 @@ public class DefaultShader extends BaseShader
                     // shader.Set(inputID, temp);
                     
                     temp.Set(shader.camera.Get_Libraries_Game_Graphics_Camera__view_());
-                    DefaultShader.InvertViewZ(temp);
                     temp2.Set(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
+                    DefaultShader.InvertViewZ(temp);
                     DefaultShader.InvertPositionZ(temp2);
                     temp.Multiply(temp2);
                     shader.Set(inputID, temp);
@@ -255,8 +256,8 @@ public class DefaultShader extends BaseShader
                     //shader.Set(inputID, temp)
                     
                     temp.Set(shader.camera.Get_Libraries_Game_Graphics_Camera__combined_());
-                    DefaultShader.InvertViewZ(temp);
                     temp2.Set(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
+                    DefaultShader.InvertViewZ(temp);
                     DefaultShader.InvertPositionZ(temp2);
                     temp.Multiply(temp2);
                     shader.Set(inputID, temp);
