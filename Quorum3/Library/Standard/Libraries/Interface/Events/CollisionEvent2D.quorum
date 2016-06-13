@@ -1,26 +1,185 @@
+use Libraries.Interface.Item2D
+use Libraries.Compute.Math
+use Libraries.Compute.Vector2
+
 package Libraries.Interface.Events
 
-use Libraries.Interface.Item2D
-
-/*
-The CollisionEvent2D class represents a collision between two objects in 2D
-space. When an Item2D object is involved in a collision, it can receive a
-CollisionEvent2D object which contains data about the other colliding Item2D.
-*/
 class CollisionEvent2D 
-    Item2D item = undefined
+    Item2D itemA = undefined
+    Item2D itemB = undefined
 
-    /*
-    This action will set the item that is passed by this object.
-    */
-    action SetItem(Item2D item2D)
-        item = item2D
+    integer indexA = -1
+    integer indexB = -1
+
+    boolean touchingFlag = true
+    boolean enabledFlag = false
+
+    // physics fields for later
+    number friction = 0
+    number restitution = 1
+    number tangentSpeed = 0
+
+    Math math
+
+    public CollisionEvent2D next
+    public CollisionEvent2D previous
+
+    public ContactEdge2D nodeA = undefined
+    public ContactEdge2D nodeB = undefined
+
+    ContactManifold2D manifold
+
+    action Initialize(Item2D itemA, integer indexA, Item2D itemB, integer indexB)
+        enabledFlag = true
+        
+        me:itemA = itemA
+        me:indexA = indexA
+        
+        me:itemB = itemB
+        me:indexB = indexB
+
+        manifold:pointCount = 0
+
+        previous = undefined
+        next = undefined
+
+        nodeA:collision = undefined
+        nodeA:previous = undefined
+        nodeA:next = undefined
+        nodeA:other = undefined
+
+        nodeB:collision = undefined
+        nodeB:previous = undefined
+        nodeB:next = undefined
+        nodeA:other = undefined
+
+//        friction = CalculateFriction(itemA:GetFriction(), itemB:GetFriction())
+//        restitution = CalculateRestitution(itemA:GetRestitution(), itemB:GetRestitution())
+        
     end
 
-    /*
-    This action will return the colliding item contained in this object.
-    */
-    action GetItem returns Item2D
-        return item
+    action IsTouching returns boolean
+        return touchingFlag
+    end
+
+    action SetEnabled(boolean enabled)
+        enabledFlag = enabled
+    end
+
+    action IsEnabled returns boolean
+        return enabledFlag
+    end
+
+    action GetNext returns CollisionEvent2D
+        return next
+    end
+
+    action GetItemA returns Item2D
+        return itemA
+    end
+
+    action GetChildIndexA returns integer
+        return indexA
+    end
+
+    action GetItemB returns Item2D
+        return itemB
+    end
+    
+    action GetChildIndexB returns integer
+        return indexB
+    end
+
+    action SetFriction(number friction)
+        me:friction = friction
+    end
+
+    action GetFriction returns number
+        return friction
+    end
+
+    action ResetFriction
+//        friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
+    end
+
+    action SetRestitution(number restitution)
+        me:restitution = restitution
+    end
+
+    action GetRestitution returns number
+        return restitution
+    end
+
+    action ResetRestitution
+//        restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
+    end
+
+    action SetTangentSpeed(number speed)
+        me:tangentSpeed = speed
+    end
+
+    action GetTangentSpeed returns number
+        return tangentSpeed
+    end
+
+    ContactManifold2D oldManifold
+
+    action DispatchCollision(CollisionListener2D listener)
+        oldManifold:Set(manifold)
+
+        enabledFlag = true
+
+        boolean touching = false
+        boolean wasTouching = touchingFlag
+
+        Transform2D transformA
+        Vector2 position
+        position:Set(itemA:GetX(), itemA:GetY())
+        transformA:Set(position, itemA:GetRotation())
+
+        Transform2D transformB
+        position:Set(itemB:GetX(), itemB:GetY())
+        transformB:Set(position, itemB:GetRotation())
+
+        NarrowphaseEvaluation(manifold, transformA, transformB)
+        touching = manifold:pointCount > 0
+
+        touchingFlag = touching
+
+        if listener = undefined
+            return now
+        end
+
+        if not wasTouching and touching
+            listener:BeginCollision(me)
+        end
+
+        if wasTouching and not touching
+            listener:FinishCollision(me)
+        end
+    end
+
+    action CalculateTotalFriction(number friction1, number friction2) returns number
+        return math:SquareRoot(friction1 * friction2)
+    end
+
+    action CalculateTotalRestitution(number restitution1, number restitution2) returns number
+        if restitution1 > restitution2
+            return restitution1
+        else
+            return restitution2
+        end
+    end
+
+    action NarrowphaseEvaluation(ContactManifold2D manifold, Transform2D transformA, Transform2D transformB)
+        
+    end
+
+    action GetNodeA returns ContactEdge2D
+        return nodeA
+    end
+
+    action GetNodeB returns ContactEdge2D
+        return nodeB
     end
 end

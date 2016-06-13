@@ -25,9 +25,16 @@ class Layer2D is Layer
     Camera camera = undefined
     Painter2D painter
 
+    CollisionManager2D collisionManager
+
+    CollisionListener2D collisionListener
+
+    boolean newItemAdded = false
+
     on create
         OrthographicCamera cam
         camera = cam
+        collisionManager:SetLayer(me)
     end
 
     /*
@@ -66,6 +73,16 @@ class Layer2D is Layer
     action Empty()
         Iterator<Item2D> it = items:GetIterator()
         repeat while it:HasNext()
+            ContactEdge2D edge = body:GetContactList()
+            repeat while edge not= undefined
+                ContactEdge2D edge0 = edge
+                edge = edge:next
+                collisionManager:Destroy(edge0:collision)
+            end
+            body:contactList = undefined
+
+            body:DestroyNodes(collisionManager:GetBroadphase())
+
             it:Next():SetLayer(undefined)
         end
         items:Empty()
@@ -76,6 +93,16 @@ class Layer2D is Layer
     part of this layer, this action will have no effect.
     */
     action Remove(Item2D item) returns boolean
+        ContactEdge2D edge = item:GetContactList()
+        repeat while edge not= undefined
+            ContactEdge2D edge0 = edge
+            edge = edge:next
+            collisionManager:Destroy(edge0:collision)
+        end
+        item:contactList = undefined
+
+        item:DestroyNodes(collisionManager:GetBroadphase())
+
         item:SetLayer(undefined)
         return items:Remove(item)
     end
@@ -85,6 +112,17 @@ class Layer2D is Layer
     */
     action RemoveAt(integer index) returns Item2D
         Item2D item = items:RemoveAt(index)
+
+        ContactEdge2D edge = item:GetContactList()
+        repeat while edge not= undefined
+            ContactEdge2D edge0 = edge
+            edge = edge:next
+            collisionManager:Destroy(edge0:collision)
+        end
+        item:contactList = undefined
+
+        item:DestroyNodes(collisionManager:GetBroadphase())
+
         item:SetLayer(undefined)
         return item
     end 
@@ -94,6 +132,16 @@ class Layer2D is Layer
     */
     action RemoveFromFront() returns Item2D
         Item2D item = items:RemoveFromFront()
+        ContactEdge2D edge = item:GetContactList()
+        repeat while edge not= undefined
+            ContactEdge2D edge0 = edge
+            edge = edge:next
+            collisionManager:Destroy(edge0:collision)
+        end
+        item:contactList = undefined
+
+        item:DestroyNodes(collisionManager:GetBroadphase())
+
         item:SetLayer(undefined)
         return item
     end
@@ -103,6 +151,17 @@ class Layer2D is Layer
     */
     action RemoveFromEnd() returns Item2D
         Item2D item = items:RemoveFromEnd()
+
+        ContactEdge2D edge = item:GetContactList()
+        repeat while edge not= undefined
+            ContactEdge2D edge0 = edge
+            edge = edge:next
+            collisionManager:Destroy(edge0:collision)
+        end
+        item:contactList = undefined
+
+        item:DestroyNodes(collisionManager:GetBroadphase())
+
         item:SetLayer(undefined)
         return item
     end
@@ -359,5 +418,30 @@ class Layer2D is Layer
     */
     action SetColorFilter(number red, number green, number blue, number alpha)
         painter:SetColor(red, green, blue, alpha)
+    end
+
+    /*
+    SetCollisionListener sets the collision listener for this layer object. The
+    collision listener is responsible for managing the collision events between
+    2D items in a game.
+    */
+    action SetCollisionListener(CollisionListener2D listener)
+        collisionListener = listener
+    end
+
+    /*
+    This action gets the list of items on this layer that are colliding and
+    returns it as an array.
+    */
+    action GetCollisionList returns Array<CollisionEvent2D>
+        return collisionManager:GetCollisionList()
+    end
+
+    /*
+    This action gets the collision manager for this object which is responsible
+    for managing the collisions between all colliding items on this layer.
+    */
+    action GetCollisionManager returns CollisionManager2D
+        return collisionManager
     end
 end

@@ -1,0 +1,39 @@
+use Libraries.Containers.Array
+use Libraries.Compute.Vector2
+
+package Libraries.Game.Collision
+
+class ContactManifold2D
+    public constant integer MAX_MANIFOLD_POINTS = 2
+
+    public constant integer CIRCLES = 0
+    public constant integer FACE_A = 1
+    public constant integer FACE_B = 2
+
+    public Array<ManifoldPoint2D> points
+    public Vector2 localNormal
+    public Vector2 localPoint
+    public integer pointCount = 0
+
+    public integer type = 0
+
+    on create
+        points:SetMaxSize(MAX_MANIFOLD_POINTS)
+    end
+
+    action Set(ContactManifold2D other)
+        localNormal:Set(other:localNormal)
+        localPoint:Set(other:localPoint)
+        pointCount = other:pointCount
+        type = other:type
+
+        integer i = 0
+        repeat other:pointCount times
+            ManifoldPoint2D new
+            ManifoldPoint2D old = other:points:Get(i)
+            new:Set(old)
+            me:points:Set(i, new)
+            i = i + 1
+        end
+    end
+end

@@ -1,0 +1,42 @@
+use Libraries.Compute.Vector2
+
+package Libraries.Game.Collision.Shapes
+
+class CollisionShape2D
+    public constant integer CIRCLE = 0
+    public constant integer EDGE = 1
+    public constant integer POLYGON = 2
+    public constant integer CHAIN = 3
+
+    integer type = POLYGON
+
+    number radius = 0
+    
+    action SetType(integer type)
+        me:type = type
+    end
+
+    action GetType returns integer
+        return type
+    end
+
+    action SetRadius(number radius)
+        me:radius = radius
+    end
+
+    action GetRadius returns number
+        return radius
+    end
+
+    blueprint action GetChildCount returns integer
+
+    blueprint action TestPoint(Transform2D transform, Vector2 point) returns boolean
+
+    blueprint action ComputeBoundingBox(BoundingBox2D boundingBox, Transform2D transform, integer childIndex)
+    
+    blueprint action ComputeMass(number density) returns number
+
+    blueprint action ComputeDistance(Transform2D transform, Vector2 point, integer childIndex, Vector2 normalOut) returns number
+
+    blueprint action Copy returns CollisionShape2D
+end

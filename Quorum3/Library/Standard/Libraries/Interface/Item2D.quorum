@@ -45,6 +45,21 @@ class Item2D is Item
 
     Array<number> vertices
 
+    // used internally to pass around position and rotation information
+    Transform2D transform
+    
+    // the position and rotation information from the last frame
+    Transform2D transform0
+
+    // swept motion for continuous collision detection
+    Sweep2D sweep
+
+    CollisionShape2D shape = undefined
+    Array<Item2DNode> nodes
+    integer nodeCount = 0
+
+    public ContactEdge2D contactList = undefined
+
     on create
         vertices:SetSize(20)
     end

@@ -1,0 +1,178 @@
+use Libraries.Game.Layer2D
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+
+package Libraries.Game.Collision
+
+class CollisionManager2D
+    BroadphaseCollision2D broadphase
+    Array<CollisionEvent2D> collisionList
+    integer collisionCount = 0
+    CollisionListener2D listener
+
+    Layer2D myLayer = undefined
+    
+    action SetLayer(Layer2D layer)
+        myLayer = layer
+    end
+
+    action AddPair(Object objectA, Object objectB)
+        Item2DNode nodeA = cast(Item2DNode, objectA)
+        Item2DNode nodeB = cast(Item2DNode, objectB)
+
+        Item2D itemA = nodeA:item
+        Item2D itemB = nodeB:item
+
+        integer indexA = nodeA:childIndex
+        integer indexB = nodeB:childIndex
+
+        if itemA = itemB
+            return now
+        end
+
+        ContactEdge2D edge = itemB:GetContactList()
+        repeat while edge not= undefined
+            if edge:other = itemA
+                Item2D iA = edge:collision:GetItemA()
+                Item2D iB = edge:collision:GetItemB()
+                integer a = edge:collision:GetChildIndexA()
+                integer b = edge:collision:GetChildIndexB()
+                
+                if iA = itemA and a = indexA and iB = itemB and b = indexB
+                    return now
+                end
+
+                if iA = itemB and a = indexB and iB = itemA and b = indexA
+                    return now
+                end
+            end
+
+            edge = edge:next
+        end
+
+        // create collision event and add to collision event list
+        CollisionEvent2D collision
+        collision:Initialize(itemA, indexA, itemB, indexB)
+        collisionList:Add(collision)
+
+        itemA = collision:GetItemA()
+        itemB = collision:GetItemB()
+        indexA = collision:GetChildIndexA()
+        indexB = collision:GetChildIndexB()
+
+        // connect collision to itemA
+        ContactEdge2D contactNodeA = collision:nodeA
+        contactNodeA:collision = collision
+        contactNodeA:other = itemB
+        contactNodeA:previous = undefined
+        contactNodeA:next = itemA:contactList
+        ContactEdge2D itemAContactList = itemA:contactList
+        if itemAContactList not= undefined
+            itemAContactList:previous = contactNodeA
+        end
+        itemAContactList = collision:nodeA
+
+        // connect collision to itemB
+        ContactEdge2D contactNodeB = collision:nodeB
+        contactNodeB:collision = collision
+        contactNodeB:other = itemA
+        contactNodeB:previous = undefined
+        contactNodeB:next = itemB:contactList
+        ContactEdge2D itemBContactList = itemB:contactList
+        if itemBContactList not= undefined
+            itemBContactList:previous = contactNodeB
+        end
+        itemBContactList = collision:nodeB
+
+        collisionCount = collisionCount + 1
+    end
+
+    action FindNewCollisions
+        broadphase:UpdatePairs(me)
+    end
+
+    action Destroy(CollisionEvent2D collision)
+        Item2D itemA = collision:GetItemA()
+        Item2D itemB = collision:GetItemB()
+
+        if listener not= undefined and collision:IsTouching()
+            listener:FinishCollision(collision)
+        end
+
+        collisionList:Remove(collision)
+
+        // remove collision from itemA
+        ContactEdge2D collisionNodeA = collision:nodeA
+        if collisionNodeA:previous not= undefined
+            ContactEdge2D previous = collisionNodeA:previous
+            previous:next = collision:nodeA:next
+        end
+
+        if collisionNodeA:next not= undefined
+            ContactEdge2D next = collisionNodeA:next
+            next:previous = collisionNodeA:previous
+        end
+
+        if collisionNodeA = itemA:contactList
+            itemA:contactList = collisionNodeA:next
+        end
+
+        // remove collision from itemB
+        ContactEdge2D collisionNodeB = collision:nodeB
+        if collisionNodeB:previous not= undefined
+            ContactEdge2D previous = collisionNodeB:previous
+            previous:next = collisionNodeB:next
+        end
+
+        if collisionNodeB:next not= undefined
+            ContactEdge2D next = collisionNodeB:next
+            next:previous = collisionNodeB:previous
+        end
+
+        if collisionNodeB = itemB:contactList
+            itemB:contactList = collisionNodeB:next
+        end
+
+        collisionCount = collisionCount - 1
+    end
+
+    action Collide
+        integer i = 0
+        repeat while i < collisionList:GetSize()
+            CollisionEvent2D collision = collisionList:Get(i)
+            Item2D itemA = collision:GetItemA()
+            Item2D itemB = collision:GetItemB()
+            integer indexA = collision:GetChildIndexA()
+            integer indexB = collision:GetChildIndexB()
+
+            // collision filtering
+            // this involves, for example, ignoring collisions where both items
+            // are declared as static bodies
+            // should we allow user-defined collision filtering?
+
+            integer nodeIDA = itemA:GetNodes():Get(indexA):nodeID
+            integer nodeIDB = itemB:GetNodes():Get(indexB):nodeID
+
+            boolean overlap = broadphase:TestOverlap(nodeIDA, nodeIDB)
+
+            if not overlap
+                Destroy(collision)
+            else
+                collision:DispatchCollision(listener)
+            end
+            i = i + 1
+        end
+    end
+
+    action GetBroadphase returns BroadphaseCollision2D
+        return broadphase
+    end
+
+    action GetCollisionList returns Array<CollisionEvent2D>
+        return collisionList
+    end
+
+    action GetCollisionCount returns integer
+        return collisionCount
+    end
+end

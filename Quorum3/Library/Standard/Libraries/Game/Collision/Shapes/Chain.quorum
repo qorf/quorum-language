@@ -1,0 +1,205 @@
+use Libraries.Compute.Vector2
+use Libraries.Containers.Array
+use Libraries.Language.Errors.PhysicsError
+
+package Libraries.Game.Collision.Shapes
+
+class Chain is CollisionShape2D
+    Array<Vector2> vertices
+    integer vertexCount = 0
+    Vector2 previousVertex
+    Vector2 nextVertex
+    boolean hasPreviousVertex = false
+    boolean hasNextVertex = false
+
+    on create
+        parent:CollisionShape2D:SetType(parent:CollisionShape2D:CHAIN)
+        parent:CollisionShape2D:SetRadius(2.0 * 0.005)
+    end
+    
+    action Clear
+        vertexCount = 0
+        vertices:Empty()
+    end
+
+    action GetChildCount returns integer
+        return vertexCount - 1
+    end
+
+    action GetChildEdge(integer index) returns Edge
+        Edge edge
+        edge:parent:CollisionShape2D:SetRadius(parent:CollisionShape2D:GetRadius())
+        
+        Vector2 v0 = vertices:Get(index)
+        Vector2 v1 = vertices:Get(index + 1)
+
+        edge:vertex1:SetX(v0:GetX())
+        edge:vertex1:SetY(v0:GetY())
+
+        edge:vertex2:SetX(v1:GetX())
+        edge:vertex2:SetY(v1:GetY())
+
+        if index > 0
+            Vector2 v = vertices:Get(index - 1)
+            edge:vertex0:SetX(v:GetX())
+            edge:vertex0:SetY(v:GetY())
+            edge:hasVertex0 = true
+        else
+            edge:vertex0:SetX(previousVertex:GetX())
+            edge:vertex0:SetY(previousVertex:GetY())
+            edge:hasVertex0 = hasPreviousVertex
+        end
+
+        if index < vertexCount - 2
+            Vector2 v = vertices:Get(index + 2)
+            edge:vertex3:SetX(v:GetX())
+            edge:vertex3:SetY(v:GetY())
+            edge:hasVertex3 = true
+        else
+            edge:vertex3:SetX(nextVertex:GetX())
+            edge:vertex3:SetY(nextVertex:GetY())
+            edge:hasVertex3 = hasNextVertex
+        end
+
+        return edge
+    end
+
+    action ComputeDistance(Transform2D transform, Vector2 point, integer childIndex, Vector2 normalOut) returns number
+        Edge edge = GetChildEdge(childIndex)
+        return edge:ComputeDistance(transform, point, 0, normalOut)
+    end
+
+    action TestPoint(Transform2D transform, Vector2 point) returns boolean
+        return false
+    end
+
+    action ComputeBoundingBox(BoundingBox2D boundingBox, Transform2D transform, integer childIndex)
+        Vector2 minimum = boundingBox:GetMinimum()
+        Vector2 maximum = boundingBox:GetMaximum()
+
+        integer i1 = childIndex
+        integer i2 = childIndex + 1
+
+        if i2 = vertexCount
+            i2 = 0
+        end
+
+        Vector2 vi1 = vertices:Get(i1)
+        Vector2 vi2 = vertices:Get(i2)
+
+        number cosine = transform:GetCosine()
+        number sine = transform:GetSine()
+        number x = transform:GetPosition():GetX()
+        number y = transform:GetPosition():GetY()
+        number v1x = (cosine * vi1:GetX() - sine * vi1:GetY()) + x
+        number v1y = (sine * vi1:GetX() + cosine * vi1:GetY()) + y
+        number v2x = (cosine * vi2:GetX() - sine * vi2:GetY()) + x
+        number v2y = (sine * vi2:GetX() + cosine * vi2:GetY()) + y
+
+        if v1x < v2x
+            minimum:SetX(v1x)
+        else
+            minimum:SetX(v2x)
+        end
+
+        if v1y < v2y
+            minimum:SetY(v1y)
+        else
+            minimum:SetY(v2y)
+        end
+
+        if v1x > v2x
+            maximum:SetX(v1x)
+        else
+            maximum:SetX(v2x)
+        end
+
+        if v1y > v2y
+            maximum:SetY(v1y)
+        else
+            maximum:SetY(v2y)
+        end
+    end
+    
+    action ComputeMass(number density) returns number
+        return 0
+    end
+
+    action Copy returns CollisionShape2D
+        Chain clone
+        clone:CreateChain(vertices, vertexCount)
+        clone:previousVertex:Set(me:previousVertex)
+        clone:nextVertex:Set(me:nextVertex)
+        clone:hasPreviousVertex = me:hasPreviousVertex
+        clone:hasNextVertex = me:hasNextVertex
+        return clone
+    end
+
+    action CreateLoop(Array<Vector2> vertices, integer count)
+        me:vertexCount = count + 1
+        me:vertices:SetSize(vertexCount)
+        integer i = 1
+        repeat while i < count
+            Vector2 v1 = vertices:Get(i - 1)
+            Vector2 v2 = vertices:Get(i)
+
+            if v1:DistanceSquared(v2) < 0.005 * 0.005
+                PhysicsError error
+                error:SetErrorMessage("Vertices of chain shape are too close together")
+                alert(error)
+            end
+
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < count
+            me:vertices:Get(i):Set(vertices:Get(i))
+            i = i + 1
+        end
+
+        me:vertices:Get(count):Set(me:vertices:Get(0))
+        previousVertex:Set(me:vertices:Get(vertexCount - 2))
+        nextVertex:Set(me:vertices:Get(1))
+        hasPreviousVertex = hasNextVertex = true
+    end
+
+    action CreateChain(Array<Vector2> vertices, integer count)
+        vertexCount = count
+        vertices:SetSize(count)
+        integer i = 1
+        repeat while i < vertexCount
+            Vector2 v1 = vertices:Get(i - 1)
+            Vector2 v2 = vertices:Get(i)
+
+            if v1:DistanceSquared(v2) < 0.005 * 0.005
+                PhysicsError error
+                error:SetErrorMessage("Vertices of chain shape are too close together")
+                alert(error)                
+            end
+        
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < vertexCount
+            me:vertices:Get(i):Set(vertices:Get(i))
+            i = i + 1
+        end
+
+        hasPreviousVertex = hasNextVertex = false
+
+        previousVertex:SetZero()
+        nextVertex:SetZero()
+    end
+
+    action SetPreviousVertex(Vector2 previousVertex)
+        me:previousVertex:Set(previousVertex)
+        hasPreviousVertex = true
+    end
+
+    action SetNextVertex(Vector2 nextVertex)
+        me:nextVertex = nextVertex
+        hasNextVertex = true
+    end
+end

@@ -1,0 +1,133 @@
+use Libraries.Compute.Vector2
+use Libraries.Compute.Math
+
+package Libraries.Game.Collision.Shapes
+
+class Edge is CollisionShape2D
+    public Vector2 vertex1
+    public Vector2 vertex2
+    public Vector2 vertex0
+    public Vector2 vertex3
+    public boolean hasVertex0 = false
+    public boolean hasVertex3 = false
+
+    Math math
+
+    on create
+        parent:CollisionShape2D:SetType(parent:CollisionShape2D:EDGE)
+        parent:CollisionShape2D:SetRadius(2.0 * 0.005)
+    end
+
+    action GetChildCount returns integer
+        return 1
+    end
+
+    action Set(Vector2 vertex1, Vector2 vertex2)
+        me:vertex1:Set(vertex1)
+        me:vertex2:Set(vertex2)
+        hasVertex0 = hasVertex3 = false
+    end
+
+    action TestPoint(Transform2D transform, Vector2 point) returns boolean
+        return false
+    end
+
+    Vector2 normal
+
+    action ComputeDistance(Transform2D transform, Vector2 point, integer childIndex, Vector2 normalOut) returns number
+        number cosine = transform:GetCosine()
+        number sine = transform:GetSine()
+        number x = transform:GetPosition():GetX()
+        number y = transform:GetPosition():GetY()
+        number v1x = (cosine * vertex1:GetX() - sine * vertex1:GetY()) + x
+        number v1y = (sine * vertex1:GetX() + cosine * vertex1:GetY()) + y
+        number v2x = (cosine * vertex2:GetX() - sine * vertex2:GetY()) + x
+        number v2y = (sine * vertex2:GetX() + cosine * vertex2:GetY()) + y
+
+        number dx = point:GetX() - v1x
+        number dy = point:GetY() - v1y
+        number sx = v2x - v1x
+        number sy = v2y - v1y
+        number ds = dx * sx + dy * sy
+        if ds > 0
+            number s2 = sx * sx + sy * sy
+            if ds > s2
+                dx = point:GetX() - v2x
+                dy = point:GetY() - v2y
+            else
+                dx = dx - ds / s2 * sx
+                dy = dy - ds / s2 * sy
+            end
+        end
+
+        number d1 = math:SquareRoot(dx * dx + dy * dy)
+        if d1 > 0
+            normalOut:SetX(1 / d1 * dx)
+            normalOut:SetY(1 / d1 * dy)
+        else
+            normalOut:SetX(0)
+            normalOut:SetY(0)
+        end
+
+        return d1
+    end
+
+    action ComputeBoundingBox(BoundingBox2D boundingBox, Transform2D transform, integer childIndex)
+        Vector2 minimum = boundingBox:GetMinimum()
+        Vector2 maximum = boundingBox:GetMaximum()
+        number cosine = transform:GetCosine()
+        number sine = transform:GetSine()
+        number x = transform:GetPosition():GetX()
+        number y = transform:GetPosition():GetY()
+        
+        number v1x = (cosine * vertex1:GetX() - sine * vertex1:GetY()) + x
+        number v1y = (sine * vertex1:GetX() + cosine * vertex1:GetY()) + y
+        number v2x = (cosine * vertex2:GetX() - sine * vertex2:GetY()) + x
+        number v2y = (sine * vertex2:GetX() + cosine * vertex2:GetY()) + y
+
+        if v1x < v2x
+            minimum:SetX(v1x)
+        else
+            minimum:SetX(v2x)
+        end
+
+        if v1y < v2y
+            minimum:SetY(v1y)
+        else
+            minimum:SetY(v2y)
+        end
+
+        if v1x > v2x
+            maximum:SetX(v1x)
+        else
+            maximum:SetX(v2x)
+        end
+
+        if v1y > v2y
+            maximum:SetY(v1y)
+        else
+            maximum:SetY(v2y)
+        end
+
+        minimum:SetX(minimum:GetX() - parent:CollisionShape2D:GetRadius())
+        minimum:SetY(minimum:GetY() - parent:CollisionShape2D:GetRadius())
+        maximum:SetX(maximum:GetX() + parent:CollisionShape2D:GetRadius())
+        maximum:SetY(maximum:GetY() + parent:CollisionShape2D:GetRadius())
+    end
+
+    action ComputeMass(number density) returns number
+        return 0
+    end
+
+    action Copy returns CollisionShape2D
+        Edge edge
+        edge:parent:CollisionShape2D:SetRadius(parent:CollisionShape2D:GetRadius())
+        edge:hasVertex0 = me:hasVertex0
+        edge:hasVertex3 = me:hasVertex3
+        edge:vertex0:Set(me:vertex0)
+        edge:vertex1:Set(me:vertex1)
+        edge:vertex2:Set(me:vertex2)
+        edge:vertex3:Set(me:vertex3)
+        return edge
+    end
+end

@@ -1,0 +1,442 @@
+use Libraries.Compute.Vector2
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+
+package Libraries.Game.Collision.Shapes
+
+class Polygon is CollisionShape2D
+    public constant integer MAXIMUM_POLYGON_VERTICES = 8
+    Vector2 centroid
+    Array<Vector2> vertices
+    Array<Vector2> normals
+    integer vertexCount = 0
+
+    
+    Math math
+    
+    on create
+        parent:CollisionShape2D:SetType(parent:CollisionShape2D:POLYGON)
+        vertices:SetMaxSize(MAXIMUM_POLYGON_VERTICES)
+        normals:SetMaxSize(MAXIMUM_POLYGON_VERTICES)
+        SetRadius(2.0 * 0.005)
+        centroid:SetZero()
+    end
+
+    action Copy returns CollisionShape2D
+        Polygon shape
+        shape:centroid:Set(me:centroid)
+        integer i = 0
+        repeat while i < shape:normals:GetSize()
+            shape:normals:Get(i):Set(me:normals:Get(i))
+            shape:vertices:Get(i):Set(me:vertices:Get(i))
+            i = i + 1
+        end
+        shape:SetRadius(me:GetRadius())
+        shape:vertexCount = me:vertexCount
+        return shape
+    end
+
+    action Set(Array<Vector2> vertices, integer count)
+        if count < 3
+            SetAsBox(1, 1)
+            return now
+        end
+
+        integer n = count
+        if MAXIMUM_POLYGON_VERTICES < count
+            n = MAXIMUM_POLYGON_VERTICES
+        end
+
+        Array<Vector2> points
+        points:SetMaxSize(MAXIMUM_POLYGON_VERTICES)
+        integer tempCount = 0
+        integer i = 0
+        repeat while i < n
+            Vector2 vector = vertices:Get(i)
+            boolean unique = true
+            integer j = 0
+            boolean continue = true
+            repeat while j < tempCount and continue
+                if vector:DistanceSquared(points:Get(j)) < 0.5 * 0.005
+                    unique = false
+                    continue = false
+                end
+
+                j = j + 1
+            end
+
+            if unique
+                points:Set(tempCount, vector)
+                tempCount = tempCount + 1
+            end
+
+            i = i + 1
+        end
+
+        n = tempCount
+        if n < 3
+            SetAsBox(1, 1)
+            return now
+        end
+
+        Vector2 pool1
+        Vector2 pool2
+
+        integer i0 = 0
+        number x0 = points:Get(0):GetX()
+        i = 1
+        repeat while i < n
+            number x = points:Get(i):GetX()
+            if x > x0 or (x = x0 and points:Get(i):GetY() < points:Get(i0):GetY())
+                i0 = i
+                x0 = x
+            end
+            i = i + 1
+        end
+
+        Array<integer> hull
+        hull:SetSize(MAXIMUM_POLYGON_VERTICES)
+        integer m = 0
+        integer ih = i0
+
+        boolean continue = true
+        repeat while continue
+            hull:Set(m, ih)
+
+            integer ie = 0
+            integer j = 1
+            repeat while j < n
+                if ie = ih
+                    ie = j
+                else
+                    Vector2 r = pool1:Set(points:Get(ie)):Subtract(points:Get(hull:Get(m)))
+                    Vector2 v = pool2:Set(points:Get(j)):Subtract(points:Get(hull:Get(m)))
+                    number c = r:CrossProduct(v)
+                    if c < 0
+                        ie = j
+                    end
+                    if c = 0 and v:LengthSquared() > r:LengthSquared()
+                        ie = j
+                    end
+                end
+                j = j + 1
+            end
+
+            m = m + 1
+            ih = ie
+
+            if ie = i0
+                continue = false
+            end
+        end
+
+        me:vertexCount = m
+
+        i = 0
+        repeat while i < vertexCount
+            vertices:Get(i):Set(points:Get(hull:Get(i)))            
+            i = i  + 1
+        end
+
+        Vector2 edge = pool1
+
+        i = 0
+        repeat while i < vertexCount
+            integer i1 = i
+            integer i2 = 0
+            if i + 1 < vertexCount
+                i2 = i + 1
+            else
+                i2 = 0
+            end
+
+            edge:Set(vertices:Get(i2)):Subtract(vertices:Get(i1))
+            normals:Get(i):SetX(1 * edge:GetY())
+            normals:Get(i):SetY(-1 * edge:GetX())
+            normals:Get(i):Normalize()
+            i = i + 1
+        end
+
+        centroid = ComputeCentroid(vertices, vertexCount)
+    end
+
+    action SetAsBox(number halfWidth, number halfHeight)
+        count = 4
+        vertices:Get(0):Set(-1 * halfWidth, -1 * halfHeight)
+        vertices:Get(1):Set(halfWidth, -1 * halfHeight)
+        vertices:Get(2):Set(halfWidth, halfHeight)
+        vertices:Get(3):Set(-1 * halfWidth, halfHeight)
+        normals:Get(0):Set(0, -1)
+        normals:Get(1):Set(1, 0)
+        normals:Get(2):Set(0, 1)
+        normals:Get(3):Set(-1, 0)
+        centroid:SetZero()
+    end
+
+    action SetAsBox(number halfWidth, number halfHeight, Vector2 center, number angle)
+        count = 4
+        vertices:Get(0):Set(-1 * halfWidth, -1 * halfHeight)
+        vertices:Get(1):Set(halfWidth, -1 * halfHeight)
+        vertices:Get(2):Set(halfWidth, halfHeight)
+        vertices:Get(3):Set(-1 * halfWidth, halfHeight)
+        normals:Get(0):Set(0, -1)
+        normals:Get(1):Set(1, 0)
+        normals:Get(2):Set(0, 1)
+        normals:Get(3):Set(-1, 0)
+        centroid:Set(center)
+
+        Transform2D transform
+        transform:Set(center, angle)
+
+        integer i = 0
+        repeat while i < count
+            transform:MultiplyToOut(transform, vertices:Get(i), vertices:Get(i))
+            number tempY = transform:GetSine() * normals:Get(i):GetX() + transform:GetCosine() * normals:Get(i):GetY()
+            normals:Get(i):SetX(transform:GetCosine() * normals:Get(i):GetX() - transform:GetSine() * normals:Get(i):GetY())
+            normals:Get(i):SetY(tempY)
+            i = i + 1
+        end
+    end
+
+    action GetChildCount returns integer
+        return 1
+    end
+
+    action TestPoint(Transform2D transform, Vector2 point) returns boolean
+        number tempX = 0
+        number tempY = 0
+
+        number sine = transform:GetSine()
+        number cosine = transform:GetCosine()
+
+        tempX = point:GetX() - transform:GetPosition():GetX()
+        tempY = point:GetY() - transform:GetPosition():GetY()
+        number pLocalx = cosine * tempX + sine * tempY
+        number pLocaly = -1 * sine * tempX + cosine * tempY
+
+        integer i = 0
+        repeat while i < vertexCount
+            Vector2 vertex = vertices:Get(i)
+            Vector2 normal = normals:Get(i)
+            tempX = pLocalx - vertex:GetX()
+            tempY = pLocaly - vertex:GetY()
+            number dot = normal:GetX() * tempX + normal:GetY() * tempY
+            if dot > 0
+                return false
+            end
+            i = i + 1
+        end
+        return true
+    end
+
+    action ComputeBoundingBox(BoundingBox2D boundingBox, Transform2D transform, integer childIndex)
+        Vector2 minimum = boundingBox:GetMinimum()
+        Vector2 maximum = boundingBox:GetMaximum()
+        Vector2 v1 = vertices:Get(0)
+        number cosine = transform:GetCosine()
+        number sine = transform:GetSine()
+        number x = transform:GetPosition():GetX()
+        number y = transform:GetPosition():GetY()
+        minimum:SetX((cosine * v1:GetX() - sine * v1:GetY()) + x)
+        minimum:SetY((sine * v1:GetX() + cosine * v1:GetY()) + y)
+        maximum:SetX(minimum:GetX())
+        maximum:SetY(minimum:GetY())
+
+        integer i = 0
+        repeat while i < vertexCount
+            Vector2 v2 = vertices:Get(i)
+            number vx = (cosine * v2:GetX() - sine * v2:GetY()) + x
+            number vy = (sine * v2:GetX() + cosine * v2:GetY()) + y
+            if minimum:GetX() < vx
+                minimum:SetX(minimum:GetX())
+            else
+                minimum:SetX(vx)
+            end
+            if minimum:GetY() < vy
+                minimum:SetY(minimum:GetY())
+            else
+                minimum:SetY(vy)
+            end
+            if maximum:GetX() > vx
+                maximum:SetX(maximum:GetX())
+            else
+                maximum:SetX(vx)
+            end
+            if maximum:GetY() > vy
+                maximum:SetY(maximum:GetY())
+            else
+                maximum:SetY(vy)
+            end
+            i = i + 1
+        end
+        
+        minimum:SetX(minimum:GetX() - parent:CollisionShape2D:radius)
+        minimum:SetY(minimum:GetY() - parent:CollisionShape2D:radius)
+        maximum:SetX(maximum:GetX() + parent:CollisionShape2D:radius)
+        maximum:SetY(maximum:GetY() + parent:CollisionShape2D:radius)
+    end
+
+    action GetVertexCount returns integer
+        return vertexCount
+    end
+
+    action GetVertex(integer index) returns Vector2
+        return vertices:Get(index)
+    end
+
+    action ComputeDistance(Transform2D transform, Vector2 point, integer childIndex, Vector2 normalOut) returns number
+        number cosine = transform:GetCosine()
+        number sine = transform:GetSine()
+        number tx = point:GetX() - transform:GetPosition():GetX()
+        number ty = point:GetY() - transform:GetPosition():GetY()
+        number pLocalx = cosine * tx + sine * ty
+        number pLocaly = -1 * sine * tx + cosine * ty
+
+        Number n
+        number maxDistance = -1 * n:GetMaximumValue()
+        number normalForMaxDistanceX = pLocalx
+        number normalForMaxDistanceY = pLocaly
+
+        integer i = 0
+        repeat while i < vertexCount
+            Vector2 vertex = vertices:Get(i)
+            Vector2 normal = normals:Get(i)
+            tx = pLocalx - vertex:GetX()
+            ty = pLocaly - vertex:GetY()
+            number dot = normal:GetX() * tx + normal:GetY() * ty
+            if dot > maxDistance
+                maxDistance = dot
+                normalForMaxDistanceX = normal:GetX()
+                normalForMaxDistanceY = normal:GetY()
+            end
+            
+            i = i + 1
+        end
+
+        number distance = 0
+        if maxDistance > 0
+            number minDistanceX = normalForMaxDistanceX
+            number minDistanceY = normalForMaxDistanceY
+            number minDistance2 = maxDistance * maxDistance
+            
+            i = 0
+            repeat while i < vertexCount
+                Vector2 vertex = vertices:Get(i)
+                number distanceVecX = pLocalx - vertex:GetX()
+                number distanceVecY = pLocaly - vertex:GetY()
+                number distance2 = distanceVecX * distanceVecX + distanceVecY * distanceVecY
+                if minDistance2 > distance2
+                    minDistanceX = distanceVecX
+                    minDistanceY = distanceVecY
+                    minDistance2 = distance2
+                end
+            
+                i = i + 1
+            end
+            
+            distance = math:SquareRoot(minDistance2)
+            normalOut:SetX(cosine * minDistanceX - sine * minDistanceY)
+            normalOut:SetY(sine * minDistanceX + cosine * minDistanceY)
+            normalOut:Normalize()
+        else
+            distance = maxDistance
+            normalOut:SetX(cosine * normalForMaxDistanceX - sine * normalForMaxDistanceY)
+            normalOut:SetY(sine * normalForMaxDistanceX + cosine * normalForMaxDistanceY)
+        end
+        
+        return distance
+    end
+
+    action ComputeCentroid(Array<Vector2> vectors, integer count) returns Vector2
+        Vector2 result
+        result:Set(0, 0)
+        number area = 0
+
+        Vector2 pRef
+        pRef:SetZero()
+
+        Vector2 e1
+        Vector2 e2
+
+        number inv3 = 1.0 / 3.0
+
+        integer i = 0
+        repeat while i < vertexCount
+            Vector2 p1 = pRef
+            Vector2 p2 = vectors:Get(i)
+            Vector2 p3
+            if i + 1 < vertexCount
+                p3:Set(vectors:Get(i + 1))
+            else
+                p3:Set(vectors:Get(0))
+            end
+
+            e1:Set(p2):Subtract(p1)
+            e2:Set(p3):Subtract(p1)
+
+            number D = e1:CrossProduct(e2)
+
+            number triangleArea = 0.5 * D
+            area = area + triangleArea
+
+            e1:Set(p1):Add(p2):Add(p3):Scale(triangleArea * inv3)
+            result:Add(e1)
+
+            i = i + 1
+        end
+
+        result:Scale(1.0 / area)
+        return result
+    end
+
+    action ComputeMass(number density) returns number
+        // will implement later...
+        return 0
+    end
+
+    action Validate returns boolean
+        integer i = 0
+        repeat while i < vertexCount
+            integer i1 = i
+            integer i2 = 0
+            if i < vertexCount - 1
+                i2 = i1 + 1
+            else
+                i2 = 0
+            end
+
+            Vector2 p = vertices:Get(i1)
+            Vector2 e
+            e:Set(vertices:Get(i2)):Subtract(p)
+
+            integer j = 0
+            repeat while j < vertexCount
+                if not (j = i1 or j = i2)
+                    Vector2 v
+                    v:Set(vertices:Get(j)):Subtract(p)
+                    number c = e:CrossProduct(v)
+                    if c < 0
+                        return false
+                    end
+                end
+                j = j + 1
+            end
+
+            i = i + 1
+        end
+        return true
+    end
+
+    action GetVertices returns Array<Vector2>
+        return vertices
+    end
+
+    action GetNormals returns Array<Vector2>
+        return normals
+    end
+
+    action Centroid(Transform2D transform) returns Vector2
+        return transform:Multiply(transform, centroid)
+    end
+
+end
