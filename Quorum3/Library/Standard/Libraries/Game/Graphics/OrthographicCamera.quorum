@@ -2,10 +2,11 @@ package Libraries.Game.Graphics
 
 use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
+use Libraries.Game.GameStateManager
 
 class OrthographicCamera is Camera
     
-    public number zoom = 1
+    number zoom = 1
 
     on create
         parent:Camera:near = 0
@@ -32,14 +33,10 @@ class OrthographicCamera is Camera
     after the camera has been manipulated in any way.
     */
     action Update
-//        negatedPosition:Set(parent:Camera:position):Scale(1, 1, -1)
-//        negatedDirection:Set(parent:Camera:direction):Scale(1, 1, -1)
-//        negatedUp:Set(parent:Camera:up):Scale(1, 1, -1)
 
-        parent:Camera:projection:SetToOrthographic(zoom * -parent:Camera:viewportWidth/2, zoom * parent:Camera:viewportWidth/2,
-            zoom * -parent:Camera:viewportHeight/2, zoom * parent:Camera:viewportHeight/2, parent:Camera:near, parent:Camera:far)
+        parent:Camera:projection:SetToOrthographic(-parent:Camera:viewportWidth/(2 * zoom), parent:Camera:viewportWidth/(2 * zoom),
+            -parent:Camera:viewportHeight/(2 * zoom), parent:Camera:viewportHeight/(2 * zoom), parent:Camera:near, parent:Camera:far)
             
-        //parent:Camera:view:SetToLookAt(negatedPosition, calcVector:Set(negatedPosition):Add(negatedDirection), negatedUp)
         parent:Camera:view:SetToLookAt(parent:Camera:position, calcVector:Set(parent:Camera:position):Add(parent:Camera:direction), parent:Camera:up)
         parent:Camera:combined:Set(parent:Camera:projection)
         parent:Camera:combined:Multiply(parent:Camera:view)
@@ -54,8 +51,8 @@ class OrthographicCamera is Camera
     viewport fitting the game's full width and height.
     */
     action SetToOrthographic
-        // NOT YET IMPLEMENTED
-        // SetToOrthographic( SCREEN_WIDTH, SCREEN_HEIGHT)
+        GameStateManager manager
+        SetToOrthographic(manager:GetGameDisplay():GetWidth(), manager:GetGameDisplay():GetHeight())
     end
 
     /*
@@ -67,7 +64,7 @@ class OrthographicCamera is Camera
         parent:Camera:up:Set(0, 1, 0)
         parent:Camera:direction:Set(0, 0, -1)
         
-        parent:Camera:position:Set(zoom * viewportWidth/2.0, zoom * viewportHeight/2.0, 0)
+        parent:Camera:position:Set(viewportWidth/(2.0 * zoom), viewportHeight/(2.0 * zoom), 0)
         parent:Camera:viewportWidth = viewportWidth
         parent:Camera:viewportHeight = viewportHeight
         Update()
@@ -94,5 +91,40 @@ class OrthographicCamera is Camera
     */
     action Move(Vector2 vector)
         Move(vector:GetX(), vector:GetY(), 0)
+    end
+
+    /*
+    This action will set the camera's position in 2D space. If used in a 3D
+    environment, it will set the camera's x and y position without affecting its
+    z position.
+    */
+    action SetPosition(number x, number y)
+        SetPosition(x, y, 0)
+    end
+
+    /*
+    This action will set the camera's position in 2D space. If used in a 3D
+    environment, it will set the camera's x and y position without affecting its
+    z position.
+    */
+    action SetPosition(Vector2 vector)
+        SetPosition(vector:GetX(), vector:GetY(), 0)
+    end
+
+    /*
+    The SetZoom action will set the zoom level of the camera. A value of 1 will
+    use the default zoom. A smaller value will zoom the camera out, while a
+    larger value will zoom the camera in.
+    */
+    action SetZoom(number zoom)
+        me:zoom = zoom
+    end
+
+    /*
+    The GetZoom action returns the current level of zoom used by the camera. The
+    default value is 1.
+    */
+    action GetZoom returns number
+        return zoom
     end
 end

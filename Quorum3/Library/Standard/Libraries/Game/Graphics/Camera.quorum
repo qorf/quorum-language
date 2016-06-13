@@ -55,7 +55,7 @@ class Camera
     /*
     The distance to the far clipping plane. Must be positive.
     */
-    number far = 100
+    number far = 1000
 
 
     /*
@@ -86,7 +86,24 @@ class Camera
         viewportHeight = manager:GetGameDisplay():GetHeight()
     end
 
+    /*
+    This action recalculates the camera's position and data. This should be used
+    after the camera has been manipulated in any way.
+    */
     blueprint action Update
+
+    /*
+    The SetZoom action will set the zoom level of the camera. A value of 1 will
+    use the default zoom. A smaller value will zoom the camera out, while a
+    larger value will zoom the camera in.
+    */
+    blueprint action SetZoom(number zoom)
+
+    /*
+    The GetZoom action returns the current level of zoom used by the camera. The
+    default value is 1.
+    */
+    blueprint action GetZoom returns number
 
     /*
     This action will angle the camera to look at the given point in 3D space.
