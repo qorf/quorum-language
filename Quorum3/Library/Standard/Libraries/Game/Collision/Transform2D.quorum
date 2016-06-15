@@ -26,6 +26,10 @@ class Transform2D
         return position
     end
 
+    action GetAngle returns number
+        return math:InverseTangent(sine, cosine)
+    end
+
     action GetSine returns number
         return sine
     end

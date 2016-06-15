@@ -13,28 +13,37 @@ use Libraries.Compute.Math
 use Libraries.Game.Shapes.Rectangle
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Layer2D
+use Libraries.Compute.Vector2
+use Libraries.Game.Collision.Transform2D
+use Libraries.Game.Collision.Sweep2D
+use Libraries.Game.Collision.Shapes.all
+use Libraries.Game.Collision.Item2DNode
+use Libraries.Game.Collision.BroadphaseCollision2D
 
 class Item2D is Item
     
     private Item2D parentItem = undefined
     private Array<Item2D> children
 
-    number x = 0
-    number y = 0
+    /*
+    Used internally to pass around position and rotation information
+    */
+    Transform2D transform
     number z = 0
-    number offsetX = 0
-    number offsetY = 0
-    number width = 0
-    number height = 0
-    number originX = 0.0
-    number originY = 0.0
-    number rotation = 0.0
-    number scaleX = 1
-    number scaleY = 1
-    number scaleOffsetX = 0
-    number scaleOffsetY = 0
+
+    Vector2 offset
+
+    Vector2 dimensions
+
+    Vector2 origin
+
+    Vector2 scale
+
+    Vector2 scaleOffset
+
     boolean flipX = false
     boolean flipY = false
+
     Layer2D layer = undefined
 
     private boolean verticesChanged = true
@@ -45,18 +54,11 @@ class Item2D is Item
 
     Array<number> vertices
 
-    // used internally to pass around position and rotation information
-    Transform2D transform
-    
-    // the position and rotation information from the last frame
-    Transform2D transform0
-
-    // swept motion for continuous collision detection
-    Sweep2D sweep
-
     CollisionShape2D shape = undefined
     Array<Item2DNode> nodes
     integer nodeCount = 0
+
+    Sweep2D sweep
 
     public ContactEdge2D contactList = undefined
 
@@ -98,7 +100,7 @@ class Item2D is Item
         myItem:SetX(35.0)
     */
     action SetX(number setX)
-        MoveX(setX - x)
+        MoveX(setX - transform:GetPosition():GetX())
     end
 
     /*
@@ -111,7 +113,7 @@ class Item2D is Item
         myItem:SetY(210.0)
     */
     action SetY(number setY)
-        MoveY(setY - y)
+        MoveY(setY - transform:GetPosition():GetY())
     end
 
     /*
@@ -139,7 +141,7 @@ class Item2D is Item
         number value = myItem:GetX()
     */
     action GetX returns number
-        return x
+        return transform:GetPosition():GetX()
     end
 
     /*
@@ -152,7 +154,7 @@ class Item2D is Item
         number value = myItem:GetY()
     */
     action GetY returns number
-        return y
+        return transform:GetPosition():GetY()
     end
 
     /*
@@ -207,7 +209,10 @@ class Item2D is Item
         myItem:SetWidth(50)
     */
     action SetWidth(number newWidth)
-        width = newWidth
+        dimensions:SetX(newWidth)
+        Polygon polygon
+        polygon:SetAsBox(newWidth / 2, dimensions:GetY() / 2)
+        shape = polygon
     end
 
     /*
@@ -220,7 +225,10 @@ class Item2D is Item
         myItem:SetHeight(70)
     */
     action SetHeight(number newHeight)
-        height = newHeight
+        dimensions:SetY(newHeight)
+        Polygon polygon
+        polygon:SetAsBox(dimensions:GetX() / 2, newHeight / 2)
+        shape = polygon
     end
 
     /*
@@ -234,7 +242,7 @@ class Item2D is Item
         myItem:SetCenterX(70)
     */
     action SetCenterX(number setX)
-        SetX(setX - width / 2.0)
+        SetX(setX - dimensions:GetX() / 2.0)
     end
 
     /*
@@ -248,7 +256,7 @@ class Item2D is Item
         myItem:SetCenterY(65)
     */
     action SetCenterY(number setY)
-        SetY(setY - height / 2.0)
+        SetY(setY - dimensions:GetY() / 2.0)
     end
 
     /*
@@ -278,7 +286,7 @@ class Item2D is Item
         number x = myItem:GetCenterX()
     */
     action GetCenterX returns number
-        return x - GetWidth()/2
+        return transform:GetPosition():GetX() - GetWidth()/2
     end
 
     /*
@@ -293,7 +301,7 @@ class Item2D is Item
         number y = myItem:GetCenterY()
     */
     action GetCenterY returns number
-        return y - GetHeight()/2
+        return transform:GetPosition():GetY() - GetHeight()/2
     end
     
     /*
@@ -306,7 +314,7 @@ class Item2D is Item
         number width = myItem:GetWidth()
     */
     action GetWidth returns number
-        return width
+        return dimensions:GetX()
     end
 
     /*
@@ -319,7 +327,7 @@ class Item2D is Item
         number height = myItem:GetHeight()
     */
     action GetHeight returns number
-        return height
+        return dimensions:GetY()
     end
 
     /* 
@@ -335,8 +343,8 @@ class Item2D is Item
         myItem:SetOffsetX(100)
     */
     action SetOffsetX(number xAmount)
-        if xAmount not= offsetX and verticesChanged = false
-            number adjust = xAmount - offsetX
+        if xAmount not= offset:GetX() and verticesChanged = false
+            number adjust = xAmount - offset:GetX()
 
             vertices:Set(X1, vertices:Get(X1) + adjust)
             vertices:Set(X2, vertices:Get(X2) + adjust)
@@ -344,11 +352,11 @@ class Item2D is Item
             vertices:Set(X4, vertices:Get(X4) + adjust)
         end
 
-        offsetX = xAmount
+        offset:SetX(xAmount)
 
         integer counter = 0
         repeat children:GetSize() times
-            children:Get(counter):SetOffsetX(x + xAmount)
+            children:Get(counter):SetOffsetX(transform:GetPosition():GetX() + xAmount)
             counter = counter + 1
         end
     end
@@ -366,8 +374,8 @@ class Item2D is Item
         myItem:SetOffsetY(75)
     */
     action SetOffsetY(number yAmount)
-        if yAmount not= offsetY and verticesChanged = false
-            number adjust = yAmount - offsetY
+        if yAmount not= offset:GetY() and verticesChanged = false
+            number adjust = yAmount - offset:GetY()
         
             vertices:Set(Y1, vertices:Get(Y1) + adjust)
             vertices:Set(Y2, vertices:Get(Y2) + adjust)
@@ -375,11 +383,11 @@ class Item2D is Item
             vertices:Set(Y4, vertices:Get(Y4) + adjust)
         end
 
-        offsetY = yAmount
+        offset:SetY(yAmount)
 
         integer counter = 0
         repeat children:GetSize() times
-            children:Get(counter):SetOffsetY(y + yAmount)
+            children:Get(counter):SetOffsetY(transform:GetPosition():GetY() + yAmount)
             counter = counter + 1
         end
     end
@@ -398,7 +406,7 @@ class Item2D is Item
         number offset = myItem:GetOffsetX()
     */
     action GetOffsetX returns number
-        return offsetX
+        return offset:GetX()
     end
 
     /* This action returns the Y offset of the item. The offset tells the Item
@@ -414,7 +422,7 @@ class Item2D is Item
         number offset = myItem:GetOffsetY()
     */
     action GetOffsetY returns number
-        return offsetY
+        return offset:GetY()
     end
 
     
@@ -427,7 +435,7 @@ class Item2D is Item
         myItem:SetOffset(100, 75)
     */
     action SetOffset(number xAmount, number yAmount)
-        if (xAmount not= offsetX or yAmount not= offsetY) and verticesChanged = false
+        if (xAmount not= offset:GetX() or yAmount not= offset:GetY()) and verticesChanged = false
             Array<number> vertices = GetVertices()
             number adjustX = xAmount - GetOffsetX()
             number adjustY = yAmount - GetOffsetY()
@@ -445,12 +453,12 @@ class Item2D is Item
             vertices:Set(Y4, vertices:Get(Y4) + adjustY)
         end
 
-        offsetX = xAmount
-        offsetY = yAmount
+        offset:SetX(xAmount)
+        offset:SetY(yAmount)
 
         integer counter = 0
         repeat children:GetSize() times
-            children:Get(counter):SetOffset(x + xAmount, y + yAmount)
+            children:Get(counter):SetOffset(transform:GetPosition():GetX() + xAmount, transform:GetPosition():GetY() + yAmount)
             counter = counter + 1
         end
     end
@@ -471,7 +479,7 @@ class Item2D is Item
         number globalX = myItem:GetGlobalX()
     */
     action GetGlobalX returns number
-        return GetX() + offsetX
+        return GetX() + offset:GetX()
     end
 
     /*
@@ -489,7 +497,7 @@ class Item2D is Item
         number globalY = myItem:GetGlobalY()
     */
     action GetGlobalY returns number
-        return GetY() + offsetY
+        return GetY() + offset:GetY()
     end
 
     /*
@@ -511,14 +519,14 @@ class Item2D is Item
         myItem:SetSize(100, 50)
     */
     action SetSize(integer newWidth, integer newHeight)
-        width = newWidth
-        height = newHeight
+        dimensions:SetX(newWidth)
+        dimensions:SetY(newHeight)
 
         if verticesChanged = false
-            number parentX = x
-            number parentY = y
-            number x2 = parentX + width
-            number y2 = parentY + height
+            number parentX = transform:GetPosition():GetX()
+            number parentY = transform:GetPosition():GetY()
+            number x2 = parentX + dimensions:GetX()
+            number y2 = parentY + dimensions:GetY()
 
             vertices:Set(X1, parentX)
             vertices:Set(Y1, parentY)
@@ -532,7 +540,9 @@ class Item2D is Item
             vertices:Set(X4, x2)
             vertices:Set(Y4, parentY)
 
-            if rotation not= 0 or scaleX not= 1 or scaleY not= 1
+            Math math
+
+            if math:RadiansToDegrees(transform:GetAngle()) not= 0 or scale:GetX() not= 1 or scale:GetY() not= 1
                 verticesChanged = true
             end
         end
@@ -557,8 +567,11 @@ class Item2D is Item
             vertices:Set(X4, vertices:Get(X4) + xAmount)
         end
 
-        x = x + xAmount
-        SetOffsetX(offsetX)
+        transform:GetPosition():SetX(transform:GetPosition():GetX() + xAmount)
+        SetOffsetX(offset:GetX())
+
+        BroadphaseCollision2D broadphase = myLayer:GetCollisionManager():GetBroadphase()
+        Synchronize(broadphase, transform, transform)
     end
 
     /*
@@ -580,8 +593,11 @@ class Item2D is Item
             vertices:Set(Y4, vertices:Get(Y4) + yAmount)
         end
 
-        y = y + yAmount
-        SetOffsetY(offsetY)
+        transform:GetPosition():SetY(transform:GetPosition():GetY() + yAmount)
+        SetOffsetY(offset:GetY())
+
+        BroadphaseCollision2D broadphase = myLayer:GetCollisionManager():GetBroadphase()
+        Synchronize(broadphase, transform, transform)
     end
 
     /*
@@ -628,9 +644,12 @@ class Item2D is Item
             vertices:Set(Y4, vertices:Get(Y4) + yAmount)
         end
 
-        x = x + xAmount
-        y = y + yAmount
-        SetOffset(offsetX, offsetY)
+        transform:GetPosition():SetX(transform:GetPosition():GetX() + xAmount)
+        transform:GetPosition():SetY(transform:GetPosition():GetY() + yAmount)
+        SetOffset(offset:GetX(), offset:GetY())
+
+        BroadphaseCollision2D broadphase = myLayer:GetCollisionManager():GetBroadphase()
+        Synchronize(broadphase, transform, transform)
     end
 
     /*
@@ -942,7 +961,7 @@ class Item2D is Item
         children:Set(index, newItem)
         newItem:SetParent(me)
         newItem:SetLayer(layer)
-        newItem:SetOffset(x + offsetX, y + offsetY)
+        newItem:SetOffset(transform:GetPosition():GetX() + offset:GetX(), transform:GetPosition():GetY() + offset:GetY())
     end
 
     /*  This action returns whether or not any items are contained in this Item.
@@ -972,27 +991,29 @@ class Item2D is Item
         if verticesChanged
             verticesChanged = false
 
-            number localX = 0 - originX
-            number localY = 0 - originY
+            number localX = 0 - origin:GetX()
+            number localY = 0 - origin:GetY()
             number localX2 = localX + GetWidth()
             number localY2 = localY + GetHeight()
-            number worldOriginX = GetX() - localX + GetOffsetX() + scaleOffsetX
-            number worldOriginY = GetY() - localY + GetOffsetY() + scaleOffsetY
+            number worldOriginX = GetX() - localX + GetOffsetX() + scaleOffset:GetX()
+            number worldOriginY = GetY() - localY + GetOffsetY() + scaleOffset:GetY()
 
-            if (scaleX not= 1 or scaleY not= 1)
+            if (scale:GetX() not= 1 or scale:GetY() not= 1)
                 // Code used to scale about the center.
-                localX = localX * scaleX
-                localY = localY * scaleY
-                localX2 = localX2 * scaleX
-                localY2 = localY2 * scaleY
+                localX = localX * scale:GetX()
+                localY = localY * scale:GetY()
+                localX2 = localX2 * scale:GetX()
+                localY2 = localY2 * scale:GetY()
 
                 // Code used to scale to the bottom-left corner.
                 //localX2 = localX2 * (2 * (scaleX - 1) + 1)
                 //localY2 = localY2 * (2 * (scaleY - 1) + 1)
             end
 
-            if rotation not= 0
-                Math math
+            Math math
+
+            if math:RadiansToDegrees(transform:GetAngle()) not= 0
+                number rotation = math:RadiansToDegrees(transform:GetAngle())
                 number radians = math:DegreesToRadians(-1 * rotation)
                 number cos = math:Cosine(radians)
                 number sin = math:Sine(radians)
@@ -1320,7 +1341,9 @@ class Item2D is Item
         vertices:Set(X4, x2)
         vertices:Set(Y4, parentY)
 
-        if rotation not= 0 or scaleX not= 1 or scaleY not= 1
+        Math math
+
+        if math:RadiansToDegrees(transform:GetAngle()) not= 0 or scale:GetX() not= 1 or scale:GetY() not= 1
             verticesChanged = true
         end
 
@@ -1339,8 +1362,8 @@ class Item2D is Item
         myItem:SetOrigin(20, 20)
     */
     action SetOrigin(number setX, number setY)
-        originX = setX
-        originY = setY
+        origin:SetX(setX)
+        origin:SetY(setY)
         verticesChanged = true
     end
 
@@ -1357,8 +1380,8 @@ class Item2D is Item
         myItem:SetOriginCenter()
     */
     action SetOriginCenter
-        originX = GetWidth() / 2.0
-        originY = GetHeight() / 2.0
+        origin:SetX(GetWidth() / 2.0)
+        origin:SetY(GetHeight() / 2.0)
         verticesChanged = true
     end
 
@@ -1374,7 +1397,8 @@ class Item2D is Item
         myItem:SetRotation(90)
     */
     action SetRotation(number degrees)
-        rotation = degrees
+        Math math
+        transform:Set(transform:GetPosition(), math:DegreesToRadians(degrees))
         verticesChanged = true
         
         //Iterator<Item> childIterator = GetItems()
@@ -1384,9 +1408,8 @@ class Item2D is Item
 
             Item2D temp = undefined
             number startAngle = 0
-            Math math
-            number centerX = (GetWidth() * scaleX)/2
-            number centerY = (GetHeight() * scaleY)/2
+            number centerX = (GetWidth() * scale:GetX())/2
+            number centerY = (GetHeight() * scale:GetY())/2
             number distance = 0
 
             integer counter = 0
@@ -1398,18 +1421,21 @@ class Item2D is Item
                 number tempCenterX = temp:GetX() * temp:GetScaleX() + (temp:GetWidth() * temp:GetScaleX())/2
                 number tempCenterY = temp:GetY() * temp:GetScaleY() + (temp:GetHeight() * temp:GetScaleY())/2
                 startAngle = math:RadiansToDegrees(math:InverseTangent(tempCenterX - centerX, centerY - tempCenterY)) + 360
-                startAngle = startAngle + rotation
+                startAngle = startAngle + math:RadiansToDegrees(transform:GetAngle())
                 startAngle = startAngle mod 360
                 radius = math:SquareRoot(math:RaiseToPower(tempCenterX - centerX, 2) + math:RaiseToPower(tempCenterY - centerY, 2))
                 number offX = radius * math:Cosine(math:DegreesToRadians(startAngle))
                 number offY = radius * math:Sine(math:DegreesToRadians(startAngle))
                 number distX = centerX - tempCenterX
                 number distY = centerY - tempCenterY
-                temp:SetOffset(GetGlobalX() + (offX + distX) + temp:GetX() * (scaleX - 1), GetGlobalY() - offY + distY + temp:GetY() * (scaleY - 1))
+                temp:SetOffset(GetGlobalX() + (offX + distX) + temp:GetX() * (scale:GetX() - 1), GetGlobalY() - offY + distY + temp:GetY() * (scale:GetY() - 1))
                 temp:SetRotation(degrees)
                 counter = counter + 1
             end
         end
+
+        BroadphaseCollision2D broadphase = myLayer:GetCollisionManager():GetBroadphase()
+        Synchronize(broadphase, transform, transform)
     end
 
     /*
@@ -1424,7 +1450,23 @@ class Item2D is Item
         number rotation = myItem:GetRotation()
     */
     action GetRotation returns number
-        return rotation
+        Math math
+        return math:RadiansToDegrees(transform:GetAngle())
+    end
+
+    /*
+    Gets the current rotation of this Item in radians.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D myItem
+        myItem:SetRotation(90)
+        number rotation = myItem:GetRotationInRadians()
+    */
+    action GetRotationInRadians returns number
+        return transform:GetAngle()
     end
 
     /*
@@ -1439,7 +1481,8 @@ class Item2D is Item
         myItem:Rotate(65)
     */
     action Rotate(number degrees)
-        rotation = rotation + degrees
+        Math math
+        transform:Set(transform:GetPosition(), transform:GetAngle() + math:DegreesToRadians(degrees))
         if degrees not= 0
             verticesChanged = true
         end
@@ -1451,9 +1494,8 @@ class Item2D is Item
 
             Item2D temp = undefined
             number startAngle = 0
-            Math math
-            number centerX = (GetWidth() * scaleX)/2
-            number centerY = (GetHeight() * scaleY)/2
+            number centerX = (GetWidth() * scale:GetX())/2
+            number centerY = (GetHeight() * scale:GetY())/2
             number distance = 0
 
             integer counter = 0
@@ -1465,18 +1507,21 @@ class Item2D is Item
                 number tempCenterX = temp:GetX() * temp:GetScaleX() + (temp:GetWidth() * temp:GetScaleX())/2
                 number tempCenterY = temp:GetY() * temp:GetScaleY() + (temp:GetHeight() * temp:GetScaleY())/2
                 startAngle = math:RadiansToDegrees(math:InverseTangent(tempCenterX - centerX, centerY - tempCenterY)) + 360
-                startAngle = startAngle + rotation
+                startAngle = startAngle + math:RadiansToDegrees(transform:GetAngle())
                 startAngle = startAngle mod 360
                 radius = math:SquareRoot(math:RaiseToPower(tempCenterX - centerX, 2) + math:RaiseToPower(tempCenterY - centerY, 2))
                 number offX = radius * math:Cosine(math:DegreesToRadians(startAngle))
                 number offY = radius * math:Sine(math:DegreesToRadians(startAngle))
                 number distX = centerX - tempCenterX
                 number distY = centerY - tempCenterY
-                temp:SetOffset(GetGlobalX() + (offX + distX) + temp:GetX() * (scaleX - 1), GetGlobalY() - offY + distY + temp:GetY() * (scaleY - 1))
+                temp:SetOffset(GetGlobalX() + (offX + distX) + temp:GetX() * (scale:GetX() - 1), GetGlobalY() - offY + distY + temp:GetY() * (scale:GetY() - 1))
                 temp:Rotate(degrees)
                 counter = counter + 1
             end
         end
+
+        BroadphaseCollision2D broadphase = myLayer:GetCollisionManager():GetBroadphase()
+        Synchronize(broadphase, transform, transform)
     end
 
     /*
@@ -1493,12 +1538,13 @@ class Item2D is Item
         myItem:SetScale(1.25)
     */
     action SetScale(number scale)
-        scaleX = scale
-        scaleY = scale
+        Math math
+        me:scale:SetX(scale)
+        me:scale:SetY(scale)
         verticesChanged = true
 
-        scaleOffsetX = (scaleX * GetWidth() - GetWidth())/2
-        scaleOffsetY = (scaleY * GetHeight() - GetHeight())/2
+        scaleOffset:SetX((me:scale:GetX() * GetWidth() - GetWidth())/2)
+        scaleOffset:SetY((me:scale:GetY() * GetHeight() - GetHeight())/2)
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -1511,12 +1557,12 @@ class Item2D is Item
 
             repeat while childIterator:HasNext()
                 temp = childIterator:Next()
-                temp:SetOffset(globalX + temp:GetX() * (scaleX - 1), globalY + temp:GetY() * (scaleY - 1))
+                temp:SetOffset(globalX + temp:GetX() * (me:scale:GetX() - 1), globalY + temp:GetY() * (me:scale:GetY() - 1))
                 temp:SetScale(scale)
             end
         end
 
-        if rotation not= 0
+        if math:RadiansToDegrees(transform:GetAngle()) not= 0
             Rotate(0)
         end
     end
@@ -1536,12 +1582,13 @@ class Item2D is Item
         myItem:SetScale(1.5, 0.75)
     */
     action SetScale(number newX, number newY)
-        scaleX = newX
-        scaleY = newY
+        Math math
+        scale:SetX(newX)
+        scale:SetY(newY)
         verticesChanged = true
 
-        scaleOffsetX = (scaleX * GetWidth() - GetWidth())/2
-        scaleOffsetY = (scaleY * GetHeight() - GetHeight())/2
+        scaleOffset:SetX((scale:GetX() * GetWidth() - GetWidth())/2)
+        scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -1554,12 +1601,12 @@ class Item2D is Item
 
             repeat while childIterator:HasNext()
                 temp = childIterator:Next()
-                temp:SetOffset(globalX + temp:GetX() * (scaleX - 1), globalY + temp:GetY() * (scaleY - 1))
+                temp:SetOffset(globalX + temp:GetX() * (scale:GetX() - 1), globalY + temp:GetY() * (scale:GetY() - 1))
                 temp:SetScale(newX, newY)
             end
         end
 
-        if rotation not= 0
+        if math:RadiansToDegrees(transform:GetAngle()) not= 0
             Rotate(0)
         end
     end
@@ -1614,16 +1661,17 @@ class Item2D is Item
         myItem:Scale(1.1)
     */
     action Scale(number amount)
+        Math math
         if amount <= 0
             return now
         end
 
-        scaleX = scaleX * amount
-        scaleY = scaleY * amount
+        scale:SetX(scale:GetX() * amount)
+        scale:SetY(scale:GetY() * amount)
         verticesChanged = true
 
-        scaleOffsetX = (scaleX * GetWidth() - GetWidth())/2
-        scaleOffsetY = (scaleY * GetHeight() - GetHeight())/2
+        scaleOffset:SetX((scale:GetX() * GetWidth() - GetWidth())/2)
+        scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -1636,12 +1684,12 @@ class Item2D is Item
 
             repeat while childIterator:HasNext()
                 temp = childIterator:Next()
-                temp:SetOffset(globalX + temp:GetX() * (scaleX - 1), globalY + temp:GetY() * (scaleY - 1))
+                temp:SetOffset(globalX + temp:GetX() * (scale:GetX() - 1), globalY + temp:GetY() * (scale:GetY() - 1))
                 temp:Scale(amount)
             end
         end
 
-        if rotation not= 0
+        if math:RadiansToDegrees(transform:GetAngle()) not= 0
             Rotate(0)
         end
 
@@ -1687,12 +1735,12 @@ class Item2D is Item
             return now
         end
 
-        scaleX = scaleX * xAmount
-        scaleY = scaleY * yAmount
+        scale:SetX(scale:GetX() * xAmount)
+        scale:SetY(scale:GetY() * yAmount)
         verticesChanged = true
 
-        scaleOffsetX = (scaleX * GetWidth() - GetWidth())/2
-        scaleOffsetY = (scaleY * GetHeight() - GetHeight())/2
+        scaleOffset:SetX((scale:GetX() * GetWidth() - GetWidth())/2)
+        scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -1705,12 +1753,13 @@ class Item2D is Item
 
             repeat while childIterator:HasNext()
                 temp = childIterator:Next()
-                temp:SetOffset(globalX + temp:GetX() * (scaleX - 1), globalY + temp:GetY() * (scaleY - 1))
+                temp:SetOffset(globalX + temp:GetX() * (scale:GetX() - 1), globalY + temp:GetY() * (scale:GetY() - 1))
                 temp:Scale(xAmount, yAmount)
             end
         end
 
-        if rotation not= 0
+        Math math
+        if math:RadiansToDegrees(transform:GetAngle()) not= 0
             Rotate(0)
         end
     end
@@ -1731,10 +1780,10 @@ class Item2D is Item
         myItem:ScaleFromCenter(1.1)
     */
     action ScaleFromCenter(number amount)
-        number oldWidth = GetWidth() * scaleX
-        number oldHeight = GetHeight() * scaleY
-        number newWidth = GetWidth() * scaleX * amount
-        number newHeight = GetHeight() * scaleY * amount
+        number oldWidth = GetWidth() * scale:GetX()
+        number oldHeight = GetHeight() * scale:GetY()
+        number newWidth = GetWidth() * scale:GetX() * amount
+        number newHeight = GetHeight() * scale:GetY() * amount
         Move((oldWidth - newWidth)/2, (oldHeight - newHeight)/2)
         Scale(amount)
         /*number oldWidth = width * scaleX
@@ -1765,10 +1814,10 @@ class Item2D is Item
         myItem:ScaleFromCenter(1.1, 0.9)
     */
     action ScaleFromCenter(number xAmount, number yAmount)
-        number oldWidth = GetWidth() * scaleX
-        number oldHeight = GetHeight() * scaleY
-        number newWidth = GetWidth() * scaleX * xAmount
-        number newHeight = GetHeight() * scaleY * yAmount
+        number oldWidth = GetWidth() * scale:GetX()
+        number oldHeight = GetHeight() * scale:GetY()
+        number newWidth = GetWidth() * scale:GetX() * xAmount
+        number newHeight = GetHeight() * scale:GetY() * yAmount
         Move((oldWidth - newWidth)/2, (oldHeight - newHeight)/2)
         Scale(xAmount, yAmount)
     end
@@ -1790,9 +1839,9 @@ class Item2D is Item
         myItem:SetScaleFromCenter(1.25)
     */
     action SetScaleFromCenter(number scale)
-        number oldWidth = GetWidth() * scaleX
+        number oldWidth = GetWidth() * me:scale:GetX()
         number newWidth = GetWidth() * scale
-        number oldHeight = GetHeight() * scaleY
+        number oldHeight = GetHeight() * me:scale:GetY()
         number newHeight = GetHeight() * scale
 
         number xAdjust = (oldWidth - newWidth) / 2
@@ -1818,9 +1867,9 @@ class Item2D is Item
         myItem:SetScaleFromCenter(1.5, 0.75)
     */
     action SetScaleFromCenter(number newX, number newY)
-        number oldWidth = GetWidth() * scaleX
+        number oldWidth = GetWidth() * scale:GetX()
         number newWidth = GetWidth() * newX
-        number oldHeight = GetHeight() * scaleY
+        number oldHeight = GetHeight() * scale:GetY()
         number newHeight = GetHeight() * newY
 
         number xAdjust = (oldWidth - newWidth) / 2
@@ -1843,7 +1892,7 @@ class Item2D is Item
         number xOrigin = myItem:GetOriginX()
     */
     action GetOriginX returns number
-        return originX
+        return origin:GetX()
     end
 
     /*
@@ -1860,7 +1909,7 @@ class Item2D is Item
         number yOrigin = myItem:GetOriginY()
     */
     action GetOriginY returns number
-        return originY
+        return origin:GetY()
     end
 
     /*
@@ -1877,7 +1926,7 @@ class Item2D is Item
         number scaleX = myItem:GetScaleX()
     */
     action GetScaleX returns number
-        return scaleX
+        return scale:GetX()
     end
 
     /*
@@ -1894,7 +1943,7 @@ class Item2D is Item
         number scaleY = myItem:GetScaleY()
     */
     action GetScaleY returns number
-        return scaleY
+        return scale:GetY()
     end
 
     /*
@@ -2007,5 +2056,174 @@ class Item2D is Item
     */
     action GetLayer returns Layer2D
         return layer
+    end
+
+    action SetTransform(Vector2 position, number angle)
+        transform:Set(position, angle)
+        
+        transform:MultiplyToOut(transform, sweep:localCenter, sweep:center)
+        sweep:angle = angle
+
+        BroadphaseCollision2D broadphase = myLayer:GetCollisionManager():GetBroadphase()
+        Synchronize(broadphase, transform, transform)
+    end
+
+    action GetTransform returns Transform2D
+        return transform
+    end
+
+    action SetTransform(Transform2D transform)
+        me:transform:Set(transform)
+    end
+
+    action GetPosition returns Vector2
+        return transform:GetPosition()
+    end
+
+    action SynchronizeNodes
+        Transform2D transform
+        transform:sine = math:Sine(sweep:angle0)
+        transform:cosine = math:Cosine(sweep:angle0)
+        transform:position:SetX(sweep:center0:GetX() - transform:cosine * sweep:localCenter:GetX() + transform:sine * sweep:localCenter:GetY())
+        transform:position:SetY(sweep:center0:GetY() - transform:sine * sweep:localCenter:GetX() + transform:cosine * sweep:localCenter:GetY())        
+        
+        Synchronize(myLayer:GetCollisionManager():GetBroadphase(), transform, me:transform)
+    end
+
+    action SynchronizeTransform
+        transform:sine = math:Sine(sweep:angle)
+        transform:cosine = math:Cosine(sweep:angle)
+        number cosine = transform:cosine
+        number sine = transform:sine
+        Vector2 v = sweep:localCenter
+        transform:GetPosition():SetX(sweep:center:GetX() - cosine * v:GetX() + sine * v:GetY())
+        transform:GetPosition():SetY(sweep:center:GetY() - sine * v:GetX() - cosine * v:GetY())
+    end
+
+    action Advance(number time)
+        sweep:Advance(time)
+        sweep:center:Set(sweep:center0)
+        sweep:angle = sweep:angle0
+        transform:Set(transform:GetPosition(), sweep:angle)
+        transform:GetPosition():SetX(transform:cosine * sweep:localCenter:GetX() - transform:sine * sweep:localCenter:GetY())
+        transform:GetPosition():SetY(transform:sine * sweep:localCenter:GetX() + transform:cosine * sweep:localCenter:GetY())
+        transform:GetPosition():Scale(-1):Add(sweep:center)
+    end
+
+    action GetSweep returns Sweep2D
+        return sweep
+    end
+
+    action GetShapeType returns integer
+        return shape:GetType()
+    end
+
+    action SetShape(CollisionShape2D shape)
+        me:shape = shape:Copy()
+    end
+
+    action GetShape returns CollisionShape2D
+        return shape
+    end
+
+    action TestPoint(Vector2 point) returns boolean
+        Transform2D transform
+        Vector2 position
+        position:Set(parent:Item2D:GetX(), parent:Item2D:GetY())
+        transform:Set(position, parent:Item2D:GetRotation())
+        return shape:TestPoint(transform, point)
+    end
+
+    action GetBoundingBox(integer childIndex) returns BoundingBox2D
+        return nodes:Get(childIndex):boundingBox
+    end
+
+    action ComputeDistance(Vector2 point, integer childIndex, Vector2 normalOut) returns number
+        Transform2D transform
+        Vector2 position
+        position:Set(parent:Item2D:GetX(), parent:Item2D:GetY())
+        transform:Set(position, parent:Item2D:GetRotation())
+        return shape:ComputeDistance(transform, point, childIndex, normalOut)
+    end
+
+    action CreateNodes(BroadphaseCollision2D broadphase, Transform2D transform)
+        nodeCount = shape:GetChildCount()
+        integer i = 0
+        repeat while i < nodeCount
+            Item2DNode node = nodes:Get(i)
+            shape:ComputeBoundingBox(node:boundingBox, transform, i)
+            node:nodeID = broadphase:CreateNode(node:boundingBox, node)
+            node:item = me
+            node:childIndex = i
+            i = i + 1
+        end
+    end
+
+    action DestroyNodes(BroadphaseCollision2D broadphase)
+        integer i = 0
+        repeat while i < nodeCount
+            Item2DNode node = nodes:Get(i)
+            broadphase:DestroyNode(node:nodeID)
+            node:nodeID = -1
+            i = i + 1
+        end
+
+        nodeCount = 0
+    end
+
+    action Synchronize(BroadphaseCollision2D broadphase, Transform2D transform1, Transform2D transform2)
+        if nodeCount = 0
+            return now
+        end
+
+        integer i = 0
+        repeat while i < nodeCount
+            Item2DNode node = nodes:Get(i)
+            
+            BoundingBox2D boundingBox1
+            BoundingBox2D boundingBox2
+
+            shape:ComputeBoundingBox(boundingBox1, transform1, node:childIndex)
+            shape:ComputeBoundingBox(boundingBox2, transform2, node:childIndex)
+
+            Vector2 minimum = node:boundingBox:GetMinimum()
+            Vector2 maximum = node:boundingBox:GetMaximum()
+
+            if boundingBox1:GetMinimum():GetX() < boundingBox2:GetMinimum():GetX()
+                minimum:SetX(boundingBox1:GetMinimum():GetX())
+            else
+                minimum:SetX(boundingBox2:GetMinimum():GetX())
+            end
+
+            if boundingBox1:GetMinimum():GetY() < boundingBox2:GetMinimum():GetY()
+                minimum:SetY(boundingBox1:GetMinimum():GetY())
+            else
+                minimum:SetY(boundingBox2:GetMinimum():GetY())
+            end
+
+            if boundingBox1:GetMaximum():GetX() > boundingBox2:GetMaximum():GetX()
+                maximum:SetX(boundingBox1:GetMaximum():GetX())
+            else
+                maximum:SetX(boundingBox2:GetMaximum():GetX())
+            end
+
+            if boundingBox1:GetMaximum():GetY() > boundingBox2:GetMaximum():GetY()
+                maximum:SetY(boundingBox1:GetMaximum():GetY())
+            else
+                maximum:SetY(boundingBox2:GetMaximum():GetY())
+            end
+
+            Vector2 displacement
+            displacement:SetX(transform2:GetPosition():GetX() - transform1:GetPosition():GetX())
+            displacement:SetY(transform2:GetPosition():GetY() - transform1:GetPosition():GetY())
+
+            broadphase:MoveNode(node:nodeID, node:boundingBox, displacement)
+
+            i = i + 1
+        end
+    end
+
+    action GetNodes returns Array<Item2DNode>
+        return nodes
     end
 end

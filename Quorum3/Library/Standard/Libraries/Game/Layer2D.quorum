@@ -27,7 +27,7 @@ class Layer2D is Layer
 
     CollisionManager2D collisionManager
 
-    CollisionListener2D collisionListener
+    CollisionListener2D collisionListener = undefined
 
     boolean newItemAdded = false
 
@@ -45,6 +45,7 @@ class Layer2D is Layer
     action Add(Item2D item)
         item:SetLayer(me)
         items:Add(item)
+        newItemAdded = true
     end
 
     /*
@@ -55,6 +56,7 @@ class Layer2D is Layer
     action Add(integer index, Item2D item)
         item:SetLayer(me)
         items:Add(index, item)
+        newItemAdded = true
     end
 
     /*
@@ -65,6 +67,7 @@ class Layer2D is Layer
     action AddToFront(Item2D item)
         item:SetLayer(me)
         items:AddToFront(item)
+        newItemAdded = true
     end
 
     /*
@@ -218,6 +221,7 @@ class Layer2D is Layer
     */
     action Set(integer index, Item2D item)
         items:Set(index, item)
+        newItemAdded = true
     end
 
     /*
