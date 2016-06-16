@@ -1,10 +1,13 @@
 use Libraries.Interface.Item2D
 use Libraries.Compute.Math
 use Libraries.Compute.Vector2
+use Libraries.Containers.Array
 
-package Libraries.Interface.Events
+//package Libraries.Interface.Events
 
-class CollisionEvent2D 
+class CollisionEvent2D
+    public constant number EPSILON = 0.00000011920928955078125
+
     Item2D itemA = undefined
     Item2D itemB = undefined
 
@@ -14,10 +17,10 @@ class CollisionEvent2D
     boolean touchingFlag = true
     boolean enabledFlag = false
 
-    // physics fields for later
-    number friction = 0
-    number restitution = 1
-    number tangentSpeed = 0
+//    // physics fields for later
+//    number friction = 0
+//    number restitution = 1
+//    number tangentSpeed = 0
 
     Math math
 
@@ -28,6 +31,11 @@ class CollisionEvent2D
     public ContactEdge2D nodeB = undefined
 
     ContactManifold2D manifold
+
+    private number separation1 = 0
+    private integer edgeIndex1 = 0
+    private number separation2 = 0
+    private integer edgeIndex2 = 0
 
     action Initialize(Item2D itemA, integer indexA, Item2D itemB, integer indexB)
         enabledFlag = true
@@ -90,37 +98,37 @@ class CollisionEvent2D
         return indexB
     end
 
-    action SetFriction(number friction)
-        me:friction = friction
-    end
-
-    action GetFriction returns number
-        return friction
-    end
-
-    action ResetFriction
-//        friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
-    end
-
-    action SetRestitution(number restitution)
-        me:restitution = restitution
-    end
-
-    action GetRestitution returns number
-        return restitution
-    end
-
-    action ResetRestitution
-//        restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
-    end
-
-    action SetTangentSpeed(number speed)
-        me:tangentSpeed = speed
-    end
-
-    action GetTangentSpeed returns number
-        return tangentSpeed
-    end
+//    action SetFriction(number friction)
+//        me:friction = friction
+//    end
+//
+//    action GetFriction returns number
+//        return friction
+//    end
+//
+//    action ResetFriction
+////        friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
+//    end
+//
+//    action SetRestitution(number restitution)
+//        me:restitution = restitution
+//    end
+//
+//    action GetRestitution returns number
+//        return restitution
+//    end
+//
+//    action ResetRestitution
+////        restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
+//    end
+//
+//    action SetTangentSpeed(number speed)
+//        me:tangentSpeed = speed
+//    end
+//
+//    action GetTangentSpeed returns number
+//        return tangentSpeed
+//    end
 
     ContactManifold2D oldManifold
 
@@ -132,14 +140,9 @@ class CollisionEvent2D
         boolean touching = false
         boolean wasTouching = touchingFlag
 
-        Transform2D transformA
-        Vector2 position
-        position:Set(itemA:GetX(), itemA:GetY())
-        transformA:Set(position, itemA:GetRotation())
+        Transform2D transformA = itemA:GetTransform()
 
-        Transform2D transformB
-        position:Set(itemB:GetX(), itemB:GetY())
-        transformB:Set(position, itemB:GetRotation())
+        Transform2D transformB = itemB:GetTransform()
 
         NarrowphaseEvaluation(manifold, transformA, transformB)
         touching = manifold:pointCount > 0
@@ -159,27 +162,583 @@ class CollisionEvent2D
         end
     end
 
-    action CalculateTotalFriction(number friction1, number friction2) returns number
-        return math:SquareRoot(friction1 * friction2)
-    end
-
-    action CalculateTotalRestitution(number restitution1, number restitution2) returns number
-        if restitution1 > restitution2
-            return restitution1
-        else
-            return restitution2
-        end
-    end
-
-    action NarrowphaseEvaluation(ContactManifold2D manifold, Transform2D transformA, Transform2D transformB)
-        
-    end
-
     action GetNodeA returns ContactEdge2D
         return nodeA
     end
 
     action GetNodeB returns ContactEdge2D
         return nodeB
+    end
+
+//    action CalculateTotalFriction(number friction1, number friction2) returns number
+//        return math:SquareRoot(friction1 * friction2)
+//    end
+//
+//    action CalculateTotalRestitution(number restitution1, number restitution2) returns number
+//        if restitution1 > restitution2
+//            return restitution1
+//        else
+//            return restitution2
+//        end
+//    end
+
+    private action NarrowphaseEvaluation(ContactManifold2D manifold, Transform2D transformA, Transform2D transformB)
+        CollisionShape2D shapeA = itemA:GetShape()
+        CollisionShape2D shapeB = itemB:GetShape()
+
+        // call appropriate collision action based on shapes of items
+        if shapeA is Polygon and shapeB is Polygon
+            CollidePolygons(manifold, cast(Polygon, shapeA), transformA, cast(Polygon, shapeB), transformB)
+        elseif shapeA is Circle and shapeB is Circle
+            CollideCircles(manifold, cast(Circle, shapeA), transformA, cast(Circle, shapeB), transformB)
+        elseif shapeA is Polygon and shapeB is Circle
+            CollidePolygonAndCircle(manifold, cast(Polygon, shapeA), transformA, cast(Circle, shapeB), transformB)
+        elseif shapeB is Polygon and shapeA is Circle
+            CollidePolygonAndCircle(manifold, cast(Polygon, shapeB), transformB, cast(Circle, shapeA), transformA)
+        elseif shapeA is Edge and shapeB is Circle
+            CollideEdgeAndCircle(manifold, cast(Edge, shapeA), transformA, cast(Circle, shapeB), transformB)
+        elseif shapeB is Edge and shapeA is Circle
+            CollideEdgeAndCircle(manifold, cast(Edge, shapeB), transformB, cast(Circle, shapeA), transformA)
+        elseif shapeA is Edge and shapeB is Polygon
+            CollideEdgeAndPolygon(manifold, cast(Edge, shapeA), transformA, cast(Polygon, shapeB), transformB)
+        elseif shapeB is Edge and shapeA is Polygon
+            CollideEdgeAndPolygon(manifold, cast(Edge, shapeB), transformB, cast(Polygon, shapeA), transformA)
+        elseif shapeA is Chain and shapeA is Circle
+            Chain chain = cast(Chain, shapeA)
+            Edge edge = chain:GetChildEdge(indexA)
+            CollideEdgeAndCircle(manifold, edge, transformA, cast(Circle, shapeB), transformB)
+        elseif shapeB is Chain and shapeA is Circle
+            Chain chain = cast(Chain, shapeB)
+            Edge edge = chain:GetChildEdge(indexB)
+            CollideEdgeAndCircle(manifold, edge, transformB, cast(Circle, shapeA), transformA)
+        elseif shapeA is Chain and shapeA is Polygon
+            Chain chain = cast(Chain, shapeA)
+            Edge edge = chain:GetChildEdge(indexA)
+            CollideEdgeAndPolygon(manifold, edge, transformA, cast(Polygon, shapeB), transformB)
+        elseif shapeB is Chain and shapeB is Polygon
+            Chain chain = cast(Chain, shapeB)
+            Edge edge = chain:GetChildEdge(indexB)
+            CollideEdgeAndPolygon(manifold, edge, transformB, cast(Polygon, shapeA), transformA)
+        end
+    end
+
+    private action CollidePolygons(ContactManifold2D manifold, Polygon polygonA, Transform2D transformA, Polygon polygonB, Transform2D transformB)
+        manifold:pointCount = 0
+
+        number totalRadius = polygonA:GetRadius() + polygonB:GetRadius()
+
+        FindMaxSeparation(polygonA, transformA, polygonB, transformB, true)
+        if separation1 > totalRadius
+            return now
+        end
+
+        FindMaxSeparation(polygonB, transformB, polygonA, transformA, false)
+        if separation2 > totalRadius
+            return now
+        end
+
+        Polygon poly1
+        Polygon poly2
+        Transform2D xf1
+        Transform2D xf2
+        integer edge1 = 0
+        boolean flip = false
+        number k_tol = 0.1 * 0.005
+
+        if separation2 > separation1 + k_tol
+            poly1 = polygonB
+            poly2 = polygonA
+            xf1 = transformB
+            xf2 = transformA
+            edge1 = edgeIndex2
+            manifold:type = manifold:FACE_B
+            flip = true
+        else
+            poly1 = polygonA
+            poly2 = polygonB
+            xf1 = transformA
+            xf2 = transformB
+            edge1 = edgeIndex2
+            manifold:type = manifold:FACE_A
+            flip = false
+        end
+
+        Array<Vector2> incidentEdge
+        incidentEdge:SetSize(2)
+
+        FindIncidentEdge(incidentEdge, poly1, xf2, edge1, poly2, xf2)
+
+        integer count1 = poly1:GetVertexCount()
+        Array<Vector2> vertices1 = poly1:GetVertices()
+
+        Vector2 localTangent
+        Vector2 localNormal
+        Vector2 planePoint
+        Vector2 tangent
+        Vector2 v11
+        Vector2 v12
+
+        integer iv1 = edge1
+        integer iv2 = 0
+        if edge1 + 1 < count1
+            iv2 = edge1 + 1
+        end
+
+        v11:Set(vertices1:Get(iv1))
+        v12:Set(vertices1:Get(iv2))
+        localTangent:SetX(v12:GetX() - v11:GetX())
+        localTangent:SetY(v12:GetY() - v11:GetY())
+        localTangent:Normalize()
+
+        localNormal:SetX(1 * localTangent:GetY())
+        localNormal:SetY(-1 * localTangent:GetX())
+
+        planePoint:SetX((v11:GetX() + v12:GetX()) * 0.5)
+        planePoint:SetY((v11:GetY() + v12:GetY()) * 0.5)
+
+        tangent:SetX(xf1:GetCosine() * localTangent:GetX() - xf1:GetSine() * localTangent:GetY())
+        tangent:SetY(xf1:GetSine() * localTangent:GetX() + xf1:GetCosine() * localTangent:GetY())
+
+        number normalx = 1 * tangent:GetY()
+        number normaly = -1 *  tangent:GetX()
+
+        xf1:MultiplyToOut(xf1, v11, v11)
+        xf1:MultiplyToOut(xf1, v12, v12)
+
+        number frontOffset = normalx * v11:GetX() + normaly * v11:GetY()
+
+        number sideOffset1 = -1 * (tangent:GetX() * v11:GetX() + tangent:GetY() * v11:GetY()) + totalRadius
+        number sideOffset2 = tangent:GetX() + v12:GetX() + tangent:GetY() * v12:GetY() + totalRadius
+
+        integer np = 0
+        
+        Array<Vector2> clipPoints1
+        clipPoints1:SetSize(2)
+        Array<Vector2> clipPoints2
+        clipPoints2:SetSize(2)
+
+        tangent:Scale(-1)
+        np = ClipSegmentToLine(clipPoints1, incidentEdge, tangent, sideOffset1, iv1)
+        tangent:Scale(-1)
+
+        if np < 2
+            return now
+        end
+
+        np = ClipSegmentToLine(clipPoints2, clipPoints1, tangent, sideOffset2, iv2)
+
+        if np < 2
+            return now
+        end
+
+        manifold:localNormal:Set(localNormal)
+        manifold:localPoint:Set(planePoint)
+
+        integer pointCount = 0
+        integer i = 0
+        repeat while i < manifold:MAX_MANIFOLD_POINTS
+            number separation = normalx * clipPoints2:Get(i):GetX() + normaly * clipPoints2:Get(i):GetY() - frontOffset
+
+            if separation <= totalRadius
+                ManifoldPoint2D cp = manifold:points:Get(pointCount)
+                Vector2 out = cp:localPoint
+                number px = clipPoints2:Get(i):GetX() - xf2:GetPosition():GetX()
+                number py = clipPoints2:Get(i):GetY() - xf2:GetPosition():GetY()
+                out:SetX((xf2:GetCosine() * px + xf2:GetSine() * py))
+                out:SetY((-1 * xf2:GetSine() * py + xf2:GetCosine() * py))
+
+                pointCount = pointCount + 1
+            end
+
+            i = i + 1
+        end
+
+        manifold:pointCount = pointCount
+
+    end
+
+    private action CollideCircles(ContactManifold2D manifold, Circle circleA, Transform2D transformA, Circle circleB, Transform2D transformB)
+        manifold:pointCount = 0
+
+        Vector2 circle1p = circleA:GetSupportVertex()
+        Vector2 circle2p = circleB:GetSupportVertex()
+
+        number pAx = (transformA:GetCosine() * circle1p:GetX() - transformA:GetSine() * circle1p:GetY()) + transformA:GetPosition():GetX()
+        number pAy = (transformA:GetSine() * circle1p:GetX() + transformA:GetCosine() * circle1p:GetY()) + transformA:GetPosition():GetY()
+        number pBx = (transformB:GetCosine() * circle2p:GetX() - transformB:GetSine() * circle2p:GetY()) + transformB:GetPosition():GetX()
+        number pBy = (transformB:GetSine() * circle2p:GetX() + transformB:GetCosine() * circle2p:GetY()) + transformB:GetPosition():GetY()
+        number dx = pBx - pAx
+        number dy = pBy - pAy
+        number distSquared = dx * dx + dy * dy
+
+        number radius = circleA:GetRadius() + circleB:GetRadius()
+        if distSquared > radius * radius
+            return now
+        end
+
+        manifold:type = manifold:CIRCLES
+        manifold:localPoint:Set(circle1p)
+        manifold:localNormal:SetZero()
+        manifold:pointCount = 1
+        
+        manifold:points:Get(0):localPoint:Set(circle2p)
+    end
+
+    private action CollidePolygonAndCircle(ContactManifold2D manifold, Polygon polygon, Transform2D transformA, Circle circle, Transform2D transformB)
+        manifold:pointCount = 0
+        
+        Vector2 circle1p = circle:GetSupportVertex()
+        number cx = (transformB:GetCosine() * circle1p:GetX() - transformB:GetSine() * circle1p:GetY()) + transformB:GetPosition():GetX()
+        number cy = (transformB:GetSine() * circle1p:GetX() + transformB:GetCosine() * circle1p:GetY()) + transformB:GetPosition():GetY()
+        number px = cx - transformA:GetPosition():GetX()
+        number py = cy - transformA:GetPosition():GetY()
+        number cLocalx = (transformA:GetCosine() * px + transformA:GetSine() * py)
+        number cLocaly = (-1 * transformA:GetSine() * px + transformA:GetCosine() * py)
+
+        integer normalIndex = 0
+        number separation = -1 * cx:GetMaximumValue()
+        number radius = polygon:GetRadius() + circle:GetRadius()
+        number vertexCount = polygon:GetVertexCount()
+        number s = 0
+        Array<Vector2> vertices = polygon:GetVertices()
+        Array<Vector2> normals = polygon:GetNormals()
+
+        integer i = 0
+        repeat while i < vertexCount
+            Vector2 vertex = vertices:Get(i)
+            number tempx = cLocalx - vertex:GetX()
+            number tempy = cLocaly - vertex:GetY()
+            s = normals:Get(i):GetX() * tempx + normals:Get(i):GetY() * tempy
+
+            if s > radius
+                return now
+            end
+
+            if s > separation
+                separation = s
+                normalIndex = i
+            end
+            i = i + 1
+        end
+
+        integer vertIndex1 = normalIndex
+        integer vertIndex2 = 0
+        if vertIndex1 + 1 < vertexCount
+            vertIndex2 = vertIndex1 + 1
+        end
+        Vector2 v1 = vertices:Get(vertIndex1)
+        Vector2 v2 = vertices:Get(vertIndex2)
+
+        if separation < EPSILON
+            manifold:pointCount = 1
+            manifold:type = manifold:FACE_A
+            
+            Vector2 normal = normals:Get(normalIndex)
+            manifold:localNormal:SetX(normal:GetX())
+            manifold:localNormal:SetY(normal:GetY())
+            manifold:localPoint:SetX((v1:GetX() + v2:GetX()) * 0.5)
+            manifold:localPoint:SetY((v1:GetY() + v2:GetY()) * 0.5)
+            ManifoldPoint2D mpoint = manifold:points:Get(0)
+            mpoint:localPoint:SetX(circle1p:GetX())
+            mpoint:localPoint:SetY(circle1p:GetY())
+
+            return now
+        end
+
+        number tempX = cLocalx - v1:GetX()
+        number tempY = cLocaly - v1:GetY()
+        number temp2X = v2:GetX() - v1:GetX()
+        number temp2Y = v2:GetY() - v1:GetY()
+        number u1 = tempX * temp2X + tempY * temp2Y
+
+        number temp3X = cLocalx - v2:GetX()
+        number temp3Y = cLocaly - v2:GetY()
+        number temp4X = v1:GetX() - v2:GetX()
+        number temp4Y = v1:GetY() - v2:GetY()
+        number u2 = temp3X * temp4X + temp3Y * temp4Y
+
+        if u1 <= 0
+            number dx = cLocalx - v1:GetX()
+            number dy = cLocaly - v1:GetY()
+
+            if dx * dx + dy * dy > radius * radius
+                return now
+            end
+
+            manifold:pointCount = 1
+            manifold:type = manifold:FACE_A
+            manifold:localNormal:SetX(cLocalx - v1:GetX())
+            manifold:localNormal:SetY(cLocaly - v1:GetY())
+            manifold:localNormal:Normalize()
+            manifold:localPoint:Set(v1)
+            manifold:points:Get(0):localPoint:Set(circle1p)
+        elseif u2 <= 0
+            number dx = cLocalx - v2:GetX()
+            number dy = cLocaly - v2:GetY()
+            
+            if dx * dx + dy * dy > radius * radius
+                return now
+            end
+
+            manifold:pointCount = 1
+            manifold:type = manifold:FACE_A
+            manifold:localNormal:SetX(cLocalx - v2:GetX())
+            manifold:localNormal:SetY(cLocaly - v2:GetY())
+            manifold:localNormal:Normalize()
+            manifold:localPoint:Set(v2)
+            manifold:points:Get(0):localPoint:Set(circle1p)
+        else
+            number fcx = (v1:GetX() + v2:GetX()) * 0.5
+            number fcy = (v1:GetY() + v2:GetY()) * 0.5
+
+            number tx = cLocalx - fcx
+            number ty = cLocaly - fcy
+            Vector2 normal = normals:Get(vertIndex1)
+            separation = tx * normal:GetX() + ty * normal:GetY()
+
+            if separation > radius
+                return now
+            end
+
+            manifold:pointCount = 1
+            manifold:type = manifold:FACE_A
+            manifold:localNormal:Set(normals:Get(vertIndex1))
+            manifold:localPoint:SetX(fcx)
+            manifold:localPoint:SetY(fcy)
+            manifold:points:Get(0):localPoint:Set(circle1p)
+        end
+        
+    end
+
+    private action CollideEdgeAndCircle(ContactManifold2D manifold, Edge edge, Transform2D transformA, Circle circle, Transform2D transformB)
+        manifold:pointCount = 0
+
+        Vector2 temp
+        transformA:MultiplyToOut(transformB, circle:GetSupportVertex(), temp)
+        Vector2 Q = transformA:MultiplyAndTranslate(transformA, temp)
+
+        Vector2 A = edge:vertex1
+        Vector2 B = edge:vertex2
+        Vector2 e
+        e:Set(B):Subtract(A)
+
+        number u = e:DotProduct(temp:Set(B):Subtract(Q))
+        number v = e:DotProduct(temp:Set(Q):Subtract(A))
+
+        number radius = edge:GetRadius() + circle:GetRadius()
+        Vector2 d
+        Vector2 e1
+
+        if v <= 0
+            Vector2 P = A
+            d:Set(Q):Subtract(P)
+            number dd = d:DotProduct(d)
+            if dd > radius * radius
+                return now
+            end
+
+            if edge:hasVertex0
+                Vector2 A1 = edge:vertex0
+                Vector2 B1 = A
+                e1:Set(B1):Subtract(A1)
+                number u1 = e1:DotProduct(temp:Set(B1):Subtract(Q))
+
+                if u1 > 0
+                    return now
+                end
+            end
+
+            manifold:pointCount = 1
+            manifold:type = manifold:CIRCLES
+            manifold:localNormal:SetZero()
+            manifold:localPoint:Set(P)
+            manifold:points:Get(0):localPoint:Set(circle:GetSupportVertex())
+            return now
+        end
+
+        if u < 0
+            Vector2 P = B
+            d:Set(Q):Subtract(P)
+            number dd = d:DotProduct(d)
+            if dd > radius * radius
+                return now
+            end
+
+            if edge:hasVertex3
+                Vector2 B2 = edge:vertex3
+                Vector2 A2 = B
+                Vector2 e2 = e1
+                e2:Set(B2):Subtract(A2)
+                number v2 = e2:DotProduct(temp:Set(Q):Subtract(A2))
+
+                if v2 > 0
+                    return now
+                end
+            end
+
+            manifold:pointCount = 1
+            manifold:type = manifold:CIRCLES
+            manifold:localNormal:SetZero()
+            manifold:localPoint:Set(P)
+            manifold:points:Get(0):localPoint:Set(circle:GetSupportVertex())
+            return now
+        end
+
+        Vector2 P
+        number den = e:DotProduct(e)
+        P:Set(A):Scale(u):Add(temp:Set(B):Scale(v))
+        P:Scale(1.0 / den)
+        d:Set(Q):Subtract(P)
+        number dd = d:DotProduct(d)
+        if dd > radius * radius
+            return now
+        end
+
+        Vector2 n
+        n:SetX(-1 * e:GetY())
+        n:SetY(e:GetX())
+        if n:DotProduct(temp:Set(Q):Subtract(A)) < 0
+            n:Set(-1 * n:GetX(), -1 * n:GetY())
+        end
+        n:Normalize()
+
+        manifold:pointCount = 1
+        manifold:type = manifold:FACE_A
+        manifold:localNormal:Set(n)
+        manifold:localPoint:Set(A)
+        manifold:points:Get(0):localPoint:Set(circle:GetSupportVertex())        
+    end
+    
+    private action CollideEdgeAndPolygon(ContactManifold2D manifold, Edge edge, Transform2D transformA, Polygon polygon, Transform2D transformB)
+        
+    end
+
+    private action FindMaxSeparation(Polygon poly1, Transform2D xf1, Polygon poly2, Transform2D xf2, boolean one)
+        integer count1 = poly1:GetVertexCount()
+        integer count2 = poly2:GetVertexCount()
+        Array<Vector2> n1s = poly1:GetNormals()
+        Array<Vector2> v1s = poly1:GetVertices()
+        Array<Vector2> v2s = poly2:GetVertices()
+
+        Transform2D xf = xf1:MultiplyAndTranslate(xf2, xf1)
+        
+        integer bestIndex = 0
+        number maxSeparation = -1 * EPSILON:GetMaximumValue()
+
+        Vector2 v1
+        Vector2 n
+
+        integer i = 0
+        repeat while i < count1
+            n:SetX(xf:GetCosine() * n1s:Get(i):GetX() - xf:GetSine() * n1s:Get(i):GetY())
+            n:SetY(xf:GetSine() * n1s:Get(i):GetX() + xf:GetCosine() * n1s:Get(i):GetY())
+            v1 = xf1:Multiply(xf, v1s:Get(i))
+
+            number si = -1 * EPSILON:GetMaximumValue()
+            integer j = 0
+            repeat while j < count2
+                Vector2 v2sj = v2s:Get(j)
+                number sij = n:GetX() * (v2sj:GetX() - v1:GetX()) + n:GetY() * (v2sj:GetY() - v1:GetY())
+                if sij < si
+                    si = sij
+                end
+
+                 j = j + 1
+            end
+
+            if si > maxSeparation
+                maxSeparation = si
+                bestIndex = i
+            end
+
+            if one
+                edgeIndex1 = bestIndex
+                separation1 = maxSeparation
+            else
+                edgeIndex2 = bestIndex
+                separation2 = maxSeparation
+            end
+
+            i = i + 1
+        end
+    end
+
+    private action FindIncidentEdge(Array<Vector2> c, Polygon poly1, Transform2D xf1, integer edge1, Polygon poly2, Transform2D xf2)
+        integer count1 = poly1:GetVertexCount()
+        Array<Vector2> normals1 = poly1:GetNormals()
+
+        integer count2 = poly2:GetVertexCount()
+        Array<Vector2> vertices2 = poly2:GetVertices()
+        Array<Vector2> normals2 = poly2:GetNormals()
+
+        Vector2 c0 = c:Get(0)
+        Vector2 c1 = c:Get(1)
+
+        Vector2 v = normals1:Get(edge1)
+        number tempx = xf1:GetCosine() * v:GetX() - xf1:GetSine() * v:GetY()
+        number tempy = xf1:GetSine() * v:GetX() + xf1:GetCosine() * v:GetY()
+        number normals1x = xf2:GetCosine() * tempx + xf2:GetSine() * tempy
+        number normals1y = -1 * xf2:GetSine() * tempx + xf2:GetCosine() * tempy
+
+        integer index = 0
+        number minDot = -1 * EPSILON:GetMaximumValue()
+        integer i = 0
+        repeat while i < count2
+            Vector2 b = normals2:Get(i)
+            number dot = normals1x * b:GetX() + normals1y * b:GetY()
+            if dot < minDot
+                minDot = dot
+                index = i
+            end
+
+            i = i + 1
+        end
+
+        integer i1 = index
+        integer i2 = 0
+        if i1 + 1 < count2
+            i2 = i1 + 1
+        end
+
+        Vector2 v1 = vertices2:Get(i1)
+        Vector2 out = c0
+        out:SetX((xf2:GetCosine() * v1:GetX() - xf2:GetSine() * v1:GetY()) + xf2:GetPosition():GetX())
+        out:SetY((xf2:GetSine() * v1:GetX() + xf2:GetCosine() * v1:GetY()) + xf2:GetPosition():GetY())
+
+        Vector2 v2 = vertices2:Get(i2)
+        Vector2 out1 = c1
+        out1:SetX((xf2:GetCosine() * v2:GetX() - xf2:GetSine() * v2:GetY()) + xf2:GetPosition():GetX())
+        out1:SetY((xf2:GetSine() * v2:GetX() + xf2:GetCosine() * v2:GetY()) + xf2:GetPosition():GetY())        
+    end
+
+    action ClipSegmentToLine(Array<Vector2> vOut, Array<Vector2> vIn, Vector2 normal, number offset, integer vertexIndexA) returns integer
+        integer numOut = 0
+        Vector2 vIn0 = vIn:Get(0)
+        Vector2 vIn1 = vIn:Get(1)
+        
+        number distance0 = normal:DotProduct(vIn0) - offset
+        number distance1 = normal:DotProduct(vIn1) - offset
+
+        if distance0 < 0
+            vOut:Get(numOut):Set(vIn0)
+            numOut = numOut + 1
+        end
+
+        if distance1 < 0
+            vOut:Get(numOut):Set(vIn1)
+            numOut = numOut + 1
+        end
+
+        if distance0 * distance1 < 0
+            number interp = distance0 / (distance0 - distance1)
+
+            Vector2 vOutNO = vOut:Get(numOut)
+            vOutNO:SetX(vIn0:GetX() + interp * (vIn1:GetX() - vIn0:GetX()))
+            vOutNO:SetY(vIn0:GetY() + interp * (vIn1:GetY() - vIn0:GetY()))
+
+            numOut = numOut + 1
+        end
+
+        return numOut
     end
 end
