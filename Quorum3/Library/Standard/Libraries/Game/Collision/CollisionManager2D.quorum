@@ -36,7 +36,7 @@ class CollisionManager2D
             return now
         end
 
-        ContactEdge2D edge = itemB:GetContactList()
+        ContactEdge2D edge = itemB:contactList
         repeat while edge not= undefined
             if edge:other = itemA
                 Item2D iA = edge:collision:GetItemA()

@@ -572,7 +572,7 @@ class Item2D is Item
         transform:GetPosition():SetX(transform:GetPosition():GetX() + xAmount)
         SetOffsetX(offset:GetX())
 
-        BroadphaseCollision2D broadphase = myLayer:GetCollisionManager():GetBroadphase()
+        BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
         Synchronize(broadphase, transform, transform)
     end
 
@@ -598,7 +598,7 @@ class Item2D is Item
         transform:GetPosition():SetY(transform:GetPosition():GetY() + yAmount)
         SetOffsetY(offset:GetY())
 
-        BroadphaseCollision2D broadphase = myLayer:GetCollisionManager():GetBroadphase()
+        BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
         Synchronize(broadphase, transform, transform)
     end
 
@@ -650,7 +650,7 @@ class Item2D is Item
         transform:GetPosition():SetY(transform:GetPosition():GetY() + yAmount)
         SetOffset(offset:GetX(), offset:GetY())
 
-        BroadphaseCollision2D broadphase = myLayer:GetCollisionManager():GetBroadphase()
+        BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
         Synchronize(broadphase, transform, transform)
     end
 
@@ -1436,7 +1436,7 @@ class Item2D is Item
             end
         end
 
-        BroadphaseCollision2D broadphase = myLayer:GetCollisionManager():GetBroadphase()
+        BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
         Synchronize(broadphase, transform, transform)
     end
 
@@ -1522,7 +1522,7 @@ class Item2D is Item
             end
         end
 
-        BroadphaseCollision2D broadphase = myLayer:GetCollisionManager():GetBroadphase()
+        BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
         Synchronize(broadphase, transform, transform)
     end
 
@@ -2066,7 +2066,7 @@ class Item2D is Item
         transform:MultiplyToOut(transform, sweep:localCenter, sweep:center)
         sweep:angle = angle
 
-        BroadphaseCollision2D broadphase = myLayer:GetCollisionManager():GetBroadphase()
+        BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
         Synchronize(broadphase, transform, transform)
     end
 
@@ -2083,16 +2083,18 @@ class Item2D is Item
     end
 
     action SynchronizeNodes
+        Math math
         Transform2D transform
         transform:sine = math:Sine(sweep:angle0)
         transform:cosine = math:Cosine(sweep:angle0)
         transform:position:SetX(sweep:center0:GetX() - transform:cosine * sweep:localCenter:GetX() + transform:sine * sweep:localCenter:GetY())
         transform:position:SetY(sweep:center0:GetY() - transform:sine * sweep:localCenter:GetX() + transform:cosine * sweep:localCenter:GetY())        
         
-        Synchronize(myLayer:GetCollisionManager():GetBroadphase(), transform, me:transform)
+        Synchronize(layer:GetCollisionManager():GetBroadphase(), transform, me:transform)
     end
 
     action SynchronizeTransform
+        Math math
         transform:sine = math:Sine(sweep:angle)
         transform:cosine = math:Cosine(sweep:angle)
         number cosine = transform:cosine
@@ -2129,10 +2131,6 @@ class Item2D is Item
     end
 
     action TestPoint(Vector2 point) returns boolean
-        Transform2D transform
-        Vector2 position
-        position:Set(parent:Item2D:GetX(), parent:Item2D:GetY())
-        transform:Set(position, parent:Item2D:GetRotation())
         return shape:TestPoint(transform, point)
     end
 
@@ -2141,10 +2139,6 @@ class Item2D is Item
     end
 
     action ComputeDistance(Vector2 point, integer childIndex, Vector2 normalOut) returns number
-        Transform2D transform
-        Vector2 position
-        position:Set(parent:Item2D:GetX(), parent:Item2D:GetY())
-        transform:Set(position, parent:Item2D:GetRotation())
         return shape:ComputeDistance(transform, point, childIndex, normalOut)
     end
 
