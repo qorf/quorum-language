@@ -1609,6 +1609,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 + "variable " + name + ", but I cannot find that variable.")
             CompilerErrorManager manager = GetCompilerErrorManager()
             manager:Add(error)
+            return now
         end
 
         boolean notDefined = false
