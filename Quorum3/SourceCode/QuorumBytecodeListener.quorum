@@ -1599,6 +1599,16 @@ class QuorumBytecodeListener is QuorumSourceListener
                 CompilerErrorManager manager = GetCompilerErrorManager()
                 manager:Add(error)
             end
+        else 
+            CompilerError error
+            error:SetLocation(context:GetLocation())
+            CompilerErrorType errorType
+            errorType:SetCurrentType(errorType:MISSING_VARIABLE)
+            error:SetCompilerErrorType(errorType)
+            error:SetErrorMessage("I noticed that the code says you want to modify the "
+                + "variable " + name + ", but I cannot find that variable.")
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
         end
 
         boolean notDefined = false
@@ -2113,7 +2123,6 @@ class QuorumBytecodeListener is QuorumSourceListener
 
             actionCall:SetParentToCallOn(parentClass)
             return actionCall
-
         end
     end
 
