@@ -163,7 +163,7 @@ class DynamicBoundingVolumeTree2D
     end
 
     /*
-    This action returns the Item2D contained in the tree node with the given ID
+    This action returns the Item2Dcontained in the tree node with the given ID
     */
     action GetObject(integer nodeID) returns Object
         if 0 <= nodeID and nodeID < nodesCapacity
@@ -173,7 +173,7 @@ class DynamicBoundingVolumeTree2D
     end
 
     /*
-    This action returns the Item2D contained in the given tree node
+    This action returns the Item2Dcontained in the given tree node
     */
     action GetObject(DynamicBoundingVolumeTreeNode2D node) returns Object
         return node:GetObject()

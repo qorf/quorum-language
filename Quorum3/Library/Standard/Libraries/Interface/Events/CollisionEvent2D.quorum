@@ -2,14 +2,23 @@ use Libraries.Interface.Item2D
 use Libraries.Compute.Math
 use Libraries.Compute.Vector2
 use Libraries.Containers.Array
+use Libraries.Game.Collision.ContactEdge2D
+use Libraries.Game.Collision.ContactManifold2D
+use Libraries.Game.Collision.Transform2D
+use Libraries.Game.Collision.Shapes.CollisionShape2D
+use Libraries.Game.Collision.Shapes.Chain
+use Libraries.Game.Collision.Shapes.Circle
+use Libraries.Game.Collision.Shapes.Edge
+use Libraries.Game.Collision.Shapes.Polygon
+use Libraries.Game.Collision.ManifoldPoint2D
 
-//package Libraries.Interface.Events
+package Libraries.Interface.Events
 
 class CollisionEvent2D
     public constant number EPSILON = 0.00000011920928955078125
 
-    Item2D itemA = undefined
-    Item2D itemB = undefined
+    Item2DitemA = undefined
+    Item2DitemB = undefined
 
     integer indexA = -1
     integer indexB = -1

@@ -1,6 +1,9 @@
 use Libraries.Compute.Vector2
 use Libraries.Containers.Array
 use Libraries.Compute.Math
+use Libraries.Game.Collision.Shapes.CollisionShape2D
+use Libraries.Game.Collision.Transform2D
+use Libraries.Game.Collision.BoundingBox2D
 
 package Libraries.Game.Collision.Shapes
 
@@ -160,7 +163,9 @@ class Polygon is CollisionShape2D
         centroid = ComputeCentroid(vertices, vertexCount)
     end
 
-    action SetAsBox(number halfWidth, number halfHeight)
+    action SetAsBox(number width, number height)
+        number halfWidth = width / 2
+        number halfHeight = height / 2
         count = 4
         vertices:Get(0):Set(-1 * halfWidth, -1 * halfHeight)
         vertices:Get(1):Set(halfWidth, -1 * halfHeight)
@@ -173,7 +178,9 @@ class Polygon is CollisionShape2D
         centroid:SetZero()
     end
 
-    action SetAsBox(number halfWidth, number halfHeight, Vector2 center, number angle)
+    action SetAsBox(number width, number height, Vector2 center, number angle)
+        number halfWidth = width / 2
+        number halfHeight = height / 2
         count = 4
         vertices:Get(0):Set(-1 * halfWidth, -1 * halfHeight)
         vertices:Get(1):Set(halfWidth, -1 * halfHeight)

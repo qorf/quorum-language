@@ -19,6 +19,8 @@ use Libraries.Game.Collision.Sweep2D
 use Libraries.Game.Collision.Shapes.all
 use Libraries.Game.Collision.Item2DNode
 use Libraries.Game.Collision.BroadphaseCollision2D
+use Libraries.Game.Collision.ContactEdge2D
+use Libraries.Game.Collision.BoundingBox2D
 
 class Item2D is Item
     
@@ -2044,14 +2046,14 @@ class Item2D is Item
     /*
     This action is used by the Game libraries to create a reference to the layer
     that this Item2D exists on. It is automatically called as needed by the
-    Layer2D class. Most users will never need to use this action directly.
+    Layer2Dclass. Most users will never need to use this action directly.
     */
     action SetLayer(Layer2D parentLayer)
         layer = parentLayer
     end
 
     /*
-    This action returns the current Layer2D that this Item2D is a part of in the
+    This action returns the current Layer2Dthat this Item2D is a part of in the
     Game libraries. 
     */
     action GetLayer returns Layer2D

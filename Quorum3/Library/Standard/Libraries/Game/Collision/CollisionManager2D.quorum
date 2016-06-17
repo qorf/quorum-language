@@ -1,6 +1,12 @@
 use Libraries.Game.Layer2D
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
+use Libraries.Game.Collision.BroadphaseCollision2D
+use Libraries.Interface.Events.CollisionEvent2D
+use Libraries.Interface.Events.CollisionListener2D
+use Libraries.Language.Object
+use Libraries.Game.Collision.Item2DNode
+use Libraries.Game.Collision.ContactEdge2D
 
 package Libraries.Game.Collision
 
@@ -8,7 +14,7 @@ class CollisionManager2D
     BroadphaseCollision2D broadphase
     Array<CollisionEvent2D> collisionList
     integer collisionCount = 0
-    CollisionListener2D listener
+    CollisionListener2D listener = undefined
 
     Layer2D myLayer = undefined
     
