@@ -213,7 +213,7 @@ class Item2D is Item
     action SetWidth(number newWidth)
         dimensions:SetX(newWidth)
         Polygon polygon
-        polygon:SetAsBox(newWidth / 2, dimensions:GetY() / 2)
+        polygon:SetAsBox(newWidth, dimensions:GetY())
         shape = polygon
     end
 
@@ -229,7 +229,7 @@ class Item2D is Item
     action SetHeight(number newHeight)
         dimensions:SetY(newHeight)
         Polygon polygon
-        polygon:SetAsBox(dimensions:GetX() / 2, newHeight / 2)
+        polygon:SetAsBox(dimensions:GetX(), newHeight)
         shape = polygon
     end
 
