@@ -4,7 +4,7 @@ use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Translate.BlockOpcode
 use Libraries.Language.Compile.Location
 use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Symbol.Variable
 use Libraries.Language.Compile.Symbol.Class
 
@@ -20,6 +20,10 @@ class DetectBlockOpcode is QuorumOpcode
         if block not= undefined
             block:SetBytecodeWriteOffsetToAllChildren(offset)
         end
+    end
+
+    action GetDeclaredDetectsIterator returns Iterator<Class>
+        return declaredDetects:GetIterator()
     end
 
     action AddDetect(Class clazz)
@@ -57,10 +61,6 @@ class DetectBlockOpcode is QuorumOpcode
     action Write 
         JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
 
-//        if not isAlways
-//            WriteExceptionVariable()
-//        end
-
         if block not= undefined
             block:Write()
         end
@@ -83,7 +83,11 @@ class DetectBlockOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text
-        return ""
+        text result = ""
+        if block not= undefined
+            result = result + block:WriteJavaScript()
+        end
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode

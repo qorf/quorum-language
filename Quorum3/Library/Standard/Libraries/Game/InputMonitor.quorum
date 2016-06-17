@@ -1,6 +1,6 @@
 package Libraries.Game
 
-use Libraries.Interface.Item
+use Libraries.Interface.Item2D
 
 /*
     The InputMonitor class can be used to test the state of the keyboard or
@@ -233,7 +233,7 @@ class InputMonitor
 
         end
     */
-    action ItemIsClicked(Item item) returns boolean
+    action ItemIsClicked(Item2D item) returns boolean
         
         if IsClicked()
             if GetMouseX() >= item:GetGlobalX() and GetMouseX() <= (item:GetGlobalX() + item:GetWidth())
@@ -282,7 +282,7 @@ class InputMonitor
 
         end
     */
-    action ItemIsClicked(Item item, integer button) returns boolean
+    action ItemIsClicked(Item2D item, integer button) returns boolean
         
         if IsMouseButtonPressed(button)
             if GetMouseX() >= item:GetGlobalX() and GetMouseX() <= (item:GetGlobalX() + item:GetWidth())

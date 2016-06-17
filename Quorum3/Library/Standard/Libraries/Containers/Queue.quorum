@@ -1,8 +1,7 @@
 package Libraries.Containers
 
 use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
-use Libraries.Containers.Blueprints.QueueBlueprint
+use Libraries.Containers.Iterator
 
 /*
 The Queue class is a data structure that stores items as if the items were in 
@@ -27,7 +26,7 @@ class Main
    end
 end
 */
-class Queue<Type> is QueueBlueprint<Type>
+class Queue<Type>
     List<Type> list
 
     /*
@@ -89,7 +88,7 @@ class Queue<Type> is QueueBlueprint<Type>
 
         Attribute: Example
         use Libraries.Containers.Queue
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
         Queue<integer> myQueue
         myQueue:Add(12)
         myQueue:Add(13)

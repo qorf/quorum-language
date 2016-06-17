@@ -1,0 +1,141 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Game.Graphics.VertexAttribute
+use Libraries.Compute.BitwiseOperations
+
+class VertexAttributes 
+    
+    public constant integer POSITION = 1
+    public constant integer COLOR_UNPACKED = 2
+    public constant integer COLOR_PACKED = 4
+    public constant integer NORMAL = 8
+    public constant integer TEXTURE_COORDINATES = 16
+    public constant integer GENERIC = 32
+    public constant integer BONE_WEIGHT = 64
+    public constant integer TANGENT = 128
+    public constant integer BINORMAL = 256
+
+    private Array<VertexAttribute> attributes
+
+    public integer vertexSize = 0
+
+    // The cached value of the GetMask action. 
+    private integer mask = -1 
+
+    // private ReadOnlyIterable<VertexAttribute> iterable
+
+    action SetAttributes(Array<VertexAttribute> array)
+        if array = undefined or array:GetSize() = 0
+            alert("SetAttributes requires an array with at least one element.")
+        end
+        
+        attributes:SetSize(array:GetSize())
+        integer counter = 0
+
+        repeat array:GetSize() times
+            attributes:Set(counter, array:Get(counter))
+            counter = counter + 1
+        end
+
+        vertexSize = CalculateOffsets()
+    end
+
+    action FindByUsage(integer usage) returns VertexAttribute
+        integer counter = 0
+        repeat attributes:GetSize() times
+            if attributes:Get(counter):usage = usage
+                return attributes:Get(counter)
+            end
+            counter = counter + 1
+        end
+        return undefined
+    end
+
+    action GetOffset(integer usage) returns integer
+        VertexAttribute temp = FindByUsage(usage)
+        if temp = undefined
+            return 0
+        end
+        return temp:offset/4
+    end
+
+    action GetAttribute(integer index) returns VertexAttribute
+        return attributes:Get(index)
+    end
+
+    action GetSize returns integer
+        return attributes:GetSize()
+    end
+
+    action GetIterator returns Iterator<VertexAttribute>
+        return attributes:GetIterator()
+    end
+
+    /*
+    This action will return an integer mask based on the contained
+    VertexAttribute objects. The integer mask is calculated by using bitwise
+    Or operations on the usage value of each VertexAttribute.
+    */
+    action GetMask returns integer
+        if mask = -1
+            BitwiseOperations bits
+            integer index = 0
+            integer result = 0
+
+            repeat while index < attributes:GetSize()
+                result = bits:Or(result, attributes:Get(index):usage)
+                index = index + 1
+            end
+
+            mask = result
+        end
+
+        return mask
+    end
+
+    private action CalculateOffsets returns integer
+        integer count = 0
+        integer index = 0
+
+        repeat attributes:GetSize() times
+            VertexAttribute attribute = attributes:Get(index)
+            attribute:offset = count
+            if attribute:usage = COLOR_PACKED
+                count = count + 4
+            else
+                count = count + 4 * attribute:componentCount
+            end
+            index = index + 1
+        end
+
+        return count
+    end
+
+    action Equals(Object object) returns boolean
+        if parent:Object:Equals(object)
+            return true
+        end
+
+        if not (object is VertexAttributes)
+            return false
+        end
+
+        VertexAttributes other = cast(VertexAttributes, object)
+        if GetSize() not= other:GetSize()
+            return false
+        end
+
+        integer counter = 0
+        repeat GetSize() times
+            if not attributes:Get(counter):Equals(other:GetAttribute(counter))
+                return false
+            end
+            counter = counter + 1
+        end
+
+        return true
+    end
+
+end

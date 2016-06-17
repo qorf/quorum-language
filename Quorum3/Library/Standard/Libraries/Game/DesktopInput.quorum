@@ -1,0 +1,196 @@
+package Libraries.Game
+
+use Libraries.Containers.Array
+use Libraries.Containers.List
+use Libraries.Interface.Item
+use Libraries.Interface.Panel
+use Libraries.Interface.Events.KeyboardListener
+use Libraries.Interface.Events.KeyboardProcessor
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.MouseProcessor
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseWheelListener
+use Libraries.Interface.Events.TouchListener
+
+/*
+This class automatically handles input and notifies event listeners for Games
+running on Desktop platforms (e.g. Windows, Mac). Most users shouldn't need 
+access to this class. For users who want to test input themselves at specific 
+times, use an InputMonitor instead.
+*/
+class DesktopInput is GameInput
+
+    private KeyboardProcessor keyboardProcessor
+    private MouseProcessor mouseProcessor
+
+    Array<MouseListener> mouseListeners
+    Array<MouseMovementListener> mouseMovementListeners
+    Array<MouseWheelListener> mouseWheelListeners
+
+    /*
+    This action will identify all input events that have occurred and notify
+    all relevant event listeners. For certain kinds of input, e.g. mouse or
+    touch input, only listeners that were added to the active panel will be
+    notified. This action is called automatically by the Game class, so most
+    users will never need to use this action directly.
+    */
+    action ProcessInputEvents
+        Array<Layer> layers = parent:GameInput:layers
+        List<MouseEvent> mouseEvents = mouseProcessor:GetCurrentEvents()
+        MouseEvent mouseEvent = undefined
+
+        repeat mouseEvents:GetSize() times
+            mouseEvent = mouseEvents:RemoveFromFront()
+
+            integer counter = layers:GetSize()
+            repeat while counter > 0 and not mouseEvent:WasEventHandled()
+                counter = counter - 1
+                layers:Get(counter):ProcessMouseEvent(mouseEvent)
+            end
+
+            if not mouseEvent:WasEventHandled()
+                NotifyMouseListeners(mouseEvent)
+            end
+        end
+
+        keyboardProcessor:Update()
+        keyboardProcessor:ProcessEvents()
+    end
+
+    /*
+    This action forwards a mouse event to the listeners that are stored directly
+    in the DesktopInput.
+    */
+    private action NotifyMouseListeners(MouseEvent event)
+
+        integer counter = 0
+
+        if event:eventType = event:MOVED_MOUSE
+            repeat mouseMovementListeners:GetSize() times
+                mouseMovementListeners:Get(counter):MovedMouse(event)
+                counter = counter + 1
+            end
+
+        elseif event:eventType = event:DRAGGED_MOUSE
+            repeat mouseMovementListeners:GetSize() times
+                mouseMovementListeners:Get(counter):DraggedMouse(event)
+                counter = counter + 1
+            end
+
+        elseif event:eventType = event:CLICKED_MOUSE
+            repeat mouseListeners:GetSize() times
+                mouseListeners:Get(counter):ClickedMouse(event)
+                counter = counter + 1
+            end
+
+        elseif event:eventType = event:RELEASED_MOUSE
+            repeat mouseListeners:GetSize() times
+                mouseListeners:Get(counter):ReleasedMouse(event)
+                counter = counter + 1
+            end
+
+        else
+            repeat mouseWheelListeners:GetSize() times
+                mouseWheelListeners:Get(counter):ScrolledMouse(event)
+                counter = counter + 1
+            end
+            
+        end
+    end
+
+    /*
+    This action will add a KeyboardListener to the DesktopInput. The 
+    DesktopInput will notify the KeyboardListener if keys are pressed on the 
+    keyboard. This action is automatically called by the Game class when needed.
+    */
+    action AddKeyboardListener(KeyboardListener listener)
+        keyboardProcessor:AddListener(listener)
+    end
+
+    /*
+    This action will remove a KeyboardListener from the DesktopInput. The
+    DesktopInput will no longer notify the given KeyboardListener of 
+    KeyboardEvents. This action is automatically called by the Game class when 
+    needed.
+    */
+    action RemoveKeyboardListener(KeyboardListener listener)
+        keyboardProcessor:RemoveListener(listener)
+    end
+
+    /*
+    This action adds a MouseListener directly to the GameInput. When the
+    GameInput receives a mouse event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    MouseListeners which are added directly to the GameInput will receive the
+    event.
+    */
+    action AddMouseListener(MouseListener listener)
+        mouseListeners:Add(listener)
+    end
+
+    /*
+    This action adds a MouseMovementListener directly to the GameInput. When the
+    GameInput receives a mouse event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    MouseMovementListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    action AddMouseMovementListener(MouseMovementListener listener)
+        mouseMovementListeners:Add(listener)
+    end
+
+    /*
+    This action adds a MouseWheelListener directly to the GameInput. When the
+    GameInput receives a mouse event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    MouseWheelListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    action AddMouseWheelListener(MouseWheelListener listener)
+        mouseWheelListeners:Add(listener)
+    end
+
+    /*
+    This action adds a TouchListener directly to the GameInput. Note that touch
+    isn't supported on desktop platforms - if the Game is running on a desktop
+    platform, this action will be ignored.
+    */
+    action AddTouchListener(TouchListener listener)
+        // Do nothing - touch isn't supported on Desktop.
+    end
+
+    /*
+    This action removes a MouseListener from the GameInput. It will no longer
+    receive mouse events directly from the GameInput.
+    */
+    action RemoveMouseListener(MouseListener listener)
+        mouseListeners:Remove(listener)
+    end
+
+    /*
+    This action removes a MouseMovementListener from the GameInput. The listener
+    will no longer receive events from the GameInput.
+    */
+    action RemoveMouseMovementListener(MouseMovementListener listener)
+        mouseMovementListeners:Remove(listener)
+    end
+
+    /*
+    This action removes a MouseWheelListener from the GameInput. The listener
+    will no longer receive events from the GameInput.
+    */
+    action RemoveMouseWheelListener(MouseWheelListener listener)
+        mouseWheelListeners:Remove(listener)
+    end
+
+    /*
+    This action removes a TouchListener from the GameInput. Note that touch
+    isn't supported on desktop platforms - if the Game is running on a desktop
+    platform, this action will be ignored.
+    */
+    action RemoveTouchListener(TouchListener listener)
+        // Do nothing - touch isn't supported on Desktop.
+    end
+
+end

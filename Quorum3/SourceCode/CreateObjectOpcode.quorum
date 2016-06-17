@@ -2,7 +2,7 @@ package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.all
 use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 
 class CreateObjectOpcode is QuorumOpcode
     //integer bytecodeLocation = -1
@@ -36,7 +36,13 @@ class CreateObjectOpcode is QuorumOpcode
     action WriteJavaScript returns text
         EOL = ""
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-        text result = "var " + variable:GetName() + " = new " + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+        text result = ""
+        if variable:IsField()
+            result = "this." + variable:GetJavaScriptName() + " = new " + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+        else
+            result = "var " + variable:GetJavaScriptName() + " = new " + clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+        end
+        
         return result
     end
 

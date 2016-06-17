@@ -1,11 +1,9 @@
 package Libraries.Containers
 
-use Libraries.Containers.Blueprints.Iterator
-use Libraries.Containers.Blueprints.ListBlueprint
+use Libraries.Containers.Iterator
 use Libraries.Containers.Support.ListNode
 use Libraries.Language.Errors.InvalidLocationError
 use Libraries.Containers.Support.ListIterator
-use Libraries.Containers.Blueprints.Sortable
 
 /*
 The List class is a data structure that stores items in nodes. Each of these
@@ -29,7 +27,7 @@ class Main
    end
 end
 */
-class List <Type> is ListBlueprint<Type>
+class List <Type>
     ListNode<Type> head = undefined
     ListNode<Type> tail = undefined
     integer invalidIndex = -1
@@ -356,7 +354,7 @@ class List <Type> is ListBlueprint<Type>
 
         Attribute: Example
         use Libraries.Containers.List
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
         List<integer> myList
         myList:Add(12)
         myList:Add(13)

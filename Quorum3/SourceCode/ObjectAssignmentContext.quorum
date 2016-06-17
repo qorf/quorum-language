@@ -2,6 +2,7 @@ package Libraries.Language.Compile.Context
 
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.QualifiedName
+use Libraries.Language.Compile.Location
 
 class ObjectAssignmentContext is ParseContext
     public boolean isField = false
@@ -9,4 +10,7 @@ class ObjectAssignmentContext is ParseContext
     public QualifiedName parentName = undefined
     public text name = ""
     public Type rightHandSide = undefined
+    public Location objectLocation
+    public Location variableLocation
+    public Location typeLocation
 end

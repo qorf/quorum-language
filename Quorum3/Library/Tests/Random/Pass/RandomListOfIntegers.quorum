@@ -15,14 +15,14 @@
  */
 
 use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Compute.Random
 
 class Main
     action Main
         boolean pass = false
         Random random
-        random:SetSeed(1101102342)
+        random:SetSeed(5489)
         List<integer> list = random:RandomListOfIntegers(5)
         Iterator<integer> i = list:GetIterator()
         

@@ -2,10 +2,10 @@ package Libraries.Game.Graphics
 
 use Libraries.Containers.Array
 use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.System.File
-use Libraries.Interface.Item
-use Libraries.Game.Graphics.Painter
+use Libraries.Interface.Item2D
+use Libraries.Game.Graphics.Painter2D
 
 /*
 The Label class is used to draw text on the screen using a Font that is loaded
@@ -30,7 +30,7 @@ Attribute: Example
         end
     end
 */
-class Label is Item
+class Label is Item2D
 
     on create
         SetName("Label")
@@ -40,6 +40,9 @@ class Label is Item
             SetFont(font)
         elseif font:FontIsAvailable("Arial Unicode")
             font:LoadFont("Arial Unicode")
+            SetFont(font)
+        elseif font:FontIsAvailable("Helvetica")
+            font:LoadFont("Helvetica")
             SetFont(font)
         elseif font:FontIsAvailable("Georgia")
             font:LoadFont("Georgia")
@@ -416,7 +419,7 @@ class Label is Item
     action Rotate(number angle)
         textChanged = true
         font:Rotate(angle)
-        parent:Item:Rotate(angle)
+        parent:Item2D:Rotate(angle)
     end
 
     /*
@@ -482,24 +485,21 @@ class Label is Item
     private action LoadDrawables
 
         if font:IsLoaded()
-            // The size and angle are set before drawing to ensure that FreeType is
-            // using the proper parameters for each.
+            /* 
+            The size and angle are set before drawing to ensure that FreeType is
+            using the proper parameters for each.
+            NOTE: These calls force the Font to empty its glyph table, thus
+            eliminating much of the benefit of caching them. Long-term, these
+            calls should be removed, and the parameters should be handled more
+            intelligently elsewhere.
+            */
             font:SetSize(font:GetSize())
             font:SetAngle(font:GetAngle())
 
             // Dispose of the old sprites.
             DisposeChildren()
             Empty()
-            /*Iterator<Drawable> iterator = parent:DrawableGroup:drawables:GetIterator()
-            Drawable deleter = undefined
 
-            repeat while iterator:HasNext()
-                deleter = iterator:Next()
-                deleter:Dispose()
-                Remove(deleter)
-            end*/
-
-            //List<Drawable> tempList = parent:DrawableGroup:drawables
 
             integer index = 0
             number x = 0//GetX()
@@ -508,7 +508,6 @@ class Label is Item
             Drawable drawable = undefined
             Glyph glyph = undefined
 
-            // BEGINNING OF NEW CODE
             boolean endsWithSpace = false
 
             if targetText:GetSize() > 0
@@ -518,7 +517,7 @@ class Label is Item
             number availableWidth = GetWidth() - horizontalMargins
             number availableHeight = GetHeight() - verticalMargins
 
-            Array<text> lines = Split(targetText, targetText:GetLineFeed())//targetText:Split(targetText:GetLineFeed())
+            Array<text> lines = Split(targetText, targetText:GetLineFeed())
             Array<text> words = undefined
             Array<Glyph> glyphs
 
@@ -541,7 +540,7 @@ class Label is Item
             number startingOriginY = originY
 
             repeat lines:GetSize() times
-                words = Split(lines:Get(lineIndex), " ")//lines:Get(lineIndex):Split(" ")
+                words = Split(lines:Get(lineIndex), " ")
                 wordsIndex = 0
                 currentLineLength = 0
 
@@ -575,9 +574,11 @@ class Label is Item
                     repeat currentWord:GetSize() times
                         glyph = glyphs:Get(glyphIndex)
                         drawable = glyph:drawable
-                        drawable:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine - drawable:GetHeight())
 
-                        Add(drawable)
+                        if drawable not= undefined
+                            drawable:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine - drawable:GetHeight())
+                            Add(drawable)
+                        end
 
                         glyphIndex = glyphIndex + 1
                         x = x + glyph:horizontalAdvance
@@ -611,21 +612,6 @@ class Label is Item
             textWidth = maxLineWidth
             textHeight = startingOriginY - originY
             
-
-            /* OLD DRAWING CODE
-            repeat targetText:GetSize() times
-                glyph = font:GetGlyph(targetText:GetCharacter(index))
-                drawable = glyph:drawable
-                drawable:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine - drawable:GetHeight())
-                
-                tempList:AddToEnd(drawable)
-
-                index = index + 1
-                x = x + glyph:horizontalAdvance
-                y = y + glyph:verticalAdvance
-            end*/
-
-            //parent:DrawableGroup:drawables = tempList
             textChanged = false
         end
 
@@ -698,11 +684,11 @@ class Label is Item
     game engine automatically, so most users will not need to use this action
     directly.
     */
-    action Draw(Painter painter)
+    action Draw(Painter2D painter)
         if textChanged
             LoadDrawables()
         end
-        parent:Item:Draw(painter)
+        parent:Item2D:Draw(painter)
     end
 
     /*

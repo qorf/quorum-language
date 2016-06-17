@@ -1,0 +1,20 @@
+package Libraries.Game
+
+use Libraries.Game.Graphics.Painter2D
+
+class AndroidApplication is Application 
+    
+    action Setup(Game game)
+        parent:Application:Setup(game)
+        GameStateManager manager
+        manager:SetApplication(me)
+        SetupNative(game, parent:Application:display:GetConfiguration())
+        
+        game:InitializeLayers()
+    end
+
+    private system action SetupNative(Game game, ApplicationConfiguration config)
+
+    system action Exit
+
+end

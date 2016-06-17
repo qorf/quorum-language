@@ -1,6 +1,7 @@
 package Libraries.System.Blueprints
+
 use Libraries.System.File
-use Libraries.Containers.Blueprints.Indexed
+use Libraries.Containers.Array
 
 /*
 Inheriting from FileRandomAccessBlueprint provides a standard interface for
@@ -30,7 +31,7 @@ class FileRandomAccessBlueprint
 
     blueprint action ReadLine() returns text
 
-    blueprint action ReadLines() returns Indexed<text>
+    blueprint action ReadLines() returns Array<text>
 
     blueprint action Write(text textToWrite)
 

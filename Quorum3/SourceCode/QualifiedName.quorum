@@ -1,15 +1,21 @@
 package Libraries.Language.Compile
 
 use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Location
 
 class QualifiedName is Location
     List<text> names
     List<text> generics
+    text staticKey = ""
 
     action Add(text name)
         names:Add(name)
+        if staticKey:IsEmpty()
+            staticKey = name
+        else 
+            staticKey = staticKey + "." + name
+        end
     end
 
     action AddGeneric(text generic)
@@ -56,18 +62,7 @@ class QualifiedName is Location
         and class name.
     */
     action GetStaticKey returns text
-        key = ""
-        i = 0
-        repeat GetSize() times
-            key = key + names:Get(i)
-
-            if i < GetSize() - 1
-                key = key + "."
-            end
-            i = i + 1
-        end
-
-        return key
+        return staticKey
     end
 
     action GetStaticKeyNoAll returns text
@@ -143,6 +138,9 @@ class QualifiedName is Location
             text value = gen:Next()
             new:AddGeneric(value)
         end
+
+        Location location = me:CreateLocationCopy()
+        new:SetLocation(location)
         return new
     end
 end

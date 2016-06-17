@@ -1,9 +1,8 @@
 package Libraries.Containers
 
-use Libraries.Containers.Blueprints.TableBlueprint
 use Libraries.Containers.Array
 use Libraries.Language.Errors.InvalidLocationError
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 
 /*
 The Table class is a data structure that stores items in contiguous memory. An
@@ -28,7 +27,7 @@ class Main
    end
 end
 */
-class Table<Type> is TableBlueprint<Type>
+class Table<Type>
 
     Array<Array<Type>> table = undefined
     integer columnSize = 10
@@ -558,7 +557,7 @@ class Table<Type> is TableBlueprint<Type>
         Attribute: Example
         use Libraries.Containers.Table
         use Libraries.Containers.Array
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
 
         Table<integer> myTable
         myTable:SetSize(4,4)

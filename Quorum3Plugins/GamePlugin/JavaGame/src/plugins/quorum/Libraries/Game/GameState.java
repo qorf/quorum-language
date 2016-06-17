@@ -9,9 +9,11 @@ package plugins.quorum.Libraries.Game;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.Util;
 import quorum.Libraries.Game.Graphics.GraphicsManager_;
+import quorum.Libraries.Game.Graphics.DesktopGraphics;
+import quorum.Libraries.Game.Graphics.IOSGraphics;
 import quorum.Libraries.Game.Application_;
 import quorum.Libraries.Game.GameDisplay_;
-import quorum.Libraries.Game.InputMonitor_;
+import quorum.Libraries.Game.GameInput_;
 
 import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 
@@ -31,19 +33,41 @@ public class GameState {
     public java.lang.Object me_ = null;
     private static Application_ app;
     private static GameDisplay_ display;
-    private static GraphicsManager_ GameGraphics;
-    private static GraphicsManager_ GameGraphics20Manager;
+    private static GraphicsManager_ gameGraphics;
+    //private static GraphicsManager_ GameGraphics20Manager;
+    private static GameInput_ gameInput;
 
     private static String nativePath;
     private static String operatingSystem;
 
     // Having direct access to the Java GraphicsManager makes the Java side much easier.
-    public static final GraphicsManager nativeGraphics = new GraphicsManager();
+    public static final GraphicsManager nativeGraphics;
+    
+    static
+    {
+        String os = System.getProperty("os.name");
+        if (os.contains("Mac OS X") || os.contains("Windows") || os.contains("Linux"))
+        {
+            gameGraphics = new DesktopGraphics();
+            nativeGraphics = ((DesktopGraphics)gameGraphics).plugin_;
+        }
+        else if (os.contains("iOS"))
+        {
+            gameGraphics = new IOSGraphics();
+            nativeGraphics = ((IOSGraphics)gameGraphics).plugin_;
+            plugins.quorum.Libraries.Game.Graphics.IOSGraphics.init();
+        }
+        else
+        {
+            System.out.println("Couldn't detect os! OS was " + os);
+            nativeGraphics = null;
+        }
+    }
 
     // This is never accessed directly through Quorum. It is only accessed through
     // Java. Thus it is place here instead of in GameStateManager.
     // As a temporary hack, this is initialized in GameStateManager:SetApplication.
-    public static GameFileHandler fileHandler;
+    public static GameFileHandler  fileHandler = new LWJGLFileHandler();
 
     //Getters/setters so GameState can be used properly from Quorum.
 
@@ -76,31 +100,27 @@ public class GameState {
     }
 
     /**
-     * @return the GameGraphics
+     * @return the gameGraphics
      */
     public static GraphicsManager_ GetGameGraphics() {
-      return GameGraphics;
+      return gameGraphics;
     }
 
     /**
-     * @param aGameGraphics the GameGraphics to set
+     * @param aGameGraphics the gameGraphics to set
      */
     public static void SetGameGraphics(GraphicsManager_ aGameGraphics) {
-      GameGraphics = aGameGraphics;
+      gameGraphics = aGameGraphics;
     }
 
-    /**
-     * @return the GameGraphics20Manager
-     */
-    public static GraphicsManager_ GetGameGraphics20Manager() {
-      return GameGraphics20Manager;
+    public static void SetInput(GameInput_ input)
+    {
+        gameInput = input;
     }
-
-    /**
-     * @param aGameGraphics20Manager the GameGraphics20Manager to set
-     */
-    public static void SetGameGraphics20Manager(GraphicsManager_ aGameGraphics20Manager) {
-      GameGraphics20Manager = aGameGraphics20Manager;
+    
+    public static GameInput_ GetInput()
+    {
+        return gameInput;
     }
   
     public static void SetNativePath(String path)

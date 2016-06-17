@@ -18,6 +18,26 @@ class AssignmentOpcode is QuorumOpcode
     Class fieldHolder = undefined
     Class parentWithField = undefined
 
+    boolean isInFieldBlock = false
+    boolean isNewAssignment = false
+
+    action IsInFieldBlock returns boolean
+        return isInFieldBlock
+    end
+
+    action SetIsInFieldBlock(boolean block)
+        isInFieldBlock = block
+    end
+
+    
+    action IsNewAssignment returns boolean
+        return isNewAssignment
+    end
+
+    action SetIsNewAssignment(boolean block)
+        isNewAssignment = block
+    end
+
     action GetImplicitCast returns QuorumOpcode
         return implicitCast
     end
@@ -219,10 +239,33 @@ class AssignmentOpcode is QuorumOpcode
     action WriteJavaScript returns text 
         text result = ""
 
+        if isObjectField
+            if variable:IsField()
+                result = result + "this."
+                result = result + variable:GetJavaScriptName() + "." + field:GetJavaScriptName()
+            else
+                result = result + variable:GetJavaScriptName() + "." + field:GetJavaScriptName()
+            end
+            result = result + " = " + rightHandSide:WriteJavaScript() + ";"
+            EOL = ""
+            EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+            result = result + EOL
+            return result
+        end
         if variable:IsField()
-            result = result + "this." + variable:GetName()
+            result = result + "this." 
+            if parentWithField not= undefined
+                if field not= undefined
+                    result = result + field:GetJavaScriptName() + "."
+                end
+                result = result + parentWithField:ConvertStaticKeyToParentFieldName() + "."
+            end
+            result = result + variable:GetJavaScriptName()
         else
-            result = result + variable:GetName() 
+            if isNewAssignment
+                result = result + "var " 
+            end
+            result = result + variable:GetJavaScriptName() 
         end
         result = result + " = " + rightHandSide:WriteJavaScript() + ";"
         EOL = ""

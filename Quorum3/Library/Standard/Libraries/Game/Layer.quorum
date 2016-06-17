@@ -1,0 +1,141 @@
+package Libraries.Game
+
+use Libraries.Game.Graphics.Camera
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseWheelListener
+use Libraries.Interface.Events.TouchListener
+
+class Layer 
+    
+    boolean visible = true
+
+    /*
+    This action will update all of the items contained within this Layer. The
+    given number of seconds will be passed to each updated item.
+    */
+    blueprint action Update(number seconds)
+
+    /*
+    This action will draw all items in this Layer on the screen (if they can be
+    drawn and they aren't hidden). If the Layer is currently hidden, then this
+    action will do nothing.
+    */
+    blueprint action Draw
+
+    /*
+    This action will hide the Layer. This will prevent the Layer from appearing
+    when asked to draw.
+    */
+    action Hide
+        visible = false
+    end
+
+    /*
+    This action will show the Layer. When Draw is called on a Layer which is
+    showing, its items will appear on the screen. Layers begin showing by default.
+    */
+    action Show
+        visible = true
+    end
+
+    /*
+    This action will return if the current layer is currently visible or not.
+    Layers which are showing will be drawn on the screen automatically by the
+    Game class. Layers begin showing by default.
+    */
+    action IsShowing returns boolean
+        return visible
+    end
+
+    /*
+    This action will set the camera being used by this Layer. The camera is used
+    to determine what will be drawn on the screen. Objects will be drawn on the
+    screen as they are seen by the Layer's set camera.
+    */
+    blueprint action SetCamera(Camera camera)
+
+    /*
+    This action will return the camera being used by this Layer. The camera is used
+    to determine what will be drawn on the screen. Objects will be drawn on the
+    screen as they are seen by the Layer's set camera.
+    */
+    blueprint action GetCamera returns Camera
+
+    /*
+    This action will notify mouse listeners that are a part of this layer of the
+    given mouse event.
+    */
+    blueprint action ProcessMouseEvent(MouseEvent event)
+
+    /*
+    This action will notify touch listeners that are a part of this layer of the
+    given touch event.
+    */
+    blueprint action ProcessTouchEvent(TouchEvent event)
+
+    /*
+    This action will add a MouseListener to the layer. When the layer receives a
+    mouse event, it will first try to find the topmost item which can handle the
+    event. If the event is not handled, then all MouseListeners in the layer 
+    will receive the event.
+    */
+    blueprint action AddMouseListener(MouseListener listener)
+
+    /*
+    This action will add a MouseMovementListener to the layer. When the layer
+    receives a mouse event, it will first try to find the topmost item which can
+    handle the event. If the event is not handled, then all 
+    MouseMovementListeners in the layer will receive the event.
+    */
+    blueprint action AddMouseMovementListener(MouseMovementListener listener)
+
+    /*
+    This action will add a MouseWheelListener to the layer. When the layer
+    receives a mouse event, it will first try to find the topmost item which can
+    handle the event. If the event is not handled, then all 
+    MouseWheelListeners in the layer will receive the event.
+    */
+    blueprint action AddMouseWheelListener(MouseWheelListener listener)
+
+    /*
+    This action will add a TouchListener to the layer. When the layer
+    receives a touch event, it will first try to find the topmost item which can
+    handle the event. If the event is not handled, then all 
+    TouchListeners in the layer will receive the event.
+    */
+    blueprint action AddTouchListener(TouchListener listener)
+    
+    /*
+    This action will remove a MouseListener from the layer. The listener will no
+    longer receive events from the layer. If the given MouseListener is not on
+    the layer before calling this action, then this action will have no effect.
+    */
+    blueprint action RemoveMouseListener(MouseListener listener)
+
+    /*
+    This action will remove a MouseMovementListener from the layer. The listener
+    will no longer receive events from the layer. If the given 
+    MouseMovementListener is not on the layer before calling this action, then 
+    this action will have no effect.
+    */
+    blueprint action RemoveMouseMovementListener(MouseMovementListener listener)
+
+    /*
+    This action will remove a MouseWheelListener from the layer. The listener 
+    will no longer receive events from the layer. If the given 
+    MouseWheelListener is not on the layer before calling this action, then this
+    action will have no effect.
+    */
+    blueprint action RemoveMouseWheelListener(MouseWheelListener listener)
+
+    /*
+    This action will remove a TouchListener from the layer. The listener will no
+    longer receive events from the layer. If the given TouchListener is not on
+    the layer before calling this action, then this action will have no effect.
+    */
+    blueprint action RemoveTouchListener(TouchListener listener)
+
+end

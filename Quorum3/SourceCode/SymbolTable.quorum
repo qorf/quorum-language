@@ -5,12 +5,49 @@ use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Location
 use Libraries.System.File
 use Libraries.Containers.Array
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 
+/*
+    Ths SymbolTable class stores all pertinent information about a compile 
+    as it goes. It allows for querying of various kinds and stores only 
+    the information in its transitive dependency graph. However, in some 
+    instances, like in the use of IDE usage, a symbol table may contain a 
+    second table, called a standard library cache. This cache contains 
+    classes that are not used in the compile, but that are available to the
+    compiler for use. This is useful for things like editor hints.
+*/
 class SymbolTable 
     HashTable<text, Source> files
     HashTable<text, Class> classes
     HashTable<text, HashTable<text, Class>> packages
+    SymbolTable standardLibraryCache = undefined
+
+    /*
+        This stores the standard library cache. It contains any classes 
+        available to the system, regardless of whether they available in the 
+        current compile.
+    */
+    action GetStandardLibraryCache returns SymbolTable
+        return standardLibraryCache
+    end
+
+    /*
+        This stores whether or not a standard library cache exists. There are
+        good reasons why a cache may not exist. For example, if this symbol
+        table is a cache, it won't have another one. Further, if scanning 
+        is turned off, then no cache will exist.
+    */
+    action HasStandardLibraryCache returns boolean
+        return standardLibraryCache not= undefined
+    end
+
+    /*
+        This action sets the standard library cache.
+    */
+    action SetStandardLibraryCache(SymbolTable table)
+        standardLibraryCache = table
+    end
+
 
     /*
         Returns the number of packages in the symbol table.

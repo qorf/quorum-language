@@ -5,7 +5,7 @@ use Libraries.Containers.HashTable
 use Libraries.Containers.Array
 use Libraries.Language.Compile.Parser
 use Libraries.System.File
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.System.StackTraceItem
 
@@ -68,7 +68,7 @@ class RandomTester
         File main
         main:SetPath(path + "RandomInteger.quorum")
         files:Add(main)
-        results:Add(0, "544657192")
+        results:Add(0, "1749605806")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -81,14 +81,14 @@ class RandomTester
         files:Add(main)
         results:Add(0, "19")
         results:Add(1, "15")
-        results:Add(2, "19")
-        results:Add(3, "15")
-        results:Add(4, "18")
-        results:Add(5, "16")
+        results:Add(2, "20")
+        results:Add(3, "20")
+        results:Add(4, "15")
+        results:Add(5, "20")
         results:Add(6, "20")
         results:Add(7, "16")
-        results:Add(8, "15")
-        results:Add(9, "15")
+        results:Add(8, "18")
+        results:Add(9, "16")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -99,16 +99,16 @@ class RandomTester
         File main
         main:SetPath(path + "RandomIntegerWithMaximum.quorum")
         files:Add(main)
-        results:Add(0, "4")
-        results:Add(1, "1")
-        results:Add(2, "12")
-        results:Add(3, "4")
-        results:Add(4, "14")
-        results:Add(5, "3")
-        results:Add(6, "6")
-        results:Add(7, "13")
-        results:Add(8, "4")
-        results:Add(9, "3")
+        results:Add(0, "13")
+        results:Add(1, "2")
+        results:Add(2, "14")
+        results:Add(3, "13")
+        results:Add(4, "2")
+        results:Add(5, "15")
+        results:Add(6, "14")
+        results:Add(7, "3")
+        results:Add(8, "10")
+        results:Add(9, "4")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
@@ -119,11 +119,11 @@ class RandomTester
         File main
         main:SetPath(path + "RandomListOfIntegers.quorum")
         files:Add(main)
-        results:Add(0, "544657192")
-        results:Add(1, "264551322")
-        results:Add(2, "1651751212")
-        results:Add(3, "616702974")
-        results:Add(4, "1943051751")
+        results:Add(0, "1749605806")
+        results:Add(1, "290934651")
+        results:Add(2, "1945173367")
+        results:Add(3, "1793167292")
+        results:Add(4, "272702102")
         results:Add(5, "true")
         results:Add(6, "5")
         suite:Test(files, results)
@@ -136,11 +136,11 @@ class RandomTester
         File main
         main:SetPath(path + "RandomListOfNumbers.quorum")
         files:Add(main)
-        results:Add(0, "0.2536257672785417")
-        results:Add(1, "0.7691565943833395")
-        results:Add(2, "0.9048039800926115")
-        results:Add(3, "0.3874507370773981")
-        results:Add(4, "0.3108243382133744")
+        results:Add(0, "0.81472369228244")
+        results:Add(1, "0.13547700417017425")
+        results:Add(2, "0.9057919345357418")
+        results:Add(3, "0.835008589939684")
+        results:Add(4, "0.12698681192797925")
         results:Add(5, "true")
         results:Add(6, "5")
         suite:Test(files, results)
@@ -153,7 +153,7 @@ class RandomTester
         File main
         main:SetPath(path + "SetSeed.quorum")
         files:Add(main)
-        results:Add(0, "2")
+        results:Add(0, "8")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

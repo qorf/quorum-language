@@ -1,0 +1,35 @@
+package Libraries.Game.Graphics.ModelData
+
+use Libraries.Compute.Matrix4
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Game.Graphics.ModelData.MeshPart
+use Libraries.Game.Graphics.Material
+use Libraries.Game.Graphics.Renderable
+
+class NodePart 
+    public MeshPart meshPart
+    public Material material
+    public Array<Matrix4> bones = undefined
+    public boolean enabled = true
+
+    public HashTable<Node, Matrix4> invBoneBindTransforms
+
+    action SetRenderable(Renderable out) returns Renderable
+        out:material = material
+        out:meshPart:Set(meshPart)
+        out:bones = bones
+
+        return out
+    end
+
+    /** Construct a new NodePart referencing the provided {@link MeshPart} and {@link Material}.
+	 * @param meshPart The MeshPart to reference.
+	 * @param material The Material to reference. *-
+	public NodePart (final MeshPart meshPart, final Material material) {
+		this.meshPart = meshPart;
+		this.material = material;
+	}
+
+	*/
+end

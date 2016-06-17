@@ -6,7 +6,7 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.Glyph
 use Libraries.Game.Graphics.Color
 use Libraries.System.Properties
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 
 /*
 The Font class is used to load a font from the system. 
@@ -116,8 +116,10 @@ class Font
 
         if os:Contains("Windows")
             fontFile:SetWorkingDirectory("C:\Windows\Fonts")
-        elseif os:Contains("Mac OS X")
+        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
             fontFile:SetWorkingDirectory("/Library/Fonts")
+        elseif os:Contains("iOS Device")
+            fontFile:SetWorkingDirectory("/System/Library/Fonts/Cache")
         else
             // Find fonts for a linux system.
         end
@@ -139,8 +141,10 @@ class Font
 
         if os:Contains("Windows")
             fontFile:SetWorkingDirectory("C:\Windows\Fonts")
-        elseif os:Contains("Mac OS X")
+        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
             fontFile:SetWorkingDirectory("/Library/Fonts")
+        elseif os:Contains("iOS Device")
+            fontFile:SetWorkingDirectory("/System/Library/Fonts/Cache")
         else
             // Find fonts for a linux system.
         end
@@ -579,14 +583,16 @@ class Font
         Array<File> fontFiles = undefined
         File fontDirectory
 
-        output "OS = " + os
-
         if os:Contains("Windows")
             fontDirectory:SetWorkingDirectory("C:\Windows\Fonts")
             fontDirectory:SetPath("")
             fontFiles = fontDirectory:GetDirectoryListing()
-        elseif os:Contains("Mac OS X")
+        elseif os:Contains("Mac OS X") or os:Contains("iOS Simulator")
             fontDirectory:SetWorkingDirectory("/Library/Fonts")
+            fontDirectory:SetPath("")
+            fontFiles = fontDirectory:GetDirectoryListing()
+        elseif os:Contains("iOS Device")
+            fontDirectory:SetWorkingDirectory("/System/Library/Fonts/Cache")
             fontDirectory:SetPath("")
             fontFiles = fontDirectory:GetDirectoryListing()
         else
@@ -610,7 +616,10 @@ class Font
         repeat while glyphs:HasNext()
             temp = glyphs:Next()
             tempDrawable = temp:drawable
-            tempDrawable:Dispose()
+
+            if tempDrawable not= undefined
+                tempDrawable:Dispose()
+            end
         end
         glyphTable:Empty()
     end

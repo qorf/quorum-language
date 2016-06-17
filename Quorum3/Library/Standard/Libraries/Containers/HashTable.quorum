@@ -1,7 +1,6 @@
 package Libraries.Containers
 
-use Libraries.Containers.Blueprints.Iterator
-use Libraries.Containers.Blueprints.HashTableBlueprint
+use Libraries.Containers.Iterator
 use Libraries.Containers.Support.KeyedNode
 use Libraries.Containers.Array
 use Libraries.Compute.BitwiseOperations
@@ -29,20 +28,15 @@ class Main
    end
 end
 */
-class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
-    //the maximum ratio of nodeCount to threshold before a rehash must be done.
-    number maxResizeRatio = 0.75
-    integer arraySize = 8//128
+class HashTable<Key, Value>    
+    integer arraySize = 8
     integer maxItemsBeforeResize = 0
     //the items stored in the hash table
     Array<HashNode<Key, Value>> array
     BitwiseOperations bitwise
 
-    //this is here only to store the max and min values of integers.
-    Integer int
     //number of nodes that are currently in the hashmap
     integer size = 0
-    constant integer resizeAmount = 2
 
     on create
         array:SetSize(arraySize)
@@ -51,7 +45,8 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
     end
 
     private action ComputeMaxItemResize returns integer
-        return cast(integer, maxResizeRatio * arraySize)
+        //the maximum ratio of nodeCount to threshold before a rehash must be done.
+        return cast(integer, 0.75 * arraySize)
     end
     
 
@@ -126,7 +121,7 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
 
         Attribute: Example
         use Libraries.Containers.HashTable
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
 
         HashTable<text, integer> phoneBook
         phoneBook:Add("Jane", 2626984)
@@ -150,7 +145,7 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
 
         Attribute: Example
         use Libraries.Containers.HashTable
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
 
         HashTable<text, integer> phoneBook
         phoneBook:Add("Jane", 2626984)
@@ -175,7 +170,7 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
 
         Attribute: Example
         use Libraries.Containers.HashTable
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
 
         HashTable<text, integer> phoneBook
         phoneBook:Add("Jane", 2626984)
@@ -199,7 +194,7 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
 
         Attribute: Example
         use Libraries.Containers.HashTable
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
 
         HashTable<text, integer> phoneBook
         phoneBook:Add("Jane", 2626984)
@@ -285,7 +280,7 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
         end
 
         if size >= me:maxItemsBeforeResize
-            Resize(arraySize * resizeAmount)
+            Resize(arraySize * 2)
             
         end
     end
@@ -312,7 +307,7 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
         end
 
         if size >= me:maxItemsBeforeResize
-            Resize(arraySize * resizeAmount)
+            Resize(arraySize * 2)
             
         end
     end
@@ -374,10 +369,9 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
     private action Resize(integer newSize)
         //the hash table is already as big as it can ever get. 
         //as such, it cannot be resized.
-        if newSize = int:maximumValue
+        if newSize = newSize:GetMaximumValue()
             return now
         end
-
 
         Array<HashNode<Key, Value>> oldArray = array
         
@@ -385,7 +379,6 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
         newArray:SetAutoResize(false)
         newArray:SetSize(newSize)
         
-        //newArray:SetSize(me:
         //now transfer the data to the new array and set a new threshold value
         TransferData(oldArray, newArray)
         //get rid of the reference to the old array, so it can 
@@ -431,13 +424,13 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
         Attribute: Returns an integer a new hash code, based on this integer
     */
     private action ComputeHashCode(integer hash) returns integer
-        integer hash1 = bitwise:ShiftRightKeepSign(hash, 20)
-        integer hash2 = bitwise:ShiftRightKeepSign(hash, 12)
+        integer hash1 = bitwise:ShiftRightPositive(hash, 20)
+        integer hash2 = bitwise:ShiftRightPositive(hash, 12)
         integer hash3 = bitwise:ExclusiveOr(hash1, hash2)
 
         integer result = bitwise:ExclusiveOr(hash, hash3)
-        integer hash4 = bitwise:ShiftRightKeepSign(result, 7)
-        integer hash5 = bitwise:ShiftRightKeepSign(result, 4)
+        integer hash4 = bitwise:ShiftRightPositive(result, 7)
+        integer hash5 = bitwise:ShiftRightPositive(result, 4)
         integer right = bitwise:ExclusiveOr(hash4, hash5)
         return bitwise:ExclusiveOr(result, right)
     end
@@ -609,11 +602,8 @@ class HashTable<Key, Value> is HashTableBlueprint<Key, Value>
 
     action Copy returns Object
         HashTable<Key, Value> copy
-
         Array<HashNode<Key, Value>> newArray = cast(Array<HashNode<Key, Value>>, array:Copy())
-
         copy:array = newArray
-        copy:maxResizeRatio = me:maxResizeRatio
         copy:arraySize = me:arraySize
         copy:maxItemsBeforeResize = me:maxItemsBeforeResize
         copy:size = me:size

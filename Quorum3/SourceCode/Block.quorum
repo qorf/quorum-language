@@ -5,7 +5,7 @@ use Libraries.Containers.Array
 use Libraries.Language.Compile.CompilerError
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Location
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 
 class Block is Location
     HashTable<text, Variable> variables
@@ -21,6 +21,30 @@ class Block is Location
     boolean hasReturnThisBlock = false
     boolean hasIssuedReturnError = false
     boolean isReturnSatisfied = true
+    public constant integer REPEAT_TIMES = 0
+    public constant integer REPEAT_WHILE = 1
+    public constant integer REPEAT_UNTIL = 2
+    public constant integer IF = 3
+    public constant integer ELSE_IF = 4
+    public constant integer ELSE = 5
+    public constant integer CHECK = 6
+    public constant integer DETECT = 7
+    public constant integer ALWAYS = 8
+
+    integer blockType = -1
+
+    action GetBlockType returns integer
+        return blockType
+    end
+
+    action SetBlockType(integer value)
+        if value < REPEAT_TIMES or value > ALWAYS
+            alert("Invalid block type")
+        end
+
+        blockType = value
+    end
+
 
     action IsReturnSatisfied returns boolean
         return isReturnSatisfied
@@ -102,8 +126,7 @@ class Block is Location
     action Add(Variable variable) returns CompilerError
         if HasVariableExceptField(variable:GetStaticKey())
             CompilerError error
-            error:SetLineNumber(variable:GetLineNumber())
-            error:SetFile(variable:GetFile())
+            error:SetLocation(variable)
             error:SetErrorMessage("Variable " + variable:GetDisplayName() + " has already been defined.")
             return error
         end
@@ -144,11 +167,32 @@ class Block is Location
         return false
     end
 
+    action GetNewVariableInBlock(text var) returns text
+        text newVar = var
+
+        integer i = 1
+        boolean done = false
+        repeat while not done
+            Variable variable = GetVariable(newVar)
+            //it looks like this variable is available
+            if variable = undefined
+                return newVar
+            end
+            newVar = var + i
+
+            i = i + 1
+            if i < 0
+                alert("Tried to use an editor hint with a negative value for name")
+            end
+        end
+
+        return newVar
+    end
+
     action SetExceptionVariable(Variable variable) returns CompilerError
         if variables:HasKey(variable:GetStaticKey())
             CompilerError error
-            error:SetLineNumber(variable:GetLineNumber())
-            error:SetFile(variable:GetFile())
+            error:SetLocation(variable)
             error:SetErrorMessage("Variable " + variable:GetDisplayName() + " has already been defined.")
             return error
         end

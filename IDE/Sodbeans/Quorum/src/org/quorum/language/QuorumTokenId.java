@@ -5,6 +5,7 @@
  */
 package org.quorum.language;
 
+import org.netbeans.api.lexer.Language;
 import org.netbeans.api.lexer.TokenId;
 
 /**
@@ -40,5 +41,4 @@ public class QuorumTokenId implements TokenId {
     public String primaryCategory() {
         return primaryCategory;
     }
-    
 }

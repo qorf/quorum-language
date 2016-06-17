@@ -7,8 +7,8 @@ use Libraries.Language.Errors.Error
 use Libraries.Compute.Math
 use Libraries.Compute.BitwiseOperations
 use Libraries.System.File
-use Libraries.Interface.Item
-use Libraries.Game.Graphics.Painter
+use Libraries.Interface.Item2D
+use Libraries.Game.Graphics.Painter2D
 
 /*
     The Drawable class is a Libraries.Interface.Item that can be drawn on the
@@ -44,7 +44,7 @@ use Libraries.Game.Graphics.Painter
 
         end
 */
-class Drawable is TextureRegion, Item
+class Drawable is TextureRegion, Item2D
 
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
@@ -256,7 +256,7 @@ class Drawable is TextureRegion, Item
 
         Math math
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
-        SetOrigin(parent:Item:width / 2.0, parent:Item:height / 2.0)
+        SetOrigin(parent:Item2D:width / 2.0, parent:Item2D:height / 2.0)
     end
 
     /*
@@ -294,7 +294,7 @@ class Drawable is TextureRegion, Item
         SetRegion(region)
         //SetColor(1, 1, 1, 1)
         SetSize(region:GetRegionWidth(), region:GetRegionHeight())
-        SetOrigin(parent:Item:width / 2.0, parent:Item:height / 2.0)
+        SetOrigin(parent:Item2D:width / 2.0, parent:Item2D:height / 2.0)
     end
 
     /*
@@ -334,7 +334,7 @@ class Drawable is TextureRegion, Item
         //SetColor(1, 1, 1, 1)
         Math math
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
-        SetOrigin(parent:Item:width / 2.0, parent:Item:height / 2.0)
+        SetOrigin(parent:Item2D:width / 2.0, parent:Item2D:height / 2.0)
     end
 
     /*
@@ -483,6 +483,15 @@ class Drawable is TextureRegion, Item
             end
     */
     action SetAlpha(number alpha)
+        SetColor(color:GetRed(), color:GetGreen(), color:GetBlue(), alpha)
+
+        /*
+        The old SetAlpha code. The goal was to set the alpha efficiently by
+        only modifying the alpha bits. This code did not work correctly due to
+        issues in converting the bits between data types between Java and 
+        Quorum. The current code is slower but functional. This should be
+        revisited in the future for optimization.
+
         BitwiseOperations ops
         NumberUtilities utility
 
@@ -500,6 +509,7 @@ class Drawable is TextureRegion, Item
         vertices:Set(C2, colorValue)
         vertices:Set(C3, colorValue)
         vertices:Set(C4, colorValue)
+        */
     end
 
     /*
@@ -820,7 +830,7 @@ class Drawable is TextureRegion, Item
     action FlipX
         parent:TextureRegion:FlipX()
 
-        Array<number> vertices = parent:Item:vertices
+        Array<number> vertices = parent:Item2D:vertices
 
         number temp = vertices:Get(U1)
         vertices:Set(U1, vertices:Get(U3))
@@ -829,7 +839,7 @@ class Drawable is TextureRegion, Item
         vertices:Set(U2, vertices:Get(U4))
         vertices:Set(U4, temp)
 
-        parent:Item:FlipX()
+        parent:Item2D:FlipX()
     end
 
     /*
@@ -859,7 +869,7 @@ class Drawable is TextureRegion, Item
     action FlipY
         parent:TextureRegion:FlipY()
 
-        Array<number> vertices = parent:Item:vertices
+        Array<number> vertices = parent:Item2D:vertices
 
         number temp = vertices:Get(V1)
         vertices:Set(V1, vertices:Get(V3))
@@ -868,7 +878,7 @@ class Drawable is TextureRegion, Item
         vertices:Set(V2, vertices:Get(V4))
         vertices:Set(V4, temp)
 
-        parent:Item:FlipY()
+        parent:Item2D:FlipY()
     end
 
     /*
@@ -1058,7 +1068,7 @@ class Drawable is TextureRegion, Item
     will automatically be called by the Game class if the Drawable has been
     added to the Game with the Add(Item) action. 
     */
-    action Draw(Painter painter)
+    action Draw(Painter2D painter)
         PrepareVertices()
 
         if not IsShowing()
@@ -1069,7 +1079,7 @@ class Drawable is TextureRegion, Item
             painter:Draw(me)
         end
 
-        parent:Item:Draw(painter)
+        parent:Item2D:Draw(painter)
     end
 
     /*
@@ -1096,7 +1106,7 @@ class Drawable is TextureRegion, Item
             end
     */
     action IsFlippedX returns boolean
-        return parent:Item:IsFlippedX()
+        return parent:Item2D:IsFlippedX()
     end
 
     /*
@@ -1123,7 +1133,7 @@ class Drawable is TextureRegion, Item
             end
     */
     action IsFlippedY returns boolean
-        return parent:Item:IsFlippedY()
+        return parent:Item2D:IsFlippedY()
     end
 
     /*

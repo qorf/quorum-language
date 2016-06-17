@@ -1,0 +1,76 @@
+use Libraries.Compute.Quaternion
+use Libraries.Containers.Array
+
+class QuaternionSphericalLinearInterpolation 
+    action Main
+        Quaternion quaternion
+        Quaternion endQuaternion
+
+        quaternion:Set(1, 2, 3, 4)
+        endQuaternion:Set(5, 4, 6, 2)
+
+        quaternion:SphericalLinearInterpolation(endQuaternion, 0.5)
+
+        number x = quaternion:GetX()
+        number y = quaternion:GetY()
+        number z = quaternion:GetZ()
+        number w = quaternion:GetW()
+
+        output "The quaternion is [" + x + ", " + y + ", " + z + ", " + w + "]"
+
+        Array<Quaternion> quaternions
+
+        Quaternion quaternion1
+        quaternion1:Set(1, 2, 3, 4)
+
+        Quaternion quaternion2
+        quaternion2:Set(5, 6, 7, 8)
+
+        Quaternion quaternion3
+        quaternion3:Set(9, 10, 11, 12)
+
+        Quaternion quaternion4
+        quaternion4:Set(13, 14, 15, 16)
+
+        quaternions:Add(quaternion2)
+        quaternions:Add(quaternion3)
+        quaternions:Add(quaternion4)
+
+        quaternion1:SphericalLinearInterpolation(quaternions)
+
+        x = quaternion1:GetX()
+        y = quaternion1:GetY()
+        z = quaternion1:GetZ()
+        w = quaternion1:GetW()
+
+        output "The quaternion is [" + x + ", " + y + ", " + z + ", " + w + "]"
+
+        Array<number> weights
+        Array<Quaternion> quaternions2
+
+        quaternion1:Set(1, 2, 3, 4)
+
+        quaternion2:Set(5, 6, 7, 8)
+
+        quaternion3:Set(9, 10, 11, 12)
+
+        quaternion4:Set(13, 14, 15, 16)
+
+        quaternions2:Add(quaternion2)
+        quaternions2:Add(quaternion3)
+        quaternions2:Add(quaternion4)
+
+        weights:Add(0.5)
+        weights:Add(0.5)
+        weights:Add(0.5)
+
+        quaternion1:SphericalLinearInterpolation(quaternions2, weights)
+
+        x = quaternion1:GetX()
+        y = quaternion1:GetY()
+        z = quaternion1:GetZ()
+        w = quaternion1:GetW()
+
+        output "The quaternion is [" + x + ", " + y + ", " + z + ", " + w + "]"        
+    end
+end

@@ -23,11 +23,11 @@ import org.openide.util.Lookup;
 import org.quorum.projects.QuorumProject;
 import org.quorum.support.Utility;
 import quorum.Libraries.Containers.Array_;
-import quorum.Libraries.Containers.Blueprints.Iterator_;
+import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerErrorManager_;
 import quorum.Libraries.Language.Compile.CompilerError_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
-import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
+import quorum.Libraries.Language.Compile.Hints.Hint_;
 /**
  *
  * @author stefika
@@ -37,8 +37,10 @@ public class QuorumParser extends Parser{
     Task task;
     SourceModificationEvent sme;
     private ArrayList<QuorumError> fileErrors = new ArrayList<QuorumError>();
-    quorum.Libraries.Language.Compile.ProjectInformation info = new quorum.Libraries.Language.Compile.ProjectInformation();
+    private ArrayList<Hint_> fileHints = new ArrayList<Hint_>();
+    private quorum.Libraries.Language.Compile.ProjectInformation info = new quorum.Libraries.Language.Compile.ProjectInformation();
     private static final Logger logger = Logger.getLogger(QuorumParser.class.getName());
+    CompilerResult_ recentResult = null;
     
     @Override
     public void parse(Snapshot snapshot, Task task, SourceModificationEvent sme) throws ParseException {
@@ -78,19 +80,23 @@ public class QuorumParser extends Parser{
                     quorum.Libraries.System.File sourceFolder = Utility.toQuorumFile(file);
                     Array_ listing = sourceFolder.GetDirectoryListing();
                     
-                    info.Set_Libraries_Language_Compile_ProjectInformation__source_(string);
-                    info.Set_Libraries_Language_Compile_ProjectInformation__sourceLocation_(quorumFile);
-                    info.Set_Libraries_Language_Compile_ProjectInformation__projectFiles_(listing);
-                    CompilerResult_ result = compiler.ParseRepeat(info);                 
+                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__source_(string);
+                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__sourceLocation_(quorumFile);
+                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__projectFiles_(listing);
+                    CompilerResult_ result = compiler.ParseRepeat(getInfo());                 
+                    recentResult = result;
                     
                     CompilerErrorManager_ errors = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
+                    
+                    //regardless of compiler errors, we could have hints. Handle that
+                    handleHints(errors);
+                    
                     if(errors.IsCompilationErrorFree()) {
                         fileErrors.clear();
                         if(result != null && project instanceof QuorumProject) {
                             QuorumProject qp = (QuorumProject) project;
                             qp.setSandboxCompilerResult(result);
                         }
-                        
                     } else {
                         fileErrors.clear();
                         Iterator_ it = errors.GetIterator();
@@ -106,6 +112,7 @@ public class QuorumParser extends Parser{
                             int end = next.GetIndexEnd();
                             Severity severity = Severity.ERROR;
                             QuorumError error = new QuorumError(displayName, description, key, fo2, start, end, severity);
+                            error.setError(next);
                             fileErrors.add(error);
                         }
                     }
@@ -116,6 +123,17 @@ public class QuorumParser extends Parser{
         }
     }
 
+    private void handleHints(CompilerErrorManager_ errors) {
+        fileHints.clear();
+        if(errors.HasHints()) {
+            Iterator_ hints = errors.GetHintIterator();
+            while(hints.HasNext()) {
+                Hint_ hint = (Hint_) hints.Next();
+                fileHints.add(hint);
+            }
+        }
+    }
+    
     @Override
     public Result getResult(Task task) throws ParseException {
         return new QuorumParserResult(snapshot, this);
@@ -129,6 +147,10 @@ public class QuorumParser extends Parser{
     public void removeChangeListener(ChangeListener cl) {
     }
 
+    public CompilerResult_ getRecentResult() {
+        return recentResult;
+    }
+    
     /**
      * @return the fileErrors
      */
@@ -136,4 +158,14 @@ public class QuorumParser extends Parser{
         return fileErrors;
     }
     
+    public ArrayList<Hint_> getFileHints() {
+        return fileHints;
+    }
+
+    /**
+     * @return the info
+     */
+    public quorum.Libraries.Language.Compile.ProjectInformation getInfo() {
+        return info;
+    }
 }

@@ -1,6 +1,6 @@
 package Libraries.Containers.Support
 
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Containers.Array
 
 /*
@@ -32,7 +32,7 @@ class ArrayIterator<Type> is Iterator<Type>
         Attribute: Parameter array The array to iterator over.
         Attribute: Example
         use Libraries.Containers.Array
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
         use Libraries.Containers.Support.ArrayIterator
         
         Array<integer> myArray
@@ -50,7 +50,7 @@ class ArrayIterator<Type> is Iterator<Type>
         Attribute: Returns The array.
         Attribute: Example
         use Libraries.Containers.Array
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
         use Libraries.Containers.Support.ArrayIterator
 
         Array<integer> myArray
@@ -69,7 +69,7 @@ class ArrayIterator<Type> is Iterator<Type>
 
         Attribute: Example
         use Libraries.Containers.Array
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
         Array<integer> myArray
         Iterator<integer> arrayIterator = myArray:GetIterator()
         integer item = arrayIterator:GetCurrent()
@@ -92,7 +92,7 @@ class ArrayIterator<Type> is Iterator<Type>
 
         Attribute: Example
         use Libraries.Containers.Array
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
         Array<Array<integer>> myArray
         Iterator<Array<integer>> arrayIterator = myArray:GetIterator()
         
@@ -116,7 +116,7 @@ class ArrayIterator<Type> is Iterator<Type>
 
         Attribute: Example
         use Libraries.Containers.Array
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
         Array<integer> myArray
         Iterator<integer> arrayIterator = myArray:GetIterator()
         integer item = arrayIterator:Next()
@@ -133,7 +133,7 @@ class ArrayIterator<Type> is Iterator<Type>
 
         Attribute: Example
         use Libraries.Containers.Array
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
         Array<Array<integer>> myArray
         Iterator<Array<integer>> arrayIterator = myArray:GetIterator()
         

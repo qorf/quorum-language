@@ -1,0 +1,112 @@
+package Libraries.Game
+
+use Libraries.Containers.Array
+use Libraries.Interface.Events.KeyboardListener
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseWheelListener
+use Libraries.Interface.Events.TouchListener
+
+/*
+This class is the base interface for how the Game will automatically handle
+input and notify event listeners. Most users shouldn't need access to this
+class. For users who want to test input themselves at specific times, use
+an InputMonitor instead.
+*/
+class GameInput
+
+    Array<Layer> layers = undefined
+
+    /*
+    This action sets a reference to the layers stored in the Game class that the
+    GameInput needs to test input on. This action is automatically called by the
+    Game, and should never be used by users directly.
+    */
+    action SetLayers(Array<Layer> array)
+        layers = array
+    end
+
+    /*
+    This action will identify all input events that have occurred and notify
+    all relevant event listeners. For certain kinds of input, e.g. mouse or
+    touch input, only listeners that were added to the active panel will be
+    notified. This action is called automatically by the Game class, so most
+    users will never need to use this action directly.
+    */
+    blueprint action ProcessInputEvents
+
+    /*
+    This action will add a KeyboardListener to the GameInput. The GameInput will
+    notify the KeyboardListener if keys are pressed on the keyboard. This action
+    is automatically called by the Game class when needed.
+    */
+    blueprint action AddKeyboardListener(KeyboardListener listener)
+
+    /*
+    This action will remove a KeyboardListener from the GameInput. The GameInput
+    will no longer notify the given KeyboardListener of KeyboardEvents. This 
+    action is automatically called by the Game class when needed.
+    */
+    blueprint action RemoveKeyboardListener(KeyboardListener listener)
+
+    /*
+    This action adds a MouseListener directly to the GameInput. When the
+    GameInput receives a mouse event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    MouseListeners which are added directly to the GameInput will receive the
+    event.
+    */
+    blueprint action AddMouseListener(MouseListener listener)
+
+    /*
+    This action adds a MouseMovementListener directly to the GameInput. When the
+    GameInput receives a mouse event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    MouseMovementListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    blueprint action AddMouseMovementListener(MouseMovementListener listener)
+
+    /*
+    This action adds a MouseWheelListener directly to the GameInput. When the
+    GameInput receives a mouse event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    MouseWheelListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    blueprint action AddMouseWheelListener(MouseWheelListener listener)
+
+    /*
+    This action adds a TouchListener directly to the GameInput. When the
+    GameInput receives a touch event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    TouchListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    blueprint action AddTouchListener(TouchListener listener)
+
+    /*
+    This action removes a MouseListener from the GameInput. It will no longer
+    receive mouse events directly from the GameInput.
+    */
+    blueprint action RemoveMouseListener(MouseListener listener)
+
+    /*
+    This action removes a MouseMovementListener from the GameInput. The listener
+    will no longer receive events from the GameInput.
+    */
+    blueprint action RemoveMouseMovementListener(MouseMovementListener listener)
+
+    /*
+    This action removes a MouseWheelListener from the GameInput. The listener
+    will no longer receive events from the GameInput.
+    */
+    blueprint action RemoveMouseWheelListener(MouseWheelListener listener)
+
+    /*
+    This action removes a TouchListener from the GameInput. The listener will
+    no longer receive events from the GameInput.
+    */
+    blueprint action RemoveTouchListener(TouchListener listener)
+
+end

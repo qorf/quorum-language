@@ -1,0 +1,43 @@
+package Libraries.Game.Graphics
+
+class NumberAttribute is Attribute
+    
+    public number value = 0
+
+    public constant text SHININESS_ALIAS = "shininess"
+    public constant text ALPHA_TEST_ALIAS = "alphaTest"
+
+    action CreateShininess(number setValue) returns NumberAttribute
+        NumberAttribute temp
+        temp:SetAttribute(GetShininessValue(), setValue)
+        return temp
+    end
+
+    action CreateAlphaTest(number setValue) returns NumberAttribute
+        NumberAttribute temp
+        temp:SetAttribute(GetAlphaTestValue(), setValue)
+        return temp
+    end
+
+    action SetAttribute(integer type, number setValue)
+        parent:Attribute:SetAttribute(type)
+        value = setValue
+    end
+
+    action Copy returns Attribute
+        NumberAttribute new
+        new:SetAttribute(parent:Attribute:type, value)
+        return new
+    end
+
+    /*
+    Returns the integer value representing a Shininess NumberAttribute.
+    */
+    system action GetShininessValue returns integer
+
+    /*
+    Returns the integer value representing an Alpha Test NumberAttribute.
+    */
+    system action GetAlphaTestValue returns integer
+
+end

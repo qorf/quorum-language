@@ -1,0 +1,67 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.VertexData
+use Libraries.Game.Graphics.VertexAttribute
+use Libraries.Game.Disposable
+
+class VertexBufferObject is VertexData
+
+    system action Dispose
+
+    action Load(boolean isStatic, integer verticesCount, Array<VertexAttribute> attributes)
+        VertexAttributes vertexAttributes
+        vertexAttributes:SetAttributes(attributes)
+        Load(isStatic, verticesCount, vertexAttributes)
+    end
+
+    system action Load(boolean isStatic, integer verticesCount, VertexAttributes attributes)
+
+    system action GetSize returns integer
+
+    system action GetMaxSize returns integer
+
+    system action GetAttributes returns VertexAttributes
+
+    action SetVertices(Array<number> vertices, integer offset, integer count)
+        SendToBridgeArray(vertices)
+        SetVerticesNative(offset, count)
+    end
+
+    system action SetVerticesNative(integer offset, integer count)
+
+    action UpdateVertices(integer targetOffset, Array<number> vertices, integer sourceOffset, integer count)
+        SendToBridgeArray(vertices)
+        UpdateVerticesNative(targetOffset, sourceOffset, count)
+    end
+
+    system action UpdateVerticesNative(integer targetOffset, integer sourceOffset, integer count)
+
+    system action Invalidate
+
+    action FillVertexBuffer(Array<number> vertices)
+        SendToBridgeArray(vertices)
+        PopulateVertexBuffer()
+    end
+
+    /* Used to inform the plugin that we are about to send a new array of
+    doubles with the given length. */
+    private system action PrepareBridgeArray(integer length)
+
+    /* Sends an entire Quorum array to be stored in the bridge array within the plugins. */
+    private action SendToBridgeArray(Array<number> array)
+        PrepareBridgeArray(array:GetSize())
+        integer index = 0
+        repeat array:GetSize() times
+            SendToBridgeArray(index, array:Get(index))
+            index = index + 1
+        end
+    end
+
+    /* Sends a value to be stored in the bridge array at the given index. */
+    private system action SendToBridgeArray(integer index, number value)
+
+    /* Uses the filled values of the bridge array to populate the byte buffer. */
+    private system action PopulateVertexBuffer
+
+end

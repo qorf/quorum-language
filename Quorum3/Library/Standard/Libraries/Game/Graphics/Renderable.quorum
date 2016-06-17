@@ -1,0 +1,117 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Vector3
+use Libraries.Language.Object
+use Libraries.Language.Support.CompareResult
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.ModelData.MeshPart
+use Libraries.Game.Graphics.Environment
+
+class Renderable 
+    
+    public Matrix4 worldTransform
+    
+    public MeshPart meshPart
+
+    public Material material = undefined
+
+    public Environment environment = undefined
+
+    public Array<Matrix4> bones = undefined
+
+    /*
+        User definable value, may be undefined.
+    */
+    // public Object userData
+
+    /*
+    Sets this renderable to have all of the same data as the provided renderable.
+    */
+    action Set(Renderable renderable) returns Renderable
+        worldTransform:Set(renderable:worldTransform)
+        material = renderable:material
+        meshPart:Set(renderable:meshPart)
+        bones = renderable:bones
+        //environment = renderable:environment
+        //shader = renderable:shader
+        //userData = renderable:userData
+
+        SetNative(renderable)
+
+        return me
+    end
+
+    private system action SetNative(Renderable renderable)
+
+    action Compare(Object object) returns CompareResult
+
+        Camera cam = GetCamera()
+
+        if not (object is Renderable) or (cam = undefined)
+            return parent:Object:Compare(object)
+        end
+
+        CompareResult result
+        Renderable other = cast(Renderable, object)
+
+        if material = undefined or other:material = undefined
+            return parent:Object:Compare(object)
+        end
+
+        // Temporary BLendingATtribute.
+        BlendingAttribute blat
+        integer blendingValue = blat:GetBlendedValue()
+
+        
+        boolean blend1 = material:HasAttribute(blendingValue)
+        if blend1
+            blat = cast(BlendingAttribute, material:GetAttribute(blendingValue))
+            blend1 = blend1 and blat:blended
+        end
+    
+        boolean blend2 = other:material:HasAttribute(blendingValue)
+        if blend2
+            blat = cast(BlendingAttribute, other:material:GetAttribute(blendingValue))
+            blend2 = blend2 and blat:blended
+        end
+
+        if not blend1 = blend2
+            if blend1
+                result:result = result:LARGER
+                return result
+            else
+                result:result = result:SMALLER
+                return result
+            end
+        end
+
+        Vector3 tempV1 = worldTransform:GetTranslation()
+        Vector3 tempV2 = other:worldTransform:GetTranslation()
+
+        integer distance = cast(integer, (1000.0 * cam:GetPosition():DistanceSquared(tempV1))) - cast(integer, (1000.0 * cam:GetPosition():DistanceSquared(tempV2)))
+        if distance = 0
+            result:result = result:EQUAL
+            return result
+        end
+
+        boolean smaller = distance < 0
+        if blend1
+            smaller = not smaller
+        end
+
+        if smaller
+            result:result = result:SMALLER
+        else
+            result:result = result:LARGER
+        end
+
+        return result
+    end
+
+    /*
+    Gets the camera from the plugin. Used for sorting purposes.
+    */
+    private system action GetCamera returns Camera
+end

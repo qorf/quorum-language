@@ -3,7 +3,7 @@ package Libraries.Language.Compile
 use Libraries.Language.Compile.Parser
 use Libraries.System.File
 use Libraries.System.DateTime
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.Web.WebResponder
 use Libraries.Web.WebResponse
@@ -14,13 +14,17 @@ use Libraries.Compute.Math
 use Libraries.Containers.HashTable
 use Libraries.Language.Errors.OutOfBoundsError
 use Libraries.Language.Compile.Test.CompilerTestSuite
-use Libraries.Game.Game
+use Libraries.System.SystemHelper
+use Libraries.Language.Compile.Symbol.SymbolTable
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.Action
 
 class Main is WebResponder
     public constant text NAME_FLAG = "-name"
     public constant text COMPILE_FLAG = "-compile"
     public constant text WEB_FLAG = "-web"
     public constant text JAVASCRIPT_FLAG = "-javascript"
+    public constant text LIBRARY_FLAG = "-library"
     public constant text TEST_FLAG = "-test"
     public constant text HELP_FLAG = "-help"
     HashTable<text, Array<text>> flagValues
@@ -78,18 +82,18 @@ class Main is WebResponder
         Array<File> files = main:GetDirectoryListing()
 
         File actualMain
-        actualMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/RedLineTest")
+        actualMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication")
         actualMain:SetPath("/SourceCode/main.quorum")
 
         File mygame
-        mygame:SetWorkingDirectory("/Users/stefika/NetBeansProjects/RedLineTest")
-        mygame:SetPath("/SourceCode/MyGame.quorum")
+        //mygame:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication")
+        //mygame:SetPath("/SourceCode/Test.quorum")
         //actualMain:SetPath("Library/Tests/CodeCompletion/Pass/GrabAllContainers.quorum")
         compiler:SetMain(actualMain)
 
         File failMain
-        failMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/RedLineTest")
-        failMain:SetPath("/Other/main.quorum")
+        failMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication")
+        failMain:SetPath("/Fails/main.quorum")
         text failSource = failMain:Read()
 
         ProjectInformation info
@@ -102,7 +106,7 @@ class Main is WebResponder
         info:source = actualMain:Read()
         
         CodeCompletionRequest cc
-        cc:caretLocation = 122
+        cc:caretLocation = 50
         cc:fileKey = actualMain:GetAbsolutePath()
         cc:source = actualMain:Read()
 
@@ -110,7 +114,7 @@ class Main is WebResponder
 
         info:source = failSource
         text out = failSource:GetSubtext(0, cc:caretLocation)
-        output out
+        //output out
         result = compiler:ParseRepeat(info)
 
         check
@@ -137,10 +141,13 @@ class Main is WebResponder
         compiler:SetOutputFolder(root)
         File standardLibraryFolder = compiler:GetStandardLibraryFolder()
         compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        compiler:ScanStandardLibrary()
         Array<File> files// = main:GetDirectoryListing()
 
         File actualMain
-        actualMain:SetPath("Library/Tests/Expressions/Fail/RedLine1.quorum")
+        actualMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/QUOR270")
+        //actualMain:SetPath("Library/Tests/Expressions/Fail/RedLine1.quorum")
+        actualMain:SetPath("SourceCode/main.quorum")
         compiler:SetMain(actualMain)
 
         files:Add(actualMain)
@@ -148,21 +155,60 @@ class Main is WebResponder
         ProjectInformation info
         info:projectFiles = files
         info:sourceLocation = actualMain
-        info:source = actualMain:Read()
+        text good = actualMain:Read()
+        info:source = good
 
         File redFail
-        redFail:SetPath("Library/Tests/Expressions/Fail/RedLine2.quorum")
+        redFail:SetWorkingDirectory("/Users/stefika/NetBeansProjects/QUOR270")
+        redFail:SetPath("versions/main2.quorum")
         
 
         CompilerResult result = compiler:ParseRepeat(info)
-        info:source = redFail:Read()
+        text bad = redFail:Read()
+        info:source = bad
+        SystemHelper help
+        Array<number> items
+        pass = 1
+        flip = true
+        repeat 1000 times
+            help:RequestGarbageCollection()
+//            if flip
+//                info:source = good
+//            else
+//                info:source = bad
+//            end
 
-        repeat 20 times
+//            flip = not flip
             result = compiler:ParseRepeat(info)
+
+//            SymbolTable newTable = result:symbolTable
+//            Class newClass = newTable:GetClass("Libraries.Web.WebPage")
+//            Action test = newClass:GetAction("Generate")
+//            Iterator<Location> locations = test:GetCallLocationIterator(actualMain)
+//            output "Pass: " + pass
+//            
+//            size = 0
+//            repeat while locations not= undefined and locations:HasNext()
+//                Location value = locations:Next()
+//                output value:GetIndex() + ", " + value:GetIndexEnd()
+//                size = size + 1
+//            end
+//            output "Size: " + size
+//            output ""
+//            pass = pass + 1
+
 
             CompilerErrorManager manager = result:compilerErrorManager
             if manager:IsCompilationErrorFree()
-                output result:time
+//                text time = "" + result:time
+//                text freeMemory = "" + help:GetFreeMemory()
+//                text totalMemory = "" + help:GetTotalMemory()
+//                text maxMemory = "" + help:GetMaximumMemory()
+//                //output "Time: " + result:time + " Free: " + freeMemory + 
+//                //    " Total: " + totalMemory + " Max: " + maxMemory
+//
+//                output freeMemory
+                items:Add(result:time)
                 if compiler:GetOutputType() = compiler:JAVASCRIPT
                     output compiler:GetCompiledJavaScript()
                 end
@@ -181,6 +227,14 @@ class Main is WebResponder
                 output value
             end
         end
+
+        i = 0
+        number average = 0
+        repeat items:GetSize() times
+            number time = items:Get(i)
+            average = average + time
+        end
+        output "Average: " + average / items:GetSize()
     end
 
     action CompileGameEngine
@@ -274,7 +328,7 @@ class Main is WebResponder
         info:source = actualMain:Read()
         CompilerProfiler summaryProfiler
         i = 1
-        repeat 100 times
+        repeat 10 times
             output "Compile: " + i
             compiler:Compile(files)
             CompilerProfiler profiler = compiler:GetCompilerProfiler()
@@ -299,25 +353,27 @@ class Main is WebResponder
         File standardLibraryFolder = compiler:GetStandardLibraryFolder()
         compiler:SetStandardLibraryFolder(standardLibraryFolder)
         output compiler:GetVersion()
+        compiler:ScanStandardLibrary()
         File root
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
-        //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication2222/SourceCode/")
-        main:SetPath("Library/Tests/Expressions/Fail/DuplicateVariableDefinition.quorum")
-        //main:SetPath("main.quorum")
+        //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
+        main:SetPath("Library/Tests/Expressions/Pass/AddBooleanText.quorum")
+        //main:SetPath("main.quorum") //CallMethodCallingBlueprint
 
         File class2
-        class2:SetPath("Library/Tests/Inheritance/Pass/A4.quorum")
+        //class2:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
+        class2:SetPath("Library/Tests/Templating/Fail/PrimitiveGenericClass.quorum")
         
         File class3
-        class3:SetPath("Library/Tests/Inheritance/Pass/B4.quorum")
+        class3:SetPath("Library/Tests/TypeChecker/Pass/B.quorum")
 
         File class4
-        class4:SetPath("Library/Tests/Inheritance/Pass/C4.quorum")
+        class4:SetPath("Library/Tests/TypeChecker/Pass/C.quorum")
 
         File class5
-        class5:SetPath("Library/Tests/Templating/Fail/D_8.quorum")
+        class5:SetPath("Library/Tests/Inheritance/Pass/CIsAB.quorum")
         Array<File> files
 
         files:Add(main)
@@ -327,9 +383,9 @@ class Main is WebResponder
         //files:Add(class5)
 
         //compiler:SetOutputSpeech(false) //don't speak while in test mode
-        //compiler:SetOutputType(compiler:DOCUMENT)
+        //compiler:SetIsWebApplication(true)
+        //compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:SetMain(main)
-        //compiler:CompileSingle("a = b")
         compiler:Compile(files)
 
         CodeCompletionRequest request
@@ -478,8 +534,23 @@ class Main is WebResponder
         root:SetPath("")
         compiler:SetOutputFolder(root)
 
-        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
-        compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        if flagValues:HasKey(LIBRARY_FLAG)
+            Array<text> names = flagValues:GetValue(LIBRARY_FLAG)
+            if names:GetSize() not= 1
+                output "I noticed the library flag was used, but it does not have exactly 1 value."
+                return now
+            else
+                path = names:Get(0)
+                File libraryPath
+                libraryPath:SetWorkingDirectory(path)
+                libraryPath:SetPath("Standard")
+                compiler:SetStandardLibraryFolder(libraryPath)
+            end
+        else 
+            File standardLibraryFolder = compiler:GetStandardLibraryFolder()
+            compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        end
+        
         output compiler:GetVersion()
 
         File main = files:Get(0)
@@ -648,8 +719,12 @@ For more information on writing programs in Quorum, visit www.quorumlanguage.com
         File library
         //To deploy to a particular server, change this line to the 
         //parent directory for where the standard library is housed.
-        library:SetWorkingDirectory("/home/stefika/converter")
-        library:SetPath("Library/Standard")
+        library:SetWorkingDirectory("/home/stefika")
+        //library:SetPath("Library/Standard")
+        //library:SetWorkingDirectory("/Users/stefika/Repositories/quorum-language/Quorum3")
+        library:SetPath("Libraries/Standard")
+        //output library:GetAbsolutePath()
+
         compiler:SetStandardLibraryFolder(library)
         
         text directory = library:GetWorkingDirectory()

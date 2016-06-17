@@ -2,7 +2,7 @@ package Libraries.Language.Compile.Symbol
 
 use Libraries.Language.Compile.Location
 use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Language.Compile.CodeCompletionItem
 
 class Variable is Symbol
@@ -20,6 +20,33 @@ class Variable is Symbol
     boolean isVisibileToDebugger = true
     Class parentClass = undefined
     boolean definedInAlwaysBlock = false
+    List<Location> useLocations
+    Location typeLocation = undefined
+
+    action AddUseLocation(Location location)
+        useLocations:Add(location)
+    end
+
+    action GetUseLocations returns Iterator<Location>
+        return useLocations:GetIterator()
+    end
+
+    action GetTypeLocation returns Location
+        return typeLocation
+    end
+
+    action SetTypeLocation(Location location)
+        typeLocation = location
+    end
+
+    action IsUsed returns boolean
+        //only if greater than 2 because the first usage is the definition
+        if useLocations:GetSize() > 0
+            return true
+        end
+
+        return false
+    end
 
     action IsDefinedInAlwaysBlock returns boolean
         return definedInAlwaysBlock
@@ -61,6 +88,14 @@ class Variable is Symbol
         return locations:GetIterator()
     end
 
+    action GetJavaScriptName returns text
+        name = GetName()
+        if name = "new" or name = "var"
+            return name + "__"
+        end
+        return name
+    end
+
     action GetCodeCompletionItem(Class calledFrom) returns CodeCompletionItem
         CodeCompletionItem item
         
@@ -88,6 +123,10 @@ class Variable is Symbol
         end
 
         Type type = GetType()
+        if type = undefined
+            item:displayText = name
+            return item
+        end
         text docs = ""
         //no resolution is required here because variables are resolved
         //actions require an additional step because they are tied to a

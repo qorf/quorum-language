@@ -121,9 +121,6 @@ public class QuorumFileReader {
             readSoFar = fileSize;
         } else {
             readSoFar += line.length() + System.getProperty("line.separator").length(); // newline is consumed.
-            
-            if (readSoFar >= fileSize)
-                atEOF = true; // don't throw exception this time.
         }
 
         return line;
@@ -148,11 +145,6 @@ public class QuorumFileReader {
             } else {
                 lines += line + newLine;
                 readSoFar += line.length() + System.getProperty("line.separator").length(); // newline is consumed.
-
-                if (readSoFar >= fileSize) {
-                    atEOF = true; // don't throw exception this time.
-                    break;
-                }
             }
         } while (line != null);
 

@@ -1,0 +1,65 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.IndexData
+
+class IndexBufferObject is IndexData
+
+    boolean isDirect = true
+    boolean isDirty = true
+    boolean isBound = false
+    integer usage = 0
+    private boolean empty = true
+
+    system action Dispose
+
+    action Load(integer maxIndices)
+        Load(true, maxIndices)
+    end
+
+    system action Load(boolean isStatic, integer maxIndices)
+
+    system action GetSize returns integer
+
+    system action GetMaxSize returns integer
+
+    action SetIndices(Array<integer> indices, integer offset, integer count)
+        SendToBridgeArray(indices)
+        SetIndices(offset, count)
+    end
+
+    private system action SetIndices(integer offset, integer count)
+
+    system action Bind
+
+    system action Unbind
+
+    // Used to force OpenGL to create a new buffer handle. Used for context loss.
+    system action Invalidate
+
+    system action Clear
+
+    action Put(Array<integer> values)
+        PrepareBridgeArray(values:GetSize())
+        SendToBridgeArray(values)
+        PutBridgeArray()
+    end
+
+    private system action PrepareBridgeArray(integer length)
+
+    /* Sends an entire Quorum array to be stored in the bridge array within the plugins. */
+    private action SendToBridgeArray(Array<integer> array)
+        PrepareBridgeArray(array:GetSize())
+        integer index = 0
+        repeat array:GetSize() times
+            SendToBridgeArray(index, array:Get(index))
+            index = index + 1
+        end
+    end
+
+    private system action SendToBridgeArray(integer index, integer value)
+
+    private system action PutBridgeArray
+
+    system action SetPosition(integer position)
+end

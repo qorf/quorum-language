@@ -5,7 +5,7 @@ use Libraries.Containers.HashTable
 use Libraries.Containers.Array
 use Libraries.Language.Compile.Parser
 use Libraries.System.File
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.System.StackTraceItem
 
@@ -44,16 +44,13 @@ class InheritanceTester
         SystemActionInherit()
         TruckMain()
         ParentActionTest2()
-        //InheritanceOverloading()
-//Tests in InheritanceTester.java that need to be implemented
-//MultipleInheritanceBlueprints
-//MultipleInheritanceCallingInheritedBlueprints
         
 //FAIL tests
         path = failPath
-        MultipleInheritanceAmbiguousMethod()
         CircularInheritance()
         BadTemplate()
+        InvalidParentName()
+        MultipleInheritanceAmbiguousMethod()
         OutputPrivateParentValue()
         ParentActionNotExist()
         UseInvalidVariable()
@@ -604,6 +601,18 @@ class InheritanceTester
         files:Add(dependent1)
         files:Add(dependent2)
         files:Add(dependent3)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action InvalidParentName 
+        Array<File> files
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "InvalidParentName.quorum")
+        files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
     end

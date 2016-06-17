@@ -2,7 +2,7 @@ package Libraries.Language.Compile.Symbol
 
 use Libraries.Language.Compile.QualifiedName
 use Libraries.Containers.Array
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 
 class Type 
     boolean isConstant = false
@@ -257,6 +257,34 @@ class Type
                     first = false
                 else
                     final = final + ":" + type:GetStaticKeyWithMappedGenerics()
+                end
+            end
+            final = final + ">"
+        end
+        return final
+    end
+
+    action GetNameWithMappedGenerics returns text
+        text final = ""
+
+        if IsMappedToGeneric()
+            final = mappedGeneric
+        else
+            final = GetName()
+        end
+
+        boolean first = true
+
+        if HasGenerics()
+            final = final + "<"
+            Iterator<Type> gen = generics:GetIterator()
+            repeat while gen:HasNext()
+                Type type = gen:Next()
+                if first
+                    final = final + type:GetNameWithMappedGenerics()
+                    first = false
+                else
+                    final = final + ":" + type:GetNameWithMappedGenerics()
                 end
             end
             final = final + ">"

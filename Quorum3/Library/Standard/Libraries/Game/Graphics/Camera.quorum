@@ -1,0 +1,536 @@
+package Libraries.Game.Graphics
+
+use Libraries.Compute.Frustum
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Quaternion
+use Libraries.Compute.Vector3
+use Libraries.Compute.Ray
+use Libraries.Compute.Math
+use Libraries.Game.GameStateManager
+
+class Camera 
+    
+    /*
+    The position of the camera.
+    */
+    Vector3 position
+
+    /*
+    The unit length direction vector of the camera.
+    */
+    Vector3 direction
+
+    /*
+    The unit length up vector of the camera.
+    */
+    Vector3 up
+
+
+    /*
+    The projection matrix of the camera.
+    */
+    Matrix4 projection
+
+    /*
+    The view matrix of the camera.
+    */
+    Matrix4 view
+
+    /*
+    The combined projection and view matrix of the camera.
+    */
+    Matrix4 combined
+
+    /*
+    The inverse of the combined projection and view matrix.
+    */
+    Matrix4 inverseProjectionView
+
+
+    /*
+    The distance to the near clipping plane. Must be positive.
+    */
+    number near = 1
+
+    /*
+    The distance to the far clipping plane. Must be positive.
+    */
+    number far = 1000
+
+
+    /*
+    The width of the camera viewport.
+    */
+    number viewportWidth = 0
+
+    /*
+    The height of the camera viewport.
+    */
+    number viewportHeight = 0
+
+
+    /*
+    The frustum containing the area which can be viewed by the camera.
+    */
+    Frustum frustum
+
+
+    private Vector3 calcVector
+
+    on create
+        direction:Set(0, 0, -1)
+        up:Set(0, 1, 0)
+
+        GameStateManager manager
+        viewportWidth = manager:GetGameDisplay():GetWidth()
+        viewportHeight = manager:GetGameDisplay():GetHeight()
+    end
+
+    /*
+    This action recalculates the camera's position and data. This should be used
+    after the camera has been manipulated in any way.
+    */
+    blueprint action Update
+
+    /*
+    The SetZoom action will set the zoom level of the camera. A value of 1 will
+    use the default zoom. A smaller value will zoom the camera out, while a
+    larger value will zoom the camera in.
+    */
+    blueprint action SetZoom(number zoom)
+
+    /*
+    The GetZoom action returns the current level of zoom used by the camera. The
+    default value is 1.
+    */
+    blueprint action GetZoom returns number
+
+    /*
+    This action will angle the camera to look at the given point in 3D space.
+    */
+    action LookAt(number x, number y, number z)
+        calcVector:Set(x, y, z):Subtract(position):Normalize()
+        if not calcVector:IsZero()
+            Math math
+
+            // up and direction must ALWAYS be orthonormal vectors
+            number dot = calcVector:DotProduct(up)
+            if math:AbsoluteValue(dot - 1) < 0.000000001
+                // Collinear
+                up:Set(direction):Scale(-1)
+            elseif math:AbsoluteValue(dot + 1) < 0.000000001
+                // Collinear opposite
+                up:Set(direction)
+            end
+            direction:Set(calcVector)
+            NormalizeUp()
+        end
+    end
+
+    // Is this ever needed as a public action?
+    private action NormalizeUp
+        calcVector:Set(direction):CrossProduct(up):Normalize()
+        up:Set(calcVector):CrossProduct(direction):Normalize()
+    end
+
+    /*
+    This action will angle the camera to look at the given point in 3D space.
+    */
+    action LookAt(Vector3 target)
+        LookAt(target:GetX(), target:GetY(), target:GetZ())
+    end
+
+    /*
+    This action rotates the camera the given number of degrees around the axis
+    given as a 3D vector.
+    */
+    action Rotate(number degrees, number axisX, number axisY, number axisZ)
+        direction:Rotate(degrees, axisX, axisY, axisZ)
+        up:Rotate(degrees, axisX, axisY, axisZ)
+    end
+
+    /*
+    This action rotates the camera the given number of degrees around the axis
+    given as a 3D vector.
+    */
+    action Rotate(Vector3 axis, number degrees)
+        direction:Rotate(axis, degrees)
+        up:Rotate(axis, degrees)
+    end
+
+    /*
+    This action rotates the camera the given number of degrees around the axis
+    given as a 3D vector.
+    */
+    action Rotate(Matrix4 transform)
+        direction:Rotate(transform)
+        up:Rotate(transform)
+    end
+
+    /*
+    This action rotates the camera the given number of degrees around the axis
+    given as a 3D vector.
+    */
+    action Rotate(Quaternion quaternion)
+        quaternion:Transform(direction)
+        quaternion:Transform(up)
+    end
+
+    /*
+    This action will rotate the camera around the given point, with the camera's
+    rotation being about the given axis. The camera is rotated by the given
+    number of degrees.
+    */  
+    action RotateAround(Vector3 point, Vector3 axis, number degrees)
+        calcVector:Set(point)
+        calcVector:Subtract(position)
+        Move(calcVector)
+        Rotate(axis, degrees)
+        calcVector:Rotate(axis, degrees)
+        Move(-calcVector:GetX(), -calcVector:GetY(), -calcVector:GetZ())
+    end
+
+    /*
+    This action will transform the position, direction, and up vector of this
+    camera by the given matrix.
+    */
+    action Transform(Matrix4 transform)
+        position:Multiply(transform)
+        Rotate(transform)
+    end
+
+    /*
+    This action moves the camera by the given amount on each axis.
+    */
+    action Move(number x, number y, number z)
+        position:Add(x, y, z)
+    end
+    
+    /*
+    This action moves the camera by the given vector.
+    */
+    action Move(Vector3 vector)
+        position:Add(vector)
+    end
+
+    /*
+    This action will set the position of the Camera. It takes a Vector3 object
+    containing the new x, y, and z coordinates to use for the camera's position.
+    */
+    action SetPosition(Vector3 newPosition)
+        position:Set(newPosition:GetX(), newPosition:GetY(), newPosition:GetZ())
+    end
+
+    /*
+    This action will set the position of the Camera. It takes three numbers
+    representing the new x, y, and z coordinates to use for the camera's position.
+    */
+    action SetPosition(number x, number y, number z)
+        position:Set(x, y, z)
+    end
+
+    /*
+    This action will return the current position of the Camera. The position is
+    returned as a Vector3 object containing the current x, y, and z coordinates.
+    */
+    action GetPosition returns Vector3
+        return position
+    end
+
+    /*
+    This action will set the direction of the Camera. It takes a Vector3 object
+    which contains the new directional vector to use for the camera.
+    */
+    action SetDirection(Vector3 newDirection)
+        direction:Set(newDirection:GetX(), newDirection:GetY(), newDirection:GetZ())
+    end
+
+    /*
+    This action will set the direction of the Camera. It takes three number
+    values which represent the new directional vector to use for the camera.
+    */
+    action SetDirection(number x, number y, number z)
+        direction:Set(x, y, z)
+    end
+
+    /*
+    This action will return the current direction of the Camera. The direction
+    is returned as a Vector3 object.
+    */
+    action GetDirection returns Vector3
+        return direction
+    end
+
+    /*
+    This action will set the direction that the camera considers to be up. The
+    top of the camera will face the direction of the given Vector3 object.
+    */
+    action SetUp(Vector3 newUp)
+        up:Set(newUp:GetX(), newUp:GetY(), newUp:GetZ())
+    end
+
+    /*
+    This action will set the direction that the camera considers to be up. The
+    top of the camera will face the direction indicated by the three given
+    number values.
+    */
+    action SetUp(number x, number y, number z)
+        up:Set(x, y, z)
+    end
+    
+    /*
+    This action will return the direction that the camera considers to be up.
+    The returned Vector3 indicates the direction that the top of the camera
+    faces out towards.
+    */
+    action GetUp returns Vector3
+        return up
+    end
+
+    /*
+    This action will set the distance to the near clipping plane of the camera. 
+    Objects that are closer than the distance to the near clipping plane will 
+    not be seen by the camera.
+    */
+    action SetNear(number value)
+        near = value
+    end
+
+    /*
+    This action will return the distance to the near clipping plane of the
+    camera. Objects that are closer than the distance to the near clipping plane
+    will not be seen by the camera.
+    */
+    action GetNear returns number
+        return near
+    end
+
+    /*
+    This action will set the distance to the far clipping plane of the camera. 
+    Objects that are farther than the distance to the far clipping plane will 
+    not be seen by the camera.
+    */
+    action SetFar(number value)
+        far = value
+    end
+
+    /*
+    This action will return the distance to the far clipping plane of the
+    camera. Objects that are farther than the distance to the far clipping plane
+    will not be seen by the camera.
+    */
+    action GetFar returns number
+        return far
+    end
+
+    /*
+    This action will set the effective width of the camera lens.
+    */
+    action SetWidth(number width)
+        viewportWidth = width
+    end
+
+    /*
+    This action will return the effective width of the camera lens.
+    */
+    action GetWidth returns number
+        return viewportWidth
+    end
+
+    /*
+    This action will set the effective height of the camera lens.
+    */
+    action SetHeight(number height)
+        viewportHeight = height
+    end
+
+    /*
+    This action will return the effective height of the camera lens.
+    */
+    action GetHeight returns number
+        return viewportHeight
+    end
+
+    /*
+    This action returns the calculated projection matrix of the camera.
+    */
+    action GetProjectionMatrix returns Matrix4
+        return projection
+    end
+
+    /*
+    This action returns the calculated view matrix of the camera.
+    */
+    action GetViewMatrix returns Matrix4
+        return view
+    end
+
+    /*
+    This action returns a matrix containing the combined values of the camera's
+    projection and view matrices.
+    */
+    action GetCombinedMatrix returns Matrix4
+        return combined
+    end
+
+    /*
+    This action returns a matrix containing the inversed combined projection and
+    view matrices.
+    */
+    action GetInverseCombinedMatrix returns Matrix4
+        return inverseProjectionView
+    end
+
+    /*
+    This action returns a frustum containing the area visible to the camera.
+    */
+    action GetFrustum returns Frustum
+        return frustum
+    end
+
+    /*
+    This action will translate a point given in screen coordinates to the world
+    space. The calculated point will be on the near plane of the camera.
+    */
+    action ScreenToWorldCoordinates(number x, number y) returns Vector3
+        Vector3 vector
+        vector:Set(x, y, 0)
+        return ScreenToWorldCoordinates(vector)
+    end
+
+    /*
+    This action will translate a point given in screen coordinates to the world
+    space. If the action is passed a true boolean value, the calculated point
+    will be on the near clipping plane of the camera. Otherwise, it will be on
+    the far plane.
+    */
+    action ScreenToWorldCoordinates(number x, number y, boolean useNearPlane) returns Vector3
+        Vector3 vector
+        if useNearPlane
+            vector:Set(x, y, 0)
+        else
+            vector:Set(x, y, 1)
+        end
+        return ScreenToWorldCoordinates(vector)
+    end
+
+    /*
+    This action will translate a point given in screen coordinates to the world
+    space. The z-coordinate of the given coordinates will be used to determine
+    if the world coordinate returned should be on the near or far plane of the
+    camera. A z-coordinate of 0 will get a point on the near plane, and a
+    z-coordinate of 1 will get a point on the far plane. The calculated point
+    will be contained in the Vector3 object that was passed as a parameter.
+    */
+    action ScreenToWorldCoordinates(Vector3 coords) returns Vector3
+        return ScreenToWorldCoordinates(coords, 0, 0, GetWidth(), GetHeight())
+    end
+
+    /*
+    This action will translate a point given in screen coordinates to the world
+    space. The z-coordinate of the given coordinates will be used to determine
+    if the world coordinate returned should be on the near or far plane of the
+    camera. A z-coordinate of 0 will get a point on the near plane, and a
+    z-coordinate of 1 will get a point on the far plane. The calculated point
+    will be contained in the Vector3 object that was passed as a parameter.
+
+    This action also takes the position of the viewport's origin as x and y
+    coordinates, and the width and height of the viewport.
+    */
+    action ScreenToWorldCoordinates(Vector3 coords, number viewportX, number viewportY, number viewportWidth, number viewportHeight) returns Vector3
+        number x = coords:GetX() - viewportX
+        number y = coords:GetY() - viewportY
+        coords:SetX((2 * x) / viewportWidth - 1)
+        coords:SetY((2 * y) / viewportHeight - 1)
+        coords:SetZ(2 * coords:GetZ() - 1)
+        coords:Project(inverseProjectionView)
+        return coords
+    end
+
+    /*
+    This action will return the screen coordinates of a point in the world space.
+    The returned point will be stored in a new Vector3 object.
+    */
+    action WorldToScreenCoordinates(number x, number y, number z) returns Vector3
+        Vector3 temp
+        temp:Set(x, y, z)
+        return WorldToScreenCoordinates(temp)
+    end
+
+    /*
+    This action will return the screen coordinates of a point in the world space.
+    The returned point will be stored in the same coordinate vector used to
+    indicate the world coordinates. 
+    */
+    action WorldToScreenCoordinates(Vector3 coords) returns Vector3
+        return WorldToScreenCoordinates(coords, 0, 0, GetWidth(), GetHeight())
+    end
+
+    /*
+    This action will return the screen coordinates of a point in the world space.
+    The returned point will be stored in the same coordinate vector used to
+    indicate the world coordinates. 
+
+    This action will calculate the point using the given position and dimensions
+    of the viewport.
+    */
+    action WorldToScreenCoordinates(Vector3 coords, number viewportX, number viewportY, number viewportWidth, number viewportHeight) returns Vector3
+        coords:Project(combined)
+        coords:SetX(viewportWidth * (coords:GetX() + 1) / 2 + viewportX)
+        coords:SetY(viewportHeight * (coords:GetY() + 1) / 2 + viewportY)
+        coords:SetZ((coords:GetZ() + 1) / 2)
+        return coords
+    end
+
+    /*
+    GetPickRay will return a ray that begins at the given screen coordinates and
+    points in the direction that the camera is viewing. The Ray's position will
+    be in world coordinates.
+    */
+    action GetPickRay(number screenX, number screenY) returns Ray
+        return GetPickRay(screenX, screenY, 0, 0, GetWidth(), GetHeight())
+    end
+
+    /*
+    GetPickRay will return a ray that begins at the given screen coordinates and
+    points in the direction that the camera is viewing. The Ray's position will
+    be in world coordinates.
+
+    This action will calculate the point using the given position and dimensions
+    of the viewport.
+    */
+    action GetPickRay(number screenX, number screenY, number viewportX, number viewportY, number viewportWidth, number viewportHeight) returns Ray
+        Ray ray
+        ScreenToWorldCoordinates(ray:GetOrigin():Set(screenX, screenY, 0), viewportX, viewportY, viewportWidth, viewportHeight)
+        ScreenToWorldCoordinates(ray:GetDirection():Set(screenX, screenY, 1), viewportX, viewportY, viewportWidth, viewportHeight)
+        ray:GetDirection():Subtract(ray:GetOrigin()):Normalize()
+        return ray
+    end
+
+    /*
+
+	/** Creates a picking {@link Ray} from the coordinates given in screen coordinates. It is assumed that the viewport spans the
+	 * whole screen. The screen coordinates origin is assumed to be in the top left corner, its y-axis pointing down, the x-axis
+	 * pointing to the right. The returned instance is not a new instance but an internal member only accessible via this function.
+	 * @param viewportX the coordinate of the bottom left corner of the viewport in glViewport coordinates.
+	 * @param viewportY the coordinate of the bottom left corner of the viewport in glViewport coordinates.
+	 * @param viewportWidth the width of the viewport in pixels
+	 * @param viewportHeight the height of the viewport in pixels
+	 * @return the picking Ray. *-
+	public Ray getPickRay (float screenX, float screenY, float viewportX, float viewportY, float viewportWidth,
+		float viewportHeight) {
+		unproject(ray.origin.set(screenX, screenY, 0), viewportX, viewportY, viewportWidth, viewportHeight);
+		unproject(ray.direction.set(screenX, screenY, 1), viewportX, viewportY, viewportWidth, viewportHeight);
+		ray.direction.sub(ray.origin).nor();
+		return ray;
+	}
+
+	/** Creates a picking {@link Ray} from the coordinates given in screen coordinates. It is assumed that the viewport spans the
+	 * whole screen. The screen coordinates origin is assumed to be in the top left corner, its y-axis pointing down, the x-axis
+	 * pointing to the right. The returned instance is not a new instance but an internal member only accessible via this function.
+	 * @return the picking Ray. *-
+	public Ray getPickRay (float screenX, float screenY) {
+		return getPickRay(screenX, screenY, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+	}
+        */
+end

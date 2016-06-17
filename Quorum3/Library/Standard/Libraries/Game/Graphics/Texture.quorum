@@ -1,13 +1,13 @@
 package Libraries.Game.Graphics
 
 use Libraries.Game.Graphics.FileTextureData
-use Libraries.Game.Application
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.PixelMap
 use Libraries.System.File
 use Libraries.Language.Errors.Error
 use Libraries.Game.Disposable
+use Libraries.Game.GameStateManager
 
 /*
 The Texture class represents an image that can be drawn on the screen. Once
@@ -43,9 +43,43 @@ Attribute: Example
 */
 class Texture is Disposable
 
+    /*
+    Actions to Override in Cubemap:
+
+    LoadFromFile(text) - Keep
+    LoadFromFile(File) - Override
+    LoadFromFile(File, Format, boolean) - Override
+    LoadModelTexture(text) - ?
+    LoadModelTexture(File) - ?
+    GetWidth - Override
+    GetHeight - Override
+    GetDepth - NEW
+
+    // Following are overridden just to access private actions:
+    Bind - Override
+    BindToDefault - Override
+    CreateGLHandle
+    SetGL20Info
+    GetGLTarget
+    GetGLHandle
+
+    SetFilter(TextureFilter, TextureFilter) - Keep
+    SetWrap(TextureWrap, TextureWrap) - Override
+    SetWrap(TextureWrap, TextureWrap, TextureWrap) - NEW
+    GetMinimizeFilter - Keep
+    GetMagnifyFilter - Keep
+    GetHorizontalWrap - Keep
+    GetVerticalWrap - Keep
+    GetDepthWrap - NEW
+    Dispose - ?
+    Load<Shape> - Keep
+    UnsafeSetWrap(TextureWrap, TextureWrap) - Keep
+    UnsafeSetFilter(TextureFilter, TextureFilter) - Keep
+    */
+
     private TextureData data = undefined
 
-    private GraphicsManager gl20
+    private GraphicsManager gl20 = undefined
 
     TextureFilter minimizeFilter
     TextureFilter magnifyFilter
@@ -53,13 +87,14 @@ class Texture is Disposable
     TextureWrap verticalWrap
 
     on create
+        GameStateManager manager
+        gl20 = manager:GetGameGraphics()
+
         minimizeFilter:ConstructTextureFilter(minimizeFilter:NEAREST)
         magnifyFilter:ConstructTextureFilter(magnifyFilter:NEAREST)
         horizontalWrap:ConstructTextureWrap(horizontalWrap:CLAMP_TO_EDGE)
         verticalWrap:ConstructTextureWrap(verticalWrap:CLAMP_TO_EDGE)
     end
-
-    system action GetDepth() returns integer
 
     /*
     This action loads a Texture from a file path given as text. The file path
@@ -157,8 +192,101 @@ class Texture is Disposable
             end
         end
     */
-    action LoadFromFile(File file, Format format, boolean useMipMaps)
+    private action LoadFromFile(File file, Format format, boolean useMipMaps)
         LoadFromTextureData(CreateTextureData(file, format, useMipMaps))
+    end
+
+    /*
+    This action loads a Texture from a file path given as text. The file path
+    should be given relative to the directory where the program is executed from.
+    When loaded via this command, the Texture will be set to use linear filtering
+    and repeated texture wrapping, which is typically preferred for 3D models.
+
+    Attribute: Parameter fileName A file path pointing to the image file to load into a Texture.
+
+    Attribute: Example
+
+        use Libraries.Game.Texture
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Texture myTexture
+
+            action Main
+                StartGame()
+            end
+        
+            action CreateGame
+                // This call will load an image "Sample.png" from a directory called "Images".
+                myTexture:LoadModelTexture("Images/Sample.png")
+            end
+        end
+    */
+    action LoadModelTexture(text fileName)
+        File tempFile
+        text filePath = fileName:Replace(tempFile:GetWorkingDirectory(), "")
+        LoadFromFile(filePath)
+
+        TextureFilter minFilter
+        minFilter:ConstructTextureFilter(minFilter:LINEAR)
+        TextureFilter magFilter
+        magFilter:ConstructTextureFilter(magFilter:LINEAR)
+        SetFilter(minFilter, magFilter)
+
+        TextureWrap uWrap
+        uWrap:ConstructTextureWrap(uWrap:REPEAT)
+        TextureWrap vWrap
+        vWrap:ConstructTextureWrap(vWrap:REPEAT)
+        SetWrap(uWrap, vWrap)
+    end
+
+    /*
+    This action loads a Texture from a Quorum File. The File must already
+    have its path set for this function. When loaded via this command, the
+    Texture will be set to use linear filtering and repeated texture wrapping,
+    which is typically preferred for 3D models.
+
+    Attribute: Parameter file An image file to be loaded into a Texture.
+
+    Attribute: Example
+
+        use Libraries.Game.Texture
+        use Libraries.Game.Game
+        use Libraries.System.File
+
+        class Main is Game
+
+            File myFile
+            Texture myTexture
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                myFile:SetPath("Images/Sample.png")
+
+                // This call will load the image that the "myFile" variable points to.
+                // The file points to an image called "Sample.png" in a folder called "Images".
+                myTexture:LoadModelTexture(myFile)
+            end
+        end
+    */
+    action LoadModelTexture(File file)
+        LoadFromFile(file)
+
+        TextureFilter minFilter
+        minFilter:ConstructTextureFilter(minFilter:LINEAR)
+        TextureFilter magFilter
+        magFilter:ConstructTextureFilter(magFilter:LINEAR)
+        SetFilter(minFilter, magFilter)
+
+        TextureWrap uWrap
+        uWrap:ConstructTextureWrap(uWrap:REPEAT)
+        TextureWrap vWrap
+        vWrap:ConstructTextureWrap(vWrap:REPEAT)
+        SetWrap(uWrap, vWrap)
     end
 
     /*
@@ -442,54 +570,6 @@ class Texture is Disposable
     action GetVerticalWrap returns TextureWrap
         return verticalWrap
     end
-/*
-    action UseCustomColor returns boolean
-        return false
-    end
-
-    action GetTexture returns Texture
-        return me
-    end*/
-
-    /*action PrepareVertices
-
-        Array<number> vertices = GetVertices()
-
-        number x = GetX()
-        number y = GetY()
-
-        number x2 = x + GetWidth()
-        number y2 = y + GetHeight()
-
-        number u = 0
-        number v = 1
-        number u2 = 1
-        number v2 = 0
-
-        vertices:Set(0, x)
-        vertices:Set(1, y)
-        // Index 2 is automatically handled by the drawing SpriteBatch.
-        vertices:Set(3, u)
-        vertices:Set(4, v)
-
-        vertices:Set(5, x)
-        vertices:Set(6, y2)
-        // Index 7 is automatically handled by the drawing SpriteBatch.
-        vertices:Set(8, u)
-        vertices:Set(9, v2)
-
-        vertices:Set(10, x2)
-        vertices:Set(11, y2)
-        // Index 12 is automatically handled by the drawing SpriteBatch.
-        vertices:Set(13, u2)
-        vertices:Set(14, v2)
-
-        vertices:Set(15, x2)
-        vertices:Set(16, y)
-        // Index 17 is automatically handled by the drawing SpriteBatch.
-        vertices:Set(18, u2)
-        vertices:Set(19, v)
-    end*/
 
     /*
     This action will release the memory used to store pixel information for this
@@ -964,12 +1044,51 @@ class Texture is Disposable
         format:SetValue(format:RGBA8888)
         pixmap:CreatePixelMap(width, height, format)
 
-        pixmap:FillTriangle(x1, y1, x2, y2, x3, y3, color)
+        // Correcting for pixel map drawing top-down instead of bottom-up.
+        integer t1 = height - y1
+        integer t2 = height - y2
+        integer t3 = height - y3
+
+        pixmap:FillTriangle(x1, t1, x2, t2, x3, t3, color)
         
         FileTextureData data
         data:InitializeFileTextureData(undefined, pixmap, format, false)
         
         LoadFromTextureData(data)
+    end
+
+    /*
+    This action will set the texture wrapping of this Texture, assuming it is
+    already bound and active. This method sacrifices safety for speed, and
+    should never be used directly by users.
+    */
+    action UnsafeSetWrap(TextureWrap u, TextureWrap v)
+        if u not= undefined and u:GetValue() not= horizontalWrap:GetValue()
+            gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_WRAP_S, u:GetValue())
+            horizontalWrap = u
+        end
+
+        if v not= undefined and v:GetValue() not= verticalWrap:GetValue()
+            gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_WRAP_T, v:GetValue())
+            verticalWrap = v
+        end
+    end
+
+    /*
+    This action will set the texture filter of this Texture, assuming it is
+    already bound and active. This method sacrifices safety for speed, and
+    should never be used directly by users.
+    */
+    action UnsafeSetFilter(TextureFilter min, TextureFilter mag)
+        if min not= undefined and min:GetValue() not= minimizeFilter:GetValue()
+            gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_MIN_FILTER, min:GetValue())
+            minimizeFilter = min
+        end
+
+        if mag not= undefined and mag:GetValue() not= magnifyFilter:GetValue()
+            gl20:SetTextureParameter(GetGLTarget(), gl20:GL_TEXTURE_MAG_FILTER, mag:GetValue())
+            magnifyFilter = mag
+        end
     end
 
 end

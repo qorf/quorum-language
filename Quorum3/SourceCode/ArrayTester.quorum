@@ -5,7 +5,7 @@ use Libraries.Containers.HashTable
 use Libraries.Containers.Array
 use Libraries.Language.Compile.Parser
 use Libraries.System.File
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.System.StackTraceItem
 
@@ -19,6 +19,7 @@ class ArrayTester
     //PASS TESTS
         path = passPath
         ArrayAdd()
+        ArrayAddLots()
         ArrayAddAt()
         ArrayAddToEnd()
         ArrayAddToFront()
@@ -117,6 +118,22 @@ class ArrayTester
         results:Add(0, "13")
         results:Add(1, "12")
         results:Add(2, "14")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ArrayAddLots
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayAddLots.quorum")
+        files:Add(main)
+        i = 0
+        repeat 1000 times
+            results:Add(i + "")
+        end
+        
+        results:Add("Finished")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

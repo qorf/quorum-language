@@ -17,7 +17,12 @@ class IntegerPrimitiveToIntegerObjectCast is ExplicitCastOpcode
     end
     
     action WriteJavaScript returns text
-        return ""
+        text result = ""
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            result = result + "new quorum_Libraries_Language_Types_Boolean_(" + "false, " + opcodeToCast:WriteJavaScript() + ")"
+        end
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode

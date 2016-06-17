@@ -105,18 +105,19 @@ class Color
     action directly.
     */
     action SetColorFromCode(integer code)
-        // Note: For future optimization, replace bit shifting with static values.
+        /*
+        The constants used in this action have these binary values:
+        255:        00000000000000000000000011111111
+        65280:      00000000000000001111111100000000
+        16711680:   00000000111111110000000000000000
+        -16777216:  11111111000000000000000000000000
+        */
         BitwiseOperations ops
 
-        integer bitMask = 255
-        alpha = ops:And(bitMask, code) / 255.0
-        bitMask = ops:ShiftLeft(8, bitMask)
-        blue = ops:And(bitMask, code) / 255.0
-        bitMask = ops:ShiftLeft(8, bitMask)
-        green = ops:And(bitMask, code) / 255.0
-        bitMask = ops:ShiftLeft(8, bitMask)
-        red = ops:And(bitMask, code) / 255.0
-
+        alpha = ops:And(code, 255) / 255.0
+        blue = ops:And(code, 65280) / 255.0
+        green = ops:And(code, 16711680) / 255.0
+        red = ops:And(code, -16777216) / 255.0
     end
 
     /*
@@ -1298,5 +1299,96 @@ class Color
         color:SetColor(red, green, blue, alpha)
         return color
     end
-    
+
+    /*
+    This action will perform linear interpolation between this Color and the
+    provided target Color using the given interpolation coefficient, which can
+    be between 0 and 1 (inclusive). The Color that called this action will
+    be changed to reflect the results of the linear interpolation.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+            Color targetColor
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                rectangle:LoadFilledRectangle(100, 50, color:White())
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+
+                color:SetColor(1, 1, 1, 1)
+                targetColor:SetColor(1, 0, 0, 1)
+            end
+
+            action Update(number seconds)
+                color:LinearInterpolation(targetColor, 0.5 * seconds)
+                rectangle:SetColor(color)
+            end
+        end
+    */
+    action LinearInterpolation(Color targetColor, number coefficient)
+        red = red + coefficient * (targetColor:GetRed() - red)
+        green = green + coefficient * (targetColor:GetGreen() - green)
+        blue = blue + coefficient * (targetColor:GetBlue() - blue)
+        alpha = alpha + coefficient * (targetColor:GetAlpha() - alpha)
+        Clamp()
+    end
+
+    /*
+    This action will perform linear interpolation between this Color and the
+    provided red, green, blue, and alpha color values using the given 
+    interpolation coefficient, which can be between 0 and 1 (inclusive). The 
+    Color that called this action will be changed to reflect the results of the 
+    linear interpolation.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color color
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                rectangle:LoadFilledRectangle(100, 50, color:White())
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+
+                color:SetColor(1, 1, 1, 1)
+            end
+
+            action Update(number seconds)
+                color:LinearInterpolation(1, 0, 0, 1, 0.5 * seconds)
+                rectangle:SetColor(color)
+            end
+        end
+    */
+    action LinearInterpolation(number r, number g, number b, number a, number coefficient)
+        red = red + coefficient * (r - red)
+        green = green + coefficient * (g - green)
+        blue = blue + coefficient * (b - blue)
+        alpha = alpha + coefficient * (a - alpha)
+        Clamp()
+    end
+
 end

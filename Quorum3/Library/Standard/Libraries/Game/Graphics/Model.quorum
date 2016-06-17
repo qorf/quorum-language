@@ -1,0 +1,641 @@
+package Libraries.Game.Graphics
+
+use Libraries.Game.Graphics.ModelData.Node
+use Libraries.Game.Graphics.ModelData.Animation
+use Libraries.Game.Graphics.ModelData.NodePart
+use Libraries.Game.Graphics.ModelData.NodeKeyframe
+use Libraries.Game.Graphics.ModelData.NodeAnimation
+use Libraries.Game.Graphics.ModelData.MeshPart
+use Libraries.Game.Graphics.ModelBuilder
+use Libraries.Game.Graphics.ModelLoaders.ModelReader
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Containers.HashTable
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Vector3
+use Libraries.Compute.Quaternion
+use Libraries.Interface.Item3D
+use Libraries.Game.BoundingBox
+use Libraries.System.File
+
+class Model is Item3D
+    
+    Array<Material> materials
+    Array<Node> nodes
+    Array<Animation> animations
+    ModelBlueprint modelBlueprint = undefined
+    //public Matrix4 transform = undefined
+    //public Object userData // Used to pass data to the shader
+
+    // Static in libGDX: is this necessary?
+    private boolean defaultShareKeyframes = true
+
+    private HashTable<NodePart, HashTable<Node, Matrix4>> nodePartBones
+
+    action GetMaterials returns Array<Material>
+        return materials
+    end
+
+    action GetNodes returns Array<Node>
+        return nodes
+    end
+
+    action GetAnimations returns Array<Animation>
+        return animations
+    end
+
+    action SetModelBlueprint(ModelBlueprint schematic)
+        modelBlueprint = schematic
+    end
+
+    action GetModelBlueprint returns ModelBlueprint
+        return modelBlueprint
+    end
+
+    /*
+    This action will load the Model using the data from the given model file.
+    */
+    action Load(File file)
+        ModelBlueprint schematic = GetCachedBlueprint(file)
+        Load(schematic)
+    end
+
+    /*
+    This action will load the Model file with the given file name from the
+    default file directory.
+    */
+    action Load(text fileName)
+        File file
+        file:SetPath(fileName)
+        Load(file)
+    end
+
+    /*
+    This action will search the cached blueprint hash table for a ModelBlueprint
+    that was loaded from the given file. If the blueprint was not loaded before,
+    it will be loaded and cached.
+    */
+    private system action GetCachedBlueprint(File file) returns ModelBlueprint
+
+    /*
+    This action will return the base (that is, unscaled) dimensions of the axis
+    aligned bounding box of the ModelBlueprint. This will return a cached value
+    if there is one, or compute the dimensions then cache the result.
+    */
+    private system action GetCachedDimensions(ModelBlueprint schematic) returns Vector3
+    
+    /*
+    This action will load the Model with a box with the given width, height,
+    depth, and color.
+    */
+    action LoadBox(number width, number height, number depth, Color color)
+        ModelBlueprint schematic = GetCachedBox(width, height, depth, color)
+        Load(schematic)
+        SetDiffuseColor(color)
+    end
+
+    /*
+    This action will load the Model with a box with the given width, height,
+    and depth. The box will use the texture located in the provided file.
+    */
+    action LoadBox(number width, number height, number depth, File textureFile)
+        Texture texture
+        texture:LoadFromFile(textureFile)
+        LoadBox(width, height, depth, texture)
+    end
+
+    /*
+    This action will load the Model with a box with the given width, height,
+    and depth. The box will use the texture located at the provided file path.
+    */
+    action LoadBox(number width, number height, number depth, text textureFile)
+        Texture texture
+        texture:LoadFromFile(textureFile)
+        LoadBox(width, height, depth, texture)
+    end
+
+    /*
+    This action will load the Model with a box with the given width, height,
+    and depth. The box will use the texture that has been loaded by the given
+    Drawable.
+    */
+    action LoadBox(number width, number height, number depth, Drawable drawable)
+        Texture texture = drawable:GetTexture()
+        LoadBox(width, height, depth, texture)
+    end
+
+    /*
+    This action will load the Model with a box with the given width, height,
+    depth, and texture.
+    */
+    action LoadBox(number width, number height, number depth, Texture texture)
+        ModelBlueprint schematic = GetCachedBox(width, height, depth, texture)
+        Load(schematic)
+        SetTexture(texture)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given width,
+    height, depth, and color. The default cylinder will be made using 16
+    straight sides to simulate the curve of the cylinder.
+    */
+    action LoadCylinder(number width, number height, number depth, Color color)
+        LoadCylinder(width, height, depth, 16, color)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and color. The provided number of divisions will be used to simulate the
+    curve of the cylinder - the more divisions used, the smoother the curve will
+    appear.
+    */
+    action LoadCylinder(number width, number height, number depth, integer divisions, Color color)
+        ModelBlueprint schematic = GetCachedCylinder(width, height, depth, divisions, color)
+        Load(schematic)
+        SetDiffuseColor(color)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The provided number of divisions will be used to simulate the
+    curve of the cylinder - the more divisions used, the smoother the curve will
+    appear.
+    */
+    action LoadCylinder(number width, number height, number depth, integer divisions, File textureFile)
+        Texture texture
+        texture:LoadFromFile(textureFile)
+        LoadCylinder(width, height, depth, divisions, texture)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The provided number of divisions will be used to simulate the
+    curve of the cylinder - the more divisions used, the smoother the curve will
+    appear.
+    */
+    action LoadCylinder(number width, number height, number depth, integer divisions, text textureFile)
+        Texture texture
+        texture:LoadFromFile(textureFile)
+        LoadCylinder(width, height, depth, divisions, texture)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The provided number of divisions will be used to simulate the
+    curve of the cylinder - the more divisions used, the smoother the curve will
+    appear.
+    */
+    action LoadCylinder(number width, number height, number depth, integer divisions, Drawable drawable)
+        Texture texture = drawable:GetTexture()
+        LoadCylinder(width, height, depth, divisions, texture)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The provided number of divisions will be used to simulate the
+    curve of the cylinder - the more divisions used, the smoother the curve will
+    appear.
+    */
+    action LoadCylinder(number width, number height, number depth, integer divisions, Texture texture)
+        ModelBlueprint schematic = GetCachedCylinder(width, height, depth, divisions, texture)
+        Load(schematic)
+        SetTexture(texture)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The provided number of divisions will be used to simulate the
+    curve of the cylinder - the more divisions used, the smoother the curve will
+    appear.
+    */
+    action LoadCylinder(number width, number height, number depth, File textureFile)
+        LoadCylinder(width, height, depth, 16, textureFile)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The curve of the cylinder will be approximated using 16
+    straight edges.
+    */
+    action LoadCylinder(number width, number height, number depth, text textureFile)
+        LoadCylinder(width, height, depth, 16, textureFile)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The curve of the cylinder will be approximated using 16
+    straight edges.
+    */
+    action LoadCylinder(number width, number height, number depth, Drawable drawable)
+        LoadCylinder(width, height, depth, 16, drawable)
+    end
+
+    /*
+    This action will load the Model with a cylinder with the given dimensions
+    and texture. The curve of the cylinder will be approximated using 16
+    straight edges.
+    */
+    action LoadCylinder(number width, number height, number depth, Texture texture)
+        LoadCylinder(width, height, depth, 16, texture)
+    end
+
+    /*
+    This action will set the diffuse color of any Materials being used by this
+    Model. Used after loading a cached primitive shape, in case the cached shape
+    was built with a different color than this one.
+    */
+    private action SetDiffuseColor(Color color)
+        integer counter = 0
+        repeat materials:GetSize() times
+            Material material = materials:Get(counter)
+            ColorAttribute attribute
+            if material:HasAttribute(attribute:GetDiffuseValue())
+                attribute = cast(ColorAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
+                attribute:SetAttribute(attribute:GetDiffuseValue(), color)
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action will set the texture of any Materials being used by this Model.
+    This is used after loading a cached primitive shape, in case the cached
+    shape was using a different texture than this one.
+    */
+    private action SetTexture(Texture texture)
+        integer counter = 0
+        repeat materials:GetSize() times
+            Material material = materials:Get(counter)
+            TextureAttribute attribute
+            if material:HasAttribute(attribute:GetDiffuseValue())
+                attribute = cast(TextureAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
+                attribute:SetAttribute(attribute:GetDiffuseValue(), texture)
+            end
+            counter = counter + 1
+        end
+    end
+
+    private system action GetCachedBox(number width, number height, number depth, Color color) returns ModelBlueprint
+
+    private system action GetCachedCylinder(number width, number height, number depth, integer divisions, Color color) returns ModelBlueprint
+
+    private system action GetCachedBox(number width, number height, number depth, Texture texture) returns ModelBlueprint
+
+    private system action GetCachedCylinder(number width, number height, number depth, integer divisions, Texture texture) returns ModelBlueprint
+
+    /*
+    This action will load this Model using the data contained in the given
+    ModelBlueprint.
+    */
+    action Load(ModelBlueprint loader)
+        Load(loader, undefined)
+    end
+
+    /*
+    This action will load this Model using the data contained in the given
+    ModelBlueprint, and set its transform using the given Matrix4 (if it is
+    defined).
+    */
+    action Load(ModelBlueprint loader, Matrix4 matrix)
+        modelBlueprint = loader
+        if matrix not= undefined
+            GetTransform():Set(matrix)
+        end
+
+        CopyNodes(loader:nodes)
+        CopyAnimations(loader:animations)
+        CalculateTransforms()
+
+        SetDimensions(GetCachedDimensions(loader))
+    end
+
+    private action CopyNodes(Array<Node> copyNodes)
+        nodePartBones:Empty()
+        integer index = 0
+        repeat copyNodes:GetSize() times
+            Node node = copyNodes:Get(index)
+            nodes:Add(CopyNode(node))
+            index = index + 1
+        end
+        //SetBones()
+    end
+
+    private action CopyNode(Node node) returns Node
+        Node copy
+        copy:id = node:id
+        copy:inheritTransform = node:inheritTransform
+        copy:translation:Set(node:translation)
+        copy:rotation:Set(node:rotation)
+        copy:scale:Set(node:scale)
+        copy:localTransform:Set(node:localTransform)
+        copy:globalTransform:Set(node:globalTransform)
+        
+        integer index = 0
+        NodePart nodePart = undefined
+        repeat node:parts:GetSize() times
+            nodePart = node:parts:Get(index)
+            copy:parts:Add(CopyNodePart(nodePart))
+            index = index + 1
+        end
+
+        Iterator<Node> iterator = node:GetChildren()
+        Node child = undefined
+        repeat while iterator:HasNext()
+            child = iterator:Next()
+            copy:Add(CopyNode(child))
+        end
+        return copy
+    end
+
+    private action CopyNodePart(NodePart nodePart) returns NodePart
+        NodePart copy
+        MeshPart meshPart = copy:meshPart
+        meshPart:id = nodePart:meshPart:id
+        meshPart:indexOffset = nodePart:meshPart:indexOffset
+        meshPart:verticesCount = nodePart:meshPart:verticesCount
+        meshPart:primitiveType = nodePart:meshPart:primitiveType
+        meshPart:mesh = nodePart:meshPart:mesh
+        
+        if nodePart:invBoneBindTransforms not= undefined
+            nodePartBones:Add(copy, nodePart:invBoneBindTransforms)
+        end
+
+        integer index = materials:GetFirstLocation(nodePart:material)
+        if index < 0
+            copy:material = nodePart:material:Copy()
+            materials:Add(copy:material)
+        else
+            copy:material = materials:Get(index)
+        end
+
+        return copy
+    end
+
+    private action SetBones
+        Iterator<NodePart> iterator = nodePartBones:GetKeyIterator()
+        NodePart key = undefined
+        HashTable<Node, Matrix4> value = undefined
+        repeat while iterator:HasNext()
+            key = iterator:Next()
+            value = nodePartBones:GetValue(key)
+            
+            key:invBoneBindTransforms:Empty()
+
+            Iterator<Node> iterator2 = value:GetKeyIterator()
+            Node key2 = undefined
+            Matrix4 value2 = undefined
+            repeat while iterator2:HasNext()
+                key2 = iterator2:Next()
+                value2 = value:GetValue(key2)
+
+                key:invBoneBindTransforms:Add(GetNode(key2:id), value2)
+            end
+
+            key:bones:SetMaxSize(value:GetSize())
+            
+            integer index = 0
+            repeat value:GetSize() times
+                Matrix4 temp
+                key:bones:Set(index, temp)
+                index = index + 1
+            end
+        end
+    end
+
+    private action GetNode(text nodeID) returns Node
+        integer counter = 0
+        Node node = undefined
+        repeat nodes:GetSize() times
+            node = nodes:Get(counter)
+            if node:id = nodeID
+                return node
+            end
+            counter = counter + 1
+        end
+        counter = 0
+        Node result = undefined
+        repeat nodes:GetSize() times
+            node = nodes:Get(counter)
+            result = node:GetChild(nodeID)
+            if result not= undefined
+                return result
+            end
+            counter = counter + 1
+        end
+
+        return result
+    end
+
+    private action CopyAnimations(Array<Animation> source)
+        integer index = 0
+        Animation anim = undefined
+        repeat source:GetSize() times
+            anim = source:Get(index)
+
+            Animation animation
+            animation:id = anim:id
+            animation:duration = anim:duration
+
+            integer index2 = 0
+            NodeAnimation nanim = undefined
+            repeat anim:nodeAnimations:GetSize() times
+                nanim = anim:nodeAnimations:Get(index2)
+
+                Node node = GetNode(nanim:node:id)
+                
+                if node not= undefined
+                    NodeAnimation nodeAnim
+                    nodeAnim:node = node
+
+                    if defaultShareKeyframes
+                        nodeAnim:translation = nanim:translation
+                        nodeAnim:rotation = nanim:rotation
+                        nodeAnim:scaling = nanim:scaling
+                    else
+                        if nanim:translation not= undefined
+                            Array<NodeKeyframe<Vector3>> temp
+                            nodeAnim:translation = temp
+                            integer index3 = 0
+                            NodeKeyframe<Vector3> kf = undefined
+                            repeat nanim:translation:GetSize() times
+                                kf = nanim:translation:Get(index3)
+
+                                NodeKeyframe<Vector3> newKF
+                                newKF:Initialize(kf:keyTime, cast(Vector3, kf:value))
+                                nodeAnim:translation:Add(newKF)
+
+                                index3 = index3 + 1
+                            end
+                        end
+
+                        if nanim:rotation not= undefined
+                            Array<NodeKeyframe<Quaternion>> temp
+                            nodeAnim:rotation = temp
+                            integer index3 = 0
+                            NodeKeyframe<Quaternion> kf = undefined
+                            repeat nanim:rotation:GetSize() times
+                                kf = nanim:rotation:Get(index3)
+
+                                NodeKeyframe<Quaternion> newKF
+                                newKF:Initialize(kf:keyTime, cast(Quaternion, kf:value))
+                                nodeAnim:rotation:Add(newKF)
+
+                                index3 = index3 + 1
+                            end
+                        end
+
+                        if nanim:scaling not= undefined
+                            Array<NodeKeyframe<Vector3>> temp
+                            nodeAnim:scaling = temp
+                            integer index3 = 0
+                            NodeKeyframe<Vector3> kf = undefined
+                            repeat nanim:scaling:GetSize() times
+                                kf = nanim:scaling:Get(index3)
+
+                                NodeKeyframe<Vector3> newKF
+                                newKF:Initialize(kf:keyTime, cast(Vector3, kf:value))
+                                nodeAnim:scaling:Add(newKF)
+
+                                index3 = index3 + 1
+                            end
+                        end
+                    end
+
+                    if nodeAnim:translation not= undefined or nodeAnim:rotation not= undefined or nodeAnim:scaling not= undefined
+                        animation:nodeAnimations:Add(nodeAnim)
+                    end
+
+                end
+                if animation:nodeAnimations:GetSize() > 0 
+                    animations:Add(animation)
+                end
+                index2 = index2 + 1
+            end
+
+            index = index + 1
+        end
+    end
+    
+    /*
+    This action will calculate the local and world transforms of all Nodes in
+    this model, and then calculate the updated bone matrices.
+    */
+    action CalculateTransforms
+        integer index = 0
+        integer size = nodes:GetSize()
+        repeat size times
+            nodes:Get(index):CalculateAllTransforms()
+            index = index + 1
+        end
+        index = 0
+        repeat size times
+            nodes:Get(index):CalculateAllBoneTransforms()
+            index = index + 1
+        end
+    end
+
+    action GetRenderables(Array<Renderable> renderables)
+        Node node = undefined
+        integer index = 0
+        //output "Nodes size = " + nodes:GetSize()
+        repeat nodes:GetSize() times
+            node = nodes:Get(index)
+            GetRenderables(node, renderables)
+            index = index + 1
+        end
+    end
+
+    private action GetRenderables(Node node, Array<Renderable> renderables)
+        if node:parts:GetSize() > 0
+            NodePart nodePart = undefined
+            integer index = 0
+            repeat node:parts:GetSize() times
+                nodePart = node:parts:Get(index)
+                if nodePart:enabled
+                    renderables:Add(GetRenderable(node, nodePart))
+                end
+                index = index + 1
+            end
+        end
+
+        Iterator<Node> childIterator = node:GetChildren()
+        Node child = undefined
+        repeat while childIterator:HasNext()
+            child = childIterator:Next()
+            GetRenderables(child, renderables)
+        end
+    end
+
+    private action GetRenderable(Node node, NodePart nodePart) returns Renderable
+        Renderable out
+        nodePart:SetRenderable(out)
+        if nodePart:bones = undefined and GetTransform() not= undefined
+            out:worldTransform:Set(GetTransform()):Multiply(node:globalTransform)
+        elseif GetTransform() not= undefined
+            out:worldTransform:Set(GetTransform())
+        else
+            out:worldTransform:IdentityMatrix()
+        end
+
+        //out:userData = userData
+        return out
+    end
+
+    /*
+    The Draw action is what makes a Model appear on the screen. This action
+    will automatically be called by the Game class if the Model has been
+    added to the Game with the Add(Item) action. 
+    */
+    action Draw(Painter3D painter)
+        if not IsShowing()
+            return now
+        end
+
+        painter:Render(me)
+
+        parent:Item3D:Draw(painter)
+    end
+
+    /*
+    CalculateBoundingBox will create a new BoundingBox object that contains the
+    bounds of the Model.
+    */
+    action CalculateBoundingBox returns BoundingBox
+        BoundingBox box
+        return CalculateBoundingBox(box)
+    end
+
+    /*
+    CalculateBoundingBox will compute the bounds of this Model, and then store
+    them inside the provided BoundingBox object. If any data was previously
+    stored in this BoundingBox, it will be overwritten.
+    */
+    action CalculateBoundingBox(BoundingBox box) returns BoundingBox
+        box:Invalidate()
+        return ExtendBoundingBox(box)
+    end
+
+    /*
+    ExtendBoundingBox will expand the bounds of the given BoundingBox to fully
+    encapsulate the bounds of this Model.
+    */
+    action ExtendBoundingBox(BoundingBox box) returns BoundingBox
+        integer counter = 0
+
+        repeat nodes:GetSize() times
+            nodes:Get(counter):ExtendBoundingBox(box)
+        end
+
+        return box
+    end
+
+    /*
+    public BoundingBox extendBoundingBox (final BoundingBox out) {
+		final int n = nodes.size;
+		for (int i = 0; i < n; i++)
+			nodes.get(i).extendBoundingBox(out);
+		return out;
+	}
+    */
+
+end

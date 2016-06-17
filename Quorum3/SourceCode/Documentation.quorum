@@ -1,10 +1,11 @@
 package Libraries.Language.Compile.Symbol
 
 use Libraries.Containers.Array
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Containers.HashTable
+use Libraries.Language.Compile.Location
 
-class Documentation 
+class Documentation is Location
     public constant text AUTHOR = "Author"
     public constant text PARAMETER = "Parameter"
     public constant text RETURNS = "Returns"
@@ -18,6 +19,22 @@ class Documentation
 
     action GetDescription returns text
         return description
+    end
+
+    /*
+        This action returns the first sentence from the description.
+    */
+    action GetShortDescription returns text
+        short = ""
+        i = 0
+        repeat while i < description:GetSize()
+            if description:GetCharacter(i) = "."
+                short = description:GetSubtext(0, i) + "."
+                return short
+            end
+            i = i + 1
+        end
+        return short
     end
 
     action GetHeaderAsWeb returns text

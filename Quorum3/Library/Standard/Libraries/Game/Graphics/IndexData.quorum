@@ -1,0 +1,40 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+use Libraries.Game.Disposable
+
+class IndexData is Disposable
+
+    blueprint action Dispose
+
+    blueprint action GetSize returns integer
+
+    blueprint action GetMaxSize returns integer
+
+    blueprint action SetIndices(Array<integer> indices, integer offset, integer count)
+
+    // blueprint action SetIndices(ShortBuffer) (?)
+
+    // blueprint action GetBuffer returns ShortBuffer (?)
+
+    blueprint action Bind
+
+    blueprint action Unbind
+
+    // Used to force OpenGL to create a new buffer handle. Used for context loss.
+    blueprint action Invalidate
+
+    blueprint action Clear
+
+    blueprint action Put(Array<integer> values)
+
+    blueprint action SetPosition(integer position)
+
+    /*
+    This action is never called or used. It exists only as a hack to force the
+    Quorum plugin system to acknowledge a plugin for this class. This allows for
+    a Java version of this interface to exist under the hood.
+    */
+    private system action ForcePluginCreation
+
+end

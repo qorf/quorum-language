@@ -1,0 +1,100 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+use Libraries.Game.Disposable
+use Libraries.Game.Graphics.IntegerAttribute
+use Libraries.Game.Graphics.DepthTestAttribute
+use Libraries.Game.Graphics.Environment
+
+class Painter3D is Disposable
+    
+    private Array<Renderable> renderables
+
+    on create
+        Initialize(me, renderables)
+    end
+
+    action Dispose
+        //...
+    end
+
+    /*
+    This action will set the Painter3D so it is prepared to accept models for
+    rendering on the screen. The models will be rendered on screen as they are
+    visible from the provided camera.
+    */
+    action Begin(Camera camera)
+        SetCamera(camera)
+        Begin()
+    end
+
+    action Render(Model model)
+        integer offset = renderables:GetSize()
+        model:GetRenderables(renderables)
+        
+        integer index = offset
+
+        repeat while index < renderables:GetSize()
+            Renderable renderable = renderables:Get(index)
+            RenderNative(renderable)
+            index = index + 1
+        end
+    end
+
+    private system action RenderNative(Renderable renderable)
+
+    /*
+    This action will set the camera for the Painter3D. When rendering, the 
+    Painter3D will draw objects on the screen as they are visible from the
+    currently set camera.
+    */
+    system action SetCamera(Camera camera)
+
+    /*
+    This action will return the camera that is currently being used by the 
+    Painter3D. 
+    */
+    system action GetCamera returns Camera
+
+    /*
+    This action will set the environment for the Painter3D. When rendering, the 
+    Painter3D will draw objects on the screen using the lighting from the
+    currently set environment.
+    */
+    system action SetEnvironment(Environment environment)
+
+    /*
+    This action will return the environment that is currently being used by the 
+    Painter3D. 
+    */
+    system action GetEnvironment returns Environment
+
+    /*
+    This action will set the Painter3D so that it is ready to accept models to
+    be rendered on the screen. The Painter3D must have a camera set using the
+    SetCamera action before Begin is called.
+    */
+    system action Begin
+
+    /*
+    This action will make the Painter3D finish rendering, causing any objects
+    provided by the Render() action to be rendered on the screen. After this
+    action is called, the Begin() action must be called again before providing
+    more models to be drawn with Render().
+    */
+    system action End
+
+    /*
+    This action will return whether or not the Painter3D is currently rendering
+    objects.
+    */
+    system action IsRendering returns boolean
+
+    /*
+    Used to pass this object down to its plugin counterpart, which makes it
+    easier to access. Also passes the renderables array, giving both Quorum and
+    Java access to the array without making it public.
+    */
+    private system action Initialize(Painter3D batch, Array<Renderable> render)
+
+end

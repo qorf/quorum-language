@@ -3,7 +3,7 @@ package Libraries.Language.Compile.Translate
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Symbol.Variable
 use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Symbol.Action
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 use Libraries.Language.Compile.Symbol.Class
@@ -41,6 +41,7 @@ class ClassOpcode is QuorumOpcode
     integer h1Size = 150
     integer h2Size = 125
     integer h3Size = 100
+    integer heroSize = 250
     SymbolTable symbolTable = undefined
 
     action GetSymbolTable returns SymbolTable
@@ -183,6 +184,22 @@ class ClassOpcode is QuorumOpcode
             end
         end
 
+        
+        
+
+        
+        Iterator<Action> it = clazz:GetVirtualTable()
+        Array<Action> array
+        repeat while it:HasNext()
+            Action next = it:Next()
+            if next:IsPublic()
+                array:Add(next)
+            end
+        end
+        array:Sort()
+
+        result = result + "<h1 style=" + dq + "font-size:" + h1Size + "%" + dq + ">Summary</h1>" + NL
+
         Iterator<Variable> vars = clazz:GetVariables()
         Array<Variable> variableArray
         repeat while vars:HasNext()
@@ -194,41 +211,97 @@ class ClassOpcode is QuorumOpcode
         variableArray:Sort()
         vars = variableArray:GetIterator()
 
+
         if vars:HasNext()
-            result = result + "<h1 style=" + dq + "font-size:" + h1Size + "%" + dq + ">Variables</h1>" + NL
-            result = result + "<ul>"
+            result = result + "<table style = " + dq + 
+                "border: 1px solid #049cdb;
+                 padding: 3px 7px 2px 7px;
+                 border-collapse: collapse;" + dq + ">"
+
+             result = result + "<tr style = " + dq + "font-size: 1.1em;
+                 text-align: left;
+                 padding-top: 5px;
+                 padding-bottom: 4px;
+                 background-color: #049cdb;
+                 color: #ffffff;
+                 text-shadow: 2px 2px 0 #036690;
+                 padding-left: 5px;" + dq +">
+                 <th><strong>Variables</strong></th>
+                 <th><strong>Description</strong></th>
+             </tr>" + NL
+            //result = result + "<h1 style=" + dq + "font-size:" + h1Size + "%" + dq + ">Variables</h1>" + NL
+            
             repeat while vars:HasNext()
+                result = result + "<tr>"
                 Variable var = vars:Next()
                 Type t = var:GetType()
                 text typeDisplay = t:GetDisplayName()
-                result = result + "<li><strong>" + typeDisplay + " " + var:GetName() + "</strong>: "
+                result = result + "<td style = " + dq + 
+           "border: 1px solid #049cdb;
+            padding: 3px 7px 2px 7px;" + dq + "><strong>" + typeDisplay + " " + var:GetName() + "</td>"
                 Documentation doc2 = var:GetDocumentation()
+                result = result + "<td style = " + dq + 
+           "border: 1px solid #049cdb;
+            padding: 3px 7px 2px 7px;" + dq + ">" + NL
                 if doc2 not= undefined
+                    
                     result = result + doc2:GetDescription()
+                    
                 end
-                result = result + "</li>" + NL
-                
+                result = result + "</td>" + NL
+                result = result + NL
+                result = result + "</tr>"
             end
-            result = result + "</ul>"
+            result = result + "</table></br>"
         end
-        
 
-        result = result + "<h1 style=" + dq + "font-size:" + h1Size + "%" + dq + ">Actions</h1>" + NL
-        Iterator<Action> it = clazz:GetVirtualTable()
-        Array<Action> array
-        repeat while it:HasNext()
-            Action next = it:Next()
-            if next:IsPublic()
-                array:Add(next)
-            end
-        end
-        array:Sort()
+        result = result + "<table style = " + dq + 
+           "border: 1px solid #049cdb;
+            padding: 3px 7px 2px 7px;
+            border-collapse: collapse;" + dq + ">"
+
+        result = result + "<tr style = " + dq + "font-size: 1.1em;
+            text-align: left;
+            padding-top: 5px;
+            padding-bottom: 4px;
+            background-color: #049cdb;
+            color: #ffffff;
+            text-shadow: 2px 2px 0 #036690;
+            padding-left: 5px;" + dq +">
+            <th><strong>Actions</strong></th>
+            <th><strong>Description</strong></th>
+        </tr>"
+
         it = array:GetIterator()
-
         repeat while it:HasNext()
             Action act = it:Next()
             text display = act:GetDisplayNameNoReturnAsWeb()
-            result = result + "<h2 style=" + dq + "font-size:" + h2Size + "%" + dq + ">" + display + "</h2>" + NL
+            result = result + "<tr><td style = " + dq + 
+           "border: 1px solid #049cdb;
+            padding: 3px 7px 2px 7px;" + dq + ">"
+            Documentation doc2 = act:GetDocumentation()
+            
+            result = result + "<a href = " + dq + "#" + act:GetStaticKey() + dq + ">" + display +  "</a></td>"
+            result = result + "<td style = " + dq + 
+           "border: 1px solid #049cdb;
+            padding: 3px 7px 2px 7px;" + dq + ">"
+            if doc2 not= undefined
+                result = result + doc2:GetShortDescription()
+            end  
+            result = result + "</td>"
+            result = result +  "</tr>" + NL
+        end
+        result = result + "</table>"
+
+        result = result + "<h1 style=" + dq + "font-size:" + h1Size + "%" + dq + ">Actions</h1>" + NL
+        it = array:GetIterator()
+        repeat while it:HasNext()
+            Action act = it:Next()
+            text display = act:GetDisplayNameNoReturnAsWeb()
+            //background: #049cdb; font-size:125%; color: #EEEEEE; text-shadow: 2px 2px 0 #036690; padding-left: 5px;
+            result = result + "<h2 style=" + dq + "font-size:" + h2Size + "%; " 
+            result = result + "background: #049cdb; color: #EEEEEE; text-shadow: 2px 2px 0 #036690; padding-left: 5px;"
+            result = result + dq + "id = " + dq + act:GetStaticKey() + dq + ">" + display + "</h2>" + NL
             Documentation doc2 = act:GetDocumentation()
             if doc2 not= undefined
                 result = result + doc2:GetHeaderAsWeb()
@@ -280,7 +353,7 @@ class ClassOpcode is QuorumOpcode
 
         result = result + "<div class=" + dq + "hero-unit" + dq + ">"
         result = result + "<div class=" + dq + "hero-unit-container" + dq + " role=" + dq + "banner" +dq + ">"
-        result = result + "<h2 id=" + dq + "pageTitle" + dq + ">" + me:GetStaticKey() + "</h2> </div></div>"//<h2 id="pageTitle">The Quorum Programming Language</h2>
+        result = result + "<h2 id=" + dq + "pageTitle" + dq + "style= " + dq + "font-size:" + heroSize + "%;" + dq + ">" + me:GetStaticKey() + "</h2> </div></div>"
         return result
     end
 
@@ -997,14 +1070,149 @@ class ClassOpcode is QuorumOpcode
         end
     end
 
+    
     action WriteJavaScript returns text
         constant text OUTPUT_VARIABLE = "OuTpUt_$tRiNg_"
         EOL = ""
         quote = EOL:GetDoubleQuote()
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-        convertedSource = "var " + OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL
+        
+        text convertedSource = ""
+        if clazz:IsProgramStartingClass()
+            convertedSource = "var " + OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL
+        end
         convertedSource = convertedSource + EOL + "function "
-            + clazz:ConvertStaticKeyToUnderScore() + "() {" + EOL
+            + clazz:ConvertStaticKeyToUnderScore() + "(parents" 
+
+        //if this is a primitive wrapper, put in the wrapping code
+        text value = clazz:GetStaticKey()
+        if value = "Libraries.Language.Types.Integer"
+            or value = "Libraries.Language.Types.Boolean"
+            or value = "Libraries.Language.Types.Number"
+            or value = "Libraries.Language.Types.Text"
+            convertedSource = convertedSource + ", optional"
+        end
+
+        convertedSource = convertedSource + ") {" + EOL
+        convertedSource = convertedSource + "this_ = this;" + EOL
+
+        //write the parents
+        convertedSource = convertedSource + "this.parentNames_ = ["
+        Iterator<Class> parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            convertedSource = convertedSource + "'" + parentKey + "', "
+        end
+        convertedSource = convertedSource + " '" + clazz:GetStaticKey() + "'];" + EOL
+        
+        text classBytecodeName = converter:ConvertStaticKeyToBytecodePath(staticKey)
+
+        parents = clazz:GetParentClasses()
+        //initialize all of the parent objects as nulls
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            //if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
+                text parentName = p:ConvertStaticKeyToParentFieldName()
+                convertedSource = convertedSource + "this." + parentName + " = null;" + EOL
+            //end
+        end
+        
+        //initialize all of the parent objects as values, if appropriate
+        convertedSource = convertedSource + "if(parents == null) {" + EOL
+        parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            //if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
+                text parentName = p:ConvertStaticKeyToParentFieldName()
+                convertedSource = convertedSource + "   this." + parentName + " = new " 
+                    + p:ConvertStaticKeyToJavaScriptName() + "(false);" + EOL
+            //end
+        end
+
+        //now that all parents have been instantiated, get 
+        //their parents and set them appropriately
+        parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            //if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
+                text parentName = p:ConvertStaticKeyToParentFieldName()
+                text convertedParentName = p:ConvertStaticKeyToBytecodePath()
+                text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
+
+                Iterator<Class> grandParents = p:GetParentClasses()
+                repeat while grandParents:HasNext()
+                    Class grandParent = grandParents:Next()
+                    text grandParentKey = grandParent:GetStaticKey()
+                    text grandParentName = grandParent:ConvertStaticKeyToParentFieldName()
+                    text convertedGrandParent = grandParent:ConvertStaticKeyToBytecodePathTypeName()
+                    
+                    convertedSource = convertedSource + "   this." + parentName + "." + grandParentName + 
+                        " = this." +  grandParentName + ";" + EOL
+                    convertedSource = convertedSource + "   this." + parentName 
+                        + ".prototype = this;"  + EOL
+                end
+            //end
+        end
+
+        //now that all of the parents have had their parent's set, 
+        //call their constructors.
+        parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            text parentName = p:ConvertStaticKeyToParentFieldName()
+
+            if p:HasConstructor()
+                convertedSource = convertedSource + "this." + parentName + ".constructor_();" + EOL
+            end
+        end
+
+        convertedSource = convertedSource + "}" + EOL
+
+        if clazz:HasConstructor()
+            convertedSource = convertedSource + constructor:WriteJavaScript()
+        end
+
+        Iterator<Action> it = clazz:GetParentActions()
+        repeat while it:HasNext()
+            Action act = it:Next()
+            Class parentOfMethod = act:GetParentClass()
+            //if not parentOfMethod:IsError() or clazz:GetStaticKey() = QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
+                convertedSource = convertedSource + "this." + act:ConvertActionToJavaScriptName()
+                    + " = function("
+
+                Iterator<Variable> params = act:GetParameterIterator()
+                repeat while params:HasNext()
+                    Variable param = params:Next()
+                    convertedSource = convertedSource + param:GetJavaScriptName()
+                end
+
+                convertedSource = convertedSource + ") {" + EOL
+                    + "     return this." + parentOfMethod:ConvertStaticKeyToParentFieldName() + "." 
+                    + act:ConvertActionToJavaScriptName() + "("
+                params = act:GetParameterIterator()
+                repeat while params:HasNext()
+                    Variable param = params:Next()
+                    convertedSource = convertedSource + param:GetJavaScriptName()
+                end
+
+                convertedSource = convertedSource + ")"
+                    + EOL 
+                    + "}" + EOL
+            //end
+        end
+
+
+
+        if clazz:HasSystemAction() //this has a plugin, so instantiate it.
+            //var plugin_ = new plugins_quorum_Libraries_Compute_Math_();
+            convertedSource = convertedSource + "var " + clazz:GetPluginName() + 
+                " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+        end
 
         Iterator<ActionOpcode> actionIterator = actions:GetIterator()
         repeat while actionIterator:HasNext()
@@ -1012,10 +1220,26 @@ class ClassOpcode is QuorumOpcode
             convertedSource = convertedSource + act:WriteJavaScript()
         end
 
+        
+
         Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
         repeat while fieldIterator:HasNext()
             QuorumOpcode field = fieldIterator:Next()
             convertedSource = convertedSource + field:WriteJavaScript()
+        end
+
+        if clazz:HasConstructor()
+            convertedSource = convertedSource + "this.constructor_();" + EOL
+        end
+
+        if value = "Libraries.Language.Types.Integer"
+            convertedSource = convertedSource + "this.value = optional == null ? 0: optional;"
+        elseif value = "Libraries.Language.Types.Boolean"
+            convertedSource = convertedSource + "this.value = optional == null ? false: optional;"
+        elseif value = "Libraries.Language.Types.Number"
+            convertedSource = convertedSource + "this.value = optional == null ? 0.0: optional;"
+        elseif value = "Libraries.Language.Types.Text"
+            convertedSource = convertedSource + "this.value = optional == null ? " + quote + quote + ": optional;"
         end
 
         convertedSource = convertedSource + EOL + "};" + EOL

@@ -1,8 +1,7 @@
 package Libraries.Containers
 
-use Libraries.Containers.Blueprints.ArrayBlueprint
 use Libraries.Language.Errors.InvalidLocationError
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Containers.Support.ArrayIterator
 use Libraries.Language.Support.CompareResult
 
@@ -29,7 +28,7 @@ class Main
    end
 end
 */
-class Array <Type> is ArrayBlueprint<Type>
+class Array <Type>
 
     private system action SetNative(integer location, Type value)
     private system action GetNative(integer location) returns Type
@@ -115,7 +114,7 @@ class Array <Type> is ArrayBlueprint<Type>
     /*
         This action sets the size of the array and fills it with undefined items.
         Changing the size of the array means any items already in the array 
-        must be copied over.
+        will be copied over.
 
         Attribute: Parameter size The size of the array. 
 
@@ -440,7 +439,7 @@ class Array <Type> is ArrayBlueprint<Type>
 
         Attribute: Example
         use Libraries.Containers.Array
-        use Libraries.Containers.Blueprints.Iterator
+        use Libraries.Containers.Iterator
 
         Array<integer> myArray
         myArray:SetSize(4)

@@ -1,0 +1,64 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+use Libraries.Game.Disposable
+
+class VertexData is Disposable
+    
+    /*
+    This action releases the memory stored by this VertexData. This should only
+    be used when the VertexData is not in use and will not be needed again!
+    */
+    blueprint action Dispose
+
+    /*
+    This action returns the number of vertices currently stored in this
+    VertexData object.
+    */
+    blueprint action GetSize returns integer
+
+    /*
+    This action returns the maximum number of vertices that can be stored in
+    this VertexData object.
+    */
+    blueprint action GetMaxSize returns integer
+
+    /*
+    This action will return the VertexAttributes that describe this VertexData.
+    */
+    blueprint action GetAttributes returns VertexAttributes
+
+    /*
+    This action sets the vertices of this VertexData to match the given array
+    of numbers. This will also set an offset of the given amount in to the array,
+    and the user should provide the number of vertices to use from the array
+    by supplying the count.
+    */
+    blueprint action SetVertices(Array<number> vertices, integer offset, integer count)
+
+    blueprint action UpdateVertices(integer targetOffset, Array<number> vertices, integer sourceOffset, integer count)
+
+    // blueprint action GetBuffer returns FloatBuffer (?)
+
+    // blueprint action Bind(ShaderProgram shader)
+
+    // blueprint action Bind(ShaderProgram shader, Array<integer> locations)
+
+    // blueprint action Unbind(ShaderProgram shader)
+
+    // blueprint action Unbind(ShaderProgram shader, Array<integer> locations)
+
+    // Used to invalidate the data when applicable, e.g. due to context loss.
+    blueprint action Invalidate
+
+    // Used to load an Array<number> into the VertexData's buffer.
+    blueprint action FillVertexBuffer(Array<number> vertices)
+
+    /*
+    This action is never called or used. It exists only as a hack to force the
+    Quorum plugin system to acknowledge a plugin for this class. This allows for
+    a Java version of this interface to exist under the hood.
+    */
+    private system action ForcePluginCreation
+
+end

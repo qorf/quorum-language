@@ -1,0 +1,635 @@
+package Libraries.Game
+
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.PerspectiveCamera
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseWheelListener
+use Libraries.Interface.Events.TouchListener
+use Libraries.Containers.Array
+use Libraries.Interface.Item3D
+use Libraries.Game.Graphics.Painter3D
+use Libraries.Game.Graphics.Environment
+use Libraries.Containers.Iterator
+use Libraries.Game.Graphics.Light
+use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.DirectionalLight
+use Libraries.Game.Graphics.AmbientLight
+use Libraries.Game.Graphics.DirectionalLightsAttribute
+use Libraries.Game.Graphics.PointLightsAttribute
+use Libraries.Compute.Ray
+use Libraries.Compute.Vector3
+use Libraries.Compute.Matrix4
+use Libraries.Containers.Support.SortableContainer
+
+class Layer3D is Layer
+
+    Array<Item3D> items
+    Array<MouseListener> mouseListeners
+    Array<MouseMovementListener> mouseMovementListeners
+    Array<MouseWheelListener> mouseWheelListeners
+    Array<TouchListener> touchListeners
+    Camera camera = undefined
+    Painter3D painter
+    Environment environment
+
+    /*
+    This array is used when adding or removing Items to the game to find any
+    lights in the children hierarchy that need to be added/removed from the
+    environment at the same time. Since it will be reused often, the array
+    should be emptied after each use.
+    */
+    Array<Light> lightGatheringArray
+
+    /*
+    This array is used when processing mouse or touch events. It stores the
+    possible candidates for mouse and touch events. Since it will be reused
+    often, it must be emptied after each use.
+    */
+    Array<SortableContainer<number, Item3D>> eventTargetArray
+
+    on create
+        PerspectiveCamera cam
+        camera = cam
+        camera:SetPosition(0, 3, -5)
+        camera:LookAt(0, 0, 0)
+        camera:Update()
+        painter:SetEnvironment(environment)
+        painter:SetCamera(camera)
+    end
+
+    /*
+    This action will add an Item3D to this Layer. It will be updated along with
+    the rest of the layer, and will be drawn on the screen (if it is visible and
+    possible to draw the given Item3D).
+    */
+    action Add(Item3D item)
+        item:SetLayer(me)
+        items:Add(item)
+        EnableItemLighting(item)
+    end
+
+/*
+    This action will add an Item3D to this Layer at the index location. It will be updated along with
+    the rest of the layer, and will be drawn on the screen (if it is visible and
+    possible to draw the given Item3D).
+    */
+    action Add(integer index, Item3D item)
+        item:SetLayer(me)
+        items:Add(index, item)
+    end
+
+    /*
+    This action will add an Item3D to this Layer at index 0. It will be updated along with
+    the rest of the layer, and will be drawn on the screen (if it is visible and
+    possible to draw the given Item3D).
+    */
+    action AddToFront(Item3D item)
+        item:SetLayer(me)
+        items:AddToFront(item)
+    end
+
+    /*
+    This action will clear all the items in this layer.
+    */
+    action Empty()
+        Iterator<Item3D> it = items:GetIterator()
+        repeat while it:HasNext()
+            it:Next():SetLayer(undefined)
+        end
+        items:Empty()
+    end
+
+    /*
+    This action will remove an Item3D from this Layer. If the item was not a
+    part of this layer, this action will have no effect.
+    */
+    action Remove(Item3D item)
+        item:SetLayer(undefined)
+        items:Remove(item)
+        DisableItemLighting(item)
+    end
+
+    /*
+    This action will remove an Item3D at the index location from this Layer and return that item
+    */
+    action RemoveAt(integer index) returns Item3D
+        Item3D item = items:RemoveAt(index)
+        item:SetLayer(undefined)
+        return item
+    end 
+
+    /*
+    This action will remove an Item3D at the front of the list of items in Layer and return that item
+    */
+    action RemoveFromFront() returns Item3D
+        Item3D item = items:RemoveFromFront()
+        item:SetLayer(undefined)
+        return item
+    end
+    /*
+    This action will get an Item3D stored in the Layer at a given index in the
+    layer's internal array of children.
+    */
+    action Get(integer index) returns Item3D
+        return items:Get(index)
+    end
+
+    /*
+    This action will return the first Item3D in the layer
+    */
+    action GetFromFront() returns Item3D
+        return items:GetFromFront()
+    end
+
+    /*
+    This action will return the last Item3D in the layer
+    */
+    action GetFromEnd() returns Item3D
+        return items:GetFromEnd()
+    end
+
+    /*
+    This action will return an iterator of all the Item3D's stored inside this
+    Layer.
+    */
+    action GetIterator returns Iterator<Item3D>
+        return items:GetIterator()
+    end
+
+    /*
+    This action will return the number of items in the layer
+    */
+    action GetSize returns integer
+        return items:GetSize()
+    end
+
+    /*
+    This action will return true if there are items in the list or false if not
+    */
+    action IsEmpty returns boolean
+        return items:IsEmpty()
+    end
+
+    /*
+    This action will set the value of the internal children array to be the
+    given Item3D. The previous value will be overwritten. If the index does not
+    exist in the array (e.g., the given index is larger than the number of items
+    stored in this layer), an error will be thrown.
+    */
+    action Set(integer index, Item3D item)
+        /*
+        Before overwriting the old data in the array, we want to make sure that
+        any lights in the item's hierarchy are removed from the environment.
+        */
+        Item3D oldItem = items:Get(index)
+        if oldItem not= undefined
+            item:SetLayer(undefined)
+            DisableItemLighting(oldItem)
+        end
+
+        items:Set(index, item)
+
+        /*
+        We now also add the new item's lighting data to the environment.
+        */
+        if item not= undefined
+            item:SetLayer(me)
+            EnableItemLighting(item)
+        end
+    end
+
+    /*
+    This action will enable lighting for the given Item3D (if it is a light)
+    and any of its children (if they are lights). This action is called
+    automatically by the Layer when adding or removing items. Most users will
+    never need to use this action directly.
+    */
+    action EnableItemLighting(Item3D item)
+        // Find all lights in the item's children hierarchy.
+        item:GetLights(lightGatheringArray)
+
+        // Add all found lights to the environment.
+        environment:Add(lightGatheringArray)
+
+        // Empty the array after, to allow for re-use.
+        lightGatheringArray:Empty()
+    end
+
+    /*
+    This action will disable lighting for the given Item3D (if it is a light)
+    and any of its children (if they are lights). This action is called
+    automatically by the Layer when adding or removing items. Most users will
+    never need to use this action directly.
+    */
+    action DisableItemLighting(Item3D item)
+        // Find all lights in the item's children hierarchy.
+        item:GetLights(lightGatheringArray)
+
+        // Remove all found lights from the environment.
+        environment:Remove(lightGatheringArray)
+
+        // Empty the array after, to allow for re-use.
+        lightGatheringArray:Empty()
+    end
+
+    /*
+    This action will update all of the items contained within this Layer. The
+    given number of seconds will be passed to each updated item.
+    */
+    action Update(number seconds)
+        integer counter = 0
+        repeat items:GetSize() times
+            items:Get(counter):UpdateAll(seconds)
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action will draw all items in this Layer on the screen (if they can be
+    drawn and they aren't hidden). If the Layer is currently hidden, then this
+    action will do nothing.
+    */
+    action Draw
+        if not IsShowing()
+            return now
+        end
+        
+        camera:Update()
+
+        painter:Begin()
+
+        integer counter = 0
+        repeat items:GetSize() times
+            items:Get(counter):Draw(painter)
+            counter = counter + 1
+        end
+
+        painter:End()
+    end
+
+    /*
+    This action will set the camera being used by this Layer. The camera is used
+    to determine what will be drawn on the screen. Objects will be drawn on the
+    screen as they are seen by the Layer's set camera.
+    */
+    action SetCamera(Camera cam)
+        camera = cam
+        painter:SetCamera(camera)
+    end
+
+    /*
+    This action will return the camera being used by this Layer. The camera is used
+    to determine what will be drawn on the screen. Objects will be drawn on the
+    screen as they are seen by the Layer's set camera.
+    */
+    action GetCamera returns Camera
+        return camera
+    end
+
+    /*
+        boolean processing = true
+        integer counter = items:GetSize()
+        Item2D temp = undefined
+
+        Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
+
+        repeat while counter > 0 and processing
+            counter = counter - 1
+            temp = items:Get(counter):GetItemAt(pointVector:GetX(), pointVector:GetY())
+
+            if temp not= undefined
+                temp:ProcessMouseEvent(event)
+                processing = not event:WasEventHandled()
+            end
+        end
+    */
+
+    /*
+    This action will notify mouse listeners that are a part of this layer of the
+    given mouse event.
+    */
+    action ProcessMouseEvent(MouseEvent event)
+        Ray ray = camera:GetPickRay(event:GetX(), event:GetY())
+        Vector3 origin = ray:GetOrigin()
+
+        integer counter = 0
+        Item3D temp = undefined
+
+        /*
+        TO-DO: This array of all items is regenerated for each mouse event
+        processed. It would be more efficient to maintain this array
+        independently of this action.
+        */
+        Array<Item3D> allItems
+        repeat items:GetSize() times
+            GetChildrenHierarchy(items:Get(counter), allItems)
+            counter = counter + 1
+        end
+        counter = 0
+
+        repeat allItems:GetSize() times
+            temp = allItems:Get(counter)
+            if RayIntersectsItem(ray, temp)
+                SortableContainer<number, Item3D> container
+                container:Set(origin:DistanceSquared(temp:GetGlobalPosition()), temp)
+                eventTargetArray:Add(container)
+            end
+
+            counter = counter + 1
+        end
+
+        if eventTargetArray:GetSize() not= 0
+            eventTargetArray:Sort()
+            boolean processing = true
+            counter = 0
+            repeat while processing and counter < eventTargetArray:GetSize()
+                eventTargetArray:Get(counter):GetValue():ProcessMouseEvent(event)
+                processing = not event:WasEventHandled()
+                counter = counter + 1
+            end
+
+            eventTargetArray:Empty()
+        end
+    end
+
+    /*
+    This action will notify touch listeners that are a part of this layer of the
+    given touch event.
+    */
+    action ProcessTouchEvent(TouchEvent event)
+        /*
+        To be implemented - requires BoundingBox, Ray, and Intersector (or the
+        functionality of Intersector). Ray is used to get the PickRay from the
+        Camera.
+        */
+    end
+
+    /*
+    This action recursively finds all children in the hierarchy of the given
+    Item3D. The found items are appended to the provided array. The provided
+    Item3D is also automatically added to the array.
+    */
+    private action GetChildrenHierarchy(Item3D item, Array<Item3D> array)
+        array:Add(item)
+        integer counter = 0
+        repeat item:GetItemCount() times
+            GetChildrenHierarchy(item:GetItem(counter), array)
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action will test if the given ray intersects with an Item3D. This
+    intersection is tested using the base, axis-aligned dimensions of the item.
+    It will not properly reflect changes made due to scaling or rotation, and
+    assumes the Item is a box-like shape.
+    */
+    private action RayIntersectsItem(Ray ray, Item3D item) returns boolean
+        number divX = 1.0 / ray:GetDirection():GetX()
+        number divY = 1.0 / ray:GetDirection():GetY()
+        number divZ = 1.0 / ray:GetDirection():GetZ()
+
+        number minX = ((item:GetGlobalX() - item:GetWidth() * 0.5) - ray:GetOrigin():GetX()) * divX
+        number maxX = ((item:GetGlobalX() + item:GetWidth() * 0.5) - ray:GetOrigin():GetX()) * divX
+        
+        if minX > maxX
+            number temp = minX
+            minX = maxX
+            maxX = temp
+        end
+
+        number minY = ((item:GetGlobalY() - item:GetHeight() * 0.5) - ray:GetOrigin():GetY()) * divY
+        number maxY = ((item:GetGlobalY() + item:GetHeight() * 0.5) - ray:GetOrigin():GetY()) * divY
+
+        if minY > maxY
+            number temp = minY
+            minY = maxY
+            maxY = temp
+        end
+
+        number minZ = ((item:GetGlobalZ() - item:GetDepth() * 0.5) - ray:GetOrigin():GetZ()) * divZ
+        number maxZ = ((item:GetGlobalZ() + item:GetDepth() * 0.5) - ray:GetOrigin():GetZ()) * divZ
+
+        if minZ > maxZ
+            number temp = minZ
+            minZ = maxZ
+            maxZ = temp
+        end
+
+        number min = minX
+        if minY > min
+            min = minY
+        end
+        if minZ > min
+            min = minZ
+        end
+
+        number max = maxX
+        if maxY < max
+            max = maxY
+        end
+        if maxZ < max
+            max = maxZ
+        end
+
+        return max >= 0 and max >= min
+    end
+
+    /*
+    This action will add a MouseListener to the layer. When the layer receives a
+    mouse event, it will first try to find the topmost item which can handle the
+    event. If the event is not handled, then all MouseListeners in the layer 
+    will receive the event.
+    */
+    action AddMouseListener(MouseListener listener)
+        mouseListeners:Add(listener)
+    end
+
+    /*
+    This action will add a MouseMovementListener to the layer. When the layer
+    receives a mouse event, it will first try to find the topmost item which can
+    handle the event. If the event is not handled, then all 
+    MouseMovementListeners in the layer will receive the event.
+    */
+    action AddMouseMovementListener(MouseMovementListener listener)
+        mouseMovementListeners:Add(listener)
+    end
+
+    /*
+    This action will add a MouseWheelListener to the layer. When the layer
+    receives a mouse event, it will first try to find the topmost item which can
+    handle the event. If the event is not handled, then all 
+    MouseWheelListeners in the layer will receive the event.
+    */
+    action AddMouseWheelListener(MouseWheelListener listener)
+        mouseWheelListeners:Add(listener)
+    end
+
+    /*
+    This action will add a TouchListener to the layer. When the layer
+    receives a touch event, it will first try to find the topmost item which can
+    handle the event. If the event is not handled, then all 
+    TouchListeners in the layer will receive the event.
+    */
+    action AddTouchListener(TouchListener listener)
+        touchListeners:Add(listener)
+    end
+    
+    /*
+    This action will remove a MouseListener from the layer. The listener will no
+    longer receive events from the layer. If the given MouseListener is not on
+    the layer before calling this action, then this action will have no effect.
+    */
+    action RemoveMouseListener(MouseListener listener)
+        mouseListeners:Remove(listener)
+    end
+
+    /*
+    This action will remove a MouseMovementListener from the layer. The listener
+    will no longer receive events from the layer. If the given 
+    MouseMovementListener is not on the layer before calling this action, then 
+    this action will have no effect.
+    */
+    action RemoveMouseMovementListener(MouseMovementListener listener)
+        mouseMovementListeners:Remove(listener)
+    end
+
+    /*
+    This action will remove a MouseWheelListener from the layer. The listener 
+    will no longer receive events from the layer. If the given 
+    MouseWheelListener is not on the layer before calling this action, then this
+    action will have no effect.
+    */
+    action RemoveMouseWheelListener(MouseWheelListener listener)
+        mouseWheelListeners:Remove(listener)
+    end
+
+    /*
+    This action will remove a TouchListener from the layer. The listener will no
+    longer receive events from the layer. If the given TouchListener is not on
+    the layer before calling this action, then this action will have no effect.
+    */
+    action RemoveTouchListener(TouchListener listener)
+        touchListeners:Remove(listener)
+    end
+
+    /*
+    This action will add the given light to the Layer3D. It will be used during
+    lighting of all objects on the layer.
+    */
+    action Add(DirectionalLight light)
+        environment:Add(light)
+    end
+    
+    /*
+    This action will add a PointLight to the Layer3D. It will be added both as
+    an item and a source of lighting.
+    */
+    action Add(PointLight light)
+        Add(cast(Item3D, light))
+    end
+
+    /*
+    This action will remove the given DirectionalLight from the Layer3D.
+    */
+    action Remove(DirectionalLight light)
+        environment:Remove(light)
+    end
+
+    /*
+    This action will remove the given PointLight from the Layer3D. It will no
+    longer be part of the item hierarchy of this Layer, and will no longer
+    provide lighting in the scene.
+    */
+    action Remove(PointLight light)
+        Remove(cast(Item3D, light))
+    end
+
+    /*
+    This action will set the ambient lighting present in this Layer. If the
+    layer already had ambient lighting, it will be overwritten.
+    */
+    action SetAmbientLight(AmbientLight light)
+        environment:Add(light)
+    end
+
+    /*
+    This action will remove all ambient lighting from the Layer.
+    */
+    action RemoveAmbientLight
+        environment:RemoveAmbientLight()
+    end
+    
+    /*
+    This action will return the AmbientLighting of the scene. If the scene
+    doesn't have any ambient lighting, then this action will return undefined.
+    */
+    action GetAmbientLight returns AmbientLight
+        return environment:GetAmbientLight()
+    end
+
+    /*
+    This action will get an iterator containing all of the DirectionalLights
+    stored inside this layer.
+    */
+    action GetDirectionalLights returns Iterator<DirectionalLight>
+        DirectionalLightsAttribute temp
+        DirectionalLightsAttribute dlAttribute = (cast(DirectionalLightsAttribute, environment:GetAttribute(temp:GetDirectionalLightsValue())))
+        if dlAttribute not= undefined
+            return dlAttribute:lights:GetIterator()
+        else
+            return temp:lights:GetIterator()
+        end
+    end
+
+    /*
+    This action will get an iterator containing all of the PointLights
+    stored inside this layer.
+    */
+    action GetPointLights returns Iterator<PointLight>
+        PointLightsAttribute temp
+        PointLightsAttribute plAttribute = (cast(PointLightsAttribute, environment:GetAttribute(temp:GetPointLightsValue())))
+        if plAttribute not= undefined
+            return plAttribute:lights:GetIterator()
+        else
+            return temp:lights:GetIterator()
+        end
+    end
+
+    /*
+    This action will return a directional light stored at the given index in the
+    Layer's array of directional lights. Each type of light stored in the Layer
+    is kept in a separate array from other types. If there are no directional
+    lights added to this layer, or if the index is out of bounds, this action
+    will produce an error.
+    */
+    action GetDirectionalLight(integer index) returns DirectionalLight
+        DirectionalLightsAttribute dlAttribute
+        dlAttribute = (cast(DirectionalLightsAttribute, environment:GetAttribute(dlAttribute:GetDirectionalLightsValue())))
+        if dlAttribute = undefined
+            alert("You asked me to retrieve a directional light, but there are none added to this Layer!")
+        end
+
+        return dlAttribute:lights:Get(index)
+    end
+
+    /*
+    This action will return a point light stored at the given index in the
+    Layer's array of point lights. Each type of light stored in the Layer
+    is kept in a separate array from other types. If there are no directional
+    lights added to this layer, or if the index is out of bounds, this action
+    will produce an error.
+    */
+    action GetPointLight(integer index) returns PointLight
+        PointLightsAttribute plAttribute
+        plAttribute = (cast(PointLightsAttribute, environment:GetAttribute(plAttribute:GetPointLightsValue())))
+        if plAttribute = undefined
+            alert("You asked me to retrieve a point light, but there are none added to this Layer!")
+        end
+
+        return plAttribute:lights:Get(index)
+    end
+end

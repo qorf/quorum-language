@@ -2,7 +2,7 @@ package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Symbol.Action
 use Libraries.Language.Compile.Translate.JavaBytecodeOpcodes
 
@@ -56,7 +56,20 @@ class AlertOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text
-        return ""
+        text result = ""
+        text EOL = result:GetCarriageReturn() + result:GetLineFeed()
+        if opcode not= undefined
+            Type value = opcode:GetType()
+            if value:IsText()
+                result = result + "var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();" + EOL
+                result = result + " exceptionInstance_.SetErrorMessage$quorum_text(" + opcode:WriteJavaScript() + ");" + EOL
+                result = result +  "throw exceptionInstance_;" + EOL
+            else
+                result = result +  "throw " + opcode:WriteJavaScript() + ";"
+            end
+        end
+
+        return result
     end
 
     action GetTemplateCopy returns QuorumOpcode

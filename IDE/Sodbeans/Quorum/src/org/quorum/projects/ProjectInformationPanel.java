@@ -174,7 +174,6 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         projectTypeButtonGroup.add(compiledWebProjectRadioButton);
         compiledWebProjectRadioButton.setText("Web");
         compiledWebProjectRadioButton.setToolTipText("Use this option if you want to compile your Quorum code for use in a Java Web Server, like Tomcat or Glassfish");
-        compiledWebProjectRadioButton.setEnabled(false);
 
         pluginList.setModel(new DefaultListModel());
         jScrollPane1.setViewportView(pluginList);

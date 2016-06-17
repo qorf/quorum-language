@@ -24,10 +24,20 @@ class ActionCallOpcode is QuorumOpcode
     boolean isParentCall = false
     Variable variableToMakeParentCallOn = undefined
     Class classToMakeParentCallOn = undefined
+    
 
     Class parentToCallOn = undefined
     QuorumOpcode autoBoxing = undefined
     Type callerType = undefined
+    
+    boolean isInFieldBlock = false
+    action IsInFieldBlock returns boolean
+        return isInFieldBlock
+    end
+
+    action SetIsInFieldBlock(boolean block)
+        isInFieldBlock = block
+    end
 
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
         SetBytecodeWriteOffset(offset)
@@ -287,8 +297,6 @@ class ActionCallOpcode is QuorumOpcode
                             act:ConvertActionToBytecodeParameterInterfaceSignature(), false)
                     end
                 end
-            else 
-                //alert("Compiler Bug: Class and Action should not be null at this stage.")
             end
 
             if autoBoxing not= undefined
@@ -333,7 +341,6 @@ class ActionCallOpcode is QuorumOpcode
                     else
                         path = fieldHolder:ConvertStaticKeyToBytecodePath()
                     end
-                    integer a = 0
                 end
 
                 if not isChainedCall
@@ -342,7 +349,6 @@ class ActionCallOpcode is QuorumOpcode
                     else
                         path = callingClass:ConvertStaticKeyToBytecodePath()
                     end
-                    integer a = 0
                 end
                 
                 getterName = fieldHolder:ConvertToActionNameFromField(field, true)
@@ -403,23 +409,58 @@ class ActionCallOpcode is QuorumOpcode
         if isActionCall
             Action act = actionResolution:resolvedAction
             Class clazz = act:GetParentClass()
+            
+            if isParentCall
+                if variableToMakeParentCallOn not= undefined
+                    if not variableToMakeParentCallOn:IsField()
+                        result = result + "this." + variableToMakeParentCallOn:GetJavaScriptName()
+                    else
+                        result = result + variableToMakeParentCallOn:GetJavaScriptName()
+                    end
+                end
+
+                if parentToCallOn not= undefined
+                    text value = parentToCallOn:ConvertStaticKeyToParentFieldName()
+                    if variableToMakeParentCallOn not= undefined
+                        result = result + "." + value
+                    else
+                        result = result + "this." + value
+                    end
+                end
+            end
+
             if not pushOnMe //object call
                 text name = act:ConvertActionToJavaScriptName()
                 if field = undefined
-                    result = result + "." + name + "("
+                    if actionResolution:isCallOnPrimitive
+                        text value = clazz:ConvertStaticKeyToJavaScriptName()
+                        if clazz:GetStaticKey() = "Libraries.Language.Types.Integer"
+                            name = name + "$IntegerPrimitive"
+                        elseif clazz:GetStaticKey() = "Libraries.Language.Types.Number"
+                            name = name + "$NumberPrimitive"
+                        end
+                        
+                        result = result + "." + name + "("
+                    else 
+                        result = result + "." + name + "("
+                    end
                 else 
                     if field:IsField()
-                        result = result + "this." + field:GetName() + "." + name + "("
+                        result = result + "this." + field:GetJavaScriptName() + "." + name + "("
                     else
-                        result = result + field:GetName() + "." + name + "("
+                        result = result + field:GetJavaScriptName() + "." + name + "("
                     end
                 end
-                
-                
             else 
-                text t = "this." + act:ConvertActionToJavaScriptName()
-                result = result + t + "("
+                if isParentCall
+                    text t = "." + act:ConvertActionToJavaScriptName()
+                    result = result + t + "("
+                else
+                    text t = "this." + act:ConvertActionToJavaScriptName()
+                    result = result + t + "("
+                end
             end
+
             integer numParams = parameters:GetSize()
             i = 0
             repeat numParams times
@@ -432,19 +473,39 @@ class ActionCallOpcode is QuorumOpcode
                 end
             end
             
-            EOL = ""
-            EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
             result = result + ")"
 
             
-           
+            if autoBoxing not= undefined
+                result = result + autoBoxing:WriteJavaScript()
+            end
+            EOL = ""
             result = result + EOL
 
         else
             if field:IsField()
-                result = result + "this." + field:GetName()
+                if isChainedCall
+                    result = result + "." + field:GetJavaScriptName()
+                else
+                    if isParentCall
+                        path = parentToCallOn:ConvertStaticKeyToParentFieldName()
+                        result = result// + "this." 
+                        if variableToMakeParentCallOn not= undefined
+                            if variableToMakeParentCallOn:IsField()
+                                result = result + "this."
+                            end
+                            result = result + variableToMakeParentCallOn:GetJavaScriptName() + "."
+                        else 
+                            result = result + "this."
+                        end
+                        result = result + path + "." + field:GetJavaScriptName()
+                    else
+                        result = result + "this." + field:GetJavaScriptName()
+                    end
+                    
+                end
             else
-                result = result + field:GetName()
+                result = result + field:GetJavaScriptName()
             end
             
         end

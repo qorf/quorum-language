@@ -3,7 +3,7 @@ package Libraries.Game
 use Libraries.Game.Application
 use Libraries.Game.GameDisplay
 use Libraries.Game.Graphics.GraphicsManager
-use Libraries.Game.InputMonitor
+use Libraries.Game.GameInput
 
 /*
     The GameStateManager is an internal class, used by the game engine to
@@ -14,7 +14,7 @@ class GameStateManager
     
     /* 
     This action is used by the engine to set the game's application info in the
-     plugins. 
+    plugins. 
     */
     system action SetApplication(Application app)
 
@@ -46,14 +46,14 @@ class GameStateManager
     system action GetGameGraphics returns GraphicsManager
 
     /*
-    This action returns an InputMonitor that is stored in the plugins.
+    This action returns a GameInput object that is stored in the plugins.
     */
-    system action GetInput returns InputMonitor
+    system action GetInput returns GameInput
 
     /*
-    This action sets an InputMonitor to be stored in the plugins.
+    This action sets a GameInput object to be stored in the plugins.
     */
-    system action SetInput(InputMonitor im)
+    system action SetInput(GameInput gameInput)
 
     /*
     This action sets a path to the native file used to load the engine's C

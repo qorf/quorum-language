@@ -2,7 +2,7 @@ package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Containers.List
-use Libraries.Containers.Blueprints.Iterator
+use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Symbol.Action
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Symbol.Variable
@@ -149,13 +149,6 @@ class ActionOpcode is QuorumOpcode
         end
         
         methodWriter:VisitLabel(finish)
-
-//        output clazz:GetName() + ", " + method:GetName()
-//
-//        if clazz:GetName() = "PrimitiveCallTest"
-//            a = 5
-//        end
-
         WriteParameterDebuggingTable(start, finish)
         methodWriter:VisitMaxSize(0,0)
         methodWriter:VisitEnd()
@@ -186,12 +179,13 @@ class ActionOpcode is QuorumOpcode
 
     action WriteJavaScript returns text
         text result = "this." + method:ConvertActionToJavaScriptName() + " = function "  + "("
-
+        
+        EOL = result:GetCarriageReturn() + result:GetLineFeed()
         Iterator<Variable> parameters = method:GetParameterIterator()
         integer position = 1
         repeat while parameters:HasNext()
             Variable param = parameters:Next()
-            result = result + param:GetName()
+            result = result + param:GetJavaScriptName()
             if parameters:HasNext()
                 result = result + ", "
             end
@@ -199,16 +193,39 @@ class ActionOpcode is QuorumOpcode
         result = result + ") {
 "
         
-        
         Iterator<QuorumOpcode> iterator = opcodeList:GetIterator()
         repeat while iterator:HasNext()
             QuorumOpcode opcode = iterator:Next()
             result = result + opcode:WriteJavaScript()
         end
 
-        result = result + "};
+        if method:IsSystem() //write to a Javascript plugin
+            result = result + "return " + clazz:GetPluginName() + "." + method:ConvertActionToJavaScriptName() 
+                + "("
+            parameters = method:GetParameterIterator()
+            repeat while parameters:HasNext()
+                Variable param = parameters:Next()
+                result = result + param:GetJavaScriptName()
+                if parameters:HasNext()
+                    result = result + ", "
+                end
+            end
 
-"
+            result = result + ");" + EOL
+        elseif method:IsBlueprint()
+            result = result + "return " + "this.prototype." + method:ConvertActionToJavaScriptName() 
+                + "("
+            parameters = method:GetParameterIterator()
+            repeat while parameters:HasNext()
+                Variable param = parameters:Next()
+                result = result + param:GetJavaScriptName()
+                if parameters:HasNext()
+                    result = result + ", "
+                end
+            end
+            result = result + ");" + EOL
+        end
+        result = result + "};" + EOL
 
         return result
     end

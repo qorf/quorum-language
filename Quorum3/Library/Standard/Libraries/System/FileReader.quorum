@@ -1,7 +1,6 @@
 package Libraries.System
 use Libraries.System.Blueprints.FileReaderBlueprint
 use Libraries.System.File
-use Libraries.Containers.Blueprints.Indexed
 use Libraries.Containers.Array
 use Libraries.Language.Errors.InvalidArgumentError
 use Libraries.Language.Errors.EndOfFileError
@@ -268,7 +267,7 @@ class FileReader is FileReaderBlueprint
 
         Attribute: Returns an indexable collection of text objects, representing all read lines.
         Attribute: Example
-        use Libraries.Containers.Blueprints.Indexed
+        use Libraries.Containers.Array
         use Libraries.System.File
         use Libraries.System.FileReader
         
@@ -277,12 +276,12 @@ class FileReader is FileReaderBlueprint
         f:SetPath("/Users/jeff/helloWorld.txt")
         FileReader reader
         reader:OpenForRead(f)
-        Indexed<text> lines = reader:ReadLines()
+        Array<text> lines = reader:ReadLines()
 
         output "The third line is " + lines:Get(2) // indices are zero-based.
         reader:Close()
      */
-    action ReadLines() returns Indexed<text>
+    action ReadLines() returns Array<text>
         if me:IsAtEndOfFile()
             EndOfFileError e
             alert(e)

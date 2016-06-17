@@ -5,11 +5,10 @@
  */
 
 package plugins.quorum.Libraries.Game;
-import javax.swing.JOptionPane;
 import quorum.Libraries.Game.Graphics.GraphicsManager_;
 import quorum.Libraries.Game.Application_;
 import quorum.Libraries.Game.GameDisplay_;
-import quorum.Libraries.Game.InputMonitor_;
+import quorum.Libraries.Game.GameInput_;
 
 /**
  * In order to get around Quorum's lack of statics, we will manage the
@@ -18,35 +17,50 @@ import quorum.Libraries.Game.InputMonitor_;
  * 
  * @author Taylor Bockman
  */
-public class GameStateManager {
-  public java.lang.Object me_ = null;
-  private static GameState gs = new GameState();
+public class GameStateManager 
+{
+    public java.lang.Object me_ = null;
+    
+    private static GameState gs = new GameState();
 
-    public void SetApplication(Application_ app){
-      gs.SetApp(app);
-      gs.fileHandler = new LWJGLFileHandler();
+    public void SetApplication(Application_ app)
+    {
+        gs.SetApp(app);
     }
 
-    public Application_ GetApplication(){
-      return gs.GetApp();
+    public Application_ GetApplication()
+    {
+        return gs.GetApp();
     }
 
-    public void SetGameDisplay(GameDisplay_ disp){
-      gs.SetDisplay(disp);
+    public void SetGameDisplay(GameDisplay_ disp)
+    {
+        gs.SetDisplay(disp);
     }
 
-    public GameDisplay_ GetGameDisplay(){
-      return gs.GetDisplay();
+    public GameDisplay_ GetGameDisplay()
+    {
+        return gs.GetDisplay();
     }
 
-    public void SetGameGraphics(GraphicsManager_ gl20){
-      //JOptionPane.showMessageDialog(null, "Getting game graphics: ");
-      gs.SetGameGraphics20Manager(gl20);
+    public void SetGameGraphics(GraphicsManager_ gl20)
+    {
+        gs.SetGameGraphics(gl20);
     }
 
-    public GraphicsManager_ GetGameGraphics(){
-      //JOptionPane.showMessageDialog(null, "Getting game graphics: ");
-      return gs.GetGameGraphics20Manager();
+    public GraphicsManager_ GetGameGraphics()
+    {
+        return gs.GetGameGraphics();
+    }
+    
+    public void SetInput(GameInput_ input)
+    {
+        gs.SetInput(input);
+    }
+    
+    public GameInput_ GetInput()
+    {
+        return gs.GetInput();
     }
   
     public void SetNativePath(String path)

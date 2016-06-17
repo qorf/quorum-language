@@ -1,0 +1,174 @@
+package Libraries.Game.Graphics
+
+class ColorAttribute is Attribute
+    public Color color
+
+    constant text DIFFUSE_ALIAS = "diffuseColor"
+    constant text SPECULAR_ALIAS = "specularColor"
+    constant text AMBIENT_ALIAS = "ambientColor"
+    constant text EMISSIVE_ALIAS = "emissiveColor"
+    constant text REFLECTION_ALIAS = "reflectionColor"
+    constant text AMBIENT_LIGHT_ALIAS = "ambientLightColor"
+    constant text FOG_ALIAS = "fogColor"
+
+    action CreateAmbient(Color setColor) returns ColorAttribute
+        ColorAttribute attribute
+        attribute:SetAttribute(GetAmbientValue(), setColor)
+        return attribute
+    end
+
+    action CreateAmbient(number red, number green, number blue, number alpha) returns ColorAttribute
+        Color setColor
+        setColor:SetColor(red, green, blue, alpha)
+        ColorAttribute attribute
+        attribute:SetAttribute(GetAmbientValue(), setColor)
+        return attribute
+    end
+
+    action CreateDiffuse(Color setColor) returns ColorAttribute
+        ColorAttribute attribute
+        attribute:SetAttribute(GetDiffuseValue(), setColor)
+        return attribute
+    end
+
+    action CreateDiffuse(number red, number green, number blue, number alpha) returns ColorAttribute
+        Color setColor
+        setColor:SetColor(red, green, blue, alpha)
+        ColorAttribute attribute
+        attribute:SetAttribute(GetDiffuseValue(), setColor)
+        return attribute
+    end
+
+    action CreateSpecular(Color setColor) returns ColorAttribute
+        ColorAttribute attribute
+        attribute:SetAttribute(GetSpecularValue(), setColor)
+        return attribute
+    end
+
+    action CreateSpecular(number red, number green, number blue, number alpha) returns ColorAttribute
+        Color setColor
+        setColor:SetColor(red, green, blue, alpha)
+        ColorAttribute attribute
+        attribute:SetAttribute(GetSpecularValue(), setColor)
+        return attribute
+    end
+
+    action CreateReflection(Color setColor) returns ColorAttribute
+        ColorAttribute attribute
+        attribute:SetAttribute(GetReflectionValue(), setColor)
+        return attribute
+    end
+
+    action CreateReflection(number red, number green, number blue, number alpha) returns ColorAttribute
+        Color setColor
+        setColor:SetColor(red, green, blue, alpha)
+        ColorAttribute attribute
+        attribute:SetAttribute(GetReflectionValue(), setColor)
+        return attribute
+    end
+
+    action CreateEmissive(Color setColor) returns ColorAttribute
+        ColorAttribute attribute
+        attribute:SetAttribute(GetEmissiveValue(), setColor)
+        return attribute
+    end
+
+    action CreateEmissive(number red, number green, number blue, number alpha) returns ColorAttribute
+        Color setColor
+        setColor:SetColor(red, green, blue, alpha)
+        ColorAttribute attribute
+        attribute:SetAttribute(GetEmissiveValue(), setColor)
+        return attribute
+    end
+
+    action CreateAmbientLight(Color setColor) returns ColorAttribute
+        ColorAttribute attribute
+        attribute:SetAttribute(GetAmbientLightValue(), setColor)
+        return attribute
+    end
+
+    action CreateAmbientLight(number red, number green, number blue, number alpha) returns ColorAttribute
+        Color setColor
+        setColor:SetColor(red, green, blue, alpha)
+        ColorAttribute attribute
+        attribute:SetAttribute(GetAmbientLightValue(), setColor)
+        return attribute
+    end
+
+    action CreateFog(Color setColor) returns ColorAttribute
+        ColorAttribute attribute
+        attribute:SetAttribute(GetFogValue(), setColor)
+        return attribute
+    end
+
+    action CreateFog(number red, number green, number blue, number alpha) returns ColorAttribute
+        Color setColor
+        setColor:SetColor(red, green, blue, alpha)
+        ColorAttribute attribute
+        attribute:SetAttribute(GetFogValue(), setColor)
+        return attribute
+    end
+
+    action SetAttribute(integer setType, Color setColor)
+        parent:Attribute:SetAttribute(setType)
+        if not SupportsAttribute(setType)
+            alert("The given attribute type with integer value " + setType + " is not supported by ColorAttribute.")
+        end
+        if setColor not= undefined
+            color = setColor
+        end
+    end
+
+    action Copy returns Attribute
+        ColorAttribute new
+        new:SetAttribute(parent:Attribute:type, color)
+        return new
+    end
+
+    /*
+    This action returns whether or not the given attribute type is supported by
+    the ColorAttribute class.
+    */
+    system action SupportsAttribute(integer type) returns boolean
+
+    /*
+    Returns the integer value representing a Diffuse color attribute.
+    */
+    system action GetDiffuseValue returns integer
+
+    /*
+    Returns the integer value representing a Specular color attribute.
+    */
+    system action GetSpecularValue returns integer
+
+    /*
+    Returns the integer value representing an Ambient color attribute.
+    */
+    system action GetAmbientValue returns integer
+
+    /*
+    Returns the integer value representing an Emissive color attribute.
+    */
+    system action GetEmissiveValue returns integer
+
+    /*
+    Returns the integer value representing a Reflection color attribute.
+    */
+    system action GetReflectionValue returns integer
+
+    /*
+    Returns the integer value representing an Ambient Light color attribute.
+    */
+    system action GetAmbientLightValue returns integer
+
+    /*
+    Returns the integer value representing a Fog color attribute.
+    */
+    system action GetFogValue returns integer
+
+    /*
+    Returns the sum of all color attribute values.
+    */
+    system action GetColorAttributeMask returns integer
+    
+end

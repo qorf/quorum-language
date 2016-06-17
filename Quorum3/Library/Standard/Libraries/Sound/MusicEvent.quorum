@@ -1,6 +1,5 @@
 package Libraries.Sound
 
-use Libraries.Containers.Blueprints.Copyable
 /*
     This class represents an event in a music track. This is the top level
     interface describing anything that can be put on a music track, such as
@@ -19,7 +18,7 @@ use Libraries.Containers.Blueprints.Copyable
     event:SetEventType(0)
 */
 
-class MusicEvent is Copyable
+class MusicEvent
     // Public constants. These represent the various event types.
     public integer noteOn = 0
     

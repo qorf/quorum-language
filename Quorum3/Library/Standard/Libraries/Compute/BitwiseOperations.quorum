@@ -79,7 +79,8 @@ class BitwiseOperations
     system action Negate(integer value) returns integer
 
     /*
-    This action provides a bitwise shift left operation.
+    This action provides a bitwise shift left operation, shifting in zeros from
+    the right and discarding the bits shifted off.
 
     Attribute: Example
 
@@ -94,7 +95,8 @@ class BitwiseOperations
 
     /*
     This action provides a bitwise shift right operation. This version of 
-    the operation does not keep the sign bit on shift.
+    the operation keeps the sign bit on the left (Sign-propogating right shift)
+    and discards the bits shifted off.
 
     Attribute: Example
 
@@ -108,8 +110,8 @@ class BitwiseOperations
     system action ShiftRight(integer value, integer amount) returns integer
 
     /*
-    This action provides a bitwise shift right operation. This version does
-    keep the sign bit on shift.
+    This action provides a bitwise shift right operation. This version shifts in
+    zeros from the left (Zero-fill right shift) and discards the bits shifted off.
 
     Attribute: Example
 
@@ -120,5 +122,5 @@ class BitwiseOperations
     integer amount = 3
     integer result = ops:ShiftRightKeepSign(value, amount)
     */
-    system action ShiftRightKeepSign(integer value, integer amount) returns integer
+    system action ShiftRightPositive(integer value, integer amount) returns integer
 end

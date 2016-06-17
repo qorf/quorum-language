@@ -1,0 +1,14 @@
+class Main
+    action Main
+        text p = ""
+        Text t 
+        t:SetValue(p)
+        
+        text str = ""
+        str = "start" + p:GetCarriageReturn() + "end"
+        output str
+        
+        str = "start" + t:GetCarriageReturn() + "end"
+        output str
+    end
+end

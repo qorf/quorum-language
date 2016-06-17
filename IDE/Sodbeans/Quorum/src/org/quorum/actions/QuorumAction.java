@@ -41,7 +41,7 @@ import org.quorum.projects.QuorumProject;
 import org.quorum.projects.QuorumProjectType;
 import org.quorum.windows.CompilerErrorTopComponent;
 import quorum.Libraries.Containers.Array_;
-import quorum.Libraries.Containers.Blueprints.Iterator_;
+import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerErrorManager_;
 import quorum.Libraries.Language.Object_;
 
@@ -145,6 +145,13 @@ public abstract class QuorumAction implements Action {
         }
         long start = System.currentTimeMillis();
         compiler.Empty();
+        final QuorumProjectType type = project.getProjectType();
+        if(type == QuorumProjectType.WEB) {
+            compiler.SetIsWebApplication(true);
+        } else {
+            compiler.SetIsWebApplication(false);
+        }
+        
         try {
             compiler.Compile(listing);
         } catch (final Exception e) {
@@ -213,7 +220,6 @@ public abstract class QuorumAction implements Action {
             }
         });
         
-        final QuorumProjectType type = project.getProjectType();
         boolean legos = false;
         if(type == QuorumProjectType.LEGO && compiler.IsCompilationErrorFree()) {
             QuorumToLegoAdapter adapter = new QuorumToLegoAdapter();

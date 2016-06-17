@@ -1,9 +1,12 @@
-package Libraries.Language.Compile
+package Libraries.Language.Compile.Hints
 
 use Libraries.System.File
+use Libraries.Language.Compile.Location
 
 class Hint is Location
     text message = ""
+    integer startOffset = 0
+    integer endOffset = 0
 
     action GetHintMessage returns text
         return message
@@ -13,8 +16,20 @@ class Hint is Location
         return message
     end
 
-    action SetErrorMessage(text value) 
-        message = value
+    action GetStartOffset returns integer
+        return startOffset
+    end
+
+    action GetEndOffset returns integer
+        return startOffset
+    end
+
+    action SetStartOffset(integer value)
+        startOffset = value
+    end
+
+    action SetEndOffset(integer value)
+        endOffset = value
     end
 
     action GetAbsolutePath returns text
@@ -23,11 +38,15 @@ class Hint is Location
             return file:GetAbsolutePath()
         end
 
-        text value = undefined //Workaround for bug.
+        text value = ""
         return value
     end
 
     action GetStaticKey returns text
         return GetAbsolutePath()
     end
+
+    blueprint action GetInsertionText returns text
+    blueprint action GetLinesToRemove returns integer
+    blueprint action InsertAtStartOfLine returns boolean
 end
