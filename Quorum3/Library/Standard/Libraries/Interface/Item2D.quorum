@@ -571,9 +571,6 @@ class Item2D is Item
 
         transform:GetPosition():SetX(transform:GetPosition():GetX() + xAmount)
         SetOffsetX(offset:GetX())
-
-        BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
-        Synchronize(broadphase, transform, transform)
     end
 
     /*
@@ -597,9 +594,6 @@ class Item2D is Item
 
         transform:GetPosition():SetY(transform:GetPosition():GetY() + yAmount)
         SetOffsetY(offset:GetY())
-
-        BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
-        Synchronize(broadphase, transform, transform)
     end
 
     /*
@@ -649,9 +643,6 @@ class Item2D is Item
         transform:GetPosition():SetX(transform:GetPosition():GetX() + xAmount)
         transform:GetPosition():SetY(transform:GetPosition():GetY() + yAmount)
         SetOffset(offset:GetX(), offset:GetY())
-
-        BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
-        Synchronize(broadphase, transform, transform)
     end
 
     /*
@@ -1435,9 +1426,6 @@ class Item2D is Item
                 counter = counter + 1
             end
         end
-
-        BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
-        Synchronize(broadphase, transform, transform)
     end
 
     /*
@@ -1521,9 +1509,6 @@ class Item2D is Item
                 counter = counter + 1
             end
         end
-
-        BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
-        Synchronize(broadphase, transform, transform)
     end
 
     /*
@@ -2167,7 +2152,7 @@ class Item2D is Item
         nodeCount = 0
     end
 
-    action Synchronize(BroadphaseCollision2D broadphase, Transform2D transform1, Transform2D transform2)
+    private action Synchronize(BroadphaseCollision2D broadphase, Transform2D transform1, Transform2D transform2)
         if nodeCount = 0
             return now
         end

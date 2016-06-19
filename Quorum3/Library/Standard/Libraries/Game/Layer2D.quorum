@@ -453,4 +453,23 @@ class Layer2D is Layer
     action GetCollisionManager returns CollisionManager2D
         return collisionManager
     end
+
+    action TestForCollisions
+        if newItemAdded
+            collisionManager:FindNewCollisions()
+            newItemAdded = false
+        end
+
+        collisionManager:Collide()
+
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item2D item = items:Get(i)
+            item:SynchronizeNodes()         
+
+            i = i + 1
+        end
+
+        collisionManager:FindNewCollisions()
+    end
 end
