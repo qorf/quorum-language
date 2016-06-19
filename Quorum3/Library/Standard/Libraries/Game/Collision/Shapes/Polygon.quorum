@@ -446,4 +446,7 @@ class Polygon is CollisionShape2D
         return transform:Multiply(transform, centroid)
     end
 
+    action GetCentroid returns Vector2
+        return centroid
+    end
 end
