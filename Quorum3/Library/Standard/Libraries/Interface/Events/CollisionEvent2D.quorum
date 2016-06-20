@@ -33,8 +33,8 @@ class CollisionEvent2D
 
     Math math
 
-    public CollisionEvent2D next
-    public CollisionEvent2D previous
+    private CollisionEvent2D next
+    private CollisionEvent2D previous
 
     public ContactEdge2D nodeA = undefined
     public ContactEdge2D nodeB = undefined
@@ -75,6 +75,22 @@ class CollisionEvent2D
         
     end
 
+    action GetPrevious returns CollisionEvent2D
+        return previous
+    end
+
+    action SetPrevious(CollisionEvent2D event)
+        previous = event
+    end
+
+    action GetNext returns CollisionEvent2D
+        return next
+    end
+
+    action SetNext(CollisionEvent2D event)
+        next = event
+    end
+
     action IsTouching returns boolean
         return touchingFlag
     end
@@ -85,10 +101,6 @@ class CollisionEvent2D
 
     action IsEnabled returns boolean
         return enabledFlag
-    end
-
-    action GetNext returns CollisionEvent2D
-        return next
     end
 
     action GetItemA returns Item2D

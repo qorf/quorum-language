@@ -27,6 +27,8 @@ class Item2D is Item
     private Item2D parentItem = undefined
     private Array<Item2D> children
 
+    boolean collidable = true
+
     /*
     Used internally to pass around position and rotation information
     */
@@ -2206,5 +2208,13 @@ class Item2D is Item
 
     action GetNodes returns Array<Item2DNode>
         return nodes
+    end
+
+    action SetCollidable(boolean flag)
+        collidable = flag
+    end
+
+    action IsCollidable returns boolean
+        return collidable
     end
 end
