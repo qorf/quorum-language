@@ -45,6 +45,7 @@ use Libraries.Game.Graphics.PointLight
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
+use Libraries.Interface.Events.CollisionListener2D
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -1069,7 +1070,8 @@ class Game
         repeat while i < layers:GetSize()
             Layer layer = layers:Get(i)
             if layer is Layer2D
-                layer:TestForCollisions()
+                Layer2D layer2D = cast(Layer2D, layer)
+                layer2D:TestForCollisions()
             end
 
             i = i + 1

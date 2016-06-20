@@ -436,6 +436,7 @@ class Layer2D is Layer
     */
     action SetCollisionListener(CollisionListener2D listener)
         collisionListener = listener
+        collisionManager:SetCollisionListener(listener)
     end
 
     /*

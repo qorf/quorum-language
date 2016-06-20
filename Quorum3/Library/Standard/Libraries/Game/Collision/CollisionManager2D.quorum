@@ -181,4 +181,8 @@ class CollisionManager2D
     action GetCollisionCount returns integer
         return collisionCount
     end
+
+    action SetCollisionListener(CollisionListener2D listener)
+        me:listener = listener
+    end
 end
