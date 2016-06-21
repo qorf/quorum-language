@@ -887,6 +887,7 @@ class CollisionEvent2D
             xf:MultiplyToOut(xf, polygon:GetVertices():Get(i), tempPolygonVertices:Get(i))
             tempPolygonVertices:Get(i):SetX(xf:GetCosine() * polygon:GetNormals():Get(i):GetX() - xf:GetSine() * polygon:GetNormals():Get(i):GetY())
             tempPolygonVertices:Get(i):SetY(xf:GetSine() * polygon:GetNormals():Get(i):GetX() + xf:GetCosine() * polygon:GetNormals():Get(i):GetY())
+            i = i + 1
         end
 
         radius = 2.0 * (2.0 * 0.005)

@@ -70,6 +70,9 @@ class Item2D is Item
         vertices:SetSize(20)
     end
 
+    private boolean widthSet = false
+    private boolean heightSet = false
+
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
     // the second vertex, respectively.
@@ -217,6 +220,11 @@ class Item2D is Item
         Polygon polygon
         polygon:SetAsBox(newWidth, dimensions:GetY())
         shape = polygon
+        widthSet = true
+
+        if widthSet and heightSet
+            CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+        end
     end
 
     /*
@@ -233,6 +241,11 @@ class Item2D is Item
         Polygon polygon
         polygon:SetAsBox(dimensions:GetX(), newHeight)
         shape = polygon
+        heightSet = true
+
+        if widthSet and heightSet
+            CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+        end
     end
 
     /*
@@ -2130,15 +2143,17 @@ class Item2D is Item
     end
 
     action CreateNodes(BroadphaseCollision2D broadphase, Transform2D transform)
-        nodeCount = shape:GetChildCount()
-        integer i = 0
-        repeat while i < nodeCount
-            Item2DNode node = nodes:Get(i)
-            shape:ComputeBoundingBox(node:boundingBox, transform, i)
-            node:nodeID = broadphase:CreateNode(node:boundingBox, node)
-            node:item = me
-            node:childIndex = i
-            i = i + 1
+        if collidable and shape not= undefined
+            nodeCount = shape:GetChildCount()
+            integer i = 0
+            repeat while i < nodeCount
+                Item2DNode node = nodes:Get(i)
+                shape:ComputeBoundingBox(node:boundingBox, transform, i)
+                node:nodeID = broadphase:CreateNode(node:boundingBox, node)
+                node:item = me
+                node:childIndex = i
+                i = i + 1
+            end
         end
     end
 
@@ -2211,7 +2226,26 @@ class Item2D is Item
     end
 
     action SetCollidable(boolean flag)
+        if collidable = flag
+            return now
+        end
+
         collidable = flag
+
+        if collidable
+            BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
+            CreateNodes(broadphase, transform)
+        else
+            BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
+            DestroyNodes(broadphase)
+            ContactEdge2D edge = contactList
+            repeat while edge not= undefined
+                ContactEdge2D edge0 = edge
+                edge = edge:next
+                layer:GetCollisionManager():Destroy(edge0:collision)
+            end
+            contactList = undefined
+        end
     end
 
     action IsCollidable returns boolean

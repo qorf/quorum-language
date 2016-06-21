@@ -14,7 +14,7 @@ class CollisionManager2D
     BroadphaseCollision2D broadphase
     Array<CollisionEvent2D> collisionList
     integer collisionCount = 0
-    CollisionListener2D listener = undefined
+    Array<CollisionListener2D> listeners
 
     Layer2D myLayer = undefined
     
@@ -101,8 +101,13 @@ class CollisionManager2D
         Item2D itemA = collision:GetItemA()
         Item2D itemB = collision:GetItemB()
 
-        if listener not= undefined and collision:IsTouching()
-            listener:FinishCollision(collision)
+        if collision:IsTouching()
+            integer i = 0
+            repeat while i < listeners:GetSize()
+                CollisionListener2D listener = listeners:Get(i)
+                listener:FinishCollision(collision)
+                i = i + 1
+            end
         end
 
         collisionList:Remove(collision)
@@ -164,7 +169,12 @@ class CollisionManager2D
             if not overlap
                 Destroy(collision)
             else
+                integer j = 0
+                repeat while j < listeners:GetSize()
+                CollisionListener2D listener = listeners:Get(j)
                 collision:DispatchCollision(listener)
+                j = j + 1
+                end
             end
             i = i + 1
         end
@@ -182,7 +192,11 @@ class CollisionManager2D
         return collisionCount
     end
 
-    action SetCollisionListener(CollisionListener2D listener)
-        me:listener = listener
+    action AddCollisionListener(CollisionListener2D listener)
+        listeners:Add(listener)
+    end
+
+    action RemoveCollisionListener(CollisionListener2D listener)
+        listeners:Remove(listener)
     end
 end

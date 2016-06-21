@@ -434,11 +434,13 @@ class Layer2D is Layer
     collision listener is responsible for managing the collision events between
     2D items in a game.
     */
-    action SetCollisionListener(CollisionListener2D listener)
-        collisionListener = listener
-        collisionManager:SetCollisionListener(listener)
+    action AddCollisionListener(CollisionListener2D listener)
+        collisionManager:AddCollisionListener(listener)
     end
 
+    action RemoveCollisionListener(CollisionListener2D listener)
+        collisionManager:RemoveCollisionListener(listener)
+    end
     /*
     This action gets the list of items on this layer that are colliding and
     returns it as an array.

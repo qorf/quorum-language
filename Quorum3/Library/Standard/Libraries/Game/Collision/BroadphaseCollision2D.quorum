@@ -24,16 +24,6 @@ class BroadphaseCollision2D
 
     integer queryNodeID = -1
 
-    on create
-        moveList:SetSize(16)
-        integer i = 0
-        repeat while i < pairCapacity
-            CollisionPair2D pair
-            pairList:Set(i, pair)
-            i = i + 1
-        end
-    end
-
     action CreateNode(BoundingBox2D boundingBox, Item2DNode item) returns integer
         integer id = tree:CreateNode(boundingBox, item)
         nodeCount = nodeCount + 1
@@ -163,33 +153,17 @@ class BroadphaseCollision2D
             return true
         end
         
-        if pairCount = pairCapacity
-            Array<CollisionPair2D> newPairs
-            pairCapacity = pairCapacity * 2
-            newPairs:SetSize(pairCapacity)
-            integer i = 0
-            repeat while i < pairList:GetSize()
-                newPairs:Set(i, pairList:Get(i))
-                i = i + 1
-            end
-            
-            i = pairList:GetSize()
-            repeat while i < pairCapacity
-                CollisionPair2D pair
-                newPairs:Set(i, pair)
-                i = i + 1
-            end
-
-            pairList = newPairs
-        end
-
+        CollisionPair2D pair
+        
         if id < queryNodeID
-            pairList:Get(pairCount):SetIDA(id)
-            pairList:Get(pairCount):SetIDB(queryNodeID)
+            pair:SetIDA(id)
+            pair:SetIDB(queryNodeID)
         else
-            pairList:Get(pairCount):SetIDA(queryNodeID)
-            pairList:Get(pairCount):SetIDB(id)
+            pair:SetIDA(queryNodeID)
+            pair:SetIDB(id)
         end
+
+        pairList:Add(pair)
 
         pairCount = pairCount + 1
         return true

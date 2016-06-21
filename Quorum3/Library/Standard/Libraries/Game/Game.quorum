@@ -1030,7 +1030,7 @@ class Game
         end
     */
     action AddCollisionListener(CollisionListener2D listener)
-        currentLayer2D:SetCollisionListener(listener)
+        currentLayer2D:AddCollisionListener(listener)
     end
 
     /*
@@ -1061,8 +1061,8 @@ class Game
 
         end
     */
-    action RemoveCollisionListener
-        currentLayer2D:SetCollisionListener(undefined)
+    action RemoveCollisionListener(CollisionListener2D listener)
+        currentLayer2D:RemoveCollisionListener(listener)
     end
 
     private action TestForCollisions
