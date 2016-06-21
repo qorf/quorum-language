@@ -32,6 +32,7 @@ import org.netbeans.spi.editor.hints.Fix;
 import org.openide.modules.InstalledFileLocator;
 import org.openide.modules.ModuleInstall;
 import org.openide.windows.WindowManager;
+import org.sodbeans.phonemic.OperatingSystem;
 import org.sodbeans.phonemic.SpeechPriority;
 import org.sodbeans.phonemic.TextToSpeechFactory;
 import org.sodbeans.phonemic.tts.TextToSpeech;
@@ -41,7 +42,7 @@ public class Installer extends ModuleInstall implements Runnable{
     
     public static final String MAC_SPEECH = "modules/ext/CocoaSpeechServer.app/Contents/MacOS/CocoaSpeechServer";
     public static final String CODE_NAME_BASE = "org.accessibility";
-    public static final String STARTUP_STRING = "Starting NetBeans";
+    public static final String STARTUP_STRING = "Starting Sodbeans 6.0";
     private ScreenReader reader = null;
     private TextToSpeech speech = null;
     
@@ -161,31 +162,40 @@ public class Installer extends ModuleInstall implements Runnable{
     public void run() {
         speech = TextToSpeechFactory.getDefaultTextToSpeech();
         JFrame frame = (JFrame) WindowManager.getDefault().getMainWindow();
+        
+        AccessibilityOptions.setSystemOptions();
         if(!AccessibilityOptions.isStartedOnce()) {
-            //if we are on windows and a windows screen reader is available, 
-            //then we need to check if the user installed a sleep script 
-            boolean sleeping = detectSleepingScreenReader();
-            if(sleeping) {
+            //if we are on windows and a windows screen reader is available,
+            //then we need to check if the user installed a sleep script
+            OperatingSystem os = OperatingSystem.getOS();
+            //if Mac or Linux, just turn it on.
+            if(os == os.MAC_OSX || os == os.LINUX) {
                 AccessibilityOptions.setSelfVoicing(true);
+            } else {
+                boolean sleeping = detectSleepingScreenReader();
+                if(sleeping) {
+                    AccessibilityOptions.setSelfVoicing(true);
+                }
             }
-            AccessibilityStartup startup = new AccessibilityStartup(frame, true);
+        }
+        
+        if(AccessibilityOptions.isSelfVoicing()) {
+            speech.speak(STARTUP_STRING);
+        }
+        reader = new ScreenReaderImpl();
+        reader.gainControl();
+        setMagnifierSupport();
+        SetWindowSupport();
+        SetEditorHintSupport();
+        
+        if(!AccessibilityOptions.isStartedOnce()) {
+                AccessibilityStartup startup = new AccessibilityStartup(frame, true);
             startup.setLocationRelativeTo(frame);
             startup.setVisible(true);
             boolean voiced = startup.isSelfVoiced();            
             AccessibilityOptions.setDefaultAccessibilityOptions(voiced);
             AccessibilityOptions.setStartedOnce(true);
         }
-        
-        AccessibilityOptions.setSystemOptions();
-        if(AccessibilityOptions.isSelfVoicing()) {
-            speech.speak(STARTUP_STRING);
-        }
-        
-        reader = new ScreenReaderImpl();
-        reader.gainControl();
-        setMagnifierSupport();
-        SetWindowSupport();
-        SetEditorHintSupport();
     }
     
     private void setMagnifierSupport() {

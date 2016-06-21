@@ -5,20 +5,18 @@
  */
 package org.accessibility.windows;
 
-import java.io.File;
-
 /**
  *
  * @author stefika
  */
 public class AccessibilityStartup extends javax.swing.JDialog {
-
+    
     /**
      * Creates new form AccessibilityStartup
      */
     public AccessibilityStartup(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
-        initComponents();
+            initComponents();
     }
 
     /**
@@ -63,21 +61,20 @@ public class AccessibilityStartup extends javax.swing.JDialog {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 309, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 323, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(selfVoiceCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton1))
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 127, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
-                    .addComponent(selfVoiceCheckBox))
-                .addContainerGap())
+                    .addComponent(selfVoiceCheckBox)))
         );
 
         getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(AccessibilityStartup.class, "AccessibilityStartup.AccessibleContext.accessibleDescription")); // NOI18N
