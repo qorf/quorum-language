@@ -9,21 +9,21 @@
  !define env_hkcu 'HKCU "Environment"'
 ;--------------------------------
 ; The name of the installer
-!define MYNAME "Sodbeans 5.0"
+!define MYNAME "Sodbeans 6.0"
 Name "${MYNAME}"
 
 ; The file to write
 ; This has been changed from "Sodbeans.exe" to "SodbeansInstaller.exe" so that it does not conflict with the actual
 ; name of the real sodbeans executable. This is important, because if JAWS/NVDA scripts are installed for Sodbeans,
 ; it will unintentionally silence the installer. 
-OutFile "Sodbeans 5.0.exe"
+OutFile "Sodbeans 6.0.exe"
 
-InstallDir "$PROGRAMFILES64\Sodbeans 5.0"
+InstallDir "$PROGRAMFILES64\Sodbeans 6.0"
 
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\Sodbeans 5.0" "Install_Dir"
+InstallDirRegKey HKLM "Software\Sodbeans 6.0" "Install_Dir"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
@@ -36,15 +36,15 @@ RequestExecutionLevel admin
   !define MUI_HEADERIMAGE_BITMAP "Header.bmp" ; optional
   !define MUI_ABORTWARNING
   !define MUI_FINISHPAGE_RUN
-  !define MUI_FINISHPAGE_RUN_TEXT "Start Sodbeans 5.0"
+  !define MUI_FINISHPAGE_RUN_TEXT "Start Sodbeans 6.0"
   !define MUI_FINISHPAGE_RUN_FUNCTION "LaunchSodbeans"
   
  ;------------------------------
 ; Bundling configuration
-;!define NETInstaller "dotNetFx40_Client_setup.exe" ; .NET 4.0.
-;!define JDKInstaller "jdk-7u45-windows-i586.exe" ; JDK 6 update 30, 32-bit.
+!define NETInstaller "dotNetFx35setup.exe" ; .NET 3.5.
+!define JDKInstaller "jdk-8u91-windows-i586.exe" ; JDK 8 update 91, 32-bit.
 ;!define CPPInstaller "vcredist_x86.exe" ; VS 2010 redistributable 32-bit.
-;!define JDKInstaller64 "jdk-7u45-windows-x64.exe" ; JDK 6 update 30, 64-bit.
+!define JDKInstaller64 "jdk-8u91-windows-x64.exe" ; JDK 8 update 91, 64-bit.
 ;!define CPPInstaller64 "vcredist_x64.exe" ; VS 2010 redistributable 64-bit.
 
 ; Macros
@@ -107,12 +107,12 @@ End32Bitvs64BitCheck:
   ; Check for .NET
   Call IsDotNETInstalled
   Pop $R3
-  StrCmp $R3 0 +3
-    Goto dotNetInstalled
+  IntCmp $R3 0 dotNetNotInstalled dotNetInstalled dotNetInstalled
+  dotNetNotInstalled:
     ; else - install .NET (should be bundled)
-    ;File /oname=$TEMP\${NETInstaller} ${NETInstaller}
-    ;DetailPrint "Starting Microsoft .NET Framework Setup..."
-    ;ExecWait "$TEMP\${NETInstaller}"
+    File /oname=$TEMP\${NETInstaller} ${NETInstaller}
+    DetailPrint "Starting Microsoft .NET Framework Setup..."
+    ExecWait "$TEMP\${NETInstaller}"
 
   ; dotNET is already installed - check for the JDK.	
   dotNetInstalled:
@@ -122,10 +122,10 @@ End32Bitvs64BitCheck:
 
   IfErrors 0 JDKFound
   ; Copy the JDK installer and run it.
-  ;File /oname=$TEMP\${JDKInstaller} ${JDKInstaller}
-  ;File /oname=$TEMP\${JDKInstaller64} ${JDKInstaller64}
-  ;DetailPrint "Starting Java Development Kit Installer..."
-  ;ExecWait "$TEMP\$JDKInstallerActual"
+  File /oname=$TEMP\${JDKInstaller} ${JDKInstaller}
+  File /oname=$TEMP\${JDKInstaller64} ${JDKInstaller64}
+  DetailPrint "Starting Java Development Kit Installer..."
+  ExecWait "$TEMP\$JDKInstallerActual"
   
   
 
@@ -158,13 +158,17 @@ End32Bitvs64BitCheck:
   File /nonfatal /r "sodbeans\*.*"
   
   ; Write the installation path into the registry
-  WriteRegStr HKLM "SOFTWARE\Sodbeans 5.0" "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM "SOFTWARE\Sodbeans 6.0" "Install_Dir" "$INSTDIR"
+
+  ; Write additional installation information into the registry.
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 6.0" "Publisher" "Quorum Language Project"
+  
   
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 5.0" "DisplayName" "Sodbeans 5.0"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 5.0" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 5.0" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 5.0" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 6.0" "DisplayName" "Sodbeans 6.0"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 6.0" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 6.0" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 6.0" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
   
   ; Now we need to update the Sodbeans.conf file to have the proper jdk_home.
@@ -183,7 +187,7 @@ End32Bitvs64BitCheck:
   ${WriteLineToFile} `$INSTDIR\etc\sodbeans.conf` `default_mac_userdir="${HOME}/Library/Application Support/.sodbeans/dev"`
   ${WriteLineToFile} `$INSTDIR\etc\sodbeans.conf` `# options used by the launcher by default, can be overridden by explicit`
   ${WriteLineToFile} `$INSTDIR\etc\sodbeans.conf` `# command line switches`
-  ${WriteLineToFile} `$INSTDIR\etc\sodbeans.conf` `default_options="--branding sodbeans -J-client -J-Xmx384m -J-Xss2m -J-Xms32m -J-XX:PermSize=32m -J-XX:MaxPermSize=512m"`
+  ${WriteLineToFile} `$INSTDIR\etc\sodbeans.conf` `default_options="--branding sodbeans -J-client -J-Xmx2g -J-Xss2m -J-Xms32m"`
   ${WriteLineToFile} `$INSTDIR\etc\sodbeans.conf` `# for development purposes you may wish to append: -J-Dnetbeans.logger.console=true -J-ea`
   ${WriteLineToFile} `$INSTDIR\etc\sodbeans.conf` `# default location of JDK/JRE, can be overridden by using --jdkhome`
   ${WriteLineToFile} `$INSTDIR\etc\sodbeans.conf` `jdkhome="$2"`
@@ -195,10 +199,10 @@ SectionEnd
 ;--------------------------------
 ; Optional section (can be disabled by the user)
 Section "Start Menu Shortcuts" StartMenu_Sec
-  CreateDirectory "$SMPROGRAMS\Sodbeans 5.0"
-  CreateShortCut "$SMPROGRAMS\Sodbeans 5.0\Uninstall Sodbeans 4.5.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\Sodbeans 5.0\Sodbeans 5.0.lnk" "$INSTDIR\bin\sodbeans.exe" "" "$INSTDIR\bin\sodbeans.exe" 0
-  CreateShortCut "$DESKTOP\Sodbeans 5.0.lnk" "$INSTDIR\bin\sodbeans.exe" "" "$INSTDIR\bin\sodbeans.exe" 0
+  CreateDirectory "$SMPROGRAMS\Sodbeans 6.0"
+  CreateShortCut "$SMPROGRAMS\Sodbeans 6.0\Uninstall Sodbeans 6.0.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
+  CreateShortCut "$SMPROGRAMS\Sodbeans 6.0\Sodbeans 6.0.lnk" "$INSTDIR\bin\sodbeans.exe" "" "$INSTDIR\bin\sodbeans.exe" 0
+  CreateShortCut "$DESKTOP\Sodbeans 6.0.lnk" "$INSTDIR\bin\sodbeans.exe" "" "$INSTDIR\bin\sodbeans.exe" 0
 
 SectionEnd
 
@@ -239,10 +243,19 @@ Section "Jaws and NVDA Scripts" Scripts_Sec
 
     SetOutPath "$APPDATA\Freedom Scientific\JAWS\16.0\Settings\enu"
     File /nonfatal "sodbeans.jcf"
-	
+
+    SetOutPath "$APPDATA\Freedom Scientific\JAWS\17.0\Settings\enu"
+    File /nonfatal "sodbeans.jcf"
+
     ; NVDA Script
     SetOutPath "$APPDATA\nvda\appModules"
     File /nonfatal "sodbeans.py"
+SectionEnd
+
+; /o Flag makes this section not checked by default.
+Section /o "Clean Up Old Versions" Delete_Old_Sec
+    RMDir /r "$APPDATA\.sodbeans"
+    RMDir /r "$LOCALAPPDATA\.sodbeans"
 SectionEnd
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -251,28 +264,30 @@ SectionEnd
 LangString DESC_Section1 ${LANG_ENGLISH} "The core Sodbeans binaries."
 LangString DESC_Section2 ${LANG_ENGLISH} "A shortcut to Sodbeans and its uninstaller will be placed in the Start Menu."
 LangString DESC_Section3 ${LANG_ENGLISH} "Scripts that improve compatibility between Jaws, NVDA and Sodbeans."
+LangString DESC_Section4 ${LANG_ENGLISH} "Deletes any old information left over from previous Sodbeans installations."
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${Sodbeans_Sec} $(DESC_Section1)
   !insertmacro MUI_DESCRIPTION_TEXT ${StartMenu_Sec} $(DESC_Section2)
   !insertmacro MUI_DESCRIPTION_TEXT ${Scripts_Sec} $(DESC_Section3)
+  !insertmacro MUI_DESCRIPTION_TEXT ${Delete_Old_Sec} $(DESC_Section4)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
 ; Uninstaller
 Section "Uninstall"
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 4.5"
-  DeleteRegKey HKLM "SOFTWARE\Sodbeans 4.5"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 6.0"
+  DeleteRegKey HKLM "SOFTWARE\Sodbeans 6.0"
 
   ; Remove files and uninstaller
   Delete $INSTDIR\*.*
 
   ; Remove shortcuts, if any
-  Delete "$SMPROGRAMS\Sodbeans 4.5\*.*"
-  Delete "$DESKTOP\Sodbeans 4.5.lnk"
+  Delete "$SMPROGRAMS\Sodbeans 6.0\*.*"
+  Delete "$DESKTOP\Sodbeans 6.0.lnk"
 
   ; Remove directories used
-  RMDir "$SMPROGRAMS\Sodbeans 4.5"
+  RMDir "$SMPROGRAMS\Sodbeans 6.0"
   RMDir /r "$INSTDIR"
    
   ; Delete JAWS and NVDA scripts.
@@ -283,8 +298,13 @@ Section "Uninstall"
   Delete "$APPDATA\Freedom Scientific\JAWS\13.0\Settings\enu\sodbeans.jcf" ; JAWS 13
   Delete "$APPDATA\Freedom Scientific\JAWS\14h.0\Settings\enu\sodbeans.jcf" ; JAWS 14
   Delete "$APPDATA\Freedom Scientific\JAWS\15h.0\Settings\enu\sodbeans.jcf" ; JAWS 15
-    Delete "$APPDATA\Freedom Scientific\JAWS\16h.0\Settings\enu\sodbeans.jcf" ; JAWS 16
+  Delete "$APPDATA\Freedom Scientific\JAWS\16h.0\Settings\enu\sodbeans.jcf" ; JAWS 16
+  Delete "$APPDATA\Freedom Scientific\JAWS\17h.0\Settings\enu\sodbeans.jcf" ; JAWS 17
   Delete "$APPDATA\nvda\appModules\sodbeans.py" ; NVDA
+
+  ; Delete old app data.
+  RMDir /r "$APPDATA\.sodbeans"
+  RMDir /r "$LOCALAPPDATA\.sodbeans"
 SectionEnd
 
 ; Function to check for .NET installation
@@ -329,7 +349,9 @@ Function IsDotNETInstalled
     Goto done
  
   foundDotNET:
-    StrCpy $0 1
+    ; As a temporary fix, the installer assumes the user does not have .NET, regardless of what this function finds.
+    ;StrCpy $0 1
+    StrCpy $0 0
  
   done:
     Pop $4
