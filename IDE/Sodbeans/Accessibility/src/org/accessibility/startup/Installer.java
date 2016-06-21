@@ -313,7 +313,7 @@ public class Installer extends ModuleInstall implements Runnable{
                                 JTextArea t = (JTextArea) source;
                                 if (AccessibilityOptions.isSelfVoicing() && t.isDisplayable()) // it is about to be displayed
                                 {
-                                    speech.speak("Tooltip: " + t.getText(), SpeechPriority.MEDIUM_HIGH);
+                                    speech.speak("Tooltip: " + t.getText(), SpeechPriority.MEDIUM);
                                 }
                             }
                         }
