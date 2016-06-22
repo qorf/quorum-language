@@ -106,6 +106,7 @@ class ActionsTester
         BadReturn()
         BadVariableInParameter()
         BadVariableInReturn()
+        DoubleConstructor()
         HOCUndefinedVariable()
         HOCReturnIntFromMain()
         HOCReturnIntFromMainDeclared()
@@ -1168,6 +1169,15 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "BadVariableInParameter.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action DoubleConstructor
+        Array<File> files
+        File main
+        main:SetPath(path + "DoubleConstructor.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
