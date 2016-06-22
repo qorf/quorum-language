@@ -224,7 +224,9 @@ class Item2D is Item
         widthSet = true
 
         if widthSet and heightSet
-            CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+            if layer not= undefined
+                CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+            end
         end
     end
 
@@ -245,7 +247,9 @@ class Item2D is Item
         heightSet = true
 
         if widthSet and heightSet
-            CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+            if layer not= undefined
+                CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+            end
         end
     end
 
@@ -537,8 +541,8 @@ class Item2D is Item
         myItem:SetSize(100, 50)
     */
     action SetSize(integer newWidth, integer newHeight)
-        dimensions:SetX(newWidth)
-        dimensions:SetY(newHeight)
+        SetWidth(newWidth)
+        SetHeight(newHeight)
 
         if verticesChanged = false
             number parentX = transform:GetPosition():GetX()
@@ -2052,6 +2056,9 @@ class Item2D is Item
     */
     action SetLayer(Layer2D parentLayer)
         layer = parentLayer
+        if widthSet and heightSet
+            CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+        end
     end
 
     /*
@@ -2090,7 +2097,7 @@ class Item2D is Item
         transform:sine = math:Sine(sweep:angle0)
         transform:cosine = math:Cosine(sweep:angle0)
         transform:position:SetX(sweep:center0:GetX() - transform:cosine * sweep:localCenter:GetX() + transform:sine * sweep:localCenter:GetY())
-        transform:position:SetY(sweep:center0:GetY() - transform:sine * sweep:localCenter:GetX() + transform:cosine * sweep:localCenter:GetY())        
+        transform:position:SetY(sweep:center0:GetY() - transform:sine * sweep:localCenter:GetX() - transform:cosine * sweep:localCenter:GetY())        
         
         Synchronize(layer:GetCollisionManager():GetBroadphase(), transform, me:transform)
     end
@@ -2149,11 +2156,12 @@ class Item2D is Item
             nodeCount = shape:GetChildCount()
             integer i = 0
             repeat while i < nodeCount
-                Item2DNode node = nodes:Get(i)
+                Item2DNode node
                 shape:ComputeBoundingBox(node:boundingBox, transform, i)
                 node:nodeID = broadphase:CreateNode(node:boundingBox, node)
                 node:item = me
                 node:childIndex = i
+                nodes:Add(node)
                 i = i + 1
             end
         end

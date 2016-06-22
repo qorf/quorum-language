@@ -33,8 +33,8 @@ class CollisionEvent2D
 
     Math math
 
-    private CollisionEvent2D next
-    private CollisionEvent2D previous
+    private CollisionEvent2D next = undefined
+    private CollisionEvent2D previous = undefined
 
     public ContactEdge2D nodeA = undefined
     public ContactEdge2D nodeB = undefined
@@ -59,6 +59,12 @@ class CollisionEvent2D
 
         previous = undefined
         next = undefined
+
+        ContactEdge2D node1
+        nodeA = node1
+
+        ContactEdge2D node2
+        nodeB = node2
 
         nodeA:collision = undefined
         nodeA:previous = undefined
@@ -285,7 +291,10 @@ class CollisionEvent2D
         end
 
         Array<Vector2> incidentEdge
-        incidentEdge:SetSize(2)
+        repeat 2 times
+            Vector2 vector
+            incidentEdge:Add(vector)
+        end
 
         FindIncidentEdge(incidentEdge, poly1, xf2, edge1, poly2, xf2)
 
@@ -334,9 +343,13 @@ class CollisionEvent2D
         integer np = 0
         
         Array<Vector2> clipPoints1
-        clipPoints1:SetSize(2)
         Array<Vector2> clipPoints2
-        clipPoints2:SetSize(2)
+        repeat 2 times
+            Vector2 v1
+            Vector2 v2
+            clipPoints1:Add(v1)
+            clipPoints2:Add(v2)
+        end
 
         tangent:Scale(-1)
         np = ClipSegmentToLine(clipPoints1, incidentEdge, tangent, sideOffset1, iv1)
@@ -683,6 +696,15 @@ class CollisionEvent2D
         ie:SetSize(2)
         clipPoints1:SetSize(2)
         clipPoints2:SetSize(2)
+
+        repeat 2 times
+            Vector2 i
+            Vector2 c1
+            Vector2 c2
+            ie:Add(i)
+            clipPoints1:Add(c1)
+            clipPoints2:Add(c2)
+        end
 
         xf = transformA:MultiplyAndTranslate(transformA, transformB)
         transformA:MultiplyToOut(xf, polygon:GetCentroid(), centroidB)

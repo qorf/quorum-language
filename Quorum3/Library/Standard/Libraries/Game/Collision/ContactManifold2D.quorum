@@ -19,6 +19,10 @@ class ContactManifold2D
 
     on create
         points:SetMaxSize(MAX_MANIFOLD_POINTS)
+        repeat MAX_MANIFOLD_POINTS times
+            ManifoldPoint2D point
+            points:Add(point)
+        end
     end
 
     action Set(ContactManifold2D other)

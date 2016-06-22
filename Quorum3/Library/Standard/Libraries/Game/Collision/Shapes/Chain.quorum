@@ -78,8 +78,8 @@ class Chain is CollisionShape2D
     end
 
     action ComputeBoundingBox(BoundingBox2D boundingBox, Transform2D transform, integer childIndex)
-        Vector2 minimum = boundingBox:GetMinimum()
-        Vector2 maximum = boundingBox:GetMaximum()
+        Vector2 minimum
+        Vector2 maximum
 
         integer i1 = childIndex
         integer i2 = childIndex + 1
@@ -123,6 +123,8 @@ class Chain is CollisionShape2D
         else
             maximum:SetY(v2y)
         end
+
+        boundingBox:Set(minimum, maximum)
     end
     
     action ComputeMass(number density) returns number
@@ -142,6 +144,12 @@ class Chain is CollisionShape2D
     action CreateLoop(Array<Vector2> vertices, integer count)
         me:vertexCount = count + 1
         me:vertices:SetSize(vertexCount)
+
+        repeat vertexCount times
+            Vector2 v
+            vertices:Add(v)
+        end
+
         integer i = 1
         repeat while i < count
             Vector2 v1 = vertices:Get(i - 1)
@@ -171,6 +179,12 @@ class Chain is CollisionShape2D
     action CreateChain(Array<Vector2> vertices, integer count)
         vertexCount = count
         vertices:SetSize(count)
+
+        repeat vertexCount times
+            Vector2 v
+            vertices:Add(v)
+        end
+
         integer i = 1
         repeat while i < vertexCount
             Vector2 v1 = vertices:Get(i - 1)

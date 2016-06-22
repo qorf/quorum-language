@@ -129,12 +129,7 @@ class BroadphaseCollision2D
     end
 
     private action BufferMove(integer id)
-        if moveCount = moveCapacity
-            moveCapacity = moveCapacity * 2
-            moveList:SetSize(moveCapacity)
-        end
-
-        moveList:Set(moveCount, id)
+        moveList:Add(id)
         moveCount = moveCount + 1
     end
 

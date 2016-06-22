@@ -76,8 +76,8 @@ class Edge is CollisionShape2D
     end
 
     action ComputeBoundingBox(BoundingBox2D boundingBox, Transform2D transform, integer childIndex)
-        Vector2 minimum = boundingBox:GetMinimum()
-        Vector2 maximum = boundingBox:GetMaximum()
+        Vector2 minimum
+        Vector2 maximum
         number cosine = transform:GetCosine()
         number sine = transform:GetSine()
         number x = transform:GetPosition():GetX()
@@ -116,6 +116,7 @@ class Edge is CollisionShape2D
         minimum:SetY(minimum:GetY() - parent:CollisionShape2D:GetRadius())
         maximum:SetX(maximum:GetX() + parent:CollisionShape2D:GetRadius())
         maximum:SetY(maximum:GetY() + parent:CollisionShape2D:GetRadius())
+        boundingBox:Set(minimum, maximum)
     end
 
     action ComputeMass(number density) returns number

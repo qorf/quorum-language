@@ -19,10 +19,15 @@ class Polygon is CollisionShape2D
     
     on create
         parent:CollisionShape2D:SetType(parent:CollisionShape2D:POLYGON)
-        vertices:SetMaxSize(MAXIMUM_POLYGON_VERTICES)
-        normals:SetMaxSize(MAXIMUM_POLYGON_VERTICES)
         parent:CollisionShape2D:SetRadius(2.0 * 0.005)
         centroid:SetZero()
+
+        repeat MAXIMUM_POLYGON_VERTICES times
+            Vector2 vertex
+            Vector2 normal
+            vertices:Add(vertex)
+            normals:Add(normal)
+        end
     end
 
     action Copy returns CollisionShape2D
@@ -52,6 +57,10 @@ class Polygon is CollisionShape2D
 
         Array<Vector2> points
         points:SetMaxSize(MAXIMUM_POLYGON_VERTICES)
+        repeat MAXIMUM_POLYGON_VERTICES times
+            Vector2 p
+            points:Add(p)
+        end
         integer tempCount = 0
         integer i = 0
         repeat while i < n
@@ -164,13 +173,11 @@ class Polygon is CollisionShape2D
     end
 
     action SetAsBox(number width, number height)
-        number halfWidth = width / 2
-        number halfHeight = height / 2
-        count = 4
-        vertices:Get(0):Set(-1 * halfWidth, -1 * halfHeight)
-        vertices:Get(1):Set(halfWidth, -1 * halfHeight)
-        vertices:Get(2):Set(halfWidth, halfHeight)
-        vertices:Get(3):Set(-1 * halfWidth, halfHeight)
+        vertexCount = 4
+        vertices:Get(0):Set(0, 0)
+        vertices:Get(1):Set(width, 0)
+        vertices:Get(2):Set(width, height)
+        vertices:Get(3):Set(0, height)
         normals:Get(0):Set(0, -1)
         normals:Get(1):Set(1, 0)
         normals:Get(2):Set(0, 1)
@@ -179,13 +186,11 @@ class Polygon is CollisionShape2D
     end
 
     action SetAsBox(number width, number height, Vector2 center, number angle)
-        number halfWidth = width / 2
-        number halfHeight = height / 2
-        count = 4
-        vertices:Get(0):Set(-1 * halfWidth, -1 * halfHeight)
-        vertices:Get(1):Set(halfWidth, -1 * halfHeight)
-        vertices:Get(2):Set(halfWidth, halfHeight)
-        vertices:Get(3):Set(-1 * halfWidth, halfHeight)
+        vertexCount = 4
+        vertices:Get(0):Set(0, 0)
+        vertices:Get(1):Set(width, 0)
+        vertices:Get(2):Set(width, height)
+        vertices:Get(3):Set(0, height)
         normals:Get(0):Set(0, -1)
         normals:Get(1):Set(1, 0)
         normals:Get(2):Set(0, 1)
@@ -196,7 +201,7 @@ class Polygon is CollisionShape2D
         transform:Set(center, angle)
 
         integer i = 0
-        repeat while i < count
+        repeat while i < vertexCount
             transform:MultiplyToOut(transform, vertices:Get(i), vertices:Get(i))
             number tempY = transform:GetSine() * normals:Get(i):GetX() + transform:GetCosine() * normals:Get(i):GetY()
             normals:Get(i):SetX(transform:GetCosine() * normals:Get(i):GetX() - transform:GetSine() * normals:Get(i):GetY())
@@ -237,8 +242,8 @@ class Polygon is CollisionShape2D
     end
 
     action ComputeBoundingBox(BoundingBox2D boundingBox, Transform2D transform, integer childIndex)
-        Vector2 minimum = boundingBox:GetMinimum()
-        Vector2 maximum = boundingBox:GetMaximum()
+        Vector2 minimum
+        Vector2 maximum
         Vector2 v1 = vertices:Get(0)
         number cosine = transform:GetCosine()
         number sine = transform:GetSine()
@@ -249,7 +254,7 @@ class Polygon is CollisionShape2D
         maximum:SetX(minimum:GetX())
         maximum:SetY(minimum:GetY())
 
-        integer i = 0
+        integer i = 1
         repeat while i < vertexCount
             Vector2 v2 = vertices:Get(i)
             number vx = (cosine * v2:GetX() - sine * v2:GetY()) + x
@@ -281,6 +286,8 @@ class Polygon is CollisionShape2D
         minimum:SetY(minimum:GetY() - parent:CollisionShape2D:radius)
         maximum:SetX(maximum:GetX() + parent:CollisionShape2D:radius)
         maximum:SetY(maximum:GetY() + parent:CollisionShape2D:radius)
+
+        boundingBox:Set(minimum, maximum)
     end
 
     action GetVertexCount returns integer

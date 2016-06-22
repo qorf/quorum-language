@@ -69,6 +69,7 @@ class Circle is CollisionShape2D
         boundingBox:GetMinimum():SetY(py - parent:CollisionShape2D:GetRadius())
         boundingBox:GetMaximum():SetX(px + parent:CollisionShape2D:GetRadius())
         boundingBox:GetMaximum():SetY(py + parent:CollisionShape2D:GetRadius())
+        boundingBox:CalculateDimensions()
     end
 
     action ComputeMass(number density) returns number

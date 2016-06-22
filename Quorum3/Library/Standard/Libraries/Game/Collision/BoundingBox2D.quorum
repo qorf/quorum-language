@@ -49,6 +49,15 @@ class BoundingBox2D
         return new
     end
 
+    action CalculateDimensions
+        center:Set(minimum)
+        center:Add(maximum)
+        center:Scale(0.5)
+
+        dimensions:Set(maximum)
+        dimensions:Subtract(minimum)
+    end
+
     /*
     GetWidth will return the width of the BoundingBox2D.
     */
