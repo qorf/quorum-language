@@ -360,7 +360,7 @@ class BoundingBox2D
     end
 
     action TestOverlap(BoundingBox2D boundingBox) returns boolean
-        if boundingBox:GetMinimum():GetX() - maximum:GetX() > 0 or boundingBox:GetMinimum:GetY() - maximum:GetY() > 0
+        if boundingBox:GetMinimum():GetX() - maximum:GetX() > 0 or boundingBox:GetMinimum():GetY() - maximum:GetY() > 0
             return false
         end
 
