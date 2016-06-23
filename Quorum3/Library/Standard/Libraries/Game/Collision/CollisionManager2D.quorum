@@ -171,9 +171,9 @@ class CollisionManager2D
             else
                 integer j = 0
                 repeat while j < listeners:GetSize()
-                CollisionListener2D listener = listeners:Get(j)
-                collision:DispatchCollision(listener)
-                j = j + 1
+                    CollisionListener2D listener = listeners:Get(j)
+                    collision:DispatchCollision(listener)
+                    j = j + 1
                 end
             end
             i = i + 1

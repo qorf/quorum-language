@@ -6,9 +6,7 @@ use Libraries.Game.Collision.ContactEdge2D
 use Libraries.Game.Collision.ContactManifold2D
 use Libraries.Game.Collision.Transform2D
 use Libraries.Game.Collision.Shapes.CollisionShape2D
-use Libraries.Game.Collision.Shapes.Chain
 use Libraries.Game.Collision.Shapes.Circle
-use Libraries.Game.Collision.Shapes.Edge
 use Libraries.Game.Collision.Shapes.Polygon
 use Libraries.Game.Collision.ManifoldPoint2D
 
@@ -222,30 +220,6 @@ class CollisionEvent2D
             CollidePolygonAndCircle(manifold, cast(Polygon, shapeA), transformA, cast(Circle, shapeB), transformB)
         elseif shapeB is Polygon and shapeA is Circle
             CollidePolygonAndCircle(manifold, cast(Polygon, shapeB), transformB, cast(Circle, shapeA), transformA)
-        elseif shapeA is Edge and shapeB is Circle
-            CollideEdgeAndCircle(manifold, cast(Edge, shapeA), transformA, cast(Circle, shapeB), transformB)
-        elseif shapeB is Edge and shapeA is Circle
-            CollideEdgeAndCircle(manifold, cast(Edge, shapeB), transformB, cast(Circle, shapeA), transformA)
-        elseif shapeA is Edge and shapeB is Polygon
-            CollideEdgeAndPolygon(manifold, cast(Edge, shapeA), transformA, cast(Polygon, shapeB), transformB)
-        elseif shapeB is Edge and shapeA is Polygon
-            CollideEdgeAndPolygon(manifold, cast(Edge, shapeB), transformB, cast(Polygon, shapeA), transformA)
-        elseif shapeA is Chain and shapeA is Circle
-            Chain chain = cast(Chain, shapeA)
-            Edge edge = chain:GetChildEdge(indexA)
-            CollideEdgeAndCircle(manifold, edge, transformA, cast(Circle, shapeB), transformB)
-        elseif shapeB is Chain and shapeA is Circle
-            Chain chain = cast(Chain, shapeB)
-            Edge edge = chain:GetChildEdge(indexB)
-            CollideEdgeAndCircle(manifold, edge, transformB, cast(Circle, shapeA), transformA)
-        elseif shapeA is Chain and shapeA is Polygon
-            Chain chain = cast(Chain, shapeA)
-            Edge edge = chain:GetChildEdge(indexA)
-            CollideEdgeAndPolygon(manifold, edge, transformA, cast(Polygon, shapeB), transformB)
-        elseif shapeB is Chain and shapeB is Polygon
-            Chain chain = cast(Chain, shapeB)
-            Edge edge = chain:GetChildEdge(indexB)
-            CollideEdgeAndPolygon(manifold, edge, transformB, cast(Polygon, shapeA), transformA)
         end
     end
 
@@ -269,7 +243,6 @@ class CollisionEvent2D
         Transform2D xf1
         Transform2D xf2
         integer edge1 = 0
-        boolean flip = false
         number k_tol = 0.1 * 0.005
 
         if separation2 > separation1 + k_tol
@@ -279,15 +252,13 @@ class CollisionEvent2D
             xf2 = transformA
             edge1 = edgeIndex2
             manifold:type = manifold:FACE_B
-            flip = true
         else
             poly1 = polygonA
             poly2 = polygonB
             xf1 = transformA
             xf2 = transformB
-            edge1 = edgeIndex2
+            edge1 = edgeIndex1
             manifold:type = manifold:FACE_A
-            flip = false
         end
 
         Array<Vector2> incidentEdge
@@ -296,7 +267,7 @@ class CollisionEvent2D
             incidentEdge:Add(vector)
         end
 
-        FindIncidentEdge(incidentEdge, poly1, xf2, edge1, poly2, xf2)
+        FindIncidentEdge(incidentEdge, poly1, xf1, edge1, poly2, xf2)
 
         integer count1 = poly1:GetVertexCount()
         Array<Vector2> vertices1 = poly1:GetVertices()
@@ -338,7 +309,7 @@ class CollisionEvent2D
         number frontOffset = normalx * v11:GetX() + normaly * v11:GetY()
 
         number sideOffset1 = -1 * (tangent:GetX() * v11:GetX() + tangent:GetY() * v11:GetY()) + totalRadius
-        number sideOffset2 = tangent:GetX() + v12:GetX() + tangent:GetY() * v12:GetY() + totalRadius
+        number sideOffset2 = tangent:GetX() * v12:GetX() + tangent:GetY() * v12:GetY() + totalRadius
 
         integer np = 0
         
@@ -379,7 +350,7 @@ class CollisionEvent2D
                 number px = clipPoints2:Get(i):GetX() - xf2:GetPosition():GetX()
                 number py = clipPoints2:Get(i):GetY() - xf2:GetPosition():GetY()
                 out:SetX((xf2:GetCosine() * px + xf2:GetSine() * py))
-                out:SetY((-1 * xf2:GetSine() * py + xf2:GetCosine() * py))
+                out:SetY((-1 * xf2:GetSine() * px + xf2:GetCosine() * py))
 
                 pointCount = pointCount + 1
             end
@@ -430,7 +401,7 @@ class CollisionEvent2D
         number cLocaly = (-1 * transformA:GetSine() * px + transformA:GetCosine() * py)
 
         integer normalIndex = 0
-        number separation = -1 * cx:GetMaximumValue()
+        number separation = cx:GetMinimumValue()
         number radius = polygon:GetRadius() + circle:GetRadius()
         number vertexCount = polygon:GetVertexCount()
         number s = 0
@@ -540,603 +511,7 @@ class CollisionEvent2D
             manifold:localPoint:SetX(fcx)
             manifold:localPoint:SetY(fcy)
             manifold:points:Get(0):localPoint:Set(circle1p)
-        end
-        
-    end
-
-    private action CollideEdgeAndCircle(ContactManifold2D manifold, Edge edge, Transform2D transformA, Circle circle, Transform2D transformB)
-        manifold:pointCount = 0
-
-        Vector2 temp
-        transformA:MultiplyToOut(transformB, circle:GetSupportVertex(), temp)
-        Vector2 Q = transformA:MultiplyAndTranslate(transformA, temp)
-
-        Vector2 A = edge:vertex1
-        Vector2 B = edge:vertex2
-        Vector2 e
-        e:Set(B):Subtract(A)
-
-        number u = e:DotProduct(temp:Set(B):Subtract(Q))
-        number v = e:DotProduct(temp:Set(Q):Subtract(A))
-
-        number radius = edge:GetRadius() + circle:GetRadius()
-        Vector2 d
-        Vector2 e1
-
-        if v <= 0
-            Vector2 P = A
-            d:Set(Q):Subtract(P)
-            number dd = d:DotProduct(d)
-            if dd > radius * radius
-                return now
-            end
-
-            if edge:hasVertex0
-                Vector2 A1 = edge:vertex0
-                Vector2 B1 = A
-                e1:Set(B1):Subtract(A1)
-                number u1 = e1:DotProduct(temp:Set(B1):Subtract(Q))
-
-                if u1 > 0
-                    return now
-                end
-            end
-
-            manifold:pointCount = 1
-            manifold:type = manifold:CIRCLES
-            manifold:localNormal:SetZero()
-            manifold:localPoint:Set(P)
-            manifold:points:Get(0):localPoint:Set(circle:GetSupportVertex())
-            return now
-        end
-
-        if u < 0
-            Vector2 P = B
-            d:Set(Q):Subtract(P)
-            number dd = d:DotProduct(d)
-            if dd > radius * radius
-                return now
-            end
-
-            if edge:hasVertex3
-                Vector2 B2 = edge:vertex3
-                Vector2 A2 = B
-                Vector2 e2 = e1
-                e2:Set(B2):Subtract(A2)
-                number v2 = e2:DotProduct(temp:Set(Q):Subtract(A2))
-
-                if v2 > 0
-                    return now
-                end
-            end
-
-            manifold:pointCount = 1
-            manifold:type = manifold:CIRCLES
-            manifold:localNormal:SetZero()
-            manifold:localPoint:Set(P)
-            manifold:points:Get(0):localPoint:Set(circle:GetSupportVertex())
-            return now
-        end
-
-        Vector2 P
-        number den = e:DotProduct(e)
-        P:Set(A):Scale(u):Add(temp:Set(B):Scale(v))
-        P:Scale(1.0 / den)
-        d:Set(Q):Subtract(P)
-        number dd = d:DotProduct(d)
-        if dd > radius * radius
-            return now
-        end
-
-        Vector2 n
-        n:SetX(-1 * e:GetY())
-        n:SetY(e:GetX())
-        if n:DotProduct(temp:Set(Q):Subtract(A)) < 0
-            n:Set(-1 * n:GetX(), -1 * n:GetY())
-        end
-        n:Normalize()
-
-        manifold:pointCount = 1
-        manifold:type = manifold:FACE_A
-        manifold:localNormal:Set(n)
-        manifold:localPoint:Set(A)
-        manifold:points:Get(0):localPoint:Set(circle:GetSupportVertex())        
-    end
-
-    private integer UNKNOWN = 0
-    private integer EDGE_A = 1
-    private integer EDGE_B = 2
-
-    private integer edgeAxisType = UNKNOWN
-    private integer edgeAxisIndex = 0
-    private number edgeAxisSeparation = 0
-
-    private integer polygonAxisType = UNKNOWN
-    private integer polygonAxisIndex = 0
-    private number polygonAxisSeparation = 0
-    
-    private Transform2D xf
-    private Vector2 centroidB
-    private Vector2 v0
-    private Vector2 v1
-    private Vector2 v2
-    private Vector2 v3
-    private Vector2 normal0
-    private Vector2 normal1
-    private Vector2 normal2
-    private Vector2 normal
-    private Vector2 lowerLimit  
-    private Vector2 upperLimit
-    private number radius = 0
-    private boolean front = true
-    private Vector2 edge1
-    private Vector2 temp
-    private Vector2 edge0
-    private Vector2 edge2
-
-    private Array<Vector2> tempPolygonVertices
-    private Array<Vector2> tempPolygonNormals
-    private integer tempPolygonCount = 0
-
-    private Array<Vector2> ie
-    private Array<Vector2> clipPoints1
-    private Array<Vector2> clipPoints2
-
-    private integer rfi1 = 0
-    private integer rfi2 = 0
-    private Vector2 rfv1
-    private Vector2 rfv2
-    private Vector2 rfnormal
-    private Vector2 rfSideNormal1
-    private number rfSideOffset1 = 0
-    private Vector2 rfSideNormal2
-    private number rfSideOffset2 = 0
-    
-    private action CollideEdgeAndPolygon(ContactManifold2D manifold, Edge edge, Transform2D transformA, Polygon polygon, Transform2D transformB)
-        ie:SetSize(2)
-        clipPoints1:SetSize(2)
-        clipPoints2:SetSize(2)
-
-        repeat 2 times
-            Vector2 i
-            Vector2 c1
-            Vector2 c2
-            ie:Add(i)
-            clipPoints1:Add(c1)
-            clipPoints2:Add(c2)
-        end
-
-        xf = transformA:MultiplyAndTranslate(transformA, transformB)
-        transformA:MultiplyToOut(xf, polygon:GetCentroid(), centroidB)
-
-        v0 = edge:vertex0
-        v1 = edge:vertex0
-        v2 = edge:vertex2
-        v3 = edge:vertex3
-
-        boolean hasVertex0 = edge:hasVertex0
-        boolean hasVertex3 = edge:hasVertex3
-
-        edge1:Set(v2):Subtract(v1)
-        edge1:Normalize()
-        normal1:Set(edge1:GetY(), -1 * edge1:GetX())
-        number offset1 = normal1:DotProduct(temp:Set(centroidB):Subtract(v1))
-        number offset0 = 0
-        number offset2 = 0
-        boolean convex1 = false
-        boolean convex2 = false
-        
-        if hasVertex0
-            edge0:Set(v1):Subtract(v0)
-            edge0:Normalize()
-            normal0:Set(edge0:GetY(), -1 * edge0:GetX())
-            convex1 = edge0:CrossProduct(edge1) >= 0
-            offset0 = normal0:DotProduct(temp:Set(centroidB):Subtract(v0))
-        end
-
-        if hasVertex3
-            edge2:Set(v3):Subtract(v2)
-            edge2:Normalize()
-            normal2:Set(edge2:GetY(), -1 * edge2:GetX())
-            convex2 = edge1:CrossProduct(edge2) > 0
-            offset2 = normal2:DotProduct(temp:Set(centroidB):Subtract(v2))
-        end
-
-        if hasVertex0 and hasVertex3
-            if convex1 and convex2
-                front = offset0 >= 0 or offset1 >= 0 or offset2 >= 0
-                if front
-                    normal:SetX(normal1:GetX())
-                    normal:SetY(normal1:GetY())
-                    lowerLimit:SetX(normal0:GetX())
-                    lowerLimit:SetY(normal0:GetY())
-                    upperLimit:SetX(normal2:GetX())
-                    upperLimit:SetX(normal2:GetY())
-                else
-                    normal:SetX(-1 * normal1:GetX())
-                    normal:SetY(-1 * normal1:GetY())
-                    lowerLimit:SetX(-1 * normal1:GetX())
-                    lowerLimit:SetY(-1 * normal1:GetY())
-                    upperLimit:SetX(-1 * normal1:GetX())
-                    upperLimit:SetY(-1 * normal1:GetY())
-                end
-            elseif convex1
-                front = offset0 >= 0 or (offset1 >= 0 and offset2 >= 0)
-                if front
-                    normal:SetX(normal1:GetX())
-                    normal:SetY(normal1:GetY())
-                    lowerLimit:SetX(normal0:GetX())
-                    lowerLimit:SetY(normal0:GetY())
-                    upperLimit:SetX(normal1:GetX())
-                    upperLimit:SetY(normal1:GetY())
-                else
-                    normal:SetX(-1 * normal1:GetX())
-                    normal:SetY(-1 * normal1:GetY())
-                    lowerLimit:SetX(-1 * normal2:GetX())
-                    lowerLimit:SetY(-1 * normal2:GetY())
-                    upperLimit:SetX(-1 * normal1:GetX())
-                    upperLimit:SetY(-1 * normal1:GetY())
-                end
-            elseif convex2
-                front = offset2 >= 0 or (offset0 >= 0 and offset1 >= 0)
-                if front
-                    normal:SetX(normal1:GetX())
-                    normal:SetY(normal1:GetY())
-                    lowerLimit:SetX(normal1:GetX())
-                    lowerLimit:SetY(normal1:GetY())
-                    upperLimit:SetX(normal2:GetX())
-                    upperLimit:SetY(normal2:GetY())
-                else
-                    normal:SetX(-1 * normal1:GetX())
-                    normal:SetY(-1 * normal1:GetY())
-                    lowerLimit:SetX(-1 * normal1:GetX())
-                    lowerLimit:SetY(-1 * normal1:GetY())
-                    upperLimit:SetX(-1 * normal0:GetX())
-                    upperLimit:SetY(-1 * normal0:GetY())
-                end
-            else
-                front = offset0 >= 0 and offset1 >= 0 and offset2 >= 0
-                if front
-                    normal:SetX(normal1:GetX())
-                    normal:SetY(normal1:GetY())
-                    lowerLimit:SetX(normal1:GetX())
-                    lowerLimit:SetY(normal1:GetY())
-                    upperLimit:SetX(normal1:GetX())
-                    upperLimit:SetY(normal1:GetY())
-                else
-                    normal:SetX(-1 * normal1:GetX())
-                    normal:SetY(-1 * normal1:GetY())
-                    lowerLimit:SetX(-1 * normal2:GetX())
-                    lowerLimit:SetY(-1 * normal2:GetY())
-                    upperLimit:SetX(-1 * normal0:GetX())
-                    upperLimit:SetY(-1 * normal0:GetY())
-                end
-            end
-        elseif hasVertex0
-            if convex1
-                front = offset0 >= 0 or offset1 >= 0
-                if front
-                    normal:SetX(normal1:GetX())
-                    normal:SetY(normal1:GetY())
-                    lowerLimit:SetX(normal0:GetX())
-                    lowerLimit:SetY(normal0:GetY())
-                    upperLimit:SetX(-1 * normal1:GetX())
-                    upperLimit:SetY(-1 * normal1:GetY())
-                else
-                    normal:SetX(-1 * normal1:GetX())
-                    normal:SetY(-1 * normal1:GetY())
-                    lowerLimit:SetX(normal1:GetX())
-                    lowerLimit:SetY(normal1:GetY())
-                    upperLimit:SetX(-1 * normal1:GetX())
-                    upperLimit:SetY(-1 * normal1:GetY())
-                end
-            else
-                front = offset0 >= 0 and offset1 >= 0
-                if front
-                    normal:SetX(normal1:GetX())
-                    normal:SetY(normal1:GetY())
-                    lowerLimit:SetX(normal1:GetX())
-                    lowerLimit:SetY(normal1:GetY())
-                    upperLimit:SetX(-1 * normal1:GetX())
-                    upperLimit:SetY(-1 * normal1:GetY())
-                else
-                    normal:SetX(-1 * normal1:GetX())
-                    normal:SetY(-1 * normal1:GetY())
-                    lowerLimit:SetX(normal1:GetX())
-                    lowerLimit:SetY(normal1:GetY())
-                    upperLimit:SetX(-1 * normal0:GetX())
-                    upperLimit:SetY(-1 * normal0:GetY())
-                end
-            end
-        elseif hasVertex3
-            if convex2
-                front = offset1 >= 0 or offset2 >= 0
-                if front
-                    normal:SetX(normal1:GetX())
-                    normal:SetY(normal1:GetY())
-                    lowerLimit:SetX(-1 * normal1:GetX())
-                    lowerLimit:SetY(-1 * normal1:GetY())
-                    upperLimit:SetX(normal2:GetX())
-                    upperLimit:SetY(normal2:GetY())
-                else
-                    normal:SetX(-1 * normal1:GetX())
-                    normal:SetY(-1 * normal1:GetY())
-                    lowerLimit:SetX(-1 * normal1:GetX())
-                    lowerLimit:SetY(-1 * normal1:GetY())
-                    upperLimit:SetX(normal1:GetX())
-                    upperLimit:SetY(normal1:GetY())
-                end
-            else
-                front = offset1 >= 0 and offset2 >= 0
-                if front
-                    normal:SetX(normal1:GetX())
-                    normal:SetY(normal1:GetY())
-                    lowerLimit:SetX(-1 * normal1:GetX())
-                    lowerLimit:SetY(-1 * normal1:GetY())
-                    upperLimit:SetX(normal1:GetX())
-                    upperLimit:SetY(normal1:GetY())
-                else
-                    normal:SetX(-1 * normal1:GetX())
-                    normal:SetY(-1 * normal1:GetY())
-                    lowerLimit:SetX(-1 * normal2:GetX())
-                    lowerLimit:SetY(-1 * normal2:GetY())
-                    upperLimit:SetX(normal1:GetX())
-                    upperLimit:SetY(normal1:GetY())
-                end
-            end
-        else
-            front = offset1 >= 0
-            if front
-                normal:SetX(normal1:GetX())
-                normal:SetY(normal1:GetY())
-                lowerLimit:SetX(-1 * normal1:GetX())
-                lowerLimit:SetY(-1 * normal1:GetY())
-                upperLimit:SetX(-1 * normal1:GetX())
-                upperLimit:SetY(-1 * normal1:GetY())
-            else
-                normal:SetX(-1 * normal1:GetX())
-                normal:SetY(-1 * normal1:GetY())
-                lowerLimit:SetX(normal1:GetX())
-                lowerLimit:SetY(normal1:GetY())
-                upperLimit:SetX(normal1:GetX())
-                upperLimit:SetY(normal1:GetY())
-            end
-        end
-
-        tempPolygonCount = polygon:GetVertexCount()
-        integer i = 0
-        repeat while i < polygon:GetVertexCount()
-            xf:MultiplyToOut(xf, polygon:GetVertices():Get(i), tempPolygonVertices:Get(i))
-            tempPolygonVertices:Get(i):SetX(xf:GetCosine() * polygon:GetNormals():Get(i):GetX() - xf:GetSine() * polygon:GetNormals():Get(i):GetY())
-            tempPolygonVertices:Get(i):SetY(xf:GetSine() * polygon:GetNormals():Get(i):GetX() + xf:GetCosine() * polygon:GetNormals():Get(i):GetY())
-            i = i + 1
-        end
-
-        radius = 2.0 * (2.0 * 0.005)
-
-        manifold:pointCount = 0
-
-        ComputeEdgeSeparation()
-
-        if edgeAxisType = UNKNOWN
-            return now
-        end
-
-        if edgeAxisSeparation > radius
-            return now
-        end
-
-        ComputePolygonSeparation()
-
-        if polygonAxisType not= UNKNOWN and polygonAxisSeparation > radius
-            return now
-        end
-
-        number k_relativeTol = 0.98
-        number k_absoluteTol = 0.001
-
-        integer primaryAxisType = 0
-        integer primaryAxisIndex = 0
-        number primaryAxisSeparation = 0
-
-        if polygonAxisType = UNKNOWN
-            primaryAxisType = edgeAxisType
-            primaryAxisIndex = edgeAxisIndex
-            primaryAxisSeparation = edgeAxisSeparation
-        elseif polygonAxisSeparation > k_relativeTol * edgeAxisSeparation + k_absoluteTol
-            primaryAxisType = polygonAxisType
-            primaryAxisIndex = polygonAxisIndex
-            primaryAxisSeparation = polygonAxisSeparation
-        else
-            primaryAxisType = edgeAxisType
-            primaryAxisIndex = edgeAxisIndex
-            primaryAxisSeparation = edgeAxisSeparation
-        end
-
-        Vector2 ie0 = ie:Get(0)
-        Vector2 ie1 = ie:Get(1)
-
-        if primaryAxisType = EDGE_A
-            manifold:type = manifold:FACE_A
-
-            integer bestIndex = 0
-            number bestValue = normal:DotProduct(tempPolygonNormals:Get(0))
-            integer j = 1
-            repeat while j < tempPolygonCount
-                number value = normal:DotProduct(tempPolygonNormals:Get(j))
-                if value < bestValue
-                    bestValue = value
-                    bestIndex = j
-                end
-                j = j + 1
-            end
-
-            integer i1 = bestIndex
-            integer i2 = 0
-            if i1 + 1 < tempPolygonCount
-                i2 = i1 + 1
-            end
-
-            ie0:Set(tempPolygonVertices:Get(i1))
-            ie1:Set(tempPolygonVertices:Get(i2))
-
-            if front
-                rfi1 = 0
-                rfi2 = 1
-                rfv1:Set(v1)
-                rfv2:Set(v2)
-                rfnormal:Set(normal1)
-            else
-                rfi1 = 1
-                rfi2 = 0
-                rfv1:Set(v2)
-                rfv2:Set(v1)
-                rfnormal:Set(normal1):Scale(-1)
-            end
-        else
-            manifold:type = manifold:FACE_B
-
-            ie0:Set(v1)
-            ie1:Set(v2)
-            rfi1 = primaryAxisIndex
-            rfi2 = 0
-            if rfi1 + 1 < tempPolygonCount
-                rfi2 = rfi1 + 1
-            end
-            
-            rfv1:Set(tempPolygonVertices:Get(rfi1))
-            rfv2:Set(tempPolygonVertices:Get(rfi2))
-            rfnormal:Set(tempPolygonNormals:Get(rfi1))            
-        end
-
-        rfSideNormal1:Set(rfnormal:GetY(), -1 * rfnormal:GetX())
-        rfSideNormal2:Set(rfSideNormal1):Scale(-1)
-        rfSideOffset1 = rfSideNormal1:DotProduct(rfv1)
-        rfSideOffset2 = rfSideNormal2:DotProduct(rfv2)
-
-        integer np = 0
-
-        np = ClipSegmentToLine(clipPoints1, ie, rfSideNormal1, rfSideOffset1, rfi1)
-        
-        if np < manifold:MAX_MANIFOLD_POINTS
-            return now
-        end
-
-        np = ClipSegmentToLine(clipPoints2, clipPoints1, rfSideNormal2, rfSideOffset2, rfi2)
-
-        if np < manifold:MAX_MANIFOLD_POINTS
-            return now
-        end
-
-        if primaryAxisType = EDGE_A
-            manifold:localNormal:Set(rfnormal)
-            manifold:localPoint:Set(rfv1)
-        else
-            manifold:localNormal:Set(tempPolygonNormals:Get(rfi1))
-            manifold:localPoint:Set(tempPolygonVertices:Get(rfi1))
-        end
-
-        integer pointCount = 0
-        integer j = 0
-        repeat while j < manifold:MAX_MANIFOLD_POINTS
-            number separation = rfnormal:DotProduct(temp:Set(clipPoints2:Get(j)):Subtract(rfv1))
-            if separation <= radius
-                ManifoldPoint2D cp = manifold:points:Get(pointCount)
-                if primaryAxisType = EDGE_A
-                    cp:localPoint:Set(xf:MultiplyAndTranslate(xf, clipPoints2:Get(j)))
-                else
-                    cp:localPoint:Set(clipPoints2:Get(j))
-                end
-                pointCount = pointCount + 1
-            end
-        
-            j = j + 1
-        end
-
-        manifold:pointCount = pointCount
-    end
-
-    private action ComputeEdgeSeparation
-        edgeAxisType = EDGE_A
-        if front
-            edgeAxisIndex = 0
-        else
-            edgeAxisIndex = 1
-        end
-        edgeAxisSeparation = edgeAxisSeparation:GetMaximumValue()
-        number nx = normal:GetX()
-        number ny = normal:GetY()
-
-        integer i = 0
-        repeat while i < tempPolygonCount
-            Vector2 v = tempPolygonVertices:Get(i)
-            number tempx = v:GetX() - v1:GetX()
-            number tempy = v:GetY() - v1:GetY()
-            number s = nx * tempx + ny * tempy
-            if s < edgeAxisSeparation
-                edgeAxisSeparation = s
-            end
-
-            i = i + 1
-        end
-    end
-
-    private action ComputePolygonSeparation
-        polygonAxisType = UNKNOWN
-        polygonAxisIndex = -1
-        polygonAxisSeparation = -1 * polygonAxisSeparation:GetMaximumValue()
-        
-        Vector2 perp
-        perp:SetX(-1 * normal:GetY())
-        perp:SetY(normal:GetX())
-
-        Vector2 n
-
-        integer i = 0
-        repeat while i < tempPolygonCount
-            Vector2 normalB = tempPolygonNormals:Get(i)
-            Vector2 vB = tempPolygonVertices:Get(i)
-
-            n:SetX(-1 * normalB:GetX())
-            n:SetY(-1 * normalB:GetY())
-
-            number tempx = vB:GetX() - v1:GetX()
-            number tempy = vB:GetY() - v1:GetY()
-            number s1 = n:GetX() * tempx + n:GetY() * tempy
-            tempx = vB:GetX() - v2:GetX()
-            tempy = vB:GetY() - v2:GetY()
-            number s2 = n:GetX() * tempx + n:GetY() * tempy
-            number s = s1
-            if s2 < s1
-                s = s2
-            end
-
-            if s > radius
-                polygonAxisType = EDGE_B
-                polygonAxisIndex = i
-                polygonAxisSeparation = s
-                return now
-            end
-
-            boolean jump = false
-            if n:GetX() * perp:GetX() + n:GetY() * perp:GetY() >= 0
-                if temp:Set(n):Subtract(upperLimit):DotProduct(normal) < -1 * (2.0 / 180 * math:pi)
-                    jump = true
-                end
-            else
-                if temp:Set(n):Subtract(lowerLimit):DotProduct(normal) < -1 * (2.0 / 180 * math:pi)
-                    jump = true
-                end
-            end
-
-            if not jump and s > polygonAxisSeparation
-                polygonAxisType = EDGE_B
-                polygonAxisIndex = i
-                polygonAxisSeparation = s
-            end
-
-            i = i + 1
-        end
+        end        
     end
 
     private action FindMaxSeparation(Polygon poly1, Transform2D xf1, Polygon poly2, Transform2D xf2, boolean one)
@@ -1146,10 +521,18 @@ class CollisionEvent2D
         Array<Vector2> v1s = poly1:GetVertices()
         Array<Vector2> v2s = poly2:GetVertices()
 
-        Transform2D xf = xf1:MultiplyAndTranslate(xf2, xf1)
+        Transform2D xf
+        Transform2D A = xf2
+        Transform2D B = xf1
+        Vector2 pool
+        xf:sine = A:GetCosine() * B:GetSine() - A:GetSine() * B:GetCosine()
+        xf:cosine = A:GetCosine() * B:GetCosine() + A:GetSine() * B:GetSine()
+        pool:Set(B:GetPosition()):Subtract(A:GetPosition())
+        xf:GetPosition():SetX(A:GetCosine() * pool:GetX() + A:GetSine() * pool:GetY())
+        xf:GetPosition():SetY(-1 * A:GetSine() * pool:GetX() + A:GetCosine() * pool:GetY())
         
         integer bestIndex = 0
-        number maxSeparation = -1 * EPSILON:GetMaximumValue()
+        number maxSeparation = EPSILON:GetMinimumValue()
 
         Vector2 v1
         Vector2 n
@@ -1158,9 +541,10 @@ class CollisionEvent2D
         repeat while i < count1
             n:SetX(xf:GetCosine() * n1s:Get(i):GetX() - xf:GetSine() * n1s:Get(i):GetY())
             n:SetY(xf:GetSine() * n1s:Get(i):GetX() + xf:GetCosine() * n1s:Get(i):GetY())
-            v1 = xf1:Multiply(xf, v1s:Get(i))
+            v1:SetX(xf:GetCosine() * v1s:Get(i):GetX() - xf:GetSine() * v1s:Get(i):GetY() + xf:GetPosition():GetX())
+            v1:SetY(xf:GetSine() * v1s:Get(i):GetX() + xf:GetCosine() * v1s:Get(i):GetY() + xf:GetPosition():GetY())
 
-            number si = -1 * EPSILON:GetMaximumValue()
+            number si = EPSILON:GetMaximumValue()
             integer j = 0
             repeat while j < count2
                 Vector2 v2sj = v2s:Get(j)
@@ -1177,15 +561,15 @@ class CollisionEvent2D
                 bestIndex = i
             end
 
-            if one
-                edgeIndex1 = bestIndex
-                separation1 = maxSeparation
-            else
-                edgeIndex2 = bestIndex
-                separation2 = maxSeparation
-            end
-
             i = i + 1
+        end
+
+        if one
+            edgeIndex1 = bestIndex
+            separation1 = maxSeparation
+        else
+            edgeIndex2 = bestIndex
+            separation2 = maxSeparation
         end
     end
 
@@ -1207,7 +591,7 @@ class CollisionEvent2D
         number normals1y = -1 * xf2:GetSine() * tempx + xf2:GetCosine() * tempy
 
         integer index = 0
-        number minDot = -1 * EPSILON:GetMaximumValue()
+        number minDot = EPSILON:GetMaximumValue()
         integer i = 0
         repeat while i < count2
             Vector2 b = normals2:Get(i)
@@ -1245,12 +629,12 @@ class CollisionEvent2D
         number distance0 = normal:DotProduct(vIn0) - offset
         number distance1 = normal:DotProduct(vIn1) - offset
 
-        if distance0 < 0
+        if distance0 <= 0
             vOut:Get(numOut):Set(vIn0)
             numOut = numOut + 1
         end
 
-        if distance1 < 0
+        if distance1 <= 0
             vOut:Get(numOut):Set(vIn1)
             numOut = numOut + 1
         end
