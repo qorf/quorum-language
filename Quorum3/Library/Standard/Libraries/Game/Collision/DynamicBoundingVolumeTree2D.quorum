@@ -218,7 +218,7 @@ class DynamicBoundingVolumeTree2D
             if node not= undefined
                 // does the node's bounding box intersect with the passed bounding
                 // box?
-                if node:GetBoundingBox():Intersects(boundingBox)
+                if node:GetBoundingBox():TestOverlap(boundingBox)
                     if node:IsLeaf()
                         boolean proceed = broadphase:ShouldProceed(node:GetID())
                         if not proceed

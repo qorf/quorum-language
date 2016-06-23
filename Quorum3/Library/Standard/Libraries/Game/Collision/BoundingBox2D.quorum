@@ -358,4 +358,16 @@ class BoundingBox2D
     action GetPerimeter returns number
         return 2.0 * (maximum:GetX() - minimum:GetX() + maximum:GetY() - minimum:GetY())
     end
+
+    action TestOverlap(BoundingBox2D boundingBox) returns boolean
+        if boundingBox:GetMinimum():GetX() - maximum:GetX() > 0 or boundingBox:GetMinimum:GetY() - maximum:GetY() > 0
+            return false
+        end
+
+        if minimum:GetX() - boundingBox:GetMaximum():GetX() > 0 or minimum:GetY() - boundingBox:GetMaximum():GetY() > 0
+            return false
+        end
+
+        return true
+    end
 end
