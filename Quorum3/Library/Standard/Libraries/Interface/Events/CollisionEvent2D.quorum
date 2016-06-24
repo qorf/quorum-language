@@ -157,7 +157,7 @@ class CollisionEvent2D
 
     ContactManifold2D oldManifold
 
-    action DispatchCollision(CollisionListener2D listener)
+    action DispatchCollision(Array<CollisionListener2D> listeners)
         oldManifold:Set(manifold)
 
         enabledFlag = true
@@ -166,7 +166,6 @@ class CollisionEvent2D
         boolean wasTouching = touchingFlag
 
         Transform2D transformA = itemA:GetTransform()
-
         Transform2D transformB = itemB:GetTransform()
 
         NarrowphaseEvaluation(manifold, transformA, transformB)
@@ -174,16 +173,18 @@ class CollisionEvent2D
 
         touchingFlag = touching
 
-        if listener = undefined
-            return now
-        end
+        integer i = 0
+        repeat while i < listeners:GetSize()
+            CollisionListener2D listener = listeners:Get(i)
+            if not wasTouching and touching
+                listener:BeginCollision(me)
+            end
 
-        if not wasTouching and touching
-            listener:BeginCollision(me)
-        end
+            if wasTouching and not touching
+                listener:FinishCollision(me)
+            end
 
-        if wasTouching and not touching
-            listener:FinishCollision(me)
+            i = i + 1
         end
     end
 
@@ -260,6 +261,8 @@ class CollisionEvent2D
             edge1 = edgeIndex1
             manifold:type = manifold:FACE_A
         end
+        number xf1qs = xf1:GetSine()
+        number xf1qc = xf1:GetCosine()
 
         Array<Vector2> incidentEdge
         repeat 2 times
@@ -297,11 +300,11 @@ class CollisionEvent2D
         planePoint:SetX((v11:GetX() + v12:GetX()) * 0.5)
         planePoint:SetY((v11:GetY() + v12:GetY()) * 0.5)
 
-        tangent:SetX(xf1:GetCosine() * localTangent:GetX() - xf1:GetSine() * localTangent:GetY())
-        tangent:SetY(xf1:GetSine() * localTangent:GetX() + xf1:GetCosine() * localTangent:GetY())
+        tangent:SetX(xf1qc * localTangent:GetX() - xf1qs * localTangent:GetY())
+        tangent:SetY(xf1qs * localTangent:GetX() + xf1qc * localTangent:GetY())
 
-        number normalx = 1 * tangent:GetY()
-        number normaly = -1 *  tangent:GetX()
+        number normalx = 1.0 * tangent:GetY()
+        number normaly = -1.0 *  tangent:GetX()
 
         xf1:MultiplyToOut(xf1, v11, v11)
         xf1:MultiplyToOut(xf1, v12, v12)

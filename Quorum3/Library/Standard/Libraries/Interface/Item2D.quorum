@@ -33,7 +33,9 @@ class Item2D is Item
     Used internally to pass around position and rotation information
     */
     Transform2D transform
+    Vector2 position
     number z = 0
+    number rotation = 0
 
     Vector2 offset
 
@@ -108,7 +110,7 @@ class Item2D is Item
         myItem:SetX(35.0)
     */
     action SetX(number setX)
-        MoveX(setX - transform:GetPosition():GetX())
+        MoveX(setX - position:GetX())
     end
 
     /*
@@ -121,7 +123,7 @@ class Item2D is Item
         myItem:SetY(210.0)
     */
     action SetY(number setY)
-        MoveY(setY - transform:GetPosition():GetY())
+        MoveY(setY - position:GetY())
     end
 
     /*
@@ -149,7 +151,7 @@ class Item2D is Item
         number value = myItem:GetX()
     */
     action GetX returns number
-        return transform:GetPosition():GetX()
+        return position:GetX()
     end
 
     /*
@@ -162,7 +164,7 @@ class Item2D is Item
         number value = myItem:GetY()
     */
     action GetY returns number
-        return transform:GetPosition():GetY()
+        return position:GetY()
     end
 
     /*
@@ -308,7 +310,7 @@ class Item2D is Item
         number x = myItem:GetCenterX()
     */
     action GetCenterX returns number
-        return transform:GetPosition():GetX() - GetWidth()/2
+        return position:GetX() - GetWidth()/2
     end
 
     /*
@@ -323,7 +325,7 @@ class Item2D is Item
         number y = myItem:GetCenterY()
     */
     action GetCenterY returns number
-        return transform:GetPosition():GetY() - GetHeight()/2
+        return position:GetY() - GetHeight()/2
     end
     
     /*
@@ -378,7 +380,7 @@ class Item2D is Item
 
         integer counter = 0
         repeat children:GetSize() times
-            children:Get(counter):SetOffsetX(transform:GetPosition():GetX() + xAmount)
+            children:Get(counter):SetOffsetX(position:GetX() + xAmount)
             counter = counter + 1
         end
     end
@@ -409,7 +411,7 @@ class Item2D is Item
 
         integer counter = 0
         repeat children:GetSize() times
-            children:Get(counter):SetOffsetY(transform:GetPosition():GetY() + yAmount)
+            children:Get(counter):SetOffsetY(position:GetY() + yAmount)
             counter = counter + 1
         end
     end
@@ -480,7 +482,7 @@ class Item2D is Item
 
         integer counter = 0
         repeat children:GetSize() times
-            children:Get(counter):SetOffset(transform:GetPosition():GetX() + xAmount, transform:GetPosition():GetY() + yAmount)
+            children:Get(counter):SetOffset(position:GetX() + xAmount, transform:GetPosition():GetY() + yAmount)
             counter = counter + 1
         end
     end
@@ -545,8 +547,8 @@ class Item2D is Item
         SetHeight(newHeight)
 
         if verticesChanged = false
-            number parentX = transform:GetPosition():GetX()
-            number parentY = transform:GetPosition():GetY()
+            number parentX = position:GetX()
+            number parentY = position:GetY()
             number x2 = parentX + dimensions:GetX()
             number y2 = parentY + dimensions:GetY()
 
@@ -564,7 +566,7 @@ class Item2D is Item
 
             Math math
 
-            if math:RadiansToDegrees(transform:GetAngle()) - 90 not= 0 or scale:GetX() not= 1 or scale:GetY() not= 1
+            if rotation not= 0 or scale:GetX() not= 1 or scale:GetY() not= 1
                 verticesChanged = true
             end
         end
@@ -589,7 +591,8 @@ class Item2D is Item
             vertices:Set(X4, vertices:Get(X4) + xAmount)
         end
 
-        transform:GetPosition():SetX(transform:GetPosition():GetX() + xAmount)
+        position:SetX(position:GetX() + xAmount)
+        transform:GetPosition():SetX(position:GetX() + dimensions:GetX() / 2)
         SetOffsetX(offset:GetX())
     end
 
@@ -612,7 +615,8 @@ class Item2D is Item
             vertices:Set(Y4, vertices:Get(Y4) + yAmount)
         end
 
-        transform:GetPosition():SetY(transform:GetPosition():GetY() + yAmount)
+        position:SetY(position:GetY() + yAmount)
+        transform:GetPosition():SetY(position:GetY() + dimensions:GetY() / 2)
         SetOffsetY(offset:GetY())
     end
 
@@ -660,8 +664,10 @@ class Item2D is Item
             vertices:Set(Y4, vertices:Get(Y4) + yAmount)
         end
 
-        transform:GetPosition():SetX(transform:GetPosition():GetX() + xAmount)
-        transform:GetPosition():SetY(transform:GetPosition():GetY() + yAmount)
+        position:SetX(position:GetX() + xAmount)
+        position:SetY(position:GetY() + yAmount)
+        transform:GetPosition():SetX(position:GetX() + dimensions:GetX() / 2)
+        transform:GetPosition():SetY(position:GetY() + dimensions:GetY() / 2)
         SetOffset(offset:GetX(), offset:GetY())
     end
 
@@ -974,7 +980,7 @@ class Item2D is Item
         children:Set(index, newItem)
         newItem:SetParent(me)
         newItem:SetLayer(layer)
-        newItem:SetOffset(transform:GetPosition():GetX() + offset:GetX(), transform:GetPosition():GetY() + offset:GetY())
+        newItem:SetOffset(position:GetX() + offset:GetX(), position:GetY() + offset:GetY())
     end
 
     /*  This action returns whether or not any items are contained in this Item.
@@ -1025,8 +1031,7 @@ class Item2D is Item
 
             Math math
 
-            if math:RadiansToDegrees(transform:GetAngle()) - 90 not= 0
-                number rotation = math:RadiansToDegrees(transform:GetAngle()) - 90
+            if rotation not= 0
                 number radians = math:DegreesToRadians(-1 * rotation)
                 number cos = math:Cosine(radians)
                 number sin = math:Sine(radians)
@@ -1356,7 +1361,7 @@ class Item2D is Item
 
         Math math
 
-        if math:RadiansToDegrees(transform:GetAngle()) - 90 not= 0 or scale:GetX() not= 1 or scale:GetY() not= 1
+        if rotation not= 0 or scale:GetX() not= 1 or scale:GetY() not= 1
             verticesChanged = true
         end
 
@@ -1411,7 +1416,8 @@ class Item2D is Item
     */
     action SetRotation(number degrees)
         Math math
-        transform:Set(transform:GetPosition(), math:DegreesToRadians(degrees))
+        rotation = degrees
+        transform:Set(transform:GetPosition(), math:DegreesToRadians(rotation))
         verticesChanged = true
         
         //Iterator<Item> childIterator = GetItems()
@@ -1434,7 +1440,7 @@ class Item2D is Item
                 number tempCenterX = temp:GetX() * temp:GetScaleX() + (temp:GetWidth() * temp:GetScaleX())/2
                 number tempCenterY = temp:GetY() * temp:GetScaleY() + (temp:GetHeight() * temp:GetScaleY())/2
                 startAngle = math:RadiansToDegrees(math:InverseTangent(tempCenterX - centerX, centerY - tempCenterY)) + 360
-                startAngle = startAngle + math:RadiansToDegrees(transform:GetAngle()) - 90
+                startAngle = startAngle + rotation
                 startAngle = startAngle mod 360
                 radius = math:SquareRoot(math:RaiseToPower(tempCenterX - centerX, 2) + math:RaiseToPower(tempCenterY - centerY, 2))
                 number offX = radius * math:Cosine(math:DegreesToRadians(startAngle))
@@ -1460,8 +1466,7 @@ class Item2D is Item
         number rotation = myItem:GetRotation()
     */
     action GetRotation returns number
-        Math math
-        return math:RadiansToDegrees(transform:GetAngle()) - 90
+        return rotation
     end
 
     /*
@@ -1477,7 +1482,7 @@ class Item2D is Item
     */
     action GetRotationInRadians returns number
         Math math
-        return transform:GetAngle() - math:pi / 2
+        return math:DegreesToRadians(rotation)
     end
 
     /*
@@ -1493,7 +1498,8 @@ class Item2D is Item
     */
     action Rotate(number degrees)
         Math math
-        transform:Set(transform:GetPosition(), transform:GetAngle() + math:DegreesToRadians(degrees))
+        rotation = rotation + degrees
+        transform:Set(transform:GetPosition(), math:DegreesToRadians(rotation))
         if degrees not= 0
             verticesChanged = true
         end
@@ -1518,7 +1524,7 @@ class Item2D is Item
                 number tempCenterX = temp:GetX() * temp:GetScaleX() + (temp:GetWidth() * temp:GetScaleX())/2
                 number tempCenterY = temp:GetY() * temp:GetScaleY() + (temp:GetHeight() * temp:GetScaleY())/2
                 startAngle = math:RadiansToDegrees(math:InverseTangent(tempCenterX - centerX, centerY - tempCenterY)) + 360
-                startAngle = startAngle + math:RadiansToDegrees(transform:GetAngle()) - 90
+                startAngle = startAngle + rotation
                 startAngle = startAngle mod 360
                 radius = math:SquareRoot(math:RaiseToPower(tempCenterX - centerX, 2) + math:RaiseToPower(tempCenterY - centerY, 2))
                 number offX = radius * math:Cosine(math:DegreesToRadians(startAngle))
@@ -1570,7 +1576,7 @@ class Item2D is Item
             end
         end
 
-        if math:RadiansToDegrees(transform:GetAngle()) - 90 not= 0
+        if rotation not= 0
             Rotate(0)
         end
     end
@@ -1614,7 +1620,7 @@ class Item2D is Item
             end
         end
 
-        if math:RadiansToDegrees(transform:GetAngle()) - 90 not= 0
+        if rotation not= 0
             Rotate(0)
         end
     end
@@ -1697,7 +1703,7 @@ class Item2D is Item
             end
         end
 
-        if math:RadiansToDegrees(transform:GetAngle()) - 90 not= 0
+        if rotation not= 0
             Rotate(0)
         end
 
@@ -1767,7 +1773,7 @@ class Item2D is Item
         end
 
         Math math
-        if math:RadiansToDegrees(transform:GetAngle()) - 90 not= 0
+        if rotation not= 0
             Rotate(0)
         end
     end

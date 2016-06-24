@@ -169,12 +169,7 @@ class CollisionManager2D
             if not overlap
                 Destroy(collision)
             else
-                integer j = 0
-                repeat while j < listeners:GetSize()
-                    CollisionListener2D listener = listeners:Get(j)
-                    collision:DispatchCollision(listener)
-                    j = j + 1
-                end
+                collision:DispatchCollision(listeners)
             end
             i = i + 1
         end

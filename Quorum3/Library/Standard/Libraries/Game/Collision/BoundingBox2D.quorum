@@ -370,4 +370,30 @@ class BoundingBox2D
 
         return true
     end
+
+    action Combine(BoundingBox2D box1, BoundingBox2D box2)
+        if box1:GetMinimum():GetX() < box2:GetMinimum():GetX()
+            minimum:SetX(box1:GetMinimum():GetX())
+        else
+            minimum:SetX(box2:GetMinimum():GetX())
+        end
+
+        if box1:GetMinimum():GetY() < box2:GetMinimum():GetY()
+            minimum:SetY(box1:GetMinimum():GetY())
+        else
+            minimum:SetY(box2:GetMinimum():GetY())
+        end
+
+        if box1:GetMaximum():GetX() > box2:GetMaximum():GetX()
+            maximum:SetX(box1:GetMaximum():GetX())
+        else
+            maximum:SetX(box2:GetMaximum():GetX())
+        end
+
+        if box1:GetMaximum():GetY() > box2:GetMaximum():GetY()
+            maximum:SetY(box1:GetMaximum():GetY())
+        else
+            maximum:SetY(box2:GetMaximum():GetY())
+        end
+    end
 end

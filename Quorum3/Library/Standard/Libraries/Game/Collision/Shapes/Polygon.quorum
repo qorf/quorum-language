@@ -173,11 +173,13 @@ class Polygon is CollisionShape2D
     end
 
     action SetAsBox(number width, number height)
+        number halfWidth = width / 2
+        number halfHeight = height / 2
         vertexCount = 4
-        vertices:Get(0):Set(0, 0)
-        vertices:Get(1):Set(width, 0)
-        vertices:Get(2):Set(width, height)
-        vertices:Get(3):Set(0, height)
+        vertices:Get(0):Set(-1 * halfWidth, -1 * halfHeight)
+        vertices:Get(1):Set(halfWidth, -1 * halfHeight)
+        vertices:Get(2):Set(halfWidth, halfHeight)
+        vertices:Get(3):Set(-1 * halfWidth, halfHeight)
         normals:Get(0):Set(0, -1)
         normals:Get(1):Set(1, 0)
         normals:Get(2):Set(0, 1)
@@ -186,11 +188,13 @@ class Polygon is CollisionShape2D
     end
 
     action SetAsBox(number width, number height, Vector2 center, number angle)
+        number halfWidth = width / 2
+        number halfHeight = height / 2
         vertexCount = 4
-        vertices:Get(0):Set(0, 0)
-        vertices:Get(1):Set(width, 0)
-        vertices:Get(2):Set(width, height)
-        vertices:Get(3):Set(0, height)
+        vertices:Get(0):Set(-1 * halfWidth, -1 * halfHeight)
+        vertices:Get(1):Set(halfWidth, -1 * halfHeight)
+        vertices:Get(2):Set(halfWidth, halfHeight)
+        vertices:Get(3):Set(-1 * halfWidth, halfHeight)
         normals:Get(0):Set(0, -1)
         normals:Get(1):Set(1, 0)
         normals:Get(2):Set(0, 1)

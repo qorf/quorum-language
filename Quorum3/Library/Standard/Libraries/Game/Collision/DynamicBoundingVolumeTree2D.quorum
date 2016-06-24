@@ -416,8 +416,7 @@ class DynamicBoundingVolumeTree2D
 
                 // see how large the bounding box becoems if we extend the
                 // current bounding box with the new node's bounding box
-                combinedBoundingBox:Set(node:GetBoundingBox())
-                combinedBoundingBox:Extend(leafBoundingBox)
+                combinedBoundingBox:Combine(node:GetBoundingBox(), leafBoundingBox)
                 number combinedPerimeter = combinedBoundingBox:GetPerimeter()
 
                 // the cost of inserting the node N here
@@ -438,15 +437,13 @@ class DynamicBoundingVolumeTree2D
                 if leftChild:IsLeaf()
                     // if L is a leaf, then the total cost is the combined
                     // bounding box perimeter plus the inheritence cost
-                    combinedBoundingBox:Set(leafBoundingBox)
-                    combinedBoundingBox:Extend(leftChild:GetBoundingBox())
+                    combinedBoundingBox:Combine(leafBoundingBox, leftChild:GetBoundingBox())
                     cost1 = combinedBoundingBox:GetPerimeter() + inheritenceCost
                 else
                     // if L is not a leaf, then the cost is at least the
                     // difference between the new and old perimeters plus
                     // the inheritence cost
-                    combinedBoundingBox:Set(leafBoundingBox)
-                    combinedBoundingBox:Extend(leftChild:GetBoundingBox())
+                    combinedBoundingBox:Combine(leafBoundingBox, leftChild:GetBoundingBox())
                     number oldPerimeter = leftChild:GetBoundingBox():GetPerimeter()
                     number newPerimeter = combinedBoundingBox:GetPerimeter()
                     cost1 = (newPerimeter - oldPerimeter) + inheritenceCost
@@ -458,15 +455,13 @@ class DynamicBoundingVolumeTree2D
                 if rightChild:IsLeaf()
                     // if R is a leaf, then the total cost is the combined
                     // bounding box perimeter plus the inheritence cost
-                    combinedBoundingBox:Set(leafBoundingBox)
-                    combinedBoundingBox:Extend(rightChild:GetBoundingBox())
+                    combinedBoundingBox:Combine(leafBoundingBox, rightChild:GetBoundingBox())
                     cost1 = combinedBoundingBox:GetPerimeter() + inheritenceCost
                 else
                     // if R is not a leaf, then the cost is at least the
                     // difference between the new and old perimeters plus
                     // the inheritence cost
-                    combinedBoundingBox:Set(leafBoundingBox)
-                    combinedBoundingBox:Extend(rightChild:GetBoundingBox())
+                    combinedBoundingBox:Combine(leafBoundingBox, rightChild:GetBoundingBox())
                     number oldPerimeter = rightChild:GetBoundingBox():GetPerimeter()
                     number newPerimeter = combinedBoundingBox:GetPerimeter()
                     cost2 = (newPerimeter - oldPerimeter) + inheritenceCost
@@ -494,8 +489,7 @@ class DynamicBoundingVolumeTree2D
             DynamicBoundingVolumeTreeNode2D newParent = AllocateNode()
             newParent:SetParent(oldParent)
             newParent:SetObject(undefined)
-            newParent:GetBoundingBox():Set(leafBoundingBox)
-            newParent:GetBoundingBox():Extend(sibling:GetBoundingBox())
+            newParent:GetBoundingBox():Combine(leafBoundingBox, sibling:GetBoundingBox())
             newParent:SetHeight(sibling:GetHeight() + 1)
 
             if oldParent not= undefined
@@ -536,8 +530,7 @@ class DynamicBoundingVolumeTree2D
                 end
 
                 temporary:SetHeight(1 + maxHeight)
-                temporary:GetBoundingBox():Set(leftChild:GetBoundingBox())
-                temporary:GetBoundingBox():Extend(rightChild:GetBoundingBox())
+                temporary:GetBoundingBox():Combine(leftChild:GetBoundingBox(), rightChild:GetBoundingBox())
 
                 temporary = temporary:GetParent()
             end
@@ -580,8 +573,7 @@ class DynamicBoundingVolumeTree2D
                 DynamicBoundingVolumeTreeNode2D leftChild = temporary:GetLeftChild()
                 DynamicBoundingVolumeTreeNode2D rightChild = temporary:GetRightChild()
 
-                temporary:GetBoundingBox():Set(leftChild:GetBoundingBox())
-                temporary:GetBoundingBox():Extend(rightChild:GetBoundingBox())
+                temporary:GetBoundingBox():Combine(leftChild:GetBoundingBox(), rightChild:GetBoundingBox())
 
                 integer maxHeight = leftChild:GetHeight()
 
