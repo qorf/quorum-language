@@ -1417,7 +1417,7 @@ class Item2D is Item
     action SetRotation(number degrees)
         Math math
         rotation = degrees
-        transform:Set(transform:GetPosition(), math:DegreesToRadians(rotation))
+        transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
         verticesChanged = true
         
         //Iterator<Item> childIterator = GetItems()
@@ -1499,7 +1499,7 @@ class Item2D is Item
     action Rotate(number degrees)
         Math math
         rotation = rotation + degrees
-        transform:Set(transform:GetPosition(), math:DegreesToRadians(rotation))
+        transform:Set(transform:GetPosition(), -1 *  math:DegreesToRadians(rotation))
         if degrees not= 0
             verticesChanged = true
         end
