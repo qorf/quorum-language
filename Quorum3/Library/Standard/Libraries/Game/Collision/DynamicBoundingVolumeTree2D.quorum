@@ -59,8 +59,13 @@ class DynamicBoundingVolumeTree2D
         integer id = newNode:GetID()
         // calculate the bounding box for the node
         BoundingBox2D nodeBoundingBox = newNode:GetBoundingBox()
-        nodeBoundingBox:GetMinimum():Set(boundingBox:GetMinimum():GetX() - boundingBoxExtension, boundingBox:GetMinimum():GetY() - boundingBoxExtension)
-        nodeBoundingBox:GetMaximum():Set(boundingBox:GetMaximum():GetX() + boundingBoxExtension, boundingBox:GetMaximum():GetY() + boundingBoxExtension)
+        Vector2 minimum
+        Vector2 maximum
+        minimum:SetX(boundingBox:GetMinimum():GetX() - boundingBoxExtension)
+        minimum:SetY(boundingBox:GetMinimum():GetY() - boundingBoxExtension)
+        maximum:SetX(boundingBox:GetMaximum():GetX() + boundingBoxExtension)
+        maximum:SetY(boundingBox:GetMaximum():GetY() + boundingBoxExtension)
+        nodeBoundingBox:Set(minimum, maximum)
         newNode:SetObject(object)
 
         // insert into the tree
@@ -310,7 +315,7 @@ class DynamicBoundingVolumeTree2D
         number totalPerimeter = 0
         integer i = 0
         repeat while i < nodesCapacity
-            DynamicBoundingVolumeTreeNode2D node
+            DynamicBoundingVolumeTreeNode2D node = nodes:Get(i)
             if node:GetHeight() >= 0
                 totalPerimeter = totalPerimeter + node:GetBoundingBox():GetPerimeter()
             end
@@ -456,7 +461,7 @@ class DynamicBoundingVolumeTree2D
                     // if R is a leaf, then the total cost is the combined
                     // bounding box perimeter plus the inheritence cost
                     combinedBoundingBox:Combine(leafBoundingBox, rightChild:GetBoundingBox())
-                    cost1 = combinedBoundingBox:GetPerimeter() + inheritenceCost
+                    cost2 = combinedBoundingBox:GetPerimeter() + inheritenceCost
                 else
                     // if R is not a leaf, then the cost is at least the
                     // difference between the new and old perimeters plus
@@ -548,7 +553,7 @@ class DynamicBoundingVolumeTree2D
 
         DynamicBoundingVolumeTreeNode2D nodeParent = node:GetParent()
         DynamicBoundingVolumeTreeNode2D grandParent = nodeParent:GetParent()
-        DynamicBoundingVolumeTreeNode2D sibling
+        DynamicBoundingVolumeTreeNode2D sibling = undefined
         
         if nodeParent:GetLeftChild() = node
             sibling = nodeParent:GetRightChild()
@@ -633,11 +638,8 @@ class DynamicBoundingVolumeTree2D
                 A:SetRightChild(iG)
                 G:SetParent(node)
 
-                A:GetBoundingBox():Set(B:GetBoundingBox())
-                A:GetBoundingBox():Extend(G:GetBoundingBox())
-
-                C:GetBoundingBox():Set(A:GetBoundingBox())
-                C:GetBoundingBox():Extend(F:GetBoundingBox())
+                A:GetBoundingBox():Combine(B:GetBoundingBox(), G:GetBoundingBox())
+                C:GetBoundingBox():Combine(A:GetBoundingBox(), F:GetBoundingBox())
 
                 integer maxHeight = B:GetHeight()
                 if maxHeight < G:GetHeight()
@@ -655,11 +657,8 @@ class DynamicBoundingVolumeTree2D
                 A:SetRightChild(iF)
                 F:SetParent(node)
 
-                A:GetBoundingBox():Set(B:GetBoundingBox())
-                A:GetBoundingBox():Extend(F:GetBoundingBox())
-
-                C:GetBoundingBox():Set(A:GetBoundingBox())
-                C:GetBoundingBox():Extend(G:GetBoundingBox())
+                A:GetBoundingBox():Combine(B:GetBoundingBox(), F:GetBoundingBox())
+                C:GetBoundingBox():Combine(A:GetBoundingBox(), G:GetBoundingBox())
 
                 integer maxHeight = B:GetHeight()
                 if maxHeight < F:GetHeight()
@@ -702,48 +701,38 @@ class DynamicBoundingVolumeTree2D
                 A:SetLeftChild(iE)
                 E:SetParent(node)
 
-                A:GetBoundingBox():Set(C:GetBoundingBox())
-                A:GetBoundingBox():Extend(E:GetBoundingBox())
-
-                B:GetBoundingBox():Set(A:GetBoundingBox())
-                B:GetBoundingBox():Extend(D:GetBoundingBox())
+                A:GetBoundingBox():Combine(C:GetBoundingBox(), E:GetBoundingBox())
+                B:GetBoundingBox():Combine(A:GetBoundingBox(), D:GetBoundingBox())
 
                 integer maxHeight = C:GetHeight()
                 if maxHeight < E:GetHeight()
                     maxHeight = E:GetHeight()
                 end
-
                 A:SetHeight(1 + maxHeight)
 
                 maxHeight = A:GetHeight()
                 if maxHeight < D:GetHeight()
                     maxHeight = D:GetHeight()
                 end
-
                 B:SetHeight(1 + maxHeight)
             else
                 B:SetRightChild(iE)
                 A:SetLeftChild(iD)
                 D:SetParent(node)
 
-                A:GetBoundingBox():Set(C:GetBoundingBox())
-                A:GetBoundingBox():Extend(D:GetBoundingBox())
-
-                B:GetBoundingBox():Set(A:GetBoundingBox())
-                B:GetBoundingBox():Extend(E:GetBoundingBox())
+                A:GetBoundingBox():Combine(C:GetBoundingBox(), D:GetBoundingBox())
+                B:GetBoundingBox():Combine(A:GetBoundingBox(), E:GetBoundingBox())
 
                 integer maxHeight = C:GetHeight()
                 if maxHeight < D:GetHeight()
                     maxHeight = D:GetHeight()
                 end
-
                 A:SetHeight(1 + maxHeight)
 
                 maxHeight = A:GetHeight()
                 if maxHeight < E:GetHeight()
                     maxHeight = E:GetHeight()
                 end
-
                 B:SetHeight(1 + maxHeight)
             end
 
