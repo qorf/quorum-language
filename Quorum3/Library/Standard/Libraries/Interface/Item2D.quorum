@@ -482,7 +482,7 @@ class Item2D is Item
 
         integer counter = 0
         repeat children:GetSize() times
-            children:Get(counter):SetOffset(position:GetX() + xAmount, transform:GetPosition():GetY() + yAmount)
+            children:Get(counter):SetOffset(position:GetX() + xAmount, position:GetY() + yAmount)
             counter = counter + 1
         end
     end
@@ -592,7 +592,7 @@ class Item2D is Item
         end
 
         position:SetX(position:GetX() + xAmount)
-        transform:GetPosition():SetX(position:GetX() + dimensions:GetX() / 2)
+        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
         SetOffsetX(offset:GetX())
     end
 
@@ -616,7 +616,7 @@ class Item2D is Item
         end
 
         position:SetY(position:GetY() + yAmount)
-        transform:GetPosition():SetY(position:GetY() + dimensions:GetY() / 2)
+        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
         SetOffsetY(offset:GetY())
     end
 
@@ -666,8 +666,8 @@ class Item2D is Item
 
         position:SetX(position:GetX() + xAmount)
         position:SetY(position:GetY() + yAmount)
-        transform:GetPosition():SetX(position:GetX() + dimensions:GetX() / 2)
-        transform:GetPosition():SetY(position:GetY() + dimensions:GetY() / 2)
+        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
+        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
         SetOffset(offset:GetX(), offset:GetY())
     end
 
@@ -2159,6 +2159,7 @@ class Item2D is Item
 
     action CreateNodes(BroadphaseCollision2D broadphase, Transform2D transform)
         if collidable and shape not= undefined
+            nodes:Empty()
             nodeCount = shape:GetChildCount()
             integer i = 0
             repeat while i < nodeCount
