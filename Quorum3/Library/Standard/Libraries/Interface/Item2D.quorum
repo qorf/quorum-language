@@ -68,6 +68,8 @@ class Item2D is Item
 
     public ContactEdge2D contactList = undefined
 
+    Transform2D transform0
+
     on create
         vertices:SetSize(20)
         scale:Set(1, 1)
@@ -75,6 +77,8 @@ class Item2D is Item
 
     private boolean widthSet = false
     private boolean heightSet = false
+    private boolean layerSet = false
+    private boolean nodesSet = false
 
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
@@ -220,16 +224,15 @@ class Item2D is Item
     */
     action SetWidth(number newWidth)
         dimensions:SetX(newWidth)
-        Polygon polygon
-        polygon:SetAsBox(newWidth, dimensions:GetY())
-        shape = polygon
         widthSet = true
 
         if widthSet and heightSet
-            if layer not= undefined
-                CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
-            end
+            Polygon polygon
+            polygon:SetAsBox(dimensions:GetX(), dimensions:GetY())
+            SetShape(polygon)
         end
+
+        transform0:GetPosition():SetX(newWidth / 2)
     end
 
     /*
@@ -243,16 +246,15 @@ class Item2D is Item
     */
     action SetHeight(number newHeight)
         dimensions:SetY(newHeight)
-        Polygon polygon
-        polygon:SetAsBox(dimensions:GetX(), newHeight)
-        shape = polygon
         heightSet = true
 
         if widthSet and heightSet
-            if layer not= undefined
-                CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
-            end
+            Polygon polygon
+            polygon:SetAsBox(dimensions:GetX(), dimensions:GetY())
+            SetShape(polygon)
         end
+
+        transform0:GetPosition():SetY(newHeight / 2)
     end
 
     /*
@@ -378,6 +380,8 @@ class Item2D is Item
 
         offset:SetX(xAmount)
 
+        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
+
         integer counter = 0
         repeat children:GetSize() times
             children:Get(counter):SetOffsetX(position:GetX() + xAmount)
@@ -408,6 +412,8 @@ class Item2D is Item
         end
 
         offset:SetY(yAmount)
+
+        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
 
         integer counter = 0
         repeat children:GetSize() times
@@ -479,6 +485,10 @@ class Item2D is Item
 
         offset:SetX(xAmount)
         offset:SetY(yAmount)
+
+
+        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
+        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
 
         integer counter = 0
         repeat children:GetSize() times
@@ -592,7 +602,6 @@ class Item2D is Item
         end
 
         position:SetX(position:GetX() + xAmount)
-        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
         SetOffsetX(offset:GetX())
     end
 
@@ -616,7 +625,6 @@ class Item2D is Item
         end
 
         position:SetY(position:GetY() + yAmount)
-        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
         SetOffsetY(offset:GetY())
     end
 
@@ -666,8 +674,6 @@ class Item2D is Item
 
         position:SetX(position:GetX() + xAmount)
         position:SetY(position:GetY() + yAmount)
-        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
-        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
         SetOffset(offset:GetX(), offset:GetY())
     end
 
@@ -827,6 +833,9 @@ class Item2D is Item
         newItem:SetLayer(layer)
         newItem:PrepareVertices()
         newItem:SetOffset(GetX() + GetOffsetX(), GetY() + GetOffsetY())
+        if layer not= undefined
+            layer:SetNewItemAdded(true)
+        end
     end
 
     /*  
@@ -848,6 +857,9 @@ class Item2D is Item
         newItem:PrepareVertices()
         newItem:SetLayer(layer)
         newItem:SetOffset(GetX() + GetOffsetX(), GetY() + GetOffsetY())
+        if layer not= undefined
+            layer:SetNewItemAdded(true)
+        end
     end
 
     /*  
@@ -871,6 +883,15 @@ class Item2D is Item
         removed:SetParent(undefined)
         removed:SetLayer(layer)
         removed:SetOffset(0, 0)
+        ContactEdge2D edge = removed:contactList
+        repeat while edge not= undefined
+            ContactEdge2D edge0 = edge
+            edge = edge:next
+            layer:GetCollisionManager():Destroy(edge0:collision)
+        end
+        removed:contactList = undefined
+
+        removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
         return success
     end
 
@@ -895,6 +916,15 @@ class Item2D is Item
         temp:SetParent(undefined)
         temp:SetLayer(undefined)
         temp:SetOffset(0, 0)
+        ContactEdge2D edge = temp:contactList
+        repeat while edge not= undefined
+            ContactEdge2D edge0 = edge
+            edge = edge:next
+            layer:GetCollisionManager():Destroy(edge0:collision)
+        end
+        temp:contactList = undefined
+
+        temp:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
         return temp
     end
 
@@ -981,6 +1011,9 @@ class Item2D is Item
         newItem:SetParent(me)
         newItem:SetLayer(layer)
         newItem:SetOffset(position:GetX() + offset:GetX(), position:GetY() + offset:GetY())
+        if layer not= undefined
+            layer:SetNewItemAdded(true)
+        end
     end
 
     /*  This action returns whether or not any items are contained in this Item.
@@ -2062,7 +2095,20 @@ class Item2D is Item
     */
     action SetLayer(Layer2D parentLayer)
         layer = parentLayer
-        if widthSet and heightSet
+
+        if layer not= undefined
+            layerSet = true
+        else
+            layerSet = false
+        end
+
+        integer i = 0
+        repeat children:GetSize() times
+            children:Get(i):SetLayer(parentLayer)
+            i = i + 1
+        end
+
+        if layerSet and shape not= undefined
             CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
         end
     end
@@ -2098,14 +2144,15 @@ class Item2D is Item
     end
 
     action SynchronizeNodes
-        Math math
-        Transform2D transform
-        transform:sine = math:Sine(sweep:angle0)
-        transform:cosine = math:Cosine(sweep:angle0)
-        transform:position:SetX(sweep:center0:GetX() - transform:cosine * sweep:localCenter:GetX() + transform:sine * sweep:localCenter:GetY())
-        transform:position:SetY(sweep:center0:GetY() - transform:sine * sweep:localCenter:GetX() - transform:cosine * sweep:localCenter:GetY())        
-        
-        Synchronize(layer:GetCollisionManager():GetBroadphase(), transform, me:transform)
+        Synchronize(layer:GetCollisionManager():GetBroadphase(), me:transform0, me:transform)
+        transform0:Set(me:transform)
+
+        integer i = 0
+        repeat children:GetSize() times
+            Item2D child = children:Get(i)
+            child:SynchronizeNodes()
+            i = i + 1
+        end
     end
 
     action SynchronizeTransform
@@ -2138,7 +2185,11 @@ class Item2D is Item
     end
 
     action SetShape(CollisionShape2D shape)
+        nodesSet = false
         me:shape = shape:Copy()
+        if layerSet
+            CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+        end
     end
 
     action GetShape returns CollisionShape2D
@@ -2158,8 +2209,11 @@ class Item2D is Item
     end
 
     action CreateNodes(BroadphaseCollision2D broadphase, Transform2D transform)
-        if collidable and shape not= undefined
-            nodes:Empty()
+        if nodesSet
+            DestroyNodes(broadphase)
+        end
+
+        if collidable
             nodeCount = shape:GetChildCount()
             integer i = 0
             repeat while i < nodeCount
@@ -2171,6 +2225,7 @@ class Item2D is Item
                 nodes:Add(node)
                 i = i + 1
             end
+            nodesSet = true
         end
     end
 
@@ -2185,6 +2240,7 @@ class Item2D is Item
 
         nodeCount = 0
         nodes:Empty()
+        nodesSet = false
     end
 
     private action Synchronize(BroadphaseCollision2D broadphase, Transform2D transform1, Transform2D transform2)
@@ -2268,5 +2324,9 @@ class Item2D is Item
 
     action IsCollidable returns boolean
         return collidable
+    end
+
+    action GetChildren returns Array<Item2D>
+        return children
     end
 end
