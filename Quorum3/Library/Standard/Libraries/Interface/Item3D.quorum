@@ -1068,8 +1068,8 @@ class Item3D is Item
         myItem:Rotate(vector, 90, false)
 
     */
-    action Rotate(Vector3 vector, number degrees, boolean rotateChildren)
-        transform:Rotate(vector, degrees)
+    action Rotate(Vector3 vector3, number degrees, boolean rotateChildren)
+        transform:Rotate(vector3, degrees)
 
         if rotateChildren and not children:IsEmpty()
 
@@ -1078,6 +1078,12 @@ class Item3D is Item
             number cos = math:Cosine(radians)
             number sin = math:Sine(radians)
             Item3D child = undefined
+
+            Vector3 vector
+            vector:Set(vector3)
+            vector:Normalize()
+            vector:SetX(vector:GetX() * -1)
+
             Vector3 globalOffset = GetGlobalPosition()
             Vector3 rotation
             Vector3 temp
@@ -1100,7 +1106,7 @@ class Item3D is Item
                 rotation:Add(globalOffset):Subtract(child:GetPosition())
 
                 child:SetOffset(rotation)
-                child:Rotate(vector, degrees, true)
+                child:Rotate(vector3, degrees, true)
 
                 counter = counter + 1
             end
