@@ -25,18 +25,40 @@ public class QuorumFile {
      * The working directory this instance of File is using to resolve relative
      * paths. This path always represents an existing directory.
      */
-    protected String workingDirectory = System.getProperty("user.dir");
+    protected String workingDirectory = defaultWorkingDirectory;
     
     /*
      * The "File" object we are representing here on the Java side.
      */
     protected File file = null;
     
+    /*
+     * The default working directory, stored statically for reuse.
+     */
+    private final static String defaultWorkingDirectory;
+    
+    static
+    {
+        quorum.Libraries.Game.IOSApplication_ iosApp = null;
+        
+        if (System.getProperty("os.name").toLowerCase().contains("ios"))
+            iosApp = new quorum.Libraries.Game.IOSApplication();
+        
+        if ((iosApp != null) && (!iosApp.IsRunningOnSimulator()))
+        {
+            defaultWorkingDirectory = iosApp.GetApplicationLocation();
+        }
+        else
+        {
+            defaultWorkingDirectory = System.getProperty("user.dir");
+        }
+    }
+    
     /**
      * Set our file to the current directory.
      */
     public QuorumFile() {
-        file = new File(System.getProperty("user.dir"));
+        file = new File(defaultWorkingDirectory);
         path = "";
     }
     
