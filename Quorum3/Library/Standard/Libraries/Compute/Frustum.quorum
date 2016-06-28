@@ -124,8 +124,6 @@ class Frustum
         Object o = clipSpacePlanePointsArray:Copy()
         planePointsArray = cast(Array<number>, o)
 
-        Matrix4 temp
-        //temp:Project(inverseProjectionView:values, planePointsArray, 0, 8, 3)
         integer i = 0
         integer j = 0
         repeat 8 times
@@ -138,6 +136,20 @@ class Frustum
             j = j + 1
             i = i + 1
         end
+
+        inverseProjectionView:Project(inverseProjectionView, planePoints)
+//        integer i = 0
+//        integer j = 0
+//        repeat 8 times
+//            Vector3 v = planePoints:Get(i)
+//            v:SetX(planePointsArray:Get(j))
+//            j = j + 1
+//            v:SetY(planePointsArray:Get(j))
+//            j = j + 1
+//            v:SetZ(planePointsArray:Get(j))
+//            j = j + 1
+//            i = i + 1
+//        end
 
         planes:Get(0):Set(planePoints:Get(1), planePoints:Get(0), planePoints:Get(2))
         planes:Get(1):Set(planePoints:Get(4), planePoints:Get(5), planePoints:Get(7))

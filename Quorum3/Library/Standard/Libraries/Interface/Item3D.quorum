@@ -1087,6 +1087,10 @@ class Item3D is Item
             Vector3 globalOffset = GetGlobalPosition()
             Vector3 rotation
             Vector3 temp
+            Vector3 vector3
+            vector3:Set(vector)
+            vector3:Scale(-1, -1, 1)
+            vector3:Normalize()
 
             /*
             Set the children's offset using Rodrigues' Rotation Formula.
@@ -1096,10 +1100,10 @@ class Item3D is Item
                 Vector3 localOffset = child:GetGlobalPosition()
                 localOffset:Subtract(globalOffset)
                 
-                temp:Set(vector):CrossProduct(localOffset):Scale(sin)
+                temp:Set(vector3):CrossProduct(localOffset):Scale(sin)
                 rotation = localOffset:Scale(cos)
                 rotation:Add(temp)
-                temp:Set(vector)
+                temp:Set(vector3)
                 temp:Scale((1 - cos) * temp:DotProduct(localOffset))
                 rotation:Add(temp)
                 

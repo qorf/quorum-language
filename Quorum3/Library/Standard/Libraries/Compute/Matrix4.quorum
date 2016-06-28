@@ -4041,5 +4041,70 @@ class Matrix4
         number z = (vector:GetX() * matrix:row2column0 + vector:GetY() * matrix:row2column1 + vector:GetZ() * matrix:row2column2 + matrix:row2column3) * inv_w
         vector:Set(x, y, z)
     end
+
+    /*
+    This action will multiply the provided vectors by the given Matrix4 (which
+    can be this Matrix4 object or any other Matrix4). The results are stored in
+    the array of Vector3 objects provided.
+
+    Attribute: Parameter matrix The matrix
+    Attribute: Parameter vectors The array of vectors to be multiplied
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vector3
+    use Libraries.Containers.Array
+
+    Vector3 vectorA
+    Vector3 vectorB
+    Array<Vector3> array
+    Matrix4 matrix
+
+    vectorA:Set(3.0, 4.0, 2.0)
+    vectorB:Set(-0.5, 2.0, 0)
+    array:Add(vectorA)
+    array:Add(vectorB)
+
+    matrix:row0column0 = 2 * 3 / (100 - 0)
+    matrix:row0column1 = 0
+    matrix:row0column2 = (100 + 0) / (100 - 0)
+    matrix:row0column3 = 0
+    matrix:row1column0 = 0
+    matrix:row1column1 = 2 * 3 / (100 - 0)
+    matrix:row1column2 = (100 + 0) / (100 - 0)
+    matrix:row1column3 = 0
+    matrix:row2column0 = 0
+    matrix:row2column1 = 0
+    matrix:row2column2 = -1 * (10 + 3) / (10 - 3)
+    matrix:row2column3 = -2 * 10 * 3 / (10 - 3)
+    matrix:row3column0 = 0
+    matrix:row3column1 = 0
+    matrix:row3column2 = -1
+    matrix:row3column3 = 0
+
+    matrix:Project(matrix, array)
+
+    integer counter = 0
+    repeat array:GetSize() times
+        Vector3 vector = array:Get(counter)
+
+        number newX = vector:GetX()
+        number newY = vector:GetY()
+        number newZ = vector:GetZ()
+
+        output "The vector at array position " + counter + " is: [" + newX + ", " + newY + ", " + newZ + "]"
+
+        counter = counter + 1
+    end
+
+    */
+    action Project(Matrix4 matrix, Array<Vector3> vectors)
+        integer counter = 0
+        repeat vectors:GetSize() times
+            Project(matrix, vectors:Get(counter))
+            counter = counter + 1
+        end
+    end
       
 end
