@@ -109,37 +109,29 @@ public class SendToIPhoneSimulator extends QuorumAction implements ActionListene
             String outputLocation = runDirectory.getAbsolutePath();
             
             resources = FileUtil.toFile(project.getProjectDirectory()).getAbsolutePath() + File.separator + resources;
-            signing = "'" + signing + "'"; 
+            signing = "'" + signing + "'";
             
-            String newName = project.getExecutableName();
-            newName = newName.substring(0, newName.length() - 3);
-            newName = newName + "ipa";
-            
-            
-//            ./robovm -os ios -arch x86_64 -libs 
-//                    libfreetype.a:libGameEngineCPlugins.a:libObjectAL.a 
-//                    -classpath robovm-cocoatouch-1.8.0.jar:robovm-rt-1.8.0.jar:robovm-objc-1.8.0.jar 
-//                    -weakframeworks OpenGLES:UIKit:QuartzCore:CoreGraphics:OpenAL:AudioToolbox:AVFoundation 
-//                    -jar Default.jar -run 
-//                    -resources Ding2.wav
             String runFullPath = runDirectory.getAbsolutePath() + "/" + project.getExecutableName();
-            ProcessBuilder builder = new ProcessBuilder(robovmCommand, 
-                "-os", "ios", "-arch x86_64",
-                " -libs", "libfreetype.a:libGameEngineCPlugins.a:libObjectAL.a",
+            
+            ProcessBuilder builder = new ProcessBuilder(robovmCommand, //args
+                    
+                "-os", "ios",
+                "-arch", "x86_64",
+                "-libs", "libfreetype.a:libGameEngineCPlugins.a:libObjectAL.a",
                 "-classpath", "robovm-cocoatouch-1.8.0.jar:robovm-rt-1.8.0.jar:robovm-objc-1.8.0.jar",
-                " -weakframeworks", "OpenGLES:UIKit:QuartzCore:CoreGraphics:OpenAL:AudioToolbox:AVFoundation",
+                "-weakframeworks", "OpenGLES:UIKit:QuartzCore:CoreGraphics:OpenAL:AudioToolbox:AVFoundation",
                 "-resources", resources,
                 "-jar", runFullPath, 
                 "-run"
             );
-            //builder.directory(runDirectory.getParentFile());
+            builder.directory(robovmFileExec.getParentFile());
 
             io.getOut().println("Compiling to iPhone. This may take a few minutes.");
             // Start the process.
             Process process;
             try {
                 process = builder.start();
-                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(process.getInputStream());
+                QuorumAction.QuorumProcessWatcher watch = new QuorumAction.QuorumProcessWatcher(process.getErrorStream());
                 OutputStream outputStream = process.getOutputStream();
                 watch.setStream(outputStream);
                 watch.start();
