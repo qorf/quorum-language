@@ -43,6 +43,7 @@ import org.quorum.actions.Debug;
 import org.quorum.actions.Document;
 import org.quorum.actions.Run;
 import org.quorum.actions.SendToIPhoneApplication;
+import org.quorum.actions.SendToIPhoneSimulator;
 import org.quorum.support.Utility;
 import quorum.Libraries.System.File_;
 
@@ -95,6 +96,7 @@ public class QuorumProject implements Project {
     private Document document;
     private Debug debug;
     private SendToIPhoneApplication sendToIPhoneApplication;
+    private SendToIPhoneSimulator sendToIPhoneSimulator;
     private Build build;
     private Clean clean;
     private CleanBuild cleanBuild;
@@ -128,6 +130,7 @@ public class QuorumProject implements Project {
         debug = new Debug(this);
         build = new Build(this);
         sendToIPhoneApplication = new SendToIPhoneApplication(this);
+        sendToIPhoneSimulator = new SendToIPhoneSimulator(this);
         clean = new Clean(this);
         cleanBuild = new CleanBuild(this);
         run = new Run(this);
@@ -315,6 +318,14 @@ public class QuorumProject implements Project {
      */
     public SendToIPhoneApplication getSendToIPhoneApplication() {
         return sendToIPhoneApplication;
+    }
+    
+    /**
+     * Return the action that can send a quorum program to an iPhone .ipa File.
+     * @return 
+     */
+    public SendToIPhoneSimulator getSendToIPhoneSimulator() {
+        return sendToIPhoneSimulator;
     }
     
     /**
