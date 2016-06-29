@@ -180,19 +180,19 @@ public class QuorumCustomizer implements CustomizerProvider{
             }
             
             //set the properties from the mobile panel
-            if(mobilePanel.getMobileAssetsFolder() == null) {
+            if(mobilePanel.getMobileAssetsFolder().isEmpty()) {
                 properties.remove(QuorumProject.QUORUM_MOBILE_ASSETS_FOLDER);
             } else {
                 properties.setProperty(QuorumProject.QUORUM_MOBILE_ASSETS_FOLDER, mobilePanel.getMobileAssetsFolder());
             }
             
-            if(mobilePanel.getMobileAssetsFolder() == null) {
+            if(mobilePanel.getiPhoneProvisioning().isEmpty()) {
                 properties.remove(QuorumProject.QUORUM_IPHONE_PROVISION);
             } else {
                 properties.setProperty(QuorumProject.QUORUM_IPHONE_PROVISION, mobilePanel.getiPhoneProvisioning());
             }
             
-            if(mobilePanel.getMobileAssetsFolder() == null) {
+            if(mobilePanel.getiPhoneSigningKey().isEmpty()) {
                 properties.remove(QuorumProject.QUORUM_IPHONE_SIGNING_KEY);
             } else {
                 properties.setProperty(QuorumProject.QUORUM_IPHONE_SIGNING_KEY, mobilePanel.getiPhoneSigningKey());

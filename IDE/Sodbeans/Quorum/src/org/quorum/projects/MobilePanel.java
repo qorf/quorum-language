@@ -67,7 +67,6 @@ public class MobilePanel extends javax.swing.JPanel {
 
         signingKeyTextField.setText(org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.signingKeyTextField.text")); // NOI18N
 
-        resourcesTextField.setEditable(false);
         resourcesTextField.setText(org.openide.util.NbBundle.getMessage(MobilePanel.class, "MobilePanel.resourcesTextField.text")); // NOI18N
 
         jLabel4.setFont(new java.awt.Font("Lucida Grande", 1, 14)); // NOI18N
@@ -169,23 +168,14 @@ public class MobilePanel extends javax.swing.JPanel {
     }
     
     public String getiPhoneProvisioning() {
-        if(provisioningTextField.getText().isEmpty()) {
-            return null;
-        }
         return provisioningTextField.getText();
     }
     
     public String getiPhoneSigningKey() {
-        if(signingKeyTextField.getText().isEmpty()) {
-            return null;
-        }
         return signingKeyTextField.getText();
     }
     
     public String getMobileAssetsFolder() {
-        if(resourcesTextField.getText().isEmpty()) {
-            return null;
-        }
         return resourcesTextField.getText();
     }
     
