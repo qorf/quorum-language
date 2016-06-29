@@ -32,9 +32,11 @@ public class QuorumCustomizer implements CustomizerProvider{
     private ProjectCustomizer.CategoryComponentProvider panelProvider;
     private ProjectInformationPanel infoPanel;
     private GamePanel gamePanel;
+    private MobilePanel mobilePanel;
     
     private static final String PROJECT_INFO_CATEGORY = "ProjectInfoCategory";
     private static final String GAME_CATEGORY = "GameCategory";
+    private static final String MOBILE_CATEGORY = "MobileCategory";
     private final QuorumProject project;
     public QuorumCustomizer(QuorumProject project) {
         this.project = project;
@@ -53,8 +55,14 @@ public class QuorumCustomizer implements CustomizerProvider{
                 null,
                 null);
         
+        ProjectCustomizer.Category mobileInfo = ProjectCustomizer.Category.create(
+                MOBILE_CATEGORY,
+                "Mobile",
+                null,
+                null);
+        
         categories = new ProjectCustomizer.Category[] {
-            projectInfo, gameInfo
+            projectInfo, gameInfo, mobileInfo
         };
         
         HashMap<String, JPanel> panels = new HashMap<String, JPanel>();
@@ -65,6 +73,10 @@ public class QuorumCustomizer implements CustomizerProvider{
         gamePanel = new GamePanel();
         gamePanel.setProject(project);
         panels.put(GAME_CATEGORY, gamePanel);
+        
+        mobilePanel = new MobilePanel();
+        mobilePanel.setProject(project);
+        panels.put(MOBILE_CATEGORY, mobilePanel);
         panelProvider = new PanelProvider(panels);
     }
     
@@ -165,6 +177,25 @@ public class QuorumCustomizer implements CustomizerProvider{
                 properties.remove(ImageSheetManager.REBUILD_IMAGE_SHEETS_ON_COMPILE);
                 properties.remove(ImageSheetManager.IMAGE_SHEETS);
                 properties.remove(ImageSheetManager.IMAGE_SHEET_BUILD_PATH);
+            }
+            
+            //set the properties from the mobile panel
+            if(mobilePanel.getMobileAssetsFolder() == null) {
+                properties.remove(QuorumProject.QUORUM_MOBILE_ASSETS_FOLDER);
+            } else {
+                properties.setProperty(QuorumProject.QUORUM_MOBILE_ASSETS_FOLDER, mobilePanel.getMobileAssetsFolder());
+            }
+            
+            if(mobilePanel.getMobileAssetsFolder() == null) {
+                properties.remove(QuorumProject.QUORUM_IPHONE_PROVISION);
+            } else {
+                properties.setProperty(QuorumProject.QUORUM_IPHONE_PROVISION, mobilePanel.getiPhoneProvisioning());
+            }
+            
+            if(mobilePanel.getMobileAssetsFolder() == null) {
+                properties.remove(QuorumProject.QUORUM_IPHONE_SIGNING_KEY);
+            } else {
+                properties.setProperty(QuorumProject.QUORUM_IPHONE_SIGNING_KEY, mobilePanel.getiPhoneSigningKey());
             }
         }
 
