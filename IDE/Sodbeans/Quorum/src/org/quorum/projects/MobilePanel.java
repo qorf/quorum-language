@@ -187,6 +187,8 @@ public class MobilePanel extends javax.swing.JPanel {
         
         if(assets != null) {
             resourcesTextField.setText(assets);
+        } else {
+            resourcesTextField.setText("media");
         }
         
         if(provision != null) {
