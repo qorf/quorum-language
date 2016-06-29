@@ -109,17 +109,17 @@ public class SendToIPhoneApplication extends QuorumAction implements ActionListe
             String outputLocation = runDirectory.getAbsolutePath();
             
             resources = FileUtil.toFile(project.getProjectDirectory()).getAbsolutePath() + File.separator + resources;
-            signing = "'" + signing + "'"; 
+            //signing = "'" + signing + "'"; 
             
             String newName = project.getExecutableName();
             newName = newName.substring(0, newName.length() - 3);
             newName = newName + "ipa";
             
             String runFullPath = runDirectory.getAbsolutePath() + "/" + project.getExecutableName();
-            ProcessBuilder builder = new ProcessBuilder(robovmCommand, "-os", 
-                " -libs", "libfreetype.a:libGameEngineCPlugins.a:libObjectAL.a",
+            ProcessBuilder builder = new ProcessBuilder(robovmCommand, "-os", "ios", 
+                "-libs", "libfreetype.a:libGameEngineCPlugins.a:libObjectAL.a",
                 "-classpath", "robovm-cocoatouch-1.8.0.jar:robovm-rt-1.8.0.jar:robovm-objc-1.8.0.jar",
-                " -weakframeworks", "OpenGLES:UIKit:QuartzCore:CoreGraphics:OpenAL:AudioToolbox:AVFoundation",
+                "-weakframeworks", "OpenGLES:UIKit:QuartzCore:CoreGraphics:OpenAL:AudioToolbox:AVFoundation",
                 "-jar", runFullPath, 
                 "-resources", resources,
                 "-signidentity", signing,
@@ -127,14 +127,14 @@ public class SendToIPhoneApplication extends QuorumAction implements ActionListe
                 "-d", outputLocation,
                 "-createipa"
             );
-            //builder.directory(runDirectory.getParentFile());
+            builder.directory(robovmFileExec.getParentFile());
 
             io.getOut().println("Compiling to iPhone. This may take a few minutes.");
             // Start the process.
             Process process;
             try {
                 process = builder.start();
-                QuorumProcessWatcher watch = new QuorumProcessWatcher(process.getInputStream());
+                QuorumProcessWatcher watch = new QuorumProcessWatcher(process.getErrorStream());
                 OutputStream outputStream = process.getOutputStream();
                 watch.setStream(outputStream);
                 watch.start();
