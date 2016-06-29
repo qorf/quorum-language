@@ -10,8 +10,11 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Properties;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
+import org.openide.filesystems.FileUtil;
+import org.openide.modules.InstalledFileLocator;
 import org.openide.util.Exceptions;
 import org.quorum.projects.QuorumProject;
 import org.quorum.projects.QuorumProjectType;
@@ -37,7 +40,7 @@ public class SendToIPhoneApplication extends QuorumAction implements ActionListe
         @Override
         public void run() {
             ProcessCancel cancel = new ProcessCancel();
-            String taskName = project.getProjectDirectory().getName() + " (run)";
+            String taskName = project.getProjectDirectory().getName() + " (iPhone)";
 
             final ProgressHandle progress = ProgressHandleFactory.createHandle(taskName, cancel);
             cancel.progress = progress;
@@ -57,16 +60,72 @@ public class SendToIPhoneApplication extends QuorumAction implements ActionListe
                 return;
             }
 
+            //to do this, I need the
+            //executable name and path
             // Compute the location of the project's root directory.
             File runDirectory = project.getRunDirectory();
             String runName = runDirectory.getName() + "/" + project.getExecutableName();
-
+            
+            
+            //location of where robovm is
+            InstalledFileLocator locator = InstalledFileLocator.getDefault();
+            File robovm = locator.locate("modules/ext/quorum-robovm", "org.quorum", false);
+            
+//            ./robovm -os ios -libs libfreetype.a:libGameEngineCPlugins.a:libObjectAL.a 
+//                -classpath robovm-cocoatouch-1.8.0.jar:robovm-rt-1.8.0.jar:robovm-objc-1.8.0.jar 
+//                -weakframeworks OpenGLES:UIKit:QuartzCore:CoreGraphics:OpenAL:AudioToolbox:AVFoundation 
+//                -jar Default.jar -resources Ding2.wav 
+//                -signidentity 'iPhone Developer: william.allee@unlv.edu (RXSFT2A6NT)' 
+//                -provisioningprofile cb082625-1b0d-489c-99c8-65d204cfdb7c -d ~/Desktop/IPA -createipa
+                    
+            //the command
+            String robovmCommand = robovm.getAbsolutePath() + File.separator + "bin" + File.separator + "robovm";
+            
+            File robovmFileExec = new File(robovmCommand);
+            if(robovmFileExec.exists()) {
+                robovmFileExec.setExecutable(true);
+            }
+            
+            File iosSimFileExec = new File(robovm.getAbsolutePath() + File.separator + "bin" + File.separator + "ios-sim");
+            if(iosSimFileExec.exists()) {
+                iosSimFileExec.setExecutable(true);
+            }
+            
+            
             // Spawn a new Java process that will run "Default.jar" from the project directory.
             String java = System.getProperty("java.home");
             java += File.separator + "bin" + File.separator + "java";
-            ProcessBuilder builder = new ProcessBuilder(java, "-Dsodbeans=1", "-jar", runName);
-            builder.directory(runDirectory.getParentFile());
+            
+            Properties properties = project.getLookup().lookup(Properties.class);
+            //now get all of the paramters from the user interface
+            String resources = properties.getProperty(QuorumProject.QUORUM_MOBILE_ASSETS_FOLDER);
+            
+            
+            //Fake Example: "mb922625-1b6d-489c-54c8-65d204cfdb7c"
+            String signing = properties.getProperty(QuorumProject.QUORUM_IPHONE_SIGNING_KEY);
+            
+            //Fake Example: "'iPhone Developer: bob.timelord@tardis.edu (LHDJI2A9GY)'"
+            String provisioning = properties.getProperty(QuorumProject.QUORUM_IPHONE_PROVISION); 
+            String outputLocation = runDirectory.getAbsolutePath();
+            
+            resources = FileUtil.toFile(project.getProjectDirectory()).getAbsolutePath() + File.separator + resources;
+            signing = "'" + signing + "'"; 
+            
+            String runFullPath = runDirectory.getAbsolutePath() + "/" + project.getExecutableName();
+            ProcessBuilder builder = new ProcessBuilder(robovmCommand, "-os", 
+                " -libs", "libfreetype.a:libGameEngineCPlugins.a:libObjectAL.a",
+                "-classpath", "robovm-cocoatouch-1.8.0.jar:robovm-rt-1.8.0.jar:robovm-objc-1.8.0.jar",
+                " -weakframeworks", "OpenGLES:UIKit:QuartzCore:CoreGraphics:OpenAL:AudioToolbox:AVFoundation",
+                "-jar", runFullPath, 
+                "-resources", resources,
+                "-signidentity", signing,
+                "-provisioningprofile", provisioning,
+                "-d", outputLocation,
+                "-createipa"
+            );
+            //builder.directory(runDirectory.getParentFile());
 
+            io.getOut().println("Compiling to iPhone. This may take a few minutes.");
             // Start the process.
             Process process;
             try {
