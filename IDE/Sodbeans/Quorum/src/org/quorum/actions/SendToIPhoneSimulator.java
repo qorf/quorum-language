@@ -113,8 +113,7 @@ public class SendToIPhoneSimulator extends QuorumAction implements ActionListene
             
             String runFullPath = runDirectory.getAbsolutePath() + "/" + project.getExecutableName();
             
-            ProcessBuilder builder = new ProcessBuilder(robovmCommand, //args
-                    
+            ProcessBuilder builder = new ProcessBuilder(robovmCommand,
                 "-os", "ios",
                 "-arch", "x86_64",
                 "-libs", "libfreetype.a:libGameEngineCPlugins.a:libObjectAL.a",
