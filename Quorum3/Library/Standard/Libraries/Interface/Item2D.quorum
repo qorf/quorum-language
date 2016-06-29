@@ -232,7 +232,8 @@ class Item2D is Item
             SetShape(polygon)
         end
 
-        transform0:GetPosition():SetX(newWidth / 2)
+        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
+        sweep:center:Set(transform:GetPosition())
     end
 
     /*
@@ -254,7 +255,8 @@ class Item2D is Item
             SetShape(polygon)
         end
 
-        transform0:GetPosition():SetY(newHeight / 2)
+        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
+        sweep:center:Set(transform:GetPosition())
     end
 
     /*
@@ -381,6 +383,7 @@ class Item2D is Item
         offset:SetX(xAmount)
 
         transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
+        sweep:center:SetX(transform:GetPosition():GetX())
 
         integer counter = 0
         repeat children:GetSize() times
@@ -414,6 +417,7 @@ class Item2D is Item
         offset:SetY(yAmount)
 
         transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
+        sweep:center:SetY(transform:GetPosition():GetY())
 
         integer counter = 0
         repeat children:GetSize() times
@@ -488,7 +492,9 @@ class Item2D is Item
 
 
         transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
+        sweep:center:SetX(transform:GetPosition():GetX())
         transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
+        sweep:center:SetY(transform:GetPosition():GetY())
 
         integer counter = 0
         repeat children:GetSize() times
@@ -1451,6 +1457,7 @@ class Item2D is Item
         Math math
         rotation = degrees
         transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
+        sweep:angle = -1 * math:DegreesToRadians(rotation)
         verticesChanged = true
         
         //Iterator<Item> childIterator = GetItems()
@@ -1533,6 +1540,7 @@ class Item2D is Item
         Math math
         rotation = rotation + degrees
         transform:Set(transform:GetPosition(), -1 *  math:DegreesToRadians(rotation))
+        sweep:angle = -1 * math:DegreesToRadians(rotation)
         if degrees not= 0
             verticesChanged = true
         end
@@ -2108,8 +2116,11 @@ class Item2D is Item
             i = i + 1
         end
 
-        if layerSet and shape not= undefined
-            CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+        if layerSet and shape not= undefined and collidable
+//            output parent:Item:GetName() + " layer set after shape"
+            if not nodesSet
+                CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+            end
         end
     end
 
@@ -2144,8 +2155,15 @@ class Item2D is Item
     end
 
     action SynchronizeNodes
-        Synchronize(layer:GetCollisionManager():GetBroadphase(), me:transform0, me:transform)
-        transform0:Set(me:transform)
+        Math math
+        Transform2D xf1
+
+        xf1:sine = math:Sine(sweep:angle)
+        xf1:cosine = math:Cosine(sweep:angle)
+        xf1:position:SetX(sweep:center:GetX() - xf1:cosine * sweep:localCenter:GetX() + xf1:sine * sweep:localCenter:GetY())
+        xf1:position:SetY(sweep:center:GetY() - xf1:sine * sweep:localCenter:GetX() - xf1:cosine * sweep:localCenter:GetY()) 
+
+        Synchronize(layer:GetCollisionManager():GetBroadphase(), xf1, me:transform)
 
         integer i = 0
         repeat children:GetSize() times
@@ -2187,8 +2205,11 @@ class Item2D is Item
     action SetShape(CollisionShape2D shape)
         nodesSet = false
         me:shape = shape:Copy()
-        if layerSet
-            CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+        if layerSet and collidable
+//            output parent:Item:GetName() + " shape set after layer"
+            if not nodesSet
+                CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+            end
         end
     end
 
@@ -2214,6 +2235,7 @@ class Item2D is Item
         end
 
         if collidable
+//            output "creating nodes"
             nodeCount = shape:GetChildCount()
             integer i = 0
             repeat while i < nodeCount
@@ -2235,11 +2257,11 @@ class Item2D is Item
             Item2DNode node = nodes:Get(i)
             broadphase:DestroyNode(node:nodeID)
             node:nodeID = -1
+            nodes:Remove(node)
             i = i + 1
         end
 
         nodeCount = 0
-        nodes:Empty()
         nodesSet = false
     end
 

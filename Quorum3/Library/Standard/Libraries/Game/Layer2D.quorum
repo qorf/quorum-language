@@ -47,16 +47,7 @@ class Layer2D is Layer
     action Add(Item2D item)
         item:SetLayer(me)
         items:Add(item)
-        item:SynchronizeNodes()
         newItemAdded = true
-
-        integer i = 0
-        repeat item:GetChildren():GetSize() times
-            Item2D it = item:GetChildren():Get(i)
-            it:SetLayer(me)
-            it:SynchronizeNodes()
-            i = i + 1
-        end
     end
 
     /*
@@ -67,16 +58,7 @@ class Layer2D is Layer
     action Add(integer index, Item2D item)
         item:SetLayer(me)
         items:Add(index, item)
-        item:SynchronizeNodes()
         newItemAdded = true
-
-        integer i = 0
-        repeat item:GetChildren():GetSize() times
-            Item2D it = item:GetChildren():Get(i)
-            it:SetLayer(me)
-            it:SynchronizeNodes()
-            i = i + 1
-        end
     end
 
     /*
@@ -87,16 +69,7 @@ class Layer2D is Layer
     action AddToFront(Item2D item)
         item:SetLayer(me)
         items:AddToFront(item)
-        item:SynchronizeNodes()
         newItemAdded = true
-
-        integer i = 0
-        repeat item:GetChildren():GetSize() times
-            Item2D it = item:GetChildren():Get(i)
-            it:SetLayer(me)
-            it:SynchronizeNodes()
-            i = i + 1
-        end
     end
 
     /*

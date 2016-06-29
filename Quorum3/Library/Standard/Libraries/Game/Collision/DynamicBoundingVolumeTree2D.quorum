@@ -205,6 +205,10 @@ class DynamicBoundingVolumeTree2D
         return node:GetBoundingBox()
     end
 
+    action GetNodeCount returns integer
+        return nodeCount
+    end
+
     /*
     This action queries the tree for bounding boxes that overlap with the given
     bounding box and returns all leafs whose bounding boxes intersect the
