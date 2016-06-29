@@ -111,6 +111,10 @@ public class SendToIPhoneApplication extends QuorumAction implements ActionListe
             resources = FileUtil.toFile(project.getProjectDirectory()).getAbsolutePath() + File.separator + resources;
             signing = "'" + signing + "'"; 
             
+            String newName = project.getExecutableName();
+            newName = newName.substring(0, newName.length() - 3);
+            newName = newName + "ipa";
+            
             String runFullPath = runDirectory.getAbsolutePath() + "/" + project.getExecutableName();
             ProcessBuilder builder = new ProcessBuilder(robovmCommand, "-os", 
                 " -libs", "libfreetype.a:libGameEngineCPlugins.a:libObjectAL.a",
