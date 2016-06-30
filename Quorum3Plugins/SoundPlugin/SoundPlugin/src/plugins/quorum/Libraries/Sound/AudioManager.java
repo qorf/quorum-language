@@ -21,7 +21,8 @@ import static org.lwjgl.openal.AL10.*;
  *
  * @author alleew
  */
-public class AudioManager {
+public class AudioManager 
+{
     private final int deviceBufferSize;
     private final int deviceBufferCount;
     
