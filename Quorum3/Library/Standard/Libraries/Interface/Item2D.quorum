@@ -27,7 +27,7 @@ class Item2D is Item
     private Item2D parentItem = undefined
     private Array<Item2D> children
 
-    boolean collidable = true
+    boolean collidable = false
 
     /*
     Used internally to pass around position and rotation information
@@ -2106,21 +2106,26 @@ class Item2D is Item
 
         if layer not= undefined
             layerSet = true
+
+            integer i = 0
+            repeat children:GetSize() times
+                children:Get(i):SetLayer(parentLayer)
+                i = i + 1
+            end
+
+            if shape not= undefined
+                if collidable
+                    if not nodesSet
+                        CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+                    end
+                else
+                    if nodesSet
+                        DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+                    end
+                end
+            end
         else
             layerSet = false
-        end
-
-        integer i = 0
-        repeat children:GetSize() times
-            children:Get(i):SetLayer(parentLayer)
-            i = i + 1
-        end
-
-        if layerSet and shape not= undefined and collidable
-//            output parent:Item:GetName() + " layer set after shape"
-            if not nodesSet
-                CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
-            end
         end
     end
 
@@ -2203,12 +2208,17 @@ class Item2D is Item
     end
 
     action SetShape(CollisionShape2D shape)
-        nodesSet = false
         me:shape = shape:Copy()
-        if layerSet and collidable
-//            output parent:Item:GetName() + " shape set after layer"
-            if not nodesSet
-                CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+
+        if layerSet
+            if collidable
+                if not nodesSet
+                    CreateNodes(layer:GetCollisionManager():GetBroadphase(), transform)
+                end
+            else
+                if nodesSet
+                    DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+                end
             end
         end
     end
@@ -2230,12 +2240,11 @@ class Item2D is Item
     end
 
     action CreateNodes(BroadphaseCollision2D broadphase, Transform2D transform)
-        if nodesSet
+        if nodesSet or not collidable
             DestroyNodes(broadphase)
         end
 
         if collidable
-//            output "creating nodes"
             nodeCount = shape:GetChildCount()
             integer i = 0
             repeat while i < nodeCount
@@ -2329,18 +2338,22 @@ class Item2D is Item
         collidable = flag
 
         if collidable
-            BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
-            CreateNodes(broadphase, transform)
-        else
-            BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
-            DestroyNodes(broadphase)
-            ContactEdge2D edge = contactList
-            repeat while edge not= undefined
-                ContactEdge2D edge0 = edge
-                edge = edge:next
-                layer:GetCollisionManager():Destroy(edge0:collision)
+            if layerSet and shape not= undefined
+                BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
+                CreateNodes(broadphase, transform)
             end
-            contactList = undefined
+        else
+            if layerSet
+                BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
+                DestroyNodes(broadphase)
+                ContactEdge2D edge = contactList
+                repeat while edge not= undefined
+                    ContactEdge2D edge0 = edge
+                    edge = edge:next
+                    layer:GetCollisionManager():Destroy(edge0:collision)
+                end
+                contactList = undefined
+            end
         end
     end
 

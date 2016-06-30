@@ -443,7 +443,7 @@ class Layer2D is Layer
     This action gets the list of items on this layer that are colliding and
     returns it as an array.
     */
-    action GetCollisionList returns Array<CollisionEvent2D>
+    action GetCollisionList returns CollisionEvent2D
         return collisionManager:GetCollisionList()
     end
 

@@ -34,8 +34,8 @@ class CollisionEvent2D
     private CollisionEvent2D next = undefined
     private CollisionEvent2D previous = undefined
 
-    public ContactEdge2D nodeA = undefined
-    public ContactEdge2D nodeB = undefined
+    public ContactEdge2D nodeA
+    public ContactEdge2D nodeB
 
     ContactManifold2D manifold
 
@@ -57,12 +57,6 @@ class CollisionEvent2D
 
         previous = undefined
         next = undefined
-
-        ContactEdge2D node1
-        nodeA = node1
-
-        ContactEdge2D node2
-        nodeB = node2
 
         nodeA:collision = undefined
         nodeA:previous = undefined
