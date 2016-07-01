@@ -5,6 +5,7 @@
 package plugins.quorum.Libraries.System;
 
 import java.io.File;
+import quorum.Libraries.Game.IOSApplication;
 
 /**
  * A plugin for the "File" class in Quorum, located under Libraries.System.File.
@@ -35,24 +36,7 @@ public class QuorumFile {
     /*
      * The default working directory, stored statically for reuse.
      */
-    private final static String defaultWorkingDirectory;
-    
-    static
-    {
-        quorum.Libraries.Game.IOSApplication_ iosApp = null;
-        
-        if (System.getProperty("os.name").toLowerCase().contains("ios"))
-            iosApp = new quorum.Libraries.Game.IOSApplication();
-        
-        if ((iosApp != null) && (!iosApp.IsRunningOnSimulator()))
-        {
-            defaultWorkingDirectory = iosApp.GetApplicationLocation();
-        }
-        else
-        {
-            defaultWorkingDirectory = System.getProperty("user.dir");
-        }
-    }
+    public static String defaultWorkingDirectory = System.getProperty("user.dir");
     
     /**
      * Set our file to the current directory.
