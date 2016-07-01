@@ -82,8 +82,8 @@ class Layer2D is Layer
             ContactEdge2D edge = body:contactList
             repeat while edge not= undefined
                 ContactEdge2D edge0 = edge
-                edge = edge:next
-                collisionManager:Destroy(edge0:collision)
+                edge = edge:GetNext()
+                collisionManager:Destroy(edge0:GetCollision())
             end
             body:contactList = undefined
 
@@ -102,8 +102,8 @@ class Layer2D is Layer
         ContactEdge2D edge = item:contactList
         repeat while edge not= undefined
             ContactEdge2D edge0 = edge
-            edge = edge:next
-            collisionManager:Destroy(edge0:collision)
+            edge = edge:GetNext()
+            collisionManager:Destroy(edge0:GetCollision())
         end
         item:contactList = undefined
 
@@ -122,8 +122,8 @@ class Layer2D is Layer
         ContactEdge2D edge = item:contactList
         repeat while edge not= undefined
             ContactEdge2D edge0 = edge
-            edge = edge:next
-            collisionManager:Destroy(edge0:collision)
+            edge = edge:GetNext()
+            collisionManager:Destroy(edge0:GetCollision())
         end
         item:contactList = undefined
 
@@ -141,8 +141,8 @@ class Layer2D is Layer
         ContactEdge2D edge = item:contactList
         repeat while edge not= undefined
             ContactEdge2D edge0 = edge
-            edge = edge:next
-            collisionManager:Destroy(edge0:collision)
+            edge = edge:GetNext()
+            collisionManager:Destroy(edge0:GetCollision())
         end
         item:contactList = undefined
 
@@ -161,8 +161,8 @@ class Layer2D is Layer
         ContactEdge2D edge = item:contactList
         repeat while edge not= undefined
             ContactEdge2D edge0 = edge
-            edge = edge:next
-            collisionManager:Destroy(edge0:collision)
+            edge = edge:GetNext()
+            collisionManager:Destroy(edge0:GetCollision())
         end
         item:contactList = undefined
 

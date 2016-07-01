@@ -892,8 +892,8 @@ class Item2D is Item
         ContactEdge2D edge = removed:contactList
         repeat while edge not= undefined
             ContactEdge2D edge0 = edge
-            edge = edge:next
-            layer:GetCollisionManager():Destroy(edge0:collision)
+            edge = edge:GetNext()
+            layer:GetCollisionManager():Destroy(edge0:GetCollision())
         end
         removed:contactList = undefined
 
@@ -925,8 +925,8 @@ class Item2D is Item
         ContactEdge2D edge = temp:contactList
         repeat while edge not= undefined
             ContactEdge2D edge0 = edge
-            edge = edge:next
-            layer:GetCollisionManager():Destroy(edge0:collision)
+            edge = edge:GetNext()
+            layer:GetCollisionManager():Destroy(edge0:GetCollision())
         end
         temp:contactList = undefined
 
@@ -2349,8 +2349,8 @@ class Item2D is Item
                 ContactEdge2D edge = contactList
                 repeat while edge not= undefined
                     ContactEdge2D edge0 = edge
-                    edge = edge:next
-                    layer:GetCollisionManager():Destroy(edge0:collision)
+                    edge = edge:GetNext()
+                    layer:GetCollisionManager():Destroy(edge0:GetCollision())
                 end
                 contactList = undefined
             end

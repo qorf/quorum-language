@@ -38,11 +38,11 @@ class CollisionManager2D
 
         ContactEdge2D edge = itemB:contactList
         repeat while edge not= undefined
-            if edge:other = itemA
-                Item2D iA = edge:collision:GetItemA()
-                Item2D iB = edge:collision:GetItemB()
-                integer a = edge:collision:GetChildIndexA()
-                integer b = edge:collision:GetChildIndexB()
+            if edge:GetOther() = itemA
+                Item2D iA = edge:GetCollision():GetItemA()
+                Item2D iB = edge:GetCollision():GetItemB()
+                integer a = edge:GetCollision():GetChildIndexA()
+                integer b = edge:GetCollision():GetChildIndexB()
                 
                 if iA = itemA and a = indexA and iB = itemB and b = indexB
                     return now
@@ -53,7 +53,7 @@ class CollisionManager2D
                 end
             end
 
-            edge = edge:next
+            edge = edge:GetNext()
         end
 
         // create collision event and add to collision event list
@@ -68,26 +68,24 @@ class CollisionManager2D
         collisionList = collision
 
         // connect collision to itemA
-        ContactEdge2D contactNodeA = collision:nodeA
-        contactNodeA:collision = collision
-        contactNodeA:other = itemB
-        contactNodeA:previous = undefined
-        contactNodeA:next = itemA:contactList
-        ContactEdge2D itemAContactList = itemA:contactList
-        if itemAContactList not= undefined
-            itemAContactList:previous = collision:nodeA
+        collision:nodeA:SetCollision(collision)
+        collision:nodeA:SetOther(itemB)
+
+        collision:nodeA:SetPrevious(undefined)
+        collision:nodeA:SetNext(itemA:contactList)
+        if itemA:contactList not= undefined
+            itemA:contactList:SetPrevious(collision:nodeA)
         end
         itemA:contactList = collision:nodeA
 
         // connect collision to itemB
-        ContactEdge2D contactNodeB = collision:nodeB
-        contactNodeB:collision = collision
-        contactNodeB:other = itemA
-        contactNodeB:previous = undefined
-        contactNodeB:next = itemB:contactList
-        ContactEdge2D itemBContactList = itemB:contactList
-        if itemBContactList not= undefined
-            itemBContactList:previous = collision:nodeB
+        collision:nodeB:SetCollision(collision)
+        collision:nodeB:SetOther(itemA)
+
+        collision:nodeB:SetPrevious(undefined)
+        collision:nodeB:SetNext(itemB:contactList)
+        if itemB:contactList not= undefined
+            itemB:contactList:SetPrevious(collision:nodeB)
         end
         itemB:contactList = collision:nodeB
 
@@ -112,13 +110,11 @@ class CollisionManager2D
         end
 
         if collision:GetPrevious() not= undefined
-            CollisionEvent2D collisionPrevious = collision:GetPrevious()
-            collisionPrevious:SetNext(collision:GetNext())
+            collision:GetPrevious():SetNext(collision:GetNext())
         end
 
         if collision:GetNext() not= undefined
-            CollisionEvent2D collisionNext = collision:GetNext()
-            collisionNext:SetPrevious(collision:GetPrevious())
+            collision:GetNext():SetPrevious(collision:GetPrevious())
         end
 
         if collision = collisionList
@@ -126,35 +122,29 @@ class CollisionManager2D
         end
 
         // remove collision from itemA
-        ContactEdge2D collisionNodeA = collision:nodeA
-        if collisionNodeA:previous not= undefined
-            ContactEdge2D collisionNodeAPrevious = collisionNodeA:previous
-            collisionNodeAPrevious:next = collision:nodeA:next
+        if collision:nodeA:GetPrevious() not= undefined
+            collision:nodeA:GetPrevious():SetNext(collision:nodeA:GetNext())
         end
 
-        if collisionNodeA:next not= undefined
-            ContactEdge2D collisionNodeANext = collisionNodeA:next
-            collisionNodeANext:previous = collision:nodeA:previous
+        if collision:nodeA:GetNext() not= undefined
+            collision:nodeA:GetNext():SetPrevious(collision:nodeA:GetPrevious())
         end
 
-        if collisionNodeA = itemA:contactList
-            itemA:contactList = collision:nodeA:next
+        if collision:nodeA = itemA:contactList
+            itemA:contactList = collision:nodeA:GetNext()
         end
 
         // remove collision from itemB
-        ContactEdge2D collisionNodeB = collision:nodeB
-        if collisionNodeB:previous not= undefined
-            ContactEdge2D collisionNodeBPrevious = collisionNodeB:previous
-            collisionNodeBPrevious:next = collision:nodeB:next
+        if collision:nodeB:GetPrevious() not= undefined
+            collision:nodeB:GetPrevious():SetNext(collision:nodeB:GetNext())
         end
 
-        if collisionNodeB:next not= undefined
-            ContactEdge2D collisionNodeBNext = collisionNodeB:next
-            collisionNodeBNext:previous = collision:nodeB:previous
+        if collision:nodeB:GetNext() not= undefined
+            collision:nodeB:GetNext():SetPrevious(collision:nodeB:GetPrevious())
         end
 
-        if collisionNodeB = itemB:contactList
-            itemB:contactList = collisionNodeB:next
+        if collision:nodeB = itemB:contactList
+            itemB:contactList = collision:nodeB:GetNext()
         end
 
         collisionCount = collisionCount - 1
