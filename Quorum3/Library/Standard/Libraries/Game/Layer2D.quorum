@@ -15,6 +15,13 @@ use Libraries.Game.Graphics.Color
 use Libraries.Compute.Vector3
 use Libraries.Containers.Iterator
 
+/*
+The Layer2D class is used to manage a number of 2D objects, as well as manage
+input. The Layer2D effectively consists of a 2D "world", where all objects added
+to it exist in the same space and can interact with each other.
+
+Attribute: Author William Allee
+*/
 class Layer2D is Layer
 
     Array<Item2D> items
