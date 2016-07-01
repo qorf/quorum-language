@@ -437,6 +437,8 @@ class Parser is QuorumSourceListener
             error:SetCompilerErrorType(cet)
             error:SetErrorMessage("I noticed that there is a second constructor defined, but I am not sure " +
                 "which one is supposed to setup the object.")
+            CompilerErrorManager manager = me:GetCompilerErrorManager()
+            manager:Add(error)
         else
             currentClass:SetConstructor(act)
         end

@@ -1,0 +1,201 @@
+use Libraries.Game.Layer2D
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Game.Collision.BroadphaseCollision2D
+use Libraries.Interface.Events.CollisionEvent2D
+use Libraries.Interface.Events.CollisionListener2D
+use Libraries.Language.Object
+use Libraries.Game.Collision.Item2DNode
+use Libraries.Game.Collision.ContactEdge2D
+
+package Libraries.Game.Collision
+
+class CollisionManager2D
+    BroadphaseCollision2D broadphase
+    CollisionEvent2D collisionList = undefined
+    integer collisionCount = 0
+    Array<CollisionListener2D> listeners
+
+    Layer2D myLayer = undefined
+    
+    action SetLayer(Layer2D layer)
+        myLayer = layer
+    end
+
+    action AddPair(Object objectA, Object objectB)
+        Item2DNode nodeA = cast(Item2DNode, objectA)
+        Item2DNode nodeB = cast(Item2DNode, objectB)
+
+        Item2D itemA = nodeA:item
+        Item2D itemB = nodeB:item
+
+        integer indexA = nodeA:childIndex
+        integer indexB = nodeB:childIndex
+
+        if itemA = itemB
+            return now
+        end
+
+        ContactEdge2D edge = itemB:contactList
+        repeat while edge not= undefined
+            if edge:GetOther() = itemA
+                Item2D iA = edge:GetCollision():GetItemA()
+                Item2D iB = edge:GetCollision():GetItemB()
+                integer a = edge:GetCollision():GetChildIndexA()
+                integer b = edge:GetCollision():GetChildIndexB()
+                
+                if iA = itemA and a = indexA and iB = itemB and b = indexB
+                    return now
+                end
+
+                if iA = itemB and a = indexB and iB = itemA and b = indexA
+                    return now
+                end
+            end
+
+            edge = edge:GetNext()
+        end
+
+        // create collision event and add to collision event list
+        CollisionEvent2D collision
+        collision:Initialize(itemA, indexA, itemB, indexB)
+        
+        collision:SetPrevious(undefined)
+        collision:SetNext(collisionList)
+        if collisionList not= undefined
+            collisionList:SetPrevious(collision)
+        end
+        collisionList = collision
+
+        // connect collision to itemA
+        collision:nodeA:SetCollision(collision)
+        collision:nodeA:SetOther(itemB)
+
+        collision:nodeA:SetPrevious(undefined)
+        collision:nodeA:SetNext(itemA:contactList)
+        if itemA:contactList not= undefined
+            itemA:contactList:SetPrevious(collision:nodeA)
+        end
+        itemA:contactList = collision:nodeA
+
+        // connect collision to itemB
+        collision:nodeB:SetCollision(collision)
+        collision:nodeB:SetOther(itemA)
+
+        collision:nodeB:SetPrevious(undefined)
+        collision:nodeB:SetNext(itemB:contactList)
+        if itemB:contactList not= undefined
+            itemB:contactList:SetPrevious(collision:nodeB)
+        end
+        itemB:contactList = collision:nodeB
+
+        collisionCount = collisionCount + 1
+    end
+
+    action FindNewCollisions
+        broadphase:UpdatePairs(me)
+    end
+
+    action Destroy(CollisionEvent2D collision)
+        Item2D itemA = collision:GetItemA()
+        Item2D itemB = collision:GetItemB()
+
+        if collision:IsTouching()
+            integer i = 0
+            repeat while i < listeners:GetSize()
+                CollisionListener2D listener = listeners:Get(i)
+                listener:FinishCollision(collision)
+                i = i + 1
+            end
+        end
+
+        if collision:GetPrevious() not= undefined
+            collision:GetPrevious():SetNext(collision:GetNext())
+        end
+
+        if collision:GetNext() not= undefined
+            collision:GetNext():SetPrevious(collision:GetPrevious())
+        end
+
+        if collision = collisionList
+            collisionList = collision:GetNext()
+        end
+
+        // remove collision from itemA
+        if collision:nodeA:GetPrevious() not= undefined
+            collision:nodeA:GetPrevious():SetNext(collision:nodeA:GetNext())
+        end
+
+        if collision:nodeA:GetNext() not= undefined
+            collision:nodeA:GetNext():SetPrevious(collision:nodeA:GetPrevious())
+        end
+
+        if collision:nodeA = itemA:contactList
+            itemA:contactList = collision:nodeA:GetNext()
+        end
+
+        // remove collision from itemB
+        if collision:nodeB:GetPrevious() not= undefined
+            collision:nodeB:GetPrevious():SetNext(collision:nodeB:GetNext())
+        end
+
+        if collision:nodeB:GetNext() not= undefined
+            collision:nodeB:GetNext():SetPrevious(collision:nodeB:GetPrevious())
+        end
+
+        if collision:nodeB = itemB:contactList
+            itemB:contactList = collision:nodeB:GetNext()
+        end
+
+        collisionCount = collisionCount - 1
+    end
+
+    action Collide
+        CollisionEvent2D collision = collisionList
+        repeat while collision not= undefined
+            Item2D itemA = collision:GetItemA()
+            Item2D itemB = collision:GetItemB()
+            integer indexA = collision:GetChildIndexA()
+            integer indexB = collision:GetChildIndexB()
+
+            // collision filtering
+            // this involves, for example, ignoring collisions where both items
+            // are declared as static bodies
+            // should we allow user-defined collision filtering?
+
+            integer nodeIDA = itemA:GetNodes():Get(indexA):nodeID
+            integer nodeIDB = itemB:GetNodes():Get(indexB):nodeID
+
+            boolean overlap = broadphase:TestOverlap(nodeIDA, nodeIDB)
+
+            if not overlap
+                CollisionEvent2D cNuke = collision
+                collision = cNuke:GetNext()
+                Destroy(cNuke)
+            else
+                collision:DispatchCollision(listeners)
+                collision = collision:GetNext()
+            end
+        end
+    end
+
+    action GetBroadphase returns BroadphaseCollision2D
+        return broadphase
+    end
+
+    action GetCollisionList returns CollisionEvent2D
+        return collisionList
+    end
+
+    action GetCollisionCount returns integer
+        return collisionCount
+    end
+
+    action AddCollisionListener(CollisionListener2D listener)
+        listeners:Add(listener)
+    end
+
+    action RemoveCollisionListener(CollisionListener2D listener)
+        listeners:Remove(listener)
+    end
+end

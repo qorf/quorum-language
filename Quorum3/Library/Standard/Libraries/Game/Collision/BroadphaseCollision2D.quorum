@@ -1,0 +1,166 @@
+use Libraries.Containers.Array
+use Libraries.Game.Game
+use Libraries.Interface.Item2D
+use Libraries.Compute.Vector2
+use Libraries.Game.Collision.DynamicBoundingVolumeTree2D
+use Libraries.Game.Collision.CollisionPair2D
+use Libraries.Game.Collision.BoundingBox2D
+use Libraries.Game.Collision.Item2DNode
+use Libraries.Game.Collision.CollisionManager2D
+
+package Libraries.Game.Collision
+
+class BroadphaseCollision2D 
+    DynamicBoundingVolumeTree2D tree
+    integer nodeCount = 0
+    
+    Array<integer> moveList
+    integer moveCount = 0
+
+    Array<CollisionPair2D> pairList
+    integer pairCount = 0
+
+    integer queryNodeID = -1
+
+    action CreateNode(BoundingBox2D boundingBox, Item2DNode item) returns integer
+        integer id = tree:CreateNode(boundingBox, item)
+        nodeCount = nodeCount + 1
+        BufferMove(id)
+        return id
+    end
+
+    action DestroyNode(integer id)
+        UnbufferMove(id)
+        nodeCount = nodeCount - 1
+        tree:DestroyNode(id)
+    end
+
+    action MoveNode(integer id, BoundingBox2D boundingBox, Vector2 displacement)
+        boolean buffer = tree:MoveNode(id, boundingBox, displacement)
+        if buffer
+            BufferMove(id)
+        end
+    end
+
+    action TouchNode(integer nodeID)
+        BufferMove(nodeID)
+    end
+
+    action GetObject(integer id) returns Object
+        return tree:GetObject(id)
+    end
+
+    action GetBoundingBox(integer id) returns BoundingBox2D
+        return tree:GetBoundingBox(id)
+    end
+
+    action TestOverlap(integer idA, integer idB) returns boolean
+        BoundingBox2D a = tree:GetBoundingBox(idA)
+        BoundingBox2D b = tree:GetBoundingBox(idB)
+
+        if b:GetMinimum():GetX() - a:GetMaximum():GetX() > 0 or b:GetMinimum():GetY() - a:GetMaximum():GetY() > 0
+            return false
+        end
+
+        if a:GetMinimum():GetX() - b:GetMaximum():GetX() > 0 or a:GetMinimum():GetY() - b:GetMaximum():GetY() > 0
+            return false
+        end
+
+        return true
+    end
+
+    action GetNodeCount returns integer
+        return nodeCount
+    end
+
+    action UpdatePairs(CollisionManager2D collision)
+        pairCount = 0
+        pairList:Empty()
+
+        integer i = 0
+        repeat while i < moveCount
+            queryNodeID = moveList:Get(i)
+            if queryNodeID not= -1
+                BoundingBox2D boundingBox = tree:GetBoundingBox(queryNodeID)
+                tree:Query(me, boundingBox)
+            end
+            i = i + 1
+        end
+
+        moveCount = 0
+        moveList:Empty()
+
+        pairList:Sort()
+        i = 0
+        repeat while i < pairCount
+            CollisionPair2D primaryPair = pairList:Get(i)
+            Object dataA = tree:GetObject(primaryPair:GetIDA())
+            Object dataB = tree:GetObject(primaryPair:GetIDB())
+
+            collision:AddPair(dataA, dataB)
+            i = i + 1
+            
+            boolean continue = true
+            repeat while i < pairCount and continue
+                CollisionPair2D otherPair = pairList:Get(i)
+                if otherPair:GetIDA() not= primaryPair:GetIDA() or otherPair:GetIDB() not= primaryPair:GetIDB()
+                    continue = false
+                else
+                    i = i + 1
+                end
+            end
+        end
+    end
+
+    action Query(BroadphaseCollision2D broadphase, BoundingBox2D boundingBox)
+        tree:Query(broadphase, boundingBox)
+    end
+
+    action GetTreeHeight returns integer
+        return tree:GetHeight()
+    end
+
+    action GetTreeBalance returns integer
+        return tree:GetMaximumBalance()
+    end
+
+    action GetTreeQuality returns number
+        return tree:GetPerimeterRatio()
+    end
+
+    private action BufferMove(integer id)
+        moveList:Add(id)
+        moveCount = moveCount + 1
+    end
+
+    private action UnbufferMove(integer id)
+        integer i = 0
+        repeat while i < moveCount
+            if moveList:Get(i) = id
+                moveList:Set(i, -1)
+            end
+            i = i + 1
+        end
+    end
+
+    action ShouldProceed(integer id) returns boolean
+        if id = queryNodeID
+            return true
+        end
+        
+        CollisionPair2D pair
+        
+        if id < queryNodeID
+            pair:SetIDA(id)
+            pair:SetIDB(queryNodeID)
+        else
+            pair:SetIDA(queryNodeID)
+            pair:SetIDB(id)
+        end
+
+        pairList:Add(pair)
+
+        pairCount = pairCount + 1
+        return true
+    end
+end

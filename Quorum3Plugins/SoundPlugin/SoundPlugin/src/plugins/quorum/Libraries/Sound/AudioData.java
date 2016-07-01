@@ -16,14 +16,8 @@ import static org.lwjgl.openal.AL10.*;
  *
  * @author alleew
  */
-public abstract class AudioData extends Data {
-    
-    protected static AudioManager manager;
-    
-    static
-    {
-        manager = new AudioManager();
-    }
+public abstract class AudioData extends DesktopData 
+{
     
     private int bufferID = -1;
     private long soundID = -1;

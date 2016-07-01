@@ -42,6 +42,8 @@ import org.quorum.actions.CleanBuild;
 import org.quorum.actions.Debug;
 import org.quorum.actions.Document;
 import org.quorum.actions.Run;
+import org.quorum.actions.SendToIPhoneApplication;
+import org.quorum.actions.SendToIPhoneSimulator;
 import org.quorum.support.Utility;
 import quorum.Libraries.System.File_;
 
@@ -65,6 +67,10 @@ public class QuorumProject implements Project {
     public static final String QUORUM_EXECUTABLE_NAME = "Quorum_Executable_Name";
     public static final String ADDITIONAL_PLUGIN_FOLDERS = "Additional_Plugin_Folders";
     public static final String ADDITIONAL_JARS = "Additional_Jars";
+    
+    public static final String QUORUM_IPHONE_PROVISION = "Quorum_IPhone_Provision";
+    public static final String QUORUM_IPHONE_SIGNING_KEY = "Quorum_IPhone_Signing_Key";
+    public static final String QUORUM_MOBILE_ASSETS_FOLDER = "Quorum_Mobile_Assets_Folder";
 
     public static final String QUORUM_PROJECT_ICON = "org/quorum/resources/project.png";
     public static final String QUORUM_FILE_ICON = "org/quorum/resources/file.png";
@@ -76,6 +82,10 @@ public class QuorumProject implements Project {
     public static final String DOCUMENTS_DIRECTORY = "Documentation";
     public QuorumProjectType projectType = QuorumProjectType.STANDARD;
     
+    private String mobileAssetsFolder = "";
+    private String iPhoneProvisioningKey = "";
+    private String iPhoneSigningKey = "";
+    
     public static final String MIME_TYPE = "text/x-quorum";
     private final FileObject projectDir;
     private LogicalViewProvider logicalView = new QuorumLogicalView(this);
@@ -85,6 +95,8 @@ public class QuorumProject implements Project {
     private Debugger debugger;
     private Document document;
     private Debug debug;
+    private SendToIPhoneApplication sendToIPhoneApplication;
+    private SendToIPhoneSimulator sendToIPhoneSimulator;
     private Build build;
     private Clean clean;
     private CleanBuild cleanBuild;
@@ -117,6 +129,8 @@ public class QuorumProject implements Project {
         document = new Document(this);
         debug = new Debug(this);
         build = new Build(this);
+        sendToIPhoneApplication = new SendToIPhoneApplication(this);
+        sendToIPhoneSimulator = new SendToIPhoneSimulator(this);
         clean = new Clean(this);
         cleanBuild = new CleanBuild(this);
         run = new Run(this);
@@ -245,6 +259,10 @@ public class QuorumProject implements Project {
             compiler.SetName(name);
         }
         
+        setMobileAssetsFolder(properties.getProperty(QuorumProject.QUORUM_MOBILE_ASSETS_FOLDER));
+        setiPhoneProvisioningKey(properties.getProperty(QuorumProject.QUORUM_IPHONE_PROVISION));
+        setiPhoneSigningKey(properties.getProperty(QuorumProject.QUORUM_IPHONE_SIGNING_KEY));
+        
         return properties;
     }
     
@@ -295,6 +313,22 @@ public class QuorumProject implements Project {
     }
 
     /**
+     * Return the action that can send a quorum program to an iPhone .ipa File.
+     * @return 
+     */
+    public SendToIPhoneApplication getSendToIPhoneApplication() {
+        return sendToIPhoneApplication;
+    }
+    
+    /**
+     * Return the action that can send a quorum program to an iPhone .ipa File.
+     * @return 
+     */
+    public SendToIPhoneSimulator getSendToIPhoneSimulator() {
+        return sendToIPhoneSimulator;
+    }
+    
+    /**
      * @return the clean
      */
     public Clean getClean() {
@@ -327,6 +361,48 @@ public class QuorumProject implements Project {
      */
     public quorum.Libraries.Language.Compile.Compiler getCompiler() {
         return compiler;
+    }
+
+    /**
+     * @return the iPhoneSigningKey
+     */
+    public String getiPhoneSigningKey() {
+        return iPhoneSigningKey;
+    }
+
+    /**
+     * @param iPhoneSigningKey the iPhoneSigningKey to set
+     */
+    public void setiPhoneSigningKey(String iPhoneSigningKey) {
+        this.iPhoneSigningKey = iPhoneSigningKey;
+    }
+
+    /**
+     * @return the iPhoneProvisioningKey
+     */
+    public String getiPhoneProvisioningKey() {
+        return iPhoneProvisioningKey;
+    }
+
+    /**
+     * @param iPhoneProvisioningKey the iPhoneProvisioningKey to set
+     */
+    public void setiPhoneProvisioningKey(String iPhoneProvisioningKey) {
+        this.iPhoneProvisioningKey = iPhoneProvisioningKey;
+    }
+
+    /**
+     * @return the mobileAssetsFolder
+     */
+    public String getMobileAssetsFolder() {
+        return mobileAssetsFolder;
+    }
+
+    /**
+     * @param mobileAssetsFolder the mobileAssetsFolder to set
+     */
+    public void setMobileAssetsFolder(String mobileAssetsFolder) {
+        this.mobileAssetsFolder = mobileAssetsFolder;
     }
 
     private static class NotifyProperties extends Properties {

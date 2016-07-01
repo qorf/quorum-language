@@ -52,7 +52,7 @@ class IOSInput is GameInput
             end
 
             if not touchEvent:WasEventHandled()
-                
+                NotifyTouchListeners(touchEvent)
             end        
         end
     end

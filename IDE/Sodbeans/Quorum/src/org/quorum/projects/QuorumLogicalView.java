@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.netbeans.spi.project.ui.LogicalViewProvider;
@@ -34,6 +35,7 @@ import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
+import org.openide.util.actions.Presenter;
 import org.openide.util.lookup.Lookups;
 import org.openide.util.lookup.ProxyLookup;
 import static org.quorum.projects.QuorumProject.QUORUM_PROJECT_ICON;
@@ -180,6 +182,10 @@ public class QuorumLogicalView implements LogicalViewProvider{
             if(canDocument) {
                 nodeActions.add(project.getDocument());
             }
+            //send to actions for mobile phones
+            nodeActions.add(null);
+            nodeActions.add(project.getSendToIPhoneApplication());
+            nodeActions.add(project.getSendToIPhoneSimulator());
             
             //set main project and close
             nodeActions.add(null);
