@@ -18,6 +18,40 @@ use Libraries.Interface.Item3D
 use Libraries.Game.BoundingBox
 use Libraries.System.File
 
+/*
+The Model class represents a 3D model to be drawn on the screen by the Game
+engine. The Model can load data from .obj, .g3db, or .g3dj files, or can be set
+to some primitive shapes (such as boxes or cylinders).
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+
+class Main is Game
+
+    Model cube
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        Color cyan
+        cyan:SetColor(0, 0.75, 1, 1)
+        
+        cube:LoadBox(2, 2, 2, cyan)
+        Add(cube)
+    end
+
+    action Update(number seconds)
+        cube:Rotate(0, 1, 0, 45 * seconds)
+    end
+end
+*/
 class Model is Item3D
     
     Array<Material> materials
@@ -32,28 +66,195 @@ class Model is Item3D
 
     private HashTable<NodePart, HashTable<Node, Matrix4>> nodePartBones
 
+    /*
+    This action returns an array containing all Material objects used by this
+    Model.
+
+    Attribute: Returns The array containing the Materials used by this Model.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.Material
+    use Libraries.Containers.Array
+
+    class Main is Game
+
+        Model cube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color cyan
+            cyan:SetColor(0, 0.75, 1, 1)
+
+            cube:LoadBox(2, 2, 2, cyan)
+            Add(cube)
+
+            Array<Material> materials = cube:GetMaterials()
+            output "This model uses " + materials:GetSize() + " material(s)."
+        end
+    end
+
+    */
     action GetMaterials returns Array<Material>
         return materials
     end
 
+    /*
+    This action returns an array containing all Node objects used by this
+    Model.
+
+    Attribute: Returns The array containing the Nodes used by this Model.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.ModelData.Node
+    use Libraries.Containers.Array
+
+    class Main is Game
+
+        Model cube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color cyan
+            cyan:SetColor(0, 0.75, 1, 1)
+
+            cube:LoadBox(2, 2, 2, cyan)
+            Add(cube)
+
+            Array<Node> nodes = cube:GetNodes()
+            output "This model uses " + nodes:GetSize() + " node(s)."
+        end
+    end
+
+    */
     action GetNodes returns Array<Node>
         return nodes
     end
 
+    /*
+    This action returns an array containing all Animation objects used by this
+    Model.
+
+    Attribute: Returns The array containing the Animations used by this Model.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.ModelData.Animation
+    use Libraries.Containers.Array
+
+    class Main is Game
+
+        Model cube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color cyan
+            cyan:SetColor(0, 0.75, 1, 1)
+
+            cube:LoadBox(2, 2, 2, cyan)
+            Add(cube)
+
+            Array<Animation> animations = cube:GetAnimations()
+            output "This model uses " + animations:GetSize() + " animation(s)."
+        end
+    end
+
+    */
     action GetAnimations returns Array<Animation>
         return animations
     end
 
-    action SetModelBlueprint(ModelBlueprint schematic)
+    /*
+    Sets a reference to the ModelBlueprint that this model was loaded from.
+    */
+    private action SetModelBlueprint(ModelBlueprint schematic)
         modelBlueprint = schematic
     end
 
+    /*
+    This action will return the ModelBlueprint that this model was loaded from.
+
+    Attribute: Returns The ModelBlueprint that this Model was loaded from.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.ModelBlueprint
+
+    class Main is Game
+
+        Model cube
+        ModelBlueprint schematic = undefined
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color cyan
+            cyan:SetColor(0, 0.75, 1, 1)
+
+            cube:LoadBox(2, 2, 2, cyan)
+            Add(cube)
+
+            schematic = cube:GetModelBlueprint()
+        end
+    end
+
+    */
     action GetModelBlueprint returns ModelBlueprint
         return modelBlueprint
     end
 
     /*
-    This action will load the Model using the data from the given model file.
+    This action will load a model from a given model file. The supported file
+    extensions are .obj, .g3db, and .g3dj.
+
+    Attribute: Parameter file The file containing the model data to be loaded.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.System.File
+    use Libraries.Game.Graphics.Model
+
+    class Main is Game
+
+        Model hat
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            File file
+            file:SetPath("Sombrero.obj")
+            hat:Load(file)
+            Add(hat)
+        end
+    end
+
     */
     action Load(File file)
         ModelBlueprint schematic = GetCachedBlueprint(file)
@@ -62,7 +263,30 @@ class Model is Item3D
 
     /*
     This action will load the Model file with the given file name from the
-    default file directory.
+    default file directory. The supported file extensions are .obj, .g3db, and
+    .g3dj.
+
+    Attribute: Parameter fileName The name of the file to be loaded.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.System.File
+    use Libraries.Game.Graphics.Model
+
+    class Main is Game
+
+        Model cup
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            cup:Load("brown-mug.obj")
+            Add(cup)
+        end
+    end
     */
     action Load(text fileName)
         File file
@@ -87,6 +311,35 @@ class Model is Item3D
     /*
     This action will load the Model with a box with the given width, height,
     depth, and color.
+
+    Attribute: Parameter width How long the box should be along the x-axis.
+    Attribute: Parameter height How long the box should be along the y-axis.
+    Attribute: Parameter depth How long the box should be along the z-axis.
+    Attribute: Parameter color What color the box should be.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+
+        Model cube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color cyan
+            cyan:SetColor(0, 0.75, 1, 1)
+
+            cube:LoadBox(2, 2, 2, cyan)
+            Add(cube)
+        end
+    end
+
     */
     action LoadBox(number width, number height, number depth, Color color)
         ModelBlueprint schematic = GetCachedBox(width, height, depth, color)
@@ -97,6 +350,35 @@ class Model is Item3D
     /*
     This action will load the Model with a box with the given width, height,
     and depth. The box will use the texture located in the provided file.
+
+    Attribute: Parameter width How long the box should be along the x-axis.
+    Attribute: Parameter height How long the box should be along the y-axis.
+    Attribute: Parameter depth How long the box should be along the z-axis.
+    Attribute: Parameter textureFile A file containing a texture to show on each side of the box.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.System.File
+
+    class Main is Game
+
+        Model cube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            File texture
+            texture:SetPath("Crate.png")
+
+            cube:LoadBox(2, 2, 2, texture)
+            Add(cube)
+        end
+    end
+
     */
     action LoadBox(number width, number height, number depth, File textureFile)
         Texture texture
@@ -107,6 +389,31 @@ class Model is Item3D
     /*
     This action will load the Model with a box with the given width, height,
     and depth. The box will use the texture located at the provided file path.
+
+    Attribute: Parameter width How long the box should be along the x-axis.
+    Attribute: Parameter height How long the box should be along the y-axis.
+    Attribute: Parameter depth How long the box should be along the z-axis.
+    Attribute: Parameter textureFile The name of a texture file to be displayed on each side of the box.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+
+    class Main is Game
+
+        Model cube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            cube:LoadBox(2, 2, 2, "Box.png")
+            Add(cube)
+        end
+    end
+
     */
     action LoadBox(number width, number height, number depth, text textureFile)
         Texture texture
@@ -118,6 +425,35 @@ class Model is Item3D
     This action will load the Model with a box with the given width, height,
     and depth. The box will use the texture that has been loaded by the given
     Drawable.
+
+    Attribute: Parameter width How long the box should be along the x-axis.
+    Attribute: Parameter height How long the box should be along the y-axis.
+    Attribute: Parameter depth How long the box should be along the z-axis.
+    Attribute: Parameter drawable A loaded Drawable containing an image to be used on each side of the box.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        Model cube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable logo
+            logo:Load("Logo.png")
+
+            cube:LoadBox(2, 2, 2, logo)
+            Add(cube)
+        end
+    end
+
     */
     action LoadBox(number width, number height, number depth, Drawable drawable)
         Texture texture = drawable:GetTexture()
@@ -127,6 +463,35 @@ class Model is Item3D
     /*
     This action will load the Model with a box with the given width, height,
     depth, and texture.
+
+    Attribute: Parameter width How long the box should be along the x-axis.
+    Attribute: Parameter height How long the box should be along the y-axis.
+    Attribute: Parameter depth How long the box should be along the z-axis.
+    Attribute: Parameter drawable A loaded Drawable containing an image to be used on each side of the box.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Texture
+
+    class Main is Game
+
+        Model cube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Texture texture
+            texture:LoadFilledCircle(150)
+
+            cube:LoadBox(2, 2, 2, texture)
+            Add(cube)
+        end
+    end
+
     */
     action LoadBox(number width, number height, number depth, Texture texture)
         ModelBlueprint schematic = GetCachedBox(width, height, depth, texture)
@@ -138,6 +503,35 @@ class Model is Item3D
     This action will load the Model with a cylinder with the given width,
     height, depth, and color. The default cylinder will be made using 16
     straight sides to simulate the curve of the cylinder.
+
+    Attribute: Parameter width How long the cylinder should be along the x-axis.
+    Attribute: Parameter height How long the cylinder should be along the y-axis.
+    Attribute: Parameter depth How long the cylinder should be along the z-axis.
+    Attribute: Parameter color What color the cylinder should be.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+
+        Model tube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color orange
+            orange:SetColor(1, 0.5, 0, 1)
+
+            tube:LoadCylinder(2, 2, 2, orange)
+            Add(tube)
+        end
+    end
+
     */
     action LoadCylinder(number width, number height, number depth, Color color)
         LoadCylinder(width, height, depth, 16, color)
@@ -148,6 +542,36 @@ class Model is Item3D
     and color. The provided number of divisions will be used to simulate the
     curve of the cylinder - the more divisions used, the smoother the curve will
     appear.
+
+    Attribute: Parameter width How long the cylinder should be along the x-axis.
+    Attribute: Parameter height How long the cylinder should be along the y-axis.
+    Attribute: Parameter depth How long the cylinder should be along the z-axis.
+    Attribute: Parameter divisions How many straight edges to use to simulate the curve of the cylinder.
+    Attribute: Parameter color What color the cylinder should be.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+
+        Model tube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color orange
+            orange:SetColor(1, 0.5, 0, 1)
+
+            tube:LoadCylinder(2, 2, 2, 8, orange)
+            Add(tube)
+        end
+    end
+
     */
     action LoadCylinder(number width, number height, number depth, integer divisions, Color color)
         ModelBlueprint schematic = GetCachedCylinder(width, height, depth, divisions, color)
@@ -160,6 +584,36 @@ class Model is Item3D
     and texture. The provided number of divisions will be used to simulate the
     curve of the cylinder - the more divisions used, the smoother the curve will
     appear.
+
+    Attribute: Parameter width How long the cylinder should be along the x-axis.
+    Attribute: Parameter height How long the cylinder should be along the y-axis.
+    Attribute: Parameter depth How long the cylinder should be along the z-axis.
+    Attribute: Parameter divisions How many straight edges to use to simulate the curve of the cylinder.
+    Attribute: Parameter textureFile A texture file containing the texture to display on the cylinder.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.System.File
+
+    class Main is Game
+
+        Model tube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            File image
+            image:SetPath("Steel.png")
+
+            tube:LoadCylinder(2, 2, 2, 8, image)
+            Add(tube)
+        end
+    end
+
     */
     action LoadCylinder(number width, number height, number depth, integer divisions, File textureFile)
         Texture texture
@@ -172,6 +626,32 @@ class Model is Item3D
     and texture. The provided number of divisions will be used to simulate the
     curve of the cylinder - the more divisions used, the smoother the curve will
     appear.
+
+    Attribute: Parameter width How long the cylinder should be along the x-axis.
+    Attribute: Parameter height How long the cylinder should be along the y-axis.
+    Attribute: Parameter depth How long the cylinder should be along the z-axis.
+    Attribute: Parameter divisions How many straight edges to use to simulate the curve of the cylinder.
+    Attribute: Parameter textureFile The name of a file containing the texture to display on the cylinder.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+
+    class Main is Game
+
+        Model tube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            tube:LoadCylinder(2, 2, 2, 8, "Concrete.png")
+            Add(tube)
+        end
+    end
+
     */
     action LoadCylinder(number width, number height, number depth, integer divisions, text textureFile)
         Texture texture
@@ -181,9 +661,40 @@ class Model is Item3D
 
     /*
     This action will load the Model with a cylinder with the given dimensions
-    and texture. The provided number of divisions will be used to simulate the
+    and using the texture contained in the provided Drawable. The Drawable must
+    be loaded. The provided number of divisions will be used to simulate the
     curve of the cylinder - the more divisions used, the smoother the curve will
     appear.
+
+    Attribute: Parameter width How long the cylinder should be along the x-axis.
+    Attribute: Parameter height How long the cylinder should be along the y-axis.
+    Attribute: Parameter depth How long the cylinder should be along the z-axis.
+    Attribute: Parameter divisions How many straight edges to use to simulate the curve of the cylinder.
+    Attribute: Parameter drawable A loaded Drawable that contains a texture to be displayed on the cylinder.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        Model tube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable image
+            image:Load("Steel.png")
+
+            tube:LoadCylinder(2, 2, 2, 8, image)
+            Add(tube)
+        end
+    end
+
     */
     action LoadCylinder(number width, number height, number depth, integer divisions, Drawable drawable)
         Texture texture = drawable:GetTexture()
@@ -195,6 +706,36 @@ class Model is Item3D
     and texture. The provided number of divisions will be used to simulate the
     curve of the cylinder - the more divisions used, the smoother the curve will
     appear.
+
+    Attribute: Parameter width How long the cylinder should be along the x-axis.
+    Attribute: Parameter height How long the cylinder should be along the y-axis.
+    Attribute: Parameter depth How long the cylinder should be along the z-axis.
+    Attribute: Parameter divisions How many straight edges to use to simulate the curve of the cylinder.
+    Attribute: Parameter texture The texture to draw on the sides of the cylinder.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Texture
+
+    class Main is Game
+
+        Model tube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Texture texture
+            texture:LoadFromFile("Cable.png")
+
+            tube:LoadCylinder(2, 2, 2, 8, texture)
+            Add(tube)
+        end
+    end
+
     */
     action LoadCylinder(number width, number height, number depth, integer divisions, Texture texture)
         ModelBlueprint schematic = GetCachedCylinder(width, height, depth, divisions, texture)
@@ -204,9 +745,37 @@ class Model is Item3D
 
     /*
     This action will load the Model with a cylinder with the given dimensions
-    and texture. The provided number of divisions will be used to simulate the
-    curve of the cylinder - the more divisions used, the smoother the curve will
-    appear.
+    and texture. The curve of the cylinder will be approximated using 16
+    straight edges.
+
+    Attribute: Parameter width How long the cylinder should be along the x-axis.
+    Attribute: Parameter height How long the cylinder should be along the y-axis.
+    Attribute: Parameter depth How long the cylinder should be along the z-axis.
+    Attribute: Parameter textureFile A file containing the texture to draw onto the cylinder.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.System.File
+
+    class Main is Game
+
+        Model tube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            File file
+            file:SetPath("Trunk.png")
+
+            tube:LoadCylinder(2, 2, 2, file)
+            Add(tube)
+        end
+    end
+
     */
     action LoadCylinder(number width, number height, number depth, File textureFile)
         LoadCylinder(width, height, depth, 16, textureFile)
@@ -216,15 +785,68 @@ class Model is Item3D
     This action will load the Model with a cylinder with the given dimensions
     and texture. The curve of the cylinder will be approximated using 16
     straight edges.
+
+    Attribute: Parameter width How long the cylinder should be along the x-axis.
+    Attribute: Parameter height How long the cylinder should be along the y-axis.
+    Attribute: Parameter depth How long the cylinder should be along the z-axis.
+    Attribute: Parameter textureFile The name of a file containing the texture to draw onto the cylinder.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+
+    class Main is Game
+
+        Model tube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            tube:LoadCylinder(2, 2, 2, "Barrel.png")
+            Add(tube)
+        end
+    end
+
     */
     action LoadCylinder(number width, number height, number depth, text textureFile)
         LoadCylinder(width, height, depth, 16, textureFile)
     end
 
     /*
-    This action will load the Model with a cylinder with the given dimensions
-    and texture. The curve of the cylinder will be approximated using 16
-    straight edges.
+    This action will load the Model with a cylinder with the given dimensions,
+    using the texture contained in the given (loaded) Drawable. The curve of the
+    cylinder will be approximated using 16 straight edges.
+
+    Attribute: Parameter width How long the cylinder should be along the x-axis.
+    Attribute: Parameter height How long the cylinder should be along the y-axis.
+    Attribute: Parameter depth How long the cylinder should be along the z-axis.
+    Attribute: Parameter drawable A loaded Drawable to draw onto the cylinder.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        Model tube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable image
+            image:Load("Pillar.png")
+
+            tube:LoadCylinder(2, 2, 2, image)
+            Add(tube)
+        end
+    end
     */
     action LoadCylinder(number width, number height, number depth, Drawable drawable)
         LoadCylinder(width, height, depth, 16, drawable)
@@ -234,6 +856,35 @@ class Model is Item3D
     This action will load the Model with a cylinder with the given dimensions
     and texture. The curve of the cylinder will be approximated using 16
     straight edges.
+
+    Attribute: Parameter width How long the cylinder should be along the x-axis.
+    Attribute: Parameter height How long the cylinder should be along the y-axis.
+    Attribute: Parameter depth How long the cylinder should be along the z-axis.
+    Attribute: Parameter texture The texture to be drawn onto the cylinder.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Texture
+
+    class Main is Game
+
+        Model tube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Texture texture
+            texture:LoadFromFile("Stripes.png")
+
+            tube:LoadCylinder(2, 2, 2, texture)
+            Add(tube)
+        end
+    end
+
     */
     action LoadCylinder(number width, number height, number depth, Texture texture)
         LoadCylinder(width, height, depth, 16, texture)
@@ -275,17 +926,68 @@ class Model is Item3D
         end
     end
 
+    /*
+    Find a box matching the dimensions (but not necessarily color) provided,
+    and return it. If none is found, create a new one and cache it.
+    */
     private system action GetCachedBox(number width, number height, number depth, Color color) returns ModelBlueprint
 
+    /*
+    Find a cylinder matching the dimensions (but not necessarily color) provided,
+    and return it. If none is found, create a new one and cache it.
+    */
     private system action GetCachedCylinder(number width, number height, number depth, integer divisions, Color color) returns ModelBlueprint
 
+    /*
+    Find a box matching the dimensions (but not necessarily texture) provided,
+    and return it. If none is found, create a new one and cache it.
+    */
     private system action GetCachedBox(number width, number height, number depth, Texture texture) returns ModelBlueprint
 
+    /*
+    Find a cylinder matching the dimensions (but not necessarily texture) provided,
+    and return it. If none is found, create a new one and cache it.
+    */
     private system action GetCachedCylinder(number width, number height, number depth, integer divisions, Texture texture) returns ModelBlueprint
 
     /*
     This action will load this Model using the data contained in the given
     ModelBlueprint.
+
+    Attribute: Parameter loader The ModelBlueprint to load.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.ModelBlueprint
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+
+        Model cube
+        Model cubeCopy
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color mint
+            mint:SetColor(0.5, 1, 0.75, 1)
+
+            cube:LoadBox(2, 2, 2, mint)
+            Add(cube)
+
+            ModelBlueprint schematic = cube:GetModelBlueprint()
+            cubeCopy:Load(schematic)
+            Add(cubeCopy)
+
+            cube:SetX(-2)
+            cubeCopy:SetX(2)
+        end
+    end
+
     */
     action Load(ModelBlueprint loader)
         Load(loader, undefined)
@@ -295,6 +997,44 @@ class Model is Item3D
     This action will load this Model using the data contained in the given
     ModelBlueprint, and set its transform using the given Matrix4 (if it is
     defined).
+
+    Attribute: Parameter loader The ModelBlueprint to load.
+    Attribute: Parameter matrix The Matrix4 used to transform this Model.
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.ModelBlueprint
+    use Libraries.Game.Graphics.Color
+    use Libraries.Compute.Matrix4
+
+    class Main is Game
+
+        Model cube
+        Model cubeCopy
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color mint
+            mint:SetColor(0.5, 1, 0.75, 1)
+
+            cube:LoadBox(2, 2, 2, mint)
+            Add(cube)
+
+            Matrix4 matrix
+            matrix:SetToTranslation(2, 0, 0)
+            matrix:Rotate(0, 1, 0, 45)
+
+            ModelBlueprint schematic = cube:GetModelBlueprint()
+            cubeCopy:Load(schematic, matrix)
+            Add(cubeCopy)
+
+            cube:SetX(-2)
+        end
+    end
+
     */
     action Load(ModelBlueprint loader, Matrix4 matrix)
         modelBlueprint = loader
@@ -309,6 +1049,11 @@ class Model is Item3D
         SetDimensions(GetCachedDimensions(loader))
     end
 
+    /*
+    Copy the nodes from the given array into this model's data structures.
+
+    FIX-ME: SetBones() commented, will eventually need to be fixed for animations.
+    */
     private action CopyNodes(Array<Node> copyNodes)
         nodePartBones:Empty()
         integer index = 0
@@ -320,6 +1065,9 @@ class Model is Item3D
         //SetBones()
     end
 
+    /*
+    Copy data from a single node into this object's data structures.
+    */
     private action CopyNode(Node node) returns Node
         Node copy
         copy:id = node:id
@@ -347,6 +1095,9 @@ class Model is Item3D
         return copy
     end
 
+    /*
+    Copy data from a single NodePart into this object's data structures.
+    */
     private action CopyNodePart(NodePart nodePart) returns NodePart
         NodePart copy
         MeshPart meshPart = copy:meshPart
@@ -371,6 +1122,9 @@ class Model is Item3D
         return copy
     end
 
+    /*
+    Set the bones using the previously set nodes.
+    */
     private action SetBones
         Iterator<NodePart> iterator = nodePartBones:GetKeyIterator()
         NodePart key = undefined
@@ -402,6 +1156,9 @@ class Model is Item3D
         end
     end
 
+    /*
+    Find a node in this Model with the matching text ID.
+    */
     private action GetNode(text nodeID) returns Node
         integer counter = 0
         Node node = undefined
@@ -426,6 +1183,9 @@ class Model is Item3D
         return result
     end
 
+    /*
+    Copy the animations from the given array into this object.
+    */
     private action CopyAnimations(Array<Animation> source)
         integer index = 0
         Animation anim = undefined
@@ -520,7 +1280,7 @@ class Model is Item3D
     This action will calculate the local and world transforms of all Nodes in
     this model, and then calculate the updated bone matrices.
     */
-    action CalculateTransforms
+    private action CalculateTransforms
         integer index = 0
         integer size = nodes:GetSize()
         repeat size times
@@ -534,10 +1294,16 @@ class Model is Item3D
         end
     end
 
+    /*
+    GetRenderables is used to retrieve all of the individual renderable
+    components of this Model. This action is used internally by the Game engine.
+    Most users should never need to access this action directly.
+    
+    Attribute: Parameter renderables An array that will contain all of the retrieved Renderables.
+    */
     action GetRenderables(Array<Renderable> renderables)
         Node node = undefined
         integer index = 0
-        //output "Nodes size = " + nodes:GetSize()
         repeat nodes:GetSize() times
             node = nodes:Get(index)
             GetRenderables(node, renderables)
@@ -545,6 +1311,9 @@ class Model is Item3D
         end
     end
 
+    /*
+    Retrieve all Renderables managed by a single node.
+    */
     private action GetRenderables(Node node, Array<Renderable> renderables)
         if node:parts:GetSize() > 0
             NodePart nodePart = undefined
@@ -566,6 +1335,10 @@ class Model is Item3D
         end
     end
 
+    /*
+    Return a single renderable, and set it in the given NodePart. The Node is
+    only used to set the transform.
+    */
     private action GetRenderable(Node node, NodePart nodePart) returns Renderable
         Renderable out
         nodePart:SetRenderable(out)
@@ -584,7 +1357,10 @@ class Model is Item3D
     /*
     The Draw action is what makes a Model appear on the screen. This action
     will automatically be called by the Game class if the Model has been
-    added to the Game with the Add(Item) action. 
+    added to the Game with the Add(Item) action. Most users will never need to
+    use this action directly.
+
+    Attribute: Parameter painter The Painter3D being used to draw this Model.
     */
     action Draw(Painter3D painter)
         if not IsShowing()
@@ -599,6 +1375,36 @@ class Model is Item3D
     /*
     CalculateBoundingBox will create a new BoundingBox object that contains the
     bounds of the Model.
+
+    Attribute: Returns A new axis-aligned BoundingBox for this Model.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.BoundingBox
+
+    class Main is Game
+
+        Model cube
+        
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color mint
+            mint:SetColor(0.5, 1, 0.75, 1)
+
+            cube:LoadBox(2, 2, 2, mint)
+            Add(cube)
+
+            BoundingBox box = cube:CalculateBoundingBox()
+            output "The dimensions of the bounding box are: " + box:GetWidth() + ", " + box:GetHeight() + ", " + box:GetDepth()
+        end
+    end
+
     */
     action CalculateBoundingBox returns BoundingBox
         BoundingBox box
@@ -609,6 +1415,37 @@ class Model is Item3D
     CalculateBoundingBox will compute the bounds of this Model, and then store
     them inside the provided BoundingBox object. If any data was previously
     stored in this BoundingBox, it will be overwritten.
+
+    Attribute: Returns The given axis-aligned BoundingBox, which will contain the bounds of this Model.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.BoundingBox
+
+    class Main is Game
+
+        Model cube
+        BoundingBox box
+        
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color mint
+            mint:SetColor(0.5, 1, 0.75, 1)
+
+            cube:LoadBox(2, 2, 2, mint)
+            Add(cube)
+
+            cube:CalculateBoundingBox(box)
+            output "The dimensions of the bounding box are: " + box:GetWidth() + ", " + box:GetHeight() + ", " + box:GetDepth()
+        end
+    end
+
     */
     action CalculateBoundingBox(BoundingBox box) returns BoundingBox
         box:Invalidate()
@@ -618,6 +1455,43 @@ class Model is Item3D
     /*
     ExtendBoundingBox will expand the bounds of the given BoundingBox to fully
     encapsulate the bounds of this Model.
+
+    Attribute: Parameter box The BoundingBox to extend.
+
+    Attribute: Returns The given BoundingBox, which now includes the bounds of this Model.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.BoundingBox
+
+    class Main is Game
+
+        Model cube
+        Model cylinder
+        
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color blue
+            blue:SetColor(0, 0, 1, 1)
+
+            cube:LoadBox(2, 2, 2, blue)
+            Add(cube)
+
+            cylinder:LoadCylinder(1, 4, 1, blue)
+            Add(cylinder)
+
+            BoundingBox box = cube:CalculateBoundingBox()
+            cylinder:ExtendBoundingBox(box)
+            output "The dimensions of the bounding box are: " + box:GetWidth() + ", " + box:GetHeight() + ", " + box:GetDepth()
+        end
+    end
+
     */
     action ExtendBoundingBox(BoundingBox box) returns BoundingBox
         integer counter = 0
@@ -628,14 +1502,5 @@ class Model is Item3D
 
         return box
     end
-
-    /*
-    public BoundingBox extendBoundingBox (final BoundingBox out) {
-		final int n = nodes.size;
-		for (int i = 0; i < n; i++)
-			nodes.get(i).extendBoundingBox(out);
-		return out;
-	}
-    */
 
 end

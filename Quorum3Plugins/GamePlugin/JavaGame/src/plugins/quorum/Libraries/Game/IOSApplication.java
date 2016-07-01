@@ -15,6 +15,7 @@ import quorum.Libraries.Game.Graphics.Painter2D;
 
 import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.foundation.Foundation;
+import org.robovm.apple.foundation.NSBundle;
 import org.robovm.apple.foundation.NSString;
 import org.robovm.apple.uikit.UIApplication;
 import org.robovm.apple.uikit.UIApplicationLaunchOptions;
@@ -78,6 +79,18 @@ public class IOSApplication
     public void SetupNative(Game_ game)
     {
         this.game = game;
+        
+        // Make the default working directory more useful if we're not on a simulator.
+        if (!UIDevice.getCurrentDevice().getName().contains("Simulator"))
+        {
+            plugins.quorum.Libraries.System.QuorumFile qFile = new plugins.quorum.Libraries.System.QuorumFile();
+            qFile.defaultWorkingDirectory = NSBundle.getMainBundle().getBundlePath();
+            Foundation.log("%@", new NSString("Default working directory set to " + NSBundle.getMainBundle().getBundlePath()));
+            Foundation.log("%@", new NSString ("Directory listing is:\n" + qFile.GetDirectoryListingNative()));
+        }
+        else
+            Foundation.log("%@", new NSString("Did not change default working directory for simulator."));
+        
         delegate = new IOSDelegate();
         delegate.Begin(this);
     }
@@ -290,5 +303,47 @@ public class IOSApplication
         listener.dispose();
         */
         ((IOSGraphics)GameState.GetGameGraphics()).plugin_.glFlush();
+    }
+    
+    /*
+    Actions used by the Quorum IOSApplication class to determine various
+    information.
+    */
+    
+    /*
+    This action returns the location of the application bundle on the iOS
+    device. If the program is currently running on the simulator, this will
+    return the default working directory of a Quorum File instead.
+    */
+    public String GetApplicationLocation()
+    {
+        if (!IsRunningOnSimulator())
+        {
+            return NSBundle.getMainBundle().getBundlePath();
+        }
+        else
+        {
+            return System.getProperty("user.dir");
+        }
+    }
+    
+    /*
+    This action will return whether or not the device is currently running on an
+    iOS simulator.
+    */
+    public boolean IsRunningOnSimulator()
+    {
+        if (UIDevice.getCurrentDevice().getName().contains("Simulator"))
+            return true;
+        else
+            return false;
+    }
+    
+    /*
+    This action will log the given line of text in this device's logs.
+    */
+    public void Log(String info)
+    {
+        Foundation.log("%@", new NSString(info));
     }
 }
