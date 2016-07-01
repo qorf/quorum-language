@@ -14,6 +14,10 @@ use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Color
 use Libraries.Compute.Vector3
 use Libraries.Containers.Iterator
+use Libraries.Game.Collision.CollisionManager2D
+use Libraries.Interface.Events.CollisionListener2D
+use Libraries.Game.Collision.ContactEdge2D
+use Libraries.Interface.Events.CollisionEvent2D
 
 /*
 The Layer2D class is used to manage a number of 2D objects, as well as manage
@@ -32,39 +36,47 @@ class Layer2D is Layer
     Camera camera = undefined
     Painter2D painter
 
+    CollisionManager2D collisionManager
+
+    boolean newItemAdded = false
+
     on create
         OrthographicCamera cam
         camera = cam
+        collisionManager:SetLayer(me)
     end
 
     /*
-    This action will add an Item2D to this Layer. It will be updated along with
+    This action will add an Item2Dto this Layer. It will be updated along with
     the rest of the layer, and will be drawn on the screen (if it is visible and
     possible to draw the given Item2D).
     */
     action Add(Item2D item)
         item:SetLayer(me)
         items:Add(item)
+        newItemAdded = true
     end
 
     /*
-    This action will add an Item2D to this Layer at the index location. It will be updated along with
+    This action will add an Item2Dto this Layer at the index location. It will be updated along with
     the rest of the layer, and will be drawn on the screen (if it is visible and
     possible to draw the given Item2D).
     */
     action Add(integer index, Item2D item)
         item:SetLayer(me)
         items:Add(index, item)
+        newItemAdded = true
     end
 
     /*
-    This action will add an Item2D to this Layer at index 0. It will be updated along with
+    This action will add an Item2Dto this Layer at index 0. It will be updated along with
     the rest of the layer, and will be drawn on the screen (if it is visible and
     possible to draw the given Item2D).
     */
     action AddToFront(Item2D item)
         item:SetLayer(me)
         items:AddToFront(item)
+        newItemAdded = true
     end
 
     /*
@@ -73,49 +85,102 @@ class Layer2D is Layer
     action Empty()
         Iterator<Item2D> it = items:GetIterator()
         repeat while it:HasNext()
+            Item2D body = it:GetCurrent()
+            ContactEdge2D edge = body:contactList
+            repeat while edge not= undefined
+                ContactEdge2D edge0 = edge
+                edge = edge:GetNext()
+                collisionManager:Destroy(edge0:GetCollision())
+            end
+            body:contactList = undefined
+
+            body:DestroyNodes(collisionManager:GetBroadphase())
+
             it:Next():SetLayer(undefined)
         end
         items:Empty()
     end
 
     /*
-    This action will remove an Item2D from this Layer. If the item was not a
+    This action will remove an Item2Dfrom this Layer. If the item was not a
     part of this layer, this action will have no effect.
     */
     action Remove(Item2D item) returns boolean
+        ContactEdge2D edge = item:contactList
+        repeat while edge not= undefined
+            ContactEdge2D edge0 = edge
+            edge = edge:GetNext()
+            collisionManager:Destroy(edge0:GetCollision())
+        end
+        item:contactList = undefined
+
+        item:DestroyNodes(collisionManager:GetBroadphase())
+
         item:SetLayer(undefined)
         return items:Remove(item)
     end
 
     /*
-    This action will remove an Item2D at the index location from this Layer and return that item
+    This action will remove an Item2Dat the index location from this Layer and return that item
     */
     action RemoveAt(integer index) returns Item2D
         Item2D item = items:RemoveAt(index)
+
+        ContactEdge2D edge = item:contactList
+        repeat while edge not= undefined
+            ContactEdge2D edge0 = edge
+            edge = edge:GetNext()
+            collisionManager:Destroy(edge0:GetCollision())
+        end
+        item:contactList = undefined
+
+        item:DestroyNodes(collisionManager:GetBroadphase())
+
         item:SetLayer(undefined)
         return item
     end 
 
     /*
-    This action will remove an Item2D at the front of the list of items in Layer and return that item
+    This action will remove an Item2Dat the front of the list of items in Layer and return that item
     */
     action RemoveFromFront() returns Item2D
         Item2D item = items:RemoveFromFront()
+        ContactEdge2D edge = item:contactList
+        repeat while edge not= undefined
+            ContactEdge2D edge0 = edge
+            edge = edge:GetNext()
+            collisionManager:Destroy(edge0:GetCollision())
+        end
+        item:contactList = undefined
+
+        item:DestroyNodes(collisionManager:GetBroadphase())
+
         item:SetLayer(undefined)
         return item
     end
 
     /*
-    This action will remove an Item2D at the end of the list of items in Layer and return that item
+    This action will remove an Item2Dat the end of the list of items in Layer and return that item
     */
     action RemoveFromEnd() returns Item2D
         Item2D item = items:RemoveFromEnd()
+
+        ContactEdge2D edge = item:contactList
+        repeat while edge not= undefined
+            ContactEdge2D edge0 = edge
+            edge = edge:GetNext()
+            collisionManager:Destroy(edge0:GetCollision())
+        end
+        item:contactList = undefined
+
+        item:DestroyNodes(collisionManager:GetBroadphase())
+
         item:SetLayer(undefined)
         return item
     end
 
     /*
-    This action will get an Item2D stored in the Layer at a given index in the
+    This action will get an Item2Dstored in the Layer at a given index in the
     layer's internal array of children.
     */
     action Get(integer index) returns Item2D
@@ -123,14 +188,14 @@ class Layer2D is Layer
     end
 
     /*
-    This action will return the first Item2D in the layer
+    This action will return the first Item2Din the layer
     */
     action GetFromFront() returns Item2D
         return items:GetFromFront()
     end
 
     /*
-    This action will return the last Item2D in the layer
+    This action will return the last Item2Din the layer
     */
     action GetFromEnd() returns Item2D
         return items:GetFromEnd()
@@ -166,6 +231,7 @@ class Layer2D is Layer
     */
     action Set(integer index, Item2D item)
         items:Set(index, item)
+        newItemAdded = true
     end
 
     /*
@@ -366,5 +432,56 @@ class Layer2D is Layer
     */
     action SetColorFilter(number red, number green, number blue, number alpha)
         painter:SetColor(red, green, blue, alpha)
+    end
+
+    /*
+    SetCollisionListener sets the collision listener for this layer object. The
+    collision listener is responsible for managing the collision events between
+    2D items in a game.
+    */
+    action AddCollisionListener(CollisionListener2D listener)
+        collisionManager:AddCollisionListener(listener)
+    end
+
+    action RemoveCollisionListener(CollisionListener2D listener)
+        collisionManager:RemoveCollisionListener(listener)
+    end
+    /*
+    This action gets the list of items on this layer that are colliding and
+    returns it as an array.
+    */
+    action GetCollisionList returns CollisionEvent2D
+        return collisionManager:GetCollisionList()
+    end
+
+    /*
+    This action gets the collision manager for this object which is responsible
+    for managing the collisions between all colliding items on this layer.
+    */
+    action GetCollisionManager returns CollisionManager2D
+        return collisionManager
+    end
+
+    action TestForCollisions
+        if newItemAdded
+            collisionManager:FindNewCollisions()
+            newItemAdded = false
+        end
+
+        collisionManager:Collide()
+
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item2D item = items:Get(i)
+            item:SynchronizeNodes()
+
+            i = i + 1
+        end
+
+        collisionManager:FindNewCollisions()
+    end
+
+    action SetNewItemAdded(boolean flag)
+        newItemAdded = flag
     end
 end

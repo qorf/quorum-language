@@ -1862,6 +1862,10 @@ class Class is Symbol
         //this is an explicit call to the parent, so only grab that table.
         if code not= undefined and code:IsParentCall()
             Class par = code:GetParentToCallOn()
+            if par = undefined
+                //the error should already be defined
+                return resolution
+            end
             all = par:GetVirtualTable()
         else 
             all = virtualActions:GetValueIterator()

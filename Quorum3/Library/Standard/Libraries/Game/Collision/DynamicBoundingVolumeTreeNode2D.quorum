@@ -1,0 +1,79 @@
+use Libraries.Interface.Item2D
+use Libraries.Compute.Vector3
+use Libraries.Compute.Math
+
+package Libraries.Game.Collision
+
+class DynamicBoundingVolumeTreeNode2D
+
+    BoundingBox2D boundingBox
+    DynamicBoundingVolumeTreeNode2D treeParent = undefined
+
+    Object object = undefined
+
+    DynamicBoundingVolumeTreeNode2D leftChild = undefined
+    DynamicBoundingVolumeTreeNode2D rightChild = undefined
+
+    integer height = -1
+    integer id = -1
+
+    action SetID(integer id)
+        me:id = id
+    end
+    
+    action GetID returns integer
+        return id
+    end
+
+    action SetObject(Object object)
+        me:object = object
+    end
+
+    action GetObject returns Object
+        return object
+    end
+
+    action GetHeight returns integer
+        return height
+    end
+
+    action SetHeight(integer height)
+        me:height = height
+    end
+
+    action GetBoundingBox returns BoundingBox2D
+        return boundingBox
+    end
+
+    action SetBoundingBox(BoundingBox2D boundingBox)
+        me:boundingBox = boundingBox
+    end
+
+    action GetParent returns DynamicBoundingVolumeTreeNode2D
+        return treeParent
+    end
+
+    action SetParent(DynamicBoundingVolumeTreeNode2D treeParent)
+        me:treeParent = treeParent
+    end
+
+    action GetLeftChild returns DynamicBoundingVolumeTreeNode2D
+        return leftChild
+    end
+
+    action SetLeftChild(DynamicBoundingVolumeTreeNode2D leftChild)
+        me:leftChild = leftChild
+    end
+
+    action GetRightChild returns DynamicBoundingVolumeTreeNode2D
+        return rightChild
+    end
+
+    action SetRightChild(DynamicBoundingVolumeTreeNode2D rightChild)
+        me:rightChild = rightChild
+    end
+
+    action IsLeaf returns boolean
+        return leftChild = undefined
+    end
+end
