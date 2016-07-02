@@ -158,6 +158,11 @@ public class Installer extends ModuleInstall implements Runnable{
         
         return false;
     }
+    
+    public boolean detectScreenReadersNotRunning() {
+        return !isJAWSRunning() && !isNVDARunning();
+    }
+    
     @Override
     public void run() {
         speech = TextToSpeechFactory.getDefaultTextToSpeech();
@@ -173,7 +178,7 @@ public class Installer extends ModuleInstall implements Runnable{
                 AccessibilityOptions.setSelfVoicing(true);
             } else {
                 boolean sleeping = detectSleepingScreenReader();
-                if(sleeping) {
+                if(sleeping || detectScreenReadersNotRunning()) {
                     AccessibilityOptions.setSelfVoicing(true);
                 }
             }
