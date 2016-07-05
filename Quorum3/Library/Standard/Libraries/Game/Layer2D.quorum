@@ -25,6 +25,37 @@ input. The Layer2D effectively consists of a 2D "world", where all objects added
 to it exist in the same space and can interact with each other.
 
 Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Game.Layer2D
+use Libraries.Game.Graphics.Drawable
+
+class Main is Game
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        Drawable box
+        box:LoadFilledRectangle(50, 50)
+        box:SetPosition(100, 100)
+
+        Drawable circle
+        circle:LoadFilledCircle(25)
+        circle:SetPosition(300, 100)
+
+        Layer2D layer
+        layer:Add(box)
+        layer:Add(circle)
+        AddLayer(layer)
+    end
+
+    action Update(number seconds)
+    end
+end
 */
 class Layer2D is Layer
 
@@ -47,9 +78,47 @@ class Layer2D is Layer
     end
 
     /*
-    This action will add an Item2Dto this Layer. It will be updated along with
+    This action will add an Item2D to this Layer. It will be updated along with
     the rest of the layer, and will be drawn on the screen (if it is visible and
-    possible to draw the given Item2D).
+    possible to draw the given Item2D). The Item2D will be added to the back of
+    the layer's internal array of items.
+
+    Attribute: Parameter item The Item2D to be added to the layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Item2D
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            // Item2D objects aren't visible, but can still be used for game logic.
+            Item2D area
+            area:SetSize(50, 50)
+            area:SetPosition(100, 100)
+
+            // Drawables inherit from Item2D, so they can be added too.
+            Drawable circle
+            circle:LoadFilledCircle(25)
+            circle:SetPosition(300, 100)
+
+            Layer2D layer
+            layer:Add(area)
+            layer:Add(circle)
+            AddLayer(layer)
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
     action Add(Item2D item)
         item:SetLayer(me)
@@ -58,9 +127,47 @@ class Layer2D is Layer
     end
 
     /*
-    This action will add an Item2Dto this Layer at the index location. It will be updated along with
-    the rest of the layer, and will be drawn on the screen (if it is visible and
-    possible to draw the given Item2D).
+    This action will add an Item2D to this Layer's array of items at the index
+    location. It will be updated along with the rest of the layer, and will be 
+    drawn on the screen (if it is visible and possible to draw the given Item2D).
+
+    Attribute: Parameter index The index to store the item at in the layer's array of items.
+    Attribute: Parameter item The Item2D to be added to this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Item2D
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            // Item2D objects aren't visible, but can still be used for game logic.
+            Item2D area
+            area:SetSize(50, 50)
+            area:SetPosition(100, 100)
+
+            // Drawables inherit from Item2D, so they can be added too.
+            Drawable circle
+            circle:LoadFilledCircle(25)
+            circle:SetPosition(300, 100)
+
+            Layer2D layer
+            layer:Add(0, area)
+            layer:Add(1, circle)
+            AddLayer(layer)
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
     action Add(integer index, Item2D item)
         item:SetLayer(me)
@@ -69,9 +176,48 @@ class Layer2D is Layer
     end
 
     /*
-    This action will add an Item2Dto this Layer at index 0. It will be updated along with
-    the rest of the layer, and will be drawn on the screen (if it is visible and
-    possible to draw the given Item2D).
+    This action will add an Item2D to this layer's array of items at index 0. 
+    It will be updated along with the rest of the layer, and will be drawn on 
+    the screen (if it is visible and possible to draw the given Item2D). Adding
+    an item to the front will cause it to be drawn and updated before other
+    items in the layer, and other drawn items will appear to be on top of it.
+
+    Attribute: Parameter item The item to add to the front of the layer's item array.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Item2D
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            // Item2D objects aren't visible, but can still be used for game logic.
+            Item2D area
+            area:SetSize(50, 50)
+            area:SetPosition(100, 100)
+
+            // Drawables inherit from Item2D, so they can be added too.
+            Drawable circle
+            circle:LoadFilledCircle(25)
+            circle:SetPosition(300, 100)
+
+            Layer2D layer
+            layer:AddToFront(area)
+            layer:AddToFront(circle)
+            AddLayer(layer)
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
     action AddToFront(Item2D item)
         item:SetLayer(me)
@@ -81,8 +227,37 @@ class Layer2D is Layer
 
     /*
     This action will clear all the items in this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable circle
+            circle:LoadFilledCircle(25)
+            circle:SetPosition(300, 100)
+
+            Layer2D layer
+            layer:Add(circle)
+            AddLayer(layer)
+
+            layer:Empty()
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
-    action Empty()
+    action Empty
         Iterator<Item2D> it = items:GetIterator()
         repeat while it:HasNext()
             Item2D body = it:GetCurrent()
@@ -102,8 +277,41 @@ class Layer2D is Layer
     end
 
     /*
-    This action will remove an Item2Dfrom this Layer. If the item was not a
+    This action will remove an Item2D from this layer. If the item was not a
     part of this layer, this action will have no effect.
+
+    Attribute: Parameter item The item to remove from this layer.
+
+    Attribute: Returns Whether or not the item was found and removed from the layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable circle
+            circle:LoadFilledCircle(25)
+            circle:SetPosition(300, 100)
+
+            Layer2D layer
+            layer:Add(circle)
+            AddLayer(layer)
+
+            layer:Remove(circle)
+        end
+
+        action Update(number seconds)
+        end
+    end
+    
     */
     action Remove(Item2D item) returns boolean
         ContactEdge2D edge = item:contactList
@@ -121,7 +329,42 @@ class Layer2D is Layer
     end
 
     /*
-    This action will remove an Item2Dat the index location from this Layer and return that item
+    This action will remove an Item2D at the index location from this layer's 
+    array of items, and return the item that was removed.
+
+    Attribute: Parameter index The index to remove an item from in this layer's array of items.
+
+    Attribute: Returns The item that was removed from the item array in the layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Item2D
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable circle
+            circle:LoadFilledCircle(25)
+            circle:SetPosition(300, 100)
+
+            Layer2D layer
+            layer:Add(circle)
+            AddLayer(layer)
+
+            Item2D item = layer:RemoveAt(0)
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
     action RemoveAt(integer index) returns Item2D
         Item2D item = items:RemoveAt(index)
@@ -141,9 +384,43 @@ class Layer2D is Layer
     end 
 
     /*
-    This action will remove an Item2Dat the front of the list of items in Layer and return that item
+    This action will remove an Item2D from the front of the array of items in
+    this layer, and return the item that was removed. This is functionally the
+    same as calling "RemoveAt(0)".
+
+    Attribute: Returns The item that was removed from the front of the layer's item array.
+    
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Item2D
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable circle
+            circle:LoadFilledCircle(25)
+            circle:SetPosition(300, 100)
+
+            Layer2D layer
+            layer:Add(circle)
+            AddLayer(layer)
+
+            Item2D item = layer:RemoveFromFront()
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
-    action RemoveFromFront() returns Item2D
+    action RemoveFromFront returns Item2D
         Item2D item = items:RemoveFromFront()
         ContactEdge2D edge = item:contactList
         repeat while edge not= undefined
@@ -160,7 +437,40 @@ class Layer2D is Layer
     end
 
     /*
-    This action will remove an Item2Dat the end of the list of items in Layer and return that item
+    This action will remove an Item2D from the end of the array of items in 
+    the layer, and return the item that was removed.
+
+    Attribute: Returns The item that was removed from this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Item2D
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable circle
+            circle:LoadFilledCircle(25)
+            circle:SetPosition(300, 100)
+
+            Layer2D layer
+            layer:Add(circle)
+            AddLayer(layer)
+
+            Item2D item = layer:RemoveFromEnd()
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
     action RemoveFromEnd() returns Item2D
         Item2D item = items:RemoveFromEnd()
@@ -180,30 +490,163 @@ class Layer2D is Layer
     end
 
     /*
-    This action will get an Item2Dstored in the Layer at a given index in the
-    layer's internal array of children.
+    This action will get an Item2D stored in the layer at the given index in the
+    layer's internal array of items.
+
+    Attribute: Parameter index The index to retrieve an item from in the layer's array of items.
+
+    Attribute: Returns The Item2D stored at the index in the array.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Item2D
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable circle
+            circle:LoadFilledCircle(25)
+            circle:SetPosition(300, 100)
+
+            Layer2D layer
+            layer:Add(circle)
+            AddLayer(layer)
+
+            Item2D item = layer:Get(0)
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
     action Get(integer index) returns Item2D
         return items:Get(index)
     end
 
     /*
-    This action will return the first Item2Din the layer
+    This action will return the Item2D at the front of the layer's array of
+    items. This is functionally the same as calling "Get(0)".
+
+    Attribute: Returns The first item in the layer's array of items.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Item2D
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable circle
+            circle:LoadFilledCircle(25)
+            circle:SetPosition(300, 100)
+
+            Layer2D layer
+            layer:Add(circle)
+            AddLayer(layer)
+
+            Item2D item = layer:GetFromFront()
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
-    action GetFromFront() returns Item2D
+    action GetFromFront returns Item2D
         return items:GetFromFront()
     end
 
     /*
-    This action will return the last Item2Din the layer
+    This action will return the item stored at the end of the layer's array of
+    items.
+
+    Attribute: Returns The last item in the layer's array of items.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Item2D
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable circle
+            circle:LoadFilledCircle(25)
+            circle:SetPosition(300, 100)
+
+            Layer2D layer
+            layer:Add(circle)
+            AddLayer(layer)
+
+            Item2D item = layer:GetFromEnd()
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
-    action GetFromEnd() returns Item2D
+    action GetFromEnd returns Item2D
         return items:GetFromEnd()
     end
 
     /*
     This action will return an iterator of all the Item2D's stored inside this
-    Layer.
+    layer's array of items.
+
+    Attribute: Returns An iterator containing all Item2D's stored in this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Item2D
+    use Libraries.Containers.Iterator
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Item2D item1
+            Item2D item2
+            Item2D item3
+
+            Layer2D layer
+            layer:Add(item1)
+            layer:Add(item2)
+            layer:Add(item3)
+            AddLayer(layer)
+
+            Iterator<Item2D> itemIterator = layer:GetIterator()
+        end
+
+        action Update(number seconds)
+        end
+    end
     */
     action GetIterator returns Iterator<Item2D>
         return items:GetIterator()

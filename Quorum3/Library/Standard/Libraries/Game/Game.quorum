@@ -57,10 +57,15 @@ Attribute: Example
 
     use Libraries.Game.Game
 
-    class Main
-        action main
-            Game game
-            Game:StartGame()
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+        end
+
+        action Update(number seconds)
         end
     end
 */
