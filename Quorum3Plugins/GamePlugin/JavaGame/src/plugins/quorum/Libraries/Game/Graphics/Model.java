@@ -43,7 +43,8 @@ public class Model
     
     public ModelBlueprint_ GetCachedBox(double width, double height, double depth, Color_ color)
     {
-        String searchKey = ":BOX:DIFFUSE:" + width + ":" + height + ":" + depth;
+        String blendKey = (color.GetAlpha() < 1.0 ? "BLENDED:" : "");
+        String searchKey = ":BOX:DIFFUSE:" + blendKey + width + ":" + height + ":" + depth;
         
         ModelBlueprint_ blueprint = hashTable.get(searchKey);
         if (blueprint == null)
@@ -69,7 +70,8 @@ public class Model
     
     public ModelBlueprint_ GetCachedCylinder(double width, double height, double depth, int divisions, Color_ color)
     {
-        String searchKey = ":CYLINDER:DIFFUSE:" + width + ":" + height + ":" + depth + ":" + divisions;
+        String blendKey = (color.GetAlpha() < 1.0 ? "BLENDED:" : "");
+        String searchKey = ":CYLINDER:DIFFUSE:" + blendKey + width + ":" + height + ":" + depth + ":" + divisions;
         
         ModelBlueprint_ blueprint = hashTable.get(searchKey);
         if (blueprint == null)
