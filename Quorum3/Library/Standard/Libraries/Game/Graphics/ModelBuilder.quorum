@@ -290,6 +290,13 @@ class ModelBuilder
         ColorAttribute colorAttribute
         colorAttribute:SetAttribute(colorAttribute:GetDiffuseValue(), color)
         material:Add(colorAttribute)
+
+        if color:GetAlpha() < 1.0
+            BlendingAttribute blend
+            blend:opacity = color:GetAlpha()
+            material:Add(blend)
+        end
+
         VertexAttributes attributes
         integer mask = bits:Or(attributes:POSITION, attributes:NORMAL)
         return CreateBox(width, height, depth, TRIANGLES, material, mask)
@@ -376,6 +383,13 @@ class ModelBuilder
         ColorAttribute attribute
         attribute:SetAttribute(attribute:GetDiffuseValue(), color)
         material:Add(attribute)
+
+        if color:GetAlpha() < 1.0
+            BlendingAttribute blend
+            blend:opacity = color:GetAlpha()
+            material:Add(blend)
+        end
+
         VertexAttributes attributes
         integer mask = bits:Or(attributes:POSITION, attributes:NORMAL)
         return CreateCylinder(width, height, depth, divisions, TRIANGLES, material, mask, 0, 360)
@@ -411,6 +425,103 @@ class ModelBuilder
         integer mask = bits:Or(bits:Or(attributes:POSITION, attributes:NORMAL), attributes:TEXTURE_COORDINATES)
 
         return CreateCylinder(width, height, depth, divisions, TRIANGLES, material, mask)
+    end
+
+    /*
+    This action will create a new ModelBlueprint with a single node containing a
+    sphere shape. The cylinder will be made using the given width, height, and
+    depth. The primitive type used to form the cylinder will be TRIANGLES.
+    */
+    action CreateSphere(number width, number height, number depth, integer divisionsU, integer divisionsV, Material material, integer attributesMask) returns ModelBlueprint
+        return CreateSphere(width, height, depth, divisionsU, divisionsV, TRIANGLES, material, attributesMask)
+    end
+
+    /*
+    This action will create a new ModelBlueprint with a single node containing a
+    sphere shape. The sphere will be made using the given width, height, and
+    depth, and using the provided primitive type, Material, and attributes.
+    */
+    action CreateSphere(number width, number height, number depth, integer divisionsU, integer divisionsV, integer primitiveType, Material material, integer attributesMask) returns ModelBlueprint
+        return CreateSphere(width, height, depth, divisionsU, divisionsV, primitiveType, material, attributesMask, 0, 360, 0, 180)
+    end
+
+    /*
+    This action will create a new ModelBlueprint with a single node containing a
+    sphere shape. The sphere will be made using the given width, height, and
+    depth, and using the provided Material and attributes. The sphere will go
+    from the starting angle provided to the ending angle provided, in degrees.
+    */
+    action CreateSphere(number width, number height, number depth, integer divisionsU, integer divisionsV, Material material, integer attributesMask, number angleUFrom, number angleUTo, number angleVFrom, number angleVTo) returns ModelBlueprint
+        return CreateSphere(width, height, depth, divisionsU, divisionsV, TRIANGLES, material, attributesMask, angleUFrom, angleUTo, angleVFrom, angleVTo)
+    end
+
+    /*
+    This action will create a new ModelBlueprint with a single node containing a
+    sphere shape. The sphere will be constructed with the given width,
+    height, and depth, and using the provided Material and other parameters to
+    build the model.
+    */
+    action CreateSphere(number width, number height, number depth, integer divisionsU, integer divisionsV, integer primitiveType, Material material, integer attributesMask, number angleUFrom, number angleUTo, number angleVFrom, number angleVTo) returns ModelBlueprint
+        Begin()
+        AddPart("sphere", primitiveType, attributesMask, material):BuildSphere(width, height, depth, divisionsU, divisionsV, angleUFrom, angleUTo, angleVFrom, angleVTo)
+        return End()
+    end
+
+    /*
+    This action will create a new ModelBlueprint with a single node containing a
+    sphere shape. The sphere will be constructed with the given width,
+    height, and depth. The curve of the sphere will be approximated with
+    straight edges, using the provided number of divisions. A larger count of
+    divisions will use more edges to create a smoother curve. The created
+    sphere will be a single diffuse color, matching the provided Color object.
+    */
+    action CreateSphere(number width, number height, number depth, integer divisionsU, integer divisionsV, Color color) returns ModelBlueprint
+        Material material
+        ColorAttribute attribute
+        attribute:SetAttribute(attribute:GetDiffuseValue(), color)
+        material:Add(attribute)
+
+        if color:GetAlpha() < 1.0
+            BlendingAttribute blend
+            blend:opacity = color:GetAlpha()
+            material:Add(blend)
+        end
+
+        VertexAttributes attributes
+        integer mask = bits:Or(attributes:POSITION, attributes:NORMAL)
+        return CreateSphere(width, height, depth, divisionsU, divisionsV, TRIANGLES, material, mask, 0, 360, 0, 180)
+    end
+
+    /*
+    This action will create a new ModelBlueprint with a single node containing a
+    sphere shape. The sphere will be constructed with the given width,
+    height, and depth. The curve of the cylinder will be approximated with
+    straight edges, using the provided number of divisions. A larger count of
+    divisions will use more edges to create a smoother curve. The created
+    sphere will then be wrapped with the provided Texture.
+    */
+    action CreateSphere(number width, number height, number depth, integer divisionsU, integer divisionsV, Texture texture) returns ModelBlueprint
+        Material material
+        TextureAttribute textureAttribute
+        TextureDescriptor descriptor
+
+        TextureFilter minFilter
+        TextureFilter magFilter
+        minFilter:ConstructTextureFilter(minFilter:LINEAR)
+        magFilter:ConstructTextureFilter(magFilter:LINEAR)
+        TextureWrap uWrap
+        TextureWrap vWrap
+        uWrap:ConstructTextureWrap(uWrap:REPEAT)
+        vWrap:ConstructTextureWrap(vWrap:REPEAT)
+        descriptor:SetDescriptor(texture, minFilter, magFilter, uWrap, vWrap)
+
+        textureAttribute = textureAttribute:CreateDiffuse(descriptor)
+        material:Add(textureAttribute)
+
+        VertexAttributes attributes
+        integer mask = bits:Or(bits:Or(attributes:POSITION, attributes:NORMAL), attributes:TEXTURE_COORDINATES)
+
+        return CreateSphere(width, height, depth, divisionsU, divisionsV, TRIANGLES, material, mask)
     end
     
 end

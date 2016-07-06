@@ -891,6 +891,407 @@ class Model is Item3D
     end
 
     /*
+    This action will load the Model with a sphere with the given width,
+    height, depth, and color. The default sphere will be made using 25
+    straight sides on the horizontal plane and 16 straight sides on the vertical
+    plane to simulate the curve of a true sphere.
+
+    Attribute: Parameter width How long the sphere should be along the x-axis.
+    Attribute: Parameter height How long the sphere should be along the y-axis.
+    Attribute: Parameter depth How long the sphere should be along the z-axis.
+    Attribute: Parameter color What color the sphere should be.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+
+        Model ball
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color orange
+            orange:SetColor(1, 0.65, 0, 1)
+
+            ball:LoadSphere(2, 2, 2, orange)
+            Add(ball)
+        end
+    end
+
+    */
+    action LoadSphere(number width, number height, number depth, Color color)
+        LoadSphere(width, height, depth, 25, 16, color)
+    end
+
+    /*
+    This action will load the Model with a sphere with the given dimensions
+    and color. The provided number of divisions will be used to simulate the
+    curve of the sphere - the more divisions used, the smoother the curve will
+    appear.
+
+    Attribute: Parameter width How long the sphere should be along the x-axis.
+    Attribute: Parameter height How long the sphere should be along the y-axis.
+    Attribute: Parameter depth How long the sphere should be along the z-axis.
+    Attribute: Parameter horizontalDivisions How many straight edges to use on the horizontal plane to simulate the curve of the sphere.
+    Attribute: Parameter verticalDivisions How many straight edges to use on the vertical plane to simulate the curve of the sphere.
+    Attribute: Parameter color What color the sphere should be.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+
+        Model ball
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color orange
+            orange:SetColor(1, 0.65, 0, 1)
+
+            tube:LoadSphere(2, 2, 2, 12, 8, orange)
+            Add(tube)
+        end
+    end
+
+    */
+    action LoadSphere(number width, number height, number depth, integer horizontalDivisions, integer verticalDivisions, Color color)
+        ModelBlueprint schematic = GetCachedSphere(width, height, depth, horizontalDivisions, verticalDivisions, color)
+        Load(schematic)
+        SetDiffuseColor(color)
+    end
+
+    /*
+    This action will load the Model with a sphere with the given dimensions
+    and texture. The provided number of divisions will be used to simulate the
+    curve of the sphere - the more divisions used, the smoother the curve will
+    appear.
+
+    Attribute: Parameter width How long the sphere should be along the x-axis.
+    Attribute: Parameter height How long the sphere should be along the y-axis.
+    Attribute: Parameter depth How long the sphere should be along the z-axis.
+    Attribute: Parameter horizontalDivisions How many straight edges to use on the horizontal plane to simulate the curve of the sphere.
+    Attribute: Parameter verticalDivisions How many straight edges to use on the vertical plane to simulate the curve of the sphere.
+    Attribute: Parameter textureFile A texture file containing the texture to display on the sphere.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.System.File
+
+    class Main is Game
+
+        Model ball
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            File image
+            image:SetPath("Steel.png")
+
+            ball:LoadSphere(2, 2, 2, 12, 8, image)
+            Add(ball)
+        end
+    end
+
+    */
+    action LoadSphere(number width, number height, number depth, integer horizontalDivisions, integer verticalDivisions, File textureFile)
+        Texture texture
+        texture:LoadFromFile(textureFile)
+        LoadSphere(width, height, depth, horizontalDivisions, verticalDivisions, texture)
+    end
+
+    /*
+    This action will load the Model with a sphere with the given dimensions
+    and texture. The provided number of divisions will be used to simulate the
+    curve of the sphere - the more divisions used, the smoother the curve will
+    appear.
+
+    Attribute: Parameter width How long the sphere should be along the x-axis.
+    Attribute: Parameter height How long the sphere should be along the y-axis.
+    Attribute: Parameter depth How long the sphere should be along the z-axis.
+    Attribute: Parameter horizontalDivisions How many straight edges to use on the horizontal plane to simulate the curve of the sphere.
+    Attribute: Parameter verticalDivisions How many straight edges to use on the vertical plane to simulate the curve of the sphere.
+    Attribute: Parameter textureFile The name of a file containing the texture to display on the sphere.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+
+    class Main is Game
+
+        Model ball
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            ball:LoadSphere(2, 2, 2, 12, 8, "Concrete.png")
+            Add(ball)
+        end
+    end
+
+    */
+    action LoadSphere(number width, number height, number depth, integer horizontalDivisions, integer verticalDivisions, text textureFile)
+        Texture texture
+        texture:LoadFromFile(textureFile)
+        LoadSphere(width, height, depth, horizontalDivisions, verticalDivisions, texture)
+    end
+
+    /*
+    This action will load the Model with a sphere with the given dimensions
+    and using the texture contained in the provided Drawable. The Drawable must
+    be loaded. The provided number of divisions will be used to simulate the
+    curve of the sphere - the more divisions used, the smoother the curve will
+    appear.
+
+    Attribute: Parameter width How long the sphere should be along the x-axis.
+    Attribute: Parameter height How long the sphere should be along the y-axis.
+    Attribute: Parameter depth How long the sphere should be along the z-axis.
+    Attribute: Parameter horizontalDivisions How many straight edges to use on the horizontal plane to simulate the curve of the sphere.
+    Attribute: Parameter verticalDivisions How many straight edges to use on the vertical plane to simulate the curve of the sphere.
+    Attribute: Parameter drawable A loaded Drawable that contains a texture to be displayed on the sphere.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        Model ball
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable image
+            image:Load("Steel.png")
+
+            ball:LoadSphere(2, 2, 2, 12, 8, image)
+            Add(ball)
+        end
+    end
+
+    */
+    action LoadSphere(number width, number height, number depth, integer horizontalDivisions, integer verticalDivisions, Drawable drawable)
+        Texture texture = drawable:GetTexture()
+        LoadSphere(width, height, depth, horizontalDivisions, verticalDivisions, texture)
+    end
+
+    /*
+    This action will load the Model with a sphere with the given dimensions
+    and texture. The provided number of divisions will be used to simulate the
+    curve of the sphere - the more divisions used, the smoother the curve will
+    appear.
+
+    Attribute: Parameter width How long the sphere should be along the x-axis.
+    Attribute: Parameter height How long the sphere should be along the y-axis.
+    Attribute: Parameter depth How long the sphere should be along the z-axis.
+    Attribute: Parameter horizontalDivisions How many straight edges to use on the horizontal plane to simulate the curve of the sphere.
+    Attribute: Parameter verticalDivisions How many straight edges to use on the vertical plane to simulate the curve of the sphere.
+    Attribute: Parameter texture The texture to draw on the sides of the sphere.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Texture
+
+    class Main is Game
+
+        Model ball
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Texture texture
+            texture:LoadFromFile("Orb.png")
+
+            ball:LoadSphere(2, 2, 2, 12, 8, texture)
+            Add(ball)
+        end
+    end
+
+    */
+    action LoadSphere(number width, number height, number depth, integer horizontalDivisions, integer verticalDivisions, Texture texture)
+        ModelBlueprint schematic = GetCachedSphere(width, height, depth, horizontalDivisions, verticalDivisions, texture)
+        Load(schematic)
+        SetTexture(texture)
+    end
+
+    /*
+    This action will load the Model with a sphere with the given dimensions
+    and texture. The curve of the sphere will be approximated using 25 straight
+    edges along the horizontal plane, and 16 straight edges along the vertical
+    plane.
+
+    Attribute: Parameter width How long the sphere should be along the x-axis.
+    Attribute: Parameter height How long the sphere should be along the y-axis.
+    Attribute: Parameter depth How long the sphere should be along the z-axis.
+    Attribute: Parameter textureFile A file containing the texture to draw onto the sphere.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.System.File
+
+    class Main is Game
+
+        Model ball
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            File file
+            file:SetPath("Rubber.png")
+
+            ball:LoadSphere(2, 2, 2, file)
+            Add(ball)
+        end
+    end
+
+    */
+    action LoadSphere(number width, number height, number depth, File textureFile)
+        LoadSphere(width, height, depth, 25, 16, textureFile)
+    end
+
+    /*
+    This action will load the Model with a sphere with the given dimensions
+    and texture. The curve of the cylinder will be approximated using 25 straight
+    edges along the horizontal plane, and 16 straight edges along the vertical
+    plane.
+
+    Attribute: Parameter width How long the sphere should be along the x-axis.
+    Attribute: Parameter height How long the sphere should be along the y-axis.
+    Attribute: Parameter depth How long the sphere should be along the z-axis.
+    Attribute: Parameter textureFile The name of a file containing the texture to draw onto the sphere.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+
+    class Main is Game
+
+        Model ball
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            ball:LoadSphere(2, 2, 2, "Cannonball.png")
+            Add(ball)
+        end
+    end
+
+    */
+    action LoadSphere(number width, number height, number depth, text textureFile)
+        LoadSphere(width, height, depth, 25, 16, textureFile)
+    end
+
+    /*
+    This action will load the Model with a sphere with the given dimensions,
+    using the texture contained in the given (loaded) Drawable. The curve of the
+    sphere will be approximated using 25 straight edges along the horizontal
+    plane and 16 straight edges along the vertical plane.
+
+    Attribute: Parameter width How long the sphere should be along the x-axis.
+    Attribute: Parameter height How long the sphere should be along the y-axis.
+    Attribute: Parameter depth How long the sphere should be along the z-axis.
+    Attribute: Parameter drawable A loaded Drawable to draw onto the sphere.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        Model ball
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable image
+            image:Load("Plaid.png")
+
+            ball:LoadSphere(2, 2, 2, image)
+            Add(ball)
+        end
+    end
+    */
+    action LoadSphere(number width, number height, number depth, Drawable drawable)
+        LoadSphere(width, height, depth, 25, 16, drawable)
+    end
+
+    /*
+    This action will load the Model with a sphere with the given dimensions
+    and texture. The curve of the cylinder will be approximated using 25 straight
+    edges along the horizontal plane, and 16 straight edges along the vertical
+    plane.
+
+    Attribute: Parameter width How long the sphere should be along the x-axis.
+    Attribute: Parameter height How long the sphere should be along the y-axis.
+    Attribute: Parameter depth How long the sphere should be along the z-axis.
+    Attribute: Parameter texture The texture to be drawn onto the sphere.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Texture
+
+    class Main is Game
+
+        Model ball
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Texture texture
+            texture:LoadFromFile("Stripes.png")
+
+            ball:LoadBall(2, 2, 2, texture)
+            Add(ball)
+        end
+    end
+
+    */
+    action LoadSphere(number width, number height, number depth, Texture texture)
+        LoadSphere(width, height, depth, 25, 16, texture)
+    end
+
+    /*
     This action will set the diffuse color of any Materials being used by this
     Model. Used after loading a cached primitive shape, in case the cached shape
     was built with a different color than this one.
@@ -939,6 +1340,12 @@ class Model is Item3D
     private system action GetCachedCylinder(number width, number height, number depth, integer divisions, Color color) returns ModelBlueprint
 
     /*
+    Find a sphere matching the dimensions (but not necessarily color) provided,
+    and return it. If none is found, create a new one and cache it.
+    */
+    private system action GetCachedSphere(number width, number height, number depth, integer hDivisions, integer vDivisions, Color color) returns ModelBlueprint
+
+    /*
     Find a box matching the dimensions (but not necessarily texture) provided,
     and return it. If none is found, create a new one and cache it.
     */
@@ -949,6 +1356,12 @@ class Model is Item3D
     and return it. If none is found, create a new one and cache it.
     */
     private system action GetCachedCylinder(number width, number height, number depth, integer divisions, Texture texture) returns ModelBlueprint
+
+    /*
+    Find a sphere matching the dimensions (but not necessarily texture) provided,
+    and return it. If none is found, create a new one and cache it.
+    */
+    private system action GetCachedSphere(number width, number height, number depth, integer hDivisions, integer vDivisions, Texture texture) returns ModelBlueprint
 
     /*
     This action will load this Model using the data contained in the given
