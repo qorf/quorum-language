@@ -22,6 +22,26 @@ use Libraries.Game.Collision.BroadphaseCollision2D
 use Libraries.Game.Collision.ContactEdge2D
 use Libraries.Game.Collision.BoundingBox2D
 
+/*
+    The Item2D class represents any object that has a position in 2D space.
+    They have X and Y coordinates, representing their horizontal and vertical
+    position in 2D space, respectively. They also have corresponding width and
+    height, which combine with the x, y coordinates to make a rectangle. Note
+    that items on their own can't be seen on the screen. To make an Item2D that
+    can be drawn directly on the screen, use a Libraries.Game.Graphics.Drawable
+    instead.
+    
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        Item2D myItem
+        
+        myItem:SetPosition(20, 60)
+        myItem:SetWidth(50)
+        myItem:SetHeight(15)
+*/
 class Item2D is Item
     
     private Item2D parentItem = undefined

@@ -360,11 +360,47 @@ class Layer3D is Layer
     given touch event.
     */
     action ProcessTouchEvent(TouchEvent event)
+        Ray ray = camera:GetPickRay(event:GetX(), event:GetY())
+        Vector3 origin = ray:GetOrigin()
+
+        integer counter = 0
+        Item3D temp = undefined
+
         /*
-        To be implemented - requires BoundingBox, Ray, and Intersector (or the
-        functionality of Intersector). Ray is used to get the PickRay from the
-        Camera.
+        TO-DO: This array of all items is regenerated for each mouse event
+        processed. It would be more efficient to maintain this array
+        independently of this action.
         */
+        Array<Item3D> allItems
+        repeat items:GetSize() times
+            GetChildrenHierarchy(items:Get(counter), allItems)
+            counter = counter + 1
+        end
+        counter = 0
+
+        repeat allItems:GetSize() times
+            temp = allItems:Get(counter)
+            if RayIntersectsItem(ray, temp)
+                SortableContainer<number, Item3D> container
+                container:Set(origin:DistanceSquared(temp:GetGlobalPosition()), temp)
+                eventTargetArray:Add(container)
+            end
+
+            counter = counter + 1
+        end
+
+        if eventTargetArray:GetSize() not= 0
+            eventTargetArray:Sort()
+            boolean processing = true
+            counter = 0
+            repeat while processing and counter < eventTargetArray:GetSize()
+                eventTargetArray:Get(counter):GetValue():ProcessTouchEvent(event)
+                processing = not event:WasEventHandled()
+                counter = counter + 1
+            end
+
+            eventTargetArray:Empty()
+        end
     end
 
     /*

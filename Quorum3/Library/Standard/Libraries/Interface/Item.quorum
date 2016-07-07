@@ -14,22 +14,12 @@ use Libraries.Compute.Math
 
 
 /*
-    The Item class represents any object that has a position on the screen.
-    They have X and Y coordinates, representing their horizontal and vertical
-    position in 2D space, respectively. They also have corresponding width and
-    height, which combine with the x, y coordinates to make a rectangle. Note
-    that Items on their own can't be seen on the screen. To make an Item that
-    can be drawn directly on the screen, use a Libraries.Game.Graphics.Drawable
-    instead.
+    The Item class represents any object that has a position (such as x and y
+    coordinates) and dimensions (e.g. width and height). Note that because Item
+    contains blueprint actions, it can't be used directly. Users should use
+    classes that inherit from Item, such as Item2D, Item3D, Drawable, or Model.
 
-    Attribute: Example
-
-        use Libraries.Interface.Item
-        Item myItem
-        
-        myItem:SetPosition(20, 60)
-        myItem:SetWidth(50)
-        myItem:SetHeight(15)
+    Attribute: Author William Allee
 */
 class Item 
 

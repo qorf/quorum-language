@@ -18,6 +18,24 @@ use Libraries.Game.Graphics.Light
 use Libraries.Game.Graphics.PointLight
 use Libraries.Game.Layer3D
 
+/*
+    The Item3D class represents any object that has a position in 3D space.
+    They have X, Y, and Z coordinates, as well as width, height, and depth.
+    Combined, these form a simple cube in 3D space. Note that items on their own
+    can't be seen on the screen. To make an Item3D that can be drawn directly on
+    the screen, use a Libraries.Game.Graphics.Model instead.
+    
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        Item3D myItem
+        
+        myItem:SetPosition(3, -1, 4)
+        myItem:SetDimensions(5, 5, 5)
+        myItem:Scale(1.5, 1, 0.8)
+*/
 class Item3D is Item
 
     number x = 0
@@ -43,6 +61,8 @@ class Item3D is Item
     /*
     This action sets the X coordinate of the Item.
 
+    Attribute: Parameter setX The new x coordinate for this Item.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -55,6 +75,8 @@ class Item3D is Item
 
     /*
     This action sets the Y coordinate of the Item.
+
+    Attribute: Parameter setY The new y coordinate for this Item.
 
     Attribute: Example
 
@@ -69,6 +91,8 @@ class Item3D is Item
     /*
     This action sets the Z coordinate of the Item.
 
+    Attribute: Parameter setZ The new z coordinate for this Item.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -82,6 +106,10 @@ class Item3D is Item
     /*
     This action sets the x, y, and z coordinates of the Item3D.
 
+    Attribute: Parameter setX The new x coordinate for this Item.
+    Attribute: Parameter setY The new y coordinate for this Item.
+    Attribute: Parameter setZ The new z coordinate for this Item.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -94,6 +122,8 @@ class Item3D is Item
 
     /*
     This action sets the x, y, and z coordinates of the Item3D.
+
+    Attribute: Parameter vector The new position for this Item.
 
     Attribute: Example
 
@@ -114,6 +144,8 @@ class Item3D is Item
     relative to the parent item - to get the non-relative X coordinate, use the
     GetGlobalX() action instead.
 
+    Attribute: Returns The current x coordinate of this Item, relative to the parent Item (if there is one).
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -132,6 +164,8 @@ class Item3D is Item
     relative to the parent item - to get the non-relative Y coordinate, use the
     GetGlobalY() action instead.
 
+    Attribute: Returns The current y coordinate of this Item, relative to the parent Item (if there is one).
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -149,6 +183,8 @@ class Item3D is Item
     if this object has been added to an Item3D, then this coordinate is 
     relative to the parent item - to get the non-relative Z coordinate, use the
     GetGlobalZ() action instead.
+
+    Attribute: Returns The current z coordinate of this Item, relative to the parent Item (if there is one).
 
     Attribute: Example
 
@@ -169,6 +205,8 @@ class Item3D is Item
     to get the non-relative coordinates, use the GetGlobalPosition() action
     instead.
 
+    Attribute: Returns A new Vector3 object containing the x, y, and z coordinates of this Item, relative to the parent Item (if there is one).
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -187,6 +225,8 @@ class Item3D is Item
     /*
     This action sets the width of the Item.
 
+    Attribute: Parameter setWidth The new width.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -199,6 +239,8 @@ class Item3D is Item
 
     /*
     This action sets the height of the Item.
+
+    Attribute: Parameter setHeight The new height.
 
     Attribute: Example
 
@@ -213,6 +255,8 @@ class Item3D is Item
     /*
     This action sets the depth the Item.
 
+    Attribute: Parameter setDepth The new depth.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -225,6 +269,10 @@ class Item3D is Item
 
     /*
     This action sets the width, height, and depth of the Item3D.
+
+    Attribute: Parameter setWidth The new width.
+    Attribute: Parameter setHeight The new height.
+    Attribute: Parameter setDepth The new depth.
 
     Attribute: Example
 
@@ -240,6 +288,8 @@ class Item3D is Item
 
     /*
     This action sets the width, height, and depth of the Item3D.
+
+    Attribute: Parameter vector A vector containing the new width, height, and depth.
 
     Attribute: Example
 
@@ -259,6 +309,8 @@ class Item3D is Item
     /*
     GetWidth will return the width of this Item3D.
 
+    Attribute: Returns The width of this item.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -273,6 +325,8 @@ class Item3D is Item
 
     /*
     GetHeight will return the height of this Item3D.
+
+    Attribute: Returns The height of this item.
 
     Attribute: Example
 
@@ -289,6 +343,8 @@ class Item3D is Item
     /*
     GetDepth will return the depth of this Item3D. 
 
+    Attribute: Returns The depth of this item.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -304,6 +360,8 @@ class Item3D is Item
     /*
     GetDimensions will return a Vector3 object containing the width, height, and
     depth of this Item3D object. 
+
+    Attribute: Returns A new Vector3 object containing the width, height, and depth of this item.
 
     Attribute: Example
 
@@ -323,6 +381,8 @@ class Item3D is Item
     /*
     This action will increase the x-coordinate of this Item by the given amount.
 
+    Attribute: Parameter xAmount How much to increase the current x coordinate of this item by.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -341,6 +401,8 @@ class Item3D is Item
     /*
     This action will increase the y-coordinate of this Item by the given amount.
 
+    Attribute: Parameter yAmount How much to increase the current y coordinate of this item by.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -358,6 +420,8 @@ class Item3D is Item
 
     /*
     This action will increase the z-coordinate of this Item by the given amount.
+
+    Attribute: Parameter zAmount How much to increase the current z coordinate of this item by.
 
     Attribute: Example
 
@@ -378,6 +442,10 @@ class Item3D is Item
     /*
     This action will increase the x, y, and z coordinates of this Item by the 
     given amounts.
+
+    Attribute: Parameter xAmount How much to increase the current x coordinate of this item by.
+    Attribute: Parameter yAmount How much to increase the current y coordinate of this item by.
+    Attribute: Parameter zAmount How much to increase the current z coordinate of this item by.
 
     Attribute: Example
 
@@ -400,6 +468,8 @@ class Item3D is Item
     /*
     This action will increase the x, y, and z coordinates of this Item by the 
     values inside the given Vector3.
+
+    Attribute: Parameter vector A vector describing how much to increase the current x, y, and z coordinates of this item by.
 
     Attribute: Example
 
@@ -427,6 +497,8 @@ class Item3D is Item
     where to relate its X position to. In other words, the X offset is where an
     X coordinate of 0 is for this Item. This is automatically set when using an
     action to add an Item to another Item.
+
+    Attribute: Parameter xAmount The new X offset.
 
     Attribute: Example
 
@@ -456,6 +528,8 @@ class Item3D is Item
     Y coordinate of 0 is for this item. This is automatically set when using an
     action to add an Item to another Item.
 
+    Attribute: Parameter yAmount The new Y offset.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -483,6 +557,8 @@ class Item3D is Item
     where to relate its Z position to. In other words, the Z offset is where a
     Z coordinate of 0 is for this item. This is automatically set when using an
     action to add an Item to another Item.
+
+    Attribute: Parameter zAmount The new Z offset.
 
     Attribute: Example
 
@@ -513,6 +589,10 @@ class Item3D is Item
     each coordinate of 0 is for this item. This is automatically set when using an
     action to add an Item to another Item.
 
+    Attribute: Parameter xAmount The new X offset.
+    Attribute: Parameter yAmount The new Y offset.
+    Attribute: Parameter zAmount The new Z offset.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -542,6 +622,8 @@ class Item3D is Item
     each coordinate of 0 is for this item. This is automatically set when using an
     action to add an Item to another Item.
 
+    Attribute: Parameter vector A Vector3 containing the new x, y, and z offsets.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -561,6 +643,8 @@ class Item3D is Item
     X coordinate of 0 is for this Item. This is automatically set when using an
     action to add an Item to another Item.
 
+    Attribute: Returns The current X offset.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -577,6 +661,8 @@ class Item3D is Item
     where to relate its Y position to. In other words, the Y offset is where a
     Y coordinate of 0 is for this item. This is automatically set when using an
     action to add an Item to another Item.
+
+    Attribute: Returns The current Y offset.
 
     Attribute: Example
 
@@ -595,6 +681,8 @@ class Item3D is Item
     Z coordinate of 0 is for this item. This is automatically set when using an
     action to add an Item to another Item.
 
+    Attribute: Returns The current Z offset.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -610,6 +698,8 @@ class Item3D is Item
     This action will return the global x coordinate of the Item3D. This is the 
     item's position plus any offset applied by its relation to its parent (if it
     has one).
+
+    Attribute: Returns The global X coordinate of this Item (not relative to any parent).
 
     Attribute: Example
 
@@ -630,6 +720,8 @@ class Item3D is Item
     item's position plus any offset applied by its relation to its parent (if it
     has one).
 
+    Attribute: Returns The global Y coordinate of this Item (not relative to any parent).
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -648,6 +740,8 @@ class Item3D is Item
     This action will return the global z coordinate of the Item3D. This is the 
     item's position plus any offset applied by its relation to its parent (if it
     has one).
+
+    Attribute: Returns The global Z coordinate of this Item (not relative to any parent).
 
     Attribute: Example
 
@@ -669,6 +763,8 @@ class Item3D is Item
     This is the item's position plus any offset applied by its relation to its
     parent (if it has one).
 
+    Attribute: Returns A new Vector3 object containing the global coordinates of this Item (not relative to any parent).
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -681,14 +777,18 @@ class Item3D is Item
         Vector3 position = myItem:GetGlobalPosition()
     */
     action GetGlobalPosition returns Vector3
-        return transform:GetTranslation()
-        //return transform:GetTranslation():Scale(1, 1, -1)
+        Vector3 vector
+        vector:Set(transform:GetTranslation())
+        // vector:Scale(1, 1, -1)
+        return vector
     end
 
     /*
     This action sets a reference to the parent item. It is called automatically
     when an Item3D is added as a child to another Item3D. Most users will not
     need to use this action directly.
+    
+    Attribute: Parameter newItem The parent item.
     */
     action SetParent(Item3D newItem)
         parentItem = newItem
@@ -697,6 +797,8 @@ class Item3D is Item
     /*  
     This action returns the parent of this Item3D. An Item3D gets a parent when
     it is added to another Item using the Add action.
+
+    Attribute: Returns The parent Item.
 
     Attribute: Example
 
@@ -716,6 +818,8 @@ class Item3D is Item
     This action will return the Matrix4 containing the transformations applied
     to the Item3D, including its global position, rotation, and scaling.
 
+    Attribute: Returns The Matrix4 used by this item to store and calculate transformations.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -730,8 +834,10 @@ class Item3D is Item
     /*  
     This action adds a different Item3D into this one. This makes a few things happen.
         1. The added item will get this item as its parent.
-        2. The added item's x and y coordinates will become relative to this Item.
+        2. The added item's x, y, and z coordinates will become relative to this Item.
         3. Most actions on this Item will also affect the added Item.
+
+    Attribute: Parameter newItem The item to add as a child to this Item3D.
 
     Attribute: Example
 
@@ -757,6 +863,9 @@ class Item3D is Item
     This action adds a different Item3D into this one, storing the added Item3D
     at a specific index in the internal array.
 
+    Attribute: Parameter index The index to store the child item at.
+    Attribute: Parameter newItem The item to add as a child to this Item3D.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -780,7 +889,9 @@ class Item3D is Item
     /*  
     This action removes an Item3D that was previously added to this Item3D. 
 
-    Attribute: Returns Whether or not the Item was found and removed.
+    Attribute: Parameter The item to be removed from the children array.
+
+    Attribute: Returns Whether or not the item was found and removed.
 
     Attribute: Example
 
@@ -806,8 +917,11 @@ class Item3D is Item
         return success
     end
 
-    /*  This action removes an Item that was previously added to this Item by
+    /*  
+    This action removes an Item that was previously added to this Item by
     finding it at the given index in the internal array of children Items.
+
+    Attribute: Parameter index The index to remove from the children array.
 
     Attribute: Returns The Item that was removed.
 
@@ -839,6 +953,9 @@ class Item3D is Item
     This action returns an Item3D that was previously added to this Item3D by
     finding it at the given index in the internal array of children Items.
 
+    Attribute: Parameter index The index to retrieve from the children array.
+    Attribute: Returns The child Item stored at the index.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -857,6 +974,8 @@ class Item3D is Item
     /*  
     This action returns an iterator containing all the items contained in
     this Item3D.
+
+    Attribute: Returns An iterator containing all children in this Item3D.
 
     Attribute: Example
 
@@ -877,6 +996,8 @@ class Item3D is Item
     /*  
     This action returns the number of items contained in this Item3D.
 
+    Attribute: Returns The number of children in this Item3D.
+
     Attribute: Example
 
         use Libraries.Interface.Item3D
@@ -894,6 +1015,9 @@ class Item3D is Item
 
     /*  
     This action sets a value inside the internal item array of this Item3D.
+
+    Attribute: Parameter index The index to set within the children array.
+    Attribute: Parameter newItem The item to store in the given index.
 
     Attribute: Example
 
@@ -947,7 +1071,10 @@ class Item3D is Item
         children:Empty()
     end
 
-    /*  This action returns whether or not any items are contained in this Item.
+    /*  
+    This action returns whether or not any items are contained in this Item.
+
+    Attribute: Returns Whether or not this item contains any children.
 
     Attribute: Example
 
@@ -963,30 +1090,64 @@ class Item3D is Item
     end
 
     /*
-    FIX ME: Needs comments
+    This action will take a TouchEvent and distribute it to any TouchListeners
+    that have been added to this Item3D. This action will also set the event to
+    the "handled" state.
+
+    Attribute: Parameter event The TouchEvent to process.
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+    use Libraries.Interface.Events.TouchEvent
+    use Libraries.Interface.Events.TouchListener
+    Item2D myItem
+    TouchListener listener
+    myItem:AddTouchListener(listener)
+    TouchEvent event
+    event:eventType = event:BEGAN_TOUCH
+    myItem:ProcessTouchEvent(event)
+
     */
     action ProcessTouchEvent(TouchEvent event)
+        event:SetEventHandled(true)
+
+        Iterator<TouchListener> iterator = GetTouchListeners()
+        if event:eventType = event:BEGAN
+            repeat while iterator:HasNext()
+                iterator:Next():BeganTouch(event)
+            end
+
+        elseif event:eventType = event:MOVED or event:eventType = event:STATIONARY
+            repeat while iterator:HasNext()
+                iterator:Next():ContinuedTouch(event)
+            end
+
+        elseif event:eventType = event:ENDED or event:eventType = event:CANCELLED
+            repeat while iterator:HasNext()
+                iterator:Next():EndedTouch(event)
+            end
+
+        end
 
     end
 
     /*  
-    This action takes a mouse event and handles it. It will first test to 
-    see if the mouse event took place within the bounds of this Item. If so, it
-    will notify any MouseListeners of the event. If the event was not contained
-    within this Item, or if there are no MouseListeners on this Item, the Item
-    will ask its parent Item to process the mouse event, if there is a parent.
+    This action takes a MouseEvent and distributes it to any MouseListeners,
+    MouseMovementListeners, and MouseWheelListeners that have been added to this
+    Item3D. This action will also set the event to the "handled" state.
 
     Attribute: Example
 
-        use Libraries.Interface.Item2D
-        use Libraries.Interface.Events.MouseEvent
-        use Libraries.Interface.Events.MouseListener
-        Item2D myItem
-        MouseListener listener
-        myItem:AddMouseListener(listener)
-        MouseEvent event
-        event:eventType = event:CLICKED_MOUSE
-        myItem:ProcessMouseEvent(event)
+    use Libraries.Interface.Item2D
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Events.MouseListener
+    Item2D myItem
+    MouseListener listener
+    myItem:AddMouseListener(listener)
+    MouseEvent event
+    event:eventType = event:CLICKED_MOUSE
+    myItem:ProcessMouseEvent(event)
     
     */
     action ProcessMouseEvent(MouseEvent event)
@@ -1032,19 +1193,48 @@ class Item3D is Item
 
     /*
     This action will rotate the Item3D about an axis represented by the given
-    Vector3. The item will be rotated by an angle given in degrees. If the 
+    Vector3. The axis is essentially a ray that starts at the center of the item
+    and points outward. The item will then rotate clockwise around that ray.
+    The item will be rotated by an angle given in degrees. If the 
     Item3D has any children items, they will also be rotated, and their offsets 
     will be adjusted to maintain the same relative position to this item.
 
+    Attribute: Parameter vector The axis or ray to rotate around.
+    Attribute: Parameter degrees How many degrees to rotate (clockwise).
+
     Attribute: Example
 
-        use Libraries.Interface.Item3D
-        use Libraries.Compute.Vector3
-        Item3D myItem
-        Vector3 vector
-        vector:Set(5, 2, 1)
-        myItem:Rotate(vector, 90)
+    use Libraries.Interface.Item3D
+    use Libraries.Compute.Vector3
+    Item3D myItem
+    Vector3 vector
 
+    // This will rotate the item 90 degrees clockwise around a ray passing 
+    // through the item's center and pointing to the right.
+    vector:Set(1, 0, 0)
+    myItem:Rotate(vector, 90)
+
+    // This will rotate the item 45 degrees clockwise around a ray passing 
+    // through the item's center and pointing straight down.
+    vector:Set(0, -1, 0)
+    myItem:Rotate(vector, 45)
+
+    // This will rotate the item 60 degrees counter-clockwise around a ray  
+    // passing through the item's center and pointing to the right.
+    vector:Set(1, 0, 0)
+    myItem:Rotate(vector, -60)
+
+    // When setting the vector with multiple non-zero values, each value is
+    // relative to each other. Since this vector is set with a larger x
+    // value than y value, this ray points mostly left and a little upwards.
+    vector:Set(3, 1, 0)
+    myItem:Rotate(vector, 45)
+
+    // Because the values are relative to each other, this code has the same
+    // effect as the last Rotate call we used (because the x value is still
+    // 3 times larger than the y value).
+    vector:Set(9, 3, 0)
+    myItem:Rotate(vector, 45)
     */
     action Rotate(Vector3 vector, number degrees)
         Rotate(vector, degrees, true)
@@ -1058,14 +1248,18 @@ class Item3D is Item
     the same relative position to this item. If the boolean parameter is set to
     false, only this Item will be rotated.
 
+    Attribute: Parameter vector The axis or ray to rotate around.
+    Attribute: Parameter degrees How many degrees to rotate (clockwise).
+    Attribute: Parameter rotateChildren Whether or not children should be rotated around the parent.
+
     Attribute: Example
 
-        use Libraries.Interface.Item3D
-        use Libraries.Compute.Vector3
-        Item3D myItem
-        Vector3 vector
-        vector:Set(5, 2, 1)
-        myItem:Rotate(vector, 90, false)
+    use Libraries.Interface.Item3D
+    use Libraries.Compute.Vector3
+    Item3D myItem
+    Vector3 vector
+    vector:Set(5, 2, 1)
+    myItem:Rotate(vector, 90, false)
 
     */
     action Rotate(Vector3 vector, number degrees, boolean rotateChildren)
@@ -1113,16 +1307,45 @@ class Item3D is Item
     end
 
     /*
-    This action will rotate the Item3D about an axis represented by the first 3 given
-    number values. The item will be rotated by an angle given in degrees. If the 
+    This action will rotate the Item3D about an axis. The axis is essentially a 
+    ray that starts at the center of the item and points outward. The item will 
+    then rotate clockwise around that ray. The ray is defined using three
+    numbers, representing which way it points on the x, y, and z planes,
+    respectively. The item will be rotated by an angle given in degrees. If the 
     Item3D has any children items, they will also be rotated, and their offsets 
     will be adjusted to maintain the same relative position to this item.
 
+    Attribute: Parameter rotateX The x component of the ray to rotate around.
+    Attribute: Parameter rotateY The y component of the ray to rotate around.
+    Attribute: Parameter rotateZ The z component of the ray to rotate around.
+    Attribute: Parameter degrees How many degrees to rotate (clockwise).
+
     Attribute: Example
 
-        use Libraries.Interface.Item3D
-        Item3D myItem
-        myItem:Rotate(5, 2, 1, 90)
+    use Libraries.Interface.Item3D
+    Item3D myItem
+
+    // This will rotate the item 90 degrees clockwise around a ray passing 
+    // through the item's center and pointing to the right.
+    myItem:Rotate(1, 0, 0, 90)
+
+    // This will rotate the item 45 degrees clockwise around a ray passing 
+    // through the item's center and pointing straight down.
+    myItem:Rotate(0, -1, 0, 45)
+
+    // This will rotate the item 60 degrees counter-clockwise around a ray  
+    // passing through the item's center and pointing to the right.
+    myItem:Rotate(1, 0, 0, -60)
+
+    // When setting the ray with multiple non-zero values, each value is
+    // relative to each other. Since this vector is set with a larger x
+    // value than y value, this ray points mostly left and a little upwards.
+    myItem:Rotate(3, 1, 0, 45)
+
+    // Because the values are relative to each other, this code has the same
+    // effect as the last Rotate call we used (because the x value is still
+    // 3 times larger than the y value).
+    myItem:Rotate(9, 3, 0, 45)
 
     */
     action Rotate(number rotateX, number rotateY, number rotateZ, number degrees)
@@ -1139,11 +1362,17 @@ class Item3D is Item
     the same relative position to this item. If the boolean parameter is set to
     false, only this Item will be rotated.
 
+    Attribute: Parameter rotateX The x component of the ray to rotate around.
+    Attribute: Parameter rotateY The y component of the ray to rotate around.
+    Attribute: Parameter rotateZ The z component of the ray to rotate around.
+    Attribute: Parameter degrees How many degrees to rotate (clockwise).
+    Attribute: Parameter rotateChildren Whether or not children should be rotated around the parent.
+
     Attribute: Example
 
-        use Libraries.Interface.Item3D
-        Item3D myItem
-        myItem:Rotate(5, 2, 1, 90, false)
+    use Libraries.Interface.Item3D
+    Item3D myItem
+    myItem:Rotate(5, 2, 1, 90, false)
 
     */
     action Rotate(number rotateX, number rotateY, number rotateZ, number degrees, boolean rotateChildren)
@@ -1157,14 +1386,16 @@ class Item3D is Item
     Item3D has any children items, they will also be scaled, and their offsets 
     will be adjusted to maintain the same relative position to this item.
 
+    Attribute: Parameter vector A Vector3 object describing how much to scale the Item3D by along the x, y, and z axes.
+
     Attribute: Example
 
-        use Libraries.Interface.Item3D
-        use Libraries.Compute.Vector3
-        Item3D myItem
-        Vector3 vector
-        vector:Set(5, 2, 1)
-        myItem:Scale(vector)
+    use Libraries.Interface.Item3D
+    use Libraries.Compute.Vector3
+    Item3D myItem
+    Vector3 vector
+    vector:Set(5, 2, 1)
+    myItem:Scale(vector)
 
     */
     action Scale(Vector3 vector)
@@ -1178,16 +1409,17 @@ class Item3D is Item
     the same relative position to this item. If the boolean parameter is set to
     false, only this Item will be scaled.
 
+    Attribute: Parameter vector A Vector3 object describing how much to scale the Item3D by along the x, y, and z axes.
+    Attribute: Parameter scaleChildren Whether or not children objects should also be scaled.
+
     Attribute: Example
 
-        Attribute: Example
-
-        use Libraries.Interface.Item3D
-        use Libraries.Compute.Vector3
-        Item3D myItem
-        Vector3 vector
-        vector:Set(5, 2, 1)
-        myItem:Scale(vector, false)
+    use Libraries.Interface.Item3D
+    use Libraries.Compute.Vector3
+    Item3D myItem
+    Vector3 vector
+    vector:Set(5, 2, 1)
+    myItem:Scale(vector, false)
 
     */
     action Scale(Vector3 vector, boolean scaleChildren)
@@ -1221,11 +1453,15 @@ class Item3D is Item
     Item3D has any children items, they will also be scaled, and their offsets 
     will be adjusted to maintain the same relative position to this item.
 
+    Attribute: Parameter scaleX How much to scale the Item3D along the x-axis.
+    Attribute: Parameter scaleY How much to scale the Item3D along the y-axis.
+    Attribute: Parameter scaleZ How much to scale the Item3D along the z-axis.
+
     Attribute: Example
 
-        use Libraries.Interface.Item3D
-        Item3D myItem
-        myItem:Scale(5, 2, 1)
+    use Libraries.Interface.Item3D
+    Item3D myItem
+    myItem:Scale(5, 2, 1)
 
     */
     action Scale(number scaleX, number scaleY, number scaleZ)
@@ -1240,6 +1476,11 @@ class Item3D is Item
     they will also be scaled, and their offsets will be adjusted to maintain
     the same relative position to this item. If the boolean parameter is set to
     false, only this Item will be scaled.
+
+    Attribute: Parameter scaleX How much to scale the Item3D along the x-axis.
+    Attribute: Parameter scaleY How much to scale the Item3D along the y-axis.
+    Attribute: Parameter scaleZ How much to scale the Item3D along the z-axis.
+    Attribute: Parameter scaleChildren Whether or not children objects should also be scaled.
 
     Attribute: Example
 
@@ -1277,8 +1518,25 @@ class Item3D is Item
     This action will return an array of all Light objects contained in the
     children hierarchy of this Item3D. If this object is a Light, it will
     also be included as the first item in the array.
+
+    Attribute: Returns An array of all Lights stored in this Item3D.
+
+    Attribute: Example
+
+    use Libraries.Interface.Item3D
+    use Libraries.Game.Graphics.PointLight
+    use Libraries.Game.Graphics.Light
+    use Libraries.Containers.Array
+
+    Item3D item
+    PointLight light1
+    PointLight light2
+    item:Add(light1)
+    item:Add(light2)
+    Array<Light> lightArray = item:GetLights()
+
     */
-    action GetPointLights returns Array<Light>
+    action GetLights returns Array<Light>
         Array<Light> array
         GetLights(array)
         return array
@@ -1289,6 +1547,22 @@ class Item3D is Item
     children hierarchy of this Item3D and add it to the end of the given array.
     If this object is a Light, it will be added to the array first before
     adding any descendents where are Lights.
+
+    Attribute: Example
+
+    use Libraries.Interface.Item3D
+    use Libraries.Game.Graphics.PointLight
+    use Libraries.Game.Graphics.Light
+    use Libraries.Containers.Array
+
+    Item3D item
+    PointLight light1
+    PointLight light2
+    item:Add(light1)
+    item:Add(light2)
+    Array<Light> lightArray
+    item:GetLights(lightArray)
+
     */
     action GetLights(Array<Light> array)
         if me is PointLight
@@ -1307,6 +1581,8 @@ class Item3D is Item
     This action is used by the Game libraries to create a reference to the layer
     that this Item3D exists on. It is automatically called as needed by the
     Layer3D class. Most users will never need to use this action directly.
+
+    Attribute: Parameter parentLayer The layer to keep a reference to.
     */
     action SetLayer(Layer3D parentLayer)
         layer = parentLayer
@@ -1315,6 +1591,8 @@ class Item3D is Item
     /*
     This action returns the current Layer3D that this Item3D is a part of in the
     Game libraries. 
+
+    Attribute: Returns The current Layer3D that this Item3D is attached to (if any).
     */
     action GetLayer returns Layer3D
         return layer

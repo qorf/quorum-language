@@ -647,30 +647,137 @@ class Layer2D is Layer
         action Update(number seconds)
         end
     end
+
     */
     action GetIterator returns Iterator<Item2D>
         return items:GetIterator()
     end
 
     /*
-    This action will return the number of items in the layer
+    This action will return the number of items that have been added to this
+    layer.
+
+    Attribute: Returns The number of items stored in this layer's array of items.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Item2D
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Item2D item1
+            Item2D item2
+            Item2D item3
+
+            Layer2D layer
+            layer:Add(item1)
+            layer:Add(item2)
+            layer:Add(item3)
+            AddLayer(layer)
+
+            integer size = layer:GetSize()
+            output "There are " + size + " items stored in the layer."
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
     action GetSize returns integer
         return items:GetSize()
     end
 
     /*
-    This action will return true if there are items in the list or false if not
+    This action will return false if there are items stored in this layer's array
+    of items, or true if there are none.
+
+    Attribute: Returns Whether or not any items are stored in this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Item2D
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Item2D item1
+            Item2D item2
+            Item2D item3
+
+            Layer2D layer
+            boolean empty = layer:IsEmpty()
+            output "IsEmpty() returned " + empty
+
+            layer:Add(item1)
+            layer:Add(item2)
+            layer:Add(item3)
+
+            empty = layer:IsEmpty()
+            output "After adding items, IsEmpty() returns " + empty
+
+            AddLayer(layer)            
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
     action IsEmpty returns boolean
         return items:IsEmpty()
     end
 
     /*
-    This action will set the value of the internal children array to be the
+    This action will set the value of the layer's array of items to be the
     given Item2D. The previous value will be overwritten. If the index does not
     exist in the array (e.g., the given index is larger than the number of items
     stored in this layer), an error will be thrown.
+
+    Attribute: Parameter index What index to set inside the layer's array of items.
+    Attribute: Parameter item The item to store at the given index in the array.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Item2D
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Item2D item1
+            Item2D item2
+            Item2D item3
+
+            Layer2D layer
+            layer:Add(item1)
+            layer:Add(item2)
+            layer:Set(1, item3)
+            AddLayer(layer)
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
     action Set(integer index, Item2D item)
         items:Set(index, item)
@@ -679,7 +786,9 @@ class Layer2D is Layer
 
     /*
     This action will update all of the items contained within this Layer. The
-    given number of seconds will be passed to each updated item.
+    given number of seconds will be passed to each updated item. This is
+    automatically called by the Game class as needed. Most users will never need
+    to use this action directly.
     */
     action Update(number seconds)
         integer counter = 0
@@ -692,7 +801,8 @@ class Layer2D is Layer
     /*
     This action will draw all items in this Layer on the screen (if they can be
     drawn and they aren't hidden). If the Layer is currently hidden, then this
-    action will do nothing.
+    action will do nothing. This is automatically called by the Game class as 
+    needed. Most users will never need to use this action directly.
     */
     action Draw
         if not IsShowing()
@@ -717,6 +827,32 @@ class Layer2D is Layer
     This action will set the camera being used by this Layer. The camera is used
     to determine what will be drawn on the screen. Objects will be drawn on the
     screen as they are seen by the Layer's set camera.
+
+    Attribute: Parameter cam The camera that this layer should use.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Game.Graphics.OrthographicCamera
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            OrthographicCamera camera
+            Layer2D layer
+            layer:SetCamera(camera)
+            AddLayer(layer)
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
     action SetCamera(Camera cam)
         camera = cam
@@ -726,6 +862,33 @@ class Layer2D is Layer
     This action will return the camera being used by this Layer. The camera is used
     to determine what will be drawn on the screen. Objects will be drawn on the
     screen as they are seen by the Layer's set camera.
+
+    Attribute: Returns The camera currently being used by this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Game.Graphics.Camera
+
+    class Main is Game
+
+        Camera layerCamera = undefined
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layerCamera = layer:GetCamera()
+            AddLayer(layer)
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
     action GetCamera returns Camera
         return camera
@@ -733,7 +896,10 @@ class Layer2D is Layer
 
     /*
     This action will notify mouse listeners that are a part of this layer of the
-    given mouse event.
+    given mouse event. This is called automatically by the Game engine as 
+    needed. Most users will never need to use this action directly.
+
+    Attribute: Parameter event The MouseEvent to send to the MouseListeners.
     */
     action ProcessMouseEvent(MouseEvent event)
     
@@ -756,7 +922,10 @@ class Layer2D is Layer
 
     /*
     This action will notify touch listeners that are a part of this layer of the
-    given touch event.
+    given touch event. This is called automatically by the Game engine as 
+    needed. Most users will never need to use this action directly.
+
+    Attribute: Parameter event The TouchEvent to send to the TouchListeners.
     */
     action ProcessTouchEvent(TouchEvent event)
         
@@ -782,6 +951,36 @@ class Layer2D is Layer
     mouse event, it will first try to find the topmost item which can handle the
     event. If the event is not handled, then all MouseListeners in the layer 
     will receive the event.
+
+    Attribute: Parameter listener The MouseListener to add to this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Events.MouseListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from MouseListener.
+        MouseListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layer:AddMouseListener(myListener)
+            AddLayer(layer)
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
     */
     action AddMouseListener(MouseListener listener)
         mouseListeners:Add(listener)
@@ -792,6 +991,36 @@ class Layer2D is Layer
     receives a mouse event, it will first try to find the topmost item which can
     handle the event. If the event is not handled, then all 
     MouseMovementListeners in the layer will receive the event.
+
+    Attribute: Parameter listener The MouseMovementListener to add to this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Events.MouseMovementListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from MouseMovementListener.
+        MouseMovementListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layer:AddMouseMovementListener(myListener)
+            AddLayer(layer)
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
     */
     action AddMouseMovementListener(MouseMovementListener listener)
         mouseMovementListeners:Add(listener)
@@ -802,6 +1031,36 @@ class Layer2D is Layer
     receives a mouse event, it will first try to find the topmost item which can
     handle the event. If the event is not handled, then all 
     MouseWheelListeners in the layer will receive the event.
+
+    Attribute: Parameter listener The MouseWheelListener to add to this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Events.MouseWheelListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from MouseWheelListener.
+        MouseWheelListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layer:AddMouseWheelListener(myListener)
+            AddLayer(layer)
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
     */
     action AddMouseWheelListener(MouseWheelListener listener)
         mouseWheelListeners:Add(listener)
@@ -812,6 +1071,36 @@ class Layer2D is Layer
     receives a touch event, it will first try to find the topmost item which can
     handle the event. If the event is not handled, then all 
     TouchListeners in the layer will receive the event.
+
+    Attribute: Parameter listener The TouchListener to add to this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Events.TouchListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from TouchListener.
+        TouchListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layer:AddTouchListener(myListener)
+            AddLayer(layer)
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
     */
     action AddTouchListener(TouchListener listener)
         touchListeners:Add(listener)
@@ -821,6 +1110,38 @@ class Layer2D is Layer
     This action will remove a MouseListener from the layer. The listener will no
     longer receive events from the layer. If the given MouseListener is not on
     the layer before calling this action, then this action will have no effect.
+
+    Attribute: Parameter listener The MouseListener to remove from this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Events.MouseListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from MouseListener.
+        MouseListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layer:AddMouseListener(myListener)
+            AddLayer(layer)
+
+            layer:RemoveMouseListener(listener)
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
     */
     action RemoveMouseListener(MouseListener listener)
         mouseListeners:Remove(listener)
@@ -831,6 +1152,38 @@ class Layer2D is Layer
     will no longer receive events from the layer. If the given 
     MouseMovementListener is not on the layer before calling this action, then 
     this action will have no effect.
+
+    Attribute: Parameter listener The MouseMovementListener to remove from this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Events.MouseMovementListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from MouseMovementListener.
+        MouseMovementListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layer:AddMouseMovementListener(myListener)
+            AddLayer(layer)
+
+            layer:RemoveMouseMovementListener(listener)
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
     */
     action RemoveMouseMovementListener(MouseMovementListener listener)
         mouseMovementListeners:Remove(listener)
@@ -841,6 +1194,38 @@ class Layer2D is Layer
     will no longer receive events from the layer. If the given 
     MouseWheelListener is not on the layer before calling this action, then this
     action will have no effect.
+
+    Attribute: Parameter listener The MouseWheelListener to remove from this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Events.MouseWheelListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from MouseWheelListener.
+        MouseWheelListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layer:AddMouseWheelListener(myListener)
+            AddLayer(layer)
+
+            layer:RemoveMouseWheelListener(listener)
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
     */
     action RemoveMouseWheelListener(MouseWheelListener listener)
         mouseWheelListeners:Remove(listener)
@@ -850,6 +1235,38 @@ class Layer2D is Layer
     This action will remove a TouchListener from the layer. The listener will no
     longer receive events from the layer. If the given TouchListener is not on
     the layer before calling this action, then this action will have no effect.
+
+    Attribute: Parameter listener The TouchListener to remove from this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Events.TouchListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from TouchListener.
+        TouchListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layer:AddTouchListener(myListener)
+            AddLayer(layer)
+
+            layer:RemoveTouchListener(listener)
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
     */
     action RemoveTouchListener(TouchListener listener)
         touchListeners:Remove(listener)
@@ -878,14 +1295,20 @@ class Layer2D is Layer
     end
 
     /*
-    SetCollisionListener sets the collision listener for this layer object. The
-    collision listener is responsible for managing the collision events between
-    2D items in a game.
+    AddCollisionListener will add a collision listener to this layer. The
+    collision listener will be notified of collisions occuring on this layer, 
+    and is responsible for managing the collision events.
     */
     action AddCollisionListener(CollisionListener2D listener)
         collisionManager:AddCollisionListener(listener)
     end
 
+    /*
+    RemoveCollisionListener removes a collision listener to this layer. The
+    collision listener will no longer be notified of collision events occurring
+    on this layer. If the given listener is not a part of this layer, then this
+    action will have no effect.
+    */
     action RemoveCollisionListener(CollisionListener2D listener)
         collisionManager:RemoveCollisionListener(listener)
     end
@@ -905,6 +1328,11 @@ class Layer2D is Layer
         return collisionManager
     end
 
+    /*
+    This action triggers collision detection for this layer during a frame in
+    the Game engine. This action will automatically be called by the Game class
+    as necessary. Most users should never need to use this action directly.
+    */
     action TestForCollisions
         if newItemAdded
             collisionManager:FindNewCollisions()
@@ -924,6 +1352,12 @@ class Layer2D is Layer
         collisionManager:FindNewCollisions()
     end
 
+    /*
+    This action indicates that the layer has received a new item that it must
+    manage during collision detection. This is automatically called by the Game
+    engine as necessary, and most users should never need to use this action
+    directly.
+    */
     action SetNewItemAdded(boolean flag)
         newItemAdded = flag
     end
