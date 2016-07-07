@@ -95,6 +95,33 @@ public class Model
         return blueprint;
     }
     
+    public ModelBlueprint_ GetCachedSphere(double width, double height, double depth, int hDivisions, int vDivisions, Color_ color)
+    {
+        String blendKey = (color.GetAlpha() < 1.0 ? "BLENDED:" : "");
+        String searchKey = ":CYLINDER:DIFFUSE:" + blendKey + width + ":" + height + ":" + depth + ":" + hDivisions + ":" + vDivisions;
+        
+        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        if (blueprint == null)
+        {
+            blueprint = builder.CreateSphere(width, height, depth, hDivisions, vDivisions, color);
+            hashTable.put(searchKey, blueprint);
+        }
+        return blueprint;
+    }
+    
+    public ModelBlueprint_ GetCachedSphere(double width, double height, double depth, int hDivisions, int vDivisions, Texture_ texture)
+    {
+        String searchKey = ":CYLINDER:TEXTURED:" + width + ":" + height + ":" + depth + ":" + hDivisions + ":" + vDivisions;
+        
+        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        if (blueprint == null)
+        {
+            blueprint = builder.CreateSphere(width, height, depth, hDivisions, vDivisions, texture);
+            hashTable.put(searchKey, blueprint);
+        }
+        return blueprint;
+    }
+    
     public Vector3_ GetCachedDimensions(ModelBlueprint_ blueprint)
     {
         Vector3_ vector = dimensionsTable.get(blueprint);
