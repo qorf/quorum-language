@@ -51,13 +51,13 @@ class TouchEvent
 
     /*
     This variable represents how far the user's finger has moved on the
-    x-coordinate plane since the last touch event was recorded for that finger.
+    y-coordinate plane since the last touch event was recorded for that finger.
     */
     public integer movementY = 0
 
     /*
     This variable represents the particular finger that has triggered this
-    event. If multiple fingers are touching the screen, each finger have a
+    event. If multiple fingers are touching the screen, each finger will have a
     different ID.
     */
     public integer fingerID = 0
@@ -66,6 +66,26 @@ class TouchEvent
 
     /*
     This action returns the x coordinate of where the event was on the screen.
+
+    Attribute: Returns The x-coordinate of the point on the screen that was touched.
+
+    Attribute: Example
+
+    use Libraries.Interface.TouchEvent
+    use Libraries.Interface.TouchListener
+
+    class MyListener is TouchListener
+
+        integer lastX = 0
+        integer lastY = 0
+
+        action BeganTouch(TouchEvent event)
+            lastX = event:GetX()
+            lastY = event:GetY()
+        end
+
+    end
+
     */
     action GetX returns integer
         return x
@@ -73,22 +93,116 @@ class TouchEvent
 
     /*
     This action returns the y coordinate of where the event was on the screen.
+
+    Attribute: Returns The y-coordinate of the point on the screen that was touched.
+
+    Attribute: Example
+
+    use Libraries.Interface.TouchEvent
+    use Libraries.Interface.TouchListener
+
+    class MyListener is TouchListener
+
+        integer lastX = 0
+        integer lastY = 0
+
+        action BeganTouch(TouchEvent event)
+            lastX = event:GetX()
+            lastY = event:GetY()
+        end
+
+    end
+
     */
     action GetY returns integer
         return y
     end
 
     /*
-    This action returns how much the user's finger moved on the x-axis since the
+    This action returns how far the user's finger moved on the x-axis since the
     last movement event.
+
+    Attribute: Returns The distance the user's finger has moved on the x-axis since the last TouchEvent.
+
+    Attribute: Example
+
+    use Libraries.Interface.TouchEvent
+    use Libraries.Interface.TouchListener
+
+    class MyListener is TouchListener
+
+        integer activeID = -1
+        integer distanceX = 0
+        integer distanceY = 0
+
+        action BeganTouch(TouchEvent event)
+            if activeID = -1
+                activeID = event:fingerID
+                distanceX = 0
+                distanceY = 0
+            end
+        end
+
+        action ContinuedTouch(TouchEvent event)
+            if event:fingerID = activeID
+                distanceX = distanceX + event:GetMovementX()
+                distanceY = distanceY + event:GetMovementY()
+            end
+        end
+
+        action EndedTouch(TouchEvent event)
+            if event:fingerID = activeID
+                activeID = -1
+            end
+        end
+
+    end
+
     */
     action GetMovementX returns integer
         return movementX
     end
 
     /*
-    This action returns how much the user's finger moved on the y-axis since the
+    This action returns how far the user's finger moved on the y-axis since the
     last movement event.
+
+    Attribute: Returns The distance the user's finger has moved on the y-axis since the last TouchEvent.
+
+    Attribute: Example
+
+    use Libraries.Interface.TouchEvent
+    use Libraries.Interface.TouchListener
+
+    class MyListener is TouchListener
+
+        integer activeID = -1
+        integer distanceX = 0
+        integer distanceY = 0
+
+        action BeganTouch(TouchEvent event)
+            if activeID = -1
+                activeID = event:fingerID
+                distanceX = 0
+                distanceY = 0
+            end
+        end
+
+        action ContinuedTouch(TouchEvent event)
+            if event:fingerID = activeID
+                distanceX = distanceX + event:GetMovementX()
+                distanceY = distanceY + event:GetMovementY()
+            end
+        end
+
+        action EndedTouch(TouchEvent event)
+            if event:fingerID = activeID
+                activeID = -1
+            end
+        end
+
+    end
+
     */
     action GetMovementY returns integer
         return movementY
@@ -96,14 +210,60 @@ class TouchEvent
 
     /*
     This action sets whether this event should be considered handled by any 
-    event listeners.
+    event listeners. This is typically used when using multiple listeners, in
+    order to ensure that a TouchListener doesn't process a TouchEvent that was
+    already handled by a different one.
+
+    Attribute: Parameter handled Whether or not the event was handled by this listener.
+
+    Attribute: Example
+
+    use Libraries.Interface.TouchEvent
+    use Libraries.Interface.TouchListener
+
+    class MyListener is TouchListener
+
+        action BeganTouch(TouchEvent event)
+            if event:GetX() < 100
+                event:SetEventHandled(true)
+            else
+                event:SetEventHandled(false)
+            end
+        end
+
+    end
+
     */
     action SetEventHandled(boolean handled)
         eventHandled = handled
     end
 
     /*
-    This action returns whether or not this event has already been handled.
+    This action returns whether or not this event has already been marked as
+    handled.
+
+    Attribute: Returns Whether or not the event was has already been handled.
+
+    Attribute: Example
+
+    use Libraries.Interface.TouchEvent
+    use Libraries.Interface.TouchListener
+
+    class MyListener is TouchListener
+
+        integer counter = 0
+
+        action BeganTouch(TouchEvent event)
+            if event:WasEventHandled()
+                return now
+            end
+
+            counter = counter + 1
+            event:SetEventHandled(true)
+        end
+
+    end
+
     */
     action WasEventHandled returns boolean
         return eventHandled

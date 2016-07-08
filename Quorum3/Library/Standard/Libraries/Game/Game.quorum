@@ -53,6 +53,8 @@ just display a gray screen. To make your own game, you should make a new class
 that inherits from Game, and make your own versions of the CreateGame() and
 Update(number) actions. The example below will pop up an empty gray window.
 
+Attribute: Author William Allee
+
 Attribute: Example
 
     use Libraries.Game.Game
@@ -180,9 +182,12 @@ class Game
     end
 
     /*
-    The Add action will add an item to the Game. This will make the game handle
-    the item for many tasks. For example, adding a Drawable to the game will
-    make it draw on the screen.
+    The Add action will add an item to the Game. More specifically, the item
+    will be added to the current default Layer2D. This will make the game handle
+    the item for many tasks. For example, adding a Drawable will make it draw on
+    the screen.
+
+    Attribute: Parameter item The item to be added to the current default Layer2D.
 
     Attribute: Example
 
@@ -207,9 +212,12 @@ class Game
     end
 
     /*
-    The Add action will add an item to the Game. This will make the game handle
-    the item for many tasks. For example, adding a Model to the game will
-    make it draw on the screen.
+    The Add action will add an item to the Game. More specifically, the item
+    will be added to the current default Layer3D. This will make the game handle
+    the item for many tasks. For example, adding a Model will make it draw on 
+    the screen.
+
+    Attribute: Parameter item The item to be added to the current default Layer3D.
 
     Attribute: Example
 
@@ -235,8 +243,11 @@ class Game
 
     /*
     The Remove action will remove an item that was put into the game using the
-    Add action. For example, removing a Drawable will make the game engine stop
-    drawing it.
+    Add action. More specifically, the item will be removed from the current
+    default Layer2D. The game will no longer handle removed items - for example,
+    removing a Drawable will make the game engine stop drawing it.
+
+    Attribute: Parameter item The item to be removed from the default Layer2D.
 
     Attribute: Example
 
@@ -265,8 +276,11 @@ class Game
 
     /*
     The Remove action will remove an item that was put into the game using the
-    Add action. For example, removing a Model will make the game engine stop
-    drawing it.
+    Add action. More specifically, the item will be removed from the current
+    default Layer3D. The game will no longer handle removed items - for example,
+    removing a Model will make the game engine stop drawing it.
+
+    Attribute: Parameter item The item to be removed from the default Layer3D.
 
     Attribute: Example
 
@@ -301,6 +315,7 @@ class Game
         repeat layers:GetSize() times
             layers:Get(counter):Draw()
             counter = counter + 1
+            ResetDepthBuffer()
         end
     end
 
@@ -316,6 +331,16 @@ class Game
         cause odd rendering behavior).
         */
         gl20:ClearScreen(16640)
+    end
+
+    /*
+    Resets the depth buffer so that multiple Layer3D can render.
+    */
+    private action ResetDepthBuffer
+        /*
+        256 is the value of GL_COLOR_BUFFER_BIT.
+        */
+        gl20:ClearScreen(256)
     end
 
     /*
@@ -336,7 +361,29 @@ class Game
     /*
     This action will set the game configuration when run on desktop platforms.
     The configuration contains data that affect many technical details of the
-    game, such as how large the screen will be.
+    game, such as how large the screen will be. This should be set before
+    calling StartGame().
+
+    Attribute: Parameter config The DesktopConfiguration to use.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.DesktopConfiguration
+
+    class Main is Game
+
+        action Main
+            DesktopConfiguration configuration
+            configuration:width = 1000
+            configuration:height = 800
+            configuration:resizable = true
+            SetConfiguration(configuration)
+            StartGame()
+        end
+
+    end
+
     */
     action SetConfiguration(DesktopConfiguration config)
         desktopConfig = config
@@ -344,6 +391,24 @@ class Game
 
     /*
     This action will return the game's configuration for desktop platforms.
+
+    Attribute: Returns The current DesktopConfiguration.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.DesktopConfiguration
+
+    class Main is Game
+
+        action Main
+            DesktopConfiguration configuration = GetDesktopConfiguration
+            output "The default width and height of the Game are " + configuration:width + ", " + configuration:height
+            StartGame()
+        end
+
+    end
+
     */
     action GetDesktopConfiguration returns DesktopConfiguration
         return desktopConfig
@@ -351,6 +416,8 @@ class Game
 
     /*
     The GetScreenWidth action will return the width of the screen as an integer.
+
+    Attribute: Returns The width of the screen.
 
     Attribute: Example
 
@@ -373,6 +440,8 @@ class Game
 
     /*
     The GetScreenHeight action will return the height of the screen as an integer.
+
+    Attribute: Returns The height of the screen.
 
     Attribute: Example
 
@@ -399,6 +468,8 @@ class Game
     red color filter will make all objects drawn on the currently active Layer2D
     to appear to be more red.
 
+    Attribute: Parameter color The color filter to apply to the currently active Layer2D.
+
     Attribute: Example
 
         use Libraries.Game.Game
@@ -424,8 +495,8 @@ class Game
             end
         end
     */
-    action SetColorFilter(Color newColor)
-        currentLayer2D:SetColorFilter(newColor)
+    action SetColorFilter(Color color)
+        currentLayer2D:SetColorFilter(color)
     end
 
     /*
@@ -436,6 +507,11 @@ class Game
     a value of 0 for red means that the tinting color will have no red, while a
     value of 1 will have all red components. An opacity of 0 is totally
     transparent, while an opacity of 1 will be totally visible. 
+
+    Attribute: Parameter red The red component of the color filter to apply.
+    Attribute: Parameter green The green component of the color filter to apply.
+    Attribute: Parameter blue The blue component of the color filter to apply.
+    Attribute: Parameter alpha The alpha (or transparency) component of the color filter to apply. 
 
     Attribute: Example
 
@@ -461,8 +537,8 @@ class Game
             end
         end
     */
-    action SetColorFilter(number r, number g, number b, number a)
-        currentLayer2D:SetColorFilter(r, g, b, a)
+    action SetColorFilter(number red, number green, number blue, number alpha)
+        currentLayer2D:SetColorFilter(red, green, blue, alpha)
     end
 
     /*
@@ -471,6 +547,8 @@ class Game
     drawn on the screen in rapid succession to make the images appear to move.
     Note that the value from this field is approximately the same value as the
     parameter in the Update action.
+
+    Attribute: Returns How many seconds have passed since the previous frame.
 
     Attribute: Example
 
@@ -495,6 +573,8 @@ class Game
     every time a picture is drawn on the screen, the Update action is called.
     The number parameter is the amount of seconds that has passed since the last
     time Update was called.
+
+    Attribute: Parameter time The number of seconds that have passed since the last time Update was called.
 
     Attribute: Example
 
@@ -605,6 +685,8 @@ class Game
     notified of mouse buttons being clicked and released, so long as the event
     is not handled by any listeners in the layers.
 
+    Attribute: Parameter listener The MouseListener to add to the Game.
+
     Attribute: Example
 
         use Libraries.Game.Game
@@ -632,6 +714,8 @@ class Game
     This action adds a MouseMovementListener to the Game. The listener will be 
     notified of mouse movement and dragging, so long as the event is not handled
     by any listeners in the layers.
+
+    Attribute: Parameter listener The MouseMovementListener to add to the Game.
 
     Attribute: Example
 
@@ -661,6 +745,8 @@ class Game
     notified of mouse wheel scrolling, so long as the event is not handled by
     any listeners in the layers.
 
+    Attribute: Parameter listener The MouseWheelListener to add to the Game.
+
     Attribute: Example
 
         use Libraries.Game.Game
@@ -687,6 +773,8 @@ class Game
     /*
     This action adds a KeyboardListener to the Game. The listener will be 
     notified of keys being pressed and released.
+
+    Attribute: Parameter listener The KeyboardListener to add to the Game.
 
     Attribute: Example
 
@@ -715,6 +803,8 @@ class Game
     This action removes a MouseListener from the Game. The mouse listener will 
     no longer receive mouse events from the Game. If the given MouseListener was
     not part of the Game, then this will have no effect.
+
+    Attribute: Parameter listener The MouseListener to be removed from the Game.
 
     Attribute: Example
 
@@ -746,6 +836,8 @@ class Game
     no longer receive events from the Game. If the given MouseMovementListener
     was not part of the Game, then this will have no effect.
 
+    Attribute: Parameter listener The MouseMovementListener to be removed from the Game.
+
     Attribute: Example
 
         use Libraries.Game.Game
@@ -776,6 +868,8 @@ class Game
     longer receive events from the Game. If the given MouseWheelListener is not
     part of the Game, then this will have no effect.
 
+    Attribute: Parameter listener The MouseWheelListener to be removed from the Game.
+
     Attribute: Example
 
         use Libraries.Game.Game
@@ -804,6 +898,8 @@ class Game
     /*
     This action removes a KeyboardListener from the Game. The listener will no
     longer receive events for key presses and releases.
+
+    Attribute: Parameter listener The KeyboardListener to be removed from the Game.
 
     Attribute: Example
 
@@ -835,6 +931,8 @@ class Game
     notified when the user interacts with a touch screen, so long as the event
     is not handled by any items in the layers.
 
+    Attribute: Parameter listener The TouchListener to add to the Game.
+
     Attribute: Example
 
         use Libraries.Game.Game
@@ -862,6 +960,8 @@ class Game
     This action removes a TouchListener from the Game. The listener will no
     longer receive TouchEvents from the Game. If the given TouchListener is not
     a part of the Game, this action will have no effect.
+
+    Attribute: Parameter listener The TouchListener to be removed from the Game.
 
     Attribute: Example
 
@@ -892,6 +992,9 @@ class Game
     This action sets the starting screen size of the game. The default screen
     size is 800 by 600. This action should be called before calling StartGame().
 
+    Attribute: Parameter width The starting screen width.
+    Attribute: Parameter height The starting screen height.
+
     Attribute: Example
 
         use Libraries.Game.Game
@@ -914,6 +1017,35 @@ class Game
     mode on desktop platforms (e.g. Windows or Mac) when the game is started.
     By default, games are windowed. This action should be called before calling
     StartGame().
+
+    Attribute: Parameter fullScreen Whether or not the Game should launch in full screen mode on desktops.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+
+    class Main is Game
+
+        number timer = 0
+
+        action Main
+            SetFullScreen(true)
+            StartGame()
+        end
+
+        action CreateGame
+        end
+
+        action Update(number seconds)
+            timer = timer + seconds
+            if timer > 3
+                output "Exiting game..."
+                Exit()
+            end
+        end
+
+    end
+
     */
     action SetFullScreen(boolean fullScreen)
         desktopConfig:fullScreen = fullScreen
@@ -924,6 +1056,8 @@ class Game
     enables it, a value of false disables it. vSync is enabled by default. 
     This action should be called before calling StartGame(). This option is only
     used when the game is run on desktops.
+
+    Attribute: Parameter vSync Whether or not vSync should be enabled.
 
     Attribute: Example
 
@@ -948,6 +1082,8 @@ class Game
     which are run on desktops.
     This action should be called before calling StartGame().
 
+    Attribute: Parameter resize Whether or not the game window should be resizable.
+
     Attribute: Example
 
         use Libraries.Game.Game
@@ -967,7 +1103,9 @@ class Game
     /*
     This action sets the name of the game displayed at the top of the window. 
     The default name is "Game". This action should be called before calling
-    StartGame().
+    StartGame(). This will have no effect on non-Desktop platforms.
+
+    Attribute: Parameter name The name to display on the Game window.
 
     Attribute: Example
 
@@ -990,6 +1128,8 @@ class Game
     is resized. Passing a value of true enables it, a value of false disables it.
     Texture auto resizing is enabled by default. This action should be called
     before calling StartGame(). This option is only relevant on desktop platforms.
+
+    Attribute: Parameter resize Whether or not to automatically resize textures on window resizing.
 
     Attribute: Example
 
@@ -1111,7 +1251,10 @@ class Game
 
     /*
     This action sets the game to use the default layers. The default layers
-    consist of a single 3D layer, with a single 2D layer on top of it.
+    consist of a single 3D layer, with a single 2D layer on top of it. This
+    action is automatically called by the Game engine during StartGame. Users
+    may use it again to "reset" the layers to default, but generally users will
+    not need to use this action directly.
     */
     action InitializeLayers
         layers:Empty()
@@ -1129,6 +1272,26 @@ class Game
     /*
     This action will add a new Layer to the Game. It will be added on top of all
     other layers currently in the game.
+
+    Attribute: Parameter layer The Layer to be added to the Game.
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            AddLayer(layer)
+        end
+
+        action Update(number seconds)
+        end
+    end
     */
     action AddLayer(Layer layer)
         layers:Add(layer)
@@ -1136,13 +1299,59 @@ class Game
 
     /*
     This action will remove the given Layer from the Game.
+
+    Attribute: Parameter layer The Layer to be removed from the Game.
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            AddLayer(layer)
+
+            RemoveLayer(layer)
+        end
+
+        action Update(number seconds)
+        end
+    end
     */
     action RemoveLayer(Layer layer)
         layers:Remove(layer)
     end
 
     /*
-    This action will add the given Layer to the Game at the given index.
+    This action will add the given Layer to the Game at the given index. Layers
+    are handled (e.g. updated, drawn, etc.) in the order they're added, starting
+    at index 0 with additional layers placed at higher indices.
+
+    Attribute: Parameter index The index to place the Layer at.
+    Attribute: Parameter layer The Layer to be added to the Game.
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            // This will add the layer at index 0, making it the first layer drawn.
+            Layer2D layer
+            AddLayer(0, layer)
+        end
+
+        action Update(number seconds)
+        end
+    end
     */
     action AddLayer(integer index, Layer layer)
         layers:Add(index, layer)
@@ -1153,6 +1362,27 @@ class Game
     within the internal layer array, where the first element (at index 0) of the
     array is the bottom layer, and further elements of the array are placed on
     top of previous elements.
+
+    Attribute: Parameter index The index of the Layer to be removed.
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            // This will remove the bottom Layer of the Game.
+            RemoveLayer(0)
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
     action RemoveLayer(integer index)
         layers:RemoveAt(index)
@@ -1162,6 +1392,29 @@ class Game
     This action will set the given index to use the given Layer, overwriting any
     Layer that was already at that index. This will not force disposal of any
     resources that the Layer's items may have been using. 
+
+    Attribute: Parameter index The index to set the Layer at.
+    Attribute: Parameter layer The Layer to be added to the Game.
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            // This will set the layer at index 0, making it the first layer drawn.
+            Layer2D layer
+            SetLayer(0, layer)
+        end
+
+        action Update(number seconds)
+        end
+    end
+
     */
     action SetLayer(integer index, Layer layer)
         layers:Set(index, layer)
@@ -1172,6 +1425,43 @@ class Game
     receive the effect of actions such as Add(Item2D) or Remove(Item2D), which
     do not specify which Layer to act upon. Other actions that specify an index
     or a Layer to act upon will ignore this setting.
+
+    Attribute: Parameter layer The Layer2D to set as currently active.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+
+            Drawable box1
+            box1:LoadFilledRectangle(200, 200, color:Maroon())
+            box1:SetPosition(250, 150)
+
+            Drawable box2
+            box2:LoadFilledRectangle(200, 200, color:Teal())
+            box2:SetPosition(350, 250)
+
+            Layer2D layer
+            AddLayer(0, layer)
+
+            Add(box1)
+
+            SetCurrentLayer2D(layer)
+            Add(box2)
+        end
+
+    end
     */
     action SetCurrentLayer2D(Layer2D layer)
         currentLayer2D = layer
@@ -1182,6 +1472,43 @@ class Game
     receive the effect of actions such as Add(Item3D) or Remove(Item3D), which
     do not specify which Layer to act upon. Other actions that specify an index
     or a Layer to act upon will ignore this setting.
+
+    Attribute: Parameter layer The Layer3D to set as currently active.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer3D
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+
+            Model box1
+            box1:LoadBox(2, 2, 2, color:Teal())
+            box1:SetPosition(0, 0, 5)
+
+            Model box2
+            box2:LoadBox(5, 5, 5, color:Maroon())
+            box2:SetPosition(0, 0, 2)
+
+            Layer3D layer
+            AddLayer(0, layer)
+
+            Add(box1)
+
+            SetCurrentLayer3D(layer)
+            Add(box2)
+        end
+
+    end
     */
     action SetCurrentLayer3D(Layer3D layer)
         currentLayer3D = layer
@@ -1191,6 +1518,28 @@ class Game
     This action will return the current Layer2D which will be used during
     actions that require a Layer if the user does not specify one, e.g., using
     the Add(Item2D) action.
+
+    Attribute: Returns The currently active Layer2D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+
+    class Main is Game
+    
+        Layer2D activeLayer = undefined
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            activeLayer = GetCurrentLayer2D()
+        end
+
+    end
+
     */
     action GetCurrentLayer2D returns Layer2D
         return currentLayer2D
@@ -1200,6 +1549,28 @@ class Game
     This action will return the current Layer3D which will be used during
     actions that require a Layer if the user does not specify one, e.g., using
     the Add(Item3D) action.
+
+    Attribute: Returns The currently active Layer3D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer3D
+
+    class Main is Game
+    
+        Layer3D activeLayer = undefined
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            activeLayer = GetCurrentLayer3D()
+        end
+
+    end
+
     */
     action GetCurrentLayer3D returns Layer3D
         return currentLayer3D
@@ -1207,6 +1578,28 @@ class Game
 
     /*
     This action will return the camera that is a part of the current Layer2D.
+
+    Attribute: Returns The Camera in use by the currently active Layer2D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Camera
+
+    class Main is Game
+    
+        Camera camera = undefined
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            camera = GetCamera2D()
+        end
+
+    end
+
     */
     action GetCamera2D returns Camera
         return currentLayer2D:GetCamera()
@@ -1214,6 +1607,28 @@ class Game
 
     /*
     This action will return the camera that is a part of the current Layer3D.
+
+    Attribute: Returns The Camera in use by the currently active Layer3D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Camera
+
+    class Main is Game
+    
+        Camera camera = undefined
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            camera = GetCamera3D()
+        end
+
+    end
+
     */
     action GetCamera3D returns Camera
         return currentLayer3D:GetCamera()
@@ -1221,6 +1636,27 @@ class Game
 
     /*
     This action will set the camera that is being used by the current Layer2D.
+
+    Attribute: Parameter cam The Camera to use for the currently active Layer2D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.OrthographicCamera
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            OrthographicCamera camera
+            SetCamera2D(camera)
+        end
+
+    end
+
     */
     action SetCamera2D(Camera cam)
         currentLayer2D:SetCamera(cam)
@@ -1228,6 +1664,27 @@ class Game
 
     /*
     This action will set the camera that is being used by the current Layer3D.
+
+    Attribute: Parameter cam The Camera to use for the currently active Layer3D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.PerspectiveCamera
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            PerspectiveCamera camera
+            SetCamera3D(camera)
+        end
+
+    end
+
     */
     action SetCamera3D(Camera cam)
         currentLayer3D:SetCamera(cam)
@@ -1237,6 +1694,27 @@ class Game
     This action will return an iterator containing the Game's layers. The first
     Layer in the iterator will be the bottom Layer, and each following Layer
     in the iterator will be the Layer on top of the previous one.
+
+    Attribute: Returns An Iterator containing all of the Layers added to the Game.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.OrthographicCamera
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            OrthographicCamera camera
+            SetCamera2D(camera)
+        end
+
+    end
+
     */
     action GetLayerIterator returns Iterator<Layer>
         return layers:GetIterator()
@@ -1244,6 +1722,41 @@ class Game
 
     /*
     This action will add a DirectionalLight to the currently active Layer3D.
+
+    Attribute: Parameter light The light to add to the currently active Layer3D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.AmbientLight
+    use Libraries.Game.Graphics.DirectionalLight
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+
+            Model box
+            box:LoadBox(2, 2, 2, color:Teal())
+            Add(box)
+
+            AmbientLight ambient
+            ambient:SetColor(0.4, 0.4, 0.4, 1)
+            SetAmbientLight(ambient)
+
+            DirectionalLight light
+            light:SetColor(0.8, 0.8, 0.8, 1)
+            light:SetDirection(1, -2, 1)
+            Add(light)
+        end
+
+    end
     */
     action Add(DirectionalLight light)
         currentLayer3D:Add(light)
@@ -1251,6 +1764,42 @@ class Game
 
     /*
     This action will add a PointLight to the currently active Layer3D.
+
+    Attribute: Parameter light The light to add to the currently active Layer3D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.AmbientLight
+    use Libraries.Game.Graphics.PointLight
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+
+            Model box
+            box:LoadBox(2, 2, 2, color:Teal())
+            Add(box)
+
+            AmbientLight ambient
+            ambient:SetColor(0.4, 0.4, 0.4, 1)
+            SetAmbientLight(ambient)
+
+            PointLight light
+            light:SetColor(0.8, 0.8, 0.8, 1)
+            light:SetPosition(4, 3, -2)
+            light:SetIntensity(30)
+            Add(light)
+        end
+
+    end
     */
     action Add(PointLight light)
         currentLayer3D:Add(light)
@@ -1258,6 +1807,42 @@ class Game
 
     /*
     This action will set the ambient light on the currently active Layer3D.
+
+    Attribute: Parameter light The AmbientLight to use in the currently active Layer3D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.AmbientLight
+    use Libraries.Game.Graphics.DirectionalLight
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+
+            Model box
+            box:LoadBox(2, 2, 2, color:Teal())
+            Add(box)
+
+            AmbientLight ambient
+            ambient:SetColor(0.4, 0.4, 0.4, 1)
+            SetAmbientLight(ambient)
+
+            DirectionalLight light
+            light:SetColor(0.8, 0.8, 0.8, 1)
+            light:SetDirection(1, -2, 1)
+            Add(light)
+        end
+
+    end
+
     */
     action SetAmbientLight(AmbientLight light)
         currentLayer3D:SetAmbientLight(light)
@@ -1265,6 +1850,43 @@ class Game
 
     /*
     This action will remove a DirectionalLight from the currently active Layer3D.
+
+    Attribute: Parameter light The light to remove from the currently active Layer3D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.AmbientLight
+    use Libraries.Game.Graphics.DirectionalLight
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+
+            Model box
+            box:LoadBox(2, 2, 2, color:Teal())
+            Add(box)
+
+            AmbientLight ambient
+            ambient:SetColor(0.4, 0.4, 0.4, 1)
+            SetAmbientLight(ambient)
+
+            DirectionalLight light
+            light:SetColor(0.8, 0.8, 0.8, 1)
+            light:SetDirection(1, -2, 1)
+            Add(light)
+
+            Remove(light)
+        end
+
+    end
     */
     action Remove(DirectionalLight light)
         currentLayer3D:Remove(light)
@@ -1272,6 +1894,45 @@ class Game
 
     /*
     This action will remove a PointLight from the currently active Layer3D.
+
+    Attribute: Parameter light The light to remove from the currently active Layer3D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.AmbientLight
+    use Libraries.Game.Graphics.PointLight
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+
+            Model box
+            box:LoadBox(2, 2, 2, color:Teal())
+            Add(box)
+
+            AmbientLight ambient
+            ambient:SetColor(0.4, 0.4, 0.4, 1)
+            SetAmbientLight(ambient)
+
+            PointLight light
+            light:SetColor(0.8, 0.8, 0.8, 1)
+            light:SetPosition(4, 3, -2)
+            light:SetIntensity(30)
+            Add(light)
+
+            Remove(light)
+        end
+
+    end
+
     */
     action Remove(PointLight light)
         currentLayer3D:Remove(light)
@@ -1280,6 +1941,42 @@ class Game
     /*
     This action will remove the ambient lighting from the currently active
     Layer3D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.AmbientLight
+    use Libraries.Game.Graphics.PointLight
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+
+            Model box
+            box:LoadBox(2, 2, 2, color:Teal())
+            Add(box)
+
+            AmbientLight ambient
+            ambient:SetColor(0.4, 0.4, 0.4, 1)
+            SetAmbientLight(ambient)
+
+            PointLight light
+            light:SetColor(0.8, 0.8, 0.8, 1)
+            light:SetPosition(4, 3, -2)
+            light:SetIntensity(30)
+            Add(light)
+
+            RemoveAmbientLight()
+        end
+
+    end
     */
     action RemoveAmbientLight
         currentLayer3D:RemoveAmbientLight()
@@ -1290,6 +1987,45 @@ class Game
     is stored at the given index inside the layer. If there are no DirectionalLights
     within the layer, or if the index is out of bounds, then an error will be
     thrown.
+
+    Attribute: Parameter index The index to retrieve the DirectionalLight from.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.AmbientLight
+    use Libraries.Game.Graphics.DirectionalLight
+
+    class Main is Game
+
+        DirectionalLight myLight
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+
+            Model box
+            box:LoadBox(2, 2, 2, color:Teal())
+            Add(box)
+
+            AmbientLight ambient
+            ambient:SetColor(0.4, 0.4, 0.4, 1)
+            SetAmbientLight(ambient)
+
+            DirectionalLight light
+            light:SetColor(0.8, 0.8, 0.8, 1)
+            light:SetDirection(1, -2, 1)
+            Add(light)
+
+            myLight = GetDirectionalLight(0)
+        end
+
+    end
     */
     action GetDirectionalLight(integer index) returns DirectionalLight
         return currentLayer3D:GetDirectionalLight(index)
@@ -1300,6 +2036,42 @@ class Game
     is stored at the given index inside the layer. If there are no PointLights
     within the layer, or if the index is out of bounds, then an error will be
     thrown.
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.AmbientLight
+    use Libraries.Game.Graphics.PointLight
+
+    class Main is Game
+
+        PointLight myLight
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+
+            Model box
+            box:LoadBox(2, 2, 2, color:Teal())
+            Add(box)
+
+            AmbientLight ambient
+            ambient:SetColor(0.4, 0.4, 0.4, 1)
+            SetAmbientLight(ambient)
+
+            PointLight light
+            light:SetColor(0.8, 0.8, 0.8, 1)
+            light:SetPosition(4, 3, -2)
+            light:SetIntensity(30)
+            Add(light)
+
+            myLight = GetPointLight(0)
+        end
+
+    end
     */
     action GetPointLight(integer index) returns PointLight
         return currentLayer3D:GetPointLight(index)
@@ -1308,6 +2080,46 @@ class Game
     /*
     This action will return a new AmbientLight object which contains the ambient
     lighting data of the currently active Layer3D.
+
+    Attribute: Returns The AmbientLight of the currently active Layer3D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.AmbientLight
+    use Libraries.Game.Graphics.DirectionalLight
+
+    class Main is Game
+
+        AmbientLight myLight
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+
+            Model box
+            box:LoadBox(2, 2, 2, color:Teal())
+            Add(box)
+
+            AmbientLight ambient
+            ambient:SetColor(0.4, 0.4, 0.4, 1)
+            SetAmbientLight(ambient)
+
+            DirectionalLight light
+            light:SetColor(0.8, 0.8, 0.8, 1)
+            light:SetDirection(1, -2, 1)
+            Add(light)
+
+            myLight = GetAmbientLight()
+        end
+
+    end
+
     */
     action GetAmbientLight returns AmbientLight
         return currentLayer3D:GetAmbientLight()
@@ -1316,6 +2128,8 @@ class Game
     /*
     This action will return an iterator containing all of the DirectionalLight
     objects stored within the currently active Layer3D.
+
+    Attribute: Returns An Iterator containing all DirectionalLights on the currently active Layer3D.
     */
     action GetDirectionalLights returns Iterator<DirectionalLight>
         return currentLayer3D:GetDirectionalLights()
@@ -1324,6 +2138,8 @@ class Game
     /*
     This action will return an iterator containing all of the PointLight
     objects stored within the currently active Layer3D.
+
+    Attribute: Returns An Iterator containing all PointLights on the currently active Layer3D.
     */
     action GetPointLights returns Iterator<PointLight>
         return currentLayer3D:GetPointLights()
