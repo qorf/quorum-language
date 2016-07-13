@@ -102,7 +102,9 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitCast(QuorumParser.CastContext ctx) {
         quorum.Libraries.Language.Compile.Context.CastContext context = 
                 new quorum.Libraries.Language.Compile.Context.CastContext();
-        context.type = ctx.type.type;
+        if(ctx.type != null) {
+            context.type = ctx.type.type;
+        }
         setLocation(ctx, context);
         listener.ExitCast(context);
     }
