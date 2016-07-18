@@ -114,6 +114,7 @@ class ExpressionsTester
         BadClassName()
         BadVariableName()
         BadErrorMessage()
+        BadCast()
         BadText()
         BlueprintMain()
         ChangeConstant()
@@ -1295,6 +1296,15 @@ class ExpressionsTester
         Array<File> files
         File main
         main:SetPath(path + "BadVariableName.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action BadCast
+        Array<File> files
+        File main
+        main:SetPath(path + "BadCast.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
