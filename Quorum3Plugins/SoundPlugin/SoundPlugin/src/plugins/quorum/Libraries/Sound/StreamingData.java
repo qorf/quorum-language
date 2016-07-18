@@ -199,8 +199,8 @@ public abstract class StreamingData extends DesktopData
             return;
         
         this.x = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
-        this.y = 0;
-        this.z = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
+        this.y = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
+        this.z = 0;
         
         alSource3f(sourceID, AL_POSITION, (float)Math.cos((pan - 1) * Math.PI/2), 0, (float)Math.sin((pan + 1) * Math.PI/2));
         
@@ -219,8 +219,8 @@ public abstract class StreamingData extends DesktopData
             return;
         
         this.x = 0;
-        this.y = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
-        this.z = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
+        this.y = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
+        this.z = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
         
         alSource3f(sourceID, AL_POSITION, 0, (float)Math.cos((newFade - 1) * Math.PI/2), (float)Math.sin((newFade + 1) * Math.PI/2));
         

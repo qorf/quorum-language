@@ -99,8 +99,8 @@ public abstract class Data {
         this.rotation = rotation;
         
         double newX = Math.sin(Math.toRadians(rotation));
-        double newY = Math.cos(Math.toRadians(rotation));
-        double newZ = 0;
+        double newY = 0;
+        double newZ = Math.cos(Math.toRadians(rotation));
         
         SetPosition((float)newX, (float)newY, (float)newZ);
     }

@@ -68,7 +68,7 @@ public class AudioManager
     
     public AudioManager()
     {
-        this(16,9,512);
+        this(64,9,512);
     }
     
     public AudioManager(int simultaneousSources, int bufferCount, int bufferSize)
