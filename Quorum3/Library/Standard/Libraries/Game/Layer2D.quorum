@@ -472,7 +472,7 @@ class Layer2D is Layer
     end
 
     */
-    action RemoveFromEnd() returns Item2D
+    action RemoveFromEnd returns Item2D
         Item2D item = items:RemoveFromEnd()
 
         ContactEdge2D edge = item:contactList
@@ -742,10 +742,10 @@ class Layer2D is Layer
     end
 
     /*
-    This action will set the value of the layer's array of items to be the
-    given Item2D. The previous value will be overwritten. If the index does not
-    exist in the array (e.g., the given index is larger than the number of items
-    stored in this layer), an error will be thrown.
+    This action will set the value of the given index in the layer's array of 
+    items to be the given Item2D. The previous value will be overwritten. If the
+    index does not exist in the array (e.g., the given index is larger than the 
+    number of items stored in this layer), an error will be thrown.
 
     Attribute: Parameter index What index to set inside the layer's array of items.
     Attribute: Parameter item The item to store at the given index in the array.
