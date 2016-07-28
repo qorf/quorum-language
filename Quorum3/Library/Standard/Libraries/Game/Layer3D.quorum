@@ -918,9 +918,10 @@ class Layer3D is Layer
             counter = counter + 1
         end
 
+        boolean processing = true
+
         if eventTargetArray:GetSize() not= 0
             eventTargetArray:Sort()
-            boolean processing = true
             counter = 0
             repeat while processing and counter < eventTargetArray:GetSize()
                 eventTargetArray:Get(counter):GetValue():ProcessMouseEvent(event)
@@ -929,6 +930,61 @@ class Layer3D is Layer
             end
 
             eventTargetArray:Empty()
+        end
+
+        if processing
+
+            if event:eventType = event:MOVED_MOUSE
+                if mouseMovementListeners:GetSize() > 0
+                    counter = 0
+                    event:SetEventHandled(true)
+                    repeat mouseMovementListeners:GetSize() times
+                        mouseMovementListeners:Get(counter):MovedMouse(event)
+                        counter = counter + 1
+                    end
+                end
+
+            elseif event:eventType = event:DRAGGED_MOUSE
+                if mouseMovementListeners:GetSize() > 0
+                    counter = 0
+                    event:SetEventHandled(true)
+                    repeat mouseMovementListeners:GetSize() times
+                        mouseMovementListeners:Get(counter):DraggedMouse(event)
+                        counter = counter + 1
+                    end
+                end
+
+            elseif event:eventType = event:CLICKED_MOUSE
+                if mouseListeners:GetSize() > 0
+                    counter = 0
+                    event:SetEventHandled(true)
+                    repeat mouseListeners:GetSize() times
+                        mouseListeners:Get(counter):ClickedMouse(event)
+                        counter = counter + 1
+                    end
+                end
+
+            elseif event:eventType = event:RELEASED_MOUSE
+                if mouseListeners:GetSize() > 0
+                    counter = 0
+                    event:SetEventHandled(true)
+                    repeat mouseListeners:GetSize() times
+                        mouseListeners:Get(counter):ReleasedMouse(event)
+                        counter = counter + 1
+                    end
+                end
+
+            elseif event:eventType = event:SCROLLED_MOUSE
+                if mouseWheelListeners:GetSize() > 0
+                    counter = 0
+                    event:SetEventHandled(true)
+                    repeat mouseWheelListeners:GetSize() times
+                        mouseWheelListeners:Get(counter):ScrolledMouse(event)
+                        counter = counter + 1
+                    end
+                end
+            end
+
         end
     end
 
@@ -969,9 +1025,10 @@ class Layer3D is Layer
             counter = counter + 1
         end
 
+        boolean processing = true
+
         if eventTargetArray:GetSize() not= 0
             eventTargetArray:Sort()
-            boolean processing = true
             counter = 0
             repeat while processing and counter < eventTargetArray:GetSize()
                 eventTargetArray:Get(counter):GetValue():ProcessTouchEvent(event)
@@ -980,6 +1037,42 @@ class Layer3D is Layer
             end
 
             eventTargetArray:Empty()
+        end
+
+        if processing
+
+            if event:eventType = event:MOVED or event:eventType = event:STATIONARY
+                if touchListeners:GetSize() > 0
+                    counter = 0
+                    event:SetEventHandled(true)
+                    repeat touchListeners:GetSize() times
+                        touchListeners:Get(counter):ContinuedTouch(event)
+                        counter = counter + 1
+                    end
+                end
+
+            elseif event:eventType = event:BEGAN
+                if touchListeners:GetSize() > 0
+                    counter = 0
+                    event:SetEventHandled(true)
+                    repeat touchListeners:GetSize() times
+                        touchListeners:Get(counter):BeganTouch(event)
+                        counter = counter + 1
+                    end
+                end
+
+            elseif event:eventType = event:ENDED or event:eventType = event:CANCELLED
+                if touchListeners:GetSize() > 0
+                    counter = 0
+                    event:SetEventHandled(true)
+                    repeat touchListeners:GetSize() times
+                        touchListeners:Get(counter):EndedTouch(event)
+                        counter = counter + 1
+                    end
+                end
+
+            end
+
         end
     end
 
