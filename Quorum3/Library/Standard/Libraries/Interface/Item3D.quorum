@@ -1263,7 +1263,7 @@ class Item3D is Item
 
     */
     action Rotate(Vector3 vector, number degrees, boolean rotateChildren)
-        transform:Rotate(vector, degrees)
+        transform:Rotate(vector:GetX(), vector:GetY(), -vector:GetZ(), degrees)
 
         if rotateChildren and not children:IsEmpty()
 
@@ -1278,15 +1278,34 @@ class Item3D is Item
             Vector3 temp
             Vector3 vector3
             vector3:Set(vector)
-            vector3:Scale(-1, -1, 1)
+            vector3:Scale(-1, -1, -1)
             vector3:Normalize()
+
+            Array<Item3D> allChildren
+            GetAllChildren(allChildren)
+
+            /*
+            We store the offsets we'll be using before manipulating anything.
+            This ensures we use the original data, and there's no risk of using
+            data that's been modified on the fly (e.g., updating a parent item
+            will affect the position of the child item).
+            */
+            Array<Vector3> localOffsets
+            repeat allChildren:GetSize() times
+                Vector3 newLocalOffset = allChildren:Get(counter):GetGlobalPosition()
+                localOffsets:Add(newLocalOffset)
+                counter = counter + 1
+            end
+
+            counter = 0
 
             /*
             Set the children's offset using Rodrigues' Rotation Formula.
             */
-            repeat children:GetSize() times
-                child = children:Get(counter)
-                Vector3 localOffset = child:GetGlobalPosition()
+            repeat allChildren:GetSize() times
+                child = allChildren:Get(counter)
+                //Vector3 localOffset = child:GetGlobalPosition()
+                Vector3 localOffset = localOffsets:Get(counter)
                 localOffset:Subtract(globalOffset)
                 
                 temp:Set(vector3):CrossProduct(localOffset):Scale(sin)
@@ -1299,10 +1318,35 @@ class Item3D is Item
                 rotation:Add(globalOffset):Subtract(child:GetPosition())
 
                 child:SetOffset(rotation)
-                child:Rotate(vector, degrees, true)
+                child:Rotate(vector, degrees, false)
 
                 counter = counter + 1
             end
+        end
+    end
+
+    /*
+    A private action used to gather up the entire children hierarchy into a
+    single array for easy iteration.
+    */
+    private action GetAllChildren(Array<Item3D> items)
+        Array<Item3D> unprocessedItems
+
+        integer counter = 0
+        repeat children:GetSize() times
+            unprocessedItems:Add(children:Get(counter))
+            counter = counter + 1
+        end
+
+        repeat while not unprocessedItems:IsEmpty()
+            Item3D temp = unprocessedItems:RemoveFromFront()
+            counter = 0
+            repeat while counter < temp:GetItemCount()
+                unprocessedItems:Add(temp:GetItem(counter))
+                counter = counter + 1
+            end
+            
+            items:Add(temp)
         end
     end
 
