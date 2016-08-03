@@ -5,6 +5,7 @@
  */
 package plugins.quorum.Libraries.Game;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,7 +37,14 @@ public class Game
             }
             else if (os.contains("Windows"))
             {
-                java.io.File file = new java.io.File(Game.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                URI uri = Game.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+                String uriPath = uri.getPath();
+
+                if (uri.getAuthority() != null)
+                    uriPath = "\\\\" + uri.getAuthority() + uriPath;
+
+                java.io.File file = new java.io.File(uriPath);
+                
                 String runLocation = file.getParentFile().getAbsolutePath();
                 String lwjgl = runLocation + "/jni";
                 System.setProperty("org.lwjgl.librarypath", lwjgl);
