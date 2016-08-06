@@ -93,7 +93,7 @@ class ModelBlueprint is Disposable
     private action ConvertMaterial(ModelMaterial mtl) returns Material
 
         Material result
-        result:id = mtl:id
+        result:SetID(mtl:id)
 
         ColorAttribute creator
 
@@ -272,7 +272,7 @@ class ModelBlueprint is Disposable
                     Material material = undefined
                     repeat while searching and materialCounter < materials:GetSize()
                         material = materials:Get(materialCounter)
-                        if modelNodePart:materialID = material:id
+                        if modelNodePart:materialID = material:GetID()
                             meshMaterial = material
                             searching = false
                         end

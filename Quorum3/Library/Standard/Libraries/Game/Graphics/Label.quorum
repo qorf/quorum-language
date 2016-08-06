@@ -578,6 +578,11 @@ class Label is Item2D
                         if drawable not= undefined
                             drawable:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine - drawable:GetHeight())
                             Add(drawable)
+                        else
+                            Item2D space
+                            space:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine)
+                            space:SetSize(glyph:horizontalAdvance, glyph:verticalAdvance)
+                            Add(space)
                         end
 
                         glyphIndex = glyphIndex + 1

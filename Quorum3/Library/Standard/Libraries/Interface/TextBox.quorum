@@ -403,4 +403,93 @@ class TextBox is Panel, KeyboardListener
         RemoveKeyboardListener(me)
     end */
 
+    /*
+    Returns the position of the text cursor within the TextBox. The position can
+    be considered as the number of characters before the cursor.
+
+    Attribute: Returns The number of characters before the cursor.
+
+    Attribute: Example
+
+        use Libraries.Interface.TextBox
+        use Libraries.Game.Game
+        use Libraries.Game.InputMonitor
+        use Libraries.Interface.Events.KeyboardEvent
+
+        class Main is Game
+
+            TextBox box
+            InputMonitor monitor
+            KeyboardEvent keys
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                box:Initialize(100, 100)
+                Add(box)
+                AddKeyboardListener(box)
+            end
+
+            action Update(number time)
+                if monitor:IsKeyPressed(keys:ENTER)
+                    output "The cursor is at " + box:GetCursorPosition()
+                end
+            end
+
+        end
+    */
+    action GetCursorPosition returns integer
+        return cursorIndex
+    end
+
+    /*
+    Returns the input that the user has put in the TextBox.
+
+    Attribute: Example
+
+        use Libraries.Interface.TextBox
+        use Libraries.Game.Game
+        use Libraries.Game.InputMonitor
+        use Libraries.Interface.Events.KeyboardEvent
+
+        class Main is Game
+
+            TextBox box
+            InputMonitor monitor
+            KeyboardEvent keys
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                box:Initialize(100, 100)
+                Add(box)
+                AddKeyboardListener(box)
+            end
+
+            action Update(number time)
+                if monitor:IsKeyPressed(keys:HOME)
+                    box:SetCursorPosition(0)
+                end
+            end
+
+        end
+    */
+    action SetCursorPosition(integer position)
+        if position > response:GetItemCount()
+            alert("I was asked to set the cursor's position to " + position + ", but the last position was " + response:GetItemCount())
+        end
+
+        if position < 0
+            alert("I was asked to set the cursor's position to " + position + ", but I can't set the position to a negative value!")
+        end
+
+        if position not= cursorIndex
+            cursorIndex = position
+            cursorMoved = true
+        end
+    end
 end

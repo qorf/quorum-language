@@ -62,8 +62,25 @@ class Item
     */
     blueprint action Empty
 
-    /*
-    FIX ME: Needs comments
+    /*  
+    This action takes a touch event and handles it. It will first test to 
+    see if the touch event took place within the bounds of this Item. If so, it
+    will notify any TouchListeners of the event. If the event was not contained
+    within this Item, or if there are no TouchListeners on this Item, the Item
+    will ask its parent Item to process the touch event, if there is a parent.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        use Libraries.Interface.Events.TouchEvent
+        use Libraries.Interface.Events.TouchListener
+        Item2D myItem
+        TouchListener listener
+        myItem:AddTouchListener(listener)
+        TouchEvent event
+        event:eventType = event:BEGAN
+        myItem:ProcessTouchEvent(event)
+    
     */
     blueprint action ProcessTouchEvent(TouchEvent event)
 
