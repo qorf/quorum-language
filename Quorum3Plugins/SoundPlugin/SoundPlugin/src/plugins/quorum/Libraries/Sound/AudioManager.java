@@ -132,6 +132,13 @@ public class AudioManager
                 if (isStreaming)
                 {
                     idleSources.remove(i);
+                    
+                    if (sourceToSoundID.containsKey(sourceID))
+                    {
+                        long soundID = (long)sourceToSoundID.get(sourceID);
+                        sourceToSoundID.remove(sourceID);
+                        soundIDToSource.remove(soundID);
+                    }
                 }
                 else
                 {
