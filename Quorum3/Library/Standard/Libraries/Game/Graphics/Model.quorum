@@ -228,6 +228,43 @@ class Model is Item3D
     end
 
     /*
+    This action will return the identifier for the ModelBlueprint that this 
+    model was loaded from.
+
+    Attribute: Returns A text value identifying the ModelBlueprint used to load this Model.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+
+        Model cube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color cyan
+            cyan:SetColor(0, 0.75, 1, 1)
+
+            cube:LoadBox(2, 2, 2, cyan)
+            Add(cube)
+
+            text id = cube:GetBlueprintID()
+            output "The cube's ModelBlueprint ID is " + id
+        end
+    end
+
+    */
+    action GetBlueprintID returns text
+        return modelBlueprint:id
+    end
+
+    /*
     This action will load a model from a given model file. The supported file
     extensions are .obj, .g3db, and .g3dj.
 

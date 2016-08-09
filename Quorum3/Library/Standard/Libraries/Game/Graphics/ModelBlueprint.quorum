@@ -26,6 +26,9 @@ class ModelBlueprint is Disposable
     // JAVA:
     //private ObjectMap<NodePart, ArrayMap<String, Matrix4>> nodePartBones = new ObjectMap<NodePart, ArrayMap<String, Matrix4>>();
 
+    // Used to store a copy of the hash identifier for this ModelBlueprint in the Model plugin.
+    public text id = "Default"
+
     action Load(ModelData data)
         LoadMeshes(data:meshes)
         LoadMaterials(data:materials)
