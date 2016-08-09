@@ -32,11 +32,12 @@ public class Model
     
     public ModelBlueprint_ GetCachedBlueprint(File_ file)
     {
-        ModelBlueprint_ blueprint = hashTable.get(file.GetAbsolutePath());
+        ModelBlueprint_ blueprint = hashTable.get(file.GetPath());
         if (blueprint == null)
         {
             blueprint = reader.Read(file);
-            hashTable.put(file.GetAbsolutePath(), blueprint);
+            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(file.GetPath());
+            hashTable.put(file.GetPath(), blueprint);
         }
         return blueprint;
     }
@@ -50,6 +51,7 @@ public class Model
         if (blueprint == null)
         {
             blueprint = builder.CreateBox(width, height, depth, color);
+            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
             hashTable.put(searchKey, blueprint);
         }
         return blueprint;
@@ -63,6 +65,7 @@ public class Model
         if (blueprint == null)
         {
             blueprint = builder.CreateBox(width, height, depth, texture);
+            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
             hashTable.put(searchKey, blueprint);
         }
         return blueprint;
@@ -77,6 +80,7 @@ public class Model
         if (blueprint == null)
         {
             blueprint = builder.CreateCylinder(width, height, depth, divisions, color);
+            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
             hashTable.put(searchKey, blueprint);
         }
         return blueprint;
@@ -90,6 +94,7 @@ public class Model
         if (blueprint == null)
         {
             blueprint = builder.CreateCylinder(width, height, depth, divisions, texture);
+            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
             hashTable.put(searchKey, blueprint);
         }
         return blueprint;
@@ -104,6 +109,7 @@ public class Model
         if (blueprint == null)
         {
             blueprint = builder.CreateSphere(width, height, depth, hDivisions, vDivisions, color);
+            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
             hashTable.put(searchKey, blueprint);
         }
         return blueprint;
@@ -117,6 +123,7 @@ public class Model
         if (blueprint == null)
         {
             blueprint = builder.CreateSphere(width, height, depth, hDivisions, vDivisions, texture);
+            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
             hashTable.put(searchKey, blueprint);
         }
         return blueprint;

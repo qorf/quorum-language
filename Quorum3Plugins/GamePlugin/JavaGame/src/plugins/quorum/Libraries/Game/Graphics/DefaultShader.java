@@ -218,6 +218,10 @@ public class DefaultShader extends BaseShader
                     
                     matrix.Set(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
                     DefaultShader.InvertPositionZ(matrix);
+                    
+//                    System.out.println("worldTrans:");
+//                    OutputMatrix4(matrix);
+                    
                     shader.Set(inputID, matrix);
                 }
             };
@@ -1299,5 +1303,29 @@ public class DefaultShader extends BaseShader
         public static void InvertPositionZ(Matrix4_ m)
         {
             m.Set_Libraries_Compute_Matrix4__row2column3_(m.Get_Libraries_Compute_Matrix4__row2column3_() * -1);
+        }
+        
+        /*
+        Used to output the contents of a matrix. For debugging purposes only.
+        */
+        private static float[] OutputMatrix4(Matrix4_ matrix)
+        {
+            Matrix4 m = (Matrix4)matrix;
+            // OpenGL expects the matrix to be stored in column-major format.
+            float[] temp = {(float)m.row0column0, (float)m.row1column0, (float)m.row2column0, (float)m.row3column0,
+                            (float)m.row0column1, (float)m.row1column1, (float)m.row2column1, (float)m.row3column1,
+                            (float)m.row0column2, (float)m.row1column2, (float)m.row2column2, (float)m.row3column2,
+                            (float)m.row0column3, (float)m.row1column3, (float)m.row2column3, (float)m.row3column3};
+            
+            for (int i = 0; i < 16; i++)
+            {
+                if (i % 4 == 0)
+                    System.out.println("");
+                System.out.print(temp[i] + ", ");
+            }
+            
+            System.out.println("");
+            
+            return temp;
         }
 }
