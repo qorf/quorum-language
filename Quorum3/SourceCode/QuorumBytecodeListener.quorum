@@ -1706,10 +1706,6 @@ class QuorumBytecodeListener is QuorumSourceListener
         actionCallStacks:Add(me:currentActionStack, stack)
         currentActionStack = currentActionStack + 1
 
-        if currentClass:GetName() = "Main"
-            a = 5
-        end
-
         text object = context:objectName
         if not (object = undefined)
             ActionCallContext ac
@@ -1978,6 +1974,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         ChainedActionCallOpcode ops
         ops:SetMethodWriter(methodWriter)
+        ops:SetIsSoloCall(true)
         ops:SetLocation(context:GetLocation())
         Iterator<ActionCallOpcode> it = stack:GetIterator()
         repeat while it:HasNext()

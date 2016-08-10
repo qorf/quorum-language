@@ -1,7 +1,18 @@
-function plugins_quorum_Libraries_Language_Object_() {
+var globalStaticHash = 1
+
+function plugins_quorum_Libraries_Language_Object_(optional) {
+    this.me = false;
+    this.myHash = 0;
+    if(optional === undefined) {
+    } else {
+        me = optional;
+    }
     this.GetHashCode = function (value) {
-        return 0;
+        return this.myHash;
     };
+    
+    this.myHash = globalStaticHash;
+    globalStaticHash = globalStaticHash + 1;
 }
 
 function global_number_converter_(value) {
@@ -10,6 +21,9 @@ function global_number_converter_(value) {
 
 function global_InstanceOf(variable, name) {
     var value = variable.parentNames_;
+    if(variable.prototype != null) {
+        value = variable.prototype.parentNames_;
+    }
     for	(index = 0; index < value.length; index++) {
         if(value[index] == name) {
             return true;

@@ -421,6 +421,9 @@ class ActionCallOpcode is QuorumOpcode
 
                 if parentToCallOn not= undefined
                     text value = parentToCallOn:ConvertStaticKeyToParentFieldName()
+                    if value = "LandVehicle__"
+                        a = 5
+                    end
                     if variableToMakeParentCallOn not= undefined
                         result = result + "." + value
                     else
