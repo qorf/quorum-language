@@ -61,7 +61,7 @@ class ModelReader
             return g3dLoader:LoadModel(file)
         end
 
-        return undefined
+        alert("I did not recognize the file type of this file! The supported file types are .obj, .g3db, and .g3dj")
     end
 
     private action ReadWavefrontObject(File file) returns ModelBlueprint
