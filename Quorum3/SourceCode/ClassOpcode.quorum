@@ -1192,15 +1192,24 @@ class ClassOpcode is QuorumOpcode
                 end
 
                 convertedSource = convertedSource + ") {" + EOL
+                    + "if( this.prototype == null) {"
                     + "     return this." + parentOfMethod:ConvertStaticKeyToParentFieldName() + "." 
-                    + act:ConvertActionToJavaScriptName() + "("
+                   // + "}"
+                    
+                    //+ "     return this.prototype." 
+                    
+
+                text paramListText = act:ConvertActionToJavaScriptName() + "("
                 params = act:GetParameterIterator()
                 repeat while params:HasNext()
                     Variable param = params:Next()
-                    convertedSource = convertedSource + param:GetJavaScriptName()
+                    paramListText = paramListText + param:GetJavaScriptName()
                 end
 
-                convertedSource = convertedSource + ")"
+                paramListText = paramListText + ");"
+                convertedSource = convertedSource + paramListText
+                    +  "}"
+                    +  "return this.prototype." + paramListText
                     + EOL 
                     + "}" + EOL
             //end
