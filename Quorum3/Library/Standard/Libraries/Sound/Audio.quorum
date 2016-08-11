@@ -1295,7 +1295,7 @@ class Audio
         // We will now set the listener's position. Although we can set all 3
         // coordinates with this action, we will set just the x-coordinate for
         // this example. This is the same as using SetListenerX(3)
-        buzzer:SetListenerX(3, 0, 0)
+        buzzer:SetListenerPosition(3, 0, 0)
 
         // Now when we play our audio, both sounds should come from the left
         // side in 3D space - this is because both sounds are at their default
@@ -1316,6 +1316,7 @@ class Audio
         Attribute: Example
 
         use Libraries.Sound.Audio
+        use Libraries.Compute.Vector3
 
         // In this example, we will use two audio objects. 
         Audio buzzer
@@ -1326,7 +1327,9 @@ class Audio
         // We will now set the listener's position. Although we can set all 3
         // coordinates with this action, we will set just the x-coordinate for
         // this example. This is the same as using SetListenerX(3)
-        buzzer:SetListenerX(3, 0, 0)
+        Vector3 vector
+        vector:Set(3, 0, 0)
+        buzzer:SetListenerPosition(vector)
 
         // Now when we play our audio, both sounds should come from the left
         // side in 3D space - this is because both sounds are at their default
@@ -1376,7 +1379,7 @@ class Audio
         
         // The listener is given a velocity of 8 meters per second along the
         // y-axis.
-        flute:SetListenerVelocityX(8)
+        flute:SetListenerVelocityY(8)
     */
     system action SetListenerVelocityY(number x)
 
@@ -1419,7 +1422,7 @@ class Audio
         // The listener is given a velocity of 15 meters per second along the
         // x-axis, 8 meters per second along the y-axis, and 11 meters-per-second
         // along the z-axis.
-        flute:SetListenerVelocityX(15, 8, 11)
+        flute:SetListenerVelocity(15, 8, 11)
     */
     system action SetListenerVelocity(number x, number y, number z)
 
@@ -1445,7 +1448,7 @@ class Audio
         // The listener is given a velocity of 15 meters per second along the
         // x-axis, 8 meters per second along the y-axis, and 11 meters-per-second
         // along the z-axis.
-        flute:SetListenerVelocityX(vector)
+        flute:SetListenerVelocity(vector)
     */
     action SetListenerVelocity(Vector3 vector)
         SetListenerVelocity(vector:GetX(), vector:GetY(), vector:GetZ())
@@ -1523,24 +1526,128 @@ class Audio
     /*
         This action will return the current x coordinate of the listener in
         virtual 3D space.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // In this example, we will use two audio objects. 
+        Audio buzzer
+        buzzer:Load("Buzzer.wav")
+        Audio bell
+        bell:Load("Bell.ogg")
+
+        // We will now set the listener's x position. We could do this with
+        // either of our audio objects.
+        buzzer:SetListenerX(3)
+
+        // Now when we play our audio, both sounds should come from the left
+        // side in 3D space - this is because both sounds are at their default
+        // location of 0, 0, 0, but the listener is 3 units to the right.
+        buzzer:PlayUntilDone()
+        bell:PlayUntilDone()
+
+        // We can get the listener's x position back by using GetListenerX.
+        // It doesn't matter what Audio object we call this from - the result is the same.
+        number x = bell:GetListenerX()
+        output "Listener x position is " + x
     */
     system action GetListenerX returns number
 
     /*
         This action will return the current x coordinate of the listener in
         virtual 3D space.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // In this example, we will use two audio objects. 
+        Audio buzzer
+        buzzer:Load("Buzzer.wav")
+        Audio bell
+        bell:Load("Bell.ogg")
+
+        // We will now set the listener's x position. We could do this with
+        // either of our audio objects.
+        buzzer:SetListenerX(3)
+
+        // Now when we play our audio, both sounds should come from the left
+        // side in 3D space - this is because both sounds are at their default
+        // location of 0, 0, 0, but the listener is 3 units to the right.
+        buzzer:PlayUntilDone()
+        bell:PlayUntilDone()
+
+        // We can get the listener's y position back by using GetListenerY.
+        // It doesn't matter what Audio object we call this from - the result is the same.
+        number y = bell:GetListenerY()
+        output "Listener y position is " + y
     */
     system action GetListenerY returns number
 
     /*
         This action will return the current x coordinate of the listener in
         virtual 3D space.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // In this example, we will use two audio objects. 
+        Audio buzzer
+        buzzer:Load("Buzzer.wav")
+        Audio bell
+        bell:Load("Bell.ogg")
+
+        // We will now set the listener's x position. We could do this with
+        // either of our audio objects.
+        buzzer:SetListenerX(3)
+
+        // Now when we play our audio, both sounds should come from the left
+        // side in 3D space - this is because both sounds are at their default
+        // location of 0, 0, 0, but the listener is 3 units to the right.
+        buzzer:PlayUntilDone()
+        bell:PlayUntilDone()
+
+        // We can get the listener's z position back by using GetListenerZ.
+        // It doesn't matter what Audio object we call this from - the result is the same.
+        number z = bell:GetListenerZ()
+        output "Listener z position is " + z
     */
     system action GetListenerZ returns number
 
     /*
         This action will return the current coordinates of the listener in
         virtual 3D space. The returned result will be stored in a new Vector3.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+        use Libraries.Compute.Vector3
+
+        // In this example, we will use two audio objects. 
+        Audio buzzer
+        buzzer:Load("Buzzer.wav")
+        Audio bell
+        bell:Load("Bell.ogg")
+
+        // We will now set the listener's position. Although we can set all 3
+        // coordinates with this action, we will set just the x-coordinate for
+        // this example. This is the same as using SetListenerX(3)
+        Vector3 vector
+        vector:Set(3, 0, 0)
+        buzzer:SetListenerPosition(vector)
+
+        // Now when we play our audio, both sounds should come from the left
+        // side in 3D space - this is because both sounds are at their default
+        // location of 0, 0, 0, but the listener is 3 units to the right.
+        buzzer:PlayUntilDone()
+        bell:PlayUntilDone()
+
+        // We can get the listener's position back by using GetListenerPosition.
+        // It doesn't matter what Audio object we call this from - the result is the same.
+        Vector3 position = bell:GetListenerPosition()
+        output "Listener position is " + position:GetX() + ", " + position:GetY() + ", " + position:GetZ()
     */
     action GetListenerPosition returns Vector3
         Vector3 vector
@@ -1551,24 +1658,97 @@ class Audio
     /*
         This action will return the current x velocity of the listener in
         virtual 3D space.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio flute
+        flute:Load("Flute.ogg")
+        
+        // The listener is given a velocity of 15 meters per second along the
+        // x-axis.
+        flute:SetListenerVelocityX(15)
+
+        // We can now retrieve the velocity of the listener along the x-axis by
+        // using GetListenerVelocityX. It doesn't matter what Audio object we
+        // call this from - the result is the same.
+        number x = flute:GetListenerVelocityX()
+        output "The listener's x velocity is " + x
     */
     system action GetListenerVelocityX returns number
 
     /*
         This action will return the current y velocity of the listener in
         virtual 3D space.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio flute
+        flute:Load("Flute.ogg")
+        
+        // The listener is given a velocity of 8 meters per second along the
+        // y-axis.
+        flute:SetListenerVelocityY(8)
+
+        // We can now retrieve the velocity of the listener along the y-axis by
+        // using GetListenerVelocityY. It doesn't matter what Audio object we
+        // call this from - the result is the same.
+        number y = flute:GetListenerVelocityY()
+        output "The listener's y velocity is " + y
     */
     system action GetListenerVelocityY returns number
 
     /*
         This action will return the current z velocity of the listener in
         virtual 3D space.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        Audio flute
+        flute:Load("Flute.ogg")
+        
+        // The listener is given a velocity of 11 meters per second along the
+        // z-axis.
+        flute:SetListenerVelocityZ(11)
+
+        // We can now retrieve the velocity of the listener along the z-axis by
+        // using GetListenerVelocityZ. It doesn't matter what Audio object we
+        // call this from - the result is the same.
+        number z = flute:GetListenerVelocityZ()
+        output "The listener's z velocity is " + z
     */
     system action GetListenerVelocityZ returns number
 
     /*
         This action will return the current velocity of the listener in
         virtual 3D space. The returned result will be stored in a new Vector3.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+        use Libraries.Compute.Vector3
+
+        Audio flute
+        flute:Load("Flute.ogg")
+
+        Vector3 vector
+        vector:Set(15, 8, 11)
+        
+        // The listener is given a velocity of 15 meters per second along the
+        // x-axis, 8 meters per second along the y-axis, and 11 meters-per-second
+        // along the z-axis.
+        flute:SetListenerVelocity(vector)
+
+        // We can now retrieve the velocity of the listener by using
+        // GetListenerVelocity. It doesn't matter what Audio object we
+        // call this from - the result is the same.
+        Vector3 velocity = flute:GetListenerVelocity()
+        output "The listener's velocity is " + velocity:GetX() + ", " + velocity:GetY() + ", " + velocity:GetZ()
     */
     action GetListenerVelocity returns Vector3
         Vector3 vector
@@ -1580,6 +1760,24 @@ class Audio
         SetListenerDirection sets the direction the listener is facing in
         virtual 3D space. This will affect which direction audio seems to come
         through speakers or headphones when listening to 3D audio.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // We load an audio object and set its position to 1 meter in front of the
+        // default listener position.
+        Audio audio
+        audio:Load("Chime.wav")
+        audio:SetPosition(0, 0, 1)
+
+        // Now we set the listener to face the right by calling SetListenerDirection.
+        // We can do this using any Audio object - it won't affect the result.
+        audio:SetListenerDirection(1, 0, 0)
+
+        // The audio is now located to the left of the listener's "ears", so when we
+        // play it, it should play through the left speaker.
+        audio:PlayUntilDone()
     */
     system action SetListenerDirection(number x, number y, number z)
 
@@ -1587,6 +1785,27 @@ class Audio
         SetListenerDirection sets the direction the listener is facing in
         virtual 3D space. This will affect which direction audio seems to come
         through speakers or headphones when listening to 3D audio.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+        use Libraries.Compute.Vector3
+
+        // We load an audio object and set its position to 1 meter in front of the
+        // default listener position.
+        Audio audio
+        audio:Load("Chime.wav")
+        audio:SetPosition(0, 0, 1)
+
+        // Now we set the listener to face the right by calling SetListenerDirection.
+        // We can do this using any Audio object - it won't affect the result.
+        Vector3 direction
+        direction:Set(1, 0, 0)
+        audio:SetListenerDirection(direction)
+
+        // The audio is now located to the left of the listener's "ears", so when we
+        // play it, it should play through the left speaker.
+        audio:PlayUntilDone()
     */
     action SetListenerDirection(Vector3 direction)
         SetListenerDirection(direction:GetX(), direction:GetY(), direction:GetZ())
@@ -1595,24 +1814,121 @@ class Audio
     /*
         This action will get the x-component of the direction that the listener
         is currently facing in.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // We load an audio object and set its position to 1 meter in front of the
+        // default listener position.
+        Audio audio
+        audio:Load("Chime.wav")
+        audio:SetPosition(0, 0, 1)
+
+        // Now we set the listener to face the right by calling SetListenerDirection.
+        // We can do this using any Audio object - it won't affect the result.
+        audio:SetListenerDirection(1, 0, 0)
+
+        // The audio is now located to the left of the listener's "ears", so when we
+        // play it, it should play through the left speaker.
+        audio:PlayUntilDone()
+
+        // Once we've set the direction of the listener, we can get back each
+        // of the values we've set it with using the GetListenerDirection actions.
+        // We can do this using any Audio object - it won't affect the result.
+        number x = audio:GetListenerDirectionX()
+        output "The direction of the listener on the x-axis is " + x
     */
     system action GetListenerDirectionX returns number
 
     /*
         This action will get the y-component of the direction that the listener
         is currently facing in.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // We load an audio object and set its position to 1 meter in front of the
+        // default listener position.
+        Audio audio
+        audio:Load("Chime.wav")
+        audio:SetPosition(0, 0, 1)
+
+        // Now we set the listener to face the right by calling SetListenerDirection.
+        // We can do this using any Audio object - it won't affect the result.
+        audio:SetListenerDirection(1, 0, 0)
+
+        // The audio is now located to the left of the listener's "ears", so when we
+        // play it, it should play through the left speaker.
+        audio:PlayUntilDone()
+
+        // Once we've set the direction of the listener, we can get back each
+        // of the values we've set it with using the GetListenerDirection actions.
+        // We can do this using any Audio object - it won't affect the result.
+        number y = audio:GetListenerDirectionY()
+        output "The direction of the listener on the y-axis is " + y
     */
     system action GetListenerDirectionY returns number
 
     /*
         This action will get the z-component of the direction that the listener
         is currently facing in.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // We load an audio object and set its position to 1 meter in front of the
+        // default listener position.
+        Audio audio
+        audio:Load("Chime.wav")
+        audio:SetPosition(0, 0, 1)
+
+        // Now we set the listener to face the right by calling SetListenerDirection.
+        // We can do this using any Audio object - it won't affect the result.
+        audio:SetListenerDirection(1, 0, 0)
+
+        // The audio is now located to the left of the listener's "ears", so when we
+        // play it, it should play through the left speaker.
+        audio:PlayUntilDone()
+
+        // Once we've set the direction of the listener, we can get back each
+        // of the values we've set it with using the GetListenerDirection actions.
+        // We can do this using any Audio object - it won't affect the result.
+        number z = audio:GetListenerDirectionZ()
+        output "The direction of the listener on the z-axis is " + z
     */
     system action GetListenerDirectionZ returns number
 
     /*
         This action will get the direction that the listener
         is currently facing in.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+        use Libraries.Compute.Vector3
+
+        // We load an audio object and set its position to 1 meter in front of the
+        // default listener position.
+        Audio audio
+        audio:Load("Chime.wav")
+        audio:SetPosition(0, 0, 1)
+
+        // Now we set the listener to face the right by calling SetListenerDirection.
+        // We can do this using any Audio object - it won't affect the result.
+        audio:SetListenerDirection(1, 0, 0)
+
+        // The audio is now located to the left of the listener's "ears", so when we
+        // play it, it should play through the left speaker.
+        audio:PlayUntilDone()
+
+        // Once we've set the direction of the listener, we can get back each
+        // of the values we've set it with using the GetListenerDirection actions.
+        // We can do this using any Audio object - it won't affect the result.
+        Vector3 direction = audio:GetListenerDirection()
+        output "The direction of the listener is " + direction:GetX() + ", " + direction:GetY() + ", " + direction:GetZ()
     */
     action GetListenerDirection returns Vector3
         Vector3 vector
@@ -1626,6 +1942,28 @@ class Audio
         that the listener is facing. This is used in combination with the
         listener direction to determine how audio should be played through the
         user's speakers or headphones.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // We load an audio object and set its position to 1 meter above the
+        // default listener position.
+        Audio audio
+        audio:Load("Chime.wav")
+        audio:SetPosition(0, 1, 0)
+
+        // The listener's default direction is straight forward, with the "up" direction
+        // being along the positive y-axis. For this example, we'll set the "up"
+        // direction to be along the negative x-axis. This effectively means the
+        // listener is lying on their left side, with their left ear pointed towards the
+        // ground and their right ear pointed up towards the sky.
+        // We can do this using any Audio object - it won't affect the result.
+        audio:SetListenerUp(-1, 0, 0)
+
+        // Although the sound is located above the listener, since the listener has
+        // their right ear pointed upwards, the audio will play through the right speaker.
+        audio:PlayUntilDone()
     */
     system action SetListenerUp(number x, number y, number z)
 
@@ -1635,6 +1973,31 @@ class Audio
         that the listener is facing. This is used in combination with the
         listener direction to determine how audio should be played through the
         user's speakers or headphones.
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+        use Libraries.Compute.Vector3
+
+        // We load an audio object and set its position to 1 meter above the
+        // default listener position.
+        Audio audio
+        audio:Load("Chime.wav")
+        audio:SetPosition(0, 1, 0)
+
+        // The listener's default direction is straight forward, with the "up" direction
+        // being along the positive y-axis. For this example, we'll set the "up"
+        // direction to be along the negative x-axis. This effectively means the
+        // listener is lying on their left side, with their left ear pointed towards the
+        // ground and their right ear pointed up towards the sky.
+        // We can do this using any Audio object - it won't affect the result.
+        Vector3 up
+        up:Set(-1, 0, 0)
+        audio:SetListenerUp(up)
+
+        // Although the sound is located above the listener, since the listener has
+        // their right ear pointed upwards, the audio will play through the right speaker.
+        audio:PlayUntilDone()
     */
     action SetListenerUp(Vector3 up)
         SetListenerUp(up:GetX(), up:GetY(), up:GetZ())
@@ -1643,24 +2006,137 @@ class Audio
     /*
         This action will get the x-component of the direction that the listener
         currently considers "up".
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // We load an audio object and set its position to 1 meter above the
+        // default listener position.
+        Audio audio
+        audio:Load("Chime.wav")
+        audio:SetPosition(0, 1, 0)
+
+        // The listener's default direction is straight forward, with the "up" direction
+        // being along the positive y-axis. For this example, we'll set the "up"
+        // direction to be along the negative x-axis. This effectively means the
+        // listener is lying on their left side, with their left ear pointed towards the
+        // ground and their right ear pointed up towards the sky.
+        // We can do this using any Audio object - it won't affect the result.
+        audio:SetListenerUp(-1, 0, 0)
+
+        // Although the sound is located above the listener, since the listener has
+        // their right ear pointed upwards, the audio will play through the right speaker.
+        audio:PlayUntilDone()
+
+        // We can retrieve the direction the listener considers to be "up" at
+        // any time by using the GetListenerUp actions. Just like setting the
+        // "up", it doesn't matter which Audio object is used to retrieve it.
+        number x = audio:GetListenerUpX()
+        output "The up direction of the audio along the x-axis is " + x
     */
     system action GetListenerUpX returns number
 
     /*
         This action will get the y-component of the direction that the listener
         currently considers "up".
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // We load an audio object and set its position to 1 meter above the
+        // default listener position.
+        Audio audio
+        audio:Load("Chime.wav")
+        audio:SetPosition(0, 1, 0)
+
+        // The listener's default direction is straight forward, with the "up" direction
+        // being along the positive y-axis. For this example, we'll set the "up"
+        // direction to be along the negative x-axis. This effectively means the
+        // listener is lying on their left side, with their left ear pointed towards the
+        // ground and their right ear pointed up towards the sky.
+        // We can do this using any Audio object - it won't affect the result.
+        audio:SetListenerUp(-1, 0, 0)
+
+        // Although the sound is located above the listener, since the listener has
+        // their right ear pointed upwards, the audio will play through the right speaker.
+        audio:PlayUntilDone()
+
+        // We can retrieve the direction the listener considers to be "up" at
+        // any time by using the GetListenerUp actions. Just like setting the
+        // "up", it doesn't matter which Audio object is used to retrieve it.
+        number y = audio:GetListenerUpY()
+        output "The up direction of the audio along the y-axis is " + y
     */
     system action GetListenerUpY returns number
 
     /*
         This action will get the z-component of the direction that the listener
         currently considers "up".
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+
+        // We load an audio object and set its position to 1 meter above the
+        // default listener position.
+        Audio audio
+        audio:Load("Chime.wav")
+        audio:SetPosition(0, 1, 0)
+
+        // The listener's default direction is straight forward, with the "up" direction
+        // being along the positive y-axis. For this example, we'll set the "up"
+        // direction to be along the negative x-axis. This effectively means the
+        // listener is lying on their left side, with their left ear pointed towards the
+        // ground and their right ear pointed up towards the sky.
+        // We can do this using any Audio object - it won't affect the result.
+        audio:SetListenerUp(-1, 0, 0)
+
+        // Although the sound is located above the listener, since the listener has
+        // their right ear pointed upwards, the audio will play through the right speaker.
+        audio:PlayUntilDone()
+
+        // We can retrieve the direction the listener considers to be "up" at
+        // any time by using the GetListenerUp actions. Just like setting the
+        // "up", it doesn't matter which Audio object is used to retrieve it.
+        number z = audio:GetListenerUpZ()
+        output "The up direction of the audio along the z-axis is " + z
     */
     system action GetListenerUpZ returns number
 
     /*
         This action will get the direction that the listener
         currently considers "up".
+
+        Attribute: Example
+
+        use Libraries.Sound.Audio
+        use Libraries.Compute.Vector3
+
+        // We load an audio object and set its position to 1 meter above the
+        // default listener position.
+        Audio audio
+        audio:Load("Chime.wav")
+        audio:SetPosition(0, 1, 0)
+
+        // The listener's default direction is straight forward, with the "up" direction
+        // being along the positive y-axis. For this example, we'll set the "up"
+        // direction to be along the negative x-axis. This effectively means the
+        // listener is lying on their left side, with their left ear pointed towards the
+        // ground and their right ear pointed up towards the sky.
+        // We can do this using any Audio object - it won't affect the result.
+        audio:SetListenerUp(-1, 0, 0)
+
+        // Although the sound is located above the listener, since the listener has
+        // their right ear pointed upwards, the audio will play through the right speaker.
+        audio:PlayUntilDone()
+
+        // We can retrieve the direction the listener considers to be "up" at
+        // any time by using the GetListenerUp actions. Just like setting the
+        // "up", it doesn't matter which Audio object is used to retrieve it.
+        Vector3 up = audio:GetListenerUp()
+        output "The up direction of the audio along the x-axis is " + up:GetX() + ", " + up:GetY() + ", " + up:GetZ()
     */
     action GetListenerUp returns Vector3
         Vector3 vector

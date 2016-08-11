@@ -3,13 +3,13 @@ package Libraries.Game.Graphics
 class ColorAttribute is Attribute
     public Color color
 
-    constant text DIFFUSE_ALIAS = "diffuseColor"
-    constant text SPECULAR_ALIAS = "specularColor"
-    constant text AMBIENT_ALIAS = "ambientColor"
-    constant text EMISSIVE_ALIAS = "emissiveColor"
-    constant text REFLECTION_ALIAS = "reflectionColor"
-    constant text AMBIENT_LIGHT_ALIAS = "ambientLightColor"
-    constant text FOG_ALIAS = "fogColor"
+    public constant text DIFFUSE_ALIAS = "diffuseColor"
+    public constant text SPECULAR_ALIAS = "specularColor"
+    public constant text AMBIENT_ALIAS = "ambientColor"
+    public constant text EMISSIVE_ALIAS = "emissiveColor"
+    public constant text REFLECTION_ALIAS = "reflectionColor"
+    public constant text AMBIENT_LIGHT_ALIAS = "ambientLightColor"
+    public constant text FOG_ALIAS = "fogColor"
 
     action CreateAmbient(Color setColor) returns ColorAttribute
         ColorAttribute attribute
