@@ -1,5 +1,7 @@
 package Libraries.Interface.Events
 
+use Libraries.Interface.Item
+
 /*
 The MouseEvent class represents an event where the user interacted with the
 mouse by clicking or releasing a mouse button, moving or dragging the mouse, or
@@ -61,10 +63,49 @@ class MouseEvent
     /* How far the mouse has moved on the y-coordinate system since the last event. */
     integer movementY = 0
 
+    /* 
+    A flag used by the Game engine to determine if an event has already been
+    sent to a listener. This is set to true just before sending the event to a
+    listener. If the value is reset to false inside the listener, the engine
+    will continue to send the event to other event listeners.
+    */
     boolean eventHandled = false
 
     /*
+    The Item which received, was the target of, or otherwise is relevant to the
+    mouse event which has occurred. In the Game engine, if an Item is clicked
+    directly, it will be stored here. If a MouseEvent is triggered with no such
+    Item available, this will be undefined.
+    */
+    Item source = undefined
+
+    /*
     This action returns the x coordinate of where the event was on the screen.
+
+    Attribute: Returns The x coordinate of where the event was on the screen.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Events.MouseListener
+
+    class Main is Game, MouseListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddMouseListener(me)
+        end
+
+        action ClickedMouse(MouseEvent event)
+            integer x = event:GetX()
+            integer y = event:GetY()
+            output "The mouse was clicked at " + x + ", " + y
+        end
+    end
     */
     action GetX returns integer
         return x
@@ -72,6 +113,31 @@ class MouseEvent
 
     /*
     This action returns the y coordinate of where the event was on the screen.
+
+    Attribute: Returns The y coordinate of where the event was on the screen.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Events.MouseListener
+
+    class Main is Game, MouseListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddMouseListener(me)
+        end
+
+        action ClickedMouse(MouseEvent event)
+            integer x = event:GetX()
+            integer y = event:GetY()
+            output "The mouse was clicked at " + x + ", " + y
+        end
+    end
     */
     action GetY returns integer
         return y
@@ -80,6 +146,47 @@ class MouseEvent
     /*
     This action returns how much the mouse has moved on the x-axis since the
     last movement event.
+
+    Attribute: Returns How much the mouse has moved on the x-axis since the last movement event.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Events.MouseListener
+    use Libraries.Interface.Events.MouseMovementListener
+
+    // To try this example, click anywhere on the screen, drag the mouse, and release.
+    class Main is Game, MouseListener, MouseMovementListener
+
+        // Variables used to store the sum of the mouse movement between mouse
+        // click and mouse release.
+        integer sumX = 0
+        integer sumY = 0
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddMouseListener(me)
+            AddMouseMovementListener(me)
+        end
+
+        action ClickedMouse(MouseEvent event)
+            sumX = 0
+            sumY = 0
+        end
+
+        action DraggedMouse(MouseEvent event)
+            sumX = sumX + event:GetMovementX()
+            sumY = sumY + event:GetMovementY()
+        end
+
+        action ReleasedMouse(MouseEvent event)
+            output "The total distance moved between mouse clicked and released was " + sumX + ", " + sumY
+        end
+    end
     */
     action GetMovementX returns integer
         return movementX
@@ -88,6 +195,47 @@ class MouseEvent
     /*
     This action returns how much the mouse has moved on the y-axis since the
     last movement event.
+
+    Attribute: Returns How much the mouse has moved on the y-axis since the last movement event.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Events.MouseListener
+    use Libraries.Interface.Events.MouseMovementListener
+
+    // To try this example, click anywhere on the screen, drag the mouse, and release.
+    class Main is Game, MouseListener, MouseMovementListener
+
+        // Variables used to store the sum of the mouse movement between mouse
+        // click and mouse release.
+        integer sumX = 0
+        integer sumY = 0
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddMouseListener(me)
+            AddMouseMovementListener(me)
+        end
+
+        action ClickedMouse(MouseEvent event)
+            sumX = 0
+            sumY = 0
+        end
+
+        action DraggedMouse(MouseEvent event)
+            sumX = sumX + event:GetMovementX()
+            sumY = sumY + event:GetMovementY()
+        end
+
+        action ReleasedMouse(MouseEvent event)
+            output "The total distance moved between mouse clicked and released was " + sumX + ", " + sumY
+        end
+    end
     */
     action GetMovementY returns integer
         return movementY
@@ -95,7 +243,40 @@ class MouseEvent
 
     /*
     This action sets whether this event should be considered handled by any 
-    event listeners.
+    event listeners. In the Game engine, this is set to true just before sending
+    the event to a listener. If the value is reset to false inside the listener,
+    the engine will continue to send the event to other event listeners.
+
+    Attribute: Parameter handled Whether or not this event should be considered handled.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Events.MouseListener
+
+    class Main is Game, MouseListener
+
+        integer totalClicks = 0
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddMouseListener(me)
+        end
+
+        action ClickedMouse(MouseEvent event)
+            totalClicks = totalClicks + 1
+            output "The mouse has been clicked " + totalClicks + " times."
+
+            // By setting the event handled flag to false, we tell the Game engine
+            // to keep sending the MouseEvent to any other MouseListeners we have.
+            // In this example, since it's our only MouseListener, it does nothing.
+            event:SetEventHandled(false)
+        end
+    end
     */
     action SetEventHandled(boolean handled)
         eventHandled = handled
@@ -103,9 +284,127 @@ class MouseEvent
 
     /*
     This action returns whether or not this event has already been handled.
+    In the Game engine, this is set to true just before sending the event to a
+    listener. If the value is reset to false inside the listener, the engine
+    will continue to send the event to other event listeners.
+
+    Attribute: Returns Whether or not this event has already been handled.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Events.MouseListener
+
+    class Main is Game, MouseListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddMouseListener(me)
+        end
+
+        action ClickedMouse(MouseEvent event)
+            // The event handled flag is set to true when the engine finds a mouse
+            // listener to send the event to, so this should always return true.
+            boolean handled = event:WasEventHandled()
+            output "After clicking the mouse, handled = " + handled
+        end
+    end
     */
     action WasEventHandled returns boolean
         return eventHandled
+    end
+
+    /*
+    This action sets the source item for this event, which is the the target of
+    mouse event which has occurred (or is otherwise relevant to it). In the Game
+    engine, if an Item is clicked directly, it will be stored here. If a 
+    MouseEvent is triggered with no such Item available, this will be undefined.
+
+    Attribute: Parameter item The source Item to be stored for this MouseEvent.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Events.MouseListener
+    use Libraries.Interface.Item2D
+
+    class Main is Game, MouseListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddMouseListener(me)
+        end
+
+        action ClickedMouse(MouseEvent event)
+            if event:GetSource() not= undefined
+                return now
+            end
+
+            Item2D newItem
+            event:SetSource(newItem)
+            event:SetEventHandled(false)
+        end
+    end
+
+    
+    */
+    action SetSource(Item item)
+        source = item
+    end
+
+    /*
+    This action returns the source item for this event, which is the the target of
+    mouse event which has occurred (or is otherwise relevant to it). In the Game
+    engine, if an Item is clicked directly, it will be stored here. If a 
+    MouseEvent is triggered with no such Item available, this will be undefined.
+
+    Attribute: Returns The source Item for this MouseEvent.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Events.MouseListener
+    use Libraries.Interface.Item
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game, MouseListener
+
+        Drawable square
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            square:LoadFilledRectangle(200, 200)
+            square:SetPosition(300, 200)
+            Add(square)
+
+            AddMouseListener(me)
+        end
+
+        action ClickedMouse(MouseEvent event)
+            Item source = event:GetSource()
+
+            if source = undefined
+                output "The background was clicked!"
+            elseif source:Equals(square)
+                output "The square was clicked!"
+            end
+        end
+    end
+    */
+    action GetSource returns Item
+        return source
     end
 
 end

@@ -11,6 +11,31 @@ class MouseListener
     /*
     This action is used to respond to a MouseEvent where a mouse button was
     clicked.
+
+    Attribute: Parameter event A MouseEvent describing the mouse click.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Events.MouseListener
+
+    class Main is Game, MouseListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddMouseListener(me)
+        end
+
+        action ClickedMouse(MouseEvent event)
+            integer x = event:GetX()
+            integer y = event:GetY()
+            output "The mouse was clicked at " + x + ", " + y
+        end
+    end
     */
     action ClickedMouse(MouseEvent event)
 
@@ -19,6 +44,31 @@ class MouseListener
     /*
     This action is used to respond to a MouseEvent where a mouse button was
     released.
+
+    Attribute: Parameter event A MouseEvent describing the mouse button being released.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Events.MouseListener
+
+    class Main is Game, MouseListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddMouseListener(me)
+        end
+
+        action ReleasedMouse(MouseEvent event)
+            integer x = event:GetX()
+            integer y = event:GetY()
+            output "The mouse was released at " + x + ", " + y
+        end
+    end
     */
     action ReleasedMouse(MouseEvent event)
 

@@ -201,7 +201,13 @@ class TextBox is Panel, KeyboardListener
                 postText = responseStr:GetSubtext(cursorIndex)
             end
 
-            responseStr = preText + ke:ToText(ke:keyCode, ShiftPressed) + postText
+            text midText = ke:ToText(ke:keyCode, ShiftPressed)
+
+            if midText:Contains("Numpad")
+                midText = midText:Replace("Numpad", "")
+            end
+
+            responseStr = preText + midText + postText
             textChanged = true
             cursorIndex = cursorIndex + 1
             cursorMoved = true

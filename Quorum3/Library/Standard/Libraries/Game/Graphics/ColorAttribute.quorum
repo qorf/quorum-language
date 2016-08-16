@@ -1,15 +1,83 @@
 package Libraries.Game.Graphics
 
+/*
+The ColorAttribute class represents a single visual property of a 3D object or
+scene which can be described as a color. 
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorAttribute
+use Libraries.Game.Graphics.Material
+use Libraries.Game.Graphics.AmbientLight
+use Libraries.Game.Graphics.PointLight
+use Libraries.Containers.Array
+
+class Main is Game
+
+    Model sphere
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        Color color
+        //Model sphere
+        sphere:LoadSphere(2, 2, 2, color:Purple())
+        Add(sphere)
+
+        AmbientLight ambient
+        ambient:SetColor(0.6, 0.6, 0.6, 1)
+        SetAmbientLight(ambient)
+        
+        PointLight light
+        light:SetColor(0.8, 0.8, 0.8, 1)
+        light:SetPosition(-3, 1, -3)
+        light:SetIntensity(15)
+        Add(light)
+
+        Model orbiter
+        orbiter:LoadSphere(1, 1, 1, color:Orange())
+        orbiter:SetPosition(-3, 0, 0)
+        sphere:Add(orbiter)
+
+        // When loading a primitive, the resulting Model will contain a single
+        // material in the array returned by GetMaterials().
+        Array<Material> materials = sphere:GetMaterials()
+        Material material = materials:Get(0)
+
+        Array<Material> orbiterMaterials = orbiter:GetMaterials()
+        Material orbiterMaterial = orbiterMaterials:Get(0)
+
+        // By adding a specular color attribute to each of these materials, the
+        // models will now reflect specular light.
+        ColorAttribute specular
+        specular:SetAttribute(specular:GetSpecularValue(), color:White())
+        material:Add(specular)
+        orbiterMaterial:Add(specular)
+    end
+
+    action Update(number seconds)
+        // Rotating the Models will help us see the added specular attribute at work.
+        sphere:Rotate(0, 1, 0, 30 * seconds)
+    end
+end
+*/
 class ColorAttribute is Attribute
     public Color color
 
-    constant text DIFFUSE_ALIAS = "diffuseColor"
-    constant text SPECULAR_ALIAS = "specularColor"
-    constant text AMBIENT_ALIAS = "ambientColor"
-    constant text EMISSIVE_ALIAS = "emissiveColor"
-    constant text REFLECTION_ALIAS = "reflectionColor"
-    constant text AMBIENT_LIGHT_ALIAS = "ambientLightColor"
-    constant text FOG_ALIAS = "fogColor"
+    public constant text DIFFUSE_ALIAS = "diffuseColor"
+    public constant text SPECULAR_ALIAS = "specularColor"
+    public constant text AMBIENT_ALIAS = "ambientColor"
+    public constant text EMISSIVE_ALIAS = "emissiveColor"
+    public constant text REFLECTION_ALIAS = "reflectionColor"
+    public constant text AMBIENT_LIGHT_ALIAS = "ambientLightColor"
+    public constant text FOG_ALIAS = "fogColor"
 
     action CreateAmbient(Color setColor) returns ColorAttribute
         ColorAttribute attribute
@@ -66,13 +134,122 @@ class ColorAttribute is Attribute
         attribute:SetAttribute(GetReflectionValue(), setColor)
         return attribute
     end
+    
+    /*
+    The CreateEmissive action will create a new ColorAttribute using the
+    Emissive value. This attribute can be added to the Material of a Model
+    to give the Model a "glow", as if emitting light.
 
+    Note that although the Game engine infrastructure will allow for use of this
+    type of Attribute, the rendering step does not currently support emissive
+    lighting.
+
+    Attribute: Parameter setColor The color to use for the emissive attribute.
+
+    Attribute: Returns A ColorAttribute set with the AmbientLight value.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.ColorAttribute
+    use Libraries.Game.Graphics.Material
+    use Libraries.Game.Graphics.AmbientLight
+    use Libraries.Game.Graphics.PointLight
+    use Libraries.Containers.Array
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+            Model box
+            box:LoadBox(2, 2, 2, color:Orange())
+            Add(box)
+
+            PointLight light
+            light:SetColor(0.8, 0.8, 0.8, 1)
+            light:SetPosition(-3, 2, -3)
+            light:SetIntensity(15)
+            Add(light)
+
+            // When loading a primitive, the resulting Model will contain a single
+            // material in the array returned by GetMaterials().
+            Array<Material> materials = box:GetMaterials()
+            Material material = materials:Get(0)
+
+            ColorAttribute attribute
+            ColorAttribute emissive = attribute:CreateEmissive(color:White())
+            material:Add(emissive)
+        end
+    end
+    */
     action CreateEmissive(Color setColor) returns ColorAttribute
         ColorAttribute attribute
         attribute:SetAttribute(GetEmissiveValue(), setColor)
         return attribute
     end
 
+    /*
+    The CreateEmissive action will create a new ColorAttribute using the
+    Emissive value. This attribute can be added to the Material of a Model
+    to give the Model a "glow", as if emitting light.
+
+    Note that although the Game engine infrastructure will allow for use of this
+    type of Attribute, the rendering step does not currently support emissive
+    lighting.
+
+    Attribute: Parameter red The red component of the color value to use for the emissive attribute.
+    Attribute: Parameter green The green component of the color value to use for emissive attribute.
+    Attribute: Parameter blue The blue component of the color value to use for emissive attribute.
+    Attribute: Parameter alpha The alpha component of the color value to use for emissive attribute.
+
+    Attribute: Returns A ColorAttribute set with the AmbientLight value.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.ColorAttribute
+    use Libraries.Game.Graphics.Material
+    use Libraries.Game.Graphics.AmbientLight
+    use Libraries.Game.Graphics.PointLight
+    use Libraries.Containers.Array
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+            Model box
+            box:LoadBox(2, 2, 2, color:Orange())
+            Add(box)
+
+            PointLight light
+            light:SetColor(0.8, 0.8, 0.8, 1)
+            light:SetPosition(-3, 2, -3)
+            light:SetIntensity(15)
+            Add(light)
+
+            // When loading a primitive, the resulting Model will contain a single
+            // material in the array returned by GetMaterials().
+            Array<Material> materials = box:GetMaterials()
+            Material material = materials:Get(0)
+
+            ColorAttribute attribute
+            ColorAttribute emissive = attribute:CreateEmissive(0.8, 0.8, 0.8, 1)
+            material:Add(emissive)
+        end
+    end
+    */
     action CreateEmissive(number red, number green, number blue, number alpha) returns ColorAttribute
         Color setColor
         setColor:SetColor(red, green, blue, alpha)
@@ -81,12 +258,123 @@ class ColorAttribute is Attribute
         return attribute
     end
 
+    /*
+    The CreateAmbientLight action will create a new ColorAttribute using the
+    AmbientLight value. This attribute can be added to an Environment to set the
+    ambient lighting for a scene, or added directly to the Material of a Model
+    to set the ambient lighting for just that Model.
+
+    Attribute: Parameter setColor The color value of the ambient lighting to use.
+
+    Attribute: Returns A ColorAttribute set with the AmbientLight value.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.ColorAttribute
+    use Libraries.Game.Graphics.Material
+    use Libraries.Game.Graphics.AmbientLight
+    use Libraries.Game.Graphics.PointLight
+    use Libraries.Containers.Array
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+            Model box
+            box:LoadBox(2, 2, 2, color:Orange())
+            Add(box)
+
+            PointLight light
+            light:SetColor(0.8, 0.8, 0.8, 1)
+            light:SetPosition(-3, 2, -3)
+            light:SetIntensity(15)
+            Add(light)
+
+            // When loading a primitive, the resulting Model will contain a single
+            // material in the array returned by GetMaterials().
+            Array<Material> materials = box:GetMaterials()
+            Material material = materials:Get(0)
+
+            // Adding an ambient light to the Model directly will make sure that,
+            // regardless of the light in the scene, the box always has at least as
+            // much color as the ambient light value. This will override the scene's
+            // normal ambient lighting for this object, if there is any.
+            ColorAttribute attribute
+            ColorAttribute ambientLight = attribute:CreateAmbientLight(color:Gray())
+            material:Add(ambientLight)
+        end
+    end
+    */
     action CreateAmbientLight(Color setColor) returns ColorAttribute
         ColorAttribute attribute
         attribute:SetAttribute(GetAmbientLightValue(), setColor)
         return attribute
     end
 
+    /*
+    The CreateAmbientLight action will create a new ColorAttribute using the
+    AmbientLight value. This attribute can be added to an Environment to set the
+    ambient lighting for a scene, or added directly to the Material of a Model
+    to set the ambient lighting for just that Model.
+
+    Attribute: Parameter red The red component of the color to use for ambient lighting.
+    Attribute: Parameter green The green component of the color to use for ambient lighting.
+    Attribute: Parameter blue The blue component of the color to use for ambient lighting.
+    Attribute: Parameter alpha The alpha component of the color to use for ambient lighting.
+
+    Attribute: Returns A ColorAttribute set with the AmbientLight value.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.ColorAttribute
+    use Libraries.Game.Graphics.Material
+    use Libraries.Game.Graphics.AmbientLight
+    use Libraries.Game.Graphics.PointLight
+    use Libraries.Containers.Array
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+            Model box
+            box:LoadBox(2, 2, 2, color:Orange())
+            Add(box)
+
+            PointLight light
+            light:SetColor(0.8, 0.8, 0.8, 1)
+            light:SetPosition(-3, 2, -3)
+            light:SetIntensity(15)
+            Add(light)
+
+            // When loading a primitive, the resulting Model will contain a single
+            // material in the array returned by GetMaterials().
+            Array<Material> materials = box:GetMaterials()
+            Material material = materials:Get(0)
+
+            // Adding an ambient light to the Model directly will make sure that,
+            // regardless of the light in the scene, the box always has at least as
+            // much color as the ambient light value. This will override the scene's
+            // normal ambient lighting for this object, if there is any.
+            ColorAttribute attribute
+            ColorAttribute ambientLight = attribute:CreateAmbientLight(0.5, 0.5, 0.5, 1)
+            material:Add(ambientLight)
+        end
+    end
+    */
     action CreateAmbientLight(number red, number green, number blue, number alpha) returns ColorAttribute
         Color setColor
         setColor:SetColor(red, green, blue, alpha)

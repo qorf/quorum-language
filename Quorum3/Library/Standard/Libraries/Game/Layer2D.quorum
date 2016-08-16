@@ -914,6 +914,7 @@ class Layer2D is Layer
             temp = items:Get(counter):GetItemAt(pointVector:GetX(), pointVector:GetY())
 
             if temp not= undefined
+                event:SetSource(temp)
                 temp:ProcessMouseEvent(event)
                 processing = not event:WasEventHandled()
             end

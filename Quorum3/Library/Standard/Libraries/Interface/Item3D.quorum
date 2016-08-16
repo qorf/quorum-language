@@ -1265,88 +1265,8 @@ class Item3D is Item
     action Rotate(Vector3 vector, number degrees, boolean rotateChildren)
         transform:Rotate(vector:GetX(), vector:GetY(), -vector:GetZ(), degrees)
 
-        if rotateChildren and not children:IsEmpty()
-
-            integer counter = 0
-            number radians = math:DegreesToRadians(degrees)
-            number cos = math:Cosine(radians)
-            number sin = math:Sine(radians)
-            Item3D child = undefined
-
-            Vector3 globalOffset = GetGlobalPosition()
-            Vector3 rotation
-            Vector3 temp
-            Vector3 vector3
-            vector3:Set(vector)
-            vector3:Scale(-1, -1, -1)
-            vector3:Normalize()
-
-            Array<Item3D> allChildren
-            GetAllChildren(allChildren)
-
-            /*
-            We store the offsets we'll be using before manipulating anything.
-            This ensures we use the original data, and there's no risk of using
-            data that's been modified on the fly (e.g., updating a parent item
-            will affect the position of the child item).
-            */
-            Array<Vector3> localOffsets
-            repeat allChildren:GetSize() times
-                Vector3 newLocalOffset = allChildren:Get(counter):GetGlobalPosition()
-                localOffsets:Add(newLocalOffset)
-                counter = counter + 1
-            end
-
-            counter = 0
-
-            /*
-            Set the children's offset using Rodrigues' Rotation Formula.
-            */
-            repeat allChildren:GetSize() times
-                child = allChildren:Get(counter)
-                //Vector3 localOffset = child:GetGlobalPosition()
-                Vector3 localOffset = localOffsets:Get(counter)
-                localOffset:Subtract(globalOffset)
-                
-                temp:Set(vector3):CrossProduct(localOffset):Scale(sin)
-                rotation = localOffset:Scale(cos)
-                rotation:Add(temp)
-                temp:Set(vector3)
-                temp:Scale((1 - cos) * temp:DotProduct(localOffset))
-                rotation:Add(temp)
-                
-                rotation:Add(globalOffset):Subtract(child:GetPosition())
-
-                child:SetOffset(rotation)
-                child:Rotate(vector, degrees, false)
-
-                counter = counter + 1
-            end
-        end
-    end
-
-    /*
-    A private action used to gather up the entire children hierarchy into a
-    single array for easy iteration.
-    */
-    private action GetAllChildren(Array<Item3D> items)
-        Array<Item3D> unprocessedItems
-
-        integer counter = 0
-        repeat children:GetSize() times
-            unprocessedItems:Add(children:Get(counter))
-            counter = counter + 1
-        end
-
-        repeat while not unprocessedItems:IsEmpty()
-            Item3D temp = unprocessedItems:RemoveFromFront()
-            counter = 0
-            repeat while counter < temp:GetItemCount()
-                unprocessedItems:Add(temp:GetItem(counter))
-                counter = counter + 1
-            end
-            
-            items:Add(temp)
+        if rotateChildren
+            RotateChildren(vector, degrees)
         end
     end
 
@@ -1423,6 +1343,383 @@ class Item3D is Item
         Vector3 vector
         vector:Set(rotateX, rotateY, rotateZ)
         Rotate(vector, degrees, rotateChildren)
+    end
+
+    /*
+    This action will rotate all of the children of this Item3D clockwise about 
+    an axis passing through this item. The direction of the axis is represented 
+    by the given Vector3, and the children will be rotated by the given number
+    of degrees. 
+
+    Attribute: Parameter vector The axis or ray to rotate around.
+    Attribute: Parameter degrees How many degrees to rotate (clockwise).
+
+    Attribute: Example
+
+    use Libraries.Interface.Item3D
+    use Libraries.Compute.Vector3
+    Item3D parentItem
+    Item3D child1
+    Item3D child2
+
+    parentItem:Add(child1)
+    parentItem:Add(child2)
+
+    Vector3 axis
+
+    // This will rotate the item's children 90 degrees clockwise around a ray passing 
+    // through the item's center and pointing to the right.
+    axis:Set(1, 0, 0)
+    myItem:RotateChildren(axis, 90)
+
+    // This will rotate the item's children 45 degrees clockwise around a ray passing 
+    // through the item's center and pointing straight down.
+    axis:Set(0, -1, 0)
+    myItem:RotateChildren(axis, 45)
+
+    // This will rotate the item's children 60 degrees counter-clockwise around a ray  
+    // passing through the item's center and pointing to the right.
+    axis:Set(1, 0, 0)
+    myItem:RotateChildren(axis, -60)
+
+    // When setting the ray with multiple non-zero values, each value is
+    // relative to each other. Since this vector is set with a larger x
+    // value than y value, this ray points mostly left and a little upwards.
+    axis:Set(3, 1, 0)
+    myItem:Rotate(axis, 45)
+
+    // Because the values are relative to each other, this code has the same
+    // effect as the last Rotate call we used (because the x value is still
+    // 3 times larger than the y value).
+    axis:Set(9, 3, 0)
+    myItem:RotateChildren(axis, 45)
+
+    */
+    action RotateChildren(Vector3 vector, number degrees)
+        if not children:IsEmpty()
+
+//            integer counter = 0
+//            number radians = math:DegreesToRadians(degrees)
+//            number cos = math:Cosine(radians)
+//            number sin = math:Sine(radians)
+//            Item3D child = undefined
+
+            Vector3 globalOffset = GetGlobalPosition()
+//            Vector3 rotation
+//            Vector3 temp
+//            Vector3 vector3
+//            vector3:Set(vector)
+//            vector3:Scale(-1, -1, -1)
+//            vector3:Normalize()
+
+            Array<Item3D> allChildren
+            GetAllChildren(allChildren)
+
+            RotateItemArray(allChildren, globalOffset, vector, degrees)
+
+            /*
+            We store the offsets we'll be using before manipulating anything.
+            This ensures we use the original data, and there's no risk of using
+            data that's been modified on the fly (e.g., updating a parent item
+            will affect the position of the child item).
+            */
+//            Array<Vector3> localOffsets
+//            repeat allChildren:GetSize() times
+//                Vector3 newLocalOffset = allChildren:Get(counter):GetGlobalPosition()
+//                localOffsets:Add(newLocalOffset)
+//                counter = counter + 1
+//            end
+//
+//            counter = 0
+//
+//            /*
+//            Set the children's offset using Rodrigues' Rotation Formula.
+//            */
+//            repeat allChildren:GetSize() times
+//                child = allChildren:Get(counter)
+//                //Vector3 localOffset = child:GetGlobalPosition()
+//                Vector3 localOffset = localOffsets:Get(counter)
+//                localOffset:Subtract(globalOffset)
+//                
+//                temp:Set(vector3):CrossProduct(localOffset):Scale(sin)
+//                rotation = localOffset:Scale(cos)
+//                rotation:Add(temp)
+//                temp:Set(vector3)
+//                temp:Scale((1 - cos) * temp:DotProduct(localOffset))
+//                rotation:Add(temp)
+//                
+//                rotation:Add(globalOffset):Subtract(child:GetPosition())
+//
+//                child:SetOffset(rotation)
+//                child:Rotate(vector, degrees, false)
+//
+//                counter = counter + 1
+//            end
+        end
+    end
+
+    /*
+    This action will rotate all of the children of this Item3D clockwise about 
+    an axis passing through this item. The direction of the axis is represented 
+    by the given Vector3, and the children will be rotated by the given number
+    of degrees. 
+
+    Attribute: Parameter rotateX The x component of the ray to rotate around.
+    Attribute: Parameter rotateY The y component of the ray to rotate around.
+    Attribute: Parameter rotateZ The z component of the ray to rotate around.
+    Attribute: Parameter degrees How many degrees to rotate (clockwise).
+
+    Attribute: Example
+
+    use Libraries.Interface.Item3D
+    Item3D parentItem
+    Item3D child1
+    Item3D child2
+
+    parentItem:Add(child1)
+    parentItem:Add(child2)
+
+    Vector3 axis
+
+    // This will rotate the item's children 90 degrees clockwise around a ray passing 
+    // through the item's center and pointing to the right.
+    myItem:RotateChildren(1, 0, 0, 90)
+
+    // This will rotate the item's children 45 degrees clockwise around a ray passing 
+    // through the item's center and pointing straight down.
+    myItem:RotateChildren(0, -1, 0, 45)
+
+    // This will rotate the item's children 60 degrees counter-clockwise around a ray  
+    // passing through the item's center and pointing to the right.
+    myItem:RotateChildren(1, 0, 0, -60)
+
+    // When setting the ray with multiple non-zero values, each value is
+    // relative to each other. Since this vector is set with a larger x
+    // value than y value, this ray points mostly left and a little upwards.
+    myItem:Rotate(3, 1, 0, 45)
+
+    // Because the values are relative to each other, this code has the same
+    // effect as the last Rotate call we used (because the x value is still
+    // 3 times larger than the y value).
+    myItem:RotateChildren(9, 3, 0, 45)
+
+    */
+    action RotateChildren(number rotateX, number rotateY, number rotateZ, number degrees)
+        Vector3 axis
+        axis:Set(rotateX, rotateY, rotateZ)
+        RotateChildren(axis, degrees)
+    end
+
+    /*
+    This action will rotate this Item3D clockwise about an axis passing through
+    the given point. The direction of the axis is represented by the given
+    Vector3 object. The children of this Item3D will also be rotated.
+
+    Attribute: Parameter point The point in space to rotate around.
+    Attribute: Parameter axis The axis that determines the direction to rotate in.
+    Attribute: Parameter degrees How many degrees to rotate (clockwise) around the axis.
+
+    Attribute: Example
+
+    use Libraries.Interface.Item3D
+    use Libraries.Compute.Vector3
+    Item3D parentItem
+    Item3D child1
+    Item3D child2
+
+    parentItem:Add(child1)
+    parentItem:Add(child2)
+
+    // We will rotate about the point 0, 0, 0 for this example.
+    Vector3 point
+    point:Set(0, 0, 0)
+
+    Vector3 axis
+
+    // This will rotate the item and its children 90 degrees clockwise around a ray passing 
+    // through the given point and pointing to the right.
+    axis:Set(1, 0, 0)
+    myItem:RotateAround(point, axis, 90)
+
+    // This will rotate the item and its children 45 degrees clockwise around a ray passing 
+    // through the given point and pointing straight down.
+    axis:Set(0, -1, 0, 45)
+    myItem:RotateAround(point, axis, 45)
+
+    // This will rotate the item and its children 60 degrees counter-clockwise around a ray  
+    // passing through the given point and pointing to the right.
+    axis:Set(1, 0, 0)
+    myItem:RotateAround(point, axis, -60)
+
+    // When setting the ray with multiple non-zero values, each value is
+    // relative to each other. Since this vector is set with a larger x
+    // value than y value, this ray points mostly left and a little upwards.
+    axis:Set(3, 1, 0)
+    myItem:RotateAround(point, axis, 45)
+
+    // Because the values are relative to each other, this code has the same
+    // effect as the last Rotate call we used (because the x value is still
+    // 3 times larger than the y value).
+    axis:Set(9, 3, 0)
+    myItem:RotateAround(point, axis, 45)
+
+    */
+    action RotateAround(Vector3 point, Vector3 axis, number degrees)
+        RotateAround(point, axis, degrees, true)
+    end
+
+    /*
+    This action will rotate this Item3D clockwise about an axis passing through
+    the given point. The direction of the axis is represented by the given
+    Vector3 object. The last parameter is a boolean that determines whether or
+    not children should also be rotated - a value of true will rotate the
+    children, a value of false will not. Note that the children will still 
+    maintain relative position to this item, regardless of the boolean passed.
+
+    Attribute: Parameter point The point in space to rotate around.
+    Attribute: Parameter axis The axis that determines the direction to rotate in.
+    Attribute: Parameter degrees How many degrees to rotate (clockwise) around the axis.
+    Attribute: Parameter rotateChildren Whether or not to also rotate this item's children.
+
+    Attribute: Example
+
+    use Libraries.Interface.Item3D
+    use Libraries.Compute.Vector3
+    Item3D parentItem
+    Item3D child1
+    Item3D child2
+
+    parentItem:Add(child1)
+    parentItem:Add(child2)
+
+    // We will rotate about the point 0, 0, 0 for this example.
+    Vector3 point
+    point:Set(0, 0, 0)
+
+    Vector3 axis
+
+    // This will rotate the item and its children 90 degrees clockwise around a ray passing 
+    // through the given point and pointing to the right.
+    axis:Set(1, 0, 0)
+    myItem:RotateAround(point, axis, 90, true)
+
+    // This will rotate the item and its children 45 degrees clockwise around a ray passing 
+    // through the given point and pointing straight down.
+    axis:Set(0, -1, 0, 45)
+    myItem:RotateAround(point, axis, 45, true)
+
+    // This will rotate the item (but not its children) 60 degrees counter-clockwise around a ray  
+    // passing through the given point and pointing to the right.
+    axis:Set(1, 0, 0)
+    myItem:RotateAround(point, axis, -60, false)
+
+    // When setting the ray with multiple non-zero values, each value is
+    // relative to each other. Since this vector is set with a larger x
+    // value than y value, this ray points mostly left and a little upwards.
+    axis:Set(3, 1, 0)
+    myItem:RotateAround(point, axis, 45, true)
+
+    // Because the values are relative to each other, this code has the same
+    // effect as the last Rotate call we used (because the x value is still
+    // 3 times larger than the y value).
+    axis:Set(9, 3, 0)
+    myItem:RotateAround(point, axis, 45, true)
+
+    */
+    action RotateAround(Vector3 point, Vector3 axis, number degrees, boolean rotateChildren)
+        Array<Item3D> array
+        array:Add(me)
+
+        if rotateChildren and not children:IsEmpty()
+            GetAllChildren(array)
+        end
+
+        RotateItemArray(array, point, axis, degrees)
+    end
+
+    /*
+    A private action used to gather up the entire children hierarchy into a
+    single array for easy iteration.
+    */
+    private action GetAllChildren(Array<Item3D> items)
+        Array<Item3D> unprocessedItems
+
+        integer counter = 0
+        repeat children:GetSize() times
+            unprocessedItems:Add(children:Get(counter))
+            counter = counter + 1
+        end
+
+        repeat while not unprocessedItems:IsEmpty()
+            Item3D temp = unprocessedItems:RemoveFromFront()
+            counter = 0
+            repeat while counter < temp:GetItemCount()
+                unprocessedItems:Add(temp:GetItem(counter))
+                counter = counter + 1
+            end
+            
+            items:Add(temp)
+        end
+    end
+
+    /*
+    This action is used to rotate items around a point. It is used by the
+    Rotate, RotateChildren, and RotateAround actions.
+    */
+    private action RotateItemArray(Array<Item3D> array, Vector3 point, Vector3 axis, number degrees)
+
+        integer counter = 0
+        number radians = math:DegreesToRadians(degrees)
+        number cos = math:Cosine(radians)
+        number sin = math:Sine(radians)
+        Item3D child = undefined
+
+        Vector3 rotation
+        Vector3 temp
+        Vector3 vector3
+        vector3:Set(axis)
+        vector3:Scale(-1, -1, -1)
+        vector3:Normalize()
+
+        /*
+        We store the offsets we'll be using before manipulating anything.
+        This ensures we use the original data, and there's no risk of using
+        data that's been modified on the fly (e.g., updating a parent item
+        will affect the position of the child item).
+        */
+        Array<Vector3> localOffsets
+        repeat array:GetSize() times
+            Vector3 newLocalOffset = array:Get(counter):GetGlobalPosition()
+            localOffsets:Add(newLocalOffset)
+            counter = counter + 1
+        end
+
+        counter = 0
+
+        /*
+        Set each item's offset using Rodrigues' Rotation Formula.
+        */
+        repeat array:GetSize() times
+            child = array:Get(counter)
+            //Vector3 localOffset = child:GetGlobalPosition()
+            Vector3 localOffset = localOffsets:Get(counter)
+            localOffset:Subtract(point)
+
+            temp:Set(vector3):CrossProduct(localOffset):Scale(sin)
+            rotation = localOffset:Scale(cos)
+            rotation:Add(temp)
+            temp:Set(vector3)
+            temp:Scale((1 - cos) * temp:DotProduct(localOffset))
+            rotation:Add(temp)
+
+            rotation:Add(point):Subtract(child:GetPosition())
+
+            child:SetOffset(rotation)
+            child:Rotate(axis, degrees, false)
+
+            counter = counter + 1
+        end
+
     end
 
     /*

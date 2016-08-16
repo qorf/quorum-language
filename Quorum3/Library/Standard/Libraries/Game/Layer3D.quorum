@@ -924,6 +924,7 @@ class Layer3D is Layer
             eventTargetArray:Sort()
             counter = 0
             repeat while processing and counter < eventTargetArray:GetSize()
+                event:SetSource(eventTargetArray:Get(counter):GetValue())
                 eventTargetArray:Get(counter):GetValue():ProcessMouseEvent(event)
                 processing = not event:WasEventHandled()
                 counter = counter + 1
