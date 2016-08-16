@@ -16,7 +16,19 @@ function plugins_quorum_Libraries_Language_Object_(optional) {
 }
 
 function global_number_converter_(value) {
-    return value % 1 == 0 ? value.toFixed(1) : value;
+    var result = value % 1 == 0 ? value.toFixed(1) : value;
+    result = result + "";
+    result = result.replace("e+", "E");
+    result = result.replace("e-", "E-");
+    return result;
+}
+
+function global_truncate_(value) {
+    if(value > 0) {
+        return Math.floor(value);
+    } else {
+        return Math.ceil(value);
+    }
 }
 
 function global_InstanceOf(variable, name) {

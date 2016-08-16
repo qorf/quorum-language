@@ -92,7 +92,7 @@ class BinaryOpcode is QuorumOpcode
 
         //we have to take the floor, because JavaScript doesn't have integers
         if leftType:IsInteger() and rightType:IsInteger() and current = op:DIVIDE
-            result = result + "Math.floor(" + leftResult + " " + operator + " " + rightResult + ")"
+            result = result + "global_truncate_(" + leftResult + " " + operator + " " + rightResult + ")"
         else
             result = result + "(" + leftResult + " " + operator + " " + rightResult + ")"
         end

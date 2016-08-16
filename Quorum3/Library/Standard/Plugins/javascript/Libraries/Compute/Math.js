@@ -44,7 +44,7 @@ function plugins_quorum_Libraries_Compute_Math_() {
     };
 
     this.InverseTangent$quorum_number$quorum_number = function (x, y) {
-        return Math.atan(x, y);
+        return Math.atan2(y, x);
     };
 
     this.InverseHyperbolicSine$quorum_number = function (value) {
