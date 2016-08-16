@@ -10,47 +10,47 @@ function plugins_quorum_Libraries_Language_Types_Number_(optional) {
     };
     //system action GetMaximumValue returns number
     this.GetMaximumValue = function () {
-        return number.GetMaximumValue$NumberPrimitive();
+        return this.number.GetMaximumValue$NumberPrimitive();
     };
     //system action GetMinimumValue returns number
     this.GetMinimumValue = function () {
-        return number.GetMinimumValue$NumberPrimitive();
+        return this.number.GetMinimumValue$NumberPrimitive();
     };
     //system action GetMinimumPositiveValue returns number
     this.GetMinimumPositiveValue = function () {
-        return number.GetMinimumPositiveValue$NumberPrimitive();
+        return this.number.GetMinimumPositiveValue$NumberPrimitive();
     };
     //system action GetPositiveInfinityValue returns number
     this.GetPositiveInfinityValue = function () {
-        return number.GetPositiveInfinityValue$NumberPrimitive();
+        return this.number.GetPositiveInfinityValue$NumberPrimitive();
     };
     //system action GetNumberOfBits returns integer
     this.GetNumberOfBits = function () {
-        return number.GetNumberOfBits$NumberPrimitive();
+        return this.number.GetNumberOfBits$NumberPrimitive();
     };
     //system action GetNegativeInfinityValue returns number
     this.GetNegativeInfinityValue = function () {
-        return number.GetNegativeInfinityValue$NumberPrimitive();
+        return this.number.GetNegativeInfinityValue$NumberPrimitive();
     };
     //system action GetNotANumberValue returns number
     this.GetNotANumberValue = function () {
-        return number.GetNotANumberValue$NumberPrimitive();
+        return this.number.GetNotANumberValue$NumberPrimitive();
     };
     //system action IsInfinite() returns boolean
     this.IsInfinite = function () {
-        return number.IsInfinite$NumberPrimitive();
+        return this.number.IsInfinite$NumberPrimitive();
     };
     //system action IsNotANumber() returns boolean
     this.IsNotANumber = function () {
-        return number.IsNotANumber$NumberPrimitive();
+        return this.number.IsNotANumber$NumberPrimitive();
     };
     //system action GetHex() returns text
     this.GetHex = function () {
-        return number.GetHex$NumberPrimitive();
+        return this.number.GetHex$NumberPrimitive();
     };
     //system action GetHashCode() returns integer
     this.GetHashCode = function () {
-        return number.GetHashCode$NumberPrimitive();
+        return this.number.GetHashCode$NumberPrimitive();
     };
 }
 

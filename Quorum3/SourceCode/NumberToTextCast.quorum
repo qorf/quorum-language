@@ -23,7 +23,7 @@ class NumberToTextCast is ExplicitCastOpcode
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
             text temp = opcodeToCast:WriteJavaScript()
-            result = result + "(" + temp  + " % 1 == 0? "+temp + ".toFixed(1) : " + temp + ") + " + DQ + DQ
+            result = result + "((" + temp  + " % 1 == 0? "+temp + ".toFixed(1) : " + temp + ") + " + DQ + DQ + ").replace(/e\+/g, " + DQ + "E" + DQ + ") + " + DQ + DQ
         end
         return result
     end
