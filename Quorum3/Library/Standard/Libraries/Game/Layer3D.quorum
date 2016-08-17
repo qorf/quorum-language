@@ -23,6 +23,10 @@ use Libraries.Compute.Ray
 use Libraries.Compute.Vector3
 use Libraries.Compute.Matrix4
 use Libraries.Containers.Support.SortableContainer
+use Libraries.Game.Collision.CollisionManager3D
+use Libraries.Interface.Events.CollisionListener3D
+use Libraries.Game.Collision.ContactEdge3D
+use Libraries.Interface.Events.CollisionEvent3D
 
 /*
 The Layer3D class is used to manage a number of 3D objects, as well as manage
@@ -75,6 +79,10 @@ class Layer3D is Layer
     Camera camera = undefined
     Painter3D painter
     Environment environment
+
+    boolean newItemAdded = false
+
+    CollisionManager3D collisionManager
 
     /*
     This array is used when adding or removing Items to the game to find any
@@ -151,6 +159,7 @@ class Layer3D is Layer
         item:SetLayer(me)
         items:Add(item)
         EnableItemLighting(item)
+        newItemAdded = true
     end
 
     /*
@@ -200,6 +209,7 @@ class Layer3D is Layer
     action Add(integer index, Item3D item)
         item:SetLayer(me)
         items:Add(index, item)
+        newItemAdded = true
     end
 
     /*
@@ -250,6 +260,7 @@ class Layer3D is Layer
     action AddToFront(Item3D item)
         item:SetLayer(me)
         items:AddToFront(item)
+        newItemAdded = true
     end
 
     /*
@@ -289,7 +300,17 @@ class Layer3D is Layer
     action Empty
         Iterator<Item3D> it = items:GetIterator()
         repeat while it:HasNext()
-            it:Next():SetLayer(undefined)
+            Item3D body = it:Next()
+            ContactEdge3D edge = body:contactList
+            repeat while edge not= undefined
+                ContactEdge3D edge0 = edge
+                edge = edge:GetNext()
+                collisionManager:Destroy(edge0:GetCollision())
+            end
+            body:contactList = undefined
+
+            body:DestroyNodes(collisionManager:GetBroadphase())
+            body:SetLayer(undefined)
         end
         items:Empty()
     end
@@ -333,6 +354,16 @@ class Layer3D is Layer
     end
     */
     action Remove(Item3D item)
+        ContactEdge3D edge = item:contactList
+        repeat while edge not= undefined
+            ContactEdge3D edge0 = edge
+            edge = edge:GetNext()
+            collisionManager:Destroy(edge0:GetCollision())
+        end
+        item:contactList = undefined
+
+        item:DestroyNodes(collisionManager:GetBroadphase())
+
         item:SetLayer(undefined)
         items:Remove(item)
         DisableItemLighting(item)
@@ -379,6 +410,17 @@ class Layer3D is Layer
     */
     action RemoveAt(integer index) returns Item3D
         Item3D item = items:RemoveAt(index)
+
+        ContactEdge3D edge = item:contactList
+        repeat while edge not= undefined
+            ContactEdge3D edge0 = edge
+            edge = edge:GetNext()
+            collisionManager:Destroy(edge0:GetCollision())
+        end
+        item:contactList = undefined
+
+        item:DestroyNodes(collisionManager:GetBroadphase())
+
         item:SetLayer(undefined)
         return item
     end 
@@ -423,9 +465,75 @@ class Layer3D is Layer
     */
     action RemoveFromFront returns Item3D
         Item3D item = items:RemoveFromFront()
+
+        ContactEdge3D edge = item:contactList
+        repeat while edge not= undefined
+            ContactEdge3D edge0 = edge
+            edge = edge:GetNext()
+            collisionManager:Destroy(edge0:GetCollision())
+        end
+        item:contactList = undefined
+
+        item:DestroyNodes(collisionManager:GetBroadphase())
+
         item:SetLayer(undefined)
         return item
     end
+
+   /*
+    This action will remove an Item3D from the end of the array of items in
+    this layer, and return the item that was removed.
+
+    Attribute: Returns The item that was removed from the end of the layer's item array.
+    
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer3D
+    use Libraries.Interface.Item3D
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+            Model cylinder
+            cylinder:LoadCylinder(2, 4, 2, color:Pink())
+            cylinder:SetPosition(0, 0, 2)
+
+            Layer3D layer
+            layer:Add(cylinder)
+            AddLayer(layer)
+
+            Item3D item = layer:RemoveFromEnd()
+        end
+
+        action Update(number seconds)
+        end
+    end
+    */
+    action RemoveFromEnd returns Item3D
+        Item3D item = items:RemoveFromEnd()
+
+        ContactEdge3D edge = item:contactList
+        repeat while edge not= undefined
+            ContactEdge3D edge0 = edge
+            edge = edge:GetNext()
+            collisionManager:Destroy(edge0:GetCollision())
+        end
+        item:contactList = undefined
+
+        item:DestroyNodes(collisionManager:GetBroadphase())
+
+        item:SetLayer(undefined)
+        return item
+    end
+
     /*
     This action will get an Item3D stored in the layer at the given index in the
     layer's internal array of items.
@@ -734,6 +842,7 @@ class Layer3D is Layer
         */
         if item not= undefined
             item:SetLayer(me)
+            newItemAdded = true
             EnableItemLighting(item)
         end
     end
@@ -2069,5 +2178,73 @@ class Layer3D is Layer
         end
 
         return plAttribute:lights:Get(index)
+    end
+
+    /*
+    AddCollisionListener will add a collision listener to this layer. The
+    collision listener will be notified of collisions occuring on this layer, 
+    and is responsible for managing the collision events.
+    */
+    action AddCollisionListener(CollisionListener3D listener)
+        collisionManager:AddCollisionListener(listener)
+    end
+
+    /*
+    RemoveCollisionListener removes a collision listener to this layer. The
+    collision listener will no longer be notified of collision events occurring
+    on this layer. If the given listener is not a part of this layer, then this
+    action will have no effect.
+    */
+    action RemoveCollisionListener(CollisionListener3D listener)
+        collisionManager:RemoveCollisionListener(listener)
+    end
+    /*
+    This action gets the list of items on this layer that are colliding and
+    returns it as an array.
+    */
+    action GetCollisionList returns CollisionEvent3D
+        return collisionManager:GetCollisionList()
+    end
+
+    /*
+    This action gets the collision manager for this object which is responsible
+    for managing the collisions between all colliding items on this layer.
+    */
+    action GetCollisionManager returns CollisionManager3D
+        return collisionManager
+    end
+
+    /*
+    This action triggers collision detection for this layer during a frame in
+    the Game engine. This action will automatically be called by the Game class
+    as necessary. Most users should never need to use this action directly.
+    */
+    action TestForCollisions
+        if newItemAdded
+            collisionManager:FindNewCollisions()
+            newItemAdded = false
+        end
+
+        collisionManager:Collide()
+
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item3D item = items:Get(i)
+            item:SynchronizeNodes()
+
+            i = i + 1
+        end
+
+        collisionManager:FindNewCollisions()
+    end
+
+    /*
+    This action indicates that the layer has received a new item that it must
+    manage during collision detection. This is automatically called by the Game
+    engine as necessary, and most users should never need to use this action
+    directly.
+    */
+    action SetNewItemAdded(boolean flag)
+        newItemAdded = flag
     end
 end

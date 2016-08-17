@@ -17,6 +17,14 @@ use Libraries.Game.Graphics.Painter3D
 use Libraries.Game.Graphics.Light
 use Libraries.Game.Graphics.PointLight
 use Libraries.Game.Layer3D
+use Libraries.Game.Collision.Shapes.all
+use Libraries.Game.Collision.Item3DNode
+use Libraries.Game.Collision.BroadphaseCollision3D
+use Libraries.Game.Collision.ContactEdge3D
+use Libraries.Game.BoundingBox
+use Libraries.Game.Collision.Transform3D
+use Libraries.Compute.Quaternion
+use Libraries.Compute.Matrix3
 
 /*
     The Item3D class represents any object that has a position in 3D space.
@@ -51,8 +59,25 @@ class Item3D is Item
     Math math
     Layer3D layer = undefined
 
+    boolean collidable = false
+
+    Transform3D collisionTransform
+    Transform3D collisionTransform0
+
+    CollisionShape3D shape = undefined
+    Array<Item3DNode> nodes
+    integer nodeCount = 0
+
+    public ContactEdge3D contactList = undefined
+
     private Item3D parentItem = undefined
     private Array<Item3D> children
+
+    private boolean widthSet = false
+    private boolean heightSet = false
+    private boolean depthSet = false
+    private boolean layerSet = false
+    private boolean nodesSet = false
 
     private action GetChildAsItem(integer index) returns Item
         return children:Get(index)
@@ -235,6 +260,13 @@ class Item3D is Item
     */
     action SetWidth(number setWidth)
         width = setWidth
+        widthSet = true
+
+        if widthSet and heightSet and depthSet
+            Box box
+            box:Set(width, height, depth)
+            SetShape(box)
+        end
     end
 
     /*
@@ -250,6 +282,13 @@ class Item3D is Item
     */
     action SetHeight(number setHeight)
         height = setHeight
+        heightSet = true
+
+        if widthSet and heightSet and depthSet
+            Box box
+            box:Set(width, height, depth)
+            SetShape(box)
+        end
     end
 
     /*
@@ -265,6 +304,13 @@ class Item3D is Item
     */
     action SetDepth(number setDepth)
         depth = setDepth
+        depthSet = true
+
+        if widthSet and heightSet and depthSet
+            Box box
+            box:Set(width, height, depth)
+            SetShape(box)
+        end
     end
 
     /*
@@ -284,6 +330,14 @@ class Item3D is Item
         width = setWidth
         height = setHeight
         depth = setDepth
+
+        widthSet = true
+        heightSet = true
+        depthSet = true
+
+        Box box
+        box:Set(width, height, depth)
+        SetShape(box)
     end
 
     /*
@@ -304,6 +358,14 @@ class Item3D is Item
         width = vector:GetX()
         height = vector:GetY()
         depth = vector:GetZ()
+
+        widthSet = true
+        heightSet = true
+        depthSet = true
+
+        Box box
+        box:Set(width, height, depth)
+        SetShape(box)
     end
 
     /*
@@ -393,6 +455,7 @@ class Item3D is Item
     */
     action MoveX(number xAmount)
         transform:Translate(xAmount, 0, 0)
+        collisionTransform:GetOrigin():Add(xAmount, 0, 0)
 
         x = x + xAmount
         SetOffsetX(offsetX)
@@ -413,6 +476,7 @@ class Item3D is Item
     */
     action MoveY(number yAmount)
         transform:Translate(0, yAmount, 0)
+        collisionTransform:GetOrigin():Add(0, yAmount, 0)
 
         y = y + yAmount
         SetOffsetY(offsetY)
@@ -433,6 +497,7 @@ class Item3D is Item
     */
     action MoveZ(number zAmount)
         transform:Translate(0, 0, zAmount)
+        collisionTransform:GetOrigin():Add(0, 0, zAmount)
         //transform:Translate(0, 0, -zAmount)
 
         z = z + zAmount
@@ -457,6 +522,7 @@ class Item3D is Item
     */
     action Move(number xAmount, number yAmount, number zAmount)
         transform:Translate(xAmount, yAmount, zAmount)
+        collisionTransform:GetOrigin():Add(xAmount, yAmount, zAmount)
         //transform:Translate(xAmount, yAmount, -zAmount)
 
         x = x + xAmount
@@ -484,6 +550,7 @@ class Item3D is Item
     */
     action Move(Vector3 vector)
         transform:Translate(vector)
+        collisionTransform:GetOrigin():Add(vector)
         //transform:Translate(vector:GetX(), vector:GetY(), vector:GetZ() * -1)
 
         x = x + vector:GetX()
@@ -511,6 +578,7 @@ class Item3D is Item
             number adjust = xAmount - offsetX
 
             transform:Translate(adjust, 0, 0)
+            collisionTransform:GetOrigin():Add(adjust, 0, 0)
         end
 
         offsetX = xAmount
@@ -541,6 +609,7 @@ class Item3D is Item
             number adjust = yAmount - offsetY
         
             transform:Translate(0, adjust, 0)
+            collisionTransform:GetOrigin():Add(0, adjust, 0)
         end
 
         offsetY = yAmount
@@ -571,6 +640,7 @@ class Item3D is Item
             number adjust = zAmount - offsetZ
         
             transform:Translate(0, 0, adjust)
+            collisionTransform:GetOrigin():Add(0, 0, adjust)
             //transform:Translate(0, 0, -adjust)
         end
 
@@ -602,6 +672,7 @@ class Item3D is Item
     action SetOffset(number xAmount, number yAmount, number zAmount)
         if xAmount not= offsetX or yAmount not= offsetY or zAmount not= offsetZ
             transform:Translate(xAmount - offsetX, yAmount - offsetY, zAmount - offsetZ)
+            collisionTransform:GetOrigin():Add(xAmount - offsetX, yAmount - offsetY, zAmount - offsetZ)
             //transform:Translate(xAmount - offsetX, yAmount - offsetY, -(zAmount - offsetZ))
         end
 
@@ -856,6 +927,7 @@ class Item3D is Item
 
         if layer not= undefined
             layer:EnableItemLighting(newItem)
+            layer:SetNewItemAdded(true)
         end
     end
 
@@ -883,6 +955,7 @@ class Item3D is Item
 
         if layer not= undefined
             layer:EnableItemLighting(newItem)
+            layer:SetNewItemAdded(true)
         end
     end
 
@@ -906,6 +979,17 @@ class Item3D is Item
     */
     action Remove(Item3D removed) returns boolean
         boolean success = children:Remove(removed)
+
+        ContactEdge3D edge = removed:contactList
+        repeat while edge not= undefined
+            ContactEdge3D edge0 = edge
+            edge = edge:GetNext()
+            layer:GetCollisionManager():Destroy(edge0:GetCollision())
+        end
+        removed:contactList = undefined
+
+        removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+
         removed:SetParent(undefined)
         removed:SetLayer(undefined)
         removed:SetOffset(0, 0, 0)
@@ -938,6 +1022,17 @@ class Item3D is Item
     */
     action Remove(integer index) returns Item3D
         Item3D temp = children:RemoveAt(index)
+
+        ContactEdge3D edge = temp:contactList
+        repeat while edge not= undefined
+            ContactEdge3D edge0 = edge
+            edge = edge:GetNext()
+            layer:GetCollisionManager():Destroy(edge0:GetCollision())
+        end
+        temp:contactList = undefined
+
+        temp:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+
         temp:SetParent(undefined)
         temp:SetLayer(undefined)
         temp:SetOffset(0, 0, 0)
@@ -1047,6 +1142,7 @@ class Item3D is Item
 
         if layer not= undefined
             layer:EnableItemLighting(newItem)
+            layer:SetNewItemAdded(true)
         end
     end
 
@@ -1264,6 +1360,7 @@ class Item3D is Item
     */
     action Rotate(Vector3 vector, number degrees, boolean rotateChildren)
         transform:Rotate(vector:GetX(), vector:GetY(), -vector:GetZ(), degrees)
+        collisionTransform:SetRotation(collisionTransform:GetRotation():Add(transform:GetRotation()))
 
         if rotateChildren and not children:IsEmpty()
 
@@ -1469,6 +1566,10 @@ class Item3D is Item
     action Scale(Vector3 vector, boolean scaleChildren)
         transform:Scale(vector)
 
+        if shape not= undefined
+            shape:SetLocalScaling(vector)
+        end
+
         if scaleChildren and not children:IsEmpty()
             Matrix4 transform = undefined
             integer counter = 0
@@ -1630,6 +1731,30 @@ class Item3D is Item
     */
     action SetLayer(Layer3D parentLayer)
         layer = parentLayer
+
+        if layer not= undefined
+            layerSet = true
+
+            integer i = 0
+            repeat children:GetSize() times
+                children:Get(i):SetLayer(parentLayer)
+                i = i + 1
+            end
+
+            if shape not= undefined
+                if collidable
+                    if not nodesSet
+                        CreateNodes(layer:GetCollisionManager():GetBroadphase(), collisionTransform)
+                    end
+                else
+                    if nodesSet
+                        DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+                    end
+                end
+            end
+        else
+            layerSet = false
+        end
     end
 
     /*
@@ -1640,5 +1765,209 @@ class Item3D is Item
     */
     action GetLayer returns Layer3D
         return layer
+    end
+
+    action SynchronizeNodes
+        Transform3D xf1
+        
+        Vector3 origin
+        Matrix3 basis = collisionTransform:GetBasis()
+        Vector3 center = collisionTransform:GetOrigin()
+        origin:SetX(center:GetX() - basis:row2column1 - basis:row1column2)
+        origin:SetY(center:GetY() - basis:row0column2 - basis:row2column0)
+        origin:SetZ(center:GetZ() - basis:row1column0 - basis:row0column1)
+        xf1:Set(basis, origin)
+
+        Synchronize(layer:GetCollisionManager():GetBroadphase(), xf1, collisionTransform)
+
+        integer i = 0
+        repeat children:GetSize() times
+            Item3D child = children:Get(i)
+            child:SynchronizeNodes()
+            i = i + 1
+        end
+    end
+
+    action GetShapeType returns integer
+        return shape:GetType()
+    end
+
+    action SetShape(CollisionShape3D shape)
+        me:shape = shape:Copy()
+
+        if layerSet
+            if collidable
+                if not nodesSet
+                    CreateNodes(layer:GetCollisionManager():GetBroadphase(), collisionTransform)
+                end
+            else
+                if nodesSet
+                    DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+                end
+            end
+        end
+    end
+
+    action GetShape returns CollisionShape3D
+        return shape
+    end
+
+    action GetBoundingBox(integer childIndex) returns BoundingBox
+        return nodes:Get(childIndex):boundingBox
+    end
+
+    action CreateNodes(BroadphaseCollision3D broadphase, Transform3D transform)
+        if nodesSet or not collidable
+            DestroyNodes(broadphase)
+        end
+
+        if collidable
+            nodeCount = shape:GetChildCount()
+            integer i = 0
+            repeat while i < nodeCount
+                Item3DNode node
+                shape:ComputeBoundingBox(node:boundingBox, transform)
+                node:nodeID = broadphase:CreateNode(node:boundingBox, node)
+                node:item = me
+                node:childIndex = i
+                nodes:Add(node)
+                i = i + 1
+            end
+            nodesSet = true
+        end
+    end
+
+    action DestroyNodes(BroadphaseCollision3D broadphase)
+        integer i = 0
+        repeat while i < nodeCount
+            Item3DNode node = nodes:Get(i)
+            broadphase:DestroyNode(node:nodeID)
+            node:nodeID = -1
+            nodes:Remove(node)
+            i = i + 1
+        end
+
+        nodeCount = 0
+        nodesSet = false
+    end
+
+    private action Synchronize(BroadphaseCollision3D broadphase, Transform3D transform1, Transform3D transform2)
+        if nodeCount = 0
+            return now
+        end
+
+        integer i = 0
+        repeat while i < nodeCount
+            Item3DNode node = nodes:Get(i)
+            
+            BoundingBox boundingBox1
+            BoundingBox boundingBox2
+
+            shape:ComputeBoundingBox(boundingBox1, transform1)
+            shape:ComputeBoundingBox(boundingBox2, transform2)
+
+            Vector3 minimum = node:boundingBox:GetMinimum()
+            Vector3 maximum = node:boundingBox:GetMaximum()
+
+            if boundingBox1:GetMinimum():GetX() < boundingBox2:GetMinimum():GetX()
+                minimum:SetX(boundingBox1:GetMinimum():GetX())
+            else
+                minimum:SetX(boundingBox2:GetMinimum():GetX())
+            end
+
+            if boundingBox1:GetMinimum():GetY() < boundingBox2:GetMinimum():GetY()
+                minimum:SetY(boundingBox1:GetMinimum():GetY())
+            else
+                minimum:SetY(boundingBox2:GetMinimum():GetY())
+            end
+
+            if boundingBox1:GetMinimum():GetZ() < boundingBox2:GetMinimum():GetZ()
+                minimum:SetZ(boundingBox1:GetMinimum():GetZ())
+            else
+                minimum:SetZ(boundingBox2:GetMinimum():GetZ())
+            end
+
+            if boundingBox1:GetMaximum():GetX() > boundingBox2:GetMaximum():GetX()
+                maximum:SetX(boundingBox1:GetMaximum():GetX())
+            else
+                maximum:SetX(boundingBox2:GetMaximum():GetX())
+            end
+
+            if boundingBox1:GetMaximum():GetY() > boundingBox2:GetMaximum():GetY()
+                maximum:SetY(boundingBox1:GetMaximum():GetY())
+            else
+                maximum:SetY(boundingBox2:GetMaximum():GetY())
+            end
+
+            if boundingBox1:GetMaximum():GetZ() > boundingBox2:GetMaximum():GetZ()
+                maximum:SetZ(boundingBox1:GetMaximum():GetZ())
+            else
+                maximum:SetZ(boundingBox2:GetMaximum():GetZ())
+            end
+
+            Vector3 displacement
+            displacement:SetX(transform2:GetOrigin():GetX() - transform1:GetOrigin():GetX())
+            displacement:SetY(transform2:GetOrigin():GetY() - transform1:GetOrigin():GetY())
+            displacement:SetZ(transform2:GetOrigin():GetZ() - transform1:GetOrigin():GetZ())
+
+            broadphase:MoveNode(node:nodeID, node:boundingBox, displacement)
+
+            i = i + 1
+        end
+    end
+
+    action GetNodes returns Array<Item3DNode>
+        return nodes
+    end
+
+    action GetNode(integer index) returns Item3DNode
+        return nodes:Get(index)
+    end
+
+    action SetCollidable(boolean flag)
+        if collidable = flag
+            return now
+        end
+
+        collidable = flag
+
+        if collidable
+            if layerSet and shape not= undefined
+                BroadphaseCollision3D broadphase = layer:GetCollisionManager():GetBroadphase()
+                CreateNodes(broadphase, collisionTransform)
+            end
+        else
+            if layerSet
+                BroadphaseCollision3D broadphase = layer:GetCollisionManager():GetBroadphase()
+                DestroyNodes(broadphase)
+                ContactEdge3D edge = contactList
+                repeat while edge not= undefined
+                    ContactEdge3D edge0 = edge
+                    edge = edge:GetNext()
+                    layer:GetCollisionManager():Destroy(edge0:GetCollision())
+                end
+                contactList = undefined
+            end
+        end
+    end
+
+    action IsCollidable returns boolean
+        return collidable
+    end
+
+    action GetCollisionTransform returns Transform3D
+        return collisionTransform
+    end
+
+    action GetCollisionTransform0 returns Transform3D
+        return collisionTransform0
+    end
+
+    action SetCollisionTransform(Transform3D transform)
+        collisionTransform:Set(transform)
+    end
+
+    action SetCollisionTransform0(Transform3D transform)
+        collisionTransform0:Set(transform)
     end
 end

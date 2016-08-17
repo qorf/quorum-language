@@ -1,0 +1,43 @@
+use Libraries.Interface.Item3D
+use Libraries.Interface.Events.CollisionEvent3D
+
+package Libraries.Game.Collision
+
+class ContactEdge3D 
+    Item3D other = undefined
+    CollisionEvent3D collision = undefined
+    ContactEdge3D previous = undefined
+    ContactEdge3D next = undefined
+
+    action GetOther returns Item3D
+        return other
+    end
+
+    action SetOther(Item3D other)
+        me:other = other
+    end
+
+    action GetCollision returns CollisionEvent3D
+        return collision
+    end
+
+    action SetCollision(CollisionEvent3D collision)
+        me:collision = collision
+    end
+
+    action GetPrevious returns ContactEdge3D
+        return previous
+    end
+
+    action SetPrevious(ContactEdge3D previous)
+        me:previous = previous
+    end
+
+    action GetNext returns ContactEdge3D
+        return next
+    end
+
+    action SetNext(ContactEdge3D next)
+        me:next = next
+    end
+end

@@ -1,0 +1,75 @@
+package Libraries.Game.Collision
+
+use Libraries.Game.Collision.Shapes.CollisionShape3D
+use Libraries.Game.Collision.ManifoldResult3D
+use Libraries.Compute.BitwiseOperations
+use Libraries.Containers.Array
+use Libraries.Compute.Matrix3
+use Libraries.Compute.Vector3
+use Libraries.Game.Collision.ConvexConvexCollisionSolverNode
+use Libraries.Compute.Math
+use Libraries.Compute.Quaternion
+use Libraries.Containers.Table
+use Libraries.Game.Collision.ConvexConvexDistanceSolver
+use Libraries.Game.Collision.ConvexConvexPenetrationSolver
+
+class ConvexConvexCollisionSolver
+    BitwiseOperations bo
+// ****************************************************************************
+// GjkEpaSolver actions
+
+    ConvexConvexDistanceSolver gjk
+
+    constant number cstInf = cstPi:GetMaximumValue()
+    constant number cstPi = cst2Pi * 0.5
+    constant number cst2Pi = 6.283185307179586232
+    constant integer GjkMaxIterations = 128
+    constant integer hashSize = bo:ShiftLeft(1, 6)
+    constant integer hashMask = hashSize - 1
+    constant number inSimplexEps = 0.0001
+    constant number sqInSimplexEps = inSimplexEps * inSimplexEps
+    constant integer EpaMaxIterations = 256
+    constant number EpaInfaceEps = 0.01
+    constant number EpaAccuracy = 0.001
+
+    action Collide(CollisionShape3D shape0, Transform3D wtrs0, CollisionShape3D shape1, Transform3D wtrs1,
+                number radialMargin, ConvexConvexCollisionSolverResults results) returns boolean
+
+        results:witness:Get(0):Set(0, 0, 0)
+        results:witness:Get(1):Set(0, 0, 0)
+        results:normal:Set(0, 0, 0)
+        results:depth = 0
+        results:status = results:SEPARATED
+        results:epa_iterations = 0
+        results:gjk_iterations = 0
+
+        gjk:Initialize(wtrs0:GetBasis(), wtrs0:GetOrigin(), shape0, wtrs1:GetBasis(), wtrs1:GetOrigin(), shape1, radialMargin + EpaAccuracy)
+
+        boolean collide = gjk:SearchOrigin()
+        results:gjk_iterations = gjk:iterations + 1
+        if collide
+            ConvexConvexPenetrationSolver epa
+            epa:Set(gjk)
+            number pd = epa:EvaluatePD()
+            results:epa_iterations = epa:iterations + 1
+            if pd > 0
+                results:status = results:PENETRATING
+                results:normal:Set(epa:normal)
+                results:depth = pd
+                results:witness:Get(0):Set(epa:nearest:Get(0))
+                results:witness:Get(1):Set(epa:nearest:Get(1))
+                return true
+            else
+                if epa:failed
+                    results:status = results:EPA_FAILED
+                end
+            end
+        else
+            if gjk:failed
+                results:status = results:GJK_FAILED
+            end
+        end
+
+        return false
+    end
+end
