@@ -1,0 +1,25 @@
+package Libraries.Game.Collision
+
+use Libraries.Containers.Array
+use Libraries.Compute.Vector3
+
+class ConvexConvexCollisionSolverResults 
+    public constant integer SEPARATED = 0
+    public constant integer PENETRATING = 1
+    public constant integer GJK_FAILED = 2
+    public constant integer EPA_FAILED = 3
+
+    public integer status = SEPARATED
+    public Array<Vector3> witness
+    public Vector3 normal
+    public number depth = 0
+    public integer epa_iterations = 0
+    public integer gjk_iterations = 0
+
+    on create
+        Vector3 v1
+        witness:Add(v1)
+        Vector3 v2
+        witness:Add(v2)
+    end
+end

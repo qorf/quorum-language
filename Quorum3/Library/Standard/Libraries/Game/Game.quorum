@@ -46,6 +46,7 @@ use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
 use Libraries.Interface.Events.CollisionListener2D
+use Libraries.Interface.Events.CollisionListener3D
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -1148,28 +1149,39 @@ class Game
     end
 
     /*
-    Adds an Item to the Game to be tested for collisions. Items added in this
-    way will produce collision events if they overlap another Item that has been
-    added as a collision listener. Items can react to collisions via the 
-    BeginCollision and FinishCollision actions in Item.
+    Adds a collision listener to the game that will listen for collisions between
+    2D game objects that have been flagged as collidable. This listener can
+    respond to collisions by implementing the BeginCollision and FinishCollision
+    actions.
 
     Attribute: Example
 
         use Libraries.Game.Game
-        use Libraries.Interface.Item
+        use Libraries.Interface.Item2D
+        use Libraries.Interface.Events.CollisionListener2D
+        use Libraries.Interface.Events.CollisionEvent2D
 
-        class Main is Game
+        class Main is Game, CollisionListener2D
 
-            Item item1
-            Item item2
+            Item2D item1
+            Item2D item2
 
             action Main
                 StartGame()
             end
 
             action CreateGame
-                AddCollisionListener(item1)
-                AddCollisionListener(item2)
+                AddCollisionListener(me)
+                item1:SetCollidable(true)
+                item2:SetCollidable(true)
+            end
+            
+            action BeginCollision(CollisionEvent2D event)
+
+            end
+
+            action FinishCollision(CollisionEvent3D event)
+
             end
 
         end
@@ -1179,35 +1191,129 @@ class Game
     end
 
     /*
-    Removes an Item from the Game for testing for collisions. Items that have
-    been removed as collision listeners will no longer receive collision events,
-    and can no longer cause collision events in other Items.
+    Adds a collision listener to the game that will listen for collisions between
+    3D game objects that have been flagged as collidable. This listener can
+    respond to collisions by implementing the BeginCollision and FinishCollision
+    actions.
 
     Attribute: Example
 
         use Libraries.Game.Game
-        use Libraries.Interface.Item
+        use Libraries.Interface.Item3D
+        use Libraries.Interface.Events.CollisionListener3D
+        use Libraries.Interface.Events.CollisionEvent3D
 
-        class Main is Game
+        class Main is Game, CollisionListener3D
 
-            Item item1
-            Item item2
+            Item3D item1
+            Item3D item2
 
             action Main
                 StartGame()
             end
 
             action CreateGame
-                AddCollisionListener(item1)
-                AddCollisionListener(item2)
+                AddCollisionListener(me)
+                item1:SetCollidable(true)
+                item2:SetCollidable(true)
+            end
+            
+            action BeginCollision(CollisionEvent3D event)
 
-                RemoveCollisionListener(item1)
+            end
+
+            action FinishCollision(CollisionEvent3D event)
+
+            end
+
+        end
+    */
+    action AddCollisionListener(CollisionListener3D listener)
+        currentLayer3D:AddCollisionListener(listener)
+    end
+
+    /*
+    Removes a 2D collision listener from the game. This collision listener will
+    no longer receive collision events from the game engine.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Item2D
+        use Libraries.Interface.Events.CollisionListener2D
+        use Libraries.Interface.Events.CollisionEvent2D
+
+        class Main is Game, CollisionListener2D
+
+            Item2D item1
+            Item2D item2
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddCollisionListener(me)
+                item1:SetCollidable(true)
+                item2:SetCollidable(true)
+
+                RemoveCollisionListener(me)
+            end
+            
+            action BeginCollision(CollisionEvent2D event)
+
+            end
+
+            action FinishCollision(CollisionEvent2D event)
+
             end
 
         end
     */
     action RemoveCollisionListener(CollisionListener2D listener)
         currentLayer2D:RemoveCollisionListener(listener)
+    end
+
+    /*
+    Removes a 3D collision listener from the game. This collision listener will
+    no longer receive collision events from the game engine.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Item3D
+        use Libraries.Interface.Events.CollisionListener3D
+        use Libraries.Interface.Events.CollisionEvent3D
+
+        class Main is Game, CollisionListener3D
+
+            Item3D item1
+            Item3D item2
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddCollisionListener(me)
+                item1:SetCollidable(true)
+                item2:SetCollidable(true)
+
+                RemoveCollisionListener(me)
+            end
+            
+            action BeginCollision(CollisionEvent3D event)
+
+            end
+
+            action FinishCollision(CollisionEvent3D event)
+
+            end
+
+        end
+    */
+    action RemoveCollisionListener(CollisionListener3D listener)
+        currentLayer3D:RemoveCollisionListener(listener)
     end
 
     private action TestForCollisions
@@ -1217,6 +1323,9 @@ class Game
             if layer is Layer2D
                 Layer2D layer2D = cast(Layer2D, layer)
                 layer2D:TestForCollisions()
+            else
+                Layer3D layer3D = cast(Layer3D, layer)
+                layer3D:TestForCollisions()
             end
 
             i = i + 1

@@ -906,8 +906,6 @@ class Item2D is Item
     */
     action Remove(Item2D removed) returns boolean
         boolean success = children:Remove(removed)
-        removed:SetParent(undefined)
-        removed:SetLayer(layer)
         removed:SetOffset(0, 0)
         ContactEdge2D edge = removed:contactList
         repeat while edge not= undefined
@@ -918,6 +916,10 @@ class Item2D is Item
         removed:contactList = undefined
 
         removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+
+        removed:SetParent(undefined)
+        removed:SetLayer(undefined)
+
         return success
     end
 
@@ -939,8 +941,6 @@ class Item2D is Item
     */
     action Remove(integer index) returns Item2D
         Item2D temp = children:RemoveAt(index)
-        temp:SetParent(undefined)
-        temp:SetLayer(undefined)
         temp:SetOffset(0, 0)
         ContactEdge2D edge = temp:contactList
         repeat while edge not= undefined
@@ -951,6 +951,10 @@ class Item2D is Item
         temp:contactList = undefined
 
         temp:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+
+        temp:SetParent(undefined)
+        temp:SetLayer(undefined)
+
         return temp
     end
 

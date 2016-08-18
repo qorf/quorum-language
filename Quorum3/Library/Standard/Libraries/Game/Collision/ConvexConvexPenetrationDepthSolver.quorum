@@ -1,0 +1,25 @@
+package Libraries.Game.Collision
+
+use Libraries.Game.Collision.Shapes.CollisionShape3D
+use Libraries.Compute.Vector3
+use Libraries.Game.Collision.ConvexConvexSimplexSolver
+use Libraries.Game.Collision.ConvexConvexCollisionSolver
+
+class ConvexConvexPenetrationDepthSolver 
+    ConvexConvexCollisionSolver gjkEpaSolver
+   
+    action CalculatePenetrationDepth(ConvexConvexSimplexSolver simplexSolver, CollisionShape3D pConvexA, 
+                    CollisionShape3D pConvexB, Transform3D transformA, Transform3D transformB, Vector3 v, 
+                    Vector3 witnessOnA, Vector3 witnessOnB) returns boolean
+
+        number radialMargin = 0
+
+        ConvexConvexCollisionSolverResults results
+        if gjkEpaSolver:Collide(pConvexA, transformA, pConvexB, transformB, radialMargin, results)
+            witnessOnA:Set(results:witness:Get(0))
+            witnessOnB:Set(results:witness:Get(1))
+            return true
+        end
+        return false
+    end
+end

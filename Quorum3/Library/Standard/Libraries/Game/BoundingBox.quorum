@@ -470,4 +470,70 @@ class BoundingBox
         return lx <= sumx and ly <= sumy and lz <= sumz
     end
 
+    action CalculateDimensions
+        center:Set(minimum)
+        center:Add(maximum)
+        center:Scale(0.5)
+
+        dimensions:Set(maximum)
+        dimensions:Subtract(minimum)
+    end
+
+    /*
+    This action returns the perimeter of the BoundingBox2D.
+    */
+    action GetPerimeter returns number
+        return 4.0 * ((maximum:GetX() - minimum:GetX()) + (maximum:GetY() - minimum:GetY()) + (maximum:GetZ() - minimum:GetZ()))
+    end
+
+    action TestOverlap(BoundingBox boundingBox) returns boolean
+        if boundingBox:GetMinimum():GetX() - maximum:GetX() > 0 or boundingBox:GetMinimum():GetY() - maximum:GetY() > 0 or boundingBox:GetMinimum():GetZ() - maximum:GetZ() > 0
+            return false
+        end
+
+        if minimum:GetX() - boundingBox:GetMaximum():GetX() > 0 or minimum:GetY() - boundingBox:GetMaximum():GetY() > 0 or minimum:GetZ() - boundingBox:GetMaximum():GetZ() > 0
+            return false
+        end
+
+        return true
+    end
+
+    action Combine(BoundingBox box1, BoundingBox box2)
+        if box1:GetMinimum():GetX() < box2:GetMinimum():GetX()
+            minimum:SetX(box1:GetMinimum():GetX())
+        else
+            minimum:SetX(box2:GetMinimum():GetX())
+        end
+
+        if box1:GetMinimum():GetY() < box2:GetMinimum():GetY()
+            minimum:SetY(box1:GetMinimum():GetY())
+        else
+            minimum:SetY(box2:GetMinimum():GetY())
+        end
+
+        if box1:GetMinimum():GetZ() < box2:GetMinimum():GetZ()
+            minimum:SetZ(box1:GetMinimum():GetZ())
+        else
+            minimum:SetZ(box2:GetMinimum():GetZ())
+        end
+
+        if box1:GetMaximum():GetX() > box2:GetMaximum():GetX()
+            maximum:SetX(box1:GetMaximum():GetX())
+        else
+            maximum:SetX(box2:GetMaximum():GetX())
+        end
+
+        if box1:GetMaximum():GetY() > box2:GetMaximum():GetY()
+            maximum:SetY(box1:GetMaximum():GetY())
+        else
+            maximum:SetY(box2:GetMaximum():GetY())
+        end
+
+        if box1:GetMaximum():GetZ() > box2:GetMaximum():GetZ()
+            maximum:SetZ(box1:GetMaximum():GetZ())
+        else
+            maximum:SetZ(box2:GetMaximum():GetZ())
+        end
+    end
+
 end

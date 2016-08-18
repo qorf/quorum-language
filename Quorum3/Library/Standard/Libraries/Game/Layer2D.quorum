@@ -260,7 +260,7 @@ class Layer2D is Layer
     action Empty
         Iterator<Item2D> it = items:GetIterator()
         repeat while it:HasNext()
-            Item2D body = it:GetCurrent()
+            Item2D body = it:Next()
             ContactEdge2D edge = body:contactList
             repeat while edge not= undefined
                 ContactEdge2D edge0 = edge
@@ -271,7 +271,7 @@ class Layer2D is Layer
 
             body:DestroyNodes(collisionManager:GetBroadphase())
 
-            it:Next():SetLayer(undefined)
+            body:SetLayer(undefined)
         end
         items:Empty()
     end
