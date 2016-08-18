@@ -96,7 +96,7 @@ Number.prototype.GetHex$NumberPrimitive = function() {
 };
 //system action GetHashCode() returns integer
 Number.prototype.GetHashCode$NumberPrimitive = function() {
-  return 0;
+  return Math.floor(this.valueOf());
 };
 
 Number.prototype.GetInteger$NumberPrimitive = function() {

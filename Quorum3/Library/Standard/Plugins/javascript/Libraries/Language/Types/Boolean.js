@@ -3,14 +3,14 @@ function plugins_quorum_Libraries_Language_Types_Boolean_(optional) {
     
     if(optional === undefined) {
     } else {
-        boolean = optional;
+        this.boolean = optional;
     }
     this.SetValueNative$quorum_boolean = function (bool) {
         boolean = bool;
     };
     
     this.GetHashCode = function() {
-        return 0;
+        return this.boolean ? 1231 : 1237;;
     };
 }
 

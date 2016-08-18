@@ -1,4 +1,4 @@
-var globalStaticHash = 1
+var globalStaticHash = 1;
 
 function plugins_quorum_Libraries_Language_Object_(optional) {
     this.me = false;

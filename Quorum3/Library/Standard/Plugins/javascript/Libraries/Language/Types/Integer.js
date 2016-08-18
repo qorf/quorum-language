@@ -62,7 +62,7 @@ function plugins_quorum_Libraries_Language_Types_Integer_(optional) {
 
 //system action GetHashCode() returns integer
 Number.prototype.GetHashCode$IntegerPrimitive = function () {
-    return 0;
+    return this.valueOf();
 };
 //system action BitCount returns integer
 Number.prototype.BitCount$IntegerPrimitive = function() {

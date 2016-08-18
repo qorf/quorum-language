@@ -3,7 +3,7 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
     
     if(optional === undefined) {
     } else {
-        text = optional;
+        this.text = optional;
     }
     
     //private system action SetValueNative(text value)
@@ -230,7 +230,13 @@ String.prototype.GetSize = function() {
 };
 //system action GetHashCode() returns integer
 String.prototype.GetHashCode = function() {
-    return 0;
+    var theString = this.valueOf();
+    var size = this.valueOf().length;
+    var h = 0;
+    for (var i = 0; i < size; i++) {
+        h = 31*h + theString.charCodeAt(i);
+    }
+    return h;
 };
 //system action GetSubtext(integer startIndex, integer endIndex) returns text
 String.prototype.GetSubtext$quorum_integer$quorum_integer = function(startIndex, endIndex) {

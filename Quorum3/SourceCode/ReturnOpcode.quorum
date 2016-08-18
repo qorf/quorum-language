@@ -69,13 +69,16 @@ class ReturnOpcode is QuorumOpcode
 
     action WriteJavaScript returns text 
         text result = ""
+        EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
         Type type = GetType()
         if not type:IsVoid()
             if returnValue not= undefined
-                EOL = ""
-                EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+                
                 result = "return " + returnValue:WriteJavaScript() + ";" + EOL
             end
+        else 
+            result = "return;" + EOL
         end
         return result
     end
