@@ -1,0 +1,34 @@
+package Libraries.Game.Collision
+
+use Libraries.Containers.Array
+use Libraries.Compute.Vector3
+use Libraries.Game.Collison.ConvexConvexVertex
+
+class ConvexConvexFace 
+    public Array<ConvexConvexVertex> v
+    public Array<ConvexConvexFace> faces
+    public Array<integer> e
+    public Vector3 n
+    public number d = 0
+    public integer mark = 0
+    public ConvexConvexFace prev = undefined
+    public ConvexConvexFace next = undefined
+
+    on create
+        repeat 3 times
+            ConvexConvexVertex w
+            ConvexConvexFace f
+
+            v:Add(w)
+            faces:Add(f)
+        end
+    end
+
+    action SetPrevious(ConvexConvexFace face)
+        prev = face
+    end
+
+    action SetNext(ConvexConvexFace face)
+        next = face
+    end
+end

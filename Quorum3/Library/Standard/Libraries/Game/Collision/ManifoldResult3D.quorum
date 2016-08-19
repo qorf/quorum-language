@@ -1,0 +1,111 @@
+package Libraries.Game.Collision
+
+use Libraries.Game.Collision.ContactManifold3D
+use Libraries.Compute.Vector3
+use Libraries.Interface.Item3D
+use Libraries.Compute.Matrix3
+use Libraries.Game.Collision.Transform3D
+
+
+class ManifoldResult3D 
+    ContactManifold3D manifold
+
+    Transform3D rootTransformA
+    Transform3D rootTransformB
+    Item3D body0
+    Item3D body1
+    integer partID0 = 0
+    integer partID1 = 0
+    integer index0 = 0
+    integer index1 = 0
+
+    action Initialize(Item3D body0, Item3D body1)
+        me:body0 = body0
+        me:body1 = body1
+        rootTransformA:Set(body0:GetCollisionTransform())
+        rootTransformB:Set(body1:GetCollisionTransform())
+    end
+
+    action GetManifold returns ContactManifold3D
+        return manifold
+    end
+
+    action SetManifold(ContactManifold3D manifold)
+        me:manifold = manifold
+    end
+
+    action SetShapeIdentifiers(integer partID0, integer index0, integer partID1, integer index1)
+        me:partID0 = partID0
+        me:index0 = index0
+        me:partID1 = partID1
+        me:index1 = index1
+    end
+
+    action AddContactPoint(Vector3 normalOnBInWorld, Vector3 pointInWorld, number depth)
+        if depth > manifold:GetContactBreakingThreshold()
+            return now
+        end
+
+        boolean isSwapped = manifold:GetBody0() not= body0
+
+        Vector3 pointA
+        pointA:Set(normalOnBInWorld)
+        pointA:Scale(depth)
+        pointA:Add(pointInWorld)
+
+        Vector3 localA
+        Vector3 localB        
+
+        if isSwapped
+            rootTransformB:InverseTransform(pointA, localA)
+            rootTransformA:InverseTransform(pointInWorld, localB)
+        else
+            rootTransformA:InverseTransform(pointA, localA)
+            rootTransformB:InverseTransform(pointInWorld, localB)
+        end
+
+        ManifoldPoint3D newPoint
+        newPoint:Initialize(localA, localB, normalOnBInWorld, depth)
+
+        newPoint:positionWorldOnA:Set(pointA)
+        newPoint:positionWorldOnB:Set(pointInWorld)
+
+        integer insertIndex = manifold:GetCacheEntry(newPoint)
+
+        newPoint:combinedFriction = CalculateCombinedFriction(body0, body1)
+        newPoint:combinedRestitution = CalculateCombinedRestitution(body0, body1)
+
+        newPoint:partID0 = partID0
+        newPoint:partID1 = partID1
+        newPoint:index0 = index0
+        newPoint:index1 = index1
+
+        if insertIndex >= 0
+            manifold:ReplaceContactPoint(newPoint, insertIndex)
+        else
+            insertIndex = manifold:AddManifoldPoint(newPoint)
+        end
+    end
+
+    action CalculateCombinedFriction(Item3D body0, Item3D body1) returns integer
+        return 1
+    end
+
+    action CalculateCombinedRestitution(Item3D body0, Item3D body1) returns integer
+        return 1
+    end
+
+    action RefreshContactPoints
+        if manifold:GetPointCount() = 0
+            return now
+        end
+
+        boolean isSwapped = manifold:GetBody0() not= body0
+
+        if isSwapped
+            manifold:RefreshContactPoints(rootTransformB, rootTransformA)
+        else
+            manifold:RefreshContactPoints(rootTransformA, rootTransformB)
+        end
+    end
+end
