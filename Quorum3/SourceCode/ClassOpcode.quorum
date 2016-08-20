@@ -1189,6 +1189,9 @@ class ClassOpcode is QuorumOpcode
                 repeat while params:HasNext()
                     Variable param = params:Next()
                     convertedSource = convertedSource + param:GetJavaScriptName()
+                    if params:HasNext()
+                        convertedSource = convertedSource + ", "
+                    end
                 end
 
                 convertedSource = convertedSource + ") {" + EOL
@@ -1204,6 +1207,9 @@ class ClassOpcode is QuorumOpcode
                 repeat while params:HasNext()
                     Variable param = params:Next()
                     paramListText = paramListText + param:GetJavaScriptName()
+                    if params:HasNext()
+                        paramListText = paramListText + ", "
+                    end
                 end
 
                 paramListText = paramListText + ");"

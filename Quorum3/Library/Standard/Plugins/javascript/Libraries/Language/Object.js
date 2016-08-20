@@ -108,10 +108,17 @@ function global_CheckCast(from, to) {
     throw error;
 }
 
+//this function needs work and cross-browser testing to make sure it 
+//works as expected everywhere. As of now, exceptions in the JavaScript
+//version will have incorrect sometimes.
 function global_ErrorCheck(error) {
     names = error.parentNames_;
-    if(names == null) {
-        return new quorum_Libraries_Language_Errors_Error_();
+    if (names == null) {
+        if(error instanceof TypeError) {
+            return new quorum_Libraries_Language_Errors_UndefinedObjectError_();
+        } else {
+            return new quorum_Libraries_Language_Errors_Error_();
+        }
     } else {
         return error; /*it's already a quorum error*/
     }
