@@ -223,6 +223,7 @@ class CollisionEvent3D
         tempTransform1:Set(itemA:GetCollisionTransform())
         tempTransform2:Set(itemB:GetCollisionTransform())
 
+        manifold:ClearManifold()
         result:SetManifold(manifold)
 
         Vector3 diff
@@ -270,6 +271,8 @@ class CollisionEvent3D
 // GJK Collision Algorithm and Helpers
 
     private action CollideConvexConvex(ContactManifold3D manifold, CollisionShape3D shapeA, Transform3D transformA, CollisionShape3D shapeB, Transform3D transformB, ManifoldResult3D result)
+        manifold:ClearManifold()
+
         result:SetManifold(manifold)
         number maximumDistanceSquared = 0
 

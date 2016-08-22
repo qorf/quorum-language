@@ -203,7 +203,7 @@ class ConvexConvexPenetrationSolver
 
         number sm = a:Get(0) + a:Get(1) + a:Get(2)
 
-        out:Set(a:Get(0), a:Get(1), a:Get(2))
+        out:Set(a:Get(1), a:Get(2), a:Get(0))
         number scale = 1
         if sm > 0
             scale = sm
@@ -251,9 +251,9 @@ class ConvexConvexPenetrationSolver
                         tmp2:DotProduct(nrm) >= - EpaInfaceEps and
                         tmp3:DotProduct(nrm) >= - EpaInfaceEps
 
-        f:v:Get(0):Set(a)
-        f:v:Get(1):Set(b)
-        f:v:Get(2):Set(c)
+        f:v:Set(0, a)
+        f:v:Set(1, b)
+        f:v:Set(2, c)
         f:mark = 0
         f:n:Set(nrm)
         number scale = cstInf
@@ -485,7 +485,7 @@ class ConvexConvexPenetrationSolver
 
                 integer j = 0
                 repeat while j < 3
-                    tmp:Set(bestFace:v:Get(j):r)
+                    tmp:Set(bestFace:v:Get(j):r):Scale(s)
                     features:Set(i, j, gjk:LocalSupport(tmp, i))
 
                     j = j + 1
