@@ -30,7 +30,7 @@ class ConvexConvexSimplexSolver
 
     ConvexConvexSubSimplexClosestResult cachedBC
 
-    public boolean needsUpdate = false
+    public boolean needsUpdate = true
 
     Math math
 
@@ -279,10 +279,10 @@ class ConvexConvexSimplexSolver
 
         number vb = d5*d2 - d1*d6
         if vb <= 0 and d2 >= 0 and d6 <= 0
-            number w = d2 / (d2 - d6)
+            w = d2 / (d2 - d6)
             result:closestPointOnSimplex:Set(ac):Scale(w):Add(a)
             result:usedVertexA = true
-            result:usedVertexC = true
+            result:usedVertexB = true
             result:SetBarycentricCoordinates(1-w, 0, w, 0)
             return true
         end

@@ -223,8 +223,6 @@ class CollisionEvent3D
         tempTransform1:Set(itemA:GetCollisionTransform())
         tempTransform2:Set(itemB:GetCollisionTransform())
 
-        manifold:ClearManifold()
-
         result:SetManifold(manifold)
 
         Vector3 diff
@@ -268,8 +266,6 @@ class CollisionEvent3D
         result:RefreshContactPoints()
     end
 
-    ConvexConvexPairSolver gjkPairDetector
-
 // ********************************************************************************************************************
 // GJK Collision Algorithm and Helpers
 
@@ -277,6 +273,7 @@ class CollisionEvent3D
         result:SetManifold(manifold)
         number maximumDistanceSquared = 0
 
+        ConvexConvexPairSolver gjkPairDetector
         gjkPairDetector:SetMinkowskiA(shapeA)
         gjkPairDetector:SetMinkowskiB(shapeB)
         maximumDistanceSquared = shapeA:GetMargin() + shapeB:GetMargin() + manifold:GetContactBreakingThreshold()
