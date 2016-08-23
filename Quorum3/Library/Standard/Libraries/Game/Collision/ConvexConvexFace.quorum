@@ -15,12 +15,11 @@ class ConvexConvexFace
     public ConvexConvexFace next = undefined
 
     on create
+        faces:SetSize(3)
+        e:SetSize(3)
         repeat 3 times
             ConvexConvexVertex w
-            ConvexConvexFace f
-
             v:Add(w)
-            faces:Add(f)
         end
     end
 

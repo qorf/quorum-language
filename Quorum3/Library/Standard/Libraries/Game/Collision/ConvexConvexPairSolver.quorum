@@ -25,6 +25,10 @@ class ConvexConvexPairSolver
     integer lastUsedMethod = -1
 
     Math math
+
+    on create
+        me:cachedSeparatingAxis:Set(0, 0, 1)
+    end
     
     action Initialize(CollisionShape3D objectA, CollisionShape3D objectB, ConvexConvexSimplexSolver simplexSolver, ConvexConvexPenetrationDepthSolver penetrationDepthSolver)
         me:cachedSeparatingAxis:Set(0, 0, 1)
@@ -72,7 +76,7 @@ class ConvexConvexPairSolver
         lastUsedMethod = -1
 
         number squaredDistance = 0
-        sqparedDistance = squaredDistance:GetMaximumValue()
+        squaredDistance = squaredDistance:GetMaximumValue()
         number delta  = 0
         
         number margin = marginA + marginB
@@ -174,10 +178,10 @@ class ConvexConvexPairSolver
             end
             
             if continue
-                curIter = curIter + 1
                 if curIter > gGjkMaxIter
                     continue = false
                 end
+                curIter = curIter + 1
             end
 
             if continue
