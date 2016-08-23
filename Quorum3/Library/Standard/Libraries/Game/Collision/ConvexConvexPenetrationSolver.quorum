@@ -37,7 +37,7 @@ class ConvexConvexPenetrationSolver
             integer j = 0
             repeat 3 times
                 Vector3 v
-                features:Set(i, j, v)
+                features:Add(i, j, v)
 
                 j = j + 1
             end
@@ -439,6 +439,8 @@ class ConvexConvexPenetrationSolver
                 if d < -accuracy
                     Array<ConvexConvexFace> cf
                     Array<ConvexConvexFace> ff
+                    cf:SetSize(10)
+                    ff:SetSize(10)
                     integer nf = 0
                     Detach(bf)
                     markid = markid + 1
