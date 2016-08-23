@@ -1,0 +1,91 @@
+package Libraries.Game.Graphics
+
+use Libraries.Game.Graphics.IndexData
+use Libraries.Containers.Array
+
+class IndexArray is IndexData
+
+    /*
+    This action will initialize the IndexArray to allow for the given number of
+    indices.
+    */
+    system action Load(integer maximumSize)
+
+    /*
+    This action will return the current number of indices in this IndexArray.
+    */
+    system action GetSize returns integer
+
+    /*
+    This action will return the maximum number of indices this IndexArray can contain.
+    */
+    system action GetMaxSize returns integer
+
+    /*
+    This action will set the indices of the IndexArray using the given array,
+    starting at the offset index and iterating through the given number of 
+    indices.
+    */
+    action SetIndices(Array<integer> indices, integer offset, integer count)
+        SendToBridgeArray(indices)
+        SetIndices(offset, count)
+    end
+
+    private system action SetIndices(integer offset, integer count)
+
+    // blueprint action SetIndices(ShortBuffer) (?)
+
+    // blueprint action GetBuffer returns ShortBuffer (?)
+
+    /*
+    Binds this set of indices for use by certain OpenGL functions. For an
+    IndexArray, this does nothing.
+    */
+    system action Bind
+
+    /*
+    Unbinds this set of indices so it can't be used by certain OpenGL functions. 
+    For an IndexArray, this does nothing.
+    */
+    system action Unbind
+
+    /*
+    Used to force OpenGL to create a new buffer handle. Used for context loss.
+    */
+    system action Invalidate
+
+    /*
+    Clears the underlying buffer used to store the values of this IndexArray.
+    */
+    system action Clear
+
+    /*
+    This action is used to release the memory used by this object.
+    */
+    system action Dispose
+
+    action Put(Array<integer> values)
+        PrepareBridgeArray(values:GetSize())
+        SendToBridgeArray(values)
+        PutBridgeArray()
+    end
+
+    private system action PrepareBridgeArray(integer length)
+
+    /* Sends an entire Quorum array to be stored in the bridge array within the plugins. */
+    private action SendToBridgeArray(Array<integer> array)
+        PrepareBridgeArray(array:GetSize())
+        integer index = 0
+        repeat array:GetSize() times
+            SendToBridgeArray(index, array:Get(index))
+            index = index + 1
+        end
+    end
+
+    private system action SendToBridgeArray(integer index, integer value)
+
+    private system action PutBridgeArray
+
+    system action SetPosition(integer position)
+
+end

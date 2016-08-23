@@ -1,28 +1,45 @@
 package Libraries.Game.Graphics
 
-use Libraries.Containers.Array
 use Libraries.Game.Graphics.VertexData
-use Libraries.Game.Graphics.VertexAttribute
-use Libraries.Game.Disposable
+use Libraries.Containers.Array
 
-class VertexBufferObject is VertexData
-
+class VertexArray is VertexData
+  
+    /*
+    This action will initialize the VertexArray to use the given number of
+    vertices and to use the provided VertexAttributes.
+    */
+    system action Load(integer numVertices, VertexAttributes attributes)
+    
+    /*
+    This action releases the memory stored by this VertexData. This should only
+    be used when the VertexData is not in use and will not be needed again!
+    */
     system action Dispose
 
-    action Load(boolean isStatic, integer verticesCount, Array<VertexAttribute> attributes)
-        VertexAttributes vertexAttributes
-        vertexAttributes:SetAttributes(attributes)
-        Load(isStatic, verticesCount, vertexAttributes)
-    end
-
-    system action Load(boolean isStatic, integer verticesCount, VertexAttributes attributes)
-
+    /*
+    This action returns the number of vertices currently stored in this
+    VertexData object.
+    */
     system action GetSize returns integer
 
+    /*
+    This action returns the maximum number of vertices that can be stored in
+    this VertexData object.
+    */
     system action GetMaxSize returns integer
 
+    /*
+    This action will return the VertexAttributes that describe this VertexData.
+    */
     system action GetAttributes returns VertexAttributes
 
+    /*
+    This action sets the vertices of this VertexData to match the given array
+    of numbers. This will also set an offset of the given amount in to the array,
+    and the user should provide the number of vertices to use from the array
+    by supplying the count.
+    */
     action SetVertices(Array<number> vertices, integer offset, integer count)
         SendToBridgeArray(vertices, offset, count)
         SetVerticesNative(offset, count)
@@ -37,12 +54,25 @@ class VertexBufferObject is VertexData
 
     private system action UpdateVerticesNative(integer targetOffset, integer sourceOffset, integer count)
 
+    /*
+    Used to invalidate the data when applicable, e.g. due to context loss.
+    */
     system action Invalidate
 
+    /*
+    This action directly copies an array of vertices into the buffer of this
+    VertexArray.
+    */
     action FillVertexBuffer(Array<number> vertices)
         SendToBridgeArray(vertices)
         PopulateVertexBuffer()
     end
+
+    /*
+    Directly copies the data stored in the bridge array into the buffer
+    stored in the plugin class.
+    */
+    private system action PopulateVertexBuffer
 
     /* Used to inform the plugin that we are about to send a new array of
     doubles with the given length. */
@@ -70,8 +100,5 @@ class VertexBufferObject is VertexData
 
     /* Sends a value to be stored in the bridge array at the given index. */
     private system action SendToBridgeArray(integer index, number value)
-
-    /* Uses the filled values of the bridge array to populate the byte buffer. */
-    private system action PopulateVertexBuffer
 
 end
