@@ -695,14 +695,8 @@ public class ShaderProgram implements Disposable {
 	}
 
 	public void setVertexAttribute (int location, int size, int type, boolean normalize, int stride, Buffer buffer) {
-                // FOR DEBUGGING PURPOSES ONLY
-                // System.out.println("In setVertexAttribute");
-                
 		GraphicsManager gl = GameState.nativeGraphics;
 		checkManaged();
-                
-                // FOR DEBUGGING PURPOSES ONLY
-                // System.out.println("Checkpoint 1");
                 
 		gl.glVertexAttribPointer(location, size, type, normalize, stride, buffer);
 	}

@@ -9,7 +9,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import plugins.quorum.Libraries.Game.GameState;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
-import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
+//import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 import quorum.Libraries.Compute.Matrix4_;
 import quorum.Libraries.Compute.Vector3;
 
@@ -61,7 +61,7 @@ public class Mesh
         {
             if (quorumMesh.indices.GetSize() > 0) 
             {
-                IntBuffer buffer = ((quorum.Libraries.Game.Graphics.IndexData)quorumMesh.indices).plugin_.GetBuffer();
+                IntBuffer buffer = ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.GetBuffer();
                 int oldPosition = buffer.position();
                 int oldLimit = buffer.limit();
                 buffer.position(offset);
@@ -99,9 +99,18 @@ public class Mesh
     
     public void Bind(final ShaderProgram shader, final int[] locations)
     {
-        ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.Bind(shader, locations);
-        if (quorumMesh.indices.GetSize() > 0)
-            ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.Bind();
+        if (quorumMesh.isVertexArray)
+        {
+            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Bind(shader, locations);
+            if (quorumMesh.indices.GetSize() > 0)
+                ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.Bind();
+        }
+        else
+        {
+            ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.Bind(shader, locations);
+            if (quorumMesh.indices.GetSize() > 0)
+                ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.Bind();
+        }
     }
     
     public void Unbind(final ShaderProgram shader)
@@ -111,9 +120,18 @@ public class Mesh
     
     public void Unbind(final ShaderProgram shader, final int[] locations)
     {
-        ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.Unbind(shader, locations);
-        if (quorumMesh.indices.GetSize() > 0)
-            ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.Unbind();
+        if (quorumMesh.isVertexArray)
+        {
+            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Unbind(shader, locations);
+            if (quorumMesh.indices.GetSize() > 0)
+                ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.Unbind();
+        }
+        else
+        {
+            ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.Unbind(shader, locations);
+            if (quorumMesh.indices.GetSize() > 0)
+                ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.Unbind();
+        }
     }
     
     public BoundingBox_ CalculateBoundingBox(BoundingBox_ box)
@@ -124,7 +142,12 @@ public class Mesh
         if (numVertices == 0)
             throw new GameRuntimeError("There were no vertices defined for this Mesh!");
         
-        final FloatBuffer verts = ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.GetVertexData()).plugin_.GetBuffer();
+        final FloatBuffer verts;
+        
+        if (quorumMesh.isVertexArray)
+            verts = ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.GetVertexData()).plugin_.GetBuffer();
+        else
+            verts = ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.GetVertexData()).plugin_.GetBuffer();
         
         VertexAttribute_ posAttrib = quorumMesh.GetVertexAttributes().FindByUsage(quorumMesh.GetVertexAttributes().Get_Libraries_Game_Graphics_VertexAttributes__POSITION_());
         final int offset = posAttrib.Get_Libraries_Game_Graphics_VertexAttribute__offset_() / 4;
@@ -168,8 +191,19 @@ public class Mesh
         if (offset < 0 || count < 1 || offset + count > numIndices)
             throw new GameRuntimeError("Invalid parameter(s) to ExtendBoundingBox - offset = " + offset + ", count = " + count + ", max = " + numIndices);
 
-        final FloatBuffer verts = ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.GetBuffer();
-        final IntBuffer index = ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.GetBuffer();
+        final FloatBuffer verts;
+        final IntBuffer index;
+        if (quorumMesh.isVertexArray)
+        {
+            verts = ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.GetBuffer();
+            index = ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.GetBuffer();
+        }
+        else
+        {
+            verts = ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.GetBuffer();
+            index = ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.GetBuffer();
+        }
+        
         final VertexAttribute_ posAttrib = quorumMesh.GetVertexAttributes().FindByUsage(quorumMesh.GetVertexAttributes().Get_Libraries_Game_Graphics_VertexAttributes__POSITION_());
         
         final int posOffset = posAttrib.Get_Libraries_Game_Graphics_VertexAttribute__offset_() / 4;

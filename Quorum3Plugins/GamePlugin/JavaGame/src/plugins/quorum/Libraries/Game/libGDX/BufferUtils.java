@@ -54,9 +54,9 @@ public final class BufferUtils {
 	public static void copy (float[] src, Buffer dst, int numFloats, int offset) {
 		copyJni(src, dst, numFloats, offset);
 		dst.position(0);
-
+                
 		if (dst instanceof ByteBuffer)
-			dst.limit(numFloats << 2);
+                    dst.limit(numFloats << 2);
 		else if (dst instanceof FloatBuffer) dst.limit(numFloats);
 	}
 

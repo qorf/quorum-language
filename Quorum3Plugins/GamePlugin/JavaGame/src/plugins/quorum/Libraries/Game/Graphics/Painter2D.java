@@ -3,14 +3,18 @@ package plugins.quorum.Libraries.Game.Graphics;
 
 import plugins.quorum.Libraries.Game.GameState;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
-import plugins.quorum.Libraries.Game.libGDX.Mesh;
-import plugins.quorum.Libraries.Game.libGDX.Mesh.VertexDataType;
-import plugins.quorum.Libraries.Game.libGDX.VertexAttribute;
-import plugins.quorum.Libraries.Game.libGDX.VertexAttributes.Usage;
-import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
-import plugins.quorum.Libraries.Game.libGDX.Matrix4;
-import quorum.Libraries.Compute.Matrix4_;
+//import plugins.quorum.Libraries.Game.libGDX.Mesh;
+//import plugins.quorum.Libraries.Game.libGDX.Mesh.VertexDataType;
+//import plugins.quorum.Libraries.Game.libGDX.VertexAttribute;
+//import plugins.quorum.Libraries.Game.libGDX.VertexAttributes.Usage;
+//import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
+//import plugins.quorum.Libraries.Game.libGDX.Matrix4;
 import quorum.Libraries.Game.Graphics.Camera_;
+import quorum.Libraries.Compute.Matrix4_;
+import quorum.Libraries.Compute.Matrix4;
+import quorum.Libraries.Game.Graphics.Mesh_;
+import quorum.Libraries.Game.Graphics.Mesh;
+import quorum.Libraries.Game.Graphics.IndexArray;
 
 /**
  *
@@ -20,23 +24,23 @@ public class Painter2D
 {
     public java.lang.Object me_ = null;
     
-    private Mesh mesh;
+    private Mesh_ mesh;
     
     final static int SPRITE_SIZE = 20;
     
-    float[] vertices;
+    //float[] vertices;
     int index = 0;
     float inverseTexWidth = 0;
     float inverseTexHeight = 0;
     
     // boolean drawing = false; -- In Quorum
     
-    private final Matrix4 transformMatrix = new Matrix4();
-    private final Matrix4 projectionMatrix = new Matrix4();
-    private final Matrix4 combinedMatrix = new Matrix4();
+    private final Matrix4_ transformMatrix = new Matrix4();
+    private final Matrix4_ projectionMatrix = new Matrix4();
+    private final Matrix4_ combinedMatrix = new Matrix4();
     
     // Used for ApplyCamera.
-    private final static Matrix4 calcMatrix = new Matrix4();
+    private final static Matrix4_ calcMatrix = new Matrix4();
     
     private boolean blendingDisabled = false;
     private int blendSourceFunction = GraphicsManager.GL_SRC_ALPHA;
@@ -58,39 +62,20 @@ public class Painter2D
         // constructor in Quorum, however, will call LoadDefaultPainter().
     }
     
-    public void LoadDefaultPainter()
+    public void LoadDefaultPainter(Mesh_ quorumMesh)
     {
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         SetColor(quorumBatch.color);
         
-        mesh = new Mesh(VertexDataType.VertexArray, false, 4000, 6000, new VertexAttribute(Usage.Position, 2,
-			ShaderProgram.POSITION_ATTRIBUTE), new VertexAttribute(Usage.ColorPacked, 4, ShaderProgram.COLOR_ATTRIBUTE),
-			new VertexAttribute(Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + "0"));
+        mesh = quorumMesh;
         
         if (projectionMatrix == null)
             throw new GameRuntimeError("null matrix!");
         if (GameState.GetDisplay() == null)
             throw new GameRuntimeError("null display!");
         
-        projectionMatrix.setToOrtho2D(0, 0, GameState.GetDisplay().GetWidth(), GameState.GetDisplay().GetHeight());
-        
-        vertices = new float[1000 * SPRITE_SIZE];
-        
-        int length = 6000;
-        short[] indices = new short[length];
-        short j = 0;
-        for (int i = 0; i < length; i += 6, j += 4)
-        {
-            indices[i] = j;
-            indices[i + 1] = (short)(j + 1);
-            indices[i + 2] = (short)(j + 2);
-            indices[i + 3] = (short)(j + 2);
-            indices[i + 4] = (short)(j + 3);
-            indices[i + 5] = j;
-        }
-        
-        mesh.setIndices(indices);
+        projectionMatrix.SetToOrthographic2D(0, 0, GameState.GetDisplay().GetWidth(), GameState.GetDisplay().GetHeight());
         
         shader = CreateDefaultShader();
         ownsShader = true;
@@ -128,7 +113,8 @@ public class Painter2D
 		+ "}";
 
 	ShaderProgram shader = new ShaderProgram(vertexShader, fragmentShader);
-	if (shader.isCompiled() == false) throw new IllegalArgumentException("Error compiling shader: " + shader.getLog());
+	if (shader.IsCompiled() == false)
+            throw new IllegalArgumentException("Error compiling shader: " + shader.GetLog());
 	return shader;
     }
     
@@ -142,9 +128,9 @@ public class Painter2D
         renderCalls = 0;
         GameState.nativeGraphics.glDepthMask(false);
         if (customShader != null)
-            customShader.begin();
+            customShader.Begin();
         else
-            shader.begin();
+            shader.Begin();
         SetupMatrices();
         quorumBatch.drawing = true;
     }
@@ -168,9 +154,9 @@ public class Painter2D
             gl.glDisable(GraphicsManager.GL_BLEND);
         
         if (customShader != null)
-            customShader.end();
+            customShader.End();
         else
-            shader.end();
+            shader.End();
     }
     
     public void SetColor(quorum.Libraries.Game.Graphics.Color_ newColor)
@@ -202,7 +188,8 @@ public class Painter2D
 	if (!quorumBatch.IsDrawing())
             throw new GameRuntimeError("Painter2D.Begin() must be called before Draw.");
 
-        int verticesLength = vertices.length;
+        //int verticesLength = vertices.length;
+        int verticesLength = quorumBatch.GetVertices().GetSize();
         if (drawable.GetTexture() != quorumBatch.lastTexture) {
             SwitchTexture(drawable.GetTexture());
         }
@@ -227,7 +214,9 @@ public class Painter2D
         
         for (int i = 0; i < drawable.Get_Libraries_Game_Graphics_Drawable__DRAWABLE_SIZE_(); i++)
         {
-            vertices[index++] = (float)drawable.GetVertex(i);
+            //vertices[index++] = (float)drawable.GetVertex(i);
+            quorumBatch.SetVertex(index, (float)drawable.GetVertex(i));
+            index++;
         }
     }
     
@@ -278,11 +267,9 @@ public class Painter2D
         if (!quorumBatch.IsDrawing())
             throw new GameRuntimeError("Painter2D.Begin() must be called before Draw.");
         
-        float[] vertices = this.vertices;
-        
         if (drawTexture != quorumBatch.lastTexture)
             SwitchTexture(drawTexture);
-        else if (index == vertices.length)
+        else if (index == quorumBatch.GetVertices().GetSize())
             Flush();
         
         final float x = (float)xValue;
@@ -296,32 +283,30 @@ public class Painter2D
 	final float v2 = 0;
 
 	float color = this.colorValue;
-	int idx = this.index;
-	vertices[idx++] = x;
-	vertices[idx++] = y;
-	vertices[idx++] = color;
-	vertices[idx++] = u;
-	vertices[idx++] = v;
+	
+        quorumBatch.SetVertex(index++, x);
+        quorumBatch.SetVertex(index++, y);
+        quorumBatch.SetVertex(index++, color);
+        quorumBatch.SetVertex(index++, u);
+        quorumBatch.SetVertex(index++, v);
 
-	vertices[idx++] = x;
-	vertices[idx++] = fy2;
-	vertices[idx++] = color;
-	vertices[idx++] = u;
-	vertices[idx++] = v2;
+        quorumBatch.SetVertex(index++, x);
+        quorumBatch.SetVertex(index++, fy2);
+        quorumBatch.SetVertex(index++, color);
+        quorumBatch.SetVertex(index++, u);
+        quorumBatch.SetVertex(index++, v2);
 
-	vertices[idx++] = fx2;
-	vertices[idx++] = fy2;
-	vertices[idx++] = color;
-	vertices[idx++] = u2;
-	vertices[idx++] = v2;
-
-	vertices[idx++] = fx2;
-	vertices[idx++] = y;
-	vertices[idx++] = color;
-	vertices[idx++] = u2;
-	vertices[idx++] = v;
+        quorumBatch.SetVertex(index++, fx2);
+        quorumBatch.SetVertex(index++, fy2);
+        quorumBatch.SetVertex(index++, color);
+        quorumBatch.SetVertex(index++, u2);
+        quorumBatch.SetVertex(index++, v2);
         
-	this.index = idx;  
+        quorumBatch.SetVertex(index++, fx2);
+        quorumBatch.SetVertex(index++, y);
+        quorumBatch.SetVertex(index++, color);
+        quorumBatch.SetVertex(index++, u2);
+        quorumBatch.SetVertex(index++, v);
     }
     
     public void Draw(quorum.Libraries.Game.Graphics.TextureRegion_ region, double x, double y)
@@ -336,13 +321,11 @@ public class Painter2D
         if (!quorumBatch.IsDrawing())
             throw new GameRuntimeError("Painter2D.Begin() must be called before Draw.");
 
-	float[] vertices = this.vertices;
-
 	quorum.Libraries.Game.Graphics.Texture_ texture = region.GetTextureField();
-	if (texture != quorumBatch.lastTexture) {
-		SwitchTexture(texture);
-	} else if (index == vertices.length) //
-		Flush();
+	if (texture != quorumBatch.lastTexture) 
+            SwitchTexture(texture);
+        else if (index == quorumBatch.GetVertices().GetSize())
+            Flush();
 
         final float x = (float)xValue;
         final float y = (float)yValue;
@@ -355,31 +338,30 @@ public class Painter2D
 	final float v2 = (float)region.GetLeftSide();
 
 	float color = this.colorValue;
-	int idx = this.index;
-	vertices[idx++] = x;
-	vertices[idx++] = y;
-	vertices[idx++] = color;
-	vertices[idx++] = u;
-	vertices[idx++] = v;
+	
+        quorumBatch.SetVertex(index++, x);
+        quorumBatch.SetVertex(index++, y);
+        quorumBatch.SetVertex(index++, color);
+        quorumBatch.SetVertex(index++, u);
+        quorumBatch.SetVertex(index++, v);
 
-	vertices[idx++] = x;
-	vertices[idx++] = fy2;
-	vertices[idx++] = color;
-	vertices[idx++] = u;
-	vertices[idx++] = v2;
+        quorumBatch.SetVertex(index++, x);
+        quorumBatch.SetVertex(index++, fy2);
+        quorumBatch.SetVertex(index++, color);
+        quorumBatch.SetVertex(index++, u);
+        quorumBatch.SetVertex(index++, v2);
 
-	vertices[idx++] = fx2;
-	vertices[idx++] = fy2;
-	vertices[idx++] = color;
-	vertices[idx++] = u2;
-	vertices[idx++] = v2;
-
-	vertices[idx++] = fx2;
-	vertices[idx++] = y;
-	vertices[idx++] = color;
-	vertices[idx++] = u2;
-	vertices[idx++] = v;
-	this.index = idx;
+        quorumBatch.SetVertex(index++, fx2);
+        quorumBatch.SetVertex(index++, fy2);
+        quorumBatch.SetVertex(index++, color);
+        quorumBatch.SetVertex(index++, u2);
+        quorumBatch.SetVertex(index++, v2);
+        
+        quorumBatch.SetVertex(index++, fx2);
+        quorumBatch.SetVertex(index++, y);
+        quorumBatch.SetVertex(index++, color);
+        quorumBatch.SetVertex(index++, u2);
+        quorumBatch.SetVertex(index++, v);
     }
     
     public void Flush()
@@ -400,9 +382,12 @@ public class Painter2D
         int count = spritesInBatch * 6;
         
         quorumBatch.lastTexture.Bind();
-        mesh.setVertices(vertices, 0, index);
-        mesh.getIndicesBuffer().position(0);
-        mesh.getIndicesBuffer().limit(count);
+        
+        mesh.SetVertices(quorumBatch.GetVertices(), 0, index);
+        ((IndexArray)mesh.GetIndexData()).plugin_.GetBuffer().position(0);
+        ((IndexArray)mesh.GetIndexData()).plugin_.GetBuffer().limit(count);
+//        mesh.getIndicesBuffer().position(0);
+//        mesh.getIndicesBuffer().limit(count);
         
         if (blendingDisabled)
             GameState.nativeGraphics.glDisable(GraphicsManager.GL_BLEND);
@@ -415,9 +400,9 @@ public class Painter2D
         
         
         if (customShader != null)
-            mesh.render(customShader, GraphicsManager.GL_TRIANGLES, 0, count);
+            ((Mesh)mesh).plugin_.Render(customShader, GraphicsManager.GL_TRIANGLES, 0, count);
         else
-            mesh.render(shader, GraphicsManager.GL_TRIANGLES, 0, count);
+            ((Mesh)mesh).plugin_.Render(shader, GraphicsManager.GL_TRIANGLES, 0, count);
         
         index = 0;
         
@@ -460,8 +445,8 @@ public class Painter2D
 
     public void Dispose() 
     {
-	mesh.dispose();
-	if (ownsShader && shader != null) shader.dispose();
+	mesh.Dispose();
+	if (ownsShader && shader != null) shader.Dispose();
     }
         
     protected void SwitchTexture (quorum.Libraries.Game.Graphics.Texture_ texture) 
@@ -473,23 +458,23 @@ public class Painter2D
         inverseTexHeight = 1.0f / (float)texture.GetHeight();
     }
         
-    public Matrix4 GetProjectionMatrix () 
+    public Matrix4_ GetProjectionMatrix () 
     {
         return projectionMatrix;
     }
 
-    public Matrix4 GetTransformMatrix () 
+    public Matrix4_ GetTransformMatrix () 
     {
         return transformMatrix;
     }
 
-    public void SetProjectionMatrix (Matrix4 projection) 
+    public void SetProjectionMatrix (Matrix4_ projection) 
     {
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
 	if (quorumBatch.IsDrawing()) 
             Flush();
-	projectionMatrix.set(projection);
+	projectionMatrix.Set(projection);
 	if (quorumBatch.IsDrawing())
             SetupMatrices();
     }
@@ -500,23 +485,23 @@ public class Painter2D
         
 	if (quorumBatch.IsDrawing()) 
                 Flush();
-    	transformMatrix.set(transform);
+    	transformMatrix.Set(transform);
 	if (quorumBatch.IsDrawing())
             SetupMatrices();
     }
 
     private void SetupMatrices () 
     {
-	combinedMatrix.set(projectionMatrix).mul(transformMatrix);
+	combinedMatrix.Set(projectionMatrix).Multiply(transformMatrix);
 	if (customShader != null) 
         {
-            customShader.setUniformMatrix("u_projTrans", combinedMatrix);
-            customShader.setUniformi("u_texture", 0);
+            customShader.SetUniformMatrix("u_projTrans", combinedMatrix);
+            customShader.SetUniform("u_texture", 0);
 	}
         else 
         {
-            shader.setUniformMatrix("u_projTrans", combinedMatrix);
-            shader.setUniformi("u_texture", 0);
+            shader.SetUniformMatrix("u_projTrans", combinedMatrix);
+            shader.SetUniform("u_texture", 0);
 	}
     }
 
@@ -528,17 +513,17 @@ public class Painter2D
         {
             Flush();
             if (customShader != null)
-                customShader.end();
+                customShader.End();
             else
-                this.shader.end();
+                this.shader.End();
 	}
 	customShader = shader;
 	if (quorumBatch.IsDrawing()) 
         {
             if (customShader != null)
-		customShader.begin();
+		customShader.Begin();
             else
-		this.shader.begin();
+		this.shader.Begin();
             SetupMatrices();
 	}
     }
@@ -553,7 +538,7 @@ public class Painter2D
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         if (quorumBatch.IsDrawing())
-            this.shader.setAttributef(ShaderProgram.COLOR_ATTRIBUTE, color);
+            this.shader.SetAttribute(ShaderProgram.COLOR_ATTRIBUTE, color);
     }
     
     public void ResetShaderTint()
@@ -561,60 +546,61 @@ public class Painter2D
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         if (quorumBatch.IsDrawing())
-            this.shader.setAttributef(ShaderProgram.COLOR_ATTRIBUTE, 1.0f, 1.0f, 1.0f, 1.0f);
+            this.shader.SetAttribute(ShaderProgram.COLOR_ATTRIBUTE, 1.0f, 1.0f, 1.0f, 1.0f);
     }
     
     public void ApplyCamera(Camera_ camera)
     {
-        float[] temp = new float[16];
-        for(int i = 0; i < 16; i++)
-            temp[i] = GetMatrixValue(camera.GetCombinedMatrix(), i);
-        
-        calcMatrix.set(temp);
+//        float[] temp = new float[16];
+//        for(int i = 0; i < 16; i++)
+//            temp[i] = GetMatrixValue(camera.GetCombinedMatrix(), i);
+//        
+//        calcMatrix.set(temp);
+        calcMatrix.Set(camera.GetCombinedMatrix());
         SetProjectionMatrix(calcMatrix);
     }
         
     /*
-        Returns a single value of a matrix given an integer representing the
-        index of a column-major array.
-        */
-        private static float GetMatrixValue(Matrix4_ matrix, int index)
-        {
-            switch(index)
-            {
-                case 0:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row0column0_();
-                case 1:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row1column0_();
-                case 2:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row2column0_();
-                case 3:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row3column0_();
-                case 4:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row0column1_();
-                case 5:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row1column1_();
-                case 6:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row2column1_();
-                case 7:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row3column1_(); 
-                case 8:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row0column2_();
-                case 9:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row1column2_();
-                case 10:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row2column2_();
-                case 11:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row3column2_();
-                case 12:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row0column3_();
-                case 13:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row1column3_();
-                case 14:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row2column3_();
-                default:
-                    return (float)matrix.Get_Libraries_Compute_Matrix4__row3column3_();
-            }
-        }
+    Returns a single value of a matrix given an integer representing the
+    index of a column-major array.
+    */
+//    private static float GetMatrixValue(Matrix4_ matrix, int index)
+//    {
+//        switch(index)
+//        {
+//            case 0:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row0column0_();
+//            case 1:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row1column0_();
+//            case 2:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row2column0_();
+//            case 3:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row3column0_();
+//            case 4:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row0column1_();
+//            case 5:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row1column1_();
+//            case 6:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row2column1_();
+//            case 7:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row3column1_(); 
+//            case 8:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row0column2_();
+//            case 9:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row1column2_();
+//            case 10:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row2column2_();
+//            case 11:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row3column2_();
+//            case 12:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row0column3_();
+//            case 13:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row1column3_();
+//            case 14:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row2column3_();
+//            default:
+//                return (float)matrix.Get_Libraries_Compute_Matrix4__row3column3_();
+//        }
+//    }
 }
 

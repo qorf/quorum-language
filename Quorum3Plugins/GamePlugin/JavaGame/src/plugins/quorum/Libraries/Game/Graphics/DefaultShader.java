@@ -7,7 +7,7 @@ package plugins.quorum.Libraries.Game.Graphics;
 
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.GameState;
-import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
+//import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 import quorum.Libraries.Compute.Matrix3;
 import quorum.Libraries.Compute.Matrix3_;
 import quorum.Libraries.Compute.Matrix4;
@@ -306,7 +306,7 @@ public class DefaultShader extends BaseShader
                             : GetMatrixValue(((Matrix4_)renderable.Get_Libraries_Game_Graphics_Renderable__bones_().Get(idx)), i % 16);
                         
                     }
-                    shader.program.setUniformMatrix4fv(shader.Location(inputID), bones, 0, bones.length);
+                    shader.program.SetUniformMatrix4(shader.Location(inputID), bones, 0, bones.length);
                 }
             }
 
@@ -495,7 +495,7 @@ public class DefaultShader extends BaseShader
                 public void Set(BaseShader shader, int inputID, Renderable_ renderable, Attributes combinedAttributes) 
                 {
                     if (renderable.Get_Libraries_Game_Graphics_Renderable__environment_() == null || !renderable.Get_Libraries_Game_Graphics_Renderable__environment_().ContainsLighting())
-                        shader.program.setUniform3fv(shader.Location(inputID), ones, 0, ones.length);
+                        shader.program.SetUniformVector3(shader.Location(inputID), ones, 0, ones.length);
                     else 
                     {
                         tmpV1 = (Vector3)renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_().GetTranslation();
@@ -527,7 +527,7 @@ public class DefaultShader extends BaseShader
                             temp[i] = (float)cacheAmbientCubemap.GetDataAtIndex(i);
                         }
                         
-                        shader.program.setUniform3fv(shader.Location(inputID), temp, 0, temp.length);
+                        shader.program.SetUniformVector3(shader.Location(inputID), temp, 0, temp.length);
                     }
                 }
             }
@@ -1102,11 +1102,11 @@ public class DefaultShader extends BaseShader
 //                    System.out.println("Direction 3: " + directionalLights[i].direction.GetY());
 //                    System.out.println("Direction 4: " + directionalLights[i].direction.GetZ());
                     
-                    program.setUniformf(idx + dirLightsColorOffset, (float)directionalLights[i].GetColor().GetRed(), 
+                    program.SetUniform(idx + dirLightsColorOffset, (float)directionalLights[i].GetColor().GetRed(), 
                         (float)directionalLights[i].GetColor().GetGreen(), (float)directionalLights[i].GetColor().GetBlue());
                     //program.setUniformf(idx + dirLightsDirectionOffset, (float)directionalLights[i].direction.GetX(),
                     //    (float)directionalLights[i].direction.GetY(), (float)directionalLights[i].direction.GetZ());
-                    program.setUniformf(idx + dirLightsDirectionOffset, (float)directionalLights[i].direction.GetX(),
+                    program.SetUniform(idx + dirLightsDirectionOffset, (float)directionalLights[i].direction.GetX(),
                         (float)directionalLights[i].direction.GetY(), (float)(directionalLights[i].direction.GetZ() * -1));
                     
                     if (dirLightsSize <= 0) 
@@ -1148,15 +1148,15 @@ public class DefaultShader extends BaseShader
                     
                     double intensity = pointLights[i].GetIntensity();
                     
-                    program.setUniformf(idx + pointLightsColorOffset, (float)(pointLights[i].GetColor().GetRed() * intensity),
+                    program.SetUniform(idx + pointLightsColorOffset, (float)(pointLights[i].GetColor().GetRed() * intensity),
                         (float)(pointLights[i].GetColor().GetGreen() * intensity), (float)(pointLights[i].GetColor().GetBlue() * intensity));
                     //program.setUniformf(idx + pointLightsPositionOffset, (float)pointLights[i].GetGlobalX(), (float)pointLights[i].GetGlobalY(),
                     //    (float)pointLights[i].GetGlobalZ());
-                    program.setUniformf(idx + pointLightsPositionOffset, (float)pointLights[i].GetGlobalX(), (float)pointLights[i].GetGlobalY(),
+                    program.SetUniform(idx + pointLightsPositionOffset, (float)pointLights[i].GetGlobalX(), (float)pointLights[i].GetGlobalY(),
                        (float)pointLights[i].GetGlobalZ() * -1);
                     
                     if (pointLightsIntensityOffset >= 0)
-                        program.setUniformf(idx + pointLightsIntensityOffset, (float)pointLights[i].GetIntensity());
+                        program.SetUniform(idx + pointLightsIntensityOffset, (float)pointLights[i].GetIntensity());
                     
                     if (pointLightsSize <= 0) 
                         break;
@@ -1213,7 +1213,7 @@ public class DefaultShader extends BaseShader
 	@Override
 	public void Dispose ()
         {
-            program.dispose();
+            program.Dispose();
             super.Dispose();
 	}
 
@@ -1308,24 +1308,24 @@ public class DefaultShader extends BaseShader
         /*
         Used to output the contents of a matrix. For debugging purposes only.
         */
-        private static float[] OutputMatrix4(Matrix4_ matrix)
-        {
-            Matrix4 m = (Matrix4)matrix;
-            // OpenGL expects the matrix to be stored in column-major format.
-            float[] temp = {(float)m.row0column0, (float)m.row1column0, (float)m.row2column0, (float)m.row3column0,
-                            (float)m.row0column1, (float)m.row1column1, (float)m.row2column1, (float)m.row3column1,
-                            (float)m.row0column2, (float)m.row1column2, (float)m.row2column2, (float)m.row3column2,
-                            (float)m.row0column3, (float)m.row1column3, (float)m.row2column3, (float)m.row3column3};
-            
-            for (int i = 0; i < 16; i++)
-            {
-                if (i % 4 == 0)
-                    System.out.println("");
-                System.out.print(temp[i] + ", ");
-            }
-            
-            System.out.println("");
-            
-            return temp;
-        }
+//        private static float[] OutputMatrix4(Matrix4_ matrix)
+//        {
+//            Matrix4 m = (Matrix4)matrix;
+//            // OpenGL expects the matrix to be stored in column-major format.
+//            float[] temp = {(float)m.row0column0, (float)m.row1column0, (float)m.row2column0, (float)m.row3column0,
+//                            (float)m.row0column1, (float)m.row1column1, (float)m.row2column1, (float)m.row3column1,
+//                            (float)m.row0column2, (float)m.row1column2, (float)m.row2column2, (float)m.row3column2,
+//                            (float)m.row0column3, (float)m.row1column3, (float)m.row2column3, (float)m.row3column3};
+//            
+//            for (int i = 0; i < 16; i++)
+//            {
+//                if (i % 4 == 0)
+//                    System.out.println("");
+//                System.out.print(temp[i] + ", ");
+//            }
+//            
+//            System.out.println("");
+//            
+//            return temp;
+//        }
 }

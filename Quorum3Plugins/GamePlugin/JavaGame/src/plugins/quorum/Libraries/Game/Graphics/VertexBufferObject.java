@@ -9,7 +9,7 @@ import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.GameState;
 import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
-import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
+//import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.VertexAttribute_;
@@ -148,14 +148,14 @@ public class VertexBufferObject extends VertexData
             for (int i = 0; i < numAttributes; i++) 
             {
                 final VertexAttribute_ attribute = attributes.GetAttribute(i);
-                final int location = shader.getAttributeLocation(attribute.Get_Libraries_Game_Graphics_VertexAttribute__alias_());
+                final int location = shader.GetAttributeLocation(attribute.Get_Libraries_Game_Graphics_VertexAttribute__alias_());
 		
                 if (location < 0)
                     continue;
 		
-                shader.enableVertexAttribute(location);
+                shader.EnableVertexAttribute(location);
 
-                shader.setVertexAttribute(location, attribute.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_(),
+                shader.SetVertexAttribute(location, attribute.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_(),
                     attribute.Get_Libraries_Game_Graphics_VertexAttribute__type_(), attribute.Get_Libraries_Game_Graphics_VertexAttribute__normalized_(),
                     attributes.Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_(), attribute.Get_Libraries_Game_Graphics_VertexAttribute__offset_());
             }
@@ -171,9 +171,9 @@ public class VertexBufferObject extends VertexData
                 if (location < 0) 
                     continue;
 	
-                shader.enableVertexAttribute(location);
+                shader.EnableVertexAttribute(location);
 
-                shader.setVertexAttribute(location, attribute.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_(),
+                shader.SetVertexAttribute(location, attribute.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_(),
                     attribute.Get_Libraries_Game_Graphics_VertexAttribute__type_(), attribute.Get_Libraries_Game_Graphics_VertexAttribute__normalized_(),
                     attributes.Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_(), attribute.Get_Libraries_Game_Graphics_VertexAttribute__offset_());
             }
@@ -197,7 +197,7 @@ public class VertexBufferObject extends VertexData
         {
             for (int i = 0; i < numAttributes; i++) 
             {
-                shader.disableVertexAttribute(attributes.GetAttribute(i).Get_Libraries_Game_Graphics_VertexAttribute__alias_());
+                shader.DisableVertexAttribute(attributes.GetAttribute(i).Get_Libraries_Game_Graphics_VertexAttribute__alias_());
             }
         }
         else 
@@ -206,7 +206,7 @@ public class VertexBufferObject extends VertexData
             {
                 final int location = locations[i];
                 if (location >= 0)
-                    shader.disableVertexAttribute(location);
+                    shader.DisableVertexAttribute(location);
             }
         }
         
