@@ -10,42 +10,25 @@ import java.lang.reflect.Field;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import quorum.Libraries.Game.Graphics.Color_;
 import plugins.quorum.Libraries.Game.GameState;
 
 /**
  *
  * @author alleew
  */
-public class Font {
-    
-    // Useful cache example: http://www.fifi.org/doc/libfreetype6/cache.html
-    
+public class Font 
+{    
     public java.lang.Object me_ = null;
     
     static long libHandle = 0;
-    //static final long cacheManagerHandle;
-    static
-    {
-        //libHandle = InitFreeType();
-        //cacheManagerHandle = InitCacheManager();
-    }
     
     // FOR DEBUGGING PURPOSES ONLY
     static boolean outputHeight = true;
-    // RETURN bitmapData to 6 SLOTS
     
-    //long cacheHandle;       // Identifies the cache of images used by this particular font.
     long faceHandle;        // Identifies the face used by this font. 
     
-    //int shaderHandle;       // Identifies the shader program used by this font.
-    //int vertexShaderHandle; // Identifies the vertex shader component of the shader program.
-    //int fragShaderHandle;   // Identifies the fragment shader component of the shader program.
-    //int colorHandle;        // Used to adjust the color of the text.
-    //int texHandle;          // A handle to the texture handle.
-    //int coordHandle;        // A handle to the vertex coordinates attribute.
-    
-    //int glHandle;           // This is the handle to the texture that will be used to draw each character.
-    //int bufferHandle;       // A handle to the buffer that will be used to draw the character.
+    Color_ color;
     
     /* bitmapData will contain the following information after a call to LoadBitmap:
         [0] : The distance from the cursor to the left side of the bitmap.
@@ -398,6 +381,10 @@ public class Font {
 
             quorum.Libraries.Game.Graphics.Texture texture = new quorum.Libraries.Game.Graphics.Texture();
             texture.LoadFromTextureData(texData);
+            
+            quorum.Libraries.Game.Graphics.Color c = new quorum.Libraries.Game.Graphics.Color();
+            c.SetColor(color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha());
+            texture.plugin_.fontColor = c;
 
             quorum.Libraries.Game.Graphics.Drawable sprite = new quorum.Libraries.Game.Graphics.Drawable();
             sprite.Load(texture);
@@ -435,4 +422,13 @@ public class Font {
     
     private native void DisposeC(long handle);
     
+    public void SetColorNative(Color_ c)
+    {
+        color = c;
+    }
+    
+    public Color_ GetColor()
+    {
+        return color;
+    }
 }

@@ -49,6 +49,12 @@ public class Painter2D
     private ShaderProgram shader;
     private ShaderProgram customShader = null;
     private boolean ownsShader;
+
+    /*
+    Resources used for the font shader.
+    */
+    private ShaderProgram fontShader;
+    private boolean useFontShader = false;
     
     float colorValue; // Initialized by constructor.
     
@@ -78,6 +84,7 @@ public class Painter2D
         projectionMatrix.SetToOrthographic2D(0, 0, GameState.GetDisplay().GetWidth(), GameState.GetDisplay().GetHeight());
         
         shader = CreateDefaultShader();
+        fontShader = CreateFontShader();
         ownsShader = true;
     }
     
@@ -114,7 +121,48 @@ public class Painter2D
 
 	ShaderProgram shader = new ShaderProgram(vertexShader, fragmentShader);
 	if (shader.IsCompiled() == false)
-            throw new IllegalArgumentException("Error compiling shader: " + shader.GetLog());
+            throw new IllegalArgumentException("Error compiling default shader: " + shader.GetLog());
+	return shader;
+    }
+    
+    /** Returns a new instance of the shader used by the Painter2D for fonts. */
+    static public ShaderProgram CreateFontShader () 
+    {
+	String vertexShader = "attribute vec4 " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
+		+ "attribute vec4 " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" //
+		+ "attribute vec2 " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n" //
+		+ "uniform mat4 u_projTrans;\n" //
+		+ "varying vec4 v_color;\n" //
+		+ "varying vec2 v_texCoords;\n" //
+		+ "\n" //
+		+ "void main()\n" //
+		+ "{\n" //
+		+ "   v_color = " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" //
+		+ "   v_color.a = v_color.a * (255.0/254.0);\n" //
+		+ "   v_texCoords = " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n" //
+		+ "   gl_Position =  u_projTrans * " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
+		+ "}\n";
+	String fragmentShader = "#ifdef GL_ES\n" //
+		+ "#define LOWP lowp\n" //
+		+ "precision mediump float;\n" //
+		+ "#else\n" //
+		+ "#define LOWP \n" //
+		+ "#endif\n" //
+		+ "varying LOWP vec4 v_color;\n" //
+		+ "varying vec2 v_texCoords;\n" //
+                + "uniform vec4 u_fontColor;\n"
+		+ "uniform sampler2D u_texture;\n" //
+		+ "void main()\n"//
+		+ "{\n" //
+                + "  vec4 compute = texture2D(u_texture, v_texCoords);\n"
+                + "  compute.a = compute.a * u_fontColor.a;\n"
+                + "  compute.rgb = u_fontColor.rgb;\n"
+		+ "  gl_FragColor = v_color * compute;\n" //
+		+ "}";
+
+	ShaderProgram shader = new ShaderProgram(vertexShader, fragmentShader);
+	if (shader.IsCompiled() == false)
+            throw new IllegalArgumentException("Error compiling font shader: " + shader.GetLog());
 	return shader;
     }
     
@@ -127,7 +175,9 @@ public class Painter2D
         
         renderCalls = 0;
         GameState.nativeGraphics.glDepthMask(false);
-        if (customShader != null)
+        if (useFontShader)
+            fontShader.Begin();
+        else if (customShader != null)
             customShader.Begin();
         else
             shader.Begin();
@@ -153,7 +203,9 @@ public class Painter2D
         if (IsBlendingEnabled())
             gl.glDisable(GraphicsManager.GL_BLEND);
         
-        if (customShader != null)
+        if (useFontShader)
+            fontShader.End();
+        else if (customShader != null)
             customShader.End();
         else
             shader.End();
@@ -186,15 +238,17 @@ public class Painter2D
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
 	if (!quorumBatch.IsDrawing())
-            throw new GameRuntimeError("Painter2D.Begin() must be called before Draw.");
+            throw new GameRuntimeError("Painter2D:Begin() must be called before Draw.");
 
-        //int verticesLength = vertices.length;
         int verticesLength = quorumBatch.GetVertices().GetSize();
-        if (drawable.GetTexture() != quorumBatch.lastTexture) {
+        if (drawable.GetTexture() != quorumBatch.lastTexture) 
+        {
             SwitchTexture(drawable.GetTexture());
         }
-        else {
-            if (verticesLength - index < drawable.Get_Libraries_Game_Graphics_Drawable__DRAWABLE_SIZE_()) {
+        else 
+        {
+            if (verticesLength - index < drawable.Get_Libraries_Game_Graphics_Drawable__DRAWABLE_SIZE_()) 
+            {
                 Flush();
             }
         }
@@ -220,34 +274,6 @@ public class Painter2D
         }
     }
     
-    /*public void Draw (quorum.Libraries.Game.Graphics.Sprite_ sprite) 
-    {
-        
-        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
-        
-	if (!quorumBatch.IsDrawing())
-            throw new GameRuntimeError("Painter2D.Begin() must be called before Draw.");
-
-        int verticesLength = vertices.length;
-        if (sprite.GetTexture() != quorumBatch.lastTexture)
-            SwitchTexture(sprite.GetTexture());
-        else
-            if (verticesLength - index < sprite.Get_Libraries_Game_Graphics_Sprite_SPRITE_SIZE())
-                Flush();
-
-        // There will need to be casting from double to float here.
-        // Note that currently, "GetVertices" sets the x and y vertices, so it
-        // must be used to draw (otherwise no x and y info is stored). However,
-        // conveniently accessing a Quorum array's data from Java isn't possible
-        // so the actual variable isn't used. This is an inelegant solution,
-        // and a better one should be used here eventually.
-        sprite.PrepareVertices();
-        for (int i = 0; i < sprite.Get_Libraries_Game_Graphics_Sprite_SPRITE_SIZE(); i++)
-        {
-            vertices[index++] = (float)sprite.GetVertex(i);
-        }
-    }*/
-    
     public void Draw (quorum.Libraries.Game.Graphics.Drawable_ sprite, double x, double y)
     {
         sprite.SetPosition(x, y);
@@ -265,7 +291,7 @@ public class Painter2D
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         if (!quorumBatch.IsDrawing())
-            throw new GameRuntimeError("Painter2D.Begin() must be called before Draw.");
+            throw new GameRuntimeError("Painter2D:Begin() must be called before Draw.");
         
         if (drawTexture != quorumBatch.lastTexture)
             SwitchTexture(drawTexture);
@@ -319,7 +345,7 @@ public class Painter2D
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         if (!quorumBatch.IsDrawing())
-            throw new GameRuntimeError("Painter2D.Begin() must be called before Draw.");
+            throw new GameRuntimeError("Painter2D:Begin() must be called before Draw.");
 
 	quorum.Libraries.Game.Graphics.Texture_ texture = region.GetTextureField();
 	if (texture != quorumBatch.lastTexture) 
@@ -398,8 +424,9 @@ public class Painter2D
                 GameState.nativeGraphics.glBlendFunc(blendSourceFunction, blendDestFunction);
         }
         
-        
-        if (customShader != null)
+        if (useFontShader)
+            ((Mesh)mesh).plugin_.Render(fontShader, GraphicsManager.GL_TRIANGLES, 0, count);
+        else if (customShader != null)
             ((Mesh)mesh).plugin_.Render(customShader, GraphicsManager.GL_TRIANGLES, 0, count);
         else
             ((Mesh)mesh).plugin_.Render(shader, GraphicsManager.GL_TRIANGLES, 0, count);
@@ -453,6 +480,46 @@ public class Painter2D
     {
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         Flush();
+        
+        quorum.Libraries.Game.Graphics.Texture t = (quorum.Libraries.Game.Graphics.Texture)texture;
+        if (t.plugin_.fontColor != null)
+        {
+            if (useFontShader == false)
+            {
+                useFontShader = true;
+                if (quorumBatch.IsDrawing())
+                {
+                    if (customShader != null)
+                        customShader.End();
+                    else
+                        this.shader.End();
+                    
+                    fontShader.Begin();
+                }
+                
+                SetupMatrices();
+            }
+            fontShader.SetUniform("u_fontColor", t.plugin_.fontColor);
+        }
+        else
+        {
+            if (useFontShader == true)
+            {
+                useFontShader = false;
+                if (quorumBatch.IsDrawing())
+                {
+                    fontShader.End();
+                    
+                    if (customShader != null)
+                        customShader.Begin();
+                    else
+                        this.shader.Begin();
+                }
+                
+                SetupMatrices();
+            }
+        }
+        
         quorumBatch.lastTexture = texture;
         inverseTexWidth = 1.0f / (float)texture.GetWidth();
         inverseTexHeight = 1.0f / (float)texture.GetHeight();
@@ -493,7 +560,13 @@ public class Painter2D
     private void SetupMatrices () 
     {
 	combinedMatrix.Set(projectionMatrix).Multiply(transformMatrix);
-	if (customShader != null) 
+        
+        if (useFontShader)
+        {
+            fontShader.SetUniformMatrix("u_projTrans", combinedMatrix);
+            fontShader.SetUniform("u_texture", 0);
+        }
+        else if (customShader != null) 
         {
             customShader.SetUniformMatrix("u_projTrans", combinedMatrix);
             customShader.SetUniform("u_texture", 0);
