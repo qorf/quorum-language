@@ -43,12 +43,13 @@ class Font
     private integer size = 14
     private number angle = 0
     private integer height = 0
-    private Color color
     private boolean initialized = false
     private HashTable<text, Glyph> glyphTable
 
     on create
+        Color color
         color = color:Black()
+        SetColor(color)
     end
     
     /*
@@ -335,15 +336,66 @@ class Font
 
     private system action SetAngleNative(number angle)
 
-    // Inclusion of color to come in the future.
-    /*action SetColor(Color newColor)
-        color = newColor
-    end*/
+    /*
+    This action will set the color of the characters produced by this font.
 
-    // Inclusion of color to come in the future.
-    /*action GetColor returns Color
-        return color
-    end*/
+    Attribute: Parameter newColor The color to use for this font.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                Color color
+                font:SetColor(color:Orange())
+            end
+
+        end
+    */
+    action SetColor(Color newColor)
+        textChanged = true
+        if initialized
+            EmptyGlyphTable()
+        end
+        SetColorNative(newColor)
+    end
+
+    private system action SetColorNative(Color newColor)
+
+    /*
+    This action will return the color of the characters produced by this font.
+
+    Attribute: Returns The color being used by this font.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                Color color = font:GetColor()
+            end
+
+        end
+    */
+    system action GetColor returns Color
 
     /*
     This action will return the current angle of the font. The default angle is
