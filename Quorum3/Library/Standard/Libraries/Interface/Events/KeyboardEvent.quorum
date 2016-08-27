@@ -10,11 +10,15 @@ class KeyboardEvent
     public constant integer PRESSED_KEY = 1
     public constant integer RELEASED_KEY = 2
 
-    /*  The keyCode corresponds to a constant value in Keys.quorum. The value of 
-        -1 is the default for any key in Keys. */
+    /*  
+    The keyCode corresponds to one of the constant values in this class. 
+    The default value of -1 is equal to the "ANY_KEY" constant. 
+    */
     public integer keyCode = -1
 
-    /* This is either PRESSED_KEY or RELEASED_KEY. */
+    /* 
+    This is either PRESSED_KEY or RELEASED_KEY. 
+    */
     public integer eventType = 0
 
     public constant integer ANY_KEY = -1
@@ -178,6 +182,35 @@ class KeyboardEvent
     boolean represents whether the text should use the shift-keyed value, e.g.,
     the "A" key on the keyboard can represent the text "a" if shiftPressed is
     false, or "A" if shiftPressed is true.
+
+    Attribute: Parameter keycode The key code to translate to text.
+    Attribute: Parameter shiftPressed Whether to return the value of the key when shift is pressed, or to return its normal value.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.KeyboardEvent
+    use Libraries.Interface.Events.KeyboardListener
+    use Libraries.Game.InputMonitor
+
+    class Main is Game, KeyboardListener
+
+        InputMonitor monitor
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddKeyboardListener(me)
+        end
+
+        action PressedKey(KeyboardEvent event)
+            boolean shift = monitor:IsKeyPressed(event:SHIFT_LEFT) or monitor:IsKeyPressed(event:SHIFT_RIGHT)
+            text key = event:ToText(event:keyCode, shift)
+            output "The pressed key was " + key + "."
+        end
+    end
     */
     action ToText(integer keycode, boolean shiftPressed) returns text
         if shiftPressed
@@ -189,6 +222,30 @@ class KeyboardEvent
     /*
     This action will return the text value represented by a particular key. The
     returned text value assumes that the shift key is not being held down.
+
+    Attribute: Parameter keycode The key code to translate to text.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.KeyboardEvent
+    use Libraries.Interface.Events.KeyboardListener
+
+    class Main is Game, KeyboardListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddKeyboardListener(me)
+        end
+
+        action PressedKey(KeyboardEvent event)
+            text key = event:ToText(event:keyCode)
+            output "The pressed key was " + key + "."
+        end
+    end
     */
     action ToText(integer keycode) returns text
         if keycode < 0
@@ -216,6 +273,30 @@ class KeyboardEvent
     /*
     This action will return the text value represented by a particular key. The
     returned text value assumes that the shift key is being held down.
+
+    Attribute: Parameter keycode The key code to translate to text.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.KeyboardEvent
+    use Libraries.Interface.Events.KeyboardListener
+
+    class Main is Game, KeyboardListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddKeyboardListener(me)
+        end
+
+        action PressedKey(KeyboardEvent event)
+            text key = event:ToTextShift(event:keyCode)
+            output "The pressed key was " + key + "."
+        end
+    end
     */
     action ToTextShift(integer keycode) returns text
         if keycode < 0
