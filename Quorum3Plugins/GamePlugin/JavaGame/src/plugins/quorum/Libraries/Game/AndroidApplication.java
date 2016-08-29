@@ -34,7 +34,7 @@ import java.lang.reflect.Method;
  */
 public class AndroidApplication extends Activity
 {
-    java.lang.Object me_ = null;
+    public java.lang.Object me_ = null;
     
     static final int MINIMUM_SDK = 8;
     
