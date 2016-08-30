@@ -11,7 +11,6 @@ import quorum.Libraries.Game.DesktopConfiguration_;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Frame;
@@ -19,8 +18,6 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.PaintEvent;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.swing.SwingUtilities;
 
@@ -37,30 +34,24 @@ public class SwingApplication
 {
     public java.lang.Object me_ = null;
     
-    //LwjglGraphics graphics;
-    //OpenALAudio audio;
-    //LwjglFiles files;
-    //LwjglAWTInput input;
-    //LwjglNet net;
+    public DesktopDisplay display;
+
     Game_ game;
     AWTGLCanvas canvas;
-    //final Array<Runnable> runnables = new Array();
-    //final Array<Runnable> executedRunnables = new Array();
-    //final Array<LifecycleListener> lifecycleListeners = new Array<LifecycleListener>();
+    
     boolean running = true;
+    boolean exitRequested = false;
     int lastWidth;
     int lastHeight;
-    //int logLevel = LOG_INFO;
-    //ApplicationLogger applicationLogger;
+
     final String logTag = "LwjglAWTCanvas";
-    //Cursor cursor;
+
     public DesktopConfiguration_ config = null;
     
     static int instanceCount;
     
     public void SetupNative(DesktopConfiguration_ config)
     {
-        //setApplicationLogger(new LwjglApplicationLogger());
         instanceCount++;
         
         this.config = config;
@@ -91,19 +82,19 @@ public class SwingApplication
                     try
                     {
                         boolean systemPaint = !(EventQueue.getCurrentEvent() instanceof NonSystemPaint);
-                        //render(systemPaint);
+                        Render(systemPaint);
                         Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(nonSystemPaint);
                     }
                     catch (Throwable ex)
                     {
-                        //exception(ex);
+                        Exception(ex);
                     }
                 }
             };
         }
         catch (Throwable ex)
         {
-            //exception(ex);
+            Exception(ex);
             return;
         }
         
@@ -111,44 +102,6 @@ public class SwingApplication
             (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetGreen(),
             (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetBlue(),
             (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetAlpha()));
-        
-        /*
-        graphics = new LwjglGraphics(canvas, config) 
-            {
-                @Override
-                public void setTitle (String title) 
-                {
-                    super.setTitle(title);
-                    LwjglAWTCanvas.this.setTitle(title);
-                }
-
-                @Override
-                public boolean setWindowedMode (int width, int height) 
-                {
-                    if (!super.setWindowedMode(width, height)) return false;
-                    LwjglAWTCanvas.this.setDisplayMode(width, height);
-                    return true;
-                }
-
-                @Override
-                public boolean setFullscreenMode (DisplayMode displayMode) 
-                {
-                    if (!super.setFullscreenMode(displayMode)) return false;
-                    LwjglAWTCanvas.this.setDisplayMode(displayMode.width, displayMode.height);
-                    return true;
-                }
-
-                public boolean shouldRender () 
-                {
-                    synchronized (this) 
-                    {
-                        boolean rq = requestRendering;
-                        requestRendering = false;
-                        return rq || isContinuous;
-                    }
-                }
-            };
-        */
     }
     
 //    protected void SetDisplayMode(int width, int height)
@@ -219,18 +172,18 @@ public class SwingApplication
     {
         try
         {
-            //SetGlobals();
-            //graphics.initiateGL();
+            SetGlobals();
+            display.InitiateGLInstances();
             canvas.setVSyncEnabled(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
             game.CreateGame();
-            //lastWidth = Math.max(1, graphics.GetWidth());
-            //lastHeight = Math.max(1, graphics.GetHeight());
-            //start();
+            lastWidth = Math.max(1, display.GetWidth());
+            lastHeight = Math.max(1, display.GetHeight());
+            Start();
         }
         catch (Throwable ex)
         {
-            //stopped();
-            //exception(ex);
+            Stopped();
+            Exception(ex);
         }
     }
     
@@ -239,15 +192,11 @@ public class SwingApplication
         if (!running)
             return;
         
-        //SetGlobals();
+        SetGlobals();
         //canvas.setCursor(cursor);
-        
-        // REMOVE THIS:
-        int width = -1;
-        int height = -1;
-        
-        //int width = Math.max(1, graphics.GetWidth());
-        //int height = Math.max(1, graphics.GetHeight());
+
+        int width = Math.max(1, display.GetWidth());
+        int height = Math.max(1, display.GetHeight());
         if (lastWidth != width || lastHeight != height)
         {
             lastWidth = width;
@@ -258,44 +207,28 @@ public class SwingApplication
             shouldRender = true;
         }
         
-        // if (executeRunnables())
-        //    shouldRender = true;
+        if (exitRequested)
+        {
+            Stop();
+            exitRequested = false;
+        }
         
-        // if (!running)
-        //    return;
+        if (!running)
+            return;
         
-        // shouldRender |= graphics.shouldRender();
+        shouldRender |= display.ShouldRender();
         // input.processEvents(); // Probably not necessary, game input handled in ContinueGame().
         
         if (shouldRender)
         {
-            // graphics.updateTime()
-            // graphics.frameId++;
+            display.UpdateTime();
+            //display.frameID++;
             game.UpdateAll();
             canvas.swapBuffers();
         }
         
-        //Display.sync(getFrameRate() * instanceCount);
+        Display.sync(GetFrameRate() * instanceCount);
     }
-    
-    /*
-    public boolean executeRunnables () 
-    {
-        synchronized (runnables) 
-        {
-            for (int i = runnables.size - 1; i >= 0; i--)
-                    executedRunnables.addAll(runnables.get(i));
-            runnables.clear();
-        }
-        if (executedRunnables.size == 0)
-            return false;
-	
-        do
-            executedRunnables.pop().run();
-        while (executedRunnables.size > 0);
-        return true;
-    }
-    */
 
     protected int GetFrameRate () 
     {
@@ -340,13 +273,13 @@ public class SwingApplication
             return;
         
         running = false;
-        //SetGlobals();
+        SetGlobals();
         //Array<LifecycleListener> listeners = lifecycleListeners;
         
         // To allow destroying of OpenGL textures during disposal.
         if (canvas.isDisplayable())
         {
-            //makeCurrent();
+            MakeCurrent();
         }
         else
         {
@@ -370,6 +303,56 @@ public class SwingApplication
         instanceCount--;
         
         Stopped();
+    }
+
+    public void Exit() 
+    {
+        exitRequested = true;
+    }
+
+    /** Make the canvas' context current. It is highly recommended that the context is only made current inside the AWT thread (for
+     * example in an overridden paintGL()). */
+    public void MakeCurrent () 
+    {
+        try 
+        {
+            canvas.makeCurrent();
+            //SetGlobals();
+        }
+        catch (Throwable ex) 
+        {
+            Exception(ex);
+        }
+    }
+
+    /** Test whether the canvas' context is current. */
+    public boolean IsCurrent() 
+    {
+        try 
+        {
+            return canvas.isCurrent();
+        }
+        catch (Throwable ex) 
+        {
+            Exception(ex);
+            return false;
+        }
+    }
+    
+    protected void Exception(Throwable ex) 
+    {
+        ex.printStackTrace();
+        Stop();
+    }
+    
+    public void SetGlobals()
+    {
+        ((quorum.Libraries.Game.SwingApplication)me_).SetGlobals();
+    }
+    
+    public void SetGlobalsNative(quorum.Libraries.Game.DesktopDisplay_ quorumDisplay)
+    {
+        display = ((quorum.Libraries.Game.DesktopDisplay)quorumDisplay).plugin_;
     }
     
     static public class NonSystemPaint extends PaintEvent 
