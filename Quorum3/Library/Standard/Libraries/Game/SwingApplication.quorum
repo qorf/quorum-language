@@ -4,25 +4,25 @@ use Libraries.Game.Application
 
 class SwingApplication is Application
     
+    SwingInput swingInput
+    DesktopDisplay swingDisplay
+
     action Setup(Game game)
         parent:Application:Setup(game)
     
         game:InitializeLayers()
 
         SetupNative()
-
+        swingInput:Initialize(me)
         SetGlobals()
     end
 
     private system action SetupNative
 
     private action SetGlobals
-        SwingInput swingInput
-        swingInput:Initialize(me)
-
         GameStateManager manager
         manager:SetApplication(me)
-        //manager:SetGameDisplay(swingDisplay)
+        manager:SetGameDisplay(swingDisplay)
         manager:SetInput(swingInput)
     end
 
