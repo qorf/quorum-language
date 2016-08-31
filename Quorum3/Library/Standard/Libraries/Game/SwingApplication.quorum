@@ -1,23 +1,25 @@
 package Libraries.Game
 
 use Libraries.Game.Application
+use Libraries.Game.SwingInput
+use Libraries.Game.GameStateManager
 
 class SwingApplication is Application
     
     SwingInput swingInput
     DesktopDisplay swingDisplay
 
-    action Setup(Game game)
+    action Setup(Game game, DesktopConfiguration config)
         parent:Application:Setup(game)
     
         game:InitializeLayers()
 
-        SetupNative()
+        SetupNative(game, config)
         swingInput:Initialize(me)
         SetGlobals()
     end
 
-    private system action SetupNative
+    private system action SetupNative(Game game, DesktopConfiguration config)
 
     private action SetGlobals
         GameStateManager manager
@@ -25,5 +27,7 @@ class SwingApplication is Application
         manager:SetGameDisplay(swingDisplay)
         manager:SetInput(swingInput)
     end
+
+    public system action Exit
 
 end
