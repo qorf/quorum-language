@@ -50,10 +50,11 @@ public class SwingApplication
     
     static int instanceCount;
     
-    public void SetupNative(DesktopConfiguration_ config)
+    public void SetupNative(Game_ game, DesktopConfiguration_ config)
     {
         instanceCount++;
         
+        this.game = game;
         this.config = config;
         
         try

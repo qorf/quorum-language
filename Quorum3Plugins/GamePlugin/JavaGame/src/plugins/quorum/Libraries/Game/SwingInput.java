@@ -18,6 +18,7 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Robot;
 import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -29,6 +30,7 @@ import java.awt.event.WindowFocusListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashSet;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -50,7 +52,7 @@ import plugins.quorum.Libraries.Game.libGDX.Pool;
  *
  * @author alleew
  */
-public abstract class SwingInput implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
+public class SwingInput implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 {
     public java.lang.Object me_ = null;
     
@@ -83,7 +85,7 @@ public abstract class SwingInput implements MouseMotionListener, MouseListener, 
     boolean[] keys = new boolean[256];
     boolean keyJustPressed = false;
     boolean[] justPressedKeys = new boolean[256];
-//    IntSet pressedButtons = new IntSet();
+    HashSet pressedButtons = new HashSet();
 //    InputProcessor processor;
     Canvas canvas;
     boolean catched = false;
@@ -148,6 +150,57 @@ public abstract class SwingInput implements MouseMotionListener, MouseListener, 
     public boolean IsClicked()
     {
         return mouseClicked;
+    }
+    
+    public void ProcessInputEvents()
+    {
+        synchronized(this)
+        {
+            justClicked = false;
+            if (keyJustPressed)
+            {
+                keyJustPressed = false;
+                for (int i = 0; i < justPressedKeys.length; i++)
+                    justPressedKeys[i] = false;
+            }
+            
+            quorum.Libraries.Game.SwingInput quorumInput = ((quorum.Libraries.Game.SwingInput)me_);
+            
+            int length = keyEvents.size();
+            for (int i = 0; i < length; i++)
+            {
+                KeyboardEvent e = keyEvents.get(i);
+                if (e.eventType == e.PRESSED_KEY)
+                {
+                    keyJustPressed = true;
+                    justPressedKeys[e.keyCode] = true;
+                }
+                
+                quorumInput.ProcessKeyboardEvent(e);
+                usedKeyEvents.free(e);
+            }
+            
+            length = mouseEvents.size();
+            for (int i = 0; i < length; i++)
+            {
+                quorum.Libraries.Interface.Events.MouseEvent e = mouseEvents.get(i);
+                
+                if (e.eventType == e.CLICKED_MOUSE)
+                    justClicked = true;
+                
+                quorumInput.ProcessMouseEvent(e);
+                usedMouseEvents.free(e);
+            }
+            
+            if (mouseEvents.size() == 0)
+            {
+                deltaX = 0;
+                deltaY = 0;
+            }
+            
+            keyEvents.clear();
+            mouseEvents.clear();
+        }
     }
     
     @Override
@@ -262,7 +315,7 @@ public abstract class SwingInput implements MouseMotionListener, MouseListener, 
             mouseX = event.x;
             mouseY = event.y;
             mouseClicked = true;
-            //pressedButtons.Add(event.mouseButton);
+            pressedButtons.add(event.mouseButton);
             swingApplication.display.RequestRendering();
         }
     }
@@ -286,9 +339,268 @@ public abstract class SwingInput implements MouseMotionListener, MouseListener, 
             
             mouseX = event.x;
             mouseY = event.y;
-            //pressedButtons.remove(event.mouseButton);
-            //if (pressedButtons.size == 0) touchDown = false;
+            pressedButtons.remove(event.mouseButton);
+            if (pressedButtons.isEmpty())
+                mouseClicked = false;
             swingApplication.display.RequestRendering();
         }
+    }
+    
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e)
+    {
+        synchronized(this)
+        {
+            quorum.Libraries.Interface.Events.MouseEvent event = usedMouseEvents.obtain();
+            event.eventType = event.SCROLLED_MOUSE;
+            event.scrollAmount = e.getWheelRotation();
+            mouseEvents.add(event);
+            swingApplication.display.RequestRendering();
+        }
+    }
+    
+    @Override
+    public void keyPressed(KeyEvent e)
+    {
+        synchronized(this)
+        {
+            KeyboardEvent event = usedKeyEvents.obtain();
+            event.keyCode = TranslateKeyCode(e.getKeyCode());
+            event.eventType = event.PRESSED_KEY;
+            keyEvents.add(event);
+            if (!keys[event.keyCode])
+            {
+                keyCount++;
+                keys[event.keyCode] = true;
+            }
+            swingApplication.display.RequestRendering();
+        }
+    }
+    
+    @Override
+    public void keyReleased(KeyEvent e)
+    {
+        synchronized(this)
+        {
+            KeyboardEvent event = usedKeyEvents.obtain();
+            event.keyCode = TranslateKeyCode(e.getKeyCode());
+            event.eventType = event.RELEASED_KEY;
+            keyEvents.add(event);
+            if (keys[event.keyCode])
+            {
+                keyCount--;
+                keys[event.keyCode] = false;
+            }
+            swingApplication.display.RequestRendering();
+        }
+    }
+    
+    @Override
+    public void keyTyped(KeyEvent e)
+    {
+        // Since we don't have a "key typed" event, we send this as a key press.
+        keyPressed(e);
+    }
+    
+    protected static int TranslateKeyCode(int keyCode) 
+    {
+        switch (keyCode) 
+        {
+            case java.awt.event.KeyEvent.VK_ADD:
+                return keyConstants.PLUS;
+            case java.awt.event.KeyEvent.VK_SUBTRACT:
+                return keyConstants.MINUS;
+            case java.awt.event.KeyEvent.VK_0:
+                return keyConstants.NUM_0;
+            case java.awt.event.KeyEvent.VK_1:
+                return keyConstants.NUM_1;
+            case java.awt.event.KeyEvent.VK_2:
+                return keyConstants.NUM_2;
+            case java.awt.event.KeyEvent.VK_3:
+                return keyConstants.NUM_3;
+            case java.awt.event.KeyEvent.VK_4:
+                return keyConstants.NUM_4;
+            case java.awt.event.KeyEvent.VK_5:
+                return keyConstants.NUM_5;
+            case java.awt.event.KeyEvent.VK_6:
+                return keyConstants.NUM_6;
+            case java.awt.event.KeyEvent.VK_7:
+                return keyConstants.NUM_7;
+            case java.awt.event.KeyEvent.VK_8:
+                return keyConstants.NUM_8;
+            case java.awt.event.KeyEvent.VK_9:
+                return keyConstants.NUM_9;
+            case java.awt.event.KeyEvent.VK_A:
+                return keyConstants.A;
+            case java.awt.event.KeyEvent.VK_B:
+                return keyConstants.B;
+            case java.awt.event.KeyEvent.VK_C:
+                return keyConstants.C;
+            case java.awt.event.KeyEvent.VK_D:
+                return keyConstants.D;
+            case java.awt.event.KeyEvent.VK_E:
+                return keyConstants.E;
+            case java.awt.event.KeyEvent.VK_F:
+                return keyConstants.F;
+            case java.awt.event.KeyEvent.VK_G:
+                return keyConstants.G;
+            case java.awt.event.KeyEvent.VK_H:
+                return keyConstants.H;
+            case java.awt.event.KeyEvent.VK_I:
+                return keyConstants.I;
+            case java.awt.event.KeyEvent.VK_J:
+                return keyConstants.J;
+            case java.awt.event.KeyEvent.VK_K:
+                return keyConstants.K;
+            case java.awt.event.KeyEvent.VK_L:
+                return keyConstants.L;
+            case java.awt.event.KeyEvent.VK_M:
+                return keyConstants.M;
+            case java.awt.event.KeyEvent.VK_N:
+                return keyConstants.N;
+            case java.awt.event.KeyEvent.VK_O:
+                return keyConstants.O;
+            case java.awt.event.KeyEvent.VK_P:
+                return keyConstants.P;
+            case java.awt.event.KeyEvent.VK_Q:
+                return keyConstants.Q;
+            case java.awt.event.KeyEvent.VK_R:
+                return keyConstants.R;
+            case java.awt.event.KeyEvent.VK_S:
+                return keyConstants.S;
+            case java.awt.event.KeyEvent.VK_T:
+                return keyConstants.T;
+            case java.awt.event.KeyEvent.VK_U:
+                return keyConstants.U;
+            case java.awt.event.KeyEvent.VK_V:
+                return keyConstants.V;
+            case java.awt.event.KeyEvent.VK_W:
+                return keyConstants.W;
+            case java.awt.event.KeyEvent.VK_X:
+                return keyConstants.X;
+            case java.awt.event.KeyEvent.VK_Y:
+                return keyConstants.Y;
+            case java.awt.event.KeyEvent.VK_Z:
+                return keyConstants.Z;
+            case java.awt.event.KeyEvent.VK_ALT:
+                return keyConstants.ALT_LEFT;
+            case java.awt.event.KeyEvent.VK_ALT_GRAPH:
+                return keyConstants.ALT_RIGHT;
+            case java.awt.event.KeyEvent.VK_BACK_SLASH:
+                return keyConstants.BACKSLASH;
+            case java.awt.event.KeyEvent.VK_COMMA:
+                return keyConstants.COMMA;
+            case java.awt.event.KeyEvent.VK_DELETE:
+                return keyConstants.FORWARD_DEL;
+            case java.awt.event.KeyEvent.VK_LEFT:
+                return keyConstants.DPAD_LEFT;
+            case java.awt.event.KeyEvent.VK_RIGHT:
+                return keyConstants.DPAD_RIGHT;
+            case java.awt.event.KeyEvent.VK_UP:
+                return keyConstants.DPAD_UP;
+            case java.awt.event.KeyEvent.VK_DOWN:
+                return keyConstants.DPAD_DOWN;
+            case java.awt.event.KeyEvent.VK_ENTER:
+                return keyConstants.ENTER;
+            case java.awt.event.KeyEvent.VK_HOME:
+                return keyConstants.HOME;
+            case java.awt.event.KeyEvent.VK_MINUS:
+                return keyConstants.MINUS;
+            case java.awt.event.KeyEvent.VK_PERIOD:
+                return keyConstants.PERIOD;
+            case java.awt.event.KeyEvent.VK_PLUS:
+                return keyConstants.PLUS;
+            case java.awt.event.KeyEvent.VK_SEMICOLON:
+                return keyConstants.SEMICOLON;
+            case java.awt.event.KeyEvent.VK_SHIFT:
+                return keyConstants.SHIFT_LEFT;
+            case java.awt.event.KeyEvent.VK_SLASH:
+                return keyConstants.SLASH;
+            case java.awt.event.KeyEvent.VK_SPACE:
+                return keyConstants.SPACE;
+            case java.awt.event.KeyEvent.VK_TAB:
+                return keyConstants.TAB;
+            case java.awt.event.KeyEvent.VK_BACK_SPACE:
+                return keyConstants.DEL;
+            case java.awt.event.KeyEvent.VK_CONTROL:
+                return keyConstants.CONTROL_LEFT;
+            case java.awt.event.KeyEvent.VK_ESCAPE:
+                return keyConstants.ESCAPE;
+            case java.awt.event.KeyEvent.VK_END:
+                return keyConstants.END;
+            case java.awt.event.KeyEvent.VK_INSERT:
+                return keyConstants.INSERT;
+            case java.awt.event.KeyEvent.VK_PAGE_UP:
+                return keyConstants.PAGE_UP;
+            case java.awt.event.KeyEvent.VK_PAGE_DOWN:
+                return keyConstants.PAGE_DOWN;
+            case java.awt.event.KeyEvent.VK_F1:
+                return keyConstants.F1;
+            case java.awt.event.KeyEvent.VK_F2:
+                return keyConstants.F2;
+            case java.awt.event.KeyEvent.VK_F3:
+                return keyConstants.F3;
+            case java.awt.event.KeyEvent.VK_F4:
+                return keyConstants.F4;
+            case java.awt.event.KeyEvent.VK_F5:
+                return keyConstants.F5;
+            case java.awt.event.KeyEvent.VK_F6:
+                return keyConstants.F6;
+            case java.awt.event.KeyEvent.VK_F7:
+                return keyConstants.F7;
+            case java.awt.event.KeyEvent.VK_F8:
+                return keyConstants.F8;
+            case java.awt.event.KeyEvent.VK_F9:
+                return keyConstants.F9;
+            case java.awt.event.KeyEvent.VK_F10:
+                return keyConstants.F10;
+            case java.awt.event.KeyEvent.VK_F11:
+                return keyConstants.F11;
+            case java.awt.event.KeyEvent.VK_F12:
+                return keyConstants.F12;
+            case java.awt.event.KeyEvent.VK_COLON:
+                return keyConstants.COLON;
+            case java.awt.event.KeyEvent.VK_NUMPAD0:
+                return keyConstants.NUM_0;
+            case java.awt.event.KeyEvent.VK_NUMPAD1:
+                return keyConstants.NUM_1;
+            case java.awt.event.KeyEvent.VK_NUMPAD2:
+                return keyConstants.NUM_2;
+            case java.awt.event.KeyEvent.VK_NUMPAD3:
+                return keyConstants.NUM_3;
+            case java.awt.event.KeyEvent.VK_NUMPAD4:
+                return keyConstants.NUM_4;
+            case java.awt.event.KeyEvent.VK_NUMPAD5:
+                return keyConstants.NUM_5;
+            case java.awt.event.KeyEvent.VK_NUMPAD6:
+                return keyConstants.NUM_6;
+            case java.awt.event.KeyEvent.VK_NUMPAD7:
+                return keyConstants.NUM_7;
+            case java.awt.event.KeyEvent.VK_NUMPAD8:
+                return keyConstants.NUM_8;
+            case java.awt.event.KeyEvent.VK_NUMPAD9:
+                return keyConstants.NUM_9;
+        }
+        return keyConstants.UNKNOWN;
+    }
+    
+    public boolean JustClicked()
+    {
+        return justClicked;
+    }
+    
+    public boolean IsButtonPressed(int button)
+    {
+        return pressedButtons.contains(button);
+    }
+    
+    public int GetMovementX()
+    {
+        return deltaX;
+    }
+    
+    public int GetMovementY()
+    {
+        return deltaY;
     }
 }
