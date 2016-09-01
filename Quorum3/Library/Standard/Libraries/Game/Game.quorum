@@ -188,6 +188,8 @@ class Game
     */
     private action StartSwingCanvas
     
+        output "Starting..."
+
         SwingApplication application
 
         GameStateManager manager
@@ -197,15 +199,20 @@ class Game
             desktopConfig:title = "Game"
         end
 
+        output "Hello world!"
+
+        application:Setup(me, desktopConfig)
+
         /*
         We pass a reference to the layers array to the GameInput. This will 
         allow it to properly test input on items in the game. Because it is an
         object reference, future changes to the array of layers will also be
         reflected in the GameInput.
         */
+        gameInput = manager:GetInput()
         gameInput:SetLayers(layers)
 
-        application:Setup(me, desktopConfig)
+        //InitializeLayers()
     end
 
     /*

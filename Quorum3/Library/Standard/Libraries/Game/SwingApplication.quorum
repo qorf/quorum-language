@@ -12,7 +12,7 @@ class SwingApplication is Application
     action Setup(Game game, DesktopConfiguration config)
         parent:Application:Setup(game)
     
-        game:InitializeLayers()
+        //game:InitializeLayers()
 
         SetupNative(game, config)
         swingInput:Initialize(me)
