@@ -174,11 +174,15 @@ public class SwingApplication
         try
         {
             SetGlobals();
+            
+            display = ((quorum.Libraries.Game.DesktopDisplay)GameState.GetDisplay()).plugin_;
+            
             display.InitiateGLInstances();
             canvas.setVSyncEnabled(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
+            game.InitializeLayers();
             game.CreateGame();
-            lastWidth = Math.max(1, display.GetWidth());
-            lastHeight = Math.max(1, display.GetHeight());
+            lastWidth = Math.max(1, canvas.getWidth());
+            lastHeight = Math.max(1, canvas.getHeight());
             Start();
         }
         catch (Throwable ex)
@@ -196,12 +200,13 @@ public class SwingApplication
         SetGlobals();
         //canvas.setCursor(cursor);
 
-        int width = Math.max(1, display.GetWidth());
-        int height = Math.max(1, display.GetHeight());
+        int width = Math.max(1, canvas.getWidth());
+        int height = Math.max(1, canvas.getHeight());
         if (lastWidth != width || lastHeight != height)
         {
             lastWidth = width;
             lastHeight = height;
+            System.out.println("lastWidth = " + lastWidth + ", lastHeight = " + lastHeight);
             GameState.nativeGraphics.SetDrawingRegion(0, 0, lastWidth, lastHeight);
             //resize(width, height);
             //game.Resize(width, height);
@@ -222,9 +227,13 @@ public class SwingApplication
         
         if (shouldRender)
         {
+            System.out.println("Rendering! width = " + canvas.getWidth() + ", " + canvas.getHeight());
+            System.out.println("lastWidth = " + lastWidth + ", lastHeight = " + lastHeight);
+            System.out.println("width = " + width + ", height = " + height);
+            System.out.println("display.GetWidth() = " + display.GetWidth() + ", display.GetHeight() = " + display.GetHeight());
             display.UpdateTime();
             //display.frameID++;
-            game.UpdateAll();
+            game.ContinueGame();
             canvas.swapBuffers();
         }
         
@@ -270,6 +279,7 @@ public class SwingApplication
     
     public void Stop()
     {
+        System.out.println("Stop was called!");
         if (!running)
             return;
         
@@ -318,7 +328,7 @@ public class SwingApplication
         try 
         {
             canvas.makeCurrent();
-            //SetGlobals();
+            SetGlobals();
         }
         catch (Throwable ex) 
         {
