@@ -270,7 +270,7 @@ class Layer2D is Layer
             body:contactList = undefined
 
             body:DestroyNodes(collisionManager:GetBroadphase())
-
+            body:SetCollidable(false)
             body:SetLayer(undefined)
         end
         items:Empty()
