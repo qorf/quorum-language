@@ -2,12 +2,13 @@ package Libraries.Game
 
 use Libraries.Game.Application
 use Libraries.Game.SwingInput
+use Libraries.Game.SwingDisplay
 use Libraries.Game.GameStateManager
 
 class SwingApplication is Application
     
     SwingInput swingInput
-    DesktopDisplay swingDisplay
+    SwingDisplay swingDisplay
 
     action Setup(Game game, DesktopConfiguration config)
         parent:Application:Setup(game)
@@ -16,7 +17,11 @@ class SwingApplication is Application
 
         SetupNative(game, config)
         swingInput:Initialize(me)
+        swingDisplay:SetConfiguration(config)
+//        swingDisplay:SetupDisplay()
         SetGlobals()
+
+        //game:InitializeLayers()
     end
 
     private system action SetupNative(Game game, DesktopConfiguration config)
