@@ -222,6 +222,18 @@ class DynamicBoundingVolumeTree3D
         return nodeCount
     end
 
+    action CountNodes returns integer
+        return CountNodes(root)
+    end
+
+    action CountNodes(DynamicBoundingVolumeTreeNode3D node) returns integer
+        if node:IsLeaf()
+            return 1
+        end
+
+        return CountNodes(node:GetLeftChild()) + CountNodes(node:GetRightChild())
+    end
+
     /*
     This action queries the tree for bounding boxes that overlap with the given
     bounding box and returns all leafs whose bounding boxes intersect the
