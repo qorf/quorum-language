@@ -111,13 +111,11 @@ class CollisionManager3D
         end
 
         if collision:GetPrevious() not= undefined
-            CollisionEvent3D collisionPrevious = collision:GetPrevious()
-            collisionPrevious:SetNext(collision:GetNext())
+            collision:GetPrevious():SetNext(collision:GetNext())
         end
 
         if collision:GetNext() not= undefined
-            CollisionEvent3D collisionNext = collision:GetNext()
-            collisionNext:SetPrevious(collision:GetPrevious())
+            collision:GetNext():SetPrevious(collision:GetPrevious())
         end
 
         if collision = collisionList
@@ -156,28 +154,38 @@ class CollisionManager3D
     action Collide
         CollisionEvent3D collision = collisionList
         repeat while collision not= undefined
+            boolean jump = false
             Item3D itemA = collision:GetItemA()
             Item3D itemB = collision:GetItemB()
             integer indexA = collision:GetChildIndexA()
             integer indexB = collision:GetChildIndexB()
+
+            if not itemA:IsCollidable() or not itemB:IsCollidable()
+                CollisionEvent3D cNuke = collision
+                collision = cNuke:GetNext()
+                Destroy(cNuke)
+                jump = true
+            end
 
             // collision filtering
             // this involves, for example, ignoring collisions where both items
             // are declared as static bodies
             // should we allow user-defined collision filtering?
 
-            integer nodeIDA = itemA:GetNode(indexA):nodeID
-            integer nodeIDB = itemB:GetNode(indexB):nodeID
+            if not jump
+                integer nodeIDA = itemA:GetNode(indexA):nodeID
+                integer nodeIDB = itemB:GetNode(indexB):nodeID
 
-            boolean overlap = broadphase:TestOverlap(nodeIDA, nodeIDB)
+                boolean overlap = broadphase:TestOverlap(nodeIDA, nodeIDB)
 
-            if not overlap
-                CollisionEvent3D cNuke = collision
-                collision = cNuke:GetNext()
-                Destroy(cNuke)
-            else
-                collision:DispatchCollision(listeners)
-                collision = collision:GetNext()
+                if not overlap
+                    CollisionEvent3D cNuke = collision
+                    collision = cNuke:GetNext()
+                    Destroy(cNuke)
+                else
+                    collision:DispatchCollision(listeners)
+                    collision = collision:GetNext()
+                end
             end
         end
     end

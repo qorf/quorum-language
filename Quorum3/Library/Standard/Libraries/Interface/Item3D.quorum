@@ -989,6 +989,7 @@ class Item3D is Item
         removed:contactList = undefined
 
         removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+        removed:SetCollidable(false)
 
         removed:SetParent(undefined)
         removed:SetLayer(undefined)
@@ -1032,6 +1033,7 @@ class Item3D is Item
         temp:contactList = undefined
 
         temp:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+        temp:SetCollidable(false)
 
         temp:SetParent(undefined)
         temp:SetLayer(undefined)

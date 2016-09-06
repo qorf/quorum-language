@@ -153,28 +153,38 @@ class CollisionManager2D
     action Collide
         CollisionEvent2D collision = collisionList
         repeat while collision not= undefined
+            boolean jump = false
             Item2D itemA = collision:GetItemA()
             Item2D itemB = collision:GetItemB()
             integer indexA = collision:GetChildIndexA()
             integer indexB = collision:GetChildIndexB()
+
+            if not itemA:IsCollidable() or not itemB:IsCollidable()
+                CollisionEvent2D cNuke = collision
+                collision = cNuke:GetNext()
+                Destroy(cNuke)
+                jump = true
+            end
 
             // collision filtering
             // this involves, for example, ignoring collisions where both items
             // are declared as static bodies
             // should we allow user-defined collision filtering?
 
-            integer nodeIDA = itemA:GetNodes():Get(indexA):nodeID
-            integer nodeIDB = itemB:GetNodes():Get(indexB):nodeID
+            if not jump
+                integer nodeIDA = itemA:GetNodes():Get(indexA):nodeID
+                integer nodeIDB = itemB:GetNodes():Get(indexB):nodeID
 
-            boolean overlap = broadphase:TestOverlap(nodeIDA, nodeIDB)
+                boolean overlap = broadphase:TestOverlap(nodeIDA, nodeIDB)
 
-            if not overlap
-                CollisionEvent2D cNuke = collision
-                collision = cNuke:GetNext()
-                Destroy(cNuke)
-            else
-                collision:DispatchCollision(listeners)
-                collision = collision:GetNext()
+                if not overlap
+                    CollisionEvent2D cNuke = collision
+                    collision = cNuke:GetNext()
+                    Destroy(cNuke)
+                else
+                    collision:DispatchCollision(listeners)
+                    collision = collision:GetNext()
+                end
             end
         end
     end
