@@ -45,70 +45,33 @@ public class DesktopDisplay {
      Right now setupDisplay only works on OpenGL and not software rendering.
      Also, this should eventually throw an exception when it fails.
      */
-    public void SetupDisplay() {
-        //Give us access to the display members   
-        //try {
-            quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
+    public void SetupDisplay() 
+    {
+        quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
             
-            dis.SetVSync(dis.config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
+        dis.SetVSync(dis.config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
             
-            Color_ color = dis.config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_();
+        Color_ color = dis.config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_();
 
-            boolean displayCreated = SetDisplayMode(dis.config.Get_Libraries_Game_DesktopConfiguration__width_(),
-                                                    dis.config.Get_Libraries_Game_DesktopConfiguration__height_(),
-                                                    dis.config.Get_Libraries_Game_DesktopConfiguration__fullScreen_());
+        boolean displayCreated = SetDisplayMode(dis.config.Get_Libraries_Game_DesktopConfiguration__width_(),
+            dis.config.Get_Libraries_Game_DesktopConfiguration__height_(),
+            dis.config.Get_Libraries_Game_DesktopConfiguration__fullScreen_());
             
-            if (!displayCreated)
-                throw new GameRuntimeError("An error ocurred in SetDisplayMode!");
+        if (!displayCreated)
+            throw new GameRuntimeError("An error ocurred in SetDisplayMode!");
             
-      //test if display is already created
-      /*
-            boolean displayCreated = setDisplayMode(config.width, config.height, config.fullscreen);			
-			if (!displayCreated) {
-				if (config.setDisplayModeCallback != null) {
-					config = config.setDisplayModeCallback.onFailure(config);
-					if (config != null) {
-						displayCreated = setDisplayMode(config.width, config.height, config.fullscreen);
-					}
-				}
-				if (!displayCreated) {
-					throw new GdxRuntimeException("Couldn't set display mode " + config.width + "x" + config.height + ", fullscreen: "
-						+ config.fullscreen);
-				}
-			}
-			if (config.iconPaths.size > 0) {
-				ByteBuffer[] icons = new ByteBuffer[config.iconPaths.size];
-				for (int i = 0, n = config.iconPaths.size; i < n; i++) {
-					Pixmap pixmap = new Pixmap(Gdx.files.getFileHandle(config.iconPaths.get(i), config.iconFileTypes.get(i)));
-					if (pixmap.getFormat() != Format.RGBA8888) {
-						Pixmap rgba = new Pixmap(pixmap.getWidth(), pixmap.getHeight(), Format.RGBA8888);
-						rgba.drawPixmap(pixmap, 0, 0);
-						pixmap = rgba;
-					}
-					icons[i] = ByteBuffer.allocateDirect(pixmap.getPixels().limit());
-					icons[i].put(pixmap.getPixels()).flip();
-					pixmap.dispose();
-				}
-				Display.setIcon(icons);
-			}
-		}*/      
-            
-            //Set icons
-            Display.setTitle(dis.config.Get_Libraries_Game_DesktopConfiguration__title_());
-            Display.setResizable(dis.config.Get_Libraries_Game_DesktopConfiguration__resizable_());
+        //Set icons
+        Display.setTitle(dis.config.Get_Libraries_Game_DesktopConfiguration__title_());
+        Display.setResizable(dis.config.Get_Libraries_Game_DesktopConfiguration__resizable_());
 
-      //Reader beware: Casting double to float here. Since RGB can't be extremely large or
-            //               small this shouldn't have any effect on coloring.
-            Display.setInitialBackground((float) color.GetRed(), (float) color.GetGreen(), (float) color.GetBlue());
-            Display.setLocation(dis.config.Get_Libraries_Game_DesktopConfiguration__x_(),
-                    dis.config.Get_Libraries_Game_DesktopConfiguration__y_());
+        //Reader beware: Casting double to float here. Since RGB can't be extremely large or
+        //               small this shouldn't have any effect on coloring.
+        Display.setInitialBackground((float) color.GetRed(), (float) color.GetGreen(), (float) color.GetBlue());
+        Display.setLocation(dis.config.Get_Libraries_Game_DesktopConfiguration__x_(),
+            dis.config.Get_Libraries_Game_DesktopConfiguration__y_());
 
-            createDisplayPixelFormat(); //Display is actually created in here
-            InitiateGLInstances();
-    //    } catch (Exception e) {
-     //       Logger.getLogger(GameDisplay.class.getName()).log(Level.SEVERE, "The SetupDisplay call in GameDisplay crashed.");
-     //   }
-        
+        createDisplayPixelFormat(); //Display is actually created in here
+        InitiateGLInstances();
     }
 
     public boolean SetDisplayMode(int width, int height, boolean fullScreen) 
@@ -201,7 +164,7 @@ public class DesktopDisplay {
         Display.setVSyncEnabled(vsync);
     }
 
-    private void createDisplayPixelFormat() 
+    protected void createDisplayPixelFormat() 
     {
         //Create the display
         try 
