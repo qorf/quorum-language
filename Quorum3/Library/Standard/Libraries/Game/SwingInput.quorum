@@ -7,12 +7,18 @@ use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Containers.Array
 
 class SwingInput is GameInput
 
-    action Initialize(SwingApplication app)
+    Array<MouseListener> mouseListeners
+    Array<MouseMovementListener> mouseMovementListeners
+    Array<MouseWheelListener> mouseWheelListeners
+    Array<KeyboardListener> keyboardListeners
 
-    end
+    system action Initialize(SwingApplication app)
 
     /*
     This action will identify all input events that have occurred and notify
@@ -21,8 +27,61 @@ class SwingInput is GameInput
     notified. This action is called automatically by the Game class, so most
     users will never need to use this action directly.
     */
-    action ProcessInputEvents
+    system action ProcessInputEvents
 
+    /*
+    This action is called by the SwingInput plugin to process a KeyboardEvent
+    during the ProcessInputEvents action.
+    */
+    private action ProcessKeyboardEvent(KeyboardEvent event)
+        integer counter = 0
+
+        if event:eventType = event:PRESSED_KEY
+            repeat while counter < keyboardListeners:GetSize()
+                keyboardListeners:Get(counter):PressedKey(event)
+                counter = counter + 1
+            end
+        else
+            repeat while counter < keyboardListeners:GetSize()
+                keyboardListeners:Get(counter):ReleasedKey(event)
+                counter = counter + 1
+            end
+        end
+    end
+
+    /*
+    This action is called by the SwingInput plugin to process a MouseEvent
+    during the ProcessInputEvents action.
+    */
+    private action ProcessMouseEvent(MouseEvent event)
+        integer counter = 0
+
+        if event:eventType = event:MOVED_MOUSE
+            repeat while counter < mouseMovementListeners:GetSize()
+                mouseMovementListeners:Get(counter):MovedMouse(event)
+                counter = counter + 1
+            end
+        elseif event:eventType = event:DRAGGED_MOUSE
+            repeat while counter < mouseMovementListeners:GetSize()
+                mouseMovementListeners:Get(counter):DraggedMouse(event)
+                counter = counter + 1
+            end
+        elseif event:eventType = event:CLICKED_MOUSE
+            repeat while counter < mouseListeners:GetSize()
+                mouseListeners:Get(counter):ClickedMouse(event)
+                counter = counter + 1
+            end
+        elseif event:eventType = event:RELEASED_MOUSE
+            repeat while counter < mouseListeners:GetSize()
+                mouseListeners:Get(counter):ReleasedMouse(event)
+                counter = counter + 1
+            end
+        else
+            repeat while counter < mouseWheelListeners:GetSize()
+                mouseWheelListeners:Get(counter):ScrolledMouse(event)
+                counter = counter + 1
+            end
+        end
     end
 
     /*
@@ -31,7 +90,7 @@ class SwingInput is GameInput
     is automatically called by the Game class when needed.
     */
     action AddKeyboardListener(KeyboardListener listener)
-
+        keyboardListeners:Add(listener)
     end
 
     /*
@@ -40,7 +99,7 @@ class SwingInput is GameInput
     action is automatically called by the Game class when needed.
     */
     action RemoveKeyboardListener(KeyboardListener listener)
-
+        keyboardListeners:Remove(listener)
     end
 
     /*
@@ -51,7 +110,7 @@ class SwingInput is GameInput
     event.
     */
     action AddMouseListener(MouseListener listener)
-
+        mouseListeners:Add(listener)
     end
 
     /*
@@ -62,7 +121,7 @@ class SwingInput is GameInput
     receive the event.
     */
     action AddMouseMovementListener(MouseMovementListener listener)
-
+        mouseMovementListeners:Add(listener)
     end
 
     /*
@@ -73,7 +132,7 @@ class SwingInput is GameInput
     receive the event.
     */
     action AddMouseWheelListener(MouseWheelListener listener)
-
+        mouseWheelListeners:Add(listener)
     end
 
     /*
@@ -84,7 +143,7 @@ class SwingInput is GameInput
     receive the event.
     */
     action AddTouchListener(TouchListener listener)
-
+        // Do nothing - this doesn't support touch listeners.
     end
 
     /*
@@ -92,7 +151,7 @@ class SwingInput is GameInput
     receive mouse events directly from the GameInput.
     */
     action RemoveMouseListener(MouseListener listener)
-
+        mouseListeners:Remove(listener)
     end
 
     /*
@@ -100,7 +159,7 @@ class SwingInput is GameInput
     will no longer receive events from the GameInput.
     */
     action RemoveMouseMovementListener(MouseMovementListener listener)
-
+        mouseMovementListeners:Remove(listener)
     end
 
     /*
@@ -108,7 +167,7 @@ class SwingInput is GameInput
     will no longer receive events from the GameInput.
     */
     action RemoveMouseWheelListener(MouseWheelListener listener)
-
+        mouseWheelListeners:Remove(listener)
     end
 
     /*
@@ -116,6 +175,6 @@ class SwingInput is GameInput
     no longer receive events from the GameInput.
     */
     action RemoveTouchListener(TouchListener listener)
-
+        // Do nothing - this doesn't support touch listeners.
     end
 end

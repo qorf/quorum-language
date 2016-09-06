@@ -28,6 +28,7 @@ public class DesktopDisplay {
 
     public java.lang.Object me_ = null;
     
+    volatile boolean isContinuous = true;
     volatile boolean requestRendering = false;
     float deltaTime = 0;
     long frameStart = 0;
@@ -265,6 +266,16 @@ public class DesktopDisplay {
     public void RequestRendering() {
         synchronized (this) {
             requestRendering = true;
+        }
+    }
+    
+    public boolean ShouldRender () 
+    {
+        synchronized (this) 
+        {
+            boolean rq = requestRendering;
+            requestRendering = false;
+            return rq || isContinuous;
         }
     }
 

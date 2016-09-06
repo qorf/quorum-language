@@ -11,6 +11,7 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Application
 use Libraries.Game.DesktopApplication
 use Libraries.Game.AndroidApplication
+use Libraries.Game.SwingApplication
 use Libraries.Game.AndroidDisplay
 use Libraries.Game.AndroidConfiguration
 use Libraries.Game.Graphics.AndroidGraphics
@@ -180,6 +181,38 @@ class Game
         gameInput:SetLayers(layers)
 
         application:Setup(me)
+    end
+
+    /*
+    Used only to launch the Game engine for use in a Swing application.
+    */
+    private action StartSwingCanvas
+    
+        output "Starting..."
+
+        SwingApplication application
+
+        GameStateManager manager
+        gl20 = manager:GetGameGraphics()
+
+        if desktopConfig:title = ""
+            desktopConfig:title = "Game"
+        end
+
+        output "Hello world!"
+
+        application:Setup(me, desktopConfig)
+
+        /*
+        We pass a reference to the layers array to the GameInput. This will 
+        allow it to properly test input on items in the game. Because it is an
+        object reference, future changes to the array of layers will also be
+        reflected in the GameInput.
+        */
+        gameInput = manager:GetInput()
+        gameInput:SetLayers(layers)
+
+        //InitializeLayers()
     end
 
     /*
