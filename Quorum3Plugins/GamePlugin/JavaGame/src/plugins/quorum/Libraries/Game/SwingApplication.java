@@ -34,7 +34,7 @@ public class SwingApplication
 {
     public java.lang.Object me_ = null;
     
-    public DesktopDisplay display;
+    public SwingDisplay display;
 
     Game_ game;
     AWTGLCanvas canvas;
@@ -74,6 +74,7 @@ public class SwingApplication
                 @Override
                 public void initGL()
                 {
+                    System.out.println("initGL");
                     Create();
                 }
                 
@@ -103,6 +104,9 @@ public class SwingApplication
             (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetGreen(),
             (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetBlue(),
             (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetAlpha()));
+        
+        display = ((quorum.Libraries.Game.SwingDisplay)((quorum.Libraries.Game.SwingApplication)me_).swingDisplay).plugin_;
+        display.canvas = canvas;
     }
     
 //    protected void SetDisplayMode(int width, int height)
@@ -175,7 +179,7 @@ public class SwingApplication
         {
             SetGlobals();
             
-            display = ((quorum.Libraries.Game.DesktopDisplay)GameState.GetDisplay()).plugin_;
+            display = ((quorum.Libraries.Game.SwingDisplay)GameState.GetDisplay()).plugin_;
             
             display.InitiateGLInstances();
             canvas.setVSyncEnabled(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
@@ -207,11 +211,14 @@ public class SwingApplication
             lastWidth = width;
             lastHeight = height;
             System.out.println("lastWidth = " + lastWidth + ", lastHeight = " + lastHeight);
-            GameState.nativeGraphics.SetDrawingRegion(0, 0, lastWidth, lastHeight);
+            System.out.println("width = " + width + ", height = " + height);
+            //GameState.nativeGraphics.SetDrawingRegion(0, 0, lastWidth, lastHeight);
             //resize(width, height);
             //game.Resize(width, height);
             shouldRender = true;
         }
+        
+        GameState.nativeGraphics.SetDrawingRegion(0, 0, lastWidth, lastHeight);
         
         if (exitRequested)
         {
@@ -227,12 +234,15 @@ public class SwingApplication
         
         if (shouldRender)
         {
-            System.out.println("Rendering! width = " + canvas.getWidth() + ", " + canvas.getHeight());
-            System.out.println("lastWidth = " + lastWidth + ", lastHeight = " + lastHeight);
-            System.out.println("width = " + width + ", height = " + height);
-            System.out.println("display.GetWidth() = " + display.GetWidth() + ", display.GetHeight() = " + display.GetHeight());
+//            System.out.println("Rendering! width = " + canvas.getWidth() + ", " + canvas.getHeight());
+//            System.out.println("lastWidth = " + lastWidth + ", lastHeight = " + lastHeight);
+//            System.out.println("width = " + width + ", height = " + height);
+//            System.out.println("display.GetWidth() = " + display.GetWidth() + ", display.GetHeight() = " + display.GetHeight());
             display.UpdateTime();
             //display.frameID++;
+            canvas.setEnabled(true);
+            canvas.setVisible(true);
+            //System.out.println("Canvas: x,y,w,h = " + canvas.getX() + ", " + canvas.getY() + ", " + canvas.getWidth() + ", " + canvas.getHeight());
             game.ContinueGame();
             canvas.swapBuffers();
         }
@@ -361,9 +371,9 @@ public class SwingApplication
         ((quorum.Libraries.Game.SwingApplication)me_).SetGlobals();
     }
     
-    public void SetGlobalsNative(quorum.Libraries.Game.DesktopDisplay_ quorumDisplay)
+    public void SetGlobalsNative(quorum.Libraries.Game.SwingDisplay_ quorumDisplay)
     {
-        display = ((quorum.Libraries.Game.DesktopDisplay)quorumDisplay).plugin_;
+        display = ((quorum.Libraries.Game.SwingDisplay)quorumDisplay).plugin_;
     }
     
     static public class NonSystemPaint extends PaintEvent 
