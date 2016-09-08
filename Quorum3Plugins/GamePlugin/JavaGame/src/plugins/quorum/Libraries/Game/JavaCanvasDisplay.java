@@ -14,7 +14,7 @@ import org.lwjgl.opengl.PixelFormat;
  *
  * @author alleew
  */
-public class SwingDisplay extends DesktopDisplay
+public class JavaCanvasDisplay extends DesktopDisplay
 {
     public java.lang.Object me_ = null;
     
@@ -37,7 +37,7 @@ public class SwingDisplay extends DesktopDisplay
             throw new GameRuntimeError("Could not set up SwingDisplay: " + ex.getMessage());
         }
         
-        quorum.Libraries.Game.SwingDisplay quorumDisplay = (quorum.Libraries.Game.SwingDisplay) me_;
+        quorum.Libraries.Game.JavaCanvasDisplay quorumDisplay = (quorum.Libraries.Game.JavaCanvasDisplay) me_;
         quorum.Libraries.Game.DesktopConfiguration_ config = quorumDisplay.Get_Libraries_Game_DesktopDisplay__config_();
         
         Display.setTitle(config.Get_Libraries_Game_DesktopConfiguration__title_());
@@ -56,7 +56,7 @@ public class SwingDisplay extends DesktopDisplay
         //Create the display
         try 
         {
-            quorum.Libraries.Game.SwingDisplay quorumDisplay = (quorum.Libraries.Game.SwingDisplay) me_;
+            quorum.Libraries.Game.JavaCanvasDisplay quorumDisplay = (quorum.Libraries.Game.JavaCanvasDisplay) me_;
             quorum.Libraries.Game.DesktopConfiguration_ config = quorumDisplay.Get_Libraries_Game_DesktopDisplay__config_();
 
             if (config.Get_Libraries_Game_DesktopConfiguration__useGL30_()) 
