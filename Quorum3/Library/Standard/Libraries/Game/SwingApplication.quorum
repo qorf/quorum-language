@@ -31,6 +31,8 @@ class SwingApplication is Application
         manager:SetApplication(me)
         manager:SetGameDisplay(swingDisplay)
         manager:SetInput(swingInput)
+
+        parent:Application:display = swingDisplay
     end
 
     public system action Exit

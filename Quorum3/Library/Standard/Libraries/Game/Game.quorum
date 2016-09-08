@@ -203,6 +203,8 @@ class Game
 
         application:Setup(me, desktopConfig)
 
+        output "Application set up finished."
+
         /*
         We pass a reference to the layers array to the GameInput. This will 
         allow it to properly test input on items in the game. Because it is an
@@ -211,6 +213,8 @@ class Game
         */
         gameInput = manager:GetInput()
         gameInput:SetLayers(layers)
+
+        output "Done starting swing canvas."
 
         //InitializeLayers()
     end
