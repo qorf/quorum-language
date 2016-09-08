@@ -282,17 +282,19 @@ public class DesktopDisplay {
         return Display.wasResized();
     }
     
-    public void UpdateTime () {
-      long time = System.nanoTime();
-      deltaTime = (time - lastTime) / 1000000000.0f;
-      lastTime = time;
+    public void UpdateTime () 
+    {
+        long time = System.nanoTime();
+        deltaTime = (time - lastTime) / 1000000000.0f;
+        lastTime = time;
 
-      if (time - frameStart >= 1000000000) {
-        fps = frames;
-        frames = 0;
-        frameStart = time;
-      }
-      frames++;
+        if (time - frameStart >= 1000000000) 
+        {
+            fps = frames;
+            frames = 0;
+            frameStart = time;
+        }
+        frames++;
     }
     
     public double GetSecondsBetweenFrames()

@@ -66,7 +66,6 @@ public class SwingDisplay extends DesktopDisplay
             else 
             {
                 Display.setParent(canvas);
-                System.out.println("Canvas is displayable = " + canvas.isDisplayable());
                 Display.create(new PixelFormat(
                     config.Get_Libraries_Game_ApplicationConfiguration__r_()
                     + config.Get_Libraries_Game_ApplicationConfiguration__g_()
@@ -75,6 +74,7 @@ public class SwingDisplay extends DesktopDisplay
                     config.Get_Libraries_Game_ApplicationConfiguration__depth_(),
                     config.Get_Libraries_Game_ApplicationConfiguration__stencil_(),
                     config.Get_Libraries_Game_ApplicationConfiguration__samples_()));
+                
              
             }
 
@@ -87,5 +87,10 @@ public class SwingDisplay extends DesktopDisplay
 
             //Other important clean up stuff
         }
+    }
+    
+    public double GetSecondsBetweenFrames()
+    {
+        return super.GetSecondsBetweenFrames();
     }
 }

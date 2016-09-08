@@ -25,6 +25,7 @@ import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.AWTGLCanvas;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.PixelFormat;
+import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 
 /**
  *
@@ -74,7 +75,6 @@ public class SwingApplication
                 @Override
                 public void initGL()
                 {
-                    System.out.println("initGL");
                     Create();
                 }
                 
@@ -109,16 +109,6 @@ public class SwingApplication
         display.canvas = canvas;
     }
     
-//    protected void SetDisplayMode(int width, int height)
-//    {
-//        
-//    }
-    
-//    protected void SetTitle(String title)
-//    {
-//        
-//    }
-    
     public Game_ GetGame()
     {
         return game;
@@ -128,50 +118,6 @@ public class SwingApplication
     {
         return canvas;
     }
-    
-    /*
-    @Override
-    public Audio getAudio () 
-    {
-        return Gdx.audio;
-    }
-
-    @Override
-    public Files getFiles () 
-    {
-        return files;
-    }
-
-    @Override
-    public Graphics getGraphics () 
-    {
-        return graphics;
-    }
-
-    @Override
-    public Input getInput () 
-    {
-        return input;
-    }
-
-    @Override
-    public Net getNet () 
-    {
-        return net;
-    }
-    
-    @Override
-    public ApplicationType getType () 
-    {
-        return ApplicationType.Desktop;
-    }
-
-    @Override
-    public int getVersion () 
-    {
-        return 0;
-    }
-    */
     
     public void Create()
     {
@@ -202,7 +148,6 @@ public class SwingApplication
             return;
         
         SetGlobals();
-        //canvas.setCursor(cursor);
 
         int width = Math.max(1, canvas.getWidth());
         int height = Math.max(1, canvas.getHeight());
@@ -210,9 +155,6 @@ public class SwingApplication
         {
             lastWidth = width;
             lastHeight = height;
-            System.out.println("lastWidth = " + lastWidth + ", lastHeight = " + lastHeight);
-            System.out.println("width = " + width + ", height = " + height);
-            //GameState.nativeGraphics.SetDrawingRegion(0, 0, lastWidth, lastHeight);
             //resize(width, height);
             //game.Resize(width, height);
             shouldRender = true;
@@ -230,19 +172,11 @@ public class SwingApplication
             return;
         
         shouldRender |= display.ShouldRender();
-        // input.processEvents(); // Probably not necessary, game input handled in ContinueGame().
         
         if (shouldRender)
         {
-//            System.out.println("Rendering! width = " + canvas.getWidth() + ", " + canvas.getHeight());
-//            System.out.println("lastWidth = " + lastWidth + ", lastHeight = " + lastHeight);
-//            System.out.println("width = " + width + ", height = " + height);
-//            System.out.println("display.GetWidth() = " + display.GetWidth() + ", display.GetHeight() = " + display.GetHeight());
             display.UpdateTime();
-            //display.frameID++;
-            canvas.setEnabled(true);
-            canvas.setVisible(true);
-            //System.out.println("Canvas: x,y,w,h = " + canvas.getX() + ", " + canvas.getY() + ", " + canvas.getWidth() + ", " + canvas.getHeight());
+            
             game.ContinueGame();
             canvas.swapBuffers();
         }
@@ -289,7 +223,6 @@ public class SwingApplication
     
     public void Stop()
     {
-        System.out.println("Stop was called!");
         if (!running)
             return;
         
