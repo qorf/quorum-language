@@ -57,6 +57,8 @@ class CollisionEvent3D
         me:indexB = indexB
 
         manifold:ClearManifold()
+        manifold:Set(itemA, itemB)
+        result:Initialize(itemA, itemB)
 
         previous = undefined
         next = undefined
@@ -223,6 +225,7 @@ class CollisionEvent3D
         tempTransform1:Set(itemA:GetCollisionTransform())
         tempTransform2:Set(itemB:GetCollisionTransform())
 
+        manifold:ClearManifold()
         result:SetManifold(manifold)
 
         Vector3 diff
@@ -266,20 +269,28 @@ class CollisionEvent3D
         result:RefreshContactPoints()
     end
 
+    ConvexConvexPairSolver gjkPairDetector
+
 // ********************************************************************************************************************
 // GJK Collision Algorithm and Helpers
 
     private action CollideConvexConvex(ContactManifold3D manifold, CollisionShape3D shapeA, Transform3D transformA, CollisionShape3D shapeB, Transform3D transformB, ManifoldResult3D result)
+        manifold:ClearManifold()
+
         result:SetManifold(manifold)
         number maximumDistanceSquared = 0
 
-        ConvexConvexPairSolver gjkPairDetector
         gjkPairDetector:SetMinkowskiA(shapeA)
         gjkPairDetector:SetMinkowskiB(shapeB)
         maximumDistanceSquared = shapeA:GetMargin() + shapeB:GetMargin() + manifold:GetContactBreakingThreshold()
         maximumDistanceSquared = maximumDistanceSquared * maximumDistanceSquared
 
-        gjkPairDetector:GetClosestPoints(transformA, transformB, maximumDistanceSquared, result, false)
+        Transform3D inputTransformA
+        inputTransformA:Set(transformA)
+        Transform3D inputTransformB
+        inputTransformB:Set(transformB)
+
+        gjkPairDetector:GetClosestPoints(inputTransformA, inputTransformB, maximumDistanceSquared, result, false)
 
         result:RefreshContactPoints()        
     end

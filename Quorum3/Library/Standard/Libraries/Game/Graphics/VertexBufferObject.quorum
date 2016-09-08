@@ -24,18 +24,18 @@ class VertexBufferObject is VertexData
     system action GetAttributes returns VertexAttributes
 
     action SetVertices(Array<number> vertices, integer offset, integer count)
-        SendToBridgeArray(vertices)
+        SendToBridgeArray(vertices, offset, count)
         SetVerticesNative(offset, count)
     end
 
-    system action SetVerticesNative(integer offset, integer count)
+    private system action SetVerticesNative(integer offset, integer count)
 
     action UpdateVertices(integer targetOffset, Array<number> vertices, integer sourceOffset, integer count)
-        SendToBridgeArray(vertices)
+        SendToBridgeArray(vertices, sourceOffset, count)
         UpdateVerticesNative(targetOffset, sourceOffset, count)
     end
 
-    system action UpdateVerticesNative(integer targetOffset, integer sourceOffset, integer count)
+    private system action UpdateVerticesNative(integer targetOffset, integer sourceOffset, integer count)
 
     system action Invalidate
 
@@ -53,6 +53,16 @@ class VertexBufferObject is VertexData
         PrepareBridgeArray(array:GetSize())
         integer index = 0
         repeat array:GetSize() times
+            SendToBridgeArray(index, array:Get(index))
+            index = index + 1
+        end
+    end
+
+    /* Sends part of a Quorum array to be stored in the bridge array within the plugins. */
+    private action SendToBridgeArray(Array<number> array, integer offset, integer count)
+        PrepareBridgeArray(count)
+        integer index = offset
+        repeat count times
             SendToBridgeArray(index, array:Get(index))
             index = index + 1
         end

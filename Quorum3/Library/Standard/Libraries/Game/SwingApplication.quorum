@@ -1,0 +1,40 @@
+package Libraries.Game
+
+use Libraries.Game.Application
+use Libraries.Game.SwingInput
+use Libraries.Game.SwingDisplay
+use Libraries.Game.GameStateManager
+
+class SwingApplication is Application
+    
+    SwingInput swingInput
+    SwingDisplay swingDisplay
+
+    action Setup(Game game, DesktopConfiguration config)
+        parent:Application:Setup(game)
+    
+        //game:InitializeLayers()
+
+        SetupNative(game, config)
+        swingInput:Initialize(me)
+        swingDisplay:SetConfiguration(config)
+//        swingDisplay:SetupDisplay()
+        SetGlobals()
+
+        //game:InitializeLayers()
+    end
+
+    private system action SetupNative(Game game, DesktopConfiguration config)
+
+    private action SetGlobals
+        GameStateManager manager
+        manager:SetApplication(me)
+        manager:SetGameDisplay(swingDisplay)
+        manager:SetInput(swingInput)
+
+        parent:Application:display = swingDisplay
+    end
+
+    public system action Exit
+
+end

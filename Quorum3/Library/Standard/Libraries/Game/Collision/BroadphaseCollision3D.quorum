@@ -15,11 +15,11 @@ class BroadphaseCollision3D
     integer nodeCount = 0
     
     Array<integer> moveList
-    integer moveCapacity = 16
+
     integer moveCount = 0
 
     Array<CollisionPair3D> pairList
-    integer pairCapacity = 16
+
     integer pairCount = 0
 
     integer queryNodeID = -1
@@ -75,8 +75,13 @@ class BroadphaseCollision3D
         return nodeCount
     end
 
+    action CountNodes returns integer
+        return tree:CountNodes()
+    end
+
     action UpdatePairs(CollisionManager3D collision)
         pairCount = 0
+        pairList:Empty()
 
         integer i = 0
         repeat while i < moveCount
@@ -89,6 +94,7 @@ class BroadphaseCollision3D
         end
 
         moveCount = 0
+        moveList:Empty()
 
         pairList:Sort()
         i = 0

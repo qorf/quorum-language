@@ -9,6 +9,8 @@ use Libraries.Containers.Array
 use Libraries.Game.Disposable
 use Libraries.Game.Graphics.IndexBufferObject
 use Libraries.Game.Graphics.VertexBufferObject
+use Libraries.Game.Graphics.IndexArray
+use Libraries.Game.Graphics.VertexArray
 
 class Mesh is Disposable
 
@@ -40,6 +42,23 @@ class Mesh is Disposable
         isVertexArray = false
 
         // addManagedMesh(...)
+    end
+
+    action Load(boolean isStatic, integer maxVertices, integer maxIndices, VertexAttributes attributes, boolean isArray)
+        if isArray = false
+            Load(isStatic, maxVertices, maxIndices, attributes)
+            return now
+        end
+
+        VertexArray vertexArray
+        vertexArray:Load(maxVertices, attributes)
+        vertices = vertexArray
+
+        IndexArray indexArray
+        indexArray:Load(maxIndices)
+        indices = indexArray
+
+        isVertexArray = true
     end
 
     private action MakeVertexBuffer(boolean isStatic, integer maxVertices, VertexAttributes attributes) returns VertexData

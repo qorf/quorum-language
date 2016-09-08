@@ -7,7 +7,7 @@
 package plugins.quorum.Libraries.Game.Graphics;
 
 
-import quorum.Libraries.Game.Graphics.PixelMap_;
+import quorum.Libraries.Game.Graphics.Color_;
 
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.libGDX.Array;
@@ -29,6 +29,13 @@ public class Texture
   protected int glHandle;
   
   private GraphicsManager gl20 = GameState.nativeGraphics; 
+  
+  /*
+  The color that should be used to render this texture by the Painter2D when
+  using the font shader. If the color is null, then the font shader will not be
+  used.
+  */
+  public Color_ fontColor = null;
                             
   TextureData data;
   
@@ -99,4 +106,21 @@ public class Texture
         }
     }
     
+    /*
+    Used to set the color to apply to this texture if it is being rendered by
+    the Painter2D's font shader.
+    */
+    public void SetFontColor(Color_ color)
+    {
+        fontColor = color;
+    }
+    
+    /*
+    Used to retrieve the color that should be applied to this texture if it is
+    being rendered by the Painter2D's font shader.
+    */
+    public Color_ GetFontColor()
+    {
+        return fontColor;
+    }
 }

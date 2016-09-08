@@ -310,6 +310,7 @@ class Layer3D is Layer
             body:contactList = undefined
 
             body:DestroyNodes(collisionManager:GetBroadphase())
+            body:SetCollidable(false)
             body:SetLayer(undefined)
         end
         items:Empty()
@@ -363,6 +364,7 @@ class Layer3D is Layer
         item:contactList = undefined
 
         item:DestroyNodes(collisionManager:GetBroadphase())
+        item:SetCollidable(false)
 
         item:SetLayer(undefined)
         items:Remove(item)
@@ -420,6 +422,7 @@ class Layer3D is Layer
         item:contactList = undefined
 
         item:DestroyNodes(collisionManager:GetBroadphase())
+        item:SetCollidable(false)
 
         item:SetLayer(undefined)
         return item
@@ -475,6 +478,7 @@ class Layer3D is Layer
         item:contactList = undefined
 
         item:DestroyNodes(collisionManager:GetBroadphase())
+        item:SetCollidable(false)
 
         item:SetLayer(undefined)
         return item
@@ -529,6 +533,7 @@ class Layer3D is Layer
         item:contactList = undefined
 
         item:DestroyNodes(collisionManager:GetBroadphase())
+        item:SetCollidable(false)
 
         item:SetLayer(undefined)
         return item

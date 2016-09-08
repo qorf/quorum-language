@@ -7,7 +7,7 @@ package plugins.quorum.Libraries.Game.Graphics;
 
 import java.nio.FloatBuffer;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
-import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
+//import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 
 import quorum.Libraries.Game.Graphics.VertexAttributes_;
 

@@ -989,6 +989,7 @@ class Item3D is Item
         removed:contactList = undefined
 
         removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+        removed:SetCollidable(false)
 
         removed:SetParent(undefined)
         removed:SetLayer(undefined)
@@ -1032,6 +1033,7 @@ class Item3D is Item
         temp:contactList = undefined
 
         temp:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+        temp:SetCollidable(false)
 
         temp:SetParent(undefined)
         temp:SetLayer(undefined)
@@ -1861,7 +1863,18 @@ class Item3D is Item
 
     */
     action Scale(Vector3 vector, boolean scaleChildren)
-        transform:Scale(vector)
+        //transform:Scale(vector)
+        transform:row0column0 = transform:row0column0 * vector:GetX()
+        transform:row0column1 = transform:row0column1 * vector:GetX()
+        transform:row0column2 = transform:row0column2 * vector:GetX()
+
+        transform:row1column0 = transform:row1column0 * vector:GetY()
+        transform:row1column1 = transform:row1column1 * vector:GetY()
+        transform:row1column2 = transform:row1column2 * vector:GetY()
+
+        transform:row2column0 = transform:row2column0 * vector:GetY()
+        transform:row2column1 = transform:row2column1 * vector:GetY()
+        transform:row2column2 = transform:row2column2 * vector:GetY()
 
         if shape not= undefined
             shape:SetLocalScaling(vector)
@@ -1875,7 +1888,8 @@ class Item3D is Item
                 transform = child:GetTransform()
 
                 Vector3 temp = child:GetPosition()
-                Vector3 scale = transform:GetScale()
+                Vector3 scale
+                scale:Set(transform:GetScaleX(), transform:GetScaleY(), transform:GetScaleZ())
                 scale:Scale(vector)
                 temp:Scale(scale)
                 temp:Subtract(child:GetPosition())

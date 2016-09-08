@@ -19,9 +19,9 @@ import quorum.Libraries.Game.Graphics.Renderable_;
 //import com.badlogic.gdx.graphics.g3d.Shader;              // Already in package
 //import com.badlogic.gdx.graphics.g3d.utils.RenderContext; // Already in package
 import quorum.Libraries.Game.Graphics.TextureDescriptor;
-import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
+//import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 import quorum.Libraries.Compute.Matrix3;
-import quorum.Libraries.Compute.Matrix4; // COMMENTED OUT DUE TO PARSING ERROR
+import quorum.Libraries.Compute.Matrix4;
 import quorum.Libraries.Compute.Vector2;
 import quorum.Libraries.Compute.Vector3;
 import plugins.quorum.Libraries.Game.libGDX.Array;
@@ -194,8 +194,8 @@ public abstract class BaseShader implements Shader
     {
         if (locations != null)
             throw new GameRuntimeError("Already initialized");
-        if (!program.isCompiled())
-            throw new GameRuntimeError(program.getLog());
+        if (!program.IsCompiled())
+            throw new GameRuntimeError(program.GetLog());
             
         this.program = program;
 
@@ -212,7 +212,7 @@ public abstract class BaseShader implements Shader
                 locations[i] = -1;
             else 
             {
-                locations[i] = program.fetchUniformLocation(input, false);
+                locations[i] = program.FetchUniformLocation(input, false);
             
                 if (locations[i] >= 0 && setter != null) 
                 {
@@ -237,7 +237,7 @@ public abstract class BaseShader implements Shader
             for (int i = 0; i < c; i++) 
             {
                 final VertexAttribute attr = (VertexAttribute)attrs.GetAttribute(i);
-                final int location = program.getAttributeLocation(attr.alias);
+                final int location = program.GetAttributeLocation(attr.alias);
                 if (location >= 0)
                     attributes.put(attr.GetKey(), location);
             }
@@ -249,7 +249,7 @@ public abstract class BaseShader implements Shader
     {
         this.camera = camera;
         this.context = context;
-        program.begin();
+        program.Begin();
         currentMesh = null;
 
         for (int u, i = 0; i < globalUniforms.size; ++i)
@@ -322,7 +322,7 @@ public abstract class BaseShader implements Shader
             currentMesh.plugin_.Unbind(program, tempArray.items);
             currentMesh = null;
         }
-        program.end();
+        program.End();
     }
 
     @Override
@@ -371,7 +371,7 @@ public abstract class BaseShader implements Shader
 
         float[] temp = ConvertMatrix4ToArray(value);
         
-        program.setUniformMatrix4(locations[uniform], temp);
+        program.SetUniformMatrix4(locations[uniform], temp);
         return true;
     }
 
@@ -382,7 +382,7 @@ public abstract class BaseShader implements Shader
         
         float[] temp = ConvertMatrix3ToArray(value);
         
-        program.setUniformMatrix3(locations[uniform], temp);
+        program.SetUniformMatrix3(locations[uniform], temp);
         return true;
     }
 
@@ -391,7 +391,7 @@ public abstract class BaseShader implements Shader
         if (locations[uniform] < 0)
             return false;
 
-        program.setUniformf(locations[uniform], (float)value.GetX(), (float)value.GetY(), (float)value.GetZ());
+        program.SetUniform(locations[uniform], (float)value.GetX(), (float)value.GetY(), (float)value.GetZ());
         return true;
     }
 
@@ -399,7 +399,7 @@ public abstract class BaseShader implements Shader
     {
         if (locations[uniform] < 0)
             return false;
-        program.setUniformf(locations[uniform], (float)value.GetX(), (float)value.GetY());
+        program.SetUniform(locations[uniform], (float)value.GetX(), (float)value.GetY());
         return true;
     }
 
@@ -408,7 +408,7 @@ public abstract class BaseShader implements Shader
             return false;
 
         //System.out.println("Setting uniform " + uniform + " at location " + locations[uniform]);
-        program.setUniformf(locations[uniform], value);
+        program.SetUniform(locations[uniform], value);
         return true;
     }
 
@@ -417,7 +417,7 @@ public abstract class BaseShader implements Shader
         if (locations[uniform] < 0)
             return false;
 
-        program.setUniformf(locations[uniform], value);
+        program.SetUniform(locations[uniform], value);
         return true;
     }
 
@@ -426,7 +426,7 @@ public abstract class BaseShader implements Shader
         if (locations[uniform] < 0)
             return false;
 
-        program.setUniformf(locations[uniform], v1, v2);
+        program.SetUniform(locations[uniform], v1, v2);
         return true;
     }
 
@@ -435,7 +435,7 @@ public abstract class BaseShader implements Shader
         if (locations[uniform] < 0)
             return false;
 
-        program.setUniformf(locations[uniform], v1, v2, v3);
+        program.SetUniform(locations[uniform], v1, v2, v3);
         return true;
     }
 
@@ -443,7 +443,7 @@ public abstract class BaseShader implements Shader
     {
         if (locations[uniform] < 0) 
             return false;
-        program.setUniformf(locations[uniform], v1, v2, v3, v4);
+        program.SetUniform(locations[uniform], v1, v2, v3, v4);
         return true;
     }
 
@@ -452,7 +452,7 @@ public abstract class BaseShader implements Shader
         if (locations[uniform] < 0)
             return false;
         
-        program.setUniformi(locations[uniform], value);
+        program.SetUniform(locations[uniform], value);
         return true;
     }
 
@@ -461,7 +461,7 @@ public abstract class BaseShader implements Shader
         if (locations[uniform] < 0)
             return false;
             
-        program.setUniformi(locations[uniform], v1, v2);
+        program.SetUniform(locations[uniform], v1, v2);
         return true;
     }
 
@@ -470,7 +470,7 @@ public abstract class BaseShader implements Shader
         if (locations[uniform] < 0)
             return false;
             
-        program.setUniformi(locations[uniform], v1, v2, v3);
+        program.SetUniform(locations[uniform], v1, v2, v3);
         return true;
     }
 
@@ -479,7 +479,7 @@ public abstract class BaseShader implements Shader
         if (locations[uniform] < 0)
             return false;
             
-        program.setUniformi(locations[uniform], v1, v2, v3, v4);
+        program.SetUniform(locations[uniform], v1, v2, v3, v4);
         return true;
     }
 

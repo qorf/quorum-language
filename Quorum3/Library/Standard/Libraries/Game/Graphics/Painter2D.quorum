@@ -1,5 +1,7 @@
 package Libraries.Game.Graphics
 
+use Libraries.Containers.Array
+
 /*
 The Painter2D class is used to draw Drawable objects on the screen. The Game class
 provides a default Painter2D, which is passed to Items and Drawables via their
@@ -49,6 +51,8 @@ class Painter2D
     private boolean drawing = false
 
     private Color color
+
+    private Array<number> vertices
 
     on create
         color = color:White()
@@ -247,7 +251,53 @@ class Painter2D
 
         end
     */
-    system action LoadDefaultPainter
+    private action LoadDefaultPainter
+        Mesh mesh
+        
+        VertexAttributes attributes
+        Array<VertexAttribute> array
+        
+        VertexAttribute position
+        position:SetAttribute(position:POSITION, 2, "a_position")
+        VertexAttribute colorPacked
+        colorPacked:SetAttribute(colorPacked:COLOR_PACKED, 4, "a_color")
+        VertexAttribute textureCoords
+        textureCoords:SetAttribute(textureCoords:TEXTURE_COORDINATES, 2, "a_texCoord0")
+
+        array:Add(position)
+        array:Add(colorPacked)
+        array:Add(textureCoords)
+        attributes:SetAttributes(array)
+
+        mesh:Load(false, 4000, 6000, attributes, true)
+
+        vertices:SetSize(4000)
+
+        integer length = 6000
+        Array<integer> indices
+        indices:SetSize(length)
+
+        integer indexCounter = 0
+        integer vertexCounter = 0
+
+        repeat while indexCounter < length
+            indices:Set(indexCounter, vertexCounter)
+            indices:Set(indexCounter + 1, vertexCounter + 1)
+            indices:Set(indexCounter + 2, vertexCounter + 2)
+            indices:Set(indexCounter + 3, vertexCounter + 2)
+            indices:Set(indexCounter + 4, vertexCounter + 3)
+            indices:Set(indexCounter + 5, vertexCounter)
+
+            indexCounter = indexCounter + 6
+            vertexCounter = vertexCounter + 4
+        end
+
+        mesh:SetIndices(indices)
+
+        LoadDefaultPainter(mesh)
+    end
+
+    private system action LoadDefaultPainter(Mesh mesh)
 
     /*
     Activates this Painter2D so it may draw items. If the Painter2D is already
@@ -363,5 +413,23 @@ class Painter2D
     to the given camera.
     */
     system action ApplyCamera(Camera camera)
+
+    /*
+    This action gives the plugins a shortcut to conveniently set a single index
+    of the array. Although this action is private, the plugins may still access
+    it because they do not respect the "private" flag.
+    */
+    private action SetVertex(integer index, number value)
+        vertices:Set(index, value)
+    end
+
+    /*
+    This action gives the plugins a way to conveniently reference the vertices
+    array. Although this action is private, the plugins may still access it
+    because they do not respect the "private" flag.
+    */
+    private action GetVertices returns Array<number>
+        return vertices
+    end
 
 end

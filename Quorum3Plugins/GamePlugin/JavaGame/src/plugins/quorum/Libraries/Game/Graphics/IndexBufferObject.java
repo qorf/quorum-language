@@ -62,9 +62,6 @@ public class IndexBufferObject extends IndexData
     {
         isDirty = true;
         buffer.clear();
-//        System.out.println("bridgeArray.length = " + bridgeArray.length);
-//        System.out.println("offset = " + offset);
-//        System.out.println("count = " + count);
         buffer.put(bridgeArray, offset, count);
         buffer.flip();
         byteBuffer.position(0);
