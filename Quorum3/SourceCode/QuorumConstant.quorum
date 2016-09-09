@@ -21,7 +21,29 @@ class QuorumConstant is QuorumOpcode
         elseif type:IsBoolean()
             return type:GetBooleanConstant() + ""
         elseif type:IsText()
-            return textValue:GetDoubleQuote() + type:GetTextConstant() + textValue:GetDoubleQuote() + ""
+            text value = type:GetTextConstant() 
+            //because this is javascript, strings have to be sanitized for escape characters.
+            //namely \ needs to become \\ and we have to handle carriage returns and line feeds differently
+            text processedText = ""
+            text CR = value:GetCarriageReturn()
+            text LF = value:GetLineFeed()
+            i = 0
+            repeat while i < value:GetSize()
+                text character = value:GetCharacter(i)
+                
+                if character = "\"
+                    character = "\\"
+                elseif character = CR
+                    character = "\n"
+                elseif character = LF
+                    character = "\r"
+                end
+
+                processedText = processedText + character
+                i = i + 1
+            end
+
+            return textValue:GetDoubleQuote() + processedText + textValue:GetDoubleQuote() + ""
         elseif type:IsUndefined()
             return "null"
         end
