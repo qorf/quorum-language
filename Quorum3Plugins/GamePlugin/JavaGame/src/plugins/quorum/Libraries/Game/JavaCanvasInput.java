@@ -7,17 +7,9 @@ package plugins.quorum.Libraries.Game;
 
 import java.awt.AWTException;
 import java.awt.Canvas;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Cursor;
-import java.awt.FlowLayout;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
-import java.awt.Image;
-import java.awt.Point;
 import java.awt.Robot;
-import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -25,25 +17,9 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowFocusListener;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashSet;
-
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.OverlayLayout;
-import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 import quorum.Libraries.Interface.Events.KeyboardEvent;
 import plugins.quorum.Libraries.Game.libGDX.Pool;
@@ -52,7 +28,7 @@ import plugins.quorum.Libraries.Game.libGDX.Pool;
  *
  * @author alleew
  */
-public class SwingInput implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
+public class JavaCanvasInput implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 {
     public java.lang.Object me_ = null;
     
@@ -72,7 +48,7 @@ public class SwingInput implements MouseMotionListener, MouseListener, MouseWhee
         }
     };
     
-    private SwingApplication swingApplication;
+    private JavaCanvasApplication canvasApplication;
     List<KeyboardEvent> keyEvents = new ArrayList<KeyboardEvent>();
     List<quorum.Libraries.Interface.Events.MouseEvent> mouseEvents = new ArrayList<quorum.Libraries.Interface.Events.MouseEvent>();
     int mouseX = 0;
@@ -95,10 +71,10 @@ public class SwingInput implements MouseMotionListener, MouseListener, MouseWhee
     private static final KeyboardEvent keyConstants = new KeyboardEvent();
     private static final quorum.Libraries.Interface.Events.MouseEvent mouseConstants = new quorum.Libraries.Interface.Events.MouseEvent();
     
-    public void Initialize(quorum.Libraries.Game.SwingApplication_ quorumApp)
+    public void Initialize(quorum.Libraries.Game.JavaCanvasApplication_ quorumApp)
     {
-        swingApplication = ((quorum.Libraries.Game.SwingApplication)quorumApp).plugin_;
-        SetListeners(swingApplication.GetCanvas());
+        canvasApplication = ((quorum.Libraries.Game.JavaCanvasApplication)quorumApp).plugin_;
+        SetListeners(canvasApplication.GetCanvas());
         try
         {
             robot = new Robot(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice());
@@ -164,7 +140,7 @@ public class SwingInput implements MouseMotionListener, MouseListener, MouseWhee
                     justPressedKeys[i] = false;
             }
             
-            quorum.Libraries.Game.SwingInput quorumInput = ((quorum.Libraries.Game.SwingInput)me_);
+            quorum.Libraries.Game.JavaCanvasInput quorumInput = ((quorum.Libraries.Game.JavaCanvasInput)me_);
             
             int length = keyEvents.size();
             for (int i = 0; i < length; i++)
@@ -222,7 +198,7 @@ public class SwingInput implements MouseMotionListener, MouseListener, MouseWhee
             mouseX = event.x;
             mouseY = event.y;
             CheckCatched(e);
-            swingApplication.display.RequestRendering();
+            canvasApplication.display.RequestRendering();
         }
     }
     
@@ -243,7 +219,7 @@ public class SwingInput implements MouseMotionListener, MouseListener, MouseWhee
         mouseX = event.x;
         mouseY = event.y;
         CheckCatched(e);
-        swingApplication.display.RequestRendering();
+        canvasApplication.display.RequestRendering();
     }
     
     @Override
@@ -258,14 +234,14 @@ public class SwingInput implements MouseMotionListener, MouseListener, MouseWhee
         mouseX = e.getX();
         mouseY = e.getY();
         CheckCatched(e);
-        swingApplication.display.RequestRendering();
+        canvasApplication.display.RequestRendering();
     }
     
     @Override
     public void mouseExited(MouseEvent e)
     {
         CheckCatched(e);
-        swingApplication.display.RequestRendering();
+        canvasApplication.display.RequestRendering();
     }
     
     private void CheckCatched(MouseEvent e)
@@ -283,13 +259,13 @@ public class SwingInput implements MouseMotionListener, MouseListener, MouseWhee
         }
     }
     
-    private int ConvertMouseButton (int swingButton) 
+    private int ConvertMouseButton (int canvasButton) 
     {
-        if (swingButton == MouseEvent.BUTTON1)
+        if (canvasButton == MouseEvent.BUTTON1)
             return mouseConstants.LEFT;
-        if (swingButton == MouseEvent.BUTTON2)
+        if (canvasButton == MouseEvent.BUTTON2)
             return mouseConstants.MIDDLE;
-        if (swingButton == MouseEvent.BUTTON3)
+        if (canvasButton == MouseEvent.BUTTON3)
             return mouseConstants.RIGHT;
         
         return mouseConstants.LEFT;
@@ -316,7 +292,7 @@ public class SwingInput implements MouseMotionListener, MouseListener, MouseWhee
             mouseY = event.y;
             mouseClicked = true;
             pressedButtons.add(event.mouseButton);
-            swingApplication.display.RequestRendering();
+            canvasApplication.display.RequestRendering();
         }
     }
     
@@ -342,7 +318,7 @@ public class SwingInput implements MouseMotionListener, MouseListener, MouseWhee
             pressedButtons.remove(event.mouseButton);
             if (pressedButtons.isEmpty())
                 mouseClicked = false;
-            swingApplication.display.RequestRendering();
+            canvasApplication.display.RequestRendering();
         }
     }
     
@@ -355,7 +331,7 @@ public class SwingInput implements MouseMotionListener, MouseListener, MouseWhee
             event.eventType = event.SCROLLED_MOUSE;
             event.scrollAmount = e.getWheelRotation();
             mouseEvents.add(event);
-            swingApplication.display.RequestRendering();
+            canvasApplication.display.RequestRendering();
         }
     }
     
@@ -373,7 +349,7 @@ public class SwingInput implements MouseMotionListener, MouseListener, MouseWhee
                 keyCount++;
                 keys[event.keyCode] = true;
             }
-            swingApplication.display.RequestRendering();
+            canvasApplication.display.RequestRendering();
         }
     }
     
@@ -391,7 +367,7 @@ public class SwingInput implements MouseMotionListener, MouseListener, MouseWhee
                 keyCount--;
                 keys[event.keyCode] = false;
             }
-            swingApplication.display.RequestRendering();
+            canvasApplication.display.RequestRendering();
         }
     }
     

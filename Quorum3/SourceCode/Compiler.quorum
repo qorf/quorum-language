@@ -1243,9 +1243,9 @@ class Compiler
                     Class mainClazz = me:GetMainClass()
                     text mainClazzName = mainClazz:GetStaticKey()
                     text clazzName = clazz:GetStaticKey()
-                    if (not clazzName:Contains("Libraries.System") or
-                        clazzName = "Libraries.System.DateTime"
-                        )
+                    //if (not clazzName:Contains("Libraries.System") or
+                    //    clazzName = "Libraries.System.DateTime"
+                    //    )
                         if mainClazz:GetStaticKey() = clazzName
                             main = code:WriteJavaScript()
                         else
@@ -1277,7 +1277,7 @@ class Compiler
                                 plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
                             end
                         end
-                    end
+                    //end
                 end
                 convertedJavaScript = plugins + result + main
             elseif currentOutputType = DOCUMENT

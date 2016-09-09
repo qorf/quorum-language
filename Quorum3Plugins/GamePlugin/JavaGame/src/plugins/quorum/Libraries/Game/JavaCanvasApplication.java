@@ -31,11 +31,11 @@ import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
  *
  * @author alleew
  */
-public class SwingApplication 
+public class JavaCanvasApplication 
 {
     public java.lang.Object me_ = null;
     
-    public SwingDisplay display;
+    public JavaCanvasDisplay display;
 
     Game_ game;
     AWTGLCanvas canvas;
@@ -105,7 +105,7 @@ public class SwingApplication
             (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetBlue(),
             (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetAlpha()));
         
-        display = ((quorum.Libraries.Game.SwingDisplay)((quorum.Libraries.Game.SwingApplication)me_).swingDisplay).plugin_;
+        display = ((quorum.Libraries.Game.JavaCanvasDisplay)((quorum.Libraries.Game.JavaCanvasApplication)me_).canvasDisplay).plugin_;
         display.canvas = canvas;
     }
     
@@ -125,7 +125,7 @@ public class SwingApplication
         {
             SetGlobals();
             
-            display = ((quorum.Libraries.Game.SwingDisplay)GameState.GetDisplay()).plugin_;
+            display = ((quorum.Libraries.Game.JavaCanvasDisplay)GameState.GetDisplay()).plugin_;
             
             display.InitiateGLInstances();
             canvas.setVSyncEnabled(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
@@ -179,6 +179,7 @@ public class SwingApplication
             
             game.ContinueGame();
             canvas.swapBuffers();
+            System.out.flush();
         }
         
         Display.sync(GetFrameRate() * instanceCount);
@@ -301,12 +302,12 @@ public class SwingApplication
     
     public void SetGlobals()
     {
-        ((quorum.Libraries.Game.SwingApplication)me_).SetGlobals();
+        ((quorum.Libraries.Game.JavaCanvasApplication)me_).SetGlobals();
     }
     
-    public void SetGlobalsNative(quorum.Libraries.Game.SwingDisplay_ quorumDisplay)
+    public void SetGlobalsNative(quorum.Libraries.Game.JavaCanvasDisplay_ quorumDisplay)
     {
-        display = ((quorum.Libraries.Game.SwingDisplay)quorumDisplay).plugin_;
+        display = ((quorum.Libraries.Game.JavaCanvasDisplay)quorumDisplay).plugin_;
     }
     
     static public class NonSystemPaint extends PaintEvent 

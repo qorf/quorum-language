@@ -11,7 +11,7 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Application
 use Libraries.Game.DesktopApplication
 use Libraries.Game.AndroidApplication
-use Libraries.Game.SwingApplication
+use Libraries.Game.JavaCanvasApplication
 use Libraries.Game.AndroidDisplay
 use Libraries.Game.AndroidConfiguration
 use Libraries.Game.Graphics.AndroidGraphics
@@ -184,13 +184,11 @@ class Game
     end
 
     /*
-    Used only to launch the Game engine for use in a Swing application.
+    Used only to launch the Game engine for use as a canvas in a Java application.
     */
-    private action StartSwingCanvas
+    private action StartJavaCanvas
     
-        output "Starting..."
-
-        SwingApplication application
+        JavaCanvasApplication application
 
         GameStateManager manager
         gl20 = manager:GetGameGraphics()
@@ -199,11 +197,7 @@ class Game
             desktopConfig:title = "Game"
         end
 
-        output "Hello world!"
-
         application:Setup(me, desktopConfig)
-
-        output "Application set up finished."
 
         /*
         We pass a reference to the layers array to the GameInput. This will 
@@ -213,8 +207,6 @@ class Game
         */
         gameInput = manager:GetInput()
         gameInput:SetLayers(layers)
-
-        output "Done starting swing canvas."
 
         //InitializeLayers()
     end
@@ -1413,6 +1405,8 @@ class Game
 
         currentLayer3D = layer3D
         currentLayer2D = layer2D
+
+        gameInput:SetLayers(layers)
     end
 
     /*

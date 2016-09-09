@@ -1,7 +1,7 @@
 package Libraries.Game
 
 use Libraries.Game.GameInput
-use Libraries.Game.SwingApplication
+use Libraries.Game.JavaCanvasApplication
 use Libraries.Interface.Events.KeyboardListener
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
@@ -11,14 +11,14 @@ use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Containers.Array
 
-class SwingInput is GameInput
+class JavaCanvasInput is GameInput
 
     Array<MouseListener> mouseListeners
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
     Array<KeyboardListener> keyboardListeners
 
-    system action Initialize(SwingApplication app)
+    system action Initialize(JavaCanvasApplication app)
 
     /*
     This action will identify all input events that have occurred and notify
@@ -30,7 +30,7 @@ class SwingInput is GameInput
     system action ProcessInputEvents
 
     /*
-    This action is called by the SwingInput plugin to process a KeyboardEvent
+    This action is called by the JavaCanvasInput plugin to process a KeyboardEvent
     during the ProcessInputEvents action.
     */
     private action ProcessKeyboardEvent(KeyboardEvent event)
@@ -50,10 +50,24 @@ class SwingInput is GameInput
     end
 
     /*
-    This action is called by the SwingInput plugin to process a MouseEvent
+    This action is called by the JavaCanvasInput plugin to process a MouseEvent
     during the ProcessInputEvents action.
     */
     private action ProcessMouseEvent(MouseEvent event)
+        Array<Layer> layers = parent:GameInput:layers
+
+        integer counter = layers:GetSize()
+        repeat while counter > 0 and not event:WasEventHandled()
+            counter = counter - 1
+            layers:Get(counter):ProcessMouseEvent(event)
+        end
+
+        if not event:WasEventHandled()
+            NotifyMouseListeners(event)
+        end
+    end
+
+    private action NotifyMouseListeners(MouseEvent event)
         integer counter = 0
 
         if event:eventType = event:MOVED_MOUSE
