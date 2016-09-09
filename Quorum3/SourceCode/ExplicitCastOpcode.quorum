@@ -43,7 +43,7 @@ class ExplicitCastOpcode is QuorumOpcode
         if opcodeToCast not= undefined
             Type type = GetType()
             return "global_CheckCast(" + opcodeToCast:WriteJavaScript() + ", "
-                + DQ + type:GetStaticKey() + DQ + ");"
+                + DQ + type:GetStaticKey() + DQ + ")"
         else 
             return ""
         end
