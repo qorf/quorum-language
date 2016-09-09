@@ -254,13 +254,13 @@ class Model is Item3D
             cube:LoadBox(2, 2, 2, cyan)
             Add(cube)
 
-            text id = cube:GetBlueprintID()
+            text id = cube:GetBlueprintKey()
             output "The cube's ModelBlueprint ID is " + id
         end
     end
 
     */
-    action GetBlueprintID returns text
+    action GetBlueprintKey returns text
         return modelBlueprint:id
     end
 
