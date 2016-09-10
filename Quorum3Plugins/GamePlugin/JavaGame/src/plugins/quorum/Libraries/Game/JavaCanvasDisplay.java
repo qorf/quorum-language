@@ -47,8 +47,8 @@ public class JavaCanvasDisplay extends DesktopDisplay
             (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetBlue());
         
         Display.setLocation(config.Get_Libraries_Game_DesktopConfiguration__x_(), config.Get_Libraries_Game_DesktopConfiguration__y_());
-        createDisplayPixelFormat();
-        InitiateGLInstances();
+        //createDisplayPixelFormat();
+        //InitiateGLInstances();
     }
     
     protected void createDisplayPixelFormat() 
@@ -66,14 +66,14 @@ public class JavaCanvasDisplay extends DesktopDisplay
             else 
             {
                 Display.setParent(canvas);
-                Display.create(new PixelFormat(
-                    config.Get_Libraries_Game_ApplicationConfiguration__r_()
-                    + config.Get_Libraries_Game_ApplicationConfiguration__g_()
-                    + config.Get_Libraries_Game_ApplicationConfiguration__b_(),
-                    config.Get_Libraries_Game_ApplicationConfiguration__a_(),
-                    config.Get_Libraries_Game_ApplicationConfiguration__depth_(),
-                    config.Get_Libraries_Game_ApplicationConfiguration__stencil_(),
-                    config.Get_Libraries_Game_ApplicationConfiguration__samples_()));
+//                Display.create(new PixelFormat(
+//                    config.Get_Libraries_Game_ApplicationConfiguration__r_()
+//                    + config.Get_Libraries_Game_ApplicationConfiguration__g_()
+//                    + config.Get_Libraries_Game_ApplicationConfiguration__b_(),
+//                    config.Get_Libraries_Game_ApplicationConfiguration__a_(),
+//                    config.Get_Libraries_Game_ApplicationConfiguration__depth_(),
+//                    config.Get_Libraries_Game_ApplicationConfiguration__stencil_(),
+//                    config.Get_Libraries_Game_ApplicationConfiguration__samples_()));
                 
              
             }
