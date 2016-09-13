@@ -33,9 +33,9 @@ class QuorumConstant is QuorumOpcode
                 
                 if character = "\"
                     character = "\\"
-                elseif character = CR
-                    character = "\n"
                 elseif character = LF
+                    character = "\n"
+                elseif character = CR
                     character = "\r"
                 end
 
