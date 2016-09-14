@@ -1,0 +1,42 @@
+package Libraries.Game
+
+use Libraries.Game.Application
+use Libraries.Game.Game
+
+class WebApplication is Application
+    
+    number fpsInterval = 0
+    number startTime = 0
+    number lastTime = 0
+    number currentTime = 0
+    boolean exitRequested = false
+
+    action Setup(Game game)
+        parent:Application:Setup(game)
+
+        game:InitializeLayers()
+
+        SetupNative()
+        MainLoop()
+    end
+
+    /*
+    Sets the fpsInterval, lastTime, and currentTime values.
+    */
+    private system action SetupNative
+
+    /*
+    Starts the main application loop. Once started, it will continue to call
+    itself until the game is stopped.
+    */
+    private system action MainLoop
+
+    /*
+    This action tells the game to close at the end of the next iteration of
+    the MainLoop. It is called automatically by the Game class's Exit action.
+    */
+    action Exit
+        exitRequested = true
+    end
+
+end

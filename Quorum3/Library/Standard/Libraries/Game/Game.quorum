@@ -21,6 +21,11 @@ use Libraries.Game.IOSDisplay
 use Libraries.Game.GameInput
 use Libraries.Game.DesktopInput
 use Libraries.Game.IOSInput
+use Libraries.Game.WebApplication
+use Libraries.Game.WebDisplay
+use Libraries.Game.WebConfiguration
+use Libraries.Game.WebInput
+use Libraries.Game.Graphics.WebGraphics
 use Libraries.Game.Graphics.IOSGraphics
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Font
@@ -79,6 +84,7 @@ class Game
     DesktopConfiguration desktopConfig
     IOSConfiguration iosConfig
     AndroidConfiguration androidConfig
+    WebConfiguration webConfig
     GraphicsManager gl20 = undefined
     GameStateManager manager
 
@@ -98,6 +104,7 @@ class Game
     private constant integer ANDROID_APPLICATION = 1
     private constant integer DESKTOP_APPLICATION = 2
     private constant integer IOS_APPLICATION = 3
+    private constant integer WEB_APPLICATION = 4
 
     private integer applicationType = -1
 
@@ -170,6 +177,19 @@ class Game
 
             IOSGraphics iosGraphics
             manager:SetGameGraphics(iosGraphics)
+        elseif application is WebApplication
+            
+            WebInput newInput
+            gameInput = newInput
+            manager:SetInput(newInput)
+
+            WebDisplay display
+            manager:SetGameDisplay(display)
+            display:SetConfiguration(webConfig)
+            //display:SetupDisplay()
+
+            WebGraphics webGraphics
+            manager:SetGameGraphics(webGraphics)
         end
 
         /*
@@ -1362,8 +1382,9 @@ class Game
     end
 
     /*
-    This action will set the type of Application that should be running, as well
-    as setting the type of GameInput to use.
+    This action will set the type of Application that should be running. The
+    type of application returned will also be used to determine the type of
+    other platform specific classes, e.g. GameDisplay, GraphicsManager, etc.
     */
     private action SelectApplicationType returns Application
 
@@ -1378,6 +1399,10 @@ class Game
         end
         if applicationType = IOS_APPLICATION
             IOSApplication app
+            return app
+        end
+        if applicationType = WEB_APPLICATION
+            WebApplication app
             return app
         end
         // ... Other options
