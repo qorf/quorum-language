@@ -3,6 +3,6 @@ function plugins_quorum_Libraries_Game_Game_() {
 
     };
     this.SelectApplicationTypeNative = function() {
-
+        return 4;
     };
 }
