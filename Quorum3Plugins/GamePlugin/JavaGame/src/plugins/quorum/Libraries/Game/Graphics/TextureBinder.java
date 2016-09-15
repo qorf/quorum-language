@@ -7,7 +7,7 @@ package plugins.quorum.Libraries.Game.Graphics;
 
 import java.nio.IntBuffer;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
-import plugins.quorum.Libraries.Game.GameState;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 import quorum.Libraries.Game.Graphics.Texture_;
 import quorum.Libraries.Game.Graphics.Texture;
@@ -84,7 +84,7 @@ public class TextureBinder
         We do not unbind any textures -- we simply make sure none of the
         textures are active to prevent accidental manipulation of them.
         */
-        GameState.nativeGraphics.glActiveTexture(GraphicsManager.GL_TEXTURE0);
+        GameStateManager.nativeGraphics.glActiveTexture(GraphicsManager.GL_TEXTURE0);
     }
     
     public int Bind(TextureDescriptor_ textureDesc)
@@ -123,7 +123,7 @@ public class TextureBinder
             if (rebind)
                 ((Texture)texture).plugin_.Bind(result);
             else
-                GameState.nativeGraphics.glActiveTexture(GraphicsManager.GL_TEXTURE0 + result);
+                GameStateManager.nativeGraphics.glActiveTexture(GraphicsManager.GL_TEXTURE0 + result);
         }
         texture.UnsafeSetWrap(textureDesc.uWrap, textureDesc.vWrap);
         texture.UnsafeSetFilter(textureDesc.minFilter, textureDesc.magFilter);
@@ -133,7 +133,7 @@ public class TextureBinder
     private static int GetMaxTextureUnits()
     {
         IntBuffer buffer = BufferUtils.newIntBuffer(16);
-        GameState.nativeGraphics.glGetIntegerv(GraphicsManager.GL_MAX_TEXTURE_IMAGE_UNITS, buffer);
+        GameStateManager.nativeGraphics.glGetIntegerv(GraphicsManager.GL_MAX_TEXTURE_IMAGE_UNITS, buffer);
         return buffer.get(0);
     }
     

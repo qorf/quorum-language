@@ -20,7 +20,7 @@ package plugins.quorum.Libraries.Game.Graphics;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
-import plugins.quorum.Libraries.Game.GameState;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 
 import quorum.Libraries.Game.Graphics.VertexAttributes_;
@@ -120,7 +120,7 @@ public class VertexArray extends VertexData
     @Override
     public void Bind(final ShaderProgram shader, final int[] locations) 
     {
-        final GraphicsManager gl = GameState.nativeGraphics;
+        final GraphicsManager gl = GameStateManager.nativeGraphics;
         final int numAttributes = attributes.GetSize();
         byteBuffer.limit(buffer.limit() * 4);
         if (locations == null) 
@@ -199,7 +199,7 @@ public class VertexArray extends VertexData
     @Override
     public void Unbind(ShaderProgram shader, int[] locations) 
     {
-        final GraphicsManager gl = GameState.nativeGraphics;
+        final GraphicsManager gl = GameStateManager.nativeGraphics;
         final int numAttributes = attributes.GetSize();
         if (locations == null) 
         {

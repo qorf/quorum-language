@@ -1,7 +1,7 @@
 
 package plugins.quorum.Libraries.Game.Graphics;
 
-import plugins.quorum.Libraries.Game.GameState;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 //import plugins.quorum.Libraries.Game.libGDX.Mesh;
 //import plugins.quorum.Libraries.Game.libGDX.Mesh.VertexDataType;
@@ -78,10 +78,10 @@ public class Painter2D
         
         if (projectionMatrix == null)
             throw new GameRuntimeError("null matrix!");
-        if (GameState.GetDisplay() == null)
+        if (GameStateManager.display == null)
             throw new GameRuntimeError("null display!");
         
-        projectionMatrix.SetToOrthographic2D(0, 0, GameState.GetDisplay().GetWidth(), GameState.GetDisplay().GetHeight());
+        projectionMatrix.SetToOrthographic2D(0, 0, GameStateManager.display.GetWidth(), GameStateManager.display.GetHeight());
         
         shader = CreateDefaultShader();
         fontShader = CreateFontShader();
@@ -174,7 +174,7 @@ public class Painter2D
             throw new GameRuntimeError("This batch is already drawing! Call End() before calling Begin() again.");
         
         renderCalls = 0;
-        GameState.nativeGraphics.glDepthMask(false);
+        GameStateManager.nativeGraphics.glDepthMask(false);
         if (useFontShader)
             fontShader.Begin();
         else if (customShader != null)
@@ -198,7 +198,7 @@ public class Painter2D
         quorumBatch.lastTexture = null;
         quorumBatch.drawing = false;
         
-        GraphicsManager gl = GameState.nativeGraphics;
+        GraphicsManager gl = GameStateManager.nativeGraphics;
         gl.glDepthMask(true);
         if (IsBlendingEnabled())
             gl.glDisable(GraphicsManager.GL_BLEND);
@@ -416,12 +416,12 @@ public class Painter2D
 //        mesh.getIndicesBuffer().limit(count);
         
         if (blendingDisabled)
-            GameState.nativeGraphics.glDisable(GraphicsManager.GL_BLEND);
+            GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_BLEND);
         else
         {
-            GameState.nativeGraphics.glEnable(GraphicsManager.GL_BLEND);
+            GameStateManager.nativeGraphics.glEnable(GraphicsManager.GL_BLEND);
             if (blendSourceFunction != -1)
-                GameState.nativeGraphics.glBlendFunc(blendSourceFunction, blendDestFunction);
+                GameStateManager.nativeGraphics.glBlendFunc(blendSourceFunction, blendDestFunction);
         }
         
         if (useFontShader)

@@ -69,9 +69,9 @@ public class IOSApplication
         Foundation.log("%@", new NSString("Device name is " + UIDevice.getCurrentDevice().getName()));
         */
         if (UIDevice.getCurrentDevice().getName().contains("Simulator"))
-            GameState.SetOperatingSystem("iOS Simulator");
+            GameStateManager.operatingSystem = "iOS Simulator";
         else
-            GameState.SetOperatingSystem("iOS Device");
+            GameStateManager.operatingSystem = "iOS Device";
 
         //Foundation.log("%@", new NSString("Set OS as " + GameState.GetOperatingSystem()));
     }
@@ -97,7 +97,7 @@ public class IOSApplication
     
     final boolean DidFinishLaunching(UIApplication uiApp, UIApplicationLaunchOptions options)
     {
-        display = (IOSDisplay_)GameState.GetDisplay();
+        display = (IOSDisplay_)GameStateManager.display;
         config = (IOSConfiguration_)display.GetConfiguration();
         
         this.uiApp = uiApp;
@@ -158,9 +158,9 @@ public class IOSApplication
         // setup libgdx
         //this.input = new IOSInput(this);
         
-        IOSInput input = ((quorum.Libraries.Game.IOSInput)GameState.GetInput()).plugin_;
+        IOSInput input = ((quorum.Libraries.Game.IOSInput)GameStateManager.input).plugin_;
         input.Initialize(this);
-        ((IOSDisplay)display).plugin_.Initialize(scale, this, config, input, ((IOSGraphics)GameState.GetGameGraphics()).plugin_);
+        ((IOSDisplay)display).plugin_.Initialize(scale, this, config, input, ((IOSGraphics)GameStateManager.graphics).plugin_);
         //this.files = new IOSFiles();
         //this.audio = new IOSAudio(config);
         //this.net = new IOSNet(this);
@@ -284,7 +284,7 @@ public class IOSApplication
         */
         ((IOSDisplay)display).plugin_.MakeCurrent();
         ((IOSDisplay)display).plugin_.Pause();
-        ((IOSGraphics)GameState.GetGameGraphics()).plugin_.glFlush();
+        ((IOSGraphics)GameStateManager.graphics).plugin_.glFlush();
     }
 
     public void WillTerminate (UIApplication uiApp) 
@@ -302,7 +302,7 @@ public class IOSApplication
         }
         listener.dispose();
         */
-        ((IOSGraphics)GameState.GetGameGraphics()).plugin_.glFlush();
+        ((IOSGraphics)GameStateManager.graphics).plugin_.glFlush();
     }
     
     /*

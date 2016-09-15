@@ -222,7 +222,7 @@ public class DesktopDisplay {
     
     public boolean supportsExtension (String extension) 
     {
-		if (extensions == null) extensions = GameState.nativeGraphics.glGetString(GraphicsManager.GL_EXTENSIONS);
+		if (extensions == null) extensions = GameStateManager.nativeGraphics.glGetString(GraphicsManager.GL_EXTENSIONS);
 		return extensions.contains(extension);
     }
 

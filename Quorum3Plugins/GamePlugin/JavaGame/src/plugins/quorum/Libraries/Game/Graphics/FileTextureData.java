@@ -7,7 +7,7 @@
 package plugins.quorum.Libraries.Game.Graphics;
 
 import quorum.Libraries.Game.Graphics.PixelMap_;
-import plugins.quorum.Libraries.Game.GameState;
+import plugins.quorum.Libraries.Game.GameStateManager;
 
 /**
  * Stores texture data information from loaded textures
@@ -33,7 +33,7 @@ public class FileTextureData implements TextureData {
    
    public boolean TestForCopyToPowerOfTwo()
    {
-       return copyToPOT && (GameState.GetGameGraphics() == null);
+       return copyToPOT && (GameStateManager.graphics == null);
    }
    
    @Override

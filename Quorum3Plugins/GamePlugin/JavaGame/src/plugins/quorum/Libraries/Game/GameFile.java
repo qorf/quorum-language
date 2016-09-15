@@ -128,7 +128,7 @@ public class GameFile
     * {@link FileType#Absolute} and {@link FileType#External} file handles. */
     public File GetFile() 
     {
-        if (type == FileType.External) return new File(GameState.fileHandler.GetExternalStoragePath(), file.getPath());
+        if (type == FileType.External) return new File(GameStateManager.fileHandler.GetExternalStoragePath(), file.getPath());
         return file;
     }
 

@@ -125,7 +125,7 @@ public class JavaCanvasApplication
         {
             SetGlobals();
             
-            display = ((quorum.Libraries.Game.JavaCanvasDisplay)GameState.GetDisplay()).plugin_;
+            display = ((quorum.Libraries.Game.JavaCanvasDisplay)GameStateManager.display).plugin_;
             
             display.InitiateGLInstances();
             canvas.setVSyncEnabled(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
@@ -160,7 +160,7 @@ public class JavaCanvasApplication
             shouldRender = true;
         }
         
-        GameState.nativeGraphics.SetDrawingRegion(0, 0, lastWidth, lastHeight);
+        GameStateManager.nativeGraphics.SetDrawingRegion(0, 0, lastWidth, lastHeight);
         
         if (exitRequested)
         {
@@ -252,8 +252,8 @@ public class JavaCanvasApplication
         //game.Pause();
         //game.Dispose();
         
-        GameState.SetApp(null);
-        GameState.SetDisplay(null);
+        GameStateManager.application = null;
+        GameStateManager.display = null;
         
         instanceCount--;
         
