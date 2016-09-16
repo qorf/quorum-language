@@ -5,18 +5,12 @@
  */
 package plugins.quorum.Libraries.Game;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.LWJGLException;
 import quorum.Libraries.Game.Graphics.Color_;
-import quorum.Libraries.Game.Graphics.GraphicsManager_;
 import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
-import plugins.quorum.Libraries.Game.GameRuntimeError;
-import plugins.quorum.Libraries.Game.GameState;
 
 import org.lwjgl.opengl.GL11;
 

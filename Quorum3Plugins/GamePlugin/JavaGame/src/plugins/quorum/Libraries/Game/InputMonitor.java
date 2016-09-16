@@ -9,8 +9,6 @@ package plugins.quorum.Libraries.Game;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
-import plugins.quorum.Libraries.Game.GameState;
-
 /**
  * This class primarily manages taking care of receiving input.
  * 

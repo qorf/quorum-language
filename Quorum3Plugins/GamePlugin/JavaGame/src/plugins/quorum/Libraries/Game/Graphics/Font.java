@@ -6,12 +6,8 @@
 package plugins.quorum.Libraries.Game.Graphics;
 
 import java.nio.ByteBuffer;
-import java.lang.reflect.Field;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import quorum.Libraries.Game.Graphics.Color_;
-import plugins.quorum.Libraries.Game.GameState;
 
 /**
  *

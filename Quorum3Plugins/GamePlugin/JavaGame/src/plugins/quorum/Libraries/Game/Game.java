@@ -87,11 +87,6 @@ public class Game
     
     public java.lang.Object me_ = null;
     
-    public double GetSecondsBetweenFrames()
-    {
-        return GameStateManager.display.GetSecondsBetweenFrames();
-    }
-    
     public int SelectApplicationTypeNative()
     {
         String os = System.getProperty("os.name");
