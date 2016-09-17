@@ -135,7 +135,6 @@ class Game
             alert("I could not identify what type of application to use for this operating system!")
         end
 
-        GameStateManager manager
         gl20 = manager:GetGameGraphics()
 
         if application is DesktopApplication
@@ -190,6 +189,9 @@ class Game
 
             WebGraphics webGraphics
             manager:SetGameGraphics(webGraphics)
+
+            WebApplication webApp = cast(WebApplication, application)
+            webApp:SetConfiguration(webConfig)
         end
 
         /*
@@ -210,7 +212,6 @@ class Game
     
         JavaCanvasApplication application
 
-        GameStateManager manager
         gl20 = manager:GetGameGraphics()
 
         if desktopConfig:title = ""
@@ -615,7 +616,9 @@ class Game
             end
         end
     */
-    system action GetSecondsBetweenFrames returns number
+    action GetSecondsBetweenFrames returns number
+        return manager:GetGameDisplay():GetSecondsBetweenFrames()
+    end
 
     /*
     The Update action is where most of the game's logic goes. The code inside
