@@ -3,8 +3,6 @@ package Libraries.Game
 use Libraries.Game.WebConfiguration
 
 class WebDisplay is GameDisplay
-    
-    WebConfiguration configuration = undefined
 
     /* 
     This action sets the ApplicationConfiguration being used by the game,
@@ -12,20 +10,28 @@ class WebDisplay is GameDisplay
     the correct type or otherwise an error will be thrown, i.e., if the
     GameDisplay is a WebDisplay, it must receive a WebConfiguration.
     */
-    action SetConfiguration(ApplicationConfiguration config)
-        if not (config is WebConfiguration)
+    action SetConfiguration(ApplicationConfiguration configuration)
+        if not (configuration is WebConfiguration)
             alert("Attempted to configure a WebDisplay with an application configuration that is not used for the web!")
         end
-        configuration = cast(WebConfiguration, config)
+        SetConfigurationNative(cast(WebConfiguration, configuration))
     end
+
+    private system action SetConfigurationNative(WebConfiguration config)
 
     /*
     This action returns the ApplicationConfiguration being used by the
     GameDisplay.
     */
-    action GetConfiguration returns ApplicationConfiguration
-        return configuration
-    end
+    system action GetConfiguration returns ApplicationConfiguration
+
+    /*
+    This action prepares the display for use. The WebDisplay must already have
+    been given a WebConfiguration using the SetConfiguration action, and the
+    provided configuration must have a valid canvas identifier to be used by the
+    display.
+    */
+    system action SetupDisplay()
 
     /*
     This action sets the width and height of the GameDisplay, and optionally
@@ -67,12 +73,19 @@ class WebDisplay is GameDisplay
     system action RequestRendering
 
     /*
+    This action returns whether or not the GameDisplay has currently been asked
+    to render.
+    */
+    system action RenderingRequested returns boolean
+
+    /*
     This action closes the window.
     */
     system action Destroy
 
     /*
-    This action updates the game's timekeeping information.
+    This action updates the game's timekeeping information. Also resets the
+    flag for requested rendering.
     */
     system action UpdateTime
 
@@ -80,11 +93,6 @@ class WebDisplay is GameDisplay
     This action records the time when the action is called, and stores it.
     */
     system action SetLastTime
-
-    /*
-    This action updates the game screen without polling the input.
-    */
-    system action UpdateFalse
 
     /*
     This action tests how many seconds have passed since the last time that the

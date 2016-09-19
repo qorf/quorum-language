@@ -1,0 +1,102 @@
+function plugins_quorum_Libraries_Game_WebApplication_() 
+{
+    var canvas = null;
+    var configuration = null;
+    
+    var lastTime = 0;
+    var deltaTime = 0;
+    var renderingRequested = false;
+    
+    this.SetConfigurationNative = function(config)
+    {
+        configuration = config;
+    };
+    
+    this.GetConfiguration = function()
+    {
+        return configuration;
+    };
+    
+    this.SetupDisplay = function()
+    {
+        var id = configuration.canvasID;
+        canvas = document.getElementById(id);
+    };
+    
+    this.GetCanvas = function()
+    {
+        return canvas;
+    };
+    
+    this.SetDisplayMode = function(width, height, fullscreen)
+    {
+        // Not sure if we can/should change the canvas size from here. Returns false for now.
+        return false;
+    };
+    
+    this.GetWidth = function()
+    {
+        return canvas.width;
+    };
+    
+    this.GetHeight = function()
+    {
+        return canvas.height;
+    };
+    
+    this.SetVSync = function(vsync)
+    {
+        // It's not clear if we can reliably set the vSync with webGL.
+    };
+    
+    this.GetResize = function()
+    {
+        return false;
+    };
+    
+    this.WasResized = function()
+    {
+        return false;
+    };
+    
+    this.RequestRendering = function()
+    {
+        renderingRequested = true;
+    };
+    
+    this.RenderingRequested = function()
+    {
+        return renderingRequested;
+    };
+    
+    this.Destroy = function()
+    {
+        // It's not clear if a user should be able to close the game display, 
+        // since it exists on a canvas on a webpage.
+    };
+    
+    this.UpdateTime = function()
+    {
+        var time = window.performance.now();
+        deltaTime = (time - lastTime)/1000.0;
+        lastTime = time;
+        
+        renderingRequested = false;
+    };
+    
+    this.SetLastTime = function()
+    {
+        lastTime = window.performance.now();
+    };
+    
+    this.GetSecondsBetweenFrames = function()
+    {
+        return deltaTime;
+    }
+    
+    this.GetPixelScaleFactor = function()
+    {
+        return 1.0;
+    };
+}
+

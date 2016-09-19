@@ -6,27 +6,27 @@ use Libraries.Game.WebConfiguration
 
 class WebApplication is Application
     
+    /*
+    Sets up the application and starts the main application loop.
+    */
     action Setup(Game game)
         parent:Application:Setup(game)
+        SetGame(game)
 
         SetupNative()
-        MainLoop()
     end
+
+    private system action SetGame(Game game)
 
     system action SetConfiguration(WebConfiguration config)
 
     system action GetConfiguration returns WebConfiguration
 
     /*
-    Sets the fpsInterval, lastTime, and currentTime values.
+    Sets the fpsInterval, lastTime, and currentTime values, then starts the main
+    loop (in JavaScript).
     */
     private system action SetupNative
-
-    /*
-    Starts the main application loop. Once started, it will continue to call
-    itself until the game is stopped.
-    */
-    private system action MainLoop
 
     /*
     This action tells the game to close at the end of the next iteration of
