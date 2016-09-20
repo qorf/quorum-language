@@ -40,8 +40,14 @@ function plugins_quorum_Libraries_Game_WebApplication_()
         display.SetupDisplay();
         display.SetLastTime();
         
-        var canvas = display.GetCanvas();
-        // Use canvas to initialize WebGraphics.
+        var canvas = display.plugin_.GetCanvas();
+        var graphics = manager.GetGameGraphics();
+        var initialized = graphics.plugin_.InitializeWebGL(canvas);
+        
+        if (!initialized)
+        {
+            return;
+        }
         
         MainLoop(startTime);
     };
