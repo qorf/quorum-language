@@ -296,12 +296,14 @@ public class DesktopDisplay {
         return deltaTime;
     }
     
-    public void SetLastTime(){
-      lastTime = System.nanoTime();
+    public void SetLastTime()
+    {
+        lastTime = System.nanoTime();
     }
     
-    public void UpdateFalse(){
-      Display.update(false);
+    public void Update()
+    {
+        Display.update(false);
     }
     
 
