@@ -120,7 +120,7 @@ public class DesktopGraphics implements GraphicsManager {
     public void glBufferSubData (int target, int offset, int size, Buffer data) 
     {
 	if (data == null)
-            throw new GameRuntimeError("Using null for the data not possible, blame LWJGL");
+            throw new GameRuntimeError("The data value is undefined, which is not allowed for this action.");
 	else if (data instanceof ByteBuffer)
             GL15.glBufferSubData(target, offset, (ByteBuffer)data);
 	else if (data instanceof IntBuffer)
@@ -175,7 +175,7 @@ public class DesktopGraphics implements GraphicsManager {
     
     public void glGetShaderiv (int shader, int pname, IntBuffer params) 
     {
-		GL20.glGetShader(shader, pname, params);
+        GL20.glGetShader(shader, pname, params);
     }
     
     public String glGetShaderInfoLog (int shader) 
