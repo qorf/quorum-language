@@ -453,7 +453,7 @@ class Game
     class Main is Game
 
         action Main
-            DesktopConfiguration configuration = GetDesktopConfiguration
+            DesktopConfiguration configuration = GetDesktopConfiguration()
             output "The default width and height of the Game are " + configuration:width + ", " + configuration:height
             StartGame()
         end
@@ -463,6 +463,62 @@ class Game
     */
     action GetDesktopConfiguration returns DesktopConfiguration
         return desktopConfig
+    end
+
+    /*
+    This action will set the game configuration when run on web browsers.
+    The configuration contains data that affect many technical details of the
+    game, such as whether or not to limit the FPS. This should be set before
+    calling StartGame().
+
+    Attribute: Parameter config The WebConfiguration to use.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.WebConfiguration
+
+    class Main is Game
+
+        action Main
+            WebConfiguration configuration
+            configuration:canvasID = "game-canvas"
+            configuration:capFramesPerSecond = true
+            configuration:framesPerSecondLimit = 45
+            SetConfiguration(configuration)
+            StartGame()
+        end
+
+    end
+
+    */
+    action SetConfiguration(WebConfiguration config)
+        webConfig = config
+    end
+
+    /*
+    This action will return the game's configuration for web platforms.
+
+    Attribute: Returns The current WebConfiguration.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.WebConfiguration
+
+    class Main is Game
+
+        action Main
+            WebConfiguration configuration = GetWebConfiguration()
+            configuration:capFramesPerSecond = true
+            StartGame()
+        end
+
+    end
+
+    */
+    action GetWebConfiguration returns WebConfiguration
+        return webConfig
     end
 
     /*

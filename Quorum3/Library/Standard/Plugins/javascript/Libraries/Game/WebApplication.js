@@ -10,15 +10,16 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     var exitRequested = false;
     var configuration = null;
     var game = null;
+    var display = null;
  
-    var manager = new GameStateManager();
+    var manager = new quorum_Libraries_Game_GameStateManager_();
     
-    this.SetGame = function(g)
+    this.SetGame$quorum_Libraries_Game_Game = function(g)
     {
         game = g;
     };
     
-    this.SetConfiguration = function(config)
+    this.SetConfiguration$quorum_Libraries_Game_WebConfiguration = function(config)
     {
         configuration = config;
     };
@@ -36,7 +37,7 @@ function plugins_quorum_Libraries_Game_WebApplication_()
         startTime = window.performance.now();
         lastTime = startTime;
         
-        var display = manager.GetGameDisplay();
+        display = manager.GetGameDisplay();
         display.SetupDisplay();
         display.SetLastTime();
         
@@ -60,8 +61,10 @@ function plugins_quorum_Libraries_Game_WebApplication_()
         currentTime = timeStamp;
         elapsedTime = currentTime - lastTime;
         
-        if (!configuration.capFramesPerSecond || elapsedTime > frameInterval)
+        if (!configuration.capFramesPerSecond || elapsedTime > frameInterval || display.RenderingRequested())
         {
+            display.renderingRequested = false;
+            
             // Set the lastTime to when the last render should have been, if
             // the timing was perfect. This ensures that a late render won't
             // delay future renders.

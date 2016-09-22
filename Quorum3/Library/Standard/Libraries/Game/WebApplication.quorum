@@ -18,8 +18,15 @@ class WebApplication is Application
 
     private system action SetGame(Game game)
 
+    /*
+    Sets the WebConfiguration to be used by the application during the main
+    loop.
+    */
     system action SetConfiguration(WebConfiguration config)
 
+    /*
+    Returns the WebConfiguration in use by the application.
+    */
     system action GetConfiguration returns WebConfiguration
 
     /*
@@ -30,7 +37,7 @@ class WebApplication is Application
 
     /*
     This action tells the game to close at the end of the next iteration of
-    the MainLoop. It is called automatically by the Game class's Exit action.
+    the main loop. It is called automatically by the Game class's Exit action.
     */
     system action Exit
 

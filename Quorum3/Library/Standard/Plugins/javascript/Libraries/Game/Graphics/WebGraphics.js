@@ -359,7 +359,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     // Expected parameters: integer, integer, boolean, float[], integer
     this.glUniformMatrix2fv = function(location, count, transpose, value, offset)
     {
-        
+        gl.uniformMatrix2fv(location, transpose, value);
     };
 
     // Expected parameters: integer, integer, boolean, FloatBuffer
@@ -371,7 +371,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     // Expected parameters: integer, integer, boolean, float[], integer
     this.glUniformMatrix3fv = function(location, count, transpose, value, offset)
     {
-        
+        gl.uniformMatrix3fv(location, transpose, value);
     };
 
     // Expected parameters: integer, integer, boolean, FloatBuffer
@@ -383,7 +383,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     // Expected parameters: integer, integer, boolean, float[], integer
     this.glUniformMatrix4fv = function(location, count, transpose, value, offset)
     {
-        
+        gl.uniformMatrix4fv(location, transpose, value);
     };
     
     // Expected parameters: integer, integer, integer, boolean, integer, Buffer
@@ -395,116 +395,122 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     // Expected parameters: integer, integer, integer, boolean, integer, integer
     this.glVertexAttribPointer = function(index, size, type, normalized, stride, pointer)
     {
-        
+        gl.vertexAttribPointer(index, size, type, normalized, stride, pointer);
     };
     
     // Expected parameter: integer
     this.glUseProgram = function(program)
     {
-        
+        gl.useProgram(program);
     };
     
     // Expected parameter: integer
     this.glDeleteShader = function(shader)
     {
-        
+        gl.deleteShader(shader);
     };
     
     // Expected parameter: integer
     this.glDeleteProgram = function(program)
     {
-        
+        gl.deleteProgram(program);
     };
     
     // Expected parameter: integer
     this.glDisableVertexAttribArray = function(index)
     {
-        
+        gl.disableVertexAttribArray(index);
     };
     
     // Expected parameter: integer
     this.glEnableVertexAttribArray = function(index)
     {
-        
+        gl.enableVertexAttribArray(index);
     };
     
     // Expected parameters: integer, float, float, float, float
     this.glVertexAttrib4f = function(index, x, y, z, w)
     {
-        
+        gl.vertexAttrib4f(index, x, y, z, w);
     };
     
     // Expected parameters: index, FloatBuffer
     this.glVertexAttrib4fv = function(index, values)
     {
-        
+        gl.vertexAttrib4fv(index, values);
     };
     
     // Expected parameters: integer, integer, IntBuffer, Buffer - Returns string
     this.glGetActiveUniform = function(program, index, size, type)
     {
-        
+        return gl.getActiveUniform(program, index);
     };
     
     // Expected parameters: integer, integer, IntBuffer, Buffer - Returns string
     this.glGetActiveAttrib = function(program, index, size, type)
     {
-        
+        return gl.getActiveAttrib(program,index);
     };
     
     // Expected paramters: integer, integer, integer, integer
-    this.glDrawElements = function(mode, count, type, indices)
+    this.glDrawElements = function(mode, count, type, offset)
     {
-        
+        gl.drawElements(mode, count, type, offset);
     };
     
     // Expected parameters: integer, integer, integer, Buffer
-    this.glDrawElements = function(mode, count, type, indices)
-    {
-        
-    };
+//    this.glDrawElements = function(mode, count, type, indices)
+//    {
+//        
+//    };
     
     // Expected parameters: integer, integer, integer
     this.glDrawArrays = function(mode, first, count)
     {
-        
+        gl.drawArrays(mode, first, count);
     };
     
     // Expected parameters: integer, integer
     this.glBlendFunc = function(sfactor, dfactor)
     {
-        
+        gl.blendFunc(sfactor, dfactor);
     };
     
     // Expected parameters: integer, integer, integer, integer,
     //                      integer, integer, integer, integer, Buffer
     this.glTexImage2D = function(target, level, internalformat, width, height, border, format, type, pixels)
     {
-        
+        gl.texImage2D(target, level, internalformat, width, height, border, format, type, pixels);
     };
     
     // Expected parameters: integer, IntBuffer
     this.glGetIntegerv = function(pname, params)
     {
-        
+        return gl.getParameter(pname);
+    };
+    
+    // Expected parameters: integer
+    this.glGetParameter = function(pname)
+    {
+        return gl.getParameter(pname);
     };
     
     // Expected parameter: integer
     this.glDepthFunc = function(func)
     {
-        
+        gl.depthFunc(func);
     };
     
     // Expected parameters: float, float
     this.glDepthRangef = function(zNear, zFar)
     {
-        
+        gl.depthRange(zNear, zFar);
     };
     
     // Expected parameters: integer
     this.glCullFace = function(mode)
     {
-        
+        gl.cullFace(mode);
     };     
 }
 

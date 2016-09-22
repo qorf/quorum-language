@@ -7,7 +7,7 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     var deltaTime = 0;
     var renderingRequested = false;
     
-    this.SetConfigurationNative = function(config)
+    this.SetConfigurationNative$quorum_Libraries_Game_WebConfiguration = function(config)
     {
         configuration = config;
     };
@@ -28,7 +28,7 @@ function plugins_quorum_Libraries_Game_WebApplication_()
         return canvas;
     };
     
-    this.SetDisplayMode = function(width, height, fullscreen)
+    this.SetDisplayMode$quorum_integer$quorum_integer$quorum_boolean = function(width, height, fullscreen)
     {
         // Not sure if we can/should change the canvas size from here. Returns false for now.
         return false;
@@ -44,7 +44,7 @@ function plugins_quorum_Libraries_Game_WebApplication_()
         return canvas.height;
     };
     
-    this.SetVSync = function(vsync)
+    this.SetVSync$quorum_boolean = function(vsync)
     {
         // It's not clear if we can reliably set the vSync with webGL.
     };
@@ -80,8 +80,6 @@ function plugins_quorum_Libraries_Game_WebApplication_()
         var time = window.performance.now();
         deltaTime = (time - lastTime)/1000.0;
         lastTime = time;
-        
-        renderingRequested = false;
     };
     
     this.SetLastTime = function()
@@ -92,7 +90,7 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     this.GetSecondsBetweenFrames = function()
     {
         return deltaTime;
-    }
+    };
     
     this.GetPixelScaleFactor = function()
     {
