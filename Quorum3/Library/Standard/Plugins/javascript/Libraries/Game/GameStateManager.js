@@ -33,7 +33,7 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     this.SetGameGraphics$quorum_Libraries_Game_Graphics_GraphicsManager = function(gl20) 
     {
         plugins_quorum_Libraries_Game_GameStateManager_.graphics = gl20;
-        plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics = graphics.plugin_;
+        plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics = plugins_quorum_Libraries_Game_GameStateManager_.graphics.plugin_;
     };
     
     this.GetGameGraphics = function() 

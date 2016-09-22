@@ -4,6 +4,16 @@ use Libraries.Game.WebConfiguration
 
 class WebDisplay is GameDisplay
 
+    text name = "default"
+
+    action SetName(text newName)
+        name = newName
+    end
+
+    action GetName returns text
+        return name
+    end
+
     /* 
     This action sets the ApplicationConfiguration being used by the game,
     which includes data for the screen. The ApplicationConfiguration must be of

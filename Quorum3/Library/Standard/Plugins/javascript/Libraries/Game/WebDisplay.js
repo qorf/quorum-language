@@ -1,4 +1,4 @@
-function plugins_quorum_Libraries_Game_WebApplication_() 
+function plugins_quorum_Libraries_Game_WebDisplay_() 
 {
     var canvas = null;
     var configuration = null;

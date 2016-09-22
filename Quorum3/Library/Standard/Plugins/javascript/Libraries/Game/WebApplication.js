@@ -11,6 +11,7 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     var configuration = null;
     var game = null;
     var display = null;
+    var loopCall = null;
  
     var manager = new quorum_Libraries_Game_GameStateManager_();
     
@@ -50,7 +51,8 @@ function plugins_quorum_Libraries_Game_WebApplication_()
             return;
         }
         
-        MainLoop(startTime);
+        loopCall = this.MainLoop;
+        this.MainLoop(startTime);
     };
     
     this.MainLoop = function(timeStamp)
@@ -73,7 +75,7 @@ function plugins_quorum_Libraries_Game_WebApplication_()
             game.ContinueGame();
         }
         
-        requestAnimationFrame(MainLoop);
+        requestAnimationFrame(loopCall);
     };
     
     this.Exit = function()
