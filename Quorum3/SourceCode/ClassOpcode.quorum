@@ -1267,10 +1267,10 @@ class ClassOpcode is QuorumOpcode
                clazz:GetStaticKey() = "Libraries.Language.Types.Number" or
                clazz:GetStaticKey() = "Libraries.Language.Types.Text"
                convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
-                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(optional);" + EOL
+                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(optional, this);" + EOL
             else 
                 convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
-                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(this);" + EOL
             end
         end
 
