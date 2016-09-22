@@ -494,7 +494,7 @@ public class DesktopGraphics implements GraphicsManager {
             GL11.glDrawElements(mode, (IntBuffer)indices);
 	else
             throw new GameRuntimeError("Can't use " + indices.getClass().getName()
-			+ " with this method. Use ShortBuffer or ByteBuffer instead. Blame LWJGL");
+			+ " with this method. Use ShortBuffer or ByteBuffer instead.");
     }
     
     public void glDrawArrays (int mode, int first, int count) 
