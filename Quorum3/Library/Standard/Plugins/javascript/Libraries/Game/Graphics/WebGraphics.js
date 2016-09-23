@@ -165,7 +165,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     // Expected parameters: integer, integer
     this.glGetShaderiv = function(shader, pname)
     {
-        gl.getShaderParameter(shader, pname);
+        return gl.getShaderParameter(shader, pname);
     };
     
     // Expected parameter: integer
@@ -228,7 +228,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
 //    };
 
     // Expected parameters: integer, integer, integer[], integer
-    this.glUniform1iv = function(location, count, v, offset)
+    this.glUniform1iv = function(location, v)
     {
         gl.uniform1iv(location, v);
     };
@@ -246,7 +246,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
 //    };
 
     // Expected parameters: integer, integer, float[], integer
-    this.glUniform1fv = function(location, count, v, offset)
+    this.glUniform1fv = function(location, v)
     {
         gl.uniform1fv(location, v);
     };
@@ -264,7 +264,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
 //    };
 
     // Expected parameters: integer, integer, integer[]. integer
-    this.glUniform2iv = function(location, count, v, offset)
+    this.glUniform2iv = function(location, v)
     {
         gl.uniform2iv(location, v);
     };
@@ -282,7 +282,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
 //    };
 
     // Expected parameters: integer, integer, float[], integer
-    this.glUniform2fv = function(location, count, v, offset)
+    this.glUniform2fv = function(location, v)
     {
         gl.uniform2fv(location, v);
     };
@@ -300,7 +300,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
 //    };
 
     // Expected parameters: integer, integer, integer[], integer offset
-    this.glUniform3iv = function(location, count, v, offset)
+    this.glUniform3iv = function(location, v)
     {
         gl.uniform3iv(location, v);
     };
@@ -318,7 +318,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
 //    };
 
     // Expected parameters: integer, integer, float[], integer
-    this.glUniform3fv = function(location, count, v, offset)
+    this.glUniform3fv = function(location, v)
     {
         gl.uniform3fv(location, v);
     };
@@ -336,7 +336,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
 //    };
 
     // Expected parameters: integer, integer, integer[], integer
-    this.glUniform4iv = function(location, count, v, offset)
+    this.glUniform4iv = function(location, v)
     {
         gl.uniform4iv(location, v);
     };
@@ -354,7 +354,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
 //    };
 
     // Expected parameters: integer, integer, float[], integer
-    this.glUniform4fv = function(location, count, v, offset)
+    this.glUniform4fv = function(location, v)
     {
         gl.uniform4fv(location, v);
     };
@@ -366,7 +366,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
 //    };
 
     // Expected parameters: integer, integer, boolean, float[], integer
-    this.glUniformMatrix2fv = function(location, count, transpose, value, offset)
+    this.glUniformMatrix2fv = function(location, transpose, value)
     {
         gl.uniformMatrix2fv(location, transpose, value);
     };
@@ -378,7 +378,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
 //    };
 
     // Expected parameters: integer, integer, boolean, float[], integer
-    this.glUniformMatrix3fv = function(location, count, transpose, value, offset)
+    this.glUniformMatrix3fv = function(location, transpose, value)
     {
         gl.uniformMatrix3fv(location, transpose, value);
     };
@@ -390,7 +390,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
 //    };
 
     // Expected parameters: integer, integer, boolean, float[], integer
-    this.glUniformMatrix4fv = function(location, count, transpose, value, offset)
+    this.glUniformMatrix4fv = function(location, transpose, value)
     {
         gl.uniformMatrix4fv(location, transpose, value);
     };
@@ -450,15 +450,15 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     };
     
     // Expected parameters: integer, integer, IntBuffer, Buffer - Returns string
-    this.glGetActiveUniform = function(program, index, size, type)
+    this.glGetActiveUniform = function(program, index)
     {
         return gl.getActiveUniform(program, index);
     };
     
     // Expected parameters: integer, integer, IntBuffer, Buffer - Returns string
-    this.glGetActiveAttrib = function(program, index, size, type)
+    this.glGetActiveAttrib = function(program, index)
     {
-        return gl.getActiveAttrib(program,index);
+        return gl.getActiveAttrib(program, index);
     };
     
     // Expected paramters: integer, integer, integer, integer
@@ -493,7 +493,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     };
     
     // Expected parameters: integer, IntBuffer
-    this.glGetIntegerv = function(pname, params)
+    this.glGetIntegerv = function(pname)
     {
         return gl.getParameter(pname);
     };
