@@ -3,6 +3,43 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
     this.quorumMesh = null;
     this.calcVector = new quorum_Libraries_Compute_Vector3_();
     
+    this.SetQuorumReference$quorum_Libraries_Game_Graphics_Mesh = function(mesh) 
+    {
+        quorumMesh = mesh;
+    };
+    
+    /* The shader parameter must be a valid ShaderProgram, and the primitiveType
+     * parameter must be one of the following constant values accessible from
+     * the gl property in WebGraphics:
+     *      POINTS: Draws a single dot at each vertex.
+     *      LINE_STRIP: Draws a straight line to the next vertex.
+     *      LINE_LOOP: Draws a straight line to the next vertex, and connects the last vertex back to the first.
+     *      LINES: Draws a line between a pair of vertices.
+     *      TRIANGLE_STRIP: Draws a triangle between the first three vertices. Each successive vertex forms a triangle with the last two vertices used.
+     *      TRIANGLE_FAN: Draws a triangle between the first three vertices. Each successive vertex forms a triangle with the first vertex and the last vertex used.
+     *      TRIANGLES: Draws a triangle for a group of three vertices.
+     *      
+     * If the offset, count, or autoBind values are undefined, default values
+     * will be provided using the contents of the Quorum Mesh object.
+     * 
+     * @param {ShaderProgram} shader
+     * @param {integer} primitiveType
+     * @param {integer} offset
+     * @param {integer} count
+     * @param {boolean} autoBind
+     * @returns {undefined}
+     */
+    this.Render = function(shader, primitiveType, offset, count, autoBind)
+    {
+        if (offset === undefined)
+            offset = 0;
+        
+        if (count === undefined)
+        {
+            
+        }
+    };
+    
     /* 
      public void Render(ShaderProgram shader, int primitiveType) 
     {
@@ -236,10 +273,5 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
     this.ExtendBoundingBox$quorum_Libraries_Game_BoundingBox$quorum_integer$quorum_integer$quorum_Libraries_Compute_Matrix4 = function(box, offset, count, transform) 
     {
 
-    };
-    
-    this.SetQuorumReference$quorum_Libraries_Game_Graphics_Mesh = function(mesh) 
-    {
-        quorumMesh = mesh;
-    };
+    };    
 }

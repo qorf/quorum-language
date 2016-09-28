@@ -1,3 +1,5 @@
+/* global plugins_quorum_Libraries_Game_GameStateManager_ */
+
 function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fragmentShader) 
 {
     
@@ -45,7 +47,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
             {
                 var infoLog = graphics.glGetShaderInfoLog(shader);
                 this.log = this.log + infoLog;
-                this.log = this.log + "Version is: " + graphics.glGetString(gl.gl.VERSION);
+                this.log = this.log + "Version is: " + graphics.glGetString(graphics.gl.VERSION);
             }
             return -1;
         }
@@ -233,14 +235,14 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
         this.CheckManaged();
         var location = this.FetchUniformLocation(name);
-        graphics.glUniform3f(location, value);
+        graphics.glUniform3f(location, value1, value2, value3);
     };
     
     this.SetUniform3fAtLocation = function(location, value1, value2, value3)
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
         this.CheckManaged();
-        graphics.glUniform3f(location, value);
+        graphics.glUniform3f(location, value1, value2, value3);
     };
     
     this.SetUniform4fFromName = function(name, value1, value2, value3, value4)
@@ -452,6 +454,56 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         graphics.glDeleteProgram(program);
     };
     
+    this.DisableVertexAttributeFromName = function(name)
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        this.CheckManaged();
+        var location = this.FetchAttributeLocation(name);
+        if (location === -1)
+            return;
+        graphics.glDisableVertexAttribArray(location);
+    };
+    
+    this.DisableVertexAttributeAtLocation = function(location)
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        this.CheckManaged();
+        graphics.glDisableVertexAttribArray(location);
+    };
+    
+    this.EnableVertexAttributeFromName = function(name)
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        this.CheckManaged();
+        var location = this.FetchAttributeLocation(name);
+        if (location === -1)
+            return;
+        graphics.glEnableVertexAttribArray(location);
+    };
+    
+    this.EnableVertexAttributeAtLocation = function(location)
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        this.CheckManaged();
+        graphics.glEnableVertexAttribArray(location);
+    };
+    
+    this.CheckManaged = function()
+    {
+        if (this.invalidated)
+        {
+            this.CompileShaders(this.vertexShaderSource, this.fragmentShaderSource);
+            this.invalidated = false;
+        }
+    };
+    
+    this.SetAttribute = function(name, value1, value2, value3, value4)
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var location = FetchAttributeLocation(name);
+        graphics.glVertexAttrib4f(location, value1, value2, value3, value4);
+    };
+    
     this.FetchAttributes = function()
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
@@ -490,6 +542,66 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
             uniformSizes[info.name] = info.size;
             uniformNames[i] = info.name;
         }
+    };
+    
+    this.HasAttribute = function(name)
+    {
+        return name in attributes;
+    };
+    
+    this.GetAttributeType = function(name)
+    {
+        return attributeTypes[name] || 0;
+    };
+    
+    this.GetAttributeLocation = function(name)
+    {
+        return attributes[name] || -1;
+    };
+    
+    this.GetAttributeSize = function(name)
+    {
+        return attributeSizes[name] || 0;
+    };
+    
+    this.HasUniform = function(name)
+    {
+        return name in uniforms;
+    };
+    
+    this.GetUniformType = function(name)
+    {
+        return uniformTypes[name] || 0;
+    };
+    
+    this.GetUniformLocation = function(name)
+    {
+        return uniforms[name] || -1;
+    };
+    
+    this.GetUniformSize = function(name)
+    {
+        return uniformSizes[name] || 0;
+    };
+    
+    this.GetAttributes = function()
+    {
+        return attributeNames;
+    };
+    
+    this.GetUniforms = function()
+    {
+        return uniformNames;
+    };
+    
+    this.GetVertexShaderSource = function()
+    {
+        return vertexShaderSource;
+    };
+    
+    this.GetFragmentShaderSource = function()
+    {
+        return fragmentShaderSource;
     };
     
     this.Matrix3ToArray = function(matrix)
@@ -531,7 +643,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         temp[15] = matrix.row3column3;
         
         return temp;
-    }
+    };
     
     var exceptionInstance_;
     
@@ -575,17 +687,11 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
 
     this.attributeNames = null;
     
-//    private final FloatBuffer matrix = BufferUtils.newFloatBuffer(16);
-
     // Whether this shader was invalidated.
     this.invalidated = false;
 
     this.referenceCount = 0;
     
-//    final static IntBuffer intbuf = BufferUtils.newIntBuffer(1);
-    
-//    IntBuffer type = BufferUtils.newIntBuffer(1);
-
     // Source code for the vertex shader.
     this.vertexShaderSource = vertexShader;
 
@@ -597,7 +703,6 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     {
         this.FetchAttributes();
         this.FetchUniforms();
-        //AddManagedShader(GameStateManager.GetApplication(), this);
     }
     else
     {
