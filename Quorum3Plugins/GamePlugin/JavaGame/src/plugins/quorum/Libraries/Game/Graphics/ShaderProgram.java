@@ -900,7 +900,7 @@ public class ShaderProgram
     private void AddManagedShader(quorum.Libraries.Game.Application_ app, ShaderProgram shaderProgram) 
     {
         if (app == null)
-            throw new GameRuntimeError("App was null!");
+            throw new GameRuntimeError("The ShaderProgram can't associate a shader with an undefined application.");
         Array<ShaderProgram> managedResources = shaders.get(app);
         if (managedResources == null)
             managedResources = new Array<ShaderProgram>();

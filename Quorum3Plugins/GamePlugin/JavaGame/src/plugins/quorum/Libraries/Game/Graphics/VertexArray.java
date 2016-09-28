@@ -232,7 +232,7 @@ public class VertexArray extends VertexData
         // Do nothing.
     }
         
-        public void PrepareBridgeArray(int length)
+    public void PrepareBridgeArray(int length)
     {
         bridgeArray = new float[length];
     }
