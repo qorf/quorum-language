@@ -1,41 +1,72 @@
-function plugins_quorum_Libraries_Game_Graphics_IndexArray_() {
-    this.Load$quorum_integer = function(maximumSize) {
+function plugins_quorum_Libraries_Game_Graphics_IndexArray_() 
+{
+    var bridgeArray = [];
+    var integerArray;
+    var buffer;
+    var length = 0;
+    
+    this.Load$quorum_integer = function(maximumSize) 
+    {
+        
+    };
+    
+    this.GetSize = function() 
+    {
 
     };
-    this.GetSize = function() {
+    
+    this.GetMaxSize = function() 
+    {
 
     };
-    this.GetMaxSize = function() {
+    
+    this.SetIndices$quorum_integer$quorum_integer = function(offset, count) 
+    {
 
     };
-    this.SetIndices$quorum_integer$quorum_integer = function(offset, count) {
+    
+    this.Bind = function() 
+    {
 
     };
-    this.Bind = function() {
+    
+    this.Unbind = function() 
+    {
 
     };
-    this.Unbind = function() {
+    
+    this.Invalidate = function() 
+    {
 
     };
-    this.Invalidate = function() {
+    
+    this.Clear = function() 
+    {
 
     };
-    this.Clear = function() {
+    
+    this.Dispose = function() 
+    {
 
     };
-    this.Dispose = function() {
+    
+    this.PrepareBridgeArray$quorum_integer = function(length) 
+    {
 
     };
-    this.PrepareBridgeArray$quorum_integer = function(length) {
+    
+    this.SendToBridgeArray$quorum_integer$quorum_integer = function(index, value) 
+    {
 
     };
-    this.SendToBridgeArray$quorum_integer$quorum_integer = function(index, value) {
+    
+    this.PutBridgeArray = function() 
+    {
 
     };
-    this.PutBridgeArray = function() {
-
-    };
-    this.SetPosition$quorum_integer = function(position) {
+    
+    this.SetPosition$quorum_integer = function(position) 
+    {
 
     };
 }

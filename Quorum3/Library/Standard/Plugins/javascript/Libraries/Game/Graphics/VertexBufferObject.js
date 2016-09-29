@@ -1,35 +1,185 @@
-function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_() {
-    this.Dispose = function() {
+/* global plugins_quorum_Libraries_Game_GameStateManager_ */
 
+function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_() 
+{
+    var buffer;
+    var floatArray;
+    var bridgeArray = [];
+    var length = 0;
+    var isDirty = false;
+    var usage;
+    var isBound = false;
+    
+    this.Load$quorum_boolean$quorum_integer$quorum_Libraries_Game_Graphics_VertexAttributes = function(isStatic, verticesCount, attributes) 
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        
+        buffer = graphics.glGenBuffer();
+        floatArray = new Float32Array((attributes.vertexSize * verticesCount)/4);
+        this.attributes = attributes;
+        
+        if (isStatic)
+            usage = graphics.gl.STATIC_DRAW;
+        else
+            usage = graphics.gl.DYNAMIC_DRAW;
     };
-    this.Load$quorum_boolean$quorum_integer$quorum_Libraries_Game_Graphics_VertexAttributes = function(isStatic, verticesCount, attributes) {
-
+    
+    this.GetSize = function() 
+    {
+        return length;
     };
-    this.GetSize = function() {
-
+    
+    this.GetMaxSize = function() 
+    {
+        return floatArray.length;
     };
-    this.GetMaxSize = function() {
-
+    
+    this.GetAttributes = function() 
+    {
+        return this.attributes;
     };
-    this.GetAttributes = function() {
-
+    
+    this.SetVerticesNative$quorum_integer$quorum_integer = function(offset, count) 
+    {
+        isDirty = true;
+        
+        for (i = 0; i < count; i++)
+            floatArray[i] = bridgeArray[offset + i];
+        
+        length = count;
+        this.BufferChanged();
     };
-    this.SetVerticesNative$quorum_integer$quorum_integer = function(offset, count) {
-
+    
+    this.UpdateVerticesNative$quorum_integer$quorum_integer$quorum_integer = function(targetOffset, sourceOffset, count) 
+    {
+        isDirty = true;
+        
+        for (i = 0; i < count; i++)
+            floatArray[targetOffset + i] = bridgeArray[sourceOffset + i];
+        
+        var limit = targetOffset + count;
+        if (length < limit)
+            length = limit;
+        
+        this.BufferChanged();
     };
-    this.UpdateVerticesNative$quorum_integer$quorum_integer$quorum_integer = function(targetOffset, sourceOffset, count) {
-
+    
+    this.Bind = function(shader, locations)
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        
+        graphics.glBindBuffer(graphics.gl.ARRAY_BUFFER, buffer);
+        
+        if (isDirty)
+        {
+            graphics.glBufferData(graphics.gl.ARRAY_BUFFER, buffer, usage);
+            isDirty = false;
+        }
+        
+        var numAttributes = this.attributes.GetSize();
+        
+        if (locations === undefined || locations === null)
+        {
+            for (i = 0; i < numAttributes; i++)
+            {
+                var attribute = this.attributes.GetAttribute(i);
+                var location = shader.GetAttributeLocation(attribute.alias);
+                
+                if (location < 0)
+                    continue;
+                
+                shader.EnableVertexAttributeAtLocation(location);
+                
+                shader.SetVertexAttributeAtLocation(location, attribute.componentCount, attribute.type, 
+                    attribute.normalized, this.attributes.vertexSize, attribute.offset);
+            }
+        }
+        else
+        {
+            for (i = 0; i < numAttributes; i++)
+            {
+                var attribute = this.attributes.GetAttribute(i);
+                var location = locations[i];
+                
+                if (location < 0)
+                    continue;
+                
+                shader.EnableVertexAttributeAtLocation(location);
+                
+                shader.SetVertexAttributeAtLocation(location, attribute.componentCount, attribute.type, 
+                    attribute.normalized, this.attributes.vertexSize, attribute.offset);
+            }
+        }
+        
+        isBound = true;
     };
-    this.Invalidate = function() {
-
+    
+    this.Unbind = function(shader, locations)
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var numAttributes = this.attributes.GetSize();
+        
+        if (locations === undefined || locations === null)
+        {
+            for (i = 0; i < numAttributes; i++)
+            {
+                shader.DisableVertexAttributeFromName(this.attributes.GetAttribute(i).alias);
+            }
+        }
+        else
+        {
+            for (i = 0; i < numAttributes; i++)
+            {
+                var location = locations[i];
+                if (location >= 0)
+                    shader.DisableVertexAttributeAtLocation(location);
+            }
+        }
+        
+        graphics.glBindBuffer(graphics.ARRAY_BUFFER, 0);
+        isBound = false;
     };
-    this.PrepareBridgeArray$quorum_integer = function(length) {
-
+    
+    this.Invalidate = function() 
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        buffer = graphics.glGenBuffer();
     };
-    this.SendToBridgeArray$quorum_integer$quorum_number = function(index, value) {
-
+    
+    this.Dispose = function() 
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        graphics.glBindBuffer(graphics.gl.GL_ARRAY_BUFFER, 0);
+        graphics.glDeleteBuffer(buffer);
+        buffer = null;
+        length = 0;
+        bridgeArray = [];
     };
-    this.PopulateVertexBuffer = function() {
-
+    
+    this.PrepareBridgeArray$quorum_integer = function(arrayLength) 
+    {
+        length = arrayLength;
+    };
+    
+    this.SendToBridgeArray$quorum_integer$quorum_number = function(index, value) 
+    {
+        bridgeArray[index] = value;
+    };
+    
+    this.PopulateVertexBuffer = function() 
+    {
+        isDirty = true;
+        for (i = 0; i < length; i++)
+            floatArray[i] = bridgeArray[i];
+    };
+    
+    this.BufferChanged = function()
+    {
+        if (isBound)
+        {
+            var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+            graphics.glBufferData(graphics.gl.ARRAY_BUFFER, floatArray, usage);
+            isDirty = false;
+        }
     };
 }
