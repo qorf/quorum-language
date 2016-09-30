@@ -21,7 +21,6 @@ public class IndexBufferObject extends IndexData
     IntBuffer buffer;
     ByteBuffer byteBuffer;
     int bufferHandle;
-    boolean isDirect;
     boolean isDirty = true;
     boolean isBound = false;
     int usage;
@@ -36,7 +35,6 @@ public class IndexBufferObject extends IndexData
             maxIndices = 1; // Avoid allocating a zero-sized buffer due to a bug in Android's ART < Android 5.0
         
         byteBuffer = BufferUtils.newUnsafeByteBuffer(maxIndices * 4);
-        isDirect = true;
         
         buffer = byteBuffer.asIntBuffer();
         buffer.flip();
