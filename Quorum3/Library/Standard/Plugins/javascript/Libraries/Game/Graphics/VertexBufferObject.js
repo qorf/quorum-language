@@ -6,6 +6,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
     var floatArray;
     var bridgeArray = [];
     var length = 0;
+    var maxLength = 0;
     var isDirty = false;
     var usage;
     var isBound = false;
@@ -15,7 +16,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
         
         buffer = graphics.glGenBuffer();
-        floatArray = new Float32Array((attributes.vertexSize * verticesCount)/4);
+        maxLength = (attributes.vertexSize * verticesCount) / 4;
         this.attributes = attributes;
         
         if (isStatic)
@@ -31,7 +32,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
     
     this.GetMaxSize = function() 
     {
-        return floatArray.length;
+        return maxLength;
     };
     
     this.GetAttributes = function() 
@@ -43,10 +44,15 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
     {
         isDirty = true;
         
+        if (count !== length)
+        {
+            this.SetLength(count);
+            floatArray = new Float32Array(count);
+        }
+        
         for (i = 0; i < count; i++)
             floatArray[i] = bridgeArray[offset + i];
         
-        length = count;
         this.BufferChanged();
     };
     
@@ -54,12 +60,21 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
     {
         isDirty = true;
         
-        for (i = 0; i < count; i++)
-            floatArray[targetOffset + i] = bridgeArray[sourceOffset + i];
-        
         var limit = targetOffset + count;
         if (length < limit)
-            length = limit;
+        {
+            this.SetLength(limit);
+            
+            var tempArray = new Float32Array(limit);
+            
+            for (i = 0; i < targetOffset; i++)
+                tempArray[i] = floatArray[i];
+            
+            floatArray = tempArray;
+        }
+        
+        for (i = 0; i < count; i++)
+            floatArray[targetOffset + i] = bridgeArray[sourceOffset + i];
         
         this.BufferChanged();
     };
@@ -158,7 +173,11 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
     
     this.PrepareBridgeArray$quorum_integer = function(arrayLength) 
     {
-        length = arrayLength;
+        if (length !== arrayLength)
+        {
+            this.SetLength(arrayLength);
+            floatArray = new Float32Array(arrayLength);
+        }
     };
     
     this.SendToBridgeArray$quorum_integer$quorum_number = function(index, value) 
@@ -181,5 +200,17 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
             graphics.glBufferData(graphics.gl.ARRAY_BUFFER, floatArray, usage);
             isDirty = false;
         }
+    };
+    
+    this.SetLength = function(newLength)
+    {
+        if (newLength > maxLength)
+        {
+            var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+            exceptionInstance_.SetErrorMessage$quorum_text("The VertexBufferObject was asked to set its length to " + newLength + ", but the maximum length is " + maxLength);
+            throw exceptionInstance_;  
+        }
+        
+        length = newLength;
     };
 }
