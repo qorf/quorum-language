@@ -200,7 +200,10 @@ public class JavaToQuorumListener implements QuorumListener {
     public void enterFormal_parameter(QuorumParser.Formal_parameterContext ctx) {
         FormalParameterContext context = new FormalParameterContext();
         setLocation(ctx, context);
-        context.name = ctx.ID().getText();
+        TerminalNode ID = ctx.ID();
+        if(ID != null) {
+            context.name = ID.getText();
+        }
         if(ctx.assignment_declaration() != null) {
             QuorumParser.Assignment_declarationContext decl = ctx.assignment_declaration();
             if(decl.start != null) {
@@ -215,7 +218,10 @@ public class JavaToQuorumListener implements QuorumListener {
     public void exitFormal_parameter(QuorumParser.Formal_parameterContext ctx) {
         FormalParameterContext context = new FormalParameterContext();
         setLocation(ctx, context);
-        context.name = ctx.ID().getText();
+        TerminalNode ID = ctx.ID();
+        if(ID != null) {
+            context.name = ID.getText();
+        }
         context.type = ctx.assignment_declaration().type;
         if(ctx.assignment_declaration() != null) {
             QuorumParser.Assignment_declarationContext decl = ctx.assignment_declaration();
@@ -1202,8 +1208,11 @@ public class JavaToQuorumListener implements QuorumListener {
             QuorumParser.Formal_parameterContext next = it.next();
             Type type = next.assignment_declaration().type;
             Variable variable = new Variable();
-            variable.SetName(next.ID().getText());
-            setLocation(next.ID().getSymbol(), variable);
+            TerminalNode ID = next.ID();
+            if(ID != null) {
+                variable.SetName(ID.getText());
+                setLocation(ID.getSymbol(), variable);
+            }
             variable.AddUseLocation(variable.CreateLocationCopy());
             variable.SetType(type);
             variable.SetIsParameter(true);
@@ -1248,8 +1257,11 @@ public class JavaToQuorumListener implements QuorumListener {
             QuorumParser.Formal_parameterContext next = it.next();
             Type type = next.assignment_declaration().type;
             Variable_ variable = new Variable();
-            variable.SetName(next.ID().getText());
-            setLocation(next.ID().getSymbol(), variable);
+            TerminalNode ID = next.ID();
+            if(ID != null) {
+                variable.SetName(ID.getText());
+                setLocation(ID.getSymbol(), variable);
+            }
             variable.AddUseLocation(variable.CreateLocationCopy());
             variable.SetType(type);
             variable.SetIsParameter(true);
