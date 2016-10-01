@@ -91,6 +91,11 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
         isBound = false;
     };
     
+    this.GetBuffer = function()
+    {
+        return integerArray;
+    };
+    
     this.Invalidate = function() 
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
@@ -135,6 +140,8 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
     
     this.PutBridgeArray = function() 
     {
+        isDirty = true;
+        
         if (length < writingPosition + bridgeArray.length)
         {
             this.SetLength(writingPosition + bridgeArray.length);

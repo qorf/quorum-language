@@ -1,3 +1,5 @@
+/* global plugins_quorum_Libraries_Game_GameStateManager_ */
+
 function plugins_quorum_Libraries_Game_Graphics_Mesh_() 
 {
     this.quorumMesh = null;
@@ -36,242 +38,158 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
         
         if (count === undefined)
         {
-            
+            if (this.quorumMesh.indices.GetSize() > 0)
+                count = quorumMesh.indices.GetSize();
+            else
+                count = quorumMesh.vertices.GetSize();
         }
+        
+        if (count === 0)
+            return;
+        
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        
+        if (autoBind === undefined)
+            autoBind = quorumMesh.autoBind;
+        
+        if (autoBind)
+            this.Bind(shader);
+        
+        if (quorumMesh.indices.GetSize() > 0)
+        {
+            if (quorumMesh.indices.plugin_.supports32bits)
+                graphics.glDrawElements(primitiveType, count, graphics.gl.UNSIGNED_INT, offset * 4);
+            else
+                graphics.glDrawElements(primitiveType, count, graphics.gl.UNSIGNED_SHORT, offset * 2);
+        }
+        else
+        {
+            graphics.glDrawArrays(primitiveType, offset, count);
+        }
+      
+        if (autoBind)
+            this.Unbind(shader);
     };
     
-    /* 
-     public void Render(ShaderProgram shader, int primitiveType) 
+    this.Bind = function(shader, locations)
     {
-        Render(shader, primitiveType, 0, quorumMesh.indices.GetMaxSize() > 0 ? quorumMesh.indices.GetSize() : quorumMesh.vertices.GetSize(), 
-            quorumMesh.autoBind);
-    }
+        quorumMesh.vertices.plugin_.Bind(shader, locations);
+        if (quorumMesh.indices.GetSize() > 0)
+            quorumMesh.indices.plugin_.Bind();
+    };
     
-    public void Render(ShaderProgram shader, int primitiveType, int offset, int count)
+    this.Unbind = function(shader, locations)
     {
-        Render(shader, primitiveType, offset, count, quorumMesh.autoBind);
-    }
+        quorumMesh.vertices.plugin_.Unbind(shader, locations);
+        if (quorumMesh.indices.GetSize() > 0)
+            quorumMesh.indices.plugin_.Unbind();
+    };
     
-    public void Render(ShaderProgram shader, int primitiveType, int offset, int count, boolean autoBind) 
-    {
-        if (count == 0) 
-            return;
-
-        if (autoBind) 
-            Bind(shader);
-
-        if (quorumMesh.isVertexArray) 
-        {
-            if (quorumMesh.indices.GetSize() > 0) 
-            {
-                IntBuffer buffer = ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.GetBuffer();
-                int oldPosition = buffer.position();
-                int oldLimit = buffer.limit();
-                buffer.position(offset);
-                buffer.limit(offset + count);
-                GameStateManager.nativeGraphics.glDrawElements(primitiveType, count, GraphicsManager.GL_UNSIGNED_INT, buffer);
-                buffer.position(oldPosition);
-                buffer.limit(oldLimit);
-            } 
-            else
-            {
-                GameStateManager.nativeGraphics.glDrawArrays(primitiveType, offset, count);
-            }
-        }
-        else
-        {
-            if (quorumMesh.indices.GetSize() > 0)
-            {
-                //System.out.println("Values = " + primitiveType + ", " + count + ", " + offset * 4);
-                GameStateManager.nativeGraphics.glDrawElements(primitiveType, count, GraphicsManager.GL_UNSIGNED_INT, offset * 4);
-            }
-            else
-            {
-                GameStateManager.nativeGraphics.glDrawArrays(primitiveType, offset, count);
-            }
-        }
-
-        if (autoBind)
-            Unbind(shader);
-    }
-    
-    public void Bind(final ShaderProgram shader)
-    {
-        Bind(shader, null);
-    }
-    
-    public void Bind(final ShaderProgram shader, final int[] locations)
-    {
-        if (quorumMesh.isVertexArray)
-        {
-            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Bind(shader, locations);
-            if (quorumMesh.indices.GetSize() > 0)
-                ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.Bind();
-        }
-        else
-        {
-            ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.Bind(shader, locations);
-            if (quorumMesh.indices.GetSize() > 0)
-                ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.Bind();
-        }
-    }
-    
-    public void Unbind(final ShaderProgram shader)
-    {
-        Unbind(shader, null);
-    }
-    
-    public void Unbind(final ShaderProgram shader, final int[] locations)
-    {
-        if (quorumMesh.isVertexArray)
-        {
-            ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.Unbind(shader, locations);
-            if (quorumMesh.indices.GetSize() > 0)
-                ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.Unbind();
-        }
-        else
-        {
-            ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.Unbind(shader, locations);
-            if (quorumMesh.indices.GetSize() > 0)
-                ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.Unbind();
-        }
-    }
-    
-    public BoundingBox_ CalculateBoundingBox(BoundingBox_ box)
+    this.CalculateBoundingBox$quorum_Libraries_Game_BoundingBox = function(box) 
     {
         box.Invalidate();
         
-        int numVertices = quorumMesh.GetVerticesCount();
-        if (numVertices == 0)
-            throw new GameRuntimeError("There were no vertices defined for this Mesh!");
+        var numVertices = quorumMesh.GetVerticesCount();
+        if (numVertices === 0)
+        {
+            var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+            exceptionInstance_.SetErrorMessage$quorum_text("There were no vertices defined for this Mesh!");
+            throw exceptionInstance_;
+        }
         
-        final FloatBuffer verts;
+        var verts = quorumMesh.vertices.plugin_.GetBuffer();
         
-        if (quorumMesh.isVertexArray)
-            verts = ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.GetVertexData()).plugin_.GetBuffer();
-        else
-            verts = ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.GetVertexData()).plugin_.GetBuffer();
+        var posAttrib = quorumMesh.GetVertexAttributes().FindByUsage(quorumMesh.GetVertexAttributes().POSITION);
+        var offset = posAttrib.offset / 4;
+        var vertexSize = quorumMesh.vertices.GetAttributes().vertexSize;
+        var index = offset;
         
-        VertexAttribute_ posAttrib = quorumMesh.GetVertexAttributes().FindByUsage(quorumMesh.GetVertexAttributes().Get_Libraries_Game_Graphics_VertexAttributes__POSITION_());
-        final int offset = posAttrib.Get_Libraries_Game_Graphics_VertexAttribute__offset_() / 4;
-        final int vertexSize = quorumMesh.vertices.GetAttributes().Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_();
-        int index = offset;
-        
-        switch (posAttrib.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_())
+        switch (posAttrib.componentCount)
         {
             case 1:
-                for (int i = 0; i < numVertices; i++)
+                for (i = 0; i < numVertices; i++)
                 {
-                    box.Extend(verts.get(index), 0, 0);
-                    index += vertexSize;
+                    box.Extend(verts[index], 0, 0);
+                    index = index + vertexSize;
                 }
                 break;
                 
             case 2:
-                for (int i = 0; i < numVertices; i++)
+                for (i = 0; i < numVertices; i++)
                 {
-                    box.Extend(verts.get(index), verts.get(index + 1), 0);
-                    index += vertexSize;
+                    box.Extend(verts[index], verts[index + 1], 0);
+                    index = index + vertexSize;
                 }
                 break;
                 
             case 3:
-                for (int i = 0; i < numVertices; i++)
+                for (i = 0; i < numVertices; i++)
                 {
-                    box.Extend(verts.get(index), verts.get(index + 1), verts.get(index + 2));
-                    index += vertexSize;
+                    box.Extend(verts[index], verts[index + 1], verts[index + 2]);
+                    index = index + vertexSize;
                 }
                 break;
         }
-        
         return box;
-    }
+    };
     
-    public BoundingBox_ ExtendBoundingBox(BoundingBox_ box, int offset, int count, Matrix4_ transform)
+    this.ExtendBoundingBox$quorum_Libraries_Game_BoundingBox$quorum_integer$quorum_integer$quorum_Libraries_Compute_Matrix4 = function(box, offset, count, transform) 
     {
-        int numIndices = quorumMesh.GetIndicesCount();
+        var numIndices = quorumMesh.GetIndicesCount();
         
         if (offset < 0 || count < 1 || offset + count > numIndices)
-            throw new GameRuntimeError("Invalid parameter(s) to ExtendBoundingBox - offset = " + offset + ", count = " + count + ", max = " + numIndices);
-
-        final FloatBuffer verts;
-        final IntBuffer index;
-        if (quorumMesh.isVertexArray)
         {
-            verts = ((quorum.Libraries.Game.Graphics.VertexArray)quorumMesh.vertices).plugin_.GetBuffer();
-            index = ((quorum.Libraries.Game.Graphics.IndexArray)quorumMesh.indices).plugin_.GetBuffer();
-        }
-        else
-        {
-            verts = ((quorum.Libraries.Game.Graphics.VertexBufferObject)quorumMesh.vertices).plugin_.GetBuffer();
-            index = ((quorum.Libraries.Game.Graphics.IndexBufferObject)quorumMesh.indices).plugin_.GetBuffer();
+            var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+            exceptionInstance_.SetErrorMessage$quorum_text("Invalid parameter(s) to ExtendBoundingBox - offset = " + offset + ", count = " + count + ", max = " + numIndices);
+            throw exceptionInstance_;
         }
         
-        final VertexAttribute_ posAttrib = quorumMesh.GetVertexAttributes().FindByUsage(quorumMesh.GetVertexAttributes().Get_Libraries_Game_Graphics_VertexAttributes__POSITION_());
+        var vertices = quorumMesh.vertices.plugin_.GetBuffer();
+        var indices = quorumMesh.indices.plugin_.GetBuffer();
         
-        final int posOffset = posAttrib.Get_Libraries_Game_Graphics_VertexAttribute__offset_() / 4;
-        final int vertexSize = quorumMesh.vertices.GetAttributes().Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_() / 4;
-        final int end = offset + count;
+        var posAttrib = quorumMesh.GetVertexAttributes().FindByUsage(quorumMesh.GetVertexAttributes().POSITION);
         
-        switch (posAttrib.Get_Libraries_Game_Graphics_VertexAttribute__componentCount_())
+        var posOffset = posAttrib.offset / 4;
+        var vertexSize = quorumMesh.vertices.GetAttributes().vertexSize / 4;
+        var end = offset + count;
+        
+        switch (posAttrib.componentCount)
         {
             case 1:
-                for (int i = offset; i < end; i++)
+                for (i = offset; i < end; i++)
                 {
-                    final int idx = index.get(i) * vertexSize + posOffset;
-                    calcVector.Set(verts.get(idx), 0, 0);
-                    if (transform != null)
-                        calcVector.Multiply(transform);
+                    var idx = indices[i] * vertexSize + posOffset;
+                    this.calcVector.Set(vertices[idx], 0, 0);
+                    if (transform !== null && transform !== undefined)
+                        this.calcVector.Multiply(transform);
                     
                     box.Extend(calcVector);
                 }
                 break;
                 
             case 2:
-                for (int i = offset; i < end; i++)
+                for (i = offset; i < end; i++)
                 {
-                    final int idx = index.get(i) * vertexSize + posOffset;
-                    calcVector.Set(verts.get(idx), verts.get(idx + 1), 0);
-                    if (transform != null)
-                        calcVector.Multiply(transform);
+                    var idx = indices[i] * vertexSize + posOffset;
+                    this.calcVector.Set(vertices[idx], vertices[idx + 1], 0);
+                    if (transform !== null && transform !== undefined)
+                        this.calcVector.Multiply(transform);
+                    
                     box.Extend(calcVector);
                 }
                 break;
                 
-            case 3: 
-                for (int i = offset; i < end; i++)
+            case 3:
+                for (i = offset; i < end; i++)
                 {
-                    final int idx = index.get(i) * vertexSize + posOffset;
-                    try
-                    {
-                        calcVector.Set(verts.get(idx), verts.get(idx + 1), verts.get(idx + 2));
-                        if (transform != null)
-                            calcVector.Multiply(transform);
-                        box.Extend(calcVector);
-                    }
-                    catch(Exception ex)
-                    {
-                        System.out.println("Attempted to access up to " + (idx + 2) + ", verts size was " + verts.capacity());
-                        System.out.println("i = " + i + ", index.get(" + i + ") = " + index.get(i));
-                        throw ex;
-                    }
+                    var idx = indices[i] * vertexSize + posOffset;
+                    this.calcVector.Set(vertices[idx], vertices[idx + 1], vertices[idx + 2]);
+                    if (transform !== null && transform !== undefined)
+                        this.calcVector.Multiply(transform);
+                    
+                    box.Extend(calcVector);
                 }
-            
                 break;
         }
-        
-        return box;
-    }
-     
-     */
-    
-    this.CalculateBoundingBox$quorum_Libraries_Game_BoundingBox = function(box) 
-    {
-
-    };
-    
-    this.ExtendBoundingBox$quorum_Libraries_Game_BoundingBox$quorum_integer$quorum_integer$quorum_Libraries_Compute_Matrix4 = function(box, offset, count, transform) 
-    {
-
     };    
 }

@@ -1,10 +1,16 @@
+/* global plugins_quorum_Libraries_Game_GameStateManager_ */
+
 function plugins_quorum_Libraries_Game_Graphics_IndexArray_() 
 {
-    var bridgeArray = [];
+    var buffer;
     var integerArray;
+    var bridgeArray = [];
     var length = 0;
-    var maxLength = 0;
+    var maxLength;
     var writingPosition = 0;
+    
+    var isDirty = true;
+    var isBound = false;
     
     this.supports32bits;
     
@@ -15,6 +21,9 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
         this.supports32bits = graphics.gl.getExtension("OES_element_index_uint");
         
         maxLength = maximumSize;
+        writingPosition = 0;
+        
+        buffer = graphics.glGenBuffer();
     };
     
     this.GetSize = function() 
@@ -34,6 +43,8 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
     
     this.SetIndices = function(array, offset, count)
     {
+        isDirty = true;
+        
         if (length !== count)
         {
             this.SetLength(count);
@@ -44,6 +55,13 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
             integerArray[i] = array[offset + i];
         
         writingPosition = 0;
+        
+        if (isBound)
+        {
+            var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+            graphics.glBufferData(graphics.gl.ELEMENT_ARRAY_BUFFER, integerArray, graphics.gl.STATIC_DRAW);
+            isDirty = false;
+        }
     };
     
     this.GetBuffer = function()
@@ -53,31 +71,57 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
     
     this.Bind = function() 
     {
-        // Do nothing.
+        if (buffer === undefined || buffer === null)
+        {
+            var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+            exceptionInstance_.SetErrorMessage$quorum_text("Attempted to bind before a buffer was allocated!");
+            throw exceptionInstance_;
+        }
+        
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        
+        graphics.glBindBuffer(graphics.gl.ELEMENT_ARRAY_BUFFER, buffer);
+        
+        if (isDirty)
+        {
+            graphics.glBufferData(graphics.gl.ELEMENT_ARRAY_BUFFER, integerArray, graphics.gl.STATIC_DRAW);
+            isDirty = false;
+        }
+        isBound = true;
     };
     
     this.Unbind = function() 
     {
-        // Do nothing.
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        graphics.glBindBuffer(graphics.gl.ELEMENT_ARRAY_BUFFER, 0);
+        isBound = false;
     };
     
     this.Invalidate = function() 
     {
-        // Do nothing.
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        buffer = graphics.glGenBuffer();
+        isDirty = true;
     };
     
     this.Clear = function() 
     {
+        integerArray = null;
         length = 0;
         writingPosition = 0;
-        integerArray = null;
     };
     
     this.Dispose = function() 
     {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        graphics.glBindBuffer(graphics.gl.ELEMENT_ARRAY_BUFFER, 0);
+        graphics.glDeleteBuffer(buffer);
+        buffer = null;
+        
         integerArray = null;
         bridgeArray = [];
         length = 0;
+        maxLength = 0;
         writingPosition = 0;
     };
     
@@ -97,6 +141,8 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
     
     this.PutBridgeArray = function() 
     {
+        isDirty = true;
+        
         if (length < writingPosition + bridgeArray.length)
         {
             this.SetLength(writingPosition + bridgeArray.length);
