@@ -660,14 +660,14 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         throw exceptionInstance_;
     }
     
-    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_().POSITION_ATTRIBUTE = "a_position";
-    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_().NORMAL_ATTRIBUTE = "a_normal";
-    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_().COLOR_ATTRIBUTE = "a_color";
-    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_().TEXCOORD_ATTRIBUTE = "a_texCoord";
-    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_().TANGENT_ATTRIBUTE = "a_tangent";
-    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_().BINORMAL_ATTRIBUTE = "a_binormal";
+    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.POSITION_ATTRIBUTE = "a_position";
+    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.NORMAL_ATTRIBUTE = "a_normal";
+    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.COLOR_ATTRIBUTE = "a_color";
+    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.TEXCOORD_ATTRIBUTE = "a_texCoord";
+    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.TANGENT_ATTRIBUTE = "a_tangent";
+    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.BINORMAL_ATTRIBUTE = "a_binormal";
     
-    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_().pedantic = true;
+    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.pedantic = true;
     
     //private final static ObjectMap<quorum.Libraries.Game.Application_, Array<ShaderProgram>> shaders = new ObjectMap<quorum.Libraries.Game.Application_, Array<ShaderProgram>>();
     
