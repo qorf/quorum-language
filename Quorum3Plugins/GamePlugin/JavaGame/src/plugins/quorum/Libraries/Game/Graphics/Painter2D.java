@@ -294,46 +294,15 @@ public class Painter2D
         index = 0;
         
     }
-    
-    public void DisableBlending()
-    {
-        if (blendingDisabled)
-            return;
-        Flush();
-        blendingDisabled = true;
-    }
-    
-    public void EnableBlending()
-    {
-        if (!blendingDisabled)
-            return;
-        Flush();
-        blendingDisabled = false;
-    }
-    
-    public void SetBlendFunction (int srcFunc, int dstFunc) 
-    {
-	if (blendSourceFunction == srcFunc && blendDestFunction == dstFunc)
-            return;
-	Flush();
-	blendSourceFunction = srcFunc;
-	blendDestFunction = dstFunc;
-    }
-
-    public int GetBlendSrcFunc () 
-    {
-	return blendSourceFunction;
-    }
-
-    public int GetBlendDstFunc () 
-    {
-	return blendDestFunction;
-    }
 
     public void Dispose() 
     {
 	mesh.Dispose();
-	if (ownsShader && shader != null) shader.Dispose();
+	if (ownsShader && shader != null)
+            shader.Dispose();
+        
+        if (ownsShader && fontShader != null)
+            fontShader.Dispose();
     }
         
     protected void SwitchTexture (quorum.Libraries.Game.Graphics.Texture_ texture) 
@@ -442,7 +411,7 @@ public class Painter2D
     {
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
-	if (quorumBatch.IsDrawing()) 
+	if (quorumBatch.IsDrawing() && !useFontShader) 
         {
             Flush();
             if (customShader != null)
@@ -451,7 +420,7 @@ public class Painter2D
                 this.shader.End();
 	}
 	customShader = shader;
-	if (quorumBatch.IsDrawing()) 
+	if (quorumBatch.IsDrawing() && !useFontShader) 
         {
             if (customShader != null)
 		customShader.Begin();
@@ -466,31 +435,11 @@ public class Painter2D
     	return !blendingDisabled;
     }
     
-    public void TintShader(quorum.Libraries.Game.Graphics.Color_ color)
-    {
-        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
-        
-        if (quorumBatch.IsDrawing())
-            this.shader.SetAttribute(ShaderProgram.COLOR_ATTRIBUTE, color);
-    }
-    
-    public void ResetShaderTint()
-    {
-        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
-        
-        if (quorumBatch.IsDrawing())
-            this.shader.SetAttribute(ShaderProgram.COLOR_ATTRIBUTE, 1.0f, 1.0f, 1.0f, 1.0f);
-    }
-    
     public void ApplyCamera(Camera_ camera)
     {
-//        float[] temp = new float[16];
-//        for(int i = 0; i < 16; i++)
-//            temp[i] = GetMatrixValue(camera.GetCombinedMatrix(), i);
-//        
-//        calcMatrix.set(temp);
-        calcMatrix.Set(camera.GetCombinedMatrix());
-        SetProjectionMatrix(calcMatrix);
+//        calcMatrix.Set(camera.GetCombinedMatrix());
+//        SetProjectionMatrix(calcMatrix);
+        SetProjectionMatrix(camera.GetCombinedMatrix());
     }
         
     /*

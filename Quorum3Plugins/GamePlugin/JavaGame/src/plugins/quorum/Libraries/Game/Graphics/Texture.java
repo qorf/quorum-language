@@ -44,13 +44,6 @@ public class Texture
   // regained context after losing it.
   final static Map<quorum.Libraries.Game.Application_, Array<Texture>> managedTextures = new HashMap<quorum.Libraries.Game.Application_, Array<Texture>>();
 
-   
-    public void LoadFromTextureData(quorum.Libraries.Game.Graphics.TextureData_ data)
-    {
-        glTarget = GraphicsManager.GL_TEXTURE_2D;
-        glHandle = CreateGLHandle();
-    }
-
     public void Bind() 
     {
         gl20.glBindTexture(glTarget, glHandle);
