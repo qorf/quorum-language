@@ -2,7 +2,7 @@ package Libraries.Game.Collision
 
 use Libraries.Compute.Vector3
 
-class ManifoldPoint3D 
+class CollisionPoint3D 
     public Vector3 localPointA
     public Vector3 localPointB
     public Vector3 positionWorldOnB
@@ -43,7 +43,7 @@ class ManifoldPoint3D
         return lifeTime
     end
 
-    action Set(ManifoldPoint3D point)
+    action Set(CollisionPoint3D point)
         localPointA:Set(point:localPointA)
         localPointB:Set(point:localPointB)
         positionWorldOnA:Set(point:positionWorldOnA)

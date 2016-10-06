@@ -508,17 +508,6 @@ class ConvexConvexSimplexSolver
     action FullSimplex returns boolean
         return numVertices = 4
     end
-
-    action GetSimplex(Array<Vector3> pBuffer, Array<Vector3> qBuffer, Array<Vector3> yBuffer) returns integer
-        integer i = 0
-        repeat while i < numVertices
-            yBuffer:Add(simplexVectorW:Get(i))
-            pBuffer:Add(simplexPointsP:Get(i))
-            qBuffer:Add(simplexPointsQ:Get(i))
-            i = i + 1
-        end
-        return numVertices
-    end
     
     action InSimplex(Vector3 w) returns boolean
         boolean found = false

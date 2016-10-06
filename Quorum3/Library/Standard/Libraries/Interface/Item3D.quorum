@@ -20,9 +20,9 @@ use Libraries.Game.Layer3D
 use Libraries.Game.Collision.Shapes.all
 use Libraries.Game.Collision.Item3DNode
 use Libraries.Game.Collision.BroadphaseCollision3D
-use Libraries.Game.Collision.ContactEdge3D
+use Libraries.Game.Collision.CollisionEdge3D
 use Libraries.Game.BoundingBox
-use Libraries.Game.Collision.Transform3D
+use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Compute.Quaternion
 use Libraries.Compute.Matrix3
 
@@ -61,14 +61,14 @@ class Item3D is Item
 
     boolean collidable = false
 
-    Transform3D collisionTransform
-    Transform3D collisionTransform0
+    PhysicsPosition3D collisionTransform
+    PhysicsPosition3D collisionTransform0
 
     CollisionShape3D shape = undefined
     Array<Item3DNode> nodes
     integer nodeCount = 0
 
-    public ContactEdge3D contactList = undefined
+    public CollisionEdge3D collisionList = undefined
 
     private Item3D parentItem = undefined
     private Array<Item3D> children
@@ -980,13 +980,13 @@ class Item3D is Item
     action Remove(Item3D removed) returns boolean
         boolean success = children:Remove(removed)
 
-        ContactEdge3D edge = removed:contactList
+        CollisionEdge3D edge = removed:collisionList
         repeat while edge not= undefined
-            ContactEdge3D edge0 = edge
+            CollisionEdge3D edge0 = edge
             edge = edge:GetNext()
             layer:GetCollisionManager():Destroy(edge0:GetCollision())
         end
-        removed:contactList = undefined
+        removed:collisionList = undefined
 
         removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
         removed:SetCollidable(false)
@@ -1024,13 +1024,13 @@ class Item3D is Item
     action Remove(integer index) returns Item3D
         Item3D temp = children:RemoveAt(index)
 
-        ContactEdge3D edge = temp:contactList
+        CollisionEdge3D edge = temp:collisionList
         repeat while edge not= undefined
-            ContactEdge3D edge0 = edge
+            CollisionEdge3D edge0 = edge
             edge = edge:GetNext()
             layer:GetCollisionManager():Destroy(edge0:GetCollision())
         end
-        temp:contactList = undefined
+        temp:collisionList = undefined
 
         temp:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
         temp:SetCollidable(false)
@@ -2079,7 +2079,7 @@ class Item3D is Item
     end
 
     action SynchronizeNodes
-        Transform3D xf1
+        PhysicsPosition3D xf1
         
         Vector3 origin
         Matrix3 basis = collisionTransform:GetBasis()
@@ -2127,7 +2127,7 @@ class Item3D is Item
         return nodes:Get(childIndex):boundingBox
     end
 
-    action CreateNodes(BroadphaseCollision3D broadphase, Transform3D transform)
+    action CreateNodes(BroadphaseCollision3D broadphase, PhysicsPosition3D transform)
         if nodesSet or not collidable
             DestroyNodes(broadphase)
         end
@@ -2162,7 +2162,7 @@ class Item3D is Item
         nodesSet = false
     end
 
-    private action Synchronize(BroadphaseCollision3D broadphase, Transform3D transform1, Transform3D transform2)
+    private action Synchronize(BroadphaseCollision3D broadphase, PhysicsPosition3D transform1, PhysicsPosition3D transform2)
         if nodeCount = 0
             return now
         end
@@ -2251,13 +2251,13 @@ class Item3D is Item
             if layerSet
                 BroadphaseCollision3D broadphase = layer:GetCollisionManager():GetBroadphase()
                 DestroyNodes(broadphase)
-                ContactEdge3D edge = contactList
+                CollisionEdge3D edge = collisionList
                 repeat while edge not= undefined
-                    ContactEdge3D edge0 = edge
+                    CollisionEdge3D edge0 = edge
                     edge = edge:GetNext()
                     layer:GetCollisionManager():Destroy(edge0:GetCollision())
                 end
-                contactList = undefined
+                collisionList = undefined
             end
         end
     end
@@ -2266,19 +2266,19 @@ class Item3D is Item
         return collidable
     end
 
-    action GetCollisionTransform returns Transform3D
+    action GetCollisionTransform returns PhysicsPosition3D
         return collisionTransform
     end
 
-    action GetCollisionTransform0 returns Transform3D
+    action GetCollisionTransform0 returns PhysicsPosition3D
         return collisionTransform0
     end
 
-    action SetCollisionTransform(Transform3D transform)
+    action SetCollisionTransform(PhysicsPosition3D transform)
         collisionTransform:Set(transform)
     end
 
-    action SetCollisionTransform0(Transform3D transform)
+    action SetCollisionTransform0(PhysicsPosition3D transform)
         collisionTransform0:Set(transform)
     end
 end

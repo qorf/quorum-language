@@ -46,8 +46,8 @@ class BroadphaseCollision2D
         BufferMove(nodeID)
     end
 
-    action GetObject(integer id) returns Object
-        return tree:GetObject(id)
+    action GetItemNode(integer id) returns Item2DNode
+        return tree:GetItemNode(id)
     end
 
     action GetBoundingBox(integer id) returns BoundingBox2D
@@ -94,8 +94,8 @@ class BroadphaseCollision2D
         i = 0
         repeat while i < pairCount
             CollisionPair2D primaryPair = pairList:Get(i)
-            Object dataA = tree:GetObject(primaryPair:GetIDA())
-            Object dataB = tree:GetObject(primaryPair:GetIDB())
+            Item2DNode dataA = tree:GetItemNode(primaryPair:GetIDA())
+            Item2DNode dataB = tree:GetItemNode(primaryPair:GetIDB())
 
             collision:AddPair(dataA, dataB)
             i = i + 1

@@ -3,6 +3,7 @@ use Libraries.Containers.Array
 use Libraries.Compute.Vector2
 use Libraries.Containers.Stack
 use Libraries.Compute.Math
+use Libraries.Game.Collision.Item2DNode
 
 package Libraries.Game.Collision
 
@@ -54,7 +55,7 @@ class DynamicBoundingVolumeTree2D
     given BoundingBox and given Item and inserts the new node as a leaf for the 
     tree.
     */
-    action CreateNode(BoundingBox2D boundingBox, Object object) returns integer
+    action CreateNode(BoundingBox2D boundingBox, Item2DNode node) returns integer
         DynamicBoundingVolumeTreeNode2D newNode = AllocateNode()
         integer id = newNode:GetID()
         // calculate the bounding box for the node
@@ -66,7 +67,7 @@ class DynamicBoundingVolumeTree2D
         maximum:SetX(boundingBox:GetMaximum():GetX() + boundingBoxExtension)
         maximum:SetY(boundingBox:GetMaximum():GetY() + boundingBoxExtension)
         nodeBoundingBox:Set(minimum, maximum)
-        newNode:SetObject(object)
+        newNode:SetItemNode(node)
 
         // insert into the tree
         InsertLeaf(newNode)
@@ -170,9 +171,9 @@ class DynamicBoundingVolumeTree2D
     /*
     This action returns the Item2Dcontained in the tree node with the given ID
     */
-    action GetObject(integer nodeID) returns Object
+    action GetItemNode(integer nodeID) returns Item2DNode
         if 0 <= nodeID and nodeID < nodesCapacity
-            return GetObject(nodes:Get(nodeID))
+            return GetItemNode(nodes:Get(nodeID))
         end
         return undefined
     end
@@ -180,8 +181,8 @@ class DynamicBoundingVolumeTree2D
     /*
     This action returns the Item2Dcontained in the given tree node
     */
-    action GetObject(DynamicBoundingVolumeTreeNode2D node) returns Object
-        return node:GetObject()
+    action GetItemNode(DynamicBoundingVolumeTreeNode2D node) returns Item2DNode
+        return node:GetItemNode()
     end
 
     /*
@@ -364,7 +365,7 @@ class DynamicBoundingVolumeTree2D
         node:SetLeftChild(undefined)
         node:SetRightChild(undefined)
         node:SetHeight(0)
-        node:SetObject(undefined)
+        node:SetItemNode(undefined)
         nodeCount = nodeCount + 1
 
         return node
@@ -497,7 +498,7 @@ class DynamicBoundingVolumeTree2D
             DynamicBoundingVolumeTreeNode2D oldParent = nodes:Get(sibling:GetID()):GetParent()
             DynamicBoundingVolumeTreeNode2D newParent = AllocateNode()
             newParent:SetParent(oldParent)
-            newParent:SetObject(undefined)
+            newParent:SetItemNode(undefined)
             newParent:GetBoundingBox():Combine(leafBoundingBox, sibling:GetBoundingBox())
             newParent:SetHeight(sibling:GetHeight() + 1)
 

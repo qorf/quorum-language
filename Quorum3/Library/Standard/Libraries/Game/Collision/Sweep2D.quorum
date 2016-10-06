@@ -40,7 +40,7 @@ class Sweep2D
         alpha0 = sweep:alpha0
     end
 
-    action GetTransform(Transform2D transform, number beta)
+    action GetTransform(PhysicsPosition2D transform, number beta)
         transform:GetPosition():SetX((1.0 - beta) * center0:GetX() + beta * center:GetX())
         transform:GetPosition():SetY((1.0 - beta) * center0:GetY() + beta * center:GetY())
         number angle = (1.0 - beta) * angle0 + beta * me:angle
@@ -58,5 +58,17 @@ class Sweep2D
         center0:SetY(center0:GetY() + beta * (center:GetY() - center0:GetY()))
         angle0 = angle0 + beta * (angle - angle0)
         alpha0 = alpha
+    end
+
+    action SetAngle(number angle)
+        me:angle = angle
+    end
+
+    action SetAngle0(number angle0)
+        me:angle0 = angle0
+    end
+
+    action SetAlpha0(number alpha0)
+        me:alpha0 = alpha0
     end
 end

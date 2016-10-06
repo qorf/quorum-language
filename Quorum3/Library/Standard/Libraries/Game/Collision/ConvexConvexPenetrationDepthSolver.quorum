@@ -9,7 +9,7 @@ class ConvexConvexPenetrationDepthSolver
     ConvexConvexCollisionSolver gjkEpaSolver
    
     action CalculatePenetrationDepth(ConvexConvexSimplexSolver simplexSolver, CollisionShape3D pConvexA, 
-                    CollisionShape3D pConvexB, Transform3D transformA, Transform3D transformB, Vector3 v, 
+                    CollisionShape3D pConvexB, PhysicsPosition3D transformA, PhysicsPosition3D transformB, Vector3 v, 
                     Vector3 witnessOnA, Vector3 witnessOnB) returns boolean
 
         number radialMargin = 0

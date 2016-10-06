@@ -4,7 +4,7 @@ use Libraries.Compute.Vector3
 use Libraries.Game.Collision.Shapes.CollisionShape3D
 use Libraries.Game.Collision.ConvexConvexPenetrationDepthSolver
 use Libraries.Game.Collision.ConvexConvexSimplexSolver
-use Libraries.Game.Collision.ManifoldResult3D
+use Libraries.Game.Collision.CollisionPointsResult3D
 use Libraries.Compute.Matrix3
 use Libraries.Compute.Math
 
@@ -38,7 +38,7 @@ class ConvexConvexPairSolver
         me:minkowskiB = objectB
     end
 
-    action GetClosestPoints(Transform3D transformA, Transform3D transformB, number maximumDistanceSquared, ManifoldResult3D result, boolean swapResults)
+    action GetClosestPoints(PhysicsPosition3D transformA, PhysicsPosition3D transformB, number maximumDistanceSquared, CollisionPointsResult3D result, boolean swapResults)
         Vector3 tmp
 
         number distance = 0
@@ -46,9 +46,9 @@ class ConvexConvexPairSolver
         normalInB:Set(0, 0, 0)
         Vector3 pointOnA
         Vector3 pointOnB
-        Transform3D localTransA
+        PhysicsPosition3D localTransA
         localTransA:Set(transformA)
-        Transform3D localTransB
+        PhysicsPosition3D localTransB
         localTransB:Set(transformB)
         Vector3 positionOffset
         positionOffset:Set(localTransA:GetOrigin()):Add(localTransB:GetOrigin())
@@ -256,7 +256,7 @@ class ConvexConvexPairSolver
 
         if isValid
             tmp:Set(pointOnB):Add(positionOffset)
-            result:AddContactPoint(normalInB, tmp, distance)
+            result:AddCollisionPoint(normalInB, tmp, distance)
         end
     end
 

@@ -3,14 +3,14 @@ use Libraries.Compute.Vector2
 
 package Libraries.Game.Collision
 
-class ContactManifold2D
-    public constant integer MAX_MANIFOLD_POINTS = 2
+class LocalCollisionPoints2D
+    public constant integer MAX_COLLISION_POINTS = 2
 
     public constant integer CIRCLES = 0
     public constant integer FACE_A = 1
     public constant integer FACE_B = 2
 
-    public Array<ManifoldPoint2D> points
+    public Array<CollisionPoint2D> points
     public Vector2 localNormal
     public Vector2 localPoint
     public integer pointCount = 0
@@ -18,14 +18,14 @@ class ContactManifold2D
     public integer type = 0
 
     on create
-        points:SetMaxSize(MAX_MANIFOLD_POINTS)
-        repeat MAX_MANIFOLD_POINTS times
-            ManifoldPoint2D point
+        points:SetMaxSize(MAX_COLLISION_POINTS)
+        repeat MAX_COLLISION_POINTS times
+            CollisionPoint2D point
             points:Add(point)
         end
     end
 
-    action Set(ContactManifold2D other)
+    action Set(LocalCollisionPoints2D other)
         localNormal:Set(other:localNormal)
         localPoint:Set(other:localPoint)
         pointCount = other:pointCount
@@ -33,8 +33,8 @@ class ContactManifold2D
 
         integer i = 0
         repeat other:pointCount times
-            ManifoldPoint2D new
-            ManifoldPoint2D old = other:points:Get(i)
+            CollisionPoint2D new
+            CollisionPoint2D old = other:points:Get(i)
             new:Set(old)
             me:points:Set(i, new)
             i = i + 1

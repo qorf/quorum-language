@@ -2,13 +2,13 @@ use Libraries.Interface.Item2D
 use Libraries.Compute.Math
 use Libraries.Compute.Vector2
 use Libraries.Containers.Array
-use Libraries.Game.Collision.ContactEdge2D
-use Libraries.Game.Collision.ContactManifold2D
-use Libraries.Game.Collision.Transform2D
+use Libraries.Game.Collision.CollisionEdge2D
+use Libraries.Game.Collision.LocalCollisionPoints2D
+use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Game.Collision.Shapes.CollisionShape2D
 use Libraries.Game.Collision.Shapes.Circle
 use Libraries.Game.Collision.Shapes.Polygon
-use Libraries.Game.Collision.ManifoldPoint2D
+use Libraries.Game.Collision.CollisionPoint2D
 
 package Libraries.Interface.Events
 
@@ -34,10 +34,10 @@ class CollisionEvent2D
     private CollisionEvent2D next = undefined
     private CollisionEvent2D previous = undefined
 
-    public ContactEdge2D nodeA
-    public ContactEdge2D nodeB
+    public CollisionEdge2D nodeA
+    public CollisionEdge2D nodeB
 
-    ContactManifold2D manifold
+    LocalCollisionPoints2D collisionPoints
 
     private number separation1 = 0
     private integer edgeIndex1 = 0
@@ -53,7 +53,7 @@ class CollisionEvent2D
         me:itemB = itemB
         me:indexB = indexB
 
-        manifold:pointCount = 0
+        collisionPoints:pointCount = 0
 
         previous = undefined
         next = undefined
@@ -149,21 +149,21 @@ class CollisionEvent2D
 //        return tangentSpeed
 //    end
 
-    ContactManifold2D oldManifold
+    LocalCollisionPoints2D oldCollisionPoints
 
     action DispatchCollision(Array<CollisionListener2D> listeners)
-        oldManifold:Set(manifold)
+        oldCollisionPoints:Set(collisionPoints)
 
         enabledFlag = true
 
         boolean touching = false
         boolean wasTouching = touchingFlag
 
-        Transform2D transformA = itemA:GetTransform()
-        Transform2D transformB = itemB:GetTransform()
+        PhysicsPosition2D transformA = itemA:GetTransform()
+        PhysicsPosition2D transformB = itemB:GetTransform()
 
-        NarrowphaseEvaluation(manifold, transformA, transformB)
-        touching = manifold:pointCount > 0
+        NarrowphaseEvaluation(collisionPoints, transformA, transformB)
+        touching = collisionPoints:pointCount > 0
 
         touchingFlag = touching
 
@@ -182,11 +182,11 @@ class CollisionEvent2D
         end
     end
 
-    action GetNodeA returns ContactEdge2D
+    action GetNodeA returns CollisionEdge2D
         return nodeA
     end
 
-    action GetNodeB returns ContactEdge2D
+    action GetNodeB returns CollisionEdge2D
         return nodeB
     end
 
@@ -202,24 +202,24 @@ class CollisionEvent2D
 //        end
 //    end
 
-    private action NarrowphaseEvaluation(ContactManifold2D manifold, Transform2D transformA, Transform2D transformB)
+    private action NarrowphaseEvaluation(LocalCollisionPoints2D collisionPoints, PhysicsPosition2D transformA, PhysicsPosition2D transformB)
         CollisionShape2D shapeA = itemA:GetShape()
         CollisionShape2D shapeB = itemB:GetShape()
 
         // call appropriate collision action based on shapes of items
         if shapeA is Polygon and shapeB is Polygon
-            CollidePolygons(manifold, cast(Polygon, shapeA), transformA, cast(Polygon, shapeB), transformB)
+            CollidePolygons(collisionPoints, cast(Polygon, shapeA), transformA, cast(Polygon, shapeB), transformB)
         elseif shapeA is Circle and shapeB is Circle
-            CollideCircles(manifold, cast(Circle, shapeA), transformA, cast(Circle, shapeB), transformB)
+            CollideCircles(collisionPoints, cast(Circle, shapeA), transformA, cast(Circle, shapeB), transformB)
         elseif shapeA is Polygon and shapeB is Circle
-            CollidePolygonAndCircle(manifold, cast(Polygon, shapeA), transformA, cast(Circle, shapeB), transformB)
+            CollidePolygonAndCircle(collisionPoints, cast(Polygon, shapeA), transformA, cast(Circle, shapeB), transformB)
         elseif shapeB is Polygon and shapeA is Circle
-            CollidePolygonAndCircle(manifold, cast(Polygon, shapeB), transformB, cast(Circle, shapeA), transformA)
+            CollidePolygonAndCircle(collisionPoints, cast(Polygon, shapeB), transformB, cast(Circle, shapeA), transformA)
         end
     end
 
-    private action CollidePolygons(ContactManifold2D manifold, Polygon polygonA, Transform2D transformA, Polygon polygonB, Transform2D transformB)
-        manifold:pointCount = 0
+    private action CollidePolygons(LocalCollisionPoints2D collisionPoints, Polygon polygonA, PhysicsPosition2D transformA, Polygon polygonB, PhysicsPosition2D transformB)
+        collisionPoints:pointCount = 0
 
         number totalRadius = polygonA:GetRadius() + polygonB:GetRadius()
 
@@ -235,8 +235,8 @@ class CollisionEvent2D
 
         Polygon poly1
         Polygon poly2
-        Transform2D xf1
-        Transform2D xf2
+        PhysicsPosition2D xf1
+        PhysicsPosition2D xf2
         integer edge1 = 0
         number k_tol = 0.1 * 0.005
 
@@ -246,14 +246,14 @@ class CollisionEvent2D
             xf1 = transformB
             xf2 = transformA
             edge1 = edgeIndex2
-            manifold:type = manifold:FACE_B
+            collisionPoints:type = collisionPoints:FACE_B
         else
             poly1 = polygonA
             poly2 = polygonB
             xf1 = transformA
             xf2 = transformB
             edge1 = edgeIndex1
-            manifold:type = manifold:FACE_A
+            collisionPoints:type = collisionPoints:FACE_A
         end
         number xf1qs = xf1:GetSine()
         number xf1qc = xf1:GetCosine()
@@ -333,16 +333,16 @@ class CollisionEvent2D
             return now
         end
 
-        manifold:localNormal:Set(localNormal)
-        manifold:localPoint:Set(planePoint)
+        collisionPoints:localNormal:Set(localNormal)
+        collisionPoints:localPoint:Set(planePoint)
 
         integer pointCount = 0
         integer i = 0
-        repeat while i < manifold:MAX_MANIFOLD_POINTS
+        repeat while i < collisionPoints:MAX_COLLISION_POINTS
             number separation = normalx * clipPoints2:Get(i):GetX() + normaly * clipPoints2:Get(i):GetY() - frontOffset
 
             if separation <= totalRadius
-                ManifoldPoint2D cp = manifold:points:Get(pointCount)
+                CollisionPoint2D cp = collisionPoints:points:Get(pointCount)
                 Vector2 out = cp:localPoint
                 number px = clipPoints2:Get(i):GetX() - xf2:GetPosition():GetX()
                 number py = clipPoints2:Get(i):GetY() - xf2:GetPosition():GetY()
@@ -355,12 +355,12 @@ class CollisionEvent2D
             i = i + 1
         end
 
-        manifold:pointCount = pointCount
+        collisionPoints:pointCount = pointCount
 
     end
 
-    private action CollideCircles(ContactManifold2D manifold, Circle circleA, Transform2D transformA, Circle circleB, Transform2D transformB)
-        manifold:pointCount = 0
+    private action CollideCircles(LocalCollisionPoints2D collisionPoints, Circle circleA, PhysicsPosition2D transformA, Circle circleB, PhysicsPosition2D transformB)
+        collisionPoints:pointCount = 0
 
         Vector2 circle1p = circleA:GetSupportVertex()
         Vector2 circle2p = circleB:GetSupportVertex()
@@ -378,16 +378,16 @@ class CollisionEvent2D
             return now
         end
 
-        manifold:type = manifold:CIRCLES
-        manifold:localPoint:Set(circle1p)
-        manifold:localNormal:SetZero()
-        manifold:pointCount = 1
+        collisionPoints:type = collisionPoints:CIRCLES
+        collisionPoints:localPoint:Set(circle1p)
+        collisionPoints:localNormal:SetZero()
+        collisionPoints:pointCount = 1
         
-        manifold:points:Get(0):localPoint:Set(circle2p)
+        collisionPoints:points:Get(0):localPoint:Set(circle2p)
     end
 
-    private action CollidePolygonAndCircle(ContactManifold2D manifold, Polygon polygon, Transform2D transformA, Circle circle, Transform2D transformB)
-        manifold:pointCount = 0
+    private action CollidePolygonAndCircle(LocalCollisionPoints2D collisionPoints, Polygon polygon, PhysicsPosition2D transformA, Circle circle, PhysicsPosition2D transformB)
+        collisionPoints:pointCount = 0
         
         Vector2 circle1p = circle:GetSupportVertex()
         number cx = (transformB:GetCosine() * circle1p:GetX() - transformB:GetSine() * circle1p:GetY()) + transformB:GetPosition():GetX()
@@ -432,15 +432,15 @@ class CollisionEvent2D
         Vector2 v2 = vertices:Get(vertIndex2)
 
         if separation < EPSILON
-            manifold:pointCount = 1
-            manifold:type = manifold:FACE_A
+            collisionPoints:pointCount = 1
+            collisionPoints:type = collisionPoints:FACE_A
             
             Vector2 normal = normals:Get(normalIndex)
-            manifold:localNormal:SetX(normal:GetX())
-            manifold:localNormal:SetY(normal:GetY())
-            manifold:localPoint:SetX((v1:GetX() + v2:GetX()) * 0.5)
-            manifold:localPoint:SetY((v1:GetY() + v2:GetY()) * 0.5)
-            ManifoldPoint2D mpoint = manifold:points:Get(0)
+            collisionPoints:localNormal:SetX(normal:GetX())
+            collisionPoints:localNormal:SetY(normal:GetY())
+            collisionPoints:localPoint:SetX((v1:GetX() + v2:GetX()) * 0.5)
+            collisionPoints:localPoint:SetY((v1:GetY() + v2:GetY()) * 0.5)
+            CollisionPoint2D mpoint = collisionPoints:points:Get(0)
             mpoint:localPoint:SetX(circle1p:GetX())
             mpoint:localPoint:SetY(circle1p:GetY())
 
@@ -467,13 +467,13 @@ class CollisionEvent2D
                 return now
             end
 
-            manifold:pointCount = 1
-            manifold:type = manifold:FACE_A
-            manifold:localNormal:SetX(cLocalx - v1:GetX())
-            manifold:localNormal:SetY(cLocaly - v1:GetY())
-            manifold:localNormal:Normalize()
-            manifold:localPoint:Set(v1)
-            manifold:points:Get(0):localPoint:Set(circle1p)
+            collisionPoints:pointCount = 1
+            collisionPoints:type = collisionPoints:FACE_A
+            collisionPoints:localNormal:SetX(cLocalx - v1:GetX())
+            collisionPoints:localNormal:SetY(cLocaly - v1:GetY())
+            collisionPoints:localNormal:Normalize()
+            collisionPoints:localPoint:Set(v1)
+            collisionPoints:points:Get(0):localPoint:Set(circle1p)
         elseif u2 <= 0
             number dx = cLocalx - v2:GetX()
             number dy = cLocaly - v2:GetY()
@@ -482,13 +482,13 @@ class CollisionEvent2D
                 return now
             end
 
-            manifold:pointCount = 1
-            manifold:type = manifold:FACE_A
-            manifold:localNormal:SetX(cLocalx - v2:GetX())
-            manifold:localNormal:SetY(cLocaly - v2:GetY())
-            manifold:localNormal:Normalize()
-            manifold:localPoint:Set(v2)
-            manifold:points:Get(0):localPoint:Set(circle1p)
+            collisionPoints:pointCount = 1
+            collisionPoints:type = collisionPoints:FACE_A
+            collisionPoints:localNormal:SetX(cLocalx - v2:GetX())
+            collisionPoints:localNormal:SetY(cLocaly - v2:GetY())
+            collisionPoints:localNormal:Normalize()
+            collisionPoints:localPoint:Set(v2)
+            collisionPoints:points:Get(0):localPoint:Set(circle1p)
         else
             number fcx = (v1:GetX() + v2:GetX()) * 0.5
             number fcy = (v1:GetY() + v2:GetY()) * 0.5
@@ -502,25 +502,25 @@ class CollisionEvent2D
                 return now
             end
 
-            manifold:pointCount = 1
-            manifold:type = manifold:FACE_A
-            manifold:localNormal:Set(normals:Get(vertIndex1))
-            manifold:localPoint:SetX(fcx)
-            manifold:localPoint:SetY(fcy)
-            manifold:points:Get(0):localPoint:Set(circle1p)
+            collisionPoints:pointCount = 1
+            collisionPoints:type = collisionPoints:FACE_A
+            collisionPoints:localNormal:Set(normals:Get(vertIndex1))
+            collisionPoints:localPoint:SetX(fcx)
+            collisionPoints:localPoint:SetY(fcy)
+            collisionPoints:points:Get(0):localPoint:Set(circle1p)
         end        
     end
 
-    private action FindMaxSeparation(Polygon poly1, Transform2D xf1, Polygon poly2, Transform2D xf2, boolean one)
+    private action FindMaxSeparation(Polygon poly1, PhysicsPosition2D xf1, Polygon poly2, PhysicsPosition2D xf2, boolean one)
         integer count1 = poly1:GetVertexCount()
         integer count2 = poly2:GetVertexCount()
         Array<Vector2> n1s = poly1:GetNormals()
         Array<Vector2> v1s = poly1:GetVertices()
         Array<Vector2> v2s = poly2:GetVertices()
 
-        Transform2D xf
-        Transform2D A = xf2
-        Transform2D B = xf1
+        PhysicsPosition2D xf
+        PhysicsPosition2D A = xf2
+        PhysicsPosition2D B = xf1
         Vector2 pool
         xf:sine = A:GetCosine() * B:GetSine() - A:GetSine() * B:GetCosine()
         xf:cosine = A:GetCosine() * B:GetCosine() + A:GetSine() * B:GetSine()
@@ -570,7 +570,7 @@ class CollisionEvent2D
         end
     end
 
-    private action FindIncidentEdge(Array<Vector2> c, Polygon poly1, Transform2D xf1, integer edge1, Polygon poly2, Transform2D xf2)
+    private action FindIncidentEdge(Array<Vector2> c, Polygon poly1, PhysicsPosition2D xf1, integer edge1, Polygon poly2, PhysicsPosition2D xf2)
         integer count1 = poly1:GetVertexCount()
         Array<Vector2> normals1 = poly1:GetNormals()
 

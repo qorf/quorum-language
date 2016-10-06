@@ -1,17 +1,17 @@
 package Libraries.Game.Collision
 
 use Libraries.Containers.Array
-use Libraries.Game.Collision.ManifoldPoint3D
+use Libraries.Game.Collision.CollisionPoint3D
 use Libraries.Interface.Item3D
 use Libraries.Compute.Vector3
 use Libraries.Compute.Math
 use Libraries.Compute.Matrix3
-use Libraries.Game.Collision.Transform3D
+use Libraries.Game.Collision.PhysicsPosition3D
 
-class ContactManifold3D
-    public constant integer MAX_MANIFOLD_POINTS = 4
+class LocalCollisionPoints3D
+    public constant integer MAX_COLLISION_POINTS = 4
 
-    Array<ManifoldPoint3D> points
+    Array<CollisionPoint3D> points
 
     Item3D body0
     Item3D body1
@@ -20,8 +20,8 @@ class ContactManifold3D
     public integer index1A = 0
 
     on create
-        repeat MAX_MANIFOLD_POINTS times
-            ManifoldPoint3D point
+        repeat MAX_COLLISION_POINTS times
+            CollisionPoint3D point
             points:Add(point)
         end
     end
@@ -33,11 +33,11 @@ class ContactManifold3D
         index1A = 0
     end
 
-    private action SortCachedPoints(ManifoldPoint3D point) returns integer
+    private action SortCachedPoints(CollisionPoint3D point) returns integer
         integer maxPenetrationIndex = -1
         number maxPenetration = point:GetDistance()
         integer i = 0
-        repeat while i < MAX_MANIFOLD_POINTS
+        repeat while i < MAX_COLLISION_POINTS
             if points:Get(i):GetDistance() < maxPenetration
                 maxPenetrationIndex = i
                 maxPenetration = points:Get(i):GetDistance()
@@ -164,26 +164,26 @@ class ContactManifold3D
         return pointCount
     end
 
-    action GetContactPoint(integer index) returns ManifoldPoint3D
+    action GetCollisionPoint(integer index) returns CollisionPoint3D
         return points:Get(index)
     end
 
-    action GetCacheEntry(ManifoldPoint3D newPoint) returns integer
-        number shortestDistance = GetContactBreakingThreshold() * GetContactBreakingThreshold()
+    action GetCacheEntry(CollisionPoint3D newPoint) returns integer
+        number shortestDistance = GetCollisionBreakingThreshold() * GetCollisionBreakingThreshold()
         integer size = GetPointCount()
         integer nearestPoint = -1
         Vector3 diffA
 
         integer i = 0
         repeat while i < size
-            ManifoldPoint3D mp = points:Get(i)
+            CollisionPoint3D mp = points:Get(i)
 
             diffA:Set(mp:localPointA)
             diffA:Subtract(newPoint:localPointA)
 
-            number distanceToManifoldPoint = diffA:DotProduct(diffA)
-            if distanceToManifoldPoint < shortestDistance
-                shortestDistance = distanceToManifoldPoint
+            number distanceToCollisionPoint = diffA:DotProduct(diffA)
+            if distanceToCollisionPoint < shortestDistance
+                shortestDistance = distanceToCollisionPoint
                 nearestPoint = i
             end
 
@@ -193,10 +193,10 @@ class ContactManifold3D
         return nearestPoint
     end
 
-    action AddManifoldPoint(ManifoldPoint3D newPoint) returns integer
+    action AddCollisionPoint(CollisionPoint3D newPoint) returns integer
         integer insertIndex = GetPointCount()
-        if insertIndex = MAX_MANIFOLD_POINTS
-            if MAX_MANIFOLD_POINTS >= 4
+        if insertIndex = MAX_COLLISION_POINTS
+            if MAX_COLLISION_POINTS >= 4
                 insertIndex = SortCachedPoints(newPoint)
             else
                 insertIndex = 0
@@ -208,7 +208,7 @@ class ContactManifold3D
         return insertIndex
     end
 
-    action RemoveContactPoint(integer index)
+    action RemoveCollisionPoint(integer index)
         integer lastUsedIndex = GetPointCount() - 1
         if index not= lastUsedIndex
             points:Get(index):Set(points:Get(lastUsedIndex))
@@ -222,7 +222,7 @@ class ContactManifold3D
         pointCount = pointCount - 1
     end
 
-    action ReplaceContactPoint(ManifoldPoint3D newPoint, integer insertIndex)
+    action ReplaceCollisionPoint(CollisionPoint3D newPoint, integer insertIndex)
         integer lifeTime = points:Get(insertIndex):GetLifeTime()
         number appliedImpulse = points:Get(insertIndex):appliedImpulse
         number appliedLateralImpulse1 = points:Get(insertIndex):appliedImpulseLateral1
@@ -236,28 +236,28 @@ class ContactManifold3D
         points:Get(insertIndex):SetLifeTime(lifeTime)
     end
 
-    private action ValidContactDistance(ManifoldPoint3D point) returns boolean
-        return point:distance1 <= GetContactBreakingThreshold()
+    private action ValidCollisionDistance(CollisionPoint3D point) returns boolean
+        return point:distance1 <= GetCollisionBreakingThreshold()
     end
 
-    action RefreshContactPoints(Transform3D transformA, Transform3D transformB)
+    action RefreshCollisionPoints(PhysicsPosition3D transformA, PhysicsPosition3D transformB)
         Vector3 tmp
         integer i = GetPointCount() - 1
 
         repeat while i >= 0
-            ManifoldPoint3D manifoldPoint = points:Get(i)
+            CollisionPoint3D collisionPoint = points:Get(i)
             
-            manifoldPoint:positionWorldOnA:Set(manifoldPoint:localPointA)
-            transformA:Transform(manifoldPoint:positionWorldOnA)
+            collisionPoint:positionWorldOnA:Set(collisionPoint:localPointA)
+            transformA:Transform(collisionPoint:positionWorldOnA)
 
-            manifoldPoint:positionWorldOnB:Set(manifoldPoint:localPointB)
-            transformB:Transform(manifoldPoint:positionWorldOnB)
+            collisionPoint:positionWorldOnB:Set(collisionPoint:localPointB)
+            transformB:Transform(collisionPoint:positionWorldOnB)
 
-            tmp:Set(manifoldPoint:positionWorldOnA)
-            tmp:Subtract(manifoldPoint:positionWorldOnB)
-            manifoldPoint:distance1 = tmp:DotProduct(manifoldPoint:normalWorldOnB)
+            tmp:Set(collisionPoint:positionWorldOnA)
+            tmp:Subtract(collisionPoint:positionWorldOnB)
+            collisionPoint:distance1 = tmp:DotProduct(collisionPoint:normalWorldOnB)
 
-            manifoldPoint:lifeTime = manifoldPoint:lifeTime + 1
+            collisionPoint:lifeTime = collisionPoint:lifeTime + 1
 
             i = i - 1
         end
@@ -268,20 +268,20 @@ class ContactManifold3D
 
         i = GetPointCount() - 1
         repeat while i >= 0
-            ManifoldPoint3D manifoldPoint = points:Get(i)
+            CollisionPoint3D collisionPoint = points:Get(i)
 
-            if not ValidContactDistance(manifoldPoint)
-                RemoveContactPoint(i)
+            if not ValidCollisionDistance(collisionPoint)
+                RemoveCollisionPoint(i)
             else
-                tmp:Set(manifoldPoint:normalWorldOnB)
-                tmp:Scale(manifoldPoint:distance1)
-                projectedPoint:Set(manifoldPoint:positionWorldOnA)
+                tmp:Set(collisionPoint:normalWorldOnB)
+                tmp:Scale(collisionPoint:distance1)
+                projectedPoint:Set(collisionPoint:positionWorldOnA)
                 projectedPoint:Subtract(tmp)
-                projectedDifference:Set(manifoldPoint:positionWorldOnB)
+                projectedDifference:Set(collisionPoint:positionWorldOnB)
                 projectedDifference:Subtract(projectedPoint)
                 distance2 = projectedDifference:DotProduct(projectedDifference)
-                if distance2 > GetContactBreakingThreshold() * GetContactBreakingThreshold()
-                    RemoveContactPoint(i)
+                if distance2 > GetCollisionBreakingThreshold() * GetCollisionBreakingThreshold()
+                    RemoveCollisionPoint(i)
                 end
             end
 
@@ -289,11 +289,11 @@ class ContactManifold3D
         end
     end
 
-    action ClearManifold
+    action ClearCollisionPoints
         pointCount = 0
     end
 
-    action GetContactBreakingThreshold returns number
+    action GetCollisionBreakingThreshold returns number
         return 0.02
     end
 end

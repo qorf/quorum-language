@@ -3,11 +3,11 @@ use Libraries.Interface.Events.CollisionEvent2D
 
 package Libraries.Game.Collision
 
-class ContactEdge2D 
+class CollisionEdge2D 
     Item2D other = undefined
     CollisionEvent2D collision = undefined
-    ContactEdge2D previous = undefined
-    ContactEdge2D next = undefined
+    CollisionEdge2D previous = undefined
+    CollisionEdge2D next = undefined
 
     action GetOther returns Item2D
         return other
@@ -25,19 +25,19 @@ class ContactEdge2D
         me:collision = collision
     end
 
-    action GetPrevious returns ContactEdge2D
+    action GetPrevious returns CollisionEdge2D
         return previous
     end
 
-    action SetPrevious(ContactEdge2D previous)
+    action SetPrevious(CollisionEdge2D previous)
         me:previous = previous
     end
 
-    action GetNext returns ContactEdge2D
+    action GetNext returns CollisionEdge2D
         return next
     end
 
-    action SetNext(ContactEdge2D next)
+    action SetNext(CollisionEdge2D next)
         me:next = next
     end
 end

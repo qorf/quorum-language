@@ -3,7 +3,7 @@ package Libraries.Game.Collision.Shapes
 use Libraries.Compute.Vector3
 use Libraries.Game.BoundingBox
 use Libraries.Compute.Math
-use Libraries.Game.Collision.Transform3D
+use Libraries.Game.Collision.PhysicsPosition3D
 
 class Sphere is CollisionShape3D
     on create
@@ -22,7 +22,7 @@ class Sphere is CollisionShape3D
         return out
     end
 
-    action ComputeBoundingBox(BoundingBox boundingBox, Transform3D transform)
+    action ComputeBoundingBox(BoundingBox boundingBox, PhysicsPosition3D transform)
         Vector3 center = transform:GetOrigin()
         Vector3 extent
         extent:Set(GetMargin(), GetMargin(), GetMargin())

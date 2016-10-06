@@ -25,7 +25,7 @@ use Libraries.Compute.Matrix4
 use Libraries.Containers.Support.SortableContainer
 use Libraries.Game.Collision.CollisionManager3D
 use Libraries.Interface.Events.CollisionListener3D
-use Libraries.Game.Collision.ContactEdge3D
+use Libraries.Game.Collision.CollisionEdge3D
 use Libraries.Interface.Events.CollisionEvent3D
 
 /*
@@ -301,13 +301,13 @@ class Layer3D is Layer
         Iterator<Item3D> it = items:GetIterator()
         repeat while it:HasNext()
             Item3D body = it:Next()
-            ContactEdge3D edge = body:contactList
+            CollisionEdge3D edge = body:collisionList
             repeat while edge not= undefined
-                ContactEdge3D edge0 = edge
+                CollisionEdge3D edge0 = edge
                 edge = edge:GetNext()
                 collisionManager:Destroy(edge0:GetCollision())
             end
-            body:contactList = undefined
+            body:collisionList = undefined
 
             body:DestroyNodes(collisionManager:GetBroadphase())
             body:SetCollidable(false)
@@ -355,13 +355,13 @@ class Layer3D is Layer
     end
     */
     action Remove(Item3D item)
-        ContactEdge3D edge = item:contactList
+        CollisionEdge3D edge = item:collisionList
         repeat while edge not= undefined
-            ContactEdge3D edge0 = edge
+            CollisionEdge3D edge0 = edge
             edge = edge:GetNext()
             collisionManager:Destroy(edge0:GetCollision())
         end
-        item:contactList = undefined
+        item:collisionList = undefined
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
@@ -413,13 +413,13 @@ class Layer3D is Layer
     action RemoveAt(integer index) returns Item3D
         Item3D item = items:RemoveAt(index)
 
-        ContactEdge3D edge = item:contactList
+        CollisionEdge3D edge = item:collisionList
         repeat while edge not= undefined
-            ContactEdge3D edge0 = edge
+            CollisionEdge3D edge0 = edge
             edge = edge:GetNext()
             collisionManager:Destroy(edge0:GetCollision())
         end
-        item:contactList = undefined
+        item:collisionList = undefined
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
@@ -469,13 +469,13 @@ class Layer3D is Layer
     action RemoveFromFront returns Item3D
         Item3D item = items:RemoveFromFront()
 
-        ContactEdge3D edge = item:contactList
+        CollisionEdge3D edge = item:collisionList
         repeat while edge not= undefined
-            ContactEdge3D edge0 = edge
+            CollisionEdge3D edge0 = edge
             edge = edge:GetNext()
             collisionManager:Destroy(edge0:GetCollision())
         end
-        item:contactList = undefined
+        item:collisionList = undefined
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
@@ -524,13 +524,13 @@ class Layer3D is Layer
     action RemoveFromEnd returns Item3D
         Item3D item = items:RemoveFromEnd()
 
-        ContactEdge3D edge = item:contactList
+        CollisionEdge3D edge = item:collisionList
         repeat while edge not= undefined
-            ContactEdge3D edge0 = edge
+            CollisionEdge3D edge0 = edge
             edge = edge:GetNext()
             collisionManager:Destroy(edge0:GetCollision())
         end
-        item:contactList = undefined
+        item:collisionList = undefined
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
