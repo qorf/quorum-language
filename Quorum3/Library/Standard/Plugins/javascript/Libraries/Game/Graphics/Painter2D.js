@@ -33,6 +33,13 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
     
     var colorValue;
     
+    /*
+     * Maintains a copy of the "full-sized" indices array. Necessary because the
+     * current IndexArray implementation can't be used to send only parts of an
+     * array buffer, so it must be set to the "partial" array instead.
+     */
+    var fullIndicesArray = [];
+    
     this.me_ = quorumPainter;
     
     this.LoadDefaultPainter$quorum_Libraries_Game_Graphics_Mesh = function(quorumMesh) 
@@ -48,6 +55,16 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
             var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
             exceptionInstance_.SetErrorMessage$quorum_text("I couldn't create the Painter2D because the display hasn't been initialized!");
             throw exceptionInstance_;
+        }
+
+        for (i = 0, v = 0; i < 6000; i += 6, v += 4)
+        {
+            fullIndicesArray[i] = v;
+            fullIndicesArray[i + 1] = v + 1;
+            fullIndicesArray[i + 2] = v + 2;
+            fullIndicesArray[i + 3] = v + 2;
+            fullIndicesArray[i + 4] = v + 3;
+            fullIndicesArray[i + 5] = v;
         }
         
         projectionMatrix.SetToOrthographic2D(0, 0, display.GetWidth(), display.GetHeight());
@@ -235,26 +252,157 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
     
     this.Flush = function() 
     {
-
+        if (index === 0)
+            return;
+        
+        var count = (index / 20) * 6;
+        
+        this.me_.lastTexture.Bind();
+        
+        mesh.SetVertices(this.me_.GetVertices(), 0, index);
+        mesh.GetIndexData().plugin_.SetPosition$quorum_integer(0);
+        mesh.GetIndexData().plugin_.SetLength(count);
+        
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        
+        if (blendingDisabled)
+            graphics.glDisable(graphics.gl.BLEND);
+        else
+        {
+            graphics.glEnable(graphics.gl.BLEND);
+            if (blendSourceFunction !== -1)
+                graphics.glBlendFunc(blendSourceFunction, blendDestFunction);
+        }
+        
+        if (useFontShader)
+            mesh.plugin_.Render(fontShader, graphics.gl.TRIANGLES, 0, count);
+        else if (customShader !== null && customShader !== undefined)
+            mesh.plugin_.Render(customShader, graphics.gl.TRIANGLES, 0, count);
+        else
+            mesh.plugin_.Render(shader, graphics.gl.TRIANGLES, 0, count);
+        
+        index = 0;
     };
     
     this.IsBlendingEnabled = function() 
     {
-        
+        return !blendingDisabled;
     };
     
     this.Dispose = function() 
     {
-
+        mesh.Dispose();
+        if (ownsShader && shader !== null && shader !== undefined)
+            shader.Dispose();
+        
+        if (ownsShader && fontShader !== null && fontShader !== undefined)
+            shader.Dispose();
     };
     
-    this.ApplyCamera$quorum_Libraries_Game_Graphics_Camera = function(camera) 
+    this.SwitchTexture = function(texture)
     {
-
+        this.Flush();
+        
+        if (texture.plugin_.fontColor !== undefined && texture.plugin_.fontColor !== null)
+        {
+            if (useFontShader === false)
+            {
+                useFontShader = true;
+                if (this.me_.IsDrawing())
+                {
+                    if (customShader !== null && customShader !== undefined)
+                        customShader.End();
+                    else
+                        shader.End();
+                    
+                    fontShader.Begin();
+                }
+                
+                this.SetupMatrices();
+            }
+            fontShader.SetUniform("u_fontColor", texture.plugin_.fontColor);
+        }
+        else
+        {
+            if (useFontShader === true)
+            {
+                useFontShader = false;
+                if (this.me_.IsDrawing())
+                {
+                    fontShader.End();
+                    
+                    if (customShader !== null && customShader !== undefined)
+                        customShader.Begin();
+                    else
+                        shader.Begin();
+                }
+                
+                this.SetupMatrices();
+            }
+        }
+        
+        this.me_.lastTexture = texture;
+        inverseTexWidth = 1.0 / texture.GetWidth();
+        inverseTexHeight = 1.0 / texture.GetHeight();
+    };
+    
+    this.SetProjectionMatrix = function(projection)
+    {
+        if (this.me_.IsDrawing())
+            this.Flush();
+        
+        projectionMatrix.Set(projection);
+        if (this.me_.IsDrawing())
+            this.SetupMatrices();
     };
     
     this.SetupMatrices = function()
     {
+        combinedMatrix.Set(projectionMatrix);
+        combinedMatrix.Multiply(transformMatrix);
         
+        if (useFontShader)
+        {
+            fontShader.SetUniformMatrix4FromName("u_projTrans", combinedMatrix);
+            fontShader.SetUniform1iFromName("u_texture", 0);
+        }
+        else if (customShader !== null && customShader !== undefined)
+        {
+            customShader.SetUniformMatrix4FromName("u_projTrans", combinedMatrix);
+            customShader.SetUniform1iFromName("u_texture", 0);
+        }
+        else
+        {
+            shader.SetUniformMatrix4FromName("u_projTrans", combinedMatrix);
+            shader.SetUniform1iFromName("u_texture", 0);
+        }
     };
+    
+    this.SetShader = function(shaderProgram)
+    {
+        if (this.me_.IsDrawing() && !useFontShader)
+        {
+            this.Flush();
+            if (customShader !== null && customShader !== undefined)
+                customShader.End();
+            else
+                shader.End();
+        }
+        customShader = shaderProgram;
+        if (this.me_.IsDrawing() && !useFontShader)
+        {
+            if (customShader !== null && customShader !== undefined)
+                customShader.Begin();
+            else
+                shader.Begin();
+            
+            this.SetupMatrices();
+        }
+    };
+    
+    this.ApplyCamera$quorum_Libraries_Game_Graphics_Camera = function(camera) 
+    {
+        this.SetProjectionMatrix(camera.GetCombinedMatrix());
+    };
+    
 }

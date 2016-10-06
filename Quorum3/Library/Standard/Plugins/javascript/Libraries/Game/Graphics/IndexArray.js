@@ -3,11 +3,11 @@
 function plugins_quorum_Libraries_Game_Graphics_IndexArray_() 
 {
     var buffer;
-    var integerArray;
+    var integerArray = [];
     var bridgeArray = [];
     var length = 0;
     var maxLength;
-    var writingPosition = 0;
+    var position = 0;
     
     var isDirty = true;
     var isBound = false;
@@ -21,7 +21,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
         this.supports32bits = graphics.gl.getExtension("OES_element_index_uint");
         
         maxLength = maximumSize;
-        writingPosition = 0;
+        position = 0;
         
         buffer = graphics.glGenBuffer();
     };
@@ -48,25 +48,34 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
         if (length !== count)
         {
             this.SetLength(count);
-            integerArray = this.NewIntegerArray(count);
         }
         
         for (i = 0; i < count; i++)
             integerArray[i] = array[offset + i];
         
-        writingPosition = 0;
+        position = 0;
         
         if (isBound)
         {
             var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
-            graphics.glBufferData(graphics.gl.ELEMENT_ARRAY_BUFFER, integerArray, graphics.gl.STATIC_DRAW);
+            graphics.glBufferData(graphics.gl.ELEMENT_ARRAY_BUFFER, this.GetBuffer(), graphics.gl.STATIC_DRAW);
             isDirty = false;
         }
     };
     
     this.GetBuffer = function()
     {
-        return integerArray;
+        var newArray;
+
+        if (this.supports32bits)
+            newArray = new Uint32Array(length);
+        else
+            newArray = new Uint16Array(length);
+        
+        for (i = 0; i < length - position; i++)
+            newArray[i] = integerArray[position + i];
+        
+        return newArray;
     };
     
     this.Bind = function() 
@@ -84,7 +93,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
         
         if (isDirty)
         {
-            graphics.glBufferData(graphics.gl.ELEMENT_ARRAY_BUFFER, integerArray, graphics.gl.STATIC_DRAW);
+            graphics.glBufferData(graphics.gl.ELEMENT_ARRAY_BUFFER, this.GetBuffer(), graphics.gl.STATIC_DRAW);
             isDirty = false;
         }
         isBound = true;
@@ -106,9 +115,9 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
     
     this.Clear = function() 
     {
-        integerArray = null;
+        integerArray = [];
         length = 0;
-        writingPosition = 0;
+        position = 0;
     };
     
     this.Dispose = function() 
@@ -118,11 +127,11 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
         graphics.glDeleteBuffer(buffer);
         buffer = null;
         
-        integerArray = null;
+        integerArray = [];
         bridgeArray = [];
         length = 0;
         maxLength = 0;
-        writingPosition = 0;
+        position = 0;
     };
     
     this.PrepareBridgeArray$quorum_integer = function(newLength) 
@@ -130,7 +139,6 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
         if (length !== newLength)
         {
             this.SetLength(newLength);
-            integerArray = this.NewIntegerArray(newLength);
         }
     };
     
@@ -143,21 +151,20 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
     {
         isDirty = true;
         
-        if (length < writingPosition + bridgeArray.length)
+        if (length < position + bridgeArray.length)
         {
-            this.SetLength(writingPosition + bridgeArray.length);
-            integerArray = this.NewIntegerArray(writingPosition + bridgeArray.length);
+            this.SetLength(position + bridgeArray.length);
         }
         
         for (i = 0; i < bridgeArray.length; i++)
-            integerArray[writingPosition + i] = bridgeArray[i];
+            integerArray[position + i] = bridgeArray[i];
         
-        writingPosition = writingPosition + bridgeArray.length;
+        position = position + bridgeArray.length;
     };
     
-    this.SetPosition$quorum_integer = function(position) 
+    this.SetPosition$quorum_integer = function(newPosition) 
     {
-        writingPosition = position;
+        position = newPosition;
     };
     
     this.NewIntegerArray = function(size)
@@ -178,5 +185,6 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
         }
         
         length = newLength;
+        isDirty = true;
     };
 }
