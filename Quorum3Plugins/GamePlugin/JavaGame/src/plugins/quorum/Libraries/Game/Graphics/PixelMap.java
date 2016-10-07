@@ -130,10 +130,15 @@ public class PixelMap {
       return height;
     }
     
+    public quorum.Libraries.Game.Graphics.Blending_ GetBlending()
+    {
+        return blending;
+    }
+    
     public void Dispose()
     {
         if (disposed == true)
-            throw new GameRuntimeError("Attempted to dispose an already disposed PixelMap!");
+            throw new GameRuntimeError("I can't dispose this PixelMap because it was already disposed!");
         disposed = true;
         Free(basePointer);
     }    
@@ -153,7 +158,7 @@ public class PixelMap {
             case FORMAT_RGBA4444:
 		return GraphicsManager.GL_RGBA;
             default:
-		throw new GameRuntimeError("unknown format: " + format);
+		throw new GameRuntimeError("I couldn't recognize the currently set format with integer value " + format);
 	}
     }
     
