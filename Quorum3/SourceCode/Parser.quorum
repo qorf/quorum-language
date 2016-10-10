@@ -395,7 +395,13 @@ class Parser is QuorumSourceListener
         Iterator<Variable> it = headerParams:GetIterator()
         repeat while it:HasNext()
             Variable param = it:Next()
-            currentAction:AddParameter(param)
+
+            //this type is required. If it is undefined, then it means 
+            //that something else about this parse is wrong.
+            //do we need an additional compiler error here?
+            if param:GetType() not= undefined
+                currentAction:AddParameter(param)
+            end
         end
         
         currentAction:SetReturnType(context:returnType)

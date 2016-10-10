@@ -1070,6 +1070,41 @@ class ClassOpcode is QuorumOpcode
         end
     end
 
+    action WriteJavaScriptPlugin returns text
+        EOL = ""
+        quote = EOL:GetDoubleQuote()
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        TAB = "    "
+        text convertedSource = ""
+
+        convertedSource = convertedSource + "function "
+            + "plugins_" + clazz:ConvertStaticKeyToUnderScore() + "() {" + EOL
+
+        Iterator<ActionOpcode> actionIterator = actions:GetIterator()
+        repeat while actionIterator:HasNext()
+            ActionOpcode act = actionIterator:Next()
+            Action myAction = act:GetAction()
+            if myAction:IsSystem()
+                convertedSource = convertedSource + TAB + "this." + myAction:ConvertActionToJavaScriptName()
+                    + " = function(" 
+
+                Iterator<Variable> parameters = myAction:GetParameterIterator()
+                repeat while parameters:HasNext()
+                    Variable variable = parameters:Next()
+                    convertedSource = convertedSource + variable:GetJavaScriptName()
+
+                    if parameters:HasNext()
+                        convertedSource = convertedSource + ", "
+                    end
+                end
+
+                convertedSource = convertedSource + ") {" + EOL + EOL + TAB + "};" + EOL
+            end
+        end
+
+        convertedSource = convertedSource + "}" + EOL
+        return convertedSource
+    end
     
     action WriteJavaScript returns text
         constant text OUTPUT_VARIABLE = "OuTpUt_$tRiNg_"
@@ -1231,11 +1266,11 @@ class ClassOpcode is QuorumOpcode
                clazz:GetStaticKey() = "Libraries.Language.Types.Integer" or
                clazz:GetStaticKey() = "Libraries.Language.Types.Number" or
                clazz:GetStaticKey() = "Libraries.Language.Types.Text"
-               convertedSource = convertedSource + "var " + clazz:GetPluginName() + 
-                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(optional);" + EOL
+               convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
+                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(optional, this);" + EOL
             else 
-                convertedSource = convertedSource + "var " + clazz:GetPluginName() + 
-                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "();" + EOL
+                convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
+                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(this);" + EOL
             end
         end
 

@@ -9,7 +9,7 @@ import java.nio.Buffer;
 import java.nio.IntBuffer;
 import java.nio.ByteBuffer;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
-import plugins.quorum.Libraries.Game.GameState;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 
 /**
@@ -21,7 +21,6 @@ public class IndexBufferObject extends IndexData
     IntBuffer buffer;
     ByteBuffer byteBuffer;
     int bufferHandle;
-    boolean isDirect;
     boolean isDirty = true;
     boolean isBound = false;
     int usage;
@@ -36,12 +35,11 @@ public class IndexBufferObject extends IndexData
             maxIndices = 1; // Avoid allocating a zero-sized buffer due to a bug in Android's ART < Android 5.0
         
         byteBuffer = BufferUtils.newUnsafeByteBuffer(maxIndices * 4);
-        isDirect = true;
         
         buffer = byteBuffer.asIntBuffer();
         buffer.flip();
         byteBuffer.flip();
-        bufferHandle = GameState.nativeGraphics.glGenBuffer();
+        bufferHandle = GameStateManager.nativeGraphics.glGenBuffer();
         usage = isStatic ? GraphicsManager.GL_STATIC_DRAW : GraphicsManager.GL_DYNAMIC_DRAW;
     }
     
@@ -69,7 +67,7 @@ public class IndexBufferObject extends IndexData
 
         if (isBound) 
         {
-            GameState.nativeGraphics.glBufferData(GraphicsManager.GL_ELEMENT_ARRAY_BUFFER, byteBuffer.limit(), byteBuffer, usage);
+            GameStateManager.nativeGraphics.glBufferData(GraphicsManager.GL_ELEMENT_ARRAY_BUFFER, byteBuffer.limit(), byteBuffer, usage);
             isDirty = false;
         }
     }
@@ -86,7 +84,7 @@ public class IndexBufferObject extends IndexData
         byteBuffer.limit(buffer.limit() << 1);
 
         if (isBound) {
-            GameState.nativeGraphics.glBufferData(GraphicsManager.GL_ELEMENT_ARRAY_BUFFER, byteBuffer.limit(), byteBuffer, usage);
+            GameStateManager.nativeGraphics.glBufferData(GraphicsManager.GL_ELEMENT_ARRAY_BUFFER, byteBuffer.limit(), byteBuffer, usage);
             isDirty = false;
         }
     }
@@ -108,7 +106,7 @@ public class IndexBufferObject extends IndexData
         if (bufferHandle == 0)
             throw new GameRuntimeError("Attempted to bind before a buffer was allocated!");
 
-        GraphicsManager gl = GameState.nativeGraphics;
+        GraphicsManager gl = GameStateManager.nativeGraphics;
         
         gl.glBindBuffer(GraphicsManager.GL_ELEMENT_ARRAY_BUFFER, bufferHandle);
         
@@ -124,22 +122,22 @@ public class IndexBufferObject extends IndexData
     /** Unbinds this IndexBufferObject. */
     public void Unbind() 
     {
-        GameState.nativeGraphics.glBindBuffer(GraphicsManager.GL_ELEMENT_ARRAY_BUFFER, 0);
+        GameStateManager.nativeGraphics.glBindBuffer(GraphicsManager.GL_ELEMENT_ARRAY_BUFFER, 0);
         isBound = false;
     }
 
     /** Invalidates the IndexBufferObject so a new OpenGL buffer handle is created. Use this in case of a context loss. */
     public void Invalidate() 
     {
-        bufferHandle = GameState.nativeGraphics.glGenBuffer();
+        bufferHandle = GameStateManager.nativeGraphics.glGenBuffer();
         isDirty = true;
     }
 
     /** Disposes this IndexBufferObject and all its associated OpenGL resources. */
     public void Dispose()
     {
-        GameState.nativeGraphics.glBindBuffer(GraphicsManager.GL_ELEMENT_ARRAY_BUFFER, 0);
-        GameState.nativeGraphics.glDeleteBuffer(bufferHandle);
+        GameStateManager.nativeGraphics.glBindBuffer(GraphicsManager.GL_ELEMENT_ARRAY_BUFFER, 0);
+        GameStateManager.nativeGraphics.glDeleteBuffer(bufferHandle);
         bufferHandle = 0;
 
         BufferUtils.disposeUnsafeByteBuffer(byteBuffer);

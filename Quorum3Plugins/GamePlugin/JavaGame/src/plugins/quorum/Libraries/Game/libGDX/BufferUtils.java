@@ -27,7 +27,6 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
 import plugins.quorum.Libraries.Game.GameRuntimeError;
-import plugins.quorum.Libraries.Game.GameState;
 
 /** Class with static helper methods to increase the speed of array/direct buffer and direct buffer/direct buffer transfers
  * 

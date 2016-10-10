@@ -9,8 +9,6 @@ package plugins.quorum.Libraries.Game;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
-import plugins.quorum.Libraries.Game.GameState;
-
 /**
  * This class primarily manages taking care of receiving input.
  * 
@@ -414,12 +412,12 @@ public class InputMonitor {
   
     public int GetMouseX () 
     {
-	return (int)(Mouse.getX() * GameState.GetDisplay().GetPixelScaleFactor());
+	return (int)(Mouse.getX() * GameStateManager.display.GetPixelScaleFactor());
     }
 
     public int GetMouseY () 
     {
-	return (int)(Mouse.getY() * GameState.GetDisplay().GetPixelScaleFactor());
+	return (int)(Mouse.getY() * GameStateManager.display.GetPixelScaleFactor());
     }
   
     public boolean IsMouseButtonPressed(int button)

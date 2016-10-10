@@ -27,6 +27,7 @@ class CompilerTestSuite
     CompilerProfiler summaryProfiler
     Math math
     ExpressionsTester expressions
+    FilesTester fileChecks
     TypeCheckTester typeChecks
     TypeCheckTesterGenerated typeChecksGenerated
     ChainingTester chainingChecks
@@ -52,6 +53,7 @@ class CompilerTestSuite
 
     on create
         expressions:SetCompilerTestSuite(me)
+        fileChecks:SetCompilerTestSuite(me)
         typeChecks:SetCompilerTestSuite(me)
         typeChecksGenerated:SetCompilerTestSuite(me)
         chainingChecks:SetCompilerTestSuite(me)
@@ -84,6 +86,9 @@ class CompilerTestSuite
         output "List of Tests:"
         output expressions:GetName()
         expressions:Test()
+        output ""
+        output fileChecks:GetName()
+        fileChecks:Test()
         output ""
         output typeChecks:GetName()
         typeChecks:Test()

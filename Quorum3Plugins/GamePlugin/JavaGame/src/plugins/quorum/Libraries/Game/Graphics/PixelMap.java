@@ -10,7 +10,7 @@ import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import plugins.quorum.Libraries.Game.GameState;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.GameFile;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 
@@ -34,7 +34,7 @@ public class PixelMap {
     public static final int BLEND_NONE = 0;
     public static final int BLEND_SOURCE_OVER = 1;
     
-    private GraphicsManager gl20 = GameState.nativeGraphics;
+    private GraphicsManager gl20 = GameStateManager.nativeGraphics;
     
     private static quorum.Libraries.Game.Graphics.Blending_ blending;
 
@@ -61,7 +61,7 @@ public class PixelMap {
     
     public void LoadPixelMap(quorum.Libraries.System.File_ quorumFile)
     {   
-        GameFile javaFile = GameState.fileHandler.Convert(quorumFile);
+        GameFile javaFile = GameStateManager.fileHandler.Convert(quorumFile);
         
         byte[] bytes = javaFile.ReadBytes();
         
@@ -130,10 +130,15 @@ public class PixelMap {
       return height;
     }
     
+    public quorum.Libraries.Game.Graphics.Blending_ GetBlending()
+    {
+        return blending;
+    }
+    
     public void Dispose()
     {
         if (disposed == true)
-            throw new GameRuntimeError("Attempted to dispose an already disposed PixelMap!");
+            throw new GameRuntimeError("I can't dispose this PixelMap because it was already disposed!");
         disposed = true;
         Free(basePointer);
     }    
@@ -153,7 +158,7 @@ public class PixelMap {
             case FORMAT_RGBA4444:
 		return GraphicsManager.GL_RGBA;
             default:
-		throw new GameRuntimeError("unknown format: " + format);
+		throw new GameRuntimeError("I couldn't recognize the currently set format with integer value " + format);
 	}
     }
     

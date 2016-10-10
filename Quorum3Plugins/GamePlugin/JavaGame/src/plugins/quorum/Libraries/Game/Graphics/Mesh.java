@@ -7,7 +7,7 @@ package plugins.quorum.Libraries.Game.Graphics;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import plugins.quorum.Libraries.Game.GameState;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 //import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 import quorum.Libraries.Compute.Matrix4_;
@@ -66,13 +66,13 @@ public class Mesh
                 int oldLimit = buffer.limit();
                 buffer.position(offset);
                 buffer.limit(offset + count);
-                GameState.nativeGraphics.glDrawElements(primitiveType, count, GraphicsManager.GL_UNSIGNED_INT, buffer);
+                GameStateManager.nativeGraphics.glDrawElements(primitiveType, count, GraphicsManager.GL_UNSIGNED_INT, buffer);
                 buffer.position(oldPosition);
                 buffer.limit(oldLimit);
             } 
             else
             {
-                GameState.nativeGraphics.glDrawArrays(primitiveType, offset, count);
+                GameStateManager.nativeGraphics.glDrawArrays(primitiveType, offset, count);
             }
         }
         else
@@ -80,11 +80,11 @@ public class Mesh
             if (quorumMesh.indices.GetSize() > 0)
             {
                 //System.out.println("Values = " + primitiveType + ", " + count + ", " + offset * 4);
-                GameState.nativeGraphics.glDrawElements(primitiveType, count, GraphicsManager.GL_UNSIGNED_INT, offset * 4);
+                GameStateManager.nativeGraphics.glDrawElements(primitiveType, count, GraphicsManager.GL_UNSIGNED_INT, offset * 4);
             }
             else
             {
-                GameState.nativeGraphics.glDrawArrays(primitiveType, offset, count);
+                GameStateManager.nativeGraphics.glDrawArrays(primitiveType, offset, count);
             }
         }
 

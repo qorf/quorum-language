@@ -21,6 +21,11 @@ use Libraries.Game.IOSDisplay
 use Libraries.Game.GameInput
 use Libraries.Game.DesktopInput
 use Libraries.Game.IOSInput
+use Libraries.Game.WebApplication
+use Libraries.Game.WebDisplay
+use Libraries.Game.WebConfiguration
+use Libraries.Game.WebInput
+use Libraries.Game.Graphics.WebGraphics
 use Libraries.Game.Graphics.IOSGraphics
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Font
@@ -79,6 +84,7 @@ class Game
     DesktopConfiguration desktopConfig
     IOSConfiguration iosConfig
     AndroidConfiguration androidConfig
+    WebConfiguration webConfig
     GraphicsManager gl20 = undefined
     GameStateManager manager
 
@@ -98,6 +104,7 @@ class Game
     private constant integer ANDROID_APPLICATION = 1
     private constant integer DESKTOP_APPLICATION = 2
     private constant integer IOS_APPLICATION = 3
+    private constant integer WEB_APPLICATION = 4
 
     private integer applicationType = -1
 
@@ -128,13 +135,12 @@ class Game
             alert("I could not identify what type of application to use for this operating system!")
         end
 
-        GameStateManager manager
-        gl20 = manager:GetGameGraphics()
-
         if application is DesktopApplication
             if desktopConfig:title = ""
                 desktopConfig:title = "Game"
             end
+
+            gl20 = manager:GetGameGraphics()
 
             DesktopInput newInput
             gameInput = newInput
@@ -147,6 +153,8 @@ class Game
             display:SetupDisplay()
         elseif application is AndroidApplication
             
+            gl20 = manager:GetGameGraphics()
+
             // AndroidInput newInput
             // gameInput = newInput
             // manager:SetInput(gameInput)
@@ -159,6 +167,8 @@ class Game
             manager:SetGameGraphics(graphics)
             
         elseif application is IOSApplication
+
+            gl20 = manager:GetGameGraphics()
             
             IOSInput newInput
             gameInput = newInput
@@ -170,6 +180,25 @@ class Game
 
             IOSGraphics iosGraphics
             manager:SetGameGraphics(iosGraphics)
+        elseif application is WebApplication
+            
+            WebInput newInput
+            gameInput = newInput
+            manager:SetInput(newInput)
+
+            WebDisplay display
+            manager:SetGameDisplay(display)
+            display:SetName("StartGame")
+            display:SetConfiguration(webConfig)
+            //display:SetupDisplay()
+
+            WebGraphics webGraphics
+            manager:SetGameGraphics(webGraphics)
+
+            WebApplication webApp = cast(WebApplication, application)
+            webApp:SetConfiguration(webConfig)
+
+            gl20 = webGraphics
         end
 
         /*
@@ -190,7 +219,6 @@ class Game
     
         JavaCanvasApplication application
 
-        GameStateManager manager
         gl20 = manager:GetGameGraphics()
 
         if desktopConfig:title = ""
@@ -353,7 +381,7 @@ class Game
     Clears out the old pixel data. Called from ContinueGame.
     */
     private action ClearScreen
-        gl20:ClearScreenColor(0.85,0.85,0.85,0)
+        gl20:ClearScreenColor(0.85, 0.85, 0.85, 1.0)
         /*
         16640 is the result of an OR operation on GL_COLOR_BUFFER_BIT and 
         GL_DEPTH_BUFFER_BIT from the GraphicsManager. This means that both the
@@ -432,7 +460,7 @@ class Game
     class Main is Game
 
         action Main
-            DesktopConfiguration configuration = GetDesktopConfiguration
+            DesktopConfiguration configuration = GetDesktopConfiguration()
             output "The default width and height of the Game are " + configuration:width + ", " + configuration:height
             StartGame()
         end
@@ -442,6 +470,62 @@ class Game
     */
     action GetDesktopConfiguration returns DesktopConfiguration
         return desktopConfig
+    end
+
+    /*
+    This action will set the game configuration when run on web browsers.
+    The configuration contains data that affect many technical details of the
+    game, such as whether or not to limit the FPS. This should be set before
+    calling StartGame().
+
+    Attribute: Parameter config The WebConfiguration to use.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.WebConfiguration
+
+    class Main is Game
+
+        action Main
+            WebConfiguration configuration
+            configuration:canvasID = "game-canvas"
+            configuration:capFramesPerSecond = true
+            configuration:framesPerSecondLimit = 45
+            SetConfiguration(configuration)
+            StartGame()
+        end
+
+    end
+
+    */
+    action SetConfiguration(WebConfiguration config)
+        webConfig = config
+    end
+
+    /*
+    This action will return the game's configuration for web platforms.
+
+    Attribute: Returns The current WebConfiguration.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.WebConfiguration
+
+    class Main is Game
+
+        action Main
+            WebConfiguration configuration = GetWebConfiguration()
+            configuration:capFramesPerSecond = true
+            StartGame()
+        end
+
+    end
+
+    */
+    action GetWebConfiguration returns WebConfiguration
+        return webConfig
     end
 
     /*
@@ -595,7 +679,9 @@ class Game
             end
         end
     */
-    system action GetSecondsBetweenFrames returns number
+    action GetSecondsBetweenFrames returns number
+        return manager:GetGameDisplay():GetSecondsBetweenFrames()
+    end
 
     /*
     The Update action is where most of the game's logic goes. The code inside
@@ -1362,8 +1448,9 @@ class Game
     end
 
     /*
-    This action will set the type of Application that should be running, as well
-    as setting the type of GameInput to use.
+    This action will set the type of Application that should be running. The
+    type of application returned will also be used to determine the type of
+    other platform specific classes, e.g. GameDisplay, GraphicsManager, etc.
     */
     private action SelectApplicationType returns Application
 
@@ -1378,6 +1465,10 @@ class Game
         end
         if applicationType = IOS_APPLICATION
             IOSApplication app
+            return app
+        end
+        if applicationType = WEB_APPLICATION
+            WebApplication app
             return app
         end
         // ... Other options

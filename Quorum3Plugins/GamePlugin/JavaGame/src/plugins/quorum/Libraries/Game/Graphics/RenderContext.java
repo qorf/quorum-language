@@ -5,7 +5,7 @@
  */
 package plugins.quorum.Libraries.Game.Graphics;
 
-import plugins.quorum.Libraries.Game.GameState;
+import plugins.quorum.Libraries.Game.GameStateManager;
 
 /**
  *
@@ -25,13 +25,13 @@ public class RenderContext
     
     public void Begin()
     {
-        GameState.nativeGraphics.glDisable(GraphicsManager.GL_DEPTH_TEST);
+        GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_DEPTH_TEST);
         depthFunc = 0;
-        GameState.nativeGraphics.glDepthMask(true);
+        GameStateManager.nativeGraphics.glDepthMask(true);
         depthMask = true;
-        GameState.nativeGraphics.glDisable(GraphicsManager.GL_BLEND);
+        GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_BLEND);
         blending = false;
-        GameState.nativeGraphics.glDisable(GraphicsManager.GL_CULL_FACE);
+        GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_CULL_FACE);
         cullFace = blendSFactor = blendDFactor = 0;
         textureBinder.Begin();
     }
@@ -39,13 +39,13 @@ public class RenderContext
     public void End()
     {
         if (depthFunc != 0)
-            GameState.nativeGraphics.glDisable(GraphicsManager.GL_DEPTH_TEST);
+            GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_DEPTH_TEST);
         if (!depthMask)
-            GameState.nativeGraphics.glDepthMask(true);
+            GameStateManager.nativeGraphics.glDepthMask(true);
         if (blending)
-            GameState.nativeGraphics.glDisable(GraphicsManager.GL_BLEND);
+            GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_BLEND);
         if (cullFace > 0)
-            GameState.nativeGraphics.glDisable(GraphicsManager.GL_CULL_FACE);
+            GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_CULL_FACE);
         textureBinder.End();
     }
     
@@ -53,7 +53,7 @@ public class RenderContext
     {
         if (depthMask != mask)
         {
-            GameState.nativeGraphics.glDepthMask(mask);
+            GameStateManager.nativeGraphics.glDepthMask(mask);
             depthMask = mask;
         }
     }
@@ -72,19 +72,19 @@ public class RenderContext
             depthFunc = depthFunction;
             if (enabled)
             {
-                GameState.nativeGraphics.glEnable(GraphicsManager.GL_DEPTH_TEST);
-                GameState.nativeGraphics.glDepthFunc(depthFunction);
+                GameStateManager.nativeGraphics.glEnable(GraphicsManager.GL_DEPTH_TEST);
+                GameStateManager.nativeGraphics.glDepthFunc(depthFunction);
             }
             else
-                GameState.nativeGraphics.glDisable(GraphicsManager.GL_DEPTH_TEST);
+                GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_DEPTH_TEST);
         }
         if (enabled)
         {
             if (!wasEnabled || depthFunc != depthFunction)
-                GameState.nativeGraphics.glDepthFunc(depthFunc = depthFunction);
+                GameStateManager.nativeGraphics.glDepthFunc(depthFunc = depthFunction);
             if (!wasEnabled || this.depthRangeNear != depthRangeNear || this.depthRangeFar != depthRangeFar)
             {
-                GameState.nativeGraphics.glDepthRangef(depthRangeNear, depthRangeFar);
+                GameStateManager.nativeGraphics.glDepthRangef(depthRangeNear, depthRangeFar);
                 this.depthRangeNear = depthRangeNear;
                 this.depthRangeFar = depthRangeFar;
             }
@@ -97,14 +97,14 @@ public class RenderContext
         {
             blending = enabled;
             if (enabled)
-                GameState.nativeGraphics.glEnable(GraphicsManager.GL_BLEND);
+                GameStateManager.nativeGraphics.glEnable(GraphicsManager.GL_BLEND);
             else
-                GameState.nativeGraphics.glDisable(GraphicsManager.GL_BLEND);
+                GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_BLEND);
         }
         
         if (enabled && (blendSFactor != sFactor || blendDFactor != dFactor))
         {
-            GameState.nativeGraphics.glBlendFunc(sFactor, dFactor);
+            GameStateManager.nativeGraphics.glBlendFunc(sFactor, dFactor);
             blendSFactor = sFactor;
             blendDFactor = dFactor;
         }
@@ -117,11 +117,11 @@ public class RenderContext
             cullFace = face;
             if ((face == GraphicsManager.GL_FRONT) || (face == GraphicsManager.GL_BACK) || (face == GraphicsManager.GL_FRONT_AND_BACK))
             {
-                GameState.nativeGraphics.glEnable(GraphicsManager.GL_CULL_FACE);
-                GameState.nativeGraphics.glCullFace(face);
+                GameStateManager.nativeGraphics.glEnable(GraphicsManager.GL_CULL_FACE);
+                GameStateManager.nativeGraphics.glCullFace(face);
             }
             else
-                GameState.nativeGraphics.glDisable(GraphicsManager.GL_CULL_FACE);
+                GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_CULL_FACE);
         }
     }
     

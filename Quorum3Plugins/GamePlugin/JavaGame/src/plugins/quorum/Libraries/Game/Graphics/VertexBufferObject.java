@@ -7,7 +7,7 @@ package plugins.quorum.Libraries.Game.Graphics;
 
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
-import plugins.quorum.Libraries.Game.GameState;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 //import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 
@@ -39,7 +39,7 @@ public class VertexBufferObject extends VertexData
     
     public void Load(boolean isStatic, int numVertices, VertexAttributes_ attributes)
     {
-        bufferHandle = GameState.nativeGraphics.glGenBuffer();
+        bufferHandle = GameStateManager.nativeGraphics.glGenBuffer();
         
         ByteBuffer data = BufferUtils.newUnsafeByteBuffer(attributes.Get_Libraries_Game_Graphics_VertexAttributes__vertexSize_() * numVertices);
         data.limit(0);
@@ -130,7 +130,7 @@ public class VertexBufferObject extends VertexData
     @Override
     public void Bind(ShaderProgram shader, int[] locations) 
     {
-        final GraphicsManager gl = GameState.nativeGraphics;
+        final GraphicsManager gl = GameStateManager.nativeGraphics;
 
         gl.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, bufferHandle);
         
@@ -191,7 +191,7 @@ public class VertexBufferObject extends VertexData
     @Override
     public void Unbind(final ShaderProgram shader, final int[] locations) 
     {
-        final GraphicsManager gl = GameState.nativeGraphics;
+        final GraphicsManager gl = GameStateManager.nativeGraphics;
         final int numAttributes = attributes.GetSize();
         if (locations == null) 
         {
@@ -217,14 +217,14 @@ public class VertexBufferObject extends VertexData
     @Override
     public void Invalidate()
     {
-        bufferHandle = GameState.nativeGraphics.glGenBuffer();
+        bufferHandle = GameStateManager.nativeGraphics.glGenBuffer();
         isDirty = true;
     }
     
     @Override
     public void Dispose()
     {
-        GraphicsManager gl = GameState.nativeGraphics;
+        GraphicsManager gl = GameStateManager.nativeGraphics;
         gl.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, 0);
         gl.glDeleteBuffer(bufferHandle);
         bufferHandle = 0;
@@ -252,7 +252,7 @@ public class VertexBufferObject extends VertexData
     {
         if (isBound) 
         {
-            GameState.nativeGraphics.glBufferData(GraphicsManager.GL_ARRAY_BUFFER, byteBuffer.limit(), byteBuffer, usage);
+            GameStateManager.nativeGraphics.glBufferData(GraphicsManager.GL_ARRAY_BUFFER, byteBuffer.limit(), byteBuffer, usage);
             isDirty = false;
         }
     }

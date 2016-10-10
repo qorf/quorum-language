@@ -5,18 +5,12 @@
  */
 package plugins.quorum.Libraries.Game;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.LWJGLException;
 import quorum.Libraries.Game.Graphics.Color_;
-import quorum.Libraries.Game.Graphics.GraphicsManager_;
 import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
-import plugins.quorum.Libraries.Game.GameRuntimeError;
-import plugins.quorum.Libraries.Game.GameState;
 
 import org.lwjgl.opengl.GL11;
 
@@ -222,7 +216,7 @@ public class DesktopDisplay {
     
     public boolean supportsExtension (String extension) 
     {
-		if (extensions == null) extensions = GameState.nativeGraphics.glGetString(GraphicsManager.GL_EXTENSIONS);
+		if (extensions == null) extensions = GameStateManager.nativeGraphics.glGetString(GraphicsManager.GL_EXTENSIONS);
 		return extensions.contains(extension);
     }
 
@@ -302,12 +296,14 @@ public class DesktopDisplay {
         return deltaTime;
     }
     
-    public void SetLastTime(){
-      lastTime = System.nanoTime();
+    public void SetLastTime()
+    {
+        lastTime = System.nanoTime();
     }
     
-    public void UpdateFalse(){
-      Display.update(false);
+    public void Update()
+    {
+        Display.update(false);
     }
     
 

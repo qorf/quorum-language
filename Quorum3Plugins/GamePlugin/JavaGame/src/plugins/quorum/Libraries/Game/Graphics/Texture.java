@@ -14,7 +14,7 @@ import plugins.quorum.Libraries.Game.libGDX.Array;
 
 import java.util.HashMap;
 import java.util.Map;
-import plugins.quorum.Libraries.Game.GameState;
+import plugins.quorum.Libraries.Game.GameStateManager;
 
 /**
  * The Texture class stores information regarding OpenGL textures, which is
@@ -28,7 +28,7 @@ public class Texture
   public int glTarget; //The target, such as GL_TEXTURE_2D
   protected int glHandle;
   
-  private GraphicsManager gl20 = GameState.nativeGraphics; 
+  private GraphicsManager gl20 = GameStateManager.nativeGraphics; 
   
   /*
   The color that should be used to render this texture by the Painter2D when
@@ -43,13 +43,6 @@ public class Texture
   // textures that will be automatically reloaded whenever an application has
   // regained context after losing it.
   final static Map<quorum.Libraries.Game.Application_, Array<Texture>> managedTextures = new HashMap<quorum.Libraries.Game.Application_, Array<Texture>>();
-
-   
-    public void LoadFromTextureData(quorum.Libraries.Game.Graphics.TextureData_ data)
-    {
-        glTarget = GraphicsManager.GL_TEXTURE_2D;
-        glHandle = CreateGLHandle();
-    }
 
     public void Bind() 
     {
@@ -90,18 +83,18 @@ public class Texture
   
     public void AddManagedTexture()
     {
-        Array<Texture> managedTextureArray = managedTextures.get(GameState.GetApp());
+        Array<Texture> managedTextureArray = managedTextures.get(GameStateManager.application);
 	if (managedTextureArray == null) 
             managedTextureArray = new Array<Texture>();
 	managedTextureArray.add(this);
-	managedTextures.put(GameState.GetApp(), managedTextureArray);
+	managedTextures.put(GameStateManager.application, managedTextureArray);
     }
     
     public void Dispose()
     {
         if (glHandle != 0)
         {
-            GameState.nativeGraphics.glDeleteTexture(glHandle);
+            GameStateManager.nativeGraphics.glDeleteTexture(glHandle);
             glHandle = 0;
         }
     }

@@ -1,7 +1,7 @@
 
 package plugins.quorum.Libraries.Game.Graphics;
 
-import plugins.quorum.Libraries.Game.GameState;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 //import plugins.quorum.Libraries.Game.libGDX.Mesh;
 //import plugins.quorum.Libraries.Game.libGDX.Mesh.VertexDataType;
@@ -28,12 +28,9 @@ public class Painter2D
     
     final static int SPRITE_SIZE = 20;
     
-    //float[] vertices;
     int index = 0;
     float inverseTexWidth = 0;
     float inverseTexHeight = 0;
-    
-    // boolean drawing = false; -- In Quorum
     
     private final Matrix4_ transformMatrix = new Matrix4();
     private final Matrix4_ projectionMatrix = new Matrix4();
@@ -58,10 +55,6 @@ public class Painter2D
     
     float colorValue; // Initialized by constructor.
     
-    int renderCalls = 0;
-    int totalRenderCalls = 0;
-    int maxSpritesInBatch = 0;
-    
     public Painter2D()
     {
         // The default constructor in Java does nothing. Note that the default
@@ -75,13 +68,11 @@ public class Painter2D
         SetColor(quorumBatch.color);
         
         mesh = quorumMesh;
+
+        if (GameStateManager.display == null)
+            throw new GameRuntimeError("I couldn't create the Painter2D because the display hasn't been initialized!");
         
-        if (projectionMatrix == null)
-            throw new GameRuntimeError("null matrix!");
-        if (GameState.GetDisplay() == null)
-            throw new GameRuntimeError("null display!");
-        
-        projectionMatrix.SetToOrthographic2D(0, 0, GameState.GetDisplay().GetWidth(), GameState.GetDisplay().GetHeight());
+        projectionMatrix.SetToOrthographic2D(0, 0, GameStateManager.display.GetWidth(), GameStateManager.display.GetHeight());
         
         shader = CreateDefaultShader();
         fontShader = CreateFontShader();
@@ -171,10 +162,9 @@ public class Painter2D
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         if (quorumBatch.IsDrawing())
-            throw new GameRuntimeError("This batch is already drawing! Call End() before calling Begin() again.");
+            throw new GameRuntimeError("This painter is already drawing! Call End() before calling Begin() again.");
         
-        renderCalls = 0;
-        GameState.nativeGraphics.glDepthMask(false);
+        GameStateManager.nativeGraphics.glDepthMask(false);
         if (useFontShader)
             fontShader.Begin();
         else if (customShader != null)
@@ -190,7 +180,7 @@ public class Painter2D
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
         if (!quorumBatch.IsDrawing())
-            throw new GameRuntimeError("This batch isn't drawing yet! Call Begin() before calling End().");
+            throw new GameRuntimeError("This painter isn't drawing yet! Call Begin() before calling End().");
         
         if (index > 0)
             Flush();
@@ -198,7 +188,7 @@ public class Painter2D
         quorumBatch.lastTexture = null;
         quorumBatch.drawing = false;
         
-        GraphicsManager gl = GameState.nativeGraphics;
+        GraphicsManager gl = GameStateManager.nativeGraphics;
         gl.glDepthMask(true);
         if (IsBlendingEnabled())
             gl.glDisable(GraphicsManager.GL_BLEND);
@@ -226,13 +216,8 @@ public class Painter2D
         quorumBatch.color.SetColor(r, g, b, a);
         colorValue = (float)quorumBatch.color.EncodeColorAsNumber();
     }
-    
-    public void Draw (quorum.Libraries.Game.Graphics.Drawable_ drawable) 
-    {
-        Draw(drawable, 0, 0, false);
-    }
-    
-    public void Draw (quorum.Libraries.Game.Graphics.Drawable_ drawable, double globalOffsetX, double globalOffsetY, boolean forceUpdate)
+        
+    public void Draw (quorum.Libraries.Game.Graphics.Drawable_ drawable)
     {
         
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
@@ -252,13 +237,11 @@ public class Painter2D
                 Flush();
             }
         }
-        // There will need to be casting from double to float here.
-        // Note that currently, "GetVertices" sets the x and y vertices, so it
-        // must be used to draw (otherwise no x and y info is stored). However,
-        // conveniently accessing a Quorum array's data from Java isn't possible
-        // so the actual variable isn't used. This is an inelegant solution,
-        // and a better one should be used here eventually.
-        drawable.PrepareVertices(/*globalOffsetX, globalOffsetY, forceUpdate*/);
+        
+        // This will update the vertices stored in the Drawable. These vertices
+        // will be used when Flush() is called (which is when the actual drawing
+        // occurs).
+        drawable.PrepareVertices();
         
         if (!drawable.UseCustomColor())
         {
@@ -274,122 +257,6 @@ public class Painter2D
         }
     }
     
-    public void Draw (quorum.Libraries.Game.Graphics.Drawable_ sprite, double x, double y)
-    {
-        sprite.SetPosition(x, y);
-        Draw(sprite);
-    }
-    
-    public void Draw(quorum.Libraries.Game.Graphics.Texture_ drawTexture, double x, double y)
-    {
-        Draw(drawTexture, x, y, drawTexture.GetWidth(), drawTexture.GetHeight());
-    }
-    
-    public void Draw(quorum.Libraries.Game.Graphics.Texture_ drawTexture, double xValue, double yValue, double width, double height)
-    {
-        
-        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
-        
-        if (!quorumBatch.IsDrawing())
-            throw new GameRuntimeError("Painter2D:Begin() must be called before Draw.");
-        
-        if (drawTexture != quorumBatch.lastTexture)
-            SwitchTexture(drawTexture);
-        else if (index == quorumBatch.GetVertices().GetSize())
-            Flush();
-        
-        final float x = (float)xValue;
-        final float y = (float)yValue;
-        
-	final float fx2 = x + (float)width;
-	final float fy2 = y + (float)height;
-	final float u = 0;
-	final float v = 1;
-	final float u2 = 1;
-	final float v2 = 0;
-
-	float color = this.colorValue;
-	
-        quorumBatch.SetVertex(index++, x);
-        quorumBatch.SetVertex(index++, y);
-        quorumBatch.SetVertex(index++, color);
-        quorumBatch.SetVertex(index++, u);
-        quorumBatch.SetVertex(index++, v);
-
-        quorumBatch.SetVertex(index++, x);
-        quorumBatch.SetVertex(index++, fy2);
-        quorumBatch.SetVertex(index++, color);
-        quorumBatch.SetVertex(index++, u);
-        quorumBatch.SetVertex(index++, v2);
-
-        quorumBatch.SetVertex(index++, fx2);
-        quorumBatch.SetVertex(index++, fy2);
-        quorumBatch.SetVertex(index++, color);
-        quorumBatch.SetVertex(index++, u2);
-        quorumBatch.SetVertex(index++, v2);
-        
-        quorumBatch.SetVertex(index++, fx2);
-        quorumBatch.SetVertex(index++, y);
-        quorumBatch.SetVertex(index++, color);
-        quorumBatch.SetVertex(index++, u2);
-        quorumBatch.SetVertex(index++, v);
-    }
-    
-    public void Draw(quorum.Libraries.Game.Graphics.TextureRegion_ region, double x, double y)
-    {
-        Draw(region, x, y, region.GetRegionWidth(), region.GetRegionHeight());
-    }
-    
-    public void Draw(quorum.Libraries.Game.Graphics.TextureRegion_ region, double xValue, double yValue, double width, double height)
-    {
-        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
-        
-        if (!quorumBatch.IsDrawing())
-            throw new GameRuntimeError("Painter2D:Begin() must be called before Draw.");
-
-	quorum.Libraries.Game.Graphics.Texture_ texture = region.GetTextureField();
-	if (texture != quorumBatch.lastTexture) 
-            SwitchTexture(texture);
-        else if (index == quorumBatch.GetVertices().GetSize())
-            Flush();
-
-        final float x = (float)xValue;
-        final float y = (float)yValue;
-        
-	final float fx2 = x + (float)width;
-	final float fy2 = y + (float)height;
-	final float u = (float)region.GetTopSide();
-	final float v = (float)region.GetRightSide();
-	final float u2 = (float)region.GetBottomSide();
-	final float v2 = (float)region.GetLeftSide();
-
-	float color = this.colorValue;
-	
-        quorumBatch.SetVertex(index++, x);
-        quorumBatch.SetVertex(index++, y);
-        quorumBatch.SetVertex(index++, color);
-        quorumBatch.SetVertex(index++, u);
-        quorumBatch.SetVertex(index++, v);
-
-        quorumBatch.SetVertex(index++, x);
-        quorumBatch.SetVertex(index++, fy2);
-        quorumBatch.SetVertex(index++, color);
-        quorumBatch.SetVertex(index++, u);
-        quorumBatch.SetVertex(index++, v2);
-
-        quorumBatch.SetVertex(index++, fx2);
-        quorumBatch.SetVertex(index++, fy2);
-        quorumBatch.SetVertex(index++, color);
-        quorumBatch.SetVertex(index++, u2);
-        quorumBatch.SetVertex(index++, v2);
-        
-        quorumBatch.SetVertex(index++, fx2);
-        quorumBatch.SetVertex(index++, y);
-        quorumBatch.SetVertex(index++, color);
-        quorumBatch.SetVertex(index++, u2);
-        quorumBatch.SetVertex(index++, v);
-    }
-    
     public void Flush()
     {
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
@@ -398,14 +265,7 @@ public class Painter2D
         if (index == 0)
             return;
         
-        renderCalls++;
-        totalRenderCalls++;
-        
-        int spritesInBatch = index / 20;
-        if (spritesInBatch > maxSpritesInBatch)
-            maxSpritesInBatch = spritesInBatch;
-        
-        int count = spritesInBatch * 6;
+        int count = (index / 20) * 6;
         
         quorumBatch.lastTexture.Bind();
         
@@ -416,12 +276,12 @@ public class Painter2D
 //        mesh.getIndicesBuffer().limit(count);
         
         if (blendingDisabled)
-            GameState.nativeGraphics.glDisable(GraphicsManager.GL_BLEND);
+            GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_BLEND);
         else
         {
-            GameState.nativeGraphics.glEnable(GraphicsManager.GL_BLEND);
+            GameStateManager.nativeGraphics.glEnable(GraphicsManager.GL_BLEND);
             if (blendSourceFunction != -1)
-                GameState.nativeGraphics.glBlendFunc(blendSourceFunction, blendDestFunction);
+                GameStateManager.nativeGraphics.glBlendFunc(blendSourceFunction, blendDestFunction);
         }
         
         if (useFontShader)
@@ -434,46 +294,15 @@ public class Painter2D
         index = 0;
         
     }
-    
-    public void DisableBlending()
-    {
-        if (blendingDisabled)
-            return;
-        Flush();
-        blendingDisabled = true;
-    }
-    
-    public void EnableBlending()
-    {
-        if (!blendingDisabled)
-            return;
-        Flush();
-        blendingDisabled = false;
-    }
-    
-    public void SetBlendFunction (int srcFunc, int dstFunc) 
-    {
-	if (blendSourceFunction == srcFunc && blendDestFunction == dstFunc)
-            return;
-	Flush();
-	blendSourceFunction = srcFunc;
-	blendDestFunction = dstFunc;
-    }
-
-    public int GetBlendSrcFunc () 
-    {
-	return blendSourceFunction;
-    }
-
-    public int GetBlendDstFunc () 
-    {
-	return blendDestFunction;
-    }
 
     public void Dispose() 
     {
 	mesh.Dispose();
-	if (ownsShader && shader != null) shader.Dispose();
+	if (ownsShader && shader != null)
+            shader.Dispose();
+        
+        if (ownsShader && fontShader != null)
+            fontShader.Dispose();
     }
         
     protected void SwitchTexture (quorum.Libraries.Game.Graphics.Texture_ texture) 
@@ -582,7 +411,7 @@ public class Painter2D
     {
         final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
         
-	if (quorumBatch.IsDrawing()) 
+	if (quorumBatch.IsDrawing() && !useFontShader) 
         {
             Flush();
             if (customShader != null)
@@ -591,7 +420,7 @@ public class Painter2D
                 this.shader.End();
 	}
 	customShader = shader;
-	if (quorumBatch.IsDrawing()) 
+	if (quorumBatch.IsDrawing() && !useFontShader) 
         {
             if (customShader != null)
 		customShader.Begin();
@@ -606,31 +435,11 @@ public class Painter2D
     	return !blendingDisabled;
     }
     
-    public void TintShader(quorum.Libraries.Game.Graphics.Color_ color)
-    {
-        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
-        
-        if (quorumBatch.IsDrawing())
-            this.shader.SetAttribute(ShaderProgram.COLOR_ATTRIBUTE, color);
-    }
-    
-    public void ResetShaderTint()
-    {
-        final quorum.Libraries.Game.Graphics.Painter2D quorumBatch = (quorum.Libraries.Game.Graphics.Painter2D) me_;
-        
-        if (quorumBatch.IsDrawing())
-            this.shader.SetAttribute(ShaderProgram.COLOR_ATTRIBUTE, 1.0f, 1.0f, 1.0f, 1.0f);
-    }
-    
     public void ApplyCamera(Camera_ camera)
     {
-//        float[] temp = new float[16];
-//        for(int i = 0; i < 16; i++)
-//            temp[i] = GetMatrixValue(camera.GetCombinedMatrix(), i);
-//        
-//        calcMatrix.set(temp);
-        calcMatrix.Set(camera.GetCombinedMatrix());
-        SetProjectionMatrix(calcMatrix);
+//        calcMatrix.Set(camera.GetCombinedMatrix());
+//        SetProjectionMatrix(calcMatrix);
+        SetProjectionMatrix(camera.GetCombinedMatrix());
     }
         
     /*

@@ -1,0 +1,117 @@
+package Libraries.Game
+
+use Libraries.Game.GameInput
+use Libraries.Interface.Events.KeyboardListener
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseWheelListener
+use Libraries.Interface.Events.TouchListener
+
+class WebInput is GameInput
+    
+    /*
+    This action will identify all input events that have occurred and notify
+    all relevant event listeners. For certain kinds of input, e.g. mouse or
+    touch input, only listeners that were added to the active panel will be
+    notified. This action is called automatically by the Game class, so most
+    users will never need to use this action directly.
+    */
+    action ProcessInputEvents
+
+    end
+
+    /*
+    This action will add a KeyboardListener to the GameInput. The GameInput will
+    notify the KeyboardListener if keys are pressed on the keyboard. This action
+    is automatically called by the Game class when needed.
+    */
+    action AddKeyboardListener(KeyboardListener listener)
+
+    end
+
+    /*
+    This action will remove a KeyboardListener from the GameInput. The GameInput
+    will no longer notify the given KeyboardListener of KeyboardEvents. This 
+    action is automatically called by the Game class when needed.
+    */
+    action RemoveKeyboardListener(KeyboardListener listener)
+
+    end
+
+    /*
+    This action adds a MouseListener directly to the GameInput. When the
+    GameInput receives a mouse event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    MouseListeners which are added directly to the GameInput will receive the
+    event.
+    */
+    action AddMouseListener(MouseListener listener)
+
+    end
+
+    /*
+    This action adds a MouseMovementListener directly to the GameInput. When the
+    GameInput receives a mouse event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    MouseMovementListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    action AddMouseMovementListener(MouseMovementListener listener)
+
+    end
+
+    /*
+    This action adds a MouseWheelListener directly to the GameInput. When the
+    GameInput receives a mouse event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    MouseWheelListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    action AddMouseWheelListener(MouseWheelListener listener)
+
+    end
+
+    /*
+    This action adds a TouchListener directly to the GameInput. When the
+    GameInput receives a touch event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    TouchListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    action AddTouchListener(TouchListener listener)
+
+    end
+
+    /*
+    This action removes a MouseListener from the GameInput. It will no longer
+    receive mouse events directly from the GameInput.
+    */
+    action RemoveMouseListener(MouseListener listener)
+
+    end
+
+    /*
+    This action removes a MouseMovementListener from the GameInput. The listener
+    will no longer receive events from the GameInput.
+    */
+    action RemoveMouseMovementListener(MouseMovementListener listener)
+
+    end
+
+    /*
+    This action removes a MouseWheelListener from the GameInput. The listener
+    will no longer receive events from the GameInput.
+    */
+    action RemoveMouseWheelListener(MouseWheelListener listener)
+
+    end
+
+    /*
+    This action removes a TouchListener from the GameInput. The listener will
+    no longer receive events from the GameInput.
+    */
+    action RemoveTouchListener(TouchListener listener)
+
+    end
+
+end
