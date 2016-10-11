@@ -22,7 +22,7 @@ public class PixelMap {
     public java.lang.Object me_ = null;
     
     public static final int FORMAT_ALPHA = 1;
-    public static final int FORMAT_LUMINANCE = 2;
+    public static final int FORMAT_LUMINANCE_ALPHA = 2;
     public static final int FORMAT_RGB888 = 3;
     public static final int FORMAT_RGBA8888 = 4;
     public static final int FORMAT_RGB565 = 5;
@@ -149,8 +149,8 @@ public class PixelMap {
         {
             case FORMAT_ALPHA:
 		return GraphicsManager.GL_ALPHA;
-            case FORMAT_LUMINANCE:
-		return GraphicsManager.GL_LUMINANCE;
+            case FORMAT_LUMINANCE_ALPHA:
+		return GraphicsManager.GL_LUMINANCE_ALPHA;
             case FORMAT_RGB888:
             case FORMAT_RGB565:
 		return GraphicsManager.GL_RGB;
@@ -167,7 +167,7 @@ public class PixelMap {
 	switch (format) 
         {
             case FORMAT_ALPHA:
-            case FORMAT_LUMINANCE:
+            case FORMAT_LUMINANCE_ALPHA:
             case FORMAT_RGB888:
             case FORMAT_RGBA8888:
 		return GraphicsManager.GL_UNSIGNED_BYTE;
