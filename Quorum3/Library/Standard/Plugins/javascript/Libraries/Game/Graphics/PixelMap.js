@@ -386,12 +386,54 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         var py = radius;
         var p = (5 - ((radius * 4) >>> 0)) / 4;
         
+        this.CirclePoints(x, y, px, py, color);
         
+        while (px < py)
+        {
+            px++;
+            if (p < 0)
+            {
+                p += 2 * px + 1;
+            }
+            else
+            {
+                py--;
+                p += 2 * (px - py) + 1;
+            }
+            this.CirclePoints(x, y, px, py, color);
+        }
     };
     
     this.FillCircle$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(x, y, radius, color) 
     {
-
+        var f = 1 - radius;
+        var ddF_x = 1;
+        var ddF_y = -2 * radius;
+        var px = 0;
+        var py = radius;
+        
+        this.HorizontalLine(x, x, y + radius, color);
+        this.HorizontalLine(x, x, y - radius, color);
+        this.HorizontalLine(x - radius, x + radius, y, color);
+        
+        while (px < py)
+        {
+            if (f >= 0)
+            {
+                py--;
+                ddF_y += 2;
+                f += ddF_y;
+            }
+            
+            px++;
+            ddF_x += 2;
+            f += ddF_y;
+            
+            this.HorizontalLine(x - px, x + px, y + py, color);
+            this.HorizontalLine(x - px, x + px, y - py, color);
+            this.HorizontalLine(x - py, x + py, y + px, color);
+            this.HorizontalLine(x - py, x + py, y - px, color);
+        }
     };
     
     this.FillTriangle$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(x1, y1, x2, y2, x3, y3, color) 
@@ -561,6 +603,44 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                 colorCode = this.Blend(color, this.ConvertToRGBA8888(this.GetPixel$quorum_integer$quorum_integer(x, i)));
             }
             this.SetPixel(x, i, colorCode);
+        }
+    };
+    
+    this.SafelySetPixel = function(x, y, code)
+    {
+        if (x < 0 || y < 0)
+            return;
+        if (x >= width || y >= height)
+            return;
+        this.SetPixel$quorum_integer$quorum_integer$quorum_integer(x, y, code);
+    };
+    
+    this.CirclePoints = function(x, y, xOffset, yOffset, color)
+    {
+        if (x == 0)
+        {
+            this.SafelySetPixel(x, y + yOffset, color);
+            this.SafelySetPixel(x, y - yOffset, color);
+            this.SafelySetPixel(x + yOffset, y, color);
+            this.SafelySetPixel(x - yOffset, y, color);
+        }
+        else if (x == y)
+        {
+            this.SafelySetPixel(x + xOffset, y + yOffset, color);
+            this.SafelySetPixel(x - xOffset, y + yOffset, color);
+            this.SafelySetPixel(x + xOffset, y - yOffset, color);
+            this.SafelySetPixel(x - xOffset, y - yOffset, color);
+        }
+        else if (x < y)
+        {
+            this.SafelySetPixel(x + xOffset, y + yOffset, color);
+            this.SafelySetPixel(x - xOffset, y + yOffset, color);
+            this.SafelySetPixel(x + xOffset, y - yOffset, color);
+            this.SafelySetPixel(x - xOffset, y - yOffset, color);
+            this.SafelySetPixel(x + yOffset, y + xOffset, color);
+            this.SafelySetPixel(x - yOffset, y + xOffset, color);
+            this.SafelySetPixel(x + yOffset, y - xOffset, color);
+            this.SafelySetPixel(x - yOffset, y - xOffset, color);
         }
     };
 }
