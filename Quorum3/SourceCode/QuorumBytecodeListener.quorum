@@ -370,7 +370,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         if not returnType:IsVoid() and not satisfied
             CompilerError e
             e:SetErrorMessage("I found that the action " + currentAction:GetStaticKey() +
-                " is a missing return statement.")
+                " is missing a return statement.")
             CompilerErrorType t
             t:SetCurrentType(t:MISSING_RETURN)
             e:SetCompilerErrorType(t)
