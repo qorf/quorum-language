@@ -51,6 +51,8 @@ function plugins_quorum_Libraries_Game_WebApplication_()
             return;
         }
         
+        game.CreateGame();
+        
         loopCall = this.MainLoop;
         this.MainLoop(startTime);
     };

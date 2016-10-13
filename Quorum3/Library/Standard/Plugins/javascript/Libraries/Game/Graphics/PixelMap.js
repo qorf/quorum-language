@@ -323,9 +323,166 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         }
     };
 
-    this.DrawPixelMap$quorum_Libraries_Game_Graphics_PixelMap$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(pixmap, sourceX, sourceY, destX, destY, sourceWidth, sourceHeight) 
+    this.DrawPixelMap$quorum_Libraries_Game_Graphics_PixelMap$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(pixmap, sourceX, sourceY, destinationX, destinationY, sourceWidth, sourceHeight) 
     {
-
+        var destinationWidth = pixmap.GetWidth();
+        var destinationHeight = pixmap.GetHeight();
+        
+        if (sourceWidth === destinationWidth && sourceHeight === destinationHeight)
+        {
+            for (; sourceY < sourceY + sourceHeight; sourceY++, destinationY++)
+            {
+                if (sourceY < 0 || destinationY < 0)
+                    continue;
+                if (sourceY >= sourceHeight || destinationY >= destinationHeight)
+                    break;
+                
+                for (sX = sourceX, dX = destinationX; sX < sourceX + width; sX++, dX++)
+                {
+                    if (sX < 0 || dX < 0)
+                        continue;
+                    if (sX >= sourceWidth || dX >= destinationWidth)
+                        break;
+                    
+                    var colorCode = pixmap.GetPixel$quorum_integer$quorum_integer(sX, sourceY);
+                    
+                    if (this.GetBlending().GetValue() === plugins_quorum_Libraries_Game_Graphics_PixelMap_.BLEND_SOURCE_OVER)
+                    {
+                        colorCode = this.Blend(colorCode, pixmap.GetPixel(dX, destinationY));
+                    }
+                    
+                    pixmap.SetPixel(dX, destinationY, colorCode);
+                }
+            }
+        }
+        else
+        {
+            if (this.scale === plugins_quorum_Libraries_Game_Graphics_PixelMap_.SCALE_NEAREST)
+            {
+                var xRatio = (sourceWidth << 16) / destinationWidth + 1;
+                var yRatio = (sourceHeight << 16) / destinationHeight + 1;
+                
+                var dX = destinationX;
+                var dY = destinationY;
+                var sX = sourceX;
+                var sY = sourceY;
+                
+                for (i = 0; i < destinationHeight; i++)
+                {
+                    sY = ((i * yRatio) >> 16) + sourceY;
+                    dY = i + destinationY;
+                    if (sY < 0 || dY < 0)
+                        continue;
+                    if (sY >= sourceHeight || dY >= destinationHeight)
+                        break;
+                    
+                    for (j = 0; j < destinationWidth; j++)
+                    {
+                        sX = ((j * xRatio) >> 16) + sourceX;
+                        dX = j + destinationX;
+                        if (sX < 0 || dX < 0)
+                            continue;
+                        if (sX >= sourceWidth || dX >= destinationWidth)
+                            break;
+                        
+                        var colorCode = this.GetPixel$quorum_integer$quorum_integer(sX, sY);
+                        
+                        if (this.GetBlending().GetValue() === plugins_quorum_Libraries_Game_Graphics_PixelMap_.BLEND_SOURCE_OVER)
+                        {
+                            colorCode = this.Blend(colorCode, pixmap.GetPixel(dX, dY));
+                        }
+                        
+                        pixmap.SetPixel(dX, dY, colorCode);
+                    }
+                }
+            }
+            else if (this.scale === plugins_quorum_Libraries_Game_Graphics_PixelMap_.SCALE_LINEAR)
+            {
+                var xRatio = (sourceWidth - 1) / destinationWidth;
+                var yRatio = (sourceHeight - 1) / destinationHeight;
+                var xDifference = 0;
+                var yDifference = 0;
+                
+                var dX = destinationX;
+                var dY = destinationY;
+                var sX = sourceX;
+                var sY = sourceY;
+                
+                for (i = 0; i < destinationHeight; i++)
+                {
+                    sY = ((i * yRatio) | 0) + sourceY;
+                    dY = i + destinationY;
+                    yDifference = (yRatio * i + sourceY) - sY;
+                    
+                    if (sY < 0 || dY < 0)
+                        continue;
+                    if (sY >= sourceHeight || dY >= destinationHeight)
+                        break;
+                    
+                    for (j = 0; j < destinationWidth; j++)
+                    {
+                        sX = ((j * xRatio) | 0) + sourceX;
+                        dX = j + destinationX;
+                        xDifference = (xRatio * j + sourceX) - sX;
+                        
+                        if (sX < 0 || dX < 0)
+                            continue;
+                        if (sX >= sourceWidth || dX >= destinationWidth)
+                            break;
+                        
+                        var c1 = this.GetPixel$quorum_integer$quorum_integer(sX, sY);
+                        var c2, c3, c4;
+                        
+                        if (sX + 1 < sourceWidth)
+                            c2 = this.GetPixel$quorum_integer$quorum_integer(sX + 1, sY);
+                        else
+                            c2 = c1;
+                        
+                        if (sY + 1 < sourceHeight)
+                            c3 = this.GetPixel$quorum_integer$quorum_integer(sX, sY + 1);
+                        else
+                            c3 = c1;
+                        
+                        if (sX + 1 < sourceWidth && sY + 1 < sourceHeight)
+                            c4 = this.GetPixel$quorum_integer$quorum_integer(sX + 1, sY + 1);
+                        else
+                            c4 = c1;
+                        
+                        var ta = (1 - xDifference) * (1 - yDifference);
+                        var tb = (xDifference) * (1 - yDifference);
+                        var tc = (1 - xDifference) * (yDifference);
+                        var td = (xDifference) * (yDifference);
+                        
+                        var red =   (((c1 & 0xff000000) >> 24) * ta +
+                                    ((c2 & 0xff000000) >> 24) * tb +
+                                    ((c3 & 0xff000000) >> 24) * tc +
+                                    ((c4 & 0xff000000) >> 24) * td) & 0xff;
+                            
+                        var green = (((c1 & 0xff0000) >> 16) * ta +
+                                    ((c2 & 0xff0000) >> 16) * tb +
+                                    ((c3 & 0xff0000) >> 16) * tc +
+                                    ((c4 & 0xff0000) >> 16) * td) & 0xff;
+			var blue =  (((c1 & 0xff00) >> 8) * ta +
+                                    ((c2 & 0xff00) >> 8) * tb +
+                                    ((c3 & 0xff00) >> 8) * tc +
+                                    ((c4 & 0xff00) >> 8) * td) & 0xff;
+			var alpha = ((c1 & 0xff) * ta +
+                                    (c2 & 0xff) * tb +
+                                    (c3 & 0xff) * tc +
+                                    (c4 & 0xff) * td) & 0xff;
+                            
+                        var colorCode = (red << 24) | (green << 16) | (blue << 8) | alpha;
+                        
+                        if (this.GetBlending().GetValue() === plugins_quorum_Libraries_Game_Graphics_PixelMap_.BLEND_SOURCE_OVER)
+                        {
+                            colorCode = this.Blend(colorCode, pixmap.GetPixel(dX, dY));
+                        }
+                        
+                        pixmap.SetPixel(dX, dY, colorCode);
+                    }
+                }
+            }
+        }
     };
     
     this.SetScale$quorum_integer = function(scale) 
@@ -335,12 +492,166 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
     
     this.Fill$quorum_integer = function(color) 
     {
+        var colorCode;
+        var red, green, blue, alpha;
+        
+        switch (format)
+        {
+            case plugins_quorum_Libraries_Game_Graphics_PixelMap_.FORMAT_ALPHA:
+                alpha = color & 0x000000ff;
+                
+                for (i = 0; i < width * height; i++)
+                {
+                    pixels[i] = alpha;
+                }
+                break;
+            case plugins_quorum_Libraries_Game_Graphics_PixelMap_.FORMAT_LUMINANCE_ALPHA:
+                var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+                exceptionInstance_.SetErrorMessage$quorum_text("FORMAT_LUMINANCE_ALPHA isn't currently supported on this platform.");
+                throw exceptionInstance_;
+                break;
+            case plugins_quorum_Libraries_Game_Graphics_PixelMap_.FORMAT_RGB888:
+                red = (color & 0xff000000) >>> 24;
+                green = (color & 0x00ff0000) >>> 16;
+                blue = (color & 0x0000ff00) >>> 8;
+                
+                for (i = 0; i < width * height; i++)
+                {
+                    var index = i * 3;
+                    pixels[index] = red;
+                    pixels[index + 1] = green;
+                    pixels[index + 2] = blue;
+                }
+                break;
+            case plugins_quorum_Libraries_Game_Graphics_PixelMap_.FORMAT_RGBA8888:
+                red = (color & 0xff000000) >>> 24;
+                green = (color & 0x00ff0000) >>> 16;
+                blue = (color & 0x0000ff00) >>> 8;
+                alpha = color & 0x000000ff;
+                
+                for (i = 0; i < width * height; i++)
+                {
+                    var index = i * 4;
+                    pixels[index] = red;
+                    pixels[index + 1] = green;
+                    pixels[index + 2] = blue;
+                    pixels[index + 3] = alpha;
+                }
+                break;
+            case plugins_quorum_Libraries_Game_Graphics_PixelMap_.FORMAT_RGB565:
+                red = (((color & 0xff000000) >> 27) << 11) & 0xf800;
+                green = (((color & 0xff0000) >> 18) << 5) & 0x7e0;
+                blue = ((color & 0xff00) >> 11) & 0x1f;
+                
+                colorCode = red | green | blue;
 
+                for (i = 0; i < width * height; i++)
+                {
+                    pixels[i] = colorCode;
+                }
+                
+                break;
+            case plugins_quorum_Libraries_Game_Graphics_PixelMap_.FORMAT_RGBA4444:
+                red = (((color & 0xff000000) >> 28) << 12) & 0xf000;
+                green = (((color & 0xff0000) >> 20) << 8) & 0xf00;
+                blue = (((color & 0xff00) >> 12) << 4) & 0xf0;
+                alpha = ((color & 0xff) >> 4) & 0xf;
+                
+                colorCode = red | green | blue | alpha;
+            
+                for (i = 0; i < width * height; i++)
+                {
+                    pixels[i] = colorCode;
+                }
+            
+                break;
+        }
     };
     
     this.DrawLine$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(x1, y1, x2, y2, color) 
     {
-
+        var distanceY = y2 - y1;
+        var distanceX = x2 - x1;
+        var fraction = 0;
+        var stepX, stepY;
+        var colorCode = color;
+        
+        if (distanceY < 0)
+        {
+            distanceY = -distanceY;
+            stepY = -1;
+        }
+        else
+        {
+            stepY = 1;
+        }
+        
+        if (distanceX < 0)
+        {
+            distanceX = -distanceX;
+            stepX = -1;
+        }
+        else
+        {
+            stepX = 1;
+        }
+        
+        distanceY = distanceY << 1;
+        distanceX = distanceX << 1;
+        
+        if (this.InPixelMap(x1, y1))
+        {
+            if (this.GetBlending().GetValue() === plugins_quorum_Libraries_Game_Graphics_PixelMap_.BLEND_SOURCE_OVER)
+                colorCode = this.Blend(color, this.ConvertToRGBA8888(this.GetPixel$quorum_integer$quorum_integer(x1, y1)));
+            
+            this.SetPixel$quorum_integer$quorum_integer$quorum_integer(x1, y1, colorCode);
+        }
+        if (distanceX > distanceY)
+        {
+            fraction = distanceY - (distanceX >> 1);
+            while (x1 != x2)
+            {
+                if (fraction >= 0)
+                {
+                    y1 = y1 + stepY;
+                    fraction = fraction - distanceX;
+                }
+                
+                x1 = x1 + stepX;
+                fraction = fraction + distanceY;
+                
+                if (this.InPixelMap(x1, y1))
+                {
+                    if (this.GetBlending().GetValue() === plugins_quorum_Libraries_Game_Graphics_PixelMap_.BLEND_SOURCE_OVER)
+                        colorCode = this.Blend(color, this.ConvertToRGBA8888(this.GetPixel$quorum_integer$quorum_integer(x1, y1)));
+                    
+                    this.SetPixel$quorum_integer$quorum_integer$quorum_integer(x1, y1, colorCode);
+                }
+            }
+        }
+        else
+        {
+            fraction = distanceX - (distanceY >> 1);
+            while (y1 != y2)
+            {
+                if (fraction >= 0)
+                {
+                    x1 = x1 + stepX;
+                    fraction = fraction - distanceY;
+                }
+                
+                y1 = y1 + stepY;
+                fraction = fraction + distanceX;
+                
+                if (this.InPixelMap(x1, y1))
+                {
+                    if (this.GetBlending().GetValue() === plugins_quorum_Libraries_Game_Graphics_PixelMap_.BLEND_SOURCE_OVER)
+                        colorCode = this.Blend(color, this.ConvertToRGBA8888(this.GetPixel$quorum_integer$quorum_integer(x1, y1)));
+                    
+                    this.SetPixel$quorum_integer$quorum_integer$quorum_integer(x1, y1, colorCode);
+                }
+            }
+        }
     };
     this.DrawRectangle$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(x, y, width, height, color) 
     {
@@ -407,38 +718,144 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
     this.FillCircle$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(x, y, radius, color) 
     {
         var f = 1 - radius;
-        var ddF_x = 1;
-        var ddF_y = -2 * radius;
-        var px = 0;
-        var py = radius;
+        var lineWidth = 1;
+        var lineHeight = -2 * radius;
+        var xOffset = 0;
+        var yOffset = radius;
         
         this.HorizontalLine(x, x, y + radius, color);
         this.HorizontalLine(x, x, y - radius, color);
         this.HorizontalLine(x - radius, x + radius, y, color);
         
-        while (px < py)
+        while (xOffset < yOffset)
         {
             if (f >= 0)
             {
-                py--;
-                ddF_y += 2;
-                f += ddF_y;
+                yOffset--;
+                lineWidth += 2;
+                f += lineHeight;
             }
             
-            px++;
-            ddF_x += 2;
-            f += ddF_y;
+            xOffset++;
+            lineWidth += 2;
+            f += lineHeight;
             
-            this.HorizontalLine(x - px, x + px, y + py, color);
-            this.HorizontalLine(x - px, x + px, y - py, color);
-            this.HorizontalLine(x - py, x + py, y + px, color);
-            this.HorizontalLine(x - py, x + py, y - px, color);
+            this.HorizontalLine(x - xOffset, x + xOffset, y + yOffset, color);
+            this.HorizontalLine(x - xOffset, x + xOffset, y - yOffset, color);
+            this.HorizontalLine(x - yOffset, x + yOffset, y + xOffset, color);
+            this.HorizontalLine(x - yOffset, x + yOffset, y - xOffset, color);
         }
     };
     
     this.FillTriangle$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(x1, y1, x2, y2, x3, y3, color) 
     {
-
+        function Edge(x1, y1, x2, y2)
+        {
+            if (y2 > y1)
+            {
+                this.y1 = y1;
+                this.y2 = y2;
+                this.x1 = x1;
+                this.x2 = x2;
+            }
+            else
+            {
+                this.y2 = y1;
+                this.y1 = y2;
+                this.x2 = x1;
+                this.x1 = x2;
+            }
+        }
+        
+        function Maximum(value1, value2)
+        {
+            if (value1 > value2)
+                return value1;
+            
+            return value2;
+        }
+        
+        function Minimum(value1, value2)
+        {
+            if (value1 < value2)
+                return value1;
+            
+            return value2;
+        }
+        
+        var edges = [new Edge(x1, y1, x2, y2), new Edge(x1, y1, x3, y3), new Edge(x2, y2, x3, y3)];
+        var tempEdge;
+        var slope0, slope1, slope2;
+        var edge0Length, edge1Length, edge2Length, tempLength;
+        var y, boundY1, boundY2, calcX1, calcX2;
+        
+        // If the points are collinear, then we return immediately.
+        if ((x2 - x1) * (y3 - y1) === (x3 - x1) * (y2 - y1))
+            return;
+        
+        edge0Length = edges[0].y2 - edges[0].y1;
+        edge1Length = edges[1].y2 - edges[1].y1;
+        edge2Length = edges[2].y2 - edges[2].y1;
+        
+        // Edges are ordered according to descending length.
+        if (edge1Length >= edge0Length && edge1Length >= edge2Length)
+        {
+            tempEdge = edges[0];
+            edges[0] = edges[1];
+            edges[1] = tempEdge;
+            tempLength = edge0Length;
+            edge0Length = edge1Length;
+            edge1Length = tempLength;
+        }
+        else if (edge2Length >= edge0Length && edge2Length >= edge1Length)
+        {
+            tempEdge = edges[0];
+            edges[0] = edges[2];
+            edges[2] = tempEdge;
+            tempLength = edge0Length;
+            edge0Length = edge2Length;
+            edge2Length = tempLength;
+        }
+        
+        if (edge2Length > edge1Length)
+        {
+            tempEdge = edges[1];
+            edges[1] = edges[2];
+            edges[2] = tempEdge;
+        }
+        
+        slope0 = ((edges[0].x1 - edges[0].x2)) / ((edges[0].y2 - edges[0].y1));
+        slope1 = ((edges[1].x1 - edges[1].x2)) / ((edges[1].y2 - edges[1].y1));
+        
+        // We set our bounds to avoid iterating outside of the PixelMap.
+        boundY1 = Maximum(edges[1].y1, 0);
+        boundY2 = Minimum(edges[1].y2, height - 1);
+        
+        for (y = boundY1; y <= boundY2; y++)
+        {
+            // Using bitwise or with 0 will return the integer portion of the number.
+            calcX1 = (edges[0].x2 + slope0 * (edges[0].y2 - y) + 0.5) | 0;
+            calcX2 = (edges[1].x2 + slope1 * (edges[1].y2 - y) + 0.5) | 0;
+            
+            this.HorizontalLine(calcX1, calcX2, y, color);
+        }
+        
+        // If there are still y-values which haven't been handled, keep calculating.
+        if (edges[2].y2 - edges[2].y1 > 0)
+        {
+            slope2 = ((edges[2].x1 - edges[2].x2)) / ((edges[2].y2 - edges[2].y1));
+            
+            boundY1 = Maximum(edges[2].y1, 0);
+            boundY2 = Minimum(edges[2].y2, height - 1);
+            
+            for (y = boundY1; y <= boundY2; y++)
+            {
+                calcX1 = (edges[0].x2 + slope0 * (edges[0].y2 - y) + 0.5) | 0;
+                calcX2 = (edges[2].x2 + slope2 * (edges[2].y2 - y) + 0.5) | 0;
+                
+                this.HorizontalLine(calcX1, calcX2, y, color);
+            }
+        }
     };
     
     /*
@@ -563,7 +980,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
             {
                 colorCode = this.Blend(color, this.ConvertToRGBA8888(this.GetPixel$quorum_integer$quorum_integer(i, y)));
             }
-            this.SetPixel(i, y, colorCode);
+            this.SetPixel$quorum_integer$quorum_integer$quorum_integer(i, y, colorCode);
         }
     };
     
@@ -602,7 +1019,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
             {
                 colorCode = this.Blend(color, this.ConvertToRGBA8888(this.GetPixel$quorum_integer$quorum_integer(x, i)));
             }
-            this.SetPixel(x, i, colorCode);
+            this.SetPixel$quorum_integer$quorum_integer$quorum_integer(x, i, colorCode);
         }
     };
     
@@ -642,5 +1059,15 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
             this.SafelySetPixel(x + yOffset, y - xOffset, color);
             this.SafelySetPixel(x - yOffset, y - xOffset, color);
         }
+    };
+    
+    this.InPixelMap = function(x, y)
+    {
+        if (x < 0 || y < 0)
+            return false;
+        if (x >= width || y >= height)
+            return false;
+        
+        return true;
     };
 }
