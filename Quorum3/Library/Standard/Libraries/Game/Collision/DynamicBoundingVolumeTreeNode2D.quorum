@@ -17,11 +17,40 @@ class DynamicBoundingVolumeTreeNode2D
 
     integer height = -1
     integer id = -1
+    
+    /*
+    This action sets the id of the Dynamic Bounding Volume Tree Node (2D).
+    This action is used internally. 
 
+    Attribute: Parameter id The integer that will be the node id. 
+
+    Attribute: Example
+
+        use Libraries.Game.Collision.DynamicBoundingVolumeTreeNode2D
+
+            DynamicBoundingVolumeTreeNode2D node
+            node:Set(0)
+    */
     action SetID(integer id)
         me:id = id
     end
     
+    /*
+    This action gets the id of this node.
+    This action is used internally.
+
+    Attribute: Returns The id of this node.
+
+    Attribute: Example
+
+        use Libraries.Game.Collision.DynamicBoundingVolumeTreeNode2D
+        use Libraries.Game.Collision.DynamicBoundingVolumeTree2D
+
+            DynamicBoundingVolumeTree2D tree
+            DynamicBoundingVolumeTreeNode2D newNode
+            newNode:SetID(0)
+            integer id = newNode:GetID()
+    */
     action GetID returns integer
         return id
     end
