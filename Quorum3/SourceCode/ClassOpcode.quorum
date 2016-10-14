@@ -1019,13 +1019,6 @@ class ClassOpcode is QuorumOpcode
                 text convertedConstructorParentName = "L" + converted + "_;"
                 methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), converted, CONSTRUCTOR_JAVA_NAME, "(" + convertedConstructorParentName + ")V", false)
                 methodWriter:VisitField(opcodes:GetPutField(), classBytecodeName, parentName, convertedParentNameType)
-
-
-//                text convertedHiddenType = p:ConvertStaticKeyToBytecodePathTypeNameInterface()
-//                methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-//                methodWriter:VisitField(opcodes:GetGetField(), clazz:ConvertStaticKeyToBytecodePath(), parentName, p:ConvertStaticKeyToBytecodePathTypeName())
-//                methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
-//                methodWriter:VisitField(opcodes:GetPutField(), converted, p:GetHiddenVariableName(), convertedHiddenType)
             end
         end
         
@@ -1129,7 +1122,7 @@ class ClassOpcode is QuorumOpcode
         end
 
         convertedSource = convertedSource + ") {" + EOL
-        convertedSource = convertedSource + "this_ = this;" + EOL
+        convertedSource = convertedSource + "this.prototype = this;" + EOL
 
         //write the parents
         convertedSource = convertedSource + "this.parentNames_ = ["
@@ -1148,65 +1141,11 @@ class ClassOpcode is QuorumOpcode
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
-            //if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
                 text parentName = p:ConvertStaticKeyToParentFieldName()
                 convertedSource = convertedSource + "this." + parentName + " = null;" + EOL
-            //end
         end
         
-        //initialize all of the parent objects as values, if appropriate
-        convertedSource = convertedSource + "if(parents == null) {" + EOL
-        parents = clazz:GetParentClasses()
-        repeat while parents:HasNext()
-            Class p = parents:Next()
-            text parentKey = p:GetStaticKey()
-            //if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
-                text parentName = p:ConvertStaticKeyToParentFieldName()
-                convertedSource = convertedSource + "   this." + parentName + " = new " 
-                    + p:ConvertStaticKeyToJavaScriptName() + "(false);" + EOL
-            //end
-        end
-
-        //now that all parents have been instantiated, get 
-        //their parents and set them appropriately
-        parents = clazz:GetParentClasses()
-        repeat while parents:HasNext()
-            Class p = parents:Next()
-            text parentKey = p:GetStaticKey()
-            //if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
-                text parentName = p:ConvertStaticKeyToParentFieldName()
-                text convertedParentName = p:ConvertStaticKeyToBytecodePath()
-                text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
-
-                Iterator<Class> grandParents = p:GetParentClasses()
-                repeat while grandParents:HasNext()
-                    Class grandParent = grandParents:Next()
-                    text grandParentKey = grandParent:GetStaticKey()
-                    text grandParentName = grandParent:ConvertStaticKeyToParentFieldName()
-                    text convertedGrandParent = grandParent:ConvertStaticKeyToBytecodePathTypeName()
-                    
-                    convertedSource = convertedSource + "   this." + parentName + "." + grandParentName + 
-                        " = this." +  grandParentName + ";" + EOL
-                    convertedSource = convertedSource + "   this." + parentName 
-                        + ".prototype = this;"  + EOL
-                end
-            //end
-        end
-
-        //now that all of the parents have had their parent's set, 
-        //call their constructors.
-        parents = clazz:GetParentClasses()
-        repeat while parents:HasNext()
-            Class p = parents:Next()
-            text parentKey = p:GetStaticKey()
-            text parentName = p:ConvertStaticKeyToParentFieldName()
-
-            if p:HasConstructor()
-                convertedSource = convertedSource + "this." + parentName + ".constructor_();" + EOL
-            end
-        end
-
-        convertedSource = convertedSource + "}" + EOL
+        
 
         if clazz:HasConstructor()
             convertedSource = convertedSource + constructor:WriteJavaScript()
@@ -1216,7 +1155,6 @@ class ClassOpcode is QuorumOpcode
         repeat while it:HasNext()
             Action act = it:Next()
             Class parentOfMethod = act:GetParentClass()
-            //if not parentOfMethod:IsError() or clazz:GetStaticKey() = QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR
                 convertedSource = convertedSource + "this." + act:ConvertActionToJavaScriptName()
                     + " = function("
 
@@ -1230,11 +1168,7 @@ class ClassOpcode is QuorumOpcode
                 end
 
                 convertedSource = convertedSource + ") {" + EOL
-                    + "if( this.prototype == null) {"
                     + "     return this." + parentOfMethod:ConvertStaticKeyToParentFieldName() + "." 
-                   // + "}"
-                    
-                    //+ "     return this.prototype." 
                     
 
                 text paramListText = act:ConvertActionToJavaScriptName() + "("
@@ -1249,11 +1183,8 @@ class ClassOpcode is QuorumOpcode
 
                 paramListText = paramListText + ");"
                 convertedSource = convertedSource + paramListText
-                    +  "}"
-                    +  "return this.prototype." + paramListText
                     + EOL 
                     + "}" + EOL
-            //end
         end
 
 
@@ -1288,8 +1219,59 @@ class ClassOpcode is QuorumOpcode
             convertedSource = convertedSource + field:WriteJavaScript()
         end
 
+        //initialize all of the parent objects as values, if appropriate
+        convertedSource = convertedSource + "if(parents == null) {" + EOL
+        parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            text parentName = p:ConvertStaticKeyToParentFieldName()
+            convertedSource = convertedSource + "   this." + parentName + " = new " 
+                + p:ConvertStaticKeyToJavaScriptName() + "(false);" + EOL
+        end
+
+        //now that all parents have been instantiated, get 
+        //their parents and set them appropriately
+        parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+                text parentName = p:ConvertStaticKeyToParentFieldName()
+                text convertedParentName = p:ConvertStaticKeyToBytecodePath()
+                text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
+
+                Iterator<Class> grandParents = p:GetParentClasses()
+                repeat while grandParents:HasNext()
+                    Class grandParent = grandParents:Next()
+                    text grandParentKey = grandParent:GetStaticKey()
+                    text grandParentName = grandParent:ConvertStaticKeyToParentFieldName()
+                    text convertedGrandParent = grandParent:ConvertStaticKeyToBytecodePathTypeName()
+                    
+                    convertedSource = convertedSource + "   this." + parentName + "." + grandParentName + 
+                        " = this." +  grandParentName + ";" + EOL
+                    convertedSource = convertedSource + "   this." + parentName 
+                        + ".prototype = this;"  + EOL
+                end
+        end
+
+        //now that all of the parents have had their parent's set, 
+        //call their constructors.
+        parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            text parentName = p:ConvertStaticKeyToParentFieldName()
+
+            if p:HasConstructor()
+                convertedSource = convertedSource + "this." + parentName + ".constructor_();" + EOL
+            end
+        end
+
+        convertedSource = convertedSource + "}" + EOL
+
+        //if this class has a null parents flag, call its constructor
         if clazz:HasConstructor()
-            convertedSource = convertedSource + "this.constructor_();" + EOL
+            convertedSource = convertedSource + "if (parents == null) {this.constructor_();}" + EOL
         end
 
         if value = "Libraries.Language.Types.Integer"
