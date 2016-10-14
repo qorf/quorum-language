@@ -209,7 +209,7 @@ public class PixelMap {
         plugins.quorum.Libraries.Game.Graphics.PixelMap map = pixmap.plugin_;
         long sourceBasePointer = map.basePointer;
 
-        DrawPixelMap(sourceBasePointer, basePointer, sourceX, sourceY, width, height, destX, destY, width, height);
+        DrawPixelMap(sourceBasePointer, basePointer, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, pixmap.GetWidth(), pixmap.GetHeight());
     }
     
     public void Fill(int color)
