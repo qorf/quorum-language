@@ -13,6 +13,8 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
             return false;
         }
         
+        this.gl = gl;
+        
         // Set clear color to black, fully opaque
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         // Enable depth testing

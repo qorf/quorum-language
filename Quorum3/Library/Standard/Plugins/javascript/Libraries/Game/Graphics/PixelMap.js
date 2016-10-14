@@ -3,9 +3,9 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
     
     var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
     
-    if (!this.initialized_plugins_quorum_Libraries_Game_Graphics_PixelMap_)
+    if (!plugins_quorum_Libraries_Game_Graphics_PixelMap_.initialized_plugins_quorum_Libraries_Game_Graphics_PixelMap_)
     {
-        this.initialized_plugins_quorum_Libraries_Game_Graphics_PixelMap_ = true;
+        plugins_quorum_Libraries_Game_Graphics_PixelMap_.initialized_plugins_quorum_Libraries_Game_Graphics_PixelMap_ = true;
         
         plugins_quorum_Libraries_Game_Graphics_PixelMap_.FORMAT_ALPHA = 1;
         plugins_quorum_Libraries_Game_Graphics_PixelMap_.FORMAT_LUMINANCE_ALPHA = 2;
@@ -21,9 +21,9 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         plugins_quorum_Libraries_Game_Graphics_PixelMap_.BLEND_SOURCE_OVER = 1;
         
         plugins_quorum_Libraries_Game_Graphics_PixelMap_.blending = new quorum_Libraries_Game_Graphics_Blending_();
-        plugins_quorum_Libraries_Game_Graphics_PixelMap_.blending.SetValue(plugins_quorum_Libraries_Game_Graphics_PixelMap_.BLEND_SOURCE_OVER);
+        plugins_quorum_Libraries_Game_Graphics_PixelMap_.blending.SetValue$quorum_integer(plugins_quorum_Libraries_Game_Graphics_PixelMap_.BLEND_SOURCE_OVER);
 //        this.SetBlend(this.blending);
-        this.SetScale(this.SCALE_LINEAR);
+        plugins_quorum_Libraries_Game_Graphics_PixelMap_.scale = plugins_quorum_Libraries_Game_Graphics_PixelMap_.SCALE_LINEAR;
         
         /*
          * These lookup tables are used to quickly transform values between the
@@ -59,6 +59,8 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         width = newWidth;
         height = newHeight;
         format = newFormat.GetValue();
+        
+        this.me_.GetFormat().SetValue$quorum_integer(format);
         
         switch(format)
         {
@@ -357,7 +359,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         }
         else
         {
-            if (this.scale === plugins_quorum_Libraries_Game_Graphics_PixelMap_.SCALE_NEAREST)
+            if (plugins_quorum_Libraries_Game_Graphics_PixelMap_.scale === plugins_quorum_Libraries_Game_Graphics_PixelMap_.SCALE_NEAREST)
             {
                 var xRatio = (sourceWidth << 16) / destinationWidth + 1;
                 var yRatio = (sourceHeight << 16) / destinationHeight + 1;
@@ -396,7 +398,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                     }
                 }
             }
-            else if (this.scale === plugins_quorum_Libraries_Game_Graphics_PixelMap_.SCALE_LINEAR)
+            else if (plugins_quorum_Libraries_Game_Graphics_PixelMap_.scale === plugins_quorum_Libraries_Game_Graphics_PixelMap_.SCALE_LINEAR)
             {
                 var xRatio = (sourceWidth - 1) / destinationWidth;
                 var yRatio = (sourceHeight - 1) / destinationHeight;
@@ -487,7 +489,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
     
     this.SetScale$quorum_integer = function(scale) 
     {
-        this.scale = scale;
+        plugins_quorum_Libraries_Game_Graphics_PixelMap_.scale = scale;
     };
     
     this.Fill$quorum_integer = function(color) 
