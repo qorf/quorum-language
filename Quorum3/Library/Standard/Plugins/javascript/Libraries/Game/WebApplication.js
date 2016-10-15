@@ -51,6 +51,7 @@ function plugins_quorum_Libraries_Game_WebApplication_()
             return;
         }
         
+        game.InitializeLayers();
         game.CreateGame();
         
         loopCall = this.MainLoop;

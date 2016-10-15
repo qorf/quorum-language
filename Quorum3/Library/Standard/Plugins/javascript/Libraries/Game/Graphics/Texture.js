@@ -27,7 +27,7 @@ function plugins_quorum_Libraries_Game_Graphics_Texture_()
     
     this.BindToDefault = function() 
     {
-        graphics.glBindTexture(glTarget, 0);
+        graphics.glBindTexture(glTarget, null);
     };
     
     this.CreateGLHandle = function() 

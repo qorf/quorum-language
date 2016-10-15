@@ -234,6 +234,11 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         }
     };
 
+    this.GetPixels = function()
+    {
+        return pixels;
+    };
+
     this.Define2DImage$quorum_integer$quorum_integer$quorum_integer = function(target, mipLevel, border) 
     {
         graphics.glTexImage2D(target, mipLevel, this.GetGLInternalFormat(), this.GetWidth(), this.GetHeight(),

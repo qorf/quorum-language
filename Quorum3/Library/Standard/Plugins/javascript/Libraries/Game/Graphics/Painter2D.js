@@ -67,7 +67,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
             fullIndicesArray[i + 5] = v;
         }
         
-        projectionMatrix.SetToOrthographic2D(0, 0, display.GetWidth(), display.GetHeight());
+        projectionMatrix.SetToOrthographic2D$quorum_number$quorum_number$quorum_number$quorum_number(0, 0, display.GetWidth(), display.GetHeight());
         
         shader = this.CreateDefaultShader();
         fontShader = this.CreateFontShader();
