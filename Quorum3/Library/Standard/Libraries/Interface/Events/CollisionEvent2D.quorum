@@ -24,18 +24,17 @@ class CollisionEvent2D
     boolean touchingFlag = false
     boolean enabledFlag = false
 
-//    // physics fields for later
-//    number friction = 0
-//    number restitution = 1
-//    number tangentSpeed = 0
+    number friction = 0
+    number restitution = 1
+    number tangentSpeed = 0
 
     Math math
 
     private CollisionEvent2D next = undefined
     private CollisionEvent2D previous = undefined
 
-    public CollisionEdge2D nodeA
-    public CollisionEdge2D nodeB
+    CollisionEdge2D nodeA
+    CollisionEdge2D nodeB
 
     LocalCollisionPoints2D collisionPoints
 
@@ -68,8 +67,8 @@ class CollisionEvent2D
         nodeB:next = undefined
         nodeA:other = undefined
 
-//        friction = CalculateFriction(itemA:GetFriction(), itemB:GetFriction())
-//        restitution = CalculateRestitution(itemA:GetRestitution(), itemB:GetRestitution())
+        //friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
+        //restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
         
     end
 
@@ -117,37 +116,37 @@ class CollisionEvent2D
         return indexB
     end
 
-//    action SetFriction(number friction)
-//        me:friction = friction
-//    end
-//
-//    action GetFriction returns number
-//        return friction
-//    end
-//
-//    action ResetFriction
-////        friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
-//    end
-//
-//    action SetRestitution(number restitution)
-//        me:restitution = restitution
-//    end
-//
-//    action GetRestitution returns number
-//        return restitution
-//    end
-//
-//    action ResetRestitution
-////        restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
-//    end
-//
-//    action SetTangentSpeed(number speed)
-//        me:tangentSpeed = speed
-//    end
-//
-//    action GetTangentSpeed returns number
-//        return tangentSpeed
-//    end
+    action SetFriction(number friction)
+        me:friction = friction
+    end
+
+    action GetFriction returns number
+        return friction
+    end
+
+    action ResetFriction
+        //friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
+    end
+
+    action SetRestitution(number restitution)
+        me:restitution = restitution
+    end
+
+    action GetRestitution returns number
+        return restitution
+    end
+
+    action ResetRestitution
+        //restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
+    end
+
+    action SetTangentSpeed(number speed)
+        me:tangentSpeed = speed
+    end
+
+    action GetTangentSpeed returns number
+        return tangentSpeed
+    end
 
     LocalCollisionPoints2D oldCollisionPoints
 
@@ -190,17 +189,17 @@ class CollisionEvent2D
         return nodeB
     end
 
-//    action CalculateTotalFriction(number friction1, number friction2) returns number
-//        return math:SquareRoot(friction1 * friction2)
-//    end
-//
-//    action CalculateTotalRestitution(number restitution1, number restitution2) returns number
-//        if restitution1 > restitution2
-//            return restitution1
-//        else
-//            return restitution2
-//        end
-//    end
+    action CalculateTotalFriction(number friction1, number friction2) returns number
+        return math:SquareRoot(friction1 * friction2)
+    end
+
+    action CalculateTotalRestitution(number restitution1, number restitution2) returns number
+        if restitution1 > restitution2
+            return restitution1
+        else
+            return restitution2
+        end
+    end
 
     private action NarrowphaseEvaluation(LocalCollisionPoints2D collisionPoints, PhysicsPosition2D transformA, PhysicsPosition2D transformB)
         CollisionShape2D shapeA = itemA:GetShape()

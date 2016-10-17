@@ -86,7 +86,7 @@ class Item2D is Item
 
     Sweep2D sweep
 
-    public CollisionEdge2D collisionList = undefined
+    CollisionEdge2D collisionList = undefined
 
     PhysicsPosition2D transform0
 
@@ -2120,6 +2120,14 @@ class Item2D is Item
             children:Get(counter):Draw(painter)
             counter = counter + 1
         end
+    end
+
+    action GetCollisionList returns CollisionEdge2D
+        return collisionList
+    end
+
+    action SetCollisionList(CollisionEdge2D edge)
+        collisionList = edge
     end
 
     /*

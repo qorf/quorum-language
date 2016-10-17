@@ -32,7 +32,7 @@ class CollisionManager2D
             return now
         end
 
-        CollisionEdge2D edge = itemB:collisionList
+        CollisionEdge2D edge = itemB:GetCollisionList()
         repeat while edge not= undefined
             if edge:GetOther() = itemA
                 Item2D iA = edge:GetCollision():GetItemA()
@@ -64,26 +64,26 @@ class CollisionManager2D
         collisionList = collision
 
         // connect collision to itemA
-        collision:nodeA:SetCollision(collision)
-        collision:nodeA:SetOther(itemB)
+        collision:GetNodeA():SetCollision(collision)
+        collision:GetNodeA():SetOther(itemB)
 
-        collision:nodeA:SetPrevious(undefined)
-        collision:nodeA:SetNext(itemA:collisionList)
-        if itemA:collisionList not= undefined
-            itemA:collisionList:SetPrevious(collision:nodeA)
+        collision:GetNodeA():SetPrevious(undefined)
+        collision:GetNodeA():SetNext(itemA:GetCollisionList())
+        if itemA:GetCollisionList() not= undefined
+            itemA:GetCollisionList():SetPrevious(collision:GetNodeA())
         end
-        itemA:collisionList = collision:nodeA
+        itemA:SetCollisionList(collision:GetNodeA())
 
         // connect collision to itemB
-        collision:nodeB:SetCollision(collision)
-        collision:nodeB:SetOther(itemA)
+        collision:GetNodeB():SetCollision(collision)
+        collision:GetNodeB():SetOther(itemA)
 
-        collision:nodeB:SetPrevious(undefined)
-        collision:nodeB:SetNext(itemB:collisionList)
-        if itemB:collisionList not= undefined
-            itemB:collisionList:SetPrevious(collision:nodeB)
+        collision:GetNodeB():SetPrevious(undefined)
+        collision:GetNodeB():SetNext(itemB:GetCollisionList())
+        if itemB:GetCollisionList() not= undefined
+            itemB:GetCollisionList():SetPrevious(collision:GetNodeB())
         end
-        itemB:collisionList = collision:nodeB
+        itemB:SetCollisionList(collision:GetNodeB())
 
         collisionCount = collisionCount + 1
     end
@@ -118,29 +118,29 @@ class CollisionManager2D
         end
 
         // remove collision from itemA
-        if collision:nodeA:GetPrevious() not= undefined
-            collision:nodeA:GetPrevious():SetNext(collision:nodeA:GetNext())
+        if collision:GetNodeA():GetPrevious() not= undefined
+            collision:GetNodeA():GetPrevious():SetNext(collision:GetNodeA():GetNext())
         end
 
-        if collision:nodeA:GetNext() not= undefined
-            collision:nodeA:GetNext():SetPrevious(collision:nodeA:GetPrevious())
+        if collision:GetNodeA():GetNext() not= undefined
+            collision:GetNodeA():GetNext():SetPrevious(collision:GetNodeA():GetPrevious())
         end
 
-        if collision:nodeA = itemA:collisionList
-            itemA:collisionList = collision:nodeA:GetNext()
+        if collision:GetNodeA() = itemA:GetCollisionList()
+            itemA:SetCollisionList(collision:GetNodeA():GetNext())
         end
 
         // remove collision from itemB
-        if collision:nodeB:GetPrevious() not= undefined
-            collision:nodeB:GetPrevious():SetNext(collision:nodeB:GetNext())
+        if collision:GetNodeB():GetPrevious() not= undefined
+            collision:GetNodeB():GetPrevious():SetNext(collision:GetNodeB():GetNext())
         end
 
-        if collision:nodeB:GetNext() not= undefined
-            collision:nodeB:GetNext():SetPrevious(collision:nodeB:GetPrevious())
+        if collision:GetNodeB():GetNext() not= undefined
+            collision:GetNodeB():GetNext():SetPrevious(collision:GetNodeB():GetPrevious())
         end
 
-        if collision:nodeB = itemB:collisionList
-            itemB:collisionList = collision:nodeB:GetNext()
+        if collision:GetNodeB() = itemB:GetCollisionList()
+            itemB:SetCollisionList(collision:GetNodeB():GetNext())
         end
 
         collisionCount = collisionCount - 1
