@@ -772,8 +772,6 @@ class ClassOpcode is QuorumOpcode
                 hiddenGetterName, hiddenGetterSignature, null, undefined)
             methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
                 
-            //TODO: Check that what is at line 2231 of QuorumJavaBytecodeStepVisitor
-            //is not an artifact of that system and is actually important.
             methodWriter:VisitField(opcodes:GetField(), clazz:ConvertStaticKeyToBytecodePath(),
                 variable:GetName(), bytecodeInterface)
 
@@ -797,8 +795,6 @@ class ClassOpcode is QuorumOpcode
                 hiddenSetterName, hiddenSetterSignature, null, undefined)
             methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
                 
-            //TODO: Check that what is at line 2264 of QuorumJavaBytecodeStepVisitor
-            //is not an artifact of that system and is actually important.
             methodWriter:VisitVariable(opcodes:GetLoadOpcode(type), 1)
             methodWriter:VisitField(opcodes:PutField(), clazz:ConvertStaticKeyToBytecodePath(),
                 variable:GetName(), bytecodeInterface)
@@ -806,7 +802,6 @@ class ClassOpcode is QuorumOpcode
             methodWriter:VisitInstruction(opcodes:GetReturn())
             methodWriter:VisitMaxSize(1,1)
             methodWriter:VisitEnd()
-
         end
     end
 
@@ -1213,11 +1208,61 @@ class ClassOpcode is QuorumOpcode
 
         
 
+        
+
+        
+        //write the actions for the fields
+        Iterator<Variable> fieldVariableIterator = clazz:GetVariables()
+        repeat while fieldVariableIterator:HasNext()
+            Variable variable = fieldVariableIterator:Next()
+
+            text varName = variable:GetName()
+            Type type = variable:GetType()
+            text converted = type:ConvertTypeToBytecodeSignature()
+            text hiddenGetterName = clazz:ConvertToActionNameFromField(variable, true)
+
+            convertedSource = convertedSource + "this." + hiddenGetterName + " = function() {" + EOL
+            convertedSource = convertedSource + "   return this." + variable:GetJavaScriptName() + ";" + EOL
+            convertedSource = convertedSource + "};" + EOL
+            
+            text hiddenSetterName = clazz:ConvertToActionNameFromField(variable, false)
+            convertedSource = convertedSource + "this." + hiddenSetterName + " = function(value) {" + EOL
+            convertedSource = convertedSource + "   this." + variable:GetJavaScriptName() + " = value;" + EOL
+            convertedSource = convertedSource + "};" + EOL
+        end
+
+        //write the actions for parent fields
+        if not clazz:IsError() //errors are special, don't write these
+            Iterator<Class> parentClasses = clazz:GetParentClasses()
+            repeat while parentClasses:HasNext()
+                Class p = parentClasses:Next()
+                text parentKey = p:GetStaticKey()
+                Iterator<Variable> parentFieldIterator = p:GetVariables()
+                repeat while parentFieldIterator:HasNext()
+                    Variable variable = parentFieldIterator:Next()
+                    Type type = variable:GetType()
+                    text getter = p:ConvertToActionNameFromField(variable, true)
+                    text setter = p:ConvertToActionNameFromField(variable, false)
+
+                    //the getter
+                    convertedSource = convertedSource + "this." + getter + " = function() {" + EOL
+                    convertedSource = convertedSource + "   return this." + p:ConvertStaticKeyToParentFieldName() + "." + getter + "();" + EOL
+                    convertedSource = convertedSource + "};" + EOL
+
+                    //the setter
+                    convertedSource = convertedSource + "this." + setter + " = function(value) {" + EOL
+                    convertedSource = convertedSource + "   this." + p:ConvertStaticKeyToParentFieldName() + "." + setter + "(value);" + EOL
+                    convertedSource = convertedSource + "};" + EOL
+                end
+            end
+        end
+
         Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
         repeat while fieldIterator:HasNext()
             QuorumOpcode field = fieldIterator:Next()
             convertedSource = convertedSource + field:WriteJavaScript()
         end
+
 
         //initialize all of the parent objects as values, if appropriate
         convertedSource = convertedSource + "if(parents == null) {" + EOL

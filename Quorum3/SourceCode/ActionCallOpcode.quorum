@@ -485,7 +485,8 @@ class ActionCallOpcode is QuorumOpcode
         else
             if field:IsField()
                 if isChainedCall
-                    result = result + "." + field:GetJavaScriptName()
+                    Class p = field:GetParentClass()
+                    result = result + "." + p:ConvertToActionNameFromField(field, true) + "()"
                 else
                     if isParentCall
                         path = parentToCallOn:ConvertStaticKeyToParentFieldName()
@@ -500,7 +501,8 @@ class ActionCallOpcode is QuorumOpcode
                         end
                         result = result + path + "." + field:GetJavaScriptName()
                     else
-                        result = result + "this." + field:GetJavaScriptName()
+                        Class p = field:GetParentClass()
+                        result = result + "this." + p:ConvertToActionNameFromField(field, true) + "()"
                     end
                     
                 end
