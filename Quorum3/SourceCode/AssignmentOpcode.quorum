@@ -243,12 +243,8 @@ class AssignmentOpcode is QuorumOpcode
             if variable:IsField()
                 Class p = variable:GetParentClass()
                 result = result + "this." + p:ConvertToActionNameFromField(variable, true) + "()"
-                
-
-                //result = result + "this."
-                //result = result + variable:GetJavaScriptName() + "." + field:GetJavaScriptName()
             else
-                result = result + variable:GetJavaScriptName()// + "." + field:GetJavaScriptName()
+                result = result + variable:GetJavaScriptName()
             end
 
             if field:IsField()
@@ -258,7 +254,7 @@ class AssignmentOpcode is QuorumOpcode
             else
                 result = result + "." + field:GetJavaScriptName() + " = " + rightHandSide:WriteJavaScript() + ";"
             end
-            //result = result + " = " + rightHandSide:WriteJavaScript() + ";"
+
             EOL = ""
             EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
             result = result + EOL
@@ -270,7 +266,6 @@ class AssignmentOpcode is QuorumOpcode
                 if field not= undefined
                     Class p = field:GetParentClass()
                     result = result + p:ConvertToActionNameFromField(field, true) + "()" + "."
-                    //result = result + field:GetJavaScriptName() + "."
                 end
                 result = result + parentWithField:ConvertStaticKeyToParentFieldName() + "."
             end
