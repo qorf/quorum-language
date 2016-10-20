@@ -351,15 +351,15 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         if (this.me_.IsDrawing())
             this.Flush();
         
-        projectionMatrix.Set(projection);
+        projectionMatrix.Set$quorum_Libraries_Compute_Matrix4(projection);
         if (this.me_.IsDrawing())
             this.SetupMatrices();
     };
     
     this.SetupMatrices = function()
     {
-        combinedMatrix.Set(projectionMatrix);
-        combinedMatrix.Multiply(transformMatrix);
+        combinedMatrix.Set$quorum_Libraries_Compute_Matrix4(projectionMatrix);
+        combinedMatrix.Multiply$quorum_Libraries_Compute_Matrix4(transformMatrix);
         
         if (useFontShader)
         {
