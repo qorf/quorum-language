@@ -50,7 +50,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
             integerArray = NewIntegerArray(count);
         }
         
-        for (i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
             integerArray[i] = bridgeArray[offset + i];
         
         writingPosition = 0;
@@ -148,7 +148,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
             integerArray = this.NewIntegerArray(writingPosition + bridgeArray.length);
         }
         
-        for (i = 0; i < bridgeArray.length; i++)
+        for (var i = 0; i < bridgeArray.length; i++)
             integerArray[writingPosition + i] = bridgeArray[i];
         
         writingPosition = writingPosition + bridgeArray.length;

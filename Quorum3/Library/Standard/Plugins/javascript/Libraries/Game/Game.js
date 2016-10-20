@@ -130,7 +130,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         
         if (location === -2)
         {
-            location = graphics.glGetAttribLocation(program, name);
+            location = graphics.glGetUniformLocation(program, name);
             if (location === -1 && plugins_quorum_Libraries_Game_Graphics_ShaderProgram_().pedantic)
             {
                 var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
@@ -445,13 +445,13 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     this.End = function()
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
-        graphics.glUseProgram(0);
+        graphics.glUseProgram(null);
     };
     
     this.Dispose = function()
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
-        graphics.glUseProgram(0);
+        graphics.glUseProgram(null);
         graphics.glDeleteShader(this.vertexShaderHandle);
         graphics.glDeleteShader(this.fragmentShaderHandle);
         graphics.glDeleteProgram(program);
@@ -516,7 +516,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         
         this.attributeNames = [];
         
-        for (i = 0; i < attributeCount; i++)
+        for (var i = 0; i < attributeCount; i++)
         {
             info = graphics.glGetActiveAttrib(program, i);
             location = graphics.glGetAttribLocation(program, info.name);
@@ -536,7 +536,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         
         this.uniformNames = [];
         
-        for (i = 0; i < uniformCount; i++)
+        for (var i = 0; i < uniformCount; i++)
         {
             info = graphics.glGetActiveUniform(program, i);
             location = graphics.glGetUniformLocation(program, info.name);
