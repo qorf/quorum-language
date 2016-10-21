@@ -22,11 +22,11 @@ class CollisionManager2D
     end
 
     action AddPair(Item2DNode nodeA, Item2DNode nodeB)
-        Item2D itemA = nodeA:item
-        Item2D itemB = nodeB:item
+        Item2D itemA = nodeA:GetItem()
+        Item2D itemB = nodeB:GetItem()
 
-        integer indexA = nodeA:childIndex
-        integer indexB = nodeB:childIndex
+        integer indexA = nodeA:GetChildIndex()
+        integer indexB = nodeB:GetChildIndex()
 
         if itemA = itemB
             return now
@@ -168,8 +168,8 @@ class CollisionManager2D
             // should we allow user-defined collision filtering?
 
             if not jump
-                integer nodeIDA = itemA:GetNodes():Get(indexA):nodeID
-                integer nodeIDB = itemB:GetNodes():Get(indexB):nodeID
+                integer nodeIDA = itemA:GetNodes():Get(indexA):GetNodeID()
+                integer nodeIDB = itemB:GetNodes():Get(indexB):GetNodeID()
 
                 boolean overlap = broadphase:TestOverlap(nodeIDA, nodeIDB)
 

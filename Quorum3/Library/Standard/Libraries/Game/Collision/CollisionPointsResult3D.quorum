@@ -67,8 +67,8 @@ class CollisionPointsResult3D
         CollisionPoint3D newPoint
         newPoint:Initialize(localA, localB, normalOnBInWorld, depth)
 
-        newPoint:positionWorldOnA:Set(pointA)
-        newPoint:positionWorldOnB:Set(pointInWorld)
+        newPoint:GetWorldPositionOnA():Set(pointA)
+        newPoint:GetWorldPositionOnB():Set(pointInWorld)
 
         integer insertIndex = collisionPoints:GetCacheEntry(newPoint)
 

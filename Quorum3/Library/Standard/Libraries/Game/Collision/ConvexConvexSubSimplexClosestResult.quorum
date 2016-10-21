@@ -4,15 +4,15 @@ use Libraries.Compute.Vector3
 use Libraries.Containers.Array
 
 class ConvexConvexSubSimplexClosestResult
-    public Vector3 closestPointOnSimplex
+    Vector3 closestPointOnSimplex
 
-    public boolean usedVertexA = false
-    public boolean usedVertexB = false
-    public boolean usedVertexC = false
-    public boolean usedVertexD = false
+    boolean usedVertexA = false
+    boolean usedVertexB = false
+    boolean usedVertexC = false
+    boolean usedVertexD = false
 
-    public Array<number> barycentricCoordinates
-    public boolean degenerate = false
+    Array<number> barycentricCoordinates
+    boolean degenerate = false
 
     on create
         barycentricCoordinates:SetSize(4)
@@ -45,5 +45,57 @@ class ConvexConvexSubSimplexClosestResult
         barycentricCoordinates:Set(1, b)
         barycentricCoordinates:Set(2, c)
         barycentricCoordinates:Set(3, d)
+    end
+
+    action GetClosestPointOnSimplex returns Vector3
+        return closestPointOnSimplex
+    end
+
+    action SetClosestPointOnSimplex(Vector3 point)
+        closestPointOnSimplex = point
+    end
+
+    action UsedVertexA returns boolean
+        return usedVertexA
+    end
+
+    action SetUsedVertexA(boolean flag)
+        usedVertexA = flag
+    end
+
+    action UsedVertexB returns boolean
+        return usedVertexB
+    end
+
+    action SetUsedVertexB(boolean flag)
+        usedVertexB = flag
+    end
+
+    action UsedVertexC returns boolean
+        return usedVertexC
+    end
+
+    action SetUsedVertexC(boolean flag)
+        usedVertexC = flag
+    end
+
+    action UsedVertexD returns boolean
+        return usedVertexD
+    end
+
+    action SetUsedVertexD(boolean flag)
+        usedVertexD = flag
+    end
+
+    action GetBarycentricCoordinates returns Array<number>
+        return barycentricCoordinates
+    end
+
+    action Degenerate returns boolean
+        return degenerate
+    end
+
+    action SetDegenerate(boolean flag)
+        degenerate = flag
     end
 end

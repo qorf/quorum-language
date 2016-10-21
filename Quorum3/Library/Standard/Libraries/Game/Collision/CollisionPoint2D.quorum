@@ -3,9 +3,9 @@ use Libraries.Compute.Vector2
 package Libraries.Game.Collision
 
 class CollisionPoint2D
-    public Vector2 localPoint
-    public number normalImpulse = 0
-    public number tangentImpulse = 0
+    Vector2 localPoint
+    number normalImpulse = 0
+    number tangentImpulse = 0
 
     action Set(CollisionPoint2D point)
         me:localPoint:Set(point:localPoint)

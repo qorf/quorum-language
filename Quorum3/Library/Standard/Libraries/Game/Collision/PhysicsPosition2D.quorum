@@ -4,9 +4,9 @@ use Libraries.Compute.Math
 package Libraries.Game.Collision
 
 class PhysicsPosition2D
-    public Vector2 position
-    public number sine = 0
-    public number cosine = 1
+    Vector2 position
+    number sine = 0
+    number cosine = 1
 
     Math math
     
@@ -26,6 +26,10 @@ class PhysicsPosition2D
         return position
     end
 
+    action SetPosition(Vector2 position)
+        me:position = position
+    end
+
     action GetAngle returns number
         return math:InverseTangent(sine, cosine)
     end
@@ -34,8 +38,16 @@ class PhysicsPosition2D
         return sine
     end
 
+    action SetSine(number sine)
+        me:sine = sine
+    end
+
     action GetCosine returns number
         return cosine
+    end
+
+    action SetCosine(number cosine)
+        me:cosine = cosine
     end
 
     action SetToIdentity
