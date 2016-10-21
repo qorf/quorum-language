@@ -3,6 +3,22 @@ package Libraries.Game.Collision
 use Libraries.Compute.Vector3
 
 class ConvexConvexCollisionSolverNode 
-    public Vector3 vector
-    public ConvexConvexCollisionSolverNode node = undefined
+    Vector3 vector
+    ConvexConvexCollisionSolverNode next = undefined
+
+    action GetVector returns Vector3
+        return vector
+    end
+
+    action SetVector(Vector3 vector)
+        me:vector = vector
+    end
+
+    action GetNext returns ConvexConvexCollisionSolverNode
+        return next
+    end
+
+    action SetNext(ConvexConvexCollisionSolverNode next)
+        me:next = next
+    end
 end
