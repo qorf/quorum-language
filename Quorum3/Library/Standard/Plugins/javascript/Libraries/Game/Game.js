@@ -10,6 +10,29 @@ function plugins_quorum_Libraries_Game_Game_() {
 function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fragmentShader) 
 {
     
+    if (!plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.initialized_plugins_quorum_Libraries_Game_Graphics_ShaderProgram_)
+    {
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.initialized_plugins_quorum_Libraries_Game_Graphics_ShaderProgram_ = true;
+        
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.POSITION_ATTRIBUTE = "a_position";
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.NORMAL_ATTRIBUTE = "a_normal";
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.COLOR_ATTRIBUTE = "a_color";
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.TEXCOORD_ATTRIBUTE = "a_texCoord";
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.TANGENT_ATTRIBUTE = "a_tangent";
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.BINORMAL_ATTRIBUTE = "a_binormal";
+
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.pedantic = true;
+    }
+    
+    if (vertexShader === null || vertexShader === undefined)
+    {
+        return;
+    }
+    if (fragmentShader === null || fragmentShader === undefined)
+    {
+        return;
+    }
+    
     this.CompileShaders = function(vertexShader, fragmentShader) 
     {
         var gl = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics.gl;
@@ -38,7 +61,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
         
         var shader = graphics.glCreateShader(type);
-        if (shader === 0)
+        if (shader === undefined || shader === null)
         {
             return -1;
         }
@@ -47,7 +70,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         graphics.glCompileShader(shader);
         var compiled = graphics.glGetShaderiv(shader, graphics.gl.COMPILE_STATUS);
         
-        if (compiled === 0)
+        if (compiled === false)
         {
             var infoLogLength = graphics.glGetProgramiv(program, graphics.gl.INFO_LOG_LENGTH);
             if (infoLogLength > 1)
@@ -523,7 +546,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
             attributes[info.name] = location;
             attributeTypes[info.name] = info.type;
             attributeSizes[info.name] = info.size;
-            attributeNames[i] = info.name;
+            this.attributeNames[i] = info.name;
         }
     };
     
@@ -543,7 +566,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
             uniforms[info.name] = location;
             uniformTypes[info.name] = info.type;
             uniformSizes[info.name] = info.size;
-            uniformNames[i] = info.name;
+            this.uniformNames[i] = info.name;
         }
     };
     
@@ -589,12 +612,12 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.GetAttributes = function()
     {
-        return attributeNames;
+        return this.attributeNames;
     };
     
     this.GetUniforms = function()
     {
-        return uniformNames;
+        return this.uniformNames;
     };
     
     this.GetVertexShaderSource = function()
@@ -649,30 +672,6 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     };
     
     var exceptionInstance_;
-    
-    if (vertexShader === null || vertexShader === undefined)
-    {
-        exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
-        exceptionInstance_.SetErrorMessage$quorum_text("A ShaderProgram can't be initialized with an undefined vertex shader!");
-        throw exceptionInstance_;
-    }
-    if (fragmentShader === null || fragmentShader === undefined)
-    {
-        exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
-        exceptionInstance_.SetErrorMessage$quorum_text("A ShaderProgram can't be initialized with an undefined fragment shader!");
-        throw exceptionInstance_;
-    }
-    
-    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.POSITION_ATTRIBUTE = "a_position";
-    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.NORMAL_ATTRIBUTE = "a_normal";
-    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.COLOR_ATTRIBUTE = "a_color";
-    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.TEXCOORD_ATTRIBUTE = "a_texCoord";
-    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.TANGENT_ATTRIBUTE = "a_tangent";
-    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.BINORMAL_ATTRIBUTE = "a_binormal";
-    
-    plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.pedantic = true;
-    
-    //private final static ObjectMap<quorum.Libraries.Game.Application_, Array<ShaderProgram>> shaders = new ObjectMap<quorum.Libraries.Game.Application_, Array<ShaderProgram>>();
     
     this.isCompiled = false;
     

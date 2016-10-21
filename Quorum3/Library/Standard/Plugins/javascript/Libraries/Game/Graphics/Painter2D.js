@@ -76,6 +76,12 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
     
     this.CreateDefaultShader = function()
     {
+        if (!plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.initialized_plugins_quorum_Libraries_Game_Graphics_ShaderProgram_)
+        {
+            // Create a dummy ShaderProgram to force creation of its constants.
+            var dummyShader = new plugins_quorum_Libraries_Game_Graphics_ShaderProgram_();
+        }
+        
         var vertexShader = "attribute vec4 " + plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.POSITION_ATTRIBUTE + ";\n" //
 		+ "attribute vec4 " + plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.COLOR_ATTRIBUTE + ";\n" //
 		+ "attribute vec2 " + plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.TEXCOORD_ATTRIBUTE + "0;\n" //
