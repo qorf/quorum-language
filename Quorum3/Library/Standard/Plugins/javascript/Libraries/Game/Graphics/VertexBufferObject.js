@@ -50,7 +50,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
             floatArray = new Float32Array(count);
         }
         
-        for (i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
             floatArray[i] = bridgeArray[offset + i];
         
         this.BufferChanged();
@@ -67,13 +67,13 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
             
             var tempArray = new Float32Array(limit);
             
-            for (i = 0; i < targetOffset; i++)
+            for (var i = 0; i < targetOffset; i++)
                 tempArray[i] = floatArray[i];
             
             floatArray = tempArray;
         }
         
-        for (i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
             floatArray[targetOffset + i] = bridgeArray[sourceOffset + i];
         
         this.BufferChanged();
@@ -95,7 +95,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
         
         if (locations === undefined || locations === null)
         {
-            for (i = 0; i < numAttributes; i++)
+            for (var i = 0; i < numAttributes; i++)
             {
                 var attribute = this.attributes.GetAttribute(i);
                 var location = shader.GetAttributeLocation(attribute.alias);
@@ -111,7 +111,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
         }
         else
         {
-            for (i = 0; i < numAttributes; i++)
+            for (var i = 0; i < numAttributes; i++)
             {
                 var attribute = this.attributes.GetAttribute(i);
                 var location = locations[i];
@@ -136,14 +136,14 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
         
         if (locations === undefined || locations === null)
         {
-            for (i = 0; i < numAttributes; i++)
+            for (var i = 0; i < numAttributes; i++)
             {
                 shader.DisableVertexAttributeFromName(this.attributes.GetAttribute(i).alias);
             }
         }
         else
         {
-            for (i = 0; i < numAttributes; i++)
+            for (var i = 0; i < numAttributes; i++)
             {
                 var location = locations[i];
                 if (location >= 0)
@@ -188,7 +188,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
     this.PopulateVertexBuffer = function() 
     {
         isDirty = true;
-        for (i = 0; i < length; i++)
+        for (var i = 0; i < length; i++)
             floatArray[i] = bridgeArray[i];
     };
     
