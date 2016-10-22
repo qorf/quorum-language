@@ -582,7 +582,10 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.GetAttributeLocation = function(name)
     {
-        return attributes[name] || -1;
+        if (!(name in attributes))
+            return -1;
+        
+        return attributes[name];
     };
     
     this.GetAttributeSize = function(name)
@@ -602,7 +605,10 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.GetUniformLocation = function(name)
     {
-        return uniforms[name] || -1;
+        if (!(name in uniforms))
+            return -1;
+        
+        return uniforms[name];
     };
     
     this.GetUniformSize = function(name)

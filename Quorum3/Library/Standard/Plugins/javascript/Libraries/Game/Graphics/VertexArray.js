@@ -21,7 +21,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexArray_()
     this.Dispose = function() 
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
-        graphics.glBindBuffer(graphics.gl.ARRAY_BUFFER, 0);
+        graphics.glBindBuffer(graphics.gl.ARRAY_BUFFER, null);
         graphics.glDeleteBuffer(buffer);
         buffer = null;
         

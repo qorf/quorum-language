@@ -151,7 +151,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
             }
         }
         
-        graphics.glBindBuffer(graphics.ARRAY_BUFFER, 0);
+        graphics.glBindBuffer(graphics.ARRAY_BUFFER, null);
         isBound = false;
     };
     
@@ -164,7 +164,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
     this.Dispose = function() 
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
-        graphics.glBindBuffer(graphics.gl.GL_ARRAY_BUFFER, 0);
+        graphics.glBindBuffer(graphics.gl.GL_ARRAY_BUFFER, null);
         graphics.glDeleteBuffer(buffer);
         buffer = null;
         length = 0;
