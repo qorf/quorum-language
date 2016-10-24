@@ -9,16 +9,37 @@ package Libraries.Game.Collision
 
 /*
 DynamicBoundingVolumeTree2D is the tree structure for storing the bounding
-boxes for 2D objects that are able to collide. The tree is a complete binary
+boxes for collidable Item2D objects. The tree is a complete binary
 tree and stores the bounding boxes in a hierarchal structure with the parent
 node containing a bounding box that bounds the bounding boxes of both of its
 children.
+This class is used internally by BroadphaseCollision2D.
+
+Attribute: Example
+use Libraries.Game.Collision.DynamicBoundingVolumeTree2D
+use Libraries.Game.Collision.BoundingBox2D
+use Libraries.Game.Collision.Item2DNode
+
+    DynamicBoundingVolumeTree2D tree
+    BoundingBox2D boundingBox1
+    BoundingBox2D boundingBox2
+
+    Item2DNode item1
+    Item2DNode item2
+    
+    integer id1 = tree:CreateNode(boundingBox1, item1)
+    integer id2 = tree:CreateNode(boundingBox2, item2)
+    output "Tree has height " + tree:GetHeight()
+
+    tree:DestroyNode(id2)
+    output "After removing node 2 , tree has height " + tree:GetHeight()
 */
 class DynamicBoundingVolumeTree2D
-    // This number is used to make the bounding box of the item in the tree
-    // slightly bigger than the bounding box passed when creating the node.
-    // This allows the item to move around in its bounding box a little without
-    // needing to be reinserted into the tree.
+    /* This number is used to make the bounding box of the item in the tree
+     slightly bigger than the bounding box passed when creating the node.
+     This allows the item to move around in its bounding box a little without
+     needing to be reinserted into the tree.
+    */
     constant number boundingBoxExtension = 0.1
     constant number boundingBoxMultiplier = 2.0
 
@@ -52,8 +73,27 @@ class DynamicBoundingVolumeTree2D
 
     /*
     This action creates a new node for the Dynamic Bounding Volume Tree with the
-    given BoundingBox and given Item and inserts the new node as a leaf for the 
+    given BoundingBox and given Item and inserts the new node as a leaf in the 
     tree.
+    This action is used internally.
+
+    Attribute: Parameter boundingBox The BoundingBox2D of the item to be inserted into the tree.
+
+    Attribute: Parameter node The ItemNode2D of the item being inserted into the tree. 
+
+    Attribute: Returns The integer id of the new tree node
+    
+    Attribute: Example
+    use Libraries.Game.Collision.DynamicBoundingVolumeTree2D
+    use Libraries.Game.Collision.BoundingBox2D
+    use Libraries.Game.Collision.Item2DNode
+
+        DynamicBoundingVolumeTree2D tree
+        BoundingBox2D boundingBox
+
+        Item2DNode item
+
+        output "This item was added to node number " + tree:CreateNode(boundingBox, item)
     */
     action CreateNode(BoundingBox2D boundingBox, Item2DNode node) returns integer
         DynamicBoundingVolumeTreeNode2D newNode = AllocateNode()
@@ -76,8 +116,27 @@ class DynamicBoundingVolumeTree2D
     end
 
     /*
-    This action removes the node from the Dynamic Bounding Volume Tree with the
-    given node ID
+    This action removes from the Dynamic Bounding Volume Tree the node with the 
+    given node ID.
+    This action is used internally.
+    
+    Attribute: Parameter nodeID The integer id number for the node which is to be removed
+
+    Attribute: Example
+
+    use Libraries.Game.Collision.DynamicBoundingVolumeTree2D
+    use Libraries.Game.Collision.BoundingBox2D
+    use Libraries.Game.Collision.Item2DNode
+
+        DynamicBoundingVolumeTree2D tree
+        BoundingBox2D boundingBox
+
+        Item2DNode item
+        integer id = tree:CreateNode(boundingBox, item)
+        output "This item was added to node number " + id
+
+        tree:DestroyNode(id)
+        output "Node number " + id + " was removed from the tree."   
     */
     action DestroyNode(integer nodeID)
         if 0 <= nodeID and nodeID < nodesCapacity
@@ -86,7 +145,11 @@ class DynamicBoundingVolumeTree2D
     end
 
     /*
-    This action removes the given node from the tree.
+    This action removes the given node from the tree. Only leaf nodes will be 
+    removed.
+    This action is used internally.
+
+    Attribute: Parameter node The node that is to be removed
     */
     action DestroyNode(DynamicBoundingVolumeTreeNode2D node)        
         // ensure node is a leaf - we only can remove leaf nodes because
@@ -100,13 +163,24 @@ class DynamicBoundingVolumeTree2D
     end
 
     /*
-    This action moves the object contained in the node with the given node ID by
+    This action moves the Item2DNode contained in the node with the given node ID by
     the given displacement vector. If the node moves outside of its existing
     bounding box, then the object is removed from the tree, a new bounding box
     is calculated, and it is reinserted into the tree. Otherwise, the node
     is left where it is in the tree.
+    This action is used internally.
+
+    Attribute: Parameter nodeID The id of the node that is to be moved
     
-    Attribute: Returns whether the item is reinserted into the tree
+    Attribute: Parameter boundingBox The boundingBox of the node to be moved
+    
+    Attribute: Parameter displacement The displacement of the node
+    
+    Attribute: Returns whether the item was removed and reinserted into the tree
+
+    Attribute: Example
+
+
     */
     action MoveNode(integer nodeID, BoundingBox2D boundingBox, Vector2 displacement) returns boolean
         if 0 <= nodeID and nodeID < nodesCapacity
