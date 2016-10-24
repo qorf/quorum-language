@@ -10,6 +10,16 @@ use Libraries.Containers.List
 use Libraries.Language.Compile.Translate.ClassOpcode
 use Libraries.System.DateTime
 use Libraries.Web.Page.WebPage
+use Libraries.Web.Page.MetaData
+use Libraries.Web.Page.MainContent
+use Libraries.Web.Page.Header
+use Libraries.Web.Page.WebTable
+use Libraries.Web.Page.TableRow
+use Libraries.Web.Page.TableHeaderCell
+use Libraries.Web.Page.TableData
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.Link
+use Libraries.Web.Page.LineBreak
 
 class Compiler
     public constant number VERSION = 4.0
@@ -1293,93 +1303,136 @@ class Compiler
                 end
                 convertedJavaScript = plugins + result + main
             elseif currentOutputType = DOCUMENT
-                text result = ""
-                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
-                repeat while codes:HasNext()
-                    ClassOpcode code = codes:Next()
-                    Class clazz = code:GetClass()
-
-                    WebPage page = code:WriteToWebPage()
-                    text web = page:Generate()//code:WriteToWeb()
-                    text key = clazz:GetStaticKey()
-                    text parentKey = ""
-                    Array<text> split = key:Split("\.")
-                    i = 0
-                    repeat split:GetSize() - 1 times
-                        parentKey = parentKey + split:Get(i) + "/"
-                        i = i + 1
-                    end
-                    key = "/" + key:Replace(".", "/") + ".html"
-
-                    
-                    buildFolder:CreateDirectories()
-                    File mom
-                    mom:SetWorkingDirectory(buildFolder:GetAbsolutePath())
-                    mom:SetPath(DOCUMENTATION_FOLDER + "/" + parentKey)
-                    mom:CreateDirectories()
-
-                    File documentationFile
-                    documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
-                    documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + key)
-
-                    
-                    documentationFile:Write(web)
-                    a = 5
-                end
-                
-                
-                text index = "<?php $classPageTitle = 'The Quorum Standard Library'; include('static/templates/pageheader.template.php'); ?>"
-                text dq = index:GetDoubleQuote()
-                text NL = index:GetCarriageReturn()
-
-                index = index + NL + " <div class=" + dq + "hero-unit" + dq + ">" + NL
-                index = index + "<div class=" + dq + "hero-unit-container" + dq + ">"
-		index = index + "<h1>The Quorum Standard Library</h1>"
-		index = index + "<p>Quorum includes library classes like: 1) computer games, 2) text-to-speech and audio playback, 3) Lego robots, and 4) support classes (e.g., arrays, lists, hash tables, math, console, system). The standard library is expanded in each release.</p>"
-		index = index + "</div></div>"
-                index = index + "<div class=" + dq + "content index-content" + dq + ">"
-
-                Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
-                repeat while packages:HasNext()
-                    text key = packages:Next()
-                    if not key:IsEmpty() //ignore the default package
-                        index = index + NL + "<table class=" + dq + "table index-package" + dq + ">"
-                        index = index + "<tr><th><h3 class=" + dq + "index_package_title" + dq + ">" + key + "</h3></th></tr>" + NL
-                        Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
-                        integer i2 = 0
-                        repeat classes:GetSize() times
-                            Class clazz = classes:Get(i2)
-                            index = index + "<tr><td class=" + dq + "primary" + dq + ">" + NL
-                            index = index + GetClassLinkFromIndex(clazz)//"<a href=" + dq + "" + dq + ">" + clazz:GetName() + "</a>" 
-                            
-                            Documentation doc = clazz:GetDocumentation()
-                            if doc not= undefined
-                                constant integer DOC_SIZE = 120
-                                text description = doc:GetDescription()
-                                if description = undefined
-                                    description = ""
-                                end
-                                if description:GetSize() > DOC_SIZE
-                                    description = description:GetSubtext(0, DOC_SIZE) + " ..."
-                                end
-
-                                index = index + ": " + description
-                            end
-
-                            index = index + "</td></tr>"
-                            i2 = i2 + 1
-                        end
-                        index = index + "</table>"
-                    end
-                end
-                index = index + NL + "</div" + NL + "<?php include('static/templates/pagefooter.template.php'); ?>"
-
-                File documentationFile
-                documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
-                documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + "libraries.php")
-                documentationFile:Write(index)
+                CreateDocumentation(classOpcodes)
             end
         end
+    end
+
+    private action CreateDocumentation(Array<ClassOpcode> classOpcodes)
+        text result = ""
+        Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+        repeat while codes:HasNext()
+            ClassOpcode code = codes:Next()
+            Class clazz = code:GetClass()
+
+            WebPage page = code:WriteToWebPage()
+            text web = page:Generate()//code:WriteToWeb()
+            text key = clazz:GetStaticKey()
+            text parentKey = ""
+            Array<text> split = key:Split("\.")
+            i = 0
+            repeat split:GetSize() - 1 times
+                parentKey = parentKey + split:Get(i) + "/"
+                i = i + 1
+            end
+            key = "/" + key:Replace(".", "/") + ".html"
+
+
+            buildFolder:CreateDirectories()
+            File mom
+            mom:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+            mom:SetPath(DOCUMENTATION_FOLDER + "/" + parentKey)
+            mom:CreateDirectories()
+
+            File documentationFile
+            documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+            documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + key)
+            documentationFile:Write(web)
+        end
+
+        WebPage page
+        //add language headers
+        page:AddAttribute("xml:lang", "en")
+        page:SetLanguage("en")
+
+        //add the meta-data character set
+        MetaData charset
+        charset:SetCharacterSet("UTF-8")
+        page:AddMetaData(charset)
+
+        //auto-generate some sensible keywords
+        MetaData keywords
+        text keywordText = "programming for beginners, computer programming,
+        Quorum programming language, Standard Library"
+        keywords:AddAttribute("keywords", keywordText)
+        page:AddMetaData(keywords)
+
+        page:AddScript("/script/jquery-1.8.3.min.js")
+        page:AddScript("/script/script.js")
+        
+        //add style sheet tags
+        page:AddStylesheet("/style/style.css")
+        page:AddStylesheet("/style/google.css")
+        page:AddIcon("/media/favicon.ico")
+
+        page:SetWebPageTitle("Standard Library Index - Quorum Programming Language")
+        MainContent mainRegion
+        mainRegion:AddAttribute("role","main")
+
+        Header headDiv
+        headDiv:SetClassAttribute("pageHeader outermostContainer")
+        headDiv:AddHeading("Quorum Standard Library", 1)
+        page:Add(headDiv)
+
+        Division bodyDiv
+        bodyDiv:SetClassAttribute("bodyContainer")
+        bodyDiv:AddHeading("Quorum's Built-in Packages and Classes", 2)
+        bodyDiv:AddParagraph("Quorum includes library classes like: 1) computer 
+            games, 2) text-to-speech and audio playback, 3) Lego robots, and 
+            4) support classes (e.g., arrays, lists, hash tables, math, console, 
+            system). The standard library is expanded in each release.")
+
+        Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
+        repeat while packages:HasNext()
+            text key = packages:Next()
+            if not key:IsEmpty() //ignore the default package
+                WebTable table
+                table:SetBorder(true)
+
+                TableRow headerRow
+                TableHeaderCell packageNameHeaderCell
+                packageNameHeaderCell:AddText(key)
+                headerRow:Add(packageNameHeaderCell)
+                table:Add(headerRow)
+
+                Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
+                integer i2 = 0
+                repeat classes:GetSize() times
+                    Class clazz = classes:Get(i2)
+                    TableRow row
+
+                    TableData data
+                    data:Add(GetWebLinkForClassFromIndex(clazz))
+                    row:Add(data)
+
+                    Documentation doc = clazz:GetDocumentation()
+                    if doc not= undefined
+                        constant integer DOC_SIZE = 120
+                        text description = doc:GetDescription()
+                        if description = undefined
+                            description = ""
+                        end
+                        if description:GetSize() > DOC_SIZE
+                            description = description:GetSubtext(0, DOC_SIZE) + " ..."
+                        end
+                        data:AddText(": " + description)
+                    end
+                    table:Add(row)
+                    i2 = i2 + 1
+                end
+                bodyDiv:Add(table)
+                LineBreak break
+                bodyDiv:Add(break)
+            end
+        end
+
+        mainRegion:Add(bodyDiv)
+        page:Add(mainRegion)
+
+        File documentationFile
+        documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+        documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + "libraries.html")
+        documentationFile:Write(page:Generate())
     end
 
     private action GetClassLinkFromIndex(Class from) returns text
@@ -1399,6 +1452,27 @@ class Compiler
         end
         text dq = link:GetDoubleQuote()
         link = "<a href = " + dq + link + dq + ">" + from:GetName() + "</a>"
+        return link
+    end
+
+    private action GetWebLinkForClassFromIndex(Class from) returns Link
+        Link link
+        text key = from:GetStaticKey()
+        text linkText = ""
+        Array<text> fromSplit = key:Split("\.")
+        if fromSplit not= undefined
+            i = 0
+            repeat fromSplit:GetSize() times
+                if i < fromSplit:GetSize() - 1
+                    linkText = linkText + fromSplit:Get(i) + "/"
+                else
+                    linkText = linkText + fromSplit:Get(i) + ".html"
+                end
+                i = i + 1
+            end
+        end
+        link:SetAddress(linkText)
+        link:AddText(from:GetName())
         return link
     end
 
