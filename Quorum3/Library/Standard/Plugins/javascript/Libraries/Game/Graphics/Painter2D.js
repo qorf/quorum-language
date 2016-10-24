@@ -57,7 +57,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
             throw exceptionInstance_;
         }
 
-        for (i = 0, v = 0; i < 6000; i += 6, v += 4)
+        for (var i = 0, v = 0; i < 6000; i += 6, v += 4)
         {
             fullIndicesArray[i] = v;
             fullIndicesArray[i + 1] = v + 1;
@@ -76,6 +76,12 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
     
     this.CreateDefaultShader = function()
     {
+        if (!plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.initialized_plugins_quorum_Libraries_Game_Graphics_ShaderProgram_)
+        {
+            // Create a dummy ShaderProgram to force creation of its constants.
+            var dummyShader = new plugins_quorum_Libraries_Game_Graphics_ShaderProgram_();
+        }
+        
         var vertexShader = "attribute vec4 " + plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.POSITION_ATTRIBUTE + ";\n" //
 		+ "attribute vec4 " + plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.COLOR_ATTRIBUTE + ";\n" //
 		+ "attribute vec2 " + plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.TEXCOORD_ATTRIBUTE + "0;\n" //
@@ -189,7 +195,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
     
     this.End = function() 
     {
-        if (this.me_.IsDrawing())
+        if (!(this.me_.IsDrawing()))
         {
             var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
             exceptionInstance_.SetErrorMessage$quorum_text("This painter isn't drawing yet! Call Begin() before calling End().");
@@ -248,6 +254,22 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
                 this.Flush();
             }
         }
+        
+        drawable.PrepareVertices();
+        
+        if (!(drawable.UseCustomColor()))
+        {
+            for (var i = 2; i < drawable.Get_Libraries_Game_Graphics_Drawable__DRAWABLE_SIZE_(); i = i + drawable.Get_Libraries_Game_Graphics_Drawable__VERTEX_SIZE_())
+            {
+                drawable.SetVertex$quorum_integer$quorum_number(i, colorValue);
+            }
+        }
+        
+        for (var i = 0; i < drawable.Get_Libraries_Game_Graphics_Drawable__DRAWABLE_SIZE_(); i++)
+        {
+            this.me_.SetVertex$quorum_integer$quorum_number(index, drawable.GetVertex$quorum_integer(i));
+            index++;
+        }
     };
     
     this.Flush = function() 
@@ -259,7 +281,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         
         this.me_.lastTexture.Bind();
         
-        mesh.SetVertices(this.me_.GetVertices(), 0, index);
+        mesh.SetVertices$quorum_Libraries_Containers_Array$quorum_integer$quorum_integer(this.me_.GetVertices(), 0, index);
         mesh.GetIndexData().plugin_.SetPosition$quorum_integer(0);
         mesh.GetIndexData().plugin_.SetLength(count);
         
@@ -351,15 +373,15 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         if (this.me_.IsDrawing())
             this.Flush();
         
-        projectionMatrix.Set(projection);
+        projectionMatrix.Set$quorum_Libraries_Compute_Matrix4(projection);
         if (this.me_.IsDrawing())
             this.SetupMatrices();
     };
     
     this.SetupMatrices = function()
     {
-        combinedMatrix.Set(projectionMatrix);
-        combinedMatrix.Multiply(transformMatrix);
+        combinedMatrix.Set$quorum_Libraries_Compute_Matrix4(projectionMatrix);
+        combinedMatrix.Multiply$quorum_Libraries_Compute_Matrix4(transformMatrix);
         
         if (useFontShader)
         {

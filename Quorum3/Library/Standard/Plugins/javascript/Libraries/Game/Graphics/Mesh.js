@@ -107,7 +107,7 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
         switch (posAttrib.componentCount)
         {
             case 1:
-                for (i = 0; i < numVertices; i++)
+                for (var i = 0; i < numVertices; i++)
                 {
                     box.Extend(verts[index], 0, 0);
                     index = index + vertexSize;
@@ -115,7 +115,7 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
                 break;
                 
             case 2:
-                for (i = 0; i < numVertices; i++)
+                for (var i = 0; i < numVertices; i++)
                 {
                     box.Extend(verts[index], verts[index + 1], 0);
                     index = index + vertexSize;
@@ -123,7 +123,7 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
                 break;
                 
             case 3:
-                for (i = 0; i < numVertices; i++)
+                for (var i = 0; i < numVertices; i++)
                 {
                     box.Extend(verts[index], verts[index + 1], verts[index + 2]);
                     index = index + vertexSize;
@@ -156,7 +156,7 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
         switch (posAttrib.componentCount)
         {
             case 1:
-                for (i = offset; i < end; i++)
+                for (var i = offset; i < end; i++)
                 {
                     var idx = indices[i] * vertexSize + posOffset;
                     this.calcVector.Set(vertices[idx], 0, 0);
@@ -168,7 +168,7 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
                 break;
                 
             case 2:
-                for (i = offset; i < end; i++)
+                for (var i = offset; i < end; i++)
                 {
                     var idx = indices[i] * vertexSize + posOffset;
                     this.calcVector.Set(vertices[idx], vertices[idx + 1], 0);
@@ -180,7 +180,7 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
                 break;
                 
             case 3:
-                for (i = offset; i < end; i++)
+                for (var i = offset; i < end; i++)
                 {
                     var idx = indices[i] * vertexSize + posOffset;
                     this.calcVector.Set(vertices[idx], vertices[idx + 1], vertices[idx + 2]);

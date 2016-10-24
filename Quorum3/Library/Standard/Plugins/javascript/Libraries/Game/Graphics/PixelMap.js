@@ -262,7 +262,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                 colorCode = clearColor.GetColorCode();
                 alpha = colorCode & 0x000000ff;
                 
-                for (i = 0; i < width * height; i++)
+                for (var i = 0; i < width * height; i++)
                 {
                     pixels[i] = alpha;
                 }
@@ -279,7 +279,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                 green = (colorCode & 0x00ff0000) >>> 16;
                 blue = (colorCode & 0x0000ff00) >>> 8;
                 
-                for (i = 0; i < width * height; i++)
+                for (var i = 0; i < width * height; i++)
                 {
                     var index = i * 3;
                     pixels[index] = red;
@@ -295,7 +295,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                 blue = (colorCode & 0x0000ff00) >>> 8;
                 alpha = colorCode & 0x000000ff;
                 
-                for (i = 0; i < width * height; i++)
+                for (var i = 0; i < width * height; i++)
                 {
                     var index = i * 4;
                     pixels[index] = red;
@@ -309,7 +309,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                     | ((clearColor.GetGreen() * 63) << 5) 
                     | (clearColor.GetBlue() * 31);
 
-                for (i = 0; i < width * height; i++)
+                for (var i = 0; i < width * height; i++)
                 {
                     pixels[i] = colorCode;
                 }
@@ -321,7 +321,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                     | ((clearColor.GetBlue() * 15) << 4)
                     | (clearColor.GetAlpha() * 15);
             
-                for (i = 0; i < width * height; i++)
+                for (var i = 0; i < width * height; i++)
                 {
                     pixels[i] = colorCode;
                 }
@@ -343,6 +343,8 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                     continue;
                 if (sourceY >= sourceHeight || destinationY >= destinationHeight)
                     break;
+                
+                var sX, dX;
                 
                 for (sX = sourceX, dX = destinationX; sX < sourceX + width; sX++, dX++)
                 {
@@ -374,7 +376,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                 var sX = sourceX;
                 var sY = sourceY;
                 
-                for (i = 0; i < destinationHeight; i++)
+                for (var i = 0; i < destinationHeight; i++)
                 {
                     sY = ((i * yRatio) >> 16) + sourceY;
                     dY = i + destinationY;
@@ -383,7 +385,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                     if (sY >= sourceHeight || dY >= destinationHeight)
                         break;
                     
-                    for (j = 0; j < destinationWidth; j++)
+                    for (var j = 0; j < destinationWidth; j++)
                     {
                         sX = ((j * xRatio) >> 16) + sourceX;
                         dX = j + destinationX;
@@ -415,7 +417,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                 var sX = sourceX;
                 var sY = sourceY;
                 
-                for (i = 0; i < destinationHeight; i++)
+                for (var i = 0; i < destinationHeight; i++)
                 {
                     sY = ((i * yRatio) | 0) + sourceY;
                     dY = i + destinationY;
@@ -426,7 +428,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                     if (sY >= sourceHeight || dY >= destinationHeight)
                         break;
                     
-                    for (j = 0; j < destinationWidth; j++)
+                    for (var j = 0; j < destinationWidth; j++)
                     {
                         sX = ((j * xRatio) | 0) + sourceX;
                         dX = j + destinationX;
@@ -507,7 +509,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
             case plugins_quorum_Libraries_Game_Graphics_PixelMap_.FORMAT_ALPHA:
                 alpha = color & 0x000000ff;
                 
-                for (i = 0; i < width * height; i++)
+                for (var i = 0; i < width * height; i++)
                 {
                     pixels[i] = alpha;
                 }
@@ -522,7 +524,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                 green = (color & 0x00ff0000) >>> 16;
                 blue = (color & 0x0000ff00) >>> 8;
                 
-                for (i = 0; i < width * height; i++)
+                for (var i = 0; i < width * height; i++)
                 {
                     var index = i * 3;
                     pixels[index] = red;
@@ -536,7 +538,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                 blue = (color & 0x0000ff00) >>> 8;
                 alpha = color & 0x000000ff;
                 
-                for (i = 0; i < width * height; i++)
+                for (var i = 0; i < width * height; i++)
                 {
                     var index = i * 4;
                     pixels[index] = red;
@@ -552,7 +554,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                 
                 colorCode = red | green | blue;
 
-                for (i = 0; i < width * height; i++)
+                for (var i = 0; i < width * height; i++)
                 {
                     pixels[i] = colorCode;
                 }
@@ -566,7 +568,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
                 
                 colorCode = red | green | blue | alpha;
             
-                for (i = 0; i < width * height; i++)
+                for (var i = 0; i < width * height; i++)
                 {
                     pixels[i] = colorCode;
                 }
@@ -692,7 +694,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
             y2 = height - 1;
         
         y2++;
-        for (i = y; i < y2; i++)
+        for (var i = y; i < y2; i++)
         {
             this.HorizontalLine(x, x2, i, color);
         }
@@ -981,7 +983,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         
         x2 = x2 + 1;
         
-        for (i = x1; i < x2; i++)
+        for (var i = x1; i < x2; i++)
         {
             if (this.GetBlending().GetValue() === plugins_quorum_Libraries_Game_Graphics_PixelMap_.BLEND_SOURCE_OVER)
             {
@@ -1020,7 +1022,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         
         y2 = y2 + 1;
         
-        for (i = y1; i < y2; i++)
+        for (var i = y1; i < y2; i++)
         {
             if (this.GetBlending().GetValue() === plugins_quorum_Libraries_Game_Graphics_PixelMap_.BLEND_SOURCE_OVER)
             {

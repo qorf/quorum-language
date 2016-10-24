@@ -2124,7 +2124,7 @@ class Item3D is Item
     end
 
     action GetBoundingBox(integer childIndex) returns BoundingBox
-        return nodes:Get(childIndex):boundingBox
+        return nodes:Get(childIndex):GetBoundingBox()
     end
 
     action CreateNodes(BroadphaseCollision3D broadphase, PhysicsPosition3D transform)
@@ -2137,10 +2137,10 @@ class Item3D is Item
             integer i = 0
             repeat while i < nodeCount
                 Item3DNode node
-                shape:ComputeBoundingBox(node:boundingBox, transform)
-                node:nodeID = broadphase:CreateNode(node:boundingBox, node)
-                node:item = me
-                node:childIndex = i
+                shape:ComputeBoundingBox(node:GetBoundingBox(), transform)
+                node:SetNodeID(broadphase:CreateNode(node:GetBoundingBox(), node))
+                node:SetItem(me)
+                node:SetChildIndex(i)
                 nodes:Add(node)
                 i = i + 1
             end
@@ -2152,8 +2152,8 @@ class Item3D is Item
         integer i = 0
         repeat while i < nodeCount
             Item3DNode node = nodes:Get(i)
-            broadphase:DestroyNode(node:nodeID)
-            node:nodeID = -1
+            broadphase:DestroyNode(node:GetNodeID())
+            node:SetNodeID(-1)
             nodes:Remove(node)
             i = i + 1
         end
@@ -2177,8 +2177,8 @@ class Item3D is Item
             shape:ComputeBoundingBox(boundingBox1, transform1)
             shape:ComputeBoundingBox(boundingBox2, transform2)
 
-            Vector3 minimum = node:boundingBox:GetMinimum()
-            Vector3 maximum = node:boundingBox:GetMaximum()
+            Vector3 minimum = node:GetBoundingBox():GetMinimum()
+            Vector3 maximum = node:GetBoundingBox():GetMaximum()
 
             if boundingBox1:GetMinimum():GetX() < boundingBox2:GetMinimum():GetX()
                 minimum:SetX(boundingBox1:GetMinimum():GetX())
@@ -2221,7 +2221,7 @@ class Item3D is Item
             displacement:SetY(transform2:GetOrigin():GetY() - transform1:GetOrigin():GetY())
             displacement:SetZ(transform2:GetOrigin():GetZ() - transform1:GetOrigin():GetZ())
 
-            broadphase:MoveNode(node:nodeID, node:boundingBox, displacement)
+            broadphase:MoveNode(node:GetNodeID(), node:GetBoundingBox(), displacement)
 
             i = i + 1
         end

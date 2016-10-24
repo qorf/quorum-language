@@ -3,11 +3,27 @@ package Libraries.Game.Collision
 use Libraries.Compute.Vector3
 
 class ConvexConvexVertex 
-    public Vector3 w
-    public Vector3 r
+    Vector3 vertex
+    Vector3 ray
 
-    action Set(ConvexConvexVertex m)
-        w:Set(m:w)
-        r:Set(m:r)
+    action Set(ConvexConvexVertex convexConvexVertex)
+        vertex:Set(convexConvexVertex:vertex)
+        ray:Set(convexConvexVertex:ray)
+    end
+
+    action GetVertex returns Vector3
+        return vertex
+    end
+
+    action SetVertex(Vector3 vertex)
+        me:vertex = vertex
+    end
+
+    action GetRay returns Vector3
+        return ray
+    end
+
+    action SetRay(Vector3 ray)
+        me:ray = ray
     end
 end

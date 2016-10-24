@@ -3,8 +3,40 @@ use Libraries.Interface.Item2D
 package Libraries.Game.Collision
 
 class Item2DNode 
-    public BoundingBox2D boundingBox
-    public Item2D item
-    public integer childIndex = -1
-    public integer nodeID = -1
+    BoundingBox2D boundingBox
+    Item2D item
+    integer childIndex = -1
+    integer nodeID = -1
+
+    action GetBoundingBox returns BoundingBox2D
+        return boundingBox
+    end
+
+    action SetBoundingBox(BoundingBox2D boundingBox)
+        me:boundingBox = boundingBox
+    end
+
+    action GetItem returns Item2D
+        return item
+    end
+
+    action SetItem(Item2D item)
+        me:item = item
+    end
+
+    action GetChildIndex returns integer
+        return childIndex
+    end
+
+    action SetChildIndex(integer index)
+        childIndex = index
+    end
+
+    action GetNodeID returns integer
+        return nodeID
+    end
+
+    action SetNodeID(integer id)
+        nodeID = id
+    end
 end

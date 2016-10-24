@@ -50,7 +50,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
             this.SetLength(count);
         }
         
-        for (i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
             integerArray[i] = array[offset + i];
         
         position = 0;
@@ -72,7 +72,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
         else
             newArray = new Uint16Array(length);
         
-        for (i = 0; i < length - position; i++)
+        for (var i = 0; i < length - position; i++)
             newArray[i] = integerArray[position + i];
         
         return newArray;
@@ -102,7 +102,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
     this.Unbind = function() 
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
-        graphics.glBindBuffer(graphics.gl.ELEMENT_ARRAY_BUFFER, 0);
+        graphics.glBindBuffer(graphics.gl.ELEMENT_ARRAY_BUFFER, null);
         isBound = false;
     };
     
@@ -123,7 +123,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
     this.Dispose = function() 
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
-        graphics.glBindBuffer(graphics.gl.ELEMENT_ARRAY_BUFFER, 0);
+        graphics.glBindBuffer(graphics.gl.ELEMENT_ARRAY_BUFFER, null);
         graphics.glDeleteBuffer(buffer);
         buffer = null;
         
@@ -156,7 +156,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
             this.SetLength(position + bridgeArray.length);
         }
         
-        for (i = 0; i < bridgeArray.length; i++)
+        for (var i = 0; i < bridgeArray.length; i++)
             integerArray[position + i] = bridgeArray[i];
         
         position = position + bridgeArray.length;

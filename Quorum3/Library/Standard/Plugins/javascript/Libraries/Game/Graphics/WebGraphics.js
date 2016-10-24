@@ -149,7 +149,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     // Expected parameter: integer
     this.glCreateShader = function(type)
     {
-        gl.createShader(type);
+        return gl.createShader(type);
     };
     
     // Expected parameters: integer, string

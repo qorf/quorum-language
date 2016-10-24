@@ -24,18 +24,17 @@ class CollisionEvent2D
     boolean touchingFlag = false
     boolean enabledFlag = false
 
-//    // physics fields for later
-//    number friction = 0
-//    number restitution = 1
-//    number tangentSpeed = 0
+    number friction = 0
+    number restitution = 1
+    number tangentSpeed = 0
 
     Math math
 
     private CollisionEvent2D next = undefined
     private CollisionEvent2D previous = undefined
 
-    public CollisionEdge2D nodeA
-    public CollisionEdge2D nodeB
+    CollisionEdge2D nodeA
+    CollisionEdge2D nodeB
 
     LocalCollisionPoints2D collisionPoints
 
@@ -68,8 +67,8 @@ class CollisionEvent2D
         nodeB:next = undefined
         nodeA:other = undefined
 
-//        friction = CalculateFriction(itemA:GetFriction(), itemB:GetFriction())
-//        restitution = CalculateRestitution(itemA:GetRestitution(), itemB:GetRestitution())
+        //friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
+        //restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
         
     end
 
@@ -117,37 +116,37 @@ class CollisionEvent2D
         return indexB
     end
 
-//    action SetFriction(number friction)
-//        me:friction = friction
-//    end
-//
-//    action GetFriction returns number
-//        return friction
-//    end
-//
-//    action ResetFriction
-////        friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
-//    end
-//
-//    action SetRestitution(number restitution)
-//        me:restitution = restitution
-//    end
-//
-//    action GetRestitution returns number
-//        return restitution
-//    end
-//
-//    action ResetRestitution
-////        restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
-//    end
-//
-//    action SetTangentSpeed(number speed)
-//        me:tangentSpeed = speed
-//    end
-//
-//    action GetTangentSpeed returns number
-//        return tangentSpeed
-//    end
+    action SetFriction(number friction)
+        me:friction = friction
+    end
+
+    action GetFriction returns number
+        return friction
+    end
+
+    action ResetFriction
+        //friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
+    end
+
+    action SetRestitution(number restitution)
+        me:restitution = restitution
+    end
+
+    action GetRestitution returns number
+        return restitution
+    end
+
+    action ResetRestitution
+        //restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
+    end
+
+    action SetTangentSpeed(number speed)
+        me:tangentSpeed = speed
+    end
+
+    action GetTangentSpeed returns number
+        return tangentSpeed
+    end
 
     LocalCollisionPoints2D oldCollisionPoints
 
@@ -163,7 +162,7 @@ class CollisionEvent2D
         PhysicsPosition2D transformB = itemB:GetTransform()
 
         NarrowphaseEvaluation(collisionPoints, transformA, transformB)
-        touching = collisionPoints:pointCount > 0
+        touching = collisionPoints:GetPointCount() > 0
 
         touchingFlag = touching
 
@@ -190,17 +189,17 @@ class CollisionEvent2D
         return nodeB
     end
 
-//    action CalculateTotalFriction(number friction1, number friction2) returns number
-//        return math:SquareRoot(friction1 * friction2)
-//    end
-//
-//    action CalculateTotalRestitution(number restitution1, number restitution2) returns number
-//        if restitution1 > restitution2
-//            return restitution1
-//        else
-//            return restitution2
-//        end
-//    end
+    action CalculateTotalFriction(number friction1, number friction2) returns number
+        return math:SquareRoot(friction1 * friction2)
+    end
+
+    action CalculateTotalRestitution(number restitution1, number restitution2) returns number
+        if restitution1 > restitution2
+            return restitution1
+        else
+            return restitution2
+        end
+    end
 
     private action NarrowphaseEvaluation(LocalCollisionPoints2D collisionPoints, PhysicsPosition2D transformA, PhysicsPosition2D transformB)
         CollisionShape2D shapeA = itemA:GetShape()
@@ -333,8 +332,8 @@ class CollisionEvent2D
             return now
         end
 
-        collisionPoints:localNormal:Set(localNormal)
-        collisionPoints:localPoint:Set(planePoint)
+        collisionPoints:GetLocalNormal():Set(localNormal)
+        collisionPoints:GetLocalPoint():Set(planePoint)
 
         integer pointCount = 0
         integer i = 0
@@ -342,8 +341,8 @@ class CollisionEvent2D
             number separation = normalx * clipPoints2:Get(i):GetX() + normaly * clipPoints2:Get(i):GetY() - frontOffset
 
             if separation <= totalRadius
-                CollisionPoint2D cp = collisionPoints:points:Get(pointCount)
-                Vector2 out = cp:localPoint
+                CollisionPoint2D cp = collisionPoints:GetPoints():Get(pointCount)
+                Vector2 out = cp:GetLocalPoint()
                 number px = clipPoints2:Get(i):GetX() - xf2:GetPosition():GetX()
                 number py = clipPoints2:Get(i):GetY() - xf2:GetPosition():GetY()
                 out:SetX((xf2:GetCosine() * px + xf2:GetSine() * py))
@@ -378,12 +377,12 @@ class CollisionEvent2D
             return now
         end
 
-        collisionPoints:type = collisionPoints:CIRCLES
-        collisionPoints:localPoint:Set(circle1p)
-        collisionPoints:localNormal:SetZero()
-        collisionPoints:pointCount = 1
+        collisionPoints:SetType(collisionPoints:CIRCLES)
+        collisionPoints:GetLocalPoint():Set(circle1p)
+        collisionPoints:GetLocalNormal():SetZero()
+        collisionPoints:SetPointCount(1)
         
-        collisionPoints:points:Get(0):localPoint:Set(circle2p)
+        collisionPoints:GetPoints():Get(0):GetLocalPoint():Set(circle2p)
     end
 
     private action CollidePolygonAndCircle(LocalCollisionPoints2D collisionPoints, Polygon polygon, PhysicsPosition2D transformA, Circle circle, PhysicsPosition2D transformB)
@@ -436,13 +435,13 @@ class CollisionEvent2D
             collisionPoints:type = collisionPoints:FACE_A
             
             Vector2 normal = normals:Get(normalIndex)
-            collisionPoints:localNormal:SetX(normal:GetX())
-            collisionPoints:localNormal:SetY(normal:GetY())
-            collisionPoints:localPoint:SetX((v1:GetX() + v2:GetX()) * 0.5)
-            collisionPoints:localPoint:SetY((v1:GetY() + v2:GetY()) * 0.5)
-            CollisionPoint2D mpoint = collisionPoints:points:Get(0)
-            mpoint:localPoint:SetX(circle1p:GetX())
-            mpoint:localPoint:SetY(circle1p:GetY())
+            collisionPoints:GetLocalNormal():SetX(normal:GetX())
+            collisionPoints:GetLocalNormal():SetY(normal:GetY())
+            collisionPoints:GetLocalPoint():SetX((v1:GetX() + v2:GetX()) * 0.5)
+            collisionPoints:GetLocalPoint():SetY((v1:GetY() + v2:GetY()) * 0.5)
+            CollisionPoint2D mpoint = collisionPoints:GetPoints():Get(0)
+            mpoint:GetLocalPoint():SetX(circle1p:GetX())
+            mpoint:GetLocalPoint():SetY(circle1p:GetY())
 
             return now
         end
@@ -467,13 +466,13 @@ class CollisionEvent2D
                 return now
             end
 
-            collisionPoints:pointCount = 1
-            collisionPoints:type = collisionPoints:FACE_A
-            collisionPoints:localNormal:SetX(cLocalx - v1:GetX())
-            collisionPoints:localNormal:SetY(cLocaly - v1:GetY())
-            collisionPoints:localNormal:Normalize()
-            collisionPoints:localPoint:Set(v1)
-            collisionPoints:points:Get(0):localPoint:Set(circle1p)
+            collisionPoints:SetPointCount(1)
+            collisionPoints:SetType(collisionPoints:FACE_A)
+            collisionPoints:GetLocalNormal():SetX(cLocalx - v1:GetX())
+            collisionPoints:GetLocalNormal():SetY(cLocaly - v1:GetY())
+            collisionPoints:GetLocalNormal():Normalize()
+            collisionPoints:GetLocalPoint():Set(v1)
+            collisionPoints:GetPoints():Get(0):GetLocalPoint():Set(circle1p)
         elseif u2 <= 0
             number dx = cLocalx - v2:GetX()
             number dy = cLocaly - v2:GetY()
@@ -482,13 +481,13 @@ class CollisionEvent2D
                 return now
             end
 
-            collisionPoints:pointCount = 1
-            collisionPoints:type = collisionPoints:FACE_A
-            collisionPoints:localNormal:SetX(cLocalx - v2:GetX())
-            collisionPoints:localNormal:SetY(cLocaly - v2:GetY())
-            collisionPoints:localNormal:Normalize()
-            collisionPoints:localPoint:Set(v2)
-            collisionPoints:points:Get(0):localPoint:Set(circle1p)
+            collisionPoints:SetPointCount(1)
+            collisionPoints:SetType(collisionPoints:FACE_A)
+            collisionPoints:GetLocalNormal():SetX(cLocalx - v2:GetX())
+            collisionPoints:GetLocalNormal():SetY(cLocaly - v2:GetY())
+            collisionPoints:GetLocalNormal():Normalize()
+            collisionPoints:GetLocalPoint():Set(v2)
+            collisionPoints:GetPoints():Get(0):GetLocalPoint():Set(circle1p)
         else
             number fcx = (v1:GetX() + v2:GetX()) * 0.5
             number fcy = (v1:GetY() + v2:GetY()) * 0.5
@@ -502,12 +501,12 @@ class CollisionEvent2D
                 return now
             end
 
-            collisionPoints:pointCount = 1
-            collisionPoints:type = collisionPoints:FACE_A
-            collisionPoints:localNormal:Set(normals:Get(vertIndex1))
-            collisionPoints:localPoint:SetX(fcx)
-            collisionPoints:localPoint:SetY(fcy)
-            collisionPoints:points:Get(0):localPoint:Set(circle1p)
+            collisionPoints:SetPointCount(1)
+            collisionPoints:SetType(collisionPoints:FACE_A)
+            collisionPoints:GetLocalNormal():Set(normals:Get(vertIndex1))
+            collisionPoints:GetLocalPoint():SetX(fcx)
+            collisionPoints:GetLocalPoint():SetY(fcy)
+            collisionPoints:GetPoints():Get(0):GetLocalPoint():Set(circle1p)
         end        
     end
 
