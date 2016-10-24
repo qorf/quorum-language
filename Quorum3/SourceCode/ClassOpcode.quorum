@@ -221,7 +221,17 @@ class ClassOpcode is QuorumOpcode
         page:AddMetaData(charset)
 
         //auto-generate some sensible keywords
-        //AddKeywords()
+        MetaData keywords
+        text keywordText = "programming for beginners, computer programming,
+        Quorum programming language"
+
+        //add the static key and the name
+        keywordText = keywordText + ", " + clazz:GetStaticKey()
+        keywordText = keywordText + ", " + clazz:GetName()
+        keywordText = keywordText + ", " + clazz:GetPackageKey()
+
+        keywords:AddAttribute("keywords", keywordText)
+        page:AddMetaData(keywords)
 
         page:AddScript("/script/jquery-1.8.3.min.js")
         page:AddScript("/script/script.js")
