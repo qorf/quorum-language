@@ -5,11 +5,44 @@ use Libraries.Game.Collision.Item2DNode
 
 package Libraries.Game.Collision
 
+/*
+The DynamicBoundingVolumeTreeNode2D represents a node in the DynamicBoundingVolumeTree2D
+class. A DynamicBoundingVolumeTreeNode2D represents a BoundingBox2D which represents 
+an item in the game. This node stores its parent in the tree as well as any children
+of the node. Additionally, the node's height in the tree and in ID integer are stored.
+By default, the node's treeParent, itemNode, leftChild, and rightChild are undefined. 
+The node id and height are, by default, -1. 
+This class is used internally by DynamicBoundingVolumeTree2D.
+
+Attribute: Example
+
+use Libraries.Game.Collision.DynamicBoundingVolumeTreeNode2D
+use Libraries.Game.Collision.BoundingBox2D
+use Libraries.Compute.Vector2
+use Libraries.Game.Collision.Item2DNode
+
+        DynamicBoundingVolumeTreeNode2D newNode
+        Item2DNode node
+        BoundingBox2D boundingBox
+        Vector2 boxMinimum
+        Vector2 boxMaximum
+        boxMinimum:Set(-1, -1)
+        boxMaximum:Set(1, 1)
+        newNode:SetID(0) 
+        BoundingBox2D nodeBoundingBox = newNode:GetBoundingBox()
+        Vector2 minimum
+        Vector2 maximum
+        minimum:Set(boundingBox:GetMinimum())
+        maximum:Set(boundingBox:GetMaximum())
+        nodeBoundingBox:Set(minimum, maximum)
+        newNode:SetItemNode(node)
+
+*/
 class DynamicBoundingVolumeTreeNode2D
 
     /*
-    The bounding box this node represents (a bounding box around those of the 
-    two children (if not a leaf).
+    The bounding box this node represents (a bounding box around the bounding boxes
+    of the two children (if not a leaf).
     */
     BoundingBox2D boundingBox
     
