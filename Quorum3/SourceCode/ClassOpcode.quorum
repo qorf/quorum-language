@@ -27,6 +27,8 @@ use Libraries.Web.Page.TableHeaderCell
 use Libraries.Web.Page.TableData
 use Libraries.Web.Page.Heading
 use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.ListItem
+use Libraries.Web.Page.StrongText
 
 class ClassOpcode is QuorumOpcode
     QualifiedName packageValue = undefined
@@ -236,7 +238,6 @@ class ClassOpcode is QuorumOpcode
         Header headDiv
         headDiv:SetClassAttribute("pageHeader outermostContainer")
         headDiv:AddHeading(clazz:GetStaticKey(), 1)
-        //headDiv:AddText("This page provides a method for compiling Quorum programs for iOS")
         page:Add(headDiv)
 
         Division bodyDiv
@@ -257,15 +258,12 @@ class ClassOpcode is QuorumOpcode
             emph:AddText("Inherits from: ")
             inherits:Add(emph)
             //inherits
-            //result = result + "<em>Inherits from: </em>"
             repeat while parents:HasNext()
                 Class p = parents:Next()
                 Link parentLink = GetParentWebLink(clazz, p)
                 inherits:Add(parentLink)
-                //result = result + GetParentLink(clazz, p)
                 if parents:HasNext()
                     inherits:AddText(", ")
-                    //result = result + ", "
                 end
             end
             bodyDiv:Add(inherits)
@@ -316,7 +314,9 @@ class ClassOpcode is QuorumOpcode
                 Type t = var:GetType()
                 text typeDisplay = t:GetDisplayName()
                 TableData data
-                data:AddText(typeDisplay + " " + var:GetName())
+                StrongText strong
+                strong:AddText(typeDisplay + " " + var:GetName())
+                data:Add(strong)
                 variableRow:Add(data)
 
                 Documentation doc2 = var:GetDocumentation()
@@ -353,10 +353,13 @@ class ClassOpcode is QuorumOpcode
                 TableRow actionRow
                 Action act = it:Next()
                 text display = act:GetDisplayNameNoReturnAsWeb()
-                //Type t = act:GetType()
-                //text typeDisplay = t:GetDisplayName()
                 TableData data
-                data:AddText(display)
+                Link actionLink
+                actionLink:SetAddress("#" + act:GetStaticKey())
+                StrongText strong
+                strong:AddText(display)
+                actionLink:Add(strong)
+                data:Add(actionLink)
                 actionRow:Add(data)
 
                 Documentation doc2 = act:GetDocumentation()
@@ -379,12 +382,8 @@ class ClassOpcode is QuorumOpcode
             Action act = it:Next()
             text display = act:GetDisplayNameNoReturnAsWeb()
             Heading header = bodyDiv:AddHeading(act:GetDisplayNameNoReturnAsWeb(), 3)
+            header:AddAttribute("id", act:GetStaticKey())
             header:AddClassAttribute("actionHeader")
-            
-            //background: #049cdb; font-size:125%; color: #EEEEEE; text-shadow: 2px 2px 0 #036690; padding-left: 5px;
-            //result = result + "<h2 style=" + dq + "font-size:" + h2Size + "%; " 
-            //result = result + "background: #049cdb; color: #EEEEEE; text-shadow: 2px 2px 0 #036690; padding-left: 5px;"
-            //result = result + dq + "id = " + dq + act:GetStaticKey() + dq + ">" + display + "</h2>" + NL
             Documentation doc2 = act:GetDocumentation()
             if doc2 not= undefined
                 Division division = doc2:GetHeaderDivision()
@@ -394,43 +393,66 @@ class ClassOpcode is QuorumOpcode
             Iterator<Variable> params = act:GetParameterIterator()
             if params:HasNext()
                 bodyDiv:AddHeading("Parameters", 4)
-                //result = result + "<strong><em>Parameters</em></strong>"
                 UnorderedList unordered
                 if params:HasNext()
                     bodyDiv:Add(unordered)
                 end
-                //result = result + "<ul>"
                 repeat while params:HasNext()
                     Variable param = params:Next()
                     text paramName = param:GetDisplayNameWithGenericsAsWeb()
-                    //result = result + "<li>" + NL
-                    //result = result + "<strong>" + param:GetDisplayNameWithGenericsAsWeb() + "</strong>"
+                    Type parameterType = param:GetType()
+                    
+                    text documentationForParameter = undefined
                      if doc2 not= undefined
                         text value = doc2:GetParameterDescription(param:GetName())
                         if value not= undefined
-                            paramName = paramName + ": " + value
-                            //result = result + ": " + value
+                            documentationForParameter = ": " + value
                         end
                     end
 
-                    unordered:AddListItem(paramName)
-                    //result = result + "</li>" + NL
+                    if not parameterType:IsPrimitive()
+                        SymbolTable symbolTable = GetSymbolTable()
+                        Class referenceClass = symbolTable:GetClass(parameterType:GetStaticKey())
+                        Link parentLink = GetParentWebLink(clazz, referenceClass)
+                        ListItem item
+                        item:Add(parentLink)
+                        if documentationForParameter not= undefined
+                            item:AddText(documentationForParameter)
+                        end
+                        unordered:Add(item)
+                    else
+                        if documentationForParameter not= undefined
+                            unordered:AddListItem(paramName + documentationForParameter)
+                        end
+                    end
                 end
-
-                
-                //result = result + "</ul>"
             end
 
             Type returnType = act:GetReturnType()
             if not returnType:IsVoid()
                 text r = returnType:GetStaticKeyWithMappedGenerics()
                 bodyDiv:AddHeading("Return", 4)
-                //result = result + "<strong><em>Return: </em></strong>"
-                //result = result + r
+                text documentationForParameter = undefined
                 if doc2 not= undefined
-                    r = r + doc2:GetReturns()
+                    documentationForParameter = ": " + doc2:GetReturns()
                 end
-                bodyDiv:AddParagraph(r)
+                Paragraph returnParagraph
+                SymbolTable symbolTable = GetSymbolTable()
+                if not returnType:IsPrimitive()
+                    Class referenceClass = symbolTable:GetClass(returnType:GetStaticKey())
+                    Link parentLink = GetParentWebLink(clazz, referenceClass)
+                    returnParagraph:Add(parentLink)
+                    if documentationForParameter not= undefined
+                        returnParagraph:AddText(documentationForParameter)
+                    end
+                else 
+                    returnParagraph:AddText(r)
+                    if documentationForParameter not= undefined
+                        returnParagraph:AddText(documentationForParameter)
+                    end
+                end
+                bodyDiv:Add(returnParagraph)
+                
             end
         end
         mainRegion:Add(bodyDiv)
