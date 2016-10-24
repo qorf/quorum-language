@@ -4,6 +4,6 @@
 
 
 echo "Copying documentation."
-cp -r Output/Build/Documents/Libraries/ ../../quorum-support/Website/Libraries
+cp -r Output/Build/Documents/Libraries/ ../../quorum-support/QuorumWebsite/html/Libraries
 
 echo "Finished."

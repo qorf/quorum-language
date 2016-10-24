@@ -9,6 +9,7 @@ use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.Containers.List
 use Libraries.Language.Compile.Translate.ClassOpcode
 use Libraries.System.DateTime
+use Libraries.Web.Page.WebPage
 
 class Compiler
     public constant number VERSION = 4.0
@@ -1298,7 +1299,8 @@ class Compiler
                     ClassOpcode code = codes:Next()
                     Class clazz = code:GetClass()
 
-                    text web = code:WriteToWeb()
+                    WebPage page = code:WriteToWebPage()
+                    text web = page:Generate()//code:WriteToWeb()
                     text key = clazz:GetStaticKey()
                     text parentKey = ""
                     Array<text> split = key:Split("\.")
@@ -1307,7 +1309,7 @@ class Compiler
                         parentKey = parentKey + split:Get(i) + "/"
                         i = i + 1
                     end
-                    key = "/" + key:Replace(".", "/") + ".php"
+                    key = "/" + key:Replace(".", "/") + ".html"
 
                     
                     buildFolder:CreateDirectories()

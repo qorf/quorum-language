@@ -12,6 +12,21 @@ use Libraries.System.File
 use Libraries.Language.Compile.QualifiedName
 use Libraries.Language.Compile.Symbol.Documentation
 use Libraries.Language.Compile.Symbol.SymbolTable
+use Libraries.Web.Page.WebPage
+use Libraries.Web.Page.Header
+use Libraries.Web.Page.MainContent
+use Libraries.Web.Page.Paragraph
+use Libraries.Web.Page.Emphasize
+use Libraries.Web.Page.Link
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.MetaData
+use Libraries.Web.Page.WebTable
+use Libraries.Web.Page.TableHeader
+use Libraries.Web.Page.TableRow
+use Libraries.Web.Page.TableHeaderCell
+use Libraries.Web.Page.TableData
+use Libraries.Web.Page.Heading
+use Libraries.Web.Page.UnorderedList
 
 class ClassOpcode is QuorumOpcode
     QualifiedName packageValue = undefined
@@ -158,6 +173,271 @@ class ClassOpcode is QuorumOpcode
         text dq = link:GetDoubleQuote()
         link = "<a href = " + dq + link + dq + ">" + parentKey + "</a>"
         return link
+    end
+
+    action GetParentWebLink(Class from, Class theParent) returns Link
+        text link = ""
+        text key = from:GetStaticKey()
+        text parentKey = theParent:GetStaticKey()
+        Array<text> fromSplit = key:Split("\.")
+        Array<text> parentSplit = parentKey:Split("\.")
+        if fromSplit not= undefined and parentSplit not= undefined
+            integer i = 0
+            repeat fromSplit:GetSize() - 1 times
+                link = link + "../"
+                i = i + 1
+            end
+
+            i = 0
+            repeat parentSplit:GetSize() times
+                if i < parentSplit:GetSize() - 1
+                    link = link + parentSplit:Get(i) + "/"
+                else
+                    link = link + parentSplit:Get(i) + ".html"
+                end
+                i = i + 1
+            end
+        end
+        text dq = link:GetDoubleQuote()
+        //link = "<a href = " + dq + link + dq + ">" + parentKey + "</a>"
+        Link webLink
+        webLink:SetAddress(link)
+        webLink:AddText(parentKey)
+        return webLink
+        //return link
+    end
+    
+    action WriteToWebPage returns WebPage
+        WebPage page
+        //add language headers
+        page:AddAttribute("xml:lang", "en")
+        page:SetLanguage("en")
+
+        //add the meta-data character set
+        MetaData charset
+        charset:SetCharacterSet("UTF-8")
+        page:AddMetaData(charset)
+
+        //auto-generate some sensible keywords
+        //AddKeywords()
+
+        page:AddScript("/script/jquery-1.8.3.min.js")
+        page:AddScript("/script/script.js")
+        
+        //add style sheet tags
+        page:AddStylesheet("/style/style.css")
+        page:AddStylesheet("/style/google.css")
+        page:AddIcon("/media/favicon.ico")
+
+        page:SetWebPageTitle(clazz:GetStaticKey() + " - Quorum Programming Language")
+        MainContent mainRegion
+        mainRegion:AddAttribute("role","main")
+
+        Header headDiv
+        headDiv:SetClassAttribute("pageHeader outermostContainer")
+        headDiv:AddHeading(clazz:GetStaticKey(), 1)
+        //headDiv:AddText("This page provides a method for compiling Quorum programs for iOS")
+        page:Add(headDiv)
+
+        Division bodyDiv
+        bodyDiv:SetClassAttribute("bodyContainer")
+        bodyDiv:AddHeading(clazz:GetStaticKey() + " Documentation", 2)
+
+        Documentation doc = clazz:GetDocumentation()
+        if doc not= undefined
+            //add that in.
+            Division value = doc:GetHeaderDivision()
+            bodyDiv:Add(value)
+        end
+        
+        Iterator<Class> parents = clazz:GetParentClasses()
+        if parents:HasNext()
+            Paragraph inherits
+            Emphasize emph
+            emph:AddText("Inherits from: ")
+            inherits:Add(emph)
+            //inherits
+            //result = result + "<em>Inherits from: </em>"
+            repeat while parents:HasNext()
+                Class p = parents:Next()
+                Link parentLink = GetParentWebLink(clazz, p)
+                inherits:Add(parentLink)
+                //result = result + GetParentLink(clazz, p)
+                if parents:HasNext()
+                    inherits:AddText(", ")
+                    //result = result + ", "
+                end
+            end
+            bodyDiv:Add(inherits)
+        end
+
+        //sort the various actions and variables for a summary table
+        bodyDiv:AddHeading("Summary", 2)
+        Iterator<Action> it = clazz:GetVirtualTable()
+        Array<Action> array
+        repeat while it:HasNext()
+            Action next = it:Next()
+            if next:IsPublic()
+                array:Add(next)
+            end
+        end
+        array:Sort()
+
+        Iterator<Variable> vars = clazz:GetVariables()
+        Array<Variable> variableArray
+        repeat while vars:HasNext()
+            Variable next = vars:Next()
+            if next:IsPublic()
+                variableArray:Add(next)
+            end
+        end
+        variableArray:Sort()
+        vars = variableArray:GetIterator()
+
+        
+        if not variableArray:IsEmpty()
+            bodyDiv:AddHeading("Variable Summary Table", 3)
+            WebTable table
+            table:SetBorder(true)
+
+            //write the header
+            TableRow headerRow
+            TableHeaderCell variables
+            TableHeaderCell description
+            variables:AddText("Variables")
+            description:AddText("Description")
+            headerRow:Add(variables)
+            headerRow:Add(description)
+            table:Add(headerRow)
+
+            repeat while vars:HasNext()
+                TableRow variableRow
+                Variable var = vars:Next()
+                Type t = var:GetType()
+                text typeDisplay = t:GetDisplayName()
+                TableData data
+                data:AddText(typeDisplay + " " + var:GetName())
+                variableRow:Add(data)
+
+                Documentation doc2 = var:GetDocumentation()
+                TableData dataDocumentation
+                if doc2 not= undefined
+                    dataDocumentation:AddText(doc2:GetDescription())
+                end
+                variableRow:Add(dataDocumentation)
+                table:Add(variableRow)
+            end
+
+            if not variableArray:IsEmpty()
+                bodyDiv:Add(table)
+            end
+        end
+
+        it = array:GetIterator()
+        if it:HasNext()
+            bodyDiv:AddHeading("Actions Summary Table", 3)
+            WebTable table
+            table:SetBorder(true)
+
+            //write the header
+            TableRow headerRow
+            TableHeaderCell variables
+            TableHeaderCell description
+            variables:AddText("Actions")
+            description:AddText("Description")
+            headerRow:Add(variables)
+            headerRow:Add(description)
+            table:Add(headerRow)
+
+            repeat while it:HasNext()
+                TableRow actionRow
+                Action act = it:Next()
+                text display = act:GetDisplayNameNoReturnAsWeb()
+                //Type t = act:GetType()
+                //text typeDisplay = t:GetDisplayName()
+                TableData data
+                data:AddText(display)
+                actionRow:Add(data)
+
+                Documentation doc2 = act:GetDocumentation()
+                TableData dataDocumentation
+                if doc2 not= undefined
+                    dataDocumentation:AddText(doc2:GetShortDescription())
+                end
+                actionRow:Add(dataDocumentation)
+                table:Add(actionRow)
+            end
+            bodyDiv:Add(table)
+        end
+
+        it = array:GetIterator()
+        if it:HasNext()
+            bodyDiv:AddHeading("Actions Documentation", 2)
+        end
+
+        repeat while it:HasNext()
+            Action act = it:Next()
+            text display = act:GetDisplayNameNoReturnAsWeb()
+            Heading header = bodyDiv:AddHeading(act:GetDisplayNameNoReturnAsWeb(), 3)
+            header:AddClassAttribute("actionHeader")
+            
+            //background: #049cdb; font-size:125%; color: #EEEEEE; text-shadow: 2px 2px 0 #036690; padding-left: 5px;
+            //result = result + "<h2 style=" + dq + "font-size:" + h2Size + "%; " 
+            //result = result + "background: #049cdb; color: #EEEEEE; text-shadow: 2px 2px 0 #036690; padding-left: 5px;"
+            //result = result + dq + "id = " + dq + act:GetStaticKey() + dq + ">" + display + "</h2>" + NL
+            Documentation doc2 = act:GetDocumentation()
+            if doc2 not= undefined
+                Division division = doc2:GetHeaderDivision()
+                bodyDiv:Add(division)
+            end          
+
+            Iterator<Variable> params = act:GetParameterIterator()
+            if params:HasNext()
+                bodyDiv:AddHeading("Parameters", 4)
+                //result = result + "<strong><em>Parameters</em></strong>"
+                UnorderedList unordered
+                if params:HasNext()
+                    bodyDiv:Add(unordered)
+                end
+                //result = result + "<ul>"
+                repeat while params:HasNext()
+                    Variable param = params:Next()
+                    text paramName = param:GetDisplayNameWithGenericsAsWeb()
+                    //result = result + "<li>" + NL
+                    //result = result + "<strong>" + param:GetDisplayNameWithGenericsAsWeb() + "</strong>"
+                     if doc2 not= undefined
+                        text value = doc2:GetParameterDescription(param:GetName())
+                        if value not= undefined
+                            paramName = paramName + ": " + value
+                            //result = result + ": " + value
+                        end
+                    end
+
+                    unordered:AddListItem(paramName)
+                    //result = result + "</li>" + NL
+                end
+
+                
+                //result = result + "</ul>"
+            end
+
+            Type returnType = act:GetReturnType()
+            if not returnType:IsVoid()
+                text r = returnType:GetStaticKeyWithMappedGenerics()
+                bodyDiv:AddHeading("Return", 4)
+                //result = result + "<strong><em>Return: </em></strong>"
+                //result = result + r
+                if doc2 not= undefined
+                    r = r + doc2:GetReturns()
+                end
+                bodyDiv:AddParagraph(r)
+            end
+        end
+        mainRegion:Add(bodyDiv)
+        page:Add(mainRegion)
+        //draw a default footer?
+
+        return page
     end
 
     action WriteToWeb returns text
