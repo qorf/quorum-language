@@ -29,6 +29,8 @@ use Libraries.Web.Page.Heading
 use Libraries.Web.Page.UnorderedList
 use Libraries.Web.Page.ListItem
 use Libraries.Web.Page.StrongText
+use Libraries.Web.Page.NavigationDivision
+use Libraries.Web.Page.Footer
 
 class ClassOpcode is QuorumOpcode
     QualifiedName packageValue = undefined
@@ -209,7 +211,7 @@ class ClassOpcode is QuorumOpcode
         //return link
     end
     
-    action WriteToWebPage returns WebPage
+    action WriteToWebPage(NavigationDivision navigation, Footer footer) returns WebPage
         WebPage page
         //add language headers
         page:AddAttribute("xml:lang", "en")
@@ -242,6 +244,7 @@ class ClassOpcode is QuorumOpcode
         page:AddIcon("/media/favicon.ico")
 
         page:SetWebPageTitle(clazz:GetStaticKey() + " - Quorum Programming Language")
+        page:Add(navigation)
         MainContent mainRegion
         mainRegion:AddAttribute("role","main")
 
@@ -467,7 +470,7 @@ class ClassOpcode is QuorumOpcode
         end
         mainRegion:Add(bodyDiv)
         page:Add(mainRegion)
-        //draw a default footer?
+        page:Add(footer)
 
         return page
     end
@@ -495,10 +498,6 @@ class ClassOpcode is QuorumOpcode
                 end
             end
         end
-
-        
-        
-
         
         Iterator<Action> it = clazz:GetVirtualTable()
         Array<Action> array

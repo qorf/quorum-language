@@ -20,6 +20,14 @@ use Libraries.Web.Page.TableData
 use Libraries.Web.Page.Division
 use Libraries.Web.Page.Link
 use Libraries.Web.Page.LineBreak
+use Libraries.Web.Page.ListItem
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.Input
+use Libraries.Web.Page.Form
+use Libraries.Web.Page.NavigationDivision
+use Libraries.Web.Page.Footer
+use Libraries.Web.Page.SmallText
+use Libraries.Web.Page.StrongText
 
 class Compiler
     public constant number VERSION = 4.0
@@ -1308,14 +1316,67 @@ class Compiler
         end
     end
 
+    private action AddDefaultHeaders returns NavigationDivision
+        NavigationDivision division
+        UnorderedList list
+        division:SetClassAttribute("headerNavBar outermostContainer")
+
+        Link logoLink
+        logoLink:SetIdentifier("homePageLink")
+        logoLink:AddImage("/media/QuorumLogo.png", "The Quorum Logo")
+        logoLink:SetAddress("https://www.quorumlanguage.com/")
+        logoLink:AddText("Quorum")
+
+        ListItem item
+        item:Add(logoLink)
+        list:Add(item)
+
+        text extension = ".html"
+        list:AddListItemLink("Download", "/download" + extension)
+        list:AddListItemLink("Reference", "/reference" + extension)
+        list:AddListItemLink("Libraries", "/libraries" + extension)
+        list:AddListItemLink("Lessons", "/lesson" + extension)
+        list:AddListItemLink("Bugs", "https://quorum.atlassian.net")
+        division:Add(list)
+        
+        //search bar
+        Form form
+        form:AddAttribute("role", "search")
+        form:SetIdentifier("searchForm")
+        Input searchInput
+        searchInput:SetIdentifier("searchFormInput")
+        searchInput:SetPlaceHolder("How do I create an array?")
+        searchInput:SetType("text")
+        form:Add(searchInput)
+        Input searchButton
+        searchButton:SetIdentifier("searchFormButton")
+        searchButton:SetDefaultValue("Search")
+        searchButton:SetType("submit")
+        form:Add(searchButton)
+        division:Add(form)
+        return division
+    end
+
+    private action GetFooter returns Footer
+        Footer footer
+        footer:AddText("The Quorum Programming Language")
+        footer:SetIdentifier("footer")
+        SmallText small
+        small:AddText("Copyright &copy; 2014-2016. Art and Design by Andreas Stefik, Evan Pierzina, and Kerry Ritter")
+        footer:Add(small)
+        return footer
+    end
+
     private action CreateDocumentation(Array<ClassOpcode> classOpcodes)
+        NavigationDivision navigation = AddDefaultHeaders()
+        Footer footer = GetFooter()
         text result = ""
         Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
         repeat while codes:HasNext()
             ClassOpcode code = codes:Next()
             Class clazz = code:GetClass()
 
-            WebPage page = code:WriteToWebPage()
+            WebPage page = code:WriteToWebPage(navigation, footer)
             text web = page:Generate()//code:WriteToWeb()
             text key = clazz:GetStaticKey()
             text parentKey = ""
@@ -1366,6 +1427,7 @@ class Compiler
         page:AddIcon("/media/favicon.ico")
 
         page:SetWebPageTitle("Standard Library Index - Quorum Programming Language")
+        page:Add(navigation)
         MainContent mainRegion
         mainRegion:AddAttribute("role","main")
 
@@ -1402,7 +1464,7 @@ class Compiler
                     TableRow row
 
                     TableData data
-                    data:Add(GetWebLinkForClassFromIndex(clazz))
+                    data:Add(GetWebLinkForClassFromIndex(clazz, true))
                     row:Add(data)
 
                     Documentation doc = clazz:GetDocumentation()
@@ -1428,6 +1490,7 @@ class Compiler
 
         mainRegion:Add(bodyDiv)
         page:Add(mainRegion)
+        page:Add(footer)
 
         File documentationFile
         documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
@@ -1455,7 +1518,7 @@ class Compiler
         return link
     end
 
-    private action GetWebLinkForClassFromIndex(Class from) returns Link
+    private action GetWebLinkForClassFromIndex(Class from, boolean boldLink) returns Link
         Link link
         text key = from:GetStaticKey()
         text linkText = ""
@@ -1472,7 +1535,14 @@ class Compiler
             end
         end
         link:SetAddress(linkText)
-        link:AddText(from:GetName())
+        if boldLink
+            StrongText strong
+            strong:AddText(from:GetName())
+            link:Add(strong)
+        else 
+            link:AddText(from:GetName())
+        end
+        
         return link
     end
 
