@@ -97,7 +97,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         graphics.glLinkProgram(program);
         
         var linked = graphics.glGetProgramiv(program, graphics.gl.LINK_STATUS);
-        if (linked === 0)
+        if (linked === false)
         {
             var infoLogLength = graphics.glGetProgramiv(program, graphics.gl.INFO_LOG_LENGTH);
             if (infoLogLength > 1)
