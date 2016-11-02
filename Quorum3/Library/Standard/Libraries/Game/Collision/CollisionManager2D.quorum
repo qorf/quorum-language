@@ -185,6 +185,21 @@ class CollisionManager2D
         end
     end
 
+    /*
+    Returns the BroadphaseCollison2D
+
+    Attribute: Returns the BroadphaseCollision2D
+
+    Attribute: Example
+
+    use Libraries.Game.Collision.BroadphaseCollision2D
+    use Libraries.Game.Collision.CollisionManager2D
+
+        BroadphaseCollision2D broadphase
+        CollisionManager2D collision
+
+        broadphase = collision:GetBroadphase()
+    */
     action GetBroadphase returns BroadphaseCollision2D
         return broadphase
     end
