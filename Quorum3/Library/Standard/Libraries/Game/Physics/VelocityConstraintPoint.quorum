@@ -1,0 +1,69 @@
+package Libraries.Game.Physics
+
+use Libraries.Compute.Vector2
+
+class VelocityConstraintPoint 
+    Vector2 radiusA
+    Vector2 radiusB
+    number normalImpulse = 0
+    number tangentImpulse = 0
+    number normalMass = 0
+    number tangentMass = 0
+    number velocityBias = 0
+
+    action GetRadiusA returns Vector2
+        return radiusA
+    end
+
+    action SetRadiusA(Vector2 radius)
+        radiusA = radius
+    end
+
+    action GetRadiusB returns Vector2
+        return radiusB
+    end
+
+    action SetRadiusB(Vector2 radius)
+        radiusB = radius
+    end
+
+    action GetNormalImpulse returns number
+        return normalImpulse
+    end
+
+    action SetNormalImpulse(number impulse)
+        normalImpulse = impulse
+    end
+
+    action GetTangentImpulse returns number
+        return tangentImpulse
+    end
+
+    action SetTangentImpulse(number impulse)
+        tangentImpulse = impulse
+    end
+
+    action GetNormalMass returns number
+        return normalMass
+    end
+
+    action SetNormalMass(number mass)
+        normalMass = mass
+    end
+
+    action GetTangentMass returns number
+        return tangentMass
+    end
+
+    action SetTangentMass(number mass)
+        tangentMass = mass
+    end
+
+    action GetVelocityBias returns number
+        return velocityBias
+    end
+
+    action SetVelocityBias(number bias)
+        velocityBias = bias
+    end
+end

@@ -1,0 +1,85 @@
+package Libraries.Game.Physics
+
+use Libraries.Compute.Vector2
+use Libraries.Game.Physics.CollisionPositionConstraint
+use Libraries.Game.Collision.PhysicsPosition2D
+use Libraries.Game.Collision.LocalCollisionPoints2D
+
+class PositionSolver
+    Vector2 normal
+    Vector2 point
+    number separation = 0
+
+    LocalCollisionPoints2D collisionPoints
+
+    action Initialize(CollisionPositionConstraint pc, PhysicsPosition2D xfA, PhysicsPosition2D xfB, integer index)
+        number xfAqc = xfA:GetCosine()
+        number xfAqs = xfA:GetSine()
+        number xfBqc = xfB:GetCosine()
+        number xfBqs = xfB:GetSine()
+
+        Vector2 pcLocalPointsI = pc:GetLocalPoint(index)
+
+        if pc:GetType() = collisionPoints:CIRCLES
+            Vector2 plocalPoint = pc:GetLocalPoint()
+            Vector2 plocalPoints0 = pc:GetLocalPoint(0)
+            number pointAx = (xfAqc * plocalPoint:GetX() - xfAqs * plocalPoint:GetY()) + xfA:GetPosition():GetX()
+            number pointAy = (xfAqs * plocalPoint:GetX() + xfAqc * plocalPoint:GetY()) + xfA:GetPosition():GetY()
+            number pointBx = (xfBqc * plocalPoints0:GetX() - xfBqs * plocalPoints0:GetY()) + xfB:GetPosition():GetX()
+            number pointBy = (xfBqs * plocalPoints0:GetX() - xfBqc * plocalPoints0:GetY()) + xfB:GetPosition():GetY()
+            normal:SetX(pointBx - pointAx)
+            normal:SetY(pointBy - pointAy)
+            normal:Normalize()
+
+            point:SetX((pointAx + pointBx) * 0.5)
+            point:SetY((pointAy + pointBy) * 0.5)
+            number tempx = pointBx - pointAx
+            number tempy = pointBy - pointAy
+            separation = tempx * normal:GetX() + tempy * normal:GetY() - pc:GetRadiusA() - pc:GetRadiusB()
+        elseif pc:GetType() = collisionPoints:FACE_A
+            Vector2 plocalNormal = pc:GetLocalNormal()
+            Vector2 plocalPoint = pc:GetLocalPoint()
+            normal:SetX(xfAqc * plocalNormal:GetX() - xfAqs * plocalNormal:GetY())
+            normal:SetY(xfAqs * plocalNormal:GetX() + xfAqc * plocalNormal:GetY())
+            number planePointx = (xfAqc * plocalPoint:GetX() - xfAqs * plocalPoint:GetY()) + xfA:GetPosition():GetX()
+            number planePointy = (xfAqs * plocalPoint:GetX() + xfAqc * plocalPoint:GetY()) + xfA:GetPosition():GetY()
+            
+            number clipPointx = (xfBqc * pcLocalPointsI:GetX() - xfBqs * pcLocalPointsI:GetY()) + xfB:GetPosition():GetX()
+            number clipPointy = (xfBqs * pcLocalPointsI:GetX() - xfBqc * pcLocalPointsI:GetY()) + xfB:GetPosition():GetY()
+            number tempx = clipPointx - planePointx
+            number tempy = clipPointy - planePointy
+            separation = tempx * normal:GetX() + tempy * normal:GetY() - pc:GetRadiusA() - pc:GetRadiusB()
+            point:SetX(clipPointx)
+            point:SetY(clipPointy)
+        else
+            Vector2 plocalNormal = pc:GetLocalNormal()
+            Vector2 plocalPoint = pc:GetLocalPoint()
+            normal:SetX(xfBqc * plocalNormal:GetX() - xfBqs * plocalNormal:GetY())
+            normal:SetY(xfBqs * plocalNormal:GetX() + xfBqc * plocalNormal:GetY())
+            number planePointx = (xfBqc * plocalPoint:GetX() - xfBqs * plocalPoint:GetY()) + xfB:GetPosition():GetX()
+            number planePointy = (xfBqs * plocalPoint:GetX() + xfBqc * plocalPoint:GetY())
+
+            number clipPointx = (xfAqc * pcLocalPointsI:GetX() - xfAqs * pcLocalPointsI:GetY()) + xfA:GetPosition():GetX()
+            number clipPointy = (xfAqs * pcLocalPointsI:GetX() + xfAqc * pcLocalPointsI:GetY()) + xfA:GetPosition():GetY()
+            number tempx = clipPointx - planePointx
+            number tempy = clipPointy - planePointy
+            separation = tempx * normal:GetX() + tempy * normal:GetY() - pc:GetRadiusA() - pc:GetRadiusB()
+            point:SetX(clipPointx)
+            point:SetY(clipPointy)
+            normal:SetX(normal:GetX() * -1)
+            normal:SetY(normal:GetY() * -1)
+        end
+    end
+
+    action GetPoint returns Vector2
+        return point
+    end
+
+    action GetNormal returns Vector2
+        return normal
+    end
+
+    action GetSeparation returns number
+        return separation
+    end
+end

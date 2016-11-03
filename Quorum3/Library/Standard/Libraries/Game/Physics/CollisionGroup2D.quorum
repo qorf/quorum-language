@@ -1,0 +1,354 @@
+package Libraries.Game.Physics
+
+
+use Libraries.Containers.Array
+use Libraries.Compute.Vector2
+use Libraries.Interface.Events.CollisionListener2D
+use Libraries.Interface.Item2D
+use Libraries.Interface.Events.CollisionEvent2D
+use Libraries.Game.Collision.Sweep2D
+use Libraries.Game.Physics.CollisionSolver2D
+use Libraries.Compute.Math
+use Libraries.Interface.Item2D
+use Libraries.Game.Physics.Joints.Joint2D
+use Libraries.Game.Physics.Joints.JointSolverData
+
+
+
+/*
+An internal class used to solve the physical interactions between groups of
+physics bodies
+*/
+class CollisionGroup2D    
+    Array<Item2D> items
+    Array<CollisionEvent2D> collisions
+    Array<Joint2D> joints
+
+    Array<Vector2> positions
+    Array<number> angles
+    Array<Vector2> linearVelocities
+    Array<number> angularVelocities
+
+    integer itemCount = 0
+    integer jointCount = 0
+    integer collisionCount = 0
+
+    Math math
+
+    action Empty
+        bodyCount = 0
+        items:Empty()
+        collisionCount = 0
+        collisions:Empty()
+        jointCount = 0
+        joints:Empty()
+        positions:Empty()
+        angles:Empty()
+        linearVelocities:Empty()
+        angularVelocities:Empty()
+    end
+
+    action Add(Item2D item)
+        items:Add(item)
+        item:SetCollisionGroupIndex(itemCount)
+        itemCount = itemCount + 1
+    end
+
+    action Add(CollisionEvent2D collision)
+        collisions:Add(collision)
+        collisionCount = collisionCount + 1
+    end
+
+    action Add(Joint2D joint)
+        joints:Add(joint)
+        jointCount = jointCount + 1
+    end
+
+    CollisionSolver2D collisionSolver
+    JointSolverData solverData
+
+    action Solve(TimeStep2D step, Vector2 gravity, boolean allowSleep)
+        number h = step:GetTimeStep()
+
+        integer i = 0
+        repeat while i < itemCount
+            Item2D item = items:Get(i)
+            Sweep2D sweep = item:GetSweep()
+            Vector2 center = sweep:center
+            number angle = sweep:angle
+            Vector2 velocity = item:GetLinearVelocity()
+            number w = item:GetAngularVelocity()
+
+            sweep:center0:Set(sweep:center)
+            sweep:angle0 = sweep:angle
+
+            if item:GetResponsiveness() = item:GetPhysicsProperties():RESPONSIVE
+                velocity:SetX(velocity:GetX() + (h * (gravity:GetX() + item:GetInverseMass() * item:GetForce():GetX())))
+                velocity:SetY(velocity:GetY() + (h * (gravity:GetY() + item:GetInverseMass() * item:GetForce():GetY())))
+                w = w + (h * item:GetInverseInertia() * item:GetTorque())
+
+                velocity:SetX(velocity:GetX() * (1.0 / (1.0 + h * item:GetLinearDamping())))
+                velocity:SetY(velocity:GetY() * (1.0 / (1.0 + h * item:GetLinearDamping())))
+                w = w * (1.0 / (1.0 + h * item:GetAngularDamping()))
+            end
+
+            positions:Add(center)
+            angles:Add(angle)
+            linearVelocities:Add(velocity)
+            angularVelocities:Add(w)
+
+            i = i + 1
+        end
+
+        solverData:SetPositions(positions)
+        solverData:SetAngles(angles)
+        solverData:SetLinearVelocities(linearVelocities)
+        solverData:SetAngularVelocities(angularVelocities)
+        solverData:SetTimeStep2D(step)
+
+        collisionSolver:SetTimeStep(step)
+        collisionSolver:SetCollisionList(collisions)
+        collisionSolver:SetPositionsList(positions)
+        collisionSolver:SetAnglesList(angles)
+        collisionSolver:SetLinearVelocitiesList(linearVelocities)
+        collisionSolver:SetAngularVelocitiesList(angularVelocities)
+        collisionSolver:Initialize()
+        collisionSolver:InitializeVelocityConstraints()
+
+        if step:IsWarmStarting()
+            collisionSolver:WarmStart()
+        end
+
+        i = 0
+        repeat while i < jointCount
+            joints:Get(i):InitializeVelocityConstraints(solverData)
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < step:GetVelocityIterations()
+            integer j = 0
+            repeat while j < jointCount
+                joints:Get(j):SolveVelocityConstraints(solverData)
+                j = j + 1
+            end
+            collisionSolver:SolveVelocityConstraints()
+            i = i + 1
+        end
+
+        collisionSolver:StoreImpulses()
+
+        i = 0
+        repeat while i < itemCount
+            Vector2 c = positions:Get(i)
+            number a = angles:Get(i)
+            Vector2 v = linearVelocities:Get(i)
+            number w = angularVelocities:Get(i)
+
+            number translationx = v:GetX() * h
+            number translationy = v:GetY() * h
+
+            if translationx * translationx + translationy * translationy > 2.0 * 2.0
+                number ratio = 2.0 / math:SquareRoot(translationx * translationx + translationy * translationy)
+                v:SetX(v:GetX() * ratio)
+                v:SetY(v:GetY() * ratio)
+            end
+
+            number rotation = h * w
+            if rotation * rotation > 0.5 * math:pi * 0.5 * math:pi
+                number ratio = 0.5 * math:pi / math:AbsoluteValue(rotation)
+                w = w * ratio
+            end
+
+            c:SetX(c:GetX() + (h * v:GetX()))
+            c:SetY(c:GetY() + (h * v:GetY()))
+            a = a + (h * w)
+
+            angles:Set(i, a)
+            angularVelocities:Set(i, w)
+
+            i = i + 1
+        end
+
+        boolean positionSolved = false
+        i = 0
+        repeat while i < step:GetPositionIterations() and not positionSolved
+            boolean collisionsOkay = collisionSolver:SolvePositionConstraints()
+
+            boolean jointsOkay =true
+            integer j = 0
+            repeat while j < jointCount
+                boolean jointOkay = joints:Get(i):SolvePositionConstraints(solverData)
+                jointsOkay = jointOkay and jointOkay
+                j = j + 1
+            end
+
+            if collisionsOkay and jointsOkay
+                positionSolved = true
+            end
+
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < itemCount
+            Item2D body = items:Get(i)
+            body:GetSweep():center:Set(positions:Get(i))
+            body:GetSweep():SetAngle(angles:Get(i))
+            body:SetLinearVelocity(linearVelocities:Get(i))
+            body:SetAngularVelocity(angularVelocities:Get(i))
+            body:SynchronizeTransform()
+
+            i = i + 1
+        end
+
+        if (allowSleep)
+            number timeToSleep = 0.5
+            number minSleepTime = timeToSleep:GetMaximumValue()
+
+            number linearToleranceSquared = 0.01 * 0.01
+            number angularToleranceSquared = (2 / 180.0 * math:pi) * (2 / 180.0 * math:pi)
+
+            i = 0
+            repeat while i < itemCount
+                Item2D body = items:Get(i)
+                if body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
+                    if not body:IsSimulationRequired() 
+                        or body:GetAngularVelocity() * body:GetAngularVelocity() > angularToleranceSquared 
+                        or body:GetLinearVelocity():DotProduct(body:GetLinearVelocity()) > linearToleranceSquared
+                            body:SetSleepTime(0)
+                            minSleepTime = 0
+                    else
+                        body:SetSleepTime(body:GetSleepTime() + h)
+                        if minSleepTime > body:GetSleepTime()
+                            minSleepTime = body:GetSleepTime()
+                        end
+                    end
+                end
+
+                i = i + 1
+            end
+
+            if minSleepTime >= timeToSleep and positionSolved
+                i = 0
+                repeat while i < itemCount
+                    Item2D body = items:Get(i)
+                    body:Simulate(false)
+
+                    i = i + 1
+                end
+            end
+        end
+    end
+
+
+    CollisionSolver2D timeOfImpactCollisionSolver
+
+    action SolveTimeOfImpact(TimeStep2D subStep, integer timeOfImpactIndexA, integer timeOfImpactIndexB)
+        integer i = 0
+        repeat while i < itemCount
+            positions:Get(i):Set(items:Get(i):GetSweep():center)
+            angles:Set(i, items:Get(i):GetSweep():angle)
+            linearVelocities:Get(i):Set(items:Get(i):GetLinearVelocity())
+            angularVelocities:Set(i, items:Get(i):GetAngularVelocity())
+        end
+
+        timeOfImpactCollisionSolver:SetCollisionList(collisions)
+        timeOfImpactCollisionSolver:SetTimeStep(subStep)
+        timeOfImpactCollisionSolver:SetPositionsList(positions)
+        timeOfImpactCollisionSolver:SetAnglesList(angles)
+        timeOfImpactCollisionSolver:SetLinearVelocitiesList(linearVelocities)
+        timeOfImpactCollisionSolver:SetAngularVelocitiesList(angularVelocities)
+        timeOfImpactCollisionSolver:Initialize()
+
+        i = 0
+        boolean continue = true
+        repeat while i < subStep:GetPositionIterations() and continue
+            boolean collisionsOkay = timeOfImpactCollisionSolver:SolveTimeOfImpactPositionConstraints(timeOfImpactIndexA, timeOfImpactIndexB)
+            if collisionsOkay
+                continue = false
+            end
+            i = i + 1
+        end
+
+        items:Get(timeOfImpactIndexA):GetSweep():center0:Set(positions:Get(timeOfImpactIndexA))
+        items:Get(timeOfImpactIndexA):GetSweep():SetAngle0(angles:Get(timeOfImpactIndexA))
+        items:Get(timeOfImpactIndexB):GetSweep():center0:Set(positions:Get(timeOfImpactIndexB))
+        items:Get(timeOfImpactIndexB):GetSweep():SetAngle0(angles:Get(timeOfImpactIndexB))
+
+        timeOfImpactCollisionSolver:InitializeVelocityConstraints()
+
+        i = 0
+        repeat while i < subStep:GetVelocityIterations()
+            timeOfImpactCollisionSolver:SolveVelocityConstraints()
+
+            i = i + 1
+        end
+
+        number h = subStep:GetTimeStep()
+
+        i = 0
+        repeat while i < itemCount
+            Vector2 c = positions:Get(i)
+            number a = angles:Get(i)
+            Vector2 v = linearVelocities:Get(i)
+            number w = angularVelocities:Get(i)
+
+            number translationx = v:GetX() * h
+            number translationy = v:GetY() * h
+
+            if translationx * translationx + translationy * translationy > 2.0 * 2.0
+                number ratio = 2.0 / math:SquareRoot(translationx * translationx + translationy * translationy)
+                v:Scale(ratio)
+            end
+
+            number rotation = h * w
+            if rotation * rotation > (0.5 * math:pi) * (0.5 * math:pi)
+                number ratio = (0.5 * math:pi) / math:AbsoluteValue(rotation)
+                w = w * ratio
+            end
+
+            c:SetX(c:GetX() + (v:GetX() * h))
+            c:SetY(c:GetY() + (v:GetY() * h))
+            a = a + (h * w)
+
+            positions:Get(i):Set(c)
+            angles:Set(i, a)
+            linearVelocities:Get(i):Set(v)
+            angularVelocities:Set(i, w)
+
+            Item2D body = items:Get(i)
+            body:GetSweep():center:Set(c)
+            body:GetSweep():SetAngle(a)
+            body:GetLinearVelocity():Set(v)
+            body:SetAngularVelocity(w)
+            body:SynchronizeTransform()
+    
+            i = i + 1
+        end
+    end
+
+    action GetItemCount returns integer
+        return itemCount
+    end
+
+    action GetJointCount returns integer
+        return jointCount
+    end
+
+    action GetCollisionCount returns integer
+        return collisionCount
+    end
+
+    action GetItem(integer index) returns Item2D
+        return items:Get(index)
+    end
+
+    action GetJoint(integer index) returns Joint2D
+        return joints:Get(index)
+    end
+
+    action GetCollision(integer index) returns CollisionEvent2D
+        return collisions:Get(index)
+    end
+end

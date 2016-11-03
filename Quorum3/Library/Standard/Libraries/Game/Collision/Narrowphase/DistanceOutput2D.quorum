@@ -1,0 +1,42 @@
+package Libraries.Game.Collision.Narrowphase
+
+use Libraries.Compute.Vector2
+
+class DistanceOutput2D 
+    Vector2 pointA
+    Vector2 pointB
+    number distance = 0
+    integer iterations = 0
+
+    action GetPointA returns Vector2
+        return pointA
+    end
+
+    action SetPointA(Vector2 point)
+        pointA:Set(point)
+    end
+
+    action GetPointB returns Vector2
+        return pointB
+    end
+
+    action SetPointB(Vector2 point)
+        pointB:Set(point)
+    end
+
+    action GetDistance returns number
+        return distance
+    end
+
+    action SetDistance(number distance)
+        me:distance = distance
+    end
+
+    action GetIterations returns integer
+        return iterations
+    end
+
+    action SetIterations(integer iterations)
+        me:iterations = iterations
+    end
+end

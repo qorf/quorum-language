@@ -1,0 +1,51 @@
+package Libraries.Game.Collision.Narrowphase
+
+use Libraries.Game.Collision.PhysicsPosition2D
+
+class DistanceInput2D 
+    DistanceProxy2D proxyA
+    DistanceProxy2D proxyB
+    PhysicsPosition2D transformA
+    PhysicsPosition2D transformB
+    boolean useRadii = false
+
+    action SetProxyA(DistanceProxy2D proxy)
+        proxyA = proxy
+    end
+
+    action GetProxyA returns DistanceProxy2D
+        return proxyA
+    end
+
+    action SetProxyB(DistanceProxy2D proxy)
+        proxyB = proxy
+    end
+
+    action GetProxyB returns DistanceProxy2D
+        return proxyB
+    end
+
+    action SetTransformA(PhysicsPosition2D transform)
+        transformA:Set(transform)
+    end
+
+    action GetTransformA returns PhysicsPosition2D
+        return transformA
+    end
+
+    action SetTransformB(PhysicsPosition2D transform)
+        transformB:Set(transform)
+    end
+
+    action GetTransformB returns PhysicsPosition2D
+        return transformB
+    end
+
+    action SetUseRadii(boolean flag)
+        useRadii = flag
+    end
+
+    action GetUseRadii returns boolean
+        return useRadii
+    end
+end

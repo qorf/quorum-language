@@ -1,0 +1,135 @@
+use Libraries.Compute.Vector2
+use Libraries.Containers.Array
+use Libraries.Game.Collision.LocalCollisionPoints2D
+use Libraries.Game.Collision.PhysicsPosition2D
+
+package Libraries.Game.Collision
+
+class GlobalCollisionPoints2D
+    constant number EPSILON = 0.00000011920928955078125
+
+    Vector2 normal
+    Array<Vector2> points
+    Array<number> separations
+
+    on create
+        Vector2 v1
+        points:Add(v1)
+        Vector2 v2
+        points:Add(v2)
+    end
+
+    action Initialize(LocalCollisionPoints2D collisionPoints, PhysicsPosition2D xfA, number radiusA, PhysicsPosition2D xfB, number radiusB)
+        if collisionPoints:GetPointCount() = 0
+            return now
+        end
+
+        if collisionPoints:GetType() = collisionPoints:CIRCLES
+            Vector2 pointA
+            Vector2 pointB
+
+            normal:SetX(1)
+            normal:SetY(0)
+            Vector2 v = collisionPoints:GetLocalPoint()
+
+            pointA:SetX((xfA:GetCosine() * v:GetX() - xfA:GetSine() * v:GetY()) + xfA:GetPosition():GetX())
+            pointA:SetY((xfA:GetSine() * v:GetX() + xfA:GetCosine() * v:GetY()) + xfA:GetPosition():GetY())
+            Vector2 mp0p = collisionPoints:GetPoints():Get(0):GetLocalPoint()
+            pointB:SetX((xfB:GetCosine() * mp0p:GetX() - xfB:GetSine() * mp0p:GetY()) + xfB:GetPosition():GetX())
+            pointB:SetY((xfB:GetSine() * mp0p:GetX() + xfB:GetCosine() * mp0p:GetY()) + xfB:GetPosition():GetY())
+
+            if pointA:DistanceSquared(pointB) > EPSILON * EPSILON
+                normal:SetX(pointB:GetX() - pointA:GetX())
+                normal:SetY(pointB:GetY() - pointA:GetY())
+                normal:Normalize()
+            end
+
+            number cAx = normal:GetX() * radiusA + pointA:GetX()
+            number cAy = normal:GetY() * radiusA + pointA:GetY()
+
+            number cBx = -normal:GetX() * radiusB + pointB:GetX()
+            number cBy = -normal:GetY() * radiusB + pointB:GetY()
+
+            points:Get(0):SetX((cAx + cBx) * 0.5)
+            points:Get(0):SetY((cAy + cBy) * 0.5)
+            separations:Set(0, (cBx - cAx) * normal:GetX() + (cBy - cAy) * normal:GetY())
+        elseif collisionPoints:GetType() = collisionPoints:FACE_A
+            Vector2 planePoint
+
+            number qc = xfA:GetCosine()
+            number qs = xfA:GetSine()
+            Vector2 v = collisionPoints:GetLocalNormal()
+            Vector2 out = normal
+            out:SetX(qc * v:GetX() - qs * v:GetY())
+            out:SetY(qs * v:GetX() + qc * v:GetY())
+            xfA:MultiplyToOut(xfA, collisionPoints:GetLocalPoint(), planePoint)
+            
+            Vector2 clipPoint
+
+            integer i = 0
+            repeat while i < collisionPoints:GetPointCount()
+                xfB:MultiplyToOut(xfB, collisionPoints:GetPoints():Get(i):GetLocalPoint(), clipPoint)
+
+                number scalar = radiusA - ((clipPoint:GetX() - planePoint:GetX()) * normal:GetX() + (clipPoint:GetY() - planePoint:GetY()) * normal:GetY())
+
+                number cAx = normal:GetX() * scalar + clipPoint:GetX()
+                number cAy = normal:GetY() * scalar + clipPoint:GetY()
+
+                number cBx = -normal:GetX() * radiusB + clipPoint:GetX()
+                number cBy = -normal:GetY() * radiusB + clipPoint:GetY()
+
+                points:Get(i):SetX((cAx + cBx) * 0.5)
+                points:Get(i):SetY((cAy + cBy) * 0.5)
+                separations:Set(i, (cBx - cAx) * normal:GetX() + (cBy - cAy) * normal:GetY())
+
+                i = i + 1
+            end
+        else
+            Vector2 planePoint
+            
+            number qc = xfB:GetCosine()
+            number qs = xfB:GetSine()
+            Vector2 v = collisionPoints:GetLocalNormal()
+            Vector2 out = normal
+            out:SetX(qc * v:GetX() - qs * v:GetY())
+            out:SetY(qs * v:GetX() + qc * v:GetY())
+            xfB:MultiplyToOut(xfB, collisionPoints:GetLocalPoint(), planePoint)
+
+            Vector2 clipPoint
+
+            integer i = 0
+            repeat while i < collisionPoints:GetPointCount()
+                xfA:MultiplyToOut(xfA, collisionPoints:GetPoints():Get(i):GetLocalPoint(), clipPoint)
+
+                number scalar = radiusB - ((clipPoint:GetX() - planePoint:GetX()) * normal:GetX() + (clipPoint:GetY() - planePoint:GetY()) * normal:GetY())
+
+                number cBx = normal:GetX() * scalar + clipPoint:GetX()
+                number cBy = normal:GetY() * scalar + clipPoint:GetY()
+
+                number cAx = -normal:GetX() * radiusA + clipPoint:GetX()
+                number cAy = -normal:GetY() * radiusA + clipPoint:GetY()
+
+                points:Get(i):SetX((cAx + cBx) * 0.5)
+                points:Get(i):SetY((cAy + cBy) * 0.5)
+                separations:Set(i, (cAx - cBx) * normal:GetX() + (cAy - cBy) * normal:GetY())
+
+                i = i + 1
+            end
+
+            normal:SetX(-normal:GetX())
+            normal:SetY(-normal:GetY())
+        end
+    end
+
+    action GetNormal returns Vector2
+        return normal
+    end
+
+    action GetPoints returns Array<Vector2>
+        return points
+    end
+
+    action GetSeparations returns Array<number>
+        return separations
+    end
+end

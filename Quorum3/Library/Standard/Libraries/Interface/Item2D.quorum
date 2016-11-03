@@ -21,6 +21,7 @@ use Libraries.Game.Collision.Item2DNode
 use Libraries.Game.Collision.BroadphaseCollision2D
 use Libraries.Game.Collision.CollisionEdge2D
 use Libraries.Game.Collision.BoundingBox2D
+use Libraries.Game.Physics.PhysicsProperties2D
 
 /*
     The Item2D class represents any object that has a position in 2D space.
@@ -43,6 +44,8 @@ use Libraries.Game.Collision.BoundingBox2D
         myItem:SetHeight(15)
 */
 class Item2D is Item
+
+    constant text PHYSICS_ERROR_MESSAGE = "Enable physics to use this action"
     
     private Item2D parentItem = undefined
     private Array<Item2D> children
@@ -89,6 +92,9 @@ class Item2D is Item
     CollisionEdge2D collisionList = undefined
 
     PhysicsPosition2D transform0
+
+    PhysicsProperties2D properties = undefined
+    boolean physicsEnabled = false
 
     on create
         vertices:SetSize(20)
@@ -1483,7 +1489,7 @@ class Item2D is Item
         Math math
         rotation = degrees
         transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
-        sweep:angle = -1 * math:DegreesToRadians(rotation)
+        sweep:SetAngle(-1 * math:DegreesToRadians(rotation))
         verticesChanged = true
         
         //Iterator<Item> childIterator = GetItems()
@@ -1566,7 +1572,7 @@ class Item2D is Item
         Math math
         rotation = rotation + degrees
         transform:Set(transform:GetPosition(), -1 *  math:DegreesToRadians(rotation))
-        sweep:angle = -1 * math:DegreesToRadians(rotation)
+        sweep:SetAngle(-1 * math:DegreesToRadians(rotation))
         if degrees not= 0
             verticesChanged = true
         end
@@ -2308,6 +2314,10 @@ class Item2D is Item
         nodesSet = false
     end
 
+    action GetNodeCount returns integer
+        return nodeCount
+    end
+
     private action Synchronize(BroadphaseCollision2D broadphase, PhysicsPosition2D transform1, PhysicsPosition2D transform2)
         if nodeCount = 0
             return now
@@ -2397,5 +2407,436 @@ class Item2D is Item
 
     action GetChildren returns Array<Item2D>
         return children
+    end
+
+    action EnablePhysics(boolean flag)
+        physicsEnabled = flag
+    
+        if physicsEnabled
+            sweep:GetLocalCenter():SetZero()
+            sweep:GetCenter0():Set(transform:GetPosition())
+            sweep:GetCenter():Set(transform:GetPosition())
+            sweep:SetAngle0(transform:GetAngle())
+            sweep:SetAngle(transform:GetAngle())
+            sweep:SetAlpha0(0)
+            PhysicsProperties2D properties
+            me:properties = properties
+        end
+    end
+
+    action IsPhysicsEnabled returns boolean
+        return physicsEnabled
+    end
+
+    action GetWorldCenter returns Vector2
+        return sweep:GetCenter()
+    end
+
+    action GetLocalCenter returns Vector2
+        return sweep:GetLocalCenter()
+    end
+
+    action SetLinearVelocity(Vector2 linearVelocity)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetLinearVelocity(linearVelocity)
+    end
+
+    action GetLinearVelocity returns Vector2
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetLinearVelocity()
+    end
+
+    action SetAngularVelocity(number angularVelocity)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetAngularVelocity(angularVelocity)
+    end
+
+    action GetAngularVelocity returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetAngularVelocity()
+    end
+
+    action SetForce(Vector2 force)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetForce(force)
+    end
+
+    action GetForce returns Vector2
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetForce()
+    end
+
+    action SetTorque(number torque)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetTorque(torque)
+    end
+
+    action GetTorque returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetTorque()
+    end
+
+    action ApplyForce(Vector2 force, Vector2 point)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyForce(force, point)
+    end
+
+    action ApplyForceToCenter(Vector2 force)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyForceToCenter(force)
+    end
+
+    action ApplyTorque(number torque)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyTorque(torque)
+    end
+
+    action ApplyLinearImpulse(Vector2 impulse, Vector2 point)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyLinearImpulse(impulse, point)
+    end
+
+    action ApplyAngularImpulse(number impulse)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyAngularImpulse(impulse)
+    end
+
+    action GetMass returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetMass()
+    end
+
+    action GetInverseMass returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetInverseMass()
+    end
+
+    action GetInertia returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetInertia()
+    end
+
+    action GetInverseInertia returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetInverseInertia()
+    end
+
+    action GetWorldPoint(Vector2 localPoint) returns Vector2
+        Vector2 vector
+        transform:MultiplyToOut(transform, localPoint, vector)
+        return vector
+    end
+
+    action GetWorldVector(Vector2 localVector) returns Vector2
+        Vector2 vector
+        number tempy = transform:GetSine() * localVector:GetX() + transform:GetCosine() * localVector:GetY()
+        vector:SetX(transform:GetCosine() * localVector:GetX() - transform:GetSine() * localVector:GetY())
+        vector:SetY(tempy)
+        return vector
+    end
+
+    action GetLocalPoint(Vector2 worldPoint) returns Vector2
+        Vector2 vector = transform:MultiplyAndTranslate(transform, worldPoint)
+        return vector
+    end
+
+    action GetLocalVector(Vector2 worldVector) returns Vector2
+        Vector2 vector
+        number tempy = -1 * transform:GetSine() * worldVector:GetX() + transform:GetCosine() * worldVector:GetY()
+        vector:SetX(transform:GetCosine() * worldVector:GetX() + transform:GetSine() * worldVector:GetY())
+        vector:SetY(tempy)
+        return vector
+    end
+
+    action GetLinearVelocityFromWorldPoint(Vector2 worldPoint) returns Vector2
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        Vector2 vector
+        number tempX = worldPoint:GetX() - sweep:GetCenter():GetX()
+        number tempY = worldPoint:GetY() - sweep:GetCenter():GetY()
+        vector:SetX(-1 * properties:GetAngularVelocity() * tempY + properties:GetLinearVelocity():GetX())
+        vector:SetY(properties:GetAngularVelocity() * tempX + properties:GetLinearVelocity():GetY())
+        return vector
+    end
+
+    action GetLinearVelocityFromLocalPoint(Vector2 localPoint) returns Vector2
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        Vector2 vector
+        vector:Set(GetWorldPoint(localPoint))
+        vector:Set(GetLinearVelocityFromWorldPoint(vector))
+        return vector
+    end
+
+    action GetLinearDamping returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetLinearDamping()
+    end
+
+    action SetLinearDamping(number linearDamping)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetLinearDamping(linearDamping)
+    end
+
+    action GetAngularDamping returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetAngularDamping()
+    end
+
+    action SetAngularDamping(number angularDamping)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetAngularDamping(angularDamping)
+    end
+
+    action GetResponsiveness returns integer
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetResponsiveness()
+    end
+
+    action SetResponsiveness(integer type)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetResponsiveness(type)
+    end
+
+    action SetDensity(number density)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetDensity(density)
+    end
+
+    action GetDensity returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetDensity()
+    end
+
+    action SetFriction(number friction)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetFriction(friction)
+    end
+
+    action GetFriction returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetFriction()
+    end
+
+    action SetRestitution(number restitution)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetRestitution(restitution)
+    end
+
+    action GetRestitution returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetRestitution()
+    end
+
+    action SetCollisionGroupFlag(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetCollisionGroupFlag(flag)
+    end
+
+    action GetCollisionGroupFlag returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetCollisionGroupFlag()
+    end
+
+    action SetCollisionGroupIndex(integer index)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetCollisionGroupIndex(index)
+    end
+
+    action GetCollisionGroupIndex returns integer
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetCollisionGroupIndex()
+    end
+
+    action IsFastMoving returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:IsFastMoving()
+    end
+
+    action FastMoving(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:FastMoving(flag)
+    end
+
+    action RequireSimulation(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:RequireSimulation(flag)
+    end
+
+    action IsSimulationRequired returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:IsSimulationRequired()
+    end
+
+    action Simulate(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:Simulate(flag)
+    end
+
+    action IsSimulated returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:IsSimulated()
+    end
+
+    action CanRotate(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:CanRotate(flag)
+    end
+
+    action IsRotationAllowed returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:IsRotationAllowed()
+    end
+
+    action SetSleepTime(number time)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetSleepTime(time)
+    end
+
+    action GetSleepTime returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetSleepTime()
+    end
+
+    action GetPhysicsProperties returns PhysicsProperties2D
+        return properties
+    end
+
+    action SetPhysicsProperties(PhysicsProperties2D properties)
+        me:properties = properties:Copy()
+        me:properties:SetItem(me)
     end
 end

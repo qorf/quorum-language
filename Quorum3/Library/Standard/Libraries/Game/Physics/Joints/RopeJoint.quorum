@@ -1,0 +1,277 @@
+package Libraries.Game.Physics.Joints
+
+use Libraries.Compute.Vector2
+use Libraries.Interface.Item2D
+use Libraries.Game.Collision.PhysicsPosition2D
+
+class RopeJoint is Joint2D
+    Vector2 localAnchorA
+    Vector2 localAnchorB
+    number maximumLength = 0
+    number length = 0
+    number impulse = 0
+
+    on create
+        parent:Joint2D:SetType(parent:Joint2D:ROPEJOINT)
+
+        localAnchorA:Set(-1.0, 0.0)
+        localAnchorB:Set(1.0, 0.0)
+        parent:Joint2D:SetState(parent:Joint2D:INACTIVE)
+    end
+
+    integer indexA = 0 //Look at including this based on how island handles
+    //positions and velocities (in arrays?)
+    integer indexB = 0
+    Vector2 u
+    Vector2 rA
+    Vector2 rB
+    Vector2 localCenterA
+    Vector2 localCenterB
+    number inverseMassA = 0
+    number inverseMassB = 0
+    number inverseInertiaA = 0
+    number inverseInertiaB = 0
+    number mass = 0
+
+
+    action InitializeVelocityConstraints(JointSolverData data)
+        indexA = parent:Joint2D:itemA:GetCollisionGroupIndex()
+        indexB = parent:Joint2D:itemB:GetCollisionGroupIndex()
+        localCenterA = parent:Joint2D:itemA:GetLocalCenter()
+        localCenterB = parent:Joint2D:itemB:GetLocalCenter()
+        inverseMassA = parent:Joint2D:itemA:GetInverseMass()
+        inverseMassB = parent:Joint2D:itemB:GetInverseMass()
+        inverseInertiaA = parent:Joint2D:itemA:GetInverseInertia()
+        inverseInertiaB = parent:Joint2D:itemB:GetInverseInertia()
+
+        Vector2 positionA = data:GetPositions():Get(indexA)
+        number angleA = data:GetAngles():Get(indexA)
+        Vector2 linearVelocityA = data:GetLinearVelocities():Get(indexA)
+        number angularVelocityA = data:GetAngularVelocities():Get(indexA)
+        
+        Vector2 positionB = data:GetPositions():Get(indexB)
+        number angleB = data:GetAngles():Get(indexB)
+        Vector2 linearVelocityB = data:GetLinearVelocities():Get(indexB)
+        number angularVelocityB = data:GetAngularVelocities():Get(indexB)
+        
+        PhysicsPosition2D transformA 
+        PhysicsPosition2D transformB
+        Vector2 temp
+      
+        transformA:Set(positionA, angleA)
+        transformB:Set(positionB, angleB)
+
+        //equivalent of mulToOutUnsafe
+        temp = temp:Set(localAnchorA):Subtract(localCenterA)        
+        rA:SetX((transformA:GetCosine() * temp:GetX() - transformA:GetSine() * temp:GetY()) + transformA:GetPosition():GetX())
+        rA:SetY((transformA:GetSine() * temp:GetX() + transformA:GetCosine() * temp:GetY()) + transformA:GetPosition():GetY())
+
+        temp = temp:Set(localAnchorB):Subtract(localCenterB)        
+        rB:SetX((transformB:GetCosine() * temp:GetX() - transformB:GetSine() * temp:GetY()) + transformB:GetPosition():GetX())
+        rB:SetY((transformB:GetSine() * temp:GetX() + transformB:GetCosine() * temp:GetY()) + transformB:GetPosition():GetY())
+
+        u:Set(positionB):Add(rB):Subtract(positionA):Subtract(rA)
+
+        length = u:Length()
+       
+        number diffFromMaxLength = length - maximumLength
+        if (diffFromMaxLength > 0.0)
+            parent:Joint2D:SetState(parent:Joint2D:AT_UPPER)
+        else 
+            parent:Joint2D:SetState(parent:Joint2D:INACTIVE)
+        end
+        
+        boolean returnZero = false
+        if (length > 0.005)
+            u:Scale(1.0 / length)
+        else
+            u:SetZero()
+            mass = 0.0
+            impulse = 0.0
+            returnZero = true //java code returns here
+        end
+        if not returnZero
+            number crossA = temp:Set(rA):CrossProduct(u)
+            number crossB = temp:Set(rB):CrossProduct(u)
+            number inverseMass = inverseMassA + inverseInertiaA * crossA * crossA 
+                                + inverseMassB + inverseInertiaB * crossB * crossB
+
+            if inverseMass not= 0.0
+                mass = 1.0 / inverseMass
+            else 
+                mass = 0.0
+            end
+            if data:GetTimeStep2D():IsWarmStarting()
+                impulse = impulse * data:GetTimeStep2D():GetTimeStepRatio()
+                
+                number pX = impulse * u:GetX()
+                number pY = impulse * u:GetY()
+                linearVelocityA:SetX(linearVelocityA:GetX() - (inverseMassA * pX))
+                linearVelocityA:SetY(linearVelocityA:GetY() - (inverseMassA * pY))
+                angularVelocityA = angularVelocityA - (inverseInertiaA * (rA:GetX() * pY - rA:GetY() * pX))
+
+                linearVelocityB:SetX(linearVelocityB:GetX() + (inverseMassB * pX))
+                linearVelocityB:SetY(linearVelocityB:GetY() + (inverseMassB * pY))
+                angularVelocityB = angularVelocityB + (inverseInertiaB * (rB:GetX() * pY - rB:GetY() * pX))
+            else
+                impulse = 0.0
+            end
+
+            //No values to return       
+        else
+        end     
+    end
+    
+    action SolveVelocityConstraints(JointSolverData data)
+        Vector2 linearVelocityA = data:GetLinearVelocities():Get(indexA)
+        number angularVelocityA = data:GetAngularVelocities():Get(indexA)
+        Vector2 linearVelocityB = data:GetLinearVelocities():Get(indexB)
+        number angularVelocityB = data:GetAngularVelocities():Get(indexB)
+
+        Vector2 vpA
+        Vector2 vpB
+        Vector2 temp
+
+        vpA:SetX(-angularVelocityA * rA:GetY())
+        vpA:SetY(angularVelocityA * rA:GetX())
+        vpA:Add(linearVelocityA)
+
+        vpB:SetX(-angularVelocityB * rB:GetY())
+        vpB:SetY(angularVelocityB * rB:GetX())
+        vpB:Add(linearVelocityB)
+
+        temp = temp:Set(vpA):Subtract(vpB)
+        number c = length - maximumLength
+        number cDot = u:DotProduct(temp)
+        
+        //Predictive constraints
+        if c < 0
+            cDot = cDot + data:GetTimeStep2D():GetInverseTimeStep() * c
+        end
+        
+        number tempImpulse = -mass * cDot
+        number oldImpulse = impulse
+        if impulse + tempImpulse <= 0.0
+            impulse = impulse + tempImpulse
+        else 
+            impulse = 0.0
+        end
+        tempImpulse = impulse - oldImpulse
+        
+        number pX = impulse * u:GetX()
+        number pY = impulse * u:GetY()
+        linearVelocityA:SetX(linearVelocityA:GetX() - (inverseMassA * pX))
+        linearVelocityA:SetY(linearVelocityA:GetY() - (inverseMassA * pY))
+        angularVelocityA = angularVelocityA - (inverseInertiaA * ( rA:GetX() * pY - rA:GetY() * pX))
+        linearVelocityB:SetX(linearVelocityB:GetX() + (inverseMassB * pX))
+        linearVelocityB:SetY(linearVelocityB:GetY() + (inverseMassB * pY))
+        angularVelocityB = angularVelocityB + (inverseInertiaB * ( rB:GetX() * pY - rB:GetY() * pX))
+
+        data:SetAngularVelocity(angularVelocityA, indexA)
+        data:SetAngularVelocity(angularVelocityB, indexB)
+    end
+
+    action SolvePositionConstraints (JointSolverData data) returns boolean
+        Vector2 positionA = data:GetPositions():Get(indexA)
+        number angleA = data:GetAngles():Get(indexA)
+        Vector2 positionB = data:GetPositions():Get(indexB)
+        number angleB = data:GetAngles():Get(indexB)
+
+        PhysicsPosition2D transformA
+        PhysicsPosition2D transformB
+        Vector2 localu
+        Vector2 localrA
+        Vector2 localrB
+        Vector2 temp
+
+        transformA:Set(positionA, angleA)
+        transformB:Set(positionB, angleB)
+        
+        temp = temp:Set(localAnchorA):Subtract(localCenterA)        
+        localrA:SetX((transformA:GetCosine() * temp:GetX() - transformA:GetSine() * temp:GetY()) + transformA:GetPosition():GetX())
+        localrA:SetY((transformA:GetSine() * temp:GetX() + transformA:GetCosine() * temp:GetY()) + transformA:GetPosition():GetY())
+
+        temp = temp:Set(localAnchorB):Subtract(localCenterB)        
+        localrB:SetX((transformB:GetCosine() * temp:GetX() - transformB:GetSine() * temp:GetY()) + transformB:GetPosition():GetX())
+        localrB:SetY((transformB:GetSine() * temp:GetX() + transformB:GetCosine() * temp:GetY()) + transformB:GetPosition():GetY())
+
+        localu:Set(positionB):Subtract(positionA):Subtract(localrA)
+
+        number localLength = localu:Length()
+        localu:Normalize()
+        
+        number diffFromMaxLength = localLength - maximumLength
+        number minimum = diffFromMaxLength
+        //minumum of diffFromMaxLength and 0.2 (maximumLinearCorrection)
+        if 0.2 < diffFromMaxLength
+            minimum = 0.2
+        end
+        //maximum of diffFromMaxLength and 0.0
+        if 0.0 > minimum
+            minimum = 0.0
+        end
+        diffFromMaxLength = minimum
+
+        number localImpulse = -mass * diffFromMaxLength
+        number pX = localImpulse * u:GetX()
+        number pY = localImpulse * u:GetY()
+
+        positionA:SetX( positionA:GetX() - (inverseMassA * pX))
+        positionA:SetY( positionA:GetY() - (inverseMassA * pY))
+        angleA = angleA - (inverseInertiaA * (localrA:GetX() * pY - localrA:GetY() * pX))
+        
+        positionB:SetX( positionB:GetX() + (inverseMassB * pX))
+        positionB:SetY( positionB:GetY() + (inverseMassB * pY))
+        angleB = angleB + (inverseInertiaB * (localrB:GetX() * pY - localrB:GetY() * pX))
+ 
+        data:SetAngle(angleA, indexA)
+        data:SetAngle(angleB, indexB)
+
+        return localLength - maximumLength < 0.005    
+    end
+
+    action GetLocalAnchorA returns Vector2
+        return localAnchorA
+    end
+
+    action SetLocalAnchorA(Vector2 localAnchor)
+        localAnchorA = localAnchor
+    end
+
+    action GetLocalAnchorB returns Vector2
+        return localAnchorB
+    end
+
+    action SetLocalAnchorB(Vector2 localAnchor)
+        localAnchorB = localAnchor
+    end
+
+    action GetMaxLength returns number
+        return maximumLength
+    end
+
+    action SetMaxLength(number maxLength)
+        maximumLength = maxLength
+    end
+
+    action GetAnchorA returns Vector2
+        return parent:Joint2D:itemA:GetWorldPoint(localAnchorA)
+    end
+
+    action GetAnchorB returns Vector2
+        return parent:Joint2D:itemB:GetWorldPoint(localAnchorB)
+    end
+
+    action GetReactionForce(number inverseTimeStep) returns Vector2
+        Vector2 temp
+        temp:Set(u):Scale(inverseTimeStep):Scale(impulse)
+        return temp        
+    end
+
+    action GetReactionTorque(number inverseTimeStep) returns number
+        return 0
+    end
+
+
+
+end

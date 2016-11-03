@@ -1,0 +1,80 @@
+package Libraries.Game.Collision.Narrowphase
+
+use Libraries.Containers.Array
+use Libraries.Compute.Vector2
+use Libraries.Game.Collision.Shapes.CollisionShape2D
+use Libraries.Game.Collision.Shapes.Circle
+use Libraries.Game.Collision.Shapes.Polygon
+
+class DistanceProxy2D 
+    Array<Vector2> vertices
+    integer count = 0
+    number radius = 0
+    
+    on create
+        repeat 8 times
+            Vector2 v
+            vertices:Add(v)
+        end
+    end
+
+    action Set(CollisionShape2D shape, integer index)
+        if shape:GetType() = shape:CIRCLE
+            Circle circle = cast(Circle, shape)
+            vertices:Get(0):Set(circle:GetSupportVertex())
+            count = 1
+            radius = circle:GetRadius()
+        elseif shape:GetType() = shape:POLYGON
+            Polygon poly = cast(Polygon, shape)
+            count = poly:GetVertexCount()
+            radius = poly:GetRadius()
+            integer i = 0
+            repeat while i < count
+                vertices:Get(i):Set(poly:GetVertex(i))
+                i = i + 1
+            end
+        end
+    end
+
+    action GetSupport(Vector2 direction) returns integer
+        integer bestIndex = 0
+        number bestValue = vertices:Get(0):DotProduct(direction)
+        integer i = 1
+        repeat while i < count
+            number value = vertices:Get(i):DotProduct(direction)
+            if value > bestValue
+                bestIndex = i
+                bestValue = value
+            end
+            i = i + 1
+        end
+        return bestIndex
+    end
+
+    action GetSupportVertex(Vector2 direction) returns Vector2
+        integer bestIndex = 0
+        number bestValue = vertices:Get(0):DotProduct(direction)
+        integer i = 1
+        repeat while i < count
+            number value = vertices:Get(i):DotProduct(direction)
+            if value > bestValue
+                bestIndex = i
+                bestValue = value
+            end
+            i = i + 1
+        end
+        return vertices:Get(bestIndex)
+    end
+
+    action GetVertexCount returns integer
+        return count
+    end
+
+    action GetRadius returns number
+        return radius
+    end
+
+    action GetVertex(integer index) returns Vector2
+        return vertices:Get(index)
+    end
+end

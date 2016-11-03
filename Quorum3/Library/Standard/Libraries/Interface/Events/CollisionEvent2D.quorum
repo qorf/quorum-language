@@ -116,6 +116,10 @@ class CollisionEvent2D
         return indexB
     end
 
+    action GetCollisionPoints returns LocalCollisionPoints2D
+        return collisionPoints
+    end
+
     action SetFriction(number friction)
         me:friction = friction
     end
@@ -125,7 +129,7 @@ class CollisionEvent2D
     end
 
     action ResetFriction
-        //friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
+        friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
     end
 
     action SetRestitution(number restitution)
@@ -137,7 +141,7 @@ class CollisionEvent2D
     end
 
     action ResetRestitution
-        //restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
+        restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
     end
 
     action SetTangentSpeed(number speed)

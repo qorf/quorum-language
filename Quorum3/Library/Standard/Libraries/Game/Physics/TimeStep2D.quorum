@@ -1,0 +1,58 @@
+package Libraries.Game.Physics
+
+class TimeStep2D 
+    number timeStep = 0
+    number inverseTimeStep = 0
+    number timeStepRatio = 1
+    integer velocityIterations = 1
+    integer positionIterations = 1
+    boolean warmStarting = false
+
+    action SetTimeStep(number timeStep)
+        me:timeStep = timeStep
+    end
+
+    action GetTimeStep returns number
+        return timeStep
+    end
+
+    action SetInverseTimeStep(number inverseTimeStep)
+        me:inverseTimeStep = inverseTimeStep
+    end
+
+    action GetInverseTimeStep returns number
+        return inverseTimeStep
+    end
+
+    action SetTimeStepRatio(number timeStepRatio)
+        me:timeStepRatio = timeStepRatio
+    end
+
+    action GetTimeStepRatio returns number
+        return timeStepRatio
+    end
+
+    action SetVelocityIterations(integer velocityIterations)
+        me:velocityIterations = velocityIterations
+    end
+
+    action GetVelocityIterations returns integer
+        return velocityIterations
+    end
+
+    action SetPositionIterations(integer positionIterations)
+        me:positionIterations = positionIterations
+    end
+
+    action GetPositionIterations returns integer
+        return positionIterations
+    end
+
+    action SetWarmStarting(boolean warmStarting)
+        me:warmStarting = warmStarting
+    end
+
+    action IsWarmStarting returns boolean
+        return warmStarting
+    end
+end
