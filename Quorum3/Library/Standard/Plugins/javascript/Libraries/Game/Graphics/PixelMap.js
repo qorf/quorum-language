@@ -741,13 +741,13 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
             if (f >= 0)
             {
                 yOffset--;
-                lineWidth += 2;
+                lineHeight += 2;
                 f += lineHeight;
             }
             
             xOffset++;
             lineWidth += 2;
-            f += lineHeight;
+            f += lineWidth;
             
             this.HorizontalLine(x - xOffset, x + xOffset, y + yOffset, color);
             this.HorizontalLine(x - xOffset, x + xOffset, y - yOffset, color);
