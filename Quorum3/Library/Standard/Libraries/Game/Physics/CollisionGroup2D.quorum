@@ -74,13 +74,13 @@ class CollisionGroup2D
         repeat while i < itemCount
             Item2D item = items:Get(i)
             Sweep2D sweep = item:GetSweep()
-            Vector2 center = sweep:center
-            number angle = sweep:angle
+            Vector2 center = sweep:GetCenter()
+            number angle = sweep:GetAngle()
             Vector2 velocity = item:GetLinearVelocity()
             number w = item:GetAngularVelocity()
 
-            sweep:center0:Set(sweep:center)
-            sweep:angle0 = sweep:angle
+            sweep:GetCenter0():Set(sweep:GetCenter())
+            sweep:SetAngle0(sweep:GetAngle())
 
             if item:GetResponsiveness() = item:GetPhysicsProperties():RESPONSIVE
                 velocity:SetX(velocity:GetX() + (h * (gravity:GetX() + item:GetInverseMass() * item:GetForce():GetX())))
@@ -193,7 +193,7 @@ class CollisionGroup2D
         i = 0
         repeat while i < itemCount
             Item2D body = items:Get(i)
-            body:GetSweep():center:Set(positions:Get(i))
+            body:GetSweep():GetCenter():Set(positions:Get(i))
             body:GetSweep():SetAngle(angles:Get(i))
             body:SetLinearVelocity(linearVelocities:Get(i))
             body:SetAngularVelocity(angularVelocities:Get(i))
@@ -247,8 +247,8 @@ class CollisionGroup2D
     action SolveTimeOfImpact(TimeStep2D subStep, integer timeOfImpactIndexA, integer timeOfImpactIndexB)
         integer i = 0
         repeat while i < itemCount
-            positions:Get(i):Set(items:Get(i):GetSweep():center)
-            angles:Set(i, items:Get(i):GetSweep():angle)
+            positions:Get(i):Set(items:Get(i):GetSweep():GetCenter())
+            angles:Set(i, items:Get(i):GetSweep():GetAngle())
             linearVelocities:Get(i):Set(items:Get(i):GetLinearVelocity())
             angularVelocities:Set(i, items:Get(i):GetAngularVelocity())
         end
@@ -271,9 +271,9 @@ class CollisionGroup2D
             i = i + 1
         end
 
-        items:Get(timeOfImpactIndexA):GetSweep():center0:Set(positions:Get(timeOfImpactIndexA))
+        items:Get(timeOfImpactIndexA):GetSweep():GetCenter0():Set(positions:Get(timeOfImpactIndexA))
         items:Get(timeOfImpactIndexA):GetSweep():SetAngle0(angles:Get(timeOfImpactIndexA))
-        items:Get(timeOfImpactIndexB):GetSweep():center0:Set(positions:Get(timeOfImpactIndexB))
+        items:Get(timeOfImpactIndexB):GetSweep():GetCenter0():Set(positions:Get(timeOfImpactIndexB))
         items:Get(timeOfImpactIndexB):GetSweep():SetAngle0(angles:Get(timeOfImpactIndexB))
 
         timeOfImpactCollisionSolver:InitializeVelocityConstraints()
@@ -318,7 +318,7 @@ class CollisionGroup2D
             angularVelocities:Set(i, w)
 
             Item2D body = items:Get(i)
-            body:GetSweep():center:Set(c)
+            body:GetSweep():GetCenter():Set(c)
             body:GetSweep():SetAngle(a)
             body:GetLinearVelocity():Set(v)
             body:SetAngularVelocity(w)

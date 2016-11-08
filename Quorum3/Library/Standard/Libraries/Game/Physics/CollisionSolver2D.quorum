@@ -558,8 +558,8 @@ class CollisionSolver2D
             
             integer j = 0
             repeat while j < vc:GetPointCount()
-                collisionPoints:points:Get(j):SetNormalImpulse(vc:points:Get(j):normalImpulse)
-                collisionPoints:points:Get(j):SetTangentImpulse(vc:points:Get(j):tangentImpulse)
+                collisionPoints:GetPoints():Get(j):SetNormalImpulse(vc:GetPoints():Get(j):GetNormalImpulse())
+                collisionPoints:GetPoints():Get(j):SetTangentImpulse(vc:GetPoints():Get(j):GetTangentImpulse())
                 
                 j = j + 1
             end
