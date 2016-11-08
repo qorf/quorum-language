@@ -92,27 +92,15 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
         gl.bindBuffer(target, buffer);
     };
     
-    // Expected parameters: integer, integer, Buffer, integer
-    this.glBufferData = function(target, size, data, usage)
+    // Expected parameters: integer, ArrayBufferView (typed array object), integer
+    this.glBufferData = function(target, data, usage)
     {
-        if (data === null || data === undefined)
-        {
-            gl.bufferData(target, size, usage);
-        }
-        else
-        {
-            gl.bufferData(target, data, usage);
-        }
+        gl.bufferData(target, data, usage);
     };
     
-    // Expected parameters: integer, integer, integer, Buffer
-    this.glBufferSubData = function(target, offset, size, data)
+    // Expected parameters: integer, integer, ArrayBufferView (typed array object)
+    this.glBufferSubData = function(target, offset, data)
     {
-        if (data === null || data === undefined)
-        {
-            return;
-        }
-
         gl.bufferSubData(target, offset, data);
     };
     

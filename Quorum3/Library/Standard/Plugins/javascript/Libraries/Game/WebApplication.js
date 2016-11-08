@@ -69,6 +69,7 @@ function plugins_quorum_Libraries_Game_WebApplication_()
         if (!configuration.capFramesPerSecond || elapsedTime > frameInterval || display.RenderingRequested())
         {
             display.renderingRequested = false;
+            display.UpdateTime();
             
             // Set the lastTime to when the last render should have been, if
             // the timing was perfect. This ensures that a late render won't

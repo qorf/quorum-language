@@ -1,8 +1,5 @@
 function plugins_quorum_Libraries_Game_NumberUtilities_() 
 {
-    // These functions are typically used to convert values between data types
-    // without modifying the bits. Since JavaScript isn't statically typed, this
-    // isn't an issue here.
     
     this.EncodeNumberAsInteger$quorum_number = function(target) 
     {
@@ -11,6 +8,10 @@ function plugins_quorum_Libraries_Game_NumberUtilities_()
     
     this.EncodeIntegerAsNumber$quorum_integer = function(target) 
     {
-        return target;
+        var buffer = new ArrayBuffer(4);
+        (new Uint32Array(buffer))[0] = target;
+        var returnValue = new Float32Array(buffer)[0];
+        
+        return returnValue;
     };
 }
