@@ -18,6 +18,15 @@ use Libraries.Game.Collision.CollisionManager2D
 use Libraries.Interface.Events.CollisionListener2D
 use Libraries.Game.Collision.CollisionEdge2D
 use Libraries.Interface.Events.CollisionEvent2D
+use Libraries.Game.Physics.TimeStep2D
+use Libraries.Game.Physics.Joints.Joint2D
+use Libraries.Game.Physics.CollisionGroup2D
+use Libraries.Game.Collision.Narrowphase.TimeOfImpact2D
+use Libraries.Game.Collision.Narrowphase.TimeOfImpactInput2D
+use Libraries.Game.Collision.Narrowphase.TimeOfImpactOutput2D
+use Libraries.Game.Collision.Sweep2D
+use Libraries.Containers.Stack
+use Libraries.Compute.Vector2
 
 /*
 The Layer2D class is used to manage a number of 2D objects, as well as manage
@@ -60,6 +69,7 @@ end
 class Layer2D is Layer
 
     Array<Item2D> items
+    Array<Joint2D> joints
     Array<MouseListener> mouseListeners
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
@@ -68,6 +78,17 @@ class Layer2D is Layer
     Painter2D painter
 
     CollisionManager2D collisionManager
+    boolean automaticallyClearForces = true
+
+    Vector2 gravity
+    boolean allowSleep = false
+
+    number inverseDeltaTime0 = 0
+
+    boolean warmStarting = true
+    boolean continuousPhysics = true
+    boolean subStepping = false
+    boolean stepComplete = true
 
     boolean newItemAdded = false
 
@@ -1429,7 +1450,7 @@ class Layer2D is Layer
     the Game engine. This action will automatically be called by the Game class
     as necessary. Most users should never need to use this action directly.
     */
-    action TestForCollisions
+    action TestForCollisions(number seconds)
         if newItemAdded
             collisionManager:FindNewCollisions()
             newItemAdded = false
@@ -1437,15 +1458,7 @@ class Layer2D is Layer
 
         collisionManager:Collide()
 
-        integer i = 0
-        repeat while i < items:GetSize()
-            Item2D item = items:Get(i)
-            item:SynchronizeNodes()
-
-            i = i + 1
-        end
-
-        collisionManager:FindNewCollisions()
+        StepPhysics(seconds)
     end
 
     /*
@@ -1456,5 +1469,461 @@ class Layer2D is Layer
     */
     action SetNewItemAdded(boolean flag)
         newItemAdded = flag
+    end
+
+    action RequireSimulation(boolean flag)
+        if allowSleep = flag
+            return now
+        end
+
+        allowSleep = flag
+        if not allowSleep
+            integer i = 0
+            repeat items:GetSize() times
+                Item2D item = items:Get(i)
+                item:Simulate(true)
+            end
+        end
+    end
+
+    action IsSimulationRequired returns boolean
+        return allowSleep
+    end
+
+    action SetSubStepping(boolean flag)
+        subStepping = flag
+    end
+
+    action IsSubStepping returns boolean
+        return subStepping
+    end
+
+    TimeStep2D timeStep
+
+    action StepPhysics(number seconds)
+        number dt = seconds
+        timeStep:SetTimeStep(dt)
+        number inverse_dt = 0
+        if dt > 0
+            inverse_dt = 1.0 / dt
+        else
+            inverse_dt = 0
+        end
+        timeStep:SetInverseTimeStep(inverse_dt)
+
+        number dtRatio = inverseDeltaTime0 * dt
+        timeStep:SetTimeStepRatio(dtRatio)
+        
+        timeStep:SetWarmStarting(warmStarting)
+        
+        if stepComplete and timeStep:GetTimeStep() > 0
+            SolvePhysics(timeStep)
+        end
+
+        if continuousPhysics and timeStep:GetTimeStep() > 0
+            SolveTimeOfImpact(timeStep)
+        end
+
+        if timeStep:GetTimeStep() > 0
+            inverseDeltaTime0 = timeStep:GetInverseTimeStep()
+        end
+
+        if automaticallyClearForces
+            ClearForces()
+        end
+    end
+
+    action ClearForces
+        integer i = 0
+        repeat items:GetSize() times
+            Item2D body = items:Get(i)
+            Vector2 zero
+            zero:SetZero()
+            body:SetForce(zero)
+            body:SetTorque(0)
+            i = i + 1
+        end
+    end
+
+    action SetWarmStarting(boolean flag)
+        warmStarting = flag
+    end
+
+    action IsWarmStarting returns boolean
+        return warmStarting
+    end
+
+    action SetContinuousPhysics(boolean flag)
+        continuousPhysics = flag
+    end
+
+    action IsContinuousPhysics returns boolean
+        return continuousPhysics
+    end
+
+    action SetGravity(Vector2 gravity)
+        me:gravity:Set(gravity)
+    end
+
+    action SetGravity(number gravityX, number gravityY)
+        gravity:Set(gravityX, gravityY)
+    end
+
+    action GetGravity returns Vector2
+        return gravity
+    end
+
+    action SetAutomaticallyClearForces(boolean flag)
+        automaticallyClearForces = flag
+    end
+
+    action AutomaticallyClearForces returns boolean
+        return automaticallyClearForces
+    end
+
+    CollisionGroup2D island
+    Stack<Item2D> stack
+
+    action SolvePhysics(TimeStep2D step)
+        integer i = 0
+        repeat items:GetSize() times
+            Item2D body = items:Get(i)
+            body:SetTransform0(body:GetTransform())
+            body:SetCollisionGroupFlag(false)
+            i = i + 1
+        end
+
+        CollisionEvent2D collision = collisionManager:GetCollisionList()
+        repeat until collision = undefined
+            collision:SetInCollisionGroup(false)
+            collision = collision:GetNext()
+        end
+
+        i = 0
+        repeat joints:GetSize() times
+            Joint2D joint = joints:Get(i)
+            joint:SetInCollisionGroup(false)
+        end
+
+        i = 0
+        repeat items:GetSize() times
+            Item2D seed = items:Get(i)
+            if not seed:GetCollisionGroupFlag()
+                if seed:IsSimulated()
+                    if seed:GetResponsiveness() not= seed:GetPhysicsProperties():UNMOVABLE
+                        island:Empty()
+                        stack:Push(seed)
+                        seed:SetCollisionGroupFlag(true)
+
+                        repeat while not stack:IsEmpty()
+                            Item2D body = stack:Pop()
+                            island:Add(body)
+
+                            body:Simulate(true)
+
+                            if body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
+                                CollisionEdge2D edge = body:GetCollisionList()
+                                repeat while edge not= undefined
+                                    CollisionEvent2D collision1 = edge:GetCollision()
+                                    if not collision1:InCollisionGroup()
+                                        if collision1:IsEnabled() and collision1:IsTouching()
+                                            boolean physicsA = collision1:GetItemA():IsPhysicsEnabled()
+                                            boolean physicsB = collision1:GetItemB():IsPhysicsEnabled()
+                                            boolean sensor = physicsA or physicsB
+
+                                            if not sensor
+                                                island:Add(collision1)
+                                                collision1:SetInCollisionGroup(true)
+
+                                                Item2D other = edge:GetOther()
+                                                if not other:GetCollisionGroupFlag()
+                                                    stack:Push(other)
+                                                    other:SetCollisionGroupFlag(true)
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+
+                            //TODO: Add joints to island
+                        end
+
+                        island:Solve(step, gravity, allowSleep)
+
+                        integer j = 0
+                        repeat items:GetSize() times
+                            Item2D body = items:Get(j)
+                            if body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE
+                                body:SetCollisionGroupFlag(false)
+                            end
+                            j = j + 1
+                        end
+                    end
+                end
+            end
+            i = i + 1
+        end
+
+        i = 0
+        repeat items:GetSize() times
+            Item2D body = items:Get(i)
+            if body:GetCollisionGroupFlag()
+                if body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
+                    body:SynchronizeNodes()
+                end
+            end
+        end
+
+        collisionManager:FindNewCollisions()
+    end
+
+    CollisionGroup2D toiIsland
+    TimeOfImpactInput2D toiInput
+    TimeOfImpactOutput2D toiOutput
+    TimeStep2D substep
+    Item2D tempBody0
+    Item2D tempBody1
+    Sweep2D backup1
+    Sweep2D backup2
+    TimeOfImpact2D toi
+
+    action SolveTimeOfImpact(TimeStep2D timeStep)
+        CollisionGroup2D island = toiIsland
+
+        if stepComplete
+            integer i = 0
+            repeat items:GetSize() times
+                Item2D body = items:Get(i)
+                body:SetCollisionGroupFlag(false)
+                body:GetSweep():SetAlpha0(0)
+                i = i + 1
+            end
+
+            CollisionEvent2D c = collisionManager:GetCollisionList()
+            repeat while c not= undefined
+                c:SetTimeOfImpactSolved(false)
+                c:SetInCollisionGroup(false)
+                c:SetTimeOfImpactCount(0)
+                c:SetTimeOfImpact(1)
+
+                c = c:GetNext()
+            end
+        end
+
+        boolean continue = true
+
+        repeat while continue
+            CollisionEvent2D minCollision = undefined
+            number minAlpha = 1
+
+            CollisionEvent2D c = collisionManager:GetCollisionList()
+            repeat while c not= undefined
+                if not c:IsEnabled()
+                    // skip to end of loop
+                elseif c:GetTimeOfImpactCount() > 8
+                    // skip to end of loop
+                else
+                    number alpha = 1
+                    if c:TimeOfImpactSolved()
+                        alpha = c:GetTimeOfImpact()
+                    else
+                        Item2D bA = c:GetItemA()
+                        Item2D bB = c:GetItemB()
+
+                        if not bA:IsPhysicsEnabled() or not bB:IsPhysicsEnabled()
+                            // skip to end of loop; these items don't need to be solved
+                            // for physical interactions because physics is not enabled
+                        else
+                            integer typeA = bA:GetResponsiveness()
+                            integer typeB = bB:GetResponsiveness()
+
+                            boolean activeA = bA:IsSimulated() and typeA not= bA:GetPhysicsProperties():UNMOVABLE
+                            boolean activeB = bB:IsSimulated() and typeB not= bB:GetPhysicsProperties():UNMOVABLE
+
+                            if not activeA and not activeB
+                                // skip to end of loop
+                            else
+                                boolean collideA = bA:IsFastMoving() or typeA not= bA:GetPhysicsProperties():RESPONSIVE
+                                boolean collideB = bB:IsFastMoving() or typeB not= bB:GetPhysicsProperties():RESPONSIVE
+
+                                if collideA = false and collideB = false
+                                    // skip to end of loop
+                                else
+                                    number alpha0 = bA:GetSweep():GetAlpha0()
+
+                                    if bA:GetSweep():GetAlpha0() < bB:GetSweep():GetAlpha0()
+                                        alpha0 = bB:GetSweep():GetAlpha0()
+                                        bA:GetSweep():Advance(alpha0)
+                                    elseif bB:GetSweep():GetAlpha0() < bA:GetSweep():GetAlpha0()
+                                        alpha0 = bA:GetSweep():GetAlpha0()
+                                        bB:GetSweep():Advance(alpha0)
+                                    end
+
+                                    integer indexA = c:GetChildIndexA()
+                                    integer indexB = c:GetChildIndexB()
+
+                                    toiInput:GetProxyA():Set(bA:GetShape(), indexA)
+                                    toiInput:GetProxyB():Set(bB:GetShape(), indexB)
+                                    toiInput:GetSweepA():Set(bA:GetSweep())
+                                    toiInput:GetSweepB():Set(bB:GetSweep())
+                                    toiInput:SetTimeMax(1)
+
+                                    toi:TimeOfImpact(toiOutput, toiInput)
+
+                                    number beta = toiOutput:GetTime()
+                                    if toiOutput:GetState() = toiOutput:TOUCHING
+                                        alpha = alpha0 + (1.0 - alpha0) * beta
+                                        if alpha > 1.0
+                                            alpha = 1.0
+                                        end
+                                    else
+                                        alpha = 1.0
+                                    end
+
+                                    c:SetTimeOfImpact(alpha)
+                                    c:SetTimeOfImpactSolved(true)
+                                end
+                            end
+                        end
+                    end
+
+                    if alpha < minAlpha
+                        minCollision = c
+                        minAlpha = alpha
+                    end
+                end
+                c = c:GetNext()
+            end
+
+            if minCollision = undefined or 1.0 - 10.0 * 0.00000011920928955078125 < minAlpha
+                stepComplete = true
+                continue = false
+            end
+
+            if continue
+                Item2D bA = minCollision:GetItemA()
+                Item2D bB = minCollision:GetItemB()
+
+                backup1:Set(bA:GetSweep())
+                backup2:Set(bB:GetSweep())
+
+                minCollision:DispatchCollision(collisionManager:GetCollisionListeners())
+                minCollision:SetTimeOfImpactSolved(false)
+                minCollision:SetTimeOfImpactCount(minCollision:GetTimeOfImpactCount() + 1)
+
+                if not minCollision:IsEnabled() or not minCollision:IsTouching()
+                    minCollision:SetEnabled(false)
+                    bA:GetSweep():Set(backup1)
+                    bB:GetSweep():Set(backup2)
+                    bA:SynchronizeTransform()
+                    bB:SynchronizeTransform()
+                else
+                    bA:Simulate(true)
+                    bB:Simulate(true)
+
+                    island:Empty()
+                    island:Add(bA)
+                    island:Add(bB)
+                    island:Add(minCollision)
+
+                    bA:SetCollisionGroupFlag(true)
+                    bB:SetCollisionGroupFlag(true)
+                    minCollision:SetInCollisionGroup(true)
+
+                    tempBody0 = bA
+                    tempBody1 = bB
+                    integer i = 0
+                    repeat 2 times
+                        Item2D body = tempBody0
+                        if i = 1
+                            body = tempBody1
+                        end
+
+                        if body:GetResponsiveness() = body:GetPhysicsProperties():RESPONSIVE
+                            CollisionEdge2D ce = body:GetCollisionList()
+                            repeat while ce not= undefined
+                                CollisionEvent2D collision = ce:GetCollision()
+
+                                if collision:InCollisionGroup()
+                                    //nothing to do; collision is already in island
+                                else
+                                    Item2D other = ce:GetOther()
+                                    if other:GetResponsiveness() = other:GetPhysicsProperties():RESPONSIVE and not body:IsFastMoving() and not other:IsFastMoving()
+                                        //nothing to do; one or both bodies is not flagged as needing TOI solving
+                                    else
+                                        boolean sensorA = collision:GetItemA():IsPhysicsEnabled()
+                                        boolean sensorB = collision:GetItemB():IsPhysicsEnabled()
+                                        if sensorA or sensorB
+                                            //nothing to do; one or both bodies is not flagged as needing physics solving
+                                        else
+                                            backup1:Set(other:GetSweep())
+                                            if not other:GetCollisionGroupFlag()
+                                                other:Advance(minAlpha)
+                                            end
+
+                                            collision:DispatchCollision(collisionManager:GetCollisionListeners())
+
+                                            if not collision:IsEnabled() or not collision:IsTouching()
+                                                other:GetSweep():Set(backup1)
+                                                other:SynchronizeTransform()
+                                            else
+                                                collision:SetInCollisionGroup(true)
+                                                island:Add(collision)
+
+                                                if not other:GetCollisionGroupFlag()
+                                                    other:SetCollisionGroupFlag(true)
+
+                                                    if other:GetResponsiveness() not= other:GetPhysicsProperties():UNMOVABLE
+                                                        other:Simulate(true)
+                                                    end
+
+                                                    island:Add(other)
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                                ce = ce:GetNext()
+                            end
+                        end
+                        i = i + 1
+                    end
+
+                    substep:SetTimeStep((1.0 - minAlpha) * timeStep:GetTimeStep())
+                    substep:SetInverseTimeStep(timeStep:GetInverseTimeStep())
+                    substep:SetTimeStepRatio(1.0)
+                    substep:SetPositionIterations(20)
+                    substep:SetVelocityIterations(8)
+                    substep:SetWarmStarting(false)
+                    island:SolveTimeOfImpact(substep, bA:GetCollisionGroupIndex(), bB:GetCollisionGroupIndex())
+
+                    integer j = 0
+                    repeat while j < island:GetItemCount()
+                        Item2D body = island:GetItem(i)
+                        body:SetCollisionGroupFlag(false)
+
+                        if body:GetResponsiveness() = body:GetPhysicsProperties():RESPONSIVE
+                            body:SynchronizeNodes()
+                            
+                            CollisionEdge2D ce = body:GetCollisionList()
+                            repeat while ce not= undefined
+                                ce:GetCollision():SetInCollisionGroup(false)
+                                ce:GetCollision():SetTimeOfImpactSolved(false)
+                                ce = ce:GetNext()
+                            end
+                        end
+                        j = j + 1
+                    end
+
+                    collisionManager:FindNewCollisions()
+
+                    if subStepping
+                        stepComplete = false
+                        continue = false
+                    end
+                end
+            end
+        end
     end
 end

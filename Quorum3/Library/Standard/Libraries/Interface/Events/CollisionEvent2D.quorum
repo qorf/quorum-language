@@ -33,6 +33,11 @@ class CollisionEvent2D
     private CollisionEvent2D next = undefined
     private CollisionEvent2D previous = undefined
 
+    boolean islandFlag = false
+    boolean toiFlag = false
+    integer toiCount = 0
+    number toi = 0
+
     CollisionEdge2D nodeA
     CollisionEdge2D nodeB
 
@@ -67,8 +72,8 @@ class CollisionEvent2D
         nodeB:next = undefined
         nodeA:other = undefined
 
-        //friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
-        //restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
+        friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
+        restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
         
     end
 
@@ -650,5 +655,37 @@ class CollisionEvent2D
         end
 
         return numOut
+    end
+
+    action SetInCollisionGroup(boolean flag)
+        islandFlag = flag
+    end
+
+    action InCollisionGroup returns boolean
+        return islandFlag
+    end
+
+    action SetTimeOfImpactSolved(boolean flag)
+        toiFlag = flag
+    end
+
+    action TimeOfImpactSolved returns boolean
+        return toiFlag
+    end
+
+    action SetTimeOfImpactCount(integer count)
+        toiCount = count
+    end
+
+    action GetTimeOfImpactCount returns integer
+        return toiCount
+    end
+
+    action SetTimeOfImpact(number toi)
+        me:toi = toi
+    end
+
+    action GetTimeOfImpact returns number
+        return toi
     end
 end

@@ -2195,6 +2195,14 @@ class Item2D is Item
         me:transform:Set(transform)
     end
 
+    action GetTransform0 returns PhysicsPosition2D
+        return transform0
+    end
+
+    action SetTransform0(PhysicsPosition2D transform)
+        me:transform0:Set(transform)
+    end
+
     action GetPosition returns Vector2
         return transform:GetPosition()
     end
@@ -2368,6 +2376,9 @@ class Item2D is Item
 
             i = i + 1
         end
+
+        // update position of item on screen from physics position
+        // ???
     end
 
     action GetNodes returns Array<Item2DNode>

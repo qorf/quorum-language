@@ -410,8 +410,9 @@ class Game
         gameInput:ProcessInputEvents()
 
         UpdateAll()
-        Update(GetSecondsBetweenFrames())
-        TestForCollisions()
+        number seconds = GetSecondsBetweenFrames()
+        Update(seconds)
+        TestForCollisions(seconds)
         ClearScreen()
         DrawAll()
     end
@@ -1431,16 +1432,16 @@ class Game
         currentLayer3D:RemoveCollisionListener(listener)
     end
 
-    private action TestForCollisions
+    private action TestForCollisions(number seconds)
         integer i = 0
         repeat while i < layers:GetSize()
             Layer layer = layers:Get(i)
             if layer is Layer2D
                 Layer2D layer2D = cast(Layer2D, layer)
-                layer2D:TestForCollisions()
+                layer2D:TestForCollisions(seconds)
             else
                 Layer3D layer3D = cast(Layer3D, layer)
-                layer3D:TestForCollisions()
+                layer3D:TestForCollisions(seconds)
             end
 
             i = i + 1

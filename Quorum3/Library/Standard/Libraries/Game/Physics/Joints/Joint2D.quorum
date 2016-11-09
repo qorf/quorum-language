@@ -27,6 +27,7 @@ class Joint2D
     Item2D itemA
     Item2D itemB
     boolean collideConnected = false
+    boolean collisionGroupFlag = false
     integer state = 0
 
     action GetType returns integer
@@ -87,4 +88,11 @@ class Joint2D
 
     blueprint action SolvePositionConstraints(JointSolverData data) returns boolean
 
+    action InCollisionGroup returns boolean
+        return collisionGroupFlag
+    end
+
+    action SetInCollisionGroup(boolean flag)
+        collisionGroupFlag = flag
+    end
 end

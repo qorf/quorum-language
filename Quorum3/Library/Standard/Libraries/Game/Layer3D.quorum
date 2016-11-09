@@ -2225,7 +2225,7 @@ class Layer3D is Layer
     the Game engine. This action will automatically be called by the Game class
     as necessary. Most users should never need to use this action directly.
     */
-    action TestForCollisions
+    action TestForCollisions(number seconds)
         if newItemAdded
             collisionManager:FindNewCollisions()
             newItemAdded = false
