@@ -234,7 +234,7 @@ class PhysicsProperties2D
         torque = 0
 
         if item:GetLayer() not= undefined
-            CollisionEdge2D edge //= item:GetCollisionList()
+            CollisionEdge2D edge = item:GetCollisionList()
             repeat while edge not= undefined
                 CollisionEdge2D edge0 = edge
                 edge = edge:GetNext()

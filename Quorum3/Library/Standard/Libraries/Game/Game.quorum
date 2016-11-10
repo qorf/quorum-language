@@ -53,6 +53,8 @@ use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
 use Libraries.Interface.Events.CollisionListener2D
 use Libraries.Interface.Events.CollisionListener3D
+use Libraries.Compute.Vector2
+use Libraries.Compute.Vector3
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -2377,4 +2379,11 @@ class Game
         return currentLayer3D:GetPointLights()
     end
 
+    action SetGravity(Vector2 gravity)
+        currentLayer2D:SetGravity(gravity)
+    end 
+
+    action SetGravity(number gravityX, number gravityY)
+        currentLayer2D:SetGravity(gravityX, gravityY)
+    end
 end

@@ -72,8 +72,10 @@ class CollisionEvent2D
         nodeB:next = undefined
         nodeA:other = undefined
 
-        friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
-        restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
+        if itemA:IsPhysicsEnabled() and itemB:IsPhysicsEnabled()
+            friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
+            restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
+        end
         
     end
 

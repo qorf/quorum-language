@@ -21,6 +21,13 @@ class Distance2D
     Vector2 temp
     Vector2 normal
 
+    on create
+        repeat MAX_ITERATIONS times
+            saveA:Add(0)
+            saveB:Add(0)
+        end
+    end
+
     action Distance(DistanceOutput2D out, SimplexCache2D cache, DistanceInput2D in)
         GJK_calls = GJK_calls + 1
 

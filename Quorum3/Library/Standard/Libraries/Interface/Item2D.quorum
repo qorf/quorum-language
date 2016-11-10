@@ -130,6 +130,8 @@ class Item2D is Item
     constant integer U4 = 18
     constant integer V4 = 19
 
+    Math math
+
     /*
     This action sets the X coordinate of the Item.
 
@@ -257,9 +259,6 @@ class Item2D is Item
             polygon:SetAsBox(dimensions:GetX(), dimensions:GetY())
             SetShape(polygon)
         end
-
-        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
-        sweep:GetCenter():Set(transform:GetPosition())
     end
 
     /*
@@ -280,9 +279,6 @@ class Item2D is Item
             polygon:SetAsBox(dimensions:GetX(), dimensions:GetY())
             SetShape(polygon)
         end
-
-        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
-        sweep:GetCenter():Set(transform:GetPosition())
     end
 
     /*
@@ -408,9 +404,6 @@ class Item2D is Item
 
         offset:SetX(xAmount)
 
-        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
-        sweep:GetCenter():SetX(transform:GetPosition():GetX())
-
         integer counter = 0
         repeat children:GetSize() times
             children:Get(counter):SetOffsetX(position:GetX() + xAmount)
@@ -441,9 +434,6 @@ class Item2D is Item
         end
 
         offset:SetY(yAmount)
-
-        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
-        sweep:GetCenter():SetY(transform:GetPosition():GetY())
 
         integer counter = 0
         repeat children:GetSize() times
@@ -515,12 +505,6 @@ class Item2D is Item
 
         offset:SetX(xAmount)
         offset:SetY(yAmount)
-
-
-        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
-        sweep:GetCenter():SetX(transform:GetPosition():GetX())
-        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
-        sweep:GetCenter():SetY(transform:GetPosition():GetY())
 
         integer counter = 0
         repeat children:GetSize() times
@@ -605,8 +589,6 @@ class Item2D is Item
 
             vertices:Set(X4, x2)
             vertices:Set(Y4, parentY)
-
-            Math math
 
             if rotation not= 0 or scale:GetX() not= 1 or scale:GetY() not= 1
                 verticesChanged = true
@@ -1100,8 +1082,6 @@ class Item2D is Item
                 //localY2 = localY2 * (2 * (scaleY - 1) + 1)
             end
 
-            Math math
-
             if rotation not= 0
                 number radians = math:DegreesToRadians(-1 * rotation)
                 number cos = math:Cosine(radians)
@@ -1430,8 +1410,6 @@ class Item2D is Item
         vertices:Set(X4, x2)
         vertices:Set(Y4, parentY)
 
-        Math math
-
         if rotation not= 0 or scale:GetX() not= 1 or scale:GetY() not= 1
             verticesChanged = true
         end
@@ -1486,10 +1464,7 @@ class Item2D is Item
         myItem:SetRotation(90)
     */
     action SetRotation(number degrees)
-        Math math
         rotation = degrees
-        transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
-        sweep:SetAngle(-1 * math:DegreesToRadians(rotation))
         verticesChanged = true
         
         //Iterator<Item> childIterator = GetItems()
@@ -1553,7 +1528,6 @@ class Item2D is Item
         number rotation = myItem:GetRotationInRadians()
     */
     action GetRotationInRadians returns number
-        Math math
         return math:DegreesToRadians(rotation)
     end
 
@@ -1569,10 +1543,7 @@ class Item2D is Item
         myItem:Rotate(65)
     */
     action Rotate(number degrees)
-        Math math
         rotation = rotation + degrees
-        transform:Set(transform:GetPosition(), -1 *  math:DegreesToRadians(rotation))
-        sweep:SetAngle(-1 * math:DegreesToRadians(rotation))
         if degrees not= 0
             verticesChanged = true
         end
@@ -1625,7 +1596,6 @@ class Item2D is Item
         myItem:SetScale(1.25)
     */
     action SetScale(number scale)
-        Math math
         me:scale:SetX(scale)
         me:scale:SetY(scale)
         verticesChanged = true
@@ -1669,7 +1639,6 @@ class Item2D is Item
         myItem:SetScale(1.5, 0.75)
     */
     action SetScale(number newX, number newY)
-        Math math
         scale:SetX(newX)
         scale:SetY(newY)
         verticesChanged = true
@@ -1748,7 +1717,6 @@ class Item2D is Item
         myItem:Scale(1.1)
     */
     action Scale(number amount)
-        Math math
         if amount <= 0
             return now
         end
@@ -1845,7 +1813,6 @@ class Item2D is Item
             end
         end
 
-        Math math
         if rotation not= 0
             Rotate(0)
         end
@@ -2208,7 +2175,6 @@ class Item2D is Item
     end
 
     action SynchronizeNodes
-        Math math
         PhysicsPosition2D xf1
 
         xf1:SetSine(math:Sine(sweep:GetAngle()))
@@ -2227,7 +2193,6 @@ class Item2D is Item
     end
 
     action SynchronizeTransform
-        Math math
         transform:SetSine(math:Sine(sweep:GetAngle()))
         transform:SetCosine(math:Cosine(sweep:GetAngle()))
         number cosine = transform:GetCosine()
@@ -2376,9 +2341,6 @@ class Item2D is Item
 
             i = i + 1
         end
-
-        // update position of item on screen from physics position
-        // ???
     end
 
     action GetNodes returns Array<Item2DNode>
@@ -2849,5 +2811,32 @@ class Item2D is Item
     action SetPhysicsProperties(PhysicsProperties2D properties)
         me:properties = properties:Copy()
         me:properties:SetItem(me)
+    end
+
+    action SetPhysicsPositionFromScreenPosition
+        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
+        sweep:GetCenter():SetX(transform:GetPosition():GetX())
+        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
+        sweep:GetCenter():SetY(transform:GetPosition():GetY())
+        transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
+        sweep:SetAngle(-1 * math:DegreesToRadians(rotation))
+
+        integer i = 0
+        repeat children:GetSize() times
+            children:Get(i):SetPhysicsPositionFromScreenPosition()
+            i = i + 1
+        end
+    end
+
+    action SetScreenPositionFromPhysicsPosition
+        position:SetX(transform:GetPosition():GetX() - offset:GetX() - dimensions:GetX() / 2)
+        position:SetY(transform:GetPosition():GetY() - offset:GetY() - dimensions:GetY() / 2)
+        rotation = 1 * math:RadiansToDegrees(transform:GetAngle())
+
+        integer i = 0
+        repeat children:GetSize() times
+            children:Get(i):SetScreenPositionFromPhysicsPosition()
+            i = i + 1
+        end
     end
 end

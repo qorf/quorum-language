@@ -86,7 +86,7 @@ class Layer2D is Layer
     number inverseDeltaTime0 = 0
 
     boolean warmStarting = true
-    boolean continuousPhysics = true
+    boolean continuousPhysics = false
     boolean subStepping = false
     boolean stepComplete = true
 
@@ -1451,6 +1451,8 @@ class Layer2D is Layer
     as necessary. Most users should never need to use this action directly.
     */
     action TestForCollisions(number seconds)
+        SetPhysicsPositionFromScreenPosition()
+
         if newItemAdded
             collisionManager:FindNewCollisions()
             newItemAdded = false
@@ -1459,6 +1461,26 @@ class Layer2D is Layer
         collisionManager:Collide()
 
         StepPhysics(seconds)
+
+        SetScreenPositionFromPhysicsPosition()
+    end
+
+    private action SetPhysicsPositionFromScreenPosition
+        integer i = 0
+        repeat items:GetSize() times
+            Item2D item = items:Get(i)
+            item:SetPhysicsPositionFromScreenPosition()
+            i = i + 1
+        end
+    end
+
+    private action SetScreenPositionFromPhysicsPosition
+        integer i = 0
+        repeat items:GetSize() times
+            Item2D item = items:Get(i)
+            item:SetScreenPositionFromPhysicsPosition()
+            i = i + 1
+        end
     end
 
     /*
@@ -1500,7 +1522,7 @@ class Layer2D is Layer
 
     TimeStep2D timeStep
 
-    action StepPhysics(number seconds)
+    private action StepPhysics(number seconds)
         number dt = seconds
         timeStep:SetTimeStep(dt)
         number inverse_dt = 0
@@ -1537,10 +1559,12 @@ class Layer2D is Layer
         integer i = 0
         repeat items:GetSize() times
             Item2D body = items:Get(i)
-            Vector2 zero
-            zero:SetZero()
-            body:SetForce(zero)
-            body:SetTorque(0)
+            if body:IsPhysicsEnabled()
+                Vector2 zero
+                zero:SetZero()
+                body:SetForce(zero)
+                body:SetTorque(0)
+            end
             i = i + 1
         end
     end
@@ -1584,12 +1608,14 @@ class Layer2D is Layer
     CollisionGroup2D island
     Stack<Item2D> stack
 
-    action SolvePhysics(TimeStep2D step)
+    private action SolvePhysics(TimeStep2D step)
         integer i = 0
         repeat items:GetSize() times
             Item2D body = items:Get(i)
             body:SetTransform0(body:GetTransform())
-            body:SetCollisionGroupFlag(false)
+            if body:IsPhysicsEnabled()
+                body:SetCollisionGroupFlag(false)
+            end
             i = i + 1
         end
 
@@ -1603,12 +1629,13 @@ class Layer2D is Layer
         repeat joints:GetSize() times
             Joint2D joint = joints:Get(i)
             joint:SetInCollisionGroup(false)
+            i = i + 1
         end
 
         i = 0
         repeat items:GetSize() times
             Item2D seed = items:Get(i)
-            if not seed:GetCollisionGroupFlag()
+            if seed:IsPhysicsEnabled() and not seed:GetCollisionGroupFlag()
                 if seed:IsSimulated()
                     if seed:GetResponsiveness() not= seed:GetPhysicsProperties():UNMOVABLE
                         island:Empty()
@@ -1627,8 +1654,8 @@ class Layer2D is Layer
                                     CollisionEvent2D collision1 = edge:GetCollision()
                                     if not collision1:InCollisionGroup()
                                         if collision1:IsEnabled() and collision1:IsTouching()
-                                            boolean physicsA = collision1:GetItemA():IsPhysicsEnabled()
-                                            boolean physicsB = collision1:GetItemB():IsPhysicsEnabled()
+                                            boolean physicsA = not collision1:GetItemA():IsPhysicsEnabled()
+                                            boolean physicsB = not collision1:GetItemB():IsPhysicsEnabled()
                                             boolean sensor = physicsA or physicsB
 
                                             if not sensor
@@ -1643,6 +1670,7 @@ class Layer2D is Layer
                                             end
                                         end
                                     end
+                                    edge = edge:GetNext()
                                 end
                             end
 
@@ -1668,7 +1696,7 @@ class Layer2D is Layer
         i = 0
         repeat items:GetSize() times
             Item2D body = items:Get(i)
-            if body:GetCollisionGroupFlag()
+            if body:IsPhysicsEnabled() and body:GetCollisionGroupFlag()
                 if body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
                     body:SynchronizeNodes()
                 end
@@ -1688,14 +1716,16 @@ class Layer2D is Layer
     Sweep2D backup2
     TimeOfImpact2D toi
 
-    action SolveTimeOfImpact(TimeStep2D timeStep)
+    private action SolveTimeOfImpact(TimeStep2D timeStep)
         CollisionGroup2D island = toiIsland
 
         if stepComplete
             integer i = 0
             repeat items:GetSize() times
                 Item2D body = items:Get(i)
-                body:SetCollisionGroupFlag(false)
+                if body:IsPhysicsEnabled()
+                    body:SetCollisionGroupFlag(false)
+                end
                 body:GetSweep():SetAlpha0(0)
                 i = i + 1
             end
