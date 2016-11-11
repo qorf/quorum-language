@@ -2819,7 +2819,7 @@ class Item2D is Item
         transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
         sweep:GetCenter():SetY(transform:GetPosition():GetY())
         transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
-        sweep:SetAngle(-1 * math:DegreesToRadians(rotation))
+        sweep:SetAngle(-1 * math:DegreesToRadians(rotation) - 90)
 
         integer i = 0
         repeat children:GetSize() times
@@ -2829,9 +2829,9 @@ class Item2D is Item
     end
 
     action SetScreenPositionFromPhysicsPosition
-        position:SetX(transform:GetPosition():GetX() - offset:GetX() - dimensions:GetX() / 2)
-        position:SetY(transform:GetPosition():GetY() - offset:GetY() - dimensions:GetY() / 2)
-        rotation = 1 * math:RadiansToDegrees(transform:GetAngle())
+        SetX(transform:GetPosition():GetX() - offset:GetX() - dimensions:GetX() / 2)
+        SetY(transform:GetPosition():GetY() - offset:GetY() - dimensions:GetY() / 2)
+        SetRotation(1 * math:RadiansToDegrees(transform:GetAngle()) + 90)
 
         integer i = 0
         repeat children:GetSize() times
