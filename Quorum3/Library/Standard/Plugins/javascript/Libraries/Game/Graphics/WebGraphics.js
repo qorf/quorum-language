@@ -479,7 +479,10 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     //                      integer, integer, integer, integer, Buffer
     this.glTexImage2D = function(target, level, internalformat, width, height, border, format, type, pixels)
     {
-        gl.texImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+        if (Object.prototype.toString.call(pixels) === "[object HTMLImageElement]")
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        else
+            gl.texImage2D(target, level, internalformat, width, height, border, format, type, pixels);
     };
     
     // Expected parameters: integer, IntBuffer

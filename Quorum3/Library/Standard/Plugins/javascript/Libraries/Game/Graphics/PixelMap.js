@@ -101,14 +101,15 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         = function(file, format, useMipMaps, drawable, texture)
     {
         var loadImage = new Image();
+        var pixelMap = this.me_;
         loadImage.onload = function()
         {
-            FinishLoadingAsynchronously(loadImage, file, format, useMipMaps, drawable, texture);
+            FinishLoadingAsynchronously(loadImage, file, format, useMipMaps, drawable, texture, pixelMap);
         };
-        loadImage.src = "Hues.png";
+        loadImage.src = file.GetAbsolutePath();
     };
     
-    function FinishLoadingAsynchronously(loadImage, file, format, useMipMaps, drawable, texture)
+    function FinishLoadingAsynchronously(loadImage, file, formatValue, useMipMaps, drawable, texture, pixelMap)
     {
         image = loadImage;
         width = loadImage.width;
@@ -117,12 +118,9 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         
         var newFormat = new quorum_Libraries_Game_Graphics_Format_();
         newFormat.SetValue$quorum_integer(4);
-        this.me_.format = newFormat;
+        pixelMap.format = newFormat;
         
-//        final quorum.Libraries.Game.Graphics.PixelMap thisMap = (quorum.Libraries.Game.Graphics.PixelMap) me_;
-//            quorum.Libraries.Game.Graphics.Format_ newFormat = new quorum.Libraries.Game.Graphics.Format();
-//            newFormat.SetValue(format);
-//            thisMap.format = newFormat;
+        texture.FinishLoadingAsynchronously$quorum_Libraries_System_File$quorum_Libraries_Game_Graphics_PixelMap$quorum_Libraries_Game_Graphics_Format$quorum_boolean$quorum_Libraries_Game_Graphics_Drawable(file, pixelMap, newFormat, useMipMaps, drawable);
     }
     
     this.CreatePixelMap$quorum_integer$quorum_integer$quorum_Libraries_Game_Graphics_Format = function(newWidth, newHeight, newFormat) 
@@ -176,7 +174,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
     
     this.SetPixel$quorum_integer$quorum_integer$quorum_integer = function(x, y, code) 
     {
-        if (!(image === undefined))
+        if (!(image === undefined || image === null))
             return;
         
         var index;
@@ -213,7 +211,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
     
     this.GetPixel$quorum_integer$quorum_integer = function(x, y) 
     {
-        if (!(image === undefined))
+        if (!(image === undefined || image === null))
             return;
         
         var colorCode = 0;
@@ -316,7 +314,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
 
     this.GetPixels = function()
     {
-        if (image === undefined)
+        if (image === undefined || image === null)
             return pixels;
         else
             return image;
@@ -330,7 +328,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
     
     this.Clear = function(clearColor)
     {
-        if (!(image === undefined))
+        if (!(image === undefined || image === null))
             return;
         
         if (clearColor === null || clearColor === undefined)
@@ -418,7 +416,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
 
     this.DrawPixelMap$quorum_Libraries_Game_Graphics_PixelMap$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(pixmap, sourceX, sourceY, destinationX, destinationY, sourceWidth, sourceHeight) 
     {
-        if (!(image === undefined))
+        if (!(image === undefined || image === null))
             return;
         
         var destinationWidth = pixmap.GetWidth();
@@ -590,7 +588,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
     
     this.Fill$quorum_integer = function(color) 
     {
-        if (!(image === undefined))
+        if (!(image === undefined || image === null))
             return;
         
         var colorCode;
