@@ -80,6 +80,13 @@ public class PixelMap {
         thisMap.format = newFormat;
     }
     
+    public void LoadAsynchronously(quorum.Libraries.System.File_ file, quorum.Libraries.Game.Graphics.Format_ format,
+            boolean useMipMaps, quorum.Libraries.Game.Graphics.Drawable_ drawable, quorum.Libraries.Game.Graphics.Texture_ texture)
+    {
+        LoadPixelMap(file);
+        texture.FinishLoadingAsynchronously(file, (quorum.Libraries.Game.Graphics.PixelMap) me_, format, useMipMaps, drawable);
+    }
+    
     public void CreatePixelMap(int newWidth, int newHeight, quorum.Libraries.Game.Graphics.Format_ newFormat) 
     {
         final quorum.Libraries.Game.Graphics.PixelMap thisMap = (quorum.Libraries.Game.Graphics.PixelMap) me_;
