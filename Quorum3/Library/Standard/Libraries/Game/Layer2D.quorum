@@ -1451,7 +1451,7 @@ class Layer2D is Layer
     as necessary. Most users should never need to use this action directly.
     */
     action TestForCollisions(number seconds)
-        SetPhysicsPositionFromScreenPosition()
+        SetPhysicsPositionsFromScreenPositions()
 
         if newItemAdded
             collisionManager:FindNewCollisions()
@@ -1462,10 +1462,10 @@ class Layer2D is Layer
 
         StepPhysics(seconds)
 
-        SetScreenPositionFromPhysicsPosition()
+        SetScreenPositionsFromPhysicsPositions()
     end
 
-    private action SetPhysicsPositionFromScreenPosition
+    private action SetPhysicsPositionsFromScreenPositions
         integer i = 0
         repeat items:GetSize() times
             Item2D item = items:Get(i)
@@ -1474,7 +1474,7 @@ class Layer2D is Layer
         end
     end
 
-    private action SetScreenPositionFromPhysicsPosition
+    private action SetScreenPositionsFromPhysicsPositions
         integer i = 0
         repeat items:GetSize() times
             Item2D item = items:Get(i)
@@ -1612,7 +1612,6 @@ class Layer2D is Layer
         integer i = 0
         repeat items:GetSize() times
             Item2D body = items:Get(i)
-            body:SetTransform0(body:GetTransform())
             if body:IsPhysicsEnabled()
                 body:SetCollisionGroupFlag(false)
             end

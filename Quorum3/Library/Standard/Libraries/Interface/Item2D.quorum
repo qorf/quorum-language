@@ -2193,8 +2193,7 @@ class Item2D is Item
     end
 
     action SynchronizeTransform
-        transform:SetSine(math:Sine(sweep:GetAngle()))
-        transform:SetCosine(math:Cosine(sweep:GetAngle()))
+        transform:Set(transform:GetPosition(), sweep:GetAngle())
         number cosine = transform:GetCosine()
         number sine = transform:GetSine()
         Vector2 v = sweep:GetLocalCenter()
@@ -2819,7 +2818,9 @@ class Item2D is Item
         transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
         sweep:GetCenter():SetY(transform:GetPosition():GetY())
         transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
-        sweep:SetAngle(-1 * math:DegreesToRadians(rotation) - 90)
+        sweep:SetAngle(transform:GetAngle())
+
+        transform0:Set(transform)
 
         integer i = 0
         repeat children:GetSize() times
@@ -2829,14 +2830,8 @@ class Item2D is Item
     end
 
     action SetScreenPositionFromPhysicsPosition
-        SetX(transform:GetPosition():GetX() - offset:GetX() - dimensions:GetX() / 2)
-        SetY(transform:GetPosition():GetY() - offset:GetY() - dimensions:GetY() / 2)
-        SetRotation(1 * math:RadiansToDegrees(transform:GetAngle()) + 90)
-
-        integer i = 0
-        repeat children:GetSize() times
-            children:Get(i):SetScreenPositionFromPhysicsPosition()
-            i = i + 1
-        end
+        MoveX(transform:GetPosition():GetX() - transform0:GetPosition():GetX())
+        MoveY(transform:GetPosition():GetY() - transform0:GetPosition():GetY())
+        Rotate(-1 * math:RadiansToDegrees(transform:GetAngle() - transform0:GetAngle()))
     end
 end
