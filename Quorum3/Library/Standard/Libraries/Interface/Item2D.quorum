@@ -2193,7 +2193,7 @@ class Item2D is Item
     end
 
     action SynchronizeTransform
-        transform:Set(transform:GetPosition(), sweep:GetAngle())
+        transform:Set(transform:GetPosition(), sweep:GetAngle() - sweep:GetAngle0())
         number cosine = transform:GetCosine()
         number sine = transform:GetSine()
         Vector2 v = sweep:GetLocalCenter()

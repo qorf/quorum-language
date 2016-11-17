@@ -70,7 +70,7 @@ class CollisionVelocityConstraint
     end
 
     action SetIndexA(integer index)
-        indexA = index
+        me:indexA = index
     end
 
     action GetIndexB returns integer
@@ -78,7 +78,7 @@ class CollisionVelocityConstraint
     end
 
     action SetIndexB(integer index)
-        indexB = index
+        me:indexB = index
     end
 
     action GetInverseMassA returns number
@@ -86,7 +86,7 @@ class CollisionVelocityConstraint
     end
 
     action SetInverseMassA(number inverseMass)
-        inverseMassA = inverseMass
+        me:inverseMassA = inverseMass
     end
 
     action GetInverseMassB returns number
@@ -94,7 +94,7 @@ class CollisionVelocityConstraint
     end
 
     action SetInverseMassB(number inverseMass)
-        inverseMassB = inverseMass
+        me:inverseMassB = inverseMass
     end
 
     action GetInverseInertiaA returns number
@@ -102,7 +102,7 @@ class CollisionVelocityConstraint
     end
 
     action SetInverseInertiaA(number inverseInertia)
-        inverseInertiaA = inverseInertia
+        me:inverseInertiaA = inverseInertia
     end
 
     action GetInverseInertiaB returns number
@@ -110,7 +110,7 @@ class CollisionVelocityConstraint
     end
 
     action SetInverseInertiaB(number inverseInertia)
-        inverseInertiaB = inverseInertia
+        me:inverseInertiaB = inverseInertia
     end
 
     action GetFriction returns number
@@ -150,6 +150,6 @@ class CollisionVelocityConstraint
     end
 
     action SetCollisionIndex(integer index)
-        collisionIndex = index
+        me:collisionIndex = index
     end
 end

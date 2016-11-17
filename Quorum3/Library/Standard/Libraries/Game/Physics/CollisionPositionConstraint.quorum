@@ -42,7 +42,7 @@ class CollisionPositionConstraint
     end
 
     action SetLocalNormal(Vector2 normal)
-        localNormal = normal
+        me:localNormal = normal
     end
 
     action GetLocalPoint returns Vector2
@@ -50,7 +50,7 @@ class CollisionPositionConstraint
     end
 
     action SetLocalPoint(Vector2 point)
-        localPoint = point
+        me:localPoint = point
     end
 
     action GetIndexA returns integer
@@ -58,7 +58,7 @@ class CollisionPositionConstraint
     end
 
     action SetIndexA(integer index)
-        indexA = index
+        me:indexA = index
     end
 
     action GetIndexB returns integer
@@ -66,7 +66,7 @@ class CollisionPositionConstraint
     end
 
     action SetIndexB(integer index)
-        indexB = index
+        me:indexB = index
     end
 
     action GetInverseMassA returns number
@@ -74,7 +74,7 @@ class CollisionPositionConstraint
     end
 
     action SetInverseMassA(number inverseMass)
-        inverseMassA = inverseMass
+        me:inverseMassA = inverseMass
     end
 
     action GetInverseMassB returns number
@@ -82,7 +82,7 @@ class CollisionPositionConstraint
     end
 
     action SetInverseMassB(number inverseMass)
-        inverseMassB = inverseMass
+        me:inverseMassB = inverseMass
     end
 
     action GetLocalCenterA returns Vector2
@@ -90,7 +90,7 @@ class CollisionPositionConstraint
     end
 
     action SetLocalCenterA(Vector2 localCenter)
-        localCenterA = localCenter
+        me:localCenterA = localCenter
     end
 
     action GetLocalCenterB returns Vector2
@@ -98,7 +98,7 @@ class CollisionPositionConstraint
     end
 
     action SetLocalCenterB(Vector2 localCenter)
-        localCenterB = localCenter
+        me:localCenterB = localCenter
     end
 
     action GetInverseInertiaA returns number
@@ -106,7 +106,7 @@ class CollisionPositionConstraint
     end
 
     action SetInverseInertiaA(number inverseInertia)
-        inverseInertiaA = inverseInertia
+        me:inverseInertiaA = inverseInertia
     end
 
     action GetInverseInertiaB returns number
@@ -114,7 +114,7 @@ class CollisionPositionConstraint
     end
 
     action SetInverseInertiaB(number inverseInertia)
-        inverseInertiaB = inverseInertia
+        me:inverseInertiaB = inverseInertia
     end
 
     action GetType returns integer
@@ -130,7 +130,7 @@ class CollisionPositionConstraint
     end
 
     action SetRadiusA(number radius)
-        radiusA = radius
+        me:radiusA = radius
     end
 
     action GetRadiusB returns number
@@ -138,7 +138,7 @@ class CollisionPositionConstraint
     end
 
     action SetRadiusB(number radius)
-        radiusB = radius
+        me:radiusB = radius
     end
 
     action GetPointCount returns integer

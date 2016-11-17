@@ -109,8 +109,6 @@ class CollisionSolver2D
             repeat while j < pointCount
                 CollisionPoint2D cp = collisionPoints:GetPoints():Get(j)
                 VelocityConstraintPoint vcp = vc:GetPoints():Get(j)
-                vcp:normalImpulse = 0
-                vcp:tangentImpulse = 0
 
                 if timeStep:IsWarmStarting()
                     vcp:SetNormalImpulse(timeStep:GetTimeStepRatio() * cp:GetNormalImpulse())
@@ -357,83 +355,115 @@ class CollisionSolver2D
                 number Px = tangentx * lambda
                 number Py = tangenty * lambda
 
-                vA:SetX(vA:GetX() - Px * mA)
-                vA:SetY(vA:GetY() - Py * mA)
-                wA = wA - iA * (vcp:GetRadiusA():GetX() * Py - vcp:GetRadiusA():GetY() * Px)
+                vA:SetX(vA:GetX() - (Px * mA))
+                vA:SetY(vA:GetY() - (Py * mA))
+                wA = wA - (iA * (vcp:GetRadiusA():GetX() * Py - vcp:GetRadiusA():GetY() * Px))
 
-                vB:SetX(vB:GetX() + Px * mB)
-                vB:SetY(vB:GetY() + Py * mB)
-                wB = wB + iB * (vcp:GetRadiusB():GetX() * Py - vcp:GetRadiusB():GetY() * Px)
+                vB:SetX(vB:GetX() + (Px * mB))
+                vB:SetY(vB:GetY() + (Py * mB))
+                wB = wB + (iB * (vcp:GetRadiusB():GetX() * Py - vcp:GetRadiusB():GetY() * Px))
 
-                if vc:GetPointCount() = 1
-                    VelocityConstraintPoint vcp1 = vc:GetPoints():Get(0)
+                j = j + 1
+            end
 
-                    number dvx1 = -wB * vcp1:GetRadiusB():GetY() + vB:GetX() - vA:GetX() + wA * vcp1:GetRadiusA():GetY()
-                    number dvy1 = wB * vcp1:GetRadiusB():GetX() + vB:GetY() - vA:GetY() - wA * vcp1:GetRadiusA():GetX()
+            if vc:GetPointCount() = 1
+                VelocityConstraintPoint vcp = vc:GetPoints():Get(0)
 
-                    number vn = dvx1 * normalx + dvy1 * normaly
-                    number lambda1 = -vcp1:GetNormalMass() * (vn * vcp1:GetVelocityBias())
+                number dvx = -wB * vcp:GetRadiusB():GetY() + vB:GetX() - vA:GetX() + wA * vcp:GetRadiusA():GetY()
+                number dvy = wB * vcp:GetRadiusB():GetX() + vB:GetY() - vA:GetY() - wA * vcp:GetRadiusA():GetX()
 
-                    number a1 = vcp1:GetNormalImpulse() + lambda1
-                    number newImpulse1 = 0
-                    if a1 > 0
-                        newImpulse1 = a1
+                number vn = dvx * normalx + dvy * normaly
+                number lambda = -vcp:GetNormalMass() * (vn * vcp:GetVelocityBias())
+
+                number a = vcp:GetNormalImpulse() + lambda
+                number newImpulse = 0
+                if a > 0
+                    newImpulse = a
+                end
+                lambda = newImpulse - vcp:GetNormalImpulse()
+                vcp:normalImpulse = newImpulse
+
+                number Px = normalx * lambda
+                number Py = normaly * lambda
+
+                vA:SetX(vA:GetX() - (Px * mA))
+                vA:SetY(vA:GetY() - (Py * mA))
+                wA = wA - (iA * (vcp:GetRadiusA():GetX() * Py - vcp:GetRadiusA():GetY() * Px))
+
+                vB:SetX(vB:GetX() + (Px * mB))
+                vB:SetY(vB:GetY() + (Py * mB))
+                wB = wB + (iB * (vcp:GetRadiusB():GetX() * Py - vcp:GetRadiusB():GetY() * Px))                                      
+            else
+                VelocityConstraintPoint cp1 = vc:GetPoints():Get(0)
+                VelocityConstraintPoint cp2 = vc:GetPoints():Get(1)
+                Vector2 cp1rA = cp1:GetRadiusA()
+                Vector2 cp1rB = cp1:GetRadiusB()
+                Vector2 cp2rA = cp2:GetRadiusA()
+                Vector2 cp2rB = cp2:GetRadiusB()
+                number ax = cp1:GetNormalImpulse()
+                number ay = cp2:GetNormalImpulse()
+
+                number dv1x = -wB * cp1rB:GetY() + vB:GetX() - vA:GetX() + wA * cp1rA:GetY()
+                number dv1y = wB * cp1rB:GetX() + vB:GetY() - vA:GetY() - wA * cp1rA:GetX()
+
+                number dv2x = -wB * cp2rB:GetY() + vB:GetX() - vA:GetX() + wA * cp2rA:GetY()
+                number dv2y = wB * cp2rB:GetX() + vB:GetY() - vA:GetY() - wA * cp2rA:GetX()
+
+                number vn1 = dv1x * normalx + dv1y * normaly
+                number vn2 = dv2x * normalx + dv2y * normaly
+
+                number bx = vn1 - cp1:GetVelocityBias()
+                number by = vn2 - cp2:GetVelocityBias()
+
+                Table<number> R = vc:GetInverseNormalMass()
+                bx = bx - (R:Get(0, 0) * ax + R:Get(0, 1) * ay)
+                by = by - (R:Get(1, 0) * ax + R:Get(1, 1) * ay)
+
+                boolean continue = true
+                repeat while continue
+                    Table<number> R1 = vc:GetNormalMass()
+                    number xx = R1:Get(0, 0) * bx + R1:Get(0, 1) * by
+                    number xy = R1:Get(1, 0) * bx + R1:Get(1, 1) * by
+                    xx = xx * -1
+                    xy = xy * -1
+
+                    if xx >= 0 and xy >= 0
+                        number dx = xx - ax
+                        number dy = xy - ay
+
+                        number P1x = dx * normalx
+                        number P1y = dx * normaly
+                        number P2x = dy * normalx
+                        number P2y = dy * normaly
+
+                        vA:SetX(vA:GetX() - (mA * (P1x + P2x)))
+                        vA:SetY(vA:GetY() - (mA * (P1y + P2y)))
+                        vB:SetX(vB:GetX() + (mB * (P1x + P2x)))
+                        vB:SetY(vB:GetY() + (mB * (P1y + P2y)))
+
+                        wA = wA - (iA * (cp1rA:GetX() * P1y - cp1rA:GetY() * P1x + (cp2rA:GetX() * P2y - cp2rA:GetY() * P2x)))
+                        wB = wB + (iB * (cp1rB:GetX() * P1y - cp1rB:GetY() * P1x + (cp2rB:GetX() * P2y - cp2rB:GetY() * P2x)))
+
+                        cp1:normalImpulse = xx
+                        cp2:normalImpulse = xy
+
+                        continue = false
                     end
-                    lambda1 = newImpulse1 - vcp1:GetNormalImpulse()
-                    vcp1:normalImpulse = newImpulse1
 
-                    number Px1 = normalx * lambda1
-                    number Py1 = normaly * lambda1
+                    if continue
+                        xx = -cp1:GetNormalMass() * bx
+                        xy = 0
+                        vn1 = 0
+                        vn2 = vc:GetInverseNormalMass():Get(1, 0) * xx + by
 
-                    vA:SetX(vA:GetX() - (Px1 * mA))
-                    vA:SetY(vA:GetY() - (Py1 * mA))
-                    wA = wA - (iA * (vcp1:GetRadiusA():GetX() * Py1 - vcp1:GetRadiusA():GetY() * Px1))
-
-                    vB:SetX(vB:GetX() + (Px1 * mB))
-                    vB:SetY(vB:GetY() + (Py1 * mB))
-                    wB = wB + (iB * (vcp1:GetRadiusB():GetX() * Py - vcp1:GetRadiusB():GetY() * Px1))                                      
-                else
-                    VelocityConstraintPoint cp1 = vc:GetPoints():Get(0)
-                    VelocityConstraintPoint cp2 = vc:GetPoints():Get(1)
-                    Vector2 cp1rA = cp1:GetRadiusA()
-                    Vector2 cp1rB = cp1:GetRadiusB()
-                    Vector2 cp2rA = cp2:GetRadiusA()
-                    Vector2 cp2rB = cp2:GetRadiusB()
-                    number ax = cp1:GetNormalImpulse()
-                    number ay = cp2:GetNormalImpulse()
-
-                    number dv1x = -wB * cp1rB:GetY() + vB:GetX() - vA:GetX() + wA * cp1rA:GetY()
-                    number dv1y = wB * cp1rB:GetX() + vB:GetY() - vA:GetY() - wA * cp1rA:GetX()
-
-                    number dv2x = -wB * cp2rB:GetY() + vB:GetX() - vA:GetX() + wA * cp2rA:GetY()
-                    number dv2y = wB * cp2rB:GetX() + vB:GetY() - vA:GetY() - wA * cp2rA:GetX()
-
-                    number vn1 = dv1x * normalx + dv1y * normaly
-                    number vn2 = dv2x * normalx + dv2y * normaly
-
-                    number bx = vn1 - cp1:GetVelocityBias()
-                    number by = vn2 - cp2:GetVelocityBias()
-
-                    Table<number> R = vc:GetInverseNormalMass()
-                    bx = bx - (R:Get(0, 0) * ax + R:Get(0, 1) * ay)
-                    by = by - (R:Get(1, 0) * ax + R:Get(1, 1) * ay)
-
-                    boolean continue = true
-                    repeat while continue
-                        Table<number> R1 = vc:GetNormalMass()
-                        number xx = R1:Get(0, 0) * bx + R1:Get(0, 1) * by
-                        number xy = R1:Get(1, 0) * bx + R1:Get(1, 1) * by
-                        xx = xx * -1
-                        xy = xy * -1
-
-                        if xx >= 0 and xy >= 0
+                        if xx >= 0 and vn2 >= 0
                             number dx = xx - ax
                             number dy = xy - ay
 
-                            number P1x = dx * normalx
-                            number P1y = dx * normaly
-                            number P2x = dy * normalx
-                            number P2y = dy * normaly
+                            number P1x = normalx * dx
+                            number P1y = normaly * dx
+                            number P2x = normalx * dy
+                            number P2y = normaly * dy
 
                             vA:SetX(vA:GetX() - (mA * (P1x + P2x)))
                             vA:SetY(vA:GetY() - (mA * (P1y + P2y)))
@@ -448,103 +478,71 @@ class CollisionSolver2D
 
                             continue = false
                         end
-
-                        if continue
-                            xx = -cp1:GetNormalMass() * bx
-                            xy = 0
-                            vn1 = 0
-                            vn2 = vc:GetInverseNormalMass():Get(1, 0) * xx + by
-
-                            if xx >= 0 and vn2 >= 0
-                                number dx = xx - ax
-                                number dy = xy - ay
-
-                                number P1x = normalx * dx
-                                number P1y = normaly * dx
-                                number P2x = normalx * dy
-                                number P2y = normaly * dy
-
-                                vA:SetX(vA:GetX() - (mA * (P1x + P2x)))
-                                vA:SetY(vA:GetY() - (mA * (P1y + P2y)))
-                                vB:SetX(vB:GetX() + (mB * (P1x + P2x)))
-                                vB:SetY(vB:GetY() + (mB * (P1y + P2y)))
-
-                                wA = wA - (iA * (cp1rA:GetX() * P1y - cp1rA:GetY() * P1x + (cp2rA:GetX() * P2y - cp2rA:GetY() * P2x)))
-                                wB = wB + (iB * (cp1rB:GetX() * P1y - cp1rB:GetY() * P1x + (cp1rB:GetX() * P2y - cp2rB:GetY() * P2x)))
-
-                                cp1:normalImpulse = xx
-                                cp2:normalImpulse = xy
-
-                                continue = false
-                            end
-                        end
-
-                        if continue
-                            xx = 0
-                            xy = -cp2:GetNormalMass() * by
-                            vn1 = vc:GetInverseNormalMass():Get(0, 1) * xy + bx
-                            vn2 = 0
-
-                            if xy >= 0 and vn1 >= 0
-                                number dx = xx - ax
-                                number dy = xy - ay
-
-                                number P1x = normalx * dx
-                                number P1y = normaly * dx
-                                number P2x = normalx * dy
-                                number P2y = normaly * dy
-
-                                vA:SetX(vA:GetX() - mA * (P1x + P2x))
-                                vA:SetY(vA:GetY() - mA * (P1y + P2y))
-                                vB:SetX(vB:GetX() + mB * (P1x + P2x))
-                                vB:SetY(vB:GetY() + mB * (P1y + P2y))
-
-                                wA = wA - (iA * (cp1rA:GetX() * P1y - cp1rA:GetY() * P1x + (cp2rA:GetX() * P2y - cp2rA:GetY() * P2x)))
-                                wB = wB + (iB * (cp1rB:GetX() + P1y - cp1rB:GetY() * P1x + (cp2rB:GetX() * P2y - cp2rB:GetY() * P2x)))
-
-                                cp1:normalImpulse = xx
-                                cp2:normalImpulse = xy
-
-                                continue = false                                    
-                            end
-                        end
-
-                        if continue
-                            xx = 0
-                            xy = 0
-                            vn1 = bx
-                            vn2 = by
-
-                            if vn1 >= 0 and vn2 >= 0
-                                number dx = xx - ax
-                                number dy = xy - ay
-
-                                number P1x = normalx * dx
-                                number P1y = normaly * dx
-                                number P2x = normalx * dy
-                                number P2y = normaly * dy
-
-                                vA:SetX(vA:GetX() - (mA * (P1x + P2x)))
-                                vA:SetY(vA:GetY() - (mA * (P1y + P2y)))
-                                vB:SetX(vB:GetX() + (mB * (P1x + P2x)))
-                                vB:SetY(vB:GetY() + (mB * (P1y + P2y)))
-
-                                wA = wA - (iA * (cp1rA:GetX() * P1y - cp1rA:GetY() * P1x + (cp2rA:GetX() * P2y - cp2rA:GetY() * P2x)))
-                                wB = wB + (iB * (cp1rB:GetX() * P1y - cp1rB:GetY() * P1x + (cp2rB:GetX() * P2y - cp2rB:GetY() * P2x)))
-
-                                cp1:normalImpulse = xx
-                                cp2:normalImpulse = xy
-                                continue = false
-                            end
-                        end
-                        continue = false
                     end
-                end
-                ws:Set(indexA, wA)
-                ws:Set(indexB, wB)
 
-                j = j + 1
+                    if continue
+                        xx = 0
+                        xy = -cp2:GetNormalMass() * by
+                        vn1 = vc:GetInverseNormalMass():Get(0, 1) * xy + bx
+                        vn2 = 0
+
+                        if xy >= 0 and vn1 >= 0
+                            number dx = xx - ax
+                            number dy = xy - ay
+
+                            number P1x = normalx * dx
+                            number P1y = normaly * dx
+                            number P2x = normalx * dy
+                            number P2y = normaly * dy
+
+                            vA:SetX(vA:GetX() - (mA * (P1x + P2x)))
+                            vA:SetY(vA:GetY() - (mA * (P1y + P2y)))
+                            vB:SetX(vB:GetX() + (mB * (P1x + P2x)))
+                            vB:SetY(vB:GetY() + (mB * (P1y + P2y)))
+
+                            wA = wA - (iA * (cp1rA:GetX() * P1y - cp1rA:GetY() * P1x + (cp2rA:GetX() * P2y - cp2rA:GetY() * P2x)))
+                            wB = wB + (iB * (cp1rB:GetX() * P1y - cp1rB:GetY() * P1x + (cp2rB:GetX() * P2y - cp2rB:GetY() * P2x)))
+
+                            cp1:normalImpulse = xx
+                            cp2:normalImpulse = xy
+
+                            continue = false                                    
+                        end
+                    end
+
+                    if continue
+                        xx = 0
+                        xy = 0
+                        vn1 = bx
+                        vn2 = by
+
+                        if vn1 >= 0 and vn2 >= 0
+                            number dx = xx - ax
+                            number dy = xy - ay
+
+                            number P1x = normalx * dx
+                            number P1y = normaly * dx
+                            number P2x = normalx * dy
+                            number P2y = normaly * dy
+
+                            vA:SetX(vA:GetX() - (mA * (P1x + P2x)))
+                            vA:SetY(vA:GetY() - (mA * (P1y + P2y)))
+                            vB:SetX(vB:GetX() + (mB * (P1x + P2x)))
+                            vB:SetY(vB:GetY() + (mB * (P1y + P2y)))
+
+                            wA = wA - (iA * (cp1rA:GetX() * P1y - cp1rA:GetY() * P1x + (cp2rA:GetX() * P2y - cp2rA:GetY() * P2x)))
+                            wB = wB + (iB * (cp1rB:GetX() * P1y - cp1rB:GetY() * P1x + (cp2rB:GetX() * P2y - cp2rB:GetY() * P2x)))
+
+                            cp1:normalImpulse = xx
+                            cp2:normalImpulse = xy
+                            continue = false
+                        end
+                    end
+                    continue = false
+                end
             end
+            ws:Set(indexA, wA)
+            ws:Set(indexB, wB)
 
             i = i + 1
         end

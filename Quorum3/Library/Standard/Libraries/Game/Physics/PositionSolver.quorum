@@ -26,7 +26,7 @@ class PositionSolver
             number pointAx = (xfAqc * plocalPoint:GetX() - xfAqs * plocalPoint:GetY()) + xfA:GetPosition():GetX()
             number pointAy = (xfAqs * plocalPoint:GetX() + xfAqc * plocalPoint:GetY()) + xfA:GetPosition():GetY()
             number pointBx = (xfBqc * plocalPoints0:GetX() - xfBqs * plocalPoints0:GetY()) + xfB:GetPosition():GetX()
-            number pointBy = (xfBqs * plocalPoints0:GetX() - xfBqc * plocalPoints0:GetY()) + xfB:GetPosition():GetY()
+            number pointBy = (xfBqs * plocalPoints0:GetX() + xfBqc * plocalPoints0:GetY()) + xfB:GetPosition():GetY()
             normal:SetX(pointBx - pointAx)
             normal:SetY(pointBy - pointAy)
             normal:Normalize()
@@ -45,7 +45,7 @@ class PositionSolver
             number planePointy = (xfAqs * plocalPoint:GetX() + xfAqc * plocalPoint:GetY()) + xfA:GetPosition():GetY()
             
             number clipPointx = (xfBqc * pcLocalPointsI:GetX() - xfBqs * pcLocalPointsI:GetY()) + xfB:GetPosition():GetX()
-            number clipPointy = (xfBqs * pcLocalPointsI:GetX() - xfBqc * pcLocalPointsI:GetY()) + xfB:GetPosition():GetY()
+            number clipPointy = (xfBqs * pcLocalPointsI:GetX() + xfBqc * pcLocalPointsI:GetY()) + xfB:GetPosition():GetY()
             number tempx = clipPointx - planePointx
             number tempy = clipPointy - planePointy
             separation = tempx * normal:GetX() + tempy * normal:GetY() - pc:GetRadiusA() - pc:GetRadiusB()
@@ -57,7 +57,7 @@ class PositionSolver
             normal:SetX(xfBqc * plocalNormal:GetX() - xfBqs * plocalNormal:GetY())
             normal:SetY(xfBqs * plocalNormal:GetX() + xfBqc * plocalNormal:GetY())
             number planePointx = (xfBqc * plocalPoint:GetX() - xfBqs * plocalPoint:GetY()) + xfB:GetPosition():GetX()
-            number planePointy = (xfBqs * plocalPoint:GetX() + xfBqc * plocalPoint:GetY())
+            number planePointy = (xfBqs * plocalPoint:GetX() + xfBqc * plocalPoint:GetY()) + xfB:GetPosition():GetY()
 
             number clipPointx = (xfAqc * pcLocalPointsI:GetX() - xfAqs * pcLocalPointsI:GetY()) + xfA:GetPosition():GetX()
             number clipPointy = (xfAqs * pcLocalPointsI:GetX() + xfAqc * pcLocalPointsI:GetY()) + xfA:GetPosition():GetY()
