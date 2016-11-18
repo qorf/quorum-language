@@ -45,6 +45,30 @@ class CollisionVelocityConstraint
         end
     end
 
+    action InitializeNormalMass
+        integer i = 0
+        repeat 2 times
+            integer j = 0
+            repeat 2 times
+                normalMass:Set(i, j, 0)
+                j = j + 1
+            end
+            i = i + 1
+        end
+    end
+
+    action InitializeInverseNormalMass
+        integer i = 0
+        repeat 2 times
+            integer j = 0
+            repeat 2 times
+                inverseNormalMass:Set(i, j, 0)
+                j = j + 1
+            end
+            i = i + 1
+        end
+    end
+
     action GetPoints returns Array<VelocityConstraintPoint>
         return points
     end

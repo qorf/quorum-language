@@ -1681,7 +1681,7 @@ class Layer2D is Layer
                         integer j = 0
                         repeat items:GetSize() times
                             Item2D body = items:Get(j)
-                            if body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE
+                            if body:IsPhysicsEnabled() and body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE
                                 body:SetCollisionGroupFlag(false)
                             end
                             j = j + 1

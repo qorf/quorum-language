@@ -88,6 +88,8 @@ class CollisionSolver2D
             vc:SetInverseInertiaB(bodyB:GetInverseInertia())
             vc:SetCollisionIndex(i)
             vc:SetPointCount(pointCount)
+            vc:InitializeNormalMass()
+            vc:InitializeInverseNormalMass()
 
             CollisionPositionConstraint pc = positionConstraints:Get(i)
             pc:indexA = bodyA:GetCollisionGroupIndex()
@@ -159,7 +161,7 @@ class CollisionSolver2D
             repeat while j < pointCount
                 VelocityConstraintPoint vcp = vc:GetPoints():Get(j)
                 number Px = tangentX * vcp:GetTangentImpulse() + normal:GetX() * vcp:GetNormalImpulse()
-                number Py = tangentY * vcp:GetTangentImpulse ()+ normal:GetY() * vcp:GetNormalImpulse()
+                number Py = tangentY * vcp:GetTangentImpulse() + normal:GetY() * vcp:GetNormalImpulse()
 
                 wA = wA - (iA * (vcp:GetRadiusA():GetX() * Py - vcp:GetRadiusA():GetY() * Px))
                 vA:SetX(vA:GetX() - (Px * mA))
@@ -345,7 +347,7 @@ class CollisionSolver2D
                 number maxFriction = friction * vcp:GetNormalImpulse()
                 number newImpulse = vcp:GetTangentImpulse() + lambda
                 if newImpulse < -maxFriction
-                    newmpulse = -maxFriction
+                    newImpulse = -maxFriction
                 elseif newImpulse > maxFriction
                     newImpulse = maxFriction
                 end

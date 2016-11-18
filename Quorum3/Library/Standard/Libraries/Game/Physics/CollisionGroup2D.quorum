@@ -68,7 +68,7 @@ class CollisionGroup2D
     JointSolverData solverData
 
     action Solve(TimeStep2D step, Vector2 gravity, boolean allowSleep)
-        number h = step:GetTimeStep()
+          number h = step:GetTimeStep()
 
         integer i = 0
         repeat while i < itemCount
@@ -92,9 +92,9 @@ class CollisionGroup2D
                 w = w * (1.0 / (1.0 + h * item:GetAngularDamping()))
             end
 
-            positions:Add(center)
+            positions:Add(center:Copy())
             angles:Add(angle)
-            linearVelocities:Add(velocity)
+            linearVelocities:Add(velocity:Copy())
             angularVelocities:Add(w)
 
             i = i + 1
@@ -193,9 +193,11 @@ class CollisionGroup2D
         i = 0
         repeat while i < itemCount
             Item2D body = items:Get(i)
-            body:GetSweep():GetCenter():Set(positions:Get(i))
+            body:GetSweep():GetCenter():SetX(positions:Get(i):GetX())
+            body:GetSweep():GetCenter():SetY(positions:Get(i):GetY())
             body:GetSweep():SetAngle(angles:Get(i))
-            body:SetLinearVelocity(linearVelocities:Get(i))
+            body:GetLinearVelocity():SetX(linearVelocities:Get(i):GetX())
+            body:GetLinearVelocity():SetY(linearVelocities:Get(i):GetY())
             body:SetAngularVelocity(angularVelocities:Get(i))
             body:SynchronizeTransform()
 
