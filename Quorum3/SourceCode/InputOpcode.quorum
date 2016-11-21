@@ -44,7 +44,9 @@ class InputOpcode is QuorumOpcode
     end
 
     action WriteJavaScript returns text
-        return ""
+        text rhs = opcode:WriteJavaScript()
+        text dq = rhs:GetDoubleQuote()
+        return "prompt(" + dq + rhs + dq + ", " + dq + dq + ");"
     end
 
     action GetTemplateCopy returns QuorumOpcode
