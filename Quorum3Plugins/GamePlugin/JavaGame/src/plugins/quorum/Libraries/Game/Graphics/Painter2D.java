@@ -251,7 +251,6 @@ public class Painter2D
         
         for (int i = 0; i < drawable.Get_Libraries_Game_Graphics_Drawable__DRAWABLE_SIZE_(); i++)
         {
-            //vertices[index++] = (float)drawable.GetVertex(i);
             quorumBatch.SetVertex(index, (float)drawable.GetVertex(i));
             index++;
         }
