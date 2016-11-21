@@ -1911,13 +1911,22 @@ class QuorumBytecodeListener is QuorumSourceListener
                 index = c:MapParentGenericToMe(parentClass:GetStaticKey(), index)
             end
 
-            if index not= -1
+            if index not= -1 and index < t:GetNumberGenerics()
                 Type left = t:GetGeneric(index)
                 
                 returnType:CopyFrom(left)
                 returnType:SetToObject(left:GetStaticKey())
             else //no index, this is an error
                 CompilerErrorManager manager = GetCompilerErrorManager()
+                CompilerError error
+                error:SetLocation(act)
+                CompilerErrorType t2
+                t2:SetCurrentType(t2:INCOMPATIBLE_TYPES)
+                error:SetCompilerErrorType(t2)
+                text message = "Invalid Generic at index " + index
+                error:SetErrorMessage(message)
+                manager:Add(error)
+                return now
             end
         else
             //this variable isn't mapped to a generic, but it could
