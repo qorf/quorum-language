@@ -68,7 +68,7 @@ class CollisionGroup2D
     JointSolverData solverData
 
     action Solve(TimeStep2D step, Vector2 gravity, boolean allowSleep)
-          number h = step:GetTimeStep()
+        number h = step:GetTimeStep()
 
         integer i = 0
         repeat while i < itemCount
@@ -217,7 +217,7 @@ class CollisionGroup2D
                 if body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
                     if not body:IsSimulationRequired() 
                         or body:GetAngularVelocity() * body:GetAngularVelocity() > angularToleranceSquared 
-                        or body:GetLinearVelocity():DotProduct(body:GetLinearVelocity()) > linearToleranceSquared
+                        or body:GetLinearVelocity():GetX() * body:GetLinearVelocity():GetX() + body:GetLinearVelocity():GetY() * body:GetLinearVelocity():GetY() > linearToleranceSquared
                             body:SetSleepTime(0)
                             minSleepTime = 0
                     else
@@ -253,6 +253,7 @@ class CollisionGroup2D
             angles:Set(i, items:Get(i):GetSweep():GetAngle())
             linearVelocities:Get(i):Set(items:Get(i):GetLinearVelocity())
             angularVelocities:Set(i, items:Get(i):GetAngularVelocity())
+            i = i + 1
         end
 
         timeOfImpactCollisionSolver:SetCollisionList(collisions)

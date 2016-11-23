@@ -16,19 +16,21 @@ use Libraries.Game.Physics.PositionSolver
 
 class CollisionSolver2D 
     constant number k_maxConditionNumber = 100.0
+
+    constant integer INITIAL_NUM_CONSTRAINTS = 256
     
-    TimeStep2D timeStep
-    Array<Vector2> positions
-    Array<number> angles
-    Array<Vector2> velocities
-    Array<number> ws
+    TimeStep2D timeStep = undefined
+    Array<Vector2> positions = undefined
+    Array<number> angles = undefined
+    Array<Vector2> velocities = undefined
+    Array<number> ws = undefined
     Array<CollisionPositionConstraint> positionConstraints
     Array<CollisionVelocityConstraint> velocityConstraints
-    Array<CollisionEvent2D> collisions
+    Array<CollisionEvent2D> collisions = undefined
     integer count = 0
 
     on create
-        repeat 256 times
+        repeat INITIAL_NUM_CONSTRAINTS times
             CollisionPositionConstraint positionConstraint
             CollisionVelocityConstraint velocityConstraint
             positionConstraints:Add(positionConstraint)
@@ -41,24 +43,24 @@ class CollisionSolver2D
     end
 
     action SetCollisionList(Array<CollisionEvent2D> collisionList)
-        collisions = collisionList
-        count = collisionList:GetSize()
+        me:collisions = collisionList
+        me:count = collisionList:GetSize()
     end
 
     action SetPositionsList(Array<Vector2> positionsList)
-        positions = positionsList
+        me:positions = positionsList
     end
 
     action SetAnglesList(Array<number> anglesList)
-        angles = anglesList
+        me:angles = anglesList
     end
 
     action SetLinearVelocitiesList(Array<Vector2> linearVelocitiesList)
-        velocities = linearVelocitiesList
+        me:velocities = linearVelocitiesList
     end
 
     action SetAngularVelocitiesList(Array<number> angularVelocitiesList)
-        ws = angularVelocitiesList
+        me:ws = angularVelocitiesList
     end
 
     action Initialize
@@ -77,11 +79,11 @@ class CollisionSolver2D
             integer pointCount = collisionPoints:GetPointCount()
 
             CollisionVelocityConstraint vc = velocityConstraints:Get(i)
-            vc:friction = collision:GetFriction()
-            vc:restitution = collision:GetRestitution()
-            vc:tangentSpeed = collision:GetTangentSpeed()
-            vc:indexA = bodyA:GetCollisionGroupIndex()
-            vc:indexB = bodyB:GetCollisionGroupIndex()
+            vc:SetFriction(collision:GetFriction())
+            vc:SetRestitution(collision:GetRestitution())
+            vc:SetTangentSpeed(collision:GetTangentSpeed())
+            vc:SetIndexA(bodyA:GetCollisionGroupIndex())
+            vc:SetIndexB(bodyB:GetCollisionGroupIndex())
             vc:SetInverseMassA(bodyA:GetInverseMass())
             vc:SetInverseMassB(bodyB:GetInverseMass())
             vc:SetInverseInertiaA(bodyA:GetInverseInertia())
@@ -92,8 +94,8 @@ class CollisionSolver2D
             vc:InitializeInverseNormalMass()
 
             CollisionPositionConstraint pc = positionConstraints:Get(i)
-            pc:indexA = bodyA:GetCollisionGroupIndex()
-            pc:indexB = bodyB:GetCollisionGroupIndex()
+            pc:SetIndexA(bodyA:GetCollisionGroupIndex())
+            pc:SetIndexB(bodyB:GetCollisionGroupIndex())
             pc:SetInverseMassA(bodyA:GetInverseMass())
             pc:SetInverseMassB(bodyB:GetInverseMass())
             pc:GetLocalCenterA():Set(bodyA:GetSweep():GetLocalCenter())
@@ -102,10 +104,10 @@ class CollisionSolver2D
             pc:SetInverseInertiaB(bodyB:GetInverseInertia())
             pc:GetLocalNormal():Set(collisionPoints:GetLocalNormal())
             pc:GetLocalPoint():Set(collisionPoints:GetLocalPoint())
-            pc:pointCount = pointCount
-            pc:radiusA = radiusA
-            pc:radiusB = radiusB
-            pc:type = collisionPoints:GetType()
+            pc:SetPointCount(pointCount)
+            pc:SetRadiusA(radiusA)
+            pc:SetRadiusB(radiusB)
+            pc:SetType(collisionPoints:GetType())
 
             integer j = 0
             repeat while j < pointCount
@@ -114,17 +116,17 @@ class CollisionSolver2D
 
                 if timeStep:IsWarmStarting()
                     vcp:SetNormalImpulse(timeStep:GetTimeStepRatio() * cp:GetNormalImpulse())
-                    vcp:SetTangentImpulse(timeStep:GetTimeStepRatio() * cp:GetNormalImpulse())
+                    vcp:SetTangentImpulse(timeStep:GetTimeStepRatio() * cp:GetTangentImpulse())
                 else
-                    vcp:normalImpulse = 0
-                    vcp:tangentImpulse = 0
+                    vcp:SetNormalImpulse(0)
+                    vcp:SetTangentImpulse(0)
                 end
 
                 vcp:GetRadiusA():SetZero()
                 vcp:GetRadiusB():SetZero()
-                vcp:normalMass = 0
-                vcp:tangentMass = 0
-                vcp:velocityBias = 0
+                vcp:SetNormalMass(0)
+                vcp:SetTangentMass(0)
+                vcp:SetVelocityBias(0)
                 pc:GetLocalPoint(j):SetX(cp:GetLocalPoint():GetX())
                 pc:GetLocalPoint(j):SetY(cp:GetLocalPoint():GetY())
 
@@ -241,10 +243,10 @@ class CollisionSolver2D
 
                 number kNormal = mA + mB + iA * rnA * rnA + iB * rnB * rnB
 
-                if kNormal > 0
-                    vcp:normalMass = 1 / kNormal
+                if kNormal > 0.0
+                    vcp:SetNormalMass(1.0 / kNormal)
                 else
-                    vcp:normalMass = 0
+                    vcp:SetNormalMass(0.0)
                 end
 
                 number tangentx = 1 * vcnormal:GetY()
@@ -255,18 +257,18 @@ class CollisionSolver2D
 
                 number kTangent = mA + mB + iA * rtA * rtA + iB * rtB * rtB
 
-                if kTangent > 0
-                    vcp:tangentMass = 1 / kTangent
+                if kTangent > 0.0
+                    vcp:SetTangentMass(1.0 / kTangent)
                 else
-                    vcp:tangentMass = 0
+                    vcp:SetTangentMass(0.0)
                 end
 
-                vcp:velocityBias = 0
+                vcp:SetVelocityBias(0)
                 number tempx = vB:GetX() + -wB * vcprB:GetY() - vA:GetX() - (-wA * vcprA:GetY())
                 number tempy = vB:GetY() + wB * vcprB:GetX() - vA:GetY() - (wA * vcprA:GetX())
                 number vRel = vcnormal:GetX() * tempx + vcnormal:GetY() * tempy
                 if vRel < -1.0
-                    vcp:velocityBias = -vc:GetRestitution() * vRel
+                    vcp:SetVelocityBias(-vc:GetRestitution() * vRel)
                 end
                 
                 j = j + 1
@@ -300,7 +302,7 @@ class CollisionSolver2D
                     vc:GetNormalMass():Set(1, 0, -det * c)
                     vc:GetNormalMass():Set(1, 1, det * a)
                 else
-                    vc:pointCount = 1
+                    vc:SetPointCount(1)
                 end
             end
             
@@ -352,7 +354,7 @@ class CollisionSolver2D
                     newImpulse = maxFriction
                 end
                 lambda = newImpulse - vcp:GetTangentImpulse()
-                vcp:tangentImpulse = newImpulse
+                vcp:SetTangentImpulse(newImpulse)
 
                 number Px = tangentx * lambda
                 number Py = tangenty * lambda
@@ -375,7 +377,7 @@ class CollisionSolver2D
                 number dvy = wB * vcp:GetRadiusB():GetX() + vB:GetY() - vA:GetY() - wA * vcp:GetRadiusA():GetX()
 
                 number vn = dvx * normalx + dvy * normaly
-                number lambda = -vcp:GetNormalMass() * (vn * vcp:GetVelocityBias())
+                number lambda = -vcp:GetNormalMass() * (vn - vcp:GetVelocityBias())
 
                 number a = vcp:GetNormalImpulse() + lambda
                 number newImpulse = 0
@@ -383,7 +385,7 @@ class CollisionSolver2D
                     newImpulse = a
                 end
                 lambda = newImpulse - vcp:GetNormalImpulse()
-                vcp:normalImpulse = newImpulse
+                vcp:SetNormalImpulse(newImpulse)
 
                 number Px = normalx * lambda
                 number Py = normaly * lambda
@@ -446,16 +448,16 @@ class CollisionSolver2D
                         wA = wA - (iA * (cp1rA:GetX() * P1y - cp1rA:GetY() * P1x + (cp2rA:GetX() * P2y - cp2rA:GetY() * P2x)))
                         wB = wB + (iB * (cp1rB:GetX() * P1y - cp1rB:GetY() * P1x + (cp2rB:GetX() * P2y - cp2rB:GetY() * P2x)))
 
-                        cp1:normalImpulse = xx
-                        cp2:normalImpulse = xy
+                        cp1:SetNormalImpulse(xx)
+                        cp2:SetNormalImpulse(xy)
 
                         continue = false
                     end
 
                     if continue
                         xx = -cp1:GetNormalMass() * bx
-                        xy = 0
-                        vn1 = 0
+                        xy = 0.0
+                        vn1 = 0.0
                         vn2 = vc:GetInverseNormalMass():Get(1, 0) * xx + by
 
                         if xx >= 0 and vn2 >= 0
@@ -475,8 +477,8 @@ class CollisionSolver2D
                             wA = wA - (iA * (cp1rA:GetX() * P1y - cp1rA:GetY() * P1x + (cp2rA:GetX() * P2y - cp2rA:GetY() * P2x)))
                             wB = wB + (iB * (cp1rB:GetX() * P1y - cp1rB:GetY() * P1x + (cp2rB:GetX() * P2y - cp2rB:GetY() * P2x)))
 
-                            cp1:normalImpulse = xx
-                            cp2:normalImpulse = xy
+                            cp1:SetNormalImpulse(xx)
+                            cp2:SetNormalImpulse(xy)
 
                             continue = false
                         end
@@ -505,8 +507,8 @@ class CollisionSolver2D
                             wA = wA - (iA * (cp1rA:GetX() * P1y - cp1rA:GetY() * P1x + (cp2rA:GetX() * P2y - cp2rA:GetY() * P2x)))
                             wB = wB + (iB * (cp1rB:GetX() * P1y - cp1rB:GetY() * P1x + (cp2rB:GetX() * P2y - cp2rB:GetY() * P2x)))
 
-                            cp1:normalImpulse = xx
-                            cp2:normalImpulse = xy
+                            cp1:SetNormalImpulse(xx)
+                            cp2:SetNormalImpulse(xy)
 
                             continue = false                                    
                         end
@@ -535,8 +537,8 @@ class CollisionSolver2D
                             wA = wA - (iA * (cp1rA:GetX() * P1y - cp1rA:GetY() * P1x + (cp2rA:GetX() * P2y - cp2rA:GetY() * P2x)))
                             wB = wB + (iB * (cp1rB:GetX() * P1y - cp1rB:GetY() * P1x + (cp2rB:GetX() * P2y - cp2rB:GetY() * P2x)))
 
-                            cp1:normalImpulse = xx
-                            cp2:normalImpulse = xy
+                            cp1:SetNormalImpulse(xx)
+                            cp2:SetNormalImpulse(xy)
                             continue = false
                         end
                     end

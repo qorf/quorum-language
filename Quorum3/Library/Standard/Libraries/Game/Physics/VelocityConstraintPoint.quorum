@@ -16,7 +16,7 @@ class VelocityConstraintPoint
     end
 
     action SetRadiusA(Vector2 radius)
-        radiusA = radius
+        me:radiusA = radius
     end
 
     action GetRadiusB returns Vector2
@@ -24,7 +24,7 @@ class VelocityConstraintPoint
     end
 
     action SetRadiusB(Vector2 radius)
-        radiusB = radius
+        me:radiusB = radius
     end
 
     action GetNormalImpulse returns number
@@ -32,7 +32,7 @@ class VelocityConstraintPoint
     end
 
     action SetNormalImpulse(number impulse)
-        normalImpulse = impulse
+        me:normalImpulse = impulse
     end
 
     action GetTangentImpulse returns number
@@ -40,7 +40,7 @@ class VelocityConstraintPoint
     end
 
     action SetTangentImpulse(number impulse)
-        tangentImpulse = impulse
+        me:tangentImpulse = impulse
     end
 
     action GetNormalMass returns number
@@ -48,7 +48,7 @@ class VelocityConstraintPoint
     end
 
     action SetNormalMass(number mass)
-        normalMass = mass
+        me:normalMass = mass
     end
 
     action GetTangentMass returns number
@@ -56,7 +56,7 @@ class VelocityConstraintPoint
     end
 
     action SetTangentMass(number mass)
-        tangentMass = mass
+        me:tangentMass = mass
     end
 
     action GetVelocityBias returns number
@@ -64,6 +64,6 @@ class VelocityConstraintPoint
     end
 
     action SetVelocityBias(number bias)
-        velocityBias = bias
+        me:velocityBias = bias
     end
 end

@@ -85,7 +85,7 @@ class Layer2D is Layer
 
     number inverseDeltaTime0 = 0
 
-    boolean warmStarting = true
+    boolean warmStarting = false
     boolean continuousPhysics = true
     boolean subStepping = false
     boolean stepComplete = true
@@ -1504,6 +1504,7 @@ class Layer2D is Layer
             repeat items:GetSize() times
                 Item2D item = items:Get(i)
                 item:Simulate(true)
+                i = i + 1
             end
         end
     end
@@ -1653,9 +1654,9 @@ class Layer2D is Layer
                                     CollisionEvent2D collision1 = edge:GetCollision()
                                     if not collision1:InCollisionGroup()
                                         if collision1:IsEnabled() and collision1:IsTouching()
-                                            boolean physicsA = not collision1:GetItemA():IsPhysicsEnabled()
-                                            boolean physicsB = not collision1:GetItemB():IsPhysicsEnabled()
-                                            boolean sensor = physicsA or physicsB
+                                            boolean physicsA = collision1:GetItemA():IsPhysicsEnabled()
+                                            boolean physicsB = collision1:GetItemB():IsPhysicsEnabled()
+                                            boolean sensor = not physicsA or not physicsB
 
                                             if not sensor
                                                 island:Add(collision1)
@@ -1679,9 +1680,9 @@ class Layer2D is Layer
                         island:Solve(step, gravity, allowSleep)
 
                         integer j = 0
-                        repeat items:GetSize() times
-                            Item2D body = items:Get(j)
-                            if body:IsPhysicsEnabled() and body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE
+                        repeat island:GetItemCount() times
+                            Item2D body = island:GetItem(j)
+                            if body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE
                                 body:SetCollisionGroupFlag(false)
                             end
                             j = j + 1
@@ -1700,6 +1701,7 @@ class Layer2D is Layer
                     body:SynchronizeNodes()
                 end
             end
+            i = i + 1
         end
 
         collisionManager:FindNewCollisions()

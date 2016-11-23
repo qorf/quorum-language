@@ -61,9 +61,8 @@ class GlobalCollisionPoints2D
             number qc = xfA:GetCosine()
             number qs = xfA:GetSine()
             Vector2 v = collisionPoints:GetLocalNormal()
-            Vector2 out = normal
-            out:SetX(qc * v:GetX() - qs * v:GetY())
-            out:SetY(qs * v:GetX() + qc * v:GetY())
+            normal:SetX(qc * v:GetX() - qs * v:GetY())
+            normal:SetY(qs * v:GetX() + qc * v:GetY())
             xfA:MultiplyToOut(xfA, collisionPoints:GetLocalPoint(), planePoint)
             
             Vector2 clipPoint
@@ -92,9 +91,8 @@ class GlobalCollisionPoints2D
             number qc = xfB:GetCosine()
             number qs = xfB:GetSine()
             Vector2 v = collisionPoints:GetLocalNormal()
-            Vector2 out = normal
-            out:SetX(qc * v:GetX() - qs * v:GetY())
-            out:SetY(qs * v:GetX() + qc * v:GetY())
+            normal:SetX(qc * v:GetX() - qs * v:GetY())
+            normal:SetY(qs * v:GetX() + qc * v:GetY())
             xfB:MultiplyToOut(xfB, collisionPoints:GetLocalPoint(), planePoint)
 
             Vector2 clipPoint

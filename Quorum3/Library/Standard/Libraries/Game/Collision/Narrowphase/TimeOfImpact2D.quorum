@@ -36,6 +36,11 @@ class TimeOfImpact2D
     BitwiseOperations bo
     Math math
 
+    on create
+        indexes:Add(0)
+        indexes:Add(0)
+    end
+
     action TimeOfImpact(TimeOfImpactOutput2D out, TimeOfImpactInput2D in)
         toiCalls = toiCalls + 1
 
