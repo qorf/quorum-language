@@ -28,7 +28,7 @@ class PhysicsProperties2D
 
     number sleepTime = 0
 
-    integer type = RESPONSIVE
+    integer type = UNMOVABLE
 
     boolean collisionGroupFlag = false
     integer collisionGroupIndex = 0
@@ -214,7 +214,6 @@ class PhysicsProperties2D
         me:type = type
 
         if me:type = UNMOVABLE
-            // if passed type is not static
             linearVelocity:SetZero()
             angularVelocity = 0
             sweep:SetAngle0(sweep:GetAngle())
@@ -224,6 +223,8 @@ class PhysicsProperties2D
                 item:SynchronizeNodes()
             end
         end
+
+        simulated = true
 
         if me:type = RESPONSIVE
             mass = 1
