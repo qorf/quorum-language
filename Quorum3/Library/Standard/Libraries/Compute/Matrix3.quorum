@@ -1579,7 +1579,7 @@ class Matrix3
 
     */
     action GetRotation returns number
-        return math:InverseTangent(row1column0, row0column0) * 180 / math:pi
+        return math:InverseTangent(row0column0, row1column0) * 180 / math:pi
     end
 
     /*
@@ -1604,7 +1604,7 @@ class Matrix3
 
     */
     action GetRotationInRadians returns number
-        return math:InverseTangent(row1column0, row0column0)
+        return math:InverseTangent(row0column0, row1column0)
     end
 
     /*
