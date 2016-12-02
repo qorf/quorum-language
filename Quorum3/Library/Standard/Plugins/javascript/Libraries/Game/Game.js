@@ -1,3 +1,5 @@
+/* global plugins_quorum_Libraries_Game_GameStateManager_ */
+
 function plugins_quorum_Libraries_Game_Game_() {
     this.GetSecondsBetweenFrames = function() {
 
@@ -7,6 +9,7 @@ function plugins_quorum_Libraries_Game_Game_() {
     };
 }
 
+// Code for the plugin-only ShaderProgram class.
 function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fragmentShader) 
 {
     
@@ -719,6 +722,250 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
         exceptionInstance_.SetErrorMessage$quorum_text("Failed to compile shader: " + this.GetLog());
         throw exceptionInstance_;
-    }
+    }   
+}
+
+// Code for the plugin-only TextureBinder class.
+function plugins_quorum_Libraries_Game_Graphics_TextureBinder_()
+{
+    /*
+    The web implementation of this class does not include code to perform
+    the tasks in round-robin fashion, unlike the desktop implemenation of this
+    class (which can use round robin, but always uses weighted as the default
+    and doesn't currently allow a user to change its method of operation).
+    */
     
+    this.Begin = function()
+    {
+        for (var i = 0; i < count; i++)
+        {
+            textures[i] = null;
+            weights[i] = 0;
+        }
+    };
+    
+    this.End = function()
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        graphics.glActiveTexture(graphics.gl.TEXTURE0);
+    };
+    
+    this.BindDescriptor = function(descriptor)
+    {
+        return this.BindTexture(descriptor, false);
+    };
+    
+    this.Bind = function(texture)
+    {
+        tempDescriptor.SetDescriptor(texture, null, null, null, null);
+        return this.BindTexture(tempDescriptor, false);
+    };
+    
+    this.BindTexture = function(descriptor, rebind)
+    {
+        var texture = descriptor.texture;
+        reused = false;
+        
+        var index = this.BindTextureWeighted(texture);
+        var result = offset + index;
+        
+        if (reused)
+        {
+            if (rebind)
+                texture.plugin_.Bind(result);
+            else
+            {
+                var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+                graphics.glActiveTexture(graphics.gl.TEXTURE0 + result);
+            }
+        }
+        
+        texture.UnsafeSetWrap(descriptor.uWrap, descriptor.vWrap);
+        texture.UnsafeSetFilter(descriptor.minFilter, descriptor.magFilter);
+        return result;
+    };
+    
+    this.GetMaxTextureUnits = function()
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        return graphics.glGetIntegerv(graphics.gl.MAX_TEXTURE_IMAGE_UNITS);
+    };
+    
+    this.BindTextureWeighted = function(texture)
+    {
+        var result = -1;
+        var weight = weights[0];
+        var wIndex = 0;
+        for (var i = 0; i < count; i++)
+        {
+            if (textures[i] === texture)
+            {
+                result = i;
+                weights[i] += reuseWeight;
+            }
+            else if (weights[i] < 0 || --weights[i] < weight)
+            {
+                weight = weights[i];
+                wIndex = i;
+            }
+        }
+        if (result < 0)
+        {
+            textures[wIndex] = texture;
+            weights[wIndex] = 100;
+            result = wIndex;
+            texture.plugin_.Bind(offset + result);
+        }
+        else
+            reused = true;
+        
+        return result;
+    };
+    
+    this.MAX_GLES_UNITS = 32;
+    
+    var offset = 1;
+    var count;
+    var reuseWeight = 10;
+    var textures = [];
+    var weights = [];
+    var reused;
+    var tempDescriptor = new quorum_Libraries_Game_Graphics_TextureDescriptor_();
+    var currentTexture = 0;
+    
+    if (this.GetMaxTextureUnits() > this.MAX_GLES_UNITS)
+        count = this.GetMaxTextureUnits() - 1;
+    else
+        count = this.MAX_GLES_UNITS - 1;
+}
+
+// Code for the plugin-only RenderContext class.
+function plugins_quorum_Libraries_Game_Graphics_RenderContext_()
+{
+    this.textureBinder = plugins_quorum_Libraries_Game_Graphics_TextureBinder_();
+    
+    var blending;
+    var blendSFactor;
+    var blendDFactor;
+    var depthFunc;
+    var depthRangeNear;
+    var depthRangeFar;
+    var depthMask;
+    var cullFace;
+    
+    this.Begin = function()
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        
+        graphics.glDisable(graphics.gl.DEPTH_TEST);
+        depthFunc = 0;
+        graphics.glDepthMask(true);
+        depthMask = true;
+        graphics.glDisable(graphics.gl.BLEND);
+        blending = false;
+        graphics.glDisable(graphics.gl.CULL_FACE);
+        cullFace = 0;
+        blendSFactor = 0;
+        blendDFactor = 0;
+        textureBinder.Begin();
+    };
+    
+    this.End = function()
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        
+        if (depthFunc !== 0)
+            graphics.glDisable(graphics.gl.DEPTH_TEST);
+        if (!depthMask)
+            graphics.glDepthMask(true);
+        if (blending)
+            graphics.glDisable(graphics.gl.BLEND);
+        if (cullFace > 0)
+            graphics.glDisable(graphics.gl.CULL_FACE);
+        
+        textureBinder.End();
+    };
+    
+    this.SetDepthMask = function(mask)
+    {
+        if (depthMask !== mask)
+        {
+            var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+            graphics.glDepthMask(mask);
+            depthMask = mask;
+        }
+    };
+    
+    this.SetDepthTest = function(depthFunction, depthNear, depthFar)
+    {
+        if (depthNear === undefined)
+            depthNear = 0;
+        if (depthFar === undefined)
+            depthFar = 0;
+        
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        
+        var wasEnabled = depthFunc !== 0;
+        var enabled = depthFunction !== 0;
+        if (depthFunc !== depthFunction)
+        {
+            depthFunc = depthFunction;
+            if (enabled)
+            {
+                graphics.glEnable(graphics.gl.DEPTH_TEST);
+                graphics.glDepthFunc(depthFunction);
+            }
+            else
+                graphics.glDisable(graphics.gl.DEPTH_TEST);
+        }
+        if (enabled)
+        {
+            if (!wasEnabled || depthFunc !== depthFunction)
+                graphics.glDepthFunc(depthFunc = depthFunction);
+            if (!wasEnabled || depthRangeNear !== depthNear || depthRangeFar !== depthFar)
+            {
+                graphics.glDepthRangef(depthNear, depthFar);
+                depthRangeNear = depthNear;
+                depthRangeFar = depthFar;
+            }
+        }
+    };
+    
+    this.SetBlending = function(enabled, sFactor, dFactor)
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        
+        if (enabled !== blending)
+        {
+            blending = enabled;
+            if (enabled)
+                graphics.glEnable(graphics.gl.BLEND);
+            else
+                graphics.glDisable(graphics.gl.BLEND);
+        }
+        
+        if (enabled && (blendSFactor !== sFactor || blendDFactor !== dFactor))
+        {
+            graphics.glBlendFunc(sFactor, dFactor);
+            blendSFactor = sFactor;
+            blendDFactor = dFactor;
+        }
+    };
+    
+    this.SetCullFace = function(face)
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        
+        if (face !== cullFace)
+        {
+            cullFace = face;
+            if ((face === graphics.gl.FRONT) || (face === graphics.gl.BACK) || (face === graphics.gl.FRONT_AND_BACK))
+            {
+                graphics.glEnable(graphics.gl.CULL_FACE);
+                graphics.glCullFace(face);
+            }
+            else
+                graphics.glDisable(graphics.gl.CULL_FACE);
+        }
+    };
 }
