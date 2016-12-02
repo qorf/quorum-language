@@ -81,7 +81,7 @@ class Layer2D is Layer
     boolean automaticallyClearForces = true
 
     Vector2 gravity
-    boolean allowSleep = false
+    boolean allowSleep = true
 
     number inverseDeltaTime0 = 0
 
@@ -1494,11 +1494,11 @@ class Layer2D is Layer
     end
 
     action RequireSimulation(boolean flag)
-        if allowSleep = flag
+        if allowSleep = not flag
             return now
         end
 
-        allowSleep = flag
+        allowSleep = not flag
         if not allowSleep
             integer i = 0
             repeat items:GetSize() times
@@ -1616,6 +1616,7 @@ class Layer2D is Layer
             if body:IsPhysicsEnabled()
                 body:SetCollisionGroupFlag(false)
             end
+            body:GetTransform0():Set(body:GetTransform())
             i = i + 1
         end
 
@@ -1635,59 +1636,79 @@ class Layer2D is Layer
         i = 0
         repeat items:GetSize() times
             Item2D seed = items:Get(i)
-            if seed:IsPhysicsEnabled() and not seed:GetCollisionGroupFlag()
-                if seed:IsSimulated()
-                    if seed:GetResponsiveness() not= seed:GetPhysicsProperties():UNMOVABLE
-                        island:Empty()
-                        stack:Push(seed)
-                        seed:SetCollisionGroupFlag(true)
+            if not seed:IsPhysicsEnabled()
+                // continue with loop -- this item does not need physics solved
+            elseif seed:GetCollisionGroupFlag()
+                // continue with loop -- this item has already had physics solved
+            elseif not seed:IsSimulated()
+                // continue with loop -- this item is not currently being simulated
+            elseif seed:GetResponsiveness() = seed:GetPhysicsProperties():UNMOVABLE
+                // continue with loop -- this item is unmovable and cannot start off a collision group
+            else
+                island:Empty()
+                stack:Empty()
+                stack:Push(seed)
+                seed:SetCollisionGroupFlag(true)
 
-                        repeat while not stack:IsEmpty()
-                            Item2D body = stack:Pop()
-                            island:Add(body)
+                repeat while not stack:IsEmpty()
+                    Item2D body = stack:Pop()
+                    island:Add(body)
 
-                            body:Simulate(true)
+                    body:Simulate(true)
 
-                            if body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
-                                CollisionEdge2D edge = body:GetCollisionList()
-                                repeat while edge not= undefined
-                                    CollisionEvent2D collision1 = edge:GetCollision()
-                                    if not collision1:InCollisionGroup()
-                                        if collision1:IsEnabled() and collision1:IsTouching()
-                                            boolean physicsA = collision1:GetItemA():IsPhysicsEnabled()
-                                            boolean physicsB = collision1:GetItemB():IsPhysicsEnabled()
-                                            boolean sensor = not physicsA or not physicsB
+                    if body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE
+                        // continue -- don't look for colliding items with unmovable items
+                        // to add to a collision group -- this keeps collision groups small
+                        // and faster to solve -- the items colliding with an unmovable
+                        // item will be a part of a separate collision group
+                    else
+                        CollisionEdge2D edge = body:GetCollisionList()
+                        repeat while edge not= undefined
+                            CollisionEvent2D collision1 = edge:GetCollision()
+                            if collision1:InCollisionGroup()
+                                // continue with group -- the collision has already been
+                                // accounted for in the collision group
+                            elseif not collision1:IsEnabled() or not collision1:IsTouching()
+                                // continue with group -- this collision is not currently
+                                // colliding (close, may collide in a few frames)
+                            else
+                                boolean physicsA = collision1:GetItemA():IsPhysicsEnabled()
+                                boolean physicsB = collision1:GetItemB():IsPhysicsEnabled()
+                                boolean sensor = not physicsA or not physicsB
 
-                                            if not sensor
-                                                island:Add(collision1)
-                                                collision1:SetInCollisionGroup(true)
+                                if sensor
+                                    // continue with group -- one or both items
+                                    // does not have physics enabled
+                                else
+                                    island:Add(collision1)
+                                    collision1:SetInCollisionGroup(true)
 
-                                                Item2D other = edge:GetOther()
-                                                if not other:GetCollisionGroupFlag()
-                                                    stack:Push(other)
-                                                    other:SetCollisionGroupFlag(true)
-                                                end
-                                            end
-                                        end
+                                    Item2D other = edge:GetOther()
+                                    if other:GetCollisionGroupFlag()
+                                        // continue with group -- the other item
+                                        // is already in this group
+                                    else
+                                        stack:Push(other)
+                                        other:SetCollisionGroupFlag(true)
                                     end
-                                    edge = edge:GetNext()
                                 end
                             end
-
-                            //TODO: Add joints to island
-                        end
-
-                        island:Solve(step, gravity, allowSleep)
-
-                        integer j = 0
-                        repeat island:GetItemCount() times
-                            Item2D body = island:GetItem(j)
-                            if body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE
-                                body:SetCollisionGroupFlag(false)
-                            end
-                            j = j + 1
+                            edge = edge:GetNext()
                         end
                     end
+
+                    //TODO: Add joints to island
+                end
+
+                island:Solve(step, gravity, allowSleep)
+
+                integer j = 0
+                repeat island:GetItemCount() times
+                    Item2D body = island:GetItem(j)
+                    if body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE
+                        body:SetCollisionGroupFlag(false)
+                    end
+                    j = j + 1
                 end
             end
             i = i + 1
@@ -1696,10 +1717,15 @@ class Layer2D is Layer
         i = 0
         repeat items:GetSize() times
             Item2D body = items:Get(i)
-            if body:IsPhysicsEnabled() and body:GetCollisionGroupFlag()
-                if body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
-                    body:SynchronizeNodes()
-                end
+            if not body:IsPhysicsEnabled() 
+                // do nothing -- physics is not enabled for this item
+            elseif not body:GetCollisionGroupFlag()
+                // do nothing -- this item was never a part of a physics group
+            elseif body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE
+                // do nothing -- this item is unmovable so synchronizing its nodes
+                // is not necessary
+            else
+                body:SynchronizeNodes()
             end
             i = i + 1
         end
@@ -1853,10 +1879,10 @@ class Layer2D is Layer
                     bA:Simulate(true)
                     bB:Simulate(true)
 
-                    island:Empty()
-                    island:Add(bA)
-                    island:Add(bB)
-                    island:Add(minCollision)
+                    toiIsland:Empty()
+                    toiIsland:Add(bA)
+                    toiIsland:Add(bB)
+                    toiIsland:Add(minCollision)
 
                     bA:SetCollisionGroupFlag(true)
                     bB:SetCollisionGroupFlag(true)
@@ -1883,8 +1909,8 @@ class Layer2D is Layer
                                     if other:GetResponsiveness() = other:GetPhysicsProperties():RESPONSIVE and not body:IsFastMoving() and not other:IsFastMoving()
                                         //nothing to do; one or both bodies is not flagged as needing TOI solving
                                     else
-                                        boolean sensorA = collision:GetItemA():IsPhysicsEnabled()
-                                        boolean sensorB = collision:GetItemB():IsPhysicsEnabled()
+                                        boolean sensorA = not collision:GetItemA():IsPhysicsEnabled()
+                                        boolean sensorB = not collision:GetItemB():IsPhysicsEnabled()
                                         if sensorA or sensorB
                                             //nothing to do; one or both bodies is not flagged as needing physics solving
                                         else
@@ -1922,12 +1948,12 @@ class Layer2D is Layer
                     end
 
                     substep:SetTimeStep((1.0 - minAlpha) * timeStep:GetTimeStep())
-                    substep:SetInverseTimeStep(timeStep:GetInverseTimeStep())
+                    substep:SetInverseTimeStep(1 / substep:GetTimeStep())
                     substep:SetTimeStepRatio(1.0)
                     substep:SetPositionIterations(20)
-                    substep:SetVelocityIterations(8)
+                    substep:SetVelocityIterations(timeStep:GetVelocityIterations())
                     substep:SetWarmStarting(false)
-                    island:SolveTimeOfImpact(substep, bA:GetCollisionGroupIndex(), bB:GetCollisionGroupIndex())
+                    toiIsland:SolveTimeOfImpact(substep, bA:GetCollisionGroupIndex(), bB:GetCollisionGroupIndex())
 
                     integer j = 0
                     repeat while j < island:GetItemCount()

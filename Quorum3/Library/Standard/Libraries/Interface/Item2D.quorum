@@ -2382,6 +2382,7 @@ class Item2D is Item
     end
 
     action EnablePhysics(boolean flag)
+        SetCollidable(true)
         physicsEnabled = flag
     
         if physicsEnabled
