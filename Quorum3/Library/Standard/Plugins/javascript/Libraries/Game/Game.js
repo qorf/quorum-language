@@ -304,36 +304,6 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         graphics.glUniform1fv(location, value);
     };
     
-    this.SetUniformVector2FromName = function(name, value)
-    {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
-        this.CheckManaged();
-        var location = FetchUniformLocation(name);
-        graphics.glUniform2fv(location, value);
-    };
-    
-    this.SetUniformVector2AtLocation = function(location, value)
-    {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
-        this.CheckManaged();
-        graphics.glUniform2fv(location, value);
-    };
-    
-    this.SetUniformVector3FromName = function(name, value)
-    {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
-        this.CheckManaged();
-        var location = FetchUniformLocation(name);
-        graphics.glUniform3fv(location, value);
-    };
-    
-    this.SetUniformVector3AtLocation = function(location, value)
-    {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
-        this.CheckManaged();
-        graphics.glUniform3fv(location, value);
-    };
-    
     this.SetUniformVector4FromName = function(name, value)
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
@@ -1557,9 +1527,25 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultGLSLStrings_()
     }
 }
 
+// Code for the plugin-only class DefaultShaderConfig.
+function plugins_quorum_Libraries_Game_Graphics_DefaultShaderConfig_(vertexShader, fragmentShader)
+{
+    this.vertexShader = vertexShader;
+    this.fragmentShader = fragmentShader;
+    this.numDirectionalLights = 2;
+    this.numPointLights = 5;
+    this.numSpotLights = 0;
+    this.numBones = 12;
+    this.ignoreUnimplemented = true;
+    this.defaultCullFace = -1;
+    this.defaultDepthFunc = -1;
+}
+
 // Code for the plugin-only class DefaultShader.
 function plugins_quorum_Libraries_Game_Graphics_DefaultShader_()
 {
+    // Beginning of code for the BaseShader.
+    
     var uniforms = [];
     var validators = [];
     var setters = [];
@@ -1814,5 +1800,148 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_()
             return false;
         
         this.program.SetUniformVector3AtLocation(locations[uniform], value.GetX(), value.GetY(), value.GetZ());
+        return true;
     };
+    
+    this.SetVector2 = function(uniform, value)
+    {
+        if (locations[uniform] < 0)
+            return false;
+        
+        this.program.SetUniformVector2AtLocation(locations[uniform], value.GetX(), value.GetY());
+        return true;
+    };
+
+    this.SetColor = function(uniform, value)
+    {
+        if (locations[uniform] < 0)
+            return false;
+        
+        this.program.SetUniformColorAtLocation(locations[uniform], value);
+        return true;
+    };
+    
+    this.Set1f = function(uniform, value)
+    {
+        if (locations[uniform] < 0)
+            return false;
+        
+        this.program.SetUniform1fAtLocation(locations[uniform], value);
+        return true;
+    };
+    
+    this.Set2f = function(uniform, v1, v2)
+    {
+        if (locations[uniform] < 0)
+            return false;
+        
+        this.program.SetUniform2fAtLocation(locations[uniform], v1, v2);
+        return true;
+    };
+    
+    this.Set3f = function(uniform, v1, v2, v3)
+    {
+        if (locations[uniform] < 0)
+            return false;
+        
+        this.program.SetUniform3fAtLocation(v1, v2, v3);
+        return true;
+    };
+    
+    this.Set1i = function(uniform, value)
+    {
+        if (locations[uniform] < 0)
+            return false;
+        
+        this.program.SetUniform1iAtLocation(locations[uniform], value);
+        return true;
+    };
+    
+    this.Set2i = function(uniform, v1, v2)
+    {
+        if (locations[uniform] < 0)
+            return false;
+        
+        this.program.SetUniform2iAtLocation(locations[uniform], v1, v2);
+        return true;
+    };
+    
+    this.Set3i = function(uniform, v1, v2, v3)
+    {
+        if (locations[uniform] < 0)
+            return false;
+        
+        program.SetUniform3iAtLocation(locations[uniform], v1, v2, v3);
+        return true;
+    };
+    
+    this.Set4i = function(uniform, v1, v2, v3, v4)
+    {
+        if (locations[uniform] < 0)
+            return false;
+        
+        this.program.SetUniform4iAtLocation(locations[uniform], v1, v2, v3, v4);
+        return true;
+    };
+    
+    this.ConvertMatrix4ToArray = function(m)
+    {
+        var temp = [m.row0column0, m.row1column0, m.row2column0, m.row3column0,
+                    m.row0column1, m.row1column1, m.row2column1, m.row3column1,
+                    m.row0column2, m.row1column2, m.row2column2, m.row3column2,
+                    m.row0column3, m.row1column3, m.row2column3, m.row3column3];
+                
+        return temp;
+    };
+    
+    this.ConvertMatrix3ToArray = function(m)
+    {
+        var temp = [m.row0column0, m.row1column0, m.row2column0,
+                    m.row0column1, m.row1column1, m.row2column1,
+                    m.row0column2, m.row1column2, m.row2column2];
+                
+        return temp;
+    };
+    
+    this.NewUniform = function(alias, materialMask, environmentMask, overallMask)
+    {
+        var newUniform = {};
+        newUniform.alias = alias;
+        newUniform.materialMask = materialMask;
+        newUniform.environmentMask = environmentMask;
+        newUniform.overallMask = overallMask;
+        newUniform.Validate = function(shader, inputID, renderable)
+        {
+            var matFlags;
+            if ((renderable !== null && renderable !== undefined) && (renderable.material !== null && renderable.material !== undefined))
+                matFlags = renderable.material.GetMask();
+            else
+                matFlags = 0;
+            
+            var envFlags;
+            if ((renderable !== null && renderable !== undefined) && (renderable.environment !== null && renderable.environment !== undefined))
+                envFlags = renderable.material.GetMask();
+            else
+                envFlags = 0;
+            
+            return ((matFlags & materialMask) === materialMask) && ((envFlags & environmentMask) === environmentMask)
+                && (((matFlags | envFlags) & overallMask) === overallMask);
+        };
+        
+        return newUniform;
+    };
+    
+    // Beginning of the code for the DefaultShader.
+    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projTrans = this.NewUniform("u_projTrans", 0, 0, 0);
+    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTrans = this.NewUniform("u_viewTrans", 0, 0, 0);
+    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTrans = this.NewUniform("u_projViewTrans", 0, 0, 0);
+    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraPosition = this.NewUniform("u_cameraPosition", 0, 0, 0);
+    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraDirection = this.NewUniform("u_cameraDirection", 0, 0, 0);
+    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraUp = this.NewUniform("u_cameraUp", 0, 0, 0);
+    
+    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTrans = this.NewUniform("u_worldTrans", 0, 0, 0);
+    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTrans = this.NewUniform("u_viewWorldTrans", 0, 0, 0);
+    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTrans = this.NewUniform("u_projViewWorldTrans", 0, 0, 0);
+    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrix = this.NewUniform("u_normalMatrix", 0, 0, 0);
+    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.bones = this.NewUniform("u_bones", 0, 0, 0);
 }
