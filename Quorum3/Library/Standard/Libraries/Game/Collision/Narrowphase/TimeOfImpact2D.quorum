@@ -78,8 +78,8 @@ class TimeOfImpact2D
         // the loop terminates when an axis is repeated (no progress made)
         boolean progressMade = true
         repeat while progressMade
-            //sweepA:GetTransform(xfa, t1)
-            //sweepB:GetTransform(xfb, t1)
+            sweepA:GetTransform(xfa, t1)
+            sweepB:GetTransform(xfb, t1)
 
             distanceInput:SetTransformA(xfa)
             distanceInput:SetTransformB(xfb)
@@ -87,6 +87,7 @@ class TimeOfImpact2D
 
             if distanceOutput:GetDistance() <= 0
                 out:SetState(out:OVERLAPPED)
+                out:SetTime(0)
                 progressMade = false
             end
 

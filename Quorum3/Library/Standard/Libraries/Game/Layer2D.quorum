@@ -1719,13 +1719,14 @@ class Layer2D is Layer
             Item2D body = items:Get(i)
             if not body:IsPhysicsEnabled() 
                 // do nothing -- physics is not enabled for this item
-            elseif not body:GetCollisionGroupFlag()
+            elseif not body:GetCollisionGroupFlag() and body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
                 // do nothing -- this item was never a part of a physics group
-            elseif body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE
+            elseif body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE and not body:HasMoved()
                 // do nothing -- this item is unmovable so synchronizing its nodes
                 // is not necessary
             else
                 body:SynchronizeNodes()
+                body:SetHasMoved(false)
             end
             i = i + 1
         end
@@ -1879,10 +1880,10 @@ class Layer2D is Layer
                     bA:Simulate(true)
                     bB:Simulate(true)
 
-                    toiIsland:Empty()
-                    toiIsland:Add(bA)
-                    toiIsland:Add(bB)
-                    toiIsland:Add(minCollision)
+                    island:Empty()
+                    island:Add(bA)
+                    island:Add(bB)
+                    island:Add(minCollision)
 
                     bA:SetCollisionGroupFlag(true)
                     bB:SetCollisionGroupFlag(true)
@@ -1953,11 +1954,11 @@ class Layer2D is Layer
                     substep:SetPositionIterations(20)
                     substep:SetVelocityIterations(timeStep:GetVelocityIterations())
                     substep:SetWarmStarting(false)
-                    toiIsland:SolveTimeOfImpact(substep, bA:GetCollisionGroupIndex(), bB:GetCollisionGroupIndex())
+                    island:SolveTimeOfImpact(substep, bA:GetCollisionGroupIndex(), bB:GetCollisionGroupIndex())
 
                     integer j = 0
                     repeat while j < island:GetItemCount()
-                        Item2D body = island:GetItem(i)
+                        Item2D body = island:GetItem(j)
                         body:SetCollisionGroupFlag(false)
 
                         if body:GetResponsiveness() = body:GetPhysicsProperties():RESPONSIVE

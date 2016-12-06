@@ -249,10 +249,11 @@ class CollisionGroup2D
     action SolveTimeOfImpact(TimeStep2D subStep, integer timeOfImpactIndexA, integer timeOfImpactIndexB)
         integer i = 0
         repeat while i < itemCount
-            positions:Get(i):Set(items:Get(i):GetSweep():GetCenter())
-            angles:Set(i, items:Get(i):GetSweep():GetAngle())
-            linearVelocities:Get(i):Set(items:Get(i):GetLinearVelocity())
-            angularVelocities:Set(i, items:Get(i):GetAngularVelocity())
+            Vector2 position = items:Get(i):GetSweep():GetCenter()
+            positions:Add(position)
+            angles:Add(items:Get(i):GetSweep():GetAngle())
+            linearVelocities:Add(items:Get(i):GetLinearVelocity())
+            angularVelocities:Add(items:Get(i):GetAngularVelocity())
             i = i + 1
         end
 

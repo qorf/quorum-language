@@ -24,7 +24,7 @@ class SimplexVertex2D
     end
 
     action SetSupportA(Vector2 support)
-        supportA:Set(support)
+        me:supportA = support
     end
 
     action GetSupportB returns Vector2
@@ -32,7 +32,7 @@ class SimplexVertex2D
     end
 
     action SetSupportB(Vector2 support)
-        supportB:Set(support)
+        me:supportB = support
     end
 
     action GetSupport returns Vector2
@@ -40,7 +40,7 @@ class SimplexVertex2D
     end
 
     action SetSupport(Vector2 support)
-        me:support:Set(support)
+        me:support = support
     end
 
     action GetBarycentricCoordinate returns number
@@ -48,7 +48,7 @@ class SimplexVertex2D
     end
 
     action SetBarycentricCoordinate(number coordinate)
-        barycentricCoordinate = coordinate
+        me:barycentricCoordinate = coordinate
     end
 
     action GetIndexA returns integer
@@ -56,7 +56,7 @@ class SimplexVertex2D
     end
 
     action SetIndexA(integer index)
-        indexA = index
+        me:indexA = index
     end
 
     action GetIndexB returns integer
@@ -64,6 +64,6 @@ class SimplexVertex2D
     end
 
     action SetIndexB(integer index)
-        indexB = index
+        me:indexB = index
     end
 end

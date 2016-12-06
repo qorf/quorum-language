@@ -105,6 +105,7 @@ class Item2D is Item
     private boolean heightSet = false
     private boolean layerSet = false
     private boolean nodesSet = false
+    private boolean hasMoved = false
 
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
@@ -615,6 +616,7 @@ class Item2D is Item
             vertices:Set(X4, vertices:Get(X4) + xAmount)
         end
 
+        hasMoved = true
         position:SetX(position:GetX() + xAmount)
         SetOffsetX(offset:GetX())
     end
@@ -638,6 +640,7 @@ class Item2D is Item
             vertices:Set(Y4, vertices:Get(Y4) + yAmount)
         end
 
+        hasMoved = true
         position:SetY(position:GetY() + yAmount)
         SetOffsetY(offset:GetY())
     end
@@ -686,6 +689,7 @@ class Item2D is Item
             vertices:Set(Y4, vertices:Get(Y4) + yAmount)
         end
 
+        hasMoved = true
         position:SetX(position:GetX() + xAmount)
         position:SetY(position:GetY() + yAmount)
         SetOffset(offset:GetX(), offset:GetY())
@@ -2834,5 +2838,13 @@ class Item2D is Item
         MoveX(transform:GetPosition():GetX() - transform0:GetPosition():GetX())
         MoveY(transform:GetPosition():GetY() - transform0:GetPosition():GetY())
         Rotate(-1 * math:RadiansToDegrees(transform:GetAngle() - transform0:GetAngle()))
+    end
+
+    action HasMoved returns boolean
+        return hasMoved
+    end
+
+    action SetHasMoved(boolean flag)
+        hasMoved = flag
     end
 end

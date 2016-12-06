@@ -132,8 +132,8 @@ class Separation2D
     Vector2 axisB
 
     action FindMinimumSeparation(Array<integer> indices, number t) returns number
-        //sweepA:GetTransform(transformA, t)
-        //sweepB:GetTransform(transformB, t)
+        sweepA:GetTransform(transformA, t)
+        sweepB:GetTransform(transformB, t)
 
         if type = POINTS
             axisA:SetX(transformA:GetCosine() * axis:GetX() + transformA:GetSine() * axis:GetY())
@@ -204,8 +204,8 @@ class Separation2D
     end
 
     action Evaluate(integer indexA, integer indexB, number t) returns number
-        //sweepA:GetTransform(transformA, t)
-        //sweepB:GetTransform(transformB, t)
+        sweepA:GetTransform(transformA, t)
+        sweepB:GetTransform(transformB, t)
 
         if type = POINTS
             localPointA:Set(proxyA:GetVertex(indexA))
@@ -216,7 +216,7 @@ class Separation2D
             pointB:SetX((transformB:GetCosine() * localPointB:GetX() - transformB:GetSine() * localPointB:GetY()) + transformB:GetPosition():GetX())
             pointB:SetY((transformB:GetSine() * localPointB:GetX() + transformB:GetCosine() * localPointB:GetY()) + transformB:GetPosition():GetY())
 
-            number separation = pointA:Subtract(pointB):DotProduct(axis)
+            number separation = pointB:Subtract(pointA):DotProduct(axis)
             return separation
         elseif type = FACE_A
             normal:SetX(transformA:GetCosine() * axis:GetX() - transformA:GetSine() * axis:GetY())
