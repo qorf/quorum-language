@@ -1848,6 +1848,14 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_()
         return true;
     };
     
+    this.Set4f = function(uniform, v1, v2, v3, v4)
+    {
+        if (locations[uniform] < 0)
+            return false;
+        program.SetUniform4fAtLocation(locations[uniform], v1, v2);
+        return true;
+    };
+    
     this.Set1i = function(uniform, value)
     {
         if (locations[uniform] < 0)
@@ -1932,16 +1940,176 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_()
     };
     
     // Beginning of the code for the DefaultShader.
-    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projTrans = this.NewUniform("u_projTrans", 0, 0, 0);
-    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTrans = this.NewUniform("u_viewTrans", 0, 0, 0);
-    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTrans = this.NewUniform("u_projViewTrans", 0, 0, 0);
-    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraPosition = this.NewUniform("u_cameraPosition", 0, 0, 0);
-    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraDirection = this.NewUniform("u_cameraDirection", 0, 0, 0);
-    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraUp = this.NewUniform("u_cameraUp", 0, 0, 0);
+    if (!plugins_quorum_Libraries_Game_Graphics_DefaultShader_.initialized_plugins_quorum_Libraries_Game_Graphics_DefaultShader_)
+    {
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.initialized_plugins_quorum_Libraries_Game_Graphics_DefaultShader_ = true;
+        
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.blendingAttribute = new quorum_Libraries_Game_Graphics_BlendingAttribute_();
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute = new quorum_Libraries_Game_Graphics_TextureAttribute_();
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute = new quorum_Libraries_Game_Graphics_ColorAttribute_();
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.numberAttribute = new quorum_Libraries_Game_Graphics_NumberAttribute_();
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.integerAttribute = new quorum_Libraries_Game_Graphics_IntegerAttribute_();
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.depthTestAttribute = new quorum_Libraries_Game_Graphics_DepthTestAttribute_();
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.pointLightsAttribute = new quorum_Libraries_Game_Graphics_PointLightsAttribute_();
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.directionalLightsAttribute = new quorum_Libraries_Game_Graphics_DirectionalLightsAttribute_();
+
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projTrans = this.NewUniform("u_projTrans", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTrans = this.NewUniform("u_viewTrans", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTrans = this.NewUniform("u_projViewTrans", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraPosition = this.NewUniform("u_cameraPosition", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraDirection = this.NewUniform("u_cameraDirection", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraUp = this.NewUniform("u_cameraUp", 0, 0, 0);
+
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTrans = this.NewUniform("u_worldTrans", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTrans = this.NewUniform("u_viewWorldTrans", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTrans = this.NewUniform("u_projViewWorldTrans", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrix = this.NewUniform("u_normalMatrix", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.bones = this.NewUniform("u_bones", 0, 0, 0);
+
+        var tempAttribute = plugins_quorum_Libraries_Game_Graphics_DefaultShader_.numberAttribute;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.shininess = this.NewUniform("u_shininess", 0, 0, tempAttribute.GetShininessValue());
+        tempAttribute = plugins_quorum_Libraries_Game_Graphics_DefaultShader_.blendingAttribute;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.opacity = this.NewUniform("u_opacity", 0, 0, tempAttribute.GetBlendedValue());
+
+        tempAttribute = plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.diffuseColor = this.NewUniform("u_diffuseColor", 0, 0, tempAttribute.GetDiffuseValue());
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.specularColor = this.NewUniform("u_specularColor", 0, 0, tempAttribute.GetSpecularValue());
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.emissiveColor = this.NewUniform("u_emissiveColor", 0, 0, tempAttribute.GetEmissiveValue());
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.reflectionColor = this.NewUniform("u_reflectionColor", 0, 0, tempAttribute.GetReflectionValue());
+
+        tempAttribute = plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.diffuseTexture = this.NewUniform("u_diffuseTexture", 0, 0, tempAttribute.GetDiffuseValue());
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.diffuseUVTransform = this.NewUniform("u_diffuseUVTransform", 0, 0, tempAttribute.GetDiffuseValue());
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.specularTexture = this.NewUniform("u_specularTexture", 0, 0, tempAttribute.GetSpecularValue());
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.specularUVTransform = this.NewUniform("u_specularUVTransform", 0, 0, tempAttribute.GetSpecularValue());
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.emissiveTexture = this.NewUniform("u_emissiveTexture", 0, 0, tempAttribute.GetEmissiveValue());
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.emissiveUVTransform = this.NewUniform("u_emissiveUVTransform", 0, 0, tempAttribute.GetEmissiveValue());
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.reflectionTexture = this.NewUniform("u_reflectionTexture", 0, 0, tempAttribute.GetReflectionValue());
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.reflectionUVTransform = this.NewUniform("u_reflectionUVTransform", 0, 0, tempAttribute.GetReflectionValue());
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalTexture = this.NewUniform("u_normalTexture", 0, 0, tempAttribute.GetNormalValue());
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalUVTransform = this.NewUniform("u_normalUVTransform", 0, 0, tempAttribute.GetNormalValue());
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.ambientTexture = this.NewUniform("u_ambientTexture", 0, 0, tempAttribute.GetAmbientValue());
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.ambientUVTransform = this.NewUniform("u_ambientUVTransform", 0, 0, tempAttribute.GetAmbientValue());
+        tempAttribute = null;
+
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.alphaTest = this.NewUniform("u_alphaTest");
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.ambientCube = this.NewUniform("u_ambientCubemap");
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.dirLights = this.NewUniform("u_dirLights");
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.pointLights = this.NewUniform("u_pointLights");
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.spotLights = this.NewUniform("u_spotLights");
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.environmentCubemap = this.NewUniform("u_environmentCubemap");
+        
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.tmpAttributes = new quorum_Libraries_Game_Graphics_Attributes_();
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.usage = new quorum_Libraries_Game_Graphics_VertexAttributes_();
+        
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.implementedFlags = 
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.blendingAttribute.GetBlendedValue() |
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetDiffuseValue() |
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetDiffuseValue() |
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetSpecularValue() |
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.numberAttribute.GetShininessValue();
     
-    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTrans = this.NewUniform("u_worldTrans", 0, 0, 0);
-    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTrans = this.NewUniform("u_viewWorldTrans", 0, 0, 0);
-    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTrans = this.NewUniform("u_projViewWorldTrans", 0, 0, 0);
-    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrix = this.NewUniform("u_normalMatrix", 0, 0, 0);
-    plugins_quorum_Libraries_Game_Graphics_DefaultShader_.bones = this.NewUniform("u_bones", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.optionalAttributes =
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.integerAttribute.GetCullFaceValue() |
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.depthTestAttribute.GetDepthTestValue();
+
+        var isGlobal = function()
+        {
+            return true;
+        };
+        
+        var isLocal = function()
+        {
+            return false;
+        };
+        
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projTransSetter = {};
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projTransSetter.IsGlobal = isGlobal;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projTransSetter.Set = function(shader, inputID, renderable, combinedAttributes)
+        {
+            shader.SetMatrix4(inputID, shader.camera.projection);
+        };
+        
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTransSetter = {};
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTransSetter.IsGlobal = isGlobal;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTransSetter.matrix = new quorum_Libraries_Compute_Matrix4_();
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTransSetter.Set = function(shader, inputID, renderable, combinedAttributes)
+        {
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTransSetter.matrix.Set(shader.camera.combined);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.InvertViewZ(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTransSetter.matrix);
+            shader.SetMatrix4(inputID, plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTransSetter.matrix);
+        };
+        
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTransSetter = {};
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTransSetter.IsGlobal = isGlobal;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTransSetter.matrix = new quorum_Libraries_Compute_Matrix4_();
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTransSetter.Set = function(shader, inputID, renderable, combinedAttributes)
+        {
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTransSetter.matrix.Set(shader.camera.combined);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.InvertViewZ(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTransSetter.matrix);
+            shader.SetMatrix4(inputID, plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTransSetter.matrix);
+        };
+        
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraPositionSetter = {};
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraPositionSetter.IsGlobal = isGlobal;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraPositionSetter.Set = function(shader, inputID, renderable, combinedAttributes)
+        {
+            shader.Set4f(inputID, shader.camera.position.GetX(), shader.camera.position.GetY(),
+                shader.camera.position.GetZ(), 1.1881 / shader.camera.far * shader.camera.far);
+        };
+        
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraDirectionSetter = {};
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraDirectionSetter.IsGlobal = isGlobal;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraDirectionSetter.Set = function(shader, inputID, renderable, combinedAttributes)
+        {
+            shader.SetVector3(inputID, shader.camera.direction);
+        };
+        
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraUpSetter = {};
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraUpSetter.IsGlobal = isGlobal;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraUpSetter.Set = function(shader, inputID, renderable, combinedAttributes)
+        {
+            shader.SetVector3(inputID, shader.camera.up);
+        };
+        
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter = {};
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.IsGlobal = isLocal;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.matrix = new quorum_Libraries_Compute_Matrix4_();
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.Set = function(shader, inputID, renderable, combinedAttributes)
+        {
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.matrix.Set(renderable.worldTransform);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.InvertPositionZ(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.matrix);
+            shader.SetMatrix4(inputID, plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.matrix);
+        };
+        
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter = {};
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.IsGlobal = isLocal;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp = new quorum_Libraries_Compute_Matrix4_();
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp2 = new quorum_Libraries_Compute_Matrix4_();
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.Set = function(shader, inputID, renderable, combinedAttributes)
+        {
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp.SetMatrix4(shader.camera.view);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp2.SetMatrix4(shader.camera.worldTransform);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.InvertViewZ(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.InvertPositionZ(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp2);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp.Multiply(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp2);
+            shader.Set(inputID, temp);
+        };
+        
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.InvertViewZ = function(matrix)
+        {
+            matrix.row0column0 = -matrix.row0column0;
+            matrix.row0column1 = -matrix.row0column1;
+            matrix.row0column3 = -matrix.row0column3;
+            
+            matrix.row1column2 = -matrix.row1column2;
+            matrix.row2column2 = -matrix.row2column2;
+            matrix.row3column2 = -matrix.row3column2;
+        };
+        
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.InvertPositionZ = function(matrix)
+        {
+            matrix.row2column3 = -matrix.row2column3;
+        };
+    }
 }
