@@ -43,6 +43,36 @@ class PhysicsProperties2D
 
     action SetItem(Item2D item)
         me:item = item
+
+        Sweep2D sweep = item:GetSweep()
+
+        if me:type = UNMOVABLE
+            linearVelocity:SetZero()
+            angularVelocity = 0
+            sweep:SetAngle0(sweep:GetAngle())
+            sweep:GetCenter0():Set(sweep:GetCenter())
+
+            if item:GetLayer() not= undefined
+                item:SynchronizeNodes()
+            end
+        end
+
+        if item:GetLayer() not= undefined
+            CollisionEdge2D edge = item:GetCollisionList()
+            repeat while edge not= undefined
+                CollisionEdge2D edge0 = edge
+                edge = edge:GetNext()
+                item:GetLayer():GetCollisionManager():Destroy(edge0:GetCollision())
+            end
+            item:SetCollisionList(undefined)
+
+            BroadphaseCollision2D broadphase = item:GetLayer():GetCollisionManager():GetBroadphase()
+            integer i = 0
+            repeat while i < item:GetNodeCount()
+                broadphase:TouchNode(item:GetNodes():Get(i):GetNodeID())        
+                i = i + 1
+            end
+        end
     end
 
     action GetItem returns Item2D
@@ -205,51 +235,24 @@ class PhysicsProperties2D
     end
 
     action SetResponsiveness(integer type)
-        Sweep2D sweep = item:GetSweep()
-    
         if me:type = type
             return now
         end
 
         me:type = type
 
-        if me:type = UNMOVABLE
-            linearVelocity:SetZero()
-            angularVelocity = 0
-            sweep:SetAngle0(sweep:GetAngle())
-            sweep:GetCenter0():Set(sweep:GetCenter())
-
-            if item:GetLayer() not= undefined
-                item:SynchronizeNodes()
-            end
-        end
-
         simulated = true
 
         if me:type = RESPONSIVE
             mass = 1
             inverseMass = 1
+        else
+            mass = 0
+            inverseMass = 0
         end
 
         force:SetZero()
         torque = 0
-
-        if item:GetLayer() not= undefined
-            CollisionEdge2D edge = item:GetCollisionList()
-            repeat while edge not= undefined
-                CollisionEdge2D edge0 = edge
-                edge = edge:GetNext()
-                item:GetLayer():GetCollisionManager():Destroy(edge0:GetCollision())
-            end
-            item:SetCollisionList(undefined)
-
-            BroadphaseCollision2D broadphase = item:GetLayer():GetCollisionManager():GetBroadphase()
-            integer i = 0
-            repeat while i < item:GetNodeCount()
-                broadphase:TouchNode(item:GetNodes():Get(i):GetNodeID())        
-                i = i + 1
-            end
-        end
     end
 
     action SetDensity(number density)

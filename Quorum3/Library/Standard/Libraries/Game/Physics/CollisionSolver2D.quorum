@@ -28,6 +28,7 @@ class CollisionSolver2D
     Array<CollisionVelocityConstraint> velocityConstraints
     Array<CollisionEvent2D> collisions = undefined
     integer count = 0
+    integer resizeCount = 1
 
     on create
         repeat INITIAL_NUM_CONSTRAINTS times
@@ -64,6 +65,16 @@ class CollisionSolver2D
     end
 
     action Initialize
+        if me:count >= resizeCount * INITIAL_NUM_CONSTRAINTS
+            repeat INITIAL_NUM_CONSTRAINTS times
+                CollisionPositionConstraint positionConstraint
+                CollisionVelocityConstraint velocityConstraint
+                positionConstraints:Add(positionConstraint)
+                velocityConstraints:Add(velocityConstraint)
+                resizeCount = resizeCount + 1
+            end
+        end
+
         integer i = 0
         repeat while i < me:count
             CollisionEvent2D collision = collisions:Get(i)
