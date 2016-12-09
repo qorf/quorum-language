@@ -148,17 +148,17 @@ class CollisionGroup2D
             number translationx = v:GetX() * h
             number translationy = v:GetY() * h
 
-            if translationx * translationx + translationy * translationy > 2.0 * 2.0
-                number ratio = 2.0 / math:SquareRoot(translationx * translationx + translationy * translationy)
-                v:SetX(v:GetX() * ratio)
-                v:SetY(v:GetY() * ratio)
-            end
-
-            number rotation = h * w
-            if rotation * rotation > 0.5 * math:pi * 0.5 * math:pi
-                number ratio = 0.5 * math:pi / math:AbsoluteValue(rotation)
-                w = w * ratio
-            end
+//            if translationx * translationx + translationy * translationy > 2.0 * 2.0
+//                number ratio = 2.0 / math:SquareRoot(translationx * translationx + translationy * translationy)
+//                v:SetX(v:GetX() * ratio)
+//                v:SetY(v:GetY() * ratio)
+//            end
+//
+//            number rotation = h * w
+//            if rotation * rotation > 0.5 * math:pi * 0.5 * math:pi
+//                number ratio = 0.5 * math:pi / math:AbsoluteValue(rotation)
+//                w = w * ratio
+//            end
 
             c:SetX(c:GetX() + (h * v:GetX()))
             c:SetY(c:GetY() + (h * v:GetY()))
