@@ -126,6 +126,8 @@ public class QuorumCustomizer implements CustomizerProvider{
                 ((QuorumProject) project).SetProjectType(QuorumProjectType.WEB);
             } else if(type.compareTo(QuorumProject.QUORUM_LEGO_PROJECT) == 0) {
                 ((QuorumProject) project).SetProjectType(QuorumProjectType.LEGO);
+            } else if(type.compareTo(QuorumProject.QUORUM_WEB_PROJECT) == 0) {
+                ((QuorumProject) project).SetProjectType(QuorumProjectType.WEB_BROWSER);
             }
             
             String jarList = infoPanel.getJarList();
@@ -144,7 +146,6 @@ public class QuorumCustomizer implements CustomizerProvider{
                 properties.remove(QuorumProject.ADDITIONAL_PLUGIN_FOLDERS);
             }
             String name = infoPanel.getExecutableName();
-            
             if(name != null) {
                 properties.setProperty(QuorumProject.QUORUM_EXECUTABLE_NAME, name);
                 ((QuorumProject) project).getCompiler().SetName(name);
