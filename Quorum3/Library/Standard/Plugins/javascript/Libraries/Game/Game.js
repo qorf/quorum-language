@@ -1605,7 +1605,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_()
         return uniforms[id];
     };
     
-    this.Initialize = function(program, renderable)
+    this.InitializeBaseShader = function(program, renderable)
     {
         if (locations !== null && locations !== undefined)
         {
@@ -2382,5 +2382,297 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_()
         {
             matrix.row2column3 = -matrix.row2column3;
         };
+        
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.defaultCullFace = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics.gl.BACK;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.defaultDepthFunc = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics.gl.LEQUAL;
     }
+    
+    this.GetDefaultVertexShader = function()
+    {
+        if (plugins_quorum_Libraries_Game_Graphics_DefaultShader_.defaultVertexShader === undefined)
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.defaultVertexShader = plugins_quorum_Libraries_Game_Graphics_DefaultGLSLStrings_.vertexShader;
+        
+        return plugins_quorum_Libraries_Game_Graphics_DefaultShader_.defaultVertexShader;
+    };
+    
+    this.GetDefaultFragmentShader = function()
+    {
+        if (plugins_quorum_Libraries_Game_Graphics_DefaultShader_.defaultFragmentShader === undefined)
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.defaultFragmentShader = plugins_quorum_Libraries_Game_Graphics_DefaultGLSLStrings_.fragmentShader;
+        
+        return plugins_quorum_Libraries_Game_Graphics_DefaultShader_.defaultFragmentShader;
+    };
+    
+    var u_projTrans;
+    var u_viewTrans;
+    var u_projViewTrans;
+    var u_cameraPosition;
+    var u_cameraDirection;
+    var u_cameraUp;
+    var u_time;
+
+    var u_worldTrans;
+    var u_viewWorldTrans;
+    var u_projViewWorldTrans;
+    var u_normalMatrix;
+    var u_bones;
+
+    var u_shininess;
+    var u_opacity;
+    var u_diffuseColor;
+    var u_diffuseTexture;
+    var u_diffuseUVTransform;
+    var u_specularColor;
+    var u_specularTexture;
+    var u_specularUVTransform;
+    var u_emissiveColor;
+    var u_emissiveTexture;
+    var u_emissiveUVTransform;
+    var u_reflectionColor;
+    var u_reflectionTexture;
+    var u_reflectionUVTransform;
+    var u_normalTexture;
+    var u_normalUVTransform;
+    var u_ambientTexture;
+    var u_ambientUVTransform;
+    var u_alphaTest;
+
+    var u_ambientCubemap;
+
+    var u_dirLights0color = this.Register(this.NewUniform("u_dirLights[0].color", 0, 0, 0));
+    var u_dirLights0direction = this.Register(this.NewUniform("u_dirLights[0].direction", 0, 0, 0));
+    var u_dirLights1color = this.Register(this.NewUniform("u_dirLights[1].color", 0, 0, 0));
+    var u_pointLights0color = this.Register(this.NewUniform("u_pointLights[0].color", 0, 0, 0));
+    var u_pointLights0position = this.Register(this.NewUniform("u_pointLights[0].position", 0, 0, 0));
+    var u_pointLights0intensity = this.Register(this.NewUniform("u_pointLights[0].intensity", 0, 0, 0));
+    var u_pointLights1color = this.Register(this.NewUniform("u_pointLights[1].color", 0, 0, 0));
+    var u_spotLights0color = this.Register(this.NewUniform("u_spotLights[0].color", 0, 0, 0));
+    var u_spotLights0position = this.Register(this.NewUniform("u_spotLights[0].position", 0, 0, 0));
+    var u_spotLights0intensity = this.Register(this.NewUniform("u_spotLights[0].intensity", 0, 0, 0));
+    var u_spotLights0direction = this.Register(this.NewUniform("u_spotLights[0].direction", 0, 0, 0));
+    var u_spotLights0cutoffAngle = this.Register(this.NewUniform("u_spotLights[0].cutoffAngle", 0, 0, 0));
+    var u_spotLights0exponent = this.Register(this.NewUniform("u_spotLights[0].exponent", 0, 0, 0));
+    var u_spotLights1color = this.Register(this.NewUniform("u_spotLights[1].color", 0, 0, 0));
+    var u_fogColor = this.Register(this.NewUniform("u_fogColor", 0, 0, 0));
+    var u_shadowMapProjViewTrans = this.Register(this.NewUniform("u_shadowMapProjViewTrans", 0, 0, 0));
+    var u_shadowTexture = this.Register(this.NewUniform("u_shadowTexture", 0, 0, 0));
+    var u_shadowPCFOffset = this.Register(this.NewUniform("u_shadowPCFOffset", 0, 0, 0));
+    
+    var dirLightsLoc;
+    var dirLightsColorOffset;
+    var dirLightsDirectionOffset;
+    var dirLightsSize;
+    var pointLightsLoc;
+    var pointLightsColorOffset;
+    var pointLightsPositionOffset;
+    var pointLightsIntensityOffset;
+    var pointLightsSize;
+    var spotLightsLoc;
+    var spotLightsColorOffset;
+    var spotLightsPositionOffset;
+    var spotLightsDirectionOffset;
+    var spotLightsIntensityOffset;
+    var spotLightsCutoffAngleOffset;
+    var spotLightsExponentOffset;
+    var spotLightsSize;
+    
+    var lighting;
+    
+    var ambientCubemap = new quorum_Libraries_Game_Graphics_AmbientCubemap_();
+    var directionalLights = [];
+    var pointLights = [];
+    
+    var renderable;
+    
+    var attributesMask;
+    var vertexMask;
+    var config;
+    
+    var normalMatrix = new quorum_Libraries_Compute_Matrix3_();
+    var camera;
+    var time;
+    var lightsSet;
+    var tmpV1 = new quorum_Libraries_Compute_Vector3_();
+    
+    this.Initialize = function()
+    {
+        var program = this.program;
+        renderable = null;
+        
+        dirLightsLoc = this.Location(u_dirLights0color);
+        dirLightsColorOffset = this.Location(u_dirLights0color) - dirLightsLoc;
+        dirLightsDirectionOffset = this.Location(u_dirLights0direction) - dirLightsLoc;
+        dirLightsSize = this.Location(u_dirLights1color) - dirLightsLoc;
+        if (dirLightsSize < 0)
+            dirLightsSize = 0;
+        
+        pointLightsLoc = this.Location(u_pointLights0color);
+        pointLightsColorOffset = this.Location(u_pointLights0color) - pointLightsLoc;
+        pointLightsPositionOffset = this.Location(u_pointLights0position) - pointLightsLoc;
+        if (this.Has(u_pointLights0intensity))
+            pointLightsIntensityOffset = this.Location(u_pointLights0intensity) - pointLightsLoc;
+        else
+            pointLightsIntensityOffset = -1;
+        pointLightsSize = this.Location(u_pointLights1color) - pointLightsLoc;
+        if (pointLightsSize < 0)
+            pointLightsSize = 0;
+        
+        spotLightsLoc = this.Location(u_spotLights0color);
+        spotLightsColorOffset = this.Location(u_spotLights0position) - spotLightsLoc;
+        spotLightsPositionOffset = this.Location(u_spotLights0position) - spotLightsLoc;
+        spotLightsDirectionOffset = this.Location(u_spotLights0direction) - spotLightsLoc;
+        if (this.Has(u_spotLights0intensity))
+            spotLightsIntensityOffset = this.Location(u_spotLights0intensity) - spotLightsLoc;
+        else
+            spotLightsIntensityOffset = -1;
+        spotLightsCutoffAngleOffset = this.Location(u_spotLights0cutoffAngle) - spotLightsLoc;
+        spotLightsExponentOffset = this.Location(u_spotLights0exponent) - spotLightsLoc;
+        spotLightsSize = this.Location(u_spotLights1color) - spotLightsLoc;
+        if (spotLightsSize < 0)
+            spotLightsSize = 0;
+    };
+    
+    this.And = function(mask, flag)
+    {
+        return (mask & flag) === flag;
+    };
+    
+    this.Or = function(mask, flag)
+    {
+        return (mask & flag) !== 0;
+    };
+    
+    this.CombineAttributes = function(renderable)
+    {
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.tmpAttributes.Empty();
+        if (renderable.environment !== null && renderable.environment !== undefined)
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.tmpAttributes.Add(renderable.environment);
+        if (renderable.material !== null && renderable.material !== undefined)
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.tmpAttributes.Add(renderable.material);
+        
+        return plugins_quorum_Libraries_Game_Graphics_DefaultShader_.tmpAttributes;
+    };
+    
+    this.CreatePrefix = function(renderable, config)
+    {
+        var attributes = this.CombineAttributes(renderable);
+        var prefix = "";
+        var attributesMask = attributes.GetMask();
+        var vertexMask = renderable.meshPart.mesh.GetVertexAttributes().GetMask();
+        var usage = plugins_quorum_Libraries_Game_Graphics_DefaultShader_.usage;
+        
+        if (this.And(vertexMask, usage.POSITION))
+            prefix += "#define positionFlag\n";
+        if (this.Or(vertexMask, usage.COLOR_PACKED | usage.COLOR_UNPACKED))
+            prefix += "#define colorFlag\n";
+        if (this.And(vertexMask, usage.BINORMAL))
+            prefix += "#define binormalFlag\n";
+        if (this.And(vertexMask, usage.TANGENT))
+            prefix += "#define tangentFlag\n";
+        if (this.And(vertexMask, usage.NORMAL))
+            prefix += "#define normalFlag\n";
+        if (this.And(vertexMask, usage.NORMAL) || this.And(vertexMask, usage.TANGENT | usage.BINORMAL))
+        {
+            prefix += "#define lightingFlag\n";
+            prefix += "#define ambientCubemapFlag\n";
+            prefix += "#define numDirectionalLights " + config.numDirectionalLights + "\n";
+            prefix += "#define numPointLights " + config.numPointLights + "\n";
+            prefix += "#define numSpotLights " + config.numSpotLights + "\n";
+            if (attributes.HasAttribute(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetFogValue()))
+            {
+                prefix += "define fogFlag\n";
+            }
+        }        
+    
+        var n = renderable.meshPart.mesh.GetVertexAttributes().GetSize();
+        
+        for (var i = 0; i < n; i++)
+        {
+            var attr = renderable.meshPart.mesh.GetVertexAttributes().GetAttribute(i);
+            if (attr.usage === usage.BONE_WEIGHT)
+                prefix += "#define boneWeight" + attr.unit + "Flag\n";
+            else if (attr.usage === usage.TEXTURE_COORDINATES)
+                prefix += "#define texCoord" + attr.unit + "Flag\n";
+        }
+        
+        if ((attributesMask & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.blendingAttribute.GetBlendedValue())
+                === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.blendingAttribute.GetBlendedValue())
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.blendingAttribute.ALIAS + "Flag\n";
+        if ((attributesMask & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetDiffuseValue())
+                === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetDiffuseValue())
+        {
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.DIFFUSE_ALIAS + "Flag\n";
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.DIFFUSE_ALIAS + "Coord texCoord0\n";
+        }
+        if ((attributesMask & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetSpecularValue()) 
+                === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetSpecularValue()) 
+        {
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.SPECULAR_ALIAS + "Flag\n";
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.SPECULAR_ALIAS + "Coord texCoord0\n"; // FIXME implement UV mapping
+        }
+        if ((attributesMask & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetNormalValue()) 
+                === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetNormalValue()) 
+        {
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.NORMAL_ALIAS + "Flag\n";
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.NORMAL_ALIAS + "Coord texCoord0\n"; // FIXME implement UV mapping
+        }
+        if ((attributesMask & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetEmissiveValue()) 
+                === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetEmissiveValue()) 
+        {
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.EMISSIVE_ALIAS + "Flag\n";
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.EMISSIVE_ALIAS + "Coord texCoord0\n"; // FIXME implement UV mapping
+        }
+        if ((attributesMask & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetReflectionValue()) 
+                === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetReflectionValue())
+        {
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.REFLECTION_ALIAS + "Flag\n";
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.REFLECTION_ALIAS + "Coord texCoord0\n"; // FIXME implement UV mapping
+        }
+        if ((attributesMask & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetAmbientValue()) 
+                === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetAmbientValue()) 
+        {
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.AMBIENT_ALIAS + "Flag\n";
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.AMBIENT_ALIAS + "Coord texCoord0\n"; // FIXME implement UV mapping
+        }
+        if ((attributesMask & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetDiffuseValue()) 
+                === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetDiffuseValue())
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.DIFFUSE_ALIAS + "Flag\n";
+        if ((attributesMask & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetSpecularValue()) 
+                === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetSpecularValue())
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.SPECULAR_ALIAS + "Flag\n";
+        if ((attributesMask & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetEmissiveValue()) 
+                === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetEmissiveValue())
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.EMISSIVE_ALIAS + "Flag\n";
+        if ((attributesMask & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetReflectionValue()) 
+                === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetReflectionValue())
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.REFLECTION_ALIAS + "Flag\n";
+        if ((attributesMask & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.numberAttribute.GetShininessValue()) 
+                === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.numberAttribute.GetShininessValue())
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.numberAttribute.SHININESS_ALIAS + "Flag\n";
+        if ((attributesMask & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.numberAttribute.GetAlphaTestValue()) 
+                === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.numberAttribute.GetAlphaTestValue())
+            prefix += "#define " + plugins_quorum_Libraries_Game_Graphics_DefaultShader_.numberAttribute.ALPHA_TEST_ALIAS + "Flag\n";
+        if (renderable.bones !== null && renderable.bones !== undefined && config.numBones > 0)
+            prefix += "#define numBones " + config.numBones + "\n";
+        
+        return prefix;
+    };
+    
+    this.CanRender = function(renderable)
+    {
+        var attributes = this.CombineAttributes(renderable);
+        return (attributesMask === (attributes.GetMask() | optionalAttributes)) 
+            && (vertexMask === renderable.meshPart.mesh.GetVertexAttributes().GetMask())
+            && (renderable.environment !== null && renderable !== undefined) === lighting;
+    };
+    
+    this.CompareTo = function(other)
+    {
+        if (other === null || other === undefined)
+            return -1;
+        if (other === this)
+            return 0;
+        
+        return 0;
+    };
 }
