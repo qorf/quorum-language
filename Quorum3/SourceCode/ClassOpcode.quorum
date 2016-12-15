@@ -1516,34 +1516,11 @@ class ClassOpcode is QuorumOpcode
                     + "}" + EOL
         end
 
-
-
-        if clazz:HasSystemAction() //this has a plugin, so instantiate it.
-            //var plugin_ = new plugins_quorum_Libraries_Compute_Math_();
-
-            //if this is a primitive wrapper, pass the actual primitive
-            if clazz:GetStaticKey() = "Libraries.Language.Types.Boolean" or
-               clazz:GetStaticKey() = "Libraries.Language.Types.Integer" or
-               clazz:GetStaticKey() = "Libraries.Language.Types.Number" or
-               clazz:GetStaticKey() = "Libraries.Language.Types.Text"
-               convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
-                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(optional, this);" + EOL
-            else 
-                convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
-                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(this);" + EOL
-            end
-        end
-
         Iterator<ActionOpcode> actionIterator = actions:GetIterator()
         repeat while actionIterator:HasNext()
             ActionOpcode act = actionIterator:Next()
             convertedSource = convertedSource + act:WriteJavaScript()
         end
-
-        
-
-        
-
         
         //write the actions for the fields
         Iterator<Variable> fieldVariableIterator = clazz:GetVariables()
@@ -1631,6 +1608,20 @@ class ClassOpcode is QuorumOpcode
                     convertedSource = convertedSource + "   this." + parentName 
                         + ".prototype = this;"  + EOL
                 end
+        end
+
+        if clazz:HasSystemAction() //this has a plugin, so instantiate it.
+            //if this is a primitive wrapper, pass the actual primitive
+            if clazz:GetStaticKey() = "Libraries.Language.Types.Boolean" or
+               clazz:GetStaticKey() = "Libraries.Language.Types.Integer" or
+               clazz:GetStaticKey() = "Libraries.Language.Types.Number" or
+               clazz:GetStaticKey() = "Libraries.Language.Types.Text"
+               convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
+                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(optional, this);" + EOL
+            else 
+                convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
+                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(this);" + EOL
+            end
         end
 
         //now that all of the parents have had their parent's set, 
