@@ -3,6 +3,7 @@ use Libraries.Compute.Math
 use Libraries.Game.Collision.Shapes.CollisionShape2D
 use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Game.Collision.BoundingBox2D
+use Libraries.Game.Physics.Mass2D
 
 package Libraries.Game.Collision.Shapes
 
@@ -72,7 +73,10 @@ class Circle is CollisionShape2D
         boundingBox:CalculateDimensions()
     end
 
-    action ComputeMass(number density) returns number
-        return 0
+    action ComputeMass(Mass2D mass, number density)
+        mass:SetMass(density * math:pi * GetRadius() * GetRadius())
+        mass:GetCenter():SetX(point:GetX())
+        mass:GetCenter():SetY(point:GetY())
+        mass:SetInertia(mass:GetMass() * (0.5 * GetRadius() * GetRadius() + (point:GetX() * point:GetX() + point:GetY() * point:GetY())))
     end
 end

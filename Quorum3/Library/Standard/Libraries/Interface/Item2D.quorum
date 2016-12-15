@@ -22,6 +22,7 @@ use Libraries.Game.Collision.BroadphaseCollision2D
 use Libraries.Game.Collision.CollisionEdge2D
 use Libraries.Game.Collision.BoundingBox2D
 use Libraries.Game.Physics.PhysicsProperties2D
+use Libraries.Game.Physics.Mass2D
 
 /*
     The Item2D class represents any object that has a position in 2D space.
@@ -2397,8 +2398,8 @@ class Item2D is Item
             sweep:SetAngle(transform:GetAngle())
             sweep:SetAlpha0(0)
             PhysicsProperties2D properties
-            properties:SetItem(me)
             me:properties = properties
+            properties:SetItem(me)
         end
     end
 
@@ -2655,6 +2656,7 @@ class Item2D is Item
         end
 
         properties:SetDensity(density)
+        ResetMass()
     end
 
     action GetDensity returns number
@@ -2783,6 +2785,7 @@ class Item2D is Item
         end
 
         properties:CanRotate(flag)
+        ResetMass()
     end
 
     action IsRotationAllowed returns boolean
@@ -2847,5 +2850,142 @@ class Item2D is Item
 
     action SetHasMoved(boolean flag)
         hasMoved = flag
+    end
+
+    action GetMass(Mass2D mass)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        mass:SetMass(properties:GetMass())
+        mass:SetInertia(properties:GetRawInertia() + properties:GetMass() + (sweep:GetLocalCenter():GetX() * sweep:GetLocalCenter():GetX() + sweep:GetLocalCenter():GetY() * sweep:GetLocalCenter():GetY()))
+        mass:GetCenter():SetX(sweep:GetLocalCenter():GetX())
+        mass:GetCenter():SetY(sweep:GetLocalCenter():GetY())
+    end
+
+    action SetMass(number mass)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetMass(mass)
+    end
+
+    action GetRawInertia returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetRawInertia()
+    end
+
+    action SetInertia(number inertia)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetInertia(inertia)
+    end
+
+    action SetMass(Mass2D mass)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        if properties:GetResponsiveness() not= properties:RESPONSIVE
+            return now
+        end
+
+        properties:SetInverseMass(0)
+        properties:SetInertia(0)
+        properties:SetInverseInertia(0)
+
+        properties:SetMass(mass:GetMass())
+        if properties:GetMass() <= 0
+            properties:SetMass(1)
+        end
+
+        properties:SetInverseMass(1.0 / properties:GetMass())
+
+        if mass:GetInertia() > 0 and properties:IsRotationAllowed()
+            properties:SetInertia(mass:GetInertia() - properties:GetMass() * mass:GetCenter():DotProduct(mass:GetCenter()))
+            properties:SetInverseInertia(1.0 / properties:GetRawInertia())
+        end
+
+        Vector2 oldCenter
+        oldCenter:Set(sweep:GetCenter())
+        sweep:GetLocalCenter():Set(mass:GetCenter())
+        //Transform.mulToOutUnsafe(m_xf, m_sweep.localCenter, m_sweep.c0);
+        sweep:GetCenter0():SetX((transform:GetCosine() * sweep:GetLocalCenter():GetX() - transform:GetSine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetX())
+        sweep:GetCenter0():SetY((transform:GetSine() * sweep:GetLocalCenter():GetX() + transform:GetCosine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetY())
+        sweep:GetCenter():Set(sweep:GetCenter0())
+
+        Vector2 temp
+        temp:Set(sweep:GetCenter()):Subtract(oldCenter)
+        //Vec2.crossToOut(m_angularVelocity, temp, temp);
+        number tempY = properties:GetAngularVelocity() * temp:GetX()
+        temp:SetX(-properties:GetAngularVelocity() * temp:GetY())
+        temp:SetY(tempY)
+        properties:GetLinearVelocity():Add(temp)
+    end
+
+    Mass2D massData
+
+    action ResetMass
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetMass(0)
+        properties:SetInverseMass(0)
+        properties:SetInertia(0)
+        properties:SetInverseInertia(0)
+        sweep:GetLocalCenter():SetZero()
+
+        if properties:GetResponsiveness() = properties:UNMOVABLE or properties:GetResponsiveness() = properties:NON_RESPONSIVE
+            sweep:GetCenter0():Set(transform:GetPosition())
+            sweep:GetCenter():Set(transform:GetPosition())
+            sweep:SetAngle0(sweep:GetAngle())
+            return now
+        end
+
+        Vector2 localCenter
+        localCenter:SetZero()
+        Vector2 temp
+        shape:ComputeMass(massData, properties:GetDensity())
+        properties:SetMass(properties:GetMass() + massData:GetMass())
+        temp:Set(massData:GetCenter()):Scale(massData:GetMass())
+        localCenter:Add(temp)
+        properties:SetInertia(properties:GetRawInertia() + massData:GetInertia())
+
+        if properties:GetMass() > 0
+            properties:SetInverseMass(1.0 / properties:GetMass())
+            localCenter:Scale(properties:GetInverseMass())
+        else
+            properties:SetMass(1)
+            properties:SetInverseMass(1)
+        end
+
+        if properties:GetRawInertia() > 0 and properties:IsRotationAllowed()
+            properties:SetInertia(properties:GetRawInertia() - (properties:GetMass() * localCenter:DotProduct(localCenter)))
+            properties:SetInverseInertia(1.0 / properties:GetRawInertia())
+        else
+            properties:SetInertia(0)
+            properties:SetInverseInertia(0)
+        end
+
+        Vector2 oldCenter
+        oldCenter:Set(sweep:GetCenter())
+        sweep:GetLocalCenter():Set(localCenter)
+        sweep:GetCenter0():SetX((transform:GetCosine() * sweep:GetLocalCenter():GetX() - transform:GetSine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetX())
+        sweep:GetCenter0():SetY((transform:GetSine() * sweep:GetLocalCenter():GetX() + transform:GetCosine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetY())
+        sweep:GetCenter():Set(sweep:GetCenter0())
+
+        temp:Set(sweep:GetCenter()):Subtract(oldCenter)
+
+        Vector2 temp2 = oldCenter
+        temp2:SetX(-properties:GetAngularVelocity() * temp:GetY())
+        temp2:SetY(properties:GetAngularVelocity() * temp:GetX())
+        properties:GetLinearVelocity():Add(temp2)
     end
 end

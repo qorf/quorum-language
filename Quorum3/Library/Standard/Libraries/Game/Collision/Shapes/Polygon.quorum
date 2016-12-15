@@ -4,6 +4,7 @@ use Libraries.Compute.Math
 use Libraries.Game.Collision.Shapes.CollisionShape2D
 use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Game.Collision.BoundingBox2D
+use Libraries.Game.Physics.Mass2D
 
 package Libraries.Game.Collision.Shapes
 
@@ -407,9 +408,66 @@ class Polygon is CollisionShape2D
         return result
     end
 
-    action ComputeMass(number density) returns number
-        // will implement later...
-        return 0
+    action ComputeMass(Mass2D mass, number density)
+        Vector2 center
+        center:SetZero()
+        number area = 0
+        number I = 0
+
+        Vector2 s
+        s:SetZero()
+
+        integer i = 0
+        repeat vertexCount times
+            s:Add(vertices:Get(i))
+
+            i = i + 1
+        end
+        s:Scale(1.0 / vertexCount)
+
+        number k_inv3 = 1.0 / 3.0
+
+        Vector2 e1
+        Vector2 e2
+
+        i = 0
+        repeat vertexCount times
+            e1:Set(vertices:Get(i)):Subtract(s)
+            if i + 1 < vertexCount
+                e2:Set(s):Scale(-1):Add(vertices:Get(i + 1))
+            else
+                e2:Set(s):Scale(-1):Add(vertices:Get(0))
+            end
+
+            number D = e1:CrossProduct(e2)
+
+            number triangleArea = 0.5 * D
+            area = area + triangleArea
+
+            center:SetX(center:GetX() + (triangleArea * k_inv3 * (e1:GetX() + e2:GetX())))
+            center:SetY(center:GetY() + (triangleArea * k_inv3 * (e1:GetY() + e2:GetY())))
+
+            number ex1 = e1:GetX()
+            number ey1 = e1:GetY()
+            number ex2 = e2:GetX()
+            number ey2 = e2:GetY()
+
+            number intx2 = ex1 * ex1 + ex2 * ex1 + ex2 * ex2
+            number inty2 = ey1 * ey1 + ey2 * ey1 + ey2 * ey2
+
+            I = I + ((0.25 * k_inv3 * D) * (intx2 + inty2))
+
+            i = i + 1
+        end
+
+        mass:SetMass(density * area)
+
+        center:Scale(1.0 / area)
+        mass:GetCenter():Set(center):Add(s)
+
+        mass:SetInertia(I * density)
+
+        mass:SetInertia(mass:GetInertia() + (mass:GetMass() * mass:GetCenter():DotProduct(mass:GetCenter())))
     end
 
     action Validate returns boolean

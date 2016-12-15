@@ -1,6 +1,7 @@
 use Libraries.Compute.Vector2
 use Libraries.Game.Collision.BoundingBox2D
 use Libraries.Game.Collision.PhysicsPosition2D
+use Libraries.Game.Physics.Mass2D
 
 package Libraries.Game.Collision.Shapes
 
@@ -36,7 +37,7 @@ class CollisionShape2D
 
     blueprint action ComputeBoundingBox(BoundingBox2D boundingBox, PhysicsPosition2D transform, integer childIndex)
     
-    blueprint action ComputeMass(number density) returns number
+    blueprint action ComputeMass(Mass2D mass, number density)
 
     blueprint action ComputeDistance(PhysicsPosition2D transform, Vector2 point, integer childIndex, Vector2 normalOut) returns number
 
