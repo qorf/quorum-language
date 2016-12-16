@@ -2506,7 +2506,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
     
     this.Initialize = function()
     {
-        var program = this.program;
+        this.InitializeBaseShader(program, renderable);
         renderable = null;
         
         dirLightsLoc = this.Location(u_dirLights0color);
@@ -2987,12 +2987,25 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.emissiveTextureSetter);
     u_emissiveUVTransform = this.RegisterUniformSetter(plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.emissiveUVTransform,
         plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.emissiveUVTransformSetter);
-//    u_reflectionColor = Register(Inputs.reflectionColor, Setters.reflectionColor);
-//    u_reflectionTexture = Register(Inputs.reflectionTexture, Setters.reflectionTexture);
-//    u_reflectionUVTransform = Register(Inputs.reflectionUVTransform, Setters.reflectionUVTransform);
-//    u_normalTexture = Register(Inputs.normalTexture, Setters.normalTexture);
-//    u_normalUVTransform = Register(Inputs.normalUVTransform, Setters.normalUVTransform);
-//    u_ambientTexture = Register(Inputs.ambientTexture, Setters.ambientTexture);
-//    u_ambientUVTransform = Register(Inputs.ambientUVTransform, Setters.ambientUVTransform);
-//    u_alphaTest = Register(Inputs.alphaTest);
+    u_reflectionColor = this.RegisterUniformSetter(plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.reflectionColor,
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.reflectionColorSetter);
+    u_reflectionTexture = this.RegisterUniformSetter(plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.reflectionTexture,
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.reflectionTextureSetter);
+    u_reflectionUVTransform = this.RegisterUniformSetter(plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.reflectionUVTransform,
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.reflectionUVTransform);
+    u_normalTexture = this.RegisterUniformSetter(plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.normalTexture,
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.normalTexture);
+    u_normalUVTransform = this.RegisterUniformSetter(plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.normalUVTransform,
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.normalUVTransform);
+    u_ambientTexture = this.RegisterUniformSetter(plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.ambientTexture,
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.ambientTextureSetter);
+    u_ambientUVTransform = this.RegisterUniformSetter(plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.ambientUVTransform,
+        plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.ambientUVTransformSetter);
+    u_alphaTest = this.RegisterUniform(plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.alphaTest);
+    
+    if (lighting)
+        u_ambientCubemap = this.RegisterUniformSetter(plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.ambientCube,
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.NewACubemap(config.numDirectionalLights, config.numPointLights));
+    else
+        u_ambientCubemap = -1;
 }

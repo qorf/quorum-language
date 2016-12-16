@@ -47,7 +47,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
         if (length !== count)
         {
             this.SetLength(count);
-            integerArray = NewIntegerArray(count);
+            integerArray = this.NewIntegerArray(count);
         }
         
         for (var i = 0; i < count; i++)
@@ -129,7 +129,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
         if (length !== newLength)
         {
             this.SetLength(newLength);
-            integerArray = NewIntegerArray(newLength);
+            integerArray = this.NewIntegerArray(newLength);
         }
     };
     
