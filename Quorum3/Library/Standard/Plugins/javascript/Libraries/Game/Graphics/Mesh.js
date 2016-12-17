@@ -99,7 +99,7 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
         
         var verts = quorumMesh.vertices.plugin_.GetBuffer();
         
-        var posAttrib = quorumMesh.GetVertexAttributes().FindByUsage(quorumMesh.GetVertexAttributes().POSITION);
+        var posAttrib = quorumMesh.GetVertexAttributes().FindByUsage$quorum_integer(quorumMesh.GetVertexAttributes().POSITION);
         var offset = posAttrib.offset / 4;
         var vertexSize = quorumMesh.vertices.GetAttributes().vertexSize;
         var index = offset;
@@ -109,7 +109,7 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
             case 1:
                 for (var i = 0; i < numVertices; i++)
                 {
-                    box.Extend(verts[index], 0, 0);
+                    box.Extend$quorum_number$quorum_number$quorum_number(verts[index], 0, 0);
                     index = index + vertexSize;
                 }
                 break;
@@ -117,7 +117,7 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
             case 2:
                 for (var i = 0; i < numVertices; i++)
                 {
-                    box.Extend(verts[index], verts[index + 1], 0);
+                    box.Extend$quorum_number$quorum_number$quorum_number(verts[index], verts[index + 1], 0);
                     index = index + vertexSize;
                 }
                 break;
@@ -125,7 +125,7 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
             case 3:
                 for (var i = 0; i < numVertices; i++)
                 {
-                    box.Extend(verts[index], verts[index + 1], verts[index + 2]);
+                    box.Extend$quorum_number$quorum_number$quorum_number(verts[index], verts[index + 1], verts[index + 2]);
                     index = index + vertexSize;
                 }
                 break;
@@ -147,7 +147,7 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
         var vertices = quorumMesh.vertices.plugin_.GetBuffer();
         var indices = quorumMesh.indices.plugin_.GetBuffer();
         
-        var posAttrib = quorumMesh.GetVertexAttributes().FindByUsage(quorumMesh.GetVertexAttributes().POSITION);
+        var posAttrib = quorumMesh.GetVertexAttributes().FindByUsage$quorum_integer(quorumMesh.GetVertexAttributes().POSITION);
         
         var posOffset = posAttrib.offset / 4;
         var vertexSize = quorumMesh.vertices.GetAttributes().vertexSize / 4;
@@ -159,11 +159,11 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
                 for (var i = offset; i < end; i++)
                 {
                     var idx = indices[i] * vertexSize + posOffset;
-                    this.calcVector.Set(vertices[idx], 0, 0);
+                    this.calcVector.Set$quorum_number$quorum_number$quorum_number(vertices[idx], 0, 0);
                     if (transform !== null && transform !== undefined)
-                        this.calcVector.Multiply(transform);
+                        this.calcVector.Multiply$quorum_Libraries_Compute_Matrix4(transform);
                     
-                    box.Extend(calcVector);
+                    box.Extend$quorum_Libraries_Compute_Vector3(this.calcVector);
                 }
                 break;
                 
@@ -171,11 +171,11 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
                 for (var i = offset; i < end; i++)
                 {
                     var idx = indices[i] * vertexSize + posOffset;
-                    this.calcVector.Set(vertices[idx], vertices[idx + 1], 0);
+                    this.calcVector.Set$quorum_number$quorum_number$quorum_number(vertices[idx], vertices[idx + 1], 0);
                     if (transform !== null && transform !== undefined)
-                        this.calcVector.Multiply(transform);
+                        this.calcVector.Multiply$quorum_Libraries_Compute_Matrix4(transform);
                     
-                    box.Extend(calcVector);
+                    box.Extend$quorum_Libraries_Compute_Vector3(this.calcVector);
                 }
                 break;
                 
@@ -183,11 +183,11 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
                 for (var i = offset; i < end; i++)
                 {
                     var idx = indices[i] * vertexSize + posOffset;
-                    this.calcVector.Set(vertices[idx], vertices[idx + 1], vertices[idx + 2]);
+                    this.calcVector.Set$quorum_number$quorum_number$quorum_number(vertices[idx], vertices[idx + 1], vertices[idx + 2]);
                     if (transform !== null && transform !== undefined)
-                        this.calcVector.Multiply(transform);
+                        this.calcVector.Multiply$quorum_Libraries_Compute_Matrix4(transform);
                     
-                    box.Extend(calcVector);
+                    box.Extend$quorum_Libraries_Compute_Vector3(this.calcVector);
                 }
                 break;
         }

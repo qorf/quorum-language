@@ -1516,20 +1516,6 @@ class ClassOpcode is QuorumOpcode
                     + "}" + EOL
         end
 
-        if clazz:HasSystemAction() //this has a plugin, so instantiate it.
-            //if this is a primitive wrapper, pass the actual primitive
-            if clazz:GetStaticKey() = "Libraries.Language.Types.Boolean" or
-               clazz:GetStaticKey() = "Libraries.Language.Types.Integer" or
-               clazz:GetStaticKey() = "Libraries.Language.Types.Number" or
-               clazz:GetStaticKey() = "Libraries.Language.Types.Text"
-               convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
-                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(optional, this);" + EOL
-            else 
-                convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
-                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(this);" + EOL
-            end
-        end
-
         Iterator<ActionOpcode> actionIterator = actions:GetIterator()
         repeat while actionIterator:HasNext()
             ActionOpcode act = actionIterator:Next()

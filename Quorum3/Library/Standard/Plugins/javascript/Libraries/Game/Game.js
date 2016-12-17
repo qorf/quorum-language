@@ -837,7 +837,7 @@ function plugins_quorum_Libraries_Game_Graphics_RenderContext_()
         cullFace = 0;
         blendSFactor = 0;
         blendDFactor = 0;
-        textureBinder.Begin();
+        this.textureBinder.Begin();
     };
     
     this.End = function()
@@ -853,7 +853,7 @@ function plugins_quorum_Libraries_Game_Graphics_RenderContext_()
         if (cullFace > 0)
             graphics.glDisable(graphics.gl.CULL_FACE);
         
-        textureBinder.End();
+        this.textureBinder.End();
     };
     
     this.SetDepthMask = function(mask)

@@ -192,4 +192,10 @@ function plugins_quorum_Libraries_Game_Graphics_VertexArray_()
         
         length = newLength;
     };
+    
+    this.GetBuffer = function()
+    {
+        isDirty = true;
+        return floatArray;
+    };
 }

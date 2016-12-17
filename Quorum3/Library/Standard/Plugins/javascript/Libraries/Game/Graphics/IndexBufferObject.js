@@ -178,4 +178,10 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
         
         length = newLength;
     };
+    
+    this.GetBuffer = function()
+    {
+        isDirty = true;
+        return integerArray;
+    };
 }
