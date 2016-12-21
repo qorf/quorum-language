@@ -78,7 +78,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter3D_()
         
         for (var i = 0; i < renderables.GetSize(); i++)
         {
-            renderable = renderables.Get(i);
+            renderable = renderables.Get$quorum_integer(i);
             renderPlugin = renderable.plugin_;
             if (currentShader !== renderPlugin.shader)
             {

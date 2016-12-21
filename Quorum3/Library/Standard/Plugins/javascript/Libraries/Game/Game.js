@@ -1720,9 +1720,9 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
             combinedAttributes.Empty();
             
             if (renderable.environment !== null && renderable.environment !== undefined)
-                combinedAttributes.Add(renderable.environment);
+                combinedAttributes.Add$quorum_Libraries_Game_Graphics_Attributes(renderable.environment);
             if (renderable.material !== null && renderable.material !== undefined)
-                combinedAttributes.Add(renderable.material);
+                combinedAttributes.Add$quorum_Libraries_Game_Graphics_Attributes(renderable.material);
             
             cAttributes = combinedAttributes;
         }
@@ -2702,15 +2702,15 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         for (var i = 0; i < directionalLights.length; i++)
         {
             var dirLight = directionalLights[i];
-            dirLight.SetColor(0, 0, 0, 1);
-            dirLight.SetDirection(0, -1, 0);
+            dirLight.SetColor$quorum_number$quorum_number$quorum_number$quorum_number(0, 0, 0, 1);
+            dirLight.SetDirection$quorum_number$quorum_number$quorum_number(0, -1, 0);
         }
         for (var i = 0; i < pointLights.length; i++)
         {
             var pointLight = pointLights[i];
-            pointLight.SetColor(0, 0, 0, 0);
-            pointLight.SetPosition(0, 0, 0);
-            pointLight.SetIntensity(0);
+            pointLight.SetColor$quorum_number$quorum_number$quorum_number$quorum_number(0, 0, 0, 0);
+            pointLight.SetPosition$quorum_number$quorum_number$quorum_number(0, 0, 0);
+            pointLight.SetIntensity$quorum_number(0);
         }
         
         lightsSet = false;
@@ -2722,17 +2722,32 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         }
     };
     
-    this.Render = function(renderable, combinedAttributes)
+    this.Render = function(renderable, cAttributes)
     {
-        if (!combinedAttributes.HasAttribute$quorum_integer(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.blendingAttribute.GetBlendedValue()))
+        if (cAttributes === undefined)
+        {
+            if (renderable.worldTransform.Determinant3x3() === 0)
+                return;
+            
+            combinedAttributes.Empty();
+            
+            if (renderable.environment !== null && renderable.environment !== undefined)
+                combinedAttributes.Add$quorum_Libraries_Game_Graphics_Attributes(renderable.environment);
+            if (renderable.material !== null && renderable.material !== undefined)
+                combinedAttributes.Add$quorum_Libraries_Game_Graphics_Attributes(renderable.material);
+            
+            cAttributes = combinedAttributes;
+        }
+        
+        if (!cAttributes.HasAttribute$quorum_integer(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.blendingAttribute.GetBlendedValue()))
         {
             var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
-            context.SetBlending(false, graphics.gl.SRC_ALPHA, graphics.gl.ONE_MINUS_SRC_ALPHA);
-            this.BindMaterial(combinedAttributes);
+            this.context.SetBlending(false, graphics.gl.SRC_ALPHA, graphics.gl.ONE_MINUS_SRC_ALPHA);
+            this.BindMaterial(cAttributes);
             if (lighting)
-                this.BindLights(renderable, combinedAttributes);
+                this.BindLights(renderable, cAttributes);
             
-            this.RenderBaseShader(renderable, combinedAttributes);
+            this.RenderBaseShader(renderable, cAttributes);
         }
     };
     
@@ -2754,12 +2769,12 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         
         for (var i = 0; i < attributeArray.GetSize(); i++)
         {
-            var attr = attributeArray.Get(i);
+            var attr = attributeArray.Get$quorum_integer(i);
             
             var t = attr.type;
             if (t & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.blendingAttribute.GetBlendedValue() === t)
             {
-                context.SetBlending(true, attr.sourceFunction, attr.destFunction);
+                this.context.SetBlending(true, attr.sourceFunction, attr.destFunction);
                 this.Set1f(u_opacity, attr.opacity);
             }
             else if (t & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.integerAttribute.GetCullFaceValue() 
@@ -2788,9 +2803,9 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
             }
         }
         
-        context.SetCullFace(cullFace);
-        context.SetDepthTest(depthFunc, depthRangeNear, depthRangeFar);
-        context.SetDepthMask(depthMask);
+        this.context.SetCullFace(cullFace);
+        this.context.SetDepthTest(depthFunc, depthRangeNear, depthRangeFar);
+        this.context.SetDepthMask(depthMask);
     };
     
     this.BindLights = function(renderable, attributes)
