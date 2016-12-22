@@ -2084,7 +2084,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTransSetter.matrix = new quorum_Libraries_Compute_Matrix4_();
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTransSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
-            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTransSetter.matrix.Set(shader.camera.combined);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTransSetter.matrix.Set$quorum_Libraries_Compute_Matrix4(shader.camera.Get_Libraries_Game_Graphics_Camera__combined_());
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.InvertViewZ(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTransSetter.matrix);
             shader.SetMatrix4(inputID, plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTransSetter.matrix);
         };
@@ -2094,7 +2094,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTransSetter.matrix = new quorum_Libraries_Compute_Matrix4_();
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTransSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
-            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTransSetter.matrix.Set(shader.camera.combined);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTransSetter.matrix.Set$quorum_Libraries_Compute_Matrix4(shader.camera.Get_Libraries_Game_Graphics_Camera__combined_());
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.InvertViewZ(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTransSetter.matrix);
             shader.SetMatrix4(inputID, plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewTransSetter.matrix);
         };
@@ -2126,7 +2126,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.matrix = new quorum_Libraries_Compute_Matrix4_();
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
-            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.matrix.Set(renderable.worldTransform);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.matrix.Set$quorum_Libraries_Compute_Matrix4(renderable.Get_Libraries_Game_Graphics_Camera__worldTransform_());
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.InvertPositionZ(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.matrix);
             shader.SetMatrix4(inputID, plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.matrix);
         };
@@ -2137,12 +2137,12 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp2 = new quorum_Libraries_Compute_Matrix4_();
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
-            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp.SetMatrix4(shader.camera.view);
-            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp2.SetMatrix4(shader.camera.worldTransform);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp.Set$quorum_Libraries_Compute_Matrix4(shader.camera.Get_Libraries_Game_Graphics_Camera__view_());
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp2.Set$quorum_Libraries_Compute_Matrix4(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.InvertViewZ(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp);
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.InvertPositionZ(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp2);
-            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp.Multiply(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp2);
-            shader.SetMatrix4(inputID, temp);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp.Multiply$quorum_Libraries_Compute_Matrix4(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp2);
+            shader.SetMatrix4(inputID, plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewWorldTransSetter.temp);
         };
         
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTransSetter = {};
@@ -2151,10 +2151,10 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTransSetter.temp2 = new quorum_Libraries_Compute_Matrix4_();
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTransSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
-            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTransSetter.temp.SetMatrix4(shader.camera.combined);
-            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTransSetter.temp2.SetMatrix4(renderable.worldTransform);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTransSetter.temp.Set$quorum_Libraries_Compute_Matrix4(shader.camera.Get_Libraries_Game_Graphics_Camera__combined_());
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTransSetter.temp2.Set$quorum_Libraries_Compute_Matrix4(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.InvertPositionZ(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTransSetter.temp2);
-            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTransSetter.temp.Multiply(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTransSetter.temp2);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTransSetter.temp.Multiply$quorum_Libraries_Compute_Matrix4(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTransSetter.temp2);
             shader.SetMatrix4(inputID, plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projViewWorldTransSetter.temp);
         };
         
@@ -2163,7 +2163,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp = new quorum_Libraries_Compute_Matrix4_();
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
-            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp.SetMatrix4(renderable.worldTransform);
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp.Set$quorum_Libraries_Compute_Matrix4(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp.Inverse();
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp.Transpose();
             shader.SetMatrix4(inputID, temp);
@@ -2771,7 +2771,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         {
             var attr = attributeArray.Get$quorum_integer(i);
             
-            var t = attr.type;
+            var t = attr.Get_Libraries_Game_Graphics_Attribute__type_();
             if (t & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.blendingAttribute.GetBlendedValue() === t)
             {
                 this.context.SetBlending(true, attr.sourceFunction, attr.destFunction);
