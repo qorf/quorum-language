@@ -2675,7 +2675,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
     this.CanRender = function(renderable)
     {
         var attributes = this.CombineAttributes(renderable);
-        return (attributesMask === (attributes.GetMask() | optionalAttributes)) 
+        return (attributesMask === (attributes.GetMask() | plugins_quorum_Libraries_Game_Graphics_DefaultShader_.optionalAttributes)) 
             && (vertexMask === renderable.meshPart.mesh.GetVertexAttributes().GetMask())
             && (renderable.environment !== null && renderable !== undefined) === lighting;
     };
