@@ -87,7 +87,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
         
         if (isDirty)
         {
-            graphics.glBufferData(graphics.gl.ARRAY_BUFFER, buffer, usage);
+            graphics.glBufferData(graphics.gl.ARRAY_BUFFER, floatArray, usage);
             isDirty = false;
         }
         

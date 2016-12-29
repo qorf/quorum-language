@@ -2743,12 +2743,12 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         {
             var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
             this.context.SetBlending(false, graphics.gl.SRC_ALPHA, graphics.gl.ONE_MINUS_SRC_ALPHA);
-            this.BindMaterial(cAttributes);
-            if (lighting)
-                this.BindLights(renderable, cAttributes);
-            
-            this.RenderBaseShader(renderable, cAttributes);
         }
+        this.BindMaterial(cAttributes);
+        if (lighting)
+            this.BindLights(renderable, cAttributes);
+
+        this.RenderBaseShader(renderable, cAttributes);
     };
     
     this.BindMaterial = function(attributes)
@@ -2777,18 +2777,18 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
                 this.context.SetBlending(true, attr.sourceFunction, attr.destFunction);
                 this.Set1f(u_opacity, attr.opacity);
             }
-            else if (t & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.integerAttribute.GetCullFaceValue() 
+            else if ((t & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.integerAttribute.GetCullFaceValue())
                     === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.integerAttribute.GetCullFaceValue())
             {
                 cullFace = attr.value;
             }
-            else if (t & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.numberAttribute.GetAlphaTestValue()
+            else if ((t & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.numberAttribute.GetAlphaTestValue())
                     === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.numberAttribute.GetAlphaTestValue())
             {
                 this.Set1f(u_alphaTest, attr.value);
             }
-            else if (t & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.depthTestAttribute.GetDepthTestValue()
-                    === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.deptTestAttribute.GetDepthTestValue())
+            else if ((t & plugins_quorum_Libraries_Game_Graphics_DefaultShader_.depthTestAttribute.GetDepthTestValue())
+                    === plugins_quorum_Libraries_Game_Graphics_DefaultShader_.depthTestAttribute.GetDepthTestValue())
             {
                 depthFunc = attr.depthFunction;
                 depthRangeNear = attr.depthRangeNear;
