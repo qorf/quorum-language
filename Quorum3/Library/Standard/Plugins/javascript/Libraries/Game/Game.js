@@ -1689,8 +1689,8 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         for (var i = 0; i < globalUniforms.length; ++i)
         {
             u = globalUniforms[i];
-            if (setters[i] !== null && setters[i] !== undefined)
-                setters[i].Set(this, u, null, null);
+            if (setters[u] !== null && setters[u] !== undefined)
+                setters[u].Set(this, u, null, null);
         }
     };
     
@@ -1809,7 +1809,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         if (locations[uniform] < 0)
             return false;
         
-        this.program.SetUniformVector3AtLocation(locations[uniform], value.GetX(), value.GetY(), value.GetZ());
+        this.program.SetUniformVector3AtLocation(locations[uniform], value);
         return true;
     };
     
@@ -1818,7 +1818,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         if (locations[uniform] < 0)
             return false;
         
-        this.program.SetUniformVector2AtLocation(locations[uniform], value.GetX(), value.GetY());
+        this.program.SetUniformVector2AtLocation(locations[uniform], value);
         return true;
     };
 
@@ -2076,7 +2076,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projTransSetter.IsGlobal = isGlobal;
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.projTransSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
-            shader.SetMatrix4(inputID, shader.camera.projection);
+            shader.SetMatrix4(inputID, shader.camera.Get_Libraries_Game_Graphics_Camera__projection_());
         };
         
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.viewTransSetter = {};
@@ -2103,22 +2103,22 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraPositionSetter.IsGlobal = isGlobal;
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraPositionSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
-            shader.Set4f(inputID, shader.camera.position.GetX(), shader.camera.position.GetY(),
-                shader.camera.position.GetZ(), 1.1881 / shader.camera.far * shader.camera.far);
+            shader.Set4f(inputID, shader.camera.Get_Libraries_Game_Graphics_Camera__position_().GetX(), shader.camera.Get_Libraries_Game_Graphics_Camera__position_().GetY(),
+                shader.camera.Get_Libraries_Game_Graphics_Camera__position_().GetZ(), 1.1881 / shader.camera.Get_Libraries_Game_Graphics_Camera__far_() * shader.camera.Get_Libraries_Game_Graphics_Camera__far_());
         };
         
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraDirectionSetter = {};
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraDirectionSetter.IsGlobal = isGlobal;
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraDirectionSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
-            shader.SetVector3(inputID, shader.camera.direction);
+            shader.SetVector3(inputID, shader.camera.Get_Libraries_Game_Graphics_Camera__direction_());
         };
         
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraUpSetter = {};
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraUpSetter.IsGlobal = isGlobal;
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.cameraUpSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
-            shader.SetVector3(inputID, shader.camera.up);
+            shader.SetVector3(inputID, shader.camera.Get_Libraries_Game_Graphics_Camera__up_());
         };
         
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter = {};
