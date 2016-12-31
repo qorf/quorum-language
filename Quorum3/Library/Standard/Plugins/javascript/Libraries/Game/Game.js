@@ -149,15 +149,18 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         return location;
     };
     
-    this.FetchUniformLocation = function(name)
+    this.FetchUniformLocation = function(name, pedantic)
     {
+        if (pedantic === undefined)
+            pedantic = plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.pedantic;
+        
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
         var location = uniforms[name] || -2;
         
         if (location === -2)
         {
             location = graphics.glGetUniformLocation(program, name);
-            if (location === -1 && plugins_quorum_Libraries_Game_Graphics_ShaderProgram_().pedantic)
+            if ((location === null || location === undefined) && pedantic)
             {
                 var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
                 exceptionInstance_.SetErrorMessage$quorum_text("I couldn't find a uniform with the name '" + name + "' in the shader!");
@@ -1643,12 +1646,12 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
             var setter = setters[i];
             
             if (validator !== null && validator !== undefined && !validator.Validate(this, i, renderable))
-                locations[i] -1;
+                locations[i] = null;
             else
             {
                 locations[i] = program.FetchUniformLocation(input, false);
                 
-                if (locations[i] >= 0 && setter !== null && setter !== undefined)
+                if (locations[i] !== null && locations[i] !== undefined && setter !== null && setter !== undefined)
                 {
                     if (setter.IsGlobal(this, i))
                         globalUniforms.push(i);
@@ -1656,7 +1659,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
                         localUniforms.push(i);
                 }
             }
-            if (locations[i] < 0)
+            if (locations[i] === null || locations[i] === undefined)
             {
                 validators[i] = null;
                 setters[i] = null;
@@ -2126,7 +2129,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.matrix = new quorum_Libraries_Compute_Matrix4_();
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
-            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.matrix.Set$quorum_Libraries_Compute_Matrix4(renderable.Get_Libraries_Game_Graphics_Camera__worldTransform_());
+            plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.matrix.Set$quorum_Libraries_Compute_Matrix4(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.InvertPositionZ(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.matrix);
             shader.SetMatrix4(inputID, plugins_quorum_Libraries_Game_Graphics_DefaultShader_.worldTransSetter.matrix);
         };
@@ -2166,7 +2169,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp.Set$quorum_Libraries_Compute_Matrix4(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp.Inverse();
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp.Transpose();
-            shader.SetMatrix4(inputID, temp);
+            shader.SetMatrix4(inputID, plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp);
         };
         
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.NewBones = function(numBones)
