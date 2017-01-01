@@ -292,6 +292,21 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         graphics.glUniform4f(location, value1, value2, value3, value4);
     };
     
+    this.SetUniform3fvFromName = function(name, value)
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        this.CheckManaged();
+        var location = this.FetchUniformLocation(name);
+        graphics.glUniform3fv(location, value);
+    };
+    
+    this.SetUniform3fvAtLocation = function(location, value)
+    {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        this.CheckManaged();
+        graphics.glUniform3fv(location, value);
+    };
+    
     this.SetUniformVector1FromName = function(name, value)
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
@@ -1934,6 +1949,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         newUniform.Validate = function(shader, inputID, renderable)
         {
             var matFlags;
+            var materialMask = newUniform.materialMask;
             if ((renderable !== null && renderable !== undefined) && (renderable.material !== null && renderable.material !== undefined))
                 matFlags = renderable.material.GetMask();
             else
@@ -2044,12 +2060,12 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.ambientUVTransform = this.NewUniform("u_ambientUVTransform", 0, 0, tempAttribute.GetAmbientValue());
         tempAttribute = null;
 
-        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.alphaTest = this.NewUniform("u_alphaTest");
-        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.ambientCube = this.NewUniform("u_ambientCubemap");
-        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.dirLights = this.NewUniform("u_dirLights");
-        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.pointLights = this.NewUniform("u_pointLights");
-        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.spotLights = this.NewUniform("u_spotLights");
-        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.environmentCubemap = this.NewUniform("u_environmentCubemap");
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.alphaTest = this.NewUniform("u_alphaTest", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.ambientCube = this.NewUniform("u_ambientCubemap", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.dirLights = this.NewUniform("u_dirLights", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.pointLights = this.NewUniform("u_pointLights", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.spotLights = this.NewUniform("u_spotLights", 0, 0, 0);
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.environmentCubemap = this.NewUniform("u_environmentCubemap", 0, 0, 0);
         
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.tmpAttributes = new quorum_Libraries_Game_Graphics_Attributes_();
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.usage = new quorum_Libraries_Game_Graphics_VertexAttributes_();
@@ -2335,17 +2351,22 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.NewACubemap = function(dirLightsOffset, pointLightsOffset)
         {
             var newCubemap = {};
-            newCubemap.ones = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+            newCubemap.ones = new Float32Array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
             newCubemap.cacheAmbientCubemap = new quorum_Libraries_Game_Graphics_AmbientCubemap_();
             newCubemap.dirLightsOffset = dirLightsOffset;
             newCubemap.pointLightsOffset = pointLightsOffset;
             newCubemap.directionalLightsAttribute = new quorum_Libraries_Game_Graphics_DirectionalLightsAttribute_();
             newCubemap.pointLightsAttribute = new quorum_Libraries_Game_Graphics_PointLightsAttribute_();
             
+            newCubemap.IsGlobal = function()
+            {
+                return false;
+            };
+            
             newCubemap.Set = function(shader, inputID, renderable, combinedAttributes)
             {
                 if (renderable.environment === null || renderable.environment === undefined || !renderable.environment.ContainsLighting())
-                    shader.program.SetUniformVector3(shader.Location(inputID), this.ones, 0, this.ones.length);
+                    shader.program.SetUniform3fvAtLocation(shader.Location(inputID), this.ones, 0, this.ones.length);
                 else
                 {
                     var tmpV1 = renderable.worldTransform.GetTranslation();
