@@ -351,7 +351,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
         this.CheckManaged();
-        var value = this.Matrix4ToArray(matrix);
+        var value = this.ConvertMatrix4ToArray(matrix);
         graphics.glUniformMatrix4fv(location, transpose, value);
     };
     
@@ -369,7 +369,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
         this.CheckManaged();
-        var value = this.Matrix3ToArray(matrix);
+        var value = this.ConvertMatrix3ToArray(matrix);
         graphics.glUniformMatrix3fv(location, transpose, value);
     };
     
@@ -627,44 +627,24 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         return fragmentShaderSource;
     };
     
-    this.Matrix3ToArray = function(matrix)
+    this.ConvertMatrix4ToArray = function(m)
     {
-        var temp = new Float32Array(9);
-        
-        temp[0] = matrix.row0column0;
-        temp[1] = matrix.row1column0;
-        temp[2] = matrix.row2column0;
-        temp[3] = matrix.row0column1;
-        temp[4] = matrix.row1column1;
-        temp[5] = matrix.row2column1;
-        temp[6] = matrix.row0column2;
-        temp[7] = matrix.row1column2;
-        temp[8] = matrix.row2column2;
-        
+        var temp = new Float32Array(
+                   [m.row0column0, m.row1column0, m.row2column0, m.row3column0,
+                    m.row0column1, m.row1column1, m.row2column1, m.row3column1,
+                    m.row0column2, m.row1column2, m.row2column2, m.row3column2,
+                    m.row0column3, m.row1column3, m.row2column3, m.row3column3]);
+                
         return temp;
     };
     
-    this.Matrix4ToArray = function(matrix)
+    this.ConvertMatrix3ToArray = function(m)
     {
-        var temp = new Float32Array(16);
-        
-        temp[0] = matrix.row0column0;
-        temp[1] = matrix.row1column0;
-        temp[2] = matrix.row2column0;
-        temp[3] = matrix.row3column0;
-        temp[4] = matrix.row0column1;
-        temp[5] = matrix.row1column1;
-        temp[6] = matrix.row2column1;
-        temp[7] = matrix.row3column1;
-        temp[8] = matrix.row0column2;
-        temp[9] = matrix.row1column2;
-        temp[10] = matrix.row2column2;
-        temp[11] = matrix.row3column2;
-        temp[12] = matrix.row0column3;
-        temp[13] = matrix.row1column3;
-        temp[14] = matrix.row2column3;
-        temp[15] = matrix.row3column3;
-        
+        var temp = new Float32Array(
+                   [m.row0column0, m.row1column0, m.row2column0,
+                    m.row0column1, m.row1column1, m.row2column1,
+                    m.row0column2, m.row1column2, m.row2column2]);
+                
         return temp;
     };
     
@@ -1805,9 +1785,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         if (locations[uniform] < 0)
             return false;
         
-        var temp = this.ConvertMatrix4ToArray(value);
-        
-        this.program.SetUniformMatrix4AtLocation(locations[uniform], temp);
+        this.program.SetUniformMatrix4AtLocation(locations[uniform], value);
         return true;
     };
     
@@ -1816,9 +1794,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         if (locations[uniform] < 0)
             return false;
         
-        var temp = this.ConvertMatrix3ToArray(value);
-        
-        this.program.SetUniformMatrix3AtLocation(locations[uniform], temp);
+        this.program.SetUniformMatrix3AtLocation(locations[uniform], value);
         return true;
     };
     
@@ -1918,25 +1894,6 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         
         this.program.SetUniform4iAtLocation(locations[uniform], v1, v2, v3, v4);
         return true;
-    };
-    
-    this.ConvertMatrix4ToArray = function(m)
-    {
-        var temp = [m.row0column0, m.row1column0, m.row2column0, m.row3column0,
-                    m.row0column1, m.row1column1, m.row2column1, m.row3column1,
-                    m.row0column2, m.row1column2, m.row2column2, m.row3column2,
-                    m.row0column3, m.row1column3, m.row2column3, m.row3column3];
-                
-        return temp;
-    };
-    
-    this.ConvertMatrix3ToArray = function(m)
-    {
-        var temp = [m.row0column0, m.row1column0, m.row2column0,
-                    m.row0column1, m.row1column1, m.row2column1,
-                    m.row0column2, m.row1column2, m.row2column2];
-                
-        return temp;
     };
     
     this.NewUniform = function(alias, materialMask, environmentMask, overallMask)
@@ -2228,7 +2185,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.diffuseColorSetter.IsGlobal = isLocal;
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.diffuseColorSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
-            shader.Set1f(inputID, combinedAttributes.GetAttribute$quorum_integer(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetDiffuseValue()).color);
+            shader.SetColor(inputID, combinedAttributes.GetAttribute$quorum_integer(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetDiffuseValue()).color);
         };
         
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.diffuseTextureSetter = {};
