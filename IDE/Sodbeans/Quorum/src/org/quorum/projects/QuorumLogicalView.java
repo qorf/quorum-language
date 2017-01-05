@@ -19,10 +19,7 @@ import org.netbeans.api.project.ui.OpenProjects;
 import org.netbeans.spi.project.ui.LogicalViewProvider;
 import org.netbeans.spi.project.ui.support.CommonProjectActions;
 import org.openide.ErrorManager;
-import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileStateInvalidException;
-import org.openide.filesystems.FileSystem;
-import org.openide.filesystems.Repository;
+import org.openide.filesystems.*;
 import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
@@ -130,7 +127,7 @@ public class QuorumLogicalView implements LogicalViewProvider{
 
             if(fileObject != null) {
                 try {
-                    img = fileObject.getFileSystem().getStatus().annotateIcon(img, type, Collections.singleton(fileObject));
+                    img = FileUIUtils.getImageDecorator(fileObject.getFileSystem()).annotateIcon(img, type, Collections.singleton(fileObject));
                 } catch (FileStateInvalidException e) {
                     // no fs, do nothing
                 }
@@ -248,7 +245,7 @@ public class QuorumLogicalView implements LogicalViewProvider{
             
             if(fileObject != null) {
                 try {
-                    icon = fileObject.getFileSystem().getStatus().annotateIcon(icon, type, Collections.singleton(fileObject));
+                    icon = FileUIUtils.getImageDecorator(fileObject.getFileSystem()).annotateIcon(icon, type, Collections.singleton(fileObject));
                 } catch (FileStateInvalidException e) {
                     // no fs, do nothing
                 }
