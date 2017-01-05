@@ -2327,11 +2327,11 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
                 else
                 {
                     var tmpV1 = renderable.worldTransform.GetTranslation();
-                    tmpV1.Scale(1, 1, -1);
+                    tmpV1.Scale$quorum_number$quorum_number$quorum_number(1, 1, -1);
                     if (combinedAttributes.HasAttribute$quorum_integer(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetAmbientLightValue()))
-                        this.cacheAmbientCubemap.SetColor(combinedAttributes.GetAttribute$quorum_integer(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetAmbientLightValue()).color);
+                        this.cacheAmbientCubemap.SetColor$quorum_Libraries_Game_Graphics_Color(combinedAttributes.GetAttribute$quorum_integer(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.colorAttribute.GetAmbientLightValue()).color);
                     
-                    if (combinedAttributes.HasAttribute$quorum_integer(this.directionalLightsAttribute.GetDirectionalLightsValue()));
+                    if (combinedAttributes.HasAttribute$quorum_integer(this.directionalLightsAttribute.GetDirectionalLightsValue()))
                     {
                         var lights = combinedAttributes.GetAttribute$quorum_integer(this.directionalLightsAttribute.GetDirectionalLightsValue()).lights;
                         for (var i = this.dirLightsOffset; i < lights.GetSize(); i++)
@@ -2349,9 +2349,9 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
                     this.cacheAmbientCubemap.Clamp();
                     var temp = [];
                     for (var i = 0; i < this.cacheAmbientCubemap.data.GetSize(); i++)
-                        temp[i] = this.cacheAmbientCubemap.GetDataAtIndex(i);
+                        temp[i] = this.cacheAmbientCubemap.GetDataAtIndex$quorum_integer(i);
                     
-                    shader.program.SetUniformVector3AtLocation(shader.Location(inputID), temp, 0, temp.length);
+                    shader.program.SetUniform3fvAtLocation(shader.Location(inputID), temp);
                 }
             };
             
