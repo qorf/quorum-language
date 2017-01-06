@@ -2136,13 +2136,13 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter = {};
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.IsGlobal = isLocal;
-        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp = new quorum_Libraries_Compute_Matrix4_();
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp = new quorum_Libraries_Compute_Matrix3_();
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp.Set$quorum_Libraries_Compute_Matrix4(renderable.Get_Libraries_Game_Graphics_Renderable__worldTransform_());
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp.Inverse();
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp.Transpose();
-            shader.SetMatrix4(inputID, plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp);
+            shader.SetMatrix3(inputID, plugins_quorum_Libraries_Game_Graphics_DefaultShader_.normalMatrixSetter.temp);
         };
         
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.NewBones = function(numBones)

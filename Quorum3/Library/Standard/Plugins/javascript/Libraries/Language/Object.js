@@ -98,6 +98,8 @@ function global_parseNumber(text) {
 }
 
 function global_CheckCast(from, to) {
+    if (from === null || from === undefined)
+        return from;
     var names = from.parentNames_;
     for(i = 0; i < names.length; i++) {
         if(names[i] == to) {
