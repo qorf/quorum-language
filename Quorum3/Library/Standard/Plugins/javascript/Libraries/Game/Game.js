@@ -1770,7 +1770,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
     
     this.Has = function(inputID)
     {
-        return inputID >= 0 && inputID < locations.length && locations[inputID] >= 0;
+        return inputID >= 0 && inputID < locations.length && locations[inputID] !== null;
     };
     
     this.Location = function(inputID)
@@ -2454,14 +2454,14 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
     var u_shadowPCFOffset = this.RegisterUniform(this.NewUniform("u_shadowPCFOffset", 0, 0, 0));
     
     var dirLightsLoc;
-    var dirLightsColorOffset;
-    var dirLightsDirectionOffset;
-    var dirLightsSize;
+    var dirLightsColor;
+    var dirLightsDirection;
+//    var dirLightsSize;
     var pointLightsLoc;
-    var pointLightsColorOffset;
-    var pointLightsPositionOffset;
-    var pointLightsIntensityOffset;
-    var pointLightsSize;
+    var pointLightsColor;
+    var pointLightsPosition;
+    var pointLightsIntensity;
+//    var pointLightsSize;
     var spotLightsLoc;
     var spotLightsColorOffset;
     var spotLightsPositionOffset;
@@ -2494,23 +2494,47 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         this.InitializeBaseShader(program, renderable);
         renderable = null;
         
-        dirLightsLoc = this.Location(u_dirLights0color);
-        dirLightsColorOffset = this.Location(u_dirLights0color) - dirLightsLoc;
-        dirLightsDirectionOffset = this.Location(u_dirLights0direction) - dirLightsLoc;
-        dirLightsSize = this.Location(u_dirLights1color) - dirLightsLoc;
-        if (dirLightsSize < 0)
-            dirLightsSize = 0;
+        dirLightsLoc = [];
+        dirLightsColor = [];
+        dirLightsDirection = [];
+        for (var i = 0; i < directionalLights.length; i++)
+        {
+            dirLightsLoc[i] = program.FetchUniformLocation("u_dirLights[" + i + "].color");
+            dirLightsColor[i] = program.FetchUniformLocation("u_dirLights[" + i + "].color");
+            dirLightsDirection[i] = program.FetchUniformLocation("u_dirLights[" + i + "].direction");
+        }
+//        dirLightsLoc = this.Location(u_dirLights0color);
+//        dirLightsColorOffset = this.Location(u_dirLights0color) - dirLightsLoc;
+//        dirLightsDirectionOffset = this.Location(u_dirLights0direction) - dirLightsLoc;
+//        dirLightsSize = this.Location(u_dirLights1color) - dirLightsLoc;
+//        if (dirLightsSize < 0)
+//            dirLightsSize = 0;
         
-        pointLightsLoc = this.Location(u_pointLights0color);
-        pointLightsColorOffset = this.Location(u_pointLights0color) - pointLightsLoc;
-        pointLightsPositionOffset = this.Location(u_pointLights0position) - pointLightsLoc;
-        if (this.Has(u_pointLights0intensity))
-            pointLightsIntensityOffset = this.Location(u_pointLights0intensity) - pointLightsLoc;
-        else
-            pointLightsIntensityOffset = -1;
-        pointLightsSize = this.Location(u_pointLights1color) - pointLightsLoc;
-        if (pointLightsSize < 0)
-            pointLightsSize = 0;
+        pointLightsLoc = [];
+        pointLightsColor = [];
+        pointLightsPosition = [];
+        pointLightsIntensity = [];
+        for (var i = 0; i < pointLights.length; i++)
+        {
+            pointLightsLoc[i] = program.FetchUniformLocation("u_pointLights[" + i + "].color");
+            pointLightsColor[i] = program.FetchUniformLocation("u_pointLights[" + i + "].color");
+            pointLightsPosition[i] = program.FetchUniformLocation("u_pointLights[" + i + "].position");
+            if (this.Has(u_pointLights0intensity))
+                pointLightsIntensity[i] = program.FetchUniformLocation("u_pointLights[" + i + "].intensity");
+            else
+                pointLightsIntensity[i] = null;
+        }
+        
+//        pointLightsLoc = this.Location(u_pointLights0color);
+//        pointLightsColorOffset = this.Location(u_pointLights0color) - pointLightsLoc;
+//        pointLightsPositionOffset = this.Location(u_pointLights0position) - pointLightsLoc;
+//        if (this.Has(u_pointLights0intensity))
+//            pointLightsIntensityOffset = this.Location(u_pointLights0intensity) - pointLightsLoc;
+//        else
+//            pointLightsIntensityOffset = -1;
+//        pointLightsSize = this.Location(u_pointLights1color) - pointLightsLoc;
+//        if (pointLightsSize < 0)
+//            pointLightsSize = 0;
         
         spotLightsLoc = this.Location(u_spotLights0color);
         spotLightsColorOffset = this.Location(u_spotLights0position) - spotLightsLoc;
@@ -2805,7 +2829,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         else
             points = pla.lights;
         
-        if (dirLightsLoc >= 0)
+        if (dirLightsLoc !== null && dirLightsLoc !== undefined)
         {
             for (var i = 0; i < directionalLights.length; i++)
             {
@@ -2816,29 +2840,29 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
                             && directionalLights[i].GetColor().GetBlue() === 0)
                         continue;
                     
-                    directionalLights[i].GetColor().SetColor(0, 0, 0, 1);
+                    directionalLights[i].GetColor().SetColor$quorum_number$quorum_number$quorum_number$quorum_number(0, 0, 0, 1);
                 }
                 else if (lightsSet && directionalLights[i] === dirs.Get(i))
                     continue;
                 else
                 {
-                    var tempDir = dirs.Get(i);
-                    directionalLights[i].SetLight(tempDir.GetColor(), tempDir.GetDirection());
+                    var tempDir = dirs.Get$quorum_integer(i);
+                    directionalLights[i].SetLight$quorum_Libraries_Game_Graphics_Color$quorum_Libraries_Compute_Vector3(tempDir.GetColor(), tempDir.GetDirection());
                 }
                 
-                var idx = dirLightsLoc + i * dirLightsSize;
+//                var idx = dirLightsLoc + i * dirLightsSize;
                 
-                program.SetUniform3fAtLocation(idx + dirLightsColorOffset, directionalLights[i].GetColor().GetRed(),
+                program.SetUniform3fAtLocation(dirLightsColor[i], directionalLights[i].GetColor().GetRed(),
                     directionalLights[i].GetColor().GetGreen(), directionalLights[i].GetColor().GetBlue());
-                program.SetUniform3fAtLocation(idx + dirLightsDirectionOffset, directionalLights[i].direction.GetX(),
+                program.SetUniform3fAtLocation(dirLightsDirection[i], directionalLights[i].direction.GetX(),
                     directionalLights[i].direction.GetY(), directionalLights[i].direction.GetZ() * -1);
                     
-                if (dirLightsSize <= 0)
-                    break;
+//                if (dirLightsSize <= 0)
+//                    break;
             }
         }
         
-        if (pointLightsLoc >= 0)
+        if (pointLightsLoc !== null && pointLightsLoc !== undefined)
         {
             for (var i = 0; i < pointLights.length; i++)
             {
@@ -2847,32 +2871,32 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
                     if (lightsSet && pointLights[i].GetIntensity() === 0)
                         continue;
                     
-                    pointLights[i].SetIntensity(0);
+                    pointLights[i].SetIntensity$quorum_number(0);
                 }
                 else if (lightsSet && pointLights[i] === points.Get(i))
                     continue;
                 else
                 {
-                    var tempPoint = points.Get(i);
-                    pointLights[i].SetLight(tempPoint.GetColor(), tempPoint.GetPosition(), tempPoint.GetIntensity());
-                    pointLights[i].SetOffset(tempPoint.GetOffsetX(), tempPoint.GetOffsetY(), tempPoint.GetOffsetZ);
+                    var tempPoint = points.Get$quorum_integer(i);
+                    pointLights[i].SetLight$quorum_Libraries_Game_Graphics_Color$quorum_Libraries_Compute_Vector3$quorum_number(tempPoint.GetColor(), tempPoint.GetPosition(), tempPoint.GetIntensity());
+                    pointLights[i].SetOffset$quorum_number$quorum_number$quorum_number(tempPoint.GetOffsetX(), tempPoint.GetOffsetY(), tempPoint.GetOffsetZ());
                 }
                 
-                var idx = pointLightsLoc + i * pointLightsSize;
+//                var idx = pointLightsLoc + i * pointLightsSize;
                 
                 var intensity = pointLights[i].GetIntensity();
                 
-                program.SetUniform3fAtLocation(idx + pointLightsColorOffset, pointLights[i].GetColor().GetRed() * intensity,
+                program.SetUniform3fAtLocation(pointLightsColor[i], pointLights[i].GetColor().GetRed() * intensity,
                     pointLights[i].GetColor().GetGreen() * intensity, pointLights[i].GetColor().GetBlue() * intensity);
                     
-                program.SetUniform3fAtLocation(idx + pointLightsPositionOffset, pointLights[i].GetGlobalX(), pointLights[i].GetGlobalY(),
+                program.SetUniform3fAtLocation(pointLightsPosition[i], pointLights[i].GetGlobalX(), pointLights[i].GetGlobalY(),
                     pointLights[i].GetGlobalZ() * -1);
                     
-                if (pointLightsIntensityOffset >= 0)
-                    program.SetUniform1fAtLocation(idx + pointLightsIntensityOffset, pointLights[i].GetIntensity());
+                if (pointLightsIntensity[i] !== null)
+                    program.SetUniform1fAtLocation(pointLightsIntensity[i], pointLights[i].GetIntensity());
                 
-                if (pointLightsSize <= 0)
-                    break;
+//                if (pointLightsSize <= 0)
+//                    break;
             }
         }
         
