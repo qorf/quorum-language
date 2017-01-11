@@ -725,7 +725,7 @@ function plugins_quorum_Libraries_Game_Graphics_TextureBinder_()
     
     this.Bind = function(texture)
     {
-        tempDescriptor.SetDescriptor(texture, null, null, null, null);
+        tempDescriptor.SetDescriptor$quorum_Libraries_Graphics_Texture$quorum_Libraries_Graphics_TextureFilter$quorum_Libraries_Graphics_TextureFilter$quorum_Libraries_Graphics_TextureWrap$quorum_Libraries_Graphics_TextureWrap(texture, null, null, null, null);
         return this.BindTexture(tempDescriptor, false);
     };
     
@@ -748,8 +748,8 @@ function plugins_quorum_Libraries_Game_Graphics_TextureBinder_()
             }
         }
         
-        texture.UnsafeSetWrap(descriptor.uWrap, descriptor.vWrap);
-        texture.UnsafeSetFilter(descriptor.minFilter, descriptor.magFilter);
+        texture.UnsafeSetWrap$quorum_Libraries_Game_Graphics_TextureWrap$quorum_Libraries_Game_Graphics_TextureWrap(descriptor.uWrap, descriptor.vWrap);
+        texture.UnsafeSetFilter$quorum_Libraries_Game_Graphics_TextureFilter$quorum_Libraries_Game_Graphics_TextureFilter(descriptor.minFilter, descriptor.magFilter);
         return result;
     };
     
@@ -2192,13 +2192,16 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.diffuseTextureSetter.IsGlobal = isLocal;
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.diffuseTextureSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
-            var unit = shader.context.textureBinder.Bind(combinedAttributes.GetAttribute$quorum_integer(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetDiffuseValue()).descriptor);
+            var descriptor = combinedAttributes.GetAttribute$quorum_integer(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetDiffuseValue()).descriptor;
+            if (descriptor.texture.GetGLHandle() === 0)
+                return;
+            var unit = shader.context.textureBinder.BindDescriptor(descriptor);
             shader.Set1i(inputID, unit);
         };
         
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.diffuseUVTransformSetter = {};
         plugins_quorum_Libraries_Game_Graphics_DefaultShader_.diffuseUVTransformSetter.IsGlobal = isLocal;
-        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.Set = function(shader, inputID, renderable, combinedAttributes)
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.diffuseUVTransformSetter.Set = function(shader, inputID, renderable, combinedAttributes)
         {
             var ta = combinedAttributes.GetAttribute$quorum_integer(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.textureAttribute.GetDiffuseValue());
             shader.Set4f(inputID, ta.offsetU, ta.offsetV, ta.scaleU, ta.scaleV);

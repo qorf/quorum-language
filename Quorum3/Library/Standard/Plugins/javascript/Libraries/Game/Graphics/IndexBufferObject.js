@@ -91,11 +91,6 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
         isBound = false;
     };
     
-    this.GetBuffer = function()
-    {
-        return integerArray;
-    };
-    
     this.Invalidate = function() 
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
