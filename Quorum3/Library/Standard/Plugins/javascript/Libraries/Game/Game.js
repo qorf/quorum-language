@@ -1856,7 +1856,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
     {
         if (locations[uniform] < 0)
             return false;
-        program.SetUniform4fAtLocation(locations[uniform], v1, v2);
+        program.SetUniform4fAtLocation(locations[uniform], v1, v2, v3, v4);
         return true;
     };
     
