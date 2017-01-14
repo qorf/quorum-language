@@ -2,7 +2,7 @@ function plugins_quorum_Libraries_Game_Graphics_PointLightsAttribute_(quorumObje
 {
     var attributePlugin = quorumObject.Libraries_Game_Graphics_Attribute__.plugin_;
     
-    this.POINT_LIGHTS = attributePlugin.Register("shininess");
+    this.POINT_LIGHTS = attributePlugin.Register("pointLights");
 
     this.GetPointLightsValue = function() 
     {

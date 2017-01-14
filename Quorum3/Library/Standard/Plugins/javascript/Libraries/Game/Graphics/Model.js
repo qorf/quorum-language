@@ -114,6 +114,12 @@ function plugins_quorum_Libraries_Game_Graphics_Model_()
             blueprint = plugins_quorum_Libraries_Game_Graphics_Model_.builder.CreateBox$quorum_number$quorum_number$quorum_number$quorum_Libraries_Game_Graphics_Texture(width, height, depth, texture);
             blueprint.id = searchKey;
             plugins_quorum_Libraries_Game_Graphics_Model_.hashTable[searchKey] = blueprint;
+        
+            var material = blueprint.nodes.Get$quorum_integer(0).parts.Get$quorum_integer(0).material;
+            var textureAttribute = new quorum_Libraries_Game_Graphics_TextureAttribute_();
+            var descriptor = material.GetAttribute$quorum_integer(textureAttribute.GetDiffuseValue()).descriptor;
+            descriptor.uWrap.value = descriptor.uWrap.Get_Libraries_Game_Graphics_TextureWrap__CLAMP_TO_EDGE_();
+            descriptor.vWrap.value = descriptor.vWrap.Get_Libraries_Game_Graphics_TextureWrap__CLAMP_TO_EDGE_();
         }
         return blueprint;
     };
@@ -129,6 +135,12 @@ function plugins_quorum_Libraries_Game_Graphics_Model_()
             blueprint = plugins_quorum_Libraries_Game_Graphics_Model_.builder.CreateCylinder$quorum_number$quorum_number$quorum_number$quorum_integer$quorum_Libraries_Game_Graphics_Texture(width, height, depth, divisions, texture);
             blueprint.id = searchKey;
             plugins_quorum_Libraries_Game_Graphics_Model_.hashTable[searchKey] = blueprint;
+        
+            var material = blueprint.nodes.Get$quorum_integer(0).parts.Get$quorum_integer(0).material;
+            var textureAttribute = new quorum_Libraries_Game_Graphics_TextureAttribute_();
+            var descriptor = material.GetAttribute$quorum_integer(textureAttribute.GetDiffuseValue()).descriptor;
+            descriptor.uWrap.value = descriptor.uWrap.Get_Libraries_Game_Graphics_TextureWrap__CLAMP_TO_EDGE_();
+            descriptor.vWrap.value = descriptor.vWrap.Get_Libraries_Game_Graphics_TextureWrap__CLAMP_TO_EDGE_();
         }
         return blueprint;
     };
@@ -144,6 +156,12 @@ function plugins_quorum_Libraries_Game_Graphics_Model_()
             blueprint = plugins_quorum_Libraries_Game_Graphics_Model_.builder.CreateSphere$quorum_number$quorum_number$quorum_number$quorum_integer$quorum_integer$quorum_Libraries_Game_Graphics_Texture(width, height, depth, hDivisions, vDivisions, texture);
             blueprint.id = searchKey;
             plugins_quorum_Libraries_Game_Graphics_Model_.hashTable[searchKey] = blueprint;
+        
+            var material = blueprint.nodes.Get$quorum_integer(0).parts.Get$quorum_integer(0).material;
+            var textureAttribute = new quorum_Libraries_Game_Graphics_TextureAttribute_();
+            var descriptor = material.GetAttribute$quorum_integer(textureAttribute.GetDiffuseValue()).descriptor;
+            descriptor.uWrap.value = descriptor.uWrap.Get_Libraries_Game_Graphics_TextureWrap__CLAMP_TO_EDGE_();
+            descriptor.vWrap.value = descriptor.vWrap.Get_Libraries_Game_Graphics_TextureWrap__CLAMP_TO_EDGE_();
         }
         return blueprint;
     };
