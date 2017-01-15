@@ -10,6 +10,8 @@ import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.LWJGLException;
 import quorum.Libraries.Game.Graphics.Color_;
+import quorum.Libraries.Game.ScreenResolution_;
+import quorum.Libraries.Containers.Array_;
 import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 
 import org.lwjgl.opengl.GL11;
@@ -305,6 +307,70 @@ public class DesktopDisplay {
     {
         Display.update(false);
     }
+   
+    public ScreenResolution_ GetDesktopResolution()
+    {
+        ScreenResolution_ resolution = new quorum.Libraries.Game.ScreenResolution();
+        org.lwjgl.opengl.DisplayMode mode = Display.getDesktopDisplayMode();
+        resolution.Set_Libraries_Game_ScreenResolution__width_(mode.getWidth());
+        resolution.Set_Libraries_Game_ScreenResolution__height_(mode.getHeight());
+        resolution.Set_Libraries_Game_ScreenResolution__bitsPerPixel_(mode.getBitsPerPixel());
+        resolution.Set_Libraries_Game_ScreenResolution__frequency_(mode.getFrequency());
+        resolution.Set_Libraries_Game_ScreenResolution__fullscreen_(mode.isFullscreenCapable());
+        return resolution;
+    }
     
-
+    public void GetAvailableResolutionsNative(Array_ array)
+    {
+        try
+        {
+            org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
+            
+            for (int i = 0; i < modes.length; i++)
+            {
+                ScreenResolution_ resolution = new quorum.Libraries.Game.ScreenResolution();
+                org.lwjgl.opengl.DisplayMode mode = modes[i];
+                resolution.Set_Libraries_Game_ScreenResolution__width_(mode.getWidth());
+                resolution.Set_Libraries_Game_ScreenResolution__height_(mode.getHeight());
+                resolution.Set_Libraries_Game_ScreenResolution__bitsPerPixel_(mode.getBitsPerPixel());
+                resolution.Set_Libraries_Game_ScreenResolution__frequency_(mode.getFrequency());
+                resolution.Set_Libraries_Game_ScreenResolution__fullscreen_(mode.isFullscreenCapable());
+                array.Add(resolution);
+            }
+        }
+        catch(Exception ex)
+        {
+            throw new GameRuntimeError("An error occurred while retrieving available screen resolutions: " + ex.getMessage());
+        }
+    };
+    
+    public void SetScreenResolution(ScreenResolution_ resolution)
+    {
+        try
+        {
+        org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
+        org.lwjgl.opengl.DisplayMode targetDisplayMode = null;
+        for (int i = 0; i < modes.length; i++)
+        {
+            org.lwjgl.opengl.DisplayMode mode = modes[i];
+            if (resolution.GetWidth() == mode.getWidth() && resolution.GetHeight() == mode.getHeight()
+                    && resolution.GetBitsPerPixel() == mode.getBitsPerPixel() 
+                    && resolution.GetFrequency() == mode.getFrequency()
+                    && resolution.IsFullscreen() == mode.isFullscreenCapable())
+            {
+                targetDisplayMode = mode;
+                break;
+            }
+        }
+        if (targetDisplayMode == null)
+            targetDisplayMode = new org.lwjgl.opengl.DisplayMode(resolution.GetWidth(), resolution.GetHeight());
+        
+        Display.setDisplayMode(targetDisplayMode);
+        Display.setFullscreen(resolution.IsFullscreen());
+        }
+        catch(Exception ex)
+        {
+            throw new GameRuntimeError("An error occurred while setting the screen resolution: " + ex.getMessage());
+        }
+    }
 }
