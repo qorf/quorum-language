@@ -181,4 +181,10 @@ class DesktopDisplay is GameDisplay
     GetAvailableResolutions.
     */
     system action SetScreenResolution(ScreenResolution resolution)
+
+    /*
+    This action will return the current screen resolution being used by the 
+    game engine.
+    */
+    system action GetScreenResolution returns ScreenResolution
 end
