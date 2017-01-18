@@ -373,4 +373,16 @@ public class DesktopDisplay {
             throw new GameRuntimeError("An error occurred while setting the screen resolution: " + ex.getMessage());
         }
     }
+    
+    public ScreenResolution_ GetScreenResolution()
+    {
+        org.lwjgl.opengl.DisplayMode mode = Display.getDisplayMode();
+        ScreenResolution_ resolution = new quorum.Libraries.Game.ScreenResolution();
+        resolution.Set_Libraries_Game_ScreenResolution__width_(mode.getWidth());
+        resolution.Set_Libraries_Game_ScreenResolution__height_(mode.getHeight());
+        resolution.Set_Libraries_Game_ScreenResolution__frequency_(mode.getFrequency());
+        resolution.Set_Libraries_Game_ScreenResolution__bitsPerPixel_(mode.getBitsPerPixel());
+        resolution.Set_Libraries_Game_ScreenResolution__fullscreen_(mode.isFullscreenCapable());
+        return resolution;
+    }
 }
