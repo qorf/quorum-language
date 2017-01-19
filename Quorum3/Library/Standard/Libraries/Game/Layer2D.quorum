@@ -92,6 +92,8 @@ class Layer2D is Layer
 
     boolean newItemAdded = false
 
+    boolean physicsEnabled = false
+
     on create
         OrthographicCamera cam
         camera = cam
@@ -1460,7 +1462,9 @@ class Layer2D is Layer
 
         collisionManager:Collide()
 
-        StepPhysics(seconds)
+        if physicsEnabled
+            StepPhysics(seconds)
+        end
 
         SetScreenPositionsFromPhysicsPositions()
     end
@@ -1983,5 +1987,13 @@ class Layer2D is Layer
                 end
             end
         end
+    end
+
+    action EnablePhysics(boolean flag)
+        physicsEnabled = flag
+    end
+
+    action PhysicsEnabled returns boolean
+        return physicsEnabled
     end
 end

@@ -2379,11 +2379,15 @@ class Game
         return currentLayer3D:GetPointLights()
     end
 
-    action SetGravity(Vector2 gravity)
+    action SetGravity2D(Vector2 gravity)
         currentLayer2D:SetGravity(gravity)
     end 
 
-    action SetGravity(number gravityX, number gravityY)
+    action SetGravity2D(number gravityX, number gravityY)
         currentLayer2D:SetGravity(gravityX, gravityY)
+    end
+
+    action EnablePhysics2D(boolean flag)
+        currentLayer2D:EnablePhysics(flag)
     end
 end
