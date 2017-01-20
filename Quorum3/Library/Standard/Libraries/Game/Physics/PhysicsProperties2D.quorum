@@ -242,7 +242,13 @@ class PhysicsProperties2D
     end
 
     action SetLinearDamping(number linearDamping)
-        me:linearDamping = linearDamping
+        if linearDamping >= 0 and linearDamping <= 1
+            me:linearDamping = linearDamping
+        elseif linearDamping < 0
+            me:linearDamping = 0
+        else
+            me:linearDamping = 1
+        end
     end
 
     action GetAngularDamping returns number
@@ -250,7 +256,13 @@ class PhysicsProperties2D
     end
 
     action SetAngularDamping(number angularDamping)
-        me:angularDamping = angularDamping
+        if angularDamping >= 0 and angularDamping <= 1
+            me:angularDamping = angularDamping
+        elseif angularDamping < 0
+            me:angularDamping = 0
+        else
+            me:angularDamping = 1
+        end
     end
 
     action GetResponsiveness returns integer
@@ -289,7 +301,13 @@ class PhysicsProperties2D
     end
 
     action SetFriction(number friction)
-        me:friction = friction
+        if friction >= 0 and friction <= 1
+            me:friction = friction
+        elseif friction < 0
+            me:friction = 0
+        else
+            me:friction = 1
+        end
     end
 
     action GetFriction returns number
@@ -297,7 +315,13 @@ class PhysicsProperties2D
     end
 
     action SetRestitution(number restitution)
-        me:restitution = restitution
+        if restitution >= 0 and restitution <= 1
+            me:restitution = restitution
+        elseif restitution < 0
+            me:restitution = 0
+        else
+            me:restitution = 1
+        end
     end
 
     action GetRestitution returns number
