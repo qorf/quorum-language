@@ -2539,6 +2539,9 @@ class Game
     */
     action SetScreenResolution(ScreenResolution resolution, boolean adjustCameras)
         if applicationType not= DESKTOP_APPLICATION
+            if SelectApplicationTypeNative() = DESKTOP_APPLICATION
+                desktopConfig:defaultResolution = resolution
+            end
             return now
         end
 
@@ -2609,6 +2612,9 @@ class Game
             GameStateManager manager
             DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
             return display:GetAvailableResolutions()
+        elseif SelectApplicationTypeNative() = DESKTOP_APPLICATION
+            DesktopDisplay display
+            return display:GetAvailableResolutions()
         end
         return undefined
     end
@@ -2642,6 +2648,9 @@ class Game
         if applicationType = DESKTOP_APPLICATION
             GameStateManager manager
             DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+            return display:GetDesktopResolution()
+        elseif SelectApplicationTypeNative() = DESKTOP_APPLICATION
+            DesktopDisplay display
             return display:GetDesktopResolution()
         end
         return undefined
@@ -2749,6 +2758,9 @@ class Game
             GameStateManager manager
             DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
             SetScreenResolution(display:GetDesktopResolution(), adjustCameras)
+        elseif SelectApplicationTypeNative() = DESKTOP_APPLICATION
+            DesktopDisplay display
+            desktopConfig:defaultResolution = display:GetDesktopResolution()
         end
     end
 
@@ -2778,6 +2790,9 @@ class Game
         if applicationType = DESKTOP_APPLICATION
             GameStateManager manager
             DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+            return display:GetScreenResolution()
+        elseif SelectApplicationTypeNative() = DESKTOP_APPLICATION
+            DesktopDisplay display
             return display:GetScreenResolution()
         end
         return undefined
