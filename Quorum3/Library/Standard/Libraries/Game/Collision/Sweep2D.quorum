@@ -8,12 +8,12 @@ This class describes the motion of a physical item in order to calculate the
 Time of Impact (TOI) for continuous collision detection.
 */
 class Sweep2D
-    public Vector2 localCenter
-    public Vector2 center
-    public Vector2 center0
-    public number angle = 0
-    public number angle0 = 0
-    public number alpha0 = 0
+    Vector2 localCenter
+    Vector2 center
+    Vector2 center0
+    number angle = 0
+    number angle0 = 0
+    number alpha0 = 0
 
     Math math
 
@@ -40,7 +40,7 @@ class Sweep2D
         alpha0 = sweep:alpha0
     end
 
-    action GetTransform(Transform2D transform, number beta)
+    action GetTransform(PhysicsPosition2D transform, number beta)
         transform:GetPosition():SetX((1.0 - beta) * center0:GetX() + beta * center:GetX())
         transform:GetPosition():SetY((1.0 - beta) * center0:GetY() + beta * center:GetY())
         number angle = (1.0 - beta) * angle0 + beta * me:angle
@@ -58,5 +58,53 @@ class Sweep2D
         center0:SetY(center0:GetY() + beta * (center:GetY() - center0:GetY()))
         angle0 = angle0 + beta * (angle - angle0)
         alpha0 = alpha
+    end
+
+    action GetLocalCenter returns Vector2
+        return localCenter
+    end
+
+    action SetLocalCenter(Vector2 center)
+        localCenter = center
+    end
+
+    action GetCenter returns Vector2
+        return center
+    end
+
+    action SetCenter(Vector2 center)
+        me:center = center
+    end
+
+    action GetCenter0 returns Vector2
+        return center0
+    end
+
+    action SetCenter0(Vector2 center)
+        center0 = center
+    end
+
+    action GetAngle returns number
+        return angle
+    end
+
+    action SetAngle(number angle)
+        me:angle = angle
+    end
+
+    action GetAngle0 returns number
+        return angle0
+    end
+
+    action SetAngle0(number angle0)
+        me:angle0 = angle0
+    end
+
+    action GetAlpha0 returns number
+        return alpha0
+    end
+
+    action SetAlpha0(number alpha0)
+        me:alpha0 = alpha0
     end
 end

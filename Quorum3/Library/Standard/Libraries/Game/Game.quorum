@@ -21,6 +21,11 @@ use Libraries.Game.IOSDisplay
 use Libraries.Game.GameInput
 use Libraries.Game.DesktopInput
 use Libraries.Game.IOSInput
+use Libraries.Game.WebApplication
+use Libraries.Game.WebDisplay
+use Libraries.Game.WebConfiguration
+use Libraries.Game.WebInput
+use Libraries.Game.Graphics.WebGraphics
 use Libraries.Game.Graphics.IOSGraphics
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Font
@@ -79,6 +84,7 @@ class Game
     DesktopConfiguration desktopConfig
     IOSConfiguration iosConfig
     AndroidConfiguration androidConfig
+    WebConfiguration webConfig
     GraphicsManager gl20 = undefined
     GameStateManager manager
 
@@ -98,6 +104,7 @@ class Game
     private constant integer ANDROID_APPLICATION = 1
     private constant integer DESKTOP_APPLICATION = 2
     private constant integer IOS_APPLICATION = 3
+    private constant integer WEB_APPLICATION = 4
 
     private integer applicationType = -1
 
@@ -128,13 +135,12 @@ class Game
             alert("I could not identify what type of application to use for this operating system!")
         end
 
-        GameStateManager manager
-        gl20 = manager:GetGameGraphics()
-
         if application is DesktopApplication
             if desktopConfig:title = ""
                 desktopConfig:title = "Game"
             end
+
+            gl20 = manager:GetGameGraphics()
 
             DesktopInput newInput
             gameInput = newInput
@@ -147,6 +153,8 @@ class Game
             display:SetupDisplay()
         elseif application is AndroidApplication
             
+            gl20 = manager:GetGameGraphics()
+
             // AndroidInput newInput
             // gameInput = newInput
             // manager:SetInput(gameInput)
@@ -159,6 +167,8 @@ class Game
             manager:SetGameGraphics(graphics)
             
         elseif application is IOSApplication
+
+            gl20 = manager:GetGameGraphics()
             
             IOSInput newInput
             gameInput = newInput
@@ -170,6 +180,25 @@ class Game
 
             IOSGraphics iosGraphics
             manager:SetGameGraphics(iosGraphics)
+        elseif application is WebApplication
+            
+            WebInput newInput
+            gameInput = newInput
+            manager:SetInput(newInput)
+
+            WebDisplay display
+            manager:SetGameDisplay(display)
+            display:SetName("StartGame")
+            display:SetConfiguration(webConfig)
+            //display:SetupDisplay()
+
+            WebGraphics webGraphics
+            manager:SetGameGraphics(webGraphics)
+
+            WebApplication webApp = cast(WebApplication, application)
+            webApp:SetConfiguration(webConfig)
+
+            gl20 = webGraphics
         end
 
         /*
@@ -190,7 +219,6 @@ class Game
     
         JavaCanvasApplication application
 
-        GameStateManager manager
         gl20 = manager:GetGameGraphics()
 
         if desktopConfig:title = ""
@@ -353,7 +381,7 @@ class Game
     Clears out the old pixel data. Called from ContinueGame.
     */
     private action ClearScreen
-        gl20:ClearScreenColor(0.85,0.85,0.85,0)
+        gl20:ClearScreenColor(0.85, 0.85, 0.85, 1.0)
         /*
         16640 is the result of an OR operation on GL_COLOR_BUFFER_BIT and 
         GL_DEPTH_BUFFER_BIT from the GraphicsManager. This means that both the
@@ -432,7 +460,7 @@ class Game
     class Main is Game
 
         action Main
-            DesktopConfiguration configuration = GetDesktopConfiguration
+            DesktopConfiguration configuration = GetDesktopConfiguration()
             output "The default width and height of the Game are " + configuration:width + ", " + configuration:height
             StartGame()
         end
@@ -442,6 +470,62 @@ class Game
     */
     action GetDesktopConfiguration returns DesktopConfiguration
         return desktopConfig
+    end
+
+    /*
+    This action will set the game configuration when run on web browsers.
+    The configuration contains data that affect many technical details of the
+    game, such as whether or not to limit the FPS. This should be set before
+    calling StartGame().
+
+    Attribute: Parameter config The WebConfiguration to use.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.WebConfiguration
+
+    class Main is Game
+
+        action Main
+            WebConfiguration configuration
+            configuration:canvasID = "game-canvas"
+            configuration:capFramesPerSecond = true
+            configuration:framesPerSecondLimit = 45
+            SetConfiguration(configuration)
+            StartGame()
+        end
+
+    end
+
+    */
+    action SetConfiguration(WebConfiguration config)
+        webConfig = config
+    end
+
+    /*
+    This action will return the game's configuration for web platforms.
+
+    Attribute: Returns The current WebConfiguration.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.WebConfiguration
+
+    class Main is Game
+
+        action Main
+            WebConfiguration configuration = GetWebConfiguration()
+            configuration:capFramesPerSecond = true
+            StartGame()
+        end
+
+    end
+
+    */
+    action GetWebConfiguration returns WebConfiguration
+        return webConfig
     end
 
     /*
@@ -595,7 +679,9 @@ class Game
             end
         end
     */
-    system action GetSecondsBetweenFrames returns number
+    action GetSecondsBetweenFrames returns number
+        return manager:GetGameDisplay():GetSecondsBetweenFrames()
+    end
 
     /*
     The Update action is where most of the game's logic goes. The code inside
@@ -1019,11 +1105,15 @@ class Game
     end
 
     /*
-    This action sets the starting screen size of the game. The default screen
-    size is 800 by 600. This action should be called before calling StartGame().
+    This action sets windowed size of the game (the default size is 800 by 600).
+    This action can be called before calling StartGame() to set the initial
+    window size. If this action is used when the game is in fullscreen, it will
+    return it to windowed mode. If the game is already started, this action will
+    adjust the cameras on the default 2D and 3D layers to correspond to the new
+    window size.
 
-    Attribute: Parameter width The starting screen width.
-    Attribute: Parameter height The starting screen height.
+    Attribute: Parameter width The screen width.
+    Attribute: Parameter height The screen height.
 
     Attribute: Example
 
@@ -1038,8 +1128,61 @@ class Game
         end
     */
     action SetScreenSize(integer width, integer height)
+        SetScreenSize(width, height, true)
+    end
+
+    /*
+    This action sets windowed size of the game (the default size is 800 by 600).
+    This action can be called before calling StartGame() to set the initial
+    window size. If this action is used when the game is in fullscreen, it will
+    return it to windowed mode. If the game is already running and the boolean
+    parameter is set to true, then the default cameras will be adjusted to fit
+    the new window size. If the value is set to false, the cameras will not be
+    adjusted.
+
+    Attribute: Parameter width The screen width.
+    Attribute: Parameter height The screen height.
+    Attribute: Parameter adjustCameras True to adjust the default cameras to the new dimensions, false to keep the cameras the same.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                SetScreenSize(1024, 800)
+                StartGame()
+            end
+        end
+    */
+    action SetScreenSize(integer width, integer height, boolean adjustCameras)
         desktopConfig:width = width
         desktopConfig:height = height
+
+        if applicationType = DESKTOP_APPLICATION
+            GameStateManager manager
+            DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+            display:SetDisplayMode(width, height, false)
+
+            if adjustCameras
+                Camera cam2D = GetCamera2D()
+                Camera cam3D = GetCamera3D()
+
+                cam3D:SetWidth(width)
+                cam3D:SetHeight(height)
+
+                number xAdjust = (width - cam2D:GetWidth()) / 2
+                number yAdjust = (height - cam2D:GetHeight()) / 2
+
+                cam2D:Move(xAdjust, yAdjust, 0)
+                cam2D:SetWidth(width)
+                cam2D:SetHeight(height)
+
+                cam2D:Update()
+                cam3D:Update()
+            end
+        end
     end
 
     /*
@@ -1362,8 +1505,9 @@ class Game
     end
 
     /*
-    This action will set the type of Application that should be running, as well
-    as setting the type of GameInput to use.
+    This action will set the type of Application that should be running. The
+    type of application returned will also be used to determine the type of
+    other platform specific classes, e.g. GameDisplay, GraphicsManager, etc.
     */
     private action SelectApplicationType returns Application
 
@@ -1378,6 +1522,10 @@ class Game
         end
         if applicationType = IOS_APPLICATION
             IOSApplication app
+            return app
+        end
+        if applicationType = WEB_APPLICATION
+            WebApplication app
             return app
         end
         // ... Other options
@@ -2177,6 +2325,10 @@ class Game
     within the layer, or if the index is out of bounds, then an error will be
     thrown.
 
+    Attribute: Parameter index The index to retrieve the PointLight from.
+
+    Attribute: Example
+
     use Libraries.Game.Game
     use Libraries.Game.Graphics.Model
     use Libraries.Game.Graphics.Color
@@ -2285,4 +2437,364 @@ class Game
         return currentLayer3D:GetPointLights()
     end
 
+    /*
+    This action will set a game running on a desktop platform to use the given
+    ScreenResolution. This will have no effect on non-desktop platforms. Using
+    this action will also adjust the size of the cameras on the default 2D and
+    3D layers to match the new screen size. To change the screen size without
+    changing the cameras, use SetScreenResolution(ScreenResolution, false).
+
+    Attribute: Parameter resolution The ScreenResolution to use for the game's display.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.ScreenResolution
+    use Libraries.Game.InputMonitor
+    use Libraries.Interface.Events.KeyboardEvent
+
+    class Main is Game
+
+        InputMonitor monitor
+        KeyboardEvent keys
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            ScreenResolution resolution = GetDesktopResolution()
+            SetScreenResolution(resolution)
+        end
+
+        action Update(number seconds)
+            // Using the desktop resolution will typically make the game go fullscreen.
+            // To exit the game, the user can press the ESCAPE key.
+            if monitor:IsKeyPressed(keys:ESCAPE)
+                Exit()
+            end
+        end
+    end
+    */
+    action SetScreenResolution(ScreenResolution resolution)
+        SetScreenResolution(resolution, true)
+    end
+
+    /*
+    This action will set a game running on a desktop platform to use the given
+    ScreenResolution. This will have no effect on non-desktop platforms. If the
+    second parameter is set to true, then this action will also adjust the size 
+    of the cameras on the default 2D and 3D layers to match the new screen size.
+    If the parameter is false, then the cameras will not be changed.
+
+    Attribute: Parameter resolution The ScreenResolution to use for the game's display.
+    Attribute: Parameter adjustCameras True to adjust the default cameras to the new dimensions, false to keep the cameras the same.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.ScreenResolution
+    use Libraries.Game.InputMonitor
+    use Libraries.Interface.Events.KeyboardEvent
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        InputMonitor monitor
+        KeyboardEvent keys
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable leftSquare
+            leftSquare:LoadFilledRectangle(100, 100)
+            leftSquare:SetPosition(0, 250)
+            Add(leftSquare)
+
+            Drawable rightSquare
+            rightSquare:LoadFilledRectangle(100, 100)
+            rightSquare:SetPosition(700, 250)
+            Add(rightSquare)
+        end
+
+        action Update(number seconds)
+            // Pressing the spacebar will set the game to use the desktop's resolution.
+            // If the boolean is false, the cameras will not be adjusted to the new screen size,
+            // making them appear to be zoomed in on the original area.
+            // If the boolean is true (or omitted), the cameras will be adjusted to view the
+            // new size of the screen. Drawables will remain at their original size and position.
+            if monitor:IsKeyPressed(keys:SPACE)
+                ScreenResolution resolution = GetDesktopResolution()
+                SetScreenResolution(resolution, false)
+            end
+            // Using the desktop resolution will typically make the game go fullscreen.
+            // To exit the game, the user can press the ESCAPE key.
+            if monitor:IsKeyPressed(keys:ESCAPE)
+                Exit()
+            end
+        end
+    end
+    */
+    action SetScreenResolution(ScreenResolution resolution, boolean adjustCameras)
+        if applicationType not= DESKTOP_APPLICATION
+            if SelectApplicationTypeNative() = DESKTOP_APPLICATION
+                desktopConfig:defaultResolution = resolution
+            end
+            return now
+        end
+
+        GameStateManager manager
+        DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+        display:SetScreenResolution(resolution)
+
+        if adjustCameras
+            Camera cam2D = GetCamera2D()
+            Camera cam3D = GetCamera3D()
+
+            cam3D:SetWidth(resolution:GetWidth())
+            cam3D:SetHeight(resolution:GetHeight())
+
+            number xAdjust = (resolution:GetWidth() - cam2D:GetWidth()) / 2
+            number yAdjust = (resolution:GetHeight() - cam2D:GetHeight()) / 2
+
+            cam2D:Move(xAdjust, yAdjust, 0)
+            cam2D:SetWidth(resolution:GetWidth())
+            cam2D:SetHeight(resolution:GetHeight())
+
+            cam2D:Update()
+            cam3D:Update()
+        end
+    end
+
+    /*
+    This action will return an Array of ScreenResolution objects that describe
+    available screen resolutions for this desktop platform. If this action is
+    called on a non-desktop platform, the returned array will be undefined.
+
+    Attribute: Returns An array of ScreenResolutions that can be used by the desktop display.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.ScreenResolution
+    use Libraries.Containers.Array
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Array<ScreenResolution> array = GetAvailableResolutions()
+            output "The following resolutions are supported by the monitor:"
+
+            integer counter = 0
+            repeat while counter < array:GetSize()
+                ScreenResolution resolution = array:Get(counter)
+
+                output ""
+                output "Resolution #" + counter
+                output "Dimensions: " + resolution:GetWidth() + " x " + resolution:GetHeight()
+                output "Refresh Rate: " + resolution:GetFrequency()
+                output "Bits per Pixel: " + resolution:GetBitsPerPixel()
+                output "Supports Fullscreen: " + resolution:IsFullscreen()
+
+                counter = counter + 1
+            end
+        end
+    end
+    */
+    action GetAvailableResolutions returns Array<ScreenResolution>
+        if applicationType = DESKTOP_APPLICATION
+            GameStateManager manager
+            DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+            return display:GetAvailableResolutions()
+        elseif SelectApplicationTypeNative() = DESKTOP_APPLICATION
+            DesktopDisplay display
+            return display:GetAvailableResolutions()
+        end
+        return undefined
+    end
+
+    /*
+    This action will return a ScreenResolution object that describes the screen
+    resolution currently in use by the desktop (independent of the resolution
+    used by the game). This is only effective on desktop platforms - using this
+    action on non-desktop platforms will return undefined.
+
+    Attribute: Returns A ScreenResoluton object describing the desktop's resolution.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.ScreenResolution
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            ScreenResolution resolution = GetDesktopResolution()
+            output "The dimensions of the desktop's resolution is " + resolution:GetWidth() + " x " + resolution:GetHeight()
+        end
+    end
+    */
+    action GetDesktopResolution returns ScreenResolution
+        if applicationType = DESKTOP_APPLICATION
+            GameStateManager manager
+            DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+            return display:GetDesktopResolution()
+        elseif SelectApplicationTypeNative() = DESKTOP_APPLICATION
+            DesktopDisplay display
+            return display:GetDesktopResolution()
+        end
+        return undefined
+    end
+    
+    /*
+    UseDesktopResolution will set the game to use the same display settings as
+    the desktop's current screen resolution (independent of the game). This is
+    only effective when used on desktop platforms - on other platforms, this
+    will do nothing. Using this action will also adjust the size of the cameras 
+    on the default 2D and 3D layers to match the new screen size. To change the
+    screen size without changing the cameras, use 
+    SetScreenResolution(ScreenResolution, false).
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.InputMonitor
+    use Libraries.Interface.Events.KeyboardEvent
+
+    class Main is Game
+
+        InputMonitor monitor
+        KeyboardEvent keys
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            UseDesktopResolution()
+        end
+
+        action Update(number seconds)
+            // Using the desktop resolution will typically make the game go fullscreen.
+            // To exit the game, the user can press the ESCAPE key.
+            if monitor:IsKeyPressed(keys:ESCAPE)
+                Exit()
+            end
+        end
+    end
+    */
+    action UseDesktopResolution
+        UseDesktopResolution(true)
+    end
+
+    /*
+    UseDesktopResolution will set the game to use the same display settings as
+    the desktop's current screen resolution (independent of the game). This is
+    only effective when used on desktop platforms - on other platforms, this
+    will do nothing. If the boolean parameter is set to true, then this action 
+    will also adjust the size of the cameras on the default 2D and 3D layers to 
+    match the new screen size. If the parameter is false, then the cameras will 
+    not be changed.
+
+    Attribute: Parameter adjustCameras True to adjust the default cameras to the new dimensions, false to keep the cameras the same.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.InputMonitor
+    use Libraries.Interface.Events.KeyboardEvent
+    use Libraries.Game.Graphics.Drawable
+
+    class Main is Game
+
+        InputMonitor monitor
+        KeyboardEvent keys
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Drawable leftSquare
+            leftSquare:LoadFilledRectangle(100, 100)
+            leftSquare:SetPosition(0, 250)
+            Add(leftSquare)
+
+            Drawable rightSquare
+            rightSquare:LoadFilledRectangle(100, 100)
+            rightSquare:SetPosition(700, 250)
+            Add(rightSquare)
+        end
+
+        action Update(number seconds)
+            // Pressing the spacebar will set the game to use the desktop's resolution.
+            // If the boolean is false, the cameras will not be adjusted to the new screen size,
+            // making them appear to be zoomed in on the original area.
+            // If the boolean is true (or omitted), the cameras will be adjusted to view the
+            // new size of the screen. Drawables will remain at their original size and position.
+            if monitor:IsKeyPressed(keys:SPACE)
+                UseDesktopResolution(false)
+            end
+            // Using the desktop resolution will typically make the game go fullscreen.
+            // To exit the game, the user can press the ESCAPE key.
+            if monitor:IsKeyPressed(keys:ESCAPE)
+                Exit()
+            end
+        end
+    end
+    */
+    action UseDesktopResolution(boolean adjustCameras)
+        if applicationType = DESKTOP_APPLICATION
+            GameStateManager manager
+            DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+            SetScreenResolution(display:GetDesktopResolution(), adjustCameras)
+        elseif SelectApplicationTypeNative() = DESKTOP_APPLICATION
+            DesktopDisplay display
+            desktopConfig:defaultResolution = display:GetDesktopResolution()
+        end
+    end
+
+    /*
+    This action will return the current ScreenResolution being used by the game
+    engine. This is only effective on desktop platforms - on non-desktop
+    platforms, this will return undefined instead.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.ScreenResolution
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            ScreenResolution resolution = GetScreenResolution()
+            output "The default resolution's dimensions are " + resolution:GetWidth() + " x " + resolution:GetHeight()
+        end
+    end
+    */
+    action GetScreenResolution returns ScreenResolution
+        if applicationType = DESKTOP_APPLICATION
+            GameStateManager manager
+            DesktopDisplay display = cast(DesktopDisplay, manager:GetGameDisplay())
+            return display:GetScreenResolution()
+        elseif SelectApplicationTypeNative() = DESKTOP_APPLICATION
+            DesktopDisplay display
+            return display:GetScreenResolution()
+        end
+        return undefined
+    end
 end

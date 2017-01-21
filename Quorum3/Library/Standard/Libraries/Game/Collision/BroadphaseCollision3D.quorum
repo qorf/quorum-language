@@ -48,8 +48,8 @@ class BroadphaseCollision3D
         BufferMove(nodeID)
     end
 
-    action GetObject(integer id) returns Object
-        return tree:GetObject(id)
+    action GetItemNode(integer id) returns Item3DNode
+        return tree:GetItemNode(id)
     end
 
     action GetBoundingBox(integer id) returns BoundingBox
@@ -100,8 +100,8 @@ class BroadphaseCollision3D
         i = 0
         repeat while i < pairCount
             CollisionPair3D primaryPair = pairList:Get(i)
-            Object dataA = tree:GetObject(primaryPair:GetIDA())
-            Object dataB = tree:GetObject(primaryPair:GetIDB())
+            Item3DNode dataA = tree:GetItemNode(primaryPair:GetIDA())
+            Item3DNode dataB = tree:GetItemNode(primaryPair:GetIDB())
 
             collision:AddPair(dataA, dataB)
             i = i + 1

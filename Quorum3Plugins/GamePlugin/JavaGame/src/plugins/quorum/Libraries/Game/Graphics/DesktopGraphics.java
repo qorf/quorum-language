@@ -22,7 +22,6 @@ import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 
 import plugins.quorum.Libraries.Game.GameRuntimeError;
-import plugins.quorum.Libraries.Game.GameState;
 
 /**
  *
@@ -121,7 +120,7 @@ public class DesktopGraphics implements GraphicsManager {
     public void glBufferSubData (int target, int offset, int size, Buffer data) 
     {
 	if (data == null)
-            throw new GameRuntimeError("Using null for the data not possible, blame LWJGL");
+            throw new GameRuntimeError("The data value is undefined, which is not allowed for this action.");
 	else if (data instanceof ByteBuffer)
             GL15.glBufferSubData(target, offset, (ByteBuffer)data);
 	else if (data instanceof IntBuffer)
@@ -176,7 +175,7 @@ public class DesktopGraphics implements GraphicsManager {
     
     public void glGetShaderiv (int shader, int pname, IntBuffer params) 
     {
-		GL20.glGetShader(shader, pname, params);
+        GL20.glGetShader(shader, pname, params);
     }
     
     public String glGetShaderInfoLog (int shader) 
@@ -495,7 +494,7 @@ public class DesktopGraphics implements GraphicsManager {
             GL11.glDrawElements(mode, (IntBuffer)indices);
 	else
             throw new GameRuntimeError("Can't use " + indices.getClass().getName()
-			+ " with this method. Use ShortBuffer or ByteBuffer instead. Blame LWJGL");
+			+ " with this method. Use ShortBuffer or ByteBuffer instead.");
     }
     
     public void glDrawArrays (int mode, int first, int count) 

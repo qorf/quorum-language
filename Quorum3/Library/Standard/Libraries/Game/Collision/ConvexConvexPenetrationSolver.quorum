@@ -5,19 +5,19 @@ use Libraries.Game.Collision.ConvexConvexFace
 use Libraries.Containers.Table
 use Libraries.Compute.Vector3
 use Libraries.Containers.Array
-use Libraries.Game.Collison.ConvexConvexVertex
+use Libraries.Game.Collision.ConvexConvexVertex
 
 class ConvexConvexPenetrationSolver
-    public ConvexConvexDistanceSolver gjk
+    ConvexConvexDistanceSolver gjk
 
-    public ConvexConvexFace root = undefined
-    public integer nFaces = 0
-    public integer iterations = 0
-    public Table<Vector3> features
-    public Array<Vector3> nearest
-    public Vector3 normal
-    public number depth = 0
-    public boolean failed = false
+    ConvexConvexFace root = undefined
+    integer nFaces = 0
+    integer iterations = 0
+    Table<Vector3> features
+    Array<Vector3> nearest
+    Vector3 normal
+    number depth = 0
+    boolean failed = false
 
     constant number cstInf = EpaInfaceEps:GetMaximumValue()
     constant integer EpaMaxIterations = 256
@@ -182,22 +182,22 @@ class ConvexConvexPenetrationSolver
         Vector3 tmp2
 
         Vector3 o
-        o:Set(face:n):Scale(-face:d)
+        o:Set(face:GetNormal()):Scale(-face:GetDistance())
 
         Array<number> a
 
-        tmp1:Set(face:v:Get(0):w):Subtract(o)
-        tmp2:Set(face:v:Get(1):w):Subtract(o)
+        tmp1:Set(face:GetVertices():Get(0):GetVertex()):Subtract(o)
+        tmp2:Set(face:GetVertices():Get(1):GetVertex()):Subtract(o)
         tmp:Set(tmp1):CrossProduct(tmp2)
         a:Add(tmp:Length())
 
-        tmp1:Set(face:v:Get(1):w):Subtract(o)
-        tmp2:Set(face:v:Get(2):w):Subtract(o)
+        tmp1:Set(face:GetVertices():Get(1):GetVertex()):Subtract(o)
+        tmp2:Set(face:GetVertices():Get(2):GetVertex()):Subtract(o)
         tmp:Set(tmp1):CrossProduct(tmp2)
         a:Add(tmp:Length())
 
-        tmp1:Set(face:v:Get(2):w):Subtract(o)
-        tmp2:Set(face:v:Get(0):w):Subtract(o)
+        tmp1:Set(face:GetVertices():Get(2):GetVertex()):Subtract(o)
+        tmp2:Set(face:GetVertices():Get(0):GetVertex()):Subtract(o)
         tmp:Set(tmp1):CrossProduct(tmp2)
         a:Add(tmp:Length())
 
@@ -220,11 +220,11 @@ class ConvexConvexPenetrationSolver
             ConvexConvexFace cf = root
             number bd = cstInf
             repeat while cf not= undefined
-                if cf:d < bd
-                    bd = cf:d
+                if cf:GetDistance() < bd
+                    bd = cf:GetDistance()
                     bf = cf
                 end
-                cf = cf:next
+                cf = cf:GetNext()
             end
         end
 
@@ -237,33 +237,33 @@ class ConvexConvexPenetrationSolver
         Vector3 tmp3
 
         Vector3 nrm
-        tmp1:Set(b:w):Subtract(a:w)
-        tmp2:Set(c:w):Subtract(a:w)
+        tmp1:Set(b:GetVertex()):Subtract(a:GetVertex())
+        tmp2:Set(c:GetVertex()):Subtract(a:GetVertex())
         nrm:Set(tmp1):CrossProduct(tmp2)
 
         number length = nrm:Length()
 
-        tmp1:Set(a:w):CrossProduct(b:w)
-        tmp2:Set(b:w):CrossProduct(c:w)
-        tmp3:Set(c:w):CrossProduct(a:w)
+        tmp1:Set(a:GetVertex()):CrossProduct(b:GetVertex())
+        tmp2:Set(b:GetVertex()):CrossProduct(c:GetVertex())
+        tmp3:Set(c:GetVertex()):CrossProduct(a:GetVertex())
 
         boolean valid = tmp1:DotProduct(nrm) >= - EpaInfaceEps and
                         tmp2:DotProduct(nrm) >= - EpaInfaceEps and
                         tmp3:DotProduct(nrm) >= - EpaInfaceEps
 
-        f:v:Set(0, a)
-        f:v:Set(1, b)
-        f:v:Set(2, c)
-        f:mark = 0
-        f:n:Set(nrm)
+        f:GetVertices():Set(0, a)
+        f:GetVertices():Set(1, b)
+        f:GetVertices():Set(2, c)
+        f:SetMark(0)
+        f:GetNormal():Set(nrm)
         number scale = cstInf
         if length > 0
             scale = length
         end
-        f:n:Scale(1 / scale)
-        f:d = 0
-        if 0 < -f:n:DotProduct(a:w)
-            f:d = -f:n:DotProduct(a:w)
+        f:GetNormal():Scale(1 / scale)
+        f:SetDistance(0)
+        if 0 < -f:GetNormal():DotProduct(a:GetVertex())
+            f:SetDistance(-f:GetNormal():DotProduct(a:GetVertex()))
         end
 
         return valid
@@ -273,44 +273,44 @@ class ConvexConvexPenetrationSolver
         ConvexConvexFace pf
         if Set(pf, a, b, c)
             if root not= undefined
-                root:prev = pf
+                root:SetPrevious(pf)
             end
-            pf:prev = undefined
-            pf:next = root
+            pf:SetPrevious(undefined)
+            pf:SetNext(root)
             root = pf
             nFaces = nFaces + 1
         else
-            pf:prev = undefined
-            pf:next = undefined
+            pf:SetPrevious(undefined)
+            pf:SetNext(undefined)
         end
 
         return pf
     end
 
     action Detach(ConvexConvexFace face)
-        if face:prev not= undefined or face:next not= undefined
+        if face:GetPrevious() not= undefined or face:GetNext() not= undefined
             nFaces = nFaces - 1
             if face = root
-                root = face:next
-                root:prev = undefined
+                root = face:GetNext()
+                root:SetPrevious(undefined)
             else
-                if face:next = undefined
-                    face:prev:SetNext(undefined)
+                if face:GetNext() = undefined
+                    face:GetPrevious():SetNext(undefined)
                 else
-                    face:prev:SetNext(face:next)
-                    face:next:SetPrevious(face:prev)
+                    face:GetPrevious():SetNext(face:GetNext())
+                    face:GetNext():SetPrevious(face:GetPrevious())
                 end
             end
-            face:prev = undefined
-            face:next = undefined
+            face:SetPrevious(undefined)
+            face:SetNext(undefined)
         end
     end
 
     action Link(ConvexConvexFace f0, integer e0, ConvexConvexFace f1, integer e1)
-        f0:faces:Set(e0, f1)
-        f1:e:Set(e1, e0)
-        f1:faces:Set(e1, f0)
-        f0:e:Set(e0, e1)
+        f0:GetFaces():Set(e0, f1)
+        f1:GetEdges():Set(e1, e0)
+        f1:GetFaces():Set(e1, f0)
+        f0:GetEdges():Set(e0, e1)
     end
 
     action Support(Vector3 w) returns ConvexConvexVertex
@@ -321,10 +321,10 @@ class ConvexConvexPenetrationSolver
 
     action BuildHorizon(integer markid, ConvexConvexVertex w, ConvexConvexFace f, integer e, Array<ConvexConvexFace> cf, Array<ConvexConvexFace> ff) returns integer
         integer ne = 0
-        if f:mark not= markid
+        if f:GetMark() not= markid
             integer e1 = mod3:Get(e + 1)
-            if f:n:DotProduct(w:w) + f:d > 0
-                ConvexConvexFace nf = NewFace(f:v:Get(e1), f:v:Get(e), w)
+            if f:GetNormal():DotProduct(w:GetVertex()) + f:GetDistance() > 0
+                ConvexConvexFace nf = NewFace(f:GetVertices():Get(e1), f:GetVertices():Get(e), w)
                 Link(nf, 0, f, e)
                 if cf:Get(0) not= undefined
                     Link(cf:Get(0), 1, nf, 2)
@@ -336,20 +336,20 @@ class ConvexConvexPenetrationSolver
             else
                 integer e2 = mod3:Get(e + 2)
                 Detach(f)
-                f:mark = markid
-                ne = ne + BuildHorizon(markid, w, f:faces:Get(e1), f:e:Get(e1), cf, ff)
-                ne = ne + BuildHorizon(markid, w, f:faces:Get(e2), f:e:Get(e2), cf, ff)
+                f:SetMark(markid)
+                ne = ne + BuildHorizon(markid, w, f:GetFaces():Get(e1), f:GetEdges():Get(e1), cf, ff)
+                ne = ne + BuildHorizon(markid, w, f:GetFaces():Get(e2), f:GetEdges():Get(e2), cf, ff)
             end
         end
         
         return ne
     end
 
-    action EvaluatePD returns number
-        return EvaluatePD(EpaAccuracy)
+    action EvaluatePenetrationDepth returns number
+        return EvaluatePenetrationDepth(EpaAccuracy)
     end
 
-    action EvaluatePD(number accuracy) returns number
+    action EvaluatePenetrationDepth(number accuracy) returns number
         Vector3 tmp
 
         ConvexConvexFace bestFace = undefined
@@ -374,7 +374,7 @@ class ConvexConvexPenetrationSolver
             Array<ConvexConvexVertex> basemkv
             Array<ConvexConvexFace> basefaces
 
-            if gjk:order = 3
+            if gjk:GetOrder() = 3
                 //Tetrahedron
                 pfidx_ptr = tetrahedron_fidx
                 pfidx_index = 0
@@ -385,7 +385,7 @@ class ConvexConvexPenetrationSolver
                 peidx_index = 0
 
                 neidx = 6                
-            elseif gjk:order = 4
+            elseif gjk:GetOrder() = 4
                 //Hexahedron
                 pfidx_ptr = hexahedron_fidx
                 pfidx_index = 0
@@ -399,10 +399,10 @@ class ConvexConvexPenetrationSolver
             end
          
             integer i = 0
-            repeat while i <= gjk:order
+            repeat while i <= gjk:GetOrder()
                 ConvexConvexVertex mkv
                 basemkv:Add(mkv)
-                basemkv:Get(i):Set(gjk:simplex:Get(i))
+                basemkv:Get(i):Set(gjk:GetSimplex():Get(i))
                 i = i + 1
             end
 
@@ -432,9 +432,9 @@ class ConvexConvexPenetrationSolver
             ConvexConvexFace bf = FindBest()
 
             if bf not= undefined
-                tmp:Set(bf:n):Scale(-1)
+                tmp:Set(bf:GetNormal()):Scale(-1)
                 ConvexConvexVertex w = Support(tmp)
-                number d = bf:n:DotProduct(w:w) + bf:d
+                number d = bf:GetNormal():DotProduct(w:GetVertex()) + bf:GetDistance()
                 bestFace = bf
                 if d < -accuracy
                     Array<ConvexConvexFace> cf
@@ -447,7 +447,7 @@ class ConvexConvexPenetrationSolver
                     bf:mark = markid
                     integer j = 0
                     repeat while j < 3
-                        nf = nf + BuildHorizon(markid, w, bf:faces:Get(j), bf:e:Get(j), cf, ff)
+                        nf = nf + BuildHorizon(markid, w, bf:GetFaces():Get(j), bf:GetEdges():Get(j), cf, ff)
                         j = j + 1
                     end
                     if nf <= 2
@@ -472,10 +472,10 @@ class ConvexConvexPenetrationSolver
         if bestFace not= undefined
             Vector3 v
             Vector3 b = GetCoordinates(bestFace, v)
-            normal:Set(bestFace:n)
+            normal:Set(bestFace:GetNormal())
             depth = 0
-            if bestFace:d > 0
-                depth = bestFace:d
+            if bestFace:GetDistance() > 0
+                depth = bestFace:GetDistance()
             end
 
             integer i = 0
@@ -487,7 +487,7 @@ class ConvexConvexPenetrationSolver
 
                 integer j = 0
                 repeat while j < 3
-                    tmp:Set(bestFace:v:Get(j):r):Scale(s)
+                    tmp:Set(bestFace:GetVertices():Get(j):GetRay()):Scale(s)
                     features:Set(i, j, gjk:LocalSupport(tmp, i))
 
                     j = j + 1
@@ -515,5 +515,21 @@ class ConvexConvexPenetrationSolver
         end
 
         return depth
+    end
+
+    action GetIterations returns integer
+        return iterations
+    end
+
+    action GetNormal returns Vector3
+        return normal
+    end
+
+    action GetNearest returns Array<Vector3>
+        return nearest
+    end
+
+    action Failed returns boolean
+        return failed
     end
 end

@@ -1,6 +1,7 @@
 use Libraries.Interface.Item3D
 use Libraries.Compute.Math
 use Libraries.Game.BoundingBox
+use Libraries.Game.Collision.Item3DNode
 
 package Libraries.Game.Collision
 
@@ -9,7 +10,7 @@ class DynamicBoundingVolumeTreeNode3D
     BoundingBox boundingBox
     DynamicBoundingVolumeTreeNode3D treeParent = undefined
 
-    Object object = undefined
+    Item3DNode itemNode = undefined
 
     DynamicBoundingVolumeTreeNode3D leftChild = undefined
     DynamicBoundingVolumeTreeNode3D rightChild = undefined
@@ -25,12 +26,12 @@ class DynamicBoundingVolumeTreeNode3D
         return id
     end
 
-    action SetObject(Object object)
-        me:object = object
+    action SetItemNode(Item3DNode itemNode)
+        me:itemNode = itemNode
     end
 
-    action GetObject returns Object
-        return object
+    action GetItemNode returns Item3DNode
+        return itemNode
     end
 
     action GetHeight returns integer

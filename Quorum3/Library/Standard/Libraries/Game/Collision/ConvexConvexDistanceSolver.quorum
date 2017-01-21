@@ -5,7 +5,7 @@ use Libraries.Game.Collision.ConvexConvexCollisionSolverNode
 use Libraries.Compute.Matrix3
 use Libraries.Compute.Vector3
 use Libraries.Game.Collision.Shapes.CollisionShape3D
-use Libraries.Game.Collison.ConvexConvexVertex
+use Libraries.Game.Collision.ConvexConvexVertex
 use Libraries.Compute.Quaternion
 use Libraries.Compute.BitwiseOperations
 use Libraries.Compute.Math
@@ -14,16 +14,16 @@ class ConvexConvexDistanceSolver
     BitwiseOperations bo
     Math math
 
-    public Array<ConvexConvexCollisionSolverNode> table
-    public Array<Matrix3> wrotations
-    public Array<Vector3> positions
-    public Array<CollisionShape3D> shapes
-    public Array<ConvexConvexVertex> simplex
-    public Vector3 ray
-    public integer order = -1
-    public integer iterations = 0
-    public number margin = 0
-    public boolean failed = false
+    Array<ConvexConvexCollisionSolverNode> table
+    Array<Matrix3> wrotations
+    Array<Vector3> positions
+    Array<CollisionShape3D> shapes
+    Array<ConvexConvexVertex> simplex
+    Vector3 ray
+    integer order = -1
+    integer iterations = 0
+    number margin = 0
+    boolean failed = false
 
     constant integer GJK_hashsize = bo:ShiftLeft(1, 6)
     constant integer GJK_hashmask = GJK_hashsize - 1
@@ -78,7 +78,7 @@ class ConvexConvexDistanceSolver
     end
 
     action Support(Vector3 d, ConvexConvexVertex v)
-        v:r:Set(d)
+        v:GetRay():Set(d)
 
         Vector3 tmp1 = LocalSupport(d, 0)
 
@@ -87,10 +87,10 @@ class ConvexConvexDistanceSolver
         tmp:Scale(-1)
         Vector3 tmp2 = LocalSupport(tmp, 1)
 
-        v:w:Set(tmp1):Subtract(tmp2)
+        v:GetVertex():Set(tmp1):Subtract(tmp2)
         Vector3 vec
-        vec:Set(v:w)
-        v:w:Set(d):Scale(margin):Add(vec)
+        vec:Set(v:GetVertex())
+        v:GetVertex():Set(d):Scale(margin):Add(vec)
     end
 
     action FetchSupport returns boolean
@@ -98,21 +98,21 @@ class ConvexConvexDistanceSolver
         ConvexConvexCollisionSolverNode e = table:Get(h)
 
         repeat while e not= undefined
-            if e:vector:Equals(ray)
+            if e:GetVector():Equals(ray)
                 order = order - 1
                 return false
             else
-                e = e:node
+                e = e:GetNext()
             end
         end
 
         ConvexConvexCollisionSolverNode f
-        f:vector:Set(ray)
-        f:node = table:Get(h)
+        f:GetVector():Set(ray)
+        f:SetNext(table:Get(h))
         table:Set(h, f)
         order = order + 1
         Support(ray, simplex:Get(order))
-        return ray:DotProduct(simplex:Get(order):w) > 0
+        return ray:DotProduct(simplex:Get(order):GetVertex()) > 0
     end
 
     action SolveSimplex2(Vector3 ao, Vector3 ab) returns boolean
@@ -236,7 +236,7 @@ class ConvexConvexDistanceSolver
         end
 
         FetchSupport()
-        ray:Set(simplex:Get(0):w):Scale(-1)
+        ray:Set(simplex:Get(0):GetVertex()):Scale(-1)
 
         repeat while iterations < GjkMaxIterations
             number r1 = ray:Length()
@@ -248,19 +248,19 @@ class ConvexConvexDistanceSolver
             if FetchSupport()
                 boolean found = false
                 if order = 1
-                    tmp1:Set(simplex:Get(1):w):Scale(-1)
-                    tmp2:Set(simplex:Get(0):w):Subtract(simplex:Get(1):w)
+                    tmp1:Set(simplex:Get(1):GetVertex()):Scale(-1)
+                    tmp2:Set(simplex:Get(0):GetVertex()):Subtract(simplex:Get(1):GetVertex())
                     found = SolveSimplex2(tmp1, tmp2)
                 elseif order = 2
-                    tmp1:Set(simplex:Get(2):w):Scale(-1)
-                    tmp2:Set(simplex:Get(1):w):Subtract(simplex:Get(2):w)
-                    tmp3:Set(simplex:Get(0):w):Subtract(simplex:Get(2):w)
+                    tmp1:Set(simplex:Get(2):GetVertex()):Scale(-1)
+                    tmp2:Set(simplex:Get(1):GetVertex()):Subtract(simplex:Get(2):GetVertex())
+                    tmp3:Set(simplex:Get(0):GetVertex()):Subtract(simplex:Get(2):GetVertex())
                     found = SolveSimplex3(tmp1, tmp2, tmp3)
                 elseif order = 3
-                    tmp1:Set(simplex:Get(3):w):Scale(-1)
-                    tmp2:Set(simplex:Get(2):w):Subtract(simplex:Get(3):w)
-                    tmp3:Set(simplex:Get(1):w):Subtract(simplex:Get(3):w)
-                    tmp4:Set(simplex:Get(0):w):Subtract(simplex:Get(3):w)
+                    tmp1:Set(simplex:Get(3):GetVertex()):Scale(-1)
+                    tmp2:Set(simplex:Get(2):GetVertex()):Subtract(simplex:Get(3):GetVertex())
+                    tmp3:Set(simplex:Get(1):GetVertex()):Subtract(simplex:Get(3):GetVertex())
+                    tmp4:Set(simplex:Get(0):GetVertex()):Subtract(simplex:Get(3):GetVertex())
                     found = SolveSimplex4(tmp1, tmp2, tmp3, tmp4)
                 end
 
@@ -285,7 +285,7 @@ class ConvexConvexDistanceSolver
         if order = 1
             // line
             Vector3 ab
-            ab:Set(simplex:Get(1):w):Subtract(simplex:Get(0):w)
+            ab:Set(simplex:Get(1):GetVertex()):Subtract(simplex:Get(0):GetVertex())
             
             Array<Vector3> b
             repeat 3 times
@@ -343,8 +343,8 @@ class ConvexConvexDistanceSolver
             order = 4
             return true
         elseif order = 2
-            tmp1:Set(simplex:Get(1):w):Subtract(simplex:Get(0):w)
-            tmp2:Set(simplex:Get(2):w):Subtract(simplex:Get(0):w)
+            tmp1:Set(simplex:Get(1):GetVertex()):Subtract(simplex:Get(0):GetVertex())
+            tmp2:Set(simplex:Get(2):GetVertex()):Subtract(simplex:Get(0):GetVertex())
             Vector3 n
             n:Set(tmp1):CrossProduct(tmp2)
             n:Normalize()
@@ -422,5 +422,25 @@ class ConvexConvexDistanceSolver
         dest:row2column0 = xz - wy
         dest:row2column1 = yz + wx
         dest:row2column2 = 1 - (xx + yy)
+    end
+
+    action GetOrder returns integer
+        return order
+    end
+
+    action SetOrder(integer order)
+        me:order = order
+    end
+
+    action GetSimplex returns Array<ConvexConvexVertex>
+        return simplex
+    end
+
+    action GetIterations returns integer
+        return iterations
+    end
+
+    action Failed returns boolean
+        return failed
     end
 end

@@ -12,5 +12,6 @@ package org.quorum.projects;
 public enum QuorumProjectType {
     STANDARD,
     LEGO,
-    WEB;
+    WEB,
+    WEB_BROWSER;
 }

@@ -100,7 +100,7 @@ public abstract class Data {
         
         double newX = Math.sin(Math.toRadians(rotation));
         double newY = 0;
-        double newZ = Math.cos(Math.toRadians(rotation));
+        double newZ = -Math.cos(Math.toRadians(rotation));
         
         SetPosition((float)newX, (float)newY, (float)newZ);
     }

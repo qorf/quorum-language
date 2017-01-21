@@ -25,7 +25,7 @@ public class IOSGraphics implements GraphicsManager
 
     // The last viewport set, needed because GLKView resets the viewport on each call to render.
     public static int x, y, width, height;
-
+    
     // MUST BE CALLED BEFORE USING ANY OTHER METHOD OF THIS CLASS.
     public static native void init( );	
 

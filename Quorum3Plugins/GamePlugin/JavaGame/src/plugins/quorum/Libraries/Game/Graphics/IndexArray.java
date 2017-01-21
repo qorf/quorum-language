@@ -26,8 +26,6 @@ import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 
 public class IndexArray extends IndexData 
 {
-    final static IntBuffer tmpHandle = BufferUtils.newIntBuffer(1);
-
     private int[] bridgeArray = null;
     
     IntBuffer buffer;

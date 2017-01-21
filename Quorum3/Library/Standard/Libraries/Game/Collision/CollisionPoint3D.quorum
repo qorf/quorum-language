@@ -1,0 +1,221 @@
+package Libraries.Game.Collision
+
+use Libraries.Compute.Vector3
+
+class CollisionPoint3D 
+    Vector3 localPointA
+    Vector3 localPointB
+    Vector3 positionWorldOnB
+    Vector3 positionWorldOnA
+    Vector3 normalWorldOnB
+
+    number distance1 = 0
+    number combinedFriction = 0
+    number combinedRestitution = 0
+
+    integer partID0 = 0
+    integer partID1 = 0
+    integer index0 = 0
+    integer index1 = 0
+
+    number appliedImpulse = 0
+    
+    boolean lateralFrictionInitialized = false
+    number appliedImpulseLateral1 = 0
+    number appliedImpulseLateral2 = 0
+    integer lifeTime = 0
+
+    Vector3 lateralFrictionDirection1
+    Vector3 lateralFrictionDirection2
+
+    action Initialize(Vector3 pointA, Vector3 pointB, Vector3 normal, number distance)
+        localPointA:Set(pointA)
+        localPointB:Set(pointB)
+        normalWorldOnB:Set(normal)
+        distance1 = distance
+    end
+
+    action Set(CollisionPoint3D point)
+        localPointA:Set(point:localPointA)
+        localPointB:Set(point:localPointB)
+        positionWorldOnA:Set(point:positionWorldOnA)
+        positionWorldOnB:Set(point:positionWorldOnB)
+        normalWorldOnB:Set(point:normalWorldOnB)
+        distance1 = point:distance1
+        combinedFriction = point:combinedFriction
+        combinedRestitution = point:combinedRestitution
+        partID0 = point:partID0
+        partID1 = point:partID1
+        index0 = point:index0
+        index1 = point:index1
+        appliedImpulse = point:appliedImpulse
+        lateralFrictionInitialized = point:lateralFrictionInitialized
+        appliedImpulseLateral1 = point:appliedImpulseLateral1
+        appliedImpulseLateral2 = point:appliedImpulseLateral2
+        lifeTime = point:lifeTime
+        lateralFrictionDirection1:Set(point:lateralFrictionDirection1)
+        lateralFrictionDirection2:Set(point:lateralFrictionDirection2)
+    end
+
+    action GetPositionWorldOnA(Vector3 out) returns Vector3
+        out:Set(positionWorldOnA)
+        return out
+    end
+
+    action GetPositionWorldOnB(Vector3 out) returns Vector3
+        out:Set(positionWorldOnB)
+        return out
+    end
+
+    action GetLocalPointA returns Vector3
+        return localPointA
+    end
+
+    action SetLocalPointA(Vector3 point)
+        localPointA = point
+    end
+
+    action GetLocalPointB returns Vector3
+        return localPointB
+    end
+
+    action SetLocalPointB(Vector3 point)
+        localPointB = point
+    end
+
+    action GetWorldPositionOnB returns Vector3
+        return positionWorldOnB
+    end
+
+    action SetWorldPositionOnB(Vector3 position)
+        positionWorldOnB = position
+    end
+
+    action GetWorldPositionOnA returns Vector3
+        return positionWorldOnA
+    end
+
+    action SetWorldPositionOnA(Vector3 position)
+        positionWorldOnA = position
+    end
+
+    action GetWorldNormalOnB returns Vector3
+        return normalWorldOnB
+    end
+
+    action SetWorldNormalOnB(Vector3 normal)
+        normalWorldOnB = normal
+    end
+
+    action GetDistance returns number
+        return distance1
+    end
+
+    action SetDistance(number distance)
+        distance1 = distance
+    end
+
+    action GetCombinedFriction returns number
+        return combinedFriction
+    end
+
+    action SetCombinedFriction(number friction)
+        combinedFriction = friction
+    end
+
+    action GetCombinedRestitution returns number
+        return combinedRestitution
+    end
+
+    action SetCombinedRestitution(number restitution)
+        combinedRestitution = restitution
+    end
+
+    action GetPartIDA returns integer
+        return partID0
+    end
+
+    action SetPartIDA(integer id)
+        partID0 = id
+    end
+
+    action GetPartIDB returns integer
+        return partID1
+    end
+
+    action SetPartIDB(integer id)
+        partID1 = id
+    end
+
+    action GetIndexA returns integer
+        return index0
+    end
+
+    action SetIndexA(integer index)
+        index0 = index
+    end
+
+    action GetIndexB returns integer
+        return index1
+    end
+
+    action SetIndexB(integer index)
+        index1 = index
+    end
+
+    action GetAppliedImpulse returns number
+        return appliedImpulse
+    end
+
+    action SetAppliedImpulse(number impulse)
+        appliedImpulse = impulse
+    end
+
+    action IsLateralFrictionInitialized returns boolean
+        return lateralFrictionInitialized
+    end
+
+    action SetLateralFrictionInitialized(boolean flag)
+        lateralFrictionInitialized = flag
+    end
+
+    action GetAppliedImpulseLateralA returns number
+        return appliedImpulseLateral1
+    end
+
+    action SetAppliedImpulseLateralA(number lateral)
+        appliedImpulseLateral1 = lateral
+    end
+
+    action GetAppliedImpulseLateralB returns number
+        return appliedImpulseLateral2
+    end
+
+    action SetAppliedImpulseLateralB(number lateral)
+        appliedImpulseLateralB = lateral
+    end
+
+    action GetLifeTime returns integer
+        return lifeTime
+    end
+
+    action SetLifeTime(integer lifeTime)
+        me:lifeTime = lifeTime
+    end
+
+    action GetLateralFrictionDirectionA returns Vector3
+        return lateralFrictionDirection1
+    end
+
+    action SetLateralFrictionDirectionA(Vector3 direction)
+        lateralFrictionDirection1 = direction
+    end
+
+    action GetLateralFrictionDirectionB returns Vector3
+        return lateralFrictionDirection2
+    end
+
+    action SetLateralFrictionDirectionB(Vector3 direction)
+        lateralFrictionDirection2 = direction
+    end
+end

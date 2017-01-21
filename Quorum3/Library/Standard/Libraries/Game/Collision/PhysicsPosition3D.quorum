@@ -8,11 +8,11 @@ use Libraries.Containers.Array
 use Libraries.Compute.Math
 
 
-class Transform3D 
+class PhysicsPosition3D 
     Matrix3 basis
     Vector3 origin
 
-    action Set(Transform3D transform)
+    action Set(PhysicsPosition3D transform)
         basis:Set(transform:basis)
         origin:Set(transform:origin)
     end
@@ -56,12 +56,12 @@ class Transform3D
         origin:Multiply(basis)
     end
 
-    action Inverse(Transform3D transform)
+    action Inverse(PhysicsPosition3D transform)
         Set(transform)
         Inverse()
     end
 
-    action Multiply(Transform3D transform)
+    action Multiply(PhysicsPosition3D transform)
         Vector3 vector
         vector:Set(origin)
         Transform(vector)
@@ -70,7 +70,7 @@ class Transform3D
         origin:Set(vector)
     end
 
-    action Multiply(Transform3D transform1, Transform3D transform2)
+    action Multiply(PhysicsPosition3D transform1, PhysicsPosition3D transform2)
         Vector3 vector
         vector:Set(transform2:origin)
         transform1:Transform(vector)

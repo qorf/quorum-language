@@ -143,6 +143,91 @@ class TextBox is Panel, KeyboardListener
     end
 
     /*
+    Sets the input field inside the TextBox. If the cursor position extends past
+    the end of the new text, it will be moved to the end of the new text.
+
+    Attribute: Example
+
+        use Libraries.Interface.TextBox
+        use Libraries.Game.Game
+        use Libraries.Game.InputMonitor
+        use Libraries.Interface.Events.KeyboardEvent
+
+        class Main is Game
+
+            TextBox box
+            InputMonitor monitor
+            KeyboardEvent keys
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                box:Initialize(200, 100)
+                Add(box)
+                AddKeyboardListener(box)
+            end
+
+            action Update(number time)
+                if monitor:IsKeyPressed(keys:ENTER)
+                    box:SetInput("ENTER was pressed!")
+                end
+            end
+
+        end
+    */
+    action SetInput(text newInput)
+        if (responseStr not= newInput)
+            responseStr = newInput
+            textChanged = true
+            if cursorIndex > newInput:GetSize()
+                cursorIndex = newInput:GetSize()
+                cursorMoved = true
+            end
+        end
+    end
+
+    /*
+    Resets the text field of the TextBox so that it is empty. The cursor will be
+    reset back to the beginning of the TextBox, as well.
+
+    Attribute: Example
+
+        use Libraries.Interface.TextBox
+        use Libraries.Game.Game
+        use Libraries.Game.InputMonitor
+        use Libraries.Interface.Events.KeyboardEvent
+
+        class Main is Game
+
+            TextBox box
+            InputMonitor monitor
+            KeyboardEvent keys
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                box:Initialize(200, 100)
+                Add(box)
+                AddKeyboardListener(box)
+            end
+
+            action Update(number time)
+                if monitor:IsKeyPressed(keys:ENTER)
+                    box:Empty()
+                end
+            end
+
+        end
+    */
+    action Empty
+        SetInput("")
+    end
+
+    /*
     This action positions the cursor and makes it blink on and off. When TextBox
     is used in conjunction with the Game class, this action will automatically
     be called by Game immediately after Game:Update() is called if the TextBox
@@ -272,7 +357,7 @@ class TextBox is Panel, KeyboardListener
             if cursorIndex not= responseStr:GetSize()
                 text preText = ""
                 if cursorIndex > 0
-                    preText = responseStr:GetSubtext(0, cursorIndex - 1)
+                    preText = responseStr:GetSubtext(0, cursorIndex)
                 end
 
                 text postText = ""

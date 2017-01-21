@@ -14,12 +14,12 @@ use Libraries.Game.Shapes.Rectangle
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Layer2D
 use Libraries.Compute.Vector2
-use Libraries.Game.Collision.Transform2D
+use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Game.Collision.Sweep2D
 use Libraries.Game.Collision.Shapes.all
 use Libraries.Game.Collision.Item2DNode
 use Libraries.Game.Collision.BroadphaseCollision2D
-use Libraries.Game.Collision.ContactEdge2D
+use Libraries.Game.Collision.CollisionEdge2D
 use Libraries.Game.Collision.BoundingBox2D
 
 /*
@@ -52,7 +52,7 @@ class Item2D is Item
     /*
     Used internally to pass around position and rotation information
     */
-    Transform2D transform
+    PhysicsPosition2D transform
     Vector2 position
     number z = 0
     number rotation = 0
@@ -86,9 +86,9 @@ class Item2D is Item
 
     Sweep2D sweep
 
-    public ContactEdge2D contactList = undefined
+    CollisionEdge2D collisionList = undefined
 
-    Transform2D transform0
+    PhysicsPosition2D transform0
 
     on create
         vertices:SetSize(20)
@@ -253,7 +253,7 @@ class Item2D is Item
         end
 
         transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
-        sweep:center:Set(transform:GetPosition())
+        sweep:GetCenter():Set(transform:GetPosition())
     end
 
     /*
@@ -276,7 +276,7 @@ class Item2D is Item
         end
 
         transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
-        sweep:center:Set(transform:GetPosition())
+        sweep:GetCenter():Set(transform:GetPosition())
     end
 
     /*
@@ -403,7 +403,7 @@ class Item2D is Item
         offset:SetX(xAmount)
 
         transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
-        sweep:center:SetX(transform:GetPosition():GetX())
+        sweep:GetCenter():SetX(transform:GetPosition():GetX())
 
         integer counter = 0
         repeat children:GetSize() times
@@ -437,7 +437,7 @@ class Item2D is Item
         offset:SetY(yAmount)
 
         transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
-        sweep:center:SetY(transform:GetPosition():GetY())
+        sweep:GetCenter():SetY(transform:GetPosition():GetY())
 
         integer counter = 0
         repeat children:GetSize() times
@@ -512,9 +512,9 @@ class Item2D is Item
 
 
         transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
-        sweep:center:SetX(transform:GetPosition():GetX())
+        sweep:GetCenter():SetX(transform:GetPosition():GetX())
         transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
-        sweep:center:SetY(transform:GetPosition():GetY())
+        sweep:GetCenter():SetY(transform:GetPosition():GetY())
 
         integer counter = 0
         repeat children:GetSize() times
@@ -907,13 +907,13 @@ class Item2D is Item
     action Remove(Item2D removed) returns boolean
         boolean success = children:Remove(removed)
         removed:SetOffset(0, 0)
-        ContactEdge2D edge = removed:contactList
+        CollisionEdge2D edge = removed:collisionList
         repeat while edge not= undefined
-            ContactEdge2D edge0 = edge
+            CollisionEdge2D edge0 = edge
             edge = edge:GetNext()
             layer:GetCollisionManager():Destroy(edge0:GetCollision())
         end
-        removed:contactList = undefined
+        removed:collisionList = undefined
 
         removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
         removed:SetCollidable(false)
@@ -943,13 +943,13 @@ class Item2D is Item
     action Remove(integer index) returns Item2D
         Item2D temp = children:RemoveAt(index)
         temp:SetOffset(0, 0)
-        ContactEdge2D edge = temp:contactList
+        CollisionEdge2D edge = temp:collisionList
         repeat while edge not= undefined
-            ContactEdge2D edge0 = edge
+            CollisionEdge2D edge0 = edge
             edge = edge:GetNext()
             layer:GetCollisionManager():Destroy(edge0:GetCollision())
         end
-        temp:contactList = undefined
+        temp:collisionList = undefined
 
         temp:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
         temp:SetCollidable(false)
@@ -2122,6 +2122,14 @@ class Item2D is Item
         end
     end
 
+    action GetCollisionList returns CollisionEdge2D
+        return collisionList
+    end
+
+    action SetCollisionList(CollisionEdge2D edge)
+        collisionList = edge
+    end
+
     /*
     This action is used by the Game libraries to create a reference to the layer
     that this Item2D exists on. It is automatically called as needed by the
@@ -2166,18 +2174,18 @@ class Item2D is Item
     action SetTransform(Vector2 position, number angle)
         transform:Set(position, angle)
         
-        transform:MultiplyToOut(transform, sweep:localCenter, sweep:center)
-        sweep:angle = angle
+        transform:MultiplyToOut(transform, sweep:GetLocalCenter(), sweep:GetCenter())
+        sweep:SetAngle(angle)
 
         BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
         Synchronize(broadphase, transform, transform)
     end
 
-    action GetTransform returns Transform2D
+    action GetTransform returns PhysicsPosition2D
         return transform
     end
 
-    action SetTransform(Transform2D transform)
+    action SetTransform(PhysicsPosition2D transform)
         me:transform:Set(transform)
     end
 
@@ -2187,12 +2195,12 @@ class Item2D is Item
 
     action SynchronizeNodes
         Math math
-        Transform2D xf1
+        PhysicsPosition2D xf1
 
-        xf1:sine = math:Sine(sweep:angle)
-        xf1:cosine = math:Cosine(sweep:angle)
-        xf1:position:SetX(sweep:center:GetX() - xf1:cosine * sweep:localCenter:GetX() + xf1:sine * sweep:localCenter:GetY())
-        xf1:position:SetY(sweep:center:GetY() - xf1:sine * sweep:localCenter:GetX() - xf1:cosine * sweep:localCenter:GetY()) 
+        xf1:SetSine(math:Sine(sweep:GetAngle()))
+        xf1:SetCosine(math:Cosine(sweep:GetAngle()))
+        xf1:GetPosition():SetX(sweep:GetCenter():GetX() - xf1:GetCosine() * sweep:GetLocalCenter():GetX() + xf1:GetSine() * sweep:GetLocalCenter():GetY())
+        xf1:GetPosition():SetY(sweep:GetCenter():GetY() - xf1:GetSine() * sweep:GetLocalCenter():GetX() - xf1:GetCosine() * sweep:GetLocalCenter():GetY()) 
 
         Synchronize(layer:GetCollisionManager():GetBroadphase(), xf1, me:transform)
 
@@ -2206,23 +2214,23 @@ class Item2D is Item
 
     action SynchronizeTransform
         Math math
-        transform:sine = math:Sine(sweep:angle)
-        transform:cosine = math:Cosine(sweep:angle)
-        number cosine = transform:cosine
-        number sine = transform:sine
-        Vector2 v = sweep:localCenter
-        transform:GetPosition():SetX(sweep:center:GetX() - cosine * v:GetX() + sine * v:GetY())
-        transform:GetPosition():SetY(sweep:center:GetY() - sine * v:GetX() - cosine * v:GetY())
+        transform:SetSine(math:Sine(sweep:GetAngle()))
+        transform:SetCosine(math:Cosine(sweep:GetAngle()))
+        number cosine = transform:GetCosine()
+        number sine = transform:GetSine()
+        Vector2 v = sweep:GetLocalCenter()
+        transform:GetPosition():SetX(sweep:GetCenter():GetX() - cosine * v:GetX() + sine * v:GetY())
+        transform:GetPosition():SetY(sweep:GetCenter():GetY() - sine * v:GetX() - cosine * v:GetY())
     end
 
     action Advance(number time)
         sweep:Advance(time)
-        sweep:center:Set(sweep:center0)
-        sweep:angle = sweep:angle0
-        transform:Set(transform:GetPosition(), sweep:angle)
-        transform:GetPosition():SetX(transform:cosine * sweep:localCenter:GetX() - transform:sine * sweep:localCenter:GetY())
-        transform:GetPosition():SetY(transform:sine * sweep:localCenter:GetX() + transform:cosine * sweep:localCenter:GetY())
-        transform:GetPosition():Scale(-1):Add(sweep:center)
+        sweep:GetCenter():Set(sweep:GetCenter0())
+        sweep:SetAngle(sweep:GetAngle0())
+        transform:Set(transform:GetPosition(), sweep:GetAngle())
+        transform:GetPosition():SetX(transform:GetCosine() * sweep:GetLocalCenter():GetX() - transform:GetSine() * sweep:GetLocalCenter():GetY())
+        transform:GetPosition():SetY(transform:GetSine() * sweep:GetLocalCenter():GetX() + transform:GetCosine() * sweep:GetLocalCenter():GetY())
+        transform:GetPosition():Scale(-1):Add(sweep:GetCenter())
     end
 
     action GetSweep returns Sweep2D
@@ -2258,14 +2266,14 @@ class Item2D is Item
     end
 
     action GetBoundingBox(integer childIndex) returns BoundingBox2D
-        return nodes:Get(childIndex):boundingBox
+        return nodes:Get(childIndex):GetBoundingBox()
     end
 
     action ComputeDistance(Vector2 point, integer childIndex, Vector2 normalOut) returns number
         return shape:ComputeDistance(transform, point, childIndex, normalOut)
     end
 
-    action CreateNodes(BroadphaseCollision2D broadphase, Transform2D transform)
+    action CreateNodes(BroadphaseCollision2D broadphase, PhysicsPosition2D transform)
         if nodesSet or not collidable
             DestroyNodes(broadphase)
         end
@@ -2275,10 +2283,10 @@ class Item2D is Item
             integer i = 0
             repeat while i < nodeCount
                 Item2DNode node
-                shape:ComputeBoundingBox(node:boundingBox, transform, i)
-                node:nodeID = broadphase:CreateNode(node:boundingBox, node)
-                node:item = me
-                node:childIndex = i
+                shape:ComputeBoundingBox(node:GetBoundingBox(), transform, i)
+                node:SetNodeID(broadphase:CreateNode(node:GetBoundingBox(), node))
+                node:SetItem(me)
+                node:SetChildIndex(i)
                 nodes:Add(node)
                 i = i + 1
             end
@@ -2290,8 +2298,8 @@ class Item2D is Item
         integer i = 0
         repeat while i < nodeCount
             Item2DNode node = nodes:Get(i)
-            broadphase:DestroyNode(node:nodeID)
-            node:nodeID = -1
+            broadphase:DestroyNode(node:GetNodeID())
+            node:SetNodeID(-1)
             nodes:Remove(node)
             i = i + 1
         end
@@ -2300,7 +2308,7 @@ class Item2D is Item
         nodesSet = false
     end
 
-    private action Synchronize(BroadphaseCollision2D broadphase, Transform2D transform1, Transform2D transform2)
+    private action Synchronize(BroadphaseCollision2D broadphase, PhysicsPosition2D transform1, PhysicsPosition2D transform2)
         if nodeCount = 0
             return now
         end
@@ -2312,11 +2320,11 @@ class Item2D is Item
             BoundingBox2D boundingBox1
             BoundingBox2D boundingBox2
 
-            shape:ComputeBoundingBox(boundingBox1, transform1, node:childIndex)
-            shape:ComputeBoundingBox(boundingBox2, transform2, node:childIndex)
+            shape:ComputeBoundingBox(boundingBox1, transform1, node:GetChildIndex())
+            shape:ComputeBoundingBox(boundingBox2, transform2, node:GetChildIndex())
 
-            Vector2 minimum = node:boundingBox:GetMinimum()
-            Vector2 maximum = node:boundingBox:GetMaximum()
+            Vector2 minimum = node:GetBoundingBox():GetMinimum()
+            Vector2 maximum = node:GetBoundingBox():GetMaximum()
 
             if boundingBox1:GetMinimum():GetX() < boundingBox2:GetMinimum():GetX()
                 minimum:SetX(boundingBox1:GetMinimum():GetX())
@@ -2346,7 +2354,7 @@ class Item2D is Item
             displacement:SetX(transform2:GetPosition():GetX() - transform1:GetPosition():GetX())
             displacement:SetY(transform2:GetPosition():GetY() - transform1:GetPosition():GetY())
 
-            broadphase:MoveNode(node:nodeID, node:boundingBox, displacement)
+            broadphase:MoveNode(node:GetNodeID(), node:GetBoundingBox(), displacement)
 
             i = i + 1
         end
@@ -2372,13 +2380,13 @@ class Item2D is Item
             if layerSet
                 BroadphaseCollision2D broadphase = layer:GetCollisionManager():GetBroadphase()
                 DestroyNodes(broadphase)
-                ContactEdge2D edge = contactList
+                CollisionEdge2D edge = collisionList
                 repeat while edge not= undefined
-                    ContactEdge2D edge0 = edge
+                    CollisionEdge2D edge0 = edge
                     edge = edge:GetNext()
                     layer:GetCollisionManager():Destroy(edge0:GetCollision())
                 end
-                contactList = undefined
+                collisionList = undefined
             end
         end
     end

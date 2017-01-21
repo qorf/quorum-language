@@ -16,7 +16,7 @@ use Libraries.Compute.Vector3
 use Libraries.Containers.Iterator
 use Libraries.Game.Collision.CollisionManager2D
 use Libraries.Interface.Events.CollisionListener2D
-use Libraries.Game.Collision.ContactEdge2D
+use Libraries.Game.Collision.CollisionEdge2D
 use Libraries.Interface.Events.CollisionEvent2D
 
 /*
@@ -261,13 +261,13 @@ class Layer2D is Layer
         Iterator<Item2D> it = items:GetIterator()
         repeat while it:HasNext()
             Item2D body = it:Next()
-            ContactEdge2D edge = body:contactList
+            CollisionEdge2D edge = body:GetCollisionList()
             repeat while edge not= undefined
-                ContactEdge2D edge0 = edge
+                CollisionEdge2D edge0 = edge
                 edge = edge:GetNext()
                 collisionManager:Destroy(edge0:GetCollision())
             end
-            body:contactList = undefined
+            body:SetCollisionList(undefined)
 
             body:DestroyNodes(collisionManager:GetBroadphase())
             body:SetCollidable(false)
@@ -314,13 +314,13 @@ class Layer2D is Layer
     
     */
     action Remove(Item2D item) returns boolean
-        ContactEdge2D edge = item:contactList
+        CollisionEdge2D edge = item:GetCollisionList()
         repeat while edge not= undefined
-            ContactEdge2D edge0 = edge
+            CollisionEdge2D edge0 = edge
             edge = edge:GetNext()
             collisionManager:Destroy(edge0:GetCollision())
         end
-        item:contactList = undefined
+        item:SetCollisionList(undefined)
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
@@ -370,13 +370,13 @@ class Layer2D is Layer
     action RemoveAt(integer index) returns Item2D
         Item2D item = items:RemoveAt(index)
 
-        ContactEdge2D edge = item:contactList
+        CollisionEdge2D edge = item:GetCollisionList()
         repeat while edge not= undefined
-            ContactEdge2D edge0 = edge
+            CollisionEdge2D edge0 = edge
             edge = edge:GetNext()
             collisionManager:Destroy(edge0:GetCollision())
         end
-        item:contactList = undefined
+        item:SetCollisionList(undefined)
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
@@ -424,13 +424,13 @@ class Layer2D is Layer
     */
     action RemoveFromFront returns Item2D
         Item2D item = items:RemoveFromFront()
-        ContactEdge2D edge = item:contactList
+        CollisionEdge2D edge = item:GetCollisionList()
         repeat while edge not= undefined
-            ContactEdge2D edge0 = edge
+            CollisionEdge2D edge0 = edge
             edge = edge:GetNext()
             collisionManager:Destroy(edge0:GetCollision())
         end
-        item:contactList = undefined
+        item:SetCollisionList(undefined)
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
@@ -478,13 +478,13 @@ class Layer2D is Layer
     action RemoveFromEnd returns Item2D
         Item2D item = items:RemoveFromEnd()
 
-        ContactEdge2D edge = item:contactList
+        CollisionEdge2D edge = item:GetCollisionList()
         repeat while edge not= undefined
-            ContactEdge2D edge0 = edge
+            CollisionEdge2D edge0 = edge
             edge = edge:GetNext()
             collisionManager:Destroy(edge0:GetCollision())
         end
-        item:contactList = undefined
+        item:SetCollisionList(undefined)
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)

@@ -47,7 +47,29 @@ class Heading is WebTag
         
     */
     action SetScale(integer value)
+        if scale > 6 or scale < 1
+             alert("Headings must be between the ranges of 1 - 6.")
+        end
+
         scale = value
+    end
+
+    /*
+        This action gets the scale of the header. A scale of 1 is equivalent to the 
+        tag h1 and 6 is equivalent to h6.
+        
+
+        Attribute: Returns value The scale of the header.
+
+        Attribute: Example
+        use Libraries.Web.Page.Heading
+
+        Heading heading
+        heading:SetScale(1)
+        
+    */
+    action GetScale returns integer
+        return scale
     end
 
     action Generate returns text

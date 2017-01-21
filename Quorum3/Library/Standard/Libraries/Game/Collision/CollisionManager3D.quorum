@@ -6,7 +6,7 @@ use Libraries.Interface.Events.CollisionEvent3D
 use Libraries.Interface.Events.CollisionListener3D
 use Libraries.Language.Object
 use Libraries.Game.Collision.Item3DNode
-use Libraries.Game.Collision.ContactEdge3D
+use Libraries.Game.Collision.CollisionEdge3D
 use Libraries.Game.Collision.Item3DNode
 
 package Libraries.Game.Collision
@@ -23,21 +23,18 @@ class CollisionManager3D
         myLayer = layer
     end
 
-    action AddPair(Object objectA, Object objectB)
-        Item3DNode nodeA = cast(Item3DNode, objectA)
-        Item3DNode nodeB = cast(Item3DNode, objectB)
+    action AddPair(Item3DNode nodeA, Item3DNode nodeB)
+        Item3D itemA = nodeA:GetItem()
+        Item3D itemB = nodeB:GetItem()
 
-        Item3D itemA = nodeA:item
-        Item3D itemB = nodeB:item
-
-        integer indexA = nodeA:childIndex
-        integer indexB = nodeB:childIndex
+        integer indexA = nodeA:GetChildIndex()
+        integer indexB = nodeB:GetChildIndex()
 
         if itemA = itemB
             return now
         end
 
-        ContactEdge3D edge = itemB:contactList
+        CollisionEdge3D edge = itemB:collisionList
         repeat while edge not= undefined
             if edge:GetOther() = itemA
                 Item3D iA = edge:GetCollision():GetItemA()
@@ -73,22 +70,22 @@ class CollisionManager3D
         collision:nodeA:SetOther(itemB)
 
         collision:nodeA:SetPrevious(undefined)
-        collision:nodeA:SetNext(itemA:contactList)
-        if itemA:contactList not= undefined
-            itemA:contactList:SetPrevious(collision:nodeA)
+        collision:nodeA:SetNext(itemA:collisionList)
+        if itemA:collisionList not= undefined
+            itemA:collisionList:SetPrevious(collision:nodeA)
         end
-        itemA:contactList = collision:nodeA
+        itemA:collisionList = collision:nodeA
 
         // connect collision to itemB
         collision:nodeB:SetCollision(collision)
         collision:nodeB:SetOther(itemA)
 
         collision:nodeB:SetPrevious(undefined)
-        collision:nodeB:SetNext(itemB:contactList)
-        if itemB:contactList not= undefined
-            itemB:contactList:SetPrevious(collision:nodeB)
+        collision:nodeB:SetNext(itemB:collisionList)
+        if itemB:collisionList not= undefined
+            itemB:collisionList:SetPrevious(collision:nodeB)
         end
-        itemB:contactList = collision:nodeB
+        itemB:collisionList = collision:nodeB
 
         collisionCount = collisionCount + 1
     end
@@ -131,8 +128,8 @@ class CollisionManager3D
             collision:nodeA:GetNext():SetPrevious(collision:nodeA:GetPrevious())
         end
 
-        if collision:nodeA = itemA:contactList
-            itemA:contactList = collision:nodeA:GetNext()
+        if collision:nodeA = itemA:collisionList
+            itemA:collisionList = collision:nodeA:GetNext()
         end
 
         // remove collision from itemB
@@ -144,8 +141,8 @@ class CollisionManager3D
             collision:nodeB:GetNext():SetPrevious(collision:nodeB:GetPrevious())
         end
 
-        if collision:nodeB = itemB:contactList
-            itemB:contactList = collision:nodeB:GetNext()
+        if collision:nodeB = itemB:collisionList
+            itemB:collisionList = collision:nodeB:GetNext()
         end
 
         collisionCount = collisionCount - 1
@@ -173,8 +170,8 @@ class CollisionManager3D
             // should we allow user-defined collision filtering?
 
             if not jump
-                integer nodeIDA = itemA:GetNode(indexA):nodeID
-                integer nodeIDB = itemB:GetNode(indexB):nodeID
+                integer nodeIDA = itemA:GetNode(indexA):GetNodeID()
+                integer nodeIDB = itemB:GetNode(indexB):GetNodeID()
 
                 boolean overlap = broadphase:TestOverlap(nodeIDA, nodeIDB)
 

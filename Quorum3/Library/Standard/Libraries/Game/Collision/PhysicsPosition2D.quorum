@@ -3,14 +3,14 @@ use Libraries.Compute.Math
 
 package Libraries.Game.Collision
 
-class Transform2D
-    public Vector2 position
-    public number sine = 0
-    public number cosine = 1
+class PhysicsPosition2D
+    Vector2 position
+    number sine = 0
+    number cosine = 1
 
     Math math
     
-    action Set(Transform2D other)
+    action Set(PhysicsPosition2D other)
         position:Set(other:position)
         sine = other:sine
         cosine = other:cosine
@@ -26,6 +26,10 @@ class Transform2D
         return position
     end
 
+    action SetPosition(Vector2 position)
+        me:position = position
+    end
+
     action GetAngle returns number
         return math:InverseTangent(sine, cosine)
     end
@@ -34,8 +38,16 @@ class Transform2D
         return sine
     end
 
+    action SetSine(number sine)
+        me:sine = sine
+    end
+
     action GetCosine returns number
         return cosine
+    end
+
+    action SetCosine(number cosine)
+        me:cosine = cosine
     end
 
     action SetToIdentity
@@ -44,20 +56,20 @@ class Transform2D
         cosine = 1
     end
 
-    action Multiply(Transform2D transform, Vector2 vector) returns Vector2
+    action Multiply(PhysicsPosition2D transform, Vector2 vector) returns Vector2
         Vector2 result
         result:SetX((transform:cosine * vector:GetX() - transform:sine * vector:GetY()) + transform:position:GetX())
         result:SetY((transform:sine * vector:GetX() + transform:cosine * vector:GetY()) + transform:position:GetY())
         return result
     end
 
-    action MultiplyToOut(Transform2D transform, Vector2 vector, Vector2 out)
+    action MultiplyToOut(PhysicsPosition2D transform, Vector2 vector, Vector2 out)
         number tempY = (transform:sine * vector:GetX() + transform:cosine * vector:GetY()) + transform:position:GetY()
         out:SetX((transform:cosine * vector:GetX() - transform:sine * vector:GetY()) + transform:position:GetX())
         out:SetY(tempY)
     end
 
-    action MultiplyAndTranslate(Transform2D transform, Vector2 vector) returns Vector2
+    action MultiplyAndTranslate(PhysicsPosition2D transform, Vector2 vector) returns Vector2
         number px = vector:GetX() - transform:position:GetX()
         number py = vector:GetY() - transform:position:GetY()
         Vector2 result
@@ -66,8 +78,8 @@ class Transform2D
         return result
     end
 
-    action Multiply(Transform2D transformA, Transform2D transformB) returns Transform2D
-        Transform2D result
+    action Multiply(PhysicsPosition2D transformA, PhysicsPosition2D transformB) returns PhysicsPosition2D
+        PhysicsPosition2D result
         result:sine = transformA:cosine * transformB:sine - transformA:sine * transformB:cosine
         result:cosine = transformA:cosine * transformB:cosine - transformA:sine * transformB:sine
         result:position:SetX(transformA:cosine * transformB:position:GetX() - transformA:sine * transformB:position:GetY())
@@ -77,8 +89,8 @@ class Transform2D
         return result
     end
 
-    action MultiplyAndTranslate(Transform2D transformA, Transform2D transformB) returns Transform2D
-        Transform2D result
+    action MultiplyAndTranslate(PhysicsPosition2D transformA, PhysicsPosition2D transformB) returns PhysicsPosition2D
+        PhysicsPosition2D result
         result:sine = transformA:cosine * transformB:sine - transformA:sine * transformB:cosine
         result:cosine = transformA:cosine * transformB:cosine + transformA:sine * transformB:sine
         Vector2 pool

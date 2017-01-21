@@ -1,0 +1,39 @@
+use Libraries.Compute.Vector2
+
+package Libraries.Game.Collision
+
+class CollisionPoint2D
+    Vector2 localPoint
+    number normalImpulse = 0
+    number tangentImpulse = 0
+
+    action Set(CollisionPoint2D point)
+        me:localPoint:Set(point:localPoint)
+        me:normalImpulse = point:normalImpulse
+        me:tangentImpulse = point:tangentImpulse
+    end
+
+    action SetLocalPoint(Vector2 localPoint)
+        me:localPoint:Set(localPoint)
+    end
+
+    action GetLocalPoint returns Vector2
+        return localPoint
+    end
+
+    action SetNormalImpulse(number normalImpulse)
+        me:normalImpulse = normalImpulse
+    end
+
+    action GetNormalImpulse returns number
+        return normalImpulse
+    end
+
+    action SetTangentImpulse(number tangentImpulse)
+        me:tangentImpulse = tangentImpulse
+    end
+
+    action GetTangentImpulse returns number
+        return tangentImpulse
+    end
+end

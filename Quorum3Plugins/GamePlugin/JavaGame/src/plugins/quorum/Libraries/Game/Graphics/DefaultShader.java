@@ -6,7 +6,7 @@
 package plugins.quorum.Libraries.Game.Graphics;
 
 import plugins.quorum.Libraries.Game.GameRuntimeError;
-import plugins.quorum.Libraries.Game.GameState;
+import plugins.quorum.Libraries.Game.GameStateManager;
 //import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 import quorum.Libraries.Compute.Matrix3;
 import quorum.Libraries.Compute.Matrix3_;
@@ -994,7 +994,7 @@ public class DefaultShader extends BaseShader
             lightsSet = false;
 
             if (Has(u_time))
-                Set(u_time, time += (float)GameState.GetDisplay().GetSecondsBetweenFrames());
+                Set(u_time, time += (float)GameStateManager.display.GetSecondsBetweenFrames());
 	}
 
 	@Override

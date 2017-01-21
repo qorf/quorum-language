@@ -37,7 +37,25 @@ function plugins_quorum_Libraries_System_File_() {
     }
 
     this.GetAbsolutePathNative = function () {
-        return this.defaultWorkingDirectory + path;
+        //check if the path contains any pre-prend
+        var test = this.path;
+        var levelUp = 0;
+        while(test.startsWith("../")) {
+            test = test.substring(3, test.length);
+            levelUp++;
+        }
+        
+        if(test.startsWith("./")) {
+            test = test.substring(2, test.length);
+        }
+        
+        //now if the level ups are greater than 0, change the working directory
+        var newWorking = this.defaultWorkingDirectory
+//        for(var i = 0; i < levelUp; i++) {
+//            //find the last position
+//        }
+        
+        return newWorking + test;
     }
 
     this.GetWorkingDirectoryFromPath = function (path) {
@@ -50,17 +68,27 @@ function plugins_quorum_Libraries_System_File_() {
 
     //AJAX request with timeout
     this.Exists = function () {
-
+        var xmlhttp = new XMLHttpRequest();
+        var url = this.GetAbsolutePathNative()
+        var isFound = false;
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                isFound = true;
+            }
+        };
+        xmlhttp.open("GET", url, false); //http://localhost:8383/HTML5Application/index.html/Library/Tests/SeparatedValue/Resources/Simple.csv
+        xmlhttp.send();
+        return isFound;
     }
 
     //
     this.IsFile = function () {
-
+        return true;
     }
 
     //
     this.IsDirectory = function () {
-
+        return false;
     }
 
     this.IsHidden = function () {
@@ -68,7 +96,7 @@ function plugins_quorum_Libraries_System_File_() {
     }
 
     this.GetFileName = function () {
-
+        
     }
 
     this.GetFileExtension = function () {

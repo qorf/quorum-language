@@ -31,6 +31,8 @@ class InheritanceTester
         InheritedTemplatedMethods()
         InheritanceOverloadingMain()
         IsTestMain()
+        MainGetParentFieldCast()
+        MainSetParentFieldCast()
         MeTest()
         MultipleInheritanceCallingAmbiguousBlueprints()
         OnCreatePolymorphism()
@@ -320,6 +322,42 @@ class InheritanceTester
         files:Add(dependent2)
         files:Add(dependent3)
         results:Add(0, "a is b")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action MainGetParentFieldCast
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "MainGetParentFieldCast.quorum")
+        dependent1:SetPath(path + "A5.quorum")
+        dependent2:SetPath(path + "B5.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action MainSetParentFieldCast
+        Array<File> files
+        Array<Text> results
+        File main
+        File dependent1
+        File dependent2
+        File dependent3
+        main:SetPath(path + "MainSetParentFieldCast.quorum")
+        dependent1:SetPath(path + "A5.quorum")
+        dependent2:SetPath(path + "B5.quorum")
+        files:Add(main)
+        files:Add(dependent1)
+        files:Add(dependent2)
+        results:Add(0, "4")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
