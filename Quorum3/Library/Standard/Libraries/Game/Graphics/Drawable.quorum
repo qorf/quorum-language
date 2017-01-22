@@ -1,15 +1,18 @@
 package Libraries.Game.Graphics
 
-use Libraries.Game.Shapes.Rectangle
 use Libraries.Game.NumberUtilities
+use Libraries.Game.GameStateManager
+use Libraries.Game.Application
+use Libraries.Game.WebApplication
+use Libraries.Game.Shapes.Rectangle
+use Libraries.Game.Graphics.Painter2D
 use Libraries.Containers.Array
-use Libraries.Language.Errors.Error
 use Libraries.Compute.Math
 use Libraries.Compute.BitwiseOperations
-use Libraries.System.File
 use Libraries.Interface.Item2D
-use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Collision.Shapes.Circle
+use Libraries.Language.Errors.Error
+use Libraries.System.File
 
 /*
     The Drawable class is a Libraries.Interface.Item that can be drawn on the
@@ -108,6 +111,14 @@ class Drawable is TextureRegion, Item2D
     */
     action Load(text filePath)
         Texture temp
+
+        GameStateManager manager
+        Application application = manager:GetApplication()
+        if application is WebApplication
+            temp:LoadAsynchronously(filePath, me)
+            return now
+        end
+
         temp:LoadFromFile(filePath)
         Load(temp)
     end
@@ -144,6 +155,14 @@ class Drawable is TextureRegion, Item2D
     */
     action Load(File file)
         Texture temp
+        
+        GameStateManager manager
+        Application application = manager:GetApplication()
+        if application is WebApplication
+            temp:LoadAsynchronously(file, me)
+            return now
+        end
+        
         temp:LoadFromFile(file)
         Load(temp)
     end

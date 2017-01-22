@@ -1,5 +1,8 @@
 package Libraries.Game
 
+use Libraries.Game.ScreenResolution
+use Libraries.Containers.Array
+
 /*
     DesktopDisplay is responsible for handling information about LWJGL's Display
     object, which represents the game screen. It is used specifically on desktop
@@ -151,4 +154,37 @@ class DesktopDisplay is GameDisplay
     This action returns the ratio between screen coordinates and pixels.
     */
     system action GetPixelScaleFactor returns number
+
+    /*
+    This action returns a ScreenResolution object that describes the currently
+    set resolution of the computer's desktop (not the resolution being used by
+    the game).
+    */
+    system action GetDesktopResolution returns ScreenResolution
+
+    /*
+    This action will return an array containing all of the screen resolutions
+    available for this machine.
+    */
+    action GetAvailableResolutions returns Array<ScreenResolution>
+        Array<ScreenResolution> resolutions
+        GetAvailableResolutionsNative(resolutions)
+        return resolutions
+    end
+
+    private system action GetAvailableResolutionsNative(Array<ScreenResolution> array)
+
+    /*
+    This action will set the game screen to use the given screen resolution.
+    The resolution should be acquired from one of the actions that provides the
+    usable screen resolutions for this machine, such as GetDesktopResolution or
+    GetAvailableResolutions.
+    */
+    system action SetScreenResolution(ScreenResolution resolution)
+
+    /*
+    This action will return the current screen resolution being used by the 
+    game engine.
+    */
+    system action GetScreenResolution returns ScreenResolution
 end

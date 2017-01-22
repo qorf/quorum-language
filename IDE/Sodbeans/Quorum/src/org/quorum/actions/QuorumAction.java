@@ -146,10 +146,20 @@ public abstract class QuorumAction implements Action {
         long start = System.currentTimeMillis();
         compiler.Empty();
         final QuorumProjectType type = project.getProjectType();
+        //A web server (war file) to be used in Tomcat or Glassfish
         if(type == QuorumProjectType.WEB) {
             compiler.SetIsWebApplication(true);
+            compiler.SetOutputType(compiler.JAVA_BYTECODE);
+        //A JavaScript application to be run in a web browser
+        } else if(type == QuorumProjectType.WEB_BROWSER) {
+            //tell the compiler it is not compiling to a web server
+            compiler.SetIsWebApplication(false);
+            //then tell it to compile to JavaScript
+            compiler.SetOutputType(compiler.JAVASCRIPT);
+        //A normal console application to be run on Desktop
         } else {
             compiler.SetIsWebApplication(false);
+            compiler.SetOutputType(compiler.JAVA_BYTECODE);
         }
         
         try {
@@ -220,6 +230,20 @@ public abstract class QuorumAction implements Action {
             }
         });
         
+        //if it's a JavaScript project, we need to get the source and write the 
+        //file manually
+        if(type == QuorumProjectType.WEB_BROWSER && compiler.IsCompilationErrorFree()) {
+            String text = compiler.GetCompiledJavaScript();
+            File toFile = new File(directory.getAbsolutePath() + "/" + QuorumProject.DISTRIBUTION_DIRECTORY);
+            if(!toFile.exists()) {
+                toFile.mkdir();
+            }
+            quorum.Libraries.System.File writer = getQuorumFile(toFile);
+            String path = writer.GetAbsolutePath();
+            writer.SetWorkingDirectory(path);
+            writer.SetPath(project.getExecutableNameNoExtension() + ".js");
+            writer.Write(text);
+        }
         boolean legos = false;
         if(type == QuorumProjectType.LEGO && compiler.IsCompilationErrorFree()) {
             QuorumToLegoAdapter adapter = new QuorumToLegoAdapter();

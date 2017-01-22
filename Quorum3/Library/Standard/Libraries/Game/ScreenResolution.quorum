@@ -1,0 +1,29 @@
+package Libraries.Game
+
+class ScreenResolution 
+    integer width = 0
+    integer height = 0
+    integer frequency = 0
+    integer bitsPerPixel = 0
+    boolean fullscreen = false
+    
+    action GetWidth returns integer
+        return width
+    end
+
+    action GetHeight returns integer
+        return height
+    end
+
+    action GetFrequency returns integer
+        return frequency
+    end
+
+    action GetBitsPerPixel returns integer
+        return bitsPerPixel
+    end
+
+    action IsFullscreen returns boolean
+        return fullscreen
+    end
+end

@@ -54,10 +54,10 @@ class ModelReader
         ModelBlueprint schematic = reader:Read(file)
     */
     action Read(File file) returns ModelBlueprint
-        text value = file:GetFileExtension()
-        if value = "obj"
+        text value = file:GetPath()
+        if value:EndsWith(".obj")
             return ReadWavefrontObject(file)
-        elseif value = "g3db" or value = "g3dj"
+        elseif value:EndsWith(".g3db") or value:EndsWith(".g3dj")
             return g3dLoader:LoadModel(file)
         end
 

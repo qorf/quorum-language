@@ -31,6 +31,8 @@ use Libraries.Web.Page.ListItem
 use Libraries.Web.Page.StrongText
 use Libraries.Web.Page.NavigationDivision
 use Libraries.Web.Page.Footer
+use Libraries.Web.Page.WebPageHeader
+use Libraries.Web.Page.HeaderLink
 
 class ClassOpcode is QuorumOpcode
     QualifiedName packageValue = undefined
@@ -232,8 +234,14 @@ class ClassOpcode is QuorumOpcode
         keywordText = keywordText + ", " + clazz:GetName()
         keywordText = keywordText + ", " + clazz:GetPackageKey()
 
-        keywords:AddAttribute("keywords", keywordText)
+        keywords:AddAttribute("name", "keywords")
+        keywords:AddAttribute("content", keywordText)
         page:AddMetaData(keywords)
+
+        MetaData viewport
+        viewport:SetContent("width=device-width, initial-scale=1")
+        viewport:SetName("viewport")
+        page:AddMetaData(viewport)
 
         page:AddScript("/script/jquery-1.8.3.min.js")
         page:AddScript("/script/script.js")
@@ -242,6 +250,12 @@ class ClassOpcode is QuorumOpcode
         page:AddStylesheet("/style/style.css")
         page:AddStylesheet("/style/google.css")
         page:AddIcon("/media/favicon.ico")
+
+        //Add Responsive Stylesheets
+        WebPageHeader webHeader = page:GetWebPageHeader()
+        webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
+        webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 800px)"))
+        webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 801px)"))
 
         page:SetWebPageTitle(clazz:GetStaticKey() + " - Quorum Programming Language")
         page:Add(navigation)
@@ -473,6 +487,15 @@ class ClassOpcode is QuorumOpcode
         page:Add(footer)
 
         return page
+    end
+
+    private action GetMediaStyleSheet(text name, text media) returns HeaderLink
+        HeaderLink link
+        link:SetAddress(name)
+        link:SetType("text/css")
+        link:SetRelationship("stylesheet")
+        link:SetMedia(media)
+        return link
     end
 
     action WriteToWeb returns text
@@ -1493,34 +1516,11 @@ class ClassOpcode is QuorumOpcode
                     + "}" + EOL
         end
 
-
-
-        if clazz:HasSystemAction() //this has a plugin, so instantiate it.
-            //var plugin_ = new plugins_quorum_Libraries_Compute_Math_();
-
-            //if this is a primitive wrapper, pass the actual primitive
-            if clazz:GetStaticKey() = "Libraries.Language.Types.Boolean" or
-               clazz:GetStaticKey() = "Libraries.Language.Types.Integer" or
-               clazz:GetStaticKey() = "Libraries.Language.Types.Number" or
-               clazz:GetStaticKey() = "Libraries.Language.Types.Text"
-               convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
-                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(optional, this);" + EOL
-            else 
-                convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
-                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(this);" + EOL
-            end
-        end
-
         Iterator<ActionOpcode> actionIterator = actions:GetIterator()
         repeat while actionIterator:HasNext()
             ActionOpcode act = actionIterator:Next()
             convertedSource = convertedSource + act:WriteJavaScript()
         end
-
-        
-
-        
-
         
         //write the actions for the fields
         Iterator<Variable> fieldVariableIterator = clazz:GetVariables()
@@ -1567,13 +1567,6 @@ class ClassOpcode is QuorumOpcode
                 end
             end
         end
-
-        Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
-        repeat while fieldIterator:HasNext()
-            QuorumOpcode field = fieldIterator:Next()
-            convertedSource = convertedSource + field:WriteJavaScript()
-        end
-
 
         //initialize all of the parent objects as values, if appropriate
         convertedSource = convertedSource + "if(parents == null) {" + EOL
@@ -1624,6 +1617,26 @@ class ClassOpcode is QuorumOpcode
         end
 
         convertedSource = convertedSource + "}" + EOL
+
+        if clazz:HasSystemAction() //this has a plugin, so instantiate it.
+            //if this is a primitive wrapper, pass the actual primitive
+            if clazz:GetStaticKey() = "Libraries.Language.Types.Boolean" or
+               clazz:GetStaticKey() = "Libraries.Language.Types.Integer" or
+               clazz:GetStaticKey() = "Libraries.Language.Types.Number" or
+               clazz:GetStaticKey() = "Libraries.Language.Types.Text"
+               convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
+                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(optional, this);" + EOL
+            else 
+                convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
+                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(this);" + EOL
+            end
+        end
+
+        Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
+        repeat while fieldIterator:HasNext()
+            QuorumOpcode field = fieldIterator:Next()
+            convertedSource = convertedSource + field:WriteJavaScript()
+        end
 
         //if this class has a null parents flag, call its constructor
         if clazz:HasConstructor()

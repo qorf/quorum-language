@@ -126,12 +126,12 @@ public abstract class BaseShader implements Shader
     private Attributes combinedAttributes = new Attributes();
     private final IntArray tempArray = new IntArray();
 
-    /** Register an uniform which might be used by this shader. Only possible prior to the call to init().
+    /** Register a uniform which might be used by this shader. Only possible prior to the call to init().
      * @return The ID of the uniform to use in this shader. */
     public int Register (final String alias, final Validator validator, final Setter setter) 
     {
         if (locations != null) 
-            throw new GameRuntimeError("Cannot register an uniform after initialization");
+            throw new GameRuntimeError("Cannot register a uniform after calling Initialize().");
 
         final int existing = GetUniformID(alias);
         if (existing >= 0) 

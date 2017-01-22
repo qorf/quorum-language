@@ -47,7 +47,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
         if (length !== count)
         {
             this.SetLength(count);
-            integerArray = NewIntegerArray(count);
+            integerArray = this.NewIntegerArray(count);
         }
         
         for (var i = 0; i < count; i++)
@@ -91,11 +91,6 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
         isBound = false;
     };
     
-    this.GetBuffer = function()
-    {
-        return integerArray;
-    };
-    
     this.Invalidate = function() 
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
@@ -129,7 +124,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
         if (length !== newLength)
         {
             this.SetLength(newLength);
-            integerArray = NewIntegerArray(newLength);
+            integerArray = this.NewIntegerArray(newLength);
         }
     };
     
@@ -177,5 +172,11 @@ function plugins_quorum_Libraries_Game_Graphics_IndexBufferObject_()
         }
         
         length = newLength;
+    };
+    
+    this.GetBuffer = function()
+    {
+        isDirty = true;
+        return integerArray;
     };
 }

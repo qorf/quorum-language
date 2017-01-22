@@ -87,7 +87,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
         
         if (isDirty)
         {
-            graphics.glBufferData(graphics.gl.ARRAY_BUFFER, buffer, usage);
+            graphics.glBufferData(graphics.gl.ARRAY_BUFFER, floatArray, usage);
             isDirty = false;
         }
         
@@ -113,7 +113,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
         {
             for (var i = 0; i < numAttributes; i++)
             {
-                var attribute = this.attributes.GetAttribute(i);
+                var attribute = this.attributes.GetAttribute$quorum_integer(i);
                 var location = locations[i];
                 
                 if (location < 0)
@@ -212,5 +212,11 @@ function plugins_quorum_Libraries_Game_Graphics_VertexBufferObject_()
         }
         
         length = newLength;
+    };
+    
+    this.GetBuffer = function()
+    {
+        isDirty = true;
+        return floatArray;
     };
 }
