@@ -23,6 +23,7 @@ use Libraries.Game.Collision.CollisionEdge2D
 use Libraries.Game.Collision.BoundingBox2D
 use Libraries.Game.Physics.PhysicsProperties2D
 use Libraries.Game.Physics.Mass2D
+use Libraries.Game.Physics.Joints.JointEdge2D
 
 /*
     The Item2D class represents any object that has a position in 2D space.
@@ -91,6 +92,7 @@ class Item2D is Item
     Sweep2D sweep
 
     CollisionEdge2D collisionList = undefined
+    JointEdge2D jointList = undefined
 
     PhysicsPosition2D transform0
 
@@ -2106,6 +2108,14 @@ class Item2D is Item
 
     action SetCollisionList(CollisionEdge2D edge)
         collisionList = edge
+    end
+
+    action GetJointList returns JointEdge2D
+        return jointList
+    end
+
+    action SetJointList(JointEdge2D edge)
+        jointList = edge
     end
 
     /*

@@ -20,6 +20,7 @@ use Libraries.Game.Collision.CollisionEdge2D
 use Libraries.Interface.Events.CollisionEvent2D
 use Libraries.Game.Physics.TimeStep2D
 use Libraries.Game.Physics.Joints.Joint2D
+use Libraries.Game.Physics.Joints.JointEdge2D
 use Libraries.Game.Physics.CollisionGroup2D
 use Libraries.Game.Collision.Narrowphase.TimeOfImpact2D
 use Libraries.Game.Collision.Narrowphase.TimeOfImpactInput2D
@@ -1699,9 +1700,31 @@ class Layer2D is Layer
                             end
                             edge = edge:GetNext()
                         end
-                    end
 
-                    //TODO: Add joints to island
+                        JointEdge2D jointEdge = body:GetJointList()
+                        repeat while jointEdge not= undefined
+                            Joint2D joint = jointEdge:GetJoint()
+                            if joint:InCollisionGroup()
+                                // continue with group -- the joint has already been
+                                // accounted for in the collision group
+                            else
+                                Item2D other = jointEdge:GetOther()
+
+                                island:Add(joint)
+                                joint:SetInCollisionGroup(true)
+
+                                if other:GetCollisionGroupFlag()
+                                    // continuee with group -- the other item is
+                                    // already in the group
+                                else
+                                    stack:Push(other)
+                                    other:SetCollisionGroupFlag(true)
+                                end
+                            end
+
+                            jointEdge = jointEdge:GetNext()
+                        end
+                    end
                 end
 
                 island:Solve(step, gravity, allowSleep)
