@@ -285,6 +285,18 @@ class Layer2D is Layer
         Iterator<Item2D> it = items:GetIterator()
         repeat while it:HasNext()
             Item2D body = it:Next()
+            
+            JointEdge2D jointEdge = body:GetJointList()
+            repeat while jointEdge not= undefined
+                JointEdge2D jointEdge0 = jointEdge
+                jointEdge = jointEdge:GetNext()
+
+                RemoveJoint(jointEdge0:GetJoint())
+
+                body:SetJointList(jointEdge)
+            end
+            body:SetJointList(undefined)
+            
             CollisionEdge2D edge = body:GetCollisionList()
             repeat while edge not= undefined
                 CollisionEdge2D edge0 = edge
@@ -338,6 +350,17 @@ class Layer2D is Layer
     
     */
     action Remove(Item2D item) returns boolean
+        JointEdge2D jointEdge = item:GetJointList()
+        repeat while jointEdge not= undefined
+            JointEdge2D jointEdge0 = jointEdge
+            jointEdge = jointEdge:GetNext()
+
+            RemoveJoint(jointEdge0:GetJoint())
+
+            item:SetJointList(jointEdge)
+        end
+        item:SetJointList(undefined)
+
         CollisionEdge2D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge2D edge0 = edge
@@ -394,6 +417,17 @@ class Layer2D is Layer
     action RemoveAt(integer index) returns Item2D
         Item2D item = items:RemoveAt(index)
 
+        JointEdge2D jointEdge = item:GetJointList()
+        repeat while jointEdge not= undefined
+            JointEdge2D jointEdge0 = jointEdge
+            jointEdge = jointEdge:GetNext()
+
+            RemoveJoint(jointEdge0:GetJoint())
+            
+            item:SetJointList(jointEdge)
+        end
+        item:SetJointList(undefined)
+
         CollisionEdge2D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge2D edge0 = edge
@@ -448,6 +482,18 @@ class Layer2D is Layer
     */
     action RemoveFromFront returns Item2D
         Item2D item = items:RemoveFromFront()
+
+        JointEdge2D jointEdge = item:GetJointList()
+        repeat while jointEdge not= undefined
+            JointEdge2D jointEdge0 = jointEdge
+            jointEdge = jointEdge:GetNext()
+            
+            RemoveJoint(jointEdge0:GetJoint())
+
+            item:SetJointList(jointEdge)
+        end
+        item:SetJointList(undefined)
+
         CollisionEdge2D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge2D edge0 = edge
@@ -501,6 +547,17 @@ class Layer2D is Layer
     */
     action RemoveFromEnd returns Item2D
         Item2D item = items:RemoveFromEnd()
+
+        JointEdge2D jointEdge = item:GetJointList()
+        repeat while jointEdge not= undefined
+            JointEdge2D jointEdge0 = jointEdge
+            jointEdge = jointEdge:GetNext()
+
+            RemoveJoint(jointEdge0:GetJoint())
+
+            item:SetJointList(jointEdge)
+        end
+        item:SetJointList(undefined)
 
         CollisionEdge2D edge = item:GetCollisionList()
         repeat while edge not= undefined
@@ -2018,5 +2075,71 @@ class Layer2D is Layer
 
     action PhysicsEnabled returns boolean
         return physicsEnabled
+    end
+
+    action AddJoint(Joint2D joint)
+        joints:Add(joint)
+
+        joint:GetEdgeA():SetJoint(joint)
+        joint:GetEdgeA():SetOther(joint:GetItemB())
+        joint:GetEdgeA():SetPrevious(undefined)
+        joint:GetEdgeA():SetNext(joint:GetItemA():GetJointList())
+        if joint:GetItemA():GetJointList() not= undefined
+            joint:GetItemA():GetJointList():SetPrevious(joint:GetEdgeA())
+        end
+        joint:GetItemA():SetJointList(joint:GetEdgeA())
+
+        joint:GetEdgeB():SetJoint(joint)
+        joint:GetEdgeB():SetOther(joint:GetItemA())
+        joint:GetEdgeB():SetPrevious(undefined)
+        joint:GetEdgeB():SetNext(joint:GetItemB():GetJointList())
+        if joint:GetItemB():GetJointList() not= undefined
+            joint:GetItemB():GetJointList():SetPrevious(joint:GetEdgeB())
+        end
+        joint:GetItemB():SetJointList(joint:GetEdgeB())
+
+        //TODO: Collision filtering?
+    end
+
+    action RemoveJoint(Joint2D joint)
+        joints:Remove(joint)
+
+        Item2D itemA = joint:GetItemA()
+        Item2D itemB = joint:GetItemB()
+
+        itemA:Simulate(true)
+        itemB:Simulate(true)
+
+        if joint:GetEdgeA():GetPrevious() not= undefined
+            joint:GetEdgeA():GetPrevious():SetNext(joint:GetEdgeA():GetNext())
+        end
+
+        if joint:GetEdgeA():GetNext() not= undefined
+            joint:GetEdgeA():GetNext():SetPrevious(joint:GetEdgeA():GetPrevious())
+        end
+
+        if joint:GetEdgeA() = itemA:GetJointList()
+            itemA:SetJointList(joint:GetEdgeA():GetNext())
+        end
+
+        joint:GetEdgeA():SetPrevious(undefined)
+        joint:GetEdgeA():SetNext(undefined)
+
+        if joint:GetEdgeB():GetPrevious() not= undefined
+            joint:GetEdgeB():GetPrevious():SetNext(joint:GetEdgeB():GetNext())
+        end
+
+        if joint:GetEdgeB():GetNext() not= undefined
+            joint:GetEdgeB():GetNext():SetPrevious(joint:GetEdgeB():GetPrevious())
+        end
+
+        if joint:GetEdgeB() = itemB:GetJointList()
+            itemB:SetJointList(joint:GetEdgeB():GetNext())
+        end
+
+        joint:GetEdgeB():SetPrevious(undefined)
+        joint:GetEdgeB():SetNext(undefined)
+
+        //TODO: collision filtering?
     end
 end

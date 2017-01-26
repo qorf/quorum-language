@@ -50,13 +50,13 @@ class DistanceJoint is Joint2D
         * world anchor on first body
         * world anchor on second body
     */
-    action InitializeDistanceJoint(Item2D itemA, Item2D itemB, Vector2 anchorA, Vector2 anchorB) 
+    action Initialize(Item2D itemA, Item2D itemB, Vector2 anchorA, Vector2 anchorB) 
         parent:Joint2D:itemA = itemA
         parent:Joint2D:itemB = itemB
         localAnchorA:Set(parent:Joint2D:itemA:GetLocalPoint(anchorA))
         localAnchorB:Set(parent:Joint2D:itemB:GetLocalPoint(anchorB))
         Vector2 distance
-        distance:Set(anchorB:Subtract(anchorA))
+        distance:Set(anchorB):Subtract(anchorA)
         length = distance:Length()       
     end
 
@@ -88,8 +88,24 @@ class DistanceJoint is Joint2D
         return parent:Joint2D:itemA:GetWorldPoint(localAnchorA)
     end
 
+    action SetAnchorA(Vector2 anchor)
+        localAnchorA:Set(parent:Joint2D:itemA:GetLocalPoint(anchor))
+    end
+
     action GetAnchorB() returns Vector2
         return parent:Joint2D:itemB:GetWorldPoint(localAnchorB)
+    end
+
+    action SetAnchorB(Vector2 anchor)
+        localAnchorB:Set(parent:Joint2D:itemB:GetLocalPoint(anchor))
+    end
+
+    action GetLocalAnchorA returns Vector2
+        return localAnchorA
+    end
+
+    action GetLocalAnchorB returns Vector2
+        return localAnchorB
     end
     
     action GetReactionForce(number inverseTimeStep) returns Vector2
@@ -123,28 +139,43 @@ class DistanceJoint is Joint2D
         Vector2 linearVelocityB = data:GetLinearVelocities():Get(indexB)
         number angularVelocityB = data:GetAngularVelocities():Get(indexB)
         
-        PhysicsPosition2D transformA
-        PhysicsPosition2D transformB
+//        PhysicsPosition2D transformA
+//        PhysicsPosition2D transformB
+//
+//        transformA:Set(positionA, angleA)
+//        transformB:Set(positionB, angleB)
+//        
+//        //u is used as a temporary variable
+//        u = u:Set(localAnchorA):Subtract(localCenterA)        
+//        rA:SetX((transformA:GetCosine() * u:GetX() - transformA:GetSine() * u:GetY()) + transformA:GetPosition():GetX())
+//        rA:SetY((transformA:GetSine() * u:GetX() + transformA:GetCosine() * u:GetY()) + transformA:GetPosition():GetY())
+//
+//        u = u:Set(localAnchorB):Subtract(localCenterB)        
+//        rB:SetX((transformB:GetCosine() * u:GetX() - transformB:GetSine() * u:GetY()) + transformB:GetPosition():GetX())
+//        rB:SetY((transformB:GetSine() * u:GetX() + transformB:GetCosine() * u:GetY()) + transformB:GetPosition():GetY())
+//
+//        u:Set(positionB):Add(rB):Subtract(positionA):Subtract(rA)
 
-        transformA:Set(positionA, angleA)
-        transformB:Set(positionB, angleB)
-        
-        //u is used as a temporary variable
-        u = u:Set(localAnchorA):Subtract(localCenterA)        
-        rA:SetX((transformA:GetCosine() * u:GetX() - transformA:GetSine() * u:GetY()) + transformA:GetPosition():GetX())
-        rA:SetY((transformA:GetSine() * u:GetX() + transformA:GetCosine() * u:GetY()) + transformA:GetPosition():GetY())
+        number sineA = math:Sine(angleA)
+        number cosineA = math:Cosine(angleA)
+        number sineB = math:Sine(angleB)
+        number cosineB = math:Cosine(angleB)
 
-        u = u:Set(localAnchorB):Subtract(localCenterB)        
-        rB:SetX((transformB:GetCosine() * u:GetX() - transformB:GetSine() * u:GetY()) + transformB:GetPosition():GetX())
-        rB:SetY((transformB:GetSine() * u:GetX() + transformB:GetCosine() * u:GetY()) + transformB:GetPosition():GetY())
+        u:Set(localAnchorA):Subtract(localCenterA)
+        rA:SetX(cosineA * u:GetX() - sineA * u:GetY())
+        rA:SetY(sineA * u:GetX() + cosineA * u:GetY())
+
+        u:Set(localAnchorB):Subtract(localCenterB)
+        rB:SetX(cosineB * u:GetX() - sineB * u:GetY())
+        rB:SetY(sineB * u:GetX() + cosineB * u:GetY())
 
         u:Set(positionB):Add(rB):Subtract(positionA):Subtract(rA)
         
         //handle singularities
         number localLength = u:Length()
         if (length > 0.005)
-            u:SetX(u:GetX() * 1.0 / localLength)
-            u:SetY(u:GetY() * 1.0 / localLength)
+            u:SetX(u:GetX() * (1.0 / localLength))
+            u:SetY(u:GetY() * (1.0 / localLength))
         else
             u:SetZero()
         end
@@ -197,13 +228,13 @@ class DistanceJoint is Joint2D
             Vector2 p 
             p:Set(u):Scale(impulse)
             
-            linearVelocityA:SetX(linearVelocityA:GetX() - inverseMassA * p:GetX())
-            linearVelocityA:SetY(linearVelocityA:GetY() - inverseMassA * p:GetY())
-            angularVelocityA = angularVelocityA - inverseInertiaA * rA:CrossProduct(p)
+            linearVelocityA:SetX(linearVelocityA:GetX() - (inverseMassA * p:GetX()))
+            linearVelocityA:SetY(linearVelocityA:GetY() - (inverseMassA * p:GetY()))
+            angularVelocityA = angularVelocityA - (inverseInertiaA * rA:CrossProduct(p))
 
-            linearVelocityB:SetX(linearVelocityB:GetX() + inverseMassB * p:GetX())
-            linearVelocityB:SetY(linearVelocityB:GetY() + inverseMassB * p:GetY())
-            angularVelocityB = angularVelocityB + inverseInertiaB * rB:CrossProduct(p)
+            linearVelocityB:SetX(linearVelocityB:GetX() + (inverseMassB * p:GetX()))
+            linearVelocityB:SetY(linearVelocityB:GetY() + (inverseMassB * p:GetY()))
+            angularVelocityB = angularVelocityB + (inverseInertiaB * rB:CrossProduct(p))
 
         else
             impulse = 0            
@@ -213,7 +244,7 @@ class DistanceJoint is Joint2D
         data:SetAngularVelocity(angularVelocityB, indexB)
     end
 
-    action solveVelocityConstraints(JointSolverData data)
+    action SolveVelocityConstraints(JointSolverData data)
         Vector2 linearVelocityA = data:GetLinearVelocities():Get(indexA)
         number angularVelocityA = data:GetAngularVelocities():Get(indexA)
         Vector2 linearVelocityB = data:GetLinearVelocities():Get(indexB)
@@ -239,21 +270,22 @@ class DistanceJoint is Joint2D
         number px = localImpulse * u:GetX()
         number py = localImpulse * u:GetY()
 
-        linearVelocityA:SetX(linearVelocityA:GetX() - inverseMassA * px)
-        linearVelocityA:SetX(linearVelocityA:GetX() - inverseMassB * px)
-        angularVelocityA = angularVelocityA - inverseInertiaA * (rA:GetX() * py - rA:GetY() * px)
-        linearVelocityB:SetX(linearVelocityB:GetX() + inverseMassB * px)
-        linearVelocityB:SetX(linearVelocityB:GetX() + inverseMassB * px)
-        angularVelocityB = angularVelocityB + inverseInertiaB * (rB:GetX() * py - rB:GetY() * px)
+        linearVelocityA:SetX(linearVelocityA:GetX() - (inverseMassA * px))
+        linearVelocityA:SetY(linearVelocityA:GetY() - (inverseMassA * py))
+        angularVelocityA = angularVelocityA - (inverseInertiaA * (rA:GetX() * py - rA:GetY() * px))
+        linearVelocityB:SetX(linearVelocityB:GetX() + (inverseMassB * px))
+        linearVelocityB:SetY(linearVelocityB:GetY() + (inverseMassB * py))
+        angularVelocityB = angularVelocityB + (inverseInertiaB * (rB:GetX() * py - rB:GetY() * px))
  
         data:SetAngularVelocity(angularVelocityA, indexA)
         data:SetAngularVelocity(angularVelocityB, indexB)   
     end
 
-    action solvePositionConstraints(JointSolverData data) returns boolean
+    action SolvePositionConstraints(JointSolverData data) returns boolean
         if frequency > 0
             return true
         end
+
         PhysicsPosition2D transformA 
         PhysicsPosition2D transformB
         Vector2 rALocal
@@ -265,41 +297,52 @@ class DistanceJoint is Joint2D
         Vector2 positionB = data:GetPositions():Get(indexB)
         number angleB = data:GetAngles():Get(indexB)
         
-        transformA:Set(positionA, angleA)
-        transformB:Set(positionB, angleB)
-        
-        uLocal = uLocal:Set(localAnchorA):Subtract(localCenterA)        
-        rALocal:SetX((transformA:GetCosine() * uLocal:GetX() - transformA:GetSine() * uLocal:GetY()) + transformA:GetPosition():GetX())
-        rALocal:SetY((transformA:GetSine() * uLocal:GetX() + transformA:GetCosine() * uLocal:GetY()) + transformA:GetPosition():GetY())
+//        transformA:Set(positionA, angleA)
+//        transformB:Set(positionB, angleB)
+//        
+//        uLocal = uLocal:Set(localAnchorA):Subtract(localCenterA)        
+//        rALocal:SetX((transformA:GetCosine() * uLocal:GetX() - transformA:GetSine() * uLocal:GetY()) + transformA:GetPosition():GetX())
+//        rALocal:SetY((transformA:GetSine() * uLocal:GetX() + transformA:GetCosine() * uLocal:GetY()) + transformA:GetPosition():GetY())
+//
+//        uLocal = uLocal:Set(localAnchorB):Subtract(localCenterB)        
+//        rBLocal:SetX((transformB:GetCosine() * uLocal:GetX() - transformB:GetSine() * uLocal:GetY()) + transformB:GetPosition():GetX())
+//        rBLocal:SetY((transformB:GetSine() * uLocal:GetX() + transformB:GetCosine() * uLocal:GetY()) + transformB:GetPosition():GetY())
+//
+//        uLocal:Set(positionB):Add(rBLocal):Subtract(positionA):Subtract(rALocal)
 
-        uLocal = uLocal:Set(localAnchorB):Subtract(localCenterB)        
-        rBLocal:SetX((transformB:GetCosine() * uLocal:GetX() - transformB:GetSine() * uLocal:GetY()) + transformB:GetPosition():GetX())
-        rBLocal:SetY((transformB:GetSine() * uLocal:GetX() + transformB:GetCosine() * uLocal:GetY()) + transformB:GetPosition():GetY())
+        number sineA = math:Sine(angleA)
+        number cosineA = math:Cosine(angleA)
+        number sineB = math:Sine(angleB)
+        number cosineB = math:Cosine(angleB)
 
-        uLocal:Set(positionB):Add(rBLocal):Subtract(positionA):Subtract(rALocal)
+        uLocal:Set(localAnchorA):Subtract(localCenterA)
+        rALocal:SetX(cosineA * uLocal:GetX() - sineA * uLocal:GetY())
+        rALocal:SetY(sineA * uLocal:GetX() + cosineA * uLocal:GetY())
+
+        uLocal:Set(localAnchorB):Subtract(localCenterB)
+        rBLocal:SetX(cosineB * uLocal:GetX() - sineB * uLocal:GetY())
+        rBLocal:SetY(sineB * uLocal:GetX() + cosineB * uLocal:GetY())
         
-        number lengthLocal = u:Length()
-        u:Normalize()
+        number lengthLocal = uLocal:Length()
+        uLocal:Normalize()
         
         number c = lengthLocal - length
-        number clampedValue = c
         if c < -0.2 
-            clampedValue = -0.2
+            c = -0.2
         end
         if c > 0.2
-            clampedValue = 0.2
+            c = 0.2
         end
-        c = clampedValue
         
         number impulseLocal = -mass * c
         number px = impulseLocal * uLocal:GetX()
         number py = impulseLocal * uLocal:GetY()
         
-        positionA:SetX(positionA:GetX() - inverseMassA * px)
-        positionA:SetY(positionA:GetY() - inverseMassA * py)
+        positionA:SetX(positionA:GetX() - (inverseMassA * px))
+        positionA:SetY(positionA:GetY() - (inverseMassA * py))
         angleA = angleA - (inverseInertiaA * (rALocal:GetX() * py - rALocal:GetY() * px))
-        positionB:SetX(positionB:GetX() + inverseMassB * px)
-        positionB:SetY(positionB:GetY() + inverseMassB * py)
+        positionB:SetX(positionB:GetX() + (inverseMassB * px))
+        positionB:SetY(positionB:GetY() + (inverseMassB * py))
         angleB = angleB + (inverseInertiaB * (rBLocal:GetX() * py - rBLocal:GetY() * px))
 
         data:SetAngle(angleA, indexA)

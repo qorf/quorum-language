@@ -40,7 +40,7 @@ class WeldJoint is Joint2D
     end
     
     //This action must be called after joint is created
-    action InitializeWeldJoint(Item2D itemA, Item2D itemB, Vector2 anchor)
+    action Initialize(Item2D itemA, Item2D itemB, Vector2 anchor)
         parent:Joint2D:itemA = itemA
         parent:Joint2D:itemB = itemB
         localAnchorA = parent:Joint2D:itemA:GetLocalPoint(anchor)

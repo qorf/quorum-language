@@ -175,10 +175,10 @@ class CollisionGroup2D
         repeat while i < step:GetPositionIterations() and not positionSolved
             boolean collisionsOkay = collisionSolver:SolvePositionConstraints()
 
-            boolean jointsOkay =true
+            boolean jointsOkay = true
             integer j = 0
             repeat while j < jointCount
-                boolean jointOkay = joints:Get(i):SolvePositionConstraints(solverData)
+                boolean jointOkay = joints:Get(j):SolvePositionConstraints(solverData)
                 jointsOkay = jointOkay and jointOkay
                 j = j + 1
             end

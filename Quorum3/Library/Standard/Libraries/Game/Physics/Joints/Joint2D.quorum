@@ -24,6 +24,10 @@ class Joint2D
     public constant integer EQUAL = 3
 
     integer jointType = 0
+    Joint2D previous = undefined
+    Joint2D next = undefined
+    JointEdge2D edgeA
+    JointEdge2D edgeB
     Item2D itemA
     Item2D itemB
     boolean collideConnected = false
@@ -78,10 +82,6 @@ class Joint2D
         collideConnected = collide
     end
 
-    action IsActive returns boolean
-        return false//itemA:IsActive() and itemB:IsActive() 
-    end
-
     blueprint action InitializeVelocityConstraints(JointSolverData data)
     
     blueprint action SolveVelocityConstraints(JointSolverData data)
@@ -94,5 +94,37 @@ class Joint2D
 
     action SetInCollisionGroup(boolean flag)
         collisionGroupFlag = flag
+    end
+
+    action GetPrevious returns Joint2D
+        return previous
+    end
+
+    action SetPrevious(Joint2D previous)
+        me:previous = previous
+    end
+
+    action GetNext returns Joint2D
+        return next
+    end
+
+    action SetNext(Joint2D next)
+        me:next = next
+    end
+
+    action GetEdgeA returns JointEdge2D
+        return edgeA
+    end
+
+    action SetEdgeA(JointEdge2D edgeA)
+        me:edgeA = edgeA
+    end
+
+    action GetEdgeB returns JointEdge2D
+        return edgeB
+    end
+
+    action SetEdgeB(JointEdge2D edgeB)
+        me:edgeB = edgeB
     end
 end
