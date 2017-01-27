@@ -340,7 +340,7 @@ class Item2D is Item
         number x = myItem:GetCenterX()
     */
     action GetCenterX returns number
-        return position:GetX() - GetWidth()/2
+        return position:GetX() + GetWidth()/2
     end
 
     /*
@@ -355,7 +355,7 @@ class Item2D is Item
         number y = myItem:GetCenterY()
     */
     action GetCenterY returns number
-        return position:GetY() - GetHeight()/2
+        return position:GetY() + GetHeight()/2
     end
     
     /*
@@ -622,6 +622,7 @@ class Item2D is Item
         hasMoved = true
         position:SetX(position:GetX() + xAmount)
         SetOffsetX(offset:GetX())
+        SetPhysicsPositionFromScreenPosition()
     end
 
     /*
@@ -646,6 +647,7 @@ class Item2D is Item
         hasMoved = true
         position:SetY(position:GetY() + yAmount)
         SetOffsetY(offset:GetY())
+        SetPhysicsPositionFromScreenPosition()
     end
 
     /*
@@ -696,6 +698,7 @@ class Item2D is Item
         position:SetX(position:GetX() + xAmount)
         position:SetY(position:GetY() + yAmount)
         SetOffset(offset:GetX(), offset:GetY())
+        SetPhysicsPositionFromScreenPosition()
     end
 
     /*
@@ -2576,7 +2579,8 @@ class Item2D is Item
     end
 
     action GetLocalPoint(Vector2 worldPoint) returns Vector2
-        Vector2 vector = transform:MultiplyAndTranslate(transform, worldPoint)
+        Vector2 vector
+        vector:Set(transform:MultiplyAndTranslate(transform, worldPoint))
         return vector
     end
 
