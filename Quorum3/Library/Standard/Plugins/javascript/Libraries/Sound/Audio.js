@@ -6,7 +6,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         
         try
         {
-            plugins_quorum_Libraries_Sound_Audio_.audioContext = window.AudioContext || window.webkitAudioContext || new AudioContext;
+            plugins_quorum_Libraries_Sound_Audio_.audioContext = new AudioContext;
         }
         catch(error)
         {
@@ -103,9 +103,16 @@ function plugins_quorum_Libraries_Sound_Audio_()
     var soundBuffer;
     var source;
     var panner;
+    var gainNode;
     var loading = false;
     var looping = false;
     var onloadQueue = [];
+   
+    
+    var gain = 0;
+    var rotation = 0;
+    var pan = 0;
+    var fade = 0;
     
     this.RunQueuedActions = function()
     {
@@ -122,7 +129,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
     this.Load$quorum_Libraries_System_File = function(file)
     {   
         panner = plugins_quorum_Libraries_Sound_Audio_.audioContext.createPanner();
-        panner.panningModel = 'HRTF';
+        panner.panningModel = 'equalpower';
         panner.distanceModel = 'inverse';
         panner.refDistance = 1;
         panner.maxDistance = 10000;
@@ -130,6 +137,10 @@ function plugins_quorum_Libraries_Sound_Audio_()
         panner.coneInnerAngle = 360;
         panner.coneOuterAngle = 0;
         panner.coneOuterGain = 0;
+        
+        gainNode = plugins_quorum_Libraries_Sound_Audio_.audioContext.createGain();
+        
+        var runQueuedActions = this.RunQueuedActions;
         
         var request = new XMLHttpRequest();
         request.open('GET', file.GetPath(), true);
@@ -142,11 +153,14 @@ function plugins_quorum_Libraries_Sound_Audio_()
             plugins_quorum_Libraries_Sound_Audio_.audioContext.decodeAudioData(audioData, function(buffer)
             {
                 soundBuffer = buffer;
-                panner.connect(plugins_quorum_Libraries_Sound_Audio_.audioContext.destination);
+                panner.connect(gainNode);
+                gainNode.connect(plugins_quorum_Libraries_Sound_Audio_.audioContext.destination);
+                gainNode.gain.value = gain;
+                runQueuedActions();
             },
             function(e)
             {
-                console.log("Error decoding audio data: + e.err");
+                console.log("Error decoding audio data: " + e.err);
             });
             
             loading = false;
@@ -233,24 +247,36 @@ function plugins_quorum_Libraries_Sound_Audio_()
         
     };
     
-    this.SetVolume$quorum_number = function()
+    this.SetVolume$quorum_number = function(volume)
     {
-        
+        gain = volume;
+        if (gainNode !== undefined && gainNode !== null)
+            gainNode.gain.value = gain;
     };
     
     this.GetVolume = function()
     {
-        
+        return gain;
     };
     
     this.SetBalance$quorum_number = function(position)
     {
+        if (position < -1)
+            position = -1;
+        else if (position > 1)
+            position = 1;
         
+        pan = position;
+        fade = 0;
+        
+        panner.positionX.value = Math.cos((pan - 1) * Math.PI / 2);
+        panner.positionY.value = Math.sin((pan + 1) * Math.PI / 2);
+        panner.positionZ.value = 0;
     };
     
     this.GetBalance = function()
     {
-        
+        return pan;
     };
     
     this.Stream = function()
@@ -263,14 +289,24 @@ function plugins_quorum_Libraries_Sound_Audio_()
         
     };
     
-    this.SetFade$quorum_number = function(fade)
+    this.SetFade$quorum_number = function(newFade)
     {
+        if (newFade < -1)
+            newFade = -1;
+        else if (newFade > 1)
+            newFade = 1;
         
+        fade = newFade;
+        pan = 0;
+        
+        panner.positionX.value = 0;
+        panner.positionY.value = Math.sin((fade + 1) * Math.PI / 2);
+        panner.positionZ.value = Math.cos((fade - 1) * Math.PI / 2);
     };
     
     this.GetFade = function()
     {
-        
+        return fade;
     };
     
     this.SetX$quorum_number = function(newX)
@@ -322,42 +358,42 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.IsDopplerEnabled = function()
     {
-        
+        return false;
     };
     
     this.SetVelocityX$quorum_number = function(x)
     {
-        
+        // Do nothing. The Web Audio API no longer supports doppler.
     };
     
     this.SetVelocityY$quorum_number = function(y)
     {
-        
+        // Do nothing. The Web Audio API no longer supports doppler.
     };
     
     this.SetVelocityZ$quorum_number = function(z)
     {
-        
+        // Do nothing. The Web Audio API no longer supports doppler.
     };
     
     this.SetVelocity$quorum_number$quorum_number$quorum_number = function(x, y, z)
     {
-        
+        // Do nothing. The Web Audio API no longer supports doppler.
     };
     
     this.GetVelocityX = function()
     {
-        
+        return 0;
     };
     
     this.GetVelocityY = function()
     {
-        
+        return 0;
     };
     
     this.GetVelocityZ = function()
     {
-        
+        return 0;
     };
     
     this.SetListenerX$quorum_number = function(x)
@@ -384,67 +420,67 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.SetListenerVelocityX$quorum_number = function(x)
     {
-        
+        // Do nothing. The Web Audio API no longer supports doppler.
     };
     
     this.SetListenerVelocityY$quorum_number = function(y)
     {
-        
+        // Do nothing. The Web Audio API no longer supports doppler.
     };
     
     this.SetListenerVelocityZ$quorum_number = function(z)
     {
-        
+        // Do nothing. The Web Audio API no longer supports doppler.
     };
     
     this.SetListenerVelocity$quorum_number$quorum_number$quorum_number = function(x, y, z)
     {
-        
+        // Do nothing. The Web Audio API no longer supports doppler.
     };
     
     this.EnableListenerDoppler = function()
     {
-        
+        // Do nothing. The Web Audio API no longer supports doppler.
     };
     
     this.DisableListenerDoppler = function()
     {
-        
+        // Do nothing. The Web Audio API no longer supports doppler.
     };
     
     this.IsListenerDopplerEnabled = function()
     {
-        
+        return false;
     };
     
     this.GetListenerX = function()
     {
-        
+        return plugins_quorum_Libraries_Sound_Audio_.listener.positionX;
     };
     
     this.GetListenerY = function()
     {
-        
+        return plugins_quorum_Libraries_Sound_Audio_.listener.positionY;
     };
     
     this.GetListenerZ = function()
     {
-        
+        return plugins_quorum_Libraries_Sound_Audio_.listener.positionZ;
     };
     
     this.GetListenerVelocityX = function()
     {
-        
+        return 0;
     };
     
     this.GetListenerVelocityY = function()
     {
-        
+        return 0;
     };
     
     this.GetListenerVelocityZ = function()
     {
-        
+        return 0;
     };
     
     this.SetListenerDirection$quorum_number$quorum_number$quorum_number = function(x, y, z)
@@ -491,18 +527,22 @@ function plugins_quorum_Libraries_Sound_Audio_()
         return plugins_quorum_Libraries_Sound_Audio_.listener.upZ.value;
     };
     
-    this.SetRotation$quorum_number = function(rotation)
+    this.SetRotation$quorum_number = function(newRotation)
     {
+        rotation = newRotation;
         
+        var newX = Math.sin(Math.toRadians(rotation));
+        var newZ = -Math.cos(Math.toRadians(rotation));
+        this.SetPosition$quorum_number$quorum_number$quorum_number(newX, 0, newZ);
     };
     
     this.GetRotation = function()
     {
-        
+        return rotation;
     };
     
-    this.Rotate$quorum_number = function(rotation)
+    this.Rotate$quorum_number = function(addRotation)
     {
-        
+        this.SetRotation$quorum_number(rotation + addRotation);
     };
 }
