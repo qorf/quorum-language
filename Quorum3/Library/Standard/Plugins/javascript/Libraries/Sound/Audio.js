@@ -108,11 +108,26 @@ function plugins_quorum_Libraries_Sound_Audio_()
     var looping = false;
     var onloadQueue = [];
    
-    
-    var gain = 0;
+    var pitch = 1.0;
+    var gain = 1.0;
     var rotation = 0;
     var pan = 0;
     var fade = 0;
+    
+    var startTime = 0;
+    var pauseTime = 0;
+    
+    panner = plugins_quorum_Libraries_Sound_Audio_.audioContext.createPanner();
+    panner.panningModel = 'equalpower';
+    panner.distanceModel = 'inverse';
+    panner.refDistance = 1;
+    panner.maxDistance = 10000;
+    panner.rolloffFactor = 1;
+    panner.coneInnerAngle = 360;
+    panner.coneOuterAngle = 0;
+    panner.coneOuterGain = 0;
+
+    gainNode = plugins_quorum_Libraries_Sound_Audio_.audioContext.createGain();
     
     this.RunQueuedActions = function()
     {
@@ -128,18 +143,6 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.Load$quorum_Libraries_System_File = function(file)
     {   
-        panner = plugins_quorum_Libraries_Sound_Audio_.audioContext.createPanner();
-        panner.panningModel = 'equalpower';
-        panner.distanceModel = 'inverse';
-        panner.refDistance = 1;
-        panner.maxDistance = 10000;
-        panner.rolloffFactor = 1;
-        panner.coneInnerAngle = 360;
-        panner.coneOuterAngle = 0;
-        panner.coneOuterGain = 0;
-        
-        gainNode = plugins_quorum_Libraries_Sound_Audio_.audioContext.createGain();
-        
         var runQueuedActions = this.RunQueuedActions;
         
         var request = new XMLHttpRequest();
@@ -186,6 +189,9 @@ function plugins_quorum_Libraries_Sound_Audio_()
             source.connect(panner);
             source.loop = looping;
             source.start(0);
+            source.playbackRate.value = pitch;
+            
+            startTime = Date.now();
         }
     };
     
@@ -194,22 +200,45 @@ function plugins_quorum_Libraries_Sound_Audio_()
         if (loading === true)
             onloadQueue.push(Stop);
         else if (source !== undefined && source !== null)
+        {
             source.stop();
+            pauseTime = 0;
+            startTime = 0;
+        }
     };
     
     this.Pause = function()
     {
-        
+        if (loading === true)
+            onloadQueue.push(Stop);
+        else if (source !== undefined && source !== null)
+        {
+            source.stop();
+            pauseTime = Date.now();
+        }
     };
     
     this.Resume = function()
     {
-        
+        if (loading === true)
+            onloadQueue.push(Play);
+        else
+        {
+            source = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
+            source.buffer = soundBuffer;
+            source.connect(panner);
+            source.loop = looping;
+            source.start(pauseTime - startTime);
+            source.playbackRate.value = pitch;
+            
+            pauseTime = 0;
+        }
     };
     
     this.IsPlaying = function()
     {
-        
+        var duration = source.buffer.duration;
+        return (startTime !== 0 && pauseTime === 0 && (looping || startTime + duration < Date.now()));
     };
     
     this.EnableLooping = function()
@@ -237,18 +266,26 @@ function plugins_quorum_Libraries_Sound_Audio_()
         soundBuffer = null;
     };
     
-    this.SetPitch$quorum_number = function(pitch)
+    this.SetPitch$quorum_number = function(p)
     {
-        
+        pitch = p;
+        if (source !== null && source !== undefined)
+        {
+            console.log("Pitch set to " + pitch);
+            source.playbackRate.value = pitch;
+            console.log("PlaybackRate = " + source.playbackRate);
+        }
     };
     
     this.GetPitch = function()
     {
-        
+        return pitch;
     };
     
     this.SetVolume$quorum_number = function(volume)
     {
+        if (volume < 0)
+            volume = 0;
         gain = volume;
         if (gainNode !== undefined && gainNode !== null)
             gainNode.gain.value = gain;
