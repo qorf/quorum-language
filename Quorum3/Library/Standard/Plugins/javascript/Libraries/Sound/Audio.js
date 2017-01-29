@@ -175,7 +175,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.LoadToStream$quorum_Libraries_System_File = function(file)
     {
-        
+        this.Load$quorum_Libraries_System_File(file);
     };
     
     this.Play = function Play()
@@ -228,7 +228,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
             source.buffer = soundBuffer;
             source.connect(panner);
             source.loop = looping;
-            source.start(pauseTime - startTime);
+            source.start(0, (pauseTime - startTime)/1000);
             source.playbackRate.value = pitch;
             
             pauseTime = 0;
@@ -271,9 +271,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         pitch = p;
         if (source !== null && source !== undefined)
         {
-            console.log("Pitch set to " + pitch);
             source.playbackRate.value = pitch;
-            console.log("PlaybackRate = " + source.playbackRate);
         }
     };
     
@@ -318,12 +316,12 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.Stream = function()
     {
-        
+        // Do nothing.
     };
     
     this.IsStreaming = function()
     {
-        
+        return false;
     };
     
     this.SetFade$quorum_number = function(newFade)
@@ -385,12 +383,12 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.EnableDoppler = function()
     {
-        
+        // Do nothing. The Web Audio API no longer supports doppler.
     };
     
     this.DisableDoppler = function()
     {
-        
+        // Do nothing. The Web Audio API no longer supports doppler.
     };
     
     this.IsDopplerEnabled = function()
@@ -566,10 +564,11 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.SetRotation$quorum_number = function(newRotation)
     {
-        rotation = newRotation;
+        rotation = rotation + newRotation;
+        var radians = rotation * Math.PI/180;
         
-        var newX = Math.sin(Math.toRadians(rotation));
-        var newZ = -Math.cos(Math.toRadians(rotation));
+        var newX = Math.sin(radians);
+        var newZ = -Math.cos(radians);
         this.SetPosition$quorum_number$quorum_number$quorum_number(newX, 0, newZ);
     };
     
