@@ -24,6 +24,10 @@ class Circle is CollisionShape2D
         return shape
     end
 
+    action Scale(number scaleX, number scaleY)
+        SetRadius(GetRadius() * scaleX)
+    end
+
     action GetChildCount returns integer
         return 1
     end

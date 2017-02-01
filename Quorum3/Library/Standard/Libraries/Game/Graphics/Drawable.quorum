@@ -11,6 +11,8 @@ use Libraries.Compute.Math
 use Libraries.Compute.BitwiseOperations
 use Libraries.Interface.Item2D
 use Libraries.Game.Collision.Shapes.Circle
+use Libraries.Game.Collision.Shapes.Polygon
+use Libraries.Compute.Vector2
 use Libraries.Language.Errors.Error
 use Libraries.System.File
 
@@ -1411,6 +1413,19 @@ class Drawable is TextureRegion, Item2D
         temp:LoadFilledTriangle(x1, y1, x2, y2, x3, y3)
         Load(temp)
         SetColor(color:Black())
+        Vector2 vertex1
+        Vector2 vertex2
+        Vector2 vertex3
+        vertex1:Set(x1, y1)
+        vertex2:Set(x2, y2)
+        vertex3:Set(x3, y3)
+        Array<Vector2> vertices
+        vertices:Add(vertex1)
+        vertices:Add(vertex2)
+        vertices:Add(vertex3)
+        Polygon polygon
+        polygon:Set(vertices, 3)
+        SetShape(polygon)
     end
 
     /*
@@ -1446,6 +1461,19 @@ class Drawable is TextureRegion, Item2D
         temp:LoadFilledTriangle(x1, y1, x2, y2, x3, y3)
         Load(temp)
         SetColor(color)
+        Vector2 vertex1
+        Vector2 vertex2
+        Vector2 vertex3
+        vertex1:Set(x1, y1)
+        vertex2:Set(x2, y2)
+        vertex3:Set(x3, y3)
+        Array<Vector2> vertices
+        vertices:Add(vertex1)
+        vertices:Add(vertex2)
+        vertices:Add(vertex3)
+        Polygon polygon
+        polygon:Set(vertices, 3)
+        SetShape(polygon)
     end
 
 end

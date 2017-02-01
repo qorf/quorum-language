@@ -622,7 +622,6 @@ class Item2D is Item
         hasMoved = true
         position:SetX(position:GetX() + xAmount)
         SetOffsetX(offset:GetX())
-        SetPhysicsPositionFromScreenPosition()
     end
 
     /*
@@ -647,7 +646,6 @@ class Item2D is Item
         hasMoved = true
         position:SetY(position:GetY() + yAmount)
         SetOffsetY(offset:GetY())
-        SetPhysicsPositionFromScreenPosition()
     end
 
     /*
@@ -698,7 +696,6 @@ class Item2D is Item
         position:SetX(position:GetX() + xAmount)
         position:SetY(position:GetY() + yAmount)
         SetOffset(offset:GetX(), offset:GetY())
-        SetPhysicsPositionFromScreenPosition()
     end
 
     /*
@@ -1632,6 +1629,8 @@ class Item2D is Item
         if rotation not= 0
             Rotate(0)
         end
+
+        shape:Scale(me:scale:GetX(), me:scale:GetY())
     end
 
     /*
@@ -1675,6 +1674,8 @@ class Item2D is Item
         if rotation not= 0
             Rotate(0)
         end
+
+        shape:Scale(me:scale:GetX(), me:scale:GetY())
     end
 
     /*
@@ -1774,6 +1775,8 @@ class Item2D is Item
                 Rotate(0)
             end
             */
+
+        shape:Scale(me:scale:GetX(), me:scale:GetY())
     end
 
     /*
@@ -1826,6 +1829,7 @@ class Item2D is Item
         if rotation not= 0
             Rotate(0)
         end
+        shape:Scale(me:scale:GetX(), me:scale:GetY())
     end
 
     /*
@@ -2826,6 +2830,31 @@ class Item2D is Item
         return properties:GetSleepTime()
     end
 
+    action SetResponsive
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetResponsiveness(properties:RESPONSIVE)
+    end
+
+    action SetNonResponsive
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetResponsiveness(properties:NON_RESPONSIVE)
+    end
+
+    action SetUnmovable
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetResponsiveness(properties:UNMOVABLE)
+    end
+
+
     action GetPhysicsProperties returns PhysicsProperties2D
         return properties
     end
@@ -2836,12 +2865,31 @@ class Item2D is Item
     end
 
     action SetPhysicsPositionFromScreenPosition
-        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
-        sweep:GetCenter():SetX(transform:GetPosition():GetX())
-        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
-        sweep:GetCenter():SetY(transform:GetPosition():GetY())
-        transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
-        sweep:SetAngle(transform:GetAngle())
+        if shape is Polygon
+            Polygon p = cast(Polygon, shape)
+            if p:IsBox()
+                transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
+                sweep:GetCenter():SetX(transform:GetPosition():GetX())
+                transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
+                sweep:GetCenter():SetY(transform:GetPosition():GetY())
+                transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
+                sweep:SetAngle(transform:GetAngle())
+            else
+                transform:GetPosition():SetX(position:GetX())
+                sweep:GetCenter():SetX(transform:GetPosition():GetX())
+                transform:GetPosition():SetY(position:GetY())
+                sweep:GetCenter():SetY(transform:GetPosition():GetY())
+                transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
+                sweep:SetAngle(transform:GetAngle())
+            end
+        else
+            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
+            sweep:GetCenter():SetX(transform:GetPosition():GetX())
+            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
+            sweep:GetCenter():SetY(transform:GetPosition():GetY())
+            transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
+            sweep:SetAngle(transform:GetAngle())
+        end
 
         transform0:Set(transform)
 
@@ -2881,8 +2929,11 @@ class Item2D is Item
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
         end
-
-        properties:SetMass(mass)
+        
+        Mass2D massData
+        massData:SetMass(mass)
+        massData:SetInertia(properties:GetInertia())
+        SetMass(massData)
     end
 
     action GetRawInertia returns number
@@ -2898,7 +2949,10 @@ class Item2D is Item
             alert(PHYSICS_ERROR_MESSAGE)
         end
 
-        properties:SetInertia(inertia)
+        Mass2D massData
+        massData:SetMass(properties:GetMass())
+        massData:SetInertia(inertia)
+        SetMass(massData)
     end
 
     action SetMass(Mass2D mass)
@@ -2929,14 +2983,12 @@ class Item2D is Item
         Vector2 oldCenter
         oldCenter:Set(sweep:GetCenter())
         sweep:GetLocalCenter():Set(mass:GetCenter())
-        //Transform.mulToOutUnsafe(m_xf, m_sweep.localCenter, m_sweep.c0);
         sweep:GetCenter0():SetX((transform:GetCosine() * sweep:GetLocalCenter():GetX() - transform:GetSine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetX())
         sweep:GetCenter0():SetY((transform:GetSine() * sweep:GetLocalCenter():GetX() + transform:GetCosine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetY())
         sweep:GetCenter():Set(sweep:GetCenter0())
 
         Vector2 temp
         temp:Set(sweep:GetCenter()):Subtract(oldCenter)
-        //Vec2.crossToOut(m_angularVelocity, temp, temp);
         number tempY = properties:GetAngularVelocity() * temp:GetX()
         temp:SetX(-properties:GetAngularVelocity() * temp:GetY())
         temp:SetY(tempY)
