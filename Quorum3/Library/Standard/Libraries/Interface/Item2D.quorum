@@ -2868,9 +2868,9 @@ class Item2D is Item
         if shape is Polygon
             Polygon p = cast(Polygon, shape)
             if p:IsBox()
-                transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
+                transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
                 sweep:GetCenter():SetX(transform:GetPosition():GetX())
-                transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
+                transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
                 sweep:GetCenter():SetY(transform:GetPosition():GetY())
                 transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
                 sweep:SetAngle(transform:GetAngle())
@@ -2883,9 +2883,9 @@ class Item2D is Item
                 sweep:SetAngle(transform:GetAngle())
             end
         else
-            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
+            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
             sweep:GetCenter():SetX(transform:GetPosition():GetX())
-            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
+            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetX() / 2)
             sweep:GetCenter():SetY(transform:GetPosition():GetY())
             transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
             sweep:SetAngle(transform:GetAngle())
