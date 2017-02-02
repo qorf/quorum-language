@@ -12,15 +12,15 @@ function plugins_quorum_Libraries_Sound_Audio_()
         {
             try
             {
-                console.log("Checking for window context.");
-                plugins_quorum_Libraries_Sound_Audio_.audioContext = window.webkitAudioContext;
-                console.log("Checking for undefined context.");
-                if (plugins_quorum_Libraries_Sound_Audio_.audioContext === undefined)
-                {
-                    console.log("Making new context.");
+//                console.log("Checking for window context.");
+//                plugins_quorum_Libraries_Sound_Audio_.audioContext = window.webkitAudioContext;
+//                console.log("Checking for undefined context.");
+//                if (plugins_quorum_Libraries_Sound_Audio_.audioContext === undefined)
+//                {
+//                    console.log("Making new context.");
                     plugins_quorum_Libraries_Sound_Audio_.audioContext = new webkitAudioContext;
-                }
-                console.log("Finishing audio context.");
+//                }
+//                console.log("Finishing audio context.");
             }
             catch(e)
             {
@@ -31,7 +31,11 @@ function plugins_quorum_Libraries_Sound_Audio_()
         if (plugins_quorum_Libraries_Sound_Audio_.audioContext === undefined)
             alert("The Web Audio API couldn't be initialized. Your browser may not support it.");
         else
+        {
             plugins_quorum_Libraries_Sound_Audio_.listener = plugins_quorum_Libraries_Sound_Audio_.audioContext.listener;
+            if (plugins_quorum_Libraries_Sound_Audio_.audioContext.state === 'suspended')
+                plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();
+        }
     }
 
     if (plugins_quorum_Libraries_Sound_Audio_.audioContext === undefined)
@@ -129,17 +133,33 @@ function plugins_quorum_Libraries_Sound_Audio_()
     var startTime = 0;
     var pauseTime = 0;
     
-    if (plugins_quorum_Libraries_Sound_Audio_.audioContext !== undefined)
+    panner = plugins_quorum_Libraries_Sound_Audio_.audioContext.createPanner();
+    panner.panningModel = 'equalpower';
+    panner.distanceModel = 'inverse';
+    panner.refDistance = 1;
+    panner.maxDistance = 10000;
+    panner.rolloffFactor = 1;
+    panner.coneInnerAngle = 360;
+    panner.coneOuterAngle = 0;
+    panner.coneOuterGain = 0;
+    
+    /*
+     * Used only on Safari. On other browsers, this information is accessible
+     * directly from the panner node.
+     */
+    var positions;
+    var orientations;
+    if (!panner.positionX)
     {
-        panner = plugins_quorum_Libraries_Sound_Audio_.audioContext.createPanner();
-        panner.panningModel = 'equalpower';
-        panner.distanceModel = 'inverse';
-        panner.refDistance = 1;
-        panner.maxDistance = 10000;
-        panner.rolloffFactor = 1;
-        panner.coneInnerAngle = 360;
-        panner.coneOuterAngle = 0;
-        panner.coneOuterGain = 0;
+        positions = {};
+        positions.x = 0;
+        positions.y = 0;
+        positions.z = 0;
+        positions.listenerX = 0;
+        positions.listenerY = 0;
+        positions.listenerZ = 0;
+        
+        orientations = {};        
     }
 
     gainNode = plugins_quorum_Libraries_Sound_Audio_.audioContext.createGain();
@@ -195,6 +215,9 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.Play = function Play()
     {
+        if (plugins_quorum_Libraries_Sound_Audio_.audioContext.state === 'suspended')
+                plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();
+        
         if (loading === true)
             onloadQueue.push(Play);
         else
@@ -203,10 +226,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
             source.buffer = soundBuffer;
             source.connect(panner);
             source.loop = looping;
-            if (source.noteOn !== undefined)
-                source.noteOn(0);
-            else
-                source.start(0);
+            source.start(0);
             source.playbackRate.value = pitch;
             
             startTime = Date.now();
@@ -215,6 +235,9 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.Stop = function Stop()
     {
+        if (plugins_quorum_Libraries_Sound_Audio_.audioContext.state === 'suspended')
+                plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();
+        
         if (loading === true)
             onloadQueue.push(Stop);
         else if (source !== undefined && source !== null)
@@ -227,6 +250,9 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.Pause = function()
     {
+        if (plugins_quorum_Libraries_Sound_Audio_.audioContext.state === 'suspended')
+                plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();
+        
         if (loading === true)
             onloadQueue.push(Stop);
         else if (source !== undefined && source !== null)
@@ -238,6 +264,9 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.Resume = function()
     {
+        if (plugins_quorum_Libraries_Sound_Audio_.audioContext.state === 'suspended')
+                plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();
+        
         if (loading === true)
             onloadQueue.push(Play);
         else
@@ -322,9 +351,10 @@ function plugins_quorum_Libraries_Sound_Audio_()
         pan = position;
         fade = 0;
         
-        panner.positionX.value = Math.cos((pan - 1) * Math.PI / 2);
-        panner.positionY.value = Math.sin((pan + 1) * Math.PI / 2);
-        panner.positionZ.value = 0;
+        this.SetPosition$quorum_number$quorum_number$quorum_number(
+            Math.cos((pan - 1) * Math.PI / 2),
+            Math.sin((pan + 1) * Math.PI / 2),
+            0);
     };
     
     this.GetBalance = function()
@@ -352,9 +382,10 @@ function plugins_quorum_Libraries_Sound_Audio_()
         fade = newFade;
         pan = 0;
         
-        panner.positionX.value = 0;
-        panner.positionY.value = Math.sin((fade + 1) * Math.PI / 2);
-        panner.positionZ.value = Math.cos((fade - 1) * Math.PI / 2);
+        this.SetPosition$quorum_number$quorum_number$quorum_number(
+            0, 
+            Math.sin((fade + 1) * Math.PI / 2),
+            Math.cos((fade - 1) * Math.PI / 2));
     };
     
     this.GetFade = function()
@@ -364,7 +395,12 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.SetX$quorum_number = function(newX)
     {
-        panner.positionX.value = newX;
+        if (panner.positionX)
+            panner.positionX.value = newX;
+        else
+        {
+            
+        }
     };
     
     this.SetY$quorum_number = function(newY)
