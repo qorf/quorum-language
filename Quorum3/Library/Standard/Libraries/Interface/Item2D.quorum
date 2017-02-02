@@ -2838,12 +2838,28 @@ class Item2D is Item
         properties:SetResponsiveness(properties:RESPONSIVE)
     end
 
+    action IsResponsive returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetResponsiveness() = properties:RESPONSIVE
+    end
+
     action SetNonResponsive
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
         end
 
         properties:SetResponsiveness(properties:NON_RESPONSIVE)
+    end
+
+    action IsNonResponsive returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetResponsiveness() = properties:NON_RESPONSIVE
     end
 
     action SetUnmovable
@@ -2854,6 +2870,13 @@ class Item2D is Item
         properties:SetResponsiveness(properties:UNMOVABLE)
     end
 
+    action IsUnmovable returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetResponsiveness() = properties:UNMOVABLE
+    end
 
     action GetPhysicsProperties returns PhysicsProperties2D
         return properties

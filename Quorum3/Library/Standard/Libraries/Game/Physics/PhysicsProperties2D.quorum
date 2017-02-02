@@ -35,7 +35,7 @@ class PhysicsProperties2D
     integer collisionGroupIndex = 0
 
     boolean simulated = true
-    boolean simulationRequired = true
+    boolean simulationRequired = false
     boolean fastMoving = false
     boolean canRotate = true
     boolean timeOfImpactFlag = false
@@ -330,7 +330,7 @@ class PhysicsProperties2D
 
     action RequireSimulation(boolean flag)
         simulationRequired = flag
-        if not simulationRequired
+        if simulationRequired
             Simulate(true)
         end
     end

@@ -1591,8 +1591,6 @@ class Layer2D is Layer
         number inverse_dt = 0
         if dt > 0
             inverse_dt = 1.0 / dt
-        else
-            inverse_dt = 0
         end
         timeStep:SetInverseTimeStep(inverse_dt)
 
@@ -1704,7 +1702,7 @@ class Layer2D is Layer
                 // continue with loop -- this item has already had physics solved
             elseif not seed:IsSimulated()
                 // continue with loop -- this item is not currently being simulated
-            elseif seed:GetResponsiveness() = seed:GetPhysicsProperties():UNMOVABLE
+            elseif seed:IsUnmovable()
                 // continue with loop -- this item is unmovable and cannot start off a collision group
             else
                 island:Empty()
@@ -1718,7 +1716,7 @@ class Layer2D is Layer
 
                     body:Simulate(true)
 
-                    if body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE
+                    if body:IsUnmovable()
                         // continue -- don't look for colliding items with unmovable items
                         // to add to a collision group -- this keeps collision groups small
                         // and faster to solve -- the items colliding with an unmovable
@@ -1789,7 +1787,7 @@ class Layer2D is Layer
                 integer j = 0
                 repeat island:GetItemCount() times
                     Item2D body = island:GetItem(j)
-                    if body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE
+                    if body:IsUnmovable()
                         body:SetCollisionGroupFlag(false)
                     end
                     j = j + 1

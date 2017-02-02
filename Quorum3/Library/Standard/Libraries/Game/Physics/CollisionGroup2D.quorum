@@ -179,7 +179,7 @@ class CollisionGroup2D
             integer j = 0
             repeat while j < jointCount
                 boolean jointOkay = joints:Get(j):SolvePositionConstraints(solverData)
-                jointsOkay = jointOkay and jointOkay
+                jointsOkay = jointsOkay and jointOkay
                 j = j + 1
             end
 
