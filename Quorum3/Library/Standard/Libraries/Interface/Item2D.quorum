@@ -2948,34 +2948,12 @@ class Item2D is Item
         mass:GetCenter():SetY(sweep:GetLocalCenter():GetY())
     end
 
-    action SetMass(number mass)
-        if properties = undefined
-            alert(PHYSICS_ERROR_MESSAGE)
-        end
-        
-        Mass2D massData
-        massData:SetMass(mass)
-        massData:SetInertia(properties:GetInertia())
-        SetMass(massData)
-    end
-
     action GetRawInertia returns number
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
         end
 
         return properties:GetRawInertia()
-    end
-
-    action SetInertia(number inertia)
-        if properties = undefined
-            alert(PHYSICS_ERROR_MESSAGE)
-        end
-
-        Mass2D massData
-        massData:SetMass(properties:GetMass())
-        massData:SetInertia(inertia)
-        SetMass(massData)
     end
 
     action SetMass(Mass2D mass)

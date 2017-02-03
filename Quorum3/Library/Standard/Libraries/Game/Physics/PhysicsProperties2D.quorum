@@ -153,6 +153,10 @@ class PhysicsProperties2D
         if type not= RESPONSIVE
             return now
         end
+
+        if not simulated
+            Simulate(true)
+        end
         
         me:force:SetX(me:force:GetX() + force:GetX())
         me:force:SetY(me:force:GetY() + force:GetY())
@@ -167,6 +171,10 @@ class PhysicsProperties2D
             return now
         end
 
+        if not simulated
+            Simulate(true)
+        end
+
         me:force:SetX(me:force:GetX() + force:GetX())
         me:force:SetY(me:force:GetY() + force:GetY())
     end
@@ -176,6 +184,10 @@ class PhysicsProperties2D
             return now
         end
 
+        if not simulated
+            Simulate(true)
+        end
+
         me:torque = me:torque + torque
     end
 
@@ -183,9 +195,13 @@ class PhysicsProperties2D
         if type not= RESPONSIVE
             return now
         end
+
+        if not simulated
+            Simulate(true)
+        end
         
-        linearVelocity:SetX(linearVelocity:GetX() + impulse:GetX() * inverseMass)
-        linearVelocity:SetY(linearVelocity:GetY() + impulse:GetY() * inverseMass)
+        linearVelocity:SetX(linearVelocity:GetX() + (impulse:GetX() * inverseMass))
+        linearVelocity:SetY(linearVelocity:GetY() + (impulse:GetY() * inverseMass))
 
         Sweep2D sweep = item:GetSweep()
 
@@ -197,7 +213,11 @@ class PhysicsProperties2D
             return now
         end
 
-        angularVelocity = angularVelocity + inverseInertia * impulse
+        if not simulated
+            Simulate(true)
+        end
+
+        angularVelocity = angularVelocity + (inverseInertia * impulse)
     end
 
     action GetMass returns number
@@ -269,6 +289,9 @@ class PhysicsProperties2D
         if me:type = RESPONSIVE
             mass = 1
             inverseMass = 1
+            if me:item not= undefined
+                me:item:ResetMass()
+            end
         else
             mass = 0
             inverseMass = 0
@@ -281,6 +304,9 @@ class PhysicsProperties2D
     action SetDensity(number density)
         if density >= 0
             me:density = density
+            if item not= undefined
+                item:ResetMass()
+            end
         end
     end
 
