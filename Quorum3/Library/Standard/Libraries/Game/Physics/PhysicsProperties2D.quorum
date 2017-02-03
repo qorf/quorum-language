@@ -40,6 +40,8 @@ class PhysicsProperties2D
     boolean canRotate = true
     boolean timeOfImpactFlag = false
 
+    boolean massSet = false
+
     Item2D item = undefined
 
     action SetItem(Item2D item)
@@ -75,6 +77,10 @@ class PhysicsProperties2D
             end
         end
 
+        if not massSet
+            SetDensity(mass / (item:GetWidth() * item:GetScaleX() * item:GetHeight() * item:GetScaleY()))
+        end
+
         item:ResetMass()
     end
 
@@ -84,9 +90,9 @@ class PhysicsProperties2D
 
     action Copy returns PhysicsProperties2D
         PhysicsProperties2D new
-        new:linearVelocity = linearVelocity
+        new:linearVelocity = linearVelocity:Copy()
         new:angularVelocity = angularVelocity
-        new:force = force
+        new:force = force:Copy()
         new:torque = torque
         new:mass = mass
         new:inverseMass = inverseMass
@@ -106,6 +112,7 @@ class PhysicsProperties2D
         new:fastMoving = fastMoving
         new:canRotate = canRotate
         new:timeOfImpactFlag = timeOfImpactFlag
+        new:massSet = massSet
         
         return new
     end
@@ -225,6 +232,14 @@ class PhysicsProperties2D
     end
 
     action SetMass(number mass)
+        me:mass = mass
+        if item not= undefined
+            massSet = true
+            SetDensity(mass / (item:GetWidth() * item:GetScaleX() * item:GetHeight() * item:GetScaleY()))
+        end
+    end
+
+    action AssignMass(number mass)
         me:mass = mass
     end
 
