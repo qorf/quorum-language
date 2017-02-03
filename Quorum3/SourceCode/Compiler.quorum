@@ -2602,9 +2602,13 @@ class Compiler
     end
 
     action GetMainClass returns Class
-        text path = main:GetAbsolutePath()
-        Class c = symbolTable:GetClassInFile(path)
-        return c
+        if main not= undefined and symbolTable not= undefined
+            text path = main:GetAbsolutePath()
+            Class c = symbolTable:GetClassInFile(path)
+            return c
+        end
+        
+        return undefined
     end
 
     action SetMain(File file)
