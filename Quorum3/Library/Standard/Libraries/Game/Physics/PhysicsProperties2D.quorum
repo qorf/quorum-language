@@ -304,12 +304,14 @@ class PhysicsProperties2D
         if me:type = RESPONSIVE
             mass = 1
             inverseMass = 1
+            density = 1
             if me:item not= undefined
                 me:item:ResetMass()
             end
         else
             mass = 0
             inverseMass = 0
+            density = 0
         end
 
         force:SetZero()
