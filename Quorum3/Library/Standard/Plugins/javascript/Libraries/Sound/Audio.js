@@ -12,15 +12,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         {
             try
             {
-//                console.log("Checking for window context.");
-//                plugins_quorum_Libraries_Sound_Audio_.audioContext = window.webkitAudioContext;
-//                console.log("Checking for undefined context.");
-//                if (plugins_quorum_Libraries_Sound_Audio_.audioContext === undefined)
-//                {
-//                    console.log("Making new context.");
-                    plugins_quorum_Libraries_Sound_Audio_.audioContext = new webkitAudioContext;
-//                }
-//                console.log("Finishing audio context.");
+                plugins_quorum_Libraries_Sound_Audio_.audioContext = new webkitAudioContext;
             }
             catch(e)
             {
@@ -147,19 +139,33 @@ function plugins_quorum_Libraries_Sound_Audio_()
      * Used only on Safari. On other browsers, this information is accessible
      * directly from the panner node.
      */
-    var positions;
-    var orientations;
+    var pannerData;
     if (!panner.positionX)
     {
-        positions = {};
-        positions.x = 0;
-        positions.y = 0;
-        positions.z = 0;
-        positions.listenerX = 0;
-        positions.listenerY = 0;
-        positions.listenerZ = 0;
+        pannerData = {};
+        pannerData.x = 0;
+        pannerData.y = 0;
+        pannerData.z = 0;
+        pannerData.forwardX = 0;
+        pannerData.forwardY = 0;
+        pannerData.forwardZ = -1;
+        pannerData.upX = 0;
+        pannerData.upY = 1;
+        pannerData.upZ = 0;
         
-        orientations = {};        
+        if (plugins_quorum_Libraries_Sound_Audio_.listenerData === undefined)
+        {
+            plugins_quorum_Libraries_Sound_Audio_.listenerData = {};
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.x = 0;
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.y = 0;
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.z = 0;
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.forwardX = 0;
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.forwardY = 0;
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.forwardZ = -1;
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.upX = 0;
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.upY = 0;
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.upZ = 0;
+        }
     }
 
     gainNode = plugins_quorum_Libraries_Sound_Audio_.audioContext.createGain();
@@ -194,6 +200,10 @@ function plugins_quorum_Libraries_Sound_Audio_()
                 panner.connect(gainNode);
                 gainNode.connect(plugins_quorum_Libraries_Sound_Audio_.audioContext.destination);
                 gainNode.gain.value = gain;
+                
+                if (plugins_quorum_Libraries_Sound_Audio_.audioContext.state === 'suspended')
+                    plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();
+                
                 runQueuedActions();
             },
             function(e)
@@ -399,18 +409,31 @@ function plugins_quorum_Libraries_Sound_Audio_()
             panner.positionX.value = newX;
         else
         {
-            
+            panner.setPosition(newX, pannerData.y, pannerData.z);
+            pannerData.x = newX;
         }
     };
     
     this.SetY$quorum_number = function(newY)
     {
-        panner.positionY.value = newY;
+        if (panner.positionY)
+            panner.positionY.value = newY;
+        else
+        {
+            panner.setPosition(pannerData.x, newY, pannerData.z);
+            pannerData.y = newY;
+        }
     };
     
     this.SetZ$quorum_number = function(newZ)
     {
-        panner.positionZ.value = newZ;
+        if (panner.positionZ)
+            panner.positionZ.value = -newZ;
+        else
+        {
+            panner.setPosition(pannerData.x, pannerData.y, -newZ);
+            pannerData.z = -newZ;
+        }
     };
     
     this.SetPosition$quorum_number$quorum_number$quorum_number = function(newX, newY, newZ)
@@ -422,22 +445,33 @@ function plugins_quorum_Libraries_Sound_Audio_()
             panner.positionZ.value = newZ;
         }
         else
-            panner.setPosition(newX, newY, newZ);
+        {
+            panner.setPosition(newX, newY, -newZ);
+            pannerData.x = newX;
+            pannerData.y = newY;
+            pannerData.z = -newZ;
+        }
     };
     
     this.GetX = function()
     {
-        return panner.positionX.value;
+        if (panner.positionX)
+            return panner.positionX.value;
+        return pannerData.x;
     };
     
     this.GetY = function()
     {
-        return panner.positionY.value;
+        if (panner.positionY)
+            return panner.positionY.value;
+        return pannerData.y;
     };
     
     this.GetZ = function()
     {
-        return panner.positionZ.value;
+        if (panner.positionZ)
+            return -panner.positionZ.value;
+        return -pannerData.z;
     };
     
     this.EnableDoppler = function()
@@ -492,24 +526,61 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.SetListenerX$quorum_number = function(x)
     {
-        plugins_quorum_Libraries_Sound_Audio_.listener.positionX = x;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.positionX)
+            plugins_quorum_Libraries_Sound_Audio_.listener.positionX = x;
+        else
+        {
+            plugins_quorum_Libraries_Sound_Audio_.listener.setPosition(
+                x, 
+                plugins_quorum_Libraries_Sound_Audio_.listenerData.y, 
+                plugins_quorum_Libraries_Sound_Audio_.listenerData.z);
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.x = x;
+        }
     };
     
     this.SetListenerY$quorum_number = function(y)
     {
-        plugins_quorum_Libraries_Sound_Audio_.listener.positionY = y;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.positionY)
+            plugins_quorum_Libraries_Sound_Audio_.listener.positionY = y;
+        else
+        {
+            plugins_quorum_Libraries_Sound_Audio_.listener.setPosition(
+                plugins_quorum_Libraries_Sound_Audio_.listenerData.x, 
+                y, 
+                plugins_quorum_Libraries_Sound_Audio_.listenerData.z);
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.y = y;
+        }
     };
     
     this.SetListenerZ$quorum_number = function(z)
     {
-        plugins_quorum_Libraries_Sound_Audio_.listener.positionZ = z;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.positionZ)
+            plugins_quorum_Libraries_Sound_Audio_.listener.positionZ = z;
+        else
+        {
+            plugins_quorum_Libraries_Sound_Audio_.listener.setPosition(
+                plugins_quorum_Libraries_Sound_Audio_.listenerData.x, 
+                plugins_quorum_Libraries_Sound_Audio_.listenerData.y, 
+                -z);
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.z = -z;
+        }
     };
     
     this.SetListenerPosition$quorum_number$quorum_number$quorum_number = function(x, y, z)
     {
-        plugins_quorum_Libraries_Sound_Audio_.listener.positionX = x;
-        plugins_quorum_Libraries_Sound_Audio_.listener.positionY = y;
-        plugins_quorum_Libraries_Sound_Audio_.listener.positionZ = z;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.positionX)
+        {
+            plugins_quorum_Libraries_Sound_Audio_.listener.positionX = x;
+            plugins_quorum_Libraries_Sound_Audio_.listener.positionY = y;
+            plugins_quorum_Libraries_Sound_Audio_.listener.positionZ = -z;
+        }
+        else
+        {
+            plugins_quorum_Libraries_Sound_Audio_.listener.setPosition(x, y, -z);
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.x = x;
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.y = y;
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.z = -z;
+        }
     };
     
     this.SetListenerVelocityX$quorum_number = function(x)
@@ -549,17 +620,23 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.GetListenerX = function()
     {
-        return plugins_quorum_Libraries_Sound_Audio_.listener.positionX;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.positionX)
+            return plugins_quorum_Libraries_Sound_Audio_.listener.positionX;
+        return plugins_quorum_Libraries_Sound_Audio_.listenerData.x;
     };
     
     this.GetListenerY = function()
     {
-        return plugins_quorum_Libraries_Sound_Audio_.listener.positionY;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.positionY)
+            return plugins_quorum_Libraries_Sound_Audio_.listener.positionY;
+        return plugins_quorum_Libraries_Sound_Audio_.listenerData.y;
     };
     
     this.GetListenerZ = function()
     {
-        return plugins_quorum_Libraries_Sound_Audio_.listener.positionZ;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.positionZ)
+            return -plugins_quorum_Libraries_Sound_Audio_.listener.positionZ;
+        return -plugins_quorum_Libraries_Sound_Audio_.listenerData.z;
     };
     
     this.GetListenerVelocityX = function()
@@ -579,46 +656,90 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.SetListenerDirection$quorum_number$quorum_number$quorum_number = function(x, y, z)
     {
-        plugins_quorum_Libraries_Sound_Audio_.listener.forwardX.value = x;
-        plugins_quorum_Libraries_Sound_Audio_.listener.forwardY.value = y;
-        plugins_quorum_Libraries_Sound_Audio_.listener.forwardZ.value = z;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.forwardX)
+        {
+            plugins_quorum_Libraries_Sound_Audio_.listener.forwardX.value = x;
+            plugins_quorum_Libraries_Sound_Audio_.listener.forwardY.value = y;
+            plugins_quorum_Libraries_Sound_Audio_.listener.forwardZ.value = -z;
+        }
+        else
+        {
+            plugins_quorum_Libraries_Sound_Audio_.listener.setOrientation(
+                x,
+                y,
+                -z,
+                plugins_quorum_Libraries_Sound_Audio_.listenerData.upX,
+                plugins_quorum_Libraries_Sound_Audio_.listenerData.upY,
+                plugins_quorum_Libraries_Sound_Audio_.listenerData.upZ);
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.forwardX = x;
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.forwardY = y;
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.forwardZ = -z;
+        }
     };
     
     this.GetListenerDirectionX = function()
     {
-        return plugins_quorum_Libraries_Sound_Audio_.listener.forwardX.value;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.forwardX)
+            return plugins_quorum_Libraries_Sound_Audio_.listener.forwardX.value;
+        return plugins_quorum_Libraries_Sound_Audio_.listenerData.forwardX;
     };
     
     this.GetListenerDirectionY = function()
     {
-        return plugins_quorum_Libraries_Sound_Audio_.listener.forwardY.value;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.forwardY)
+            return plugins_quorum_Libraries_Sound_Audio_.listener.forwardY.value;
+        return plugins_quorum_Libraries_Sound_Audio_.listenerData.forwardY;
     };
     
     this.GetListenerDirectionZ = function()
     {
-        return plugins_quorum_Libraries_Sound_Audio_.listener.forwardZ.value;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.forwardZ)
+            return -plugins_quorum_Libraries_Sound_Audio_.listener.forwardZ.value;
+        return -plugins_quorum_Libraries_Sound_Audio_.listenerData.forwardY;
     };
     
     this.SetListenerUp$quorum_number$quorum_number$quorum_number = function(x, y, z)
     {
-        plugins_quorum_Libraries_Sound_Audio_.listener.upX.value = x;
-        plugins_quorum_Libraries_Sound_Audio_.listener.upY.value = y;
-        plugins_quorum_Libraries_Sound_Audio_.listener.upZ.value = z;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.upX)
+        {
+            plugins_quorum_Libraries_Sound_Audio_.listener.upX.value = x;
+            plugins_quorum_Libraries_Sound_Audio_.listener.upY.value = y;
+            plugins_quorum_Libraries_Sound_Audio_.listener.upZ.value = z;
+        }
+        else
+        {
+            plugins_quorum_Libraries_Sound_Audio_.listener.setOrientation(
+                plugins_quorum_Libraries_Sound_Audio_.listenerData.forwardX,
+                plugins_quorum_Libraries_Sound_Audio_.listenerData.forwardY,
+                plugins_quorum_Libraries_Sound_Audio_.listenerData.forwardZ,
+                x,
+                y,
+                -z);
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.upX = x;
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.upY = y;
+            plugins_quorum_Libraries_Sound_Audio_.listenerData.upZ = -z;
+        }
     };
     
     this.GetListenerUpX = function()
     {
-        return plugins_quorum_Libraries_Sound_Audio_.listener.upX.value;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.upX)
+            return plugins_quorum_Libraries_Sound_Audio_.listener.upX.value;
+        return plugins_quorum_Libraries_Sound_Audio_.listenerData.upX;
     };
     
     this.GetListenerUpY = function()
     {
-        return plugins_quorum_Libraries_Sound_Audio_.listener.upY.value;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.upY)
+            return plugins_quorum_Libraries_Sound_Audio_.listener.upY.value;
+        return plugins_quorum_Libraries_Sound_Audio_.listenerData.upY;
     };
     
     this.GetListenerUpZ = function()
     {
-        return plugins_quorum_Libraries_Sound_Audio_.listener.upZ.value;
+        if (plugins_quorum_Libraries_Sound_Audio_.listener.upZ)
+            return -plugins_quorum_Libraries_Sound_Audio_.listener.upZ.value;
+        return -plugins_quorum_Libraries_Sound_Audio_.listenerData.upZ;
     };
     
     this.SetRotation$quorum_number = function(newRotation)
