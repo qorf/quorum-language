@@ -2812,4 +2812,32 @@ class Game
         end
         return undefined
     end
+
+    /*
+    The SetWebCanvasName action determines which canvas to use on a webpage.
+    When the game runs, it will be displayed on the designated canvas. If no
+    canvas name is given, the engine will attempt to find a canvas with the
+    default name, "QuorumGraphicsCanvas". If the engine can't find a canvas with
+    the set name, it will not run. This action has no effect if called inside a
+    game that isn't being run online.
+
+    Attribute: Parameter name The name of the canvas to display graphics on.
+    
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.WebConfiguration
+
+    class Main is Game
+
+        action Main
+            SetWebCanvasName("myCanvas")
+            StartGame()
+        end
+    end
+    */
+    action SetWebCanvasName(text name)
+        WebConfiguration config = GetWebConfiguration()
+        config:canvasID = name
+    end
 end

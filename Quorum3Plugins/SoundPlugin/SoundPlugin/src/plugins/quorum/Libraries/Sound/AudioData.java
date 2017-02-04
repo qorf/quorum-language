@@ -266,8 +266,8 @@ public abstract class AudioData extends DesktopData
         }
         
         this.x = 0;
-        this.y = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
-        this.z = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
+        this.y = (float)Math.sin((fade + 1) * (float)Math.PI / 2);
+        this.z = -(float)Math.cos((fade - 1) * (float)Math.PI / 2);
         
         manager.SetSoundFade(soundID, fade);
     }

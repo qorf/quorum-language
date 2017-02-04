@@ -2826,7 +2826,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
                     
                     directionalLights[i].GetColor().SetColor$quorum_number$quorum_number$quorum_number$quorum_number(0, 0, 0, 1);
                 }
-                else if (lightsSet && directionalLights[i] === dirs.Get(i))
+                else if (lightsSet && directionalLights[i] === dirs.Get$quorum_integer(i))
                     continue;
                 else
                 {
@@ -2852,7 +2852,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
                     
                     pointLights[i].SetIntensity$quorum_number(0);
                 }
-                else if (lightsSet && pointLights[i] === points.Get(i))
+                else if (lightsSet && pointLights[i] === points.Get$quorum_integer(i))
                     continue;
                 else
                 {
