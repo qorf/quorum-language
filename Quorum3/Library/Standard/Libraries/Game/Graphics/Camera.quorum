@@ -1153,7 +1153,6 @@ class Camera
         end
 
         action CreateGame
-
             Camera cam = GetCamera3D()
             Vector3 up = cam:GetUp()
 
@@ -1191,7 +1190,6 @@ class Camera
         end
 
         action CreateGame
-
             Camera cam = GetCamera3D()
             cam:SetNear(0.5)
         end
@@ -1226,7 +1224,6 @@ class Camera
         end
 
         action CreateGame
-
             Camera cam = GetCamera3D()
             
             output "The default distance to the near clipping plane of the 3D camera is " + cam:GetNear()
@@ -1260,7 +1257,6 @@ class Camera
         end
 
         action CreateGame
-
             Camera cam = GetCamera3D()
             cam:SetFar(2000)
         end
@@ -1295,7 +1291,6 @@ class Camera
         end
 
         action CreateGame
-
             Camera cam = GetCamera3D()
             
             output "The default distance to the far clipping plane of the 3D camera is " + cam:GetFar()
@@ -1335,7 +1330,6 @@ class Camera
         end
 
         action CreateGame
-
             Camera cam = GetCamera3D()
             
             output "The default width of the 3D camera is " + cam:GetWidth()
@@ -1392,6 +1386,14 @@ class Camera
     end
 
     /*
+    This action will set the effective width and height of the camera lens.
+    */
+    action SetSize(number width, number height)
+        viewportWidth = width
+        viewportHeight = height
+    end
+
+    /*
     This action returns the calculated projection matrix of the Camera. This is
     primarily used internally by the engine for calculations.
 
@@ -1410,7 +1412,6 @@ class Camera
         end
 
         action CreateGame
-
             Camera cam = GetCamera3D()
             Matrix4 projection = cam:GetProjectionMatrix()
         end

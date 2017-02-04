@@ -232,6 +232,9 @@ function plugins_quorum_Libraries_Sound_Audio_()
             onloadQueue.push(Play);
         else
         {
+            if (this.IsPlaying)
+                source.stop();
+            
             source = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
             source.buffer = soundBuffer;
             source.connect(panner);
