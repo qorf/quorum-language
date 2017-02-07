@@ -1630,7 +1630,9 @@ class Item2D is Item
             Rotate(0)
         end
 
-        shape:Scale(me:scale:GetX(), me:scale:GetY())
+        if shape not= undefined
+            shape:Scale(me:scale:GetX(), me:scale:GetY())
+        end
     end
 
     /*
@@ -1675,7 +1677,9 @@ class Item2D is Item
             Rotate(0)
         end
 
-        shape:Scale(me:scale:GetX(), me:scale:GetY())
+        if shape not= undefined
+            shape:Scale(me:scale:GetX(), me:scale:GetY())
+        end
     end
 
     /*
@@ -1775,8 +1779,9 @@ class Item2D is Item
                 Rotate(0)
             end
             */
-
-        shape:Scale(me:scale:GetX(), me:scale:GetY())
+        if shape not= undefined
+            shape:Scale(me:scale:GetX(), me:scale:GetY())
+        end
     end
 
     /*
@@ -1829,7 +1834,9 @@ class Item2D is Item
         if rotation not= 0
             Rotate(0)
         end
-        shape:Scale(me:scale:GetX(), me:scale:GetY())
+        if shape not= undefined
+            shape:Scale(me:scale:GetX(), me:scale:GetY())
+        end
     end
 
     /*
@@ -2192,10 +2199,6 @@ class Item2D is Item
         me:transform0:Set(transform)
     end
 
-    action GetPosition returns Vector2
-        return transform:GetPosition()
-    end
-
     action SynchronizeNodes
         PhysicsPosition2D xf1
 
@@ -2404,7 +2407,7 @@ class Item2D is Item
     end
 
     action EnablePhysics(boolean flag)
-        SetCollidable(true)
+        SetCollidable(flag)
         physicsEnabled = flag
     
         if physicsEnabled
@@ -2438,6 +2441,22 @@ class Item2D is Item
         end
 
         properties:SetLinearVelocity(linearVelocity)
+    end
+
+    action SetLinearVelocityX(number linearVelocityX)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetLinearVelocityX(linearVelocityX)
+    end
+
+    action SetLinearVelocityY(number linearVelocityY)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetLinearVelocityY(linearVelocityY)
     end
 
     action GetLinearVelocity returns Vector2
@@ -2913,8 +2932,6 @@ class Item2D is Item
             transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
             sweep:SetAngle(transform:GetAngle())
         end
-
-        transform0:Set(transform)
 
         integer i = 0
         repeat children:GetSize() times

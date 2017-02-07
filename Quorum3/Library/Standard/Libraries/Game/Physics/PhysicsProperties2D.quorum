@@ -125,6 +125,22 @@ class PhysicsProperties2D
         me:linearVelocity:Set(linearVelocity)
     end
 
+    action SetLinearVelocityX(number linearVelocityX)
+        if type = UNMOVABLE
+            return now
+        end
+
+        me:linearVelocity:Set(linearVelocityX, me:linearVelocity:GetY())
+    end
+
+    action SetLinearVelocityY(number linearVelocityY)
+        if type = UNMOVABLE
+            return now
+        end
+
+        me:linearVelocity:Set(me:linearVelocity:GetX(), linearVelocityY)
+    end
+
     action GetLinearVelocity returns Vector2
         return linearVelocity
     end
