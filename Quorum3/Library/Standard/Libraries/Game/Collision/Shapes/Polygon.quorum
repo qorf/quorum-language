@@ -60,7 +60,7 @@ class Polygon is CollisionShape2D
     action Set(Array<Vector2> passedVertices, integer count)
         if count < 3
             SetAsBox(1, 1)
-            output "degenerate"
+            alert("Not enough vertices for polygon shape")
             return now
         end
 
@@ -102,7 +102,7 @@ class Polygon is CollisionShape2D
         n = tempCount
         if n < 3
             SetAsBox(1, 1)
-            output "degenerate"
+            alert("Not enough unique vertices for polygon shape")
             return now
         end
 
@@ -402,9 +402,9 @@ class Polygon is CollisionShape2D
             Vector2 p2 = vectors:Get(i)
             Vector2 p3
             if i + 1 < vertexCount
-                p3:Set(vectors:Get(i + 1))
+                p3 = vectors:Get(i + 1)
             else
-                p3:Set(vectors:Get(0))
+                p3 = vectors:Get(0)
             end
 
             e1:Set(p2):Subtract(p1)

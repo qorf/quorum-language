@@ -1522,9 +1522,8 @@ class Layer2D is Layer
 
         if physicsEnabled
             StepPhysics(seconds)
+            SetScreenPositionsFromPhysicsPositions()
         end
-
-        SetScreenPositionsFromPhysicsPositions()
     end
 
     private action SetPhysicsPositionsFromScreenPositions
