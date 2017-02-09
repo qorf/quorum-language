@@ -87,7 +87,7 @@ class Layer2D is Layer
     number inverseDeltaTime0 = 0
 
     boolean warmStarting = false
-    boolean continuousPhysics = true
+    boolean continuousPhysics = false
     boolean subStepping = false
     boolean stepComplete = true
 
@@ -1778,6 +1778,19 @@ class Layer2D is Layer
 
                             jointEdge = jointEdge:GetNext()
                         end
+
+                        integer k = 0
+                        repeat body:GetItemCount() times
+                            Item2D child = body:GetItem(k)
+                            if child:GetCollisionGroupFlag()
+                                // continue with group -- the child item is
+                                // already in the group
+                            else
+                                stack:Push(child)
+                                child:SetCollisionGroupFlag(true)
+                            end
+                            k = k + 1
+                        end
                     end
                 end
 
@@ -1800,7 +1813,7 @@ class Layer2D is Layer
             Item2D body = items:Get(i)
             if not body:IsPhysicsEnabled() 
                 // do nothing -- physics is not enabled for this item
-            elseif not body:GetCollisionGroupFlag() and body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
+            elseif (not body:GetCollisionGroupFlag()) and body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
                 // do nothing -- this item was never a part of a physics group
             elseif body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE and not body:HasMoved()
                 // do nothing -- this item is unmovable so synchronizing its nodes
