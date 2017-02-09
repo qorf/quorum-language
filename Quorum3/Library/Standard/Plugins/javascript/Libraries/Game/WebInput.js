@@ -4,12 +4,22 @@ function plugins_quorum_Libraries_Game_WebInput_()
     {
         plugins_quorum_Libraries_Game_WebInput_.KeyDown = function()
         {
-
+            if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas() === document.activeElement)
+            {
+                alert("keydown on canvas");
+            }
+            else
+                alert("keydown off canvas");
         };
         
         plugins_quorum_Libraries_Game_WebInput_.KeyUp = function()
         {
-            
+            if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas() === document.activeElement)
+            {
+                alert("keyup on canvas");
+            }
+            else
+                alert("keyup off canvas");
         };
         
         plugins_quorum_Libraries_Game_WebInput_.MouseDown = function()
