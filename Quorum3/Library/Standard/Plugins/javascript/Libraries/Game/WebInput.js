@@ -289,14 +289,12 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__D_());
                         break;
                     default:
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__UNKNOWN_());
                         alert("I did not catch that key code: " + event.code);
                 }
                 
                 if (event.code !== "Tab")
-                {
                     event.preventDefault();
-                    alert("Prevented default behavior.");
-                }
             }
             else
             {
@@ -573,6 +571,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         }
                         break;
                     default:
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__UNKNOWN_());
                         alert("I did not recognize this keyCode: " + event.keyCode);
                 }
                 
