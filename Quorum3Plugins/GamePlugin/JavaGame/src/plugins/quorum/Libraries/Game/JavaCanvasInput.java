@@ -383,9 +383,9 @@ public class JavaCanvasInput implements MouseMotionListener, MouseListener, Mous
         switch (keyCode) 
         {
             case java.awt.event.KeyEvent.VK_ADD:
-                return keyConstants.PLUS;
+                return keyConstants.NUMPAD_PLUS;
             case java.awt.event.KeyEvent.VK_SUBTRACT:
-                return keyConstants.MINUS;
+                return keyConstants.NUMPAD_MINUS;
             case java.awt.event.KeyEvent.VK_0:
                 return keyConstants.NUM_0;
             case java.awt.event.KeyEvent.VK_1:
@@ -467,15 +467,15 @@ public class JavaCanvasInput implements MouseMotionListener, MouseListener, Mous
             case java.awt.event.KeyEvent.VK_COMMA:
                 return keyConstants.COMMA;
             case java.awt.event.KeyEvent.VK_DELETE:
-                return keyConstants.FORWARD_DEL;
+                return keyConstants.FORWARD_DELETE;
             case java.awt.event.KeyEvent.VK_LEFT:
-                return keyConstants.DPAD_LEFT;
+                return keyConstants.LEFT;
             case java.awt.event.KeyEvent.VK_RIGHT:
-                return keyConstants.DPAD_RIGHT;
+                return keyConstants.RIGHT;
             case java.awt.event.KeyEvent.VK_UP:
-                return keyConstants.DPAD_UP;
+                return keyConstants.UP;
             case java.awt.event.KeyEvent.VK_DOWN:
-                return keyConstants.DPAD_DOWN;
+                return keyConstants.DOWN;
             case java.awt.event.KeyEvent.VK_ENTER:
                 return keyConstants.ENTER;
             case java.awt.event.KeyEvent.VK_HOME:
@@ -484,8 +484,8 @@ public class JavaCanvasInput implements MouseMotionListener, MouseListener, Mous
                 return keyConstants.MINUS;
             case java.awt.event.KeyEvent.VK_PERIOD:
                 return keyConstants.PERIOD;
-            case java.awt.event.KeyEvent.VK_PLUS:
-                return keyConstants.PLUS;
+            case java.awt.event.KeyEvent.VK_EQUALS:
+                return keyConstants.EQUALS;
             case java.awt.event.KeyEvent.VK_SEMICOLON:
                 return keyConstants.SEMICOLON;
             case java.awt.event.KeyEvent.VK_SHIFT:
@@ -497,7 +497,7 @@ public class JavaCanvasInput implements MouseMotionListener, MouseListener, Mous
             case java.awt.event.KeyEvent.VK_TAB:
                 return keyConstants.TAB;
             case java.awt.event.KeyEvent.VK_BACK_SPACE:
-                return keyConstants.DEL;
+                return keyConstants.BACKSPACE;
             case java.awt.event.KeyEvent.VK_CONTROL:
                 return keyConstants.CONTROL_LEFT;
             case java.awt.event.KeyEvent.VK_ESCAPE:
