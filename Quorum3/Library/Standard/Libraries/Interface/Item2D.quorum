@@ -3079,4 +3079,20 @@ class Item2D is Item
         temp2:SetY(properties:GetAngularVelocity() * temp:GetX())
         properties:GetLinearVelocity():Add(temp2)
     end
+
+    action ShouldCollide(Item2D otherItem) returns boolean
+        if otherItem = parentItem
+            return false
+        end
+        integer i = 0
+        repeat children:GetSize() times
+            Item2D child = children:Get(i)
+            if child = otherItem
+                return false
+            end
+            i = i + 1
+        end
+
+        return true
+    end
 end
