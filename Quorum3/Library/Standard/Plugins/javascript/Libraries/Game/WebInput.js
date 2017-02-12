@@ -2,11 +2,20 @@ function plugins_quorum_Libraries_Game_WebInput_()
 {
     if (!plugins_quorum_Libraries_Game_WebInput_.initialized_plugins_quorum_Libraries_Game_WebInput_)
     {
+        plugins_quorum_Libraries_Game_WebInput_.mouseEvents = [];
+        plugins_quorum_Libraries_Game_WebInput_.keyboardEvents = [];
+        plugins_quorum_Libraries_Game_WebInput_.pressedKeys = {};
+        
         plugins_quorum_Libraries_Game_WebInput_.KeyDown = function(event)
         {
             if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas() === document.activeElement)
             {
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent(event, true);
+                if (!plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()])
+                {
+                    plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()] = true;
+                    plugins_quorum_Libraries_Game_WebInput_.keyboardEvents.push(quorumEvent);
+                }
             }
         };
         
@@ -14,7 +23,12 @@ function plugins_quorum_Libraries_Game_WebInput_()
         {
             if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas() === document.activeElement)
             {
-                
+                var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent(event, false);
+                if (plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()])
+                {
+                    plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()] = false;
+                    plugins_quorum_Libraries_Game_WebInput_.keyboardEvents.push(quorumEvent);
+                }
             }
         };
         
@@ -94,7 +108,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__COMMA_());
                         break;
                     case "Delete":
-                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__FORWARD_DEL_());
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__FORWARD_DELETE_());
                         break;
                     case "Backspace":
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__BACKSPACE_());
@@ -120,6 +134,9 @@ function plugins_quorum_Libraries_Game_WebInput_()
                     case "Backquote":
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__GRAVE_());
                         break;
+                    case "Pause":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__PAUSE_());
+                        break;
                     case "Home":
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__HOME_());
                         break;
@@ -138,9 +155,6 @@ function plugins_quorum_Libraries_Game_WebInput_()
                     case "Period":
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__PERIOD_());
                         break;
-                    case "NumpadAdd":
-                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__PLUS_());
-                        break;
                     case "Semicolon":
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__SEMICOLON_());
                         break;
@@ -156,8 +170,26 @@ function plugins_quorum_Libraries_Game_WebInput_()
                     case "Space":
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__SPACE_());
                         break;
+                    case "NumpadAdd":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_PLUS_());
+                        break;
                     case "NumpadMultiply":
-                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__STAR_());
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_STAR_());
+                        break;
+                    case "NumpadSubtract":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_MINUS_());
+                        break;
+                    case "NumpadDivide":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_SLASH_());
+                        break;
+                    case "NumpadDecimal":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_DECIMAL_());
+                        break;
+                    case "NumpadEnter":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_ENTER_());
+                        break;
+                    case "NumpadEqual":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_EQUAL_());
                         break;
                     case "Tab":
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__TAB_());
@@ -288,9 +320,53 @@ function plugins_quorum_Libraries_Game_WebInput_()
                     case "KeyZ":
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__D_());
                         break;
+                    case "CapsLock":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__CAPS_LOCK_());
+                        break;
+                    case "NumLock":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUM_LOCK_());
+                        break;
+                    case "ScrollLock":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__SCROLL_LOCK_());
+                        break;
+                    case "F1":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F1_());
+                        break;
+                    case "F2":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F2_());
+                        break;
+                    case "F3":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F3_());
+                        break;
+                    case "F4":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F4_());
+                        break;
+                    case "F5":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F5_());
+                        break;
+                    case "F6":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F6_());
+                        break;
+                    case "F7":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F7_());
+                        break;
+                    case "F8":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F8_());
+                        break;
+                    case "F9":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F9_());
+                        break;
+                    case "F10":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F10_());
+                        break;
+                    case "F11":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F11_());
+                        break;
+                    case "F12":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F12_());
+                        break;
                     default:
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__UNKNOWN_());
-                        alert("I did not catch that key code: " + event.code);
                 }
                 
                 if (event.code !== "Tab")
@@ -298,8 +374,6 @@ function plugins_quorum_Libraries_Game_WebInput_()
             }
             else
             {
-                alert("The keyCode was " + event.keyCode);
-                
                 switch(event.keyCode)
                 {
                     // Numbers, 0-9, above the letters on the keyboard.
@@ -454,7 +528,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__BACKSPACE_());
                         break;
                     case 46: // Forward Delete
-                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__FORWARD_DEL_());
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__FORWARD_DELETE_());
                         break;
                     case 37: // Left Arrow
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__LEFT_());
@@ -507,6 +581,9 @@ function plugins_quorum_Libraries_Game_WebInput_()
                     case 27: // Escape
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__ESCAPE_());
                         break;
+                    case 19: // Pause
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__PAUSE_());
+                        break;    
                     case 35: // End
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__END_());
                         break;
@@ -524,11 +601,73 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         break;
                     // Other keys near the numpad.
                     case 106: // Numpad *
-                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__STAR_());
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_STAR_());
                         break;
                     case 107: // Numpad +
-                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__PLUS_());
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_PLUS_());
                         break;
+                    case 109: // Numpad -
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_MINUS_());
+                        break;
+                    case 111: // Numpad /
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_SLASH_());
+                        break;
+                    case 110: // Numpad Decimal
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_DECIMAL_());
+                        break;
+                    case 13: // Numpad Enter
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_ENTER_());
+                        break;
+                    case 12: // Numpad Equal
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_EQUALS_());
+                        break;
+                    // The "lock" keys.
+                    case 20: // Caps Lock
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__CAPS_LOCK_());
+                        break;
+                    case 144: // Num Lock
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUM_LOCK_());
+                        break;
+                    case 145: // Scroll Lock
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__SCROLL_LOCK_());
+                        break; 
+                    // Function keys.
+                    case 112: // F1
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F1_());
+                        break; 
+                    case 113: // F2
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F2_());
+                        break; 
+                    case 114: // F3
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F3_());
+                        break; 
+                    case 115: // F4
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F4_());
+                        break; 
+                    case 116: // F5
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F5_());
+                        break; 
+                    case 117: // F6
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F6_());
+                        break; 
+                    case 118: // F7
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F7_());
+                        break; 
+                    case 119: // F8
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F8_());
+                        break; 
+                    case 120: // F9
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F9_());
+                        break; 
+                    case 121: // F10
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F10_());
+                        break; 
+                    case 122: // F11
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F11_());
+                        break; 
+                    case 123: // F12
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F12_());
+                        break; 
                     // Keys which have a key on both the left and right.
                     case 18: // Alt Key
                         if (event.location === KeyboardEvent.DOM_KEY_LOCATION_LEFT)
@@ -572,16 +711,13 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         break;
                     default:
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__UNKNOWN_());
-                        alert("I did not recognize this keyCode: " + event.keyCode);
                 }
                 
                 if (event.keyCode !== 9)
                 {
                     event.preventDefault();
-                    alert("Prevented default behavior.");
                 }
             }
-//            alert("event.code = " + event.code);
             
             return quorumEvent;
         };
@@ -589,11 +725,19 @@ function plugins_quorum_Libraries_Game_WebInput_()
         plugins_quorum_Libraries_Game_WebInput_.initialized_plugins_quorum_Libraries_Game_WebInput_ = true;
     }
     
-    var mouseEvents = [];
-    var keyboardEvents = [];
-    
     this.CheckForEvents$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array = function(mEvents, kEvents)
     {
+        for (var i = 0; i < plugins_quorum_Libraries_Game_WebInput_.keyboardEvents.length; i++)
+        {
+            kEvents.Add$quorum_Libraries_Language_Object(plugins_quorum_Libraries_Game_WebInput_.keyboardEvents[i]);
+        }
         
+        for (var i = 0; i < plugins_quorum_Libraries_Game_WebInput_.mouseEvents.length; i++)
+        {
+            mEvents.Add$quorum_Libraries_Language_Object(plugins_quorum_Libraries_Game_WebInput_.mouseEvents[i]);
+        }
+        
+        plugins_quorum_Libraries_Game_WebInput_.keyboardEvents = [];
+        plugins_quorum_Libraries_Game_WebInput_.mouseEvents = [];
     };
 }
