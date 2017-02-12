@@ -20,7 +20,6 @@ public class KeyboardProcessor {
     public void Update() 
     {
         quorum.Libraries.Interface.Events.KeyboardProcessor quorumProcessor = (quorum.Libraries.Interface.Events.KeyboardProcessor) me_;
-
         quorum.Libraries.Containers.List_ events = quorumProcessor.events;
 
         if (Keyboard.isCreated()) 
@@ -28,7 +27,6 @@ public class KeyboardProcessor {
             while (Keyboard.next()) 
             {
                 int keyCode = GetGameKeyCode(Keyboard.getEventKey());
-
                 quorum.Libraries.Interface.Events.KeyboardEvent event = new quorum.Libraries.Interface.Events.KeyboardEvent();
                 event.keyCode = keyCode;
 
@@ -41,7 +39,6 @@ public class KeyboardProcessor {
 
                 events.Add(event);
             }
-            
         }
     }
 
@@ -55,28 +52,24 @@ public class KeyboardProcessor {
                 return plugins.quorum.Libraries.Game.InputMonitor.RIGHT_BRACKET;
             case Keyboard.KEY_GRAVE:
                 return plugins.quorum.Libraries.Game.InputMonitor.GRAVE;
-            case Keyboard.KEY_MULTIPLY:
-                return plugins.quorum.Libraries.Game.InputMonitor.STAR;
             case Keyboard.KEY_NUMLOCK:
-                return plugins.quorum.Libraries.Game.InputMonitor.NUM;
-            case Keyboard.KEY_DECIMAL:
-                return plugins.quorum.Libraries.Game.InputMonitor.PERIOD;
-            case Keyboard.KEY_DIVIDE:
-                return plugins.quorum.Libraries.Game.InputMonitor.SLASH;
+                return plugins.quorum.Libraries.Game.InputMonitor.NUM_LOCK;
+            case Keyboard.KEY_SCROLL:
+                return plugins.quorum.Libraries.Game.InputMonitor.SCROLL_LOCK;
+            case Keyboard.KEY_CAPITAL:
+                return plugins.quorum.Libraries.Game.InputMonitor.CAPS_LOCK;
+            case Keyboard.KEY_PAUSE:
+                return plugins.quorum.Libraries.Game.InputMonitor.PAUSE;
+            case Keyboard.KEY_SYSRQ:
+                return plugins.quorum.Libraries.Game.InputMonitor.PRINT_SCREEN;
             case Keyboard.KEY_LMETA:
-                return plugins.quorum.Libraries.Game.InputMonitor.SYM;
+                return plugins.quorum.Libraries.Game.InputMonitor.META_LEFT;
             case Keyboard.KEY_RMETA:
-                return plugins.quorum.Libraries.Game.InputMonitor.SYM;
-            case Keyboard.KEY_NUMPADEQUALS:
-                return plugins.quorum.Libraries.Game.InputMonitor.EQUALS;
-            case Keyboard.KEY_AT:
-                return plugins.quorum.Libraries.Game.InputMonitor.AT;
+                return plugins.quorum.Libraries.Game.InputMonitor.META_RIGHT;
             case Keyboard.KEY_EQUALS:
                 return plugins.quorum.Libraries.Game.InputMonitor.EQUALS;
             case Keyboard.KEY_NUMPADCOMMA:
                 return plugins.quorum.Libraries.Game.InputMonitor.COMMA;
-            case Keyboard.KEY_NUMPADENTER:
-                return plugins.quorum.Libraries.Game.InputMonitor.ENTER;
             case Keyboard.KEY_0:
                 return plugins.quorum.Libraries.Game.InputMonitor.NUM_0;
             case Keyboard.KEY_1:
@@ -158,15 +151,15 @@ public class KeyboardProcessor {
             case Keyboard.KEY_COMMA:
                 return plugins.quorum.Libraries.Game.InputMonitor.COMMA;
             case Keyboard.KEY_DELETE:
-                return plugins.quorum.Libraries.Game.InputMonitor.FORWARD_DEL;
+                return plugins.quorum.Libraries.Game.InputMonitor.FORWARD_DELETE;
             case Keyboard.KEY_LEFT:
-                return plugins.quorum.Libraries.Game.InputMonitor.DPAD_LEFT;
+                return plugins.quorum.Libraries.Game.InputMonitor.LEFT;
             case Keyboard.KEY_RIGHT:
-                return plugins.quorum.Libraries.Game.InputMonitor.DPAD_RIGHT;
+                return plugins.quorum.Libraries.Game.InputMonitor.RIGHT;
             case Keyboard.KEY_UP:
-                return plugins.quorum.Libraries.Game.InputMonitor.DPAD_UP;
+                return plugins.quorum.Libraries.Game.InputMonitor.UP;
             case Keyboard.KEY_DOWN:
-                return plugins.quorum.Libraries.Game.InputMonitor.DPAD_DOWN;
+                return plugins.quorum.Libraries.Game.InputMonitor.DOWN;
             case Keyboard.KEY_RETURN:
                 return plugins.quorum.Libraries.Game.InputMonitor.ENTER;
             case Keyboard.KEY_HOME:
@@ -175,8 +168,6 @@ public class KeyboardProcessor {
                 return plugins.quorum.Libraries.Game.InputMonitor.MINUS;
             case Keyboard.KEY_PERIOD:
                 return plugins.quorum.Libraries.Game.InputMonitor.PERIOD;
-            case Keyboard.KEY_ADD:
-                return plugins.quorum.Libraries.Game.InputMonitor.PLUS;
             case Keyboard.KEY_SEMICOLON:
                 return plugins.quorum.Libraries.Game.InputMonitor.SEMICOLON;
             case Keyboard.KEY_LSHIFT:
@@ -204,11 +195,11 @@ public class KeyboardProcessor {
             case Keyboard.KEY_INSERT:
                 return plugins.quorum.Libraries.Game.InputMonitor.INSERT;
             case Keyboard.KEY_BACK:
-                return plugins.quorum.Libraries.Game.InputMonitor.DEL;
-            case Keyboard.KEY_SUBTRACT:
-                return plugins.quorum.Libraries.Game.InputMonitor.MINUS;
+                return plugins.quorum.Libraries.Game.InputMonitor.BACKSPACE;
             case Keyboard.KEY_APOSTROPHE:
                 return plugins.quorum.Libraries.Game.InputMonitor.APOSTROPHE;
+            case Keyboard.KEY_POWER:
+                return plugins.quorum.Libraries.Game.InputMonitor.POWER;
             case Keyboard.KEY_F1:
                 return plugins.quorum.Libraries.Game.InputMonitor.F1;
             case Keyboard.KEY_F2:
@@ -255,6 +246,20 @@ public class KeyboardProcessor {
                 return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_8;
             case Keyboard.KEY_NUMPAD9:
                 return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_9;
+            case Keyboard.KEY_ADD:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_PLUS;
+            case Keyboard.KEY_DECIMAL:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_DECIMAL;
+            case Keyboard.KEY_DIVIDE:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_SLASH;
+            case Keyboard.KEY_MULTIPLY:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_STAR;
+            case Keyboard.KEY_NUMPADENTER:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_ENTER;
+            case Keyboard.KEY_NUMPADEQUALS:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_EQUALS;
+            case Keyboard.KEY_SUBTRACT:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_MINUS;
             default:
                 return plugins.quorum.Libraries.Game.InputMonitor.UNKNOWN;
         }

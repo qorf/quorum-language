@@ -77,8 +77,8 @@ class OrthographicCamera is Camera
     Attribute: Parameter scale The amount to scale the camera lens.
     */
     action Scale(number scale)
-        number translateX = (parent:Camera:viewportWidth - parent:Camera:viewportWidth * scale) / 2
-        number translateY = (parent:Camera:viewportHeight - parent:Camera:viewportHeight * scale) / 2
+        number translateX = (parent:Camera:viewportWidth * scale - parent:Camera:viewportWidth) / 2
+        number translateY = (parent:Camera:viewportHeight * scale - parent:Camera:viewportHeight) / 2
         parent:Camera:viewportWidth = parent:Camera:viewportWidth * scale
         parent:Camera:viewportHeight = parent:Camera:viewportHeight * scale
         Move(translateX, translateY)

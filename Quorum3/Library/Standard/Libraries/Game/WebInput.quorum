@@ -6,9 +6,25 @@ use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Containers.Array
 
 class WebInput is GameInput
     
+    Array<MouseListener> mouseListeners
+    Array<MouseMovementListener> mouseMovementListeners
+    Array<MouseWheelListener> mouseWheelListeners
+    Array<KeyboardListener> keyboardListeners
+
+    /* 
+    Arrays storing the events that have occurred. These are filled by the
+    CheckForEvents action, and emptied at the end of each call to
+    ProcessInputEvents.
+    */
+    Array<MouseEvent> mouseEvents
+    Array<KeyboardEvent> keyboardEvents
+
     /*
     This action will identify all input events that have occurred and notify
     all relevant event listeners. For certain kinds of input, e.g. mouse or
@@ -17,7 +33,91 @@ class WebInput is GameInput
     users will never need to use this action directly.
     */
     action ProcessInputEvents
+        CheckForEvents(mouseEvents, keyboardEvents)
+        Array<Layer> layers = parent:GameInput:layers
 
+        MouseEvent mouseEvent = undefined
+
+        repeat mouseEvents:GetSize() times
+            mouseEvent = mouseEvents:RemoveFromFront()
+
+            integer counter = layers:GetSize()
+            repeat while counter > 0 and not mouseEvent:WasEventHandled()
+                counter = counter - 1
+                layers:Get(counter):ProcessMouseEvent(mouseEvent)
+            end
+
+            if not mouseEvent:WasEventHandled()
+                NotifyMouseListeners(mouseEvent)
+            end
+        end
+
+        integer counter = 0
+        repeat keyboardEvents:GetSize() times
+            KeyboardEvent currentEvent = keyboardEvents:Get(counter)
+            integer listenerCounter = 0
+
+            repeat keyboardListeners:GetSize() times
+                KeyboardListener currentListener = keyboardListeners:Get(listenerCounter)
+                if currentEvent:eventType = currentEvent:PRESSED_KEY
+                    currentListener:PressedKey(currentEvent)
+                elseif currentEvent:eventType = currentEvent:RELEASED_KEY
+                    currentListener:ReleasedKey(currentEvent)
+                end
+            end
+
+            counter = counter + 1
+        end
+
+        mouseEvents:Empty()
+        keyboardEvents:Empty()
+    end
+
+    /*
+    Checks for any mouse or keyboard events that have occurred, and adds them to
+    the end of the provided arrays.
+    */
+    private system action CheckForEvents(Array<MouseEvent> mouseEvents, Array<KeyboardEvent> keyboardEvents)
+
+    /*
+    This action forwards a mouse event to the listeners that are stored directly
+    in the WebInput.
+    */
+    private action NotifyMouseListeners(MouseEvent event)
+
+        integer counter = 0
+
+        if event:eventType = event:MOVED_MOUSE
+            repeat mouseMovementListeners:GetSize() times
+                mouseMovementListeners:Get(counter):MovedMouse(event)
+                counter = counter + 1
+            end
+
+        elseif event:eventType = event:DRAGGED_MOUSE
+            repeat mouseMovementListeners:GetSize() times
+                mouseMovementListeners:Get(counter):DraggedMouse(event)
+                counter = counter + 1
+            end
+
+        elseif event:eventType = event:CLICKED_MOUSE
+            repeat mouseListeners:GetSize() times
+                mouseListeners:Get(counter):ClickedMouse(event)
+                counter = counter + 1
+            end
+
+        elseif event:eventType = event:RELEASED_MOUSE
+            repeat mouseListeners:GetSize() times
+                mouseListeners:Get(counter):ReleasedMouse(event)
+                counter = counter + 1
+            end
+
+        else
+            repeat mouseWheelListeners:GetSize() times
+                mouseWheelListeners:Get(counter):ScrolledMouse(event)
+                counter = counter + 1
+            end
+            
+        end
     end
 
     /*
@@ -26,7 +126,7 @@ class WebInput is GameInput
     is automatically called by the Game class when needed.
     */
     action AddKeyboardListener(KeyboardListener listener)
-
+        keyboardListeners:Add(listener)
     end
 
     /*
@@ -35,7 +135,7 @@ class WebInput is GameInput
     action is automatically called by the Game class when needed.
     */
     action RemoveKeyboardListener(KeyboardListener listener)
-
+        keyboardListeners:Remove(listener)
     end
 
     /*
@@ -46,7 +146,7 @@ class WebInput is GameInput
     event.
     */
     action AddMouseListener(MouseListener listener)
-
+        mouseListeners:Add(listener)
     end
 
     /*
@@ -57,7 +157,7 @@ class WebInput is GameInput
     receive the event.
     */
     action AddMouseMovementListener(MouseMovementListener listener)
-
+        mouseMovementListeners:Add(listener)
     end
 
     /*
@@ -68,7 +168,7 @@ class WebInput is GameInput
     receive the event.
     */
     action AddMouseWheelListener(MouseWheelListener listener)
-
+        mouseWheelListeners:Add(listener)
     end
 
     /*
@@ -79,7 +179,7 @@ class WebInput is GameInput
     receive the event.
     */
     action AddTouchListener(TouchListener listener)
-
+        // Do nothing - the web uses mouse input, not touch input.
     end
 
     /*
@@ -87,7 +187,7 @@ class WebInput is GameInput
     receive mouse events directly from the GameInput.
     */
     action RemoveMouseListener(MouseListener listener)
-
+        mouseListeners:Remove(listener)
     end
 
     /*
@@ -95,7 +195,7 @@ class WebInput is GameInput
     will no longer receive events from the GameInput.
     */
     action RemoveMouseMovementListener(MouseMovementListener listener)
-
+        mouseMovementListeners:Remove(listener)
     end
 
     /*
@@ -103,7 +203,7 @@ class WebInput is GameInput
     will no longer receive events from the GameInput.
     */
     action RemoveMouseWheelListener(MouseWheelListener listener)
-
+        mouseWheelListeners:Remove(listener)
     end
 
     /*
@@ -111,7 +211,7 @@ class WebInput is GameInput
     no longer receive events from the GameInput.
     */
     action RemoveTouchListener(TouchListener listener)
-
+        // Do nothing - the web uses mouse input, not touch input.
     end
 
 end
