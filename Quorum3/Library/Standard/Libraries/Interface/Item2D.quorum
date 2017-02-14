@@ -2407,10 +2407,10 @@ class Item2D is Item
     end
 
     action EnablePhysics(boolean flag)
-        SetCollidable(flag)
         physicsEnabled = flag
     
         if physicsEnabled
+            SetCollidable(true)
             sweep:GetLocalCenter():SetZero()
             sweep:GetCenter0():Set(transform:GetPosition())
             sweep:GetCenter():Set(transform:GetPosition())
