@@ -32,23 +32,43 @@ function plugins_quorum_Libraries_Game_WebInput_()
             }
         };
         
-        plugins_quorum_Libraries_Game_WebInput_.MouseDown = function()
+        /*
+        public constant integer CLICKED_MOUSE = 1
+        public constant integer MOVED_MOUSE = 2
+        public constant integer DRAGGED_MOUSE = 3
+        public constant integer RELEASED_MOUSE = 4
+        public constant integer SCROLLED_MOUSE = 5
+         */
+        
+        plugins_quorum_Libraries_Game_WebInput_.MouseDown = function(event)
+        {
+            var canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
+            if (canvas === document.activeElement)
+            {
+                var rect = canvas.getBoundingClientRect();
+                alert("x = " + (event.clientX - rect.left));
+                alert("y = " + (rect.bottom - event.clientY));
+                alert("button = " + event.button);
+                
+                var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 1);
+            }
+        };
+        
+        plugins_quorum_Libraries_Game_WebInput_.MouseUp = function(event)
         {
             
         };
         
-        plugins_quorum_Libraries_Game_WebInput_.MouseUp = function()
+        plugins_quorum_Libraries_Game_WebInput_.MouseMove = function(event)
         {
-            
-        };
-        
-        plugins_quorum_Libraries_Game_WebInput_.MouseMove = function()
-        {
-            
+
         };
         
         document.addEventListener('keydown', plugins_quorum_Libraries_Game_WebInput_.KeyDown, false);
         document.addEventListener('keyup', plugins_quorum_Libraries_Game_WebInput_.KeyUp, false);
+        document.addEventListener('mousedown', plugins_quorum_Libraries_Game_WebInput_.MouseDown, false);
+        document.addEventListener('mouseup', plugins_quorum_Libraries_Game_WebInput_.MouseUp, false);
+        document.addEventListener('mousemove', plugins_quorum_Libraries_Game_WebInput_.MouseMove, false);
     
         plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent = function(event, pressed)
         {
@@ -189,7 +209,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_ENTER_());
                         break;
                     case "NumpadEqual":
-                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_EQUAL_());
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__NUMPAD_EQUALS_());
                         break;
                     case "Tab":
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__TAB_());
@@ -369,7 +389,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__UNKNOWN_());
                 }
                 
-                if (event.code !== "Tab")
+                if (event.code !== "Tab" || plugins_quorum_Libraries_Game_WebInput_.keepTabFocus())
                     event.preventDefault();
             }
             else
@@ -551,7 +571,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                     case 13: // Enter
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__ENTER_());
                         break;
-                    case 176: // Grave/Tilde
+                    case 192: // Grave/Tilde
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__GRAVE_());
                         break;
                     case 187: // Equal/Plus
@@ -699,7 +719,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                             quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__SHIFT_RIGHT_());
                         }
                         break;
-                    case 18: // Control Key
+                    case 17: // Control Key
                         if (event.location === KeyboardEvent.DOM_KEY_LOCATION_LEFT)
                         {
                             quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__CONTROL_LEFT_());
@@ -713,13 +733,28 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__UNKNOWN_());
                 }
                 
-                if (event.keyCode !== 9)
-                {
+                if (event.keyCode !== 9 || plugins_quorum_Libraries_Game_WebInput_.keepTabFocus())
                     event.preventDefault();
-                }
             }
             
             return quorumEvent;
+        };
+        
+        plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent = function(event, code)
+        {
+            var quorumEvent = new quorum_Libraries_Interface_Events_MouseEvent_();
+            
+            quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__mouseButton_(code);
+        };
+    
+        plugins_quorum_Libraries_Game_WebInput_.keepTabFocus = function()
+        {
+            return plugins_quorum_Libraries_Game_GameStateManager_.application.plugin_.GetConfiguration().Get_Libraries_Game_WebConfiguration__keepTabFocus_();
+        };
+        
+        plugins_quorum_Libraries_Game_WebInput_.disableContextMenu = function()
+        {
+            return plugins_quorum_Libraries_Game_GameStateManager_.application.plugin_.GetConfiguration().Get_Libraries_Game_WebConfiguration__disableContextMenu_();
         };
     
         plugins_quorum_Libraries_Game_WebInput_.initialized_plugins_quorum_Libraries_Game_WebInput_ = true;
