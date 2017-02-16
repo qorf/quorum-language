@@ -9,6 +9,13 @@ use Libraries.Game.Collision.Shapes.CollisionShape2D
 use Libraries.Game.Collision.Shapes.Circle
 use Libraries.Game.Collision.Shapes.Polygon
 use Libraries.Game.Collision.CollisionPoint2D
+use Libraries.Game.Collision.Narrowphase.DistanceInput2D
+use Libraries.Game.Collision.Narrowphase.DistanceOutput2D
+use Libraries.Game.Collision.Narrowphase.SimplexCache2D
+use Libraries.Game.Collision.CollisionIdentifier2D
+use Libraries.Game.Collision.Narrowphase.Distance2D
+use Libraries.Game.Collision.EdgeResult2D
+use Libraries.Game.Collision.ClipVertex2D
 
 package Libraries.Interface.Events
 
@@ -43,19 +50,32 @@ class CollisionEvent2D
 
     LocalCollisionPoints2D collisionPoints
 
-    private number separation1 = 0
-    private integer edgeIndex1 = 0
-    private number separation2 = 0
-    private integer edgeIndex2 = 0
-
     action Initialize(Item2D itemA, integer indexA, Item2D itemB, integer indexB)
         enabledFlag = true
         
-        me:itemA = itemA
-        me:indexA = indexA
-        
-        me:itemB = itemB
-        me:indexB = indexB
+        CollisionShape2D shapeA = itemA:GetShape()
+        CollisionShape2D shapeB = itemB:GetShape()
+
+        if shapeA is Circle and shapeB is Circle or
+           shapeA is Polygon and shapeB is Polygon or
+           shapeA is Polygon and shapeB is Circle
+           // Either the shapes are the same type or the polygon is the
+           // first shape, so we can just assign the values as they come in
+            me:itemA = itemA
+            me:indexA = indexA
+
+            me:itemB = itemB
+            me:indexB = indexB
+        else
+            // The first shape is a circle and the second shape is a circle, but
+            // the collision algorithm for CirclePolygon collision assumes the
+            // other way around, so flip them here
+            me:itemA = itemB
+            me:indexA = indexB
+            
+            me:itemB = itemA
+            me:indexB = indexA
+        end
 
         collisionPoints:pointCount = 0
 
@@ -169,11 +189,50 @@ class CollisionEvent2D
         boolean touching = false
         boolean wasTouching = touchingFlag
 
+        boolean sensorA = not itemA:IsPhysicsEnabled()
+        boolean sensorB = not itemB:IsPhysicsEnabled()
+        boolean sensor = sensorA or sensorB
+
         PhysicsPosition2D transformA = itemA:GetTransform()
         PhysicsPosition2D transformB = itemB:GetTransform()
 
-        NarrowphaseEvaluation(collisionPoints, transformA, transformB)
-        touching = collisionPoints:GetPointCount() > 0
+        if sensor
+            CollisionShape2D shapeA = itemA:GetShape()
+            CollisionShape2D shapeB = itemB:GetShape()
+
+            touching = TestOverlap(shapeA, indexA, shapeB, indexB, transformA, transformB)
+            collisionPoints:SetPointCount(0)
+        else
+            NarrowphaseEvaluation(collisionPoints, transformA, transformB)
+            touching = collisionPoints:GetPointCount() > 0
+
+            integer i = 0
+            repeat while i < collisionPoints:GetPointCount()
+                CollisionPoint2D p2 = collisionPoints:GetPoints():Get(i)
+                p2:SetNormalImpulse(0)
+                p2:SetTangentImpulse(0)
+                CollisionIdentifier2D id2 = p2:GetIdentifier()
+
+                integer j = 0
+                repeat while j < oldCollisionPoints:GetPointCount()
+                    CollisionPoint2D p1 = oldCollisionPoints:GetPoints():Get(j)
+
+                    if p1:GetIdentifier():Equals(id2)
+                        p2:SetNormalImpulse(p1:GetNormalImpulse())
+                        p2:SetTangentImpulse(p1:GetTangentImpulse())
+                    end
+
+                    j = j + 1
+                end
+
+                i = i + 1
+            end
+
+            if touching not= wasTouching
+                itemA:Simulate(true)
+                itemB:Simulate(true)
+            end
+        end
 
         touchingFlag = touching
 
@@ -212,6 +271,24 @@ class CollisionEvent2D
         end
     end
 
+    private action TestOverlap(CollisionShape2D shapeA, integer indexA, CollisionShape2D shapeB, integer indexB, PhysicsPosition2D transformA, PhysicsPosition2D transformB) returns boolean
+        DistanceInput2D in
+        in:GetProxyA():Set(shapeA, indexA)
+        in:GetProxyB():Set(shapeB, indexB)
+        in:GetTransformA():Set(transformA)
+        in:GetTransformB():Set(transformB)
+        in:SetUseRadii(true)
+
+        SimplexCache2D cache
+        cache:SetCount(0)
+
+        DistanceOutput2D out
+
+        Distance2D distance
+        distance:Distance(out, cache, in)
+        return out:GetDistance() < 10.0 * EPSILON
+    end
+
     private action NarrowphaseEvaluation(LocalCollisionPoints2D collisionPoints, PhysicsPosition2D transformA, PhysicsPosition2D transformB)
         CollisionShape2D shapeA = itemA:GetShape()
         CollisionShape2D shapeB = itemB:GetShape()
@@ -228,18 +305,30 @@ class CollisionEvent2D
         end
     end
 
+
+    Vector2 localTangent
+    Vector2 localNormal
+    Vector2 planePoint
+    Vector2 tangent
+    Vector2 v11
+    Vector2 v12
+    Array<ClipVertex2D> clipPoints1
+    Array<ClipVertex2D> clipPoints2
+
     private action CollidePolygons(LocalCollisionPoints2D collisionPoints, Polygon polygonA, PhysicsPosition2D transformA, Polygon polygonB, PhysicsPosition2D transformB)
         collisionPoints:pointCount = 0
+        EdgeResult2D results1
+        EdgeResult2D results2
 
         number totalRadius = polygonA:GetRadius() + polygonB:GetRadius()
 
-        FindMaxSeparation(polygonA, transformA, polygonB, transformB, true)
-        if separation1 > totalRadius
+        FindMaxSeparation(results1, polygonA, transformA, polygonB, transformB)
+        if results1:GetSeparation() > totalRadius
             return now
         end
 
-        FindMaxSeparation(polygonB, transformB, polygonA, transformA, false)
-        if separation2 > totalRadius
+        FindMaxSeparation(results2, polygonB, transformB, polygonA, transformA)
+        if results2:GetSeparation() > totalRadius
             return now
         end
 
@@ -248,30 +337,33 @@ class CollisionEvent2D
         PhysicsPosition2D xf1
         PhysicsPosition2D xf2
         integer edge1 = 0
+        boolean flip = false
         number k_tol = 0.1 * 0.005
 
-        if separation2 > separation1 + k_tol
+        if results2:GetSeparation() > results1:GetSeparation() + k_tol
             poly1 = polygonB
             poly2 = polygonA
             xf1 = transformB
             xf2 = transformA
-            edge1 = edgeIndex2
-            collisionPoints:type = collisionPoints:FACE_B
+            edge1 = results2:GetEdgeIndex()
+            collisionPoints:SetType(collisionPoints:FACE_B)
+            flip = true
         else
             poly1 = polygonA
             poly2 = polygonB
             xf1 = transformA
             xf2 = transformB
-            edge1 = edgeIndex1
-            collisionPoints:type = collisionPoints:FACE_A
+            edge1 = results1:GetEdgeIndex()
+            collisionPoints:SetType(collisionPoints:FACE_A)
+            flip = false
         end
         number xf1qs = xf1:GetSine()
         number xf1qc = xf1:GetCosine()
 
-        Array<Vector2> incidentEdge
+        Array<ClipVertex2D> incidentEdge
         repeat 2 times
-            Vector2 vector
-            incidentEdge:Add(vector)
+            ClipVertex2D vertex
+            incidentEdge:Add(vertex)
         end
 
         FindIncidentEdge(incidentEdge, poly1, xf1, edge1, poly2, xf2)
@@ -320,11 +412,11 @@ class CollisionEvent2D
 
         integer np = 0
         
-        Array<Vector2> clipPoints1
-        Array<Vector2> clipPoints2
+        Array<ClipVertex2D> clipPoints1
+        Array<ClipVertex2D> clipPoints2
         repeat 2 times
-            Vector2 v1
-            Vector2 v2
+            ClipVertex2D v1
+            ClipVertex2D v2
             clipPoints1:Add(v1)
             clipPoints2:Add(v2)
         end
@@ -349,15 +441,19 @@ class CollisionEvent2D
         integer pointCount = 0
         integer i = 0
         repeat while i < collisionPoints:MAX_COLLISION_POINTS
-            number separation = normalx * clipPoints2:Get(i):GetX() + normaly * clipPoints2:Get(i):GetY() - frontOffset
+            number separation = normalx * clipPoints2:Get(i):GetVertex():GetX() + normaly * clipPoints2:Get(i):GetVertex():GetY() - frontOffset
 
             if separation <= totalRadius
                 CollisionPoint2D cp = collisionPoints:GetPoints():Get(pointCount)
                 Vector2 out = cp:GetLocalPoint()
-                number px = clipPoints2:Get(i):GetX() - xf2:GetPosition():GetX()
-                number py = clipPoints2:Get(i):GetY() - xf2:GetPosition():GetY()
+                number px = clipPoints2:Get(i):GetVertex():GetX() - xf2:GetPosition():GetX()
+                number py = clipPoints2:Get(i):GetVertex():GetY() - xf2:GetPosition():GetY()
                 out:SetX((xf2:GetCosine() * px + xf2:GetSine() * py))
                 out:SetY((-1 * xf2:GetSine() * px + xf2:GetCosine() * py))
+                cp:GetIdentifier():Set(clipPoints2:Get(i):GetIdentifier())
+                if flip
+                    cp:GetIdentifier():Flip()
+                end
 
                 pointCount = pointCount + 1
             end
@@ -453,6 +549,7 @@ class CollisionEvent2D
             CollisionPoint2D mpoint = collisionPoints:GetPoints():Get(0)
             mpoint:GetLocalPoint():SetX(circle1p:GetX())
             mpoint:GetLocalPoint():SetY(circle1p:GetY())
+            mpoint:GetIdentifier():Clear()
 
             return now
         end
@@ -484,6 +581,7 @@ class CollisionEvent2D
             collisionPoints:GetLocalNormal():Normalize()
             collisionPoints:GetLocalPoint():Set(v1)
             collisionPoints:GetPoints():Get(0):GetLocalPoint():Set(circle1p)
+            collisionPoints:GetPoints():Get(0):GetIdentifier():Clear()
         elseif u2 <= 0
             number dx = cLocalx - v2:GetX()
             number dy = cLocaly - v2:GetY()
@@ -499,6 +597,7 @@ class CollisionEvent2D
             collisionPoints:GetLocalNormal():Normalize()
             collisionPoints:GetLocalPoint():Set(v2)
             collisionPoints:GetPoints():Get(0):GetLocalPoint():Set(circle1p)
+            collisionPoints:GetPoints():Get(0):GetIdentifier():Clear()
         else
             number fcx = (v1:GetX() + v2:GetX()) * 0.5
             number fcy = (v1:GetY() + v2:GetY()) * 0.5
@@ -518,10 +617,11 @@ class CollisionEvent2D
             collisionPoints:GetLocalPoint():SetX(fcx)
             collisionPoints:GetLocalPoint():SetY(fcy)
             collisionPoints:GetPoints():Get(0):GetLocalPoint():Set(circle1p)
+            collisionPoints:GetPoints():Get(0):GetIdentifier():Clear()
         end        
     end
 
-    private action FindMaxSeparation(Polygon poly1, PhysicsPosition2D xf1, Polygon poly2, PhysicsPosition2D xf2, boolean one)
+    private action FindMaxSeparation(EdgeResult2D results, Polygon poly1, PhysicsPosition2D xf1, Polygon poly2, PhysicsPosition2D xf2)
         integer count1 = poly1:GetVertexCount()
         integer count2 = poly2:GetVertexCount()
         Array<Vector2> n1s = poly1:GetNormals()
@@ -571,16 +671,11 @@ class CollisionEvent2D
             i = i + 1
         end
 
-        if one
-            edgeIndex1 = bestIndex
-            separation1 = maxSeparation
-        else
-            edgeIndex2 = bestIndex
-            separation2 = maxSeparation
-        end
+        results:SetEdgeIndex(bestIndex)
+        results:SetSeparation(maxSeparation)
     end
 
-    private action FindIncidentEdge(Array<Vector2> c, Polygon poly1, PhysicsPosition2D xf1, integer edge1, Polygon poly2, PhysicsPosition2D xf2)
+    private action FindIncidentEdge(Array<ClipVertex2D> c, Polygon poly1, PhysicsPosition2D xf1, integer edge1, Polygon poly2, PhysicsPosition2D xf2)
         integer count1 = poly1:GetVertexCount()
         Array<Vector2> normals1 = poly1:GetNormals()
 
@@ -588,8 +683,8 @@ class CollisionEvent2D
         Array<Vector2> vertices2 = poly2:GetVertices()
         Array<Vector2> normals2 = poly2:GetNormals()
 
-        Vector2 c0 = c:Get(0)
-        Vector2 c1 = c:Get(1)
+        ClipVertex2D c0 = c:Get(0)
+        ClipVertex2D c1 = c:Get(1)
 
         Vector2 v = normals1:Get(edge1)
         number tempx = xf1:GetCosine() * v:GetX() - xf1:GetSine() * v:GetY()
@@ -618,23 +713,33 @@ class CollisionEvent2D
         end
 
         Vector2 v1 = vertices2:Get(i1)
-        Vector2 out = c0
+        Vector2 out = c0:GetVertex()
         out:SetX((xf2:GetCosine() * v1:GetX() - xf2:GetSine() * v1:GetY()) + xf2:GetPosition():GetX())
         out:SetY((xf2:GetSine() * v1:GetX() + xf2:GetCosine() * v1:GetY()) + xf2:GetPosition():GetY())
+        c0:GetIdentifier():SetIndexA(edge1)
+        c0:GetIdentifier():SetIndexB(i1)
+        c0:GetIdentifier():SetTypeA(c0:GetIdentifier():FACE)
+        c0:GetIdentifier():SetTypeB(c0:GetIdentifier():VERTEX)
 
         Vector2 v2 = vertices2:Get(i2)
-        Vector2 out1 = c1
+        Vector2 out1 = c1:GetVertex()
         out1:SetX((xf2:GetCosine() * v2:GetX() - xf2:GetSine() * v2:GetY()) + xf2:GetPosition():GetX())
-        out1:SetY((xf2:GetSine() * v2:GetX() + xf2:GetCosine() * v2:GetY()) + xf2:GetPosition():GetY())        
+        out1:SetY((xf2:GetSine() * v2:GetX() + xf2:GetCosine() * v2:GetY()) + xf2:GetPosition():GetY())
+        c1:GetIdentifier():SetIndexA(edge1)
+        c1:GetIdentifier():SetIndexB(i2)
+        c1:GetIdentifier():SetTypeA(c1:GetIdentifier():FACE)
+        c1:GetIdentifier():SetTypeB(c1:GetIdentifier():VERTEX)
     end
 
-    action ClipSegmentToLine(Array<Vector2> vOut, Array<Vector2> vIn, Vector2 normal, number offset, integer vertexIndexA) returns integer
+    action ClipSegmentToLine(Array<ClipVertex2D> vOut, Array<ClipVertex2D> vIn, Vector2 normal, number offset, integer vertexIndexA) returns integer
         integer numOut = 0
-        Vector2 vIn0 = vIn:Get(0)
-        Vector2 vIn1 = vIn:Get(1)
+        ClipVertex2D vIn0 = vIn:Get(0)
+        ClipVertex2D vIn1 = vIn:Get(1)
+        Vector2 vIn0v = vIn0:GetVertex()
+        Vector2 vIn1v = vIn1:GetVertex()
         
-        number distance0 = normal:DotProduct(vIn0) - offset
-        number distance1 = normal:DotProduct(vIn1) - offset
+        number distance0 = normal:DotProduct(vIn0v) - offset
+        number distance1 = normal:DotProduct(vIn1v) - offset
 
         if distance0 <= 0
             vOut:Get(numOut):Set(vIn0)
@@ -649,9 +754,14 @@ class CollisionEvent2D
         if distance0 * distance1 < 0
             number interp = distance0 / (distance0 - distance1)
 
-            Vector2 vOutNO = vOut:Get(numOut)
-            vOutNO:SetX(vIn0:GetX() + interp * (vIn1:GetX() - vIn0:GetX()))
-            vOutNO:SetY(vIn0:GetY() + interp * (vIn1:GetY() - vIn0:GetY()))
+            ClipVertex2D vOutNO = vOut:Get(numOut)
+            vOutNO:GetVertex():SetX(vIn0v:GetX() + interp * (vIn1v:GetX() - vIn0v:GetX()))
+            vOutNO:GetVertex():SetY(vIn0v:GetY() + interp * (vIn1v:GetY() - vIn0v:GetY()))
+
+            vOutNO:GetIdentifier():SetIndexA(vertexIndexA)
+            vOutNO:GetIdentifier():SetIndexB(vIn0:GetIdentifier():GetIndexB())
+            vOutNO:GetIdentifier():SetTypeA(vOutNO:GetIdentifier():VERTEX)
+            vOutNO:GetIdentifier():SetTypeB(vOutNO:GetIdentifier():FACE)
 
             numOut = numOut + 1
         end

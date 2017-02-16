@@ -1,6 +1,5 @@
 package Libraries.Game.Physics
 
-
 use Libraries.Containers.Array
 use Libraries.Compute.Vector2
 use Libraries.Interface.Events.CollisionListener2D
@@ -12,8 +11,6 @@ use Libraries.Compute.Math
 use Libraries.Interface.Item2D
 use Libraries.Game.Physics.Joints.Joint2D
 use Libraries.Game.Physics.Joints.JointSolverData
-
-
 
 /*
 An internal class used to solve the physical interactions between groups of
@@ -52,7 +49,7 @@ class CollisionGroup2D
         items:Add(item)
         item:SetCollisionGroupIndex(itemCount)
         itemCount = itemCount + 1
-    end
+        end
 
     action Add(CollisionEvent2D collision)
         collisions:Add(collision)

@@ -52,9 +52,22 @@ class CollisionManager2D
             edge = edge:GetNext()
         end
 
+        if not itemA:ShouldCollide(itemB)
+            return now
+        end
+
+        if not itemB:ShouldCollide(itemA)
+            return now
+        end
+
         // create collision event and add to collision event list
         CollisionEvent2D collision
         collision:Initialize(itemA, indexA, itemB, indexB)
+
+        indexA = collision:GetChildIndexA()
+        indexB = collision:GetChildIndexB()
+        itemA = collision:GetItemA()
+        itemB = collision:GetItemB()
         
         collision:SetPrevious(undefined)
         collision:SetNext(collisionList)
