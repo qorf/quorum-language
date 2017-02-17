@@ -110,6 +110,8 @@ class Item2D is Item
     private boolean nodesSet = false
     private boolean hasMoved = false
 
+    boolean collideWithChildren = false
+
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
     // the second vertex, respectively.
@@ -2978,7 +2980,7 @@ class Item2D is Item
             alert(PHYSICS_ERROR_MESSAGE)
         end
 
-        properties:SetDensity(mass / ((dimensions:GetX() * scale:GetX() * dimensions:GetY() * scale:GetY())))
+        properties:SetDensity(mass / shape:ComputeArea())
     end
 
     action SetMass(Mass2D mass)
@@ -3081,18 +3083,28 @@ class Item2D is Item
     end
 
     action ShouldCollide(Item2D otherItem) returns boolean
-        if otherItem = parentItem
-            return false
-        end
-        integer i = 0
-        repeat children:GetSize() times
-            Item2D child = children:Get(i)
-            if child = otherItem
+        if not collideWithChildren
+            if otherItem = parentItem
                 return false
             end
-            i = i + 1
+            integer i = 0
+            repeat children:GetSize() times
+                Item2D child = children:Get(i)
+                if child = otherItem
+                    return false
+                end
+                i = i + 1
+            end
         end
 
         return true
+    end
+
+    action CollideWithChildren returns boolean
+        return collideWithChildren
+    end
+
+    action SetCollideWithChildren(boolean flag)
+        me:collideWithChildren = flag
     end
 end

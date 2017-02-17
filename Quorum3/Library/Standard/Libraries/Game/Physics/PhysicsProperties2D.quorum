@@ -78,7 +78,7 @@ class PhysicsProperties2D
         end
 
         if not massSet
-            SetDensity(mass / (item:GetWidth() * item:GetScaleX() * item:GetHeight() * item:GetScaleY()))
+            SetDensity(mass / item:GetShape():ComputeArea())
         end
 
         item:ResetMass()
@@ -251,7 +251,7 @@ class PhysicsProperties2D
         me:mass = mass
         if item not= undefined
             massSet = true
-            SetDensity(mass / (item:GetWidth() * item:GetScaleX() * item:GetHeight() * item:GetScaleY()))
+            SetDensity(mass / item:GetShape():ComputeArea())
         end
     end
 

@@ -539,4 +539,41 @@ class Polygon is CollisionShape2D
     action IsBox returns boolean
         return isBox
     end
+
+    action ComputeArea returns number
+        number area = 0
+
+        Vector2 s
+        s:SetZero()
+
+        integer i = 0
+        repeat vertexCount times
+            s:Add(vertices:Get(i))
+
+            i = i + 1
+        end
+        s:Scale(1.0 / vertexCount)
+
+        number k_inv3 = 1.0 / 3.0
+
+        Vector2 e1
+        Vector2 e2
+
+        i = 0
+        repeat vertexCount times
+            e1:Set(vertices:Get(i)):Subtract(s)
+            if i + 1 < vertexCount
+                e2:Set(s):Scale(-1):Add(vertices:Get(i + 1))
+            else
+                e2:Set(s):Scale(-1):Add(vertices:Get(0))
+            end
+
+            number D = e1:CrossProduct(e2)
+
+            number triangleArea = 0.5 * D
+            area = area + triangleArea
+        end
+
+        return area
+    end
 end

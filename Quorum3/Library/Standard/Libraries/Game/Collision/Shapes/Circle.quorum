@@ -83,4 +83,8 @@ class Circle is CollisionShape2D
         mass:GetCenter():SetY(point:GetY())
         mass:SetInertia(mass:GetMass() * (0.5 * GetRadius() * GetRadius() + (point:GetX() * point:GetX() + point:GetY() * point:GetY())))
     end
+
+    action ComputeArea returns number
+        return math:pi * GetRadius() * GetRadius()
+    end
 end
