@@ -9,6 +9,12 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     plugins_quorum_Libraries_Game_GameStateManager_.operatingSystem    
     plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics
     */
+
+    if (!plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_)
+    {
+        plugins_quorum_Libraries_Game_GameStateManager_.operatingSystem = "Web Browser";
+        plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_ = true;
+    }
     
     this.SetApplication$quorum_Libraries_Game_Application = function(app) 
     {
@@ -54,7 +60,6 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     this.SetNativePath$quorum_text = function(path) 
     {
         plugins_quorum_Libraries_Game_GameStateManager_.nativePath = path;
-        //System.load(nativePath);
     };
     
     this.GetNativePath = function() 

@@ -7,7 +7,7 @@ function plugins_quorum_Libraries_System_FileReader_() {
         var url = path;
 
         this.xmlhttp.onreadystatechange = function() {
-            if (this.xmlhttp.readyState == 4 && this.xmlhttp.status == 200) {
+            if (this.readyState == 4 && this.status == 200) {
                 //this.response = this.xmlhttp.responseText;//JSON.parse(xmlhttp.responseText);
             }
         };
