@@ -31,14 +31,34 @@ function plugins_quorum_Libraries_Game_Graphics_ModelLoaders_ModelReader_(quorum
                         parser.Parse$quorum_Libraries_Game_Graphics_ModelLoaders_WavefrontObject_WavefrontObjectLexer(lexer);
                     }
                     
-                    var materials = new quorum_Libraries_Containers_Array_();
-                    var materialsList;
+                    var materials = listener.GetMaterialLibraries();
+                    var materialsList = new quorum_Libraries_Containers_Array_();
                     
                     for (var i = 0; i < materials.GetSize(); i++)
                     {
                         var source = materials.Get$quorum_integer(i);
                         var materialListener = new quorum_Libraries_Game_Graphics_ModelLoaders_WavefrontObject_MaterialConverterListener_();
                         
+                        var parentDirectory = file.GetParentDirectory();
+                        var materialFile = new quorum_Libraries_System_File_();
+                        materialFile.SetWorkingDirectory$quorum_text(parentDirectory.GetWorkingDirectory());
+                        materialFile.SetPath(source);
+                        
+                        var materialRequest = new XMLHttpRequest();
+                        materialRequest.onreadystatechange = function(event)
+                        {
+                            if (materialRequest.readyState === 4)
+                            {
+                                if (materialRequest.status === 200)
+                                {
+                                    /*
+                                     * Asynchronously access information from loop
+                                     * to load material files and return information
+                                     * to the previous asynchronous "thread".
+                                     */
+                                }
+                            }
+                        };
                     }
                 }
                 else
@@ -52,21 +72,6 @@ function plugins_quorum_Libraries_Game_Graphics_ModelLoaders_ModelReader_(quorum
 }
 
 /*
- 
-        Array<text> materials = listener:GetMaterialLibraries()
-        Array<Material> materialsList
-        i = 0
-        repeat while i < materials:GetSize()
-            text source = materials:Get(i)
-            MaterialConverterListener materialListener
-
-            //setup the file
-            FileReader materialReader
-            File materialFile
-            File parentDirectory = file:GetParentDirectory()
-            materialFile:SetWorkingDirectory(parentDirectory:GetWorkingDirectory())
-            materialFile:SetPath(source)
-
             materialReader:OpenForRead(materialFile)
             repeat while not materialReader:IsAtEndOfFile()
                 text value = materialReader:ReadLine()
