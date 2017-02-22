@@ -57,11 +57,6 @@ class ModelReader
     action Read(File file) returns ModelBlueprint
         text value = file:GetPath()
         if value:EndsWith(".obj")
-            GameStateManager manager
-            if (manager:GetOperatingSystem() = "Web Browser")
-                ReadAsynchronously(file)
-            end
-
             return ReadWavefrontObject(file)
         elseif value:EndsWith(".g3db") or value:EndsWith(".g3dj")
             return g3dLoader:LoadModel(file)
@@ -69,14 +64,6 @@ class ModelReader
 
         alert("I did not recognize the file type of this file! The supported file types are .obj, .g3db, and .g3dj")
     end
-
-    /*
-    The ReadAsynchronously action is used to read files containing model data on
-    platforms where synchronous file reading is not possible (i.e. online). This
-    action is automatically called as needed by the Game engine when using the 
-    Model's load action, and so most users will never need to use this directly.
-    */
-    system action ReadAsynchronously(File file)
 
     private action ReadWavefrontObject(File file) returns ModelBlueprint
         WavefrontConverterListener listener

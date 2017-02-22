@@ -34,7 +34,7 @@ function plugins_quorum_Libraries_System_File_() {
         return this.defaultWorkingDirectory;
     };
 
-    this.SetWorkingDirectoryNative = function (path) {
+    this.SetWorkingDirectoryNative$quorum_text = function (path) {
         this.defaultWorkingDirectory = path;
     };
 
@@ -57,14 +57,17 @@ function plugins_quorum_Libraries_System_File_() {
 //            //find the last position
 //        }
         
+        if (!newWorking.endsWith('/'))
+            newWorking = newWorking + '/';
+        
         return newWorking + test;
     };
 
-    this.GetWorkingDirectoryFromPath = function (path) {
+    this.GetWorkingDirectoryFromPath$quorum_text = function (path) {
 
     };
     
-    this.GetPathFromPath = function (path) {
+    this.GetPathFromPath$quorum_text = function (path) {
 
     };
 
@@ -135,12 +138,12 @@ function plugins_quorum_Libraries_System_File_() {
     };
 
     //throw exception
-    this.Move = function (newPath) {
+    this.Move$quorum_text = function (newPath) {
 
     };
 
     //throw exception
-    this.Copy = function (copy) {
+    this.Copy$quorum_Libraries_System_File = function (copy) {
 
     };
 }
