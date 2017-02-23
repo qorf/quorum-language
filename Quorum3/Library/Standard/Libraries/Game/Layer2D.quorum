@@ -18,7 +18,7 @@ use Libraries.Game.Collision.CollisionManager2D
 use Libraries.Interface.Events.CollisionListener2D
 use Libraries.Game.Collision.CollisionEdge2D
 use Libraries.Interface.Events.CollisionEvent2D
-use Libraries.Game.Physics.TimeStep2D
+use Libraries.Game.Physics.TimeStep
 use Libraries.Game.Physics.Joints.Joint2D
 use Libraries.Game.Physics.Joints.JointEdge2D
 use Libraries.Game.Physics.CollisionGroup2D
@@ -1582,7 +1582,7 @@ class Layer2D is Layer
         return subStepping
     end
 
-    TimeStep2D timeStep
+    TimeStep timeStep
 
     private action StepPhysics(number seconds)
         number dt = seconds
@@ -1668,7 +1668,7 @@ class Layer2D is Layer
     CollisionGroup2D island
     Stack<Item2D> stack
 
-    private action SolvePhysics(TimeStep2D step)
+    private action SolvePhysics(TimeStep step)
         integer i = 0
         repeat items:GetSize() times
             Item2D body = items:Get(i)
@@ -1831,14 +1831,14 @@ class Layer2D is Layer
     CollisionGroup2D toiIsland
     TimeOfImpactInput2D toiInput
     TimeOfImpactOutput2D toiOutput
-    TimeStep2D substep
+    TimeStep substep
     Item2D tempBody0
     Item2D tempBody1
     Sweep2D backup1
     Sweep2D backup2
     TimeOfImpact2D toi
 
-    private action SolveTimeOfImpact(TimeStep2D timeStep)
+    private action SolveTimeOfImpact(TimeStep timeStep)
         CollisionGroup2D island = toiIsland
 
         if stepComplete

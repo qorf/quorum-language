@@ -64,7 +64,7 @@ class CollisionGroup2D
     CollisionSolver2D collisionSolver
     JointSolverData solverData
 
-    action Solve(TimeStep2D step, Vector2 gravity, boolean allowSleep)
+    action Solve(TimeStep step, Vector2 gravity, boolean allowSleep)
         number h = step:GetTimeStep()
 
         integer i = 0
@@ -101,7 +101,7 @@ class CollisionGroup2D
         solverData:SetAngles(angles)
         solverData:SetLinearVelocities(linearVelocities)
         solverData:SetAngularVelocities(angularVelocities)
-        solverData:SetTimeStep2D(step)
+        solverData:SetTimeStep(step)
 
         collisionSolver:SetTimeStep(step)
         collisionSolver:SetCollisionList(collisions)
@@ -231,7 +231,7 @@ class CollisionGroup2D
 
     CollisionSolver2D timeOfImpactCollisionSolver
 
-    action SolveTimeOfImpact(TimeStep2D subStep, integer timeOfImpactIndexA, integer timeOfImpactIndexB)
+    action SolveTimeOfImpact(TimeStep subStep, integer timeOfImpactIndexA, integer timeOfImpactIndexB)
         integer i = 0
         repeat while i < itemCount
             Vector2 position = items:Get(i):GetSweep():GetCenter()

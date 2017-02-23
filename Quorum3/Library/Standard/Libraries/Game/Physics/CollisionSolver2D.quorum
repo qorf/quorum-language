@@ -19,7 +19,7 @@ class CollisionSolver2D
 
     constant integer INITIAL_NUM_CONSTRAINTS = 256
     
-    TimeStep2D timeStep = undefined
+    TimeStep timeStep = undefined
     Array<Vector2> positions = undefined
     Array<number> angles = undefined
     Array<Vector2> velocities = undefined
@@ -39,7 +39,7 @@ class CollisionSolver2D
         end
     end
 
-    action SetTimeStep(TimeStep2D timeStep)
+    action SetTimeStep(TimeStep timeStep)
         me:timeStep = timeStep
     end
 

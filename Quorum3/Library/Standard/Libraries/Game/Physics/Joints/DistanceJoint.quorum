@@ -198,7 +198,7 @@ class DistanceJoint is Joint2D
             number springStiffness = mass * omega * omega
             
             //magic formulas
-            number h = data:GetTimeStep2D():GetTimeStep()
+            number h = data:GetTimeStep():GetTimeStep()
             gamma = h * (dampingCoefficient + h * springStiffness)
             if gamma not= 0
                 gamma = 1 / gamma
@@ -219,8 +219,8 @@ class DistanceJoint is Joint2D
             bias = 0
         end
 
-        if data:GetTimeStep2D():IsWarmStarting()
-            impulse = impulse * data:GetTimeStep2D():GetTimeStepRatio()
+        if data:GetTimeStep():IsWarmStarting()
+            impulse = impulse * data:GetTimeStep():GetTimeStepRatio()
             Vector2 p 
             p:Set(u):Scale(impulse)
             

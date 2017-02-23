@@ -101,8 +101,8 @@ class RopeJoint is Joint2D
             else 
                 mass = 0.0
             end
-            if data:GetTimeStep2D():IsWarmStarting()
-                impulse = impulse * data:GetTimeStep2D():GetTimeStepRatio()
+            if data:GetTimeStep():IsWarmStarting()
+                impulse = impulse * data:GetTimeStep():GetTimeStepRatio()
                 
                 number pX = impulse * u:GetX()
                 number pY = impulse * u:GetY()
@@ -146,7 +146,7 @@ class RopeJoint is Joint2D
         
         //Predictive constraints
         if c < 0
-            cDot = cDot + data:GetTimeStep2D():GetInverseTimeStep() * c
+            cDot = cDot + data:GetTimeStep():GetInverseTimeStep() * c
         end
         
         number tempImpulse = -mass * cDot

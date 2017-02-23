@@ -2,7 +2,7 @@ package Libraries.Game.Physics.Joints
 
 use Libraries.Compute.Vector2
 use Libraries.Containers.Array
-use Libraries.Game.Physics.TimeStep2D
+use Libraries.Game.Physics.TimeStep
 
 class JointSolverData 
     //holds information about two bodies to pass to joint solver 
@@ -12,7 +12,7 @@ class JointSolverData
     Array<Vector2> linearVelocities
     Array<number> angularVelocities
     
-    TimeStep2D step
+    TimeStep step
 
     action SetPosition(Vector2 position, integer index)
         positions:Set(index, position)
@@ -62,11 +62,11 @@ class JointSolverData
         return angularVelocities
     end
 
-    action GetTimeStep2D returns TimeStep2D
+    action GetTimeStep returns TimeStep
         return step
     end
     
-    action SetTimeStep2D(TimeStep2D timeStep)
+    action SetTimeStep(TimeStep timeStep)
         step = timeStep
     end
 end
