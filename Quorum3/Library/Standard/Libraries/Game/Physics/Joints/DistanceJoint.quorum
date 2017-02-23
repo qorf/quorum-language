@@ -304,6 +304,8 @@ class DistanceJoint is Joint2D
         uLocal:Set(localAnchorB):Subtract(localCenterB)
         rBLocal:SetX(cosineB * uLocal:GetX() - sineB * uLocal:GetY())
         rBLocal:SetY(sineB * uLocal:GetX() + cosineB * uLocal:GetY())
+
+        uLocal:Set(positionB):Add(rBLocal):Subtract(positionA):Subtract(rALocal)
         
         number lengthLocal = uLocal:Length()
         uLocal:Normalize()
