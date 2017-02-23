@@ -250,7 +250,7 @@ public class ImageSheet {
                             
                             boolean isMipMap = false;
                             
-                            if (!(minFilter == 9728 || minFilter == 9279))
+                            if (!(minFilter == 9728 || minFilter == 9729))
                                 isMipMap = true;
                             
                             String direction = readValue(reader);
