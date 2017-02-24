@@ -46,6 +46,7 @@ function plugins_quorum_Libraries_Game_Graphics_ImageSheet_()
     
     var textures = [];
     var regions = [];
+    var pendingTextures = [];
     
     this.NewImageSheetData = function(packFile, imagesDirectory, flip)
     {
@@ -70,7 +71,7 @@ function plugins_quorum_Libraries_Game_Graphics_ImageSheet_()
             else if (sheet === null)
             {
                 var newSheet = new quorum_Libraries_System_File_();
-                newSheet.SetWorkingDirectory$quorum_text(imagesDirectory);
+                newSheet.SetWorkingDirectory$quorum_text(imagesDirectory.GetAbsolutePath());
                 newSheet.SetPath$quorum_text(line);
                 
                 plugins_quorum_Libraries_Game_Graphics_ImageSheet_.ReadTuple(reader);
@@ -243,7 +244,6 @@ function plugins_quorum_Libraries_Game_Graphics_ImageSheet_()
                     region.flip = false;
                 
                 sheetData.regions.push(region);
-                return sheetData;
             }
         }
         
@@ -257,6 +257,7 @@ function plugins_quorum_Libraries_Game_Graphics_ImageSheet_()
         };
         
         sheetData.regions.sort(compareRegions);
+        return sheetData;
     };
     
     this.LoadNative$quorum_Libraries_System_File = function(quorumFile)
@@ -301,6 +302,25 @@ function plugins_quorum_Libraries_Game_Graphics_ImageSheet_()
                 quorumFile.SetPath$quorum_text(sheet.textureFile.GetPath());
                 var format = new quorum_Libraries_Game_Graphics_Format_();
                 format.SetValue$quorum_integer(sheet.format);
+                texture.plugin_.AddTextureLoadListener(this);
+                /*
+                * The pendingTextures array contains objects with this data structure:
+                *      texture     - The Quorum Texture.
+                *      minFilter   - The min texture filter.
+                *      magFilter   - The mag texture filter.
+                *      uWrap       - The u-axis texture wrap.
+                *      vWrap       - The v-axis texture wrap.
+                *      drawables   - An array of Drawables awaiting loading with the texture.
+                 */
+                var textureRequest = {};
+                textureRequest.texture = texture;
+                textureRequest.minFilter = minFilter;
+                textureRequest.magFilter = magFilter;
+                textureRequest.uWrap = uWrap;
+                textureRequest.vWrap = vWrap;
+                textureRequest.drawables = [];
+                pendingTextures.push(textureRequest);
+                
                 texture.LoadFromFile$quorum_Libraries_System_File$quorum_Libraries_Game_Graphics_Format$quorum_boolean(quorumFile, format, sheet.useMipMaps);
                 sheet.texture = texture;
             }
@@ -308,9 +328,6 @@ function plugins_quorum_Libraries_Game_Graphics_ImageSheet_()
             {
                 texture = sheet.texture;
             }
-            
-            texture.SetFilter$quorum_Libraries_Game_Graphics_TextureFilter$quorum_Libraries_Game_Graphics_TextureFilter(minFilter, magFilter);
-            texture.SetWrap$quorum_Libraries_Game_Graphics_TextureWrap$quorum_Libraries_Game_Graphics_TextureWrap(uWrap, vWrap);
             
             textures.push(texture);
         }
@@ -355,9 +372,67 @@ function plugins_quorum_Libraries_Game_Graphics_ImageSheet_()
     this.NewDrawable = function(region)
     {
         var drawable = new quorum_Libraries_Game_Graphics_Drawable_();
-        drawable.Load$quorum_Libraries_Game_Graphics_Texture$quorum_integer$quorum_integer$quorum_integer$quorum_integer(
+        
+        var textureReady = true;
+        for (var i = 0; i < pendingTextures.length; i++)
+        {
+            if (pendingTextures[i] === region.sheet.texture)
+            {
+                textureReady = false;
+                var drawableRequest = {};
+                drawableRequest.drawable = drawable;
+                drawableRequest.left = region.left;
+                drawableRequest.top = region.top;
+                drawableRequest.width = region.width;
+                drawableRequest.height = region.height;
+                pendingTextures[i].drawables.push(drawableRequest);
+                break;
+            }
+        }
+        
+        if (textureReady)
+        {
+            drawable.Load$quorum_Libraries_Game_Graphics_Texture$quorum_integer$quorum_integer$quorum_integer$quorum_integer(
                 region.sheet.texture, region.left, region.top, region.width, region.height);
+        }
         return drawable;
     };
     
+    /*
+     * The data for pending texture/drawable loading is stored like this:
+     * The pendingTextures array contains objects with this data structure:
+     *      texture     - The Quorum Texture.
+     *      minFilter   - The min texture filter.
+     *      magFilter   - The mag texture filter.
+     *      uWrap       - The u-axis texture wrap.
+     *      vWrap       - The v-axis texture wrap.
+     *      drawables   - An array of Drawables awaiting loading with the texture.
+     *      
+     * The drawables array contains objects with this data structure:
+     *      drawable    - The Quorum Drawable.
+     *      left        - The left value of the texture region.
+     *      top         - The top value of the texture region.
+     *      width       - The width value of the texture region.
+     *      height      - The height value of the texture region.
+     */
+    this.TextureLoaded = function(texture)
+    {
+        for (var i = 0; i < pendingTextures.length; i++)
+        {
+            var data = pendingTextures[i];
+            if (data.texture === texture)
+            {
+                texture.SetFilter$quorum_Libraries_Game_Graphics_TextureFilter$quorum_Libraries_Game_Graphics_TextureFilter(data.minFilter, data.magFilter);
+                texture.SetWrap$quorum_Libraries_Game_Graphics_TextureWrap$quorum_Libraries_Game_Graphics_TextureWrap(data.uWrap, data.vWrap);
+                for (var j = 0; j < data.drawables.length; j++)
+                {
+                    var drawableData = data.drawables[j];
+                    drawableData.drawable.Load$quorum_Libraries_Game_Graphics_Texture$quorum_integer$quorum_integer$quorum_integer$quorum_integer(
+                        texture, drawableData.left, drawableData.top, drawableData.width, drawableData.height);
+                }
+                pendingTextures.splice(i, 1);
+                break;
+            }
+        }
+    };
 }

@@ -1,6 +1,7 @@
 function plugins_quorum_Libraries_System_FileReader_() {
     var response = null;
     var readPosition = 0;
+    var eof = false;
     this.path = "";
     this.xmlhttp = null;
     this.OpenForReadNative$quorum_text = function (path) {
@@ -10,6 +11,8 @@ function plugins_quorum_Libraries_System_FileReader_() {
         this.xmlhttp.onreadystatechange = function() {
             if (this.readyState === 4 && this.status === 200) {
                 response = this.responseText;
+                if (response.length == 0)
+                    eof = true;
             }
         };
         this.xmlhttp.open("GET", url, false);
@@ -18,6 +21,7 @@ function plugins_quorum_Libraries_System_FileReader_() {
     this.ReadNative = function () {
         response = this.xmlhttp.responseText;
         this.xmlhttp = null;
+        eof = true;
         return response;
     };
     
@@ -31,12 +35,26 @@ function plugins_quorum_Libraries_System_FileReader_() {
             exceptionInstance_.SetErrorMessage$quorum_text("I could not read from the file because the end of file was already reached.");
             throw exceptionInstance_;
         }
+        if (response === null || response === undefined)
+        {
+            var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+            exceptionInstance_.SetErrorMessage$quorum_text("There were no file contents available for reading.");
+            throw exceptionInstance_;
+        }
         
-        var newPosition = response.indexOf('\n', readPosition + 1);
+        if (readPosition >= response.length)
+        {
+            eof = true;
+            return "";
+        }
+        
+        var newPosition = response.indexOf('\n', readPosition);
         if (newPosition < 0)
             newPosition = response.length;
         var line = response.substring(readPosition, newPosition);
-        readPosition = newPosition;
+        readPosition = newPosition + 1;
+        if (line === "\n")
+            return "";
         return line;
     };
     this.GetSystemNewline = function () {
@@ -52,10 +70,11 @@ function plugins_quorum_Libraries_System_FileReader_() {
         
         var lines = response.substring(readPosition, response.length);
         readPosition = response.length;
+        eof = true;
         return lines;
     };
     this.IsAtEndOfFile = function () {
-        return response === null || response === undefined || readPosition >= response.length;
+        return eof;
     };
     this.OpenForRead$quorum_Libraries_System_File = function (file) {
         
