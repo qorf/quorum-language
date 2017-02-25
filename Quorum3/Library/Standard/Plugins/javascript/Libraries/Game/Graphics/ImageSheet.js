@@ -376,7 +376,7 @@ function plugins_quorum_Libraries_Game_Graphics_ImageSheet_()
         var textureReady = true;
         for (var i = 0; i < pendingTextures.length; i++)
         {
-            if (pendingTextures[i] === region.sheet.texture)
+            if (pendingTextures[i].texture === region.sheet.texture)
             {
                 textureReady = false;
                 var drawableRequest = {};
