@@ -151,6 +151,16 @@ public class InputMonitor {
     {
         switch(code)
         {
+            case UP:
+                return Keyboard.KEY_UP;
+            case DOWN:
+                return Keyboard.KEY_DOWN;
+            case LEFT:
+                return Keyboard.KEY_LEFT;
+            case RIGHT:
+                return Keyboard.KEY_RIGHT;
+            case CLEAR:
+                return Keyboard.KEY_CLEAR;
             case APOSTROPHE:
                 return Keyboard.KEY_APOSTROPHE;
             case LEFT_BRACKET:
