@@ -1524,6 +1524,15 @@ class Layer2D is Layer
             StepPhysics(seconds)
             SetScreenPositionsFromPhysicsPositions()
         end
+
+        integer i = 0
+        repeat items:GetSize() times
+            Item2D item = items:Get(i)
+            item:SynchronizeNodes()
+            i = i + 1
+        end
+
+        collisionManager:FindNewCollisions()
     end
 
     private action SetPhysicsPositionsFromScreenPositions
