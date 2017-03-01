@@ -82,7 +82,7 @@ class Layer2D is Layer
     boolean automaticallyClearForces = true
 
     Vector2 gravity
-    boolean allowSleep = true
+    boolean requireSimulation = false
 
     number inverseDeltaTime0 = 0
 
@@ -1555,12 +1555,12 @@ class Layer2D is Layer
     end
 
     action RequireSimulation(boolean flag)
-        if allowSleep = not flag
+        if requireSimulation = flag
             return now
         end
 
-        allowSleep = not flag
-        if not allowSleep
+        requireSimulation = flag
+        if requireSimulation
             integer i = 0
             repeat items:GetSize() times
                 Item2D item = items:Get(i)
@@ -1571,7 +1571,7 @@ class Layer2D is Layer
     end
 
     action IsSimulationRequired returns boolean
-        return allowSleep
+        return requireSimulation
     end
 
     action SetSubStepping(boolean flag)
@@ -1794,7 +1794,7 @@ class Layer2D is Layer
                     end
                 end
 
-                island:Solve(step, gravity, allowSleep)
+                island:Solve(step, gravity, requireSimulation)
 
                 integer j = 0
                 repeat island:GetItemCount() times
