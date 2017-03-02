@@ -1,0 +1,77 @@
+package Libraries.Game.Graphics
+
+use Libraries.System.File
+
+class Skybox 
+
+    // OpenGL constants for the sides of the cube map.
+    // Note that positive Z in OpenGL is negative Z in Quorum, and vice versa.
+    constant integer GL_TEXTURE_CUBE_MAP_POSITIVE_X = 34069
+    constant integer GL_TEXTURE_CUBE_MAP_NEGATIVE_X = 34070
+    constant integer GL_TEXTURE_CUBE_MAP_POSITIVE_Y = 34071
+    constant integer GL_TEXTURE_CUBE_MAP_NEGATIVE_Y = 34072
+    constant integer GL_TEXTURE_CUBE_MAP_POSITIVE_Z = 34073
+    constant integer GL_TEXTURE_CUBE_MAP_NEGATIVE_Z = 34074
+
+    Texture cubeMap = undefined
+
+    action Load(text right, text left, text up, text down, text forward, text back)
+        File positiveX
+        File negativeX
+        File positiveY
+        File negativeY
+        File positiveZ
+        File negativeZ
+        positiveX:SetPath("right")
+        negativeX:SetPath("left")
+        positiveY:SetPath("up")
+        negativeY:SetPath("down")
+        positiveZ:SetPath("forward")
+        negativeZ:SetPath("back")
+        Load(positiveX, negativeX, positiveY, negativeY, positiveZ, negativeZ)
+    end
+
+    action Load(File right, File left, File up, File down, File forward, File back)
+        Texture texture
+        InitializeCubeMap(texture)
+
+        LoadSide(right, texture, GL_TEXTURE_CUBE_MAP_POSITIVE_X)
+        LoadSide(left, texture, GL_TEXTURE_CUBE_MAP_NEGATIVE_X)
+        LoadSide(up, texture, GL_TEXTURE_CUBE_MAP_POSITIVE_Y)
+        LoadSide(down, texture, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y)
+        // Note that positive Z in OpenGL is negative Z in Quorum, and vice versa.
+        LoadSide(forward, texture, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
+        LoadSide(back, texture, GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
+
+        cubeMap = texture
+    end
+
+    /*
+    Initializes the given texture to be used as a cube map, instead of a single
+    2D texture.
+    */
+    private system action InitializeCubeMap(Texture texture)
+
+    /*
+    Load pixels from a file into a pixel map, then apply it to the
+    given side of the given cube map texture. The side should be one of the 
+    GL_TEXTURE_CUBE_MAP constants at the top of this class.
+
+    This is done as a system action due to asynchronous file loading on the web.
+    */
+    private system action LoadSide(File file, Texture texture, integer side)
+
+    /*
+    Whether this Skybox has been loaded or not yet. On most platforms, this is
+    true immediately after calling the Load action. On the web, this is true at
+    some point in time after Load is called, due to the nature of how image
+    loading is handled during online execution.
+    */
+    system action IsLoaded returns boolean
+
+    action Dispose
+        cubeMap:Dispose()
+        cubeMap = undefined
+    end
+
+end
