@@ -5,6 +5,7 @@
  */
 package plugins.quorum.Libraries.Game.Graphics;
 
+import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Game.Graphics.Texture_;
 import quorum.Libraries.Game.Graphics.PixelMap;
 import quorum.Libraries.System.File_;
@@ -19,12 +20,25 @@ public class Skybox
     
     public void InitializeCubeMap(Texture_ texture)
     {
-
+        Texture texturePlugin = ((quorum.Libraries.Game.Graphics.Texture)texture).plugin_;
+        texturePlugin.SetGL20Info(GraphicsManager.GL_TEXTURE_CUBE_MAP, texturePlugin.CreateGLHandle());
+        texturePlugin.Bind();
+        
+        GraphicsManager graphics = GameStateManager.nativeGraphics;
+        graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_MAG_FILTER, GraphicsManager.GL_LINEAR);
+        graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_MIN_FILTER, GraphicsManager.GL_LINEAR);
+        graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_WRAP_S, GraphicsManager.GL_CLAMP_TO_EDGE);
+        graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_WRAP_T, GraphicsManager.GL_CLAMP_TO_EDGE);
+        graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_WRAP_R, GraphicsManager.GL_CLAMP_TO_EDGE);  
     }
     
     public void LoadSide(File_ file, Texture_ texture, int side)
     {
+        PixelMap map = new PixelMap();
+        map.LoadPixelMap(file);
         
+        texture.Bind();
+        map.Define2DImage(side, 0, 0);
     }
     
     public boolean IsLoaded()
