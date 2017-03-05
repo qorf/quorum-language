@@ -2,7 +2,7 @@ package Libraries.Game.Graphics
 
 use Libraries.System.File
 
-class Skybox 
+class Skybox
 
     // OpenGL constants for the sides of the cube map.
     // Note that positive Z in OpenGL is negative Z in Quorum, and vice versa.
@@ -22,12 +22,12 @@ class Skybox
         File negativeY
         File positiveZ
         File negativeZ
-        positiveX:SetPath("right")
-        negativeX:SetPath("left")
-        positiveY:SetPath("up")
-        negativeY:SetPath("down")
-        positiveZ:SetPath("forward")
-        negativeZ:SetPath("back")
+        positiveX:SetPath(right)
+        negativeX:SetPath(left)
+        positiveY:SetPath(up)
+        negativeY:SetPath(down)
+        positiveZ:SetPath(forward)
+        negativeZ:SetPath(back)
         Load(positiveX, negativeX, positiveY, negativeY, positiveZ, negativeZ)
     end
 

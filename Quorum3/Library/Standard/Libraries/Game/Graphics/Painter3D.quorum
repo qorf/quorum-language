@@ -70,6 +70,18 @@ class Painter3D is Disposable
     system action GetEnvironment returns Environment
 
     /*
+    This action will set the Skybox for the Painter3D. When rendering, the 
+    Painter3D will draw the Skybox behind all other items on the screen.
+    */
+    system action SetSkybox(Skybox skybox)
+
+    /*
+    This action will return the Skybox that is currently being used by the 
+    Painter3D. 
+    */
+    system action GetSkybox returns Skybox
+
+    /*
     This action will set the Painter3D so that it is ready to accept models to
     be rendered on the screen. The Painter3D must have a camera set using the
     SetCamera action before Begin is called.
