@@ -110,6 +110,8 @@ class Item2D is Item
     private boolean nodesSet = false
     private boolean hasMoved = false
 
+    boolean updateTransform = true
+
     boolean collideWithChildren = false
 
     // These constants represent certain aspects of each vertex. For example,
@@ -265,6 +267,11 @@ class Item2D is Item
             polygon:SetAsBox(dimensions:GetX(), dimensions:GetY())
             SetShape(polygon)
         end
+
+        if updateTransform
+            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
+            sweep:GetCenter():Set(transform:GetPosition())
+        end
     end
 
     /*
@@ -284,6 +291,11 @@ class Item2D is Item
             Polygon polygon
             polygon:SetAsBox(dimensions:GetX(), dimensions:GetY())
             SetShape(polygon)
+        end
+
+        if updateTransform
+            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
+            sweep:GetCenter():Set(transform:GetPosition())
         end
     end
 
@@ -410,6 +422,11 @@ class Item2D is Item
 
         offset:SetX(xAmount)
 
+        if updateTransform
+            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
+            sweep:GetCenter():SetX(transform:GetPosition():GetX())
+        end
+
         integer counter = 0
         repeat children:GetSize() times
             children:Get(counter):SetOffsetX(position:GetX() + xAmount)
@@ -440,6 +457,11 @@ class Item2D is Item
         end
 
         offset:SetY(yAmount)
+
+        if updateTransform
+            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
+            sweep:GetCenter():SetY(transform:GetPosition():GetY())
+        end
 
         integer counter = 0
         repeat children:GetSize() times
@@ -511,6 +533,13 @@ class Item2D is Item
 
         offset:SetX(xAmount)
         offset:SetY(yAmount)
+
+        if updateTransform
+            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
+            sweep:GetCenter():SetX(transform:GetPosition():GetX())
+            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
+            sweep:GetCenter():SetY(transform:GetPosition():GetY())
+        end
 
         integer counter = 0
         repeat children:GetSize() times
@@ -1475,6 +1504,10 @@ class Item2D is Item
     action SetRotation(number degrees)
         rotation = degrees
         verticesChanged = true
+        if updateTransform
+            transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
+            sweep:SetAngle(-1 * math:DegreesToRadians(rotation))
+        end
         
         //Iterator<Item> childIterator = GetItems()
         
@@ -1557,6 +1590,11 @@ class Item2D is Item
             verticesChanged = true
         end
 
+        if updateTransform
+            transform:Set(transform:GetPosition(), -1 *  math:DegreesToRadians(rotation))
+            sweep:SetAngle(-1 * math:DegreesToRadians(rotation))
+        end
+
         //Iterator<Item> childIterator = GetItems()
         
         //if childIterator:HasNext()
@@ -1612,6 +1650,13 @@ class Item2D is Item
         scaleOffset:SetX((me:scale:GetX() * GetWidth() - GetWidth())/2)
         scaleOffset:SetY((me:scale:GetY() * GetHeight() - GetHeight())/2)
 
+        if updateTransform
+            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * me:scale:GetX() / 2)
+            sweep:GetCenter():SetX(transform:GetPosition():GetX())
+            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * me:scale:GetY() / 2)
+            sweep:GetCenter():SetY(transform:GetPosition():GetY())
+        end
+
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
 
@@ -1658,6 +1703,13 @@ class Item2D is Item
 
         scaleOffset:SetX((scale:GetX() * GetWidth() - GetWidth())/2)
         scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
+
+        if updateTransform
+            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
+            sweep:GetCenter():SetX(transform:GetPosition():GetX())
+            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
+            sweep:GetCenter():SetY(transform:GetPosition():GetY())
+        end
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -1745,6 +1797,13 @@ class Item2D is Item
         scaleOffset:SetX((scale:GetX() * GetWidth() - GetWidth())/2)
         scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
 
+        if updateTransform
+            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
+            sweep:GetCenter():SetX(transform:GetPosition():GetX())
+            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
+            sweep:GetCenter():SetY(transform:GetPosition():GetY())
+        end
+
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
 
@@ -1816,6 +1875,13 @@ class Item2D is Item
 
         scaleOffset:SetX((scale:GetX() * GetWidth() - GetWidth())/2)
         scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
+
+        if updateTransform
+            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
+            sweep:GetCenter():SetX(transform:GetPosition():GetX())
+            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
+            sweep:GetCenter():SetY(transform:GetPosition():GetY())
+        end
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -2906,6 +2972,10 @@ class Item2D is Item
     action SetPhysicsProperties(PhysicsProperties2D properties)
         me:properties = properties:Copy()
         me:properties:SetItem(me)
+    end
+    
+    action SetUpdateTransform(boolean flag)
+        updateTransform = flag
     end
 
     action SetPhysicsPositionFromScreenPosition
