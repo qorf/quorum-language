@@ -123,6 +123,9 @@ class PhysicsProperties2D
             return now
         end
         me:linearVelocity:Set(linearVelocity)
+        if not simulated
+            Simulate(true)
+        end
     end
 
     action SetLinearVelocityX(number linearVelocityX)
@@ -131,6 +134,9 @@ class PhysicsProperties2D
         end
 
         me:linearVelocity:Set(linearVelocityX, me:linearVelocity:GetY())
+        if not simulated
+            Simulate(true)
+        end
     end
 
     action SetLinearVelocityY(number linearVelocityY)
@@ -139,6 +145,9 @@ class PhysicsProperties2D
         end
 
         me:linearVelocity:Set(me:linearVelocity:GetX(), linearVelocityY)
+        if not simulated
+            Simulate(true)
+        end
     end
 
     action GetLinearVelocity returns Vector2
@@ -150,6 +159,9 @@ class PhysicsProperties2D
             return now
         end
         me:angularVelocity = angularVelocity
+        if not simulated
+            Simulate(true)
+        end
     end
 
     action GetAngularVelocity returns number
@@ -158,6 +170,9 @@ class PhysicsProperties2D
 
     action SetForce(Vector2 force)
         me:force = force
+        if not simulated
+            Simulate(true)
+        end
     end
 
     action GetForce returns Vector2
@@ -166,6 +181,9 @@ class PhysicsProperties2D
 
     action SetTorque(number torque)
         me:torque = torque
+        if not simulated
+            Simulate(true)
+        end
     end
 
     action GetTorque returns number

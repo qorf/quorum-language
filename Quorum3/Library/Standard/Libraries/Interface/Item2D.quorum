@@ -653,6 +653,10 @@ class Item2D is Item
         hasMoved = true
         position:SetX(position:GetX() + xAmount)
         SetOffsetX(offset:GetX())
+
+        if physicsEnabled and not IsSimulated()
+            Simulate(true)
+        end
     end
 
     /*
@@ -677,6 +681,10 @@ class Item2D is Item
         hasMoved = true
         position:SetY(position:GetY() + yAmount)
         SetOffsetY(offset:GetY())
+
+        if physicsEnabled and not IsSimulated()
+            Simulate(true)
+        end
     end
 
     /*
@@ -727,6 +735,10 @@ class Item2D is Item
         position:SetX(position:GetX() + xAmount)
         position:SetY(position:GetY() + yAmount)
         SetOffset(offset:GetX(), offset:GetY())
+
+        if physicsEnabled and not IsSimulated()
+            Simulate(true)
+        end
     end
 
     /*
@@ -1541,6 +1553,10 @@ class Item2D is Item
                 counter = counter + 1
             end
         end
+
+        if physicsEnabled and not IsSimulated()
+            Simulate(true)
+        end
     end
 
     /*
@@ -1626,6 +1642,10 @@ class Item2D is Item
                 temp:Rotate(degrees)
                 counter = counter + 1
             end
+        end
+
+        if physicsEnabled and not IsSimulated()
+            Simulate(true)
         end
     end
 
