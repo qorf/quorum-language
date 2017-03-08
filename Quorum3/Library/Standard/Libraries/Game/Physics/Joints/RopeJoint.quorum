@@ -3,6 +3,7 @@ package Libraries.Game.Physics.Joints
 use Libraries.Compute.Vector2
 use Libraries.Interface.Item2D
 use Libraries.Game.Collision.PhysicsPosition2D
+use Libraries.Compute.Math
 
 class RopeJoint is Joint2D
     Vector2 localAnchorA
@@ -32,7 +33,15 @@ class RopeJoint is Joint2D
     number inverseInertiaA = 0
     number inverseInertiaB = 0
     number mass = 0
+    Math math
 
+    action Initialize(Item2D itemA, Item2D itemB, Vector2 anchorA, Vector2 anchorB, number maxLength) 
+        parent:Joint2D:itemA = itemA
+        parent:Joint2D:itemB = itemB
+        localAnchorA:Set(parent:Joint2D:itemA:GetLocalPoint(anchorA))
+        localAnchorB:Set(parent:Joint2D:itemB:GetLocalPoint(anchorB))
+        maximumLength = maxLength       
+    end
 
     action InitializeVelocityConstraints(JointSolverData data)
         indexA = parent:Joint2D:itemA:GetCollisionGroupIndex()
@@ -54,21 +63,18 @@ class RopeJoint is Joint2D
         Vector2 linearVelocityB = data:GetLinearVelocities():Get(indexB)
         number angularVelocityB = data:GetAngularVelocities():Get(indexB)
         
-        PhysicsPosition2D transformA 
-        PhysicsPosition2D transformB
-        Vector2 temp
-      
-        transformA:Set(positionA, angleA)
-        transformB:Set(positionB, angleB)
+        number sineA = math:Sine(angleA)
+        number cosineA = math:Cosine(angleA)
+        number sineB = math:Sine(angleB)
+        number cosineB = math:Cosine(angleB)
 
-        //equivalent of mulToOutUnsafe
-        temp = temp:Set(localAnchorA):Subtract(localCenterA)        
-        rA:SetX((transformA:GetCosine() * temp:GetX() - transformA:GetSine() * temp:GetY()) + transformA:GetPosition():GetX())
-        rA:SetY((transformA:GetSine() * temp:GetX() + transformA:GetCosine() * temp:GetY()) + transformA:GetPosition():GetY())
+        u:Set(localAnchorA):Subtract(localCenterA)
+        rA:SetX(cosineA * u:GetX() - sineA * u:GetY())
+        rA:SetY(sineA * u:GetX() + cosineA * u:GetY())
 
-        temp = temp:Set(localAnchorB):Subtract(localCenterB)        
-        rB:SetX((transformB:GetCosine() * temp:GetX() - transformB:GetSine() * temp:GetY()) + transformB:GetPosition():GetX())
-        rB:SetY((transformB:GetSine() * temp:GetX() + transformB:GetCosine() * temp:GetY()) + transformB:GetPosition():GetY())
+        u:Set(localAnchorB):Subtract(localCenterB)
+        rB:SetX(cosineB * u:GetX() - sineB * u:GetY())
+        rB:SetY(sineB * u:GetX() + cosineB * u:GetY())
 
         u:Set(positionB):Add(rB):Subtract(positionA):Subtract(rA)
 
@@ -90,6 +96,9 @@ class RopeJoint is Joint2D
             impulse = 0.0
             returnZero = true //java code returns here
         end
+
+        Vector2 temp
+
         if not returnZero
             number crossA = temp:Set(rA):CrossProduct(u)
             number crossB = temp:Set(rB):CrossProduct(u)
@@ -117,8 +126,9 @@ class RopeJoint is Joint2D
                 impulse = 0.0
             end
 
-            //No values to return       
-        else
+            data:SetAngularVelocity(angularVelocityA, indexA)
+            data:SetAngularVelocity(angularVelocityB, indexB)
+       
         end     
     end
     
@@ -140,7 +150,7 @@ class RopeJoint is Joint2D
         vpB:SetY(angularVelocityB * rB:GetX())
         vpB:Add(linearVelocityB)
 
-        temp = temp:Set(vpA):Subtract(vpB)
+        temp = temp:Set(vpB):Subtract(vpA)
         number c = length - maximumLength
         number cDot = u:DotProduct(temp)
         
@@ -177,40 +187,37 @@ class RopeJoint is Joint2D
         Vector2 positionB = data:GetPositions():Get(indexB)
         number angleB = data:GetAngles():Get(indexB)
 
-        PhysicsPosition2D transformA
-        PhysicsPosition2D transformB
         Vector2 localu
         Vector2 localrA
         Vector2 localrB
         Vector2 temp
 
-        transformA:Set(positionA, angleA)
-        transformB:Set(positionB, angleB)
-        
-        temp = temp:Set(localAnchorA):Subtract(localCenterA)        
-        localrA:SetX((transformA:GetCosine() * temp:GetX() - transformA:GetSine() * temp:GetY()) + transformA:GetPosition():GetX())
-        localrA:SetY((transformA:GetSine() * temp:GetX() + transformA:GetCosine() * temp:GetY()) + transformA:GetPosition():GetY())
+        number sineA = math:Sine(angleA)
+        number cosineA = math:Cosine(angleA)
+        number sineB = math:Sine(angleB)
+        number cosineB = math:Cosine(angleB)
 
-        temp = temp:Set(localAnchorB):Subtract(localCenterB)        
-        localrB:SetX((transformB:GetCosine() * temp:GetX() - transformB:GetSine() * temp:GetY()) + transformB:GetPosition():GetX())
-        localrB:SetY((transformB:GetSine() * temp:GetX() + transformB:GetCosine() * temp:GetY()) + transformB:GetPosition():GetY())
+        u:Set(localAnchorA):Subtract(localCenterA)
+        localrA:SetX(cosineA * u:GetX() - sineA * u:GetY())
+        localrA:SetY(sineA * u:GetX() + cosineA * u:GetY())
 
-        localu:Set(positionB):Subtract(positionA):Subtract(localrA)
+        u:Set(localAnchorB):Subtract(localCenterB)
+        localrB:SetX(cosineB * u:GetX() - sineB * u:GetY())
+        localrB:SetY(sineB * u:GetX() + cosineB * u:GetY())
+
+        localu:Set(positionB):Add(localrB):Subtract(positionA):Subtract(localrA)
 
         number localLength = localu:Length()
         localu:Normalize()
         
         number diffFromMaxLength = localLength - maximumLength
-        number minimum = diffFromMaxLength
         //minumum of diffFromMaxLength and 0.2 (maximumLinearCorrection)
-        if 0.2 < diffFromMaxLength
-            minimum = 0.2
+        if diffFromMaxLength < 0 
+            diffFromMaxLength = 0
         end
-        //maximum of diffFromMaxLength and 0.0
-        if 0.0 > minimum
-            minimum = 0.0
+        if diffFromMaxLength > 0.2
+            diffFromMaxLength = 0.2
         end
-        diffFromMaxLength = minimum
 
         number localImpulse = -mass * diffFromMaxLength
         number pX = localImpulse * u:GetX()
