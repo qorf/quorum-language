@@ -25,7 +25,8 @@ public class Painter3D
     protected RenderContext context = new RenderContext();
     protected ShaderProvider shaderProvider = new ShaderProvider();
     protected Environment_ environment = null;
-    protected Skybox_ skyBox = null;
+    protected Skybox_ skybox = null;
+    protected SkyboxShader skyboxShader = new SkyboxShader();
     
     private boolean isRendering = false;
     
@@ -72,12 +73,12 @@ public class Painter3D
 
     public void SetSkybox(Skybox_ box)
     {
-        skyBox = box;
+        skybox = box;
     }
     
     public Skybox_ GetSkybox()
     {
-        return skyBox;
+        return skybox;
     }
     
     public void Begin()
@@ -95,6 +96,8 @@ public class Painter3D
     {
         Flush();
         context.End();
+        if (skybox != null)
+            skyboxShader.Render(skybox, camera);
         isRendering = false;
     }
     
