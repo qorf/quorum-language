@@ -1791,6 +1791,40 @@ class Matrix3
         row2column1 = v21
 
         return me
+    end    
+
+    action GetElement(integer row, integer column) returns number
+        integer i = row
+        integer j = column
+        if i < 0 or i > 2 or j < 0 or j > 2
+            MatrixError matrix
+            matrix:SetErrorMessage("Invalid row or column number for a 3x3 matrix.")
+            alert(matrix)
+        end
+        if i = 0
+            if j = 0
+                return row0column0
+            elseif j = 1
+                return row0column1
+            else
+                return row0column2
+            end
+        elseif i = 1
+            if j = 0
+                return row1column0
+            elseif j = 1
+                return row1column1
+            else
+                return row1column2
+            end
+        else
+            if j = 0
+                return row2column0
+            elseif j = 1
+                return row2column1
+            else
+                return row2column2
+            end
+        end
     end
-    
 end
