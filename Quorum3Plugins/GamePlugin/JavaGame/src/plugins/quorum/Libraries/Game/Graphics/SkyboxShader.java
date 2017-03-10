@@ -29,17 +29,17 @@ public class SkyboxShader
         "\n" +
         "void main()\n" +
         "{\n" +
-//        "    gl_Position =   projection * view * vec4(position, 1.0);  \n" +
-//        "    texureCoordinates = position;\n" +
+        "    gl_Position = projection * view * vec4(position, 1.0);\n" +
+        "    textureCoordinates = position;\n" +
         "}";
     
     public static final String fragmentShader = 
-//        "attribute vec3 textureCoordinates;\n" +
+        "varying vec3 textureCoordinates;\n" +
         "uniform samplerCube skybox;\n" +
         "\n" +
         "void main()\n" +
         "{\n" +
-//        "    gl_FragColor = textureCube(skybox, textureCoordinates);\n" +
+        "    gl_FragColor = textureCube(skybox, textureCoordinates);\n" +
         "}";
     
     private FloatBuffer skyboxBuffer;
@@ -52,16 +52,9 @@ public class SkyboxShader
     private int viewIndex;
     private int skyboxIndex;
     
-    private boolean Test()
-    {
-        return true;
-    }
-    
     public SkyboxShader()
     {
         program = new ShaderProgram(vertexShader, fragmentShader);
-        if (Test())
-            return;
         positionIndex = program.GetAttributeLocation("position");
         projectionIndex = program.FetchUniformLocation("projection", true);
         viewIndex = program.FetchUniformLocation("view", true);
@@ -125,6 +118,8 @@ public class SkyboxShader
         GameStateManager.nativeGraphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, 0);
     }
     
+    int counter = 0;
+    
     public void Render(Skybox_ skybox, Camera_ camera)
     {
         program.Begin();
@@ -132,14 +127,56 @@ public class SkyboxShader
         GraphicsManager graphics = GameStateManager.nativeGraphics;
         graphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, bufferHandle);
         
-        Matrix4 m = (Matrix4)camera.GetViewMatrix();
+        quorum.Libraries.Game.Graphics.PerspectiveCamera cam = new quorum.Libraries.Game.Graphics.PerspectiveCamera();
+        quorum.Libraries.Compute.Vector3_ dir = new quorum.Libraries.Compute.Vector3();
+        dir.Set(camera.GetDirection());
+        quorum.Libraries.Compute.Vector3_ up = new quorum.Libraries.Compute.Vector3();
+        up.Set(camera.GetUp());
+        dir.SetZ(-dir.GetZ());
+        up.SetZ(-up.GetZ());
+        cam.SetWidth(camera.GetWidth());
+        cam.SetHeight(camera.GetHeight());
+        cam.SetNear(camera.GetNear());
+        cam.SetFar(camera.GetFar());
+        cam.SetFieldOfView(((quorum.Libraries.Game.Graphics.PerspectiveCamera)camera).fieldOfView);
+        cam.SetDirection(dir);
+        cam.SetUp(up);
+        cam.Update();
+        
+        Matrix4 m = (Matrix4)cam.GetViewMatrix();
+//        Matrix4 m = (Matrix4)camera.GetViewMatrix();
         float[] temp = {(float)m.row0column0, (float)m.row1column0, (float)m.row2column0, 0,
                         (float)m.row0column1, (float)m.row1column1, (float)m.row2column1, 0,
                         (float)m.row0column2, (float)m.row1column2, (float)m.row2column2, 0,
                         0, 0, 0, 1};
         
+        counter = counter + 1;
+        if (counter > 180)
+        {
+//            System.out.println("Base Camera:");
+//            System.out.println(m.row0column0 + ", " + m.row0column1 + ", " + m.row0column2 + ", " + 0);
+//            System.out.println(m.row1column0 + ", " + m.row1column1 + ", " + m.row1column2 + ", " + 0);
+//            System.out.println(m.row2column0 + ", " + m.row2column1 + ", " + m.row2column2 + ", " + 0);
+//            System.out.println("0, 0, 0, 1");
+//            System.out.println("");
+//            Matrix4 n = (Matrix4)cam.GetViewMatrix();
+//            System.out.println("Inverted Camera:");
+//            System.out.println(n.row0column0 + ", " + n.row0column1 + ", " + n.row0column2 + ", " + 0);
+//            System.out.println(n.row1column0 + ", " + n.row1column1 + ", " + n.row1column2 + ", " + 0);
+//            System.out.println(n.row2column0 + ", " + n.row2column1 + ", " + n.row2column2 + ", " + 0);
+//            System.out.println("0, 0, 0, 1");
+            
+            counter = 0;
+        }
+//        
+//        float[] temp = {-(float)m.row0column0,  (float)m.row1column0,  (float)m.row2column0, 0,
+//                         (float)m.row0column1,  (float)m.row1column1, -(float)m.row2column1, 0,
+//                         (float)m.row0column2,  (float)m.row1column2, -(float)m.row2column2, 0,
+//                        0, 0, 0, 1};
+        
         program.SetUniformMatrix4(viewIndex, temp);
-        program.SetUniformMatrix(projectionIndex, camera.GetProjectionMatrix());
+//        program.SetUniformMatrix(projectionIndex, camera.GetProjectionMatrix());
+        program.SetUniformMatrix(projectionIndex, cam.GetProjectionMatrix());
 
         program.EnableVertexAttribute(positionIndex);
         program.SetVertexAttribute(positionIndex, 3, GraphicsManager.GL_FLOAT, false, 12, 0);
@@ -155,16 +192,5 @@ public class SkyboxShader
         skybox.Get_Libraries_Game_Graphics_Skybox__cubeMap_().BindToDefault();
         
         program.End();
-    }
-    
-    private float[] ConvertMatrix4ToArray(Matrix4_ matrix)
-    {
-        Matrix4 m = (Matrix4)matrix;
-        // OpenGL expects the matrix to be stored in column-major format.
-        float[] temp = {(float)m.row0column0, (float)m.row1column0, (float)m.row2column0, (float)m.row3column0,
-                        (float)m.row0column1, (float)m.row1column1, (float)m.row2column1, (float)m.row3column1,
-                        (float)m.row0column2, (float)m.row1column2, (float)m.row2column2, (float)m.row3column2,
-                        (float)m.row0column3, (float)m.row1column3, (float)m.row2column3, (float)m.row3column3};
-        return temp;
     }
 }

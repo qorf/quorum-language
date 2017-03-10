@@ -6,6 +6,7 @@
 package plugins.quorum.Libraries.Game.Graphics;
 
 import plugins.quorum.Libraries.Game.GameRuntimeError;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Game.Graphics.Painter3D_;
 import quorum.Libraries.Game.Graphics.Camera_;
 import quorum.Libraries.Game.Graphics.Camera;
@@ -88,6 +89,18 @@ public class Painter3D
         if (camera == null)
             throw new GameRuntimeError("The Painter3D must have a camera set before calling Begin().");
         
+        double near = camera.GetNear();
+        camera.SetNear(0.01);
+        camera.Update();
+        
+//        GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_DEPTH_TEST);
+        if (skybox != null)
+            skyboxShader.Render(skybox, camera);
+//        GameStateManager.nativeGraphics.glEnable(GraphicsManager.GL_DEPTH_TEST);
+        
+        camera.SetNear(near);
+        camera.Update();
+        
         context.Begin();
         isRendering = true;
     }
@@ -96,8 +109,8 @@ public class Painter3D
     {
         Flush();
         context.End();
-        if (skybox != null)
-            skyboxShader.Render(skybox, camera);
+//        if (skybox != null)
+//            skyboxShader.Render(skybox, camera);
         isRendering = false;
     }
     
