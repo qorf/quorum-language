@@ -1827,4 +1827,11 @@ class Matrix3
             end
         end
     end
+
+    action Transform(Vector3 vector)
+        number x = row0column0 * vector:GetX() + row0column1 * vector:GetY() + row0column2 * vector:GetZ()
+        number y = row1column0 * vector:GetX() + row1column1 * vector:GetY() + row1column2 * vector:GetZ()
+        number z = row2column0 * vector:GetZ() + row2column1 * vector:GetY() + row2column2 * vector:GetZ()
+        vector:Set(x, y, z)
+    end
 end

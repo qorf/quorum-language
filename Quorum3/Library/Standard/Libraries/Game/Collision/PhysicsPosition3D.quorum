@@ -125,45 +125,17 @@ class PhysicsPosition3D
             integer j = (i + 1) mod 3
             integer k = (i + 2) mod 3
 
-            number s = math:SquareRoot(GetMatrixElement(basis, i, i) - GetMatrixElement(basis, j, j) - GetMatrixElement(basis, k, k) + 1)
+            number s = math:SquareRoot(basis:GetElement(i, i) - basis:GetElement(j, j) - basis:GetElement(k, k) + 1)
             temp:Set(i, s * 0.5)
             s = 0.5 / s
 
-            temp:Set(3, (GetMatrixElement(basis, k, j) - GetMatrixElement(basis, j, k)) * s)
-            temp:Set(j, (GetMatrixElement(basis, j, i) + GetMatrixElement(basis, i, j)) * s)
-            temp:Set(k, (GetMatrixElement(basis, k, i) + GetMatrixElement(basis, i, k)) * s)
+            temp:Set(3, (basis:GetElement(k, j) - basis:GetElement(j, k)) * s)
+            temp:Set(j, (basis:GetElement(j, i) + basis:GetElement(i, j)) * s)
+            temp:Set(k, (basis:GetElement(k, i) + basis:GetElement(i, k)) * s)
         end
         quaternion:Set(temp:Get(0), temp:Get(1), temp:Get(2), temp:Get(3))     
 
         return quaternion
-    end
-
-    private action GetMatrixElement(Matrix3 matrix, integer i, integer j) returns number
-        if i = 0
-            if j = 0
-                return matrix:row0column0
-            elseif j = 1
-                return matrix:row0column1
-            else
-                return matrix:row0column2
-            end
-        elseif i = 1
-            if j = 0
-                return matrix:row1column0
-            elseif j = 1
-                return matrix:row1column1
-            else
-                return matrix:row1column2
-            end
-        else
-            if j = 0
-                return matrix:row2column0
-            elseif j = 1
-                return matrix:row2column1
-            else
-                return matrix:row2column2
-            end
-        end
     end
 
     action SetRotation(Quaternion quaternion)
