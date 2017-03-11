@@ -29,7 +29,8 @@ public class SkyboxShader
         "\n" +
         "void main()\n" +
         "{\n" +
-        "    gl_Position = projection * view * vec4(position, 1.0);\n" +
+        "    vec4 pos = projection * view * vec4(position, 1.0);\n" +
+        "    gl_Position = pos.xyww;\n" +
         "    textureCoordinates = position;\n" +
         "}";
     
@@ -125,58 +126,23 @@ public class SkyboxShader
         program.Begin();
         
         GraphicsManager graphics = GameStateManager.nativeGraphics;
+        graphics.glDepthFunc(GraphicsManager.GL_LEQUAL);
         graphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, bufferHandle);
         
-        quorum.Libraries.Game.Graphics.PerspectiveCamera cam = new quorum.Libraries.Game.Graphics.PerspectiveCamera();
-        quorum.Libraries.Compute.Vector3_ dir = new quorum.Libraries.Compute.Vector3();
-        dir.Set(camera.GetDirection());
-        quorum.Libraries.Compute.Vector3_ up = new quorum.Libraries.Compute.Vector3();
-        up.Set(camera.GetUp());
-        dir.SetZ(-dir.GetZ());
-        up.SetZ(-up.GetZ());
-        cam.SetWidth(camera.GetWidth());
-        cam.SetHeight(camera.GetHeight());
-        cam.SetNear(camera.GetNear());
-        cam.SetFar(camera.GetFar());
-        cam.SetFieldOfView(((quorum.Libraries.Game.Graphics.PerspectiveCamera)camera).fieldOfView);
-        cam.SetDirection(dir);
-        cam.SetUp(up);
-        cam.Update();
-        
-        Matrix4 m = (Matrix4)cam.GetViewMatrix();
-//        Matrix4 m = (Matrix4)camera.GetViewMatrix();
-        float[] temp = {(float)m.row0column0, (float)m.row1column0, (float)m.row2column0, 0,
-                        (float)m.row0column1, (float)m.row1column1, (float)m.row2column1, 0,
-                        (float)m.row0column2, (float)m.row1column2, (float)m.row2column2, 0,
+        Matrix4 m = (Matrix4)camera.GetViewMatrix();
+        float[] temp = {-(float)m.row0column0,  (float)m.row1column0,  (float)m.row2column0, 0,
+                        -(float)m.row0column1,  (float)m.row1column1,  (float)m.row2column1, 0,
+                         (float)m.row0column2, -(float)m.row1column2, -(float)m.row2column2, 0,
                         0, 0, 0, 1};
         
-        counter = counter + 1;
-        if (counter > 180)
-        {
-//            System.out.println("Base Camera:");
-//            System.out.println(m.row0column0 + ", " + m.row0column1 + ", " + m.row0column2 + ", " + 0);
-//            System.out.println(m.row1column0 + ", " + m.row1column1 + ", " + m.row1column2 + ", " + 0);
-//            System.out.println(m.row2column0 + ", " + m.row2column1 + ", " + m.row2column2 + ", " + 0);
-//            System.out.println("0, 0, 0, 1");
-//            System.out.println("");
-//            Matrix4 n = (Matrix4)cam.GetViewMatrix();
-//            System.out.println("Inverted Camera:");
-//            System.out.println(n.row0column0 + ", " + n.row0column1 + ", " + n.row0column2 + ", " + 0);
-//            System.out.println(n.row1column0 + ", " + n.row1column1 + ", " + n.row1column2 + ", " + 0);
-//            System.out.println(n.row2column0 + ", " + n.row2column1 + ", " + n.row2column2 + ", " + 0);
-//            System.out.println("0, 0, 0, 1");
-            
-            counter = 0;
-        }
-//        
-//        float[] temp = {-(float)m.row0column0,  (float)m.row1column0,  (float)m.row2column0, 0,
-//                         (float)m.row0column1,  (float)m.row1column1, -(float)m.row2column1, 0,
-//                         (float)m.row0column2,  (float)m.row1column2, -(float)m.row2column2, 0,
-//                        0, 0, 0, 1};
+        Matrix4 proj = (Matrix4)camera.GetProjectionMatrix();
+        float[] projTemp = {(float)proj.row0column0, (float)proj.row1column0, (float)proj.row2column0, (float)proj.row3column0,
+                            (float)proj.row0column1, (float)proj.row1column1, (float)proj.row2column1, (float)proj.row3column1,
+                            (float)proj.row0column2, (float)proj.row1column2,                       0, (float)proj.row3column2,
+                            (float)proj.row0column3, (float)proj.row1column3,                       0, (float)proj.row3column3};
         
         program.SetUniformMatrix4(viewIndex, temp);
-//        program.SetUniformMatrix(projectionIndex, camera.GetProjectionMatrix());
-        program.SetUniformMatrix(projectionIndex, cam.GetProjectionMatrix());
+        program.SetUniformMatrix4(projectionIndex, projTemp);
 
         program.EnableVertexAttribute(positionIndex);
         program.SetVertexAttribute(positionIndex, 3, GraphicsManager.GL_FLOAT, false, 12, 0);
