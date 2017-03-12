@@ -32,6 +32,7 @@ use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Skybox
 use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -2824,5 +2825,69 @@ class Game
     action SetWebCanvasName(text name)
         WebConfiguration config = GetWebConfiguration()
         config:canvasID = name
+    end
+
+    /*
+    The SetSkybox action will set the currently active Layer3D to use the given
+    Skybox. 
+
+    Attribute: Parameter skybox The Skybox to use on the current Layer3D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            skybox:Load("skybox/right.jpg", "skybox/left.jpg", "skybox/top.jpg", "skybox/bottom.jpg", "skybox/front.jpg", "skybox/back.jpg")
+            SetSkybox(skybox)
+        end
+
+    end
+    */
+    action SetSkybox(Skybox skybox)
+        GetCurrentLayer3D():SetSkybox(skybox)
+    end
+
+    /*
+    The GetSkybox action will return the Skybox in use by the currently active
+    Layer3D. By default, a Layer3D does not start with a Skybox, so using this
+    on a Layer3D that hasn't had a Skybox assigned to it will return undefined.
+
+    Attribute: Returns The Skybox in use by the current Layer3D.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            skybox:Load("skybox/right.jpg", "skybox/left.jpg", "skybox/top.jpg", "skybox/bottom.jpg", "skybox/front.jpg", "skybox/back.jpg")
+            SetSkybox(skybox)
+
+            // We can get the Skybox back from the layer using GetSkybox().
+            Skybox currentSkybox = GetSkybox()
+        end
+
+    end
+    */
+    action GetSkybox returns Skybox
+        return GetCurrentLayer3D():GetSkybox()
     end
 end

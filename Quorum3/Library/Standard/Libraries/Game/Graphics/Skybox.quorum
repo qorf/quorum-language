@@ -1,6 +1,8 @@
 package Libraries.Game.Graphics
 
 use Libraries.System.File
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Vector3
 
 class Skybox
 
@@ -14,6 +16,7 @@ class Skybox
     constant integer GL_TEXTURE_CUBE_MAP_NEGATIVE_Z = 34074
 
     Texture cubeMap = undefined
+    Matrix4 transform
 
     action Load(text right, text left, text up, text down, text forward, text back)
         File positiveX
@@ -72,6 +75,164 @@ class Skybox
     action Dispose
         cubeMap:Dispose()
         cubeMap = undefined
+    end
+
+    /*
+    This action will rotate the Skybox about an axis represented by the given
+    numbers. The axis is essentially a ray that starts at the center of the
+    Skybox and points in the direction of the provided x, y, and z values. The
+    Skybox will then rotate clockwise around that ray. The Skybox will be 
+    rotated by an angle given in degrees. 
+
+    Attribute: Parameter x How far the ray points along the x-axis.
+    Attribute: Parameter y How far the ray points along the y-axis.
+    Attribute: Parameter z How far the ray points along the z-axis.
+    Attribute: Parameter degrees How many degrees to rotate (clockwise).
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+
+        Skybox skybox
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            // Assuming we have a folder named "skybox" containing our six images.
+            skybox:Load("skybox/right.jpg", "skybox/left.jpg", "skybox/top.jpg", "skybox/bottom.jpg", "skybox/front.jpg", "skybox/back.jpg")
+            SetSkybox(skybox)
+        end
+
+        action Update(number seconds)
+            // The Skybox will rotate around the y-axis at a rate of 2 degrees per second.
+            skybox:Rotate(0, 1, 0, 2 * seconds)
+        end
+    end
+    */
+    action Rotate(number x, number y, number z, number degrees)
+        transform:Rotate(x, y, z, degrees)
+    end
+
+    /*
+    This action will rotate the Skybox about an axis represented by the given
+    Vector3. The axis is essentially a ray that starts at the center of the
+    Skybox and points outward. The Skybox will then rotate clockwise around that
+    ray. The Skybox will be rotated by an angle given in degrees. 
+
+    Attribute: Parameter axis The axis or ray to rotate around.
+    Attribute: Parameter degrees How many degrees to rotate (clockwise).
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+    use Libraries.Compute.Vector3
+
+    class Main is Game
+
+        Skybox skybox
+        Vector3 axis
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            // Assuming we have a folder named "skybox" containing our six images.
+            skybox:Load("skybox/right.jpg", "skybox/left.jpg", "skybox/top.jpg", "skybox/bottom.jpg", "skybox/front.jpg", "skybox/back.jpg")
+            SetSkybox(skybox)
+
+            axis:Set(0, 1, 0)
+        end
+
+        action Update(number seconds)
+            // The Skybox will rotate around the axis at a rate of 2 degrees per second.
+            skybox:Rotate(axis, 2 * seconds)
+        end
+    end
+    */
+    action Rotate(Vector3 axis, number degrees)
+        Rotate(axis:GetX(), axis:GetY(), axis:GetZ(), degrees)
+    end
+
+    /*
+    The SetToRotation action will rotate the Skybox from its base orientation,
+    ignoring any previous rotations that have been applied to it. The rotation
+    is measured as a number of degrees rotated clockwise around the given axis.
+    The axis is essentially a ray that begins in the center of the Skybox and 
+    extends outward.
+
+    Attribute: Parameter x How far the ray points along the x-axis.
+    Attribute: Parameter y How far the ray points along the y-axis.
+    Attribute: Parameter z How far the ray points along the z-axis.
+    Attribute: Parameter degrees The number of degrees to rotate the Skybox.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            skybox:Load("skybox/right.jpg", "skybox/left.jpg", "skybox/top.jpg", "skybox/bottom.jpg", "skybox/front.jpg", "skybox/back.jpg")
+            SetSkybox(skybox)
+
+            skybox:SetToRotation(0, 1, 0, 90)
+        end
+    end
+    */
+    action SetToRotation(number x, number y, number z, number degrees)
+        transform:SetToRotation(x, y, z, degrees)
+    end
+
+    /*
+    The SetToRotation action will rotate the Skybox from its base orientation,
+    ignoring any previous rotations that have been applied to it. The rotation
+    is measured as a number of degrees rotated clockwise around the given axis.
+    The axis is essentially a ray that begins in the center of the Skybox and 
+    extends outward.
+
+    Attribute: Parameter axis The ray to rotate the Skybox around.
+    Attribute: Parameter degrees The number of degrees to rotate the Skybox.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+    use Libraries.Compute.Vector3
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            skybox:Load("skybox/right.jpg", "skybox/left.jpg", "skybox/top.jpg", "skybox/bottom.jpg", "skybox/front.jpg", "skybox/back.jpg")
+            SetSkybox(skybox)
+
+            Vector3 axis
+            axis:Set(0, 1, 0)
+            skybox:SetToRotation(axis, 90)
+        end
+    end
+    */
+    action SetToRotation(Vector3 axis, number degrees)
+        SetToRotation(axis:GetX(), axis:GetY(), axis:GetZ(), degrees)
     end
 
 end
