@@ -26,10 +26,11 @@ public class SkyboxShader
         "\n" +
         "uniform mat4 projection;\n" +
         "uniform mat4 view;\n" +
+        "uniform mat4 rotation;\n" +
         "\n" +
         "void main()\n" +
         "{\n" +
-        "    vec4 pos = projection * view * vec4(position, 1.0);\n" +
+        "    vec4 pos = projection * view * rotation * vec4(position, 1.0);\n" +
         "    gl_Position = pos.xyww;\n" +
         "    textureCoordinates = position;\n" +
         "}";
@@ -48,16 +49,18 @@ public class SkyboxShader
     private int bufferHandle;
     
     private ShaderProgram program;
-    private int positionIndex;
-    private int projectionIndex;
-    private int viewIndex;
-    private int skyboxIndex;
+    private final int positionIndex;
+    private final int projectionIndex;
+    private final int viewIndex;
+    private final int rotationIndex;
+    private final int skyboxIndex;
     
     public SkyboxShader()
     {
         program = new ShaderProgram(vertexShader, fragmentShader);
         positionIndex = program.GetAttributeLocation("position");
         projectionIndex = program.FetchUniformLocation("projection", true);
+        rotationIndex = program.FetchUniformLocation("rotation", true);
         viewIndex = program.FetchUniformLocation("view", true);
         skyboxIndex = program.FetchUniformLocation("skybox", true);
         
@@ -143,7 +146,8 @@ public class SkyboxShader
         
         program.SetUniformMatrix4(viewIndex, temp);
         program.SetUniformMatrix4(projectionIndex, projTemp);
-
+        program.SetUniformMatrix(rotationIndex, skybox.Get_Libraries_Game_Graphics_Skybox__transform_());
+        
         program.EnableVertexAttribute(positionIndex);
         program.SetVertexAttribute(positionIndex, 3, GraphicsManager.GL_FLOAT, false, 12, 0);
         
