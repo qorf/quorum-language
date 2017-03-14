@@ -89,18 +89,6 @@ public class Painter3D
         if (camera == null)
             throw new GameRuntimeError("The Painter3D must have a camera set before calling Begin().");
         
-//        double near = camera.GetNear();
-//        camera.SetNear(0.01);
-//        camera.Update();
-        
-//        GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_DEPTH_TEST);
-//        if (skybox != null)
-//            skyboxShader.Render(skybox, camera);
-//        GameStateManager.nativeGraphics.glEnable(GraphicsManager.GL_DEPTH_TEST);
-        
-//        camera.SetNear(near);
-//        camera.Update();
-        
         context.Begin();
         isRendering = true;
     }
@@ -109,7 +97,11 @@ public class Painter3D
     {
         Flush();
         if (skybox != null)
+        {   
+            if (skybox.IsLoaded() == false)
+                throw new GameRuntimeError("I can't render the skybox because it wasn't fully loaded. Make sure all six sides are loaded before trying to use it.");
             skyboxShader.Render(skybox, camera);
+        }
         context.End();
         isRendering = false;
     }
