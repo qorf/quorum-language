@@ -30,6 +30,39 @@ class Skybox
     boolean frontLoaded = false
     boolean backLoaded = false
 
+    /*
+    The Load action loads all six sides of the Skybox. It takes six text
+    parameters, which are the the file paths from the default working directory
+    for images comprising the right, left, top, bottom, front, and back sides of
+    the Skybox, respectively.
+
+    Attribute: Parameter right The file path to an image representing the right side of the skybox.
+    Attribute: Parameter left The file path to an image representing the left side of the skybox.
+    Attribute: Parameter up The file path to an image representing the top of the skybox.
+    Attribute: Parameter down The file path to an image representing the bottom of the skybox.
+    Attribute: Parameter forward The file path to an image representing the front of the skybox.
+    Attribute: Parameter back The file path to an image representing the back of the skybox.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            skybox:Load("skybox/right.jpg", "skybox/left.jpg", "skybox/top.jpg", "skybox/bottom.jpg", "skybox/front.jpg", "skybox/back.jpg")
+            SetSkybox(skybox)
+        end
+    end
+
+    */
     action Load(text right, text left, text up, text down, text forward, text back)
         File positiveX
         File negativeX
@@ -46,6 +79,51 @@ class Skybox
         Load(positiveX, negativeX, positiveY, negativeY, positiveZ, negativeZ)
     end
 
+    /*
+    The Load action loads all six sides of the Skybox. It takes six files as
+    parameters, which represent the images that form the right, left, top, 
+    bottom, front, and back sides of the Skybox, respectively.
+
+    Attribute: Parameter right An image file representing the right side of the skybox.
+    Attribute: Parameter left An image file representing the left side of the skybox.
+    Attribute: Parameter up An image file representing the top of the skybox.
+    Attribute: Parameter down An image file representing the bottom of the skybox.
+    Attribute: Parameter forward An image file representing the front of the skybox.
+    Attribute: Parameter back An image file representing the back of the skybox.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+    use Libraries.System.File
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            File right
+            right:SetPath("Skybox/right.jpg")
+            File left
+            left:SetPath("Skybox/left.jpg")
+            File top
+            top:SetPath("Skybox/top.jpg")
+            File bottom
+            bottom:SetPath("Skybox/bottom.jpg")
+            File front
+            front:SetPath("Skybox/front.jpg")
+            File back
+            back:SetPath("Skybox/back.jpg")
+            skybox:Load(right, left, top, bottom, front, back)
+            SetSkybox(skybox)
+        end
+    end
+
+    */
     action Load(File right, File left, File up, File down, File forward, File back)
         if cubeMap = undefined
             Texture texture
@@ -62,12 +140,90 @@ class Skybox
         LoadSide(back, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
     end
 
+    /*
+    This action loads the right side of the Skybox. Note that all six sides of
+    the Skybox must be loaded before it can be used. Attempting to use a Skybox
+    without loading all six sides will throw an error.
+
+    Attribute: Parameter fileName The path from the default working directory to an image file.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            skybox:LoadRight("Skybox/right.jpg")
+            skybox:LoadLeft("Skybox/left.jpg")
+            skybox:LoadTop("Skybox/top.jpg")
+            skybox:LoadBottom("Skybox/bottom.jpg")
+            skybox:LoadFront("Skybox/front.jpg")
+            skybox:LoadBack("Skybox/back.jpg")
+            SetSkybox(skybox)
+        end
+    end
+
+    */
     action LoadRight(text fileName)
         File image
         image:SetPath(fileName)
         LoadRight(image)
     end
 
+    /*
+    This action loads the right side of the Skybox. Note that all six sides of
+    the Skybox must be loaded before it can be used. Attempting to use a Skybox
+    without loading all six sides will throw an error.
+
+    Attribute: Parameter image An image file to be used for the side of the Skybox.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+    use Libraries.System.File
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            File right
+            File left
+            File top
+            File bottom
+            File front
+            File back
+            right:SetPath("Skybox/right.jpg")
+            left:SetPath("Skybox/left.jpg")
+            top:SetPath("Skybox/top.jpg")
+            bottom:SetPath("Skybox/bottom.jpg")
+            front:SetPath("Skybox/front.jpg")
+            back:SetPath("Skybox/back.jpg")
+
+            skybox:LoadRight(right)
+            skybox:LoadLeft(left)
+            skybox:LoadTop(top)
+            skybox:LoadBottom(bottom)
+            skybox:LoadFront(front)
+            skybox:LoadBack(back)
+            SetSkybox(skybox)
+        end
+    end
+
+    */
     action LoadRight(File image)
         if cubeMap = undefined
             Texture texture
@@ -78,12 +234,90 @@ class Skybox
         LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_X)
     end
 
+    /*
+    This action loads the left side of the Skybox. Note that all six sides of
+    the Skybox must be loaded before it can be used. Attempting to use a Skybox
+    without loading all six sides will throw an error.
+
+    Attribute: Parameter fileName The path from the default working directory to an image file.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            skybox:LoadRight("Skybox/right.jpg")
+            skybox:LoadLeft("Skybox/left.jpg")
+            skybox:LoadTop("Skybox/top.jpg")
+            skybox:LoadBottom("Skybox/bottom.jpg")
+            skybox:LoadFront("Skybox/front.jpg")
+            skybox:LoadBack("Skybox/back.jpg")
+            SetSkybox(skybox)
+        end
+    end
+
+    */
     action LoadLeft(text fileName)
         File image
         image:SetPath(fileName)
         LoadLeft(image)
     end
 
+    /*
+    This action loads the left side of the Skybox. Note that all six sides of
+    the Skybox must be loaded before it can be used. Attempting to use a Skybox
+    without loading all six sides will throw an error.
+
+    Attribute: Parameter image An image file to be used for the side of the Skybox.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+    use Libraries.System.File
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            File right
+            File left
+            File top
+            File bottom
+            File front
+            File back
+            right:SetPath("Skybox/right.jpg")
+            left:SetPath("Skybox/left.jpg")
+            top:SetPath("Skybox/top.jpg")
+            bottom:SetPath("Skybox/bottom.jpg")
+            front:SetPath("Skybox/front.jpg")
+            back:SetPath("Skybox/back.jpg")
+
+            skybox:LoadRight(right)
+            skybox:LoadLeft(left)
+            skybox:LoadTop(top)
+            skybox:LoadBottom(bottom)
+            skybox:LoadFront(front)
+            skybox:LoadBack(back)
+            SetSkybox(skybox)
+        end
+    end
+
+    */
     action LoadLeft(File image)
         if cubeMap = undefined
             Texture texture
@@ -94,12 +328,90 @@ class Skybox
         LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_X)
     end
 
+    /*
+    This action loads the top of the Skybox. Note that all six sides of
+    the Skybox must be loaded before it can be used. Attempting to use a Skybox
+    without loading all six sides will throw an error.
+
+    Attribute: Parameter fileName The path from the default working directory to an image file.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            skybox:LoadRight("Skybox/right.jpg")
+            skybox:LoadLeft("Skybox/left.jpg")
+            skybox:LoadTop("Skybox/top.jpg")
+            skybox:LoadBottom("Skybox/bottom.jpg")
+            skybox:LoadFront("Skybox/front.jpg")
+            skybox:LoadBack("Skybox/back.jpg")
+            SetSkybox(skybox)
+        end
+    end
+
+    */
     action LoadTop(text fileName)
         File image
         image:SetPath(fileName)
         LoadTop(image)
     end
 
+    /*
+    This action loads the top of the Skybox. Note that all six sides of
+    the Skybox must be loaded before it can be used. Attempting to use a Skybox
+    without loading all six sides will throw an error.
+
+    Attribute: Parameter image An image file to be used for the side of the Skybox.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+    use Libraries.System.File
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            File right
+            File left
+            File top
+            File bottom
+            File front
+            File back
+            right:SetPath("Skybox/right.jpg")
+            left:SetPath("Skybox/left.jpg")
+            top:SetPath("Skybox/top.jpg")
+            bottom:SetPath("Skybox/bottom.jpg")
+            front:SetPath("Skybox/front.jpg")
+            back:SetPath("Skybox/back.jpg")
+
+            skybox:LoadRight(right)
+            skybox:LoadLeft(left)
+            skybox:LoadTop(top)
+            skybox:LoadBottom(bottom)
+            skybox:LoadFront(front)
+            skybox:LoadBack(back)
+            SetSkybox(skybox)
+        end
+    end
+
+    */
     action LoadTop(File image)
         if cubeMap = undefined
             Texture texture
@@ -110,12 +422,90 @@ class Skybox
         LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_Y)
     end
 
+    /*
+    This action loads the bottom of the Skybox. Note that all six sides of
+    the Skybox must be loaded before it can be used. Attempting to use a Skybox
+    without loading all six sides will throw an error.
+
+    Attribute: Parameter fileName The path from the default working directory to an image file.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            skybox:LoadRight("Skybox/right.jpg")
+            skybox:LoadLeft("Skybox/left.jpg")
+            skybox:LoadTop("Skybox/top.jpg")
+            skybox:LoadBottom("Skybox/bottom.jpg")
+            skybox:LoadFront("Skybox/front.jpg")
+            skybox:LoadBack("Skybox/back.jpg")
+            SetSkybox(skybox)
+        end
+    end
+
+    */
     action LoadBottom(text fileName)
         File image
         image:SetPath(fileName)
         LoadBottom(image)
     end
 
+    /*
+    This action loads the bottom of the Skybox. Note that all six sides of
+    the Skybox must be loaded before it can be used. Attempting to use a Skybox
+    without loading all six sides will throw an error.
+
+    Attribute: Parameter image An image file to be used for the side of the Skybox.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+    use Libraries.System.File
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            File right
+            File left
+            File top
+            File bottom
+            File front
+            File back
+            right:SetPath("Skybox/right.jpg")
+            left:SetPath("Skybox/left.jpg")
+            top:SetPath("Skybox/top.jpg")
+            bottom:SetPath("Skybox/bottom.jpg")
+            front:SetPath("Skybox/front.jpg")
+            back:SetPath("Skybox/back.jpg")
+
+            skybox:LoadRight(right)
+            skybox:LoadLeft(left)
+            skybox:LoadTop(top)
+            skybox:LoadBottom(bottom)
+            skybox:LoadFront(front)
+            skybox:LoadBack(back)
+            SetSkybox(skybox)
+        end
+    end
+
+    */
     action LoadBottom(File image)
         if cubeMap = undefined
             Texture texture
@@ -126,12 +516,90 @@ class Skybox
         LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y)
     end
 
+    /*
+    This action loads the front of the Skybox. Note that all six sides of
+    the Skybox must be loaded before it can be used. Attempting to use a Skybox
+    without loading all six sides will throw an error.
+
+    Attribute: Parameter fileName The path from the default working directory to an image file.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            skybox:LoadRight("Skybox/right.jpg")
+            skybox:LoadLeft("Skybox/left.jpg")
+            skybox:LoadTop("Skybox/top.jpg")
+            skybox:LoadBottom("Skybox/bottom.jpg")
+            skybox:LoadFront("Skybox/front.jpg")
+            skybox:LoadBack("Skybox/back.jpg")
+            SetSkybox(skybox)
+        end
+    end
+
+    */
     action LoadFront(text fileName)
         File image
         image:SetPath(fileName)
         LoadFront(image)
     end
 
+    /*
+    This action loads the front of the Skybox. Note that all six sides of
+    the Skybox must be loaded before it can be used. Attempting to use a Skybox
+    without loading all six sides will throw an error.
+
+    Attribute: Parameter image An image file to be used for the side of the Skybox.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+    use Libraries.System.File
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            File right
+            File left
+            File top
+            File bottom
+            File front
+            File back
+            right:SetPath("Skybox/right.jpg")
+            left:SetPath("Skybox/left.jpg")
+            top:SetPath("Skybox/top.jpg")
+            bottom:SetPath("Skybox/bottom.jpg")
+            front:SetPath("Skybox/front.jpg")
+            back:SetPath("Skybox/back.jpg")
+
+            skybox:LoadRight(right)
+            skybox:LoadLeft(left)
+            skybox:LoadTop(top)
+            skybox:LoadBottom(bottom)
+            skybox:LoadFront(front)
+            skybox:LoadBack(back)
+            SetSkybox(skybox)
+        end
+    end
+
+    */
     action LoadFront(File image)
         if cubeMap = undefined
             Texture texture
@@ -143,12 +611,90 @@ class Skybox
         LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
     end
 
+    /*
+    This action loads the back of the Skybox. Note that all six sides of
+    the Skybox must be loaded before it can be used. Attempting to use a Skybox
+    without loading all six sides will throw an error.
+
+    Attribute: Parameter fileName The path from the default working directory to an image file.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            skybox:LoadRight("Skybox/right.jpg")
+            skybox:LoadLeft("Skybox/left.jpg")
+            skybox:LoadTop("Skybox/top.jpg")
+            skybox:LoadBottom("Skybox/bottom.jpg")
+            skybox:LoadFront("Skybox/front.jpg")
+            skybox:LoadBack("Skybox/back.jpg")
+            SetSkybox(skybox)
+        end
+    end
+
+    */
     action LoadBack(text fileName)
         File image
         image:SetPath(fileName)
         LoadBack(image)
     end
 
+    /*
+    This action loads the back of the Skybox. Note that all six sides of
+    the Skybox must be loaded before it can be used. Attempting to use a Skybox
+    without loading all six sides will throw an error.
+
+    Attribute: Parameter image An image file to be used for the side of the Skybox.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+    use Libraries.System.File
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "skybox" containing our six images.
+            File right
+            File left
+            File top
+            File bottom
+            File front
+            File back
+            right:SetPath("Skybox/right.jpg")
+            left:SetPath("Skybox/left.jpg")
+            top:SetPath("Skybox/top.jpg")
+            bottom:SetPath("Skybox/bottom.jpg")
+            front:SetPath("Skybox/front.jpg")
+            back:SetPath("Skybox/back.jpg")
+
+            skybox:LoadRight(right)
+            skybox:LoadLeft(left)
+            skybox:LoadTop(top)
+            skybox:LoadBottom(bottom)
+            skybox:LoadFront(front)
+            skybox:LoadBack(back)
+            SetSkybox(skybox)
+        end
+    end
+
+    */
     action LoadBack(File image)
         if cubeMap = undefined
             Texture texture

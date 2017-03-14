@@ -2270,7 +2270,7 @@ class Layer3D is Layer
     use Libraries.Game.Layer3D
     use Libraries.Game.Graphics.Skybox
 
-    action Main is Game
+    class Main is Game
 
         action Main
             StartGame()
@@ -2282,7 +2282,7 @@ class Layer3D is Layer
             skybox:Load("Sky-Right.png", "Sky-Left.png", "Sky-Up.png", "Sky-Down.png", "Sky-Forward.png", "Sky-Back.png")
 
             Layer3D layer = GetCurrentLayer3D()
-            layer:SetSkybox(box)
+            layer:SetSkybox(skybox)
         end
     end
     */
@@ -2305,7 +2305,7 @@ class Layer3D is Layer
     use Libraries.Game.Layer3D
     use Libraries.Game.Graphics.Skybox
 
-    action Main is Game
+    class Main is Game
 
         action Main
             StartGame()
@@ -2317,7 +2317,7 @@ class Layer3D is Layer
             skybox:Load("Sky-Right.png", "Sky-Left.png", "Sky-Up.png", "Sky-Down.png", "Sky-Forward.png", "Sky-Back.png")
 
             Layer3D layer = GetCurrentLayer3D()
-            layer:SetSkybox(box)
+            layer:SetSkybox(skybox)
 
             Skybox layerBox = layer:GetSkybox()
         end
