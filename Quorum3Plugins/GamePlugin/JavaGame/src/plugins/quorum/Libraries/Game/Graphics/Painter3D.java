@@ -6,12 +6,14 @@
 package plugins.quorum.Libraries.Game.Graphics;
 
 import plugins.quorum.Libraries.Game.GameRuntimeError;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Game.Graphics.Painter3D_;
 import quorum.Libraries.Game.Graphics.Camera_;
 import quorum.Libraries.Game.Graphics.Camera;
 import quorum.Libraries.Game.Graphics.Renderable_;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.Environment_;
+import quorum.Libraries.Game.Graphics.Skybox_;
 
 /**
  *
@@ -24,6 +26,8 @@ public class Painter3D
     protected RenderContext context = new RenderContext();
     protected ShaderProvider shaderProvider = new ShaderProvider();
     protected Environment_ environment = null;
+    protected Skybox_ skybox = null;
+    protected SkyboxShader skyboxShader = new SkyboxShader();
     
     private boolean isRendering = false;
     
@@ -67,6 +71,16 @@ public class Painter3D
     {
         return environment;
     }
+
+    public void SetSkybox(Skybox_ box)
+    {
+        skybox = box;
+    }
+    
+    public Skybox_ GetSkybox()
+    {
+        return skybox;
+    }
     
     public void Begin()
     {
@@ -82,6 +96,12 @@ public class Painter3D
     public void End()
     {
         Flush();
+        if (skybox != null)
+        {   
+            if (skybox.IsLoaded() == false)
+                throw new GameRuntimeError("I can't render the skybox because it wasn't fully loaded. Make sure all six sides are loaded before trying to use it.");
+            skyboxShader.Render(skybox, camera);
+        }
         context.End();
         isRendering = false;
     }

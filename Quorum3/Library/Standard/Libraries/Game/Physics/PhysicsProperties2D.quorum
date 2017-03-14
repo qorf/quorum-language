@@ -336,9 +336,11 @@ class PhysicsProperties2D
         simulated = true
 
         if me:type = RESPONSIVE
-            mass = 1
-            inverseMass = 1
-            density = 1
+            if not massSet
+                mass = 1
+                inverseMass = 1
+                density = 1
+            end
             if me:item not= undefined
                 me:item:ResetMass()
             end
@@ -357,6 +359,7 @@ class PhysicsProperties2D
             me:density = density
             if item not= undefined
                 item:ResetMass()
+                massSet = true
             end
         end
     end
