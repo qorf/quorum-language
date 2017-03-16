@@ -38,10 +38,13 @@ public class SkyboxShader
     public static final String fragmentShader = 
         "varying vec3 textureCoordinates;\n" +
         "uniform samplerCube skybox;\n" +
+        "uniform float inverter;\n" +
         "\n" +
         "void main()\n" +
         "{\n" +
-        "    gl_FragColor = textureCube(skybox, textureCoordinates);\n" +
+        "    vec3 texCoords = textureCoordinates;\n" +
+        "    texCoords.x = inverter * textureCoordinates.x;\n" +
+        "    gl_FragColor = textureCube(skybox, texCoords);\n" +
         "}";
     
     private FloatBuffer skyboxBuffer;
@@ -54,6 +57,7 @@ public class SkyboxShader
     private final int viewIndex;
     private final int rotationIndex;
     private final int skyboxIndex;
+    private final int inverterIndex;
     
     public SkyboxShader()
     {
@@ -63,6 +67,7 @@ public class SkyboxShader
         rotationIndex = program.FetchUniformLocation("rotation", true);
         viewIndex = program.FetchUniformLocation("view", true);
         skyboxIndex = program.FetchUniformLocation("skybox", true);
+        inverterIndex = program.FetchUniformLocation("inverter", true);
         
         float[] skyboxVertices = {
             -1.0f,  1.0f, -1.0f,
@@ -137,6 +142,10 @@ public class SkyboxShader
                         -(float)m.row0column1,  (float)m.row1column1,  (float)m.row2column1, 0,
                          (float)m.row0column2, -(float)m.row1column2, -(float)m.row2column2, 0,
                         0, 0, 0, 1};
+//        float[] temp = {(float)m.row0column0,  (float)m.row1column0,  (float)m.row2column0, 0,
+//                        (float)m.row0column1,  (float)m.row1column1,  (float)m.row2column1, 0,
+//                         (float)m.row0column2, (float)m.row1column2, (float)m.row2column2, 0,
+//                        0, 0, 0, 1};
         
         Matrix4 proj = (Matrix4)camera.GetProjectionMatrix();
         float[] projTemp = {(float)proj.row0column0, (float)proj.row1column0, (float)proj.row2column0, (float)proj.row3column0,
@@ -154,6 +163,8 @@ public class SkyboxShader
         graphics.glActiveTexture(GraphicsManager.GL_TEXTURE0);
         program.SetUniform(skyboxIndex, 0);
         skybox.Get_Libraries_Game_Graphics_Skybox__cubeMap_().Bind();
+        
+        program.SetUniform(inverterIndex, (float)skybox.Get_Libraries_Game_Graphics_Skybox__inverter_());
         
         graphics.glDrawArrays(GraphicsManager.GL_TRIANGLES, 0, 36);
         
