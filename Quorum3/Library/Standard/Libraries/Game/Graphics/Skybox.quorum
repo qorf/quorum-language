@@ -17,6 +17,9 @@ class Skybox
 
     Texture cubeMap = undefined
     Matrix4 transform
+    
+    // Used to invert the skybox. A value of -1 inverts the box, while a value of 1 leaves it as it is.
+    number inverter = 1
 
     /*
     Flags to indicate which sides are loaded. A Skybox can only be rendered if
@@ -906,4 +909,75 @@ class Skybox
         SetToRotation(axis:GetX(), axis:GetY(), axis:GetZ(), degrees)
     end
 
+    /*
+    This action returns whether or not the images of the Skybox are currently
+    inverted. This will cause them to appear to be drawn backwards. By default,
+    Skyboxes are inverted, so this will return true. This can be disabled or
+    enabled using the InvertSkybox action.
+
+    Attribute: Returns Whether or not the Skybox is inverted. This is true by default.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "Skybox" containing our six images.
+            skybox:Load("Skybox/right.jpg", "Skybox/left.jpg", "Skybox/top.jpg", "Skybox/bottom.jpg", "Skybox/front.jpg", "Skybox/back.jpg")
+            SetSkybox(skybox)
+            
+            boolean inverted = skybox:IsInverted()
+            output "Is the Skybox inverted? " + inverted
+        end
+    end
+    */
+    action IsInverted returns boolean
+        return inverter = 1
+    end
+
+    /*
+    The InvertSkybox action sets whether or not the images of the Skybox should
+    be inverted when used. If this is true, images will appear to be flipped
+    around the y-axis (or in other words, appear to be drawn backwards). If this
+    is set to false, then the images will appear to be drawn in the correct
+    direction, but the left image will appear on the right, and the right image
+    will appear on the left. By default, this value is set to true.
+
+    Attribute: Parameter invert Whether or not the Skybox should be inverted.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            // Assuming we have a folder named "Skybox" containing our six images.
+            skybox:Load("Skybox/right.jpg", "Skybox/left.jpg", "Skybox/top.jpg", "Skybox/bottom.jpg", "Skybox/front.jpg", "Skybox/back.jpg")
+            skybox:InvertSkybox(false)
+            SetSkybox(skybox)
+        end
+    end
+    */
+    action InvertSkybox(boolean invert)
+        if invert
+            inverter = 1
+        else
+            inverter = -1
+        end
+    end
 end
