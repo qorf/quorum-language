@@ -1520,6 +1520,16 @@ class Layer2D is Layer
 
         collisionManager:Collide()
 
+        integer i = 0
+        repeat items:GetSize() times
+            Item2D body = items:Get(i)
+            if body:IsPhysicsEnabled()
+                body:SetCollisionGroupFlag(false)
+            end
+            body:SetTransform0(body:GetTransform())
+            i = i + 1
+        end
+
         if physicsEnabled
             StepPhysics(seconds)
             SetUpdateTransforms(true)
@@ -1528,7 +1538,7 @@ class Layer2D is Layer
 
         SetUpdateTransforms(true)
 
-        integer i = 0
+        i = 0
         repeat items:GetSize() times
             Item2D item = items:Get(i)
             item:SynchronizeNodes()
@@ -1538,7 +1548,7 @@ class Layer2D is Layer
         collisionManager:FindNewCollisions()
     end
 
-    private action SetUpdateTransforms(boolean flag)
+    private action SetUpdateTransforms(boolean flag) 
         integer i = 0
         repeat items:GetSize() times
             Item2D item = items:Get(i)
@@ -1551,7 +1561,9 @@ class Layer2D is Layer
         integer i = 0
         repeat items:GetSize() times
             Item2D item = items:Get(i)
-            item:SetScreenPositionFromPhysicsPosition()
+            if item:IsPhysicsEnabled()
+                item:SetScreenPositionFromPhysicsPosition()
+            end
             i = i + 1
         end
     end
@@ -1681,16 +1693,6 @@ class Layer2D is Layer
     Stack<Item2D> stack
 
     private action SolvePhysics(TimeStep step)
-        integer i = 0
-        repeat items:GetSize() times
-            Item2D body = items:Get(i)
-            if body:IsPhysicsEnabled()
-                body:SetCollisionGroupFlag(false)
-            end
-            body:GetTransform0():Set(body:GetTransform())
-            i = i + 1
-        end
-
         CollisionEvent2D collision = collisionManager:GetCollisionList()
         repeat until collision = undefined
             collision:SetInCollisionGroup(false)

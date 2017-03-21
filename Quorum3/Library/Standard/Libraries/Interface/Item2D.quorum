@@ -2986,40 +2986,6 @@ class Item2D is Item
         updateTransform = flag
     end
 
-    action SetPhysicsPositionFromScreenPosition
-        if shape is Polygon
-            Polygon p = cast(Polygon, shape)
-            if p:IsBox()
-                transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
-                sweep:GetCenter():SetX(transform:GetPosition():GetX())
-                transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
-                sweep:GetCenter():SetY(transform:GetPosition():GetY())
-                transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
-                sweep:SetAngle(transform:GetAngle())
-            else
-                transform:GetPosition():SetX(position:GetX())
-                sweep:GetCenter():SetX(transform:GetPosition():GetX())
-                transform:GetPosition():SetY(position:GetY())
-                sweep:GetCenter():SetY(transform:GetPosition():GetY())
-                transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
-                sweep:SetAngle(transform:GetAngle())
-            end
-        else
-            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
-            sweep:GetCenter():SetX(transform:GetPosition():GetX())
-            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetX() / 2)
-            sweep:GetCenter():SetY(transform:GetPosition():GetY())
-            transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
-            sweep:SetAngle(transform:GetAngle())
-        end
-
-        integer i = 0
-        repeat children:GetSize() times
-            children:Get(i):SetPhysicsPositionFromScreenPosition()
-            i = i + 1
-        end
-    end
-
     action SetScreenPositionFromPhysicsPosition
         MoveX(transform:GetPosition():GetX() - transform0:GetPosition():GetX())
         MoveY(transform:GetPosition():GetY() - transform0:GetPosition():GetY())
@@ -3192,8 +3158,8 @@ class Item2D is Item
             if p:IsBox()
                 transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
             else
-                number x = p:GetCentroid():GetX()
-                number y = p:GetCentroid():GetY()
+                number x = (dimensions:GetX() * scale:GetX()) / 2
+                number y = (dimensions:GetY() * scale:GetY()) / 2
                 transform:GetPosition():SetX(position:GetX() + offset:GetX() + x - transform:GetCosine() * x + transform:GetSine() * y)
             end
         else
@@ -3208,8 +3174,8 @@ class Item2D is Item
             if p:IsBox()
                 transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
             else
-                number x = p:GetCentroid():GetX()
-                number y = p:GetCentroid():GetY()
+                number x = (dimensions:GetX() * scale:GetX()) / 2
+                number y = (dimensions:GetY() * scale:GetY()) / 2
                 transform:GetPosition():SetY(position:GetY() + offset:GetY() + y - transform:GetSine() * x - transform:GetCosine() * y)
             end
         else
