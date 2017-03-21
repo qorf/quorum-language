@@ -269,8 +269,7 @@ class Item2D is Item
         end
 
         if updateTransform
-            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
-            sweep:GetCenter():Set(transform:GetPosition())
+            UpdateTransformX()
         end
     end
 
@@ -294,8 +293,7 @@ class Item2D is Item
         end
 
         if updateTransform
-            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
-            sweep:GetCenter():Set(transform:GetPosition())
+            UpdateTransformY()
         end
     end
 
@@ -423,8 +421,7 @@ class Item2D is Item
         offset:SetX(xAmount)
 
         if updateTransform
-            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
-            sweep:GetCenter():SetX(transform:GetPosition():GetX())
+            UpdateTransformX()
         end
 
         integer counter = 0
@@ -459,8 +456,7 @@ class Item2D is Item
         offset:SetY(yAmount)
 
         if updateTransform
-            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
-            sweep:GetCenter():SetY(transform:GetPosition():GetY())
+            UpdateTransformY()
         end
 
         integer counter = 0
@@ -535,10 +531,8 @@ class Item2D is Item
         offset:SetY(yAmount)
 
         if updateTransform
-            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
-            sweep:GetCenter():SetX(transform:GetPosition():GetX())
-            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
-            sweep:GetCenter():SetY(transform:GetPosition():GetY())
+            UpdateTransformX()
+            UpdateTransformY()
         end
 
         integer counter = 0
@@ -1517,8 +1511,9 @@ class Item2D is Item
         rotation = degrees
         verticesChanged = true
         if updateTransform
-            transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
-            sweep:SetAngle(-1 * math:DegreesToRadians(rotation))
+            UpdateTransformAngle()
+            UpdateTransformX()
+            UpdateTransformY()
         end
         
         //Iterator<Item> childIterator = GetItems()
@@ -1607,8 +1602,9 @@ class Item2D is Item
         end
 
         if updateTransform
-            transform:Set(transform:GetPosition(), -1 *  math:DegreesToRadians(rotation))
-            sweep:SetAngle(-1 * math:DegreesToRadians(rotation))
+            UpdateTransformAngle()
+            UpdateTransformX()
+            UpdateTransformY()
         end
 
         //Iterator<Item> childIterator = GetItems()
@@ -1671,10 +1667,8 @@ class Item2D is Item
         scaleOffset:SetY((me:scale:GetY() * GetHeight() - GetHeight())/2)
 
         if updateTransform
-            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * me:scale:GetX() / 2)
-            sweep:GetCenter():SetX(transform:GetPosition():GetX())
-            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * me:scale:GetY() / 2)
-            sweep:GetCenter():SetY(transform:GetPosition():GetY())
+            UpdateTransformX()
+            UpdateTransformY()
         end
 
         Iterator<Item2D> childIterator = GetItems()
@@ -1725,10 +1719,8 @@ class Item2D is Item
         scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
 
         if updateTransform
-            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
-            sweep:GetCenter():SetX(transform:GetPosition():GetX())
-            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
-            sweep:GetCenter():SetY(transform:GetPosition():GetY())
+            UpdateTransformX()
+            UpdateTransformY()
         end
 
         Iterator<Item2D> childIterator = GetItems()
@@ -1818,10 +1810,8 @@ class Item2D is Item
         scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
 
         if updateTransform
-            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
-            sweep:GetCenter():SetX(transform:GetPosition():GetX())
-            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
-            sweep:GetCenter():SetY(transform:GetPosition():GetY())
+            UpdateTransformX()
+            UpdateTransformY()
         end
 
         Iterator<Item2D> childIterator = GetItems()
@@ -1897,10 +1887,8 @@ class Item2D is Item
         scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
 
         if updateTransform
-            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
-            sweep:GetCenter():SetX(transform:GetPosition():GetX())
-            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
-            sweep:GetCenter():SetY(transform:GetPosition():GetY())
+            UpdateTransformX()
+            UpdateTransformY()
         end
 
         Iterator<Item2D> childIterator = GetItems()
@@ -3196,5 +3184,42 @@ class Item2D is Item
 
     action SetCollideWithChildren(boolean flag)
         me:collideWithChildren = flag
+    end
+
+    action UpdateTransformX
+        if shape not= undefined and shape is Polygon
+            Polygon p = cast(Polygon, shape)
+            if p:IsBox()
+                transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
+            else
+                number x = p:GetCentroid():GetX()
+                number y = p:GetCentroid():GetY()
+                transform:GetPosition():SetX(position:GetX() + offset:GetX() + x - transform:GetCosine() * x + transform:GetSine() * y)
+            end
+        else
+            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
+        end
+        sweep:GetCenter():SetX(transform:GetPosition():GetX())
+    end
+
+    action UpdateTransformY
+        if shape not= undefined and shape is Polygon
+            Polygon p = cast(Polygon, shape)
+            if p:IsBox()
+                transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
+            else
+                number x = p:GetCentroid():GetX()
+                number y = p:GetCentroid():GetY()
+                transform:GetPosition():SetY(position:GetY() + offset:GetY() + y - transform:GetSine() * x - transform:GetCosine() * y)
+            end
+        else
+            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
+        end
+        sweep:GetCenter():SetY(transform:GetPosition():GetY())
+    end
+
+    action UpdateTransformAngle
+        transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
+        sweep:SetAngle(transform:GetAngle())
     end
 end

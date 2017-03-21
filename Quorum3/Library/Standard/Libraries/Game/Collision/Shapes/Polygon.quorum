@@ -162,7 +162,7 @@ class Polygon is CollisionShape2D
         i = 0
         repeat while i < vertexCount
             vertices:Get(i):Set(points:Get(hull:Get(i)))            
-            i = i  + 1
+            i = i + 1
         end
 
         Vector2 edge = pool1
@@ -397,11 +397,11 @@ class Polygon is CollisionShape2D
         number inv3 = 1.0 / 3.0
 
         integer i = 0
-        repeat while i < vertexCount
+        repeat while i < count
             Vector2 p1 = pRef
             Vector2 p2 = vectors:Get(i)
             Vector2 p3
-            if i + 1 < vertexCount
+            if i + 1 < count
                 p3 = vectors:Get(i + 1)
             else
                 p3 = vectors:Get(0)

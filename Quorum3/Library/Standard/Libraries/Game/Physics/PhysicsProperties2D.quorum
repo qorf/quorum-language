@@ -268,8 +268,8 @@ class PhysicsProperties2D
     action SetMass(number mass)
         me:mass = mass
         if item not= undefined
-            massSet = true
             SetDensity(mass / item:GetShape():ComputeArea())
+            massSet = true
         end
     end
 
@@ -359,7 +359,6 @@ class PhysicsProperties2D
             me:density = density
             if item not= undefined
                 item:ResetMass()
-                massSet = true
             end
         end
     end
