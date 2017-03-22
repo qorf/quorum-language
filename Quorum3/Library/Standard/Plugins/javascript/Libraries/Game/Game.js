@@ -1739,7 +1739,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
             
             currentMesh = renderable.meshPart.mesh;
             
-            var temp = this.GetAttributeLocations(renderable.meshPart.Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_().GetVertexAttributes());
+            var temp = this.GetAttributeLocations(currentMesh.GetVertexAttributes());
             currentMesh.plugin_.Bind(program, temp);
         }
         
