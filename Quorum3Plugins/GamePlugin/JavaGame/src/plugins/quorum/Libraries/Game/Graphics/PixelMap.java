@@ -119,11 +119,15 @@ public class PixelMap {
     
     public void SetPixel(int x, int y, int code)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
         SetPixel(basePointer, x, y, code);
     }
     
     public int GetPixel(int x, int y)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
         return GetPixel(basePointer, x, y);
     }
 
@@ -148,6 +152,7 @@ public class PixelMap {
             throw new GameRuntimeError("I can't dispose this PixelMap because it was already disposed!");
         disposed = true;
         Free(basePointer);
+        pixelPointer = null;
     }    
     
     public int GetGLInternalFormat () 
@@ -200,6 +205,8 @@ public class PixelMap {
     // Without a parameter given, this will use the PixelMap's current color.
     public void Clear()
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
         final quorum.Libraries.Game.Graphics.PixelMap thisMap = (quorum.Libraries.Game.Graphics.PixelMap) me_;
         int colorCode = thisMap.color.GetColorCode();
         Clear(basePointer, colorCode);
@@ -207,12 +214,17 @@ public class PixelMap {
     
     public void Clear(quorum.Libraries.Game.Graphics.Color_ clearColor)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
         int colorCode = clearColor.GetColorCode();
         Clear(basePointer, colorCode);
     }
     
     public void DrawPixelMap(quorum.Libraries.Game.Graphics.PixelMap pixmap, int sourceX, int sourceY, int destX, int destY, int sourceWidth, int sourceHeight)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         plugins.quorum.Libraries.Game.Graphics.PixelMap map = pixmap.plugin_;
         long sourceBasePointer = map.basePointer;
 
@@ -221,35 +233,56 @@ public class PixelMap {
     
     public void Fill(int color)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         Clear(basePointer, color);
     }
 
     public void DrawLine(int x1, int y1, int x2, int y2, int color)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         DrawLine(basePointer, x1, y1, x2, y2, color);
     }
     
     public void DrawRectangle(int x, int y, int width, int height, int color)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         DrawRectangle(basePointer, x, y, width, height, color);
     }
     
     public void FillRectangle(int x, int y, int width, int height, int color)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         FillRectangle(basePointer, x, y, width, height, color);
     }
     
     public void DrawCircle(int x, int y, int radius, int color)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         DrawCircle(basePointer, x, y, radius, color);
     }
     
     public void FillCircle(int x, int y, int radius, int color)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         FillCircle(basePointer, x, y, radius, color);
     }
     public void FillTriangle(int x1, int y1, int x2, int y2, int x3, int y3, int color)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         FillTriangle(basePointer, x1, y1, x2, y2, x3, y3, color);
     }
     
