@@ -2905,4 +2905,12 @@ class Game
     action GetSkybox returns Skybox
         return GetCurrentLayer3D():GetSkybox()
     end
+
+    action SetSimulationThreshold2D(number threshold)
+        GetCurrentLayer2D():SetSimulationThreshold(threshold)
+    end
+
+    action GetSimulationThreshold2D returns number
+        return GetCurrentLayer2D():GetSimulationThreshold()
+    end
 end

@@ -2166,4 +2166,13 @@ class Layer2D is Layer
 
         //TODO: collision filtering?
     end
+
+    action SetSimulationThreshold(number threshold)
+        island:SetSimulationThreshold(threshold)
+        toiIsland:SetSimulationThreshold(threshold)
+    end
+
+    action GetSimulationThreshold returns number
+        return island:GetSimulationThreshold()
+    end
 end

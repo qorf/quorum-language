@@ -30,6 +30,8 @@ class CollisionGroup2D
     integer jointCount = 0
     integer collisionCount = 0
 
+    number sleepThreshold = 3
+
     Math math
 
     action Empty
@@ -193,7 +195,7 @@ class CollisionGroup2D
             number timeToSleep = 0.5
             number minSleepTime = timeToSleep:GetMaximumValue()
 
-            number linearToleranceSquared = 0.01 * 0.01
+            number linearToleranceSquared = sleepThreshold * sleepThreshold
             number angularToleranceSquared = (2 / 180.0 * math:pi) * (2 / 180.0 * math:pi)
 
             i = 0
@@ -339,5 +341,13 @@ class CollisionGroup2D
 
     action GetCollision(integer index) returns CollisionEvent2D
         return collisions:Get(index)
+    end
+
+    action SetSimulationThreshold(number threshold)
+        me:sleepThreshold = threshold
+    end
+
+    action GetSimulationThreshold returns number
+        return sleepThreshold
     end
 end

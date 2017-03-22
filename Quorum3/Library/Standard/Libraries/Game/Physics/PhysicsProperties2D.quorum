@@ -123,7 +123,7 @@ class PhysicsProperties2D
             return now
         end
         me:linearVelocity:Set(linearVelocity)
-        if not simulated
+        if not simulated and (me:linearVelocity:GetX() not= 0 or me:linearVelocity:GetY() not= 0)
             Simulate(true)
         end
     end
@@ -134,7 +134,7 @@ class PhysicsProperties2D
         end
 
         me:linearVelocity:Set(linearVelocityX, me:linearVelocity:GetY())
-        if not simulated
+        if not simulated and linearVelocityX not= 0
             Simulate(true)
         end
     end
@@ -145,7 +145,7 @@ class PhysicsProperties2D
         end
 
         me:linearVelocity:Set(me:linearVelocity:GetX(), linearVelocityY)
-        if not simulated
+        if not simulated and linearVelocityY not= 0
             Simulate(true)
         end
     end
@@ -159,7 +159,7 @@ class PhysicsProperties2D
             return now
         end
         me:angularVelocity = angularVelocity
-        if not simulated
+        if not simulated and angularVelocity not= 0
             Simulate(true)
         end
     end
@@ -170,7 +170,7 @@ class PhysicsProperties2D
 
     action SetForce(Vector2 force)
         me:force = force
-        if not simulated
+        if not simulated and (force:GetX() not= 0 or force:GetY() not= 0)
             Simulate(true)
         end
     end
@@ -181,7 +181,7 @@ class PhysicsProperties2D
 
     action SetTorque(number torque)
         me:torque = torque
-        if not simulated
+        if not simulated and torque not= 0
             Simulate(true)
         end
     end
@@ -195,7 +195,7 @@ class PhysicsProperties2D
             return now
         end
 
-        if not simulated
+        if not simulated and (force:GetX() not= 0 or force:GetY() not= 0)
             Simulate(true)
         end
         
@@ -212,7 +212,7 @@ class PhysicsProperties2D
             return now
         end
 
-        if not simulated
+        if not simulated and (force:GetX() not= 0 or force:GetY() not= 0)
             Simulate(true)
         end
 
@@ -225,7 +225,7 @@ class PhysicsProperties2D
             return now
         end
 
-        if not simulated
+        if not simulated and torque not= 0
             Simulate(true)
         end
 
@@ -237,7 +237,7 @@ class PhysicsProperties2D
             return now
         end
 
-        if not simulated
+        if not simulated and (impulse:GetX() not= 0 or impulse:GetY() not= 0)
             Simulate(true)
         end
         
@@ -254,7 +254,7 @@ class PhysicsProperties2D
             return now
         end
 
-        if not simulated
+        if not simulated and impulse not= 0
             Simulate(true)
         end
 
