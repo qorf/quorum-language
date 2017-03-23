@@ -25,7 +25,6 @@ class Camera
     */
     Vector3 up
 
-
     /*
     The projection matrix of the camera.
     */
@@ -46,7 +45,6 @@ class Camera
     */
     Matrix4 inverseProjectionView
 
-
     /*
     The distance to the near clipping plane. Objects whose distance to the
     camera is shorter than the near value will not appear on camera. The value
@@ -61,7 +59,6 @@ class Camera
     */
     number far = 1000
 
-
     /*
     The width of the camera viewport.
     */
@@ -72,14 +69,13 @@ class Camera
     */
     number viewportHeight = 0
 
-
     /*
     The frustum containing the area which can be viewed by the camera.
     */
     Frustum frustum
 
-
     private Vector3 calcVector
+    private Math math
 
     on create
         direction:Set(0, 0, -1)
@@ -266,8 +262,6 @@ class Camera
     action LookAt(number x, number y, number z)
         calcVector:Set(x, y, z):Subtract(position):Normalize()
         if not calcVector:IsZero()
-            Math math
-
             // up and direction must ALWAYS be orthonormal vectors
             number dot = calcVector:DotProduct(up)
             if math:AbsoluteValue(dot - 1) < 0.000000001
@@ -1707,5 +1701,18 @@ class Camera
         ScreenToWorldCoordinates(ray:GetDirection():Set(screenX, screenY, 1), viewportX, viewportY, viewportWidth, viewportHeight)
         ray:GetDirection():Subtract(ray:GetOrigin()):Normalize()
         return ray
+    end
+
+    /*
+
+    */
+    action SetFromEulerAngles(number yaw, number pitch, number roll)
+        number y = math:DegreesToRadians(yaw)
+        number p = math:DegreesToRadians(pitch)
+        number cosP = math:Cosine(p)
+        direction:SetX(cosP * math:Sine(y))
+        direction:SetY(math:Sine(p))
+        direction:SetZ(cosP * math:Cosine(y))
+        NormalizeUp()
     end
 end
