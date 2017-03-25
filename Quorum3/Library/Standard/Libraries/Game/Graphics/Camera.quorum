@@ -1704,7 +1704,69 @@ class Camera
     end
 
     /*
+    The SetFromEulerAngles action sets the direction and orientation of the
+    Camera using yaw, pitch, and roll angles. All angles are in degrees. The
+    starting direction of the Camera (when the provided yaw, pitch, and roll are
+    0) is a camera pointing directly along the positive Z axis, with the top of
+    the camera directly pointing along the positive Y axis.
 
+    The yaw describes how far the camera is rotated along the X/Z axis. It
+    effectively controls how the camera turns left and right. A positive value
+    will rotate the camera clockwise (typically to the right).
+
+    The pitch describes how far the camera is angled up or down. The pitch value
+    should typically be between -90 and 90 degrees. Larger values will cause the
+    camera to look in the opposite direction specified by the yaw value. For
+    pitch values between -90 and 90, positive values angle the camera upwards,
+    and negative values angle it downwards.
+
+    The roll describes how the top of the camera is oriented. A roll value of 0
+    will angle the camera so the top of the camera points upward, towards the
+    positive Y axis. A positive roll value "twists" the camera clockwise, and a
+    negative value will twist it counter-clockwise.
+
+    Attribute: Parameter yaw The yaw angle, measured in degrees.
+    Attribute: Parameter pitch The pitch angle, measured in degrees.
+    Attribute: Parameter roll The roll angle, measured in degrees.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Camera
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.DirectionalLight
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+            Model box
+            box:LoadBox(2, 4, 2, color:Green())
+            box:SetPosition(0, 0, 0)
+            Add(box)
+
+            Model floor
+            floor:LoadBox(10, 2, 10, color:Maroon())
+            floor:SetPosition(0, -3, 0)
+            Add(floor)
+
+            DirectionalLight light
+            light:SetColor(color:White())
+            light:SetDirection(2, -2, 4)
+            Add(light)
+
+            Camera camera = GetCamera3D()
+            camera:SetPosition(-5, 2, -5)
+            // The camera will be looking 45 degrees to the right and 30 degrees
+            // down, and be tilted 30 degrees clockwise.
+            camera:SetFromEulerAngles(45, -30, 30)
+        end
+    end
     */
     action SetFromEulerAngles(number yaw, number pitch, number roll)
         number y = math:DegreesToRadians(yaw)
@@ -1713,6 +1775,13 @@ class Camera
         direction:SetX(cosP * math:Sine(y))
         direction:SetY(math:Sine(p))
         direction:SetZ(cosP * math:Cosine(y))
-        NormalizeUp()
+        direction:Normalize()
+
+        calcVector:Set(direction:GetX(), 0, direction:GetZ())
+        calcVector:Normalize()
+        calcVector:Rotate(90, 0, 1, 0)
+
+        up:Set(direction):CrossProduct(calcVector):Normalize()
+        up:Rotate(direction, -roll)
     end
 end
