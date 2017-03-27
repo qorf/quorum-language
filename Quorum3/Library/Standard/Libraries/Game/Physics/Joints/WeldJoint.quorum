@@ -31,11 +31,14 @@ class WeldJoint is Joint2D
     number inverseInertiaA = 0
     number inverseInertiaB = 0
     Matrix3 mass
-    
+    Math math
+    //
+    integer count = 0
+    //
 
     on create
         parent:Joint2D:SetType(parent:Joint2D:WELDJOINT)
-        referenceAngle = parent:Joint2D:itemA:GetTransform():GetAngle() - parent:Joint2D:itemB:GetTransform():GetAngle()
+        referenceAngle = parent:Joint2D:itemB:GetTransform():GetAngle() - parent:Joint2D:itemA:GetTransform():GetAngle()
         impulse:SetZero()
     end
     
@@ -45,7 +48,7 @@ class WeldJoint is Joint2D
         parent:Joint2D:itemB = itemB
         localAnchorA = parent:Joint2D:itemA:GetLocalPoint(anchor)
         localAnchorB = parent:Joint2D:itemB:GetLocalPoint(anchor)
-        referenceAngle = parent:Joint2D:itemA:GetTransform():GetAngle() - parent:Joint2D:itemB:GetTransform():GetAngle()    
+        referenceAngle = parent:Joint2D:itemB:GetTransform():GetAngle() - parent:Joint2D:itemA:GetTransform():GetAngle()    
     end
 
     
@@ -111,8 +114,8 @@ class WeldJoint is Joint2D
     action InitializeVelocityConstraints(JointSolverData data)
         indexA = parent:Joint2D:itemA:GetCollisionGroupIndex()
         indexB = parent:Joint2D:itemB:GetCollisionGroupIndex()
-        localCenterA:Set(parent:Joint2D:itemA:GetLocalCenter())
-        localCenterB:Set(parent:Joint2D:itemB:GetLocalCenter())
+        localCenterA:Set(parent:Joint2D:itemA:GetSweep():GetLocalCenter())
+        localCenterB:Set(parent:Joint2D:itemB:GetSweep():GetLocalCenter())
         inverseMassA = parent:Joint2D:itemA:GetInverseMass()
         inverseMassB = parent:Joint2D:itemB:GetInverseMass()
         inverseInertiaA = parent:Joint2D:itemA:GetInverseInertia()
@@ -126,27 +129,25 @@ class WeldJoint is Joint2D
         Vector2 linearVelocityB = data:GetLinearVelocities():Get(indexB)
         number angularVelocityB = data:GetAngularVelocities():Get(indexB)
 
-        PhysicsPosition2D transformA
-        PhysicsPosition2D transformB
         Vector2 temp
-
-        transformA:Set(data:GetPositions():Get(indexA), angleA)
-        transformB:Set(data:GetPositions():Get(indexB), angleB)
+        number sineA = math:Sine(angleA)
+        number cosineA = math:Cosine(angleA)
+        number sineB = math:Sine(angleB)
+        number cosineB = math:Cosine(angleB)
         
-        //computes the effective masses
-        temp = temp:Set(localAnchorA):Subtract(localCenterA)        
-        rA:SetX((transformA:GetCosine() * temp:GetX() - transformA:GetSine() * temp:GetY()) + transformA:GetPosition():GetX())
-        rA:SetY((transformA:GetSine() * temp:GetX() + transformA:GetCosine() * temp:GetY()) + transformA:GetPosition():GetY())
+        temp:Set(localAnchorA):Subtract(localCenterA)
+        rA:SetX(cosineA * temp:GetX() - sineA * temp:GetY())
+        rA:SetY(sineA * temp:GetX() + cosineA * temp:GetY())
 
-        temp = temp:Set(localAnchorB):Subtract(localCenterB)        
-        rB:SetX((transformB:GetCosine() * temp:GetX() - transformB:GetSine() * temp:GetY()) + transformB:GetPosition():GetX())
-        rB:SetY((transformB:GetSine() * temp:GetX() + transformB:GetCosine() * temp:GetY()) + transformB:GetPosition():GetY())
+        temp:Set(localAnchorB):Subtract(localCenterB)
+        rB:SetX(cosineB * temp:GetX() - sineB * temp:GetY())
+        rB:SetY(sineB * temp:GetX() + cosineB * temp:GetY())
 
         number mA = inverseMassA
         number mB = inverseMassB
         number iA = inverseInertiaA
         number iB = inverseInertiaB
-        
+
         Matrix3 K
         
         K:row0column0 = mA + mB + rA:GetY() * rA:GetY() * iA + rB:GetY() * rB:GetY() * iB
@@ -157,23 +158,23 @@ class WeldJoint is Joint2D
         K:row1column2 = rA:GetX() * iA + rB:GetX() * iB
         K:row2column0 = K:row0column2
         K:row2column1 = K:row1column2
-        K:row2column2 = iA + iB
-
+        K:row2column2 = iA + iB 
         
         if frequency > 0
-            //Gets the inverse as a Matrix2
+            //GetInverse22
             number a = K:row0column0
             number b = K:row0column1
             number c = K:row1column0
             number d = K:row1column1
-
+            
             number det = a * d - b * c
+           
             if det not= 0.0
                 det = 1.0 / det
             end
-
+          
             mass:row0column0 = det * d
-            mass:row0column1 = -det * b
+            mass:row0column1 =-det * b
             mass:row2column0 = 0.0
             mass:row1column0 = -det * c
             mass:row1column1 = det * a
@@ -181,17 +182,17 @@ class WeldJoint is Joint2D
             mass:row0column2 = 0.0
             mass:row1column2 = 0.0
             mass:row2column2 = 0.0
-            
+            //end getInverse22 in Mat33
+
             number inverseMass = iA + iB
             number m = 0.0
             if inverseMass > 0
                 m = 1.0 / inverseMass 
             end
-            
+
             number angle = angleB - angleA - referenceAngle
 
             //frequency
-            Math math
             number omega = 2.0 * math:pi * frequency
             
             //Damping coefficient
@@ -209,7 +210,6 @@ class WeldJoint is Joint2D
                 gamma = 0
             end
             bias = angle * h * springStiffness * gamma
-
             inverseMass = inverseMass + gamma
             if inverseMass not= 0
                 mass:row2column2 = 1 / inverseMass
@@ -218,11 +218,12 @@ class WeldJoint is Joint2D
             end
 
         else
-            //gets symbolic inverse
+            //gets symbInverse33
             number bx = K:row1column1 * K:row2column2 - K:row2column1 * K:row1column2
             number by = K:row2column1 * K:row0column2 - K:row0column1 * K:row2column2
             number bz = K:row0column1 * K:row1column2 - K:row1column1 * K:row0column2
-            number det = K:row0column0 * bx + K:row1column0 * by + K:row2column0 + bz
+            
+            number det = K:row0column0 * bx + K:row1column0 * by + K:row2column0 * bz
             if det not= 0
                 det = 1 / det
             end
@@ -245,6 +246,7 @@ class WeldJoint is Joint2D
             mass:row0column2 = mass:row2column0
             mass:row1column2 = mass:row2column1
             mass:row2column2 = det * (a11 * a22 - a12 * a12)
+            //end symbInverse33
 
             gamma = 0
             bias = 0
@@ -263,11 +265,11 @@ class WeldJoint is Joint2D
 
             linearVelocityB:SetX(linearVelocityB:GetX() + (mB * P:GetX()))
             linearVelocityB:SetY(linearVelocityB:GetY() + (mB * P:GetY()))
-            angularVelocityB = angularVelocityB - (iB * (rB:CrossProduct(P) + impulse:GetZ()))
+            angularVelocityB = angularVelocityB + (iB * (rB:CrossProduct(P) + impulse:GetZ()))
         else
             impulse:SetZero()
-        end    
-        
+        end 
+
         data:SetAngularVelocity(angularVelocityA, indexA)
         data:SetAngularVelocity(angularVelocityB, indexB)                
     end
@@ -287,72 +289,78 @@ class WeldJoint is Joint2D
         Vector2 temp
         Vector2 P
         if frequency > 0
-            number cDot2 = angularVelocityB - angularVelocityB
+
+            number cDot2 = angularVelocityB - angularVelocityA
             
-            number impulse2 = -mass:row2column2 * cDot2 + bias + gamma * impulse:GetZ()
+            number impulse2 = -mass:row2column2 * (cDot2 + bias + gamma * impulse:GetZ())
             impulse:SetZ(impulse:GetZ() + impulse2)
             
             angularVelocityA = angularVelocityA - iA * impulse2
             angularVelocityB = angularVelocityB + iB * impulse2
 
-            cDot1:SetX(-angularVelocityA * rA:GetY())
-            cDot1:SetY(angularVelocityA * rA:GetX())
-            temp:SetX(-angularVelocityB * rB:GetY())
-            temp:SetY(angularVelocityB * rB:GetX())
+            temp:SetX(-angularVelocityA * rA:GetY())
+            temp:SetY(angularVelocityA * rA:GetX())
+            cDot1:SetX(-angularVelocityB * rB:GetY())
+            cDot1:SetY(angularVelocityB * rB:GetX())
             cDot1:Add(linearVelocityB):Subtract(linearVelocityA):Subtract(temp)
-            
+
             Vector2 impulse1 = P
-            impulse1:SetX(mass:row1column0 * cDot1:GetX() + mass:row1column1 + cDot1:GetY())
-            impulse1:SetY(mass:row0column0 * cDot1:GetX() + mass:row0column1 + cDot1:GetY())
+            // mul22ToOutUnsafe in Mat33
+            impulse1:SetX(mass:row0column0 * cDot1:GetX() + mass:row0column1 * cDot1:GetY())
+            impulse1:SetY(mass:row1column0 * cDot1:GetX() + mass:row1column1 * cDot1:GetY())
+            // end mul22ToOutUnsafe from Mat33
             impulse1:SetX(-impulse1:GetX())
             impulse1:SetY(-impulse1:GetY())
-            
-            impulse:SetX(impulse:GetX() * impulse1:GetX())
-            impulse:SetY(impulse:GetY() * impulse1:GetY())
 
-            linearVelocityA:SetX(linearVelocityA:GetX() - (mA * impulse1:GetX()))
-            linearVelocityA:SetY(linearVelocityA:GetY() - (mA * impulse1:GetY()))
-            angularVelocityA = angularVelocityA - (iA * rA:CrossProduct(impulse1))
-            
-            linearVelocityB:SetX(linearVelocityB:GetX() + (mB * impulse1:GetX()))
-            linearVelocityB:SetY(linearVelocityB:GetY() + (mB * impulse1:GetY()))
-            angularVelocityB = angularVelocityB + (iB * rB:CrossProduct(impulse1))
+            impulse:SetX(impulse:GetX() + impulse1:GetX())
+            impulse:SetY(impulse:GetY() + impulse1:GetY())
 
-        else
-            cDot1:SetX(-angularVelocityA * rA:GetY())
-            cDot1:SetY(angularVelocityA * rA:GetX())
-            temp:SetX(-angularVelocityB * rB:GetY())
-            temp:SetY(angularVelocityB * rB:GetX())
-            cDot1:Add(linearVelocityB):Subtract(linearVelocityA):Subtract(temp)
-
-            number cDot2 = angularVelocityB - angularVelocityA
-            
-            Vector3 cDot 
-            cDot:Set(cDot1:GetX(), cDot1:GetY(), cDot2)
-            
-            Vector3 impulseLocal
-            impulseLocal:SetX(cDot:GetX() * mass:row0column0 + cDot:GetY() * mass:row0column1 + cDot:GetZ() * mass:row0column2)
-            impulseLocal:SetY(cDot:GetX() * mass:row1column0 + cDot:GetY() * mass:row1column1 + cDot:GetZ() * mass:row1column2)
-            impulseLocal:SetZ(cDot:GetX() * mass:row2column0 + cDot:GetY() * mass:row2column1 + cDot:GetZ() * mass:row2column2)
-            impulseLocal:SetX(-impulseLocal:GetX())
-            impulseLocal:SetY(-impulseLocal:GetY())
-            impulse:Add(impulseLocal)
-
-            P:Set(impulseLocal:GetX(), impulseLocal:GetY())
-            
             linearVelocityA:SetX(linearVelocityA:GetX() - (mA * P:GetX()))
             linearVelocityA:SetY(linearVelocityA:GetY() - (mA * P:GetY()))
-            angularVelocityA = angularVelocityA - (iA * (rA:CrossProduct(P) + impulseLocal:GetZ()))
+            angularVelocityA = angularVelocityA - (iA * rA:CrossProduct(P))
             
             linearVelocityB:SetX(linearVelocityB:GetX() + (mB * P:GetX()))
             linearVelocityB:SetY(linearVelocityB:GetY() + (mB * P:GetY()))
+            angularVelocityB = angularVelocityB + (iB * rB:CrossProduct(P))
+
+        else
+            temp:SetX(-angularVelocityA * rA:GetY())
+            temp:SetY(angularVelocityA * rA:GetX())
+            cDot1:SetX(-angularVelocityB * rB:GetY())
+            cDot1:SetY(angularVelocityB * rB:GetX())
+            cDot1:Add(linearVelocityB):Subtract(linearVelocityA):Subtract(temp)
+
+            number cDot2 = angularVelocityB - angularVelocityA
+
+            Vector3 cDot 
+            cDot:Set(cDot1:GetX(), cDot1:GetY(), cDot2)            
+            
+            Vector3 impulseLocal
+            // mulToOutUnsafe in Mat33
+            impulseLocal:SetX(cDot:GetX() * mass:row0column0 + cDot:GetY() * mass:row0column1 + cDot:GetZ() * mass:row0column2)
+            impulseLocal:SetY(cDot:GetX() * mass:row1column0 + cDot:GetY() * mass:row1column1 + cDot:GetZ() * mass:row1column2)
+            impulseLocal:SetZ(cDot:GetX() * mass:row2column0 + cDot:GetY() * mass:row2column1 + cDot:GetZ() * mass:row2column2)
+           // end mulToOutUnsafe in Mat33
+            impulseLocal:SetX(-impulseLocal:GetX())
+            impulseLocal:SetY(-impulseLocal:GetY())
+            impulseLocal:SetZ(-impulseLocal:GetZ())
+            impulse:Add(impulseLocal)
+
+            P:Set(impulseLocal:GetX(), impulseLocal:GetY())
+
+            linearVelocityA:SetX(linearVelocityA:GetX() - (mA * P:GetX()))
+            linearVelocityA:SetY(linearVelocityA:GetY() - (mA * P:GetY()))
+            angularVelocityA = angularVelocityA - (iA * (rA:CrossProduct(P) + impulseLocal:GetZ()))           
+
+            linearVelocityB:SetX(linearVelocityB:GetX() + (mB * P:GetX()))
+            linearVelocityB:SetY(linearVelocityB:GetY() + (mB * P:GetY()))
             angularVelocityB = angularVelocityB + (iB * (rB:CrossProduct(P) + impulseLocal:GetZ()))
-           
+
         end    
-        
+         
         data:SetAngularVelocity(angularVelocityA, indexA)
         data:SetAngularVelocity(angularVelocityB, indexB)
-       
+
     end
     
     action SolvePositionConstraints(JointSolverData data) returns boolean
@@ -360,28 +368,28 @@ class WeldJoint is Joint2D
         number angleA = data:GetAngles():Get(indexA)
         Vector2 positionB = data:GetPositions():Get(indexB)
         number angleB = data:GetAngles():Get(indexB)
-        
-        PhysicsPosition2D transformA
-        PhysicsPosition2D transformB
+
         Vector2 temp 
-        Vector2 rA
-        Vector2 rB
-        
-        transformA:Set(positionA, angleA)
-        transformB:Set(positionB, angleB)
+        Vector2 rALocal
+        Vector2 rBLocal
 
         number mA = inverseMassA
         number mB = inverseMassB
         number iA = inverseInertiaA
         number iB = inverseInertiaB
+        
+        number sineA = math:Sine(angleA)
+        number cosineA = math:Cosine(angleA)
+        number sineB = math:Sine(angleB)
+        number cosineB = math:Cosine(angleB)
 
-        temp = temp:Set(localAnchorA):Subtract(localCenterA)        
-        rA:SetX((transformA:GetCosine() * temp:GetX() - transformA:GetSine() * temp:GetY()) + transformA:GetPosition():GetX())
-        rA:SetY((transformA:GetSine() * temp:GetX() + transformA:GetCosine() * temp:GetY()) + transformA:GetPosition():GetY())
+        temp:Set(localAnchorA):Subtract(localCenterA)
+        rALocal:SetX(cosineA * temp:GetX() - sineA * temp:GetY())
+        rALocal:SetY(sineA * temp:GetX() + cosineA * temp:GetY())
 
-        temp = temp:Set(localAnchorB):Subtract(localCenterB)        
-        rB:SetX((transformB:GetCosine() * temp:GetX() - transformB:GetSine() * temp:GetY()) + transformB:GetPosition():GetX())
-        rB:SetY((transformB:GetSine() * temp:GetX() + transformB:GetCosine() * temp:GetY()) + transformB:GetPosition():GetY())
+        temp:Set(localAnchorB):Subtract(localCenterB)
+        rBLocal:SetX(cosineB * temp:GetX() - sineB * temp:GetY())
+        rBLocal:SetY(sineB * temp:GetX() + cosineB * temp:GetY())
 
         number positionError = 0
         number angularError = 0
@@ -390,17 +398,18 @@ class WeldJoint is Joint2D
         Vector2 c1
         Vector2 p
         
-        K:row0column0 = mA + mB + rA:GetY() * rA:GetY() * iA + rB:GetY() * rB:GetY() * iB
-        K:row0column1 = -rA:GetY() * rA:GetX() * iA - rB:GetY() * rB:GetX() * iB
-        K:row0column2 = -rA:GetY() * iA - rB:GetY() * iB
+        K:row0column0 = mA + mB + rALocal:GetY() * rALocal:GetY() * iA + rBLocal:GetY() * rBLocal:GetY() * iB
+        K:row0column1 = -rALocal:GetY() * rALocal:GetX() * iA - rBLocal:GetY() * rBLocal:GetX() * iB
+        K:row0column2 = -rALocal:GetY() * iA - rBLocal:GetY() * iB
         K:row1column0 = K:row0column1 
-        K:row1column1 = mA + mB + rA:GetX() * rA:GetX() * iA + rB:GetX() * rB:GetX() * iB
-        K:row1column2 = rA:GetX() * iA + rB:GetX() * iB
+        K:row1column1 = mA + mB + rALocal:GetX() * rALocal:GetX() * iA + rBLocal:GetX() * rBLocal:GetX() * iB
+        K:row1column2 = rALocal:GetX() * iA + rBLocal:GetX() * iB
         K:row2column0 = K:row0column2
         K:row2column1 = K:row1column2
         K:row2column2 = iA + iB
+
         if frequency > 0
-            c1:Set(positionB):Add(rB):Subtract(positionA):Subtract(rA)
+            c1:Set(positionB):Add(rBLocal):Subtract(positionA):Subtract(rALocal)
             
             positionError = c1:Length()
             angularError = 0
@@ -416,24 +425,24 @@ class WeldJoint is Joint2D
             end
             p:SetX(det * (a22 * c1:GetX() - a12 * c1:GetY()))
             p:SetY(det * (a11 * c1:GetY() - a21 * c1:GetX()))
-            
+            //end solve22ToOut
+
             p:SetX(-p:GetX())
             p:SetY(-p:GetY())
 
             positionA:SetX(positionA:GetX() - (mA * p:GetX()))
             positionA:SetY(positionA:GetY() - (mA * p:GetY()))
-            angleA = angleA - (iA * rA:CrossProduct(p))
+            angleA = angleA - (iA * rALocal:CrossProduct(p))
             
             positionB:SetX(positionB:GetX() + (mB * p:GetX()))
             positionB:SetY(positionB:GetY() + (mB * p:GetY()))
-            angleB = angleB + (iB * rB:CrossProduct(p))
+            angleB = angleB + (iB * rBLocal:CrossProduct(p))
 
         else
-            c1:Set(positionB):Add(rB):Subtract(positionA):Subtract(rA)
+            c1:Set(positionB):Add(rBLocal):Subtract(positionA):Subtract(rALocal)
             number c2 = angleB - angleA - referenceAngle
 
             positionError = c1:Length()
-            Math math
             angularError = math:AbsoluteValue(c2)
 
             Vector3 c
@@ -451,36 +460,37 @@ class WeldJoint is Joint2D
 
             //cross to out unsafe: column 1 column 2 out = impulseLocal
             impulseLocal:SetX(column1:GetY() * column2:GetZ() - column1:GetZ() * column2:GetY())
-            impulseLocal:SetY(column1:GetX() * column2:GetZ() - column1:GetZ() * column2:GetX())
-            impulseLocal:SetZ(column1:GetY() * column2:GetX() - column1:GetX() * column2:GetY())
+            impulseLocal:SetY(column1:GetZ() * column2:GetX() - column1:GetX() * column2:GetZ())
+            impulseLocal:SetZ(column1:GetX() * column2:GetY() - column1:GetY() * column2:GetX())
 
-            number det = column1:DotProduct(impulseLocal)
+            number det = column0:DotProduct(impulseLocal)
             if det not= 0
                 det = 1/det
             end
 
             //cross to out unsafe: column 1 column 2 out = impulseLocal
             impulseLocal:SetX(column1:GetY() * column2:GetZ() - column1:GetZ() * column2:GetY())
-            impulseLocal:SetY(column1:GetX() * column2:GetZ() - column1:GetZ() * column2:GetX())
-            impulseLocal:SetZ(column1:GetY() * column2:GetX() - column1:GetX() * column2:GetY())
+            impulseLocal:SetY(column1:GetZ() * column2:GetX() - column1:GetX() * column2:GetZ())
+            impulseLocal:SetZ(column1:GetX() * column2:GetY() - column1:GetY() * column2:GetX())
 
             number x = det * c:DotProduct(impulseLocal)
 
             //cross to out unsafe: c column 2 out = impulseLocal
             impulseLocal:SetX(c:GetY() * column2:GetZ() - c:GetZ() * column2:GetY())
-            impulseLocal:SetY(c:GetX() * column2:GetZ() - c:GetZ() * column2:GetX())
-            impulseLocal:SetZ(c:GetY() * column2:GetX() - c:GetX() * column2:GetY())
+            impulseLocal:SetY(c:GetZ() * column2:GetX() - c:GetX() * column2:GetZ())
+            impulseLocal:SetZ(c:GetX() * column2:GetY() - c:GetY() * column2:GetX())
 
-            number y = det * column1:DotProduct(impulseLocal)
+            number y = det * column0:DotProduct(impulseLocal)
 
-            //cross to out unsafe: column 1 column 2 out = impulseLocal
+            //cross to out unsafe: column 1 c out = impulseLocal
             impulseLocal:SetX(column1:GetY() * c:GetZ() - column1:GetZ() * c:GetY())
-            impulseLocal:SetY(column1:GetX() * c:GetZ() - column1:GetZ() * c:GetX())
-            impulseLocal:SetZ(column1:GetY() * c:GetX() - column1:GetX() * c:GetY())
+            impulseLocal:SetY(column1:GetZ() * c:GetX() - column1:GetX() * c:GetZ())
+            impulseLocal:SetZ(column1:GetX() * c:GetY() - column1:GetY() * c:GetX())
 
-            number z = det * column1:DotProduct(impulseLocal)
+            number z = det * column0:DotProduct(impulseLocal)
 
             impulseLocal:Set(x, y, z)
+            //end solve33ToOut in Mat33
 
             impulseLocal:SetX(-impulseLocal:GetX())
             impulseLocal:SetY(-impulseLocal:GetY())
@@ -490,16 +500,16 @@ class WeldJoint is Joint2D
 
             positionA:SetX(positionA:GetX() - (mA * p:GetX()))
             positionA:SetY(positionA:GetY() - (mA * p:GetY()))
-            angleA = angleA - iA * (rA:CrossProduct(p) + impulseLocal:GetZ())
+            angleA = angleA - iA * (rALocal:CrossProduct(p) + impulseLocal:GetZ())
 
-            positionB:SetX(positionB:GetX() + (mB* p:GetX()))
+            positionB:SetX(positionB:GetX() + (mB * p:GetX()))
             positionB:SetY(positionB:GetY() + (mB * p:GetY()))
-            angleB = angleB - iB * (rB:CrossProduct(p) + impulseLocal:GetZ())
+            angleB = angleB + iB * (rBLocal:CrossProduct(p) + impulseLocal:GetZ())
         end
-        
+
         data:SetAngle(angleA, indexA)
         data:SetAngle(angleB, indexB)
-        Math math
-        return positionError <= 0.005 and angularError <= (2.0 / 180.0 * math:pi)       
+        
+        return positionError <= 0.005 and angularError <= (2.0 / 180.0 * math:pi)
     end
 end
