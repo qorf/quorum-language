@@ -32,17 +32,13 @@ class WeldJoint is Joint2D
     number inverseInertiaB = 0
     Matrix3 mass
     Math math
-    //
-    integer count = 0
-    //
-
+    
     on create
         parent:Joint2D:SetType(parent:Joint2D:WELDJOINT)
         referenceAngle = parent:Joint2D:itemB:GetTransform():GetAngle() - parent:Joint2D:itemA:GetTransform():GetAngle()
         impulse:SetZero()
     end
     
-    //This action must be called after joint is created
     action Initialize(Item2D itemA, Item2D itemB, Vector2 anchor)
         parent:Joint2D:itemA = itemA
         parent:Joint2D:itemB = itemB
@@ -191,17 +187,13 @@ class WeldJoint is Joint2D
             end
 
             number angle = angleB - angleA - referenceAngle
-
-            //frequency
+y
             number omega = 2.0 * math:pi * frequency
             
-            //Damping coefficient
             number dampingCoefficient = 2.0 * m * dampingRatio * omega
 
-            //spring stiffness
             number springStiffness = m * omega * omega
             
-            //magic formulas
             number h = data:GetTimeStep():GetTimeStep()
             gamma = h * (dampingCoefficient + h * springStiffness)
             if gamma not= 0
@@ -254,7 +246,6 @@ class WeldJoint is Joint2D
 
         if data:GetTimeStep():IsWarmStarting()
             Vector2 P 
-            //Scale impulses to support a variable time step
             impulse:Scale(data:GetTimeStep():GetTimeStepRatio())
             
             P:Set(impulse:GetX(), impulse:GetY())
@@ -449,8 +440,7 @@ class WeldJoint is Joint2D
             Vector3 impulseLocal
             c:Set(c1:GetX(), c1:GetY(), c2)
 
-            //see mat33 class action solve33ToOut for this implementation
-            //Consider adding actions to get row/column vectors from a matrix
+            //mat33 class action solve33ToOut
             Vector3 column0 
             Vector3 column1
             Vector3 column2
