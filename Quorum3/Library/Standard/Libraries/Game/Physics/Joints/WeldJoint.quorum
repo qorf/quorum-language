@@ -187,7 +187,7 @@ class WeldJoint is Joint2D
             end
 
             number angle = angleB - angleA - referenceAngle
-y
+
             number omega = 2.0 * math:pi * frequency
             
             number dampingCoefficient = 2.0 * m * dampingRatio * omega
@@ -295,7 +295,7 @@ y
             cDot1:SetY(angularVelocityB * rB:GetX())
             cDot1:Add(linearVelocityB):Subtract(linearVelocityA):Subtract(temp)
 
-            Vector2 impulse1 = P
+            Vector2 impulse1
             // mul22ToOutUnsafe in Mat33
             impulse1:SetX(mass:row0column0 * cDot1:GetX() + mass:row0column1 * cDot1:GetY())
             impulse1:SetY(mass:row1column0 * cDot1:GetX() + mass:row1column1 * cDot1:GetY())
@@ -306,13 +306,13 @@ y
             impulse:SetX(impulse:GetX() + impulse1:GetX())
             impulse:SetY(impulse:GetY() + impulse1:GetY())
 
-            linearVelocityA:SetX(linearVelocityA:GetX() - (mA * P:GetX()))
-            linearVelocityA:SetY(linearVelocityA:GetY() - (mA * P:GetY()))
-            angularVelocityA = angularVelocityA - (iA * rA:CrossProduct(P))
+            linearVelocityA:SetX(linearVelocityA:GetX() - (mA * impulse1:GetX()))
+            linearVelocityA:SetY(linearVelocityA:GetY() - (mA * impulse1:GetY()))
+            angularVelocityA = angularVelocityA - (iA * rA:CrossProduct(impulse1))
             
-            linearVelocityB:SetX(linearVelocityB:GetX() + (mB * P:GetX()))
-            linearVelocityB:SetY(linearVelocityB:GetY() + (mB * P:GetY()))
-            angularVelocityB = angularVelocityB + (iB * rB:CrossProduct(P))
+            linearVelocityB:SetX(linearVelocityB:GetX() + (mB * impulse1:GetX()))
+            linearVelocityB:SetY(linearVelocityB:GetY() + (mB * impulse1:GetY()))
+            angularVelocityB = angularVelocityB + (iB * rB:CrossProduct(impulse1))
 
         else
             temp:SetX(-angularVelocityA * rA:GetY())
