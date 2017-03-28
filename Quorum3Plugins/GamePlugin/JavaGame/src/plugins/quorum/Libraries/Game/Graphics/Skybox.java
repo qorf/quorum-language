@@ -62,4 +62,9 @@ public class Skybox
                 break;
         }
     }
+    
+    public void DisposeNative()
+    {
+        // Do nothing. There are no plugin-dependent resources to handle on desktop.
+    }
 }
