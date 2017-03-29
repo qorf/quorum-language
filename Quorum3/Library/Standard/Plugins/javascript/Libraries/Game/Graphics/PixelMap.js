@@ -44,7 +44,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
     var width;
     var height;
     var pixels;
-    var image = undefined;
+    var image;
     
     var disposed = false;
     

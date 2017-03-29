@@ -752,6 +752,11 @@ class Skybox
     end
 
     /*
+    Release any platform-dependent plugin resources, if necessary.
+    */
+    private system action DisposeNative
+
+    /*
     This action will rotate the Skybox about an axis represented by the given
     numbers. The axis is essentially a ray that starts at the center of the
     Skybox and points in the direction of the provided x, y, and z values. The
