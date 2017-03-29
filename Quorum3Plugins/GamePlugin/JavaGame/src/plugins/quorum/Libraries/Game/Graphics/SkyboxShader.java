@@ -9,7 +9,6 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Compute.Matrix4;
-import quorum.Libraries.Compute.Matrix4_;
 import quorum.Libraries.Game.Graphics.Camera_;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 import quorum.Libraries.Game.Graphics.Skybox_;
@@ -127,14 +126,11 @@ public class SkyboxShader
         GameStateManager.nativeGraphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, 0);
     }
     
-    int counter = 0;
-    
     public void Render(Skybox_ skybox, Camera_ camera)
     {
         program.Begin();
         
         GraphicsManager graphics = GameStateManager.nativeGraphics;
-        graphics.glDepthFunc(GraphicsManager.GL_LEQUAL);
         graphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, bufferHandle);
         
         Matrix4 m = (Matrix4)camera.GetViewMatrix();
@@ -142,10 +138,6 @@ public class SkyboxShader
                         -(float)m.row0column1,  (float)m.row1column1,  (float)m.row2column1, 0,
                          (float)m.row0column2, -(float)m.row1column2, -(float)m.row2column2, 0,
                         0, 0, 0, 1};
-//        float[] temp = {(float)m.row0column0,  (float)m.row1column0,  (float)m.row2column0, 0,
-//                        (float)m.row0column1,  (float)m.row1column1,  (float)m.row2column1, 0,
-//                         (float)m.row0column2, (float)m.row1column2, (float)m.row2column2, 0,
-//                        0, 0, 0, 1};
         
         Matrix4 proj = (Matrix4)camera.GetProjectionMatrix();
         float[] projTemp = {(float)proj.row0column0, (float)proj.row1column0, (float)proj.row2column0, (float)proj.row3column0,
