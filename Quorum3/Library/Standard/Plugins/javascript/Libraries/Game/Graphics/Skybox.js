@@ -13,10 +13,10 @@ function plugins_quorum_Libraries_Game_Graphics_Skybox_(quorumBox)
     this.me_ = quorumBox;
     
     var sidesRequested = [false, false, false, false, false, false];
-    var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
     
     this.InitializeCubeMap$quorum_Libraries_Game_Graphics_Texture = function(texture)
     {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
         var texturePlugin = texture.plugin_;
         texturePlugin.SetGL20Info$quorum_integer$quorum_integer(graphics.gl.TEXTURE_CUBE_MAP, texturePlugin.CreateGLHandle());
         texturePlugin.Bind();
@@ -28,41 +28,9 @@ function plugins_quorum_Libraries_Game_Graphics_Skybox_(quorumBox)
         graphics.SetTextureParameter$quorum_integer$quorum_integer$quorum_integer(graphics.gl.TEXTURE_CUBE_MAP, graphics.gl.TEXTURE_WRAP_R, graphics.gl.CLAMP_TO_EDGE);
     };
     
-    /*
-     
-     PixelMap map = new PixelMap();
-        map.LoadPixelMap(file);
-        
-        texture.Bind();
-        map.Define2DImage(side, 0, 0);
-        
-        switch(side)
-        {
-            case GraphicsManager.GL_TEXTURE_CUBE_MAP_POSITIVE_X:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).rightLoaded = true;
-                break;
-            case GraphicsManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).leftLoaded = true;
-                break;
-            case GraphicsManager.GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).upLoaded = true;
-                break;
-            case GraphicsManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).downLoaded = true;
-                break;
-            case GraphicsManager.GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).backLoaded = true;
-                break;
-            case GraphicsManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).frontLoaded = true;
-                break;
-        }
-     
-     */
-    
-    //  LoadSide(File file, Texture texture, integer side)
     this.LoadSide$quorum_Libraries_System_File$quorum_Libraries_Game_Graphics_Texture$quorum_integer = function(file, texture, side)
     {
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
         switch(side)
         {
             case graphics.gl.TEXTURE_CUBE_MAP_POSITIVE_X:

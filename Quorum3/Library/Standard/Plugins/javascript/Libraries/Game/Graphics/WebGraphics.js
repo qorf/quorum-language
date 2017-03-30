@@ -348,48 +348,24 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     {
         gl.uniform4fv(location, v);
     };
-    
-    // Expected parameters: integer, integer, boolean, FloatBuffer
-//    this.glUniformMatrix2fv = function(location, count, transpose, value)
-//    {
-//        
-//    };
 
-    // Expected parameters: integer, integer, boolean, float[], integer
+    // Expected parameters: WebGLLocation, boolean, array of floats (or Float32Array)
     this.glUniformMatrix2fv = function(location, transpose, value)
     {
         gl.uniformMatrix2fv(location, transpose, value);
     };
 
-    // Expected parameters: integer, integer, boolean, FloatBuffer
-//    this.glUniformMatrix3fv = function(location, count, transpose, value)
-//    {
-//        
-//    };
-
-    // Expected parameters: integer, integer, boolean, float[], integer
+    // Expected parameters: WebGLLocation, boolean, array of floats (or Float32Array)
     this.glUniformMatrix3fv = function(location, transpose, value)
     {
         gl.uniformMatrix3fv(location, transpose, value);
     };
 
-    // Expected parameters: integer, integer, boolean, FloatBuffer
-//    this.glUniformMatrix4fv = function(location, count, transpose, value)
-//    {
-//        
-//    };
-
-    // Expected parameters: integer, integer, boolean, float[], integer
+    // Expected parameters: WebGLLocation, boolean, array of floats (or Float32Array)
     this.glUniformMatrix4fv = function(location, transpose, value)
     {
         gl.uniformMatrix4fv(location, transpose, value);
     };
-    
-    // Expected parameters: integer, integer, integer, boolean, integer, Buffer
-//    this.glVertexAttribPointer = function(index, size, type, normalized, stride, buffer)
-//    {
-//        
-//    };
     
     // Expected parameters: integer, integer, integer, boolean, integer, integer
     this.glVertexAttribPointer = function(index, size, type, normalized, stride, pointer)
