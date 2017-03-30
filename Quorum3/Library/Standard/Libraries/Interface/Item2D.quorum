@@ -2769,7 +2769,6 @@ class Item2D is Item
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
         end
-
         properties:SetDensity(density)
         ResetMass()
     end
@@ -3027,8 +3026,7 @@ class Item2D is Item
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
         end
-
-        properties:SetDensity(mass / shape:ComputeArea())
+        properties:SetMass(mass)
     end
 
     action SetMass(Mass2D mass)
@@ -3077,16 +3075,15 @@ class Item2D is Item
             alert(PHYSICS_ERROR_MESSAGE)
         end
 
-        properties:AssignMass(0)
-        properties:SetInverseMass(0)
-        properties:SetInertia(0)
-        properties:SetInverseInertia(0)
-        sweep:GetLocalCenter():SetZero()
-
         if properties:GetResponsiveness() = properties:UNMOVABLE or properties:GetResponsiveness() = properties:NON_RESPONSIVE
             sweep:GetCenter0():Set(transform:GetPosition())
             sweep:GetCenter():Set(transform:GetPosition())
             sweep:SetAngle0(sweep:GetAngle())
+            properties:AssignMass(0)
+            properties:SetInverseMass(0)
+            properties:SetInertia(0)
+            properties:SetInverseInertia(0)
+            sweep:GetLocalCenter():SetZero()
             return now
         end
 
@@ -3094,14 +3091,12 @@ class Item2D is Item
         localCenter:SetZero()
         Vector2 temp
         shape:ComputeMass(massData, properties:GetDensity())
-        properties:AssignMass(properties:GetMass() + massData:GetMass())
-        temp:Set(massData:GetCenter()):Scale(massData:GetMass())
-        localCenter:Add(temp)
-        properties:SetInertia(properties:GetRawInertia() + massData:GetInertia())
+        properties:AssignMass(massData:GetMass())
+        localCenter:Add(massData:GetCenter())
+        properties:SetInertia(massData:GetInertia())
 
         if properties:GetMass() > 0
             properties:SetInverseMass(1.0 / properties:GetMass())
-            localCenter:Scale(properties:GetInverseMass())
         else
             properties:AssignMass(1)
             properties:SetInverseMass(1)
