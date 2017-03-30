@@ -65,6 +65,15 @@ class DistanceJoint is Joint2D
         length = distance:Length()       
     end
 
+    //double check the box2D manual for information on how this could be problematic
+    action SetDistance(number distance)
+        length = distance
+    end
+
+    action GetDistance() returns number
+        return length
+    end
+
     action SetFrequency(number hz)
         frequency = hz
     end
