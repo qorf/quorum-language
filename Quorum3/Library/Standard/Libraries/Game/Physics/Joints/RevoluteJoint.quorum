@@ -1,0 +1,595 @@
+package Libraries.Game.Physics.Joints
+
+use Libraries.Compute.Vector2
+use Libraries.Compute.Matrix3
+use Libraries.Containers.List
+use Libraries.Interface.Item2D
+use Libraries.Compute.Vector3
+use Libraries.Game.Collision.PhysicsPosition2D
+use Libraries.Compute.Math
+
+class RevoluteJoint is Joint2D
+
+    constant integer INACTIVE = 0
+    constant integer EQUAL = 1
+    constant integer AT_LOWER = 2
+    constant integer AT_UPPER = 3
+
+    Vector2 localAnchorA
+    Vector2 localAnchorB
+    Vector3 impulse
+    number motorImpulse = 0
+
+    boolean enableMotor = false
+    number maxMotorTorque = 0
+    number motorSpeed = 0
+    boolean enableLimit = false
+    number referenceAngle = 0
+    number lowerAngle = 0
+    number upperAngle = 0
+
+    integer indexA = 0
+    integer indexB = 0
+    Vector2 rA 
+    Vector2 rB
+    Vector2 localCenterA
+    Vector2 localCenterB
+    number inverseMassA = 0
+    number inverseMassB = 0
+    number inverseInertiaA = 0
+    number inverseInertiaB = 0
+    Matrix3 mass
+    number motorMass = 1
+    integer limitState = INACTIVE
+    Math math
+    
+    on create
+        parent:Joint2D:SetType(parent:Joint2D:WELDJOINT)
+    end
+    
+    action Initialize(Item2D itemA, Item2D itemB, Vector2 anchor)
+        parent:Joint2D:itemA = itemA
+        parent:Joint2D:itemB = itemB
+        localAnchorA = parent:Joint2D:itemA:GetLocalPoint(anchor)
+        localAnchorB = parent:Joint2D:itemB:GetLocalPoint(anchor)
+        referenceAngle = parent:Joint2D:itemB:GetTransform():GetAngle() - parent:Joint2D:itemA:GetTransform():GetAngle()    
+    end
+
+    action InitializeVelocityConstraints(JointSolverData data)
+        indexA = parent:Joint2D:itemA:GetCollisionGroupIndex()
+        indexB = parent:Joint2D:itemB:GetCollisionGroupIndex()
+        localCenterA:Set(parent:Joint2D:itemA:GetSweep():GetLocalCenter())
+        localCenterB:Set(parent:Joint2D:itemB:GetSweep():GetLocalCenter())
+        inverseMassA = parent:Joint2D:itemA:GetInverseMass()
+        inverseMassB = parent:Joint2D:itemB:GetInverseMass()
+        inverseInertiaA = parent:Joint2D:itemA:GetInverseInertia()
+        inverseInertiaB = parent:Joint2D:itemB:GetInverseInertia()
+
+        number angleA = data:GetAngles():Get(indexA)
+        Vector2 linearVelocityA = data:GetLinearVelocities():Get(indexA)
+        number angularVelocityA = data:GetAngularVelocities():Get(indexA)
+
+        number angleB = data:GetAngles():Get(indexB)
+        Vector2 linearVelocityB = data:GetLinearVelocities():Get(indexB)
+        number angularVelocityB = data:GetAngularVelocities():Get(indexB)
+
+        Vector2 temp
+        number sineA = math:Sine(angleA)
+        number cosineA = math:Cosine(angleA)
+        number sineB = math:Sine(angleB)
+        number cosineB = math:Cosine(angleB)
+        
+        temp:Set(localAnchorA):Subtract(localCenterA)
+        rA:SetX(cosineA * temp:GetX() - sineA * temp:GetY())
+        rA:SetY(sineA * temp:GetX() + cosineA * temp:GetY())
+
+        temp:Set(localAnchorB):Subtract(localCenterB)
+        rB:SetX(cosineB * temp:GetX() - sineB * temp:GetY())
+        rB:SetY(sineB * temp:GetX() + cosineB * temp:GetY())
+
+        number mA = inverseMassA
+        number mB = inverseMassB
+        number iA = inverseInertiaA
+        number iB = inverseInertiaB
+        boolean fixedRotation = (iA + iB = 0.0)
+        
+        mass:row0column0 = mA + mB + rA:GetY() * rA:GetY() * iA + rB:GetY() * rB:GetY() * iB
+        mass:row0column1 = -rA:GetY() * rA:GetX() * iA - rB:GetY() * rB:GetX() * iB
+        mass:row0column2 = -rA:GetY() * iA - rB:GetY() * iB
+        mass:row1column0 = mass:row0column1
+        mass:row1column1 = mA + mB + rA:GetX() * rA:GetX() * iA + rB:GetX() * rB:GetX() * iB
+        mass:row1column2 = rA:GetX() * iA + rB:GetX() * iB
+        mass:row2column0 = mass:row0column2
+        mass:row2column1 = mass:row1column2
+        mass:row2column2 = iA + iB 
+        
+        motorMass = iA + iB
+        if motorMass > 0.0
+        motorMass = 1.0 / motorMass
+        end
+
+        if enableMotor = false or fixedRotation
+        motorImpulse = 0.0
+        end
+        
+        if enableLimit and fixedRotation = false
+            number jointAngle = angleB - angleA - referenceAngle
+            if math:AbsoluteValue(upperAngle - lowerAngle) < 2.0 * (2.0 / 180 * math:pi)
+                limitState = EQUAL
+            elseif jointAngle <= lowerAngle
+                if limitState not= AT_LOWER
+                    impulse:SetZ(0)
+                end
+                limitState = AT_LOWER
+            elseif jointAngle >= upperAngle
+                if limitState not= AT_UPPER
+                    impulse:SetZ(0)
+                end
+                limitState = AT_UPPER
+            else 
+                limitState = INACTIVE
+                impulse:SetZ(0)
+            end
+        else 
+            limitState = INACTIVE
+        end
+
+        if data:GetTimeStep():IsWarmStarting()
+            Vector2 P 
+            impulse:Scale(data:GetTimeStep():GetTimeStepRatio())
+            motorImpulse = motorImpulse * data:GetTimeStep():GetTimeStepRatio()
+            
+            P:Set(impulse:GetX(), impulse:GetY())
+            
+            linearVelocityA:SetX(linearVelocityA:GetX() - (mA * P:GetX()))
+            linearVelocityA:SetY(linearVelocityA:GetY() - (mA * P:GetY()))
+            angularVelocityA = angularVelocityA - (iA * (rA:CrossProduct(P) + motorImpulse + impulse:GetZ()))
+
+            linearVelocityB:SetX(linearVelocityB:GetX() + (mB * P:GetX()))
+            linearVelocityB:SetY(linearVelocityB:GetY() + (mB * P:GetY()))
+            angularVelocityB = angularVelocityB + (iB * (rB:CrossProduct(P) + motorImpulse + impulse:GetZ()))
+        else
+            impulse:SetZero()
+            motorImpulse = 0.0
+        end 
+
+        data:SetAngularVelocity(angularVelocityA, indexA)
+        data:SetAngularVelocity(angularVelocityB, indexB)                
+    end
+
+    action SolveVelocityConstraints (JointSolverData data)
+        Vector2 linearVelocityA = data:GetLinearVelocities():Get(indexA)
+        number angularVelocityA = data:GetAngularVelocities():Get(indexA)
+        Vector2 linearVelocityB = data:GetLinearVelocities():Get(indexB)
+        number angularVelocityB = data:GetAngularVelocities():Get(indexB)
+
+        number mA = inverseMassA
+        number mB = inverseMassB
+        number iA = inverseInertiaA
+        number iB = inverseInertiaB
+
+        boolean fixedRotation = (iA + iB = 0.0)
+
+        if enableMotor and limitState not= EQUAL and fixedRotation = false
+            number cDot = angularVelocityB - angularVelocityA - motorSpeed
+            number localImpulse = -motorMass * cDot
+            number oldImpulse = motorImpulse
+            number maxImpulse = data:GetTimeStep():GetTimeStepRatio() * maxMotorTorque
+
+            motorImpulse =motorImpulse + localImpulse
+            if motorImpulse > maxImpulse
+                motorImpulse = maxImpulse
+            elseif motorImpulse < -maxImpulse
+                motorImpulse = -maxImpulse
+            end
+
+            localImpulse = motorImpulse - oldImpulse
+
+            angularVelocityA = angularVelocityA - iA * localImpulse
+            angularVelocityB = angularVelocityB + iB * localImpulse
+        end
+
+        Vector2 temp
+
+        if enableLimit and limitState not= INACTIVE and fixedRotation = false
+
+            Vector2 cDot1
+            Vector3 cDot
+
+            temp:SetX(-angularVelocityA * rA:GetY())
+            temp:SetY(angularVelocityA * rA:GetX())
+            cDot1:SetX(-angularVelocityB * rB:GetY())
+            cDot1:SetY(angularVelocityB * rB:GetX())
+            cDot1:Add(linearVelocityB):Subtract(linearVelocityA):Subtract(temp)
+
+            number cDot2 = angularVelocityB - angularVelocityA
+            cDot:Set(cDot1:GetX(), cDot1:GetY(), cDot2)
+            Vector3 impulseLocal
+            
+            //solve33ToOut
+            Vector3 column0 
+            Vector3 column1
+            Vector3 column2
+            column0:Set(mass:row0column0, mass:row1column0, mass:row2column0)
+            column1:Set(mass:row0column1, mass:row1column1, mass:row2column1)
+            column2:Set(mass:row0column2, mass:row1column2, mass:row2column2)
+
+            //cross to out unsafe: column 1 column 2 out = impulseLocal
+            impulseLocal:SetX(column1:GetY() * column2:GetZ() - column1:GetZ() * column2:GetY())
+            impulseLocal:SetY(column1:GetZ() * column2:GetX() - column1:GetX() * column2:GetZ())
+            impulseLocal:SetZ(column1:GetX() * column2:GetY() - column1:GetY() * column2:GetX())
+
+            number det = column0:DotProduct(impulseLocal)
+            if det not= 0
+                det = 1/det
+            end
+
+            //cross to out unsafe: column 1 column 2 out = impulseLocal
+            impulseLocal:SetX(column1:GetY() * column2:GetZ() - column1:GetZ() * column2:GetY())
+            impulseLocal:SetY(column1:GetZ() * column2:GetX() - column1:GetX() * column2:GetZ())
+            impulseLocal:SetZ(column1:GetX() * column2:GetY() - column1:GetY() * column2:GetX())
+
+            number x = det * cDot:DotProduct(impulseLocal)
+
+            //cross to out unsafe: c column 2 out = impulseLocal
+            impulseLocal:SetX(cDot:GetY() * column2:GetZ() - cDot:GetZ() * column2:GetY())
+            impulseLocal:SetY(cDot:GetZ() * column2:GetX() - cDot:GetX() * column2:GetZ())
+            impulseLocal:SetZ(cDot:GetX() * column2:GetY() - cDot:GetY() * column2:GetX())
+
+            number y = det * column0:DotProduct(impulseLocal)
+
+            //cross to out unsafe: column 1 c out = impulseLocal
+            impulseLocal:SetX(column1:GetY() * cDot:GetZ() - column1:GetZ() * cDot:GetY())
+            impulseLocal:SetY(column1:GetZ() * cDot:GetX() - column1:GetX() * cDot:GetZ())
+            impulseLocal:SetZ(column1:GetX() * cDot:GetY() - column1:GetY() * cDot:GetX())
+
+            number z = det * column0:DotProduct(impulseLocal)
+
+            impulseLocal:Set(x, y, z)
+            //end solve33toOut
+            impulseLocal:SetX(-impulseLocal:GetX())
+            impulseLocal:SetY(-impulseLocal:GetY())
+            impulseLocal:SetZ(-impulseLocal:GetZ())
+
+            if limitState = EQUAL
+                impulse:Add(impulseLocal)
+            elseif limitState = AT_LOWER
+                number newImpulse = impulse:GetZ() + impulseLocal:GetZ()
+                if newImpulse < 0.0
+                    Vector2 rightHandSide
+                    rightHandSide:Set(mass:row0column2, mass:row1column0):Scale(impulse:GetZ()):Subtract(cDot1)
+                    //
+                    number a11 = mass:row0column0
+                    number a12 = mass:row0column1
+                    number a21 = mass:row1column0
+                    number a22 = mass:row1column1
+                    det = a11 * a22 - a12 * a21
+                    if det not= 0.0
+                        det = 1.0 / det
+                    end
+                    temp:SetX(det * (a22 * rightHandSide:GetX() - a12 * rightHandSide:GetY()))
+                    temp:SetY(det * (a11 * rightHandSide:GetY() - a21 * rightHandSide:GetX()))
+                    //
+                    impulseLocal:SetX(temp:GetX())
+                    impulseLocal:SetY(temp:GetY())
+                    impulseLocal:SetZ(-impulse:GetZ())
+                    impulse:SetX(impulse:GetX() + temp:GetX())
+                    impulse:SetY(impulse:GetY() + temp:GetY())
+                    impulse:SetZ(0)
+                else
+                    impulse:Add(impulseLocal)
+                end
+            elseif limitState = AT_UPPER
+                number newImpulse = impulse:GetZ() + impulseLocal:GetZ()
+                if newImpulse > 0
+                    Vector2 rightHandSide
+                    rightHandSide:Set(mass:row0column2, mass:row1column0):Scale(impulse:GetZ()):Subtract(cDot1)
+                    //solve22ToOut rhs,temp
+                    number a11 = mass:row0column0
+                    number a12 = mass:row0column1
+                    number a21 = mass:row1column0
+                    number a22 = mass:row1column1
+                    det = a11 * a22 - a12 * a21
+                    if det not= 0.0
+                        det = 1.0 / det
+                    end
+                    temp:SetX(det * (a22 * rightHandSide:GetX() - a12 * rightHandSide:GetY()))
+                    temp:SetY(det * (a11 * rightHandSide:GetY() - a21 * rightHandSide:GetX()))
+                    //
+                    impulseLocal:SetX(temp:GetX())
+                    impulseLocal:SetY(temp:GetY())
+                    impulseLocal:SetZ(-impulse:GetZ())
+                    impulse:SetX(impulse:GetX() + temp:GetX())
+                    impulse:SetY(impulse:GetY() + temp:GetY())
+                    impulse:SetZ(0)
+                else
+                    impulse:Add(impulseLocal)
+                end
+            end
+
+            Vector2 P 
+            P:Set(impulseLocal:GetX(), impulseLocal:GetY())
+            
+            linearVelocityA:SetX(linearVelocityA:GetX() - (mA * P:GetX()))
+            linearVelocityA:SetY(linearVelocityA:GetY() - (mA * P:GetY()))
+            angularVelocityA = angularVelocityA - iA * (rA:CrossProduct(P) + impulseLocal:GetZ())
+            
+            linearVelocityB:SetX(linearVelocityB:GetX() + (mB * P:GetX()))
+            linearVelocityB:SetY(linearVelocityB:GetY() + (mB * P:GetY()))
+            angularVelocityB = angularVelocityB + iB * (rB:CrossProduct(P) + impulseLocal:GetZ()) 
+
+        else
+            Vector2 cDot
+            Vector2 impulseLocal
+
+            temp:SetX(-angularVelocityA * rA:GetY())
+            temp:SetY(angularVelocityA * rA:GetX())
+            cDot:SetX(-angularVelocityB * rB:GetY())
+            cDot:SetY(angularVelocityB * rB:GetX())
+            cDot:Add(linearVelocityB):Subtract(linearVelocityA):Subtract(temp)
+            cDot:SetX(-cDot:GetX())
+            cDot:SetY(-cDot:GetY())
+            //
+            number a11 = mass:row0column0
+            number a12 = mass:row0column1
+            number a21 = mass:row1column0
+            number a22 = mass:row1column1
+            number det = a11 * a22 - a12 * a21
+            if det not= 0.0
+                det = 1.0 / det
+            end
+            impulseLocal:SetX(det * (a22 * cDot:GetX() - a12 * cDot:GetY()))
+            impulseLocal:SetY(det * (a11 * cDot:GetY() - a21 * cDot:GetX()))
+            //
+            impulse:SetX(impulse:GetX() + impulseLocal:GetX())
+            impulse:SetY(impulse:GetY() + impulseLocal:GetY())
+
+            linearVelocityA:SetX(linearVelocityA:GetX() - (mA * impulseLocal:GetX()))
+            linearVelocityA:SetY(linearVelocityA:GetY() - (mA * impulseLocal:GetY()))
+            angularVelocityA = angularVelocityA - (iA * rA:CrossProduct(impulseLocal))           
+
+            linearVelocityB:SetX(linearVelocityB:GetX() + (mB * impulseLocal:GetX()))
+            linearVelocityB:SetY(linearVelocityB:GetY() + (mB * impulseLocal:GetY()))
+            angularVelocityB = angularVelocityB + (iB * rB:CrossProduct(impulseLocal))
+
+        end    
+         
+        data:SetAngularVelocity(angularVelocityA, indexA)
+        data:SetAngularVelocity(angularVelocityB, indexB)
+
+    end
+    
+    action SolvePositionConstraints(JointSolverData data) returns boolean
+        Vector2 positionA = data:GetPositions():Get(indexA)
+        number angleA = data:GetAngles():Get(indexA)
+        Vector2 positionB = data:GetPositions():Get(indexB)
+        number angleB = data:GetAngles():Get(indexB)
+
+        number mA = inverseMassA
+        number mB = inverseMassB
+        number iA = inverseInertiaA
+        number iB = inverseInertiaB
+
+        number positionError = 0
+        number angularError = 0
+
+        boolean fixedRotation = (inverseInertiaA + inverseInertiaB = 0)
+
+        if enableLimit and limitState not= INACTIVE and fixedRotation = false
+            number angle = angleB - angleA - referenceAngle
+            number limitImpulse = 0
+
+            if limitState = EQUAL
+                number C = angle - lowerAngle
+                if C > (8.0 / 180.0 * math:pi)
+                    C = (8.0 / 180.0 * math:pi)
+                elseif C < -(8.0 / 180.0 * math:pi)
+                    C = -(8.0 / 180.0 * math:pi)
+                end
+                limitImpulse = -motorMass * C
+                angularError = math:AbsoluteValue(C)
+            elseif limitState = AT_LOWER
+                number C = angle - lowerAngle
+                angularError = -C
+                C = angle - (2.0 / 180.0 * math:pi)
+                if C > 0
+                    C = 0
+                elseif C < -(8.0 / 180.0 * math:pi)
+                    C = -(8.0 / 180.0 * math:pi)
+                end
+                limitImpulse = -motorMass * C
+            elseif limitState = AT_UPPER
+                number C = angle - upperAngle
+                angularError = C
+                C = angle - (2.0 / 180.0 * math:pi)
+                if C > (8.0 / 180.0 * math:pi)
+                    C = (8.0 / 180.0 * math:pi)
+                elseif C < 0
+                    C = 0
+                end
+                limitImpulse = -motorMass * C
+            end
+            angleA = angleA - inverseInertiaA * limitImpulse
+            angleB = angleB + inverseInertiaB * limitImpulse
+        end
+        
+        Vector2 rALocal 
+        Vector2 rBLocal
+        Vector2 C
+        Vector2 impulseLocal
+        
+        number sineA = math:Sine(angleA)
+        number cosineA = math:Cosine(angleA)
+        number sineB = math:Sine(angleB)
+        number cosineB = math:Cosine(angleB)
+        Vector2 temp
+
+        temp:Set(localAnchorA):Subtract(localCenterA)
+        rALocal:SetX(cosineA * temp:GetX() - sineA * temp:GetY())
+        rALocal:SetY(sineA * temp:GetX() + cosineA * temp:GetY())
+
+        temp:Set(localAnchorB):Subtract(localCenterB)
+        rBLocal:SetX(cosineB * temp:GetX() - sineB * temp:GetY())
+        rBLocal:SetY(sineB * temp:GetX() + cosineB * temp:GetY())
+        
+        C:Set(positionB):Add(rBLocal):Subtract(positionA):Subtract(rALocal)
+        positionError = C:Length()
+
+        Matrix3 K
+        
+        K:row0column0 = mA + mB + rALocal:GetY() * rALocal:GetY() * iA + rBLocal:GetY() * rBLocal:GetY() * iB
+        K:row0column1 = -rALocal:GetY() * rALocal:GetX() * iA - rBLocal:GetY() * rBLocal:GetX() * iB
+        K:row0column2 = -rALocal:GetY() * iA - rBLocal:GetY() * iB
+        K:row1column0 = K:row0column1 
+        K:row1column1 = mA + mB + rALocal:GetX() * rALocal:GetX() * iA + rBLocal:GetX() * rBLocal:GetX() * iB
+        K:row1column2 = rALocal:GetX() * iA + rBLocal:GetX() * iB
+        //solve22ToOut C, impulse
+        number a11 = mass:row0column0
+        number a12 = mass:row0column1
+        number a21 = mass:row1column0
+        number a22 = mass:row1column1
+        number det = a11 * a22 - a12 * a21
+        if det not= 0.0
+            det = 1.0 / det
+        end
+        impulseLocal:SetX(det * (a22 * C:GetX() - a12 * C:GetY()))
+        impulseLocal:SetY(det * (a11 * C:GetY() - a21 * C:GetX()))
+        //        
+        impulseLocal:SetX(-impulseLocal:GetX())
+        impulseLocal:SetY(-impulseLocal:GetY())
+        
+        positionA:SetX(positionA:GetX() - (mA * impulseLocal:GetX()))
+        positionA:SetY(positionA:GetY() - (mA * impulseLocal:GetY()))
+        angleA = angleA - iA * rALocal:CrossProduct(impulseLocal)
+
+        positionB:SetX(positionB:GetX() + (mB * impulseLocal:GetX()))
+        positionB:SetY(positionB:GetY() + (mB * impulseLocal:GetY()))
+        angleB = angleB + iB * rBLocal:CrossProduct(impulseLocal)
+
+        data:SetAngle(angleA, indexA)
+        data:SetAngle(angleB, indexB)
+        
+        return positionError <= 0.005 and angularError <= (2.0 / 180.0 * math:pi)
+    end
+
+    action GetReferenceAngle returns number
+        return referenceAngle
+    end
+    
+    action SetReferenceAngle(number angle)
+        referenceAngle = angle
+    end
+
+    action GetLocalAnchorA returns Vector2
+        return localAnchorA
+    end
+
+    action SetLocalAnchorA(Vector2 anchor)
+        localAnchorA = anchor
+    end
+
+    action GetLocalAnchorB returns Vector2
+        return localAnchorB
+    end
+
+    action SetLocalAnchorB(Vector2 anchor)
+        localAnchorB = anchor
+    end
+
+    action GetAnchorA returns Vector2
+        return parent:Joint2D:itemA:GetWorldPoint(localAnchorA)
+    end
+
+    action GetAnchorB returns Vector2
+        return parent:Joint2D:itemB:GetWorldPoint(localAnchorB)
+    end
+
+    action GetReactionForce(number inverseTimeStep) returns Vector2
+        Vector2 reactionForce
+        reactionForce:Set(impulse:GetX(), impulse:GetY())
+        reactionForce:Scale(inverseTimeStep)
+        return reactionForce
+    end
+
+    action GetReactionTorque(number inverseTimeStep) returns number
+        return inverseTimeStep * impulse:GetZ()
+    end
+
+    action getJointAngle() returns number
+        return parent:Joint2D:itemB:GetSweep():GetAngle() - parent:Joint2D:itemA:GetSweep():GetAngle() - referenceAngle
+    end
+
+ /* public float getJointSpeed() {
+    final Body b1 = m_bodyA;
+    final Body b2 = m_bodyB;
+    return b2.m_angularVelocity - b1.m_angularVelocity;
+  }
+
+  public boolean isMotorEnabled() {
+    return m_enableMotor;
+  }
+
+  public void enableMotor(boolean flag) {
+    m_bodyA.setAwake(true);
+    m_bodyB.setAwake(true);
+    m_enableMotor = flag;
+  }
+
+  public float getMotorTorque(float inv_dt) {
+    return m_motorImpulse * inv_dt;
+  }
+
+  public void setMotorSpeed(final float speed) {
+    m_bodyA.setAwake(true);
+    m_bodyB.setAwake(true);
+    m_motorSpeed = speed;
+  }
+
+  public void setMaxMotorTorque(final float torque) {
+    m_bodyA.setAwake(true);
+    m_bodyB.setAwake(true);
+    m_maxMotorTorque = torque;
+  }
+
+  public float getMotorSpeed() {
+    return m_motorSpeed;
+  }
+
+  public float getMaxMotorTorque() {
+    return m_maxMotorTorque;
+  }
+
+  public boolean isLimitEnabled() {
+    return m_enableLimit;
+  }
+
+  public void enableLimit(final boolean flag) {
+    if (flag != m_enableLimit) {
+      m_bodyA.setAwake(true);
+      m_bodyB.setAwake(true);
+      m_enableLimit = flag;
+      m_impulse.z = 0.0f;
+    }
+  }
+
+  public float getLowerLimit() {
+    return m_lowerAngle;
+  }
+
+  public float getUpperLimit() {
+    return m_upperAngle;
+  }
+
+  public void setLimits(final float lower, final float upper) {
+    assert (lower <= upper);
+    if (lower != m_lowerAngle || upper != m_upperAngle) {
+      m_bodyA.setAwake(true);
+      m_bodyB.setAwake(true);
+      m_impulse.z = 0.0f;
+      m_lowerAngle = lower;
+      m_upperAngle = upper;
+    }
+  }
+}*/
+
+end

@@ -14,7 +14,6 @@ class RopeJoint is Joint2D
 
     on create
         parent:Joint2D:SetType(parent:Joint2D:ROPEJOINT)
-
         localAnchorA:Set(-1.0, 0.0)
         localAnchorB:Set(1.0, 0.0)
         parent:Joint2D:SetState(parent:Joint2D:INACTIVE)
@@ -62,19 +61,20 @@ class RopeJoint is Joint2D
         number angleB = data:GetAngles():Get(indexB)
         Vector2 linearVelocityB = data:GetLinearVelocities():Get(indexB)
         number angularVelocityB = data:GetAngularVelocities():Get(indexB)
+        Vector2 temp
         
         number sineA = math:Sine(angleA)
         number cosineA = math:Cosine(angleA)
         number sineB = math:Sine(angleB)
         number cosineB = math:Cosine(angleB)
 
-        u:Set(localAnchorA):Subtract(localCenterA)
-        rA:SetX(cosineA * u:GetX() - sineA * u:GetY())
-        rA:SetY(sineA * u:GetX() + cosineA * u:GetY())
+        temp:Set(localAnchorA):Subtract(localCenterA)
+        rA:SetX(cosineA * temp:GetX() - sineA * temp:GetY())
+        rA:SetY(sineA * temp:GetX() + cosineA * temp:GetY())
 
-        u:Set(localAnchorB):Subtract(localCenterB)
-        rB:SetX(cosineB * u:GetX() - sineB * u:GetY())
-        rB:SetY(sineB * u:GetX() + cosineB * u:GetY())
+        temp:Set(localAnchorB):Subtract(localCenterB)
+        rB:SetX(cosineB * temp:GetX() - sineB * temp:GetY())
+        rB:SetY(sineB * temp:GetX() + cosineB * temp:GetY())
 
         u:Set(positionB):Add(rB):Subtract(positionA):Subtract(rA)
 
@@ -87,49 +87,44 @@ class RopeJoint is Joint2D
             parent:Joint2D:SetState(parent:Joint2D:INACTIVE)
         end
         
-        boolean returnZero = false
         if (length > 0.005)
             u:Scale(1.0 / length)
         else
             u:SetZero()
             mass = 0.0
             impulse = 0.0
-            returnZero = true //java code returns here
+            return now
         end
 
-        Vector2 temp
-
-        if not returnZero
-            number crossA = temp:Set(rA):CrossProduct(u)
-            number crossB = temp:Set(rB):CrossProduct(u)
-            number inverseMass = inverseMassA + inverseInertiaA * crossA * crossA 
+        number crossA = temp:Set(rA):CrossProduct(u)
+        number crossB = temp:Set(rB):CrossProduct(u)
+        number inverseMass = inverseMassA + inverseInertiaA * crossA * crossA 
                                 + inverseMassB + inverseInertiaB * crossB * crossB
 
-            if inverseMass not= 0.0
-                mass = 1.0 / inverseMass
-            else 
-                mass = 0.0
-            end
-            if data:GetTimeStep():IsWarmStarting()
-                impulse = impulse * data:GetTimeStep():GetTimeStepRatio()
-                
-                number pX = impulse * u:GetX()
-                number pY = impulse * u:GetY()
-                linearVelocityA:SetX(linearVelocityA:GetX() - (inverseMassA * pX))
-                linearVelocityA:SetY(linearVelocityA:GetY() - (inverseMassA * pY))
-                angularVelocityA = angularVelocityA - (inverseInertiaA * (rA:GetX() * pY - rA:GetY() * pX))
+        if inverseMass not= 0.0
+            mass = 1.0 / inverseMass
+        else 
+            mass = 0.0
+        end
 
-                linearVelocityB:SetX(linearVelocityB:GetX() + (inverseMassB * pX))
-                linearVelocityB:SetY(linearVelocityB:GetY() + (inverseMassB * pY))
-                angularVelocityB = angularVelocityB + (inverseInertiaB * (rB:GetX() * pY - rB:GetY() * pX))
-            else
-                impulse = 0.0
-            end
+        if data:GetTimeStep():IsWarmStarting()
+            impulse = impulse * data:GetTimeStep():GetTimeStepRatio()
+                
+            number pX = impulse * u:GetX()
+            number pY = impulse * u:GetY()
+            linearVelocityA:SetX(linearVelocityA:GetX() - (inverseMassA * pX))
+            linearVelocityA:SetY(linearVelocityA:GetY() - (inverseMassA * pY))
+            angularVelocityA = angularVelocityA - (inverseInertiaA * (rA:GetX() * pY - rA:GetY() * pX))
+
+            linearVelocityB:SetX(linearVelocityB:GetX() + (inverseMassB * pX))
+            linearVelocityB:SetY(linearVelocityB:GetY() + (inverseMassB * pY))
+            angularVelocityB = angularVelocityB + (inverseInertiaB * (rB:GetX() * pY - rB:GetY() * pX))
+        else
+            impulse = 0.0
+        end
 
             data:SetAngularVelocity(angularVelocityA, indexA)
-            data:SetAngularVelocity(angularVelocityB, indexB)
-       
-        end     
+            data:SetAngularVelocity(angularVelocityB, indexB)         
     end
     
     action SolveVelocityConstraints(JointSolverData data)
@@ -159,17 +154,17 @@ class RopeJoint is Joint2D
             cDot = cDot + data:GetTimeStep():GetInverseTimeStep() * c
         end
         
-        number tempImpulse = -mass * cDot
+        number impulseLocal = -mass * cDot
         number oldImpulse = impulse
-        if impulse + tempImpulse <= 0.0
-            impulse = impulse + tempImpulse
+        if impulse + impulseLocal < 0.0
+            impulse = impulse + impulseLocal
         else 
             impulse = 0.0
         end
-        tempImpulse = impulse - oldImpulse
+        impulseLocal = impulse - oldImpulse
         
-        number pX = impulse * u:GetX()
-        number pY = impulse * u:GetY()
+        number pX = impulseLocal * u:GetX()
+        number pY = impulseLocal * u:GetY()
         linearVelocityA:SetX(linearVelocityA:GetX() - (inverseMassA * pX))
         linearVelocityA:SetY(linearVelocityA:GetY() - (inverseMassA * pY))
         angularVelocityA = angularVelocityA - (inverseInertiaA * ( rA:GetX() * pY - rA:GetY() * pX))
@@ -197,13 +192,13 @@ class RopeJoint is Joint2D
         number sineB = math:Sine(angleB)
         number cosineB = math:Cosine(angleB)
 
-        u:Set(localAnchorA):Subtract(localCenterA)
-        localrA:SetX(cosineA * u:GetX() - sineA * u:GetY())
-        localrA:SetY(sineA * u:GetX() + cosineA * u:GetY())
+        temp:Set(localAnchorA):Subtract(localCenterA)
+        localrA:SetX(cosineA * temp:GetX() - sineA * temp:GetY())
+        localrA:SetY(sineA * temp:GetX() + cosineA * temp:GetY())
 
-        u:Set(localAnchorB):Subtract(localCenterB)
-        localrB:SetX(cosineB * u:GetX() - sineB * u:GetY())
-        localrB:SetY(sineB * u:GetX() + cosineB * u:GetY())
+        temp:Set(localAnchorB):Subtract(localCenterB)
+        localrB:SetX(cosineB * temp:GetX() - sineB * temp:GetY())
+        localrB:SetY(sineB * temp:GetX() + cosineB * temp:GetY())
 
         localu:Set(positionB):Add(localrB):Subtract(positionA):Subtract(localrA)
 
@@ -211,7 +206,6 @@ class RopeJoint is Joint2D
         localu:Normalize()
         
         number diffFromMaxLength = localLength - maximumLength
-        //minumum of diffFromMaxLength and 0.2 (maximumLinearCorrection)
         if diffFromMaxLength < 0 
             diffFromMaxLength = 0
         end
@@ -220,8 +214,8 @@ class RopeJoint is Joint2D
         end
 
         number localImpulse = -mass * diffFromMaxLength
-        number pX = localImpulse * u:GetX()
-        number pY = localImpulse * u:GetY()
+        number pX = localImpulse * localu:GetX()
+        number pY = localImpulse * localu:GetY()
 
         positionA:SetX( positionA:GetX() - (inverseMassA * pX))
         positionA:SetY( positionA:GetY() - (inverseMassA * pY))
