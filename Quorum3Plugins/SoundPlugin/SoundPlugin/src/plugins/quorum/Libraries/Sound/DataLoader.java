@@ -20,4 +20,9 @@ public interface DataLoader
     Loads a file that can be streamed.
     */
     public Data LoadToStream(quorum.Libraries.System.File_ quorumFile);
+    
+    /*
+    Loads a Quorum AudioBuffer directly into Audio.
+    */
+    public Data Load(quorum.Libraries.Sound.AudioBuffer_ buffer);
 }
