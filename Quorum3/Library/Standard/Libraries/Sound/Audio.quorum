@@ -98,6 +98,31 @@ class Audio
         Load(file)
     end
 
+    
+    /*
+    The Load action will take a given AudioBuffer and load its data into this
+    Audio object for use.
+
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // To load a file that is directly accessible from our project folder, we
+    // can skip making a file and just pass the fle location directly to the
+    // Load action.
+    // This will load the same "beep.ogg" file as in the previous example.
+    audio:Load("Sounds/beep.ogg")
+
+    // After we load the file, we can play it with a call to PlayUntilDone().
+    audio:PlayUntilDone()
+
+    */
+    system action Load(AudioBuffer buffer)
+
 
     /*
     The LoadToStream action will prepare an audio file to be streamed. While a
