@@ -9,7 +9,7 @@ package plugins.quorum.Libraries.Sound;
  *
  * @author alleew
  */
-public class AudioBuffer 
+public class AudioSamples 
 {
     public Object me_ = null;
     
@@ -40,7 +40,7 @@ public class AudioBuffer
     
     public void SetSizeInSeconds(double seconds)
     {
-        SetSizeInSamples((int)(seconds * samplesPerSecond) * channels);
+        SetSize((int)(seconds * samplesPerSecond) * channels);
     }
     
     public double GetSizeInSeconds()
@@ -48,31 +48,22 @@ public class AudioBuffer
         return (buffer.length / (double)samplesPerSecond) / channels;
     }
     
-    public void SetSizeInSamples(int samples)
+    public void SetSize(int samples)
     {
         buffer = new short[samples];
     }
     
-    public int GetSizeInSamples()
+    public int GetSize()
     {
         return buffer.length;
     }
     
-    public void SetSample(int channel, int index, double value)
+    public void Set(int index, double value, int channel)
     {
-        try {
         buffer[index * channels + channel] = (short)(value * MAX_SHORT);
-        } catch (Exception e)
-        {
-            System.out.println(e.getMessage());
-            System.out.println(channel + ", " + index + ", " + value);
-            System.out.println(buffer.length);
-            System.out.println((index * channels + channel));
-            throw e;
-        }
     }
     
-    public double GetSample(int channel, int index)
+    public double Get(int index, int channel)
     {
         return buffer[index * channels + channel] / (double)MAX_SHORT;
     }

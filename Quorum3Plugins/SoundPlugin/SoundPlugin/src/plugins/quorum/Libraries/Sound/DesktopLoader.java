@@ -7,7 +7,7 @@ package plugins.quorum.Libraries.Sound;
 
 import java.io.File;
 import quorum.Libraries.System.File_;
-import quorum.Libraries.Sound.AudioBuffer_;
+import quorum.Libraries.Sound.AudioSamples_;
 
 /**
  *
@@ -45,7 +45,7 @@ public class DesktopLoader implements DataLoader
     }
     
     @Override
-    public Data Load(AudioBuffer_ buffer)
+    public Data Load(AudioSamples_ buffer)
     {
         return new WavData(buffer);
     }

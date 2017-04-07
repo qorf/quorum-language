@@ -38,7 +38,7 @@ public class IOSLoader implements DataLoader
     }
     
     @Override
-    public Data Load(quorum.Libraries.Sound.AudioBuffer_ buffer)
+    public Data Load(quorum.Libraries.Sound.AudioSamples_ buffer)
     {
         throw new RuntimeException("Direct AudioBuffer manipulation is not currently supported on this platform.");
     }

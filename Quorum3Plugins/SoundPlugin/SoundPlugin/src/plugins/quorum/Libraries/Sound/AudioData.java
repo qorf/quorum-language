@@ -8,7 +8,7 @@ package plugins.quorum.Libraries.Sound;
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 import java.nio.ByteOrder;
-import quorum.Libraries.Sound.AudioBuffer_;
+import quorum.Libraries.Sound.AudioSamples_;
 import static org.lwjgl.openal.AL10.*;
 
 /**
@@ -23,7 +23,7 @@ public abstract class AudioData extends DesktopData
     
     private float duration;
     
-    protected AudioBuffer_ quorumBuffer;
+    protected AudioSamples_ quorumBuffer;
     protected boolean storeBuffer = false;
     
     void SetUp(byte[] pcm, int channels, int sampleRate)
@@ -37,26 +37,6 @@ public abstract class AudioData extends DesktopData
 	buffer.put(pcm, 0, bytes);
 	buffer.flip();
         
-//        System.out.println("Reading bytes of length " + pcm.length + "...");
-//        
-//        java.nio.ShortBuffer shortBuffer = buffer.asShortBuffer();
-//        short[] shorts = new short[shortBuffer.remaining()];
-//        for (int i = 0; shortBuffer.hasRemaining(); i++)
-//        {
-//            shorts[i] = shortBuffer.get();
-//        }
-//
-//        String text = "";
-//        for (int i = 0; i < 320; i++)
-//        {
-//            text = text + shorts[i] + ", ";
-//            if ((i + 1) % 8 == 0)
-//                text = text + "\n";
-//        }
-//        if (text.contains(","));
-//        text = text.substring(0, text.lastIndexOf(","));
-//        System.out.println(text);
-        
 	if (bufferID == -1) 
         {
             bufferID = alGenBuffers();
@@ -64,15 +44,10 @@ public abstract class AudioData extends DesktopData
 	}
     }
     
-    void SetUp(AudioBuffer_ quorumBuffer)
+    void SetUp(AudioSamples_ quorumBuffer)
     {
-        AudioBuffer bufferPlugin = ((quorum.Libraries.Sound.AudioBuffer)quorumBuffer).plugin_;
+        AudioSamples bufferPlugin = ((quorum.Libraries.Sound.AudioSamples)quorumBuffer).plugin_;
         short[] shortArray = bufferPlugin.buffer;
-        
-//        for (int i = 0; i < 100 && i < shortArray.length; i++)
-//        {
-//            System.out.println(i + ": " + shortArray[i]);
-//        }
         
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(shortArray.length * 2);
 	byteBuffer.order(ByteOrder.nativeOrder());

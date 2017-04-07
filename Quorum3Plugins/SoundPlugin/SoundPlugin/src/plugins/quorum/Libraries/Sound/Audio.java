@@ -78,7 +78,7 @@ public class Audio {
         data = loader.LoadToStream(quorumFile);
     }
     
-    public void Load(quorum.Libraries.Sound.AudioBuffer_ buffer)
+    public void Load(quorum.Libraries.Sound.AudioSamples_ buffer)
     {
         if (data != null)
             throw new RuntimeException("This audio has already been loaded! To reuse this audio, call Dispose() before loading again.");

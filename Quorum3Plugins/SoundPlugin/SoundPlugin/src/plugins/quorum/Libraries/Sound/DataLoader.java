@@ -24,5 +24,5 @@ public interface DataLoader
     /*
     Loads a Quorum AudioBuffer directly into Audio.
     */
-    public Data Load(quorum.Libraries.Sound.AudioBuffer_ buffer);
+    public Data Load(quorum.Libraries.Sound.AudioSamples_ buffer);
 }
