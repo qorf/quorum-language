@@ -1,0 +1,33 @@
+package Libraries.Sound
+
+class AudioSamples
+    
+    system action SetChannels(integer channels)
+
+    system action GetChannels returns integer
+
+    system action SetSamplesPerSecond(integer samples)
+
+    system action GetSamplesPerSecond returns integer
+
+    system action SetSizeInSeconds(number seconds)
+
+    system action GetSizeInSeconds returns number
+
+    system action SetSize(integer samples)
+
+    system action GetSize returns integer
+
+    system action Set(integer index, number value, integer channel)
+
+    action Set(integer index, number value)
+        Set(index, value, 0)
+    end
+
+    system action Get(integer sample, integer channel) returns number
+
+    action Get(integer sample) returns number
+        return Get(sample, 0)
+    end
+
+end
