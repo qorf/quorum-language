@@ -7,6 +7,7 @@ package plugins.quorum.Libraries.Sound;
 
 import java.io.File;
 import quorum.Libraries.System.File_;
+import quorum.Libraries.Sound.AudioSamples_;
 
 /**
  *
@@ -41,6 +42,12 @@ public class DesktopLoader implements DataLoader
             return new OggStreamingData(file);
         else 
             throw new RuntimeException("Can't load file " + file.getAbsolutePath() + " because the file extension is unsupported!");
+    }
+    
+    @Override
+    public Data Load(AudioSamples_ buffer)
+    {
+        return new WavData(buffer);
     }
     
 }

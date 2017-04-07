@@ -60,23 +60,12 @@ public class Audio {
         {
             loader = new IOSLoader();
         }
-        
-        /*quorum.Libraries.System.Properties properties = new quorum.Libraries.System.Properties();
-
-        String path;
-        quorum.Libraries.System.File file = new quorum.Libraries.System.File();
-
-        file.SetPath("Run/jni");
-        
-        path = file.GetAbsolutePath();
-
-        properties.SetProperty("org.lwjgl.librarypath", path);*/
     }
     
     public void Load(quorum.Libraries.System.File_ quorumFile)
     {
         if (data != null)
-            throw new RuntimeException("An audio file is already loaded! To reuse this variable, call Dispose() before loading a new file.");
+            throw new RuntimeException("This audio has already been loaded! To reuse this audio, call Dispose() before loading again.");
         
         data = loader.Load(quorumFile);
     }
@@ -84,9 +73,17 @@ public class Audio {
     public void LoadToStream(quorum.Libraries.System.File_ quorumFile)
     {
         if (data != null)
-            throw new RuntimeException("An audio file is already loaded! To reuse this variable, call Dispose() before loading a new file.");
+            throw new RuntimeException("This audio has already been loaded! To reuse this audio, call Dispose() before loading again.");
         
         data = loader.LoadToStream(quorumFile);
+    }
+    
+    public void Load(quorum.Libraries.Sound.AudioSamples_ buffer)
+    {
+        if (data != null)
+            throw new RuntimeException("This audio has already been loaded! To reuse this audio, call Dispose() before loading again.");
+        
+        data = loader.Load(buffer);
     }
     
     public void Play()

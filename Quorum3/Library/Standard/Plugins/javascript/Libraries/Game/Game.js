@@ -2,7 +2,7 @@
 
 function plugins_quorum_Libraries_Game_Game_() {
     this.GetSecondsBetweenFrames = function() {
-
+        plugins_quorum_Libraries_Game_GameStateManager_.display.GetSecondsBetweenFrames();
     };
     this.SelectApplicationTypeNative = function() {
         return 4;
@@ -75,13 +75,9 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         
         if (compiled === false)
         {
-            var infoLogLength = graphics.glGetProgramiv(program, graphics.gl.INFO_LOG_LENGTH);
-            if (infoLogLength > 1)
-            {
-                var infoLog = graphics.glGetShaderInfoLog(shader);
-                this.log = this.log + infoLog;
-                this.log = this.log + "Version is: " + graphics.glGetString(graphics.gl.VERSION);
-            }
+            var infoLog = graphics.glGetShaderInfoLog(shader);
+            this.log = this.log + infoLog;
+            this.log = this.log + "Version is: " + graphics.glGetString(graphics.gl.VERSION);
             return -1;
         }
         
@@ -382,7 +378,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
         this.CheckManaged();
-        graphics.glUniformMatrix4fv(location, array, transpose);
+        graphics.glUniformMatrix4fv(location, transpose, array);
     };
     
     this.SetUniformMatrix3FromArray = function(location, array, transpose)
@@ -394,7 +390,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
         this.CheckManaged();
-        graphics.glUniformMatrix3fv(location, array, transpose);
+        graphics.glUniformMatrix3fv(location, transpose, array);
     };
     
     this.SetUniformVector2FromName = function(name, values)
@@ -1739,7 +1735,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
             
             currentMesh = renderable.meshPart.mesh;
             
-            var temp = this.GetAttributeLocations(renderable.meshPart.Get_Libraries_Game_Graphics_ModelData_MeshPart__mesh_().GetVertexAttributes());
+            var temp = this.GetAttributeLocations(currentMesh.GetVertexAttributes());
             currentMesh.plugin_.Bind(program, temp);
         }
         
@@ -3006,4 +3002,136 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
             plugins_quorum_Libraries_Game_Graphics_DefaultShader_.NewACubemap(config.numDirectionalLights, config.numPointLights));
     else
         u_ambientCubemap = -1;
+}
+
+function plugins_quorum_Libraries_Game_Graphics_SkyboxShader_()
+{
+    if (!plugins_quorum_Libraries_Game_Graphics_SkyboxShader_.initialized_plugins_quorum_Libraries_Game_Graphics_SkyboxShader_)
+    {
+        plugins_quorum_Libraries_Game_Graphics_SkyboxShader_.vertexShader = 
+            "attribute vec3 position;\n" +
+            "varying vec3 textureCoordinates;\n" +
+            "\n" +
+            "uniform mat4 projection;\n" +
+            "uniform mat4 view;\n" +
+            "uniform mat4 rotation;\n" +
+            "\n" +
+            "void main()\n" +
+            "{\n" +
+            "    vec4 pos = projection * view * rotation * vec4(position, 1.0);\n" +
+            "    gl_Position = pos.xyww;\n" +
+            "    textureCoordinates = position;\n" +
+            "}";
+    
+        plugins_quorum_Libraries_Game_Graphics_SkyboxShader_.fragmentShader = 
+            "precision highp float;\n" +
+            "varying highp vec3 textureCoordinates;\n" +
+            "uniform samplerCube skybox;\n" +
+            "uniform lowp float inverter;\n" +
+            "\n" +
+            "void main()\n" +
+            "{\n" +
+            "    vec3 texCoords = textureCoordinates;\n" +
+            "    texCoords.x = inverter * textureCoordinates.x;\n" +
+            "    gl_FragColor = textureCube(skybox, texCoords);\n" +
+            "}";
+    
+        plugins_quorum_Libraries_Game_Graphics_SkyboxShader_.initialized_plugins_quorum_Libraries_Game_Graphics_SkyboxShader_ = true;
+    }
+    
+    var program = new plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(plugins_quorum_Libraries_Game_Graphics_SkyboxShader_.vertexShader, plugins_quorum_Libraries_Game_Graphics_SkyboxShader_.fragmentShader);
+    var positionIndex = program.FetchAttributeLocation("position");
+    var projectionIndex = program.FetchUniformLocation("projection", true);
+    var rotationIndex = program.FetchUniformLocation("rotation", true);
+    var viewIndex = program.FetchUniformLocation("view", true);
+    var skyboxIndex = program.FetchUniformLocation("skybox", true);
+    var inverterIndex = program.FetchUniformLocation("inverter", true);
+    
+    var skyboxBuffer = new Float32Array(
+           [-1.0,  1.0, -1.0,
+            -1.0, -1.0, -1.0,
+             1.0, -1.0, -1.0,
+             1.0, -1.0, -1.0,
+             1.0,  1.0, -1.0,
+            -1.0,  1.0, -1.0,
+
+            -1.0, -1.0,  1.0,
+            -1.0, -1.0, -1.0,
+            -1.0,  1.0, -1.0,
+            -1.0,  1.0, -1.0,
+            -1.0,  1.0,  1.0,
+            -1.0, -1.0,  1.0,
+
+             1.0, -1.0, -1.0,
+             1.0, -1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0, -1.0,
+             1.0, -1.0, -1.0,
+
+            -1.0, -1.0,  1.0,
+            -1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0, -1.0,  1.0,
+            -1.0, -1.0,  1.0,
+
+            -1.0,  1.0, -1.0,
+             1.0,  1.0, -1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+            -1.0,  1.0,  1.0,
+            -1.0,  1.0, -1.0,
+
+            -1.0, -1.0, -1.0,
+            -1.0, -1.0,  1.0,
+             1.0, -1.0, -1.0,
+             1.0, -1.0, -1.0,
+            -1.0, -1.0,  1.0,
+             1.0, -1.0,  1.0]);
+    
+    var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+    var bufferHandle = graphics.glGenBuffer();
+    
+    graphics.glBindBuffer(graphics.gl.ARRAY_BUFFER, bufferHandle);
+    graphics.glBufferData(graphics.gl.ARRAY_BUFFER, skyboxBuffer, graphics.gl.STATIC_DRAW);
+    graphics.glBindBuffer(null);
+    
+    this.Render = function(skybox, camera)
+    {
+        program.Begin();
+      
+        graphics.glBindBuffer(graphics.gl.ARRAY_BUFFER, bufferHandle);
+        var m = camera.GetViewMatrix();
+        var temp = [-m.Get_Libraries_Compute_Matrix4__row0column0_(),  m.Get_Libraries_Compute_Matrix4__row1column0_(),  m.Get_Libraries_Compute_Matrix4__row2column0_(), 0,
+                    -m.Get_Libraries_Compute_Matrix4__row0column1_(),  m.Get_Libraries_Compute_Matrix4__row1column1_(),  m.Get_Libraries_Compute_Matrix4__row2column1_(), 0,
+                     m.Get_Libraries_Compute_Matrix4__row0column2_(), -m.Get_Libraries_Compute_Matrix4__row1column2_(), -m.Get_Libraries_Compute_Matrix4__row2column2_(), 0,
+                     0, 0, 0, 1];
+                 
+        var proj = camera.GetProjectionMatrix();
+        var projTemp = [proj.Get_Libraries_Compute_Matrix4__row0column0_(), proj.Get_Libraries_Compute_Matrix4__row1column0_(), proj.Get_Libraries_Compute_Matrix4__row2column0_(), proj.Get_Libraries_Compute_Matrix4__row3column0_(),
+                        proj.Get_Libraries_Compute_Matrix4__row0column1_(), proj.Get_Libraries_Compute_Matrix4__row1column1_(), proj.Get_Libraries_Compute_Matrix4__row2column1_(), proj.Get_Libraries_Compute_Matrix4__row3column1_(),
+                        proj.Get_Libraries_Compute_Matrix4__row0column2_(), proj.Get_Libraries_Compute_Matrix4__row1column2_(), proj.Get_Libraries_Compute_Matrix4__row2column2_(), proj.Get_Libraries_Compute_Matrix4__row3column2_(),
+                        proj.Get_Libraries_Compute_Matrix4__row0column3_(), proj.Get_Libraries_Compute_Matrix4__row1column3_(), proj.Get_Libraries_Compute_Matrix4__row2column3_(), proj.Get_Libraries_Compute_Matrix4__row3column3_()];
+                    
+        program.SetUniformMatrix4FromArray(viewIndex, temp);
+        program.SetUniformMatrix4FromArray(projectionIndex, projTemp);
+        program.SetUniformMatrix4AtLocation(rotationIndex, skybox.Get_Libraries_Game_Graphics_Skybox__transform_());
+        
+        program.EnableVertexAttributeAtLocation(positionIndex);
+        program.SetVertexAttributeAtLocation(positionIndex, 3, graphics.gl.FLOAT, false, 12, 0);
+        
+        graphics.glActiveTexture(graphics.gl.TEXTURE0);
+        program.SetUniform1iAtLocation(skyboxIndex, 0);
+        skybox.Get_Libraries_Game_Graphics_Skybox__cubeMap_().Bind();
+        
+        program.SetUniform1fAtLocation(inverterIndex, skybox.Get_Libraries_Game_Graphics_Skybox__inverter_());
+        
+        graphics.glDrawArrays(graphics.gl.TRIANGLES, 0, 36);
+        graphics.glBindBuffer(graphics.gl.ARRAY_BUFFER, null);
+        program.DisableVertexAttributeAtLocation(positionIndex);
+        skybox.Get_Libraries_Game_Graphics_Skybox__cubeMap_().BindToDefault();
+        
+        program.End();
+    };
 }

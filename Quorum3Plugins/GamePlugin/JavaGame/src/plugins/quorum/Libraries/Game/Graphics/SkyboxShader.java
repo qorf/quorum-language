@@ -9,7 +9,6 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Compute.Matrix4;
-import quorum.Libraries.Compute.Matrix4_;
 import quorum.Libraries.Game.Graphics.Camera_;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 import quorum.Libraries.Game.Graphics.Skybox_;
@@ -38,10 +37,13 @@ public class SkyboxShader
     public static final String fragmentShader = 
         "varying vec3 textureCoordinates;\n" +
         "uniform samplerCube skybox;\n" +
+        "uniform float inverter;\n" +
         "\n" +
         "void main()\n" +
         "{\n" +
-        "    gl_FragColor = textureCube(skybox, textureCoordinates);\n" +
+        "    vec3 texCoords = textureCoordinates;\n" +
+        "    texCoords.x = inverter * textureCoordinates.x;\n" +
+        "    gl_FragColor = textureCube(skybox, texCoords);\n" +
         "}";
     
     private FloatBuffer skyboxBuffer;
@@ -54,6 +56,7 @@ public class SkyboxShader
     private final int viewIndex;
     private final int rotationIndex;
     private final int skyboxIndex;
+    private final int inverterIndex;
     
     public SkyboxShader()
     {
@@ -63,6 +66,7 @@ public class SkyboxShader
         rotationIndex = program.FetchUniformLocation("rotation", true);
         viewIndex = program.FetchUniformLocation("view", true);
         skyboxIndex = program.FetchUniformLocation("skybox", true);
+        inverterIndex = program.FetchUniformLocation("inverter", true);
         
         float[] skyboxVertices = {
             -1.0f,  1.0f, -1.0f,
@@ -122,14 +126,11 @@ public class SkyboxShader
         GameStateManager.nativeGraphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, 0);
     }
     
-    int counter = 0;
-    
     public void Render(Skybox_ skybox, Camera_ camera)
     {
         program.Begin();
         
         GraphicsManager graphics = GameStateManager.nativeGraphics;
-        graphics.glDepthFunc(GraphicsManager.GL_LEQUAL);
         graphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, bufferHandle);
         
         Matrix4 m = (Matrix4)camera.GetViewMatrix();
@@ -154,6 +155,8 @@ public class SkyboxShader
         graphics.glActiveTexture(GraphicsManager.GL_TEXTURE0);
         program.SetUniform(skyboxIndex, 0);
         skybox.Get_Libraries_Game_Graphics_Skybox__cubeMap_().Bind();
+        
+        program.SetUniform(inverterIndex, (float)skybox.Get_Libraries_Game_Graphics_Skybox__inverter_());
         
         graphics.glDrawArrays(GraphicsManager.GL_TRIANGLES, 0, 36);
         

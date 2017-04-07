@@ -8,6 +8,7 @@ package plugins.quorum.Libraries.Sound;
 import java.io.File;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
+import quorum.Libraries.Sound.AudioSamples_;
 
 /**
  *
@@ -15,6 +16,11 @@ import java.io.ByteArrayOutputStream;
  */
 public class WavData extends AudioData
 {
+    // Load the data from a raw buffer, instead of a file.
+    public WavData(AudioSamples_ buffer)
+    {
+        SetUp(buffer);
+    }
     
     public WavData(File file)
     {

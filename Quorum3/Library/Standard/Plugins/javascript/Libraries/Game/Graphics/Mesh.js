@@ -7,7 +7,7 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
     
     this.SetQuorumReference$quorum_Libraries_Game_Graphics_Mesh = function(mesh) 
     {
-        quorumMesh = mesh;
+        this.quorumMesh = mesh;
     };
     
     /* The shader parameter must be a valid ShaderProgram, and the primitiveType
@@ -39,9 +39,9 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
         if (count === undefined)
         {
             if (this.quorumMesh.indices.GetSize() > 0)
-                count = quorumMesh.indices.GetSize();
+                count = this.quorumMesh.indices.GetSize();
             else
-                count = quorumMesh.vertices.GetSize();
+                count = this.quorumMesh.vertices.GetSize();
         }
         
         if (count === 0)
@@ -50,14 +50,14 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
         
         if (autoBind === undefined)
-            autoBind = quorumMesh.autoBind;
+            autoBind = this.quorumMesh.autoBind;
         
         if (autoBind)
             this.Bind(shader);
         
-        if (quorumMesh.indices.GetSize() > 0)
+        if (this.quorumMesh.indices.GetSize() > 0)
         {
-            if (quorumMesh.indices.plugin_.supports32bits)
+            if (this.quorumMesh.indices.plugin_.supports32bits)
                 graphics.glDrawElements(primitiveType, count, graphics.gl.UNSIGNED_INT, offset * 4);
             else
                 graphics.glDrawElements(primitiveType, count, graphics.gl.UNSIGNED_SHORT, offset * 2);
@@ -73,23 +73,23 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
     
     this.Bind = function(shader, locations)
     {
-        quorumMesh.vertices.plugin_.Bind(shader, locations);
-        if (quorumMesh.indices.GetSize() > 0)
-            quorumMesh.indices.plugin_.Bind();
+        this.quorumMesh.vertices.plugin_.Bind(shader, locations);
+        if (this.quorumMesh.indices.GetSize() > 0)
+            this.quorumMesh.indices.plugin_.Bind();
     };
     
     this.Unbind = function(shader, locations)
     {
-        quorumMesh.vertices.plugin_.Unbind(shader, locations);
-        if (quorumMesh.indices.GetSize() > 0)
-            quorumMesh.indices.plugin_.Unbind();
+        this.quorumMesh.vertices.plugin_.Unbind(shader, locations);
+        if (this.quorumMesh.indices.GetSize() > 0)
+            this.quorumMesh.indices.plugin_.Unbind();
     };
     
     this.CalculateBoundingBox$quorum_Libraries_Game_BoundingBox = function(box) 
     {
         box.Invalidate();
         
-        var numVertices = quorumMesh.GetVerticesCount();
+        var numVertices = this.quorumMesh.GetVerticesCount();
         if (numVertices === 0)
         {
             var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
@@ -97,11 +97,11 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
             throw exceptionInstance_;
         }
         
-        var verts = quorumMesh.vertices.plugin_.GetBuffer();
+        var verts = this.quorumMesh.vertices.plugin_.GetBuffer();
         
-        var posAttrib = quorumMesh.GetVertexAttributes().FindByUsage$quorum_integer(quorumMesh.GetVertexAttributes().POSITION);
+        var posAttrib = this.quorumMesh.GetVertexAttributes().FindByUsage$quorum_integer(this.quorumMesh.GetVertexAttributes().POSITION);
         var offset = posAttrib.offset / 4;
-        var vertexSize = quorumMesh.vertices.GetAttributes().vertexSize;
+        var vertexSize = this.quorumMesh.vertices.GetAttributes().vertexSize;
         var index = offset;
         
         switch (posAttrib.componentCount)
@@ -135,7 +135,7 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
     
     this.ExtendBoundingBox$quorum_Libraries_Game_BoundingBox$quorum_integer$quorum_integer$quorum_Libraries_Compute_Matrix4 = function(box, offset, count, transform) 
     {
-        var numIndices = quorumMesh.GetIndicesCount();
+        var numIndices = this.quorumMesh.GetIndicesCount();
         
         if (offset < 0 || count < 1 || offset + count > numIndices)
         {
@@ -144,13 +144,13 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
             throw exceptionInstance_;
         }
         
-        var vertices = quorumMesh.vertices.plugin_.GetBuffer();
-        var indices = quorumMesh.indices.plugin_.GetBuffer();
+        var vertices = this.quorumMesh.vertices.plugin_.GetBuffer();
+        var indices = this.quorumMesh.indices.plugin_.GetBuffer();
         
-        var posAttrib = quorumMesh.GetVertexAttributes().FindByUsage$quorum_integer(quorumMesh.GetVertexAttributes().POSITION);
+        var posAttrib = this.quorumMesh.GetVertexAttributes().FindByUsage$quorum_integer(this.quorumMesh.GetVertexAttributes().POSITION);
         
         var posOffset = posAttrib.offset / 4;
-        var vertexSize = quorumMesh.vertices.GetAttributes().vertexSize / 4;
+        var vertexSize = this.quorumMesh.vertices.GetAttributes().vertexSize / 4;
         var end = offset + count;
         
         switch (posAttrib.componentCount)

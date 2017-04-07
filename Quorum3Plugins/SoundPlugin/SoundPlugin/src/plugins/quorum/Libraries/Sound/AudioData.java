@@ -5,11 +5,10 @@
  */
 package plugins.quorum.Libraries.Sound;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
 import java.nio.ByteOrder;
-
+import quorum.Libraries.Sound.AudioSamples_;
 import static org.lwjgl.openal.AL10.*;
 
 /**
@@ -24,6 +23,9 @@ public abstract class AudioData extends DesktopData
     
     private float duration;
     
+    protected AudioSamples_ quorumBuffer;
+    protected boolean storeBuffer = false;
+    
     void SetUp(byte[] pcm, int channels, int sampleRate)
     {
         int bytes = pcm.length - (pcm.length % (channels > 1 ? 4 : 2));
@@ -34,11 +36,29 @@ public abstract class AudioData extends DesktopData
 	buffer.order(ByteOrder.nativeOrder());
 	buffer.put(pcm, 0, bytes);
 	buffer.flip();
-
+        
 	if (bufferID == -1) 
         {
             bufferID = alGenBuffers();
             alBufferData(bufferID, channels > 1 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, buffer.asShortBuffer(), sampleRate);
+	}
+    }
+    
+    void SetUp(AudioSamples_ quorumBuffer)
+    {
+        AudioSamples bufferPlugin = ((quorum.Libraries.Sound.AudioSamples)quorumBuffer).plugin_;
+        short[] shortArray = bufferPlugin.buffer;
+        
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(shortArray.length * 2);
+	byteBuffer.order(ByteOrder.nativeOrder());
+        ShortBuffer shortBuffer = byteBuffer.asShortBuffer();
+	shortBuffer.put(shortArray, 0, shortArray.length);
+	shortBuffer.flip();
+        
+	if (bufferID == -1) 
+        {
+            bufferID = alGenBuffers();
+            alBufferData(bufferID, bufferPlugin.channels > 1 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, shortBuffer, bufferPlugin.samplesPerSecond);
 	}
     }
     
@@ -82,48 +102,9 @@ public abstract class AudioData extends DesktopData
         SetPosition(x, y, z);
     }
     
-    /*
-    public long Loop () 
-    {
-	return Loop(1);
-    }
-
-    public long Loop (float volume) 
-    {
-        if (manager.noDevice) 
-            return 0;
-        
-        int sourceID;
-        
-        if (manager.SoundIDIsActive(soundID))
-            sourceID = (int)manager.soundIDToSource.get(soundID);
-        else
-        {
-            sourceID = manager.ObtainSource(false);
-            soundID = manager.GetSoundID(sourceID);
-        }
-        
-        if (sourceID == -1) 
-            return -1;
-        
-        alSourcei(sourceID, AL_BUFFER, bufferID);
-        alSourcei(sourceID, AL_LOOPING, AL_TRUE);
-        alSourcef(sourceID, AL_GAIN, volume);
-        alSourcePlay(sourceID);
-        return soundID;
-    }*/
-        
     @Override
     public void Stop () 
     {
-        /* Original code. Replaced with a call using soundID, which will find
-        the sound to stop via direct reference rather than linear search.
-    
-        if (manager.noDevice) 
-            return;
-        manager.StopSourcesWithBuffer(bufferID);
-        */
-        
         if (manager.noDevice)
             return;
         if (!manager.SoundIDIsActive(soundID))
@@ -147,14 +128,6 @@ public abstract class AudioData extends DesktopData
     @Override
     public void Pause()
     {
-        /* Original code. Replaced with a call using soundID, which will find
-        the sound to pause via direct reference rather than linear search.
-        
-        if (manager.noDevice)
-            return;
-        manager.PauseSourcesWithBuffer(bufferID);
-        */
-        
         if (manager.noDevice)
             return;
         if (!manager.SoundIDIsActive(soundID))
@@ -165,14 +138,6 @@ public abstract class AudioData extends DesktopData
     @Override
     public void Resume()
     {
-        /* Original code. Replaced with a call using soundID, which will find
-        the sound to resume via direct reference rather than linear search.
-        
-        if (manager.noDevice)
-            return;
-        manager.ResumeSourcesWithBuffer(bufferID);
-        */
-        
         if (manager.noDevice)
             return;
         if (!manager.SoundIDIsActive(soundID))
@@ -422,25 +387,4 @@ public abstract class AudioData extends DesktopData
     {
         throw new RuntimeException("This audio was not set for streaming when loaded. Use LoadToStream to allow streaming the audio.");
     }
-    
-    /*
-
-
-	@Override
-	public long play (float volume, float pitch, float pan) {
-		long id = play();
-		setPitch(id, pitch);
-		setPan(id, pan, volume);
-		return id;
-	}
-
-	@Override
-	public long loop (float volume, float pitch, float pan) {
-		long id = loop();
-		setPitch(id, pitch);
-		setPan(id, pan, volume);
-		return id;
-	}
-*/
-    
 }
