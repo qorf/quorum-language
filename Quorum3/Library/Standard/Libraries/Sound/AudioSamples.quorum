@@ -14,9 +14,17 @@ class AudioSamples
 
     system action GetSizeInSeconds returns number
 
-    system action SetSize(integer samples)
+    action SetSize(integer samples)
+        SetTotalSize(samples * GetChannels())
+    end
 
-    system action GetSize returns integer
+    action GetSize returns integer
+        return GetTotalSize() / GetChannels()
+    end
+
+    system action SetTotalSize(integer samples)
+
+    system action GetTotalSize returns integer
 
     system action Set(integer index, number value, integer channel)
 
