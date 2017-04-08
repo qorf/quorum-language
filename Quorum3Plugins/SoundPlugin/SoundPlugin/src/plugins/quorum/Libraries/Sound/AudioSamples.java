@@ -67,4 +67,66 @@ public class AudioSamples
     {
         return buffer[index * channels + channel] / (double)MAX_SHORT;
     }
+    
+    public quorum.Libraries.Sound.AudioSamples_ Copy()
+    {
+        quorum.Libraries.Sound.AudioSamples copy = new quorum.Libraries.Sound.AudioSamples();
+        copy.plugin_.samplesPerSecond = samplesPerSecond;
+        copy.plugin_.channels = channels;
+        short[] array = buffer.clone();
+        copy.plugin_.buffer = array;
+        return copy;
+    }
+    
+    public quorum.Libraries.Sound.AudioSamples_ Copy(int start, int end)
+    {
+        if (start > end)
+        {
+            int temp = start;
+            start = end;
+            end = temp;
+        }
+        quorum.Libraries.Sound.AudioSamples copy = new quorum.Libraries.Sound.AudioSamples();
+        copy.plugin_.samplesPerSecond = samplesPerSecond;
+        copy.plugin_.channels = channels;
+        short[] array = new short[(end - start + 1) * channels];
+        System.arraycopy(buffer, start * channels, array, 0, (end - start + 1) * channels);
+        copy.plugin_.buffer = array;
+        return copy;
+    }
+    
+    public quorum.Libraries.Sound.AudioSamples_ CopyChannel(int channel)
+    {
+        quorum.Libraries.Sound.AudioSamples copy = new quorum.Libraries.Sound.AudioSamples();
+        copy.plugin_.samplesPerSecond = samplesPerSecond;
+        copy.plugin_.channels = channels;
+        short[] array = new short[buffer.length / channels];
+        for (int i = 0; i < array.length; i++)
+        {
+            array[i] = buffer[i * channels + channel];
+        }
+        copy.plugin_.buffer = array;
+        return copy;
+    }
+    
+    public quorum.Libraries.Sound.AudioSamples_ CopyChannel(int channel, int start, int end)
+    {
+        if (start > end)
+        {
+            int temp = start;
+            start = end;
+            end = temp;
+        }
+        quorum.Libraries.Sound.AudioSamples copy = new quorum.Libraries.Sound.AudioSamples();
+        copy.plugin_.samplesPerSecond = samplesPerSecond;
+        copy.plugin_.channels = channels;
+        short[] array = new short[(end - start + 1)];
+        int channelStart = start + channel;
+        for (int i = 0; i < array.length; i++)
+        {
+            array[i] = buffer[channelStart + i * channels];
+        }
+        copy.plugin_.buffer = array;
+        return copy;
+    }
 }
