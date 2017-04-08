@@ -38,4 +38,12 @@ class AudioSamples
         return Get(sample, 0)
     end
 
+    system action Copy returns AudioSamples
+
+    system action Copy(integer first, integer last) returns AudioSamples
+
+    system action CopyChannel(integer channel) returns AudioSamples
+    
+    system action CopyChannel(integer channel, integer first, integer last) returns AudioSamples
+
 end
