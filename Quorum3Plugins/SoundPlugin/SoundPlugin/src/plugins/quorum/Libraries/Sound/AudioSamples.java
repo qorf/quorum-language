@@ -40,7 +40,7 @@ public class AudioSamples
     
     public void SetSizeInSeconds(double seconds)
     {
-        SetSize((int)(seconds * samplesPerSecond) * channels);
+        SetTotalSize((int)(seconds * samplesPerSecond) * channels);
     }
     
     public double GetSizeInSeconds()
@@ -48,12 +48,12 @@ public class AudioSamples
         return (buffer.length / (double)samplesPerSecond) / channels;
     }
     
-    public void SetSize(int samples)
+    public void SetTotalSize(int samples)
     {
         buffer = new short[samples];
     }
     
-    public int GetSize()
+    public int GetTotalSize()
     {
         return buffer.length;
     }
