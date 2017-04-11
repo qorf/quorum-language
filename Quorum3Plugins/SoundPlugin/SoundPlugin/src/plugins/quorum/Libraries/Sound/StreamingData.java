@@ -481,6 +481,8 @@ public abstract class StreamingData extends DesktopData
         if (sourceID == -1)
             return;
         
+        this.pitch = pitch;
+        
         alSourcef(sourceID, AL_PITCH, pitch);
     }
     

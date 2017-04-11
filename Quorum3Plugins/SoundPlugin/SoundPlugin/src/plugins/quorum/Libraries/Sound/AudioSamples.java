@@ -5,6 +5,8 @@
  */
 package plugins.quorum.Libraries.Sound;
 
+import java.io.File;
+
 /**
  *
  * @author alleew
@@ -128,5 +130,39 @@ public class AudioSamples
         }
         copy.plugin_.buffer = array;
         return copy;
+    }
+    
+    public void Load(quorum.Libraries.System.File_ quorumFile)
+    {
+        File file = new File(quorumFile.GetAbsolutePath());
+        String fileName = file.getName().toLowerCase();
+        byte[] bytes;
+        int channels, sampleRate;
+        
+        if (fileName.endsWith(".wav"))
+        {
+            WavInputStream input = new WavInputStream(file);
+            bytes = WavData.GetBytes(input);
+            channels = input.channels;
+            sampleRate = input.sampleRate;
+        }
+        else if (fileName.endsWith(".ogg"))
+        {
+            OggInputStream input = new OggInputStream(file);
+            bytes = OggData.GetBytes(input);
+            channels = input.getChannels();
+            sampleRate = input.getSampleRate();
+        }
+        else 
+            throw new RuntimeException("Can't load file " + file.getAbsolutePath() + " because the file extension is unsupported!");
+        
+        java.nio.ByteBuffer byteBuffer = java.nio.ByteBuffer.wrap(bytes);
+        java.nio.ShortBuffer shortBuffer = byteBuffer.asShortBuffer();
+        buffer = new short[shortBuffer.limit()];
+        for (int i = 0; i < shortBuffer.limit(); i++)
+            buffer[i] = shortBuffer.get(i);
+        
+        this.channels = channels;
+        samplesPerSecond = sampleRate;
     }
 }
