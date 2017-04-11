@@ -190,7 +190,6 @@ public abstract class StreamingData extends DesktopData
     @Override
     public void SetHorizontalPosition (float pan) 
     {
-	//this.volume = volume;
 	this.pan = pan;
         fade = 0;
 	if (manager.noDevice) 
@@ -202,15 +201,13 @@ public abstract class StreamingData extends DesktopData
         this.y = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
         this.z = 0;
         
-        alSource3f(sourceID, AL_POSITION, (float)Math.cos((pan - 1) * Math.PI/2), 0, (float)Math.sin((pan + 1) * Math.PI/2));
-        
+        alSource3f(sourceID, AL_POSITION, x, y, z);
         alSourcef(sourceID, AL_GAIN, volume);
     }
     
     @Override
     public void SetFade(float newFade) 
     {
-	//this.volume = volume;
 	this.fade = newFade;
         pan = 0;
 	if (manager.noDevice) 
@@ -219,11 +216,10 @@ public abstract class StreamingData extends DesktopData
             return;
         
         this.x = 0;
-        this.y = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
-        this.z = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
+        this.y = (float)Math.sin((fade + 1) * (float)Math.PI / 2);
+        this.z = (float)Math.cos((fade - 1) * (float)Math.PI / 2);
         
-        alSource3f(sourceID, AL_POSITION, 0, (float)Math.cos((newFade - 1) * Math.PI/2), (float)Math.sin((newFade + 1) * Math.PI/2));
-        
+        alSource3f(sourceID, AL_POSITION, x, y, z);
         alSourcef(sourceID, AL_GAIN, volume);
     }
     
@@ -238,7 +234,6 @@ public abstract class StreamingData extends DesktopData
         this.x = newX;
         
         alSource3f(sourceID, AL_POSITION, newX, y, z);
-        
         alSourcef(sourceID, AL_GAIN, volume);
     }
     
@@ -253,7 +248,6 @@ public abstract class StreamingData extends DesktopData
         this.y = newY;
         
         alSource3f(sourceID, AL_POSITION, x, newY, z);
-        
         alSourcef(sourceID, AL_GAIN, volume);
     }
     
@@ -268,7 +262,6 @@ public abstract class StreamingData extends DesktopData
         this.z = newZ;
         
         alSource3f(sourceID, AL_POSITION, x, y, newZ);
-        
         alSourcef(sourceID, AL_GAIN, volume);
     }
     
@@ -285,7 +278,6 @@ public abstract class StreamingData extends DesktopData
         this.z = newZ;
         
         alSource3f(sourceID, AL_POSITION, newX, newY, newZ);
-        
         alSourcef(sourceID, AL_GAIN, volume);
     }
     
@@ -305,6 +297,7 @@ public abstract class StreamingData extends DesktopData
         if (!dopplerEnabled || manager.noDevice || sourceID == -1)
             return;
         
+        dopplerEnabled = false;
         alSource3f(sourceID, AL_VELOCITY, 0, 0, 0);
     }
     
@@ -469,12 +462,7 @@ public abstract class StreamingData extends DesktopData
             return;
 	alDeleteBuffers(buffers);
 	buffers = null;
-	//onCompletionListener = null;
     }
-
-	/*public void setOnCompletionListener (OnCompletionListener listener) {
-		onCompletionListener = listener;
-	}*/
 
     public int GetSourceId () 
     {
@@ -490,7 +478,10 @@ public abstract class StreamingData extends DesktopData
     @Override
     public void SetPitch(float pitch)
     {
-        // Need to determine proper way to adjust pitch of this type of audio.
+        if (sourceID == -1)
+            return;
+        
+        alSourcef(sourceID, AL_PITCH, pitch);
     }
     
     // If streamed audio is paused, it is resumed by calling Play().
