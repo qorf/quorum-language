@@ -1,5 +1,7 @@
 package Libraries.Sound
 
+use Libraries.System.File
+
 class AudioSamples
     
     system action SetChannels(integer channels)
@@ -45,5 +47,7 @@ class AudioSamples
     system action CopyChannel(integer channel) returns AudioSamples
     
     system action CopyChannel(integer channel, integer first, integer last) returns AudioSamples
+
+    system action Load(File file)
 
 end
