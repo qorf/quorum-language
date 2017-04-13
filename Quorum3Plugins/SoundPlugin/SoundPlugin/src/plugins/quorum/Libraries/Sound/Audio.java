@@ -148,6 +148,34 @@ public class Audio {
         data.SetVolume((float)volume);
     }
     
+    public void SetMaximumVolumeDistance(double distance)
+    {
+        if (distance < 0.01)
+            distance = 0.01;
+        data.SetReferenceDistance((float)distance);
+    }
+    
+    public void SetRolloffFactor(double rolloff)
+    {
+        if (rolloff < 0)
+            rolloff = 0;
+        data.SetRolloff((float)rolloff);
+    }
+    
+    public void SetDefaultMaximumVolumeDistance(double distance)
+    {
+        if (distance < 0.01)
+            distance = 0.01;
+        AudioData.SetDefaultReferenceDistance((float)distance);
+    }
+    
+    public void SetDefaultRolloffFactor(double rolloff)
+    {
+        if (rolloff < 0)
+            rolloff = 0;
+        AudioData.SetDefaultRolloff((float)rolloff);
+    }
+    
     public void SetBalance(double position)
     {
         if (position < -1)
@@ -291,6 +319,26 @@ public class Audio {
     public double GetPitch()
     {
         return data.GetPitch();
+    }
+    
+    public double GetMaximumVolumeDistance()
+    {
+        return data.GetReferenceDistance();
+    }
+    
+    public double GetRolloffFactor()
+    {
+        return data.GetRolloff();
+    }
+    
+    public double GetDefaultMaximumVolumeDistance()
+    {
+        return AudioData.GetDefaultReferenceDistance();
+    }
+    
+    public double GetDefaultRolloffFactor(double rolloff)
+    {
+        return AudioData.GetDefaultRolloff();
     }
     
     public double GetRotation()

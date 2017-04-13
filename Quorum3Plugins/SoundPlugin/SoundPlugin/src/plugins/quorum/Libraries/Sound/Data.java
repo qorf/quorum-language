@@ -30,6 +30,11 @@ public abstract class Data {
     protected float x = 0;
     protected float y = 0;
     protected float z = 1;
+     
+    protected static float defaultReferenceDistance = 1.0f;
+    protected static float defaultRolloff = 1.0f;
+    protected float referenceDistance = defaultReferenceDistance;
+    protected float rolloff = defaultRolloff;
     
     public abstract void Play();
     
@@ -169,5 +174,39 @@ public abstract class Data {
         }
         
         return stream;
+    }
+    
+    public abstract void SetReferenceDistance(float distance);
+    
+    public abstract void SetRolloff(float rate);
+    
+    public float GetReferenceDistance()
+    {
+        return referenceDistance;
+    }
+    
+    public float GetRolloff()
+    {
+        return rolloff;
+    }
+    
+    public static void SetDefaultReferenceDistance(float distance)
+    {
+        defaultReferenceDistance = distance;
+    }
+    
+    public static void SetDefaultRolloff(float rolloff)
+    {
+        defaultRolloff = rolloff;
+    }
+    
+    public static float GetDefaultReferenceDistance()
+    {
+        return defaultReferenceDistance;
+    }
+    
+    public static float GetDefaultRolloff()
+    {
+        return defaultRolloff;
     }
 }

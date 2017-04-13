@@ -6,6 +6,9 @@
 package plugins.quorum.Libraries.Sound;
 
 import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.ShortBuffer;
 
 /**
  *
@@ -156,11 +159,14 @@ public class AudioSamples
         else 
             throw new RuntimeException("Can't load file " + file.getAbsolutePath() + " because the file extension is unsupported!");
         
-        java.nio.ByteBuffer byteBuffer = java.nio.ByteBuffer.wrap(bytes);
-        java.nio.ShortBuffer shortBuffer = byteBuffer.asShortBuffer();
-        buffer = new short[shortBuffer.limit()];
-        for (int i = 0; i < shortBuffer.limit(); i++)
-            buffer[i] = shortBuffer.get(i);
+        ByteBuffer buffer = ByteBuffer.allocateDirect(bytes.length);
+	buffer.order(ByteOrder.nativeOrder());
+	buffer.put(bytes, 0, bytes.length);
+	buffer.flip();
+        
+        ShortBuffer b = buffer.asShortBuffer();
+        this.buffer = new short[b.limit()];
+        b.get(this.buffer);
         
         this.channels = channels;
         samplesPerSecond = sampleRate;

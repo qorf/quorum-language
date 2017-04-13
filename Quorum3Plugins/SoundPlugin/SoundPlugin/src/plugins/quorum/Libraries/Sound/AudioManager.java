@@ -310,6 +310,22 @@ public class AudioManager
 	AL10.alSourcef(sourceId, AL10.AL_PITCH, pitch);
     }
     
+    public void SetSoundReferenceDistance (long soundID, float distance) 
+    {
+	if (!SoundIDIsActive(soundID)) 
+            return;
+	int sourceId = (int)soundIDToSource.get(soundID);
+	AL10.alSourcef(sourceId, AL10.AL_REFERENCE_DISTANCE, distance);
+    }
+    
+    public void SetSoundRolloff (long soundID, float rolloff) 
+    {
+	if (!SoundIDIsActive(soundID)) 
+            return;
+	int sourceId = (int)soundIDToSource.get(soundID);
+	AL10.alSourcef(sourceId, AL10.AL_ROLLOFF_FACTOR, rolloff);
+    }
+    
     public void SetSoundPan (long soundID, float pan) 
     {
 	if (!SoundIDIsActive(soundID)) 

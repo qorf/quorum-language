@@ -94,7 +94,8 @@ public abstract class StreamingData extends DesktopData
                 SetVelocity(velocityX, velocityY, velocityZ);
             
             SetVolume(volume);
-            //SetHorizontalPosition(pan);
+            SetReferenceDistance(referenceDistance);
+            SetRolloff(rolloff);
             SetPosition(x, y, z);
 
             boolean filled = false; // Check if there's anything to actually play.
@@ -180,11 +181,30 @@ public abstract class StreamingData extends DesktopData
 	if (sourceID != -1) 
             alSourcef(sourceID, AL_GAIN, volume);
     }
-
     
     public float GetVolume () 
     {
 	return this.volume;
+    }
+    
+    @Override
+    public void SetReferenceDistance(float distance) 
+    {
+	this.referenceDistance = distance;
+	if (manager.noDevice) 
+            return;
+	if (sourceID != -1) 
+            alSourcef(sourceID, AL_REFERENCE_DISTANCE, distance);
+    }
+    
+    @Override
+    public void SetRolloff(float rolloff) 
+    {
+	this.rolloff = rolloff;
+	if (manager.noDevice) 
+            return;
+	if (sourceID != -1) 
+            alSourcef(sourceID, AL_ROLLOFF_FACTOR, rolloff);
     }
 
     @Override

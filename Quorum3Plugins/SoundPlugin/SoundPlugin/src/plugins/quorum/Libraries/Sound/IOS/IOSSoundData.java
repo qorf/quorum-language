@@ -118,6 +118,18 @@ public class IOSSoundData extends Data
     }
     
     @Override
+    public void SetReferenceDistance(float distance)
+    {
+        throw new UnsupportedOperationException("Reference distance controls haven't been implemented yet for iOS.");
+    }
+    
+    @Override
+    public void SetRolloff(float rolloff)
+    {
+        throw new UnsupportedOperationException("Reference distance controls haven't been implemented yet for iOS.");
+    }
+    
+    @Override
     public void SetX(float newX) 
     {
         SetPosition(newX, y, z);
