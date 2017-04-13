@@ -50,4 +50,10 @@ class AudioSamples
 
     system action Load(File file)
 
+    action Load(text filePath)
+        File file
+        file:SetPath(filePath)
+        Load(file)
+    end
+
 end
