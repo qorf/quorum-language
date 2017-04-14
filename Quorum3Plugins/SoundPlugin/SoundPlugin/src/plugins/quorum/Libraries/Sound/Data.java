@@ -48,7 +48,6 @@ public abstract class Data {
     
     public abstract void Resume();
     
-    // STILL NEED TO REVIEW THIS FOR STREAMING DATA!
     public abstract void SetPitch(float pitch);
     
     public abstract void SetVolume(float volume);

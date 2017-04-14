@@ -53,9 +53,6 @@ public abstract class StreamingData extends DesktopData
     protected final File file;
     protected int bufferOverhead = 0;
 
-    // This should not be necessary for our needs.
-    //private OnCompletionListener onCompletionListener;
-
     public StreamingData (File file) 
     {
 	this.file = file;
@@ -108,9 +105,6 @@ public abstract class StreamingData extends DesktopData
 		alSourceQueueBuffers(sourceID, bufferID);
             }
 			
-            /*if (!filled && onCompletionListener != null)
-                onCompletionListener.onCompletion(this);*/
-
             if (alGetError() != AL_NO_ERROR) 
             {
 		Stop();
@@ -182,6 +176,7 @@ public abstract class StreamingData extends DesktopData
             alSourcef(sourceID, AL_GAIN, volume);
     }
     
+    @Override
     public float GetVolume () 
     {
 	return this.volume;
@@ -373,7 +368,6 @@ public abstract class StreamingData extends DesktopData
         if (!filled) 
         {
             Stop();
-            //if (onCompletionListener != null) onCompletionListener.onCompletion(this);
 	}
 		
         alSourcef(sourceID, AL11.AL_SEC_OFFSET, position - renderedSeconds);
@@ -442,7 +436,6 @@ public abstract class StreamingData extends DesktopData
 	if (end && alGetSourcei(sourceID, AL_BUFFERS_QUEUED) == 0) 
         {
             Stop();
-            //if (onCompletionListener != null) onCompletionListener.onCompletion(this);
 	}
 
 	// A buffer underflow will cause the source to stop.
