@@ -35,6 +35,16 @@ public class RawStreamingData extends DesktopData
     private final HashMap<AudioSamples_, Integer> samplesToBuffers = new HashMap<>();
     private final HashMap<Integer, AudioSamples_> buffersToSamples = new HashMap<>();
     
+    public RawStreamingData()
+    {
+        
+    }
+    
+    public RawStreamingData(AudioSamples_ samples)
+    {
+        QueueSamples(samples);
+    }
+    
     protected void MapSamplesToBuffer(AudioSamples_ samples, int buffer)
     {
         samplesToBuffers.put(samples, buffer);
@@ -62,6 +72,7 @@ public class RawStreamingData extends DesktopData
     
     public void UnqueueSamples(AudioSamples_ samples)
     {
+        // FIX ME: Need to be able to remove samples that are already in the buffer
         samplesArray.remove(samples);
     }
     
@@ -83,11 +94,18 @@ public class RawStreamingData extends DesktopData
                 return -1;
         }
         
-        return unusedBuffers.remove(0);
+        int returnvalue = unusedBuffers.remove(0);
+//        System.out.println("Returning buffer " + returnvalue);
+        return returnvalue;
+//        return unusedBuffers.remove(0);
     }
+    
+//    static int testCounter = 0;
     
     private void FillBuffer(int bufferID, AudioSamples_ samples)
     {
+//        System.out.println("Filling buffer " + testCounter++);
+//        System.out.println("Using samples with hashcode " + samples.hashCode());
         AudioSamples bufferPlugin = ((quorum.Libraries.Sound.AudioSamples)samples).plugin_;
         short[] shortArray = bufferPlugin.buffer;
         
@@ -142,6 +160,8 @@ public class RawStreamingData extends DesktopData
 	}
     }
     
+    boolean wasEmpty = true;
+    
     @Override
     public void Update()
     {
@@ -161,9 +181,23 @@ public class RawStreamingData extends DesktopData
             AL10.alSourceQueueBuffers(sourceID, bufferID);
         }
         
-	// A buffer underflow will cause the source to stop.
-	if (isPlaying && AL10.alGetSourcei(sourceID, AL10.AL_SOURCE_STATE) != AL10.AL_PLAYING) 
+        if (unusedBuffers.size() == bufferCount && !wasEmpty)
+        {
+            wasEmpty = true;
+//            System.out.println("All buffers unused!");
+        }
+        else if (unusedBuffers.size() != bufferCount && wasEmpty)
+        {
+            wasEmpty = false;
+//            System.out.println("Buffers in use!");
+        }
+        
+        // A buffer underflow will cause the source to stop.
+	if (unusedBuffers.size() != bufferCount && isPlaying && AL10.alGetSourcei(sourceID, AL10.AL_SOURCE_STATE) != AL10.AL_PLAYING) 
+        {
+//            System.out.println("Replaying... unusedBuffers.size() = " + unusedBuffers.size() + ", bufferCount = " + bufferCount);
             AL10.alSourcePlay(sourceID);
+        }
     }
     
     @Override

@@ -31,6 +31,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL11;
 
 import static org.lwjgl.openal.AL10.*;
+import quorum.Libraries.Sound.AudioSamples_;
 
 /**
  *
@@ -504,5 +505,17 @@ public abstract class StreamingData extends DesktopData
     public void Resume()
     {
         Play();
+    }
+    
+    @Override
+    public void QueueSamples(AudioSamples_ samples)
+    {
+        throw new RuntimeException("AudioSamples may not be queued on Audio that is streaming a file. To queue AudioSamples, load the Audio with LoadToStream(AudioSamples) instead.");
+    }
+    
+    @Override
+    public void UnqueueSamples(AudioSamples_ samples)
+    {
+        throw new RuntimeException("AudioSamples may not be queued on Audio that is streaming a file. To queue AudioSamples, load the Audio with LoadToStream(AudioSamples) instead.");
     }
 }

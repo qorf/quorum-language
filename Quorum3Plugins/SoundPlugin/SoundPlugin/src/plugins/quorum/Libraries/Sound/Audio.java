@@ -13,6 +13,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import quorum.Libraries.Sound.AudioSamples_;
 
 /**
  *
@@ -78,12 +79,20 @@ public class Audio {
         data = loader.LoadToStream(quorumFile);
     }
     
-    public void Load(quorum.Libraries.Sound.AudioSamples_ buffer)
+    public void Load(AudioSamples_ samples)
     {
         if (data != null)
             throw new RuntimeException("This audio has already been loaded! To reuse this audio, call Dispose() before loading again.");
         
-        data = loader.Load(buffer);
+        data = loader.Load(samples);
+    }
+    
+    public void LoadToStream(AudioSamples_ samples)
+    {
+        if (data != null)
+            throw new RuntimeException("This audio has already been loaded! To reuse this audio, call Dispose() before loading again.");
+        
+        data = loader.LoadToStream(samples);
     }
     
     public void Play()
@@ -354,8 +363,23 @@ public class Audio {
     public void Stream()
     {
         if (data == null)
-            throw new RuntimeException("Can't stream audio before it's loaded -- call Load first.");
+            throw new RuntimeException("Can't stream audio before it's loaded -- call LoadToStream() first.");
         data.Update();
+    }
+    
+    public void QueueSamples(AudioSamples_ samples)
+    {
+        if (data == null)
+            data = loader.LoadToStream(samples);
+        else
+            data.QueueSamples(samples);
+    }
+    
+    public void UnqueueSamples(AudioSamples_ samples)
+    {
+        if (data == null)
+            throw new RuntimeException("Can't unqueue samples before the Audio has been loaded - call LoadToStream() or QueueSamples() first.");
+        data.UnqueueSamples(samples);
     }
     
     public void SetListenerPosition(double x, double y, double z)

@@ -421,4 +421,16 @@ public abstract class AudioData extends DesktopData
     {
         throw new RuntimeException("This audio was not set for streaming when loaded. Use LoadToStream to allow streaming the audio.");
     }
+    
+    @Override
+    public void QueueSamples(AudioSamples_ samples)
+    {
+        throw new RuntimeException("This audio was not set for streaming AudioSamples when loaded. Use LoadToStream(AudioSamples) to allow for sample queueing.");
+    }
+    
+    @Override
+    public void UnqueueSamples(AudioSamples_ samples)
+    {
+        throw new RuntimeException("This audio was not set for streaming AudioSamples when loaded. Use LoadToStream(AudioSamples) to allow for sample queueing.");
+    }
 }

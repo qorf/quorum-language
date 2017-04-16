@@ -208,4 +208,8 @@ public abstract class Data {
     {
         return defaultRolloff;
     }
+    
+    public abstract void QueueSamples(quorum.Libraries.Sound.AudioSamples_ samples);
+    
+    public abstract void UnqueueSamples(quorum.Libraries.Sound.AudioSamples_ samples);
 }

@@ -25,4 +25,9 @@ public interface DataLoader
     Loads a Quorum AudioBuffer directly into Audio.
     */
     public Data Load(quorum.Libraries.Sound.AudioSamples_ buffer);
+    
+    /*
+    Loads a Quorum AudioBuffer into a streamable format.
+    */
+    public Data LoadToStream(quorum.Libraries.Sound.AudioSamples_ buffer);
 }

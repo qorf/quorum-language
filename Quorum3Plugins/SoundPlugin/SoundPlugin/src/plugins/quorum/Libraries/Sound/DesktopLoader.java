@@ -50,4 +50,10 @@ public class DesktopLoader implements DataLoader
         return new WavData(buffer);
     }
     
+    @Override
+    public Data LoadToStream(AudioSamples_ buffer)
+    {
+        return new RawStreamingData(buffer);
+    }
+    
 }
