@@ -100,26 +100,10 @@ class Audio
 
     
     /*
-    The Load action will take a given AudioBuffer and load its data into this
+    The Load action will take the given AudioSamples and load its data into this
     Audio object for use.
 
-
-    Attribute: Example
-
-    use Libraries.Sound.Audio
-
-    // To use audio, we'll first need to create an object for it.
-    Audio audio
-
-    // To load a file that is directly accessible from our project folder, we
-    // can skip making a file and just pass the fle location directly to the
-    // Load action.
-    // This will load the same "beep.ogg" file as in the previous example.
-    audio:Load("Sounds/beep.ogg")
-
-    // After we load the file, we can play it with a call to PlayUntilDone().
-    audio:PlayUntilDone()
-
+    Attribute: Parameter samples The AudioSamples to load into this Audio.
     */
     system action Load(AudioSamples samples)
 
@@ -206,6 +190,40 @@ class Audio
         LoadToStream(file)
     end
 
+    
+    /*
+    The LoadToStream action will take the given AudioSamples and load it into
+    the Audio. Additional samples can then be added to the Audio by using the
+    QueueSamples action.
+
+
+    Attribute: Parameter samples The first samples to be loaded into this Audio.
+    */
+    system action LoadToStream(AudioSamples samples)
+
+
+    /*
+    The QueueSamples action adds AudioSamples to the end of the data stored in
+    this Audio object. To use this, the Audio must have been initialized using
+    LoadToStream using an AudioSamples object, or must not have been initialized
+    yet. This action can't be combined with actions that load a file into the
+    Audio.
+
+    Attribute: Parameter samples The AudioSamples to add to the end of the Audio data.
+    */
+    system action QueueSamples(AudioSamples samples)
+
+    /*
+    The UnqueueSamples action removes AudioSamples from the data stored in
+    this Audio object. To use this, the Audio must have been initialized for
+    streaming AudioSamples, either by using LoadToStream(AudioSamples) or
+    QueueSamples(AudioSamples). If the requested AudioSamples wasn't present in
+    the Audio (e.g., because it was never queued or because it was queued and
+    already played), then this action will have no effect.
+
+    Attribute: Parameter samples The AudioSamples to remove from the Audio data.
+    */
+    system action UnqueueSamples(AudioSamples samples)
 
     /*
     Once we've prepared our audio file with either the Load or LoadToStream
