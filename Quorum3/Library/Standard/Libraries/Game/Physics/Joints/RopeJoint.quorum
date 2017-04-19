@@ -259,8 +259,16 @@ class RopeJoint is Joint2D
         return parent:Joint2D:itemA:GetWorldPoint(localAnchorA)
     end
 
+    action SetAnchorA(Vector2 anchor)
+        localAnchorA:Set(parent:Joint2D:itemA:GetLocalPoint(anchor))
+    end
+
     action GetAnchorB returns Vector2
         return parent:Joint2D:itemB:GetWorldPoint(localAnchorB)
+    end
+
+    action SetAnchorB(Vector2 anchor)
+        localAnchorB:Set(parent:Joint2D:itemB:GetLocalPoint(anchor))
     end
 
     action GetReactionForce(number inverseTimeStep) returns Vector2

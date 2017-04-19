@@ -10,11 +10,7 @@ use Libraries.Compute.Math
 
 class RevoluteJoint is Joint2D
 
-    constant integer INACTIVE = 0
-    constant integer EQUAL = 1
-    constant integer AT_LOWER = 2
-    constant integer AT_UPPER = 3
-
+    Math math
     Vector2 localAnchorA
     Vector2 localAnchorB
     Vector3 impulse
@@ -23,6 +19,7 @@ class RevoluteJoint is Joint2D
     boolean enableMotor = false
     number maxMotorTorque = 0
     number motorSpeed = 0
+
     boolean enableLimit = false
     number referenceAngle = 0
     number lowerAngle = 0
@@ -39,12 +36,11 @@ class RevoluteJoint is Joint2D
     number inverseInertiaA = 0
     number inverseInertiaB = 0
     Matrix3 mass
-    number motorMass = 1
-    integer limitState = INACTIVE
-    Math math
+    number motorMass = 0
     
     on create
         parent:Joint2D:SetType(parent:Joint2D:WELDJOINT)
+        parent:Joint2D:SetState(parent:Joint2D:INACTIVE)
     end
     
     action Initialize(Item2D itemA, Item2D itemB, Vector2 anchor)
@@ -115,28 +111,29 @@ class RevoluteJoint is Joint2D
         if enableLimit and fixedRotation = false
             number jointAngle = angleB - angleA - referenceAngle
             if math:AbsoluteValue(upperAngle - lowerAngle) < 2.0 * (2.0 / 180 * math:pi)
-                limitState = EQUAL
+                parent:Joint2D:SetState(parent:Joint2D:EQUAL)
             elseif jointAngle <= lowerAngle
-                if limitState not= AT_LOWER
+                if parent:Joint2D:GetState() not= parent:Joint2D:AT_LOWER
                     impulse:SetZ(0)
                 end
-                limitState = AT_LOWER
+                parent:Joint2D:SetState(parent:Joint2D:AT_LOWER)
             elseif jointAngle >= upperAngle
-                if limitState not= AT_UPPER
+                if parent:Joint2D:GetState() not= parent:Joint2D:AT_UPPER
                     impulse:SetZ(0)
                 end
-                limitState = AT_UPPER
+                parent:Joint2D:SetState(parent:Joint2D:AT_UPPER)
             else 
-                limitState = INACTIVE
+                parent:Joint2D:SetState(parent:Joint2D:INACTIVE)
                 impulse:SetZ(0)
             end
         else 
-            limitState = INACTIVE
+            parent:Joint2D:SetState(parent:Joint2D:INACTIVE)
         end
 
         if data:GetTimeStep():IsWarmStarting()
             Vector2 P 
-            impulse:Scale(data:GetTimeStep():GetTimeStepRatio())
+            impulse:SetX(impulse:GetX() * data:GetTimeStep():GetTimeStepRatio())
+            impulse:SetY(impulse:GetY() * data:GetTimeStep():GetTimeStepRatio())
             motorImpulse = motorImpulse * data:GetTimeStep():GetTimeStepRatio()
             
             P:Set(impulse:GetX(), impulse:GetY())
@@ -154,7 +151,7 @@ class RevoluteJoint is Joint2D
         end 
 
         data:SetAngularVelocity(angularVelocityA, indexA)
-        data:SetAngularVelocity(angularVelocityB, indexB)                
+        data:SetAngularVelocity(angularVelocityB, indexB)             
     end
 
     action SolveVelocityConstraints (JointSolverData data)
@@ -170,7 +167,7 @@ class RevoluteJoint is Joint2D
 
         boolean fixedRotation = (iA + iB = 0.0)
 
-        if enableMotor and limitState not= EQUAL and fixedRotation = false
+        if enableMotor and parent:Joint2D:GetState() not= parent:Joint2D:EQUAL and fixedRotation = false
             number cDot = angularVelocityB - angularVelocityA - motorSpeed
             number localImpulse = -motorMass * cDot
             number oldImpulse = motorImpulse
@@ -191,7 +188,7 @@ class RevoluteJoint is Joint2D
 
         Vector2 temp
 
-        if enableLimit and limitState not= INACTIVE and fixedRotation = false
+        if enableLimit and parent:Joint2D:GetState() not= parent:Joint2D:INACTIVE and fixedRotation = false
 
             Vector2 cDot1
             Vector3 cDot
@@ -251,14 +248,14 @@ class RevoluteJoint is Joint2D
             impulseLocal:SetY(-impulseLocal:GetY())
             impulseLocal:SetZ(-impulseLocal:GetZ())
 
-            if limitState = EQUAL
+            if parent:Joint2D:GetState() = parent:Joint2D:EQUAL
                 impulse:Add(impulseLocal)
-            elseif limitState = AT_LOWER
+            elseif parent:Joint2D:GetState() = parent:Joint2D:AT_LOWER
                 number newImpulse = impulse:GetZ() + impulseLocal:GetZ()
                 if newImpulse < 0.0
                     Vector2 rightHandSide
-                    rightHandSide:Set(mass:row0column2, mass:row1column0):Scale(impulse:GetZ()):Subtract(cDot1)
-                    //
+                    rightHandSide:Set(mass:row0column2, mass:row1column2):Scale(impulse:GetZ()):Subtract(cDot1)
+                    //Mat33 solve22ToOut(rightHandSide, temp)
                     number a11 = mass:row0column0
                     number a12 = mass:row0column1
                     number a21 = mass:row1column0
@@ -269,7 +266,7 @@ class RevoluteJoint is Joint2D
                     end
                     temp:SetX(det * (a22 * rightHandSide:GetX() - a12 * rightHandSide:GetY()))
                     temp:SetY(det * (a11 * rightHandSide:GetY() - a21 * rightHandSide:GetX()))
-                    //
+                    //end solve22ToOut
                     impulseLocal:SetX(temp:GetX())
                     impulseLocal:SetY(temp:GetY())
                     impulseLocal:SetZ(-impulse:GetZ())
@@ -279,7 +276,7 @@ class RevoluteJoint is Joint2D
                 else
                     impulse:Add(impulseLocal)
                 end
-            elseif limitState = AT_UPPER
+            elseif parent:Joint2D:GetState() = parent:Joint2D:AT_UPPER
                 number newImpulse = impulse:GetZ() + impulseLocal:GetZ()
                 if newImpulse > 0
                     Vector2 rightHandSide
@@ -329,7 +326,7 @@ class RevoluteJoint is Joint2D
             cDot:Add(linearVelocityB):Subtract(linearVelocityA):Subtract(temp)
             cDot:SetX(-cDot:GetX())
             cDot:SetY(-cDot:GetY())
-            //
+            //Mat33 solve22ToOut(cDot, impulseLocal)
             number a11 = mass:row0column0
             number a12 = mass:row0column1
             number a21 = mass:row1column0
@@ -340,7 +337,7 @@ class RevoluteJoint is Joint2D
             end
             impulseLocal:SetX(det * (a22 * cDot:GetX() - a12 * cDot:GetY()))
             impulseLocal:SetY(det * (a11 * cDot:GetY() - a21 * cDot:GetX()))
-            //
+            //end solve22ToOut
             impulse:SetX(impulse:GetX() + impulseLocal:GetX())
             impulse:SetY(impulse:GetY() + impulseLocal:GetY())
 
@@ -355,7 +352,7 @@ class RevoluteJoint is Joint2D
         end    
          
         data:SetAngularVelocity(angularVelocityA, indexA)
-        data:SetAngularVelocity(angularVelocityB, indexB)
+        data:SetAngularVelocity(angularVelocityB, indexB) 
 
     end
     
@@ -365,21 +362,16 @@ class RevoluteJoint is Joint2D
         Vector2 positionB = data:GetPositions():Get(indexB)
         number angleB = data:GetAngles():Get(indexB)
 
-        number mA = inverseMassA
-        number mB = inverseMassB
-        number iA = inverseInertiaA
-        number iB = inverseInertiaB
-
         number positionError = 0
         number angularError = 0
 
         boolean fixedRotation = (inverseInertiaA + inverseInertiaB = 0)
 
-        if enableLimit and limitState not= INACTIVE and fixedRotation = false
+        if enableLimit and parent:Joint2D:GetState() not= parent:Joint2D:INACTIVE and fixedRotation = false
             number angle = angleB - angleA - referenceAngle
             number limitImpulse = 0
 
-            if limitState = EQUAL
+            if parent:Joint2D:GetState() = parent:Joint2D:EQUAL
                 number C = angle - lowerAngle
                 if C > (8.0 / 180.0 * math:pi)
                     C = (8.0 / 180.0 * math:pi)
@@ -388,20 +380,20 @@ class RevoluteJoint is Joint2D
                 end
                 limitImpulse = -motorMass * C
                 angularError = math:AbsoluteValue(C)
-            elseif limitState = AT_LOWER
+            elseif parent:Joint2D:GetState() = parent:Joint2D:AT_LOWER
                 number C = angle - lowerAngle
                 angularError = -C
-                C = angle - (2.0 / 180.0 * math:pi)
+                C = C + (2.0 / 180.0 * math:pi)
                 if C > 0
                     C = 0
                 elseif C < -(8.0 / 180.0 * math:pi)
                     C = -(8.0 / 180.0 * math:pi)
                 end
                 limitImpulse = -motorMass * C
-            elseif limitState = AT_UPPER
+            elseif parent:Joint2D:GetState() = parent:Joint2D:AT_UPPER
                 number C = angle - upperAngle
                 angularError = C
-                C = angle - (2.0 / 180.0 * math:pi)
+                C = C - (2.0 / 180.0 * math:pi)
                 if C > (8.0 / 180.0 * math:pi)
                     C = (8.0 / 180.0 * math:pi)
                 elseif C < 0
@@ -435,15 +427,17 @@ class RevoluteJoint is Joint2D
         C:Set(positionB):Add(rBLocal):Subtract(positionA):Subtract(rALocal)
         positionError = C:Length()
 
+        number mA = inverseMassA
+        number mB = inverseMassB
+        number iA = inverseInertiaA
+        number iB = inverseInertiaB
         Matrix3 K
         
-        K:row0column0 = mA + mB + rALocal:GetY() * rALocal:GetY() * iA + rBLocal:GetY() * rBLocal:GetY() * iB
-        K:row0column1 = -rALocal:GetY() * rALocal:GetX() * iA - rBLocal:GetY() * rBLocal:GetX() * iB
-        K:row0column2 = -rALocal:GetY() * iA - rBLocal:GetY() * iB
-        K:row1column0 = K:row0column1 
-        K:row1column1 = mA + mB + rALocal:GetX() * rALocal:GetX() * iA + rBLocal:GetX() * rBLocal:GetX() * iB
-        K:row1column2 = rALocal:GetX() * iA + rBLocal:GetX() * iB
-        //solve22ToOut C, impulse
+        K:row0column0 = mA + mB + iA * rALocal:GetY() * rALocal:GetY()+ iB * rBLocal:GetY() * rBLocal:GetY()
+        K:row1column0 = -iA * rALocal:GetX() * rALocal:GetY() - iB * rBLocal:GetX() * rBLocal:GetY()
+        K:row0column1 = K:row1column0 
+        K:row1column1 = mA + mB + iA * rALocal:GetX() * rALocal:GetX() + iB * rBLocal:GetX() * rBLocal:GetX()
+        //solveToOut C, impulse
         number a11 = mass:row0column0
         number a12 = mass:row0column1
         number a21 = mass:row1column0
@@ -460,11 +454,11 @@ class RevoluteJoint is Joint2D
         
         positionA:SetX(positionA:GetX() - (mA * impulseLocal:GetX()))
         positionA:SetY(positionA:GetY() - (mA * impulseLocal:GetY()))
-        angleA = angleA - iA * rALocal:CrossProduct(impulseLocal)
+        angleA = angleA - iA * rA:CrossProduct(impulseLocal)
 
         positionB:SetX(positionB:GetX() + (mB * impulseLocal:GetX()))
         positionB:SetY(positionB:GetY() + (mB * impulseLocal:GetY()))
-        angleB = angleB + iB * rBLocal:CrossProduct(impulseLocal)
+        angleB = angleB + iB * rB:CrossProduct(impulseLocal)
 
         data:SetAngle(angleA, indexA)
         data:SetAngle(angleB, indexB)
