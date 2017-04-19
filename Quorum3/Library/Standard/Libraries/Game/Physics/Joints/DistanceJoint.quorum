@@ -13,23 +13,13 @@ class DistanceJoint is Joint2D
 
     Vector2 anchorA
     Vector2 anchorB
-    
-    on create
-        parent:Joint2D:SetType(parent:Joint2D:DISTANCEJOINT)
-        localAnchorA:Set(0, 0)
-        localAnchorB:Set(0, 0)
-    end
-
 
     number bias = 0
     
-    //Solver shared data
     number gamma = 0
     number impulse = 0
     Math math
     
-
-    //Solver temp data
     integer indexA = 0
     integer indexB = 0
     Vector2 u
@@ -42,17 +32,13 @@ class DistanceJoint is Joint2D
     number inverseInertiaA = 0
     number inverseInertiaB = 0
     number mass = 0
+    
+    on create
+        parent:Joint2D:SetType(parent:Joint2D:DISTANCEJOINT)
+        localAnchorA:Set(0, 0)
+        localAnchorB:Set(0, 0)
+    end
 
-    /* 
-        This action initializes the items, local anchors, and the length based on the passed
-        items, and the world anchor points.
-
-        parameters:
-        * first body
-        * second body
-        * world anchor on first body
-        * world anchor on second body
-    */
     action Initialize(Item2D itemA, Item2D itemB, Vector2 anchorA, Vector2 anchorB) 
         parent:Joint2D:itemA = itemA
         parent:Joint2D:itemB = itemB
@@ -75,7 +61,11 @@ class DistanceJoint is Joint2D
     end
 
     action SetFrequency(number hz)
-        frequency = hz
+        if hz < 0
+            frequency = 0
+        else
+            frequency = hz
+        end
     end
 
     action GetFrequency() returns number
@@ -91,7 +81,11 @@ class DistanceJoint is Joint2D
     end
 
     action SetDampingRatio(number ratio)
-        dampingRatio = ratio
+        if ratio < 0
+            dampingRatio = 0
+        else
+            dampingRatio = ratio
+        end
     end
 
     action GetDampingRatio() returns number
