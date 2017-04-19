@@ -7,6 +7,8 @@ use Libraries.Compute.Vector3
 use Libraries.Compute.Math
 use Libraries.Compute.Matrix3
 use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Physics.CollisionPersistentData
+use Libraries.Game.Physics.all
 
 class LocalCollisionPoints3D
     public constant integer MAX_COLLISION_POINTS = 4
@@ -212,6 +214,7 @@ class LocalCollisionPoints3D
         integer lastUsedIndex = GetPointCount() - 1
         if index not= lastUsedIndex
             points:Get(index):Set(points:Get(lastUsedIndex))
+            points:Get(lastUsedIndex):SetPersistentData(undefined)
             points:Get(lastUsedIndex):SetAppliedImpulse(0)
             points:Get(lastUsedIndex):SetLateralFrictionInitialized(false)
             points:Get(lastUsedIndex):SetAppliedImpulseLateralA(0)
@@ -228,8 +231,11 @@ class LocalCollisionPoints3D
         number appliedLateralImpulse1 = points:Get(insertIndex):GetAppliedImpulseLateralA()
         number appliedLateralImpulse2 = points:Get(insertIndex):GetAppliedImpulseLateralB()
 
+        CollisionPersistentData cache = points:Get(insertIndex):GetPersistentData()
+
         points:Get(insertIndex):Set(newPoint)
         
+        points:Get(insertIndex):SetPersistentData(cache)
         points:Get(insertIndex):SetAppliedImpulse(appliedImpulse)
         points:Get(insertIndex):SetAppliedImpulseLateralA(appliedLateralImpulse1)
         points:Get(insertIndex):SetAppliedImpulseLateralB(appliedLateralImpulse2)

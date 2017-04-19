@@ -1,6 +1,8 @@
 package Libraries.Game.Collision
 
 use Libraries.Compute.Vector3
+use Libraries.Game.Physics.CollisionPersistentData
+use Libraries.Game.Physics.all
 
 class CollisionPoint3D 
     Vector3 localPointA
@@ -18,6 +20,7 @@ class CollisionPoint3D
     integer index0 = 0
     integer index1 = 0
 
+    CollisionPersistentData persistentData
     number appliedImpulse = 0
     
     boolean lateralFrictionInitialized = false
@@ -161,6 +164,14 @@ class CollisionPoint3D
 
     action SetIndexB(integer index)
         index1 = index
+    end
+
+    action GetPersistentData returns CollisionPersistentData
+        return persistentData
+    end
+
+    action SetPersistentData(CollisionPersistentData data)
+        me:persistentData = data
     end
 
     action GetAppliedImpulse returns number

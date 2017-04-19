@@ -1,0 +1,52 @@
+package Libraries.Game.Physics.Joints
+
+use Libraries.Game.Physics.CollisionSolverInformation3D
+use Libraries.Game.Physics.all
+use Libraries.Interface.Item3D
+
+class Joint3D
+    
+    integer type = 0
+    Item3D itemA
+    Item3D itemB
+    number appliedImpulse = 0
+
+    action SetItemA(Item3D item)
+        me:itemA = item
+    end
+
+    action GetItemA returns Item3D
+        return itemA
+    end
+
+    action SetItemB(Item3D item)
+        me:itemB = item
+    end
+
+    action GetItemB returns Item3D
+        return itemB
+    end
+
+    action SetAppliedImpulse(number impulse)
+        me:appliedImpulse = impulse
+    end
+
+    action SetType(integer type)
+        me:type = type
+    end
+
+    action GetType returns integer
+        return type
+    end
+
+    action GetAppliedImpulse returns number
+        return appliedImpulse
+    end
+
+    blueprint action BuildJacobian
+
+    action GetInformation(CollisionSolverInformation3D information)
+    end
+
+    blueprint action SolveJoint(number timeStep)
+end

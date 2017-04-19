@@ -17,6 +17,7 @@ use Libraries.Game.Collision.CollisionPointsResult3D
 use Libraries.Compute.BitwiseOperations
 use Libraries.Game.Collision.Narrowphase.ConvexConvexPairSolver
 use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Physics.all
 
 class CollisionEvent3D
     public constant number EPSILON = 0.00000011920928955078125
@@ -42,10 +43,16 @@ class CollisionEvent3D
     private CollisionEvent3D next = undefined
     private CollisionEvent3D previous = undefined
 
-    public CollisionEdge3D nodeA
-    public CollisionEdge3D nodeB
+    CollisionEdge3D nodeA
+    CollisionEdge3D nodeB
 
     LocalCollisionPoints3D collisionPoints
+
+    boolean islandFlag = false
+
+    action GetCollisionPoints returns LocalCollisionPoints3D
+        return collisionPoints
+    end
 
     action Initialize(Item3D itemA, integer indexA, Item3D itemB, integer indexB)
         enabledFlag = true
@@ -293,5 +300,13 @@ class CollisionEvent3D
         gjkPairDetector:GetClosestPoints(inputTransformA, inputTransformB, maximumDistanceSquared, result, false)
 
         result:RefreshCollisionPoints()        
+    end
+
+    action SetInCollisionGroup(boolean flag)
+        islandFlag = flag
+    end
+
+    action InCollisionGroup returns boolean
+        return islandFlag
     end
 end

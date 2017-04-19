@@ -1,0 +1,157 @@
+package Libraries.Game.Physics
+
+use Libraries.Interface.Item3D
+use Libraries.Compute.Vector3
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Compute.Quaternion
+use Libraries.Compute.Math
+use Libraries.Game.Physics.all
+
+class SolverItem3D
+    Vector3 angularVelocity
+    number inverseMass = 0
+    number friction = 0
+    Item3D originalItem
+    Vector3 linearVelocity
+    Vector3 centerOfMassPosition
+
+    Vector3 pushVelocity
+    Vector3 turnVelocity
+
+    Math math
+
+    action GetVelocityInLocalPoint(Vector3 relativePosition, Vector3 velocity)
+        Vector3 temp
+        temp:Set(angularVelocity):CrossProduct(relativePosition)
+        velocity:Set(linearVelocity):Add(temp)
+    end
+
+    action InternalApplyImpulse(Vector3 linearComponent, Vector3 angularComponent, number impulseMagnitude)
+        if inverseMass not= 0
+            Vector3 temp
+            temp:Set(linearComponent):Scale(impulseMagnitude)
+            pushVelocity:Add(temp)
+            temp:Set(angularComponent):Scale(impulseMagnitude)
+            turnVelocity:Add(temp)
+        end
+    end
+
+    action WriteBackVelocity
+        if inverseMass not= 0
+            originalItem:SetLinearVelocity(linearVelocity)
+            originalItem:SetAngularVelocity(angularVelocity)
+        end
+    end
+
+    action WriteBackVelocity(number timeStep)
+        if inverseMass not= 0
+            originalItem:SetLinearVelocity(linearVelocity)
+            originalItem:SetAngularVelocity(angularVelocity)
+
+            PhysicsPosition3D newTransform
+            PhysicsPosition3D curTrans = originalItem:GetCollisionTransform()
+            Vector3 linvel = pushVelocity
+            Vector3 angvel = turnVelocity
+            PhysicsPosition3D predictedTransform = newTransform
+            Vector3 temp
+            temp:Set(linvel):Scale(timeStep)
+            predictedTransform:GetOrigin():Set(temp):Add(curTrans:GetOrigin())
+            Vector3 axis
+            number fAngle = angvel:Length()
+
+            if fAngle * timeStep > 0.5 * math:pi
+                fAngle = 0.5 * math:pi / timeStep
+            end
+
+            if fAngle < 0.001
+                axis:Set(angvel):Scale(0.5 * timeStep - (timeStep * timeStep * timeStep) * 0.020833333333 * fAngle * fAngle)
+            else
+                axis:Set(angvel):Scale(math:Sine(0.5 * fAngle * timeStep) / fAngle)
+            end
+
+            Quaternion dorn
+            dorn:Set(axis:GetX(), axis:GetY(), axis:GetZ(), math:Cosine(fAngle * timeStep * 0.5))
+            Quaternion orn0
+            orn0:Set(curTrans:GetRotation())
+
+            Quaternion predictedOrn
+            predictedOrn:Set(dorn):Multiply(orn0)
+            predictedOrn:Normalize()
+
+            predictedTransform:SetRotation(predictedOrn)
+
+            originalItem:SetCollisionTransform(predictedTransform)
+        end
+    end
+
+    action ReadVelocity
+        if inverseMass not= 0
+            linearVelocity:Set(originalItem:GetLinearVelocity())
+            angularVelocity:Set(originalItem:GetAngularVelocity())
+        end
+    end
+
+    action GetAngularVelocity returns Vector3
+        return angularVelocity
+    end
+
+    action SetAngularVelocity(Vector3 velocity)
+        me:angularVelocity = velocity
+    end
+
+    action GetInverseMass returns number
+        return inverseMass
+    end
+
+    action SetInverseMass(number inverseMass)
+        me:inverseMass = inverseMass
+    end
+
+    action GetFriction returns number
+        return friction
+    end
+
+    action SetFriction(number friction)
+        me:friction = friction
+    end
+
+    action GetOriginalItem returns Item3D
+        return originalItem
+    end
+
+    action SetOriginalItem(Item3D item)
+        me:originalItem = item
+    end
+
+    action GetLinearVelocity returns Vector3
+        return linearVelocity
+    end
+
+    action SetLinearVelocity(Vector3 velocity)
+        me:linearVelocity = velocity
+    end
+
+    action GetCenterOfMassPosition returns Vector3
+        return centerOfMassPosition
+    end
+
+    action SetCenterOfMassPosition(Vector3 position)
+        me:centerOfMassPosition = position
+    end
+
+    action GetPushVelocity returns Vector3
+        return pushVelocity
+    end
+
+    action SetPushVelocity(Vector3 velocity)
+        me:pushVelocity = velocity
+    end
+
+    action GetTurnVelocity returns Vector3
+        return turnVelocity
+    end
+
+    action SetTurnVelocity(Vector3 velocity)
+        me:turnVelocity = velocity
+    end
+end

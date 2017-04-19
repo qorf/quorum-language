@@ -1,0 +1,128 @@
+package Libraries.Game.Physics
+
+use Libraries.Game.Physics.all
+
+class CollisionSolverInformation3D 
+    number tau = 0.6
+    number damping = 1
+    number friction = 0.3
+    number timestep = 0
+    number restitution = 0
+    integer numberIterations = 10
+    number maxErrorReduction = 20
+    number sor = 1.3
+    number erp = 0.2
+    number erp2 = 0.1
+    boolean splitImpulse = false
+    number splitImpulsePenetrationThreshold = -0.02
+    number linearSlop = 0
+    number warmStartingFactor = 0.85
+
+    boolean randomizeOrder = true
+    boolean cacheFriendly = true
+    boolean warmStarting = true
+
+    action Set(CollisionSolverInformation3D information)
+        me:tau = information:tau
+        me:damping = information:damping
+        me:friction = information:friction
+        me:timestep = information:timestep
+        me:restitution = information:restitution
+        me:numberIterations = information:numberIterations
+        me:maxErrorReduction = information:maxErrorReduction
+        me:sor = information:sor
+        me:erp = information:erp
+    end
+
+    action GetTimeStep returns number
+        return timestep
+    end
+
+    action SetTimeStep(number timestep)
+        me:timestep = timestep
+    end
+
+    action GetErp returns number
+        return erp
+    end
+
+    action SetErp(number erp)
+        me:erp = erp
+    end
+
+    action GetErp2 returns number
+        return erp2
+    end
+
+    action SetSrp2(number erp2)
+        me:erp2 = erp2
+    end
+
+    action GetSplitImpulsePenetrationThreshold returns number
+        return splitImpulsePenetrationThreshold
+    end
+
+    action SplitImpulse returns boolean
+        return splitImpulse
+    end
+
+    action SetSplitImpulse(boolean flag)
+        me:splitImpulse = flag
+    end
+
+    action GetLinearSlop returns number
+        return linearSlop
+    end
+
+    action SetLinearSlop(number linearSlop)
+        me:linearSlop = linearSlop
+    end
+
+    action IsWarmStarting returns boolean
+        return warmStarting
+    end
+
+    action SetWarmStarting(boolean flag)
+        me:warmStarting = flag
+    end
+
+    action GetWarmStartingFactor returns number
+        return warmStartingFactor
+    end
+
+    action SetWarmStartingFactor(number factor)
+        me:warmStartingFactor = factor
+    end
+
+    action GetNumberIterations returns integer
+        return numberIterations
+    end
+
+    action SetNumberIterations(integer iterations)
+        me:numberIterations = iterations
+    end
+
+    action RandomizeOrder returns boolean
+        return randomizeOrder
+    end
+
+    action SetRandomizeOrder(boolean flag)
+        me:randomizeOrder = flag
+    end
+
+    action CacheFriendly returns boolean
+        return cacheFriendly
+    end
+
+    action SetCacheFriendly(boolean flag)
+        me:cacheFriendly = flag
+    end
+
+    action GetDamping returns number
+        return damping
+    end
+
+    action SetDamping(number damping)
+        me:damping = damping
+    end
+end
