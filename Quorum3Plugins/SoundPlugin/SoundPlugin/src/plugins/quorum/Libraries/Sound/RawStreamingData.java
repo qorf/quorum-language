@@ -80,27 +80,27 @@ public class RawStreamingData extends DesktopData
     {
         if (unusedBuffers.isEmpty())
         {
-            int buffersProcessed = AL10.alGetSourcei(sourceID, AL10.AL_BUFFERS_PROCESSED);
-            while (buffersProcessed-- > 0) 
-            {
-                int bufferID = AL10.alSourceUnqueueBuffers(sourceID);
-                if (bufferID == AL10.AL_INVALID_VALUE) 
-                    break;
-                unusedBuffers.add(bufferID);
-                UnmapBuffer(bufferID);
-            }
+            RecycleBuffers();
             
             if (unusedBuffers.isEmpty())
                 return -1;
         }
         
-        int returnvalue = unusedBuffers.remove(0);
-//        System.out.println("Returning buffer " + returnvalue);
-        return returnvalue;
-//        return unusedBuffers.remove(0);
+        return unusedBuffers.remove(0);
     }
     
-//    static int testCounter = 0;
+    private void RecycleBuffers()
+    {
+        int buffersProcessed = AL10.alGetSourcei(sourceID, AL10.AL_BUFFERS_PROCESSED);
+        while (buffersProcessed-- > 0) 
+        {
+            int bufferID = AL10.alSourceUnqueueBuffers(sourceID);
+            if (bufferID == AL10.AL_INVALID_VALUE) 
+                break;
+            unusedBuffers.add(bufferID);
+            UnmapBuffer(bufferID);
+        }
+    }
     
     private void FillBuffer(int bufferID, AudioSamples_ samples)
     {
@@ -149,14 +149,12 @@ public class RawStreamingData extends DesktopData
             SetRolloff(rolloff);
             SetPosition(x, y, z);
             */
-            
+        }
+        if (!IsPlaying()) 
+        {
             // Use Update to fill the buffers.
             Update();
-        }
-        if (!isPlaying) 
-        {
             AL10.alSourcePlay(sourceID);
-            isPlaying = true;
 	}
     }
     
@@ -180,24 +178,6 @@ public class RawStreamingData extends DesktopData
             FillBuffer(bufferID, samplesArray.remove(0));
             AL10.alSourceQueueBuffers(sourceID, bufferID);
         }
-        
-        if (unusedBuffers.size() == bufferCount && !wasEmpty)
-        {
-            wasEmpty = true;
-//            System.out.println("All buffers unused!");
-        }
-        else if (unusedBuffers.size() != bufferCount && wasEmpty)
-        {
-            wasEmpty = false;
-//            System.out.println("Buffers in use!");
-        }
-        
-        // A buffer underflow will cause the source to stop.
-	if (unusedBuffers.size() != bufferCount && isPlaying && AL10.alGetSourcei(sourceID, AL10.AL_SOURCE_STATE) != AL10.AL_PLAYING) 
-        {
-//            System.out.println("Replaying... unusedBuffers.size() = " + unusedBuffers.size() + ", bufferCount = " + bufferCount);
-            AL10.alSourcePlay(sourceID);
-        }
     }
     
     @Override
@@ -209,37 +189,62 @@ public class RawStreamingData extends DesktopData
     @Override
     public void Stop()
     {
-        // To be implemented;
+        if (manager.noDevice) 
+            return;
+	if (sourceID == -1) 
+            return;
+        
+        AL10.alSourceStop(sourceID);
+        RecycleBuffers();
+	manager.FreeSource(sourceID);
+	sourceID = -1;
+        samplesArray.clear();
     }
     
     @Override
     public void Dispose()
     {
-        // To be implemented;
+        Stop();
+        AL10.alDeleteBuffers(buffers);
+        unusedBuffers.clear();
+        buffers = null;
     }
     
     @Override
     public void Pause()
     {
-        // To be implemented;
+        if (manager.noDevice)
+            return;
+	if (sourceID != -1)
+            AL10.alSourcePause(sourceID);
     }
     
     @Override
     public void Resume()
     {
-        // To be implemented;
+        if (AL10.alGetSourcei(sourceID, AL10.AL_SOURCE_STATE) == AL10.AL_PAUSED)
+            AL10.alSourcePlay(sourceID);
     }
     
     @Override
     public void SetPitch(float pitch)
     {
-        // To be implemented;
+        if (sourceID == -1)
+            return;
+        
+        this.pitch = pitch;
+        
+        AL10.alSourcef(sourceID, AL10.AL_PITCH, pitch);
     }
     
     @Override
     public void SetVolume(float volume)
     {
-        // To be implemented;
+        this.volume = volume;
+	if (manager.noDevice) 
+            return;
+	if (sourceID != -1) 
+            AL10.alSourcef(sourceID, AL10.AL_GAIN, volume);
     }
     
     @Override
@@ -249,33 +254,79 @@ public class RawStreamingData extends DesktopData
     }
     
     @Override
-    public void SetFade(float position)
+    public void SetFade(float newFade)
     {
-        // To be implemented;
+        this.fade = newFade;
+        pan = 0;
+	if (manager.noDevice) 
+            return;
+	if (sourceID == -1)
+            return;
+        
+        this.x = 0;
+        this.y = (float)Math.sin((fade + 1) * (float)Math.PI / 2);
+        this.z = (float)Math.cos((fade - 1) * (float)Math.PI / 2);
+        
+        AL10.alSource3f(sourceID, AL10.AL_POSITION, x, y, z);
+        AL10.alSourcef(sourceID, AL10.AL_GAIN, volume);
     }
     
     @Override
     public void SetX(float newX)
     {
-        // To be implemented;
+        if (manager.noDevice) 
+            return;
+	if (sourceID == -1)
+            return;
+        
+        this.x = newX;
+        
+        AL10.alSource3f(sourceID, AL10.AL_POSITION, newX, y, z);
+        AL10.alSourcef(sourceID, AL10.AL_GAIN, volume);
     }
     
     @Override
     public void SetY(float newY)
     {
-        // To be implemented;
+        if (manager.noDevice) 
+            return;
+	if (sourceID == -1)
+            return;
+        
+        this.y = newY;
+        
+        AL10.alSource3f(sourceID, AL10.AL_POSITION, x, newY, z);
+        AL10.alSourcef(sourceID, AL10.AL_GAIN, volume);
     }
     
     @Override
     public void SetZ(float newZ)
     {
-        // To be implemented;
+        if (manager.noDevice) 
+            return;
+	if (sourceID == -1)
+            return;
+        
+        this.z = newZ;
+        
+        AL10.alSource3f(sourceID, AL10.AL_POSITION, x, y, newZ);
+        AL10.alSourcef(sourceID, AL10.AL_GAIN, volume);
     }
     
     @Override
     public void SetPosition(float newX, float newY, float newZ)
     {
-        // To be implemented;
+        if (manager.noDevice) 
+            return;
+	if (sourceID == -1)
+            return;
+        
+        this.x = newX;
+        this.y = newY;
+        this.z = newZ;
+        
+        AL10.alSource3f(sourceID, AL10.AL_POSITION, newX, newY, newZ);
+        AL10.alSourcef(sourceID, AL10.AL_GAIN, volume);
     }
     
     @Override
@@ -305,8 +356,7 @@ public class RawStreamingData extends DesktopData
     @Override
     public boolean IsPlaying()
     {
-        // To be implemented;
-        return false;
+        return AL10.alGetSourcei(sourceID, AL10.AL_SOURCE_STATE) == AL10.AL_PLAYING;
     }
     
     @Override

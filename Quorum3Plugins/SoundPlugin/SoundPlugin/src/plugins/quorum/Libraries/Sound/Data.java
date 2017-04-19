@@ -15,7 +15,6 @@ import java.io.FileInputStream;
 public abstract class Data {
     
     protected boolean isLooping = false;
-    protected boolean isPlaying = false;
     protected float volume = 1;
     protected float pan = 0;
     protected float fade = 0;

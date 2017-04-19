@@ -53,6 +53,7 @@ public abstract class StreamingData extends DesktopData
 
     protected final File file;
     protected int bufferOverhead = 0;
+    protected boolean isPlaying = false;
 
     public StreamingData (File file) 
     {

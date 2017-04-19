@@ -104,7 +104,7 @@ public class AudioSamples
     {
         quorum.Libraries.Sound.AudioSamples copy = new quorum.Libraries.Sound.AudioSamples();
         copy.plugin_.samplesPerSecond = samplesPerSecond;
-        copy.plugin_.channels = channels;
+        copy.plugin_.channels = 1;
         short[] array = new short[buffer.length / channels];
         for (int i = 0; i < array.length; i++)
         {
