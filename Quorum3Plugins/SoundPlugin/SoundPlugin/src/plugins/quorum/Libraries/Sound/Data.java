@@ -28,7 +28,7 @@ public abstract class Data {
     
     protected float x = 0;
     protected float y = 0;
-    protected float z = 1;
+    protected float z = -1;
      
     protected static float defaultReferenceDistance = 1.0f;
     protected static float defaultRolloff = 1.0f;

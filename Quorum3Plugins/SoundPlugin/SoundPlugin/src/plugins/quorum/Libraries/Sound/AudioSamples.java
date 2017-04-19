@@ -124,9 +124,9 @@ public class AudioSamples
         }
         quorum.Libraries.Sound.AudioSamples copy = new quorum.Libraries.Sound.AudioSamples();
         copy.plugin_.samplesPerSecond = samplesPerSecond;
-        copy.plugin_.channels = channels;
+        copy.plugin_.channels = 1;
         short[] array = new short[(end - start + 1)];
-        int channelStart = start + channel;
+        int channelStart = (channels * start) + channel;
         for (int i = 0; i < array.length; i++)
         {
             array[i] = buffer[channelStart + i * channels];

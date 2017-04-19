@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL10;
+import org.lwjgl.openal.AL11;
 import quorum.Libraries.Sound.AudioSamples_;
 
 /**
@@ -65,15 +66,51 @@ public class RawStreamingData extends DesktopData
         return samples;
     }
     
+    @Override
     public void QueueSamples(AudioSamples_ samples)
     {
         samplesArray.add(samples);
     }
     
+    @Override
     public void UnqueueSamples(AudioSamples_ samples)
     {
-        // FIX ME: Need to be able to remove samples that are already in the buffer
-        samplesArray.remove(samples);
+        if (samplesArray.remove(samples) == true)
+            return;
+        
+        RecycleBuffers();
+        
+        if (samplesToBuffers.containsKey(samples))
+        {
+            int bufferID = samplesToBuffers.get(samples);
+            float secOffset = AL10.alGetSourcef(sourceID, AL11.AL_SEC_OFFSET);
+            AL10.alSourceStop(sourceID);
+            
+            boolean first = true;
+            int buffersProcessed = AL10.alGetSourcei(sourceID, AL10.AL_BUFFERS_PROCESSED);
+            while (buffersProcessed-- > 0) 
+            {
+                int currentID = AL10.alSourceUnqueueBuffers(sourceID);
+                if (currentID == AL10.AL_INVALID_VALUE) 
+                    break;
+                
+                if (first && currentID != bufferID)
+                        first = false;
+
+                if (currentID == bufferID)
+                {
+                    // This buffer is discarded and may be reused.
+                    unusedBuffers.add(bufferID);
+                    UnmapBuffer(bufferID);
+                }
+                else
+                {
+                    // This buffer should be requeued.
+                }
+            }
+            
+            // If it wasn't the first buffer, set the position of the audio using secOffset.
+        }
     }
     
     protected int GetAvailableBuffer()
@@ -104,8 +141,6 @@ public class RawStreamingData extends DesktopData
     
     private void FillBuffer(int bufferID, AudioSamples_ samples)
     {
-//        System.out.println("Filling buffer " + testCounter++);
-//        System.out.println("Using samples with hashcode " + samples.hashCode());
         AudioSamples bufferPlugin = ((quorum.Libraries.Sound.AudioSamples)samples).plugin_;
         short[] shortArray = bufferPlugin.buffer;
         
@@ -138,17 +173,15 @@ public class RawStreamingData extends DesktopData
                     unusedBuffers.add(buffers.get(i));
             }
             
-            /*
-            alSourcei(sourceID, AL_LOOPING, AL_FALSE);
+            AL10.alSourcei(sourceID, AL10.AL_LOOPING, AL10.AL_FALSE);
             
             if (dopplerEnabled)
                 SetVelocity(velocityX, velocityY, velocityZ);
             
             SetVolume(volume);
-            SetReferenceDistance(referenceDistance);
-            SetRolloff(rolloff);
+//            SetReferenceDistance(referenceDistance);
+//            SetRolloff(rolloff);
             SetPosition(x, y, z);
-            */
         }
         if (!IsPlaying()) 
         {
@@ -183,7 +216,8 @@ public class RawStreamingData extends DesktopData
     @Override
     public void SetLooping(boolean looping)
     {
-        // To be implemented;
+        if (looping == true)
+            throw new UnsupportedOperationException("Looping is not supported for directly streamed AudioSamples.");
     }
     
     @Override
@@ -229,10 +263,10 @@ public class RawStreamingData extends DesktopData
     @Override
     public void SetPitch(float pitch)
     {
+        this.pitch = pitch;
+        
         if (sourceID == -1)
             return;
-        
-        this.pitch = pitch;
         
         AL10.alSourcef(sourceID, AL10.AL_PITCH, pitch);
     }
@@ -250,7 +284,20 @@ public class RawStreamingData extends DesktopData
     @Override
     public void SetHorizontalPosition(float position)
     {
-        // To be implemented;
+        this.pan = position;
+        fade = 0;
+	if (manager.noDevice) 
+            return;
+        
+        this.x = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
+        this.y = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
+        this.z = 0;
+        
+        if (sourceID == -1)
+            return;
+        
+        AL10.alSource3f(sourceID, AL10.AL_POSITION, x, y, z);
+        AL10.alSourcef(sourceID, AL10.AL_GAIN, volume);
     }
     
     @Override
@@ -260,12 +307,13 @@ public class RawStreamingData extends DesktopData
         pan = 0;
 	if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.x = 0;
         this.y = (float)Math.sin((fade + 1) * (float)Math.PI / 2);
         this.z = (float)Math.cos((fade - 1) * (float)Math.PI / 2);
+        
+        if (sourceID == -1)
+            return;
         
         AL10.alSource3f(sourceID, AL10.AL_POSITION, x, y, z);
         AL10.alSourcef(sourceID, AL10.AL_GAIN, volume);
@@ -276,10 +324,11 @@ public class RawStreamingData extends DesktopData
     {
         if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.x = newX;
+        
+        if (sourceID == -1)
+            return;
         
         AL10.alSource3f(sourceID, AL10.AL_POSITION, newX, y, z);
         AL10.alSourcef(sourceID, AL10.AL_GAIN, volume);
@@ -290,10 +339,11 @@ public class RawStreamingData extends DesktopData
     {
         if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.y = newY;
+        
+        if (sourceID == -1)
+            return;
         
         AL10.alSource3f(sourceID, AL10.AL_POSITION, x, newY, z);
         AL10.alSourcef(sourceID, AL10.AL_GAIN, volume);
@@ -304,10 +354,11 @@ public class RawStreamingData extends DesktopData
     {
         if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.z = newZ;
+        
+        if (sourceID == -1)
+            return;
         
         AL10.alSource3f(sourceID, AL10.AL_POSITION, x, y, newZ);
         AL10.alSourcef(sourceID, AL10.AL_GAIN, volume);
@@ -318,12 +369,13 @@ public class RawStreamingData extends DesktopData
     {
         if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.x = newX;
         this.y = newY;
         this.z = newZ;
+        
+        if (sourceID == -1)
+            return;
         
         AL10.alSource3f(sourceID, AL10.AL_POSITION, newX, newY, newZ);
         AL10.alSourcef(sourceID, AL10.AL_GAIN, volume);
@@ -338,19 +390,39 @@ public class RawStreamingData extends DesktopData
     @Override
     public void SetVelocity(float x, float y, float z)
     {
-        // To be implemented;
+        if (manager.noDevice)
+            return;
+        
+        velocityX = x;
+        velocityY = y;
+        velocityZ = z;
+        
+        if (sourceID == -1)
+            return;
+        
+        AL10.alSource3f(sourceID, AL10.AL_VELOCITY, x, y, z);
     }
     
     @Override
     public void EnableDoppler()
     {
-        // To be implemented;
+        if (dopplerEnabled)
+            return;
+        
+        dopplerEnabled = true;
+        SetVelocity(velocityX, velocityY, velocityZ);
     }
 
     @Override
     public void DisableDoppler()
     {
-        // To be implemented;
+        if (!dopplerEnabled || manager.noDevice)
+            return;
+        
+        dopplerEnabled = false;
+        if (sourceID == -1)
+            return;
+        AL10.alSource3f(sourceID, AL10.AL_VELOCITY, 0, 0, 0);
     }
     
     @Override
@@ -362,12 +434,20 @@ public class RawStreamingData extends DesktopData
     @Override
     public void SetReferenceDistance(float distance)
     {
-        // To be implemented;
+        this.referenceDistance = distance;
+	if (manager.noDevice) 
+            return;
+	if (sourceID != -1) 
+            AL10.alSourcef(sourceID, AL10.AL_REFERENCE_DISTANCE, distance);
     }
     
     @Override
     public void SetRolloff(float rate)
     {
-        // To be implemented; 
+        this.rolloff = rate;
+	if (manager.noDevice) 
+            return;
+	if (sourceID != -1) 
+            AL10.alSourcef(sourceID, AL10.AL_ROLLOFF_FACTOR, rate);
     }
 }

@@ -211,12 +211,13 @@ public abstract class StreamingData extends DesktopData
         fade = 0;
 	if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.x = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
         this.y = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
         this.z = 0;
+        
+        if (sourceID == -1)
+            return;
         
         alSource3f(sourceID, AL_POSITION, x, y, z);
         alSourcef(sourceID, AL_GAIN, volume);
@@ -229,12 +230,13 @@ public abstract class StreamingData extends DesktopData
         pan = 0;
 	if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.x = 0;
         this.y = (float)Math.sin((fade + 1) * (float)Math.PI / 2);
         this.z = (float)Math.cos((fade - 1) * (float)Math.PI / 2);
+        
+        if (sourceID == -1)
+            return;
         
         alSource3f(sourceID, AL_POSITION, x, y, z);
         alSourcef(sourceID, AL_GAIN, volume);
@@ -245,10 +247,11 @@ public abstract class StreamingData extends DesktopData
     {
         if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.x = newX;
+        
+        if (sourceID == -1)
+            return;
         
         alSource3f(sourceID, AL_POSITION, newX, y, z);
         alSourcef(sourceID, AL_GAIN, volume);
@@ -259,10 +262,11 @@ public abstract class StreamingData extends DesktopData
     {
         if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.y = newY;
+        
+        if (sourceID == -1)
+            return;
         
         alSource3f(sourceID, AL_POSITION, x, newY, z);
         alSourcef(sourceID, AL_GAIN, volume);
@@ -273,10 +277,11 @@ public abstract class StreamingData extends DesktopData
     {
         if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.z = newZ;
+        
+        if (sourceID == -1)
+            return;
         
         alSource3f(sourceID, AL_POSITION, x, y, newZ);
         alSourcef(sourceID, AL_GAIN, volume);
@@ -287,12 +292,13 @@ public abstract class StreamingData extends DesktopData
     {
         if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.x = newX;
         this.y = newY;
         this.z = newZ;
+        
+        if (sourceID == -1)
+            return;
         
         alSource3f(sourceID, AL_POSITION, newX, newY, newZ);
         alSourcef(sourceID, AL_GAIN, volume);
@@ -311,10 +317,12 @@ public abstract class StreamingData extends DesktopData
     @Override
     public void DisableDoppler()
     {
-        if (!dopplerEnabled || manager.noDevice || sourceID == -1)
+        if (!dopplerEnabled || manager.noDevice)
             return;
         
         dopplerEnabled = false;
+        if (sourceID == -1)
+            return;
         alSource3f(sourceID, AL_VELOCITY, 0, 0, 0);
     }
     
@@ -323,12 +331,13 @@ public abstract class StreamingData extends DesktopData
     {
         if (manager.noDevice)
             return;
-        if (sourceID == -1)
-            return;
         
         velocityX = newX;
         velocityY = newY;
         velocityZ = newZ;
+        
+        if (sourceID == -1)
+            return;
         
         alSource3f(sourceID, AL_VELOCITY, newX, newY, newZ);
     }
@@ -493,10 +502,10 @@ public abstract class StreamingData extends DesktopData
     @Override
     public void SetPitch(float pitch)
     {
+        this.pitch = pitch;
+        
         if (sourceID == -1)
             return;
-        
-        this.pitch = pitch;
         
         alSourcef(sourceID, AL_PITCH, pitch);
     }
