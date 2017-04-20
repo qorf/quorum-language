@@ -83,33 +83,54 @@ public class RawStreamingData extends DesktopData
         if (samplesToBuffers.containsKey(samples))
         {
             int bufferID = samplesToBuffers.get(samples);
-            float secOffset = AL10.alGetSourcef(sourceID, AL11.AL_SEC_OFFSET);
-            AL10.alSourceStop(sourceID);
+            int sampleOffset = -1;
+            
+            int sourceState = AL10.alGetSourcei(sourceID, AL10.AL_SOURCE_STATE);
+            
+            if (sourceState == AL10.AL_PLAYING || sourceState == AL10.AL_PAUSED)
+            {
+                sampleOffset = AL10.alGetSourcei(sourceID, AL11.AL_SAMPLE_OFFSET);
+                AL10.alSourceStop(sourceID);
+            }
             
             boolean first = true;
             int buffersProcessed = AL10.alGetSourcei(sourceID, AL10.AL_BUFFERS_PROCESSED);
-            while (buffersProcessed-- > 0) 
+            int i = buffersProcessed;
+            while (i > 0) 
             {
                 int currentID = AL10.alSourceUnqueueBuffers(sourceID);
                 if (currentID == AL10.AL_INVALID_VALUE) 
                     break;
                 
-                if (first && currentID != bufferID)
+                if (i == buffersProcessed && currentID != bufferID)
                         first = false;
 
+                i--;
+                
                 if (currentID == bufferID)
                 {
                     // This buffer is discarded and may be reused.
-                    unusedBuffers.add(bufferID);
-                    UnmapBuffer(bufferID);
+                    unusedBuffers.add(currentID);
+                    UnmapBuffer(currentID);
                 }
                 else
                 {
                     // This buffer should be requeued.
+                    AL10.alSourceQueueBuffers(sourceID, currentID);
                 }
             }
             
-            // If it wasn't the first buffer, set the position of the audio using secOffset.
+            if (sampleOffset != -1)
+            {
+                // If it wasn't the first buffer, set the position of the audio using sampleOffset.
+                if (!first)
+                    AL10.alSourcei(sourceID, AL11.AL_SAMPLE_OFFSET, sampleOffset);
+                
+                AL10.alSourcePlay(sourceID);
+                if (sourceState == AL10.AL_PAUSED)
+                    AL10.alSourcePause(sourceID);
+            }
+            
         }
     }
     
