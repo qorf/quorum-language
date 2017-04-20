@@ -1,0 +1,23 @@
+package Libraries.Sound
+
+use Libraries.System.SystemHelper
+
+class Microphone 
+    
+    system action Record
+
+    system action GetSamples returns AudioSamples
+
+    system action Stop
+
+    action Record(number seconds) returns AudioSamples
+        Record()
+        SystemHelper helper
+        helper:Sleep(seconds * 1000)
+        Stop()
+        return GetSamples()
+    end
+
+    system action IsRecording returns boolean
+
+end
