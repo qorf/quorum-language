@@ -5,6 +5,10 @@
  */
 package plugins.quorum.Libraries.Sound;
 
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.ALC10;
 import org.lwjgl.openal.ALC11;
@@ -17,33 +21,54 @@ import quorum.Libraries.Sound.AudioSamples_;
  */
 public class Microphone 
 {
+    public Object me_ = null;
+    
     protected ALCdevice device;
-    private AudioSamples_ lastSample;
+    protected boolean isRecording = false;
     
     public void Record()
     {
         if (device == null)
-            device = ALC11.alcCaptureOpenDevice(null, 44100, AL10.AL_FORMAT_MONO16, 2048);
-        else
+            device = ALC11.alcCaptureOpenDevice(null, 44100, AL10.AL_FORMAT_MONO16, 441000);
+        
+        if (isRecording)
             throw new RuntimeException("The microphone is already recording! Call Stop() before recording again.");
         
+        isRecording = true;
         ALC11.alcCaptureStart(device);
     }
     
     public void Stop()
     {
         ALC11.alcCaptureStop(device);
-        lastSample = GetSamples();
-        device = null;
+        isRecording = false;
     }
     
     public AudioSamples_ GetSamples()
     {
-        return null;
+        IntBuffer temp = BufferUtils.createIntBuffer(1);
+        ALC10.alcGetInteger(device, ALC11.ALC_CAPTURE_SAMPLES, temp);
+        int samplesAvailable = temp.get(0);
+
+        if (samplesAvailable <= 0)
+            return null;
+
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(samplesAvailable * 2);
+        ALC11.alcCaptureSamples(device, byteBuffer, samplesAvailable);
+        ShortBuffer shortBuffer = byteBuffer.asShortBuffer();
+        
+        AudioSamples_ samples = new quorum.Libraries.Sound.AudioSamples();
+        AudioSamples samplesPlugin = ((quorum.Libraries.Sound.AudioSamples)samples).plugin_;
+        samplesPlugin.channels = 1;
+        samplesPlugin.samplesPerSecond = 44100;
+        samplesPlugin.buffer = new short[shortBuffer.limit()];
+        shortBuffer.get(samplesPlugin.buffer);
+        
+        return samples;
     }
     
     public boolean IsRecording()
     {
-        return device != null;
+        return isRecording;
     }
 }
