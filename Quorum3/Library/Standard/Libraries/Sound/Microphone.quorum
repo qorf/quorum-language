@@ -1,6 +1,7 @@
 package Libraries.Sound
 
 use Libraries.System.SystemHelper
+use Libraries.Compute.Math
 
 class Microphone 
     
@@ -13,7 +14,8 @@ class Microphone
     action Record(number seconds) returns AudioSamples
         Record()
         SystemHelper helper
-        helper:Sleep(seconds * 1000)
+        Math math
+        helper:Sleep(cast(integer, math:Round(seconds * 1000)))
         Stop()
         return GetSamples()
     end
