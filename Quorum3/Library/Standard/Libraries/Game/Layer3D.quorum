@@ -2271,6 +2271,16 @@ class Layer3D is Layer
             StepPhysics(seconds)
             SetScreenPositionsFromPhysicsPositions()
         end
+
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item3D item = items:Get(i)
+            item:SynchronizeNodes()
+
+            i = i + 1
+        end
+
+        collisionManager:FindNewCollisions()
     end
 
     /*
@@ -2612,8 +2622,6 @@ class Layer3D is Layer
         end
 
         IntegrateTransforms(seconds)
-
-        collisionManager:FindNewCollisions()
     end
     
     Math math

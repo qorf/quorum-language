@@ -51,10 +51,12 @@ class PhysicsProperties3D
     Item3D item = undefined
 
     constant number MAX_ANGULAR_VELOCITY = 0.5 * math:pi
-    constant number ANGULAR_MOTION_THRESHOLD = 0
+    constant number ANGULAR_MOTION_THRESHOLD = 0.5 * math:pi / 2
 
     Vector3 pushVelocity
     Vector3 turnVelocity
+
+    number angularFactor = 1
 
     action SetItem(Item3D item)
         me:item = item
@@ -84,12 +86,6 @@ class PhysicsProperties3D
                 i = i + 1
             end
         end
-
-        if not massSet
-            //SetDensity(mass / (item:GetWidth() * item:GetScaleX() * item:GetHeight() * item:GetScaleY()))
-        end
-
-        item:ResetMass()
     end
 
     action GetItem returns Item3D
@@ -120,6 +116,11 @@ class PhysicsProperties3D
         new:canRotate = canRotate
         new:timeOfImpactFlag = timeOfImpactFlag
         new:massSet = massSet
+        new:interpolatedLinearVelocity:Set(interpolatedLinearVelocity)
+        new:interpolatedAngularVelocity:Set(interpolatedAngularVelocity)
+        new:pushVelocity:Set(pushVelocity)
+        new:turnVelocity:Set(turnVelocity)
+        new:angularFactor = angularFactor
         
         return new
     end
@@ -164,7 +165,7 @@ class PhysicsProperties3D
         if type = UNMOVABLE
             return now
         end
-        me:angularVelocity = angularVelocity
+        me:angularVelocity:Set(angularVelocity)
     end
 
     action GetAngularVelocity returns Vector3
@@ -200,6 +201,7 @@ class PhysicsProperties3D
 
         Vector3 temp
         temp:Set(point):CrossProduct(force)
+        temp:Scale(angularFactor)
         ApplyTorque(temp)
     end
 
@@ -237,9 +239,12 @@ class PhysicsProperties3D
         end
         
         ApplyLinearImpulseToCenter(impulse)
-        Vector3 temp
-        temp:Set(point):CrossProduct(impulse)
-        ApplyAngularImpulse(temp)
+        if canRotate
+            Vector3 temp
+            temp:Set(point):CrossProduct(impulse)
+            temp:Scale(angularFactor)
+            ApplyAngularImpulse(temp)
+        end
     end
 
     action ApplyLinearImpulseToCenter(Vector3 impulse)
@@ -283,14 +288,6 @@ class PhysicsProperties3D
 
     action SetInverseMass(number inverseMass)
         me:inverseMass = inverseMass
-    end
-
-    action GetInertia returns number
-        return 0//inertia + mass * (sweep:GetLocalCenter():GetX() * sweep:GetLocalCenter():GetX() + sweep:GetLocalCenter():GetY() * sweep:GetLocalCenter():GetY())
-    end
-
-    action SetInertia(number inertia)
-        //me:inertia = inertia
     end
 
     action GetInverseInertiaLocal returns Vector3
@@ -424,6 +421,9 @@ class PhysicsProperties3D
 
     action CanRotate(boolean flag)
         canRotate = flag
+        if not canRotate
+            angularFactor = 0
+        end
     end
 
     action IsRotationAllowed returns boolean
@@ -439,6 +439,10 @@ class PhysicsProperties3D
     end
 
     action IntegrateVelocities(number seconds)
+        if type not= RESPONSIVE
+            return now
+        end
+
         Vector3 temp
         temp:Set(force):Scale(inverseMass * seconds)
         linearVelocity:Add(temp)
@@ -487,16 +491,6 @@ class PhysicsProperties3D
         predictedTransform:SetRotation(predictedOrn)
     end
 
-    action ApplyImpulses(Vector3 linear, Vector3 angular, number magnitude)
-        if inverseMass not= 0
-            Vector3 temp
-            temp:Set(linear):Scale(magnitude)
-            linearVelocity:Add(temp)
-            temp:Set(angular):Scale(magnitude)
-            angularVelocity:Add(temp)
-        end
-    end
-
     action UpdateInertia(Matrix3 basis)
         Matrix3 mat1
         mat1:row0column0 = basis:row0column0 * inverseInertiaLocal:GetX()
@@ -518,11 +512,7 @@ class PhysicsProperties3D
 
     action GetLinearVelocityAtLocalPoint(Vector3 relativePosition) returns Vector3
         Vector3 vec
-        number x = angularVelocity:GetY() * relativePosition:GetZ() - angularVelocity:GetZ() * relativePosition:GetY()
-        number y = relativePosition:GetX() * angularVelocity:GetZ() - relativePosition:GetZ() * angularVelocity:GetX()
-        vec:SetZ(angularVelocity:GetX() * relativePosition:GetY() - angularVelocity:GetY() * relativePosition:GetX())
-        vec:SetX(x)
-        vec:SetY(7)
+        vec:Set(angularVelocity):CrossProduct(relativePosition)
         vec:Add(linearVelocity)
         return vec
     end
@@ -549,7 +539,7 @@ class PhysicsProperties3D
             temp:Set(linearComponent):Scale(impulseMagnitude)
             linearVelocity:Add(temp)
             if canRotate
-                temp:Set(angularComponent):Scale(impulseMagnitude)
+                temp:Set(angularComponent):Scale(impulseMagnitude * angularFactor)
                 angularVelocity:Add(temp)
             end
         end

@@ -90,6 +90,8 @@ class Item3D is Item
     boolean physicsEnabled = false
     PhysicsProperties3D properties = undefined
 
+    boolean updateTransform = true
+
     private action GetChildAsItem(integer index) returns Item
         return children:Get(index)
     end
@@ -466,7 +468,10 @@ class Item3D is Item
     */
     action MoveX(number xAmount)
         transform:Translate(xAmount, 0, 0)
-        collisionTransform:GetOrigin():Add(xAmount, 0, 0)
+        if updateTransform
+            collisionTransform:GetOrigin():Add(xAmount, 0, 0)
+            collisionTransform0:Set(collisionTransform)
+        end
 
         x = x + xAmount
         SetOffsetX(offsetX)
@@ -488,7 +493,10 @@ class Item3D is Item
     */
     action MoveY(number yAmount)
         transform:Translate(0, yAmount, 0)
-        collisionTransform:GetOrigin():Add(0, yAmount, 0)
+        if updateTransform
+            collisionTransform:GetOrigin():Add(0, yAmount, 0)
+            collisionTransform0:Set(collisionTransform)
+        end
 
         y = y + yAmount
         SetOffsetY(offsetY)
@@ -510,7 +518,10 @@ class Item3D is Item
     */
     action MoveZ(number zAmount)
         transform:Translate(0, 0, zAmount)
-        collisionTransform:GetOrigin():Add(0, 0, zAmount)
+        if updateTransform
+            collisionTransform:GetOrigin():Add(0, 0, zAmount)
+            collisionTransform0:Set(collisionTransform)
+        end
         //transform:Translate(0, 0, -zAmount)
 
         z = z + zAmount
@@ -536,7 +547,10 @@ class Item3D is Item
     */
     action Move(number xAmount, number yAmount, number zAmount)
         transform:Translate(xAmount, yAmount, zAmount)
-        collisionTransform:GetOrigin():Add(xAmount, yAmount, zAmount)
+        if updateTransform
+            collisionTransform:GetOrigin():Add(xAmount, yAmount, zAmount)
+            collisionTransform0:Set(collisionTransform)
+        end
         //transform:Translate(xAmount, yAmount, -zAmount)
 
         x = x + xAmount
@@ -565,7 +579,10 @@ class Item3D is Item
     */
     action Move(Vector3 vector)
         transform:Translate(vector)
-        collisionTransform:GetOrigin():Add(vector)
+        if updateTransform
+            collisionTransform:GetOrigin():Add(vector)
+            collisionTransform0:Set(collisionTransform)
+        end
         //transform:Translate(vector:GetX(), vector:GetY(), vector:GetZ() * -1)
 
         x = x + vector:GetX()
@@ -593,7 +610,10 @@ class Item3D is Item
             number adjust = xAmount - offsetX
 
             transform:Translate(adjust, 0, 0)
-            collisionTransform:GetOrigin():Add(adjust, 0, 0)
+            if updateTransform
+                collisionTransform:GetOrigin():Add(adjust, 0, 0)
+                collisionTransform0:Set(collisionTransform)
+            end
         end
 
         offsetX = xAmount
@@ -624,7 +644,10 @@ class Item3D is Item
             number adjust = yAmount - offsetY
         
             transform:Translate(0, adjust, 0)
-            collisionTransform:GetOrigin():Add(0, adjust, 0)
+            if updateTransform
+                collisionTransform:GetOrigin():Add(0, adjust, 0)
+                collisionTransform0:Set(collisionTransform)
+            end
         end
 
         offsetY = yAmount
@@ -655,7 +678,10 @@ class Item3D is Item
             number adjust = zAmount - offsetZ
         
             transform:Translate(0, 0, adjust)
-            collisionTransform:GetOrigin():Add(0, 0, adjust)
+            if updateTransform
+                collisionTransform:GetOrigin():Add(0, 0, adjust)
+                collisionTransform0:Set(collisionTransform)
+            end
             //transform:Translate(0, 0, -adjust)
         end
 
@@ -687,7 +713,10 @@ class Item3D is Item
     action SetOffset(number xAmount, number yAmount, number zAmount)
         if xAmount not= offsetX or yAmount not= offsetY or zAmount not= offsetZ
             transform:Translate(xAmount - offsetX, yAmount - offsetY, zAmount - offsetZ)
-            collisionTransform:GetOrigin():Add(xAmount - offsetX, yAmount - offsetY, zAmount - offsetZ)
+            if updateTransform
+                collisionTransform:GetOrigin():Add(xAmount - offsetX, yAmount - offsetY, zAmount - offsetZ)
+                collisionTransform0:Set(collisionTransform)
+            end
             //transform:Translate(xAmount - offsetX, yAmount - offsetY, -(zAmount - offsetZ))
         end
 
@@ -1377,8 +1406,9 @@ class Item3D is Item
     */
     action Rotate(Vector3 vector, number degrees, boolean rotateChildren)
         transform:Rotate(vector:GetX(), vector:GetY(), -vector:GetZ(), degrees)
-        collisionTransform:SetRotation(collisionTransform:GetRotation():Add(transform:GetRotation()))
-
+        if updateTransform
+            collisionTransform:SetRotation(collisionTransform:GetRotation():Add(transform:GetRotation()))
+        end
         if rotateChildren
             RotateChildren(vector, degrees)
         end
@@ -2321,6 +2351,7 @@ class Item3D is Item
             PhysicsProperties3D properties
             me:properties = properties
             properties:SetItem(me)
+            interpolationTransform:Set(collisionTransform)
         end
     end
 
@@ -3024,10 +3055,12 @@ class Item3D is Item
     end
 
     action SetScreenPositionFromPhysicsPosition
+        me:updateTransform = false
         Vector3 offset
         offset:Set(collisionTransform:GetOrigin()):Subtract(collisionTransform0:GetOrigin())
         Move(offset:GetX(), offset:GetY(), offset:GetZ())
 
         //figure out rotation stuff
+        me:updateTransform = true
     end
 end
