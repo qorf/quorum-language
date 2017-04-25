@@ -69,6 +69,7 @@ class Item3D is Item
     boolean hasMoved = false
 
     PhysicsPosition3D collisionTransform
+    PhysicsPosition3D collisionTransform0
     PhysicsPosition3D interpolationTransform
 
     CollisionShape3D shape = undefined
@@ -3012,5 +3013,21 @@ class Item3D is Item
 
     action ProceedToTransform(PhysicsPosition3D transform)
         SetCenterOfMassTransform(transform)
+    end
+
+    action SetCollisionTransform0(PhysicsPosition3D transform)
+        me:collisionTransform0 = transform
+    end
+
+    action GetCollisionTransform0 returns PhysicsPosition3D
+        return me:collisionTransform0
+    end
+
+    action SetScreenPositionFromPhysicsPosition
+        Vector3 offset
+        offset:Set(collisionTransform:GetOrigin()):Subtract(collisionTransform0:GetOrigin())
+        Move(offset:GetX(), offset:GetY(), offset:GetZ())
+
+        //figure out rotation stuff
     end
 end

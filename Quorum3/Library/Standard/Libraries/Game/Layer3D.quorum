@@ -106,6 +106,8 @@ class Layer3D is Layer
 
     Vector3 gravity
 
+
+    number localTime = 1.0 / 60.0
     /*
     This array is used when adding or removing Items to the game to find any
     lights in the children hierarchy that need to be added/removed from the
@@ -2248,10 +2250,13 @@ class Layer3D is Layer
     as necessary. Most users should never need to use this action directly.
     */
     action TestForCollisions(number seconds)
+        localTime = seconds
+        
         //SetPhysicsPositionFromScreenPosition()
         if physicsEnabled
             SaveKinematicState(seconds)
             ApplyGravity()
+            PredictUnconstrainedMotion(seconds)
         end
         
 
@@ -2264,7 +2269,7 @@ class Layer3D is Layer
 
         if physicsEnabled
             StepPhysics(seconds)
-            //SetScreenPositionFromPhysicsPosition()
+            SetScreenPositionsFromPhysicsPositions()
         end
     end
 
@@ -2426,9 +2431,7 @@ class Layer3D is Layer
         repeat items:GetSize() times
             Item3D body = items:Get(i)
             if body:IsPhysicsEnabled()
-                Vector3 zero
-                zero:SetZero()
-                body:SetForce(zero)
+                body:GetForce():SetZero()
                 body:GetTorque():SetZero()
             end
             i = i + 1
@@ -2437,6 +2440,7 @@ class Layer3D is Layer
 
     action StepPhysics(number seconds)
         SolvePhysics(seconds)
+        SynchronizeTransforms()
 
         if automaticallyClearForces
             ClearForces()
@@ -2450,7 +2454,7 @@ class Layer3D is Layer
         repeat items:GetSize() times
             Item3D item = items:Get(i)
             if item:IsPhysicsEnabled()
-                if item:IsResponsive()
+                if item:IsResponsive() and item:IsSimulated()
                     item:IntegrateVelocities(seconds)
                     item:ApplyDamping(seconds)
                     item:PredictIntegratedTransform(seconds, item:GetInterpolationWorldTransform())
@@ -2474,10 +2478,11 @@ class Layer3D is Layer
             if body:IsPhysicsEnabled()
                 body:SetCollisionGroupFlag(false)
             end
+            body:GetCollisionTransform():Set(body:GetCollisionTransform())
             i = i + 1
         end
 
-        CollisionEvent3D collision //= collisionManager:GetCollisionList()
+        CollisionEvent3D collision = collisionManager:GetCollisionList()
         repeat until collision = undefined
             collision:SetInCollisionGroup(false)
             collision = collision:GetNext()
@@ -2521,7 +2526,7 @@ class Layer3D is Layer
                     else
                         CollisionEdge3D edge = body:GetCollisionList()
                         repeat while edge not= undefined
-                            CollisionEvent3D collision1 //= edge:GetCollision()
+                            CollisionEvent3D collision1 = edge:GetCollision()
                             if collision1:InCollisionGroup()
                                 // continue with group -- the collision has already been
                                 // accounted for in the collision group
@@ -2540,7 +2545,7 @@ class Layer3D is Layer
                                     island:Add(collision1)
                                     collision1:SetInCollisionGroup(true)
 
-                                    Item3D other //= edge:GetOther()
+                                    Item3D other = edge:GetOther()
                                     if other:GetCollisionGroupFlag()
                                         // continue with group -- the other item
                                         // is already in this group
@@ -2626,14 +2631,14 @@ class Layer3D is Layer
                 linvel:Set(body:GetInterpolatedLinearVelocity())
                 Vector3 angvel
                 angvel:Set(body:GetInterpolatedAngularVelocity())
-                number timestep = 0//localTime * body:GetHitFraction()
+                number timestep = localTime //* body:GetHitFraction()
                 
-                predictedTransform:GetOrigin():Set(linvel):Scale(timestep)
+                predictedTransform:GetOrigin():Set(linvel):Scale(timestep):Add(curTrans:GetOrigin())
                 Vector3 axis
                 number fangle = angvel:Length()
 
-                if fangle * timestep > 0
-                    fangle = 0 / timestep
+                if fangle * timestep > 0.5 * math:pi / 2
+                    fangle = (0.5 * math:pi / 2) / timestep
                 end
 
                 if fangle < 0.001
@@ -2709,6 +2714,18 @@ class Layer3D is Layer
 
                     item:ProceedToTransform(predictedTransform)
                 end
+            end
+
+            i = i + 1
+        end
+    end
+
+    action SetScreenPositionsFromPhysicsPositions
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item3D item = items:Get(i)
+            if item:IsPhysicsEnabled()
+                item:SetScreenPositionFromPhysicsPosition()
             end
 
             i = i + 1

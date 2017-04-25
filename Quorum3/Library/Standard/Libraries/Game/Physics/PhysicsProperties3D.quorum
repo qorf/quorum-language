@@ -268,14 +268,13 @@ class PhysicsProperties3D
 
     action SetMass(number mass)
         me:mass = mass
+        if mass not= 0
+            me:inverseMass = 1.0 / mass
+        end
         if item not= undefined
             massSet = true
             //SetDensity(mass / (item:GetWidth() * item:GetScaleX() * item:GetHeight() * item:GetScaleY()))
         end
-    end
-
-    action AssignMass(number mass)
-        me:mass = mass
     end
 
     action GetInverseMass returns number
@@ -445,9 +444,6 @@ class PhysicsProperties3D
         linearVelocity:Add(temp)
         temp:Set(torque)
         inverseInertiaWorld:Transform(temp)
-        number x = inverseInertiaWorld:row0column0 * temp:GetX() + inverseInertiaWorld:row0column1 * temp:GetY() + inverseInertiaWorld:row0column2 * temp:GetZ()
-        number y = inverseInertiaWorld:row1column0 * temp:GetX() + inverseInertiaWorld:row1column1 * temp:GetY() + inverseInertiaWorld:row1column2 * temp:GetZ()
-        number z = inverseInertiaWorld:row2column0 * temp:GetX() + inverseInertiaWorld:row2column1 * temp:GetY() + inverseInertiaWorld:row2column2 * temp:GetZ()
         temp:Scale(seconds)
         angularVelocity:Add(temp)
 
