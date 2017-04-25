@@ -5,7 +5,10 @@ use Libraries.Game.Physics.all
 use Libraries.Interface.Item3D
 
 class Joint3D
-    
+    public constant integer PointToPoint = 0
+    public constant integer Hinge = 1
+    public constant integer SixDegreesOfFreedom = 2
+    public constant integer Slider = 3
     integer type = 0
     Item3D itemA
     Item3D itemB
