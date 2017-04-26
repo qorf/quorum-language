@@ -1,4 +1,4 @@
-package Libraries.Game.Physics.Joints
+/*package Libraries.Game.Physics.Joints
 
 use Libraries.Game.Physics.CollisionSolverInformation3D
 use Libraries.Game.Physics.all
@@ -10,15 +10,15 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     Math math
     PhysicsPosition3D frameInA  
     PhysicsPosition3D frameInB  
-    Array<ConstraintDescription3D> jacLinear/*[3]*/ 
-    Array<ConstraintDescription3D> jacAng/*[3]*/
+    Array<ConstraintDescription3D> jacLinear/*[3]/ 
+    Array<ConstraintDescription3D> jacAng/*[3]/
     TranslationalLimitMotor linearLimits
-    Array<RotationalLimitMotor> angularLimits/*[3]*/ 
+    Array<RotationalLimitMotor> angularLimits/*[3]/ 
     number timeStep
     PhysicsPosition3D calculatedTransformA 
     PhysicsPosition3D calculatedTransformB 
     Vector3 calculatedAxisAngleDiff
-    Array<Vector3> calculatedAxis/*[3]*/ 
+    Array<Vector3> calculatedAxis/*[3]/ 
     Vector3 anchorPos
     Vector3 calculatedLinearDiff
     boolean useLinearReferenceFrameA  = true
@@ -205,7 +205,7 @@ class SixDegreesOfFreedomJoint3D is Joint3D
                 else 
                     normalWorld:Set(calculatedTransformB:GetBasis:GetColumn(i))
                 end
-                BuildLinearJacobian(/*jacLinear[i]*/i, normalWorld, pivotAInW, pivotBInW)
+                BuildLinearJacobian(/*jacLinear[i]/i, normalWorld, pivotAInW, pivotBInW)
             end
             i = i + 1 
 	end
@@ -215,7 +215,7 @@ class SixDegreesOfFreedomJoint3D is Joint3D
         repeat 3 times
             if TestAngularLimitMotor(i)    
                 normalWorld:Set(GetAxis(i))
-                BuildAngularJacobian(/*jacAng[i]*/i, normalWorld)
+                BuildAngularJacobian(/*jacAng[i]/i, normalWorld)
             end
             i = i + 1
 	end
@@ -263,7 +263,7 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     /**
     * Get the rotation axis in global coordinates.
     * Generic6DofConstraint.buildJacobian must be called previously.
-    */
+    /
     action GetAxis(integer axisIndex) returns Vector3
         Vector3 out
         out:Set(calculatedAxis:Get(axisIndex))
@@ -273,7 +273,7 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     /**
     * Get the relative Euler angle.
     * Generic6DofConstraint.buildJacobian must be called previously.
-    */
+    /
     action GetAngle(integer axisIndex) returns number
         if axisIndex = 0
             return calculatedAxisAngleDiff:GetX()
@@ -287,7 +287,7 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     /**
     * Gets the global transform of the offset for body A.<p>
     * See also: Generic6DofConstraint.getFrameOffsetA, Generic6DofConstraint.getFrameOffsetB, Generic6DofConstraint.calculateAngleInfo.
-    */
+    /
     action GetCalculatedTransformA() returns PhysicsPosition3D
         PhysicsPosition3D out
         out:Set(calculatedTransformA)
@@ -298,7 +298,7 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     /**
     * Gets the global transform of the offset for body B.<p>
     * See also: Generic6DofConstraint.getFrameOffsetA, Generic6DofConstraint.getFrameOffsetB, Generic6DofConstraint.calculateAngleInfo.
-    */
+    /
     action GetCalculatedTransformB() returns PhysicsPosition3D
         PhysicsPosition3D out
 	out:Set(calculatedTransformB)
@@ -346,14 +346,14 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 
     /**
     * Retrieves the limit information.
-    */
+    /
     action GetTranslationalLimitMotor() returns TranslationalLimitMotor
 	return linearLimits
     end    
 
     /**
     * first 3 are linear, next 3 are angular
-    */
+    /
     action SetLimit(integer axis, number lo, number hi) 
 	if axis < 3
             if axis = 0
@@ -378,7 +378,7 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     * - locked means upper == lower<br>
     * - limited means upper &gt; lower<br>
     * - limitIndex: first 3 are linear, next 3 are angular
-    */
+    /
     action IsLimited(integer limitIndex) returns boolean
 	if limitIndex < 3
             return linearLimits:IsLimited(limitIndex)
@@ -406,5 +406,5 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 	tmp2:Set(pB:Scale(1 - weight))
 	anchorPos:Add(tmp1, tmp2)
     end            
-end
+end*/
 
