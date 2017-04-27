@@ -1834,4 +1834,28 @@ class Matrix3
         number z = row2column0 * vector:GetZ() + row2column1 * vector:GetY() + row2column2 * vector:GetZ()
         vector:Set(x, y, z)
     end
+
+    action GetColumn(integer index) returns Vector3
+        Vector3 out
+        if index = 0
+            out:Set(row0column0, row1column0, row2column0)
+        elseif index = 1
+            out:Set(row0column1, row1column1, row2column1)
+        elseif index = 2
+            out:Set(row0column2, row1column2, row2column2)
+        end
+        return out
+    end
+
+    action GetRow(integer index) returns Vector3
+        Vector3 out
+        if index = 0
+            out:Set(row0column0, row0column1, row0column2)
+        elseif index = 1
+            out:Set(row1column0, row1column1, row1column2)
+        elseif index = 2
+            out:Set(row2column0, row2column1, row2column2)
+        end
+        return out
+    end
 end

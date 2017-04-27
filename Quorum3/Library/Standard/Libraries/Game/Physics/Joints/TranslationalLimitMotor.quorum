@@ -1,0 +1,286 @@
+package Libraries.Game.Physics.Joints
+
+use Libraries.Game.Physics.CollisionSolverInformation3D
+use Libraries.Game.Physics.all
+use Libraries.Interface.Item3D
+use Libraries.Containers.Array
+use Libraries.Compute.Math  
+use Libraries.Compute.Vector3 
+
+class TranslationalLimitMotor
+
+    Math math
+    Vector3 lowerLimit 
+    Vector3 upperLimit 
+    Vector3 accumulatedImpulse
+	
+    number limitSoftness = 0.7
+    number damping = 0.1
+    number restitution = 0.5
+
+    Array<boolean> enableMotor /*[3]*/
+    Vector3 targetVelocity
+    Vector3 maxMotorForce
+    Vector3 maxLimitForce
+    Vector3 currentLimitError
+    Vector3 currentLinearDiff
+    Array<integer> currentLimit /*[3]*/
+      
+    on create
+        maxMotorForce:Set(0.1, 0.1, 0.1)
+        maxLimitForce:Set(300.0, 300.0, 300.0)
+        repeat 3 times
+            enableMotor:Add(false)
+            currentLimit:Add(0)
+        end
+    end 
+    
+    action Set(TranslationalLimitMotor other) 
+	lowerLimit:Set(other:GetLowerLimit())
+	upperLimit:Set(other:GetUpperLimit())
+	accumulatedImpulse:Set(other:GetAccumulatedImpulse())
+
+	limitSoftness = other:GetLimitSoftness()
+	damping = other:GetDamping()
+	restitution = other:GetRestitution()
+    end    
+
+    action IsLimited(integer limitIndex) returns boolean
+        if limitIndex = 0
+            return upperLimit:GetX() >= lowerLimit:GetX()
+        elseif limitIndex = 1
+            return upperLimit:GetY() >= lowerLimit:GetY()
+        elseif limitIndex = 2
+            return upperLimit:GetZ() >= lowerLimit:GetZ()    
+	end
+        return false
+    end   
+
+    action NeedApplyForces(integer index) returns boolean
+        if currentLimit:Get(index) = 0 and enableMotor:Get(index) = false)
+            return false
+        end
+        return true
+    end
+
+    action TestLimitValue(integer limitIndex, number testValue) returns integer
+        number loLimit 
+        number hiLimit 
+
+        if limitIndex = 0
+            loLimit = lowerLimit:GetX()
+            hiLimit = upperLimit:GetX()
+        elseif limitIndex = 1
+            loLimit = lowerLimit:GetY()
+            hiLimit = upperLimit:GetY()
+        elseif limitIndex = 2
+            loLimit = lowerLimit:GetZ()
+            hiLimit = upperLimit:GetZ()  
+        end
+        if loLimit > hiLimit
+            currentLimit:Set(limitIndex, 0)
+            if limitIndex = 0
+                currentLimitError:SetX(0)
+            elseif limitIndex = 1
+                currentLimitError:SetY(0)
+            elseif limitIndex = 2
+                currentLimitError:SetZ(0)   
+            end
+            return 0
+        end
+
+        if testValue < loLimit
+            currentLimit:Set(limitIndex, 2)
+            if limitIndex = 0
+                currentLimitError:SetX(testValue - loLimit)
+            elseif limitIndex = 1
+                currentLimitError:SetY(testValue - loLimit)
+            elseif limitIndex = 2
+                currentLimitError:SetZ(testValue - loLimit)   
+            end
+            return 2
+        elseif testValue > hiLimit
+            currentLimit:Set(limitIndex, 1)
+            if limitIndex = 0
+                currentLimitError:SetX(testValue - hiLimit)
+            elseif limitIndex = 1
+                currentLimitError:SetY(testValue - hiLimit)
+            elseif limitIndex = 2
+                currentLimitError:SetZ(testValue - hiLimit)   
+            end
+            return 1
+        end
+
+        currentLimit:Set(limitIndex, 0)
+        if limitIndex = 0
+            currentLimitError:SetX(0)
+        elseif limitIndex = 1
+            currentLimitError:SetY(0)
+        elseif limitIndex = 2
+            currentLimitError:SetZ(0)   
+        end
+        return 0
+    end
+
+    action SolveLinearAxis(number timeStep, number jacDiagABInv, Item3D body1, Vector3 pointInA, Item3D body2, Vector3 pointInB, integer limitIndex, Vector3 axisNormalOnA, Vector3 anchorPos) returns number
+	Vector3 tmp
+	Vector3 tmpVec
+		
+	Vector3 relativePosition1
+        tmpVec:Set(anchorPos)
+	relativePosition1:Set(tmpVec:Subtract(body1:GetCenterOfMassPosition()))
+
+	Vector3 relativePosition2
+        tmpVec:Set(anchorPos)
+	relativePosition2:Set(tmpVec:Subtract(body2.getCenterOfMassPosition()))
+
+	Vector3 velocity1         
+	Vector3 velocity2        
+	Vector3 velocity
+
+        velocity1:Set(body1:GetLinearVelocityAtLocalPoint(relativePosition1))
+        velocity2:Set(body2:GetLinearVelocityAtLocalPoint(relativePosition2))
+	velocity:Set(velocity1:Subtract(velocity2)) //Note that velocity1 has changed!
+
+	number relativeVelocity = axisNormalOnA:DotProduct(velocity)
+        number localTargetVelocity
+        number localMaxMotorForce
+        number limitError
+
+        if limitIndex = 0
+            localTargetVelocity = targetVelocity:GetX()
+            localMaxMotorForce = maxMotorForce:GetX()
+            limitError = currentLimitError:GetX()
+        elseif limitIndex = 1
+            localTargetVelocity = targetVelocity:GetY()
+            localMaxMotorForce = maxMotorForce:GetY()
+            limitError = currentLimitError:GetY()
+        elseif limitIndex = 2
+            localTargetVelocity = targetVelocity:GetZ()
+            localMaxMotorForce = maxMotorForce:GetZ() 
+            limitError = currentLimitError:GetZ()
+        end
+        
+        if currentLimit:Get(limitIndex) not= 0
+            localTargetVelocity = restitution * limitError / (timeStep)
+            if limitIndex = 1
+                localMaxMotorForce = maxLimitForce:GetY()
+            elseif limitIndex = 2
+                localMaxMotorForce = maxLimitForce:GetZ() 
+            end
+        end
+	localMaxMotorForce = localMaxMotorForce * timeStep
+
+        // correction velocity
+	number motorRelvel = limitSoftness * (localTargetVelocity - damping * relativeVelocity)
+	if motorRelvel < 1.19209290 * (math:RaiseToPower(10, -07)) and motorRelvel > -1.19209290 * (math:RaiseToPower(10, -07))
+            return 0
+	end
+                
+        // correction impulse
+	number unclippedMotorImpulse = motorRelvel * jacDiagABInv
+
+	// clip correction impulse
+	number clippedMotorImpulse
+
+	if unclippedMotorImpulse > 0
+            if unclippedMotorImpulse > localMaxMotorForce
+                clippedMotorImpulse =  maxMotorForce 
+            else
+                clippedMotorImpulse = unclippedMotorImpulse
+            end
+	else 
+            if unclippedMotorImpulse < -maxMotorForce
+                clippedMotorImpulse = -maxMotorForce 
+            else
+                clippedMotorImpulse = unclippedMotorImpulse
+            end
+	end
+
+        number normalImpulse = clippedMotorImpulse
+
+        // sort with accumulated impulses
+	number lo = -(math:RaiseToPower(10, 30)
+	number hi = math:RaiseToPower(10, 30)
+	number oldNormalImpulse
+
+        if limitIndex = 0
+            oldNormalImpulse = accumulatedImpulse:GetX()
+        elseif limitIndex = 1
+            oldNormalImpulse = accumulatedImpulse:GetY()
+        elseif limitIndex = 2
+            oldNormalImpulse = accumulatedImpulse:GetZ()
+        end
+
+	number sum = oldNormalImpulse + normalImpulse
+
+        if limitIndex = 0
+            if sum > hi
+                accumulatedImpulse:SetX(0)
+            elseif sum < lo
+                accumulatedImpulse:SetX(0)
+            else
+                accumulatedImpulse:SetX(sum)
+            end
+        elseif limitIndex = 1
+            if sum > hi
+                accumulatedImpulse:SetY(0)
+            elseif sum < lo
+                accumulatedImpulse:SetY(0)
+            else
+                accumulatedImpulse:SetY(sum)
+            end
+        elseif limitIndex = 2
+            if sum > hi
+                accumulatedImpulse:SetZ(0)
+            elseif sum < lo
+                accumulatedImpulse:SetZ(0)
+            else
+                accumulatedImpulse:SetZ(sum)
+            end
+        end        
+        if limitIndex = 0
+            normalImpulse = accumulatedImpulse:GetX() - oldNormalImpulse
+        elseif limitIndex = 1
+            normalImpulse = accumulatedImpulse:GetY() - oldNormalImpulse
+        elseif limitIndex = 2
+            normalImpulse = accumulatedImpulse:GetZ() - oldNormalImpulse
+        end        
+	Vector3 impulseVector
+        impulseVector:Set(axisNormalOnA)
+	impulseVector:Scale(normalImpulse)
+        body1:ApplyLinearImpulse(impulseVector, relativePosition1)
+	tmp:Set(-impulseVector:GetX(), -impulseVector:GetY(), -impulseVector:GetZ())
+	body2:ApplyLinearImpulse(tmp, relativePosition2)
+	return normalImpulse
+    end 
+    
+    action SetAccumulatedImpulse(number x, number y, number z)
+        accumulatedImpulse:Set(x, y, z)
+    end
+
+    action GetLowerLimit() returns Vector3
+        return lowerLimit
+    end
+    
+    action GetUpperLimit() returns Vector3
+        return upperLimit
+    end
+
+    action GetAccumulatedImpulse() return Vector3
+        return accumulatedImpulse
+    end
+
+    action GetLimitSoftness() returns number
+        return limitSoftness
+    end
+
+    action GetDamping() returns number
+        return damping
+    end
+
+    action GetRestitution() returns number
+        return restitution
+    end
+end
+

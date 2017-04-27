@@ -2469,20 +2469,6 @@ class Item3D is Item
         properties:ApplyTorque(torque)
     end
 
-    action ApplyImpulse(Vector3 impulse, Vector3 relativePosition)
-        if GetInverseMass() not= 0
-            impulse:Scale(GetInverseMass())
-            SetLinearVelocity(GetLinearVelocity():Add(impulse))
-            if properties:GetAngularFactor() not= 0
-                Vector3 tmp
-                tmp:Set(relativePosition)
-                tmp:CrossProduct(impulse)
-                tmp:Scale(properties:GetAngularFactor())
-                ApplyAngularImpulse(tmp)
-            end
-        end
-    end
-
     action ApplyLinearImpulse(Vector3 impulse, Vector3 point)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)

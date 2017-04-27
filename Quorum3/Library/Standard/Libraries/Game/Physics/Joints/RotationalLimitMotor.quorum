@@ -144,7 +144,11 @@ class RotationalLimitMotor
 
 	return clippedMotorImpulse
         return 0
-    end   
+    end  
+
+    action SetAccumulatedImpulse(number x, number y, number z)
+        accumulatedImpulse:Set(x, y, z)
+    end 
     
     action GetTargetVelocity() returns number
         return targetVelocity
