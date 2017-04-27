@@ -229,8 +229,8 @@ class CollisionEvent3D
         PhysicsPosition3D tempTransform1
         PhysicsPosition3D tempTransform2
 
-        tempTransform1:Set(itemA:GetCollisionTransform())
-        tempTransform2:Set(itemB:GetCollisionTransform())
+        tempTransform1:Set(transformA)
+        tempTransform2:Set(transformB)
 
         collisionPoints:ClearCollisionPoints()
         result:SetCollisionPoints(collisionPoints)

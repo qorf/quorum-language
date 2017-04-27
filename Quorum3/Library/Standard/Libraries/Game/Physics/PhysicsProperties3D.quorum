@@ -488,7 +488,8 @@ class PhysicsProperties3D
 
         Quaternion dorn
         dorn:Set(axis:GetX(), axis:GetY(), axis:GetZ(), math:Cosine(fAngle * seconds * 0.5))
-        Quaternion orn0 = currentTransform:GetRotation()
+        Quaternion orn0
+        orn0:Set(currentTransform:GetRotation())
 
         Quaternion predictedOrn
         predictedOrn:Set(dorn):Multiply(orn0)

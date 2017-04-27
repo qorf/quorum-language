@@ -2269,6 +2269,10 @@ class Layer3D is Layer
 
         if physicsEnabled
             StepPhysics(seconds)
+            SynchronizeTransforms()
+            if automaticallyClearForces
+                ClearForces()
+            end
             SetScreenPositionsFromPhysicsPositions()
         end
 
@@ -2451,10 +2455,6 @@ class Layer3D is Layer
     action StepPhysics(number seconds)
         SolvePhysics(seconds)
         SynchronizeTransforms()
-
-        if automaticallyClearForces
-            ClearForces()
-        end
     end
 
     private action PredictUnconstrainedMotion(number seconds)
@@ -2469,7 +2469,6 @@ class Layer3D is Layer
                     item:IntegrateVelocities(seconds)
                     item:ApplyDamping(seconds)
                     item:PredictIntegratedTransform(seconds, temp)
-                    item:GetInterpolationWorldTransform():Set(temp)
                 end
             end
             i = i + 1
@@ -2624,6 +2623,25 @@ class Layer3D is Layer
         end
 
         IntegrateTransforms(seconds)
+
+        i = 0
+        repeat items:GetSize() times
+            Item3D body = items:Get(i)
+            if not body:IsPhysicsEnabled() 
+                // do nothing -- physics is not enabled for this item
+            elseif (not body:GetCollisionGroupFlag()) and body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
+                // do nothing -- this item was never a part of a physics group
+            elseif body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE and not body:HasMoved()
+                // do nothing -- this item is unmovable so synchronizing its nodes
+                // is not necessary
+            else
+                body:SynchronizeNodes()
+                body:SetHasMoved(false)
+            end
+            i = i + 1
+        end
+
+        collisionManager:FindNewCollisions()
     end
     
     Math math
@@ -2654,11 +2672,12 @@ class Layer3D is Layer
                 if fangle < 0.001
                     axis:Set(angvel):Scale(0.5 * timestep - (timestep * timestep * timestep) * (0.020833333333) * fangle * fangle)
                 else
-                    axis:Set(angvel):Scale(math:Sine(0.5 * fangle * timestep))
+                    axis:Set(angvel):Scale(math:Sine(0.5 * fangle * timestep) / fangle)
                 end
                 Quaternion dorn
                 dorn:Set(axis:GetX(), axis:GetY(), axis:GetZ(), math:Cosine(fangle * timestep * 0.5))
-                Quaternion orn0 = curTrans:GetRotation()
+                Quaternion orn0
+                orn0:Set(curTrans:GetRotation())
 
                 Quaternion predictedOrn
                 predictedOrn:Set(dorn):Multiply(orn0)
@@ -2713,6 +2732,8 @@ class Layer3D is Layer
         repeat while i < items:GetSize()
             Item3D item = items:Get(i)
             if item:IsPhysicsEnabled()
+                item:SetTimeOfImpact(1)
+
                 if item:IsSimulated() and item:IsResponsive()
                     item:PredictIntegratedTransform(timeStep, predictedTransform)
                     temp:Set(predictedTransform:GetOrigin())
