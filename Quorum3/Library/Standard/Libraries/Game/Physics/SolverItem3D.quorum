@@ -9,6 +9,7 @@ use Libraries.Game.Physics.all
 
 class SolverItem3D
     Vector3 angularVelocity
+    number angularFactor = 1
     number inverseMass = 0
     number friction = 0
     Item3D originalItem
@@ -29,10 +30,20 @@ class SolverItem3D
     action InternalApplyImpulse(Vector3 linearComponent, Vector3 angularComponent, number impulseMagnitude)
         if inverseMass not= 0
             Vector3 temp
-            temp:Set(linearComponent):Scale(impulseMagnitude)
-            pushVelocity:Add(temp)
-            temp:Set(angularComponent):Scale(impulseMagnitude)
-            turnVelocity:Add(temp)
+            temp:Set(linearComponent):Scale(impulseMagnitude):Add(linearVelocity)
+            linearVelocity:Set(temp)
+            temp:Set(angularComponent):Scale(impulseMagnitude * angularFactor):Add(angularVelocity)
+            angularVelocity:Set(temp)
+        end
+    end
+
+    action InternalApplyPushImpulse(Vector3 linearComponent, Vector3 angularComponent, number impulseMagnitude)
+        if inverseMass not= 0
+            Vector3 temp
+            temp:Set(linearComponent):Scale(impulseMagnitude):Add(pushVelocity)
+            pushVelocity:Set(temp)
+            temp:Set(angularComponent):Scale(impulseMagnitude * angularFactor):Add(turnVelocity)
+            turnVelocity:Set(temp)
         end
     end
 

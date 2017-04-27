@@ -92,6 +92,8 @@ class Item3D is Item
 
     boolean updateTransform = true
 
+    number timeOfImpact = 1
+
     private action GetChildAsItem(integer index) returns Item
         return children:Get(index)
     end
@@ -3062,5 +3064,13 @@ class Item3D is Item
 
         //figure out rotation stuff
         me:updateTransform = true
+    end
+
+    action GetTimeOfImpact returns number
+        return timeOfImpact
+    end
+
+    action SetTimeOfImpact(number timeOfImpact)
+        me:timeOfImpact = timeOfImpact
     end
 end

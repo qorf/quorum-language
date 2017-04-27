@@ -2465,9 +2465,11 @@ class Layer3D is Layer
             Item3D item = items:Get(i)
             if item:IsPhysicsEnabled()
                 if item:IsResponsive() and item:IsSimulated()
+                    temp:Set(item:GetInterpolationWorldTransform())
                     item:IntegrateVelocities(seconds)
                     item:ApplyDamping(seconds)
-                    item:PredictIntegratedTransform(seconds, item:GetInterpolationWorldTransform())
+                    item:PredictIntegratedTransform(seconds, temp)
+                    item:GetInterpolationWorldTransform():Set(temp)
                 end
             end
             i = i + 1
@@ -2639,7 +2641,7 @@ class Layer3D is Layer
                 linvel:Set(body:GetInterpolatedLinearVelocity())
                 Vector3 angvel
                 angvel:Set(body:GetInterpolatedAngularVelocity())
-                number timestep = localTime //* body:GetHitFraction()
+                number timestep = localTime * body:GetTimeOfImpact()
                 
                 predictedTransform:GetOrigin():Set(linvel):Scale(timestep):Add(curTrans:GetOrigin())
                 Vector3 axis

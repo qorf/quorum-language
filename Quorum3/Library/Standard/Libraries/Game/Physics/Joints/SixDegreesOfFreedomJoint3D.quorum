@@ -7,404 +7,404 @@ use Libraries.Containers.Array
 
 class SixDegreesOfFreedomJoint3D is Joint3D
     
-    Math math
-    PhysicsPosition3D frameInA  
-    PhysicsPosition3D frameInB  
-    Array<ConstraintDescription3D> jacLinear/*[3]*/ 
-    Array<ConstraintDescription3D> jacAng/*[3]*/
-    TranslationalLimitMotor linearLimits
-    Array<RotationalLimitMotor> angularLimits/*[3]*/ 
-    number timeStep
-    PhysicsPosition3D calculatedTransformA 
-    PhysicsPosition3D calculatedTransformB 
-    Vector3 calculatedAxisAngleDiff
-    Array<Vector3> calculatedAxis/*[3]*/ 
-    Vector3 anchorPos
-    Vector3 calculatedLinearDiff
-    boolean useLinearReferenceFrameA  = true
-
-    on create
-    Vector3 dummy
-    ConstraintDescription3D filler
-    RotationalLimitMotor ghost
-
-    calculatedAxis:Add(dummy)
-    calculatedAxis:Add(dummy)
-    calculatedAxis:Add(dummy)
-    angularLimits:Add(ghost)
-    angularLimits:Add(ghost)
-    angularLimits:Add(ghost)
-    jacAng:Add(filler)
-    jacAng:Add(filler)
-    jacAng:Add(filler)
-    jacLinear:Add(filler)
-    jacLinear:Add(filler)
-    jacLinear:Add(filler)
-    parent:Joint3D:SetType(parent:Joint3D:SixDegreesOfFreedom)
-    end
-
-    action getMatrixElement(Matrix3 mat, integer index) returns number
-        mat:GetElement(index%3, index/3)
-    end
-
-    action MatrixToEulerXYZ(Matrix3 mat, Vector3 xyz) returns boolean
-        if getMatrixElement(mat, 2) < 1.0
-            if getMatrixElement(mat, 2) > -1.0
-                xyz:SetX(math.InverseTangent(getMatrixElement(mat, 8), -getMatrixElement(mat, 5)))
-                xyz:SetY(math.InverseSine(getMatrixElement(mat, 2)))
-                xyz:SetZ(math.InverseTangent(getMatrixElement(mat, 0), -getMatrixElement(mat, 1)))
-                return true
-            else 
-                xyz:SetX(-math.InverseTangent(getMatrixElement(mat, 4), getMatrixElement(mat, 3)))
-                xyz:SetY(- 6.283185307179586232 * 0.25)
-                xyz:SetZ(0.0)
-                return false
-            end
-        else 
-            xyz:SetX(math.InverseTangent(getMatrixElem(mat, 4), getMatrixElem(mat, 3)))
-            xyz:SetY(- 6.283185307179586232 * 0.25)
-            xyz:SetZ(0.0)
-        end
-        return false
-    end
-
-    action CalculateLinearInfo()
-        Vector3 temp
-        
-        temp:Set(calculatedTransformB:GetOrigin())
-        temp:Subtract(calculatedTransformA:GetOrigin())
-
-        Matrix3 basisInv
-        basisInv:Set(calculatedTransformA:GetBasis():inverse())
-        basisInv:Transform(calculatedLinearDiff)
-
-        linearLimits:SetCurrentLinearDiff(calculatedLinearDiff)
-        linearLimits:TestLimitValue(i, calculatedLinearDiff:GetX())
-        linearLimits:TestLimitValue(i, calculatedLinearDiff:GetY())
-        linearLimits:TestLimitValue(i, calculatedLinearDiff:GetZ())
-    end
-
-    action CalculateAngleInfo() {
-	Matrix3 mat
-	Matrix3 relativeFrame
-
-	mat:Set(calculatedTransformA:GetBasis())
-	mat:Inverse()
-	relativeFrame:Multiply(mat, calculatedTransformB:GetBasis())
-
-	MatrixToEulerXYZ(relativeFrame, calculatedAxisAngleDiff)
-
-	Vector3 axis0 
-	axis0:Set(calculatedTransformB:GetBasis():row0column0, calculatedTransformB:GetBasis():row1column0,calculatedTransformB:GetBasis():row2column0)
-
-	Vector3 axis2
-        Vector3 axis22
-        axis2:Set(calculatedTransformA:GetBasis():row0column2, calculatedTransformB:GetBasis():row1column2,calculatedTransformB:GetBasis():row2column2)
-        axis22:Set(axis2)
-
-        Vector3 cAxis1
-	calculatedAxis:Set(1, axis2:CrossProduct(axis0))
-        cAxis1:Set(calculatedAxis:Get(1))
-	calculatedAxis:Set(0, cAxis1:CrossProduct(axis22))
-	calculatedAxis:Set(2, axis0:CrossProduct(calculatedAxis:Get(1)))
-    end
-
-    action CalculateTransforms() 
-	calculatedTransformA:Set(parent:Joint3D:itemA:GetCenterOfMassTransform())
-	calculatedTransformA:Multiply(frameInA)
-
-	calculatedTransformB:Set(parent:Joint3D:itemB:GetCenterOfMassTransform())
-	calculatedTransformB:Multiply(frameInB)
-
-        CalculateLinearInfo()            
-	CalculateAngleInfo()
-    end  
-
-    action BuildLinearJacobian(integer jacLinearIndex, Vector3 normalWorld, Vector3 pivotAInW, Vector3 pivotBInW) 
-	Matrix3 mat1
-        mat1:Set(parent:Joint3D:itemA:GetCenterOfMassTransform():GetBasis())
-	mat1:Transpose()
-
-	Matrix3 mat2
-        mat2:Set(parent:Joint3D:itemB:GetCenterOfMassTransform():GetBasis())
-	mat2:Transpose()
-		
-	Vector3 tmp1
-        tmp1:Set(pivotAInW)
-	tmp1:Subtract(parent:Joint3D:itemA:GetCenterOfMassPosition())
-
-	Vector3 tmp2
-        tmp2:Set(pivotBInW)
-	tmp2:Subtract(parent:Joint3D:itemB:GetCenterOfMassPosition())
-
-	jacLinear:Set(jacLinearIndex):Initialize(
-				mat1,
-				mat2,
-				tmp1,
-				tmp2,
-				normalWorld,
-				parent:Joint3D:itemA:GetInverseInertiaLocal(), //GetInvInertiaDiagLocal
-				parent:Joint3D:itemA:GetInverseMass(),
-				parent:Joint3D:itemB:GetInverseInertiaLocal(),
-				parent:Joint3D:itemB:GetInverseMass())
-    end
-
-    action TestAngularLimitMotor(integer axisIndex) 
-	number angle 
-        if axisIndex = 0
-            angle = calculatedAxisAngleDiff:GetX()
-        elseif axisIndex = 1
-            angle = calculatedAxisAngleDiff:GetY()
-        elseif axisIndex = 2
-            angle = calculatedAxisAngleDiff:GetZ()
-        end
-
-	angularLimits:Get(axisIndex):TestLimitValue(angle)
-	return angularLimits:Get(axisIndex):NeedApplyTorques()
-    end  
-
-    action TestLinearLimitMotor(integer axisIndex) returns boolean
-	number diff 
-
-        if axisIndex = 0
-            diff = calculatedLinearDiff:GetX()
-        elseif axisIndex = 1
-            diff = calculatedLinearDiff:GetY()
-        elseif axisIndex = 2
-            diff = calculatedLinearDiff:GetZ()
-        end
-
-	linearLimits:TestLimitValue(axisIndex, diff) 
-	return linearLimits:NeedApplyForces(axisIndex)
-    end
-
-    action BuildJacobian() 
-		// Clear accumulated impulses for the next simulation step
-	linearLimits:SetAccumulatedImpulse(0, 0, 0)
-        integer i = 0
-        repeat 3 times
-            angularLimits:Get(i):SetAccumulatedImpulse(0)
-            i = i + 1
-	end
-	CalculateTransforms()
-		
-	Vector3 tmpVec
-	CalculateAnchorPosition()
-	Vector3 pivotAInW
-	Vector3 pivotBInW
-        pivotAInW:Set(anchorPos)
-	pivotBInW:Set(anchorPos)
-
-	Vector3 normalWorld
-	// linear part
-        i = 0
-	repeat 3 times
-            if  testLinearLimitMotor(i)
-                if useLinearReferenceFrameA 
-                    normalWorld:Set(calculatedTransformA:GetBasis:GetColumn(i))
-                else 
-                    normalWorld:Set(calculatedTransformB:GetBasis:GetColumn(i))
-                end
-                BuildLinearJacobian(/*jacLinear[i]*/i, normalWorld, pivotAInW, pivotBInW)
-            end
-            i = i + 1 
-	end
-
-	// angular part
-	i = 0
-        repeat 3 times
-            if TestAngularLimitMotor(i)    
-                normalWorld:Set(GetAxis(i))
-                BuildAngularJacobian(/*jacAng[i]*/i, normalWorld)
-            end
-            i = i + 1
-	end
-    end
-
-    action solveConstraint(number localtimeStep) {
-	timeStep = localtimeStep
-        Vector3 pointInA
-        Vector3 pointInB
-        pointInA:Set(calculatedTransformA:GetOrigin())
-        pointInB:Set(calculatedTransformB:GetOrigin())
-
-	number jacDiagABInv
-	Vector3 linearAxis
-        integer i = 0
-        repeat 3 times
-            if linearLimits:NeedApplyForces(i)
-		jacDiagABInv = 1 / jacLinear:Get(i):GetDiagonal()
-		if useLinearReferenceFrameA 
-                    linearAxis:Set(calculatedTransformA:GetBasis:GetColumn(i))
-		else 
-                    linearAxis:Set(calculatedTransformB:GetBasis:GetColumn(i))
-		end
-		linearLimits:SolveLinearAxis(timeStep, jacDiagABInv, parent:Joint3D:GetItemA(), pointInA, parent:Joint3D:GetItemB, pointInB, i, linearAxis, anchorPos)
-            end
-            i = i + 1
-        end
-
-	Vector3 angularAxis
-	number angularJacDiagABInv
-        i = 0
-        repeat 3 times
-            if angularLimits:Get(i):NeedApplyTorques()
-		angularAxis:Set(GetAxis(i))
-                angularJacDiagABInv = 1 / jacAng:Get(i):GetDiagonal()
-                angularLimits:Get(i):SolveAngularLimits(timeStep, angularAxis, angularJacDiagABInv, parent:Joint3D:GetItemA(), parent:Joint3D:GetItemB())
-            end  
-            i = i + 1
-	end
-    end
-
-    action updateRHS(number timeStep) 
-    end
-
-    /**
-    * Get the rotation axis in global coordinates.
-    * Generic6DofConstraint.buildJacobian must be called previously.
-    */
-    action GetAxis(integer axisIndex) returns Vector3
-        Vector3 out
-        out:Set(calculatedAxis:Get(axisIndex))
-        return out
-    end
-
-    /**
-    * Get the relative Euler angle.
-    * Generic6DofConstraint.buildJacobian must be called previously.
-    */
-    action GetAngle(integer axisIndex) returns number
-        if axisIndex = 0
-            return calculatedAxisAngleDiff:GetX()
-        elseif axisIndex = 1
-            return calculatedAxisAngleDiff:GetY()
-        elseif axisIndex = 2
-            return calculatedAxisAngleDiff:GetZ()
-        end
-    end
-
-    /**
-    * Gets the global transform of the offset for body A.<p>
-    * See also: Generic6DofConstraint.getFrameOffsetA, Generic6DofConstraint.getFrameOffsetB, Generic6DofConstraint.calculateAngleInfo.
-    */
-    action GetCalculatedTransformA() returns PhysicsPosition3D
-        PhysicsPosition3D out
-        out:Set(calculatedTransformA)
-	return out
-    end
-
-
-    /**
-    * Gets the global transform of the offset for body B.<p>
-    * See also: Generic6DofConstraint.getFrameOffsetA, Generic6DofConstraint.getFrameOffsetB, Generic6DofConstraint.calculateAngleInfo.
-    */
-    action GetCalculatedTransformB() returns PhysicsPosition3D
-        PhysicsPosition3D out
-	out:Set(calculatedTransformB)
-	return out
-    end
-
-    action GetFrameOffsetA() returns PhysicsPosition3D 
-        PhysicsPosition3D out
-	out:Set(frameInA)
-	return out
-    end    
-
-    action GetFrameOffsetB() returns PhysicsPosition3D
-        PhysicsPosition3D out
-	out:Set(frameInB)
-	return out
-    end
-	
-    action SetLinearLowerLimit(Vector3 linearLower) 
-	linearLimits:SetLowerLimit(linearLower)
-    end            
-
-    action SetLinearUpperLimit(Vector3 linearUpper)
-	linearLimits:SetUpperLimit(linearUpper)
-    end
-    
-    action SetAngularLowerLimit(Vector3 angularLower) 
-	angularLimits:Get(0):SetLoLimit(angularLower:GetX())
-	angularLimits:Get(1):SetLoLimit(angularLower:GetY())
-	angularLimits:Get(2):SetLoLimit(angularLower:GetZ())
-    end            
-
-    action SetAngularUpperLimit(Vector3 angularUpper) 
-	angularLimits:Get(0):SetHiLimit(angularUpper:GetX())
-	angularLimits:Get(1):SetHiLimit(angularUpper:GetY())
-	angularLimits:Get(2):SetHiLimit(angularUpper:GetZ())
-    end    
-
-    /**
-    * Retrieves the angular limit information.
-    */
-    action GetRotationalLimitMotor(integer index) returns RotationalLimitMotor
-	return angularLimits:Get(index)
-    end
-
-    /**
-    * Retrieves the limit information.
-    */
-    action GetTranslationalLimitMotor() returns TranslationalLimitMotor
-	return linearLimits
-    end    
-
-    /**
-    * first 3 are linear, next 3 are angular
-    */
-    action SetLimit(integer axis, number lo, number hi) 
-	if axis < 3
-            if axis = 0
-                linearLimits:GetLowerLimit:SetX(lo)
-                linearLimits:GetUpperLimit:SetX(hi)
-            elseif axis = 1
-                linearLimits:GetLowerLimit:SetY(lo)
-                linearLimits:GetUpperLimit:SetY(hi)
-            elseif
-                linearLimits:GetLowerLimit:SetZ(lo)
-                linearLimits:GetUpperLimit:SetZ(hi)
-            end
-	else 
-            angularLimits:Get(axis - 3):SetLoLimit(lo)
-            angularLimits:Get(axis - 3):SetHiLimit(hi)
-	end
-    end            
-	
-    /**
-    * Test limit.<p>
-    * - free means upper &lt; lower,<br>
-    * - locked means upper == lower<br>
-    * - limited means upper &gt; lower<br>
-    * - limitIndex: first 3 are linear, next 3 are angular
-    */
-    action IsLimited(integer limitIndex) returns boolean
-	if limitIndex < 3
-            return linearLimits:IsLimited(limitIndex)
-	end
-	return angularLimits:Get(limitIndex - 3):IsLimited()
-    end
-
-    action CalcAnchorPos() 
-	number imA = parent:Joint3D:GetItemA:GetInverseMass()
-	number imB = parent:Joint3D:GetItemB:GetInverseMass()
-	number weight
-	if imB = 0
-            weight = 1
-	else 
-            weight = imA / (imA + imB)
-	end
-	Vector3 pA
-	Vector3 pB
-        pA:Set(calculatedTransformA:GetOrigin())
-        pB:Set(calculatedTransformB:GetOrigin())
-	Vector3 tmp1
-	Vector3 tmp2
-
-	tmp1:Set(pA:Scale(weight))
-	tmp2:Set(pB:Scale(1 - weight))
-	anchorPos:Add(tmp1, tmp2)
-    end            
+//    Math math
+//    PhysicsPosition3D frameInA  
+//    PhysicsPosition3D frameInB  
+//    Array<ConstraintDescription3D> jacLinear/*[3]*/ 
+//    Array<ConstraintDescription3D> jacAng/*[3]*/
+//    TranslationalLimitMotor linearLimits
+//    Array<RotationalLimitMotor> angularLimits/*[3]*/ 
+//    number timeStep
+//    PhysicsPosition3D calculatedTransformA 
+//    PhysicsPosition3D calculatedTransformB 
+//    Vector3 calculatedAxisAngleDiff
+//    Array<Vector3> calculatedAxis/*[3]*/ 
+//    Vector3 anchorPos
+//    Vector3 calculatedLinearDiff
+//    boolean useLinearReferenceFrameA  = true
+//
+//    on create
+//    Vector3 dummy
+//    ConstraintDescription3D filler
+//    RotationalLimitMotor ghost
+//
+//    calculatedAxis:Add(dummy)
+//    calculatedAxis:Add(dummy)
+//    calculatedAxis:Add(dummy)
+//    angularLimits:Add(ghost)
+//    angularLimits:Add(ghost)
+//    angularLimits:Add(ghost)
+//    jacAng:Add(filler)
+//    jacAng:Add(filler)
+//    jacAng:Add(filler)
+//    jacLinear:Add(filler)
+//    jacLinear:Add(filler)
+//    jacLinear:Add(filler)
+//    parent:Joint3D:SetType(parent:Joint3D:SixDegreesOfFreedom)
+//    end
+//
+//    action getMatrixElement(Matrix3 mat, integer index) returns number
+//        mat:GetElement(index%3, index/3)
+//    end
+//
+//    action MatrixToEulerXYZ(Matrix3 mat, Vector3 xyz) returns boolean
+//        if getMatrixElement(mat, 2) < 1.0
+//            if getMatrixElement(mat, 2) > -1.0
+//                xyz:SetX(math.InverseTangent(getMatrixElement(mat, 8), -getMatrixElement(mat, 5)))
+//                xyz:SetY(math.InverseSine(getMatrixElement(mat, 2)))
+//                xyz:SetZ(math.InverseTangent(getMatrixElement(mat, 0), -getMatrixElement(mat, 1)))
+//                return true
+//            else 
+//                xyz:SetX(-math.InverseTangent(getMatrixElement(mat, 4), getMatrixElement(mat, 3)))
+//                xyz:SetY(- 6.283185307179586232 * 0.25)
+//                xyz:SetZ(0.0)
+//                return false
+//            end
+//        else 
+//            xyz:SetX(math.InverseTangent(getMatrixElem(mat, 4), getMatrixElem(mat, 3)))
+//            xyz:SetY(- 6.283185307179586232 * 0.25)
+//            xyz:SetZ(0.0)
+//        end
+//        return false
+//    end
+//
+//    action CalculateLinearInfo()
+//        Vector3 temp
+//        
+//        temp:Set(calculatedTransformB:GetOrigin())
+//        temp:Subtract(calculatedTransformA:GetOrigin())
+//
+//        Matrix3 basisInv
+//        basisInv:Set(calculatedTransformA:GetBasis():inverse())
+//        basisInv:Transform(calculatedLinearDiff)
+//
+//        linearLimits:SetCurrentLinearDiff(calculatedLinearDiff)
+//        linearLimits:TestLimitValue(i, calculatedLinearDiff:GetX())
+//        linearLimits:TestLimitValue(i, calculatedLinearDiff:GetY())
+//        linearLimits:TestLimitValue(i, calculatedLinearDiff:GetZ())
+//    end
+//
+//    action CalculateAngleInfo() {
+//	Matrix3 mat
+//	Matrix3 relativeFrame
+//
+//	mat:Set(calculatedTransformA:GetBasis())
+//	mat:Inverse()
+//	relativeFrame:Multiply(mat, calculatedTransformB:GetBasis())
+//
+//	MatrixToEulerXYZ(relativeFrame, calculatedAxisAngleDiff)
+//
+//	Vector3 axis0 
+//	axis0:Set(calculatedTransformB:GetBasis():row0column0, calculatedTransformB:GetBasis():row1column0,calculatedTransformB:GetBasis():row2column0)
+//
+//	Vector3 axis2
+//        Vector3 axis22
+//        axis2:Set(calculatedTransformA:GetBasis():row0column2, calculatedTransformB:GetBasis():row1column2,calculatedTransformB:GetBasis():row2column2)
+//        axis22:Set(axis2)
+//
+//        Vector3 cAxis1
+//	calculatedAxis:Set(1, axis2:CrossProduct(axis0))
+//        cAxis1:Set(calculatedAxis:Get(1))
+//	calculatedAxis:Set(0, cAxis1:CrossProduct(axis22))
+//	calculatedAxis:Set(2, axis0:CrossProduct(calculatedAxis:Get(1)))
+//    end
+//
+//    action CalculateTransforms() 
+//	calculatedTransformA:Set(parent:Joint3D:itemA:GetCenterOfMassTransform())
+//	calculatedTransformA:Multiply(frameInA)
+//
+//	calculatedTransformB:Set(parent:Joint3D:itemB:GetCenterOfMassTransform())
+//	calculatedTransformB:Multiply(frameInB)
+//
+//        CalculateLinearInfo()            
+//	CalculateAngleInfo()
+//    end  
+//
+//    action BuildLinearJacobian(integer jacLinearIndex, Vector3 normalWorld, Vector3 pivotAInW, Vector3 pivotBInW) 
+//	Matrix3 mat1
+//        mat1:Set(parent:Joint3D:itemA:GetCenterOfMassTransform():GetBasis())
+//	mat1:Transpose()
+//
+//	Matrix3 mat2
+//        mat2:Set(parent:Joint3D:itemB:GetCenterOfMassTransform():GetBasis())
+//	mat2:Transpose()
+//		
+//	Vector3 tmp1
+//        tmp1:Set(pivotAInW)
+//	tmp1:Subtract(parent:Joint3D:itemA:GetCenterOfMassPosition())
+//
+//	Vector3 tmp2
+//        tmp2:Set(pivotBInW)
+//	tmp2:Subtract(parent:Joint3D:itemB:GetCenterOfMassPosition())
+//
+//	jacLinear:Set(jacLinearIndex):Initialize(
+//				mat1,
+//				mat2,
+//				tmp1,
+//				tmp2,
+//				normalWorld,
+//				parent:Joint3D:itemA:GetInverseInertiaLocal(), //GetInvInertiaDiagLocal
+//				parent:Joint3D:itemA:GetInverseMass(),
+//				parent:Joint3D:itemB:GetInverseInertiaLocal(),
+//				parent:Joint3D:itemB:GetInverseMass())
+//    end
+//
+//    action TestAngularLimitMotor(integer axisIndex) 
+//	number angle 
+//        if axisIndex = 0
+//            angle = calculatedAxisAngleDiff:GetX()
+//        elseif axisIndex = 1
+//            angle = calculatedAxisAngleDiff:GetY()
+//        elseif axisIndex = 2
+//            angle = calculatedAxisAngleDiff:GetZ()
+//        end
+//
+//	angularLimits:Get(axisIndex):TestLimitValue(angle)
+//	return angularLimits:Get(axisIndex):NeedApplyTorques()
+//    end  
+//
+//    action TestLinearLimitMotor(integer axisIndex) returns boolean
+//	number diff 
+//
+//        if axisIndex = 0
+//            diff = calculatedLinearDiff:GetX()
+//        elseif axisIndex = 1
+//            diff = calculatedLinearDiff:GetY()
+//        elseif axisIndex = 2
+//            diff = calculatedLinearDiff:GetZ()
+//        end
+//
+//	linearLimits:TestLimitValue(axisIndex, diff) 
+//	return linearLimits:NeedApplyForces(axisIndex)
+//    end
+//
+//    action BuildJacobian() 
+//		// Clear accumulated impulses for the next simulation step
+//	linearLimits:SetAccumulatedImpulse(0, 0, 0)
+//        integer i = 0
+//        repeat 3 times
+//            angularLimits:Get(i):SetAccumulatedImpulse(0)
+//            i = i + 1
+//	end
+//	CalculateTransforms()
+//		
+//	Vector3 tmpVec
+//	CalculateAnchorPosition()
+//	Vector3 pivotAInW
+//	Vector3 pivotBInW
+//        pivotAInW:Set(anchorPos)
+//	pivotBInW:Set(anchorPos)
+//
+//	Vector3 normalWorld
+//	// linear part
+//        i = 0
+//	repeat 3 times
+//            if  testLinearLimitMotor(i)
+//                if useLinearReferenceFrameA 
+//                    normalWorld:Set(calculatedTransformA:GetBasis:GetColumn(i))
+//                else 
+//                    normalWorld:Set(calculatedTransformB:GetBasis:GetColumn(i))
+//                end
+//                BuildLinearJacobian(/*jacLinear[i]*/i, normalWorld, pivotAInW, pivotBInW)
+//            end
+//            i = i + 1 
+//	end
+//
+//	// angular part
+//	i = 0
+//        repeat 3 times
+//            if TestAngularLimitMotor(i)    
+//                normalWorld:Set(GetAxis(i))
+//                BuildAngularJacobian(/*jacAng[i]*/i, normalWorld)
+//            end
+//            i = i + 1
+//	end
+//    end
+//
+//    action solveConstraint(number localtimeStep) {
+//	timeStep = localtimeStep
+//        Vector3 pointInA
+//        Vector3 pointInB
+//        pointInA:Set(calculatedTransformA:GetOrigin())
+//        pointInB:Set(calculatedTransformB:GetOrigin())
+//
+//	number jacDiagABInv
+//	Vector3 linearAxis
+//        integer i = 0
+//        repeat 3 times
+//            if linearLimits:NeedApplyForces(i)
+//		jacDiagABInv = 1 / jacLinear:Get(i):GetDiagonal()
+//		if useLinearReferenceFrameA 
+//                    linearAxis:Set(calculatedTransformA:GetBasis:GetColumn(i))
+//		else 
+//                    linearAxis:Set(calculatedTransformB:GetBasis:GetColumn(i))
+//		end
+//		linearLimits:SolveLinearAxis(timeStep, jacDiagABInv, parent:Joint3D:GetItemA(), pointInA, parent:Joint3D:GetItemB, pointInB, i, linearAxis, anchorPos)
+//            end
+//            i = i + 1
+//        end
+//
+//	Vector3 angularAxis
+//	number angularJacDiagABInv
+//        i = 0
+//        repeat 3 times
+//            if angularLimits:Get(i):NeedApplyTorques()
+//		angularAxis:Set(GetAxis(i))
+//                angularJacDiagABInv = 1 / jacAng:Get(i):GetDiagonal()
+//                angularLimits:Get(i):SolveAngularLimits(timeStep, angularAxis, angularJacDiagABInv, parent:Joint3D:GetItemA(), parent:Joint3D:GetItemB())
+//            end  
+//            i = i + 1
+//	end
+//    end
+//
+//    action updateRHS(number timeStep) 
+//    end
+//
+//    /**
+//    * Get the rotation axis in global coordinates.
+//    * Generic6DofConstraint.buildJacobian must be called previously.
+//    */
+//    action GetAxis(integer axisIndex) returns Vector3
+//        Vector3 out
+//        out:Set(calculatedAxis:Get(axisIndex))
+//        return out
+//    end
+//
+//    /**
+//    * Get the relative Euler angle.
+//    * Generic6DofConstraint.buildJacobian must be called previously.
+//    */
+//    action GetAngle(integer axisIndex) returns number
+//        if axisIndex = 0
+//            return calculatedAxisAngleDiff:GetX()
+//        elseif axisIndex = 1
+//            return calculatedAxisAngleDiff:GetY()
+//        elseif axisIndex = 2
+//            return calculatedAxisAngleDiff:GetZ()
+//        end
+//    end
+//
+//    /**
+//    * Gets the global transform of the offset for body A.<p>
+//    * See also: Generic6DofConstraint.getFrameOffsetA, Generic6DofConstraint.getFrameOffsetB, Generic6DofConstraint.calculateAngleInfo.
+//    */
+//    action GetCalculatedTransformA() returns PhysicsPosition3D
+//        PhysicsPosition3D out
+//        out:Set(calculatedTransformA)
+//	return out
+//    end
+//
+//
+//    /**
+//    * Gets the global transform of the offset for body B.<p>
+//    * See also: Generic6DofConstraint.getFrameOffsetA, Generic6DofConstraint.getFrameOffsetB, Generic6DofConstraint.calculateAngleInfo.
+//    */
+//    action GetCalculatedTransformB() returns PhysicsPosition3D
+//        PhysicsPosition3D out
+//	out:Set(calculatedTransformB)
+//	return out
+//    end
+//
+//    action GetFrameOffsetA() returns PhysicsPosition3D 
+//        PhysicsPosition3D out
+//	out:Set(frameInA)
+//	return out
+//    end    
+//
+//    action GetFrameOffsetB() returns PhysicsPosition3D
+//        PhysicsPosition3D out
+//	out:Set(frameInB)
+//	return out
+//    end
+//	
+//    action SetLinearLowerLimit(Vector3 linearLower) 
+//	linearLimits:SetLowerLimit(linearLower)
+//    end            
+//
+//    action SetLinearUpperLimit(Vector3 linearUpper)
+//	linearLimits:SetUpperLimit(linearUpper)
+//    end
+//    
+//    action SetAngularLowerLimit(Vector3 angularLower) 
+//	angularLimits:Get(0):SetLoLimit(angularLower:GetX())
+//	angularLimits:Get(1):SetLoLimit(angularLower:GetY())
+//	angularLimits:Get(2):SetLoLimit(angularLower:GetZ())
+//    end            
+//
+//    action SetAngularUpperLimit(Vector3 angularUpper) 
+//	angularLimits:Get(0):SetHiLimit(angularUpper:GetX())
+//	angularLimits:Get(1):SetHiLimit(angularUpper:GetY())
+//	angularLimits:Get(2):SetHiLimit(angularUpper:GetZ())
+//    end    
+//
+//    /**
+//    * Retrieves the angular limit information.
+//    */
+//    action GetRotationalLimitMotor(integer index) returns RotationalLimitMotor
+//	return angularLimits:Get(index)
+//    end
+//
+//    /**
+//    * Retrieves the limit information.
+//    */
+//    action GetTranslationalLimitMotor() returns TranslationalLimitMotor
+//	return linearLimits
+//    end    
+//
+//    /**
+//    * first 3 are linear, next 3 are angular
+//    */
+//    action SetLimit(integer axis, number lo, number hi) 
+//	if axis < 3
+//            if axis = 0
+//                linearLimits:GetLowerLimit:SetX(lo)
+//                linearLimits:GetUpperLimit:SetX(hi)
+//            elseif axis = 1
+//                linearLimits:GetLowerLimit:SetY(lo)
+//                linearLimits:GetUpperLimit:SetY(hi)
+//            elseif
+//                linearLimits:GetLowerLimit:SetZ(lo)
+//                linearLimits:GetUpperLimit:SetZ(hi)
+//            end
+//	else 
+//            angularLimits:Get(axis - 3):SetLoLimit(lo)
+//            angularLimits:Get(axis - 3):SetHiLimit(hi)
+//	end
+//    end            
+//	
+//    /**
+//    * Test limit.<p>
+//    * - free means upper &lt; lower,<br>
+//    * - locked means upper == lower<br>
+//    * - limited means upper &gt; lower<br>
+//    * - limitIndex: first 3 are linear, next 3 are angular
+//    */
+//    action IsLimited(integer limitIndex) returns boolean
+//	if limitIndex < 3
+//            return linearLimits:IsLimited(limitIndex)
+//	end
+//	return angularLimits:Get(limitIndex - 3):IsLimited()
+//    end
+//
+//    action CalcAnchorPos() 
+//	number imA = parent:Joint3D:GetItemA:GetInverseMass()
+//	number imB = parent:Joint3D:GetItemB:GetInverseMass()
+//	number weight
+//	if imB = 0
+//            weight = 1
+//	else 
+//            weight = imA / (imA + imB)
+//	end
+//	Vector3 pA
+//	Vector3 pB
+//        pA:Set(calculatedTransformA:GetOrigin())
+//        pB:Set(calculatedTransformB:GetOrigin())
+//	Vector3 tmp1
+//	Vector3 tmp2
+//
+//	tmp1:Set(pA:Scale(weight))
+//	tmp2:Set(pB:Scale(1 - weight))
+//	anchorPos:Add(tmp1, tmp2)
+//    end            
 end
 
