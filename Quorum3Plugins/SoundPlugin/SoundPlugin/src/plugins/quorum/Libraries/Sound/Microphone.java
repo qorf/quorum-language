@@ -6,6 +6,7 @@
 package plugins.quorum.Libraries.Sound;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import org.lwjgl.BufferUtils;
@@ -25,11 +26,12 @@ public class Microphone
     
     protected ALCdevice device;
     protected boolean isRecording = false;
+    private int size = 44100;
     
     public void Record()
     {
         if (device == null)
-            device = ALC11.alcCaptureOpenDevice(null, 44100, AL10.AL_FORMAT_MONO16, 441000);
+            device = ALC11.alcCaptureOpenDevice(null, 44100, AL10.AL_FORMAT_MONO16, size);
         
         if (isRecording)
             throw new RuntimeException("The microphone is already recording! Call Stop() before recording again.");
@@ -40,6 +42,9 @@ public class Microphone
     
     public void Stop()
     {
+        if (!isRecording)
+            return;
+        
         ALC11.alcCaptureStop(device);
         isRecording = false;
     }
@@ -54,6 +59,7 @@ public class Microphone
             return null;
 
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(samplesAvailable * 2);
+        byteBuffer.order(ByteOrder.nativeOrder());
         ALC11.alcCaptureSamples(device, byteBuffer, samplesAvailable);
         ShortBuffer shortBuffer = byteBuffer.asShortBuffer();
         
@@ -70,5 +76,27 @@ public class Microphone
     public boolean IsRecording()
     {
         return isRecording;
+    }
+    
+    public void SetSize(int newSize)
+    {
+        if (newSize == size)
+            return;
+        
+        if (device != null)
+        {
+            if (IsRecording())
+                throw new RuntimeException("The size of the Microphone can't be changed while the Microphone is recording.");
+            
+            ALC11.alcCaptureCloseDevice(device);
+            device = null;
+        }
+        
+        size = newSize;
+    }
+    
+    public int GetSize()
+    {
+        return size;
     }
 }
