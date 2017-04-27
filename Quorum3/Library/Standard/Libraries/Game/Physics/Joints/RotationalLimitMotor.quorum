@@ -1,0 +1,189 @@
+package Libraries.Game.Physics.Joints
+
+use Libraries.Game.Physics.CollisionSolverInformation3D
+use Libraries.Game.Physics.all
+use Libraries.Interface.Item3D
+use Libraries.Compute.Math  
+use Libraries.Compute.Vector3   
+
+class RotationalLimitMotor
+
+    Math math
+    number loLimit = -(math:RaiseToPower(2, 10))  
+    number hiLimit = math:RaiseToPower(2, 10) 
+    number targetVelocity = 0
+    number maxMotorForce = 0.1
+    number maxLimitForce = 300
+    number damping = 1
+    number limitSoftness = 0.5
+    number ERP = 0.5//!< Error tolerance factor when joint is at limit
+    number bounce = 0
+    boolean enableMotor = false
+    number currentLimitError = 0
+    integer currentLimit = 0
+    number accumulatedImpulse = 0
+      
+    action Set(RotationalLimitMotor other) 
+        targetVelocity = other:GetTargetVelocity()
+        maxMotorForce = other:GetMaxMotorForce()
+        limitSoftness = other:GetLimitSoftness()
+        loLimit = other:GetLoLimit()
+        hiLimit = other:GetHiLimit()
+        ERP = other:GetERP()
+        bounce = other:GetBounce()
+        currentLimit = other:GetCurrentLimit()
+        currentLimitError = other:GetCurrentLimitError()
+        enableMotor = other:GetEnableMotor()
+    end    
+   
+    action IsLimited() returns boolean
+    	if loLimit >= hiLimit  
+            return false
+        end
+        return true
+    end
+
+    action NeedApplyTorques() returns boolean
+    	if currentLimit = 0 and enableMotor = false 
+            return false
+        end    
+    	return true
+    end
+
+    action TestLimitValue(number testValue) returns integer
+	if loLimit > hiLimit
+            currentLimit = 0 
+            return 0
+	end
+	if testValue < loLimit
+            currentLimit = 1
+            currentLimitError = testValue - loLimit
+            return 1
+	elseif testValue > hiLimit
+            currentLimit = 2
+            currentLimitError = testValue - hiLimit
+            return 2
+	end
+	currentLimit = 0
+	return 0
+    end
+
+    action SolveAngularLimits(number timeStep, Vector3 axis, number jacDiagABInv, Item3D body0, Item3D body1)  returns number
+        if NeedApplyTorques() = false
+            return 0
+	end
+
+	number localTargetVelocity = targetVelocity
+	number localMaxMotorForce = maxMotorForce
+
+	// current error correction
+	if currentLimit not= 0
+            localTargetVelocity = -ERP * currentLimitError / (timeStep)
+            localMaxMotorForce = maxLimitForce
+	end
+
+	localMaxMotorForce = localMaxMotorForce * timeStep
+
+	// current velocity difference
+	Vector3 velDiff
+        velDiff:Set(body0:GetAngularVelocity())
+	if body1 not= undefined
+            velDiff:Subtract(body1:GetAngularVelocity())
+	end
+	number relVel = axis:DotProduct(velDiff)
+
+	// correction velocity
+	number motorRelvel = limitSoftness * (localTargetVelocity - damping * relVel)
+
+	if motorRelvel < 1.19209290 * (math.RaiseToPower(10, -7)) and motorRelvel > -1.19209290 * (math.RaiseToPower(10, -7)
+            return 0
+	end
+
+	number unclippedMotorImpulse = (1 + bounce) * motorRelvel * jacDiagABInv
+
+        // clip correction impulse
+	number clippedMotorImpulse
+
+	// todo: should clip against accumulated impulse
+	if unclippedMotorImpulse > 0
+            if unclippedMotorImpulse > maxMotorForce
+                clippedMotorImpulse = maxMotorForce 
+            else
+                clippedMotorImpulse = unclippedMotorImpulse
+            end
+	else 
+            if unclippedMotorImpulse < -maxMotorForce
+                clippedMotorImpulse = -maxMotorForce 
+            else
+                clippedMotorImpulse = unclippedMotorImpulse
+            end
+	end
+
+	// sort with accumulated impulses
+	number lo = -(math:RaiseToPower(10, 30))
+	number hi = math:RaiseToPower(10, 30)
+
+	number oldaccumImpulse = accumulatedImpulse
+	number sum = oldaccumImpulse + clippedMotorImpulse
+        if sum > hi or sum < lo
+            accumulatedImpulse = 0
+        else 
+            accumulatedImpulse = sum
+        end
+
+	clippedMotorImpulse = accumulatedImpulse - oldaccumImpulse
+
+	Vector3 motorImp
+	motorImp:Scale(clippedMotorImpulse, axis)
+
+	body0:ApplyTorqueImpulse(motorImp)
+	if body1 not= undefined
+            motorImp:Set(-motorImp:GetX(), -motorImp:GetY(), -motorImp:GetZ())
+            body1:ApplyTorqueImpulse(motorImp)
+	end
+
+	return clippedMotorImpulse
+        return 0
+    end   
+    
+    action GetTargetVelocity() returns number
+        return targetVelocity
+    end
+    
+    action GetMaxMotorForce() returns number
+        return maxMotorForce
+    end
+    
+    action GetLimitSoftness() returns number
+        return limitSoftness
+    end
+
+    action GetLoLimit() returns number
+        return loLimit
+    end
+    
+    action GetHiLimit() returns number
+        return hiLimit
+    end
+    
+    action GetERP() returns number
+        return ERP
+    end
+
+    action GetBounce() returns number
+        return bounce
+    end
+    
+    action GetCurrentLimit() returns integer
+        return currentLimit
+    end
+
+    action GetCurrentLimitError() returns number
+        return currentLimitError
+    end
+
+    action GetEnableMotor() returns boolean
+        return enableMotor
+    end
+end
+

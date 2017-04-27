@@ -2478,7 +2478,7 @@ class Item3D is Item
                 tmp:Set(relativePosition)
                 tmp:CrossProduct(impulse)
                 tmp:Scale(properties:GetAngularFactor())
-                //ApplyTorqueImpulse(tmp)
+                ApplyAngularImpulse(tmp)
             end
         end
     end
