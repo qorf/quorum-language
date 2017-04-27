@@ -559,6 +559,10 @@ class PhysicsProperties3D
         return turnVelocity
     end
 
+    action GetAngularFactor returns number
+        return angularFactor
+    end
+
     action SaveKinematicState(number timeStep)
         PhysicsPosition3D transform0 = item:GetInterpolationWorldTransform()
         PhysicsPosition3D transform1 = item:GetCollisionTransform()
