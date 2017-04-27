@@ -12,14 +12,31 @@ class Microphone
     system action Stop
 
     action Record(number seconds) returns AudioSamples
+        Math math
+        integer size = GetSize()
+        SetSizeInSeconds(seconds)
         Record()
         SystemHelper helper
-        Math math
         helper:Sleep(cast(integer, math:Round(seconds * 1000)))
         Stop()
-        return GetSamples()
+        AudioSamples samples = GetSamples()
+        SetSize(size)
+        return samples
     end
 
     system action IsRecording returns boolean
+
+    system action GetSize returns integer
+
+    system action SetSize(integer samples)
+
+    action SetSizeInSeconds(number seconds)
+        Math math
+        SetSize((cast(integer, math:Round(44100.0 * seconds))))
+    end
+
+    action GetSizeInSeconds returns number
+        return GetSize() / 44100.0
+    end
 
 end
