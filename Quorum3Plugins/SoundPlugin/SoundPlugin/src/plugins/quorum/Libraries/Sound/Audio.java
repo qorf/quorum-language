@@ -411,7 +411,7 @@ public class Audio {
         return AudioData.GetDefaultReferenceDistance();
     }
     
-    public double GetDefaultRolloffFactor(double rolloff)
+    public double GetDefaultRolloffFactor()
     {
         return AudioData.GetDefaultRolloff();
     }

@@ -5,10 +5,14 @@
  */
 package plugins.quorum.Libraries.Sound;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.ALC10;
@@ -22,6 +26,16 @@ import quorum.Libraries.Sound.AudioSamples_;
  */
 public class Microphone 
 {
+    static
+    {
+        // Ensure OpenAL is initialized by loading dummy audio.
+        Audio audio = new Audio();
+        quorum.Libraries.Sound.AudioSamples_ samples = new quorum.Libraries.Sound.AudioSamples();
+        samples.SetTotalSize(0);
+        audio.Load(samples);
+        audio.Dispose();
+    }
+    
     public Object me_ = null;
     
     protected ALCdevice device;

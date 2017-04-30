@@ -16,6 +16,16 @@ import java.nio.ShortBuffer;
  */
 public class AudioSamples 
 {
+    static
+    {
+        // Ensure OpenAL is initialized by loading dummy audio.
+        Audio audio = new Audio();
+        quorum.Libraries.Sound.AudioSamples_ samples = new quorum.Libraries.Sound.AudioSamples();
+        samples.SetTotalSize(0);
+        audio.Load(samples);
+        audio.Dispose();
+    }
+    
     public Object me_ = null;
     
     public static final int MAX_SHORT = java.lang.Short.MAX_VALUE;
