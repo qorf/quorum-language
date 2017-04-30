@@ -105,6 +105,19 @@ function plugins_quorum_Libraries_Sound_Audio_()
         this.GetRotation = function(){};
         this.Rotate$quorum_number = function(){};
         
+        this.Load$quorum_Libraries_Sound_AudioSamples = function(){};
+        this.LoadToStream$quorum_Libraries_Sound_AudioSamples = function(){};
+        this.SetMaximumVolumeDistance$quorum_number = function(){};
+        this.SetRolloffFactor$quorum_number = function(){};
+        this.SetDefaultMaximumVolumeDistance$quorum_number = function(){};
+        this.SetDefaultRolloffFactor$quorum_number = function(){};
+        this.GetMaximumVolumeDistance = function(){};
+        this.GetRolloffFactor = function(){};
+        this.GetDefaultMaximumVolumeDistance = function(){};
+        this.GetDefaultRolloffFactor = function(){};
+        this.QueueSamples$quorum_Libraries_Sound_AudioSamples = function(){};
+        this.UnqueueSamples$quorum_Libraries_Sound_AudioSamples = function(){};
+        
         return;
     }
     
@@ -763,5 +776,65 @@ function plugins_quorum_Libraries_Sound_Audio_()
     this.Rotate$quorum_number = function(addRotation)
     {
         this.SetRotation$quorum_number(rotation + addRotation);
+    };
+    
+    this.Load$quorum_Libraries_Sound_AudioSamples = function(samples)
+    {
+        
+    };
+    
+    this.LoadToStream$quorum_Libraries_Sound_AudioSamples = function(samples)
+    {
+        
+    };
+    
+    this.SetMaximumVolumeDistance$quorum_number = function(distance)
+    {
+        
+    };
+    
+    this.SetRolloffFactor$quorum_number = function(rolloff)
+    {
+        
+    };
+    
+    this.SetDefaultMaximumVolumeDistance$quorum_number = function(distance)
+    {
+        
+    };
+    
+    this.SetDefaultRolloffFactor$quorum_number = function(rolloff)
+    {
+        
+    };
+    
+    this.GetMaximumVolumeDistance = function()
+    {
+        
+    };
+    
+    this.GetRolloffFactor = function()
+    {
+        
+    };
+    
+    this.GetDefaultMaximumVolumeDistance = function()
+    {
+        
+    };
+    
+    this.GetDefaultRolloffFactor = function()
+    {
+        
+    };
+
+    this.QueueSamples$quorum_Libraries_Sound_AudioSamples = function(samples)
+    {
+        
+    };
+    
+    this.UnqueueSamples$quorum_Libraries_Sound_AudioSamples = function(samples)
+    {
+        
     };
 }
