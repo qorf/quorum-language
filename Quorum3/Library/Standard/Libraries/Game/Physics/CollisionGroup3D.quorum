@@ -46,7 +46,7 @@ class CollisionGroup3D
 
     action Add(Item3D item)
         items:Add(item)
-        item:SetCollisionGroupIndex(itemCount)
+        item:SetCollisionGroupIndex(-1)
         itemCount = itemCount + 1
         end
 
@@ -88,15 +88,27 @@ class CollisionGroup3D
         me:solverInfo = solverInformation
     end
 
-    action Solve(number seconds, boolean requireSimulation)
+    action Solve(number seconds, Vector3 gravity, boolean requireSimulation)
         Array<LocalCollisionPoints3D> manifolds
         integer manifoldCount = 0
         integer i = 0
         repeat while i < collisions:GetSize()
             LocalCollisionPoints3D manifold = collisions:Get(i):GetCollisionPoints()
             manifolds:Add(manifold)
+            manifoldCount = manifoldCount + 1
             i = i + 1
         end
+
+        i = 0
+        repeat while i < items:GetSize()
+            Item3D item = items:Get(i)
+            item:ApplyForceToCenter(gravity)
+            item:IntegrateVelocities(seconds)
+            item:ApplyDamping(seconds)
+
+            i = i + 1
+        end
+
         collisionSolver:SolveGroup(items, itemCount, manifolds, 0, manifoldCount, joints, 0, jointCount, solverInfo)
 
         if not requireSimulation

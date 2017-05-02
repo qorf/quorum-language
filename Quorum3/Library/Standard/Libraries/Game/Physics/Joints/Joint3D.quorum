@@ -14,6 +14,21 @@ class Joint3D
     Item3D itemB
     number appliedImpulse = 0
 
+    Joint3D previous = undefined
+    Joint3D next = undefined
+    JointEdge3D edgeA
+    JointEdge3D edgeB
+
+    boolean inCollisionGroup = false
+
+    action InCollisionGroup returns boolean
+        return inCollisionGroup
+    end
+
+    action SetInCollisionGroup(boolean flag)
+        me:inCollisionGroup = flag
+    end
+
     action SetItemA(Item3D item)
         me:itemA = item
     end
@@ -52,4 +67,36 @@ class Joint3D
     end
 
     blueprint action SolveJoint(number timeStep)
+
+    action GetPrevious returns Joint3D
+        return previous
+    end
+
+    action SetPrevious(Joint3D previous)
+        me:previous = previous
+    end
+
+    action GetNext returns Joint3D
+        return next
+    end
+
+    action SetNext(Joint3D next)
+        me:next = next
+    end
+
+    action GetEdgeA returns JointEdge3D
+        return edgeA
+    end
+
+    action SetEdgeA(JointEdge3D edgeA)
+        me:edgeA = edgeA
+    end
+
+    action GetEdgeB returns JointEdge3D
+        return edgeB
+    end
+
+    action SetEdgeB(JointEdge3D edgeB)
+        me:edgeB = edgeB
+    end
 end

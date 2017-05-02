@@ -43,6 +43,7 @@ class CollisionSolver3D
             solverItem:SetInverseMass(originalItem:GetInverseMass())
             solverItem:GetLinearVelocity():Set(originalItem:GetLinearVelocity())
             solverItem:SetOriginalItem(originalItem)
+            solverItem:SetAngularFactor(originalItem:GetAngularFactor())
         else
             solverItem:GetAngularVelocity():Set(0, 0, 0)
             solverItem:GetCenterOfMassPosition():Set(originalItem:GetCollisionTransform():GetOrigin())
@@ -50,6 +51,7 @@ class CollisionSolver3D
             solverItem:SetInverseMass(0)
             solverItem:GetLinearVelocity():Set(0, 0, 0)
             solverItem:SetOriginalItem(undefined)
+            solverItem:SetAngularFactor(1)
         end
 
         solverItem:GetPushVelocity():Set(0, 0, 0)

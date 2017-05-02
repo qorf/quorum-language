@@ -22,6 +22,7 @@ class CollisionShape3D
 
     on create
         implicitShapeDimensions:Set(1, 1, 1)
+        localScaling:Set(1, 1, 1)
     end
 
     blueprint action ComputeBoundingBox(BoundingBox boundingBox, PhysicsPosition3D transform)
@@ -107,6 +108,11 @@ class CollisionShape3D
     action SetLocalScaling(Vector3 scaling)
         Math math
         localScaling:Set(math:AbsoluteValue(scaling:GetX()), math:AbsoluteValue(scaling:GetY()), math:AbsoluteValue(scaling:GetZ()))
+    end
+
+    action Scale(Vector3 scale)
+        Math math
+        localScaling:Set(localScaling:GetX() * math:AbsoluteValue(scale:GetX()), localScaling:GetY() * math:AbsoluteValue(scale:GetY()), localScaling:GetZ() * math:AbsoluteValue(scale:GetZ()))
     end
 
     action GetLocalScaling(Vector3 out) returns Vector3

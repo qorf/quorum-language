@@ -165,4 +165,12 @@ class SolverItem3D
     action SetTurnVelocity(Vector3 velocity)
         me:turnVelocity = velocity
     end
+
+    action GetAngularFactor returns number
+        return angularFactor
+    end
+
+    action SetAngularFactor(number factor)
+        me:angularFactor = factor
+    end
 end

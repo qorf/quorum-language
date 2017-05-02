@@ -33,6 +33,7 @@ use Libraries.Containers.Stack
 use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Game.Physics.CollisionSolverInformation3D
 use Libraries.Game.Physics.Joints.Joint3D
+use Libraries.Game.Physics.Joints.JointEdge3D
 use Libraries.Compute.Math
 use Libraries.Compute.Quaternion
 use Libraries.Game.Physics.all
@@ -85,6 +86,7 @@ class Layer3D is Layer
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
     Array<TouchListener> touchListeners
+    Array<Joint3D> joints
     Camera camera = undefined
     Painter3D painter
     Environment environment
@@ -2251,14 +2253,7 @@ class Layer3D is Layer
     */
     action TestForCollisions(number seconds)
         localTime = seconds
-        
-        //SetPhysicsPositionFromScreenPosition()
-        if physicsEnabled
-            SaveKinematicState(seconds)
-            ApplyGravity()
-            PredictUnconstrainedMotion(seconds)
-        end
-        
+            
 
         if newItemAdded
             collisionManager:FindNewCollisions()
@@ -2269,10 +2264,6 @@ class Layer3D is Layer
 
         if physicsEnabled
             StepPhysics(seconds)
-            SynchronizeTransforms()
-            if automaticallyClearForces
-                ClearForces()
-            end
             SetScreenPositionsFromPhysicsPositions()
         end
 
@@ -2455,6 +2446,9 @@ class Layer3D is Layer
     action StepPhysics(number seconds)
         SolvePhysics(seconds)
         SynchronizeTransforms()
+        if automaticallyClearForces
+            ClearForces()
+        end
     end
 
     private action PredictUnconstrainedMotion(number seconds)
@@ -2499,12 +2493,12 @@ class Layer3D is Layer
             collision = collision:GetNext()
         end
 
-//        i = 0
-//        repeat joints:GetSize() times
-//            Joint2D joint = joints:Get(i)
-//            joint:SetInCollisionGroup(false)
-//            i = i + 1
-//        end
+        i = 0
+        repeat joints:GetSize() times
+            Joint3D joint = joints:Get(i)
+            joint:SetInCollisionGroup(false)
+            i = i + 1
+        end
 
         i = 0
         repeat items:GetSize() times
@@ -2569,29 +2563,29 @@ class Layer3D is Layer
                             edge = edge:GetNext()
                         end
 
-//                        JointEdge2D jointEdge = body:GetJointList()
-//                        repeat while jointEdge not= undefined
-//                            Joint2D joint = jointEdge:GetJoint()
-//                            if joint:InCollisionGroup()
-//                                // continue with group -- the joint has already been
-//                                // accounted for in the collision group
-//                            else
-//                                Item2D other = jointEdge:GetOther()
-//
-//                                island:Add(joint)
-//                                joint:SetInCollisionGroup(true)
-//
-//                                if other:GetCollisionGroupFlag()
-//                                    // continuee with group -- the other item is
-//                                    // already in the group
-//                                else
-//                                    stack:Push(other)
-//                                    other:SetCollisionGroupFlag(true)
-//                                end
-//                            end
-//
-//                            jointEdge = jointEdge:GetNext()
-//                        end
+                        JointEdge3D jointEdge = body:GetJointList()
+                        repeat while jointEdge not= undefined
+                            Joint3D joint = jointEdge:GetJoint()
+                            if joint:InCollisionGroup()
+                                // continue with group -- the joint has already been
+                                // accounted for in the collision group
+                            else
+                                Item3D other = jointEdge:GetOther()
+
+                                island:Add(joint)
+                                joint:SetInCollisionGroup(true)
+
+                                if other:GetCollisionGroupFlag()
+                                    // continuee with group -- the other item is
+                                    // already in the group
+                                else
+                                    stack:Push(other)
+                                    other:SetCollisionGroupFlag(true)
+                                end
+                            end
+
+                            jointEdge = jointEdge:GetNext()
+                        end
 
                         integer k = 0
                         repeat body:GetItemCount() times
@@ -2608,7 +2602,7 @@ class Layer3D is Layer
                     end
                 end
 
-                island:Solve(seconds, requireSimulation)
+                island:Solve(seconds, gravity, requireSimulation)
 
                 integer j = 0
                 repeat island:GetItemCount() times
@@ -2761,5 +2755,71 @@ class Layer3D is Layer
 
             i = i + 1
         end
+    end
+
+    action AddJoint(Joint3D joint)
+        joints:Add(joint)
+
+        joint:GetEdgeA():SetJoint(joint)
+        joint:GetEdgeA():SetOther(joint:GetItemB())
+        joint:GetEdgeA():SetPrevious(undefined)
+        joint:GetEdgeA():SetNext(joint:GetItemA():GetJointList())
+        if joint:GetItemA():GetJointList() not= undefined
+            joint:GetItemA():GetJointList():SetPrevious(joint:GetEdgeA())
+        end
+        joint:GetItemA():SetJointList(joint:GetEdgeA())
+
+        joint:GetEdgeB():SetJoint(joint)
+        joint:GetEdgeB():SetOther(joint:GetItemA())
+        joint:GetEdgeB():SetPrevious(undefined)
+        joint:GetEdgeB():SetNext(joint:GetItemB():GetJointList())
+        if joint:GetItemB():GetJointList() not= undefined
+            joint:GetItemB():GetJointList():SetPrevious(joint:GetEdgeB())
+        end
+        joint:GetItemB():SetJointList(joint:GetEdgeB())
+
+        //TODO: Collision filtering?
+    end
+
+    action RemoveJoint(Joint3D joint)
+        joints:Remove(joint)
+
+        Item3D itemA = joint:GetItemA()
+        Item3D itemB = joint:GetItemB()
+
+        itemA:Simulate(true)
+        itemB:Simulate(true)
+
+        if joint:GetEdgeA():GetPrevious() not= undefined
+            joint:GetEdgeA():GetPrevious():SetNext(joint:GetEdgeA():GetNext())
+        end
+
+        if joint:GetEdgeA():GetNext() not= undefined
+            joint:GetEdgeA():GetNext():SetPrevious(joint:GetEdgeA():GetPrevious())
+        end
+
+        if joint:GetEdgeA() = itemA:GetJointList()
+            itemA:SetJointList(joint:GetEdgeA():GetNext())
+        end
+
+        joint:GetEdgeA():SetPrevious(undefined)
+        joint:GetEdgeA():SetNext(undefined)
+
+        if joint:GetEdgeB():GetPrevious() not= undefined
+            joint:GetEdgeB():GetPrevious():SetNext(joint:GetEdgeB():GetNext())
+        end
+
+        if joint:GetEdgeB():GetNext() not= undefined
+            joint:GetEdgeB():GetNext():SetPrevious(joint:GetEdgeB():GetPrevious())
+        end
+
+        if joint:GetEdgeB() = itemB:GetJointList()
+            itemB:SetJointList(joint:GetEdgeB():GetNext())
+        end
+
+        joint:GetEdgeB():SetPrevious(undefined)
+        joint:GetEdgeB():SetNext(undefined)
+
+        //TODO: collision filtering?
     end
 end

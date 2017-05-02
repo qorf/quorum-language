@@ -27,6 +27,7 @@ use Libraries.Compute.Quaternion
 use Libraries.Compute.Matrix3
 use Libraries.Game.Physics.PhysicsProperties3D
 use Libraries.Game.Physics.all
+use Libraries.Game.Physics.Joints.JointEdge3D
 
 /*
     The Item3D class represents any object that has a position in 3D space.
@@ -77,6 +78,7 @@ class Item3D is Item
     integer nodeCount = 0
 
     CollisionEdge3D collisionList = undefined
+    JointEdge3D jointList = undefined
 
     private Item3D parentItem = undefined
     private Array<Item3D> children
@@ -1924,7 +1926,7 @@ class Item3D is Item
         transform:row2column2 = transform:row2column2 * vector:GetY()
 
         if shape not= undefined
-            shape:SetLocalScaling(vector)
+            shape:Scale(vector)
         end
 
         if scaleChildren and not children:IsEmpty()
@@ -2339,6 +2341,14 @@ class Item3D is Item
 
     action SetCollisionList(CollisionEdge3D list)
         collisionList = list
+    end
+
+    action GetJointList returns JointEdge3D
+        return jointList
+    end
+
+    action SetJointList(JointEdge3D list)
+        jointList = list
     end
 
     action IsPhysicsEnabled returns boolean
@@ -3062,15 +3072,32 @@ class Item3D is Item
 
     action SetScreenPositionFromPhysicsPosition
         me:updateTransform = false
-        Vector3 offset
-        PhysicsPosition3D collisionTransform0 = me:collisionTransform0
-        if IsResponsive()
-            collisionTransform0 = me:interpolationTransform
-        end
-        offset:Set(collisionTransform:GetOrigin()):Subtract(collisionTransform0:GetOrigin())
-        Move(offset:GetX(), offset:GetY(), offset:GetZ())
 
-        //figure out rotation stuff
+        Vector3 vector
+        shape:GetLocalScaling(vector)
+
+        Matrix3 tempMatrix
+        tempMatrix:Set(collisionTransform:GetBasis())
+
+        Matrix4 matrix
+        matrix:row0column0 = tempMatrix:row0column0 * vector:GetX()
+        matrix:row0column1 = tempMatrix:row0column1 * vector:GetX()
+        matrix:row0column2 = tempMatrix:row0column2 * vector:GetX()
+
+        matrix:row1column0 = tempMatrix:row1column0 * vector:GetY()
+        matrix:row1column1 = tempMatrix:row1column1 * vector:GetY()
+        matrix:row1column2 = tempMatrix:row1column2 * vector:GetY()
+
+        matrix:row2column0 = tempMatrix:row2column0 * vector:GetY()
+        matrix:row2column1 = tempMatrix:row2column1 * vector:GetY()
+        matrix:row2column2 = tempMatrix:row2column2 * vector:GetY()
+
+        matrix:row0column3 = collisionTransform:GetOrigin():GetX()
+        matrix:row1column3 = collisionTransform:GetOrigin():GetY()
+        matrix:row2column3 = collisionTransform:GetOrigin():GetZ()
+
+        transform:Set(matrix)
+
         me:updateTransform = true
     end
 
@@ -3080,5 +3107,13 @@ class Item3D is Item
 
     action SetTimeOfImpact(number timeOfImpact)
         me:timeOfImpact = timeOfImpact
+    end
+
+    action GetAngularFactor returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetAngularFactor()
     end
 end
