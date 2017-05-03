@@ -91,10 +91,10 @@ class CollisionSolver3D
             Vector3 temp
             
             temp:Set(contactConstraint:GetContactNormal()):Scale(body1:GetInverseMass())
-            body1:InternalApplyImpulse(temp, contactConstraint:GetAngularComponentA(), normalImpulse)
+            body1:InternalApplyPushImpulse(temp, contactConstraint:GetAngularComponentA(), normalImpulse)
 
             temp:Set(contactConstraint:GetContactNormal()):Scale(body2:GetInverseMass())
-            body2:InternalApplyImpulse(temp, contactConstraint:GetAngularComponentB(), -normalImpulse)
+            body2:InternalApplyPushImpulse(temp, contactConstraint:GetAngularComponentB(), -normalImpulse)
         end
     end
 
@@ -430,7 +430,9 @@ class CollisionSolver3D
                     solverConstraint:SetFrictionIndex(tempSolverFrictionConstraintPool:GetSize())
                     if not cp:IsLateralFrictionInitialized()
                         cp:GetLateralFrictionDirectionA():Set(cp:GetWorldNormalOnB()):Scale(relativeVelocity)
-                        cp:GetLateralFrictionDirectionA():Set(velocity):Subtract(cp:GetLateralFrictionDirectionA())
+                        Vector3 tempFrictionDirection
+                        tempFrictionDirection:Set(cp:GetLateralFrictionDirectionA())
+                        cp:GetLateralFrictionDirectionA():Set(velocity):Subtract(tempFrictionDirection)
 
                         number lateralRelativeVelocity = cp:GetLateralFrictionDirectionA():LengthSquared()
                         if lateralRelativeVelocity > 0
@@ -622,7 +624,7 @@ class CollisionSolver3D
                 integer numPoolConstraints = tempSolverConstraintPool:GetSize()
                 integer j = 0
                 repeat while j < numPoolConstraints
-                    SolverConstraint3D solverManifold = tempSolverConstraintPool:Get(j)
+                    SolverConstraint3D solverManifold = tempSolverConstraintPool:Get(orderTempConstraintPool:Get(j))
                     ResolveSplitPenetrationImpulse(tempSolverBodyPool:Get(solverManifold:GetBodyIDA()), tempSolverBodyPool:Get(solverManifold:GetBodyIDB()), solverManifold, infoGlobal)
 
                     j = j + 1
@@ -679,6 +681,7 @@ class CollisionSolver3D
         end
 
         CollisionSolverInformation3D info
+        info:Set(infoGlobal)
 
         integer numIter = infoGlobal:GetNumberIterations()
 
@@ -958,6 +961,10 @@ class CollisionSolver3D
         end
 
         return 0
+    end
+
+    action Reset
+        seed = 0
     end
 
     private action Random returns integer

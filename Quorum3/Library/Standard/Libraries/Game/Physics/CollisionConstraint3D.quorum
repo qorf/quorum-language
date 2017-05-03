@@ -32,25 +32,37 @@ class CollisionConstraint3D
         Vector3 vel
         vel:Set(vel1):Subtract(vel2)
 
-        Matrix3 mat1 = body1:GetCenterOfMassTransform():GetBasis()
+        Matrix3 mat1
+        mat1:Set(body1:GetCenterOfMassTransform():GetBasis())
         mat1:Transpose()
 
-        Matrix3 mat2 = body2:GetCenterOfMassTransform():GetBasis()
+        Matrix3 mat2
+        mat2:Set(body2:GetCenterOfMassTransform():GetBasis())
         mat2:Transpose()
 
         ConstraintDescription3D jac
-        jac:Initialize(mat1, mat2, rel_pos1, rel_pos2, normal, body1:GetInverseInertiaLocal(), body1:GetInverseMass(), body2:GetInverseInertiaLocal(), body2:GetInverseMass())
+        Vector3 inverseInertiaLocal1
+        inverseInertiaLocal1:Set(body1:GetInverseInertiaLocal())
+        Vector3 inverseInertiaLocal2
+        inverseInertiaLocal2:Set(body2:GetInverseInertiaLocal())
+        jac:Initialize(mat1, mat2, rel_pos1, rel_pos2, normal, inverseInertiaLocal1, body1:GetInverseMass(), inverseInertiaLocal2, body2:GetInverseMass())
 
         number jacDiagAB = jac:GetDiagonal()
         number jacDiagABInv = 1.0 / jacDiagAB
 
-        Vector3 temp1 = body1:GetAngularVelocity()
+        Vector3 temp1
+        temp1:Set(body1:GetAngularVelocity())
         mat1:Transform(temp1)
 
-        Vector3 temp2 = body2:GetAngularVelocity()
+        Vector3 temp2
+        temp2:Set(body2:GetAngularVelocity())
         mat2:Transform(temp2)
 
-        number rel_vel = jac:GetRelativeVelocity(body1:GetLinearVelocity(), temp1, body2:GetLinearVelocity(), temp2)
+        Vector3 linearVelocity1
+        linearVelocity1:Set(body1:GetLinearVelocity())
+        Vector3 linearVelocity2
+        linearVelocity2:Set(body1:GetLinearVelocity())
+        number rel_vel = jac:GetRelativeVelocity(linearVelocity1, temp1, linearVelocity2, temp2)
         number a = jacDiagABInv
 
         rel_vel = normal:DotProduct(vel)
@@ -63,9 +75,11 @@ class CollisionConstraint3D
     action ResolveSingleCollision(Item3D body1, Item3D body2, CollisionPoint3D contactPoint, CollisionSolverInformation3D solverInfo) returns number
         Vector3 temp
 
-        Vector3 pos1 = contactPoint:GetWorldPositionOnA()
+        Vector3 pos1
+        pos1:Set(contactPoint:GetWorldPositionOnA())
 
-        Vector3 pos2 = contactPoint:GetWorldPositionOnB()
+        Vector3 pos2
+        pos2:Set(contactPoint:GetWorldPositionOnB())
 
         Vector3 normal = contactPoint:GetWorldNormalOnB()
 
@@ -75,8 +89,10 @@ class CollisionConstraint3D
         Vector3 relpos2
         relpos2:Set(pos2):Subtract(body2:GetCenterOfMassPosition())
 
-        Vector3 vel1 = body1:GetLinearVelocityAtLocalPoint(relpos1)
-        Vector3 vel2 = body2:GetLinearVelocityAtLocalPoint(relpos2)
+        Vector3 vel1
+        vel1:Set(body1:GetLinearVelocityAtLocalPoint(relpos1))
+        Vector3 vel2
+        vel2:Set(body2:GetLinearVelocityAtLocalPoint(relpos2))
         Vector3 vel
         vel:Set(vel1):Subtract(vel2)
 
@@ -123,8 +139,10 @@ class CollisionConstraint3D
     action ResolveSingleFriction(Item3D body1, Item3D body2, CollisionPoint3D contactPoint, CollisionSolverInformation3D solverInfo) returns number
         Vector3 temp
 
-        Vector3 pos1 = contactPoint:GetWorldPositionOnA()
-        Vector3 pos2 = contactPoint:GetWorldPositionOnB()
+        Vector3 pos1
+        pos1:Set(contactPoint:GetWorldPositionOnA())
+        Vector3 pos2
+        pos2:Set(contactPoint:GetWorldPositionOnB())
 
         Vector3 relpos1
         relpos1:Set(pos1):Subtract(body1:GetCenterOfMassPosition())
@@ -139,8 +157,10 @@ class CollisionConstraint3D
         number limit = cpd:GetAppliedImpulse() * combinedFriction
 
         if cpd:GetAppliedImpulse() > 0
-            Vector3 vel1 = body1:GetLinearVelocityAtLocalPoint(relpos1)
-            Vector3 vel2 = body2:GetLinearVelocityAtLocalPoint(relpos2)
+            Vector3 vel1
+            vel1:Set(body1:GetLinearVelocityAtLocalPoint(relpos1))
+            Vector3 vel2
+            vel2:Set(body2:GetLinearVelocityAtLocalPoint(relpos2))
 
             Vector3 vel
             vel:Set(vel1):Subtract(vel2)
@@ -198,8 +218,10 @@ class CollisionConstraint3D
     action ResolveSingleCollisionCombined(Item3D body1, Item3D body2, CollisionPoint3D contactPoint, CollisionSolverInformation3D solverInfo) returns number
         Vector3 temp
 
-        Vector3 pos1 = contactPoint:GetWorldPositionOnA()
-        Vector3 pos2 = contactPoint:GetWorldPositionOnB()
+        Vector3 pos1
+        pos1:Set(contactPoint:GetWorldPositionOnA())
+        Vector3 pos2
+        pos2:Set(contactPoint:GetWorldPositionOnB())
         Vector3 normal = contactPoint:GetWorldNormalOnB()
 
         Vector3 relpos1
@@ -208,8 +230,10 @@ class CollisionConstraint3D
         Vector3 relpos2
         relpos2:Set(pos2):Subtract(body2:GetCenterOfMassPosition())
 
-        Vector3 vel1 = body1:GetLinearVelocityAtLocalPoint(relpos1)
-        Vector3 vel2 = body2:GetLinearVelocityAtLocalPoint(relpos2)
+        Vector3 vel1
+        vel1:Set(body1:GetLinearVelocityAtLocalPoint(relpos1))
+        Vector3 vel2
+        vel2:Set(body2:GetLinearVelocityAtLocalPoint(relpos2))
         Vector3 vel
         vel:Set(vel1):Subtract(vel2)
 
@@ -248,7 +272,7 @@ class CollisionConstraint3D
 
         if body2:GetInverseMass() not= 0
             temp:Set(contactPoint:GetWorldNormalOnB()):Scale(body2:GetInverseMass())
-            body2:InternalApplyImpulse(temp, cpd:GetAngularComponentA(), -normalImpulse)
+            body2:InternalApplyImpulse(temp, cpd:GetAngularComponentB(), -normalImpulse)
         end
 
         vel1:Set(body1:GetLinearVelocityAtLocalPoint(relpos1))
@@ -270,12 +294,14 @@ class CollisionConstraint3D
 
                 Vector3 temp1
                 temp1:Set(relpos1):CrossProduct(latvel)
-                Matrix3 matrix1 = body1:GetInverseInertiaWorld()
+                Matrix3 matrix1
+                matrix1:Set(body1:GetInverseInertiaWorld())
                 matrix1:Transform(temp1)
 
                 Vector3 temp2
                 temp2:Set(relpos2):CrossProduct(latvel)
-                Matrix3 matrix2 = body2:GetInverseInertiaWorld()
+                Matrix3 matrix2
+                matrix2:Set(body2:GetInverseInertiaWorld())
                 matrix2:Transform(temp2)
 
                 Vector3 javatemp1

@@ -338,11 +338,16 @@ class PhysicsProperties3D
         simulated = true
 
         if me:type = RESPONSIVE
-            mass = 1
-            inverseMass = 1
-            density = 1
+            if not massSet
+                mass = 1
+                inverseMass = 1
+                density = 1
+            end
+            
             if me:item not= undefined
-                //me:item:ResetMass()
+                Vector3 inertia
+                item:GetShape():CalculateLocalInertia(mass, inertia)
+                SetMassProperties(mass, inertia)
             end
         else
             mass = 0

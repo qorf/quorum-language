@@ -1411,7 +1411,23 @@ class Item3D is Item
     action Rotate(Vector3 vector, number degrees, boolean rotateChildren)
         transform:Rotate(vector:GetX(), vector:GetY(), -vector:GetZ(), degrees)
         if updateTransform
-            collisionTransform:SetRotation(collisionTransform:GetRotation():Add(transform:GetRotation()))
+            if shape not= undefined
+                Vector3 scale
+                shape:GetLocalScaling(scale)
+                Matrix3 tempMatrix
+                tempMatrix:row0column0 = transform:row0column0 / scale:GetX()
+                tempMatrix:row0column1 = transform:row0column1 / scale:GetX()
+                tempMatrix:row0column2 = transform:row0column2 / scale:GetX()
+
+                tempMatrix:row1column0 = transform:row1column0 / scale:GetY()
+                tempMatrix:row1column1 = transform:row1column1 / scale:GetY()
+                tempMatrix:row1column2 = transform:row1column2 / scale:GetY()
+
+                tempMatrix:row2column0 = transform:row2column0 / scale:GetZ()
+                tempMatrix:row2column1 = transform:row2column1 / scale:GetZ()
+                tempMatrix:row2column2 = transform:row2column2 / scale:GetZ()
+                collisionTransform:GetBasis():Set(tempMatrix)
+            end
         end
         if rotateChildren
             RotateChildren(vector, degrees)
@@ -1921,9 +1937,9 @@ class Item3D is Item
         transform:row1column1 = transform:row1column1 * vector:GetY()
         transform:row1column2 = transform:row1column2 * vector:GetY()
 
-        transform:row2column0 = transform:row2column0 * vector:GetY()
-        transform:row2column1 = transform:row2column1 * vector:GetY()
-        transform:row2column2 = transform:row2column2 * vector:GetY()
+        transform:row2column0 = transform:row2column0 * vector:GetZ()
+        transform:row2column1 = transform:row2column1 * vector:GetZ()
+        transform:row2column2 = transform:row2column2 * vector:GetZ()
 
         if shape not= undefined
             shape:Scale(vector)
@@ -3080,6 +3096,7 @@ class Item3D is Item
         tempMatrix:Set(collisionTransform:GetBasis())
 
         Matrix4 matrix
+        matrix:IdentityMatrix()
         matrix:row0column0 = tempMatrix:row0column0 * vector:GetX()
         matrix:row0column1 = tempMatrix:row0column1 * vector:GetX()
         matrix:row0column2 = tempMatrix:row0column2 * vector:GetX()
@@ -3088,9 +3105,9 @@ class Item3D is Item
         matrix:row1column1 = tempMatrix:row1column1 * vector:GetY()
         matrix:row1column2 = tempMatrix:row1column2 * vector:GetY()
 
-        matrix:row2column0 = tempMatrix:row2column0 * vector:GetY()
-        matrix:row2column1 = tempMatrix:row2column1 * vector:GetY()
-        matrix:row2column2 = tempMatrix:row2column2 * vector:GetY()
+        matrix:row2column0 = tempMatrix:row2column0 * vector:GetZ()
+        matrix:row2column1 = tempMatrix:row2column1 * vector:GetZ()
+        matrix:row2column2 = tempMatrix:row2column2 * vector:GetZ()
 
         matrix:row0column3 = collisionTransform:GetOrigin():GetX()
         matrix:row1column3 = collisionTransform:GetOrigin():GetY()

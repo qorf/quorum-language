@@ -30,7 +30,7 @@ class CollisionGroup3D
     CollisionSolver3D collisionSolver
     CollisionSolverInformation3D solverInfo
 
-    number sleepThreshold = 0.001
+    number sleepThreshold = 0.01
 
     action Empty
         itemCount = 0
@@ -112,41 +112,41 @@ class CollisionGroup3D
         collisionSolver:SolveGroup(items, itemCount, manifolds, 0, manifoldCount, joints, 0, jointCount, solverInfo)
 
         if not requireSimulation
-//            number h = solverInfo:GetTimeStep()
-//            number timeToSleep = 0.5
-//            number minSleepTime = timeToSleep:GetMaximumValue()
-//
-//            number linearToleranceSquared = sleepThreshold * sleepThreshold
-//            number angularToleranceSquared = (2 / 180.0 * math:pi) * (2 / 180.0 * math:pi)
-//
-//            i = 0
-//            repeat while i < itemCount
-//                Item3D body = items:Get(i)
-//                if body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
-//                    if body:IsSimulationRequired()
-//                        or body:GetLinearVelocity():GetX() * body:GetLinearVelocity():GetX() + body:GetLinearVelocity():GetY() * body:GetLinearVelocity():GetY() + body:GetLinearVelocity():GetZ() * body:GetLinearVelocity():GetZ() > linearToleranceSquared
-//                            body:SetSleepTime(0)
-//                            minSleepTime = 0
-//                    else
-//                        body:SetSleepTime(body:GetSleepTime() + h)
-//                        if minSleepTime > body:GetSleepTime()
-//                            minSleepTime = body:GetSleepTime()
-//                        end
-//                    end
-//                end
-//
-//                i = i + 1
-//            end
-//
-//            if minSleepTime >= timeToSleep
-//                i = 0
-//                repeat while i < itemCount
-//                    Item3D body = items:Get(i)
-//                    body:Simulate(false)
-//
-//                    i = i + 1
-//                end
-//            end
+            number h = solverInfo:GetTimeStep()
+            number timeToSleep = 0.5
+            number minSleepTime = timeToSleep:GetMaximumValue()
+
+            number linearToleranceSquared = sleepThreshold * sleepThreshold
+            number angularToleranceSquared = (2 / 180.0 * math:pi) * (2 / 180.0 * math:pi)
+
+            i = 0
+            repeat while i < itemCount
+                Item3D body = items:Get(i)
+                if body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
+                    if body:IsSimulationRequired()
+                        or body:GetLinearVelocity():GetX() * body:GetLinearVelocity():GetX() + body:GetLinearVelocity():GetY() * body:GetLinearVelocity():GetY() + body:GetLinearVelocity():GetZ() * body:GetLinearVelocity():GetZ() > linearToleranceSquared
+                            body:SetSleepTime(0)
+                            minSleepTime = 0
+                    else
+                        body:SetSleepTime(body:GetSleepTime() + h)
+                        if minSleepTime > body:GetSleepTime()
+                            minSleepTime = body:GetSleepTime()
+                        end
+                    end
+                end
+
+                i = i + 1
+            end
+
+            if minSleepTime >= timeToSleep
+                i = 0
+                repeat while i < itemCount
+                    Item3D body = items:Get(i)
+                    body:Simulate(false)
+
+                    i = i + 1
+                end
+            end
         end
     end
 end
