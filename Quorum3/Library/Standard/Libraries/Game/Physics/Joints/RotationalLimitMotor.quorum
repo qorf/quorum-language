@@ -95,14 +95,14 @@ class RotationalLimitMotor
 	// correction velocity
 	number motorRelvel = limitSoftness * (localTargetVelocity - damping * relVel)
 
-	if motorRelvel < 1.19209290 * (math.RaiseToPower(10, -7)) and motorRelvel > -1.19209290 * (math.RaiseToPower(10, -7)
+	if motorRelvel < (1.19209290 * math:RaiseToPower(10, -7)) and motorRelvel > (-1.19209290 * math:RaiseToPower(10, -7))
             return 0
 	end
 
 	number unclippedMotorImpulse = (1 + bounce) * motorRelvel * jacDiagABInv
 
         // clip correction impulse
-	number clippedMotorImpulse
+	number clippedMotorImpulse = 0
 
 	// todo: should clip against accumulated impulse
 	if unclippedMotorImpulse > 0
@@ -134,20 +134,21 @@ class RotationalLimitMotor
 	clippedMotorImpulse = accumulatedImpulse - oldaccumImpulse
 
 	Vector3 motorImp
-	motorImp:Scale(clippedMotorImpulse, axis)
+	motorImp:Set(axis)
+        motorImp:Scale(clippedMotorImpulse)
 
-	body0:ApplyTorqueImpulse(motorImp)
+	body0:ApplyAngularImpulse(motorImp)
 	if body1 not= undefined
             motorImp:Set(-motorImp:GetX(), -motorImp:GetY(), -motorImp:GetZ())
-            body1:ApplyTorqueImpulse(motorImp)
+            body1:ApplyAngularImpulse(motorImp)
 	end
 
 	return clippedMotorImpulse
         return 0
     end  
 
-    action SetAccumulatedImpulse(number x, number y, number z)
-        accumulatedImpulse:Set(x, y, z)
+    action SetAccumulatedImpulse(number x)
+        accumulatedImpulse = x
     end 
     
     action GetTargetVelocity() returns number
@@ -166,8 +167,16 @@ class RotationalLimitMotor
         return loLimit
     end
     
+    action SetLoLimit(number limit) 
+        loLimit = limit
+    end
+    
     action GetHiLimit() returns number
         return hiLimit
+    end
+
+    action SetHiLimit(number limit) 
+        hiLimit = limit
     end
     
     action GetERP() returns number

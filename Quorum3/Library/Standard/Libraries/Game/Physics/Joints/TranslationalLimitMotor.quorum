@@ -57,15 +57,15 @@ class TranslationalLimitMotor
     end   
 
     action NeedApplyForces(integer index) returns boolean
-        if currentLimit:Get(index) = 0 and enableMotor:Get(index) = false)
+        if currentLimit:Get(index) = 0 and enableMotor:Get(index) = false
             return false
         end
         return true
     end
 
     action TestLimitValue(integer limitIndex, number testValue) returns integer
-        number loLimit 
-        number hiLimit 
+        number loLimit = 0
+        number hiLimit = 0
 
         if limitIndex = 0
             loLimit = lowerLimit:GetX()
@@ -132,7 +132,7 @@ class TranslationalLimitMotor
 
 	Vector3 relativePosition2
         tmpVec:Set(anchorPos)
-	relativePosition2:Set(tmpVec:Subtract(body2.getCenterOfMassPosition()))
+	relativePosition2:Set(tmpVec:Subtract(body2:GetCenterOfMassPosition()))
 
 	Vector3 velocity1         
 	Vector3 velocity2        
@@ -143,9 +143,9 @@ class TranslationalLimitMotor
 	velocity:Set(velocity1:Subtract(velocity2)) //Note that velocity1 has changed!
 
 	number relativeVelocity = axisNormalOnA:DotProduct(velocity)
-        number localTargetVelocity
-        number localMaxMotorForce
-        number limitError
+        number localTargetVelocity = 0
+        number localMaxMotorForce = 0
+        number limitError = 0
 
         if limitIndex = 0
             localTargetVelocity = targetVelocity:GetX()
@@ -181,17 +181,17 @@ class TranslationalLimitMotor
 	number unclippedMotorImpulse = motorRelvel * jacDiagABInv
 
 	// clip correction impulse
-	number clippedMotorImpulse
+	number clippedMotorImpulse = 0
 
 	if unclippedMotorImpulse > 0
             if unclippedMotorImpulse > localMaxMotorForce
-                clippedMotorImpulse =  maxMotorForce 
+                clippedMotorImpulse =  localMaxMotorForce 
             else
                 clippedMotorImpulse = unclippedMotorImpulse
             end
 	else 
-            if unclippedMotorImpulse < -maxMotorForce
-                clippedMotorImpulse = -maxMotorForce 
+            if unclippedMotorImpulse < -localMaxMotorForce
+                clippedMotorImpulse = -localMaxMotorForce 
             else
                 clippedMotorImpulse = unclippedMotorImpulse
             end
@@ -200,9 +200,9 @@ class TranslationalLimitMotor
         number normalImpulse = clippedMotorImpulse
 
         // sort with accumulated impulses
-	number lo = -(math:RaiseToPower(10, 30)
+	number lo = -math:RaiseToPower(10, 30)
 	number hi = math:RaiseToPower(10, 30)
-	number oldNormalImpulse
+	number oldNormalImpulse = 0
 
         if limitIndex = 0
             oldNormalImpulse = accumulatedImpulse:GetX()
@@ -262,12 +262,20 @@ class TranslationalLimitMotor
     action GetLowerLimit() returns Vector3
         return lowerLimit
     end
+
+    action SetLowerLimit(Vector3 limit)
+        lowerLimit:Set(limit)
+    end
     
     action GetUpperLimit() returns Vector3
         return upperLimit
     end
 
-    action GetAccumulatedImpulse() return Vector3
+    action SetUpperLimit(Vector3 limit)
+        upperLimit:Set(limit)
+    end
+
+    action GetAccumulatedImpulse() returns Vector3
         return accumulatedImpulse
     end
 
@@ -281,6 +289,14 @@ class TranslationalLimitMotor
 
     action GetRestitution() returns number
         return restitution
+    end
+
+    action GetCurrentLinearDiff() returns Vector3
+        return currentLinearDiff
+    end
+    
+    action SetCurrentLinearDiff(Vector3 diff) 
+        currentLinearDiff:Set(diff)
     end
 end
 
