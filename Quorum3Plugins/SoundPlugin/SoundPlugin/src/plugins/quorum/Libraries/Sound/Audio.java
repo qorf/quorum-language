@@ -170,7 +170,7 @@ public class Audio {
         data.SetReferenceDistance((float)distance);
     }
     
-    public void SetRolloffFactor(double rolloff)
+    public void SetRolloffRate(double rolloff)
     {
         if (data == null)
             throw new RuntimeException("This Audio object hasn't been loaded yet.");
@@ -186,7 +186,7 @@ public class Audio {
         AudioData.SetDefaultReferenceDistance((float)distance);
     }
     
-    public void SetDefaultRolloffFactor(double rolloff)
+    public void SetDefaultRolloffRate(double rolloff)
     {
         if (rolloff < 0)
             rolloff = 0;
@@ -399,7 +399,7 @@ public class Audio {
         return data.GetReferenceDistance();
     }
     
-    public double GetRolloffFactor()
+    public double GetRolloffRate()
     {
         if (data == null)
             throw new RuntimeException("This Audio object hasn't been loaded yet.");
@@ -411,7 +411,7 @@ public class Audio {
         return AudioData.GetDefaultReferenceDistance();
     }
     
-    public double GetDefaultRolloffFactor()
+    public double GetDefaultRolloffRate()
     {
         return AudioData.GetDefaultRolloff();
     }
@@ -437,7 +437,7 @@ public class Audio {
         data.Update();
     }
     
-    public void QueueSamples(AudioSamples_ samples)
+    public void AddToQueue(AudioSamples_ samples)
     {
         if (data == null)
             data = loader.LoadToStream(samples);
@@ -445,10 +445,10 @@ public class Audio {
             data.QueueSamples(samples);
     }
     
-    public void UnqueueSamples(AudioSamples_ samples)
+    public void RemoveFromQueue(AudioSamples_ samples)
     {
         if (data == null)
-            throw new RuntimeException("Can't unqueue samples before the Audio has been loaded - call LoadToStream() or QueueSamples() first.");
+            throw new RuntimeException("Can't dequeue samples before the Audio has been loaded - call LoadToStream() or AddToQueue() first.");
         data.UnqueueSamples(samples);
     }
     
