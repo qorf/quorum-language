@@ -203,7 +203,7 @@ class Audio
 
 
     /*
-    The QueueSamples action adds AudioSamples to the end of the data stored in
+    The AddToQueue action adds AudioSamples to the end of the data stored in
     this Audio object. To use this, the Audio must have been initialized using
     LoadToStream using an AudioSamples object, or must not have been initialized
     yet. This action can't be combined with actions that load a file into the
@@ -211,19 +211,19 @@ class Audio
 
     Attribute: Parameter samples The AudioSamples to add to the end of the Audio data.
     */
-    system action QueueSamples(AudioSamples samples)
+    system action AddToQueue(AudioSamples samples)
 
     /*
-    The UnqueueSamples action removes AudioSamples from the data stored in
+    The RemoveFromQueue action removes AudioSamples from the data stored in
     this Audio object. To use this, the Audio must have been initialized for
     streaming AudioSamples, either by using LoadToStream(AudioSamples) or
-    QueueSamples(AudioSamples). If the requested AudioSamples wasn't present in
+    AddToQueue(AudioSamples). If the requested AudioSamples wasn't present in
     the Audio (e.g., because it was never queued or because it was queued and
     already played), then this action will have no effect.
 
     Attribute: Parameter samples The AudioSamples to remove from the Audio data.
     */
-    system action UnqueueSamples(AudioSamples samples)
+    system action RemoveFromQueue(AudioSamples samples)
 
     /*
     Once we've prepared our audio file with either the Load or LoadToStream
@@ -2349,18 +2349,18 @@ class Audio
     // times slower than the previous value of 1, and we play the Audio again.
     // It should be the same volume when close (e.g. at 1 unit) but noticeably 
     // louder than it was previously when it is far away (e.g. at 5 units)
-    audio:SetRolloffFactor(0.25)
+    audio:SetRolloffRate(0.25)
     audio:SetX(1)
     audio:PlayUntilDone()
     audio:SetX(5)
     audio:PlayUntilDone()
     */
-    system action SetRolloffFactor(number rolloff)
+    system action SetRolloffRate(number rolloff)
 
     /*
     
     */
-    system action GetRolloffFactor returns number
+    system action GetRolloffRate returns number
 
     /*
 
@@ -2375,11 +2375,11 @@ class Audio
     /*
 
     */
-    system action SetDefaultRolloffFactor(number rolloff)
+    system action SetDefaultRolloffRate(number rolloff)
 
     /*
 
     */
-    system action GetDefaultRolloffFactor returns number
+    system action GetDefaultRolloffRate returns number
 
 end

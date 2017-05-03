@@ -118,8 +118,8 @@ function plugins_quorum_Libraries_Sound_Audio_()
         this.GetRolloffFactor = function(){};
         this.GetDefaultMaximumVolumeDistance = function(){};
         this.GetDefaultRolloffFactor = function(){};
-        this.QueueSamples$quorum_Libraries_Sound_AudioSamples = function(){};
-        this.UnqueueSamples$quorum_Libraries_Sound_AudioSamples = function(){};
+        this.AddToQueue$quorum_Libraries_Sound_AudioSamples = function(){};
+        this.RemoveFromQueue$quorum_Libraries_Sound_AudioSamples = function(){};
         
         return;
     }
@@ -275,7 +275,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
             onloadQueue.push(Play);
         else
         {
-            if (this.IsPlaying)
+            if (this.IsPlaying())
                 source.stop();
             
             source = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
@@ -285,7 +285,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
             source.start(0);
             source.playbackRate.value = pitch;
             
-            startTime = Date.now();
+            startTime = plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime;
         }
     };
     
@@ -314,7 +314,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         else if (source !== undefined && source !== null)
         {
             source.stop();
-            pauseTime = Date.now();
+            pauseTime = plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime;
         }
     };
     
@@ -331,7 +331,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
             source.buffer = soundBuffer;
             source.connect(panner);
             source.loop = looping;
-            source.start(0, (pauseTime - startTime)/1000);
+            source.start(0, (pauseTime - startTime));
             source.playbackRate.value = pitch;
             
             pauseTime = 0;
@@ -344,8 +344,11 @@ function plugins_quorum_Libraries_Sound_Audio_()
             return (playingSamples.length > 0 
                 && playingSamples[playingSamples.length - 1].endTime > plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime);
         
+        if (source === undefined || source === null)
+            return false;
+        
         var duration = source.buffer.duration;
-        return (startTime !== 0 && pauseTime === 0 && (looping || startTime + duration < Date.now()));
+        return (startTime !== 0 && pauseTime === 0 && (looping || startTime + duration < plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime));
     };
     
     this.EnableLooping = function()
@@ -870,7 +873,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         panner.connect(gainNode);
         gainNode.connect(plugins_quorum_Libraries_Sound_Audio_.audioContext.destination);
         gainNode.gain.value = gain;
-        this.QueueSamples(samples);
+        this.AddToQueue$quorum_Libraries_Sound_AudioSamples(samples);
     };
     
     this.SetMaximumVolumeDistance$quorum_number = function(distance)
@@ -913,7 +916,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         return plugins_quorum_Libraries_Sound_Audio_.defaultRolloff;
     };
 
-    this.QueueSamples$quorum_Libraries_Sound_AudioSamples = function(samples)
+    this.AddToQueue$quorum_Libraries_Sound_AudioSamples = function(samples)
     {
         if (this.IsStreaming() === undefined)
             this.LoadToStream$quorum_Libraries_Sound_AudioSamples(samples);
@@ -921,7 +924,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         queuedSamples.push(samples);
     };
     
-    this.UnqueueSamples$quorum_Libraries_Sound_AudioSamples = function(samples)
+    this.RemoveFromQueue$quorum_Libraries_Sound_AudioSamples = function(samples)
     {
         
     };

@@ -57,7 +57,7 @@ function plugins_quorum_Libraries_Sound_AudioSamples_()
 
     this.SetSizeInSeconds$quorum_number = function(seconds)
     {
-        this.SetTotalSize(Math.round(seconds * this.samplesPerSecond) * this.channels);
+        this.SetTotalSize$quorum_integer(Math.round(seconds * this.samplesPerSecond) * this.channels);
     };
     
     this.GetSizeInSeconds = function()
