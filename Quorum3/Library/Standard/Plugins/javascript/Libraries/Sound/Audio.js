@@ -26,8 +26,11 @@ function plugins_quorum_Libraries_Sound_Audio_()
         {
             plugins_quorum_Libraries_Sound_Audio_.listener = plugins_quorum_Libraries_Sound_Audio_.audioContext.listener;
             if (plugins_quorum_Libraries_Sound_Audio_.audioContext.state === 'suspended')
-                plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();
+                plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();            
         }
+        
+        plugins_quorum_Libraries_Sound_Audio_.defaultReferenceDistance = 1.0;
+        plugins_quorum_Libraries_Sound_Audio_.defaultRolloff = 1.0;
     }
 
     if (plugins_quorum_Libraries_Sound_Audio_.audioContext === undefined)
@@ -138,12 +141,29 @@ function plugins_quorum_Libraries_Sound_Audio_()
     var startTime = 0;
     var pauseTime = 0;
     
+    /*
+     * An array containing samples ready to be scheduled for play by the Web
+     * Audio API. Samples are queued by the Stream() action.
+     */
+    var queuedSamples = [];
+    
+    /* An array containing objects with several fields: sample (The AudioSample) and source (The source node). 
+     * samples  : The AudioSamples object corresponding to the buffer being played.
+     * source   : The Web Audio API source node.
+     * startTime: The time the sound is scheduled to play at.
+     * endTime  : The time the sound should be finished at.
+     */
+    var playingSamples = [];
+    
+    // True if this is streaming audio, false if it is not.
+    var streaming;
+    
     panner = plugins_quorum_Libraries_Sound_Audio_.audioContext.createPanner();
     panner.panningModel = 'equalpower';
     panner.distanceModel = 'inverse';
-    panner.refDistance = 1;
+    panner.refDistance = plugins_quorum_Libraries_Sound_Audio_.defaultReferenceDistance;
     panner.maxDistance = 10000;
-    panner.rolloffFactor = 1;
+    panner.rolloffFactor = plugins_quorum_Libraries_Sound_Audio_.defaultRolloff;
     panner.coneInnerAngle = 360;
     panner.coneOuterAngle = 0;
     panner.coneOuterGain = 0;
@@ -197,6 +217,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.Load$quorum_Libraries_System_File = function(file)
     {   
+        streaming = false;
         var runQueuedActions = this.RunQueuedActions;
         
         var request = new XMLHttpRequest();
@@ -233,6 +254,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.LoadToStream$quorum_Libraries_System_File = function(file)
     {
+        // This needs to be reviewed for the possibility of streaming from a file.
         this.Load$quorum_Libraries_System_File(file);
     };
     
@@ -240,6 +262,14 @@ function plugins_quorum_Libraries_Sound_Audio_()
     {
         if (plugins_quorum_Libraries_Sound_Audio_.audioContext.state === 'suspended')
                 plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();
+        
+        if (this.IsStreaming() === true)
+        {
+            // Set the audio to play in a way that makes sense for streaming.
+            this.Stream();
+            
+            return;
+        }
         
         if (loading === true)
             onloadQueue.push(Play);
@@ -310,6 +340,10 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.IsPlaying = function()
     {
+        if (this.IsStreaming() === true)
+            return (playingSamples.length > 0 
+                && playingSamples[playingSamples.length - 1].endTime > plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime);
+        
         var duration = source.buffer.duration;
         return (startTime !== 0 && pauseTime === 0 && (looping || startTime + duration < Date.now()));
     };
@@ -390,12 +424,55 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.Stream = function()
     {
-        // Do nothing.
+        if (this.IsStreaming() && IsPlaying())
+        {
+            var queuedTime = plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime;
+            /* 
+            Check for finished samples and remove them. The array is effectively
+            a queue, so elements later in the array will end later.
+            */
+            while (playingSamples.length > 0)
+            {
+                if (playingSamples[0].endTime < queuedTime)
+                    playingSamples.shift();
+                else
+                {
+                    queuedTime = playingSamples[playingSamples.length - 1].endTime;
+                    break;
+                }
+            }
+            
+            /*
+            Take all samples that have been queued by the user and schedule them
+            with the Web Audio API to be played. Also store relevant information
+            (the samples that produced it, the source that's playing it, the
+            time it is scheduled to start, and the expected end time).
+            */
+            while (queuedSamples.length > 0)
+            {
+                var container = {};
+                container.samples = queuedSamples.shift();
+                
+                var newSource = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
+                newSource.buffer = container.samples.plugin_.buffer;
+                newSource.connect(panner);
+                newSource.loop = false;
+                newSource.start(queuedTime);
+                newSource.playbackRate.value = pitch;
+                
+                container.source = newSource;
+                container.startTime = queuedTime;
+                queuedTime = queuedTime + newSource.buffer.duration;
+                container.endTime = queuedTime;
+
+                playingSamples.push(container);
+            }
+        }
     };
     
     this.IsStreaming = function()
     {
-        return false;
+        return streaming;
     };
     
     this.SetFade$quorum_number = function(newFade)
@@ -780,57 +857,68 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.Load$quorum_Libraries_Sound_AudioSamples = function(samples)
     {
-        
+        streaming = false;
+        soundBuffer = samples.plugin_.buffer;
+        panner.connect(gainNode);
+        gainNode.connect(plugins_quorum_Libraries_Sound_Audio_.audioContext.destination);
+        gainNode.gain.value = gain;
     };
     
     this.LoadToStream$quorum_Libraries_Sound_AudioSamples = function(samples)
     {
-        
+        streaming = true;
+        panner.connect(gainNode);
+        gainNode.connect(plugins_quorum_Libraries_Sound_Audio_.audioContext.destination);
+        gainNode.gain.value = gain;
+        this.QueueSamples(samples);
     };
     
     this.SetMaximumVolumeDistance$quorum_number = function(distance)
     {
-        
+        panner.refDistance = distance;
     };
     
     this.SetRolloffFactor$quorum_number = function(rolloff)
     {
-        
+        panner.rolloffFactor = rolloff;
     };
     
     this.SetDefaultMaximumVolumeDistance$quorum_number = function(distance)
     {
-        
+        plugins_quorum_Libraries_Sound_Audio_.defaultReferenceDistance = distance;
     };
     
     this.SetDefaultRolloffFactor$quorum_number = function(rolloff)
     {
-        
+        plugins_quorum_Libraries_Sound_Audio_.defaultRolloff = rolloff;
     };
     
     this.GetMaximumVolumeDistance = function()
     {
-        
+        return panner.refDistance;
     };
     
     this.GetRolloffFactor = function()
     {
-        
+        return panner.rolloffFactor;
     };
     
     this.GetDefaultMaximumVolumeDistance = function()
     {
-        
+        return plugins_quorum_Libraries_Sound_Audio_.defaultReferenceDistance;
     };
     
     this.GetDefaultRolloffFactor = function()
     {
-        
+        return plugins_quorum_Libraries_Sound_Audio_.defaultRolloff;
     };
 
     this.QueueSamples$quorum_Libraries_Sound_AudioSamples = function(samples)
     {
+        if (this.IsStreaming() === undefined)
+            this.LoadToStream$quorum_Libraries_Sound_AudioSamples(samples);
         
+        queuedSamples.push(samples);
     };
     
     this.UnqueueSamples$quorum_Libraries_Sound_AudioSamples = function(samples)
