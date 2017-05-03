@@ -103,7 +103,7 @@ public class RawStreamingData extends DesktopData
                     break;
                 
                 if (i == buffersProcessed && currentID != bufferID)
-                        first = false;
+                    first = false;
 
                 i--;
                 
@@ -200,8 +200,8 @@ public class RawStreamingData extends DesktopData
                 SetVelocity(velocityX, velocityY, velocityZ);
             
             SetVolume(volume);
-//            SetReferenceDistance(referenceDistance);
-//            SetRolloff(rolloff);
+            SetReferenceDistance(referenceDistance);
+            SetRolloff(rolloff);
             SetPosition(x, y, z);
         }
         if (!IsPlaying()) 
