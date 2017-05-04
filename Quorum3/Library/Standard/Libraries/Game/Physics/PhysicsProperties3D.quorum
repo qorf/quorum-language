@@ -277,11 +277,11 @@ class PhysicsProperties3D
 
     action SetMass(number mass)
         me:mass = mass
+        massSet = true
         if mass not= 0
             me:inverseMass = 1.0 / mass
         end
         if item not= undefined
-            massSet = true
             Vector3 inertia
             item:GetShape():CalculateLocalInertia(mass, inertia)
             SetMassProperties(mass, inertia)

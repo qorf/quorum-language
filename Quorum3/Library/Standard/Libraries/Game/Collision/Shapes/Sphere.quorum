@@ -16,6 +16,10 @@ class Sphere is CollisionShape3D
         parent:CollisionShape3D:collisionMargin = radius
     end
 
+    action SetRadius(number radius)
+        Set(radius)
+    end
+
     action LocalGetSupportingVertexWithoutMargin(Vector3 vector) returns Vector3
         Vector3 out
         out:Set(0, 0, 0)

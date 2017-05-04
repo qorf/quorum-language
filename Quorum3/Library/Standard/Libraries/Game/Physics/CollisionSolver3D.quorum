@@ -513,7 +513,7 @@ class CollisionSolver3D
         repeat while j < numJoints
             Joint3D joint = joints:Get(joints_offset + j)
             joint:GetInformation(infoGlobal)
-            j = j +1
+            j = j + 1
         end
 
         integer numJointPool = tempSolverConstraintPool:GetSize()
@@ -647,7 +647,7 @@ class CollisionSolver3D
             CollisionPoint3D pt = solverManifold:GetOriginalContactPoint()
             pt:SetAppliedImpulse(solverManifold:GetAppliedImpulse())
             pt:SetAppliedImpulseLateralA(tempSolverFrictionConstraintPool:Get(solverManifold:GetFrictionIndex()):GetAppliedImpulse())
-            pt:SetAppliedImpulseLateralB(tempSolverFrictionConstraintPool:Get(solverManifold:GetFrictionIndex() + 1):GetAppliedImpulse())
+            pt:SetAppliedImpulseLateralA(tempSolverFrictionConstraintPool:Get(solverManifold:GetFrictionIndex() + 1):GetAppliedImpulse())
 
             j = j + 1
         end

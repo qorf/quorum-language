@@ -27,14 +27,12 @@ class ConstraintDescription3D
         bJ:Set(temp)
         world2B:Transform(bJ)
 
-        minvJt0:Set(inertiaInverseA)
-        minvJt0:SetX(minvJt0:GetX() * aJ:GetX())
-        minvJt0:SetY(minvJt0:GetY() * aJ:GetY())
-        minvJt0:SetZ(minvJt0:GetZ() * aJ:GetZ())
-        minvJt1:Set(inertiaInverseB)
-        minvJt1:SetX(minvJt1:GetX() * bJ:GetX())
-        minvJt1:SetY(minvJt1:GetY() * bJ:GetY())
-        minvJt1:SetZ(minvJt1:GetZ() * bJ:GetZ())
+        minvJt0:SetX(inertiaInverseA:GetX() * aJ:GetX())
+        minvJt0:SetY(inertiaInverseA:GetY() * aJ:GetY())
+        minvJt0:SetZ(inertiaInverseA:GetZ() * aJ:GetZ())
+        minvJt1:SetX(inertiaInverseB:GetX() * bJ:GetX())
+        minvJt1:SetY(inertiaInverseB:GetY() * bJ:GetY())
+        minvJt1:SetZ(inertiaInverseB:GetZ() * bJ:GetZ())
         diag = massInverseA + minvJt0:DotProduct(aJ) + massInverseB + minvJt1:DotProduct(bJ)
     end
 
@@ -48,14 +46,12 @@ class ConstraintDescription3D
         bJ:Scale(-1)
         world2B:Transform(bJ)
 
-        minvJt0:Set(inertiaInverseA)
-        minvJt0:SetX(minvJt0:GetX() * aJ:GetX())
-        minvJt0:SetY(minvJt0:GetY() * aJ:GetY())
-        minvJt0:SetZ(minvJt0:GetZ() * aJ:GetZ())
-        minvJt1:Set(inertiaInverseB)
-        minvJt1:SetX(minvJt1:GetX() * bJ:GetX())
-        minvJt1:SetY(minvJt1:GetY() * bJ:GetY())
-        minvJt1:SetZ(minvJt1:GetZ() * bJ:GetZ())
+        minvJt0:SetX(inertiaInverseA:GetX() * aJ:GetX())
+        minvJt0:SetY(inertiaInverseA:GetY() * aJ:GetY())
+        minvJt0:SetZ(inertiaInverseA:GetZ() * aJ:GetZ())
+        minvJt1:SetX(inertiaInverseB:GetX() * bJ:GetX())
+        minvJt1:SetY(inertiaInverseB:GetY() * bJ:GetY())
+        minvJt1:SetZ(inertiaInverseB:GetZ() * bJ:GetZ())
         diag = minvJt0:DotProduct(aJ) + minvJt1:DotProduct(bJ)
     end
 
@@ -66,14 +62,12 @@ class ConstraintDescription3D
         bJ:Set(axisInB)
         bJ:Scale(-1)
 
-        minvJt0:Set(inertiaInverseA)
-        minvJt0:SetX(minvJt0:GetX() * aJ:GetX())
-        minvJt0:SetY(minvJt0:GetY() * aJ:GetY())
-        minvJt0:SetZ(minvJt0:GetZ() * aJ:GetZ())
-        minvJt1:Set(inertiaInverseB)
-        minvJt1:SetX(minvJt1:GetX() * bJ:GetX())
-        minvJt1:SetY(minvJt1:GetY() * bJ:GetY())
-        minvJt1:SetZ(minvJt1:GetZ() * bJ:GetZ())
+        minvJt0:SetX(inertiaInverseA:GetX() * aJ:GetX())
+        minvJt0:SetY(inertiaInverseA:GetY() * aJ:GetY())
+        minvJt0:SetZ(inertiaInverseA:GetZ() * aJ:GetZ())
+        minvJt1:SetX(inertiaInverseB:GetX() * bJ:GetX())
+        minvJt1:SetY(inertiaInverseB:GetY() * bJ:GetY())
+        minvJt1:SetZ(inertiaInverseB:GetZ() * bJ:GetZ())
         diag = minvJt0:DotProduct(aJ) + minvJt1:DotProduct(bJ)
     end
 
@@ -91,10 +85,9 @@ class ConstraintDescription3D
         bJ:Set(temp)
         world2A:Transform(bJ)
 
-        minvJt0:Set(inertiaInverseA)
-        minvJt0:SetX(minvJt0:GetX() * aJ:GetX())
-        minvJt0:SetY(minvJt0:GetY() * aJ:GetY())
-        minvJt0:SetZ(minvJt0:GetZ() * aJ:GetZ())     
+        minvJt0:SetX(inertiaInverseA:GetX() * aJ:GetX())
+        minvJt0:SetY(inertiaInverseA:GetY() * aJ:GetY())
+        minvJt0:SetZ(inertiaInverseA:GetZ() * aJ:GetZ())     
         minvJt1:Set(0, 0, 0)
         diag = massInverseA + minvJt0:DotProduct(aJ)
     end
@@ -114,22 +107,19 @@ class ConstraintDescription3D
         ConstraintDescription3D jacA = me
 
         Vector3 lin
-        lin:Set(jacA:linearJointAxis)
-        lin:SetX(lin:GetX() * descriptionB:linearJointAxis:GetX())
-        lin:SetY(lin:GetY() * descriptionB:linearJointAxis:GetY())
-        lin:SetZ(lin:GetZ() * descriptionB:linearJointAxis:GetZ())
+        lin:SetX(jacA:linearJointAxis:GetX() * descriptionB:linearJointAxis:GetX())
+        lin:SetY(jacA:linearJointAxis:GetY() * descriptionB:linearJointAxis:GetY())
+        lin:SetZ(jacA:linearJointAxis:GetZ() * descriptionB:linearJointAxis:GetZ())
 
         Vector3 ang0
-        ang0:Set(jacA:minvJt0)
-        ang0:SetX(ang0:GetX() * descriptionB:aJ:GetX())
-        ang0:SetY(ang0:GetY() * descriptionB:aJ:GetY())
-        ang0:SetZ(ang0:GetZ() * descriptionB:aJ:GetZ())
+        ang0:SetX(jacA:minvJt0:GetX() * descriptionB:aJ:GetX())
+        ang0:SetY(jacA:minvJt0:GetY() * descriptionB:aJ:GetY())
+        ang0:SetZ(jacA:minvJt0:GetZ() * descriptionB:aJ:GetZ())
 
         Vector3 ang1
-        ang1:Set(jacA:minvJt1)
-        ang1:SetX(ang1:GetX() * descriptionB:bJ:GetX())
-        ang1:SetY(ang1:GetY() * descriptionB:bJ:GetY())
-        ang1:SetZ(ang1:GetZ() * descriptionB:bJ:GetZ())
+        ang1:SetX(jacA:minvJt1:GetX() * descriptionB:bJ:GetX())
+        ang1:SetY(jacA:minvJt1:GetY() * descriptionB:bJ:GetY())
+        ang1:SetZ(jacA:minvJt1:GetZ() * descriptionB:bJ:GetZ())
 
         Vector3 lin0
         lin0:Set(lin):Scale(massInverseA)
@@ -148,16 +138,14 @@ class ConstraintDescription3D
         linrel:Set(linearVelocityA):Subtract(linearVelocityB)
 
         Vector3 angvela
-        angvela:Set(angularVelocityA)
-        angvela:SetX(angvela:GetX() * aJ:GetX())
-        angvela:SetY(angvela:GetY() * aJ:GetY())
-        angvela:SetZ(angvela:GetZ() * aJ:GetZ())
+        angvela:SetX(angularVelocityA:GetX() * aJ:GetX())
+        angvela:SetY(angularVelocityA:GetY() * aJ:GetY())
+        angvela:SetZ(angularVelocityA:GetZ() * aJ:GetZ())
 
         Vector3 angvelb
-        angvelb:Set(angularVelocityB)
-        angvelb:SetX(angvelb:GetX() * bJ:GetX())
-        angvelb:SetY(angvelb:GetY() * bJ:GetY())
-        angvelb:SetZ(angvelb:GetZ() * bJ:GetZ())
+        angvelb:SetX(angularVelocityB:GetX() * bJ:GetX())
+        angvelb:SetY(angularVelocityB:GetY() * bJ:GetY())
+        angvelb:SetZ(angularVelocityB:GetZ() * bJ:GetZ())
 
         linrel:SetX(linrel:GetX() * linearJointAxis:GetX())
         linrel:SetY(linrel:GetY() * linearJointAxis:GetY())

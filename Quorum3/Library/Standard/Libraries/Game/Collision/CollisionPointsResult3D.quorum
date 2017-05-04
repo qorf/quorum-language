@@ -102,7 +102,11 @@ class CollisionPointsResult3D
     end
 
     action CalculateCombinedRestitution(Item3D body0, Item3D body1) returns number
-        return body0:GetRestitution() * body1:GetRestitution()
+        number max = body0:GetRestitution()
+        if max < body1:GetRestitution()
+           max = body1:GetRestitution()
+        end
+        return max
     end
 
     action RefreshCollisionPoints

@@ -17,6 +17,7 @@ use Libraries.Compute.Quaternion
 use Libraries.Interface.Item3D
 use Libraries.Game.BoundingBox
 use Libraries.System.File
+use Libraries.Game.Collision.Shapes.all
 
 /*
 The Model class represents a 3D model to be drawn on the screen by the Game
@@ -614,6 +615,9 @@ class Model is Item3D
         ModelBlueprint schematic = GetCachedCylinder(width, height, depth, divisions, color)
         Load(schematic)
         SetDiffuseColor(color)
+        Cylinder cylinder
+        cylinder:Set(width, height, depth)
+        SetShape(cylinder)
     end
 
     /*
@@ -778,6 +782,9 @@ class Model is Item3D
         ModelBlueprint schematic = GetCachedCylinder(width, height, depth, divisions, texture)
         Load(schematic)
         SetTexture(texture)
+        Cylinder cylinder
+        cylinder:Set(width, height, depth)
+        SetShape(cylinder)
     end
 
     /*
@@ -1007,6 +1014,9 @@ class Model is Item3D
         ModelBlueprint schematic = GetCachedSphere(width, height, depth, horizontalDivisions, verticalDivisions, color)
         Load(schematic)
         SetDiffuseColor(color)
+        Sphere sphere
+        sphere:Set(width / 2)
+        SetShape(sphere)
     end
 
     /*
@@ -1175,6 +1185,9 @@ class Model is Item3D
         ModelBlueprint schematic = GetCachedSphere(width, height, depth, horizontalDivisions, verticalDivisions, texture)
         Load(schematic)
         SetTexture(texture)
+        Sphere sphere
+        sphere:Set(width / 2)
+        SetShape(sphere)
     end
 
     /*
