@@ -50,6 +50,21 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     parent:Joint3D:SetType(parent:Joint3D:SixDegreesOfFreedom)
     end
 
+    action Initialize(Item3D itemB, PhysicsPosition3D positionB, boolean useLinearReferenceFrameB)
+        parent:Joint3D:SetItemB(itemB)
+        frameInB:Set(positionB)
+        useLinearReferenceFrameA = useLinearReferenceFrameB
+        frameInA:Set(itemB:GetCenterOfMassTransform())
+    end
+
+    action Initialize(Item3D itemA, Item3D itemB, PhysicsPosition3D positionA, PhysicsPosition3D positionB, boolean useLinearReferenceFrameB)
+        parent:Joint3D:SetItemA(itemA)
+        parent:Joint3D:SetItemB(itemB)
+        frameInA:Set(positionA)
+        frameInB:Set(positionB)
+        useLinearReferenceFrameA = useLinearReferenceFrameB
+    end
+
     action getMatrixElement(Matrix3 mat, integer index) returns number
         return mat:GetElement(index mod 3, index/3)
     end
