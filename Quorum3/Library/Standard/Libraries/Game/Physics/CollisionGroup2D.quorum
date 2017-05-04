@@ -10,7 +10,7 @@ use Libraries.Game.Physics.CollisionSolver2D
 use Libraries.Compute.Math
 use Libraries.Interface.Item2D
 use Libraries.Game.Physics.Joints.Joint2D
-use Libraries.Game.Physics.Joints.JointSolverData
+use Libraries.Game.Physics.Joints.JointSolverData2D
 
 /*
 An internal class used to solve the physical interactions between groups of
@@ -64,7 +64,7 @@ class CollisionGroup2D
     end
 
     CollisionSolver2D collisionSolver
-    JointSolverData solverData
+    JointSolverData2D solverData
 
     action Solve(TimeStep step, Vector2 gravity, boolean requireSimulation)
         number h = step:GetTimeStep()

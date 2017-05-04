@@ -4,7 +4,7 @@ use Libraries.Interface.Item2D
 use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Compute.Math
 
-class DistanceJoint is Joint2D
+class DistanceJoint2D is Joint2D
     Vector2 localAnchorA
     Vector2 localAnchorB
     number length = 1
@@ -135,7 +135,7 @@ class DistanceJoint is Joint2D
         return 0
     end
 
-    action InitializeVelocityConstraints (JointSolverData data)
+    action InitializeVelocityConstraints (JointSolverData2D data)
         indexA = parent:Joint2D:itemA:GetCollisionGroupIndex()
         indexB = parent:Joint2D:itemB:GetCollisionGroupIndex()
         localCenterA:Set(parent:Joint2D:itemA:GetSweep():GetLocalCenter())
@@ -243,7 +243,7 @@ class DistanceJoint is Joint2D
         data:SetAngularVelocity(angularVelocityB, indexB)
     end
 
-    action SolveVelocityConstraints(JointSolverData data)
+    action SolveVelocityConstraints(JointSolverData2D data)
         Vector2 linearVelocityA = data:GetLinearVelocities():Get(indexA)
         number angularVelocityA = data:GetAngularVelocities():Get(indexA)
         Vector2 linearVelocityB = data:GetLinearVelocities():Get(indexB)
@@ -281,7 +281,7 @@ class DistanceJoint is Joint2D
         data:SetAngularVelocity(angularVelocityB, indexB)   
     end
 
-    action SolvePositionConstraints(JointSolverData data) returns boolean
+    action SolvePositionConstraints(JointSolverData2D data) returns boolean
         if frequency > 0
             return true
         end

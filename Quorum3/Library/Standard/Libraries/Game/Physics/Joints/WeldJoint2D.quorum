@@ -8,7 +8,7 @@ use Libraries.Compute.Vector3
 use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Compute.Math
 
-class WeldJoint is Joint2D
+class WeldJoint2D is Joint2D
     Vector2 localAnchorA
     Vector2 localAnchorB
     number referenceAngle = 0
@@ -115,7 +115,7 @@ class WeldJoint is Joint2D
         return inverseTimeStep * impulse:GetZ()
     end
 
-    action InitializeVelocityConstraints(JointSolverData data)
+    action InitializeVelocityConstraints(JointSolverData2D data)
         indexA = parent:Joint2D:itemA:GetCollisionGroupIndex()
         indexB = parent:Joint2D:itemB:GetCollisionGroupIndex()
         localCenterA:Set(parent:Joint2D:itemA:GetSweep():GetLocalCenter())
@@ -273,7 +273,7 @@ class WeldJoint is Joint2D
         data:SetAngularVelocity(angularVelocityB, indexB)                
     end
 
-    action SolveVelocityConstraints (JointSolverData data)
+    action SolveVelocityConstraints (JointSolverData2D data)
         Vector2 linearVelocityA = data:GetLinearVelocities():Get(indexA)
         number angularVelocityA = data:GetAngularVelocities():Get(indexA)
         Vector2 linearVelocityB = data:GetLinearVelocities():Get(indexB)
@@ -362,7 +362,7 @@ class WeldJoint is Joint2D
 
     end
     
-    action SolvePositionConstraints(JointSolverData data) returns boolean
+    action SolvePositionConstraints(JointSolverData2D data) returns boolean
         Vector2 positionA = data:GetPositions():Get(indexA)
         number angleA = data:GetAngles():Get(indexA)
         Vector2 positionB = data:GetPositions():Get(indexB)
