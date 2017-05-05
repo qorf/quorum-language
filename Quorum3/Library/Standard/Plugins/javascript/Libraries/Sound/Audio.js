@@ -861,10 +861,23 @@ function plugins_quorum_Libraries_Sound_Audio_()
     this.Load$quorum_Libraries_Sound_AudioSamples = function(samples)
     {
         streaming = false;
+        if (samples.plugin_.IsLoading())
+        {
+            loading = true;
+            samples.plugin_.RequestAudioLoad(this);
+            return;
+        }
+        
         soundBuffer = samples.plugin_.buffer;
         panner.connect(gainNode);
         gainNode.connect(plugins_quorum_Libraries_Sound_Audio_.audioContext.destination);
         gainNode.gain.value = gain;
+        
+        if (loading === true)
+        {
+            loading = false;
+            this.RunQueuedActions();
+        }
     };
     
     this.LoadToStream$quorum_Libraries_Sound_AudioSamples = function(samples)
@@ -926,6 +939,35 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.RemoveFromQueue$quorum_Libraries_Sound_AudioSamples = function(samples)
     {
+        for (var i = 0; i < queuedSamples.length; i++)
+        {
+            if (queuedSamples[i] === samples)
+            {
+                queuedSamples.splice(i, 1);
+                return;
+            }
+        }
         
+        for (var j = 0; i < playingSamples.length; i++)
+        {
+            if (playingSamples[j].samples === samples)
+            {
+                if (this.IsPlaying())
+                    playingSamples[j].source.stop();
+                
+                for (var k = playingSamples.length - 1; k > j; k--)
+                {
+                    var container = playingSamples.pop();
+                    queuedSamples.unshift(container.samples);
+                }
+             
+                playingSamples.pop();
+                
+                if (this.IsPlaying())
+                    this.Stream();
+                
+                break;
+            }
+        }
     };
 }

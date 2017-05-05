@@ -1,9 +1,15 @@
-function plugins_quorum_Libraries_Sound_AudioSamples_()
+function plugins_quorum_Libraries_Sound_AudioSamples_(quorumSamples)
 {
+    var me_ = quorumSamples;
+    
     this.buffer = null;
     this.samples = 0;
     this.samplesPerSecond = 44100;
     this.channels = 1;
+    
+    // Variables to handle asynchronous audio file loading.
+    var loading = false;
+    var onloadQueue = [];
     
     // Ensure Audio is initialized.
     if (!plugins_quorum_Libraries_Sound_Audio_.initialized_plugins_quorum_Libraries_Sound_Audio)
@@ -165,10 +171,11 @@ function plugins_quorum_Libraries_Sound_AudioSamples_()
     this.Load$quorum_Libraries_System_File = function(file)
     {
         var request = new XMLHttpRequest();
-        request.open('GET', file.GetPath(), false);
+        request.open('GET', file.GetPath(), true);
         request.responseType = 'arraybuffer';
         
         var samples = this;
+        var loadAudio = this.LoadRequestedAudio;
         
         request.onload = function()
         {
@@ -182,8 +189,33 @@ function plugins_quorum_Libraries_Sound_AudioSamples_()
             {
                 console.log("Error decoding audio data: " + e.err);
             });
+            
+            loading = false;
+            loadAudio();
         };
+        loading = true;
         request.send();
+    };
+    
+    this.IsLoading = function()
+    {
+        return loading;
+    };
+    
+    this.RequestAudioLoad = function(audio)
+    {
+        if (this.IsLoading())
+            onloadQueue.push(audio);
+        else
+            audio.Load$quorum_Libraries_Sound_AudioSamples(me_);
+    };
+    
+    this.LoadRequestedAudio = function()
+    {
+        for (var i = 0; i < onloadQueue.length; i++)
+        {
+            onloadQueue[i].Load$quorum_Libraries_Sound_AudioSamples(me_);
+        }
     };
 }
 
