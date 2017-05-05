@@ -17,17 +17,17 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     Math math
     PhysicsPosition3D frameInA  
     PhysicsPosition3D frameInB  
-    Array<ConstraintDescription3D> jacLinear/*[3]*/ 
-    Array<ConstraintDescription3D> jacAng/*[3]*/
+    Array<ConstraintDescription3D> jacobianLinear/*[3]*/ 
+    Array<ConstraintDescription3D> jacobianAng/*[3]*/
     TranslationalLimitMotor3D linearLimits
     Array<RotationalLimitMotor3D> angularLimits/*[3]*/ 
     number timeStep = 0
     PhysicsPosition3D calculatedTransformA 
     PhysicsPosition3D calculatedTransformB 
-    Vector3 calculatedAxisAngleDiff
+    Vector3 calculatedAxisAngleDifference
     Array<Vector3> calculatedAxis/*[3]*/ 
-    Vector3 anchorPos
-    Vector3 calculatedLinearDiff
+    Vector3 anchorPosition
+    Vector3 calculatedLinearDifference
     boolean useLinearReferenceFrameA  = true
 
     on create
@@ -41,12 +41,12 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     angularLimits:Add(ghost)
     angularLimits:Add(ghost)
     angularLimits:Add(ghost)
-    jacAng:Add(filler)
-    jacAng:Add(filler)
-    jacAng:Add(filler)
-    jacLinear:Add(filler)
-    jacLinear:Add(filler)
-    jacLinear:Add(filler)
+    jacobianAng:Add(filler)
+    jacobianAng:Add(filler)
+    jacobianAng:Add(filler)
+    jacobianLinear:Add(filler)
+    jacobianLinear:Add(filler)
+    jacobianLinear:Add(filler)
     parent:Joint3D:SetType(parent:Joint3D:SixDegreesOfFreedom)
     end
 
@@ -98,12 +98,12 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 
         Matrix3 basisInv
         basisInv:Set(calculatedTransformA:GetBasis():Inverse())
-        basisInv:Transform(calculatedLinearDiff)
+        basisInv:Transform(calculatedLinearDifference)
 
-        linearLimits:SetCurrentLinearDiff(calculatedLinearDiff)
-        linearLimits:TestLimitValue(0, calculatedLinearDiff:GetX())
-        linearLimits:TestLimitValue(1, calculatedLinearDiff:GetY())
-        linearLimits:TestLimitValue(2, calculatedLinearDiff:GetZ())
+        linearLimits:SetCurrentLinearDiff(calculatedLinearDifference)
+        linearLimits:TestLimitValue(0, calculatedLinearDifference:GetX())
+        linearLimits:TestLimitValue(1, calculatedLinearDifference:GetY())
+        linearLimits:TestLimitValue(2, calculatedLinearDifference:GetZ())
     end
 
     action CalculateAngleInfo() 
@@ -114,7 +114,7 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 	mat:Inverse()
 	relativeFrame:Multiply(mat, calculatedTransformB:GetBasis())
 
-	MatrixToEulerXYZ(relativeFrame, calculatedAxisAngleDiff)
+	MatrixToEulerXYZ(relativeFrame, calculatedAxisAngleDifference)
 
 	Vector3 axis0 
 	axis0:Set(calculatedTransformB:GetBasis():GetColumn(0))
@@ -142,7 +142,7 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 	CalculateAngleInfo()
     end  
 
-    action BuildLinearJacobian(integer jacLinearIndex, Vector3 normalWorld, Vector3 pivotAInW, Vector3 pivotBInW) 
+    action BuildLinearJacobian(integer jacobianLinearIndex, Vector3 normalWorld, Vector3 pivotAInW, Vector3 pivotBInW) 
 	Matrix3 mat1
         mat1:Set(parent:Joint3D:itemA:GetCenterOfMassTransform():GetBasis())
 	mat1:Transpose()
@@ -165,10 +165,10 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 				parent:Joint3D:itemA:GetInverseMass(),
 				parent:Joint3D:itemB:GetInverseInertiaLocal(),
 				parent:Joint3D:itemB:GetInverseMass())
-	jacLinear:Set(jacLinearIndex, linearJacobian)
+	jacobianLinear:Set(jacobianLinearIndex, linearJacobian)
     end
 
-    action BuildAngularJacobian(integer jacAngularIndex, Vector3 jointAxisW) 
+    action BuildAngularJacobian(integer jacobianAngularIndex, Vector3 jointAxisW) 
         Matrix3 mat1 
         mat1:Set(parent:Joint3D:itemA:GetCenterOfMassTransform():GetBasis())
         mat1:Transpose()
@@ -183,17 +183,17 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 				mat2,
 				parent:Joint3D:GetItemA():GetInverseInertiaLocal(),
 				parent:Joint3D:GetItemB():GetInverseInertiaLocal())
-        jacAng:Set(jacAngularIndex, angularJacobian)
+        jacobianAng:Set(jacobianAngularIndex, angularJacobian)
     end
 
     action TestAngularLimitMotor(integer axisIndex) returns boolean
 	number angle = 0
         if axisIndex = 0
-            angle = calculatedAxisAngleDiff:GetX()
+            angle = calculatedAxisAngleDifference:GetX()
         elseif axisIndex = 1
-            angle = calculatedAxisAngleDiff:GetY()
+            angle = calculatedAxisAngleDifference:GetY()
         elseif axisIndex = 2
-            angle = calculatedAxisAngleDiff:GetZ()
+            angle = calculatedAxisAngleDifference:GetZ()
         end
 
 	angularLimits:Get(axisIndex):TestLimitValue(angle)
@@ -204,11 +204,11 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 	number diff = 0
 
         if axisIndex = 0
-            diff = calculatedLinearDiff:GetX()
+            diff = calculatedLinearDifference:GetX()
         elseif axisIndex = 1
-            diff = calculatedLinearDiff:GetY()
+            diff = calculatedLinearDifference:GetY()
         elseif axisIndex = 2
-            diff = calculatedLinearDiff:GetZ()
+            diff = calculatedLinearDifference:GetZ()
         end
 
 	linearLimits:TestLimitValue(axisIndex, diff) 
@@ -228,8 +228,8 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 	CalculateAnchorPosition()
 	Vector3 pivotAInW
 	Vector3 pivotBInW
-        pivotAInW:Set(anchorPos)
-	pivotBInW:Set(anchorPos)
+        pivotAInW:Set(anchorPosition)
+	pivotBInW:Set(anchorPosition)
 
 	Vector3 normalWorld
         i = 0
@@ -267,13 +267,13 @@ class SixDegreesOfFreedomJoint3D is Joint3D
         integer i = 0
         repeat 3 times
             if linearLimits:NeedApplyForces(i)
-		jacDiagABInv = 1 / jacLinear:Get(i):GetDiagonal()
+		jacDiagABInv = 1 / jacobianLinear:Get(i):GetDiagonal()
 		if useLinearReferenceFrameA 
                     linearAxis:Set(calculatedTransformA:GetBasis():GetColumn(i))
 		else 
                     linearAxis:Set(calculatedTransformB:GetBasis():GetColumn(i))
 		end
-		linearLimits:SolveLinearAxis(timeStep, jacDiagABInv, parent:Joint3D:GetItemA(), pointInA, parent:Joint3D:GetItemB(), pointInB, i, linearAxis, anchorPos)
+		linearLimits:SolveLinearAxis(timeStep, jacDiagABInv, parent:Joint3D:GetItemA(), pointInA, parent:Joint3D:GetItemB(), pointInB, i, linearAxis, anchorPosition)
             end
             i = i + 1
         end
@@ -284,7 +284,7 @@ class SixDegreesOfFreedomJoint3D is Joint3D
         repeat 3 times
             if angularLimits:Get(i):NeedApplyTorques()
 		angularAxis:Set(GetAxis(i))
-                angularJacDiagABInv = 1 / jacAng:Get(i):GetDiagonal()
+                angularJacDiagABInv = 1 / jacobianAng:Get(i):GetDiagonal()
                 angularLimits:Get(i):SolveAngularLimits(timeStep, angularAxis, angularJacDiagABInv, parent:Joint3D:GetItemA(), parent:Joint3D:GetItemB())
             end  
             i = i + 1
@@ -300,11 +300,11 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 
     action GetAngle(integer axisIndex) returns number
         if axisIndex = 0
-            return calculatedAxisAngleDiff:GetX()
+            return calculatedAxisAngleDifference:GetX()
         elseif axisIndex = 1
-            return calculatedAxisAngleDiff:GetY()
+            return calculatedAxisAngleDifference:GetY()
         elseif axisIndex = 2
-            return calculatedAxisAngleDiff:GetZ()
+            return calculatedAxisAngleDifference:GetZ()
         end
         return 0
     end
@@ -405,7 +405,7 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 	tmp1:Set(pA:Scale(weight))
 	tmp2:Set(pB:Scale(1 - weight))
         tmp1:Add(tmp2)
-	anchorPos:Set(tmp1)
+	anchorPosition:Set(tmp1)
     end            
 end
 
