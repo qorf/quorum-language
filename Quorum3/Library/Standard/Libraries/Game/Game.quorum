@@ -2453,6 +2453,18 @@ class Game
         currentLayer2D:EnablePhysics(flag)
     end
 
+    action SetGravity3D(Vector3 gravity)
+        currentLayer3D:SetGravity(gravity)
+    end 
+
+    action SetGravity3D(number gravityX, number gravityY, number gravityZ)
+        currentLayer3D:SetGravity(gravityX, gravityY, gravityZ)
+    end
+
+    action EnablePhysics3D(boolean flag)
+        currentLayer3D:EnablePhysics(flag)
+    end
+
     /*
     This action will set a game running on a desktop platform to use the given
     ScreenResolution. This will have no effect on non-desktop platforms. Using

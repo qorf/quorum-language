@@ -383,6 +383,9 @@ class Model is Item3D
         ModelBlueprint schematic = GetCachedBox(width, height, depth, color)
         Load(schematic)
         SetDiffuseColor(color)
+        Box box
+        box:Set(width, height, depth)
+        SetShape(box)
     end
 
     /*
@@ -535,6 +538,9 @@ class Model is Item3D
         ModelBlueprint schematic = GetCachedBox(width, height, depth, texture)
         Load(schematic)
         SetTexture(texture)
+        Box box
+        box:Set(width, height, depth)
+        SetShape(box)
     end
 
     /*

@@ -289,7 +289,7 @@ class CollisionConstraint3D
         number combinedFriction = cpd:GetFriction()
 
         if cpd:GetAppliedImpulse() > 0
-            if latrelvel > 0
+            if latrelvel > 0.000000119209290
                 latvel:Scale(1.0 / latrelvel)
 
                 Vector3 temp1

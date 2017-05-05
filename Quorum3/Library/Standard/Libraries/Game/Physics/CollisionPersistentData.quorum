@@ -32,28 +32,28 @@ class CollisionPersistentData
     CollisionConstraint3D frictionSolver
 
     action Reset
-        appliedImpulse = 0
-        previousAppliedImpulse = 0
-        accumulatedTangentImpulse0 = 0
-        accumulatedTangentImpulse1 = 0
+        me:appliedImpulse = 0
+        me:previousAppliedImpulse = 0
+        me:accumulatedTangentImpulse0 = 0
+        me:accumulatedTangentImpulse1 = 0
 
-        jacobianDiagonalABInverse = 0
-        jacobianDiagonalABInverseTangent0 = 0
-        jacobianDiagonalABInverseTangent1 = 0
-        persistentLifeTime = 0
-        restitution = 0
-        friction = 0
-        penetration = 0
-        frictionWorldTangential0:Set(0, 0, 0)
-        frictionWorldTangential1:Set(0, 0, 0)
+        me:jacobianDiagonalABInverse = 0
+        me:jacobianDiagonalABInverseTangent0 = 0
+        me:jacobianDiagonalABInverseTangent1 = 0
+        me:persistentLifeTime = 0
+        me:restitution = 0
+        me:friction = 0
+        me:penetration = 0
+        me:frictionWorldTangential0:Set(0, 0, 0)
+        me:frictionWorldTangential1:Set(0, 0, 0)
 
-        frictionAngularComponent0A:Set(0, 0, 0)
-        frictionAngularComponent0B:Set(0, 0, 0)
-        frictionAngularComponent1A:Set(0, 0, 0)
-        frictionAngularComponent1B:Set(0, 0, 0)
+        me:frictionAngularComponent0A:Set(0, 0, 0)
+        me:frictionAngularComponent0B:Set(0, 0, 0)
+        me:frictionAngularComponent1A:Set(0, 0, 0)
+        me:frictionAngularComponent1B:Set(0, 0, 0)
 
-        angularComponentA:Set(0, 0, 0)
-        angularComponentB:Set(0, 0, 0)
+        me:angularComponentA:Set(0, 0, 0)
+        me:angularComponentB:Set(0, 0, 0)
     end
 
     action SetAppliedImpulse(number impulse)
@@ -152,7 +152,7 @@ class CollisionPersistentData
         return frictionWorldTangential0
     end
 
-    action SetFrictionWorldTangential4(Vector3 tangential)
+    action SetFrictionWorldTangential1(Vector3 tangential)
         me:frictionWorldTangential1 = tangential
     end
 

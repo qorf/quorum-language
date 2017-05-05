@@ -30,7 +30,8 @@ class CollisionGroup3D
     CollisionSolver3D collisionSolver
     CollisionSolverInformation3D solverInfo
 
-    number sleepThreshold = 0.01
+    number linearSleepingThreshold = 0.8
+    number angularSleepingThreshold = 1
 
     action Empty
         itemCount = 0
@@ -113,18 +114,20 @@ class CollisionGroup3D
 
         if not requireSimulation
             number h = solverInfo:GetTimeStep()
-            number timeToSleep = 0.5
+            number timeToSleep = 2
             number minSleepTime = timeToSleep:GetMaximumValue()
-
-            number linearToleranceSquared = sleepThreshold * sleepThreshold
-            number angularToleranceSquared = (2 / 180.0 * math:pi) * (2 / 180.0 * math:pi)
 
             i = 0
             repeat while i < itemCount
                 Item3D body = items:Get(i)
                 if body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
+                    Vector3 linvel
+                    linvel:Set(body:GetLinearVelocity())
+                    Vector3 angvel
+                    angvel:Set(body:GetAngularVelocity())
                     if body:IsSimulationRequired()
-                        or body:GetLinearVelocity():GetX() * body:GetLinearVelocity():GetX() + body:GetLinearVelocity():GetY() * body:GetLinearVelocity():GetY() + body:GetLinearVelocity():GetZ() * body:GetLinearVelocity():GetZ() > linearToleranceSquared
+                        or angvel:LengthSquared() > angularSleepingThreshold * angularSleepingThreshold
+                        or linvel:LengthSquared() > linearSleepingThreshold * linearSleepingThreshold
                             body:SetSleepTime(0)
                             minSleepTime = 0
                     else

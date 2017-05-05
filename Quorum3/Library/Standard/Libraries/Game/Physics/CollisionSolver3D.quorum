@@ -435,7 +435,7 @@ class CollisionSolver3D
                         cp:GetLateralFrictionDirectionA():Set(velocity):Subtract(tempFrictionDirection)
 
                         number lateralRelativeVelocity = cp:GetLateralFrictionDirectionA():LengthSquared()
-                        if lateralRelativeVelocity > 0
+                        if lateralRelativeVelocity > 0.000000119209290
                             cp:GetLateralFrictionDirectionA():Scale(1.0 / math:SquareRoot(lateralRelativeVelocity))
                             AddFrictionConstraint(cp:GetLateralFrictionDirectionA(), solverBodyIDA, solverBodyIDB, frictionIndex, cp, relativePosition1, relativePosition2, obj0, obj1, relaxation)
                             cp:GetLateralFrictionDirectionB():Set(cp:GetLateralFrictionDirectionA()):CrossProduct(cp:GetWorldNormalOnB())
