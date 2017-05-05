@@ -1593,7 +1593,8 @@ class Compiler
         
         // Booleans added for the game/sound plugins.
         boolean hasGame = symbolTable:HasClass("Libraries.Game.Game")
-        boolean hasAudio = symbolTable:HasClass("Libraries.Sound.Audio")
+        boolean hasAudio = symbolTable:HasClass("Libraries.Sound.Audio") or
+            symbolTable:HasClass("Libraries.Sound.AudioSamples") or symbolTable:HasClass("Libraries.Sound.Microphone")
 
         Iterator<Class> tempIterator = symbolTable:GetClassesInPackage("Libraries.Robots.Lego")
         boolean hasRobots = false

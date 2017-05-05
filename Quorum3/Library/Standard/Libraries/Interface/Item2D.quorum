@@ -949,7 +949,9 @@ class Item2D is Item
         end
         removed:collisionList = undefined
 
-        removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+        if layer not= undefined
+            removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+        end
         removed:SetCollidable(false)
 
         removed:SetParent(undefined)

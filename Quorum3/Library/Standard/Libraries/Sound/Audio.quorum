@@ -100,26 +100,10 @@ class Audio
 
     
     /*
-    The Load action will take a given AudioBuffer and load its data into this
+    The Load action will take the given AudioSamples and load its data into this
     Audio object for use.
 
-
-    Attribute: Example
-
-    use Libraries.Sound.Audio
-
-    // To use audio, we'll first need to create an object for it.
-    Audio audio
-
-    // To load a file that is directly accessible from our project folder, we
-    // can skip making a file and just pass the fle location directly to the
-    // Load action.
-    // This will load the same "beep.ogg" file as in the previous example.
-    audio:Load("Sounds/beep.ogg")
-
-    // After we load the file, we can play it with a call to PlayUntilDone().
-    audio:PlayUntilDone()
-
+    Attribute: Parameter samples The AudioSamples to load into this Audio.
     */
     system action Load(AudioSamples samples)
 
@@ -206,6 +190,40 @@ class Audio
         LoadToStream(file)
     end
 
+    
+    /*
+    The LoadToStream action will take the given AudioSamples and load it into
+    the Audio. Additional samples can then be added to the Audio by using the
+    QueueSamples action.
+
+
+    Attribute: Parameter samples The first samples to be loaded into this Audio.
+    */
+    system action LoadToStream(AudioSamples samples)
+
+
+    /*
+    The AddToQueue action adds AudioSamples to the end of the data stored in
+    this Audio object. To use this, the Audio must have been initialized using
+    LoadToStream using an AudioSamples object, or must not have been initialized
+    yet. This action can't be combined with actions that load a file into the
+    Audio.
+
+    Attribute: Parameter samples The AudioSamples to add to the end of the Audio data.
+    */
+    system action AddToQueue(AudioSamples samples)
+
+    /*
+    The RemoveFromQueue action removes AudioSamples from the data stored in
+    this Audio object. To use this, the Audio must have been initialized for
+    streaming AudioSamples, either by using LoadToStream(AudioSamples) or
+    AddToQueue(AudioSamples). If the requested AudioSamples wasn't present in
+    the Audio (e.g., because it was never queued or because it was queued and
+    already played), then this action will have no effect.
+
+    Attribute: Parameter samples The AudioSamples to remove from the Audio data.
+    */
+    system action RemoveFromQueue(AudioSamples samples)
 
     /*
     Once we've prepared our audio file with either the Load or LoadToStream
@@ -2262,4 +2280,106 @@ class Audio
     */
     system action Rotate(number rotation)
     
+    /*
+    The SetMaximumVolumeDistance action will determine how far the sound can be
+    from the listener before the volume is adjusted due to distance attenuation.
+    If the audio listener is within the maximum volume distance of the audio,
+    the audio will play at full volume. If the listener is farther away than
+    this distance, then distance attenuation is applied relative to how much
+    farther the listener is than this distance.
+
+    When a new Audio object is created, its maximum volume distance is equal to 
+    the current default distance, which begins as 1.0 and can be set by calling 
+    SetDefaultMaximumVolumeDistance().
+
+    Attribute: distance How many units away from the Audio's position that the Audio may be heard at full volume.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio
+    audio:Load("Chime.wav")
+    // The Audio is placed 10 units away to the right of the listener.
+    audio:SetX(10)
+    // The Audio is played using its default maximum volume distance of 1 unit.
+    audio:PlayUntilDone()
+    // Now we set the maximum volume distance to 15 units. Since the listener is
+    // within 15 units of the sound, it will play at maximum volume.
+    audio:SetMaximumVolumeDistance(15)
+    audio:PlayUntilDone()
+    */
+    system action SetMaximumVolumeDistance(number distance)
+
+    /*
+    The GetMaximumVolumeDistance action returns how far away the listener may be
+    from the Audio and still hear the Audio at full volume. When a new Audio
+    object is created, its maximum volume distance is equal to the current 
+    default distance, which begins as 1.0 and can be set by calling 
+    SetDefaultMaximumVolumeDistance().
+    
+    Attribute: Returns The distance from this Audio where it may be heard at full volume.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio
+    audio:Load("Chime.wav")
+    // Output the starting maximum volume distance of the audio.
+    output "The maximum volume distance is " + audio:GetMaximumVolumeDistance()
+    */
+    system action GetMaximumVolumeDistance returns number
+
+    /*
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio
+    audio:Load("Chime.wav")
+    // We will play the Audio using the default rolloff factor of 1.0, first at
+    // 1 unit away from the listener, then at 5 units away from the listener.
+    audio:SetX(1)
+    audio:PlayUntilDone()
+    audio:SetX(5)
+    audio:PlayUntilDone()
+    // Now we set rolloff factor to 0.25, which will make the volume decrease 4
+    // times slower than the previous value of 1, and we play the Audio again.
+    // It should be the same volume when close (e.g. at 1 unit) but noticeably 
+    // louder than it was previously when it is far away (e.g. at 5 units)
+    audio:SetRolloffRate(0.25)
+    audio:SetX(1)
+    audio:PlayUntilDone()
+    audio:SetX(5)
+    audio:PlayUntilDone()
+    */
+    system action SetRolloffRate(number rolloff)
+
+    /*
+    
+    */
+    system action GetRolloffRate returns number
+
+    /*
+
+    */
+    system action SetDefaultMaximumVolumeDistance(number distance)
+
+    /*
+
+    */
+    system action GetDefaultMaximumVolumeDistance returns number
+
+    /*
+
+    */
+    system action SetDefaultRolloffRate(number rolloff)
+
+    /*
+
+    */
+    system action GetDefaultRolloffRate returns number
+
 end

@@ -24,27 +24,33 @@ public class WavData extends AudioData
     
     public WavData(File file)
     {
-        if (manager.noDevice)
+        WavInputStream input = new WavInputStream(file);
+        // GetBytes also sets input.channels and input.sampleRate via side effect.
+        byte[] output = GetBytes(input);
+        if (output == null)
             return;
+        SetUp(output, input.channels, input.sampleRate);
+    }
+    
+    public static byte[] GetBytes(WavInputStream input)
+    {
+        if (manager.noDevice)
+            return null;
         
-        WavInputStream input = null;
+        ByteArrayOutputStream output = new ByteArrayOutputStream(input.dataRemaining);
+        
 	try 
         {
-            input = new WavInputStream(file);
-            ByteArrayOutputStream output = new ByteArrayOutputStream(input.dataRemaining);
-            
             byte[] buffer = new byte[8192];
             int bytesRead;
             while ((bytesRead = input.read(buffer)) != -1) 
             {
 		output.write(buffer, 0, bytesRead);
             }
-            
-            SetUp(output.toByteArray(), input.channels, input.sampleRate);
 	}
         catch (IOException ex) 
         {
-            throw new RuntimeException("Error reading WAV file: " + file, ex);
+            throw new RuntimeException("Error reading WAV file: " + input.file, ex);
 	} 
         finally 
         {
@@ -57,6 +63,8 @@ public class WavData extends AudioData
                 // Do nothing -- exception is ignored.
             }
 	}
+        
+        return output.toByteArray();
     }
     
 }

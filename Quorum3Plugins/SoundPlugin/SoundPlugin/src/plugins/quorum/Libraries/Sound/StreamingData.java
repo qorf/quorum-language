@@ -31,6 +31,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL11;
 
 import static org.lwjgl.openal.AL10.*;
+import quorum.Libraries.Sound.AudioSamples_;
 
 /**
  *
@@ -52,9 +53,7 @@ public abstract class StreamingData extends DesktopData
 
     protected final File file;
     protected int bufferOverhead = 0;
-
-    // This should not be necessary for our needs.
-    //private OnCompletionListener onCompletionListener;
+    protected boolean isPlaying = false;
 
     public StreamingData (File file) 
     {
@@ -94,7 +93,8 @@ public abstract class StreamingData extends DesktopData
                 SetVelocity(velocityX, velocityY, velocityZ);
             
             SetVolume(volume);
-            //SetHorizontalPosition(pan);
+            SetReferenceDistance(referenceDistance);
+            SetRolloff(rolloff);
             SetPosition(x, y, z);
 
             boolean filled = false; // Check if there's anything to actually play.
@@ -107,9 +107,6 @@ public abstract class StreamingData extends DesktopData
 		alSourceQueueBuffers(sourceID, bufferID);
             }
 			
-            /*if (!filled && onCompletionListener != null)
-                onCompletionListener.onCompletion(this);*/
-
             if (alGetError() != AL_NO_ERROR) 
             {
 		Stop();
@@ -180,50 +177,68 @@ public abstract class StreamingData extends DesktopData
 	if (sourceID != -1) 
             alSourcef(sourceID, AL_GAIN, volume);
     }
-
     
+    @Override
     public float GetVolume () 
     {
 	return this.volume;
+    }
+    
+    @Override
+    public void SetReferenceDistance(float distance) 
+    {
+	this.referenceDistance = distance;
+	if (manager.noDevice) 
+            return;
+	if (sourceID != -1) 
+            alSourcef(sourceID, AL_REFERENCE_DISTANCE, distance);
+    }
+    
+    @Override
+    public void SetRolloff(float rolloff) 
+    {
+	this.rolloff = rolloff;
+	if (manager.noDevice) 
+            return;
+	if (sourceID != -1) 
+            alSourcef(sourceID, AL_ROLLOFF_FACTOR, rolloff);
     }
 
     @Override
     public void SetHorizontalPosition (float pan) 
     {
-	//this.volume = volume;
 	this.pan = pan;
         fade = 0;
 	if (manager.noDevice) 
-            return;
-	if (sourceID == -1)
             return;
         
         this.x = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
         this.y = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
         this.z = 0;
         
-        alSource3f(sourceID, AL_POSITION, (float)Math.cos((pan - 1) * Math.PI/2), 0, (float)Math.sin((pan + 1) * Math.PI/2));
+        if (sourceID == -1)
+            return;
         
+        alSource3f(sourceID, AL_POSITION, x, y, z);
         alSourcef(sourceID, AL_GAIN, volume);
     }
     
     @Override
     public void SetFade(float newFade) 
     {
-	//this.volume = volume;
 	this.fade = newFade;
         pan = 0;
 	if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.x = 0;
-        this.y = (float)Math.sin((pan + 1) * (float)Math.PI / 2);
-        this.z = (float)Math.cos((pan - 1) * (float)Math.PI / 2);
+        this.y = (float)Math.sin((fade + 1) * (float)Math.PI / 2);
+        this.z = (float)Math.cos((fade - 1) * (float)Math.PI / 2);
         
-        alSource3f(sourceID, AL_POSITION, 0, (float)Math.cos((newFade - 1) * Math.PI/2), (float)Math.sin((newFade + 1) * Math.PI/2));
+        if (sourceID == -1)
+            return;
         
+        alSource3f(sourceID, AL_POSITION, x, y, z);
         alSourcef(sourceID, AL_GAIN, volume);
     }
     
@@ -232,13 +247,13 @@ public abstract class StreamingData extends DesktopData
     {
         if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.x = newX;
         
-        alSource3f(sourceID, AL_POSITION, newX, y, z);
+        if (sourceID == -1)
+            return;
         
+        alSource3f(sourceID, AL_POSITION, newX, y, z);
         alSourcef(sourceID, AL_GAIN, volume);
     }
     
@@ -247,13 +262,13 @@ public abstract class StreamingData extends DesktopData
     {
         if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.y = newY;
         
-        alSource3f(sourceID, AL_POSITION, x, newY, z);
+        if (sourceID == -1)
+            return;
         
+        alSource3f(sourceID, AL_POSITION, x, newY, z);
         alSourcef(sourceID, AL_GAIN, volume);
     }
     
@@ -262,13 +277,13 @@ public abstract class StreamingData extends DesktopData
     {
         if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.z = newZ;
         
-        alSource3f(sourceID, AL_POSITION, x, y, newZ);
+        if (sourceID == -1)
+            return;
         
+        alSource3f(sourceID, AL_POSITION, x, y, newZ);
         alSourcef(sourceID, AL_GAIN, volume);
     }
     
@@ -277,15 +292,15 @@ public abstract class StreamingData extends DesktopData
     {
         if (manager.noDevice) 
             return;
-	if (sourceID == -1)
-            return;
         
         this.x = newX;
         this.y = newY;
         this.z = newZ;
         
-        alSource3f(sourceID, AL_POSITION, newX, newY, newZ);
+        if (sourceID == -1)
+            return;
         
+        alSource3f(sourceID, AL_POSITION, newX, newY, newZ);
         alSourcef(sourceID, AL_GAIN, volume);
     }
     
@@ -302,9 +317,12 @@ public abstract class StreamingData extends DesktopData
     @Override
     public void DisableDoppler()
     {
-        if (!dopplerEnabled || manager.noDevice || sourceID == -1)
+        if (!dopplerEnabled || manager.noDevice)
             return;
         
+        dopplerEnabled = false;
+        if (sourceID == -1)
+            return;
         alSource3f(sourceID, AL_VELOCITY, 0, 0, 0);
     }
     
@@ -313,12 +331,13 @@ public abstract class StreamingData extends DesktopData
     {
         if (manager.noDevice)
             return;
-        if (sourceID == -1)
-            return;
         
         velocityX = newX;
         velocityY = newY;
         velocityZ = newZ;
+        
+        if (sourceID == -1)
+            return;
         
         alSource3f(sourceID, AL_VELOCITY, newX, newY, newZ);
     }
@@ -360,7 +379,6 @@ public abstract class StreamingData extends DesktopData
         if (!filled) 
         {
             Stop();
-            //if (onCompletionListener != null) onCompletionListener.onCompletion(this);
 	}
 		
         alSourcef(sourceID, AL11.AL_SEC_OFFSET, position - renderedSeconds);
@@ -429,7 +447,6 @@ public abstract class StreamingData extends DesktopData
 	if (end && alGetSourcei(sourceID, AL_BUFFERS_QUEUED) == 0) 
         {
             Stop();
-            //if (onCompletionListener != null) onCompletionListener.onCompletion(this);
 	}
 
 	// A buffer underflow will cause the source to stop.
@@ -469,12 +486,7 @@ public abstract class StreamingData extends DesktopData
             return;
 	alDeleteBuffers(buffers);
 	buffers = null;
-	//onCompletionListener = null;
     }
-
-	/*public void setOnCompletionListener (OnCompletionListener listener) {
-		onCompletionListener = listener;
-	}*/
 
     public int GetSourceId () 
     {
@@ -490,7 +502,12 @@ public abstract class StreamingData extends DesktopData
     @Override
     public void SetPitch(float pitch)
     {
-        // Need to determine proper way to adjust pitch of this type of audio.
+        this.pitch = pitch;
+        
+        if (sourceID == -1)
+            return;
+        
+        alSourcef(sourceID, AL_PITCH, pitch);
     }
     
     // If streamed audio is paused, it is resumed by calling Play().
@@ -498,5 +515,17 @@ public abstract class StreamingData extends DesktopData
     public void Resume()
     {
         Play();
+    }
+    
+    @Override
+    public void QueueSamples(AudioSamples_ samples)
+    {
+        throw new RuntimeException("AudioSamples may not be queued on Audio that is streaming a file. To queue AudioSamples, load the Audio with LoadToStream(AudioSamples) instead.");
+    }
+    
+    @Override
+    public void UnqueueSamples(AudioSamples_ samples)
+    {
+        throw new RuntimeException("AudioSamples may not be queued on Audio that is streaming a file. To queue AudioSamples, load the Audio with LoadToStream(AudioSamples) instead.");
     }
 }

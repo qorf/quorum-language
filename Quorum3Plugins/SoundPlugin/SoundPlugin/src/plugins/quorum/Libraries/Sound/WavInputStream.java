@@ -38,11 +38,13 @@ import plugins.quorum.Libraries.Sound.AudioData;
  */
 public class WavInputStream extends FilterInputStream {
     int channels, sampleRate, dataRemaining;
-
+    public File file;
+    
     WavInputStream (File file) 
     {
 	
         super(AudioData.FileToStream(file));
+        this.file = file;
         
 	try 
         {

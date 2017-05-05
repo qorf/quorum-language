@@ -93,6 +93,8 @@ public abstract class AudioData extends DesktopData
 	alSourcei(sourceID, AL_BUFFER, bufferID);
 	alSourcei(sourceID, AL_LOOPING, isLooping ? AL_TRUE : AL_FALSE);
 	alSourcef(sourceID, AL_GAIN, volume);
+        alSourcef(sourceID, AL_REFERENCE_DISTANCE, referenceDistance);
+        alSourcef(sourceID, AL_ROLLOFF_FACTOR, rolloff);
 	alSourcePlay(sourceID);
         
         if (dopplerEnabled)
@@ -191,6 +193,38 @@ public abstract class AudioData extends DesktopData
             soundID = (long)manager.sourceToSoundID.get(sourceID);
         }
         manager.SetSoundLooping(soundID, looping);
+    }
+    
+    @Override
+    public void SetReferenceDistance(float distance)
+    {
+        if (manager.noDevice)
+            return;
+        
+        this.referenceDistance = distance;
+        
+        if (!manager.SoundIDIsActive(soundID))
+        {
+            int sourceID = manager.ObtainSource(false);
+            soundID = (long)manager.sourceToSoundID.get(sourceID);
+        }
+        manager.SetSoundReferenceDistance(soundID, distance);
+    }
+    
+    @Override
+    public void SetRolloff(float rolloff)
+    {
+        if (manager.noDevice)
+            return;
+        
+        this.rolloff = rolloff;
+        
+        if (!manager.SoundIDIsActive(soundID))
+        {
+            int sourceID = manager.ObtainSource(false);
+            soundID = (long)manager.sourceToSoundID.get(sourceID);
+        }
+        manager.SetSoundRolloff(soundID, rolloff);
     }
     
     @Override
@@ -386,5 +420,17 @@ public abstract class AudioData extends DesktopData
     public void Update()
     {
         throw new RuntimeException("This audio was not set for streaming when loaded. Use LoadToStream to allow streaming the audio.");
+    }
+    
+    @Override
+    public void QueueSamples(AudioSamples_ samples)
+    {
+        throw new RuntimeException("This audio was not set for streaming AudioSamples when loaded. Use LoadToStream(AudioSamples) to allow for sample queueing.");
+    }
+    
+    @Override
+    public void UnqueueSamples(AudioSamples_ samples)
+    {
+        throw new RuntimeException("This audio was not set for streaming AudioSamples when loaded. Use LoadToStream(AudioSamples) to allow for sample queueing.");
     }
 }

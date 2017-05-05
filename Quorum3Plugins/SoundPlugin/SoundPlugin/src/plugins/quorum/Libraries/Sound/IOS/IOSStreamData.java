@@ -7,6 +7,7 @@ package plugins.quorum.Libraries.Sound.IOS;
 
 import org.robovm.apple.foundation.NSObject;
 import plugins.quorum.Libraries.Sound.Data;
+import quorum.Libraries.Sound.AudioSamples_;
 
 /**
  *
@@ -99,6 +100,18 @@ class IOSStreamData extends Data
     public float GetVolume () 
     {
         return track.getVolume();
+    }
+    
+    @Override
+    public void SetReferenceDistance(float distance)
+    {
+        throw new UnsupportedOperationException("Reference distance controls haven't been implemented yet for iOS.");
+    }
+    
+    @Override
+    public void SetRolloff(float rolloff)
+    {
+        throw new UnsupportedOperationException("Reference distance controls haven't been implemented yet for iOS.");
     }
     
     @Override
@@ -213,4 +226,15 @@ class IOSStreamData extends Data
         // Do nothing on iOS.
     }
     
+    @Override
+    public void QueueSamples(AudioSamples_ samples)
+    {
+        throw new RuntimeException("AudioSamples may not be queued on Audio that is streaming a file. To queue AudioSamples, load the Audio with LoadToStream(AudioSamples) instead.");
+    }
+    
+    @Override
+    public void UnqueueSamples(AudioSamples_ samples)
+    {
+        throw new RuntimeException("AudioSamples may not be queued on Audio that is streaming a file. To queue AudioSamples, load the Audio with LoadToStream(AudioSamples) instead.");
+    }
 }
