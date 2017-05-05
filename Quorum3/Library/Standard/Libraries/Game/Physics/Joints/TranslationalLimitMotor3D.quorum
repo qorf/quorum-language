@@ -7,7 +7,7 @@ use Libraries.Containers.Array
 use Libraries.Compute.Math  
 use Libraries.Compute.Vector3 
 
-class TranslationalLimitMotor
+class TranslationalLimitMotor3D
 
     Math math
     Vector3 lowerLimit 
@@ -35,7 +35,7 @@ class TranslationalLimitMotor
         end
     end 
     
-    action Set(TranslationalLimitMotor other) 
+    action Set(TranslationalLimitMotor3D other) 
 	lowerLimit:Set(other:GetLowerLimit())
 	upperLimit:Set(other:GetUpperLimit())
 	accumulatedImpulse:Set(other:GetAccumulatedImpulse())

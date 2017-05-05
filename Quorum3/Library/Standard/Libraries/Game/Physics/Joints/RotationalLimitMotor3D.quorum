@@ -6,7 +6,7 @@ use Libraries.Interface.Item3D
 use Libraries.Compute.Math  
 use Libraries.Compute.Vector3   
 
-class RotationalLimitMotor
+class RotationalLimitMotor3D
 
     Math math
     number loLimit = -(math:RaiseToPower(2, 10))  
@@ -23,7 +23,7 @@ class RotationalLimitMotor
     integer currentLimit = 0
     number accumulatedImpulse = 0
       
-    action Set(RotationalLimitMotor other) 
+    action Set(RotationalLimitMotor3D other) 
         targetVelocity = other:GetTargetVelocity()
         maxMotorForce = other:GetMaxMotorForce()
         limitSoftness = other:GetLimitSoftness()

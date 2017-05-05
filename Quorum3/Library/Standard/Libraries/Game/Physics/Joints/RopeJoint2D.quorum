@@ -5,7 +5,7 @@ use Libraries.Interface.Item2D
 use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Compute.Math
 
-class RopeJoint is Joint2D
+class RopeJoint2D is Joint2D
     Vector2 localAnchorA
     Vector2 localAnchorB
     number maximumLength = 0
@@ -42,7 +42,7 @@ class RopeJoint is Joint2D
         maximumLength = maxLength       
     end
 
-    action InitializeVelocityConstraints(JointSolverData data)
+    action InitializeVelocityConstraints(JointSolverData2D data)
         indexA = parent:Joint2D:itemA:GetCollisionGroupIndex()
         indexB = parent:Joint2D:itemB:GetCollisionGroupIndex()
         localCenterA = parent:Joint2D:itemA:GetLocalCenter()
@@ -127,7 +127,7 @@ class RopeJoint is Joint2D
             data:SetAngularVelocity(angularVelocityB, indexB)         
     end
     
-    action SolveVelocityConstraints(JointSolverData data)
+    action SolveVelocityConstraints(JointSolverData2D data)
         Vector2 linearVelocityA = data:GetLinearVelocities():Get(indexA)
         number angularVelocityA = data:GetAngularVelocities():Get(indexA)
         Vector2 linearVelocityB = data:GetLinearVelocities():Get(indexB)
@@ -176,7 +176,7 @@ class RopeJoint is Joint2D
         data:SetAngularVelocity(angularVelocityB, indexB)
     end
 
-    action SolvePositionConstraints (JointSolverData data) returns boolean
+    action SolvePositionConstraints (JointSolverData2D data) returns boolean
         Vector2 positionA = data:GetPositions():Get(indexA)
         number angleA = data:GetAngles():Get(indexA)
         Vector2 positionB = data:GetPositions():Get(indexB)

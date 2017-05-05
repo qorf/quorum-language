@@ -7,8 +7,8 @@ use Libraries.Containers.Array
 use Libraries.Compute.Math  
 use Libraries.Compute.Vector3  
 use Libraries.Compute.Matrix3
-use Libraries.Game.Physics.Joints.RotationalLimitMotor
-use Libraries.Game.Physics.Joints.TranslationalLimitMotor   
+use Libraries.Game.Physics.Joints.RotationalLimitMotor3D
+use Libraries.Game.Physics.Joints.TranslationalLimitMotor3D   
 use Libraries.Game.Physics.ConstraintDescription3D
 use Libraries.Game.Collision.PhysicsPosition3D
 
@@ -19,8 +19,8 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     PhysicsPosition3D frameInB  
     Array<ConstraintDescription3D> jacLinear/*[3]*/ 
     Array<ConstraintDescription3D> jacAng/*[3]*/
-    TranslationalLimitMotor linearLimits
-    Array<RotationalLimitMotor> angularLimits/*[3]*/ 
+    TranslationalLimitMotor3D linearLimits
+    Array<RotationalLimitMotor3D> angularLimits/*[3]*/ 
     number timeStep = 0
     PhysicsPosition3D calculatedTransformA 
     PhysicsPosition3D calculatedTransformB 
@@ -33,7 +33,7 @@ class SixDegreesOfFreedomJoint3D is Joint3D
     on create
     Vector3 dummy
     ConstraintDescription3D filler
-    RotationalLimitMotor ghost
+    RotationalLimitMotor3D ghost
 
     calculatedAxis:Add(dummy)
     calculatedAxis:Add(dummy)
@@ -353,11 +353,11 @@ class SixDegreesOfFreedomJoint3D is Joint3D
 	angularLimits:Get(2):SetHiLimit(angularUpper:GetZ())
     end    
 
-    action GetRotationalLimitMotor(integer index) returns RotationalLimitMotor
+    action GetRotationalLimitMotor(integer index) returns RotationalLimitMotor3D
 	return angularLimits:Get(index)
     end
 
-    action GetTranslationalLimitMotor() returns TranslationalLimitMotor
+    action GetTranslationalLimitMotor() returns TranslationalLimitMotor3D
 	return linearLimits
     end    
 

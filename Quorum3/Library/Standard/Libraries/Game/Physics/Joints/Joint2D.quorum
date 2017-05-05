@@ -82,11 +82,11 @@ class Joint2D
         collideConnected = collide
     end
 
-    blueprint action InitializeVelocityConstraints(JointSolverData data)
+    blueprint action InitializeVelocityConstraints(JointSolverData2D data)
     
-    blueprint action SolveVelocityConstraints(JointSolverData data)
+    blueprint action SolveVelocityConstraints(JointSolverData2D data)
 
-    blueprint action SolvePositionConstraints(JointSolverData data) returns boolean
+    blueprint action SolvePositionConstraints(JointSolverData2D data) returns boolean
 
     action InCollisionGroup returns boolean
         return collisionGroupFlag
