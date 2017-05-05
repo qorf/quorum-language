@@ -184,14 +184,13 @@ function plugins_quorum_Libraries_Sound_AudioSamples_(quorumSamples)
             plugins_quorum_Libraries_Sound_Audio_.audioContext.decodeAudioData(audioData, function(buffer)
             {
                 samples.buffer = buffer;
+                loading = false;
+                loadAudio();
             },
             function(e)
             {
                 console.log("Error decoding audio data: " + e.err);
             });
-            
-            loading = false;
-            loadAudio();
         };
         loading = true;
         request.send();

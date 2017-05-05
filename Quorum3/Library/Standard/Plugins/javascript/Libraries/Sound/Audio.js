@@ -203,6 +203,8 @@ function plugins_quorum_Libraries_Sound_Audio_()
 
     gainNode = plugins_quorum_Libraries_Sound_Audio_.audioContext.createGain();
     
+    var thisAudio = this;
+    
     this.RunQueuedActions = function()
     {
         if (loading === true)
@@ -210,7 +212,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         
         for (var i = 0; i < onloadQueue.length; i++)
         {
-            var func = onloadQueue[i];
+            var func = onloadQueue[i].bind(thisAudio);
             func();
         }
     };
