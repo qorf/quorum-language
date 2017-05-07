@@ -429,7 +429,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.Stream = function()
     {
-        if (this.IsStreaming() && IsPlaying())
+        if (this.IsStreaming() && this.IsPlaying())
         {
             var queuedTime = plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime;
             /* 

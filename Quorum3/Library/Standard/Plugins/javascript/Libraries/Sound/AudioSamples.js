@@ -3,13 +3,20 @@ function plugins_quorum_Libraries_Sound_AudioSamples_(quorumSamples)
     var me_ = quorumSamples;
     
     this.buffer = null;
-    this.samples = 0;
     this.samplesPerSecond = 44100;
     this.channels = 1;
     
     // Variables to handle asynchronous audio file loading.
     var loading = false;
     var onloadQueue = [];
+    /*
+     * The copyQueue contains objects with the following properties:
+     * samples  : The AudioSamples object to copy information to.
+     * channel  : What channel to copy, or -1 to copy all channels.
+     * start    : The starting index to copy, or -1 to copy all elements.
+     * end      : The last index to copy, or -1 to copy all elements.
+     */
+    var copyQueue = [];
     
     // Ensure Audio is initialized.
     if (!plugins_quorum_Libraries_Sound_Audio_.initialized_plugins_quorum_Libraries_Sound_Audio)
@@ -68,6 +75,9 @@ function plugins_quorum_Libraries_Sound_AudioSamples_(quorumSamples)
     
     this.GetSizeInSeconds = function()
     {
+        if (this.buffer == null)
+            return 0;
+        
         return this.buffer.duration;
     };
     
@@ -78,7 +88,10 @@ function plugins_quorum_Libraries_Sound_AudioSamples_(quorumSamples)
     
     this.GetTotalSize = function()
     {
-        return this.buffer.length;
+        if (this.buffer == null)
+            return 0;
+        
+        return this.buffer.length * this.channels;
     };
     
     this.Set$quorum_integer$quorum_number$quorum_integer = function(index, value, channel)
@@ -96,17 +109,12 @@ function plugins_quorum_Libraries_Sound_AudioSamples_(quorumSamples)
     this.Copy = function()
     {
         var copy = new quorum_Libraries_Sound_AudioSamples_();
-        copy.plugin_.samplesPerSecond = this.samplesPerSecond;
-        copy.plugin_.channels = channels;
         
-        var copyBuffer = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBuffer(this.buffer.numberOfChannels, this.buffer.length, this.buffer.sampleRate);
-        for (var i = 0; i < this.buffer.numberOfChannels; i++)
-        {
-            var copyArray = new Float32Array(this.buffer.length);
-            this.buffer.copyFromChannel(copyArray, i, 0);
-            copyBuffer.copyToChannel(copyArray, i, 0);
-        }
-        copy.plugin_.buffer = copyBuffer;
+        if (loading)
+            copyQueue.push({samples: copy, channel: -1, start: -1, end: -1});
+        else
+            this.CopyToSamples(copy, -1, -1);
+        
         return copy;
     };
     
@@ -120,30 +128,43 @@ function plugins_quorum_Libraries_Sound_AudioSamples_(quorumSamples)
         }
         
         var copy = new quorum_Libraries_Sound_AudioSamples_();
-        copy.plugin_.samplesPerSecond = this.samplesPerSecond;
-        copy.plugin_.channels = this.channels;
+        
+        if (loading)
+            copyQueue.push({samples: copy, channel: -1, start: start, end: end});
+        else
+            this.CopyToSamples(copy, start, end);
+        
+        return copy;
+    };
+    
+    this.CopyToSamples = function(samples, start, end)
+    {
+        if (start === -1)
+            start = 0;
+        if (end === -1)
+            end = this.buffer.length;
+        
+        samples.plugin_.samplesPerSecond = this.samplesPerSecond;
+        samples.plugin_.channels = this.channels;
         var copyBuffer = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBuffer(this.buffer.numberOfChannels, this.buffer.length, this.buffer.sampleRate);
         for (var i = 0; i < this.buffer.numberOfChannels; i++)
         {
             var copyArray = this.buffer.getChannelData(i).subarray(start, end + 1);
             copyBuffer.copyToChannel(copyArray, i, 0);
         }
-        copy.plugin_.buffer = copyBuffer;
-        return copy;
+        samples.plugin_.buffer = copyBuffer;
+        return samples;
     };
     
     this.CopyChannel$quorum_integer = function(channel)
     {
         var copy = new quorum_Libraries_Sound_AudioSamples_();
-        copy.plugin_.samplesPerSecond = this.samplesPerSecond;
-        copy.plugin_.channels = 1;
-        var copyBuffer = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBuffer(1, this.buffer.length, this.buffer.sampleRate);
         
-        var copyArray = new Float32Array(this.buffer.length);
-        this.buffer.copyFromChannel(copyArray, channel, 0);
-        copyBuffer.copyToChannel(copyArray, 0, 0);
+        if (loading)
+            copyQueue.push({samples: copy, channel: channel, start: -1, end: -1});
+        else
+            this.CopyToSamples(copy, channel, -1, -1);
         
-        copy.plugin_.buffer = copyBuffer;
         return copy;
     };
     
@@ -157,15 +178,31 @@ function plugins_quorum_Libraries_Sound_AudioSamples_(quorumSamples)
         }
         
         var copy = new quorum_Libraries_Sound_AudioSamples_();
-        copy.plugin_.samplesPerSecond = this.samplesPerSecond;
-        copy.plugin_.channels = this.channels;
+        
+        if (loading)
+            copyQueue.push({samples: copy, channel: channel, start: start, end: end});
+        else
+            this.CopyToSamples(copy, channel, start, end);
+        
+        return copy;
+    };
+    
+    this.CopyChannelToSamples = function(samples, channel, start, end)
+    {
+        if (start === -1)
+            start = 0;
+        if (end === -1)
+            end = this.buffer.length;
+        
+        samples.plugin_.samplesPerSecond = this.samplesPerSecond;
+        samples.plugin_.channels = this.channels;
         var copyBuffer = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBuffer(1, this.buffer.length, this.buffer.sampleRate);
         
         var copyArray = this.buffer.getChannelData(channel).subarray(start, end + 1);
         copyBuffer.copyToChannel(copyArray, 0, 0);
         
-        copy.plugin_.buffer = copyBuffer;
-        return copy;
+        samples.plugin_.buffer = copyBuffer;
+        return samples;
     };
     
     this.Load$quorum_Libraries_System_File = function(file)
@@ -175,7 +212,7 @@ function plugins_quorum_Libraries_Sound_AudioSamples_(quorumSamples)
         request.responseType = 'arraybuffer';
         
         var samples = this;
-        var loadAudio = this.LoadRequestedAudio;
+        var loadAudio = this.FinishQueuedRequests.bind(this);
         
         request.onload = function()
         {
@@ -209,13 +246,24 @@ function plugins_quorum_Libraries_Sound_AudioSamples_(quorumSamples)
             audio.Load$quorum_Libraries_Sound_AudioSamples(me_);
     };
     
-    this.LoadRequestedAudio = function()
+    this.FinishQueuedRequests = function()
     {
         for (var i = 0; i < onloadQueue.length; i++)
         {
             onloadQueue[i].Load$quorum_Libraries_Sound_AudioSamples(me_);
         }
+        
+        onloadQueue = [];
+        
+        for (var i = 0; i < copyQueue.length; i++)
+        {
+            var request = copyQueue[i];
+            if (request.channel === -1)
+                this.CopyToSamples(request.samples, request.start, request.end);
+            else
+                this.CopyChannelToSamples(request.samples, request.channel, request.start, request.end);
+        }
+        
+        copyQueue = [];
     };
 }
-
-
