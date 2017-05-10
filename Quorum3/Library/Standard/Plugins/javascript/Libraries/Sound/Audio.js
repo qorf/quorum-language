@@ -200,6 +200,16 @@ function plugins_quorum_Libraries_Sound_Audio_()
             plugins_quorum_Libraries_Sound_Audio_.listenerData.upZ = 0;
         }
     }
+    
+    /* 
+    Initial Y position is slightly offset to reduce impact of a bug found in
+    some browsers where using the equalpower panning mode at 0, 0, 0 causes
+    audio to only play out of one side.
+    */
+    if (panner.positionY)
+        panner.positionY.value = 0.01;
+    else
+        panner.setPosition(0, 0.01, 0);
 
     gainNode = plugins_quorum_Libraries_Sound_Audio_.audioContext.createGain();
     
@@ -265,29 +275,57 @@ function plugins_quorum_Libraries_Sound_Audio_()
         if (plugins_quorum_Libraries_Sound_Audio_.audioContext.state === 'suspended')
                 plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();
         
-        if (this.IsStreaming() === true)
-        {
-            // Set the audio to play in a way that makes sense for streaming.
-            this.Stream();
-            
-            return;
-        }
-        
         if (loading === true)
             onloadQueue.push(Play);
         else
         {
-            if (this.IsPlaying())
-                source.stop();
-            
-            source = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
-            source.buffer = soundBuffer;
-            source.connect(panner);
-            source.loop = looping;
-            source.start(0);
-            source.playbackRate.value = pitch;
-            
-            startTime = plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime;
+            if (this.IsStreaming() === true)
+            {
+                if (this.IsPlaying())
+                    return;
+                
+                var queuedTime = plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime;
+
+                /*
+                Take all samples that have been queued by the user and schedule them
+                with the Web Audio API to be played. Also store relevant information
+                (the samples that produced it, the source that's playing it, the
+                time it is scheduled to start, and the expected end time).
+                */
+                while (queuedSamples.length > 0)
+                {
+                    var container = {};
+                    container.samples = queuedSamples.shift();
+
+                    var newSource = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
+                    newSource.buffer = container.samples.plugin_.buffer;
+                    newSource.connect(panner);
+                    newSource.loop = false;
+                    newSource.start(queuedTime);
+                    newSource.playbackRate.value = pitch;
+
+                    container.source = newSource;
+                    container.startTime = queuedTime;
+                    queuedTime = queuedTime + newSource.buffer.duration;
+                    container.endTime = queuedTime;
+
+                    playingSamples.push(container);
+                }
+            }
+            else
+            {
+                if (this.IsPlaying())
+                    source.stop();
+
+                source = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
+                source.buffer = soundBuffer;
+                source.connect(panner);
+                source.loop = looping;
+                source.start(0);
+                source.playbackRate.value = pitch;
+
+                startTime = plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime;
+            }
         }
     };
     
@@ -298,7 +336,18 @@ function plugins_quorum_Libraries_Sound_Audio_()
         
         if (loading === true)
             onloadQueue.push(Stop);
-        else if (source !== undefined && source !== null)
+        else if (this.IsStreaming())
+        {
+            for (var i = 0; i < playingSamples.length; i++)
+            {
+                var playingSource = playingSamples[i].source;
+                source.stop();
+            }
+            
+            playingSamples = [];
+            queuedSamples = [];
+        }
+        else if(source !== undefined && source !== null)
         {
             source.stop();
             pauseTime = 0;
@@ -313,6 +362,34 @@ function plugins_quorum_Libraries_Sound_Audio_()
         
         if (loading === true)
             onloadQueue.push(Stop);
+        else if (this.IsStreaming())
+        {
+            var currentTime = plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime;
+            
+            // Make sure there are no samples at the beginning of the queue
+            // which have already been played.
+            while (playingSamples.length > 0)
+            {
+                if (playingSamples[0].endTime >= currentTime)
+                    playingSamples.shift();
+                else
+                    break;
+            }
+            
+            if (!(playingSamples.length > 0))
+                return;
+            
+            // Store how long the currently playing sample has been playing for.
+            pauseTime = currentTime - playingSamples[0].startTime;
+            
+            // All samples need to be stopped and requeued for play.
+            while (playingSamples.length > 0)
+            {
+                var container = playingSamples.pop();
+                container.source.stop();
+                queuedSamples.unshift(container.samples);
+            }
+        }
         else if (source !== undefined && source !== null)
         {
             source.stop();
@@ -327,6 +404,29 @@ function plugins_quorum_Libraries_Sound_Audio_()
         
         if (loading === true)
             onloadQueue.push(Play);
+        else if (this.IsStreaming())
+        {
+            if (!(pauseTime > 0 && queuedSamples.length > 0))
+                return;
+            
+            var currentTime = plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime;
+            var container = {};
+            container.samples = queuedSamples.shift();
+
+            var newSource = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
+            newSource.buffer = container.samples.plugin_.buffer;
+            newSource.connect(panner);
+            newSource.loop = false;
+            newSource.start(0, pauseTime);
+            newSource.playbackRate.value = pitch;
+
+            container.source = newSource;
+            container.startTime = plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime;;
+            container.endTime = container.startTime + newSource.buffer.duration;
+
+            playingSamples.push(container);
+            this.Stream();
+        }
         else
         {
             source = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
@@ -374,6 +474,9 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.Dispose = function()
     {
+        this.Stop();
+        queuedSamples = [];
+        playingSamples = [];
         source = null;
         soundBuffer = null;
     };
@@ -934,7 +1037,10 @@ function plugins_quorum_Libraries_Sound_Audio_()
     this.AddToQueue$quorum_Libraries_Sound_AudioSamples = function(samples)
     {
         if (this.IsStreaming() === undefined)
+        {
             this.LoadToStream$quorum_Libraries_Sound_AudioSamples(samples);
+            return;
+        }
         
         queuedSamples.push(samples);
     };

@@ -146,7 +146,7 @@ function plugins_quorum_Libraries_Sound_AudioSamples_(quorumSamples)
         
         samples.plugin_.samplesPerSecond = this.samplesPerSecond;
         samples.plugin_.channels = this.channels;
-        var copyBuffer = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBuffer(this.buffer.numberOfChannels, this.buffer.length, this.buffer.sampleRate);
+        var copyBuffer = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBuffer(this.buffer.numberOfChannels, (end + 1 - start), this.buffer.sampleRate);
         for (var i = 0; i < this.buffer.numberOfChannels; i++)
         {
             var copyArray = this.buffer.getChannelData(i).subarray(start, end + 1);
@@ -196,7 +196,7 @@ function plugins_quorum_Libraries_Sound_AudioSamples_(quorumSamples)
         
         samples.plugin_.samplesPerSecond = this.samplesPerSecond;
         samples.plugin_.channels = this.channels;
-        var copyBuffer = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBuffer(1, this.buffer.length, this.buffer.sampleRate);
+        var copyBuffer = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBuffer(1, (end + 1 - start), this.buffer.sampleRate);
         
         var copyArray = this.buffer.getChannelData(channel).subarray(start, end + 1);
         copyBuffer.copyToChannel(copyArray, 0, 0);
