@@ -306,7 +306,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
 
                     container.source = newSource;
                     container.startTime = queuedTime;
-                    queuedTime = queuedTime + newSource.buffer.duration;
+                    queuedTime = queuedTime + newSource.buffer.duration / pitch;
                     container.endTime = queuedTime;
 
                     playingSamples.push(container);
@@ -341,7 +341,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
             for (var i = 0; i < playingSamples.length; i++)
             {
                 var playingSource = playingSamples[i].source;
-                source.stop();
+                playingSource.stop();
             }
             
             playingSamples = [];
@@ -370,7 +370,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
             // which have already been played.
             while (playingSamples.length > 0)
             {
-                if (playingSamples[0].endTime >= currentTime)
+                if (playingSamples[0].endTime <= currentTime)
                     playingSamples.shift();
                 else
                     break;
@@ -380,7 +380,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
                 return;
             
             // Store how long the currently playing sample has been playing for.
-            pauseTime = currentTime - playingSamples[0].startTime;
+            pauseTime = (currentTime - playingSamples[0].startTime) * pitch;
             
             // All samples need to be stopped and requeued for play.
             while (playingSamples.length > 0)
@@ -421,10 +421,11 @@ function plugins_quorum_Libraries_Sound_Audio_()
             newSource.playbackRate.value = pitch;
 
             container.source = newSource;
-            container.startTime = plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime;;
-            container.endTime = container.startTime + newSource.buffer.duration;
+            container.startTime = plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime - pauseTime / pitch;
+            container.endTime = container.startTime + newSource.buffer.duration / pitch;
 
             playingSamples.push(container);
+            pauseTime = 0;
             this.Stream();
         }
         else
@@ -469,6 +470,8 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.IsLoopingEnabled = function()
     {
+        if (this.IsStreaming())
+            return false;
         return looping;
     };
     
@@ -484,6 +487,14 @@ function plugins_quorum_Libraries_Sound_Audio_()
     this.SetPitch$quorum_number = function(p)
     {
         pitch = p;
+        if (this.IsStreaming() && this.IsPlaying())
+        {
+            // Pause and resume audio to reset audio sources (this is necessary
+            // because changing pitch changes playback timing, which is already set).
+            this.Pause();
+            this.Resume();
+        }
+
         if (source !== null && source !== undefined)
         {
             source.playbackRate.value = pitch;
@@ -570,7 +581,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
                 
                 container.source = newSource;
                 container.startTime = queuedTime;
-                queuedTime = queuedTime + newSource.buffer.duration;
+                queuedTime = queuedTime + newSource.buffer.duration / pitch;
                 container.endTime = queuedTime;
 
                 playingSamples.push(container);
