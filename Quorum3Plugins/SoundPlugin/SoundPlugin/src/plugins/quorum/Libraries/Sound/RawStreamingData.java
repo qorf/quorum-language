@@ -199,6 +199,7 @@ public class RawStreamingData extends DesktopData
             if (dopplerEnabled)
                 SetVelocity(velocityX, velocityY, velocityZ);
             
+            SetPitch(pitch);
             SetVolume(volume);
             SetReferenceDistance(referenceDistance);
             SetRolloff(rolloff);
