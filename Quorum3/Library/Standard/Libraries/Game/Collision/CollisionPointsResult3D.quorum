@@ -88,6 +88,10 @@ class CollisionPointsResult3D
     end
 
     action CalculateCombinedFriction(Item3D body0, Item3D body1) returns number
+        if not body0:IsPhysicsEnabled() or not body1:IsPhysicsEnabled()
+            return 0
+        end
+
         number friction = body0:GetFriction() * body1:GetFriction()
 
         number maxFriction = 10
@@ -102,6 +106,10 @@ class CollisionPointsResult3D
     end
 
     action CalculateCombinedRestitution(Item3D body0, Item3D body1) returns number
+        if not body0:IsPhysicsEnabled() or not body1:IsPhysicsEnabled()
+            return 0
+        end
+
         number max = body0:GetRestitution()
         if max < body1:GetRestitution()
            max = body1:GetRestitution()

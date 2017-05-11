@@ -56,7 +56,7 @@ class ConvexConvexCollisionSolverResults
     end
 
     action SetPenetrationIterations(integer iterations)
-        penetrationIterations = iterations
+        me:penetrationIterations = iterations
     end
 
     action GetDistanceIterations returns integer
@@ -64,6 +64,6 @@ class ConvexConvexCollisionSolverResults
     end
 
     action SetDistanceIterations(integer iterations)
-        distanceIterations = iterations
+        me:distanceIterations = iterations
     end
 end

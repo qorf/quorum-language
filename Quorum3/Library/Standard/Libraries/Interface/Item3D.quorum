@@ -3098,6 +3098,13 @@ class Item3D is Item
         Matrix3 tempMatrix
         tempMatrix:Set(collisionTransform:GetBasis())
 
+        // Conversion between left-handed coordinate system and right-handed
+        // coordinate system rotatin matrix is achieved via the following:
+        //    If the matrix M = [mij], 0 <= i <= 2, 0 <= j <= 2, is a rotation
+        //    in a left- (right-) handed coordinate system, then to convert it
+        //    to a right- (left-) handed coordinate system, change the sings of
+        //    m02, m12, m20, m21.
+        // Source: http://answers.unity3d.com/storage/temp/12048-lefthandedtorighthanded.pdf
         Matrix4 matrix
         matrix:IdentityMatrix()
         matrix:row0column0 = tempMatrix:row0column0 * vector:GetX()
@@ -3117,6 +3124,10 @@ class Item3D is Item
         matrix:row2column3 = collisionTransform:GetOrigin():GetZ()
 
         transform:Set(matrix)
+
+        me:x = collisionTransform:GetOrigin():GetX()
+        me:y = collisionTransform:GetOrigin():GetY()
+        me:z = collisionTransform:GetOrigin():GetZ()
 
         me:updateTransform = true
     end

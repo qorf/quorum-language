@@ -20,7 +20,7 @@ class CollisionPoint3D
     integer index0 = 0
     integer index1 = 0
 
-    CollisionPersistentData persistentData
+    CollisionPersistentData persistentData = undefined
     number appliedImpulse = 0
     
     boolean lateralFrictionInitialized = false
@@ -32,32 +32,32 @@ class CollisionPoint3D
     Vector3 lateralFrictionDirection2
 
     action Initialize(Vector3 pointA, Vector3 pointB, Vector3 normal, number distance)
-        localPointA:Set(pointA)
-        localPointB:Set(pointB)
-        normalWorldOnB:Set(normal)
-        distance1 = distance
+        me:localPointA:Set(pointA)
+        me:localPointB:Set(pointB)
+        me:normalWorldOnB:Set(normal)
+        me:distance1 = distance
     end
 
     action Set(CollisionPoint3D point)
-        localPointA:Set(point:localPointA)
-        localPointB:Set(point:localPointB)
-        positionWorldOnA:Set(point:positionWorldOnA)
-        positionWorldOnB:Set(point:positionWorldOnB)
-        normalWorldOnB:Set(point:normalWorldOnB)
-        distance1 = point:distance1
-        combinedFriction = point:combinedFriction
-        combinedRestitution = point:combinedRestitution
-        partID0 = point:partID0
-        partID1 = point:partID1
-        index0 = point:index0
-        index1 = point:index1
-        appliedImpulse = point:appliedImpulse
-        lateralFrictionInitialized = point:lateralFrictionInitialized
-        appliedImpulseLateral1 = point:appliedImpulseLateral1
-        appliedImpulseLateral2 = point:appliedImpulseLateral2
-        lifeTime = point:lifeTime
-        lateralFrictionDirection1:Set(point:lateralFrictionDirection1)
-        lateralFrictionDirection2:Set(point:lateralFrictionDirection2)
+        me:localPointA:Set(point:localPointA)
+        me:localPointB:Set(point:localPointB)
+        me:positionWorldOnA:Set(point:positionWorldOnA)
+        me:positionWorldOnB:Set(point:positionWorldOnB)
+        me:normalWorldOnB:Set(point:normalWorldOnB)
+        me:distance1 = point:distance1
+        me:combinedFriction = point:combinedFriction
+        me:combinedRestitution = point:combinedRestitution
+        me:partID0 = point:partID0
+        me:partID1 = point:partID1
+        me:index0 = point:index0
+        me:index1 = point:index1
+        me:appliedImpulse = point:appliedImpulse
+        me:lateralFrictionInitialized = point:lateralFrictionInitialized
+        me:appliedImpulseLateral1 = point:appliedImpulseLateral1
+        me:appliedImpulseLateral2 = point:appliedImpulseLateral2
+        me:lifeTime = point:lifeTime
+        me:lateralFrictionDirection1:Set(point:lateralFrictionDirection1)
+        me:lateralFrictionDirection2:Set(point:lateralFrictionDirection2)
     end
 
     action GetPositionWorldOnA(Vector3 out) returns Vector3
@@ -75,7 +75,7 @@ class CollisionPoint3D
     end
 
     action SetLocalPointA(Vector3 point)
-        localPointA = point
+        me:localPointA = point
     end
 
     action GetLocalPointB returns Vector3
@@ -83,7 +83,7 @@ class CollisionPoint3D
     end
 
     action SetLocalPointB(Vector3 point)
-        localPointB = point
+        me:localPointB = point
     end
 
     action GetWorldPositionOnB returns Vector3
@@ -91,7 +91,7 @@ class CollisionPoint3D
     end
 
     action SetWorldPositionOnB(Vector3 position)
-        positionWorldOnB = position
+        me:positionWorldOnB = position
     end
 
     action GetWorldPositionOnA returns Vector3
@@ -99,7 +99,7 @@ class CollisionPoint3D
     end
 
     action SetWorldPositionOnA(Vector3 position)
-        positionWorldOnA = position
+        me:positionWorldOnA = position
     end
 
     action GetWorldNormalOnB returns Vector3
@@ -107,7 +107,7 @@ class CollisionPoint3D
     end
 
     action SetWorldNormalOnB(Vector3 normal)
-        normalWorldOnB = normal
+        me:normalWorldOnB = normal
     end
 
     action GetDistance returns number
@@ -115,7 +115,7 @@ class CollisionPoint3D
     end
 
     action SetDistance(number distance)
-        distance1 = distance
+        me:distance1 = distance
     end
 
     action GetCombinedFriction returns number
@@ -123,7 +123,7 @@ class CollisionPoint3D
     end
 
     action SetCombinedFriction(number friction)
-        combinedFriction = friction
+        me:combinedFriction = friction
     end
 
     action GetCombinedRestitution returns number
@@ -131,7 +131,7 @@ class CollisionPoint3D
     end
 
     action SetCombinedRestitution(number restitution)
-        combinedRestitution = restitution
+        me:combinedRestitution = restitution
     end
 
     action GetPartIDA returns integer
@@ -139,7 +139,7 @@ class CollisionPoint3D
     end
 
     action SetPartIDA(integer id)
-        partID0 = id
+        me:partID0 = id
     end
 
     action GetPartIDB returns integer
@@ -147,7 +147,7 @@ class CollisionPoint3D
     end
 
     action SetPartIDB(integer id)
-        partID1 = id
+        me:partID1 = id
     end
 
     action GetIndexA returns integer
@@ -155,7 +155,7 @@ class CollisionPoint3D
     end
 
     action SetIndexA(integer index)
-        index0 = index
+        me:index0 = index
     end
 
     action GetIndexB returns integer
@@ -163,7 +163,7 @@ class CollisionPoint3D
     end
 
     action SetIndexB(integer index)
-        index1 = index
+        me:index1 = index
     end
 
     action GetPersistentData returns CollisionPersistentData
@@ -179,7 +179,7 @@ class CollisionPoint3D
     end
 
     action SetAppliedImpulse(number impulse)
-        appliedImpulse = impulse
+        me:appliedImpulse = impulse
     end
 
     action IsLateralFrictionInitialized returns boolean
@@ -187,7 +187,7 @@ class CollisionPoint3D
     end
 
     action SetLateralFrictionInitialized(boolean flag)
-        lateralFrictionInitialized = flag
+        me:lateralFrictionInitialized = flag
     end
 
     action GetAppliedImpulseLateralA returns number
@@ -195,7 +195,7 @@ class CollisionPoint3D
     end
 
     action SetAppliedImpulseLateralA(number lateral)
-        appliedImpulseLateral1 = lateral
+        me:appliedImpulseLateral1 = lateral
     end
 
     action GetAppliedImpulseLateralB returns number
@@ -203,7 +203,7 @@ class CollisionPoint3D
     end
 
     action SetAppliedImpulseLateralB(number lateral)
-        appliedImpulseLateralB = lateral
+        me:appliedImpulseLateral2 = lateral
     end
 
     action GetLifeTime returns integer
@@ -219,7 +219,7 @@ class CollisionPoint3D
     end
 
     action SetLateralFrictionDirectionA(Vector3 direction)
-        lateralFrictionDirection1 = direction
+        me:lateralFrictionDirection1 = direction
     end
 
     action GetLateralFrictionDirectionB returns Vector3
@@ -227,6 +227,6 @@ class CollisionPoint3D
     end
 
     action SetLateralFrictionDirectionB(Vector3 direction)
-        lateralFrictionDirection2 = direction
+        me:lateralFrictionDirection2 = direction
     end
 end

@@ -2692,6 +2692,8 @@ class Layer3D is Layer
             if item:IsPhysicsEnabled()
                 if item:IsSimulated()
                     if item:IsResponsive()
+                        Vector3 force
+                        force:Set(gravity):Scale(1.0 / item:GetInverseMass())
                         item:ApplyForceToCenter(gravity)
                     end
                 end

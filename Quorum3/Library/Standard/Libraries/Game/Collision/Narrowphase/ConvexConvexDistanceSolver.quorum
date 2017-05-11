@@ -30,35 +30,35 @@ class ConvexConvexDistanceSolver
     constant number inSimplexEps = 0.0001
     constant number sqInSimplexEps = inSimplexEps * inSimplexEps
     constant integer GjkMaxIterations = 128
-    constant number cstPi = cst2Pi * 0.5
     constant number cst2Pi = 6.283185307179586232
+    constant number cstPi = cst2Pi * 0.5
 
     on create
         table:SetSize(GJK_hashsize)
         repeat 5 times
             ConvexConvexVertex mkv
-            simplex:Add(mkv)
+            me:simplex:Add(mkv)
         end
 
         repeat 2 times
             Matrix3 m
             Vector3 v
-            wrotations:Add(m)
-            positions:Add(v)
+            me:wrotations:Add(m)
+            me:positions:Add(v)
         end
 
-        shapes:SetSize(2)
+        me:shapes:SetSize(2)
     end
 
     action Initialize(Matrix3 wrot0, Vector3 pos0, CollisionShape3D shape0, Matrix3 wrot1, Vector3 pos1, CollisionShape3D shape1, number pmargin)
-        wrotations:Get(0):Set(wrot0)
-        positions:Get(0):Set(pos0)
-        shapes:Set(0, shape0)
-        wrotations:Get(1):Set(wrot1)
-        positions:Get(1):Set(pos1)
-        shapes:Set(1, shape1)
-        margin = pmargin
-        failed = false
+        me:wrotations:Get(0):Set(wrot0)
+        me:positions:Get(0):Set(pos0)
+        me:shapes:Set(0, shape0)
+        me:wrotations:Get(1):Set(wrot1)
+        me:positions:Get(1):Set(pos1)
+        me:shapes:Set(1, shape1)
+        me:margin = pmargin
+        me:failed = false
     end
 
     action Hash(Vector3 vector) returns integer
@@ -70,7 +70,8 @@ class ConvexConvexDistanceSolver
         Vector3 tmp
         TransposeTransform(tmp, d, wrotations:Get(i))
         
-        Vector3 out = shapes:Get(i):LocalGetSupportingVertex(tmp)
+        Vector3 out
+        out:Set(shapes:Get(i):LocalGetSupportingVertex(tmp))
         Transform(wrotations:Get(i), out)
         out:Add(positions:Get(i))
 
@@ -80,12 +81,14 @@ class ConvexConvexDistanceSolver
     action Support(Vector3 d, ConvexConvexVertex v)
         v:GetRay():Set(d)
 
-        Vector3 tmp1 = LocalSupport(d, 0)
+        Vector3 tmp1
+        tmp1:Set(LocalSupport(d, 0))
 
         Vector3 tmp
         tmp:Set(d)
         tmp:Scale(-1)
-        Vector3 tmp2 = LocalSupport(tmp, 1)
+        Vector3 tmp2
+        tmp2:Set(LocalSupport(tmp, 1))
 
         v:GetVertex():Set(tmp1):Subtract(tmp2)
         Vector3 vec
