@@ -5,52 +5,219 @@ use Libraries.Sound.Audio
 
 class AudioSamples
     
+    /*
+    The SetChannels action sets the number of channels to be stored in this
+    AudioSamples object. This should be used before calling the SetSize or
+    SetSizeInSeconds actions. If the AudioSamples are copied or loaded from a
+    file, then this will be set automatically.
+
+    Attribute: Parameter channels The number of channels to store samples for.
+    */
     system action SetChannels(integer channels)
 
+    /*
+    The GetChannels action returns the number of channels that are currently
+    being stored by this AudioSamples object.
+
+    Attribute: Returns The number of channels used by this AudioSamples object.
+    */
     system action GetChannels returns integer
 
+    /*
+    The SetSamplesPerSecond action determines how many samples should be used
+    for each second of audio when the AudioSamples are used, e.g. by the Audio
+    class. The default value is 44100.
+
+    Attribute: Parameter samples The number of samples per second the AudioSamples stores.
+    */
     system action SetSamplesPerSecond(integer samples)
 
+    /*
+    The GetSamplesPerSecond action returns the current playback rate the
+    AudioSamples object. The default value is 44100.
+
+    Attribute: Returns The number of samples per second the AudioSamples stores.
+    */
     system action GetSamplesPerSecond returns integer
 
+    /*
+    The SetSizeInSeconds action sets the storage size of the AudioSamples to
+    hold enough samples for the given number of seconds of audio. Before setting
+    the size of the AudioSamples with this action, the number of channels and
+    samples per second should already have been set with SetChannels() and
+    SetSamplesPerSecond(), respectively.
+
+    Attribute: Parameter seconds How many seconds of audio should be able to be stored in this AudioSamples object.
+    */
     system action SetSizeInSeconds(number seconds)
 
+    /*
+    The GetSizeInSeconds action returns how many seconds of audio can be stored
+    in this AudioSamples object.
+
+    Attribute: Returns How many seconds of audio can be stored in this AudioSamples object.
+    */
     system action GetSizeInSeconds returns number
 
+    /*
+    The SetSize action stores the number of samples that may be stored in each
+    channel of the AudioSamples object. Before using this action, the number of
+    channels should already have been set using SetChannels().
+
+    Attribute: Parameter samples The number of samples to store per channel in this AudioSamples object.
+    */
     action SetSize(integer samples)
         SetTotalSize(samples * GetChannels())
     end
 
+    /*
+    The GetSize action returns the number of samples that can be stored in each
+    channel of the AudioSamples object.
+
+    Attribute: Returns The number of samples to store per channel in this AudioSamples object.
+    */
     action GetSize returns integer
         return GetTotalSize() / GetChannels()
     end
 
+    /*
+    The SetTotalSize action sets the total number of samples that may be stored
+    in this AudioSamples object, across all channels. The provided integer
+    should be a multiple of the number of channels used.
+
+    Attribute: Parameter samples The total number of samples to store in this AudioSamples object.
+    */
     system action SetTotalSize(integer samples)
 
+    /*
+    The GetTotalSize action returns the total number of samples that are stored
+    in this AudioSamples object, across all channels.
+
+    Attribute: Parameter returns The total number of samples that can be stored in this AudioSamples object.
+    */
     system action GetTotalSize returns integer
 
+    /*
+    The Set action sets the value of a single sample within the AudioSamples.
+    The provided index should be between 0 and the size per channel of the
+    object, which is provided by the GetSize() action. The given value should be
+    between -1 and 1. The value will be stored as part of the indicated channel.
+    
+    Attribute: Parameter index The index of the sample to be set.
+    Attribute: Parameter value The value of the sample, between -1 and 1.
+    Attribute: Parameter channel Which channel of the AudioSamples to set.
+    */
     system action Set(integer index, number value, integer channel)
 
+    /*
+    The Set action sets the value of a single sample within the AudioSamples.
+    The provided index should be between 0 and the size per channel of the
+    object, which is provided by the GetSize() action. The given value should be
+    between -1 and 1. The value will be set at the index of the first channel
+    (channel 0).
+    
+    Attribute: Parameter index The index of the sample to be set.
+    Attribute: Parameter value The value of the sample, between -1 and 1.
+    */
     action Set(integer index, number value)
         Set(index, value, 0)
     end
 
-    system action Get(integer sample, integer channel) returns number
+    /*
+    The Get action returns the value of a single sample within the AudioSamples.
+    The value will be retrieved from the sample at the given index within the
+    given channel.
 
-    action Get(integer sample) returns number
-        return Get(sample, 0)
+    Attribute: Parameter index The index to retrieve the value from.
+    Attribute: Parameter channel Which channel the value should be retrieved from.
+    
+    Attribute: Returns The sample value stored at the given location.
+    */
+    system action Get(integer index, integer channel) returns number
+
+    /*
+    The Get action returns the value of a single sample with in the AudioSamples.
+    The value will be retrieved from the sample at the given index within the
+    first channel (channel 0).
+
+    Attribute: Parameter index The index to retrieve the value from.
+
+    Attribute: Returns The sample value stored at the given index in channel 0.
+    */
+    action Get(integer index) returns number
+        return Get(index, 0)
     end
 
+    /*
+    The Copy action returns a new AudioSamples object which contains the same
+    samples as this AudioSamples, and which has the same number of channels and
+    contains the same number of samples per second. All data stored in the copy
+    is independent of the data in this AudioSamples, and can be changed without
+    side effects.
+
+    Attribute: Returns A copy of this AudioSamples object.
+    */
     system action Copy returns AudioSamples
 
+    /*
+    The Copy action returns a new AudioSamples object which contains a subset of
+    the samples that are stored in this AudioSamples object. The new copy will
+    contain the samples from all channels stored between the first and last 
+    indices given. All data stored in the copy is independent of the data in
+    this AudioSamples and can be changed without side effects.
+
+    Attribute: Parameter first The first sample index to be copied.
+    Attribute: Parameter last The last sample index to be copied.
+
+    Attribute: Returns A copy of this AudioSamples containing the requested samples.
+    */
     system action Copy(integer first, integer last) returns AudioSamples
 
+    /*
+    The CopyChannel action returns a new AudioSamples object which contains all
+    of the samples stored in the requested channel. The copy will have only one
+    channel, and will have the same samples per second as this AudioSamples.
+    All data stored in the copy is independent of the data in this AudioSamples 
+    and can be changed without side effects.
+
+    Attribute: Parameter channel Which channel to copy.
+
+    Attribute: Returns A copy of this AudioSamples containing the requested channel.
+    */
     system action CopyChannel(integer channel) returns AudioSamples
     
+    /*
+    The CopyChannel action returns a new AudioSamples object which contains a
+    subset of the samples stored in the requested channel. The new copy will
+    contain all samples between the first and last indices given that are in the
+    requested channel. All data stored in the copy is independent of the data in 
+    this AudioSamples and can be changed without side effects.
+
+    Attribute: Parameter channel Which channel to copy.
+    Attribute: Parameter first The first sample index to be copied.
+    Attribute: Parameter last The last sample index to be copied.
+
+    Attribute: Returns A copy of this AudioSamples containing the requested samples from the requested channel.
+    */
     system action CopyChannel(integer channel, integer first, integer last) returns AudioSamples
 
+    /*
+    The Load action will retrieve samples from a sound file and store them in
+    this AudioSamples object. This will also set the number of channels and the
+    samples per second. The supported file types are Ogg and 16-bit WAV.
+
+    Attribute: Parameter file The file to load into this AudioSamples.
+    */
     system action Load(File file)
 
+    /*
+    The Load action will retrieve samples from a sound file located at the given
+    relative path from the program's default working directory and store them in
+    this AudioSamples object. This will also set the number of channels and the
+    samples per second. The supported file types are Ogg and 16-bit WAV.
+
+    Attribute: Parameter filePath The relative path to a sound file to load into this AudioSamples.
+    */
     action Load(text filePath)
         File file
         file:SetPath(filePath)

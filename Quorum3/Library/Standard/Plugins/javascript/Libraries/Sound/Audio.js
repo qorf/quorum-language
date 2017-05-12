@@ -206,10 +206,10 @@ function plugins_quorum_Libraries_Sound_Audio_()
     some browsers where using the equalpower panning mode at 0, 0, 0 causes
     audio to only play out of one side.
     */
-    if (panner.positionY)
-        panner.positionY.value = 0.01;
+    if (panner.positionZ)
+        panner.positionZ.value = 0.01;
     else
-        panner.setPosition(0, 0.01, 0);
+        panner.setPosition(0, 0, 0.01);
 
     gainNode = plugins_quorum_Libraries_Sound_Audio_.audioContext.createGain();
     
@@ -486,14 +486,16 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.SetPitch$quorum_number = function(p)
     {
-        pitch = p;
         if (this.IsStreaming() && this.IsPlaying())
         {
             // Pause and resume audio to reset audio sources (this is necessary
             // because changing pitch changes playback timing, which is already set).
             this.Pause();
+            pitch = p;
             this.Resume();
         }
+        else
+            pitch = p;
 
         if (source !== null && source !== undefined)
         {
@@ -511,6 +513,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         if (volume < 0)
             volume = 0;
         gain = volume;
+        
         if (gainNode !== undefined && gainNode !== null)
             gainNode.gain.value = gain;
     };
@@ -1010,7 +1013,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         panner.refDistance = distance;
     };
     
-    this.SetRolloffFactor$quorum_number = function(rolloff)
+    this.SetRolloffRate$quorum_number = function(rolloff)
     {
         panner.rolloffFactor = rolloff;
     };
@@ -1020,7 +1023,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         plugins_quorum_Libraries_Sound_Audio_.defaultReferenceDistance = distance;
     };
     
-    this.SetDefaultRolloffFactor$quorum_number = function(rolloff)
+    this.SetDefaultRolloffRate$quorum_number = function(rolloff)
     {
         plugins_quorum_Libraries_Sound_Audio_.defaultRolloff = rolloff;
     };
@@ -1030,7 +1033,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         return panner.refDistance;
     };
     
-    this.GetRolloffFactor = function()
+    this.GetRolloffRate = function()
     {
         return panner.rolloffFactor;
     };
@@ -1040,7 +1043,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         return plugins_quorum_Libraries_Sound_Audio_.defaultReferenceDistance;
     };
     
-    this.GetDefaultRolloffFactor = function()
+    this.GetDefaultRolloffRate = function()
     {
         return plugins_quorum_Libraries_Sound_Audio_.defaultRolloff;
     };
