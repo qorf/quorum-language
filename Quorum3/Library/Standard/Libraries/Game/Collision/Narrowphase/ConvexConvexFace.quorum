@@ -64,7 +64,7 @@ class ConvexConvexFace
     end
 
     action SetPrevious(ConvexConvexFace face)
-        prev = face
+        me:prev = face
     end
 
     action GetNext returns ConvexConvexFace
@@ -72,6 +72,6 @@ class ConvexConvexFace
     end
 
     action SetNext(ConvexConvexFace face)
-        next = face
+        me:next = face
     end
 end

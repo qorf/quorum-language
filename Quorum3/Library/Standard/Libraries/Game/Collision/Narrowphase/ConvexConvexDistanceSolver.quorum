@@ -72,7 +72,7 @@ class ConvexConvexDistanceSolver
         
         Vector3 out
         out:Set(shapes:Get(i):LocalGetSupportingVertex(tmp))
-        Transform(wrotations:Get(i), out)
+        wrotations:Get(i):Transform(out)
         out:Add(positions:Get(i))
 
         return out
@@ -336,13 +336,13 @@ class ConvexConvexDistanceSolver
 
             tmp:Set(w):Normalize()
             Support(tmp, simplex:Get(4))
-            Transform(r, w)
+            r:Transform(w)
             tmp:Set(w):Normalize()
             Support(tmp, simplex:Get(2))
-            Transform(r, w)
+            r:Transform(w)
             tmp:Set(w):Normalize()
             Support(tmp, simplex:Get(3))
-            Transform(r, w)
+            r:Transform(w)
             order = 4
             return true
         elseif order = 2
