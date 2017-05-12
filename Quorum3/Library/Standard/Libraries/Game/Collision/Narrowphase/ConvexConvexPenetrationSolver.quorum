@@ -8,7 +8,7 @@ use Libraries.Containers.Array
 use Libraries.Game.Collision.Narrowphase.ConvexConvexVertex
 
 class ConvexConvexPenetrationSolver
-    ConvexConvexDistanceSolver gjk
+    ConvexConvexDistanceSolver gjk = undefined
 
     ConvexConvexFace root = undefined
     integer nFaces = 0
@@ -19,7 +19,7 @@ class ConvexConvexPenetrationSolver
     number depth = 0
     boolean failed = false
 
-    constant number cstInf = EpaInfaceEps:GetMaximumValue()
+    constant number cstInf = depth:GetMaximumValue()
     constant integer EpaMaxIterations = 256
     constant number EpaInfaceEps = 0.01
     constant number EpaAccuracy = 0.001
@@ -444,7 +444,7 @@ class ConvexConvexPenetrationSolver
                     integer nf = 0
                     Detach(bf)
                     markid = markid + 1
-                    bf:mark = markid
+                    bf:SetMark(markid)
                     integer j = 0
                     repeat while j < 3
                         nf = nf + BuildHorizon(markid, w, bf:GetFaces():Get(j), bf:GetEdges():Get(j), cf, ff)
@@ -470,8 +470,8 @@ class ConvexConvexPenetrationSolver
         end
 
         if bestFace not= undefined
-            Vector3 v
-            Vector3 b = GetCoordinates(bestFace, v)
+            Vector3 b
+            GetCoordinates(bestFace, b)
             normal:Set(bestFace:GetNormal())
             depth = 0
             if bestFace:GetDistance() > 0
