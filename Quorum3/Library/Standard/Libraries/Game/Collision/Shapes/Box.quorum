@@ -187,6 +187,14 @@ class Box is CollisionShape3D
         parent:CollisionShape3D:implicitShapeDimensions:Subtract(oldMargin)
     end
 
+    action Scale(Vector3 scale)
+        Vector3 oldScaling
+        parent:CollisionShape3D:GetLocalScaling(oldScaling)
+        oldScaling:Scale(scale)
+
+        SetLocalScaling(oldScaling)        
+    end
+
     action GetPlane(Vector3 planeNormal, Vector3 planeSupport, integer i)
         Plane plane
         GetPlaneEquation(plane, i)
