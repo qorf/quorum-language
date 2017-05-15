@@ -60,6 +60,9 @@ public class AudioSamples
     
     public double GetSizeInSeconds()
     {
+        if (buffer == null)
+            return 0;
+        
         return (buffer.length / (double)samplesPerSecond) / channels;
     }
     
@@ -70,6 +73,9 @@ public class AudioSamples
     
     public int GetTotalSize()
     {
+        if (buffer == null)
+            return 0;
+
         return buffer.length;
     }
     

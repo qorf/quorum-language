@@ -104,6 +104,18 @@ class Audio
     Audio object for use.
 
     Attribute: Parameter samples The AudioSamples to load into this Audio.
+
+    Attribute: Example
+
+    use Libraries.Sound.AudioSamples
+    use Libraries.Sound.Audio
+
+    AudioSamples samples
+    Audio audio
+
+    samples:Load("Chime.wav")
+    audio:Load(samples)
+    audio:PlayUntilDone()
     */
     system action Load(AudioSamples samples)
 
@@ -194,10 +206,33 @@ class Audio
     /*
     The LoadToStream action will take the given AudioSamples and load it into
     the Audio. Additional samples can then be added to the Audio by using the
-    QueueSamples action.
-
+    AddToQueue action.
 
     Attribute: Parameter samples The first samples to be loaded into this Audio.
+
+    Attribute: Example
+
+    use Libraries.Sound.AudioSamples
+    use Libraries.Sound.Audio
+
+    Audio audio
+
+    AudioSamples samples1
+    AudioSamples samples2
+    AudioSamples samples3
+
+    samples1:Load("Sonata-Part1.ogg")
+    samples2:Load("Sonata-Part2.ogg")
+    samples3:Load("Sonata-Part3.ogg")
+
+    audio:LoadToStream(samples1)
+    audio:AddToQueue(samples2)
+    audio:AddToQueue(samples3)
+
+    audio:Play()
+    repeat while audio:IsPlaying()
+        audio:Stream()
+    end
     */
     system action LoadToStream(AudioSamples samples)
 
@@ -210,6 +245,30 @@ class Audio
     Audio.
 
     Attribute: Parameter samples The AudioSamples to add to the end of the Audio data.
+
+    Attribute: Example
+
+    use Libraries.Sound.AudioSamples
+    use Libraries.Sound.Audio
+
+    Audio audio
+
+    AudioSamples samples1
+    AudioSamples samples2
+    AudioSamples samples3
+
+    samples1:Load("Sonata-Part1.ogg")
+    samples2:Load("Sonata-Part2.ogg")
+    samples3:Load("Sonata-Part3.ogg")
+
+    audio:LoadToStream(samples1)
+    audio:AddToQueue(samples2)
+    audio:AddToQueue(samples3)
+
+    audio:Play()
+    repeat while audio:IsPlaying()
+        audio:Stream()
+    end
     */
     system action AddToQueue(AudioSamples samples)
 
@@ -222,6 +281,34 @@ class Audio
     already played), then this action will have no effect.
 
     Attribute: Parameter samples The AudioSamples to remove from the Audio data.
+
+    Attribute: Example
+
+    use Libraries.Sound.AudioSamples
+    use Libraries.Sound.Audio
+
+    Audio audio
+
+    AudioSamples samples1
+    AudioSamples samples2
+    AudioSamples samples3
+
+    samples1:Load("Sonata-Part1.ogg")
+    samples2:Load("Sonata-Part2.ogg")
+    samples3:Load("Sonata-Part3.ogg")
+
+    audio:LoadToStream(samples1)
+    audio:AddToQueue(samples2)
+    audio:AddToQueue(samples3)
+
+    audio:Play()
+
+    // We can remove AudioSamples before or during Audio playback.
+    audio:RemoveFromQueue(samples2)
+
+    repeat while audio:IsPlaying()
+        audio:Stream()
+    end
     */
     system action RemoveFromQueue(AudioSamples samples)
 
@@ -428,13 +515,45 @@ class Audio
     it is only necessary to call this if there was a call to EnableLooping
     earlier in the program.
 
+    Attribute: Example
 
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We need to load our audio before we change whether or not it will loop.
+    audio:Load("test.wav")
+    
+    // We now enable looping. This will make the sound repeat forever until we
+    // stop it or call "audio:DisableLooping()".
+    audio:EnableLooping()
+
+    // Our audio is currently set to loop. We can disable it again using DisableLooping().
+    audio:DisableLooping()
     */
     system action DisableLooping
 
     /*
     This action will return true or false based on whether or not the audio
     has been set to loop.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We need to load our audio before we change whether or not it will loop.
+    audio:Load("test.wav")
+    
+    // We now enable looping. This will make the sound repeat forever until we
+    // stop it or call "audio:DisableLooping()".
+    audio:EnableLooping()
+
+    // To test if looping is enabled, we can use IsLoopingEnabled().
+    output "Looping Enabled? " + audio:IsLoopingEnabled()
     */
     system action IsLoopingEnabled returns boolean
 
@@ -471,11 +590,42 @@ class Audio
     */
     system action Dispose
 
-    // Sets the pitch of the sound. A standard pitch is at value 1.0, or 100% of
-    // normal pitch value. To increase pitch by 20%, pass a value of 1.2.
+    /* 
+    The SetPitch action sets the pitch of the sound. By default, sounds have a
+    pitch value of 1.0 (or 100% normal pitch). Lower values reduce the pitch,
+    while higher values increase the pitch. Changing the pitch also causes the
+    audio to play slower (with low pitch) or faster (with high pitch).
+
+    Attribute: Parameter pitch The pitch value to use.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio
+    audio:Load("Chime.wav")
+    // We will play the sound at 75% of its normal pitch.
+    audio:SetPitch(0.75)
+    audio:PlayUntilDone()
+    */
     system action SetPitch(number pitch)
 
-    // Returns the currently set pitch.
+    /*
+    Returns the currently set pitch. The default pitch value is 1.0.
+
+    Attribute: Returns The currently set pitch value.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio
+    audio:Load("Chime.wav")
+    // We will play the sound at 75% of its normal pitch.
+    audio:SetPitch(0.75)
+    // We can get the pitch value back using GetPitch().
+    output "The audio is playing at " + audio:GetPitch() + " of its normal pitch value."
+    */
     system action GetPitch returns number
 
     /*
@@ -2332,6 +2482,15 @@ class Audio
     system action GetMaximumVolumeDistance returns number
 
     /*
+    The SetRolloffRate action sets the rate at which 3D positional audio becomes
+    quieter when positioned far away from the listener. When an Audio object is
+    created, its rolloff rate is equal to the default value provided by
+    GetDefaultRolloffRate, which begins at 1.0 (but may be changed by the user).
+    Lower rolloff rates cause the sound to fade more slowly over long distances,
+    and higher rolloff rates cause sound to fade more quickly. The rolloff value
+    must always be positive.
+
+    Attribute: Parameter rolloff The rolloff rate to use. Must be positive.
 
     Attribute: Example
 
@@ -2358,27 +2517,133 @@ class Audio
     system action SetRolloffRate(number rolloff)
 
     /*
-    
+    The GetRolloffRate action returns the rate at which 3D positional audio becomes
+    quieter when positioned far away from the listener. When an Audio object is
+    created, its rolloff rate is equal to the default value provided by
+    GetDefaultRolloffRate, which begins at 1.0 (but may be changed by the user).
+    Lower rolloff rates cause the sound to fade more slowly over long distances,
+    and higher rolloff rates cause sound to fade more quickly. The rolloff value
+    is always positive.
+
+    Attribute: Returns The current rolloff rate of this Audio.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // We create and load audio1 before changing the default rolloff rate.
+    Audio audio1
+    audio1:Load("Sample1.wav")
+    output "Before changing the default rate, audio1 has a rolloff rate of " + audio1:GetRolloffRate()
+
+    audio1:SetDefaultRolloffRate(0.25)
+
+    // We create and load audio2 after changing the default rolloff rate.
+    Audio audio2
+    audio2:Load("Sample2.wav")
+    output "After changing the default rate, audio1 has a rolloff rate of " + audio1:GetRolloffRate()
+    output "audio2 has a rolloff rate of " + audio2:GetRolloffRate()
     */
     system action GetRolloffRate returns number
 
     /*
+    This action sets the default maximum volume distance for all newly created
+    Audio objects. It will not change the maximum volume distance of any Audio
+    objects that have already been loaded.
 
+    Attribute: Parameter distance The default maximum volume distance to use for all newly loaded Audio objects.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio1
+    Audio audio2
+
+    // We test to see what the default maximum volume distance is using audio1.
+    output "The default rolloff rate is " + audio1:GetDefaultMaximumVolumeDistance()
+
+    audio2:SetDefaultMaximumVolumeDistance(0.5)
+
+    // Even though we changed the default max volume distance using audio2,
+    // we can still see the changed default using audio1.
+    output "Now the default rolloff rate is " + audio1:GetDefaultMaximumVolumeDistance()
     */
     system action SetDefaultMaximumVolumeDistance(number distance)
 
     /*
+    This action returns the default maximum volume distance for all newly 
+    created Audio objects. It will not change the maximum volume distance of any
+    Audio objects that have already been loaded.
 
+    Attribute: Returns The default maximum volume distance to use for all newly loaded Audio objects.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio1
+    Audio audio2
+
+    // We test to see what the default maximum volume distance is using audio1.
+    output "The default rolloff rate is " + audio1:GetDefaultMaximumVolumeDistance()
+
+    audio2:SetDefaultMaximumVolumeDistance(0.5)
+
+    // Even though we changed the default max volume distance using audio2,
+    // we can still see the changed default using audio1.
+    output "Now the default rolloff rate is " + audio1:GetDefaultMaximumVolumeDistance()
     */
     system action GetDefaultMaximumVolumeDistance returns number
 
     /*
+    This action sets the default rolloff rate of newly loaded Audio objects. It
+    will not change the rolloff rates of any Audio objects which have already
+    been loaded.
 
+    Attribute: Parameter rolloff The default rolloff rate to use for all newly loaded Audio objects.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // We create and load audio1 before changing the default rolloff rate.
+    Audio audio1
+    audio1:Load("Sample1.wav")
+    output "Before changing the default rate, audio1 has a rolloff rate of " + audio1:GetRolloffRate()
+
+    audio1:SetDefaultRolloffRate(0.25)
+
+    // We create and load audio2 after changing the default rolloff rate.
+    Audio audio2
+    audio2:Load("Sample2.wav")
+    output "After changing the default rate, audio1 has a rolloff rate of " + audio1:GetRolloffRate()
+    output "audio2 has a rolloff rate of " + audio2:GetRolloffRate()
     */
     system action SetDefaultRolloffRate(number rolloff)
 
     /*
+    This action returns the default rolloff rate of newly loaded Audio objects. 
+    It can be changed using the SetDefaultRolloffRate action. The default value
+    is shared across all Audio objects.
 
+    Attribute: Returns 
+    
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio1
+    Audio audio2
+
+    // We test to see what the default rolloff rate is using audio1.
+    output "The default rolloff rate is " + audio1:GetDefaultRolloffRate()
+
+    audio2:SetDefaultRolloffRate(0.5)
+
+    // Even though we changed the default rolloff rate using audio2,
+    // we can still see the changed default using audio1.
+    output "Now the default rolloff rate is " + audio1:GetDefaultRolloffRate()
     */
     system action GetDefaultRolloffRate returns number
 
