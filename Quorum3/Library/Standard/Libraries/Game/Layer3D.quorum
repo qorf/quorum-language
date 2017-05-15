@@ -108,6 +108,9 @@ class Layer3D is Layer
 
     Vector3 gravity
 
+    number physicsTimeStep = 1.0 / 60.0
+    integer maxSubSteps = 1
+
 
     number localTime = 1.0 / 60.0
     /*
@@ -2252,9 +2255,6 @@ class Layer3D is Layer
     as necessary. Most users should never need to use this action directly.
     */
     action TestForCollisions(number seconds)
-        localTime = seconds
-            
-
         if newItemAdded
             collisionManager:FindNewCollisions()
             newItemAdded = false
@@ -2444,8 +2444,42 @@ class Layer3D is Layer
     end
 
     action StepPhysics(number seconds)
-        SolvePhysics(seconds)
-        SynchronizeTransforms()
+        integer numSimulationSubsteps = 0
+        integer maxSubSteps = me:maxSubSteps
+        number fixedTimeStep = physicsTimeStep
+
+        if maxSubSteps not= 0
+            localTime = localTime + seconds
+            if localTime >= fixedTimeStep
+                numSimulationSubsteps = cast(integer, localTime / fixedTimeStep)
+                localTime = localTime - (numSimulationSubsteps * fixedTimeStep)
+            end
+        else
+            fixedTimeStep = seconds
+            localTime = seconds
+            if math:AbsoluteValue(seconds) < 0.00000011920928955078125
+                numSimulationSubsteps = 0
+                maxSubSteps = 0
+            else
+                numSimulationSubsteps = 1
+                maxSubSteps = 1
+            end
+        end
+
+        if numSimulationSubsteps not= 0
+            integer clampedSimulationSteps = numSimulationSubsteps
+            if numSimulationSubsteps > maxSubSteps
+                clampedSimulationSteps = maxSubSteps
+            end
+
+            integer i = 0
+            repeat while i < clampedSimulationSteps
+                SolvePhysics(fixedTimeStep)
+                SynchronizeTransforms()
+                i = i + 1
+            end
+        end
+
         if automaticallyClearForces
             ClearForces()
         end
@@ -2692,7 +2726,9 @@ class Layer3D is Layer
             if item:IsPhysicsEnabled()
                 if item:IsSimulated()
                     if item:IsResponsive()
-                        item:ApplyForceToCenter(gravity)
+                        Vector3 force
+                        force:Set(gravity):Scale(1.0 / item:GetInverseMass())
+                        item:ApplyForceToCenter(force)
                     end
                 end
             end

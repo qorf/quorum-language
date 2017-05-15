@@ -339,15 +339,18 @@ class PhysicsProperties2D
             if not massSet
                 mass = 1
                 inverseMass = 1
-                density = 1
             end
             if me:item not= undefined
+                density = mass / item:GetShape():ComputeArea()
                 me:item:ResetMass()
             end
         else
             mass = 0
             inverseMass = 0
             density = 0
+            if me:item not= undefined
+                me:item:ResetMass()
+            end
         end
 
         force:SetZero()

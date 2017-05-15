@@ -195,6 +195,13 @@ class LocalCollisionPoints3D
         return nearestPoint
     end
 
+    action ClearPersistentData(CollisionPoint3D point)
+        CollisionPersistentData cpd = point:GetPersistentData()
+        if cpd not= undefined
+            point:SetPersistentData(undefined)
+        end
+    end
+
     action AddCollisionPoint(CollisionPoint3D newPoint) returns integer
         integer insertIndex = GetPointCount()
         if insertIndex = MAX_COLLISION_POINTS
@@ -203,6 +210,8 @@ class LocalCollisionPoints3D
             else
                 insertIndex = 0
             end
+
+            ClearPersistentData(points:Get(insertIndex))
         else
             pointCount = pointCount + 1
         end
@@ -211,6 +220,8 @@ class LocalCollisionPoints3D
     end
 
     action RemoveCollisionPoint(integer index)
+        ClearPersistentData(points:Get(index))
+
         integer lastUsedIndex = GetPointCount() - 1
         if index not= lastUsedIndex
             points:Get(index):Set(points:Get(lastUsedIndex))
@@ -296,6 +307,11 @@ class LocalCollisionPoints3D
     end
 
     action ClearCollisionPoints
+        integer i = 0
+        repeat while i < pointCount
+            ClearPersistentData(points:Get(i))
+            i = i + 1
+        end
         pointCount = 0
     end
 

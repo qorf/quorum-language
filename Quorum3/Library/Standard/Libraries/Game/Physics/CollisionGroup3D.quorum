@@ -103,7 +103,10 @@ class CollisionGroup3D
         i = 0
         repeat while i < items:GetSize()
             Item3D item = items:Get(i)
-            item:ApplyForceToCenter(gravity)
+            Vector3 force
+            force:Set(gravity)
+            force:Scale(1.0 / item:GetInverseMass())
+            item:ApplyForceToCenter(force)
             item:IntegrateVelocities(seconds)
             item:ApplyDamping(seconds)
 

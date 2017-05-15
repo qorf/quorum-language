@@ -22,9 +22,9 @@ class ConvexConvexCollisionSolver
 
     ConvexConvexDistanceSolver gjk
 
-    constant number cstInf = cstPi:GetMaximumValue()
-    constant number cstPi = cst2Pi * 0.5
     constant number cst2Pi = 6.283185307179586232
+    constant number cstPi = cst2Pi * 0.5
+    constant number cstInf = cstPi:GetMaximumValue()
     constant integer GjkMaxIterations = 128
     constant integer hashSize = bo:ShiftLeft(1, 6)
     constant integer hashMask = hashSize - 1

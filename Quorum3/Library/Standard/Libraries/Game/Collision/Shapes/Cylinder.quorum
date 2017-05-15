@@ -429,4 +429,30 @@ class Cylinder is CollisionShape3D
     action GetChildCount returns integer
         return 1
     end
+
+    action SetLocalScaling(Vector3 scaling)
+        Vector3 oldMargin
+        oldMargin:Set(GetMargin(), GetMargin(), GetMargin())
+        Vector3 implicitShapeDimensionsWithMargin
+        implicitShapeDimensionsWithMargin:Set(parent:CollisionShape3D:implicitShapeDimensions)
+        implicitShapeDimensionsWithMargin:Add(oldMargin)
+        Vector3 unScaledImplicitShapeDimensionsWithMargin
+        unScaledImplicitShapeDimensionsWithMargin:Set(implicitShapeDimensionsWithMargin:GetX() / parent:CollisionShape3D:localScaling:GetX(),
+                                                      implicitShapeDimensionsWithMargin:GetY() / parent:CollisionShape3D:localScaling:GetY(),
+                                                      implicitShapeDimensionsWithMargin:GetZ() / parent:CollisionShape3D:localScaling:GetZ())
+        parent:CollisionShape3D:SetLocalScaling(scaling)
+
+        parent:CollisionShape3D:implicitShapeDimensions:Set(unScaledImplicitShapeDimensionsWithMargin:GetX() * parent:CollisionShape3D:localScaling:GetX(),
+                                                            unScaledImplicitShapeDimensionsWithMargin:GetY() * parent:CollisionShape3D:localScaling:GetY(),
+                                                            unScaledImplicitShapeDimensionsWithMargin:GetZ() * parent:CollisionShape3D:localScaling:GetZ())
+        parent:CollisionShape3D:implicitShapeDimensions:Subtract(oldMargin)
+    end
+
+    action Scale(Vector3 scale)
+        Vector3 oldScaling
+        parent:CollisionShape3D:GetLocalScaling(oldScaling)
+        oldScaling:Scale(scale)
+
+        SetLocalScaling(oldScaling)        
+    end
 end

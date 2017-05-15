@@ -2380,6 +2380,7 @@ class Item3D is Item
             me:properties = properties
             properties:SetItem(me)
             interpolationTransform:Set(collisionTransform)
+            collisionTransform0:Set(collisionTransform)
         end
     end
 
@@ -2870,8 +2871,10 @@ class Item3D is Item
 
         if not IsResponsive()
             interpolationTransform:Set(collisionTransform)
+            collisionTransform0:Set(collisionTransform)
         else
             interpolationTransform:Set(transform)
+            collisionTransform0:Set(transform)
         end
 
         properties:GetInterpolatedLinearVelocity():Set(properties:GetLinearVelocity())
@@ -3095,18 +3098,25 @@ class Item3D is Item
         Matrix3 tempMatrix
         tempMatrix:Set(collisionTransform:GetBasis())
 
+        // Conversion between left-handed coordinate system and right-handed
+        // coordinate system rotation matrices is achieved via the following:
+        //    If the matrix M = [mij], 0 <= i <= 2, 0 <= j <= 2, is a rotation
+        //    in a left- (right-) handed coordinate system, then to convert it
+        //    to a right- (left-) handed coordinate system, change the signs of
+        //    m02, m12, m20, m21.
+        // Source: http://answers.unity3d.com/storage/temp/12048-lefthandedtorighthanded.pdf
         Matrix4 matrix
         matrix:IdentityMatrix()
         matrix:row0column0 = tempMatrix:row0column0 * vector:GetX()
         matrix:row0column1 = tempMatrix:row0column1 * vector:GetX()
-        matrix:row0column2 = tempMatrix:row0column2 * vector:GetX()
+        matrix:row0column2 = -tempMatrix:row0column2 * vector:GetX()
 
         matrix:row1column0 = tempMatrix:row1column0 * vector:GetY()
         matrix:row1column1 = tempMatrix:row1column1 * vector:GetY()
-        matrix:row1column2 = tempMatrix:row1column2 * vector:GetY()
+        matrix:row1column2 = -tempMatrix:row1column2 * vector:GetY()
 
-        matrix:row2column0 = tempMatrix:row2column0 * vector:GetZ()
-        matrix:row2column1 = tempMatrix:row2column1 * vector:GetZ()
+        matrix:row2column0 = -tempMatrix:row2column0 * vector:GetZ()
+        matrix:row2column1 = -tempMatrix:row2column1 * vector:GetZ()
         matrix:row2column2 = tempMatrix:row2column2 * vector:GetZ()
 
         matrix:row0column3 = collisionTransform:GetOrigin():GetX()
@@ -3114,6 +3124,10 @@ class Item3D is Item
         matrix:row2column3 = collisionTransform:GetOrigin():GetZ()
 
         transform:Set(matrix)
+
+        me:x = collisionTransform:GetOrigin():GetX()
+        me:y = collisionTransform:GetOrigin():GetY()
+        me:z = collisionTransform:GetOrigin():GetZ()
 
         me:updateTransform = true
     end
