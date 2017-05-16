@@ -170,12 +170,41 @@ class ImageSheet is Disposable
 
     private system action GetDrawableNative(text name, integer index) returns Drawable
 
-    //system action Dispose
+    /*
+    The Dispose action will unload all information that has been loaded using
+    this ImageSheet. Any items that are currently using a texture retrieved from
+    this ImageSheet will no longer be able to use them, so this should only be
+    done if the textures from the ImageSheet are not being used.
 
-    action Dispose
-        /* This needs to be a system action, but the plugin hasn't been
-        implemented yet! This empty action won't do anything, but it'll keep a
-        program from crashing when disposing an image sheet. */
-    end
+    Attribute: Example
+
+        use Libraries.Game.Graphics.ImageSheet
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            ImageSheet sheet
+            Drawable myDrawable
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                sheet:Load("MySheet.atlas")
+                myDrawable = sheet:GetDrawable("Spaceship")
+                Add(myDrawable)
+
+                // When we are no longer using any Drawables made from the
+                // ImageSheet, we can remove them from the Game, and then 
+                // Dispose the ImageSheet to clean up the memory it used.
+                Remove(myDrawable)
+                sheet:Dispose()
+            end
+
+        end
+    */
+    system action Dispose
 
 end

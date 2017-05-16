@@ -1,0 +1,161 @@
+package Libraries.Game.Physics
+
+use Libraries.Compute.Vector3
+use Libraries.Game.Collision.CollisionPoint3D
+use Libraries.Game.Physics.all
+
+class SolverConstraint3D
+    public constant integer SOLVER_CONTACT = 0
+    public constant integer SOLVER_FRICTION = 1
+
+    Vector3 relativePosition1CrossNormal
+    Vector3 contactNormal
+
+    Vector3 relativePosition2CrossNormal
+    Vector3 angularComponentA
+
+    Vector3 angularComponentB
+
+    number appliedPushImpulse = 0
+    
+    number appliedImpulse = 0
+    integer bodyIDA = 0
+    integer bodyIDB = 0
+    
+    number friction = 0
+    number restitution = 0
+    number jacobianDiagonalABInverse = 0
+    number penetration = 0
+
+    integer constraintType = 0
+    integer frictionIndex = 0
+    CollisionPoint3D originalContactPoint
+
+    action SetRelativePosition1CrossNormal(Vector3 vector)
+        me:relativePosition1CrossNormal = vector
+    end
+
+    action GetRelativePosition1CrossNormal returns Vector3
+        return relativePosition1CrossNormal
+    end
+
+    action SetContactNormal(Vector3 normal)
+        me:contactNormal = normal
+    end
+
+    action GetContactNormal returns Vector3
+        return contactNormal
+    end
+
+    action SetRelativePosition2CrossNormal(Vector3 vector)
+        me:relativePosition2CrossNormal = vector
+    end
+
+    action GetRelativePosition2CrossNormal returns Vector3
+        return relativePosition2CrossNormal
+    end
+
+    action SetAngularComponentA(Vector3 vector)
+        me:angularComponentA = vector
+    end
+
+    action GetAngularComponentA returns Vector3
+        return angularComponentA
+    end
+
+    action SetAngularComponentB(Vector3 vector)
+        me:angularComponentB = vector
+    end
+
+    action GetAngularComponentB returns Vector3
+        return angularComponentB
+    end
+
+    action SetAppliedPushImpulse(number impulse)
+        me:appliedPushImpulse = impulse
+    end
+
+    action GetAppliedPushImpulse returns number
+        return appliedPushImpulse
+    end
+
+    action SetAppliedImpulse(number impulse)
+        me:appliedImpulse = impulse
+    end
+
+    action GetAppliedImpulse returns number
+        return appliedImpulse
+    end
+
+    action SetBodyIDA(integer id)
+        me:bodyIDA = id
+    end
+    
+    action GetBodyIDA returns integer
+        return bodyIDA
+    end
+
+    action SetBodyIDB(integer id)
+        me:bodyIDB = id
+    end
+    
+    action GetBodyIDB returns integer
+        return bodyIDB
+    end
+
+    action SetFriction(number friction)
+        me:friction = friction
+    end
+
+    action GetFriction returns number
+        return friction
+    end
+
+    action SetRestitution(number restitution)
+        me:restitution = restitution
+    end
+
+    action GetRestitution returns number
+        return restitution
+    end
+
+    action SetJacobianDiagonalABInverse(number jacobian)
+        me:jacobianDiagonalABInverse = jacobian
+    end
+
+    action GetJacobianDiagonalABInverse returns number
+        return jacobianDiagonalABInverse
+    end
+
+    action SetPenetration(number penetration)
+        me:penetration = penetration
+    end
+
+    action GetPenetration returns number
+        return penetration
+    end
+
+    action SetConstraintType(integer type)
+        me:constraintType = type
+    end
+
+    action GetConstraintType returns integer
+        return constraintType
+    end
+
+    action SetFrictionIndex(integer index)
+        me:frictionIndex = index
+    end
+
+    action GetFrictionIndex returns integer
+        return frictionIndex
+    end
+
+    action SetOriginalContactPoint(CollisionPoint3D contactPoint)
+        me:originalContactPoint = contactPoint
+    end
+
+    action GetOriginalContactPoint returns CollisionPoint3D
+        return originalContactPoint
+    end
+end

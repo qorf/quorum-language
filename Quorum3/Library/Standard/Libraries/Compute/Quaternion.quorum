@@ -467,7 +467,7 @@ class Quaternion
         if pole = 0
             return math:InverseTangent(1.0 - 2.0 * (x * x + z * z), 2.0 * (w * z + y * x))
         else
-            return pole * 2.0 * math:InverseTangent(y, w)
+            return pole * 2.0 * math:InverseTangent(w, y)
         end
     end
 

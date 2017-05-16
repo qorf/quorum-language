@@ -1,0 +1,22 @@
+package Libraries.Game.Collision
+
+class EdgeResult2D 
+    number separation = 0
+    integer edgeIndex = 0
+
+    action GetSeparation returns number
+        return separation
+    end
+
+    action SetSeparation(number separation)
+        me:separation = separation
+    end
+
+    action GetEdgeIndex returns integer
+        return edgeIndex
+    end
+
+    action SetEdgeIndex(integer edgeIndex)
+        me:edgeIndex = edgeIndex
+    end
+end

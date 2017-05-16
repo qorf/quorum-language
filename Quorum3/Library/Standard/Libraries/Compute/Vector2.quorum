@@ -1200,7 +1200,7 @@ class Vector2
 
     */
     action Angle returns number
-        number angle = math:InverseTangent(y, x) * radiansToDegrees
+        number angle = math:InverseTangent(x, y) * radiansToDegrees
         if angle < 0
             angle = angle + 360
         end
@@ -1262,7 +1262,7 @@ class Vector2
 
     */    
     action AngleInRadians returns number
-        return math:InverseTangent(y, x)
+        return math:InverseTangent(x, y)
     end
 
 

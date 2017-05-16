@@ -44,7 +44,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
     var width;
     var height;
     var pixels;
-    var image = undefined;
+    var image;
     
     var disposed = false;
     
@@ -119,8 +119,12 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         var newFormat = new quorum_Libraries_Game_Graphics_Format_();
         newFormat.SetValue$quorum_integer(4);
         pixelMap.format = newFormat;
-        
-        texture.FinishLoadingAsynchronously$quorum_Libraries_System_File$quorum_Libraries_Game_Graphics_PixelMap$quorum_Libraries_Game_Graphics_Format$quorum_boolean$quorum_Libraries_Game_Graphics_Drawable(file, pixelMap, newFormat, useMipMaps, drawable);
+
+        if (!(texture === null || texture === undefined))
+        {
+            texture.FinishLoadingAsynchronously$quorum_Libraries_System_File$quorum_Libraries_Game_Graphics_PixelMap$quorum_Libraries_Game_Graphics_Format$quorum_boolean$quorum_Libraries_Game_Graphics_Drawable(file, pixelMap, newFormat, useMipMaps, drawable);
+            texture.plugin_.AlertTextureLoadListeners();
+        }
     }
     
     this.CreatePixelMap$quorum_integer$quorum_integer$quorum_Libraries_Game_Graphics_Format = function(newWidth, newHeight, newFormat) 

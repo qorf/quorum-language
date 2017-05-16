@@ -233,6 +233,125 @@ class Texture is Disposable
     end
 
     /*
+    The LoadFromPixelMap action loads a PixelMap into this texture. The PixelMap
+    will use its already given Format.
+
+    Attribute: Parameter pixelMap The PixelMap to load.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.PixelMap
+    use Libraries.Game.Graphics.Format
+    use Libraries.Game.Graphics.Texture
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+
+        Color color
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            PixelMap map
+            Format format
+            format:SetValue(format:RGBA8888)
+            map:CreatePixelMap(200, 200, format)
+
+            // We will create a pink box with a red stripe across it.
+            map:Fill(color:Pink())
+
+            integer x = 0
+            integer y = 85
+            repeat while y < 125
+                x = 0
+                repeat while x < 200
+                    map:SetPixel(x, y, color:Red())
+                    x = x + 1
+                end
+                y = y + 1
+            end
+
+            Texture texture
+            texture:LoadFromPixelMap(map)
+
+            Drawable drawable
+            drawable:Load(texture)
+            Add(drawable)
+        end
+    end
+    */
+    action LoadFromPixelMap(PixelMap pixelMap)
+        FileTextureData data
+        data:InitializeFileTextureData(undefined, pixelMap, pixelMap:GetFormat(), false)
+        LoadFromTextureData(data)
+    end
+
+    /*
+    The LoadFromPixelMap action loads a PixelMap into this texture, using the
+    given Format. If mip-mapping is supported on the given platform, mip-maps
+    will be used if the boolean parameter is true.
+
+    Attribute: Parameter pixelMap The PixelMap to load.
+    Attribute: Parameter format A Format describing the PixelMap's data.
+    Attribute: Parameter useMipMaps Whether or not to use mip-maps for this texture, if supported.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.PixelMap
+    use Libraries.Game.Graphics.Format
+    use Libraries.Game.Graphics.Texture
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+
+        Color color
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            PixelMap map
+            Format format
+            format:SetValue(format:RGBA8888)
+            map:CreatePixelMap(200, 200, format)
+
+            // We will create a pink box with a red stripe across it.
+            map:Fill(color:Pink())
+
+            integer x = 0
+            integer y = 85
+            repeat while y < 125
+                x = 0
+                repeat while x < 200
+                    map:SetPixel(x, y, color:Red())
+                    x = x + 1
+                end
+                y = y + 1
+            end
+
+            Texture texture
+            texture:LoadFromPixelMap(map, format, false)
+
+            Drawable drawable
+            drawable:Load(texture)
+            Add(drawable)
+        end
+    end
+    */
+    action LoadFromPixelMap(PixelMap pixelMap, Format format, boolean useMipMaps)
+        FileTextureData data
+        data:InitializeFileTextureData(undefined, pixelMap, format, useMipMaps)
+        LoadFromTextureData(data)
+    end
+
+    /*
     This action loads a Texture from a Quorum File, storing it as the given
     Format type and optionally using it to create mip maps, if the boolean
     is true. The File must already have its path set for this function.

@@ -348,48 +348,24 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     {
         gl.uniform4fv(location, v);
     };
-    
-    // Expected parameters: integer, integer, boolean, FloatBuffer
-//    this.glUniformMatrix2fv = function(location, count, transpose, value)
-//    {
-//        
-//    };
 
-    // Expected parameters: integer, integer, boolean, float[], integer
+    // Expected parameters: WebGLLocation, boolean, array of floats (or Float32Array)
     this.glUniformMatrix2fv = function(location, transpose, value)
     {
         gl.uniformMatrix2fv(location, transpose, value);
     };
 
-    // Expected parameters: integer, integer, boolean, FloatBuffer
-//    this.glUniformMatrix3fv = function(location, count, transpose, value)
-//    {
-//        
-//    };
-
-    // Expected parameters: integer, integer, boolean, float[], integer
+    // Expected parameters: WebGLLocation, boolean, array of floats (or Float32Array)
     this.glUniformMatrix3fv = function(location, transpose, value)
     {
         gl.uniformMatrix3fv(location, transpose, value);
     };
 
-    // Expected parameters: integer, integer, boolean, FloatBuffer
-//    this.glUniformMatrix4fv = function(location, count, transpose, value)
-//    {
-//        
-//    };
-
-    // Expected parameters: integer, integer, boolean, float[], integer
+    // Expected parameters: WebGLLocation, boolean, array of floats (or Float32Array)
     this.glUniformMatrix4fv = function(location, transpose, value)
     {
         gl.uniformMatrix4fv(location, transpose, value);
     };
-    
-    // Expected parameters: integer, integer, integer, boolean, integer, Buffer
-//    this.glVertexAttribPointer = function(index, size, type, normalized, stride, buffer)
-//    {
-//        
-//    };
     
     // Expected parameters: integer, integer, integer, boolean, integer, integer
     this.glVertexAttribPointer = function(index, size, type, normalized, stride, pointer)
@@ -480,7 +456,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     this.glTexImage2D = function(target, level, internalformat, width, height, border, format, type, pixels)
     {
         if (Object.prototype.toString.call(pixels) === "[object HTMLImageElement]")
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            gl.texImage2D(target, level, internalformat, format, type, pixels);
         else
             gl.texImage2D(target, level, internalformat, width, height, border, format, type, pixels);
     };

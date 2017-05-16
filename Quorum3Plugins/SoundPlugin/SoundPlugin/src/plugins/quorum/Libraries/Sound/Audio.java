@@ -13,6 +13,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import quorum.Libraries.Sound.AudioSamples_;
 
 /**
  *
@@ -60,23 +61,12 @@ public class Audio {
         {
             loader = new IOSLoader();
         }
-        
-        /*quorum.Libraries.System.Properties properties = new quorum.Libraries.System.Properties();
-
-        String path;
-        quorum.Libraries.System.File file = new quorum.Libraries.System.File();
-
-        file.SetPath("Run/jni");
-        
-        path = file.GetAbsolutePath();
-
-        properties.SetProperty("org.lwjgl.librarypath", path);*/
     }
     
     public void Load(quorum.Libraries.System.File_ quorumFile)
     {
         if (data != null)
-            throw new RuntimeException("An audio file is already loaded! To reuse this variable, call Dispose() before loading a new file.");
+            throw new RuntimeException("This audio has already been loaded! To reuse this audio, call Dispose() before loading again.");
         
         data = loader.Load(quorumFile);
     }
@@ -84,9 +74,25 @@ public class Audio {
     public void LoadToStream(quorum.Libraries.System.File_ quorumFile)
     {
         if (data != null)
-            throw new RuntimeException("An audio file is already loaded! To reuse this variable, call Dispose() before loading a new file.");
+            throw new RuntimeException("This audio has already been loaded! To reuse this audio, call Dispose() before loading again.");
         
         data = loader.LoadToStream(quorumFile);
+    }
+    
+    public void Load(AudioSamples_ samples)
+    {
+        if (data != null)
+            throw new RuntimeException("This audio has already been loaded! To reuse this audio, call Dispose() before loading again.");
+        
+        data = loader.Load(samples);
+    }
+    
+    public void LoadToStream(AudioSamples_ samples)
+    {
+        if (data != null)
+            throw new RuntimeException("This audio has already been loaded! To reuse this audio, call Dispose() before loading again.");
+        
+        data = loader.LoadToStream(samples);
     }
     
     public void Play()
@@ -141,18 +147,56 @@ public class Audio {
     
     public void SetPitch(double pitch)
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         data.SetPitch((float)pitch);
     }
     
     public void SetVolume(double volume)
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         if (volume < 0)
             volume = 0;
         data.SetVolume((float)volume);
     }
     
+    public void SetMaximumVolumeDistance(double distance)
+    {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
+        if (distance < 0.01)
+            distance = 0.01;
+        data.SetReferenceDistance((float)distance);
+    }
+    
+    public void SetRolloffRate(double rolloff)
+    {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
+        if (rolloff < 0)
+            rolloff = 0;
+        data.SetRolloff((float)rolloff);
+    }
+    
+    public void SetDefaultMaximumVolumeDistance(double distance)
+    {
+        if (distance < 0.01)
+            distance = 0.01;
+        AudioData.SetDefaultReferenceDistance((float)distance);
+    }
+    
+    public void SetDefaultRolloffRate(double rolloff)
+    {
+        if (rolloff < 0)
+            rolloff = 0;
+        AudioData.SetDefaultRolloff((float)rolloff);
+    }
+    
     public void SetBalance(double position)
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         if (position < -1)
             position = - 1;
         else if (position > 1)
@@ -163,6 +207,8 @@ public class Audio {
     
     public void SetFade(double fade)
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         if (fade < -1)
             fade = - 1;
         else if (fade > 1)
@@ -173,144 +219,237 @@ public class Audio {
     
     public void SetX(double newX)
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         data.SetX((float)newX);
     }
     
     public void SetY(double newY)
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         data.SetY((float)newY);
     }
     
     public void SetZ(double newZ)
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         data.SetZ((float)newZ * -1);
     }
     
     public double GetX()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.GetX();
     }
     
     public double GetY()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.GetY();
     }
     
     public double GetZ()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.GetZ() * -1;
     }
     
     public void SetPosition(double newX, double newY, double newZ)
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         data.SetPosition((float)newX, (float)newY, (float)newZ * -1);
     }
     
     public void EnableDoppler()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         data.EnableDoppler();
     }
     
     public void DisableDoppler()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         data.DisableDoppler();
     }
     
     public boolean IsDopplerEnabled()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.IsDopplerEnabled();
     }
     
     public void SetVelocityX(double x)
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         data.SetVelocityX((float)x);
     }
     
     public void SetVelocityY(double y)
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         data.SetVelocityY((float)y);
     }
     
     public void SetVelocityZ(double z)
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         data.SetVelocityZ((float)z * -1);
     }
     
     public void SetVelocity(double x, double y, double z)
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         data.SetVelocity((float)x, (float)y, (float)z * -1);
     }
     
     public double GetVelocityX()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.velocityX;
     }
     
     public double GetVelocityY()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.velocityY;
     }
 
     public double GetVelocityZ()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.velocityZ * -1;
     }
     
     public void SetRotation(double rotation)
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         data.SetRotation(rotation);
     }
     
     public void Rotate(double rotation)
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         data.Rotate(rotation);
     }
     
     public boolean IsStreaming()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.IsStreaming();
     }
     
     public boolean IsPlaying()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.IsPlaying();
     }
     
     public boolean IsLoopingEnabled()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.IsLooping();
     }
     
     public double GetBalance()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.GetBalance();
     }
     
     public double GetVolume()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.GetVolume();
     }
     
     public double GetPitch()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.GetPitch();
+    }
+    
+    public double GetMaximumVolumeDistance()
+    {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
+        return data.GetReferenceDistance();
+    }
+    
+    public double GetRolloffRate()
+    {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
+        return data.GetRolloff();
+    }
+    
+    public double GetDefaultMaximumVolumeDistance()
+    {
+        return AudioData.GetDefaultReferenceDistance();
+    }
+    
+    public double GetDefaultRolloffRate()
+    {
+        return AudioData.GetDefaultRolloff();
     }
     
     public double GetRotation()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.GetRotation();
     }
     
     public double GetFade()
     {
+        if (data == null)
+            throw new RuntimeException("This Audio object hasn't been loaded yet.");
         return data.GetFade();
     }
     
     public void Stream()
     {
         if (data == null)
-            throw new RuntimeException("Can't stream audio before it's loaded -- call Load first.");
+            throw new RuntimeException("Can't stream audio before it's loaded -- call LoadToStream() first.");
         data.Update();
+    }
+    
+    public void AddToQueue(AudioSamples_ samples)
+    {
+        if (data == null)
+            data = loader.LoadToStream(samples);
+        else
+            data.QueueSamples(samples);
+    }
+    
+    public void RemoveFromQueue(AudioSamples_ samples)
+    {
+        if (data == null)
+            throw new RuntimeException("Can't dequeue samples before the Audio has been loaded - call LoadToStream() or AddToQueue() first.");
+        data.UnqueueSamples(samples);
     }
     
     public void SetListenerPosition(double x, double y, double z)

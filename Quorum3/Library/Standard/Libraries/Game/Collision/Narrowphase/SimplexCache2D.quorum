@@ -1,0 +1,53 @@
+package Libraries.Game.Collision.Narrowphase
+
+use Libraries.Containers.Array
+
+class SimplexCache2D 
+    number metric = 0
+    integer count = 0
+    Array<integer> indexA
+    Array<integer> indexB
+
+    on create
+        integer max = count:GetMaximumValue()
+        repeat 3 times
+            indexA:Add(count)
+            indexB:Add(count)
+        end
+    end
+
+    action Set(SimplexCache2D simplexCache)
+        integer i = 0
+        repeat indexA:GetSize() times
+            indexA:Set(i, simplexCache:indexA:Get(i))
+            indexB:Set(i, simplexCache:indexB:Get(i))
+            i = i + 1
+        end
+        metric = simplexCache:metric
+        count = simplexCache:count
+    end
+
+    action GetMetric returns number
+        return metric
+    end
+
+    action SetMetric(number metric)
+        me:metric = metric
+    end
+
+    action GetCount returns integer
+        return count
+    end
+
+    action SetCount(integer count)
+        me:count = count
+    end
+
+    action GetIndexA returns Array<integer>
+        return indexA
+    end
+
+    action GetIndexB returns Array<integer>
+        return indexB
+    end
+end

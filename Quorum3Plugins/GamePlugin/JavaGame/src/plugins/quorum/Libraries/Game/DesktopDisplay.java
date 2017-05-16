@@ -49,13 +49,18 @@ public class DesktopDisplay {
             
         Color_ color = dis.config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_();
 
-        boolean displayCreated = SetDisplayMode(dis.config.Get_Libraries_Game_DesktopConfiguration__width_(),
-            dis.config.Get_Libraries_Game_DesktopConfiguration__height_(),
-            dis.config.Get_Libraries_Game_DesktopConfiguration__fullScreen_());
-            
-        if (!displayCreated)
-            throw new GameRuntimeError("An error ocurred in SetDisplayMode!");
-            
+        if (dis.config.Get_Libraries_Game_DesktopConfiguration__defaultResolution_() == null)
+        {
+            boolean displayCreated = SetDisplayMode(dis.config.Get_Libraries_Game_DesktopConfiguration__width_(),
+                dis.config.Get_Libraries_Game_DesktopConfiguration__height_(),
+                dis.config.Get_Libraries_Game_DesktopConfiguration__fullScreen_());
+
+            if (!displayCreated)
+                throw new GameRuntimeError("An error ocurred in SetDisplayMode!");
+        }
+        else
+            SetScreenResolution(dis.config.Get_Libraries_Game_DesktopConfiguration__defaultResolution_());
+
         //Set icons
         Display.setTitle(dis.config.Get_Libraries_Game_DesktopConfiguration__title_());
         Display.setResizable(dis.config.Get_Libraries_Game_DesktopConfiguration__resizable_());
@@ -348,25 +353,25 @@ public class DesktopDisplay {
     {
         try
         {
-        org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
-        org.lwjgl.opengl.DisplayMode targetDisplayMode = null;
-        for (int i = 0; i < modes.length; i++)
-        {
-            org.lwjgl.opengl.DisplayMode mode = modes[i];
-            if (resolution.GetWidth() == mode.getWidth() && resolution.GetHeight() == mode.getHeight()
-                    && resolution.GetBitsPerPixel() == mode.getBitsPerPixel() 
-                    && resolution.GetFrequency() == mode.getFrequency()
-                    && resolution.IsFullscreen() == mode.isFullscreenCapable())
+            org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
+            org.lwjgl.opengl.DisplayMode targetDisplayMode = null;
+            for (int i = 0; i < modes.length; i++)
             {
-                targetDisplayMode = mode;
-                break;
+                org.lwjgl.opengl.DisplayMode mode = modes[i];
+                if (resolution.GetWidth() == mode.getWidth() && resolution.GetHeight() == mode.getHeight()
+                        && resolution.GetBitsPerPixel() == mode.getBitsPerPixel() 
+                        && resolution.GetFrequency() == mode.getFrequency()
+                        && resolution.IsFullscreen() == mode.isFullscreenCapable())
+                {
+                    targetDisplayMode = mode;
+                    break;
+                }
             }
-        }
-        if (targetDisplayMode == null)
-            targetDisplayMode = new org.lwjgl.opengl.DisplayMode(resolution.GetWidth(), resolution.GetHeight());
-        
-        Display.setDisplayMode(targetDisplayMode);
-        Display.setFullscreen(resolution.IsFullscreen());
+            if (targetDisplayMode == null)
+                targetDisplayMode = new org.lwjgl.opengl.DisplayMode(resolution.GetWidth(), resolution.GetHeight());
+
+            Display.setDisplayMode(targetDisplayMode);
+            Display.setFullscreen(resolution.IsFullscreen());
         }
         catch(Exception ex)
         {

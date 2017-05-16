@@ -4,6 +4,8 @@ function plugins_quorum_Libraries_Game_Graphics_Painter3D_()
     var shaderProvider = new plugins_quorum_Libraries_Game_Graphics_ShaderProvider_();
     var environment;
     var isRendering = false;
+    var skybox = null;
+    var skyboxShader = new plugins_quorum_Libraries_Game_Graphics_SkyboxShader_();
     
     var quorumBatch;
     var renderables;
@@ -43,6 +45,16 @@ function plugins_quorum_Libraries_Game_Graphics_Painter3D_()
         return environment;
     };
 
+    this.SetSkybox$quorum_Libraries_Game_Graphics_Skybox = function(box)
+    {
+        skybox = box;
+    };
+    
+    this.GetSkybox = function()
+    {
+        return skybox;
+    };
+
     this.Begin = function() 
     {
         if (isRendering)
@@ -65,6 +77,17 @@ function plugins_quorum_Libraries_Game_Graphics_Painter3D_()
     this.End = function() 
     {
         this.Flush();
+        if (skybox != null)
+        {
+            if (!skybox.plugin_.SidesRequested())
+            {
+                var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+                exceptionInstance_.SetErrorMessage$quorum_text("I can't render the skybox because it wasn't fully loaded. Make sure all six sides are loaded before trying to use it.");
+                throw exceptionInstance_;
+            }
+            else if (skybox.IsLoaded())
+                skyboxShader.Render(skybox, camera);
+        }
         context.End();
         isRendering = false;
     };

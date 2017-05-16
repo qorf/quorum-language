@@ -174,12 +174,21 @@ public abstract class QuorumAction implements Action {
                         Date date = new Date();
                         String format = dateFormat.format(date);
 
-                        io.getOut().println("Quorum Compiler Threw Error at " + dateFormat.format(date) + " (This is a bug, please report it at https://quorum.atlassian.net).");
-                        io.getOut().println(e.toString());
-                        StackTraceElement[] stackTrace = e.getStackTrace();
-                        for (int i = 0; i < stackTrace.length; i++) {
-                            io.getOut().println(stackTrace[i].toString());
+                        if(compiler.GetMainClass() == null) {
+                            String stringDate = dateFormat.format(date);
+                            io.getOut().println("I noticed that there is no main file set, which means "
+                                    + "I cannot determine where to start your program. "
+                                    + "To set one, either right click on a file in the project "
+                                    + "explorer, or use a hotkey, and select the Set Main File option.");
+                        } else {
+                            io.getOut().println("Quorum Compiler Threw Error at " + dateFormat.format(date) + " (This is a bug, please report it at https://quorum.atlassian.net).");
+                            io.getOut().println(e.toString());
+                            StackTraceElement[] stackTrace = e.getStackTrace();
+                            for (int i = 0; i < stackTrace.length; i++) {
+                                io.getOut().println(stackTrace[i].toString());
+                            }
                         }
+                        
                         io.setInputVisible(true);
                         io.getOut().close();
                     }

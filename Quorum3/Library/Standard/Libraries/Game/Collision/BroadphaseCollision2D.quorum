@@ -3,7 +3,7 @@ use Libraries.Game.Game
 use Libraries.Interface.Item2D
 use Libraries.Compute.Vector2
 use Libraries.Game.Collision.DynamicBoundingVolumeTree2D
-use Libraries.Game.Collision.CollisionPair2D
+use Libraries.Game.Collision.CollisionPair
 use Libraries.Game.Collision.BoundingBox2D
 use Libraries.Game.Collision.Item2DNode
 use Libraries.Game.Collision.CollisionManager2D
@@ -53,7 +53,7 @@ class BroadphaseCollision2D
     Array<integer> moveList
     integer moveCount = 0
 
-    Array<CollisionPair2D> pairList
+    Array<CollisionPair> pairList
     integer pairCount = 0
 
     integer queryNodeID = -1
@@ -358,7 +358,7 @@ class BroadphaseCollision2D
         pairList:Sort()
         i = 0
         repeat while i < pairCount
-            CollisionPair2D primaryPair = pairList:Get(i)
+            CollisionPair primaryPair = pairList:Get(i)
             Item2DNode dataA = tree:GetItemNode(primaryPair:GetIDA())
             Item2DNode dataB = tree:GetItemNode(primaryPair:GetIDB())
 
@@ -367,7 +367,7 @@ class BroadphaseCollision2D
             
             boolean continue = true
             repeat while i < pairCount and continue
-                CollisionPair2D otherPair = pairList:Get(i)
+                CollisionPair otherPair = pairList:Get(i)
                 if otherPair:GetIDA() not= primaryPair:GetIDA() or otherPair:GetIDB() not= primaryPair:GetIDB()
                     continue = false
                 else
@@ -558,7 +558,7 @@ class BroadphaseCollision2D
             return true
         end
         
-        CollisionPair2D pair
+        CollisionPair pair
         
         if id < queryNodeID
             pair:SetIDA(id)

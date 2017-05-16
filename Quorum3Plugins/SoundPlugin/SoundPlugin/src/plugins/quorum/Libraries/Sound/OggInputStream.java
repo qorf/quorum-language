@@ -22,6 +22,8 @@
 
 package plugins.quorum.Libraries.Sound;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -88,6 +90,27 @@ public class OggInputStream extends InputStream {
 	/** The total number of bytes */
 	private int total;
 
+        public OggInputStream(File file)
+        {
+            this(FileToStream(file));
+        }
+        
+        private static FileInputStream FileToStream(File file)
+        {
+            FileInputStream stream;
+
+            try
+            {
+                stream = new FileInputStream(file);
+            }
+            catch (Throwable ex)
+            {
+                throw new RuntimeException("Could not load sound file with path: " + file.getAbsolutePath());
+            }
+
+            return stream;
+        }
+        
 	/** Create a new stream to decode OGG data
 	 * 
 	 * @param input The input stream from which to read the OGG file */

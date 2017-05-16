@@ -1,7 +1,10 @@
-function plugins_quorum_Libraries_Game_Graphics_Texture_() 
+function plugins_quorum_Libraries_Game_Graphics_Texture_(quorumTexture) 
 {
+    var me_ = quorumTexture;
     var glTarget;
     var glHandle = 0;
+    
+    var listeners = [];
     
     var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
     
@@ -76,5 +79,18 @@ function plugins_quorum_Libraries_Game_Graphics_Texture_()
     this.GetFontColor = function()
     {
         return this.fontColor;
+    };
+    
+    this.AddTextureLoadListener = function(listener)
+    {
+        listeners.push(listener);
+    };
+    
+    this.AlertTextureLoadListeners = function()
+    {
+        for (var i = 0; i < listeners.length; i++)
+        {
+            listeners[i].TextureLoaded(me_);
+        }
     };
 }

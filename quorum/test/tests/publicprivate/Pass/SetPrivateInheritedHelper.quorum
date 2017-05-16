@@ -1,9 +1,0 @@
-class SetPrivateInheritedHelper is BWithPrivateOnly
-    action SetPrivateVariable
-        parent:BWithPrivateOnly:bPrivateVariable = 2
-    end
-
-    action GetPrivateVariable returns integer
-        return parent:BWithPrivateOnly:bPrivateVariable
-    end
-end

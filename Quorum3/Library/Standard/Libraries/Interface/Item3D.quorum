@@ -25,6 +25,9 @@ use Libraries.Game.BoundingBox
 use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Compute.Quaternion
 use Libraries.Compute.Matrix3
+use Libraries.Game.Physics.PhysicsProperties3D
+use Libraries.Game.Physics.all
+use Libraries.Game.Physics.Joints.JointEdge3D
 
 /*
     The Item3D class represents any object that has a position in 3D space.
@@ -46,6 +49,8 @@ use Libraries.Compute.Matrix3
 */
 class Item3D is Item
 
+    constant text PHYSICS_ERROR_MESSAGE = "Enable physics to use this action"
+
     number x = 0
     number y = 0
     number z = 0
@@ -61,14 +66,19 @@ class Item3D is Item
 
     boolean collidable = false
 
+    boolean collideWithChildren = false
+    boolean hasMoved = false
+
     PhysicsPosition3D collisionTransform
     PhysicsPosition3D collisionTransform0
+    PhysicsPosition3D interpolationTransform
 
     CollisionShape3D shape = undefined
     Array<Item3DNode> nodes
     integer nodeCount = 0
 
-    public CollisionEdge3D collisionList = undefined
+    CollisionEdge3D collisionList = undefined
+    JointEdge3D jointList = undefined
 
     private Item3D parentItem = undefined
     private Array<Item3D> children
@@ -78,6 +88,13 @@ class Item3D is Item
     private boolean depthSet = false
     private boolean layerSet = false
     private boolean nodesSet = false
+
+    boolean physicsEnabled = false
+    PhysicsProperties3D properties = undefined
+
+    boolean updateTransform = true
+
+    number timeOfImpact = 1
 
     private action GetChildAsItem(integer index) returns Item
         return children:Get(index)
@@ -455,10 +472,14 @@ class Item3D is Item
     */
     action MoveX(number xAmount)
         transform:Translate(xAmount, 0, 0)
-        collisionTransform:GetOrigin():Add(xAmount, 0, 0)
+        if updateTransform
+            collisionTransform:GetOrigin():Add(xAmount, 0, 0)
+            collisionTransform0:Set(collisionTransform)
+        end
 
         x = x + xAmount
         SetOffsetX(offsetX)
+        hasMoved = true
     end
 
     /*
@@ -476,10 +497,14 @@ class Item3D is Item
     */
     action MoveY(number yAmount)
         transform:Translate(0, yAmount, 0)
-        collisionTransform:GetOrigin():Add(0, yAmount, 0)
+        if updateTransform
+            collisionTransform:GetOrigin():Add(0, yAmount, 0)
+            collisionTransform0:Set(collisionTransform)
+        end
 
         y = y + yAmount
         SetOffsetY(offsetY)
+        hasMoved = true
     end
 
     /*
@@ -497,11 +522,15 @@ class Item3D is Item
     */
     action MoveZ(number zAmount)
         transform:Translate(0, 0, zAmount)
-        collisionTransform:GetOrigin():Add(0, 0, zAmount)
+        if updateTransform
+            collisionTransform:GetOrigin():Add(0, 0, zAmount)
+            collisionTransform0:Set(collisionTransform)
+        end
         //transform:Translate(0, 0, -zAmount)
 
         z = z + zAmount
         SetOffsetZ(offsetZ)
+        hasMoved = true
     end
 
     /*
@@ -522,13 +551,17 @@ class Item3D is Item
     */
     action Move(number xAmount, number yAmount, number zAmount)
         transform:Translate(xAmount, yAmount, zAmount)
-        collisionTransform:GetOrigin():Add(xAmount, yAmount, zAmount)
+        if updateTransform
+            collisionTransform:GetOrigin():Add(xAmount, yAmount, zAmount)
+            collisionTransform0:Set(collisionTransform)
+        end
         //transform:Translate(xAmount, yAmount, -zAmount)
 
         x = x + xAmount
         y = y + yAmount
         z = z + zAmount
         SetOffset(offsetX, offsetY, offsetZ)
+        hasMoved = true
     end
 
     /*
@@ -550,7 +583,10 @@ class Item3D is Item
     */
     action Move(Vector3 vector)
         transform:Translate(vector)
-        collisionTransform:GetOrigin():Add(vector)
+        if updateTransform
+            collisionTransform:GetOrigin():Add(vector)
+            collisionTransform0:Set(collisionTransform)
+        end
         //transform:Translate(vector:GetX(), vector:GetY(), vector:GetZ() * -1)
 
         x = x + vector:GetX()
@@ -578,7 +614,10 @@ class Item3D is Item
             number adjust = xAmount - offsetX
 
             transform:Translate(adjust, 0, 0)
-            collisionTransform:GetOrigin():Add(adjust, 0, 0)
+            if updateTransform
+                collisionTransform:GetOrigin():Add(adjust, 0, 0)
+                collisionTransform0:Set(collisionTransform)
+            end
         end
 
         offsetX = xAmount
@@ -609,7 +648,10 @@ class Item3D is Item
             number adjust = yAmount - offsetY
         
             transform:Translate(0, adjust, 0)
-            collisionTransform:GetOrigin():Add(0, adjust, 0)
+            if updateTransform
+                collisionTransform:GetOrigin():Add(0, adjust, 0)
+                collisionTransform0:Set(collisionTransform)
+            end
         end
 
         offsetY = yAmount
@@ -640,7 +682,10 @@ class Item3D is Item
             number adjust = zAmount - offsetZ
         
             transform:Translate(0, 0, adjust)
-            collisionTransform:GetOrigin():Add(0, 0, adjust)
+            if updateTransform
+                collisionTransform:GetOrigin():Add(0, 0, adjust)
+                collisionTransform0:Set(collisionTransform)
+            end
             //transform:Translate(0, 0, -adjust)
         end
 
@@ -672,7 +717,10 @@ class Item3D is Item
     action SetOffset(number xAmount, number yAmount, number zAmount)
         if xAmount not= offsetX or yAmount not= offsetY or zAmount not= offsetZ
             transform:Translate(xAmount - offsetX, yAmount - offsetY, zAmount - offsetZ)
-            collisionTransform:GetOrigin():Add(xAmount - offsetX, yAmount - offsetY, zAmount - offsetZ)
+            if updateTransform
+                collisionTransform:GetOrigin():Add(xAmount - offsetX, yAmount - offsetY, zAmount - offsetZ)
+                collisionTransform0:Set(collisionTransform)
+            end
             //transform:Translate(xAmount - offsetX, yAmount - offsetY, -(zAmount - offsetZ))
         end
 
@@ -1362,8 +1410,25 @@ class Item3D is Item
     */
     action Rotate(Vector3 vector, number degrees, boolean rotateChildren)
         transform:Rotate(vector:GetX(), vector:GetY(), -vector:GetZ(), degrees)
-        collisionTransform:SetRotation(collisionTransform:GetRotation():Add(transform:GetRotation()))
+        if updateTransform
+            if shape not= undefined
+                Vector3 scale
+                shape:GetLocalScaling(scale)
+                Matrix3 tempMatrix
+                tempMatrix:row0column0 = transform:row0column0 / scale:GetX()
+                tempMatrix:row0column1 = transform:row0column1 / scale:GetX()
+                tempMatrix:row0column2 = transform:row0column2 / scale:GetX()
 
+                tempMatrix:row1column0 = transform:row1column0 / scale:GetY()
+                tempMatrix:row1column1 = transform:row1column1 / scale:GetY()
+                tempMatrix:row1column2 = transform:row1column2 / scale:GetY()
+
+                tempMatrix:row2column0 = transform:row2column0 / scale:GetZ()
+                tempMatrix:row2column1 = transform:row2column1 / scale:GetZ()
+                tempMatrix:row2column2 = transform:row2column2 / scale:GetZ()
+                collisionTransform:GetBasis():Set(tempMatrix)
+            end
+        end
         if rotateChildren
             RotateChildren(vector, degrees)
         end
@@ -1872,12 +1937,12 @@ class Item3D is Item
         transform:row1column1 = transform:row1column1 * vector:GetY()
         transform:row1column2 = transform:row1column2 * vector:GetY()
 
-        transform:row2column0 = transform:row2column0 * vector:GetY()
-        transform:row2column1 = transform:row2column1 * vector:GetY()
-        transform:row2column2 = transform:row2column2 * vector:GetY()
+        transform:row2column0 = transform:row2column0 * vector:GetZ()
+        transform:row2column1 = transform:row2column1 * vector:GetZ()
+        transform:row2column2 = transform:row2column2 * vector:GetZ()
 
         if shape not= undefined
-            shape:SetLocalScaling(vector)
+            shape:Scale(vector)
         end
 
         if scaleChildren and not children:IsEmpty()
@@ -2148,6 +2213,10 @@ class Item3D is Item
         end
     end
 
+    action GetNodeCount returns integer
+        return nodeCount
+    end
+
     action DestroyNodes(BroadphaseCollision3D broadphase)
         integer i = 0
         repeat while i < nodeCount
@@ -2270,15 +2339,812 @@ class Item3D is Item
         return collisionTransform
     end
 
-    action GetCollisionTransform0 returns PhysicsPosition3D
-        return collisionTransform0
+    action GetInterpolationTransform returns PhysicsPosition3D
+        return interpolationTransform
     end
 
     action SetCollisionTransform(PhysicsPosition3D transform)
         collisionTransform:Set(transform)
     end
 
+    action SetInterpolationTransform(PhysicsPosition3D transform)
+        interpolationTransform:Set(transform)
+    end
+
+    action GetCollisionList returns CollisionEdge3D
+        return collisionList
+    end
+
+    action SetCollisionList(CollisionEdge3D list)
+        collisionList = list
+    end
+
+    action GetJointList returns JointEdge3D
+        return jointList
+    end
+
+    action SetJointList(JointEdge3D list)
+        jointList = list
+    end
+
+    action IsPhysicsEnabled returns boolean
+        return physicsEnabled
+    end
+
+    action EnablePhysics(boolean flag)
+        physicsEnabled = flag
+    
+        if physicsEnabled
+            SetCollidable(true)
+            PhysicsProperties3D properties
+            me:properties = properties
+            properties:SetItem(me)
+            interpolationTransform:Set(collisionTransform)
+            collisionTransform0:Set(collisionTransform)
+        end
+    end
+
+    action SetLinearVelocity(Vector3 linearVelocity)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetLinearVelocity(linearVelocity)
+    end
+
+    action SetLinearVelocityX(number linearVelocityX)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetLinearVelocityX(linearVelocityX)
+    end
+
+    action SetLinearVelocityY(number linearVelocityY)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetLinearVelocityY(linearVelocityY)
+    end
+
+    action SetLinearVelocityZ(number linearVelocityZ)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetLinearVelocityZ(linearVelocityZ)
+    end
+
+    action GetLinearVelocity returns Vector3
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetLinearVelocity()
+    end
+
+    action SetAngularVelocity(Vector3 angularVelocity)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetAngularVelocity(angularVelocity)
+    end
+
+    action GetAngularVelocity returns Vector3
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetAngularVelocity()
+    end
+
+    action SetForce(Vector3 force)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetForce(force)
+    end
+
+    action GetForce returns Vector3
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetForce()
+    end
+
+    action SetTorque(Vector3 torque)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetTorque(torque)
+    end
+
+    action GetTorque returns Vector3
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetTorque()
+    end
+
+    action ApplyForce(Vector3 force, Vector3 point)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyForce(force, point)
+    end
+
+    action ApplyForceToCenter(Vector3 force)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyForceToCenter(force)
+    end
+
+    action ApplyTorque(Vector3 torque)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyTorque(torque)
+    end
+
+    action ApplyLinearImpulse(Vector3 impulse, Vector3 point)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyLinearImpulse(impulse, point)
+    end
+
+    action ApplyAngularImpulse(Vector3 impulse)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyAngularImpulse(impulse)
+    end
+
+    action GetMass returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetMass()
+    end
+
+    action SetMass(number mass)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetMass(mass)
+    end
+
+    action GetInverseMass returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetInverseMass()
+    end
+
+    action GetInverseInertiaWorld returns Matrix3
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetInverseInertiaWorld()
+    end
+
+    action GetLinearDamping returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetLinearDamping()
+    end
+
+    action SetLinearDamping(number linearDamping)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetLinearDamping(linearDamping)
+    end
+
+    action GetAngularDamping returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetAngularDamping()
+    end
+
+    action SetAngularDamping(number angularDamping)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetAngularDamping(angularDamping)
+    end
+
+    action GetResponsiveness returns integer
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetResponsiveness()
+    end
+
+    action SetResponsiveness(integer type)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetResponsiveness(type)
+    end
+
+    action SetFriction(number friction)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetFriction(friction)
+    end
+
+    action GetFriction returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetFriction()
+    end
+
+    action SetRestitution(number restitution)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetRestitution(restitution)
+    end
+
+    action GetRestitution returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetRestitution()
+    end
+
+    action SetCollisionGroupFlag(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetCollisionGroupFlag(flag)
+    end
+
+    action GetCollisionGroupFlag returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetCollisionGroupFlag()
+    end
+
+    action SetCollisionGroupIndex(integer index)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetCollisionGroupIndex(index)
+    end
+
+    action GetCollisionGroupIndex returns integer
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetCollisionGroupIndex()
+    end
+
+    action IsFastMoving returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:IsFastMoving()
+    end
+
+    action FastMoving(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:FastMoving(flag)
+    end
+
+    action RequireSimulation(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:RequireSimulation(flag)
+    end
+
+    action IsSimulationRequired returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:IsSimulationRequired()
+    end
+
+    action Simulate(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:Simulate(flag)
+    end
+
+    action IsSimulated returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:IsSimulated()
+    end
+
+    action CanRotate(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:CanRotate(flag)
+        ResetMass()
+    end
+
+    action IsRotationAllowed returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:IsRotationAllowed()
+    end
+
+    action SetSleepTime(number time)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetSleepTime(time)
+    end
+
+    action GetSleepTime returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetSleepTime()
+    end
+
+    action SetResponsive
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetResponsiveness(properties:RESPONSIVE)
+    end
+
+    action IsResponsive returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetResponsiveness() = properties:RESPONSIVE
+    end
+
+    action SetNonResponsive
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetResponsiveness(properties:NON_RESPONSIVE)
+    end
+
+    action IsNonResponsive returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetResponsiveness() = properties:NON_RESPONSIVE
+    end
+
+    action SetUnmovable
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetResponsiveness(properties:UNMOVABLE)
+    end
+
+    action IsUnmovable returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetResponsiveness() = properties:UNMOVABLE
+    end
+
+    action GetPhysicsProperties returns PhysicsProperties3D
+        return properties
+    end
+
+    action SetPhysicsProperties(PhysicsProperties3D properties)
+        me:properties = properties:Copy()
+        me:properties:SetItem(me)
+    end
+
+    action ResetMass
+
+    end
+
+    action ShouldCollide(Item3D otherItem) returns boolean
+        if not collideWithChildren
+            if otherItem = parentItem
+                return false
+            end
+            integer i = 0
+            repeat children:GetSize() times
+                Item3D child = children:Get(i)
+                if child = otherItem
+                    return false
+                end
+                i = i + 1
+            end
+        end
+
+        return true
+    end
+
+    action CollideWithChildren returns boolean
+        return collideWithChildren
+    end
+
+    action SetCollideWithChildren(boolean flag)
+        me:collideWithChildren = flag
+    end
+
+    action HasMoved returns boolean
+        return hasMoved
+    end
+
+    action SetHasMoved(boolean flag)
+        hasMoved = flag
+    end
+
+    action IntegrateVelocities(number seconds)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        if not IsResponsive()
+            return now
+        end
+
+        properties:IntegrateVelocities(seconds)
+    end
+
+    action ApplyDamping(number seconds)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyDamping(seconds)
+    end
+
+    action PredictIntegratedTransform(number seconds, PhysicsPosition3D predictedTransform)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:IntegrateTransform(collisionTransform, seconds, predictedTransform)
+    end
+
+    action GetInterpolationWorldTransform returns PhysicsPosition3D
+        return interpolationTransform
+    end
+
+    action SetCenterOfMassTransform(PhysicsPosition3D transform)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        if not IsResponsive()
+            interpolationTransform:Set(collisionTransform)
+            collisionTransform0:Set(collisionTransform)
+        else
+            interpolationTransform:Set(transform)
+            collisionTransform0:Set(transform)
+        end
+
+        properties:GetInterpolatedLinearVelocity():Set(properties:GetLinearVelocity())
+        properties:GetInterpolatedAngularVelocity():Set(properties:GetAngularVelocity())
+        collisionTransform:Set(transform)
+        UpdateInertia()
+    end
+
+    action UpdateInertia
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:UpdateInertia(collisionTransform:GetBasis())
+    end
+
+    action GetCenterOfMassPosition returns Vector3
+        return collisionTransform:GetOrigin()
+    end
+
+    action GetOrientation returns Quaternion
+        Matrix3 basis = collisionTransform:GetBasis()
+        Quaternion quaternion
+        number trace = basis:row0column0 + basis:row1column1 + basis:row2column2
+        
+        Math math
+
+        Array<number> temp
+        temp:SetSize(4)
+
+        if trace > 0
+            number s = math:SquareRoot(trace + 1)
+            temp:Set(3, s * 0.5)
+            s = 0.5 / s
+
+            temp:Set(0, ((basis:row2column1 - basis:row1column2) * s))
+            temp:Set(1, ((basis:row0column2 - basis:row2column0) * s))
+            temp:Set(2, ((basis:row1column0 - basis:row0column1) * s))
+        else
+            integer i = 0
+            if basis:row0column0 < basis:row1column1
+                if basis:row1column1 < basis:row2column2
+                    i = 2
+                else
+                    i = 1
+                end
+            else
+                if basis:row0column0 < basis:row2column2
+                    i = 2
+                else
+                    i = 0
+                end
+            end
+
+            integer j = (i + 1) mod 3
+            integer k = (i + 2) mod 3
+
+            number s = math:SquareRoot(basis:GetElement(i, i) - basis:GetElement(j, j) - basis:GetElement(k, k) + 1)
+            temp:Set(i, s * 0.5)
+            s = 0.5 / s
+
+            temp:Set(3, (basis:GetElement(k, j) - basis:GetElement(j, k)) * s)
+            temp:Set(j, (basis:GetElement(j, i) + basis:GetElement(i, j)) * s)
+            temp:Set(k, (basis:GetElement(k, i) + basis:GetElement(i, k)) * s)
+        end
+        quaternion:Set(temp:Get(0), temp:Get(1), temp:Get(2), temp:Get(3)) 
+        return quaternion
+    end
+
+    action GetCenterOfMassTransform returns PhysicsPosition3D
+        return collisionTransform
+    end
+
+    action GetLinearVelocityAtLocalPoint(Vector3 relativePosition) returns Vector3
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetLinearVelocityAtLocalPoint(relativePosition)
+    end
+
+    action ComputeImpulseDenominator(Vector3 position, Vector3 normal) returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        Vector3 r0
+        r0:Set(position):Subtract(GetCenterOfMassPosition())
+
+        Vector3 c0
+        c0:Set(r0):CrossProduct(normal)
+
+        Vector3 temp
+        Matrix3 mat = properties:GetInverseInertiaWorld()
+        Vector3 dest = temp
+        Vector3 vector = c0
+        number x = mat:row0column0 * vector:GetX() + mat:row1column0 * vector:GetY() + mat:row2column0 * vector:GetZ()
+        number y = mat:row0column1 * vector:GetX() + mat:row1column1 * vector:GetY() + mat:row2column1 * vector:GetZ()
+        number z = mat:row0column2 * vector:GetX() + mat:row1column2 * vector:GetY() + mat:row2column2 * vector:GetZ()
+        dest:SetX(x)
+        dest:SetY(y)
+        dest:SetZ(z)
+
+        Vector3 vec
+        vec:Set(temp):CrossProduct(r0)
+
+        return properties:GetInverseMass() + normal:DotProduct(vec)
+    end
+
+    action ComputeAngularImpulseDenominator(Vector3 axis) returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        Vector3 vec
+        Matrix3 mat = properties:GetInverseInertiaWorld()
+        Vector3 dest = vec
+        Vector3 vector = axis
+        number x = mat:row0column0 * vector:GetX() + mat:row1column0 * vector:GetY() + mat:row2column0 * vector:GetZ()
+        number y = mat:row0column1 * vector:GetX() + mat:row1column1 * vector:GetY() + mat:row2column1 * vector:GetZ()
+        number z = mat:row0column2 * vector:GetX() + mat:row1column2 * vector:GetY() + mat:row2column2 * vector:GetZ()
+        dest:SetX(x)
+        dest:SetY(y)
+        dest:SetZ(z)
+
+        return axis:DotProduct(vec)
+    end
+
+    action SetInterpolatedLinearVelocity(Vector3 velocity)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetInterpolatedLinearVelocity(velocity)
+    end
+
+    action GetInterpolatedLinearVelocity returns Vector3
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetInterpolatedLinearVelocity()
+    end
+
+    action SetInterpolatedAngularVelocity(Vector3 velocity)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetInterpolatedAngularVelocity(velocity)
+    end
+
+    action GetInterpolatedAngularVelocity returns Vector3
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetInterpolatedAngularVelocity()
+    end
+
+    action SaveKinematicState(number time)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        if time not= 0
+            properties:SaveKinematicState(time)
+        end
+    end
+
+    action GetInverseInertiaLocal returns Vector3
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetInverseInertiaLocal()
+    end
+
+    action InternalApplyImpulse(Vector3 linearComponent, Vector3 angularComponent, number impulseMagnitude)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:InternalApplyImpulse(linearComponent, angularComponent, impulseMagnitude)
+    end
+
+    action GetPushVelocity returns Vector3
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetPushVelocity()
+    end
+
+    action GetTurnVelocity returns Vector3
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetTurnVelocity()
+    end
+
+    action ProceedToTransform(PhysicsPosition3D transform)
+        SetCenterOfMassTransform(transform)
+    end
+
     action SetCollisionTransform0(PhysicsPosition3D transform)
-        collisionTransform0:Set(transform)
+        me:collisionTransform0 = transform
+    end
+
+    action GetCollisionTransform0 returns PhysicsPosition3D
+        return me:collisionTransform0
+    end
+
+    action SetScreenPositionFromPhysicsPosition
+        me:updateTransform = false
+
+        Vector3 vector
+        shape:GetLocalScaling(vector)
+
+        Matrix3 tempMatrix
+        tempMatrix:Set(collisionTransform:GetBasis())
+
+        // Conversion between left-handed coordinate system and right-handed
+        // coordinate system rotation matrices is achieved via the following:
+        //    If the matrix M = [mij], 0 <= i <= 2, 0 <= j <= 2, is a rotation
+        //    in a left- (right-) handed coordinate system, then to convert it
+        //    to a right- (left-) handed coordinate system, change the signs of
+        //    m02, m12, m20, m21.
+        // Source: http://answers.unity3d.com/storage/temp/12048-lefthandedtorighthanded.pdf
+        Matrix4 matrix
+        matrix:IdentityMatrix()
+        matrix:row0column0 = tempMatrix:row0column0 * vector:GetX()
+        matrix:row0column1 = tempMatrix:row0column1 * vector:GetX()
+        matrix:row0column2 = -tempMatrix:row0column2 * vector:GetX()
+
+        matrix:row1column0 = tempMatrix:row1column0 * vector:GetY()
+        matrix:row1column1 = tempMatrix:row1column1 * vector:GetY()
+        matrix:row1column2 = -tempMatrix:row1column2 * vector:GetY()
+
+        matrix:row2column0 = -tempMatrix:row2column0 * vector:GetZ()
+        matrix:row2column1 = -tempMatrix:row2column1 * vector:GetZ()
+        matrix:row2column2 = tempMatrix:row2column2 * vector:GetZ()
+
+        matrix:row0column3 = collisionTransform:GetOrigin():GetX()
+        matrix:row1column3 = collisionTransform:GetOrigin():GetY()
+        matrix:row2column3 = collisionTransform:GetOrigin():GetZ()
+
+        transform:Set(matrix)
+
+        me:x = collisionTransform:GetOrigin():GetX()
+        me:y = collisionTransform:GetOrigin():GetY()
+        me:z = collisionTransform:GetOrigin():GetZ()
+
+        me:updateTransform = true
+    end
+
+    action GetTimeOfImpact returns number
+        return timeOfImpact
+    end
+
+    action SetTimeOfImpact(number timeOfImpact)
+        me:timeOfImpact = timeOfImpact
+    end
+
+    action GetAngularFactor returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetAngularFactor()
     end
 end

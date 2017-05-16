@@ -32,7 +32,7 @@ use Libraries.Web.Page.WebPageHeader
 use Libraries.Web.Page.HeaderLink
 
 class Compiler
-    public constant number VERSION = 4.0
+    public constant number VERSION = 5.0
     File main = undefined
     File outputFolder = undefined
     File pluginFolder = undefined
@@ -76,6 +76,15 @@ class Compiler
     constant text USE = "use"
     constant text PACKAGE = "package"
     HashTable<text, Class> lastGoodCompileHash
+    boolean writeJavaScriptToDisk = false
+
+    action IsWritingJavaScriptToDisk returns boolean
+        return writeJavaScriptToDisk
+    end
+
+    action SetWritingJavaScriptToDisk(boolean write)
+        writeJavaScriptToDisk = write
+    end
 
     action HasSpeechCallInCompile returns boolean
         return containsSpeechCommandInCompile
@@ -1253,9 +1262,28 @@ class Compiler
                 
             elseif currentOutputType = JAVASCRIPT
                 convertedJavaScript = CompileToJavaScript(classOpcodes)
+                if IsWritingJavaScriptToDisk()
+                    WriteJavaScript(convertedJavaScript)
+                end
+                
             elseif currentOutputType = DOCUMENT
                 CreateDocumentation(classOpcodes)
             end
+        end
+    end
+
+    private action WriteJavaScript(text value)
+        //check if the run folder is there.
+        File run = GetRunFolder()
+        if run not=undefined
+            if not run:Exists()
+                run:CreateDirectories()
+            end
+
+            File jsFile
+            jsFile:SetWorkingDirectory(run:GetAbsolutePath())
+            jsFile:SetPath(GetName() + ".js")
+            jsFile:Write(value)
         end
     end
 
@@ -1593,7 +1621,8 @@ class Compiler
         
         // Booleans added for the game/sound plugins.
         boolean hasGame = symbolTable:HasClass("Libraries.Game.Game")
-        boolean hasAudio = symbolTable:HasClass("Libraries.Sound.Audio")
+        boolean hasAudio = symbolTable:HasClass("Libraries.Sound.Audio") or
+            symbolTable:HasClass("Libraries.Sound.AudioSamples") or symbolTable:HasClass("Libraries.Sound.Microphone")
 
         Iterator<Class> tempIterator = symbolTable:GetClassesInPackage("Libraries.Robots.Lego")
         boolean hasRobots = false
@@ -2602,9 +2631,13 @@ class Compiler
     end
 
     action GetMainClass returns Class
-        text path = main:GetAbsolutePath()
-        Class c = symbolTable:GetClassInFile(path)
-        return c
+        if main not= undefined and symbolTable not= undefined
+            text path = main:GetAbsolutePath()
+            Class c = symbolTable:GetClassInFile(path)
+            return c
+        end
+        
+        return undefined
     end
 
     action SetMain(File file)

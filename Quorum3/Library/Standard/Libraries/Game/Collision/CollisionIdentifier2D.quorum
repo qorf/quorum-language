@@ -1,0 +1,70 @@
+package Libraries.Game.Collision
+
+class CollisionIdentifier2D 
+    public constant integer VERTEX = 0
+    public constant integer FACE = 1
+
+    integer indexA = 0
+    integer indexB = 0
+    integer typeA = 0
+    integer typeB = 0
+
+    action Equals(CollisionIdentifier2D other) returns boolean
+        return indexA = other:indexA and indexB = other:indexB and typeA = other:typeA and typeB = other:typeB
+    end
+
+    action Set(CollisionIdentifier2D other)
+        me:indexA = other:indexA
+        me:indexB = other:indexB
+        me:typeA = other:typeA
+        me:typeB = other:typeB
+    end
+
+    action Flip
+        integer tempA = indexA
+        me:indexA = indexB
+        me:indexB = tempA
+        tempA = typeA
+        me:typeA = typeB
+        me:typeB = tempA
+    end
+
+    action Clear
+        me:indexA = 0
+        me:indexB = 0
+        me:typeA = 0
+        me:typeB = 0
+    end
+
+    action SetIndexA(integer indexA)
+        me:indexA = indexA
+    end
+
+    action GetIndexA returns integer
+        return indexA
+    end
+
+    action SetIndexB(integer indexB)
+        me:indexB = indexB
+    end
+
+    action GetIndexB returns integer
+        return indexB
+    end
+
+    action SetTypeA(integer typeA)
+        me:typeA = typeA
+    end
+
+    action GetTypeA returns integer
+        return typeA
+    end
+
+    action SetTypeB(integer typeB)
+        me:typeB = typeB
+    end
+
+    action GetTypeB returns integer
+        return typeB
+    end
+end

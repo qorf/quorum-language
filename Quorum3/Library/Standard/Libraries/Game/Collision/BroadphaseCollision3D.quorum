@@ -3,7 +3,7 @@ use Libraries.Game.Game
 use Libraries.Interface.Item3D
 use Libraries.Compute.Vector3
 use Libraries.Game.Collision.DynamicBoundingVolumeTree3D
-use Libraries.Game.Collision.CollisionPair3D
+use Libraries.Game.Collision.CollisionPair
 use Libraries.Game.BoundingBox
 use Libraries.Game.Collision.Item3DNode
 use Libraries.Game.Collision.CollisionManager3D
@@ -18,7 +18,7 @@ class BroadphaseCollision3D
 
     integer moveCount = 0
 
-    Array<CollisionPair3D> pairList
+    Array<CollisionPair> pairList
 
     integer pairCount = 0
 
@@ -99,7 +99,7 @@ class BroadphaseCollision3D
         pairList:Sort()
         i = 0
         repeat while i < pairCount
-            CollisionPair3D primaryPair = pairList:Get(i)
+            CollisionPair primaryPair = pairList:Get(i)
             Item3DNode dataA = tree:GetItemNode(primaryPair:GetIDA())
             Item3DNode dataB = tree:GetItemNode(primaryPair:GetIDB())
 
@@ -108,7 +108,7 @@ class BroadphaseCollision3D
             
             boolean continue = true
             repeat while i < pairCount and continue
-                CollisionPair3D otherPair = pairList:Get(i)
+                CollisionPair otherPair = pairList:Get(i)
                 if otherPair:GetIDA() not= primaryPair:GetIDA() or otherPair:GetIDB() not= primaryPair:GetIDB()
                     continue = false
                 else
@@ -154,7 +154,7 @@ class BroadphaseCollision3D
             return true
         end
         
-        CollisionPair3D pair
+        CollisionPair pair
         
         if id < queryNodeID
             pair:SetIDA(id)

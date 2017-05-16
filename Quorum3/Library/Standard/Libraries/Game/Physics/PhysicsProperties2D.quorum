@@ -1,0 +1,459 @@
+package Libraries.Game.Physics
+
+use Libraries.Compute.Vector2
+use Libraries.Game.Collision.CollisionEdge2D
+use Libraries.Game.Collision.BroadphaseCollision2D
+use Libraries.Interface.Item2D
+use Libraries.Game.Collision.Sweep2D
+use Libraries.Game.Collision.PhysicsPosition2D
+
+
+class PhysicsProperties2D 
+    public constant integer UNMOVABLE = 0
+    public constant integer NON_RESPONSIVE = 1
+    public constant integer RESPONSIVE = 2
+
+    Vector2 linearVelocity
+    number angularVelocity = 0
+    Vector2 force
+    number torque = 0
+    number mass = 0
+    number inverseMass = 0
+    number inertia = 0
+    number inverseInertia = 0
+    number linearDamping = 0
+    number angularDamping = 0
+    number density = 0
+    number friction = 0
+    number restitution = 0
+
+    number sleepTime = 0
+
+    integer type = UNMOVABLE
+
+    boolean collisionGroupFlag = false
+    integer collisionGroupIndex = 0
+
+    boolean simulated = true
+    boolean simulationRequired = false
+    boolean fastMoving = false
+    boolean canRotate = true
+    boolean timeOfImpactFlag = false
+
+    boolean massSet = false
+
+    Item2D item = undefined
+
+    action SetItem(Item2D item)
+        me:item = item
+
+        Sweep2D sweep = item:GetSweep()
+
+        if me:type = UNMOVABLE
+            linearVelocity:SetZero()
+            angularVelocity = 0
+            sweep:SetAngle0(sweep:GetAngle())
+            sweep:GetCenter0():Set(sweep:GetCenter())
+
+            if item:GetLayer() not= undefined
+                item:SynchronizeNodes()
+            end
+        end
+
+        if item:GetLayer() not= undefined
+            CollisionEdge2D edge = item:GetCollisionList()
+            repeat while edge not= undefined
+                CollisionEdge2D edge0 = edge
+                edge = edge:GetNext()
+                item:GetLayer():GetCollisionManager():Destroy(edge0:GetCollision())
+            end
+            item:SetCollisionList(undefined)
+
+            BroadphaseCollision2D broadphase = item:GetLayer():GetCollisionManager():GetBroadphase()
+            integer i = 0
+            repeat while i < item:GetNodeCount()
+                broadphase:TouchNode(item:GetNodes():Get(i):GetNodeID())        
+                i = i + 1
+            end
+        end
+
+        if not massSet
+            SetDensity(mass / item:GetShape():ComputeArea())
+        end
+
+        item:ResetMass()
+    end
+
+    action GetItem returns Item2D
+        return item
+    end
+
+    action Copy returns PhysicsProperties2D
+        PhysicsProperties2D new
+        new:linearVelocity = linearVelocity:Copy()
+        new:angularVelocity = angularVelocity
+        new:force = force:Copy()
+        new:torque = torque
+        new:mass = mass
+        new:inverseMass = inverseMass
+        new:inertia = inertia
+        new:inverseInertia = inverseInertia
+        new:linearDamping = linearDamping
+        new:angularDamping = angularDamping
+        new:density = density
+        new:friction = friction
+        new:restitution = restitution
+        new:sleepTime = sleepTime
+        new:type = type
+        new:collisionGroupFlag = collisionGroupFlag
+        new:collisionGroupIndex = collisionGroupIndex
+        new:simulated = simulated
+        new:simulationRequired = simulationRequired
+        new:fastMoving = fastMoving
+        new:canRotate = canRotate
+        new:timeOfImpactFlag = timeOfImpactFlag
+        new:massSet = massSet
+        
+        return new
+    end
+
+    action SetLinearVelocity(Vector2 linearVelocity)
+        if type = UNMOVABLE
+            // static bodies don't move - hence don't have velocity
+            return now
+        end
+        me:linearVelocity:Set(linearVelocity)
+        if not simulated and (me:linearVelocity:GetX() not= 0 or me:linearVelocity:GetY() not= 0)
+            Simulate(true)
+        end
+    end
+
+    action SetLinearVelocityX(number linearVelocityX)
+        if type = UNMOVABLE
+            return now
+        end
+
+        me:linearVelocity:Set(linearVelocityX, me:linearVelocity:GetY())
+        if not simulated and linearVelocityX not= 0
+            Simulate(true)
+        end
+    end
+
+    action SetLinearVelocityY(number linearVelocityY)
+        if type = UNMOVABLE
+            return now
+        end
+
+        me:linearVelocity:Set(me:linearVelocity:GetX(), linearVelocityY)
+        if not simulated and linearVelocityY not= 0
+            Simulate(true)
+        end
+    end
+
+    action GetLinearVelocity returns Vector2
+        return linearVelocity
+    end
+
+    action SetAngularVelocity(number angularVelocity)
+        if type = UNMOVABLE
+            return now
+        end
+        me:angularVelocity = angularVelocity
+        if not simulated and angularVelocity not= 0
+            Simulate(true)
+        end
+    end
+
+    action GetAngularVelocity returns number
+        return angularVelocity
+    end
+
+    action SetForce(Vector2 force)
+        me:force = force
+        if not simulated and (force:GetX() not= 0 or force:GetY() not= 0)
+            Simulate(true)
+        end
+    end
+
+    action GetForce returns Vector2
+        return force
+    end
+
+    action SetTorque(number torque)
+        me:torque = torque
+        if not simulated and torque not= 0
+            Simulate(true)
+        end
+    end
+
+    action GetTorque returns number
+        return torque
+    end
+
+    action ApplyForce(Vector2 force, Vector2 point)
+        if type not= RESPONSIVE
+            return now
+        end
+
+        if not simulated and (force:GetX() not= 0 or force:GetY() not= 0)
+            Simulate(true)
+        end
+        
+        me:force:SetX(me:force:GetX() + force:GetX())
+        me:force:SetY(me:force:GetY() + force:GetY())
+
+        Sweep2D sweep = item:GetSweep()
+
+        torque = torque + (point:GetX() - sweep:GetCenter():GetX()) * force:GetY() - (point:GetY() - sweep:GetCenter():GetY()) * force:GetX()
+    end
+
+    action ApplyForceToCenter(Vector2 force)
+        if type not= RESPONSIVE
+            return now
+        end
+
+        if not simulated and (force:GetX() not= 0 or force:GetY() not= 0)
+            Simulate(true)
+        end
+
+        me:force:SetX(me:force:GetX() + force:GetX())
+        me:force:SetY(me:force:GetY() + force:GetY())
+    end
+
+    action ApplyTorque(number torque)
+        if type not= RESPONSIVE
+            return now
+        end
+
+        if not simulated and torque not= 0
+            Simulate(true)
+        end
+
+        me:torque = me:torque + torque
+    end
+
+    action ApplyLinearImpulse(Vector2 impulse, Vector2 point)
+        if type not= RESPONSIVE
+            return now
+        end
+
+        if not simulated and (impulse:GetX() not= 0 or impulse:GetY() not= 0)
+            Simulate(true)
+        end
+        
+        linearVelocity:SetX(linearVelocity:GetX() + (impulse:GetX() * inverseMass))
+        linearVelocity:SetY(linearVelocity:GetY() + (impulse:GetY() * inverseMass))
+
+        Sweep2D sweep = item:GetSweep()
+
+        angularVelocity = angularVelocity + ((point:GetX() - sweep:GetCenter():GetX()) * impulse:GetY() - (point:GetY() - sweep:GetCenter():GetY()) * impulse:GetX())
+    end
+
+    action ApplyAngularImpulse(number impulse)
+        if type not= RESPONSIVE
+            return now
+        end
+
+        if not simulated and impulse not= 0
+            Simulate(true)
+        end
+
+        angularVelocity = angularVelocity + (inverseInertia * impulse)
+    end
+
+    action GetMass returns number
+        return mass
+    end
+
+    action SetMass(number mass)
+        me:mass = mass
+        if item not= undefined
+            SetDensity(mass / item:GetShape():ComputeArea())
+            massSet = true
+        end
+    end
+
+    action AssignMass(number mass)
+        me:mass = mass
+    end
+
+    action GetInverseMass returns number
+        return inverseMass
+    end
+
+    action SetInverseMass(number inverseMass)
+        me:inverseMass = inverseMass
+    end
+
+    action GetInertia returns number
+        Sweep2D sweep = item:GetSweep()
+        return inertia + mass * (sweep:GetLocalCenter():GetX() * sweep:GetLocalCenter():GetX() + sweep:GetLocalCenter():GetY() * sweep:GetLocalCenter():GetY())
+    end
+
+    action SetInertia(number inertia)
+        me:inertia = inertia
+    end
+
+    action GetRawInertia returns number
+        return inertia
+    end
+
+    action GetInverseInertia returns number
+        return inverseInertia
+    end
+
+    action SetInverseInertia(number inverseInertia)
+        me:inverseInertia = inverseInertia
+    end
+
+    action GetLinearDamping returns number
+        return linearDamping
+    end
+
+    action SetLinearDamping(number linearDamping)
+        me:linearDamping = linearDamping
+    end
+
+    action GetAngularDamping returns number
+        return angularDamping
+    end
+
+    action SetAngularDamping(number angularDamping)
+        me:angularDamping = angularDamping
+    end
+
+    action GetResponsiveness returns integer
+        return type
+    end
+
+    action SetResponsiveness(integer type)
+        if me:type = type
+            return now
+        end
+
+        me:type = type
+
+        simulated = true
+
+        if me:type = RESPONSIVE
+            if not massSet
+                mass = 1
+                inverseMass = 1
+            end
+            if me:item not= undefined
+                density = mass / item:GetShape():ComputeArea()
+                me:item:ResetMass()
+            end
+        else
+            mass = 0
+            inverseMass = 0
+            density = 0
+            if me:item not= undefined
+                me:item:ResetMass()
+            end
+        end
+
+        force:SetZero()
+        torque = 0
+    end
+
+    action SetDensity(number density)
+        if density >= 0
+            me:density = density
+            if item not= undefined
+                item:ResetMass()
+            end
+        end
+    end
+
+    action GetDensity returns number
+        return density
+    end
+
+    action SetFriction(number friction)
+        me:friction = friction
+    end
+
+    action GetFriction returns number
+        return friction
+    end
+
+    action SetRestitution(number restitution)
+        me:restitution = restitution
+    end
+
+    action GetRestitution returns number
+        return restitution
+    end
+
+    action SetCollisionGroupFlag(boolean flag)
+        collisionGroupFlag = flag
+    end
+
+    action GetCollisionGroupFlag returns boolean
+        return collisionGroupFlag
+    end
+
+    action SetCollisionGroupIndex(integer index)
+        collisionGroupIndex = index
+    end
+
+    action GetCollisionGroupIndex returns integer
+        return collisionGroupIndex
+    end
+
+    action IsFastMoving returns boolean
+        return fastMoving
+    end
+
+    action FastMoving(boolean flag)
+        fastMoving = flag
+    end
+
+    action RequireSimulation(boolean flag)
+        simulationRequired = flag
+        if simulationRequired
+            Simulate(true)
+        end
+    end
+
+    action IsSimulationRequired returns boolean
+        return simulationRequired
+    end
+
+    action Simulate(boolean flag)
+        if flag
+            if not simulated
+                simulated = true
+                sleepTime = 0
+            end
+        else
+            simulated = false
+            sleepTime = 0
+            linearVelocity:SetZero()
+            angularVelocity = 0
+            force:SetZero()
+            torque = 0
+        end
+    end
+
+    action IsSimulated returns boolean
+        return simulated
+    end
+
+    action CanRotate(boolean flag)
+        canRotate = flag
+    end
+
+    action IsRotationAllowed returns boolean
+        return canRotate
+    end
+
+    action SetSleepTime(number time)
+        sleepTime = time
+    end
+
+    action GetSleepTime returns number
+        return sleepTime
+    end
+end

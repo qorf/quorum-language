@@ -17,6 +17,7 @@ import org.openide.filesystems.FileStateInvalidException;
 import org.openide.filesystems.FileStatusEvent;
 import org.openide.filesystems.FileStatusListener;
 import org.openide.filesystems.FileSystem;
+import org.openide.filesystems.FileUIUtils;
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataNode;
 import org.openide.loaders.DataObject;
@@ -72,21 +73,25 @@ public class QuorumFileDataNode extends DataNode {
         FileObject fileObject = getFile();
 
         try {
-            FileSystem.Status stat = fileObject.getFileSystem().getStatus();
-            if (stat instanceof FileSystem.HtmlStatus) {
-                FileSystem.HtmlStatus hstat = (FileSystem.HtmlStatus) stat;
-
-                String result = hstat.annotateNameHtml(getDisplayName(), Collections.singleton(fileObject));
-
-                //Make sure the super string was really modified
-                if (!name.equals(result)) {
-                    name = result;
-                }
+            String result = fileObject.getFileSystem().getDecorator().annotateNameHtml(getDisplayName(), Collections.singleton(fileObject));
+            if (!name.equals(result)) {
+                name = result;
+            }
+//            FileSystem.Status stat = fileObject.getFileSystem().getStatus();
+//            if (stat instanceof FileSystem.HtmlStatus) {
+//                FileSystem.HtmlStatus hstat = (FileSystem.HtmlStatus) stat;
+//
+//                String result = hstat.annotateNameHtml(getDisplayName(), Collections.singleton(fileObject));
+//
+//                //Make sure the super string was really modified
+//                if (!name.equals(result)) {
+//                    name = result;
+//                }
 
                 // TODO attach status listener at the FileSystem
                 // and on change refire PROP_DISPLAY_NAME
 
-            }
+            //}
         } catch (FileStateInvalidException e) {
             //do nothing and fall through
         }
@@ -124,7 +129,7 @@ public class QuorumFileDataNode extends DataNode {
         FileObject fileObject = getFile();
         if (fileObject != null) {
             try {
-                image = fileObject.getFileSystem().getStatus().annotateIcon(image, type, Collections.singleton(fileObject));
+                image = FileUIUtils.getImageDecorator(fileObject.getFileSystem()).annotateIcon(image, type, Collections.singleton(fileObject));
             } catch (FileStateInvalidException e) {
                 // no fs, do nothing
             }

@@ -1,0 +1,218 @@
+package Libraries.Game.Physics
+
+use Libraries.Compute.Vector3
+use Libraries.Game.Physics.CollisionConstraint3D
+use Libraries.Game.Physics.all
+
+class CollisionPersistentData 
+    number appliedImpulse = 0
+    number previousAppliedImpulse = 0
+    number accumulatedTangentImpulse0 = 0
+    number accumulatedTangentImpulse1 = 0
+
+    number jacobianDiagonalABInverse = 0
+    number jacobianDiagonalABInverseTangent0 = 0
+    number jacobianDiagonalABInverseTangent1 = 0
+    integer persistentLifeTime = 0
+    number restitution = 0
+    number friction = 0
+    number penetration = 0
+    Vector3 frictionWorldTangential0
+    Vector3 frictionWorldTangential1
+
+    Vector3 frictionAngularComponent0A
+    Vector3 frictionAngularComponent0B
+    Vector3 frictionAngularComponent1A
+    Vector3 frictionAngularComponent1B
+
+    Vector3 angularComponentA
+    Vector3 angularComponentB
+
+    CollisionConstraint3D contactSolver
+    CollisionConstraint3D frictionSolver
+
+    action Reset
+        me:appliedImpulse = 0
+        me:previousAppliedImpulse = 0
+        me:accumulatedTangentImpulse0 = 0
+        me:accumulatedTangentImpulse1 = 0
+
+        me:jacobianDiagonalABInverse = 0
+        me:jacobianDiagonalABInverseTangent0 = 0
+        me:jacobianDiagonalABInverseTangent1 = 0
+        me:persistentLifeTime = 0
+        me:restitution = 0
+        me:friction = 0
+        me:penetration = 0
+        me:frictionWorldTangential0:Set(0, 0, 0)
+        me:frictionWorldTangential1:Set(0, 0, 0)
+
+        me:frictionAngularComponent0A:Set(0, 0, 0)
+        me:frictionAngularComponent0B:Set(0, 0, 0)
+        me:frictionAngularComponent1A:Set(0, 0, 0)
+        me:frictionAngularComponent1B:Set(0, 0, 0)
+
+        me:angularComponentA:Set(0, 0, 0)
+        me:angularComponentB:Set(0, 0, 0)
+    end
+
+    action SetAppliedImpulse(number impulse)
+        me:appliedImpulse = impulse
+    end
+
+    action GetAppliedImpulse returns number
+        return appliedImpulse
+    end
+
+    action SetPreviousAppliedImpulse(number impulse)
+        me:previousAppliedImpulse = impulse
+    end
+
+    action GetPreviousAppliedImpulse returns number
+        return previousAppliedImpulse
+    end
+
+    action SetAccumulatedTangentImpulse0(number impulse)
+        me:accumulatedTangentImpulse0 = impulse
+    end
+
+    action GetAccumulatedTangentImpulse0 returns number
+        return accumulatedTangentImpulse0
+    end
+
+    action SetAccumulatedTangentImpulse1(number impulse)
+        me:accumulatedTangentImpulse1 = impulse
+    end
+
+    action GetAccumulatedTangentImpulse1 returns number
+        return accumulatedTangentImpulse1
+    end
+
+    action SetJacobianDiagonalABInverse(number inverse)
+        me:jacobianDiagonalABInverse = inverse
+    end
+
+    action GetJacobianDiagonalABInverse returns number
+        return jacobianDiagonalABInverse
+    end
+
+    action SetJacobianDiagonalABInverseTangent0(number tangent)
+        me:jacobianDiagonalABInverseTangent0 = tangent
+    end
+
+    action GetJacobianDiagonalABInverseTangent0 returns number
+        return jacobianDiagonalABInverseTangent0
+    end
+
+    action SetJacobianDiagonalABInverseTangent1(number tangent)
+        me:jacobianDiagonalABInverseTangent1 = tangent
+    end
+
+    action GetJacobianDiagonalABInverseTangent1 returns number
+        return jacobianDiagonalABInverseTangent1
+    end
+
+    action SetPersistentLifeTime(integer lifeTime)
+        me:persistentLifeTime = lifeTime
+    end
+
+    action GetPersistentLifeTime returns integer
+        return persistentLifeTime
+    end
+
+    action SetRestitution(number restitution)
+        me:restitution = restitution
+    end
+
+    action GetRestitution returns number
+        return restitution
+    end
+
+    action SetFriction(number friction)
+        me:friction = friction
+    end
+
+    action GetFriction returns number
+        return friction
+    end
+
+    action SetPenetration(number penetration)
+        me:penetration = penetration
+    end
+
+    action GetPenetration returns number
+        return penetration
+    end
+
+    action SetFrictionWorldTangential0(Vector3 tangential)
+        me:frictionWorldTangential0 = tangential
+    end
+
+    action GetFrictionWorldTangential0 returns Vector3
+        return frictionWorldTangential0
+    end
+
+    action SetFrictionWorldTangential1(Vector3 tangential)
+        me:frictionWorldTangential1 = tangential
+    end
+
+    action GetFrictionWorldTangential1 returns Vector3
+        return frictionWorldTangential1
+    end
+
+    action SetFrictionAngularComponent0A(Vector3 angularComponent)
+        me:frictionAngularComponent0A = angularComponent
+    end
+
+    action GetFrictionAngularComponent0A returns Vector3
+        return frictionAngularComponent0A
+    end
+
+    action SetFrictionAngularComponent0B(Vector3 angularComponent)
+        me:frictionAngularComponent0B = angularComponent
+    end
+
+    action GetFrictionAngularComponent0B returns Vector3
+        return frictionAngularComponent0B
+    end
+
+    action SetFrictionAngularComponent1A(Vector3 angularComponent)
+        me:frictionAngularComponent1A = angularComponent
+    end
+
+    action GetFrictionAngularComponent1A returns Vector3
+        return frictionAngularComponent1A
+    end
+
+    action SetFrictionAngularComponent1B(Vector3 angularComponent)
+        me:frictionAngularComponent1B = angularComponent
+    end
+
+    action GetFrictionAngularComponent1B returns Vector3
+        return frictionAngularComponent1B
+    end
+
+    action SetAngularComponentA(Vector3 angularComponent)
+        me:angularComponentA = angularComponent
+    end
+
+    action GetAngularComponentA returns Vector3
+        return angularComponentA
+    end
+
+    action SetAngularComponentB(Vector3 angularComponent)
+        me:angularComponentB = angularComponent
+    end
+
+    action GetAngularComponentB returns Vector3
+        return angularComponentB
+    end
+
+    action GetContactSolver returns CollisionConstraint3D
+        return contactSolver
+    end
+
+    action GetFrictionSolver returns CollisionConstraint3D
+        return frictionSolver
+    end
+end

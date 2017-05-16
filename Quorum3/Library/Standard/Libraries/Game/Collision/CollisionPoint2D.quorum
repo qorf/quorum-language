@@ -1,4 +1,5 @@
 use Libraries.Compute.Vector2
+use Libraries.Game.Collision.CollisionIdentifier2D
 
 package Libraries.Game.Collision
 
@@ -6,11 +7,13 @@ class CollisionPoint2D
     Vector2 localPoint
     number normalImpulse = 0
     number tangentImpulse = 0
+    CollisionIdentifier2D id
 
     action Set(CollisionPoint2D point)
         me:localPoint:Set(point:localPoint)
         me:normalImpulse = point:normalImpulse
         me:tangentImpulse = point:tangentImpulse
+        me:id:Set(point:id)
     end
 
     action SetLocalPoint(Vector2 localPoint)
@@ -35,5 +38,9 @@ class CollisionPoint2D
 
     action GetTangentImpulse returns number
         return tangentImpulse
+    end
+
+    action GetIdentifier returns CollisionIdentifier2D
+        return id
     end
 end

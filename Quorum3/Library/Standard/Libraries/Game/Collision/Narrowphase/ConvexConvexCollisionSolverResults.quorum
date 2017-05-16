@@ -1,0 +1,69 @@
+package Libraries.Game.Collision.Narrowphase
+
+use Libraries.Containers.Array
+use Libraries.Compute.Vector3
+
+class ConvexConvexCollisionSolverResults 
+    public constant integer SEPARATED = 0
+    public constant integer PENETRATING = 1
+    public constant integer DISTANCE_FAILED = 2
+    public constant integer PENETRATION_FAILED = 3
+
+    integer status = SEPARATED
+    Array<Vector3> witness
+    Vector3 normal
+    number depth = 0
+    integer penetrationIterations = 0
+    integer distanceIterations = 0
+
+    on create
+        Vector3 v1
+        witness:Add(v1)
+        Vector3 v2
+        witness:Add(v2)
+    end
+
+    action GetStatus returns integer
+        return status
+    end
+
+    action SetStatus(integer status)
+        me:status = status
+    end
+
+    action GetWitness returns Array<Vector3>
+        return witness
+    end
+
+    action GetNormal returns Vector3
+        return normal
+    end
+
+    action SetNormal(Vector3 normal)
+        me:normal = normal
+    end
+
+    action GetDepth returns number
+        return depth
+    end
+
+    action SetDepth(number depth)
+        me:depth = depth
+    end
+
+    action GetPenetrationIterations returns integer
+        return penetrationIterations
+    end
+
+    action SetPenetrationIterations(integer iterations)
+        me:penetrationIterations = iterations
+    end
+
+    action GetDistanceIterations returns integer
+        return distanceIterations
+    end
+
+    action SetDistanceIterations(integer iterations)
+        me:distanceIterations = iterations
+    end
+end
