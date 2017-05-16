@@ -4,7 +4,7 @@ use Libraries.Game.Collision.Shapes.CollisionShape3D
 use Libraries.Containers.Array
 use Libraries.Compute.Vector3
 use Libraries.Compute.Math
-use Libraries.Game.Collision.Transform3D
+use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Compute.Plane
 use Libraries.Compute.BitwiseOperations
 use Libraries.Compute.Matrix3
@@ -71,7 +71,7 @@ class Box is CollisionShape3D
         inertia:Set(mass / 12 * (ly * ly + lz * lz), mass / 12 * (lx * lx + lz * lz), mass / 12 * (lx * lx + ly * ly))
     end
 
-    action ComputeBoundingBox(BoundingBox boundingBox, Transform3D transform)
+    action ComputeBoundingBox(BoundingBox boundingBox, PhysicsPosition3D transform)
         Vector3 halfExtents = GetHalfExtentsWithoutMargin()
         number margin = GetMargin()
         
@@ -185,6 +185,14 @@ class Box is CollisionShape3D
                                                             unScaledImplicitShapeDimensionsWithMargin:GetY() * parent:CollisionShape3D:localScaling:GetY(),
                                                             unScaledImplicitShapeDimensionsWithMargin:GetZ() * parent:CollisionShape3D:localScaling:GetZ())
         parent:CollisionShape3D:implicitShapeDimensions:Subtract(oldMargin)
+    end
+
+    action Scale(Vector3 scale)
+        Vector3 oldScaling
+        parent:CollisionShape3D:GetLocalScaling(oldScaling)
+        oldScaling:Scale(scale)
+
+        SetLocalScaling(oldScaling)        
     end
 
     action GetPlane(Vector3 planeNormal, Vector3 planeSupport, integer i)

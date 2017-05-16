@@ -16,12 +16,21 @@ public class OggData extends AudioData {
     
     public OggData(File file)
     {
-	if (manager.noDevice) return;
-	OggInputStream input = null;
+	OggInputStream input = new OggInputStream(FileToStream(file));
+        // GetBytes also sets input.channels and input.sampleRate via side effect.
+	byte[] output = GetBytes(input);
+        if (output == null)
+            return;
+        SetUp(output, input.getChannels(), input.getSampleRate());
+    }
+    
+    public static byte[] GetBytes(OggInputStream input)
+    {
+        if (manager.noDevice)
+            return null;
+        ByteArrayOutputStream output = new ByteArrayOutputStream(4096);
 	try 
         {
-            input = new OggInputStream(FileToStream(file));
-            ByteArrayOutputStream output = new ByteArrayOutputStream(4096);
             byte[] buffer = new byte[2048];
             while (!input.atEnd()) 
             {
@@ -30,7 +39,6 @@ public class OggData extends AudioData {
                     break;
 		output.write(buffer, 0, length);
             }
-        SetUp(output.toByteArray(), input.getChannels(), input.getSampleRate());
 	} 
         finally 
         {
@@ -43,6 +51,6 @@ public class OggData extends AudioData {
                 // Ignore any errors that occur while closing.
             }
 	}
+        return output.toByteArray();
     }
-    
 }

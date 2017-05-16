@@ -4,8 +4,8 @@ use Libraries.Game.Disposable
 use Libraries.Game.Graphics.Blending
 use Libraries.Game.Graphics.Format
 use Libraries.Game.Graphics.Filter
-use Libraries.Game.Graphics.PixelMap
-
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Drawable
 use Libraries.System.File
 
 /*
@@ -114,10 +114,22 @@ class PixelMap is Disposable
     */
     system action LoadPixelMap(File file)
 
-    /** Creates a new Pixmap instance with the given width, height and format.
-    * @param width the width in pixels
-    * @param height the height in pixels
-    * @param format the {@link Format} */
+    /*
+    This action will asynchronously load the PixelMap (that is, it will be
+    loaded separately from the rest of the program's execution) and then it will
+    be loaded into the provided Texture, which will be used to load the provided
+    Drawable (if it is not undefined). This is only needed for use on the web,
+    and when loading Drawables or Textures directly via files or file paths, it
+    is called automatically. Most users will never need to use this action
+    directly.
+
+    Attribute: Parameter file The image file to load the pixels from.
+    Attribute: Parameter format The pixel format to be used for retrieving and storing the pixels.
+    Attribute: Parameter useMipMaps Whether or not the generated Texture using this PixelMap should generate mip maps.
+    Attribute: Parameter drawable The Drawable to be loaded using this PixelMap/Texture, if not undefined.
+    Attribute: Parameter texture The Texture to be loaded using this PixelMap.
+    */
+    system action LoadAsynchronously(File file, Format format, boolean useMipMaps, Drawable drawable, Texture texture)
 
     /*
     This action will create new PixelMap data to be used in OpenGL with the

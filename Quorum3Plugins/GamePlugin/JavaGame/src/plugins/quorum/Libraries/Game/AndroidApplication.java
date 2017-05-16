@@ -68,8 +68,8 @@ public class AndroidApplication extends Activity
         before calling this method. It also sets an AndroidDisplay in the
         GameStateManager.
         */
-        quorumApp = (AndroidApplication_)GameState.GetApp();
-        display = (AndroidDisplay_)GameState.GetDisplay();
+        quorumApp = (AndroidApplication_)GameStateManager.application;
+        display = (AndroidDisplay_)GameStateManager.display;
         
         if (GetVersion() < MINIMUM_SDK) 
         {
@@ -247,7 +247,7 @@ public class AndroidApplication extends Activity
     @Override
     protected void onResume()
     {
-        GameState.SetApp(quorumApp);
+        GameStateManager.application = quorumApp;
         //Gdx.input = this.getInput();
         //Gdx.audio = this.getAudio();
         //Gdx.files = this.getFiles();

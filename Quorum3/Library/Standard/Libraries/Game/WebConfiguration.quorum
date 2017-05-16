@@ -1,0 +1,43 @@
+package Libraries.Game
+
+use Libraries.Game.ApplicationConfiguration
+
+class WebConfiguration is ApplicationConfiguration
+
+    /*
+    The ID of the canvas to use for rendering the Game.
+    */
+    public text canvasID = "QuorumGraphicsCanvas"
+
+    /*
+    Whether or not the Game should be limited to the given number of frames per
+    second. This will not guarantee that the Game will run at the given FPS, 
+    only that it will not run at more than the framesPerSecondLimit value. This
+    value is false by default.
+    */
+    public boolean capFramesPerSecond = false
+
+    /*
+    The upper limit for how many frames per second the Game should run at, if
+    capFramesPerSecond is set to true. If capFramesPerSecond is set to false,
+    this will have no effect. The default value for this field is 30.
+    */
+    public integer framesPerSecondLimit = 30
+
+    /*
+    If disableContextMenu is set to true, right-clicking on the game canvas will
+    not open the context menu. If it is set to false, it will open the context
+    menu normally. This value is set to true by default.
+    */
+    public boolean disableContextMenu = true
+
+    /*
+    The keepTabFocus flag controls how a game responds to the Tab key. Online
+    games must have the focus to receive input (the user has either clicked on
+    the game window or tabbed to it). If keepTabFocus is false and the user
+    presses the Tab key, the window will lose focus. If it is true, the window
+    will keep the focus even if the user presses Tab.
+    */
+    public boolean keepTabFocus = false
+
+end

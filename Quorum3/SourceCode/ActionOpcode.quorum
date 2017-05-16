@@ -200,7 +200,7 @@ class ActionOpcode is QuorumOpcode
         end
 
         if method:IsSystem() //write to a Javascript plugin
-            result = result + "return " + clazz:GetPluginName() + "." + method:ConvertActionToJavaScriptName() 
+            result = result + "return this." + clazz:GetPluginName() + "." + method:ConvertActionToJavaScriptName() 
                 + "("
             parameters = method:GetParameterIterator()
             repeat while parameters:HasNext()

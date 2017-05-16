@@ -5,7 +5,6 @@
 package plugins.quorum.Libraries.System;
 
 import java.io.File;
-import quorum.Libraries.Game.IOSApplication;
 
 /**
  * A plugin for the "File" class in Quorum, located under Libraries.System.File.

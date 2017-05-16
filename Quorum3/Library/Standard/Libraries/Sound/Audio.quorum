@@ -98,6 +98,27 @@ class Audio
         Load(file)
     end
 
+    
+    /*
+    The Load action will take the given AudioSamples and load its data into this
+    Audio object for use.
+
+    Attribute: Parameter samples The AudioSamples to load into this Audio.
+
+    Attribute: Example
+
+    use Libraries.Sound.AudioSamples
+    use Libraries.Sound.Audio
+
+    AudioSamples samples
+    Audio audio
+
+    samples:Load("Chime.wav")
+    audio:Load(samples)
+    audio:PlayUntilDone()
+    */
+    system action Load(AudioSamples samples)
+
 
     /*
     The LoadToStream action will prepare an audio file to be streamed. While a
@@ -181,6 +202,115 @@ class Audio
         LoadToStream(file)
     end
 
+    
+    /*
+    The LoadToStream action will take the given AudioSamples and load it into
+    the Audio. Additional samples can then be added to the Audio by using the
+    AddToQueue action.
+
+    Attribute: Parameter samples The first samples to be loaded into this Audio.
+
+    Attribute: Example
+
+    use Libraries.Sound.AudioSamples
+    use Libraries.Sound.Audio
+
+    Audio audio
+
+    AudioSamples samples1
+    AudioSamples samples2
+    AudioSamples samples3
+
+    samples1:Load("Sonata-Part1.ogg")
+    samples2:Load("Sonata-Part2.ogg")
+    samples3:Load("Sonata-Part3.ogg")
+
+    audio:LoadToStream(samples1)
+    audio:AddToQueue(samples2)
+    audio:AddToQueue(samples3)
+
+    audio:Play()
+    repeat while audio:IsPlaying()
+        audio:Stream()
+    end
+    */
+    system action LoadToStream(AudioSamples samples)
+
+
+    /*
+    The AddToQueue action adds AudioSamples to the end of the data stored in
+    this Audio object. To use this, the Audio must have been initialized using
+    LoadToStream using an AudioSamples object, or must not have been initialized
+    yet. This action can't be combined with actions that load a file into the
+    Audio.
+
+    Attribute: Parameter samples The AudioSamples to add to the end of the Audio data.
+
+    Attribute: Example
+
+    use Libraries.Sound.AudioSamples
+    use Libraries.Sound.Audio
+
+    Audio audio
+
+    AudioSamples samples1
+    AudioSamples samples2
+    AudioSamples samples3
+
+    samples1:Load("Sonata-Part1.ogg")
+    samples2:Load("Sonata-Part2.ogg")
+    samples3:Load("Sonata-Part3.ogg")
+
+    audio:LoadToStream(samples1)
+    audio:AddToQueue(samples2)
+    audio:AddToQueue(samples3)
+
+    audio:Play()
+    repeat while audio:IsPlaying()
+        audio:Stream()
+    end
+    */
+    system action AddToQueue(AudioSamples samples)
+
+    /*
+    The RemoveFromQueue action removes AudioSamples from the data stored in
+    this Audio object. To use this, the Audio must have been initialized for
+    streaming AudioSamples, either by using LoadToStream(AudioSamples) or
+    AddToQueue(AudioSamples). If the requested AudioSamples wasn't present in
+    the Audio (e.g., because it was never queued or because it was queued and
+    already played), then this action will have no effect.
+
+    Attribute: Parameter samples The AudioSamples to remove from the Audio data.
+
+    Attribute: Example
+
+    use Libraries.Sound.AudioSamples
+    use Libraries.Sound.Audio
+
+    Audio audio
+
+    AudioSamples samples1
+    AudioSamples samples2
+    AudioSamples samples3
+
+    samples1:Load("Sonata-Part1.ogg")
+    samples2:Load("Sonata-Part2.ogg")
+    samples3:Load("Sonata-Part3.ogg")
+
+    audio:LoadToStream(samples1)
+    audio:AddToQueue(samples2)
+    audio:AddToQueue(samples3)
+
+    audio:Play()
+
+    // We can remove AudioSamples before or during Audio playback.
+    audio:RemoveFromQueue(samples2)
+
+    repeat while audio:IsPlaying()
+        audio:Stream()
+    end
+    */
+    system action RemoveFromQueue(AudioSamples samples)
 
     /*
     Once we've prepared our audio file with either the Load or LoadToStream
@@ -385,13 +515,45 @@ class Audio
     it is only necessary to call this if there was a call to EnableLooping
     earlier in the program.
 
+    Attribute: Example
 
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We need to load our audio before we change whether or not it will loop.
+    audio:Load("test.wav")
+    
+    // We now enable looping. This will make the sound repeat forever until we
+    // stop it or call "audio:DisableLooping()".
+    audio:EnableLooping()
+
+    // Our audio is currently set to loop. We can disable it again using DisableLooping().
+    audio:DisableLooping()
     */
     system action DisableLooping
 
     /*
     This action will return true or false based on whether or not the audio
     has been set to loop.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // To use audio, we'll first need to create an object for it.
+    Audio audio
+
+    // We need to load our audio before we change whether or not it will loop.
+    audio:Load("test.wav")
+    
+    // We now enable looping. This will make the sound repeat forever until we
+    // stop it or call "audio:DisableLooping()".
+    audio:EnableLooping()
+
+    // To test if looping is enabled, we can use IsLoopingEnabled().
+    output "Looping Enabled? " + audio:IsLoopingEnabled()
     */
     system action IsLoopingEnabled returns boolean
 
@@ -428,11 +590,42 @@ class Audio
     */
     system action Dispose
 
-    // Sets the pitch of the sound. A standard pitch is at value 1.0, or 100% of
-    // normal pitch value. To increase pitch by 20%, pass a value of 1.2.
+    /* 
+    The SetPitch action sets the pitch of the sound. By default, sounds have a
+    pitch value of 1.0 (or 100% normal pitch). Lower values reduce the pitch,
+    while higher values increase the pitch. Changing the pitch also causes the
+    audio to play slower (with low pitch) or faster (with high pitch).
+
+    Attribute: Parameter pitch The pitch value to use.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio
+    audio:Load("Chime.wav")
+    // We will play the sound at 75% of its normal pitch.
+    audio:SetPitch(0.75)
+    audio:PlayUntilDone()
+    */
     system action SetPitch(number pitch)
 
-    // Returns the currently set pitch.
+    /*
+    Returns the currently set pitch. The default pitch value is 1.0.
+
+    Attribute: Returns The currently set pitch value.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio
+    audio:Load("Chime.wav")
+    // We will play the sound at 75% of its normal pitch.
+    audio:SetPitch(0.75)
+    // We can get the pitch value back using GetPitch().
+    output "The audio is playing at " + audio:GetPitch() + " of its normal pitch value."
+    */
     system action GetPitch returns number
 
     /*
@@ -2237,4 +2430,221 @@ class Audio
     */
     system action Rotate(number rotation)
     
+    /*
+    The SetMaximumVolumeDistance action will determine how far the sound can be
+    from the listener before the volume is adjusted due to distance attenuation.
+    If the audio listener is within the maximum volume distance of the audio,
+    the audio will play at full volume. If the listener is farther away than
+    this distance, then distance attenuation is applied relative to how much
+    farther the listener is than this distance.
+
+    When a new Audio object is created, its maximum volume distance is equal to 
+    the current default distance, which begins as 1.0 and can be set by calling 
+    SetDefaultMaximumVolumeDistance().
+
+    Attribute: distance How many units away from the Audio's position that the Audio may be heard at full volume.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio
+    audio:Load("Chime.wav")
+    // The Audio is placed 10 units away to the right of the listener.
+    audio:SetX(10)
+    // The Audio is played using its default maximum volume distance of 1 unit.
+    audio:PlayUntilDone()
+    // Now we set the maximum volume distance to 15 units. Since the listener is
+    // within 15 units of the sound, it will play at maximum volume.
+    audio:SetMaximumVolumeDistance(15)
+    audio:PlayUntilDone()
+    */
+    system action SetMaximumVolumeDistance(number distance)
+
+    /*
+    The GetMaximumVolumeDistance action returns how far away the listener may be
+    from the Audio and still hear the Audio at full volume. When a new Audio
+    object is created, its maximum volume distance is equal to the current 
+    default distance, which begins as 1.0 and can be set by calling 
+    SetDefaultMaximumVolumeDistance().
+    
+    Attribute: Returns The distance from this Audio where it may be heard at full volume.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio
+    audio:Load("Chime.wav")
+    // Output the starting maximum volume distance of the audio.
+    output "The maximum volume distance is " + audio:GetMaximumVolumeDistance()
+    */
+    system action GetMaximumVolumeDistance returns number
+
+    /*
+    The SetRolloffRate action sets the rate at which 3D positional audio becomes
+    quieter when positioned far away from the listener. When an Audio object is
+    created, its rolloff rate is equal to the default value provided by
+    GetDefaultRolloffRate, which begins at 1.0 (but may be changed by the user).
+    Lower rolloff rates cause the sound to fade more slowly over long distances,
+    and higher rolloff rates cause sound to fade more quickly. The rolloff value
+    must always be positive.
+
+    Attribute: Parameter rolloff The rolloff rate to use. Must be positive.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio
+    audio:Load("Chime.wav")
+    // We will play the Audio using the default rolloff factor of 1.0, first at
+    // 1 unit away from the listener, then at 5 units away from the listener.
+    audio:SetX(1)
+    audio:PlayUntilDone()
+    audio:SetX(5)
+    audio:PlayUntilDone()
+    // Now we set rolloff factor to 0.25, which will make the volume decrease 4
+    // times slower than the previous value of 1, and we play the Audio again.
+    // It should be the same volume when close (e.g. at 1 unit) but noticeably 
+    // louder than it was previously when it is far away (e.g. at 5 units)
+    audio:SetRolloffRate(0.25)
+    audio:SetX(1)
+    audio:PlayUntilDone()
+    audio:SetX(5)
+    audio:PlayUntilDone()
+    */
+    system action SetRolloffRate(number rolloff)
+
+    /*
+    The GetRolloffRate action returns the rate at which 3D positional audio becomes
+    quieter when positioned far away from the listener. When an Audio object is
+    created, its rolloff rate is equal to the default value provided by
+    GetDefaultRolloffRate, which begins at 1.0 (but may be changed by the user).
+    Lower rolloff rates cause the sound to fade more slowly over long distances,
+    and higher rolloff rates cause sound to fade more quickly. The rolloff value
+    is always positive.
+
+    Attribute: Returns The current rolloff rate of this Audio.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // We create and load audio1 before changing the default rolloff rate.
+    Audio audio1
+    audio1:Load("Sample1.wav")
+    output "Before changing the default rate, audio1 has a rolloff rate of " + audio1:GetRolloffRate()
+
+    audio1:SetDefaultRolloffRate(0.25)
+
+    // We create and load audio2 after changing the default rolloff rate.
+    Audio audio2
+    audio2:Load("Sample2.wav")
+    output "After changing the default rate, audio1 has a rolloff rate of " + audio1:GetRolloffRate()
+    output "audio2 has a rolloff rate of " + audio2:GetRolloffRate()
+    */
+    system action GetRolloffRate returns number
+
+    /*
+    This action sets the default maximum volume distance for all newly created
+    Audio objects. It will not change the maximum volume distance of any Audio
+    objects that have already been loaded.
+
+    Attribute: Parameter distance The default maximum volume distance to use for all newly loaded Audio objects.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio1
+    Audio audio2
+
+    // We test to see what the default maximum volume distance is using audio1.
+    output "The default rolloff rate is " + audio1:GetDefaultMaximumVolumeDistance()
+
+    audio2:SetDefaultMaximumVolumeDistance(0.5)
+
+    // Even though we changed the default max volume distance using audio2,
+    // we can still see the changed default using audio1.
+    output "Now the default rolloff rate is " + audio1:GetDefaultMaximumVolumeDistance()
+    */
+    system action SetDefaultMaximumVolumeDistance(number distance)
+
+    /*
+    This action returns the default maximum volume distance for all newly 
+    created Audio objects. It will not change the maximum volume distance of any
+    Audio objects that have already been loaded.
+
+    Attribute: Returns The default maximum volume distance to use for all newly loaded Audio objects.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio1
+    Audio audio2
+
+    // We test to see what the default maximum volume distance is using audio1.
+    output "The default rolloff rate is " + audio1:GetDefaultMaximumVolumeDistance()
+
+    audio2:SetDefaultMaximumVolumeDistance(0.5)
+
+    // Even though we changed the default max volume distance using audio2,
+    // we can still see the changed default using audio1.
+    output "Now the default rolloff rate is " + audio1:GetDefaultMaximumVolumeDistance()
+    */
+    system action GetDefaultMaximumVolumeDistance returns number
+
+    /*
+    This action sets the default rolloff rate of newly loaded Audio objects. It
+    will not change the rolloff rates of any Audio objects which have already
+    been loaded.
+
+    Attribute: Parameter rolloff The default rolloff rate to use for all newly loaded Audio objects.
+
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    // We create and load audio1 before changing the default rolloff rate.
+    Audio audio1
+    audio1:Load("Sample1.wav")
+    output "Before changing the default rate, audio1 has a rolloff rate of " + audio1:GetRolloffRate()
+
+    audio1:SetDefaultRolloffRate(0.25)
+
+    // We create and load audio2 after changing the default rolloff rate.
+    Audio audio2
+    audio2:Load("Sample2.wav")
+    output "After changing the default rate, audio1 has a rolloff rate of " + audio1:GetRolloffRate()
+    output "audio2 has a rolloff rate of " + audio2:GetRolloffRate()
+    */
+    system action SetDefaultRolloffRate(number rolloff)
+
+    /*
+    This action returns the default rolloff rate of newly loaded Audio objects. 
+    It can be changed using the SetDefaultRolloffRate action. The default value
+    is shared across all Audio objects.
+
+    Attribute: Returns 
+    
+    Attribute: Example
+
+    use Libraries.Sound.Audio
+
+    Audio audio1
+    Audio audio2
+
+    // We test to see what the default rolloff rate is using audio1.
+    output "The default rolloff rate is " + audio1:GetDefaultRolloffRate()
+
+    audio2:SetDefaultRolloffRate(0.5)
+
+    // Even though we changed the default rolloff rate using audio2,
+    // we can still see the changed default using audio1.
+    output "Now the default rolloff rate is " + audio1:GetDefaultRolloffRate()
+    */
+    system action GetDefaultRolloffRate returns number
+
 end

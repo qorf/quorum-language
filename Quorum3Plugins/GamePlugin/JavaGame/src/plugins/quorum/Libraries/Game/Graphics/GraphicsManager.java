@@ -7,22 +7,8 @@
 package plugins.quorum.Libraries.Game.Graphics;
 
 import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
-import java.nio.ByteOrder;
-
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL14;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL20;
-
-import plugins.quorum.Libraries.Game.GameRuntimeError;
-import plugins.quorum.Libraries.Game.GameState;
 
 /**
  *
@@ -191,6 +177,11 @@ public interface GraphicsManager {
     
     public void glBlendFunc (int sfactor, int dfactor);
   
+    /* 
+    This is actually glTexParameteri. It was renamed early in the development
+    process to reflect Quorum naming conventions (as it is accessible from the
+    Quorum GraphicsManager class as a system action).
+    */
     public void SetTextureParameter(int targetTexture, int parameterType, int parameterValue);
 
     //This method was pulled directly out of libgdx because it just works as a drop-in.
@@ -397,6 +388,7 @@ public interface GraphicsManager {
 	public static final int GL_TEXTURE_MIN_FILTER = 0x2801;
 	public static final int GL_TEXTURE_WRAP_S = 0x2802;
 	public static final int GL_TEXTURE_WRAP_T = 0x2803;
+        public static final int GL_TEXTURE_WRAP_R = 0x8072;
 	public static final int GL_TEXTURE = 0x1702;
 	public static final int GL_TEXTURE_CUBE_MAP = 0x8513;
 	public static final int GL_TEXTURE_BINDING_CUBE_MAP = 0x8514;

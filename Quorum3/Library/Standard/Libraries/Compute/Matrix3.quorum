@@ -1579,7 +1579,7 @@ class Matrix3
 
     */
     action GetRotation returns number
-        return math:InverseTangent(row1column0, row0column0) * 180 / math:pi
+        return math:InverseTangent(row0column0, row1column0) * 180 / math:pi
     end
 
     /*
@@ -1604,7 +1604,7 @@ class Matrix3
 
     */
     action GetRotationInRadians returns number
-        return math:InverseTangent(row1column0, row0column0)
+        return math:InverseTangent(row0column0, row1column0)
     end
 
     /*
@@ -1791,6 +1791,71 @@ class Matrix3
         row2column1 = v21
 
         return me
+    end    
+
+    action GetElement(integer row, integer column) returns number
+        integer i = row
+        integer j = column
+        if i < 0 or i > 2 or j < 0 or j > 2
+            MatrixError matrix
+            matrix:SetErrorMessage("Invalid row or column number for a 3x3 matrix.")
+            alert(matrix)
+        end
+        if i = 0
+            if j = 0
+                return row0column0
+            elseif j = 1
+                return row0column1
+            else
+                return row0column2
+            end
+        elseif i = 1
+            if j = 0
+                return row1column0
+            elseif j = 1
+                return row1column1
+            else
+                return row1column2
+            end
+        else
+            if j = 0
+                return row2column0
+            elseif j = 1
+                return row2column1
+            else
+                return row2column2
+            end
+        end
     end
-    
+
+    action Transform(Vector3 vector)
+        number x = row0column0 * vector:GetX() + row0column1 * vector:GetY() + row0column2 * vector:GetZ()
+        number y = row1column0 * vector:GetX() + row1column1 * vector:GetY() + row1column2 * vector:GetZ()
+        number z = row2column0 * vector:GetZ() + row2column1 * vector:GetY() + row2column2 * vector:GetZ()
+        vector:Set(x, y, z)
+    end
+
+    action GetColumn(integer index) returns Vector3
+        Vector3 out
+        if index = 0
+            out:Set(row0column0, row1column0, row2column0)
+        elseif index = 1
+            out:Set(row0column1, row1column1, row2column1)
+        elseif index = 2
+            out:Set(row0column2, row1column2, row2column2)
+        end
+        return out
+    end
+
+    action GetRow(integer index) returns Vector3
+        Vector3 out
+        if index = 0
+            out:Set(row0column0, row0column1, row0column2)
+        elseif index = 1
+            out:Set(row1column0, row1column1, row1column2)
+        elseif index = 2
+            out:Set(row2column0, row2column1, row2column2)
+        end
+        return out
+    end
 end

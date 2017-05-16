@@ -1,0 +1,69 @@
+package Libraries.Game.Collision.Narrowphase
+
+use Libraries.Compute.Vector2
+
+class SimplexVertex2D 
+    Vector2 supportA
+    Vector2 supportB
+    Vector2 support
+    number barycentricCoordinate = 0
+    integer indexA = 0
+    integer indexB = 0
+
+    action Set(SimplexVertex2D vertex)
+        supportA:Set(vertex:supportA)
+        supportB:Set(vertex:supportB)
+        support:Set(vertex:support)
+        barycentricCoordinate = vertex:barycentricCoordinate
+        indexA = vertex:indexA
+        indexB = vertex:indexB
+    end
+
+    action GetSupportA returns Vector2
+        return supportA
+    end
+
+    action SetSupportA(Vector2 support)
+        me:supportA = support
+    end
+
+    action GetSupportB returns Vector2
+        return supportB
+    end
+
+    action SetSupportB(Vector2 support)
+        me:supportB = support
+    end
+
+    action GetSupport returns Vector2
+        return support
+    end
+
+    action SetSupport(Vector2 support)
+        me:support = support
+    end
+
+    action GetBarycentricCoordinate returns number
+        return barycentricCoordinate
+    end
+
+    action SetBarycentricCoordinate(number coordinate)
+        me:barycentricCoordinate = coordinate
+    end
+
+    action GetIndexA returns integer
+        return indexA
+    end
+
+    action SetIndexA(integer index)
+        me:indexA = index
+    end
+
+    action GetIndexB returns integer
+        return indexB
+    end
+
+    action SetIndexB(integer index)
+        me:indexB = index
+    end
+end

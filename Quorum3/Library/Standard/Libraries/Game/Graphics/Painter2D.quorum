@@ -364,19 +364,6 @@ class Painter2D
     system action Draw(Drawable drawable)
 
     /*
-    This call will draw the Drawable on the screen, offsetting it by the
-    two number parameters given. If forceUpdate is true, then the vertices
-    will be updated regardless of the "dirty" status of the Drawable. 
-    */
-    system action Draw(Drawable drawable, number globalOffsetX, number globalOffsetY, boolean forceUpdate)
-
-    /* 
-    This action will draw a TextureRegion, drawing it at the given screen
-    screen coordinates.
-    */
-    system action Draw(TextureRegion drawRegion, number drawX, number drawY)
-
-    /*
     Disposes of the plugin data stored by the Painter2D, freeing up resources when
     the Painter2D is no longer needed. This should never be called on the default
     Painter2D provided by the Game class.
@@ -394,7 +381,6 @@ class Painter2D
 
             action CreateGame
                 Painter2D myNewPainter
-                myNewPainter:LoadDefaultPainter()
                 myNewPainter:Dispose()
             end
 

@@ -4,6 +4,11 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Location
+use Libraries.Web.Page.Paragraph
+use Libraries.Web.Page.PreformattedText
+use Libraries.Web.Page.CodeBlock
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.StrongText
 
 class Documentation is Location
     public constant text AUTHOR = "Author"
@@ -35,6 +40,38 @@ class Documentation is Location
             i = i + 1
         end
         return short
+    end
+
+    action GetHeaderDivision returns Division
+        Division division
+        Paragraph paragraph
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+        paragraph:AddText(GetDescription())
+
+        division:Add(paragraph)
+        //result = result + "<p align=" + dq + "justify" + dq + ">" + GetDescription() + "</p>" 
+        text example = GetExample()
+        
+        if example not= undefined and not example:IsEmpty()
+            example = example:Replace("<", "&lt;")
+            example:Replace(">", "&gt;")
+            Paragraph exampleParagraph
+            StrongText strong
+            strong:AddText("Example Code")
+            exampleParagraph:Add(strong)
+            division:Add(exampleParagraph)
+
+            PreformattedText t
+            t:AddAttribute("class", "code")
+            CodeBlock block
+            block:AddText(example)
+            t:Add(block)
+
+            division:Add(t)
+        end
+
+        return division
     end
 
     action GetHeaderAsWeb returns text

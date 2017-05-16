@@ -18,6 +18,8 @@ use Libraries.System.SystemHelper
 use Libraries.Language.Compile.Symbol.SymbolTable
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Symbol.Action
+use Libraries.Game.Game
+//use Libraries.Game.Graphics.Skybox
 
 class Main is WebResponder
     public constant text NAME_FLAG = "-name"
@@ -359,8 +361,8 @@ class Main is WebResponder
         compiler:SetOutputFolder(root)
         File main
         //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
-        main:SetPath("Library/Tests/Game/Pass/LoadBoxes.quorum")
-        //main:SetPath("main.quorum") //CallMethodCallingBlueprint
+        main:SetWorkingDirectory("/Users/alleew/NetBeansProjects/Playground/SourceCode")
+        main:SetPath("main.quorum") //CallMethodCallingBlueprint
 
         File class2
         //class2:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
@@ -400,7 +402,7 @@ class Main is WebResponder
             output "Build Successful"
             if compiler:GetOutputType() = compiler:JAVASCRIPT
                 File myOutput
-                myOutput:SetWorkingDirectory("/Users/stefika/NetBeansProjects/HTML5Application/public_html")
+                myOutput:SetWorkingDirectory("/Users/alleew/Desktop/WebGLTester/public_html")
                 myOutput:SetPath("TestQuorum.js")
                 myOutput:Write(compiler:GetCompiledJavaScript())
                 output "File written."
@@ -498,6 +500,26 @@ class Main is WebResponder
 
             if names:IsEmpty()
                 output "I noticed you asked for a program to be compiled, but that no files were passed."
+                output GetHelpText()
+                return now
+            end
+
+            Compile(name, names, false)
+            return now
+        end
+
+        if flagValues:HasKey(JAVASCRIPT_FLAG)
+            Array<text> names = flagValues:GetValue(JAVASCRIPT_FLAG)
+
+            if flagValues:HasKey(WEB_FLAG) or flagValues:HasKey(COMPILE_FLAG)
+                output "I noticed the javascript flag was used with the compile flag or the web flag. Only one can be passed, otherwise I cannot determine how to package the program."
+                return now
+            end
+
+            if names:IsEmpty()
+                output "I noticed you asked for a program to be compiled to JavaScript, but that no files were passed."
+                output GetHelpText()
+                return now
             end
 
             Compile(name, names, false)
@@ -513,7 +535,9 @@ class Main is WebResponder
             Array<text> names = flagValues:GetValue(WEB_FLAG)
 
             if names:IsEmpty()
-                output "I noticed you asked for a program to be compiled, but that no files were passed."
+                output "I noticed you asked for a program to be compiled to the web, but that no files were passed."
+                output GetHelpText()
+                return now
             end
 
             Compile(name, names, true)
@@ -554,6 +578,12 @@ class Main is WebResponder
             File standardLibraryFolder = compiler:GetStandardLibraryFolder()
             compiler:SetStandardLibraryFolder(standardLibraryFolder)
         end
+
+        boolean javascript = false
+        if flagValues:HasKey(JAVASCRIPT_FLAG)
+            compiler:SetOutputType(compiler:JAVASCRIPT)
+            compiler:SetWritingJavaScriptToDisk(true)
+        end
         
         output compiler:GetVersion()
 
@@ -564,9 +594,6 @@ class Main is WebResponder
 
         if compiler:IsCompilationErrorFree()
             output "Build Successful"
-            if compiler:GetOutputType() = compiler:JAVASCRIPT
-                output compiler:GetCompiledJavaScript()
-            end
         else
             output compiler:GetCompilerErrorsAsText()
         end
@@ -611,15 +638,11 @@ Quorum is a computer programming language, which you can use either " +
 What this means is that you can pass a flag to Quorum combined with any number of values. " +
 "The legal flags are listed as follows:
     -name This flag tells Quorum to change the name the file is outputs.
-
-    -compile This flag tells Quorum to compile a set of files." +
-//  Hide the web version for this release.
-//    -web This flag tells Quorum to compile and generate output for use on the web through what " +
-//"is called a Tomcat or Glassfish server. These are server technologies designed to serve web pages.
-    "
-
+    -compile This flag tells Quorum to compile a set of files. If no flag is passed, this is the default.
+    -web This flag tells Quorum to convert to a server-side application
+    -javascript This flag converts the source code to JavaScript, so it can be run in a browser.
     -test This flag tells Quorum to run its test suite on itself.
-
+    -library If a file path is passed to this flag, we can tell Quorum we have placed its standard library in a different folder.
     -help This flag tells Quorum to output this help screen. 
 
 
@@ -629,22 +652,11 @@ Here are a few examples of how you can use this program:
     This would request that Quorum compiles the source file Hello.quorum.
 
         java -jar Quorum.jar -compile Hello.quorum" +
-
-//  Hide the web content for the 3.0 release, as the team redesigns it.
-//        This would have the same impact, compiling Hello.quorum
-//
-//    quorum -web Hello.quorum
-//
-//        This would have Quorum compile Hello.quorum and package it for the web.
     "
 
         java -jar Quorum.jar -name MyProgram -compile Hello.quorum
 
     This would cause Quorum to compile Hello.quorum and name the output MyProgram." +
-
-//    quorum -name MyProgram -web Hello.quorum
-//
-//        This would cause Quorum to compile Hello.quorum and name the output MyProgram.
     "
 
         java -jar Quorum.jar Hello.quorum Goodbye.quorum
@@ -723,10 +735,10 @@ For more information on writing programs in Quorum, visit www.quorumlanguage.com
         File library
         //To deploy to a particular server, change this line to the 
         //parent directory for where the standard library is housed.
-        library:SetWorkingDirectory("/home/stefika")
+        library:SetWorkingDirectory("/usr/share/tomcat")
         //library:SetPath("Library/Standard")
         //library:SetWorkingDirectory("/Users/stefika/Repositories/quorum-language/Quorum3")
-        library:SetPath("Libraries/Standard")
+        library:SetPath("Library/Standard")
         //output library:GetAbsolutePath()
 
         compiler:SetStandardLibraryFolder(library)

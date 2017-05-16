@@ -1,0 +1,151 @@
+package Libraries.Game.Physics
+
+use Libraries.Containers.Array
+use Libraries.Compute.Vector2
+use Libraries.Game.Collision.LocalCollisionPoints2D
+
+class CollisionPositionConstraint 
+    Array<Vector2> localPoints
+    Vector2 localNormal
+    Vector2 localPoint
+    integer indexA = 0
+    integer indexB = 0
+    number inverseMassA = 0
+    number inverseMassB = 0
+    Vector2 localCenterA
+    Vector2 localCenterB
+    number inverseInertiaA = 0
+    number inverseInertiaB = 0
+    integer type = 0
+    number radiusA = 0
+    number radiusB = 0
+    integer pointCount = 0
+
+    on create
+        LocalCollisionPoints2D collisionPoints
+        repeat collisionPoints:MAX_COLLISION_POINTS times
+            Vector2 point
+            localPoints:Add(point)
+        end
+    end
+
+    action GetLocalPoints returns Array<Vector2>
+        return localPoints
+    end
+
+    action GetLocalPoint(integer index) returns Vector2
+        return localPoints:Get(index)
+    end
+
+    action GetLocalNormal() returns Vector2
+        return localNormal
+    end
+
+    action SetLocalNormal(Vector2 normal)
+        me:localNormal = normal
+    end
+
+    action GetLocalPoint returns Vector2
+        return localPoint
+    end
+
+    action SetLocalPoint(Vector2 point)
+        me:localPoint = point
+    end
+
+    action GetIndexA returns integer
+        return indexA
+    end
+
+    action SetIndexA(integer index)
+        me:indexA = index
+    end
+
+    action GetIndexB returns integer
+        return indexB
+    end
+
+    action SetIndexB(integer index)
+        me:indexB = index
+    end
+
+    action GetInverseMassA returns number
+        return inverseMassA
+    end
+
+    action SetInverseMassA(number inverseMass)
+        me:inverseMassA = inverseMass
+    end
+
+    action GetInverseMassB returns number
+        return inverseMassB
+    end
+
+    action SetInverseMassB(number inverseMass)
+        me:inverseMassB = inverseMass
+    end
+
+    action GetLocalCenterA returns Vector2
+        return localCenterA
+    end
+
+    action SetLocalCenterA(Vector2 localCenter)
+        me:localCenterA = localCenter
+    end
+
+    action GetLocalCenterB returns Vector2
+        return localCenterB
+    end
+
+    action SetLocalCenterB(Vector2 localCenter)
+        me:localCenterB = localCenter
+    end
+
+    action GetInverseInertiaA returns number
+        return inverseInertiaA
+    end
+
+    action SetInverseInertiaA(number inverseInertia)
+        me:inverseInertiaA = inverseInertia
+    end
+
+    action GetInverseInertiaB returns number
+        return inverseInertiaB
+    end
+
+    action SetInverseInertiaB(number inverseInertia)
+        me:inverseInertiaB = inverseInertia
+    end
+
+    action GetType returns integer
+        return type
+    end
+
+    action SetType(integer type)
+        me:type = type
+    end
+
+    action GetRadiusA returns number
+        return radiusA
+    end
+
+    action SetRadiusA(number radius)
+        me:radiusA = radius
+    end
+
+    action GetRadiusB returns number
+        return radiusB
+    end
+
+    action SetRadiusB(number radius)
+        me:radiusB = radius
+    end
+
+    action GetPointCount returns integer
+        return pointCount
+    end
+
+    action SetPointCount(integer pointCount)
+        me:pointCount = pointCount
+    end
+end

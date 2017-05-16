@@ -74,8 +74,9 @@ public class Game
             } 
             if (nativeFile != null)
             {
-                GameState.SetNativePath(nativeFile);
-                GameState.SetOperatingSystem(System.getProperty("os.name"));
+                GameStateManager.nativePath = nativeFile;
+                System.load(nativeFile);
+                GameStateManager.operatingSystem = System.getProperty("os.name");
             }
         } 
         catch (URISyntaxException ex) 
@@ -85,11 +86,6 @@ public class Game
     }
     
     public java.lang.Object me_ = null;
-    
-    public double GetSecondsBetweenFrames()
-    {
-        return GameState.GetDisplay().GetSecondsBetweenFrames();
-    }
     
     public int SelectApplicationTypeNative()
     {

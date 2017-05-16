@@ -146,10 +146,20 @@ public abstract class QuorumAction implements Action {
         long start = System.currentTimeMillis();
         compiler.Empty();
         final QuorumProjectType type = project.getProjectType();
+        //A web server (war file) to be used in Tomcat or Glassfish
         if(type == QuorumProjectType.WEB) {
             compiler.SetIsWebApplication(true);
+            compiler.SetOutputType(compiler.JAVA_BYTECODE);
+        //A JavaScript application to be run in a web browser
+        } else if(type == QuorumProjectType.WEB_BROWSER) {
+            //tell the compiler it is not compiling to a web server
+            compiler.SetIsWebApplication(false);
+            //then tell it to compile to JavaScript
+            compiler.SetOutputType(compiler.JAVASCRIPT);
+        //A normal console application to be run on Desktop
         } else {
             compiler.SetIsWebApplication(false);
+            compiler.SetOutputType(compiler.JAVA_BYTECODE);
         }
         
         try {
@@ -164,12 +174,21 @@ public abstract class QuorumAction implements Action {
                         Date date = new Date();
                         String format = dateFormat.format(date);
 
-                        io.getOut().println("Quorum Compiler Threw Error at " + dateFormat.format(date) + " (This is a bug, please report it at https://quorum.atlassian.net).");
-                        io.getOut().println(e.toString());
-                        StackTraceElement[] stackTrace = e.getStackTrace();
-                        for (int i = 0; i < stackTrace.length; i++) {
-                            io.getOut().println(stackTrace[i].toString());
+                        if(compiler.GetMainClass() == null) {
+                            String stringDate = dateFormat.format(date);
+                            io.getOut().println("I noticed that there is no main file set, which means "
+                                    + "I cannot determine where to start your program. "
+                                    + "To set one, either right click on a file in the project "
+                                    + "explorer, or use a hotkey, and select the Set Main File option.");
+                        } else {
+                            io.getOut().println("Quorum Compiler Threw Error at " + dateFormat.format(date) + " (This is a bug, please report it at https://quorum.atlassian.net).");
+                            io.getOut().println(e.toString());
+                            StackTraceElement[] stackTrace = e.getStackTrace();
+                            for (int i = 0; i < stackTrace.length; i++) {
+                                io.getOut().println(stackTrace[i].toString());
+                            }
                         }
+                        
                         io.setInputVisible(true);
                         io.getOut().close();
                     }
@@ -220,6 +239,20 @@ public abstract class QuorumAction implements Action {
             }
         });
         
+        //if it's a JavaScript project, we need to get the source and write the 
+        //file manually
+        if(type == QuorumProjectType.WEB_BROWSER && compiler.IsCompilationErrorFree()) {
+            String text = compiler.GetCompiledJavaScript();
+            File toFile = new File(directory.getAbsolutePath() + "/" + QuorumProject.DISTRIBUTION_DIRECTORY);
+            if(!toFile.exists()) {
+                toFile.mkdir();
+            }
+            quorum.Libraries.System.File writer = getQuorumFile(toFile);
+            String path = writer.GetAbsolutePath();
+            writer.SetWorkingDirectory(path);
+            writer.SetPath(project.getExecutableNameNoExtension() + ".js");
+            writer.Write(text);
+        }
         boolean legos = false;
         if(type == QuorumProjectType.LEGO && compiler.IsCompilationErrorFree()) {
             QuorumToLegoAdapter adapter = new QuorumToLegoAdapter();

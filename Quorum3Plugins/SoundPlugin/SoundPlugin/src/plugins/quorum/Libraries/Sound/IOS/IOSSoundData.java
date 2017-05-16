@@ -11,6 +11,7 @@ import plugins.quorum.Libraries.Sound.Data;
 import org.robovm.apple.foundation.Foundation;
 import org.robovm.apple.foundation.NSString;
 import org.robovm.apple.uikit.UIDevice;
+import quorum.Libraries.Sound.AudioSamples_;
 
 /**
  *
@@ -115,6 +116,18 @@ public class IOSSoundData extends Data
         ALSource source;
         if ((source = GetSoundSource(soundID)) != null)
             source.setVolume(volume);
+    }
+    
+    @Override
+    public void SetReferenceDistance(float distance)
+    {
+        throw new UnsupportedOperationException("Reference distance controls haven't been implemented yet for iOS.");
+    }
+    
+    @Override
+    public void SetRolloff(float rolloff)
+    {
+        throw new UnsupportedOperationException("Reference distance controls haven't been implemented yet for iOS.");
     }
     
     @Override
@@ -239,6 +252,18 @@ public class IOSSoundData extends Data
     public void Update()
     {
         throw new RuntimeException("This audio was not set for streaming when loaded. Use LoadToStream to allow streaming the audio.");
+    }
+    
+    @Override
+    public void QueueSamples(AudioSamples_ samples)
+    {
+        throw new RuntimeException("This audio was not set for streaming AudioSamples when loaded. Use LoadToStream(AudioSamples) to allow for sample queueing.");
+    }
+    
+    @Override
+    public void UnqueueSamples(AudioSamples_ samples)
+    {
+        throw new RuntimeException("This audio was not set for streaming AudioSamples when loaded. Use LoadToStream(AudioSamples) to allow for sample queueing.");
     }
     
     private ALSource GetSoundSource(long soundId) 

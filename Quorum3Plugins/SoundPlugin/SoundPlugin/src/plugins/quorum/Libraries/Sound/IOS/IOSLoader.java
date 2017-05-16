@@ -37,4 +37,16 @@ public class IOSLoader implements DataLoader
         throw new RuntimeException("Error opening audio file at " + path);
     }
     
+    @Override
+    public Data Load(quorum.Libraries.Sound.AudioSamples_ buffer)
+    {
+        throw new UnsupportedOperationException("Direct AudioBuffer manipulation is not currently supported on this platform.");
+    }
+    
+    @Override
+    public Data LoadToStream(quorum.Libraries.Sound.AudioSamples_ buffer)
+    {
+        throw new UnsupportedOperationException("Direct AudioBuffer manipulation is not currently supported on this platform.");
+    }
+    
 }

@@ -1,8 +1,9 @@
 use Libraries.Compute.Vector2
 use Libraries.Compute.Math
 use Libraries.Game.Collision.Shapes.CollisionShape2D
-use Libraries.Game.Collision.Transform2D
+use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Game.Collision.BoundingBox2D
+use Libraries.Game.Physics.Mass2D
 
 package Libraries.Game.Collision.Shapes
 
@@ -23,6 +24,10 @@ class Circle is CollisionShape2D
         return shape
     end
 
+    action Scale(number scaleX, number scaleY)
+        SetRadius(GetRadius() * scaleX)
+    end
+
     action GetChildCount returns integer
         return 1
     end
@@ -39,7 +44,7 @@ class Circle is CollisionShape2D
         return point
     end
 
-    action TestPoint(Transform2D transform, Vector2 point) returns boolean
+    action TestPoint(PhysicsPosition2D transform, Vector2 point) returns boolean
         number cosine = transform:GetCosine()
         number sine = transform:GetSine()
         number x = transform:GetPosition():GetX()
@@ -51,7 +56,7 @@ class Circle is CollisionShape2D
         return centerX * centerX + centerY * centerY <= parent:CollisionShape2D:GetRadius() * parent:CollisionShape2D:GetRadius()
     end
 
-    action ComputeDistance(Transform2D transform, Vector2 point, integer childIndex, Vector2 normalOut) returns number
+    action ComputeDistance(PhysicsPosition2D transform, Vector2 point, integer childIndex, Vector2 normalOut) returns number
         number centerX = transform:GetCosine() * me:point:GetX() - transform:GetSine() * me:point:GetY() + transform:GetPosition():GetX()
         number centerY = transform:GetSine() * me:point:GetX() + transform:GetCosine() * me:point:GetY() + transform:GetPosition():GetY()
         number dx = point:GetX() - centerX
@@ -62,7 +67,7 @@ class Circle is CollisionShape2D
         return d1 - parent:CollisionShape2D:GetRadius()
     end
 
-    action ComputeBoundingBox(BoundingBox2D boundingBox, Transform2D transform, integer childIndex)
+    action ComputeBoundingBox(BoundingBox2D boundingBox, PhysicsPosition2D transform, integer childIndex)
         number px = transform:GetCosine() * me:point:GetX() - transform:GetSine() * me:point:GetY() + transform:GetPosition():GetX()
         number py = transform:GetSine() * me:point:GetX() + transform:GetCosine() * me:point:GetY() + transform:GetPosition():GetY()
         boundingBox:GetMinimum():SetX(px - parent:CollisionShape2D:GetRadius())
@@ -72,7 +77,14 @@ class Circle is CollisionShape2D
         boundingBox:CalculateDimensions()
     end
 
-    action ComputeMass(number density) returns number
-        return 0
+    action ComputeMass(Mass2D mass, number density)
+        mass:SetMass(density * math:pi * GetRadius() * GetRadius())
+        mass:GetCenter():SetX(point:GetX())
+        mass:GetCenter():SetY(point:GetY())
+        mass:SetInertia(mass:GetMass() * (0.5 * GetRadius() * GetRadius() + (point:GetX() * point:GetX() + point:GetY() * point:GetY())))
+    end
+
+    action ComputeArea returns number
+        return math:pi * GetRadius() * GetRadius()
     end
 end

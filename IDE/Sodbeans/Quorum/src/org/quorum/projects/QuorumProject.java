@@ -206,6 +206,10 @@ public class QuorumProject implements Project {
         return getCompiler().GetName() + getCompiler().GetFileExtension();
     }
     
+    public String getExecutableNameNoExtension() {
+        return getCompiler().GetName();
+    }
+    
     public File getRunDirectory() {
         File_ output = getCompiler().GetRunFolder();
         return org.quorum.support.Utility.toQuorumFile(output);
@@ -244,6 +248,8 @@ public class QuorumProject implements Project {
             projectType = QuorumProjectType.STANDARD;
         } else if(property.compareTo(QuorumProject.QUORUM_COMPILED_WEB_PROJECT) == 0) {
             projectType = QuorumProjectType.WEB;
+        } else if(property.compareTo(QuorumProject.QUORUM_WEB_PROJECT) == 0) {
+            projectType = QuorumProjectType.WEB_BROWSER;
         } else if(property.compareTo(QuorumProject.QUORUM_LEGO_PROJECT) == 0) {
             projectType = QuorumProjectType.LEGO;
         }

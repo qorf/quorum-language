@@ -10,7 +10,7 @@ import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import plugins.quorum.Libraries.Game.GameState;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.GameFile;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 
@@ -22,7 +22,7 @@ public class PixelMap {
     public java.lang.Object me_ = null;
     
     public static final int FORMAT_ALPHA = 1;
-    public static final int FORMAT_LUMINANCE = 2;
+    public static final int FORMAT_LUMINANCE_ALPHA = 2;
     public static final int FORMAT_RGB888 = 3;
     public static final int FORMAT_RGBA8888 = 4;
     public static final int FORMAT_RGB565 = 5;
@@ -34,7 +34,7 @@ public class PixelMap {
     public static final int BLEND_NONE = 0;
     public static final int BLEND_SOURCE_OVER = 1;
     
-    private GraphicsManager gl20 = GameState.nativeGraphics;
+    private GraphicsManager gl20 = GameStateManager.nativeGraphics;
     
     private static quorum.Libraries.Game.Graphics.Blending_ blending;
 
@@ -61,7 +61,7 @@ public class PixelMap {
     
     public void LoadPixelMap(quorum.Libraries.System.File_ quorumFile)
     {   
-        GameFile javaFile = GameState.fileHandler.Convert(quorumFile);
+        GameFile javaFile = GameStateManager.fileHandler.Convert(quorumFile);
         
         byte[] bytes = javaFile.ReadBytes();
         
@@ -78,6 +78,13 @@ public class PixelMap {
         quorum.Libraries.Game.Graphics.Format_ newFormat = new quorum.Libraries.Game.Graphics.Format();
         newFormat.SetValue(format);
         thisMap.format = newFormat;
+    }
+    
+    public void LoadAsynchronously(quorum.Libraries.System.File_ file, quorum.Libraries.Game.Graphics.Format_ format,
+            boolean useMipMaps, quorum.Libraries.Game.Graphics.Drawable_ drawable, quorum.Libraries.Game.Graphics.Texture_ texture)
+    {
+        LoadPixelMap(file);
+        texture.FinishLoadingAsynchronously(file, (quorum.Libraries.Game.Graphics.PixelMap) me_, format, useMipMaps, drawable);
     }
     
     public void CreatePixelMap(int newWidth, int newHeight, quorum.Libraries.Game.Graphics.Format_ newFormat) 
@@ -112,11 +119,15 @@ public class PixelMap {
     
     public void SetPixel(int x, int y, int code)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
         SetPixel(basePointer, x, y, code);
     }
     
     public int GetPixel(int x, int y)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
         return GetPixel(basePointer, x, y);
     }
 
@@ -130,12 +141,18 @@ public class PixelMap {
       return height;
     }
     
+    public quorum.Libraries.Game.Graphics.Blending_ GetBlending()
+    {
+        return blending;
+    }
+    
     public void Dispose()
     {
         if (disposed == true)
-            throw new GameRuntimeError("Attempted to dispose an already disposed PixelMap!");
+            throw new GameRuntimeError("I can't dispose this PixelMap because it was already disposed!");
         disposed = true;
         Free(basePointer);
+        pixelPointer = null;
     }    
     
     public int GetGLInternalFormat () 
@@ -144,8 +161,8 @@ public class PixelMap {
         {
             case FORMAT_ALPHA:
 		return GraphicsManager.GL_ALPHA;
-            case FORMAT_LUMINANCE:
-		return GraphicsManager.GL_LUMINANCE;
+            case FORMAT_LUMINANCE_ALPHA:
+		return GraphicsManager.GL_LUMINANCE_ALPHA;
             case FORMAT_RGB888:
             case FORMAT_RGB565:
 		return GraphicsManager.GL_RGB;
@@ -153,7 +170,7 @@ public class PixelMap {
             case FORMAT_RGBA4444:
 		return GraphicsManager.GL_RGBA;
             default:
-		throw new GameRuntimeError("unknown format: " + format);
+		throw new GameRuntimeError("I couldn't recognize the currently set format with integer value " + format);
 	}
     }
     
@@ -162,7 +179,7 @@ public class PixelMap {
 	switch (format) 
         {
             case FORMAT_ALPHA:
-            case FORMAT_LUMINANCE:
+            case FORMAT_LUMINANCE_ALPHA:
             case FORMAT_RGB888:
             case FORMAT_RGBA8888:
 		return GraphicsManager.GL_UNSIGNED_BYTE;
@@ -188,6 +205,8 @@ public class PixelMap {
     // Without a parameter given, this will use the PixelMap's current color.
     public void Clear()
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
         final quorum.Libraries.Game.Graphics.PixelMap thisMap = (quorum.Libraries.Game.Graphics.PixelMap) me_;
         int colorCode = thisMap.color.GetColorCode();
         Clear(basePointer, colorCode);
@@ -195,49 +214,75 @@ public class PixelMap {
     
     public void Clear(quorum.Libraries.Game.Graphics.Color_ clearColor)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
         int colorCode = clearColor.GetColorCode();
         Clear(basePointer, colorCode);
     }
     
     public void DrawPixelMap(quorum.Libraries.Game.Graphics.PixelMap pixmap, int sourceX, int sourceY, int destX, int destY, int sourceWidth, int sourceHeight)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         plugins.quorum.Libraries.Game.Graphics.PixelMap map = pixmap.plugin_;
         long sourceBasePointer = map.basePointer;
 
-        DrawPixelMap(sourceBasePointer, basePointer, sourceX, sourceY, width, height, destX, destY, width, height);
+        DrawPixelMap(sourceBasePointer, basePointer, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, pixmap.GetWidth(), pixmap.GetHeight());
     }
     
     public void Fill(int color)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         Clear(basePointer, color);
     }
 
     public void DrawLine(int x1, int y1, int x2, int y2, int color)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         DrawLine(basePointer, x1, y1, x2, y2, color);
     }
     
     public void DrawRectangle(int x, int y, int width, int height, int color)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         DrawRectangle(basePointer, x, y, width, height, color);
     }
     
     public void FillRectangle(int x, int y, int width, int height, int color)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         FillRectangle(basePointer, x, y, width, height, color);
     }
     
     public void DrawCircle(int x, int y, int radius, int color)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         DrawCircle(basePointer, x, y, radius, color);
     }
     
     public void FillCircle(int x, int y, int radius, int color)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         FillCircle(basePointer, x, y, radius, color);
     }
     public void FillTriangle(int x1, int y1, int x2, int y2, int x3, int y3, int color)
     {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        
         FillTriangle(basePointer, x1, y1, x2, y2, x3, y3, color);
     }
     

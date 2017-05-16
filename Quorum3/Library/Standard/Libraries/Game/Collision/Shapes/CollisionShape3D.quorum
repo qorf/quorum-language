@@ -1,7 +1,7 @@
 package Libraries.Game.Collision.Shapes
 
 use Libraries.Compute.Vector3
-use Libraries.Game.Collision.Transform3D
+use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Containers.Array
 use Libraries.Compute.Math
 use Libraries.Game.BoundingBox
@@ -22,14 +22,15 @@ class CollisionShape3D
 
     on create
         implicitShapeDimensions:Set(1, 1, 1)
+        localScaling:Set(1, 1, 1)
     end
 
-    blueprint action ComputeBoundingBox(BoundingBox boundingBox, Transform3D transform)
+    blueprint action ComputeBoundingBox(BoundingBox boundingBox, PhysicsPosition3D transform)
     
     action GetBoundingSphere(Vector3 center) returns number
         Vector3 temp1
         Vector3 temp2
-        Transform3D transform
+        PhysicsPosition3D transform
         transform:SetToIdentity()
         BoundingBox boundingBox
 
@@ -53,7 +54,7 @@ class CollisionShape3D
         return disc
     end
 
-    action CalculateTemporalBoundingBox(Transform3D currentTransform, Vector3 linearVelocity, Vector3 angularVelocity, number timeStep, 
+    action CalculateTemporalBoundingBox(PhysicsPosition3D currentTransform, Vector3 linearVelocity, Vector3 angularVelocity, number timeStep, 
                                         BoundingBox temporalBoundingBox)
         ComputeBoundingBox(temporalBoundingBox, currentTransform)
         
@@ -107,6 +108,11 @@ class CollisionShape3D
     action SetLocalScaling(Vector3 scaling)
         Math math
         localScaling:Set(math:AbsoluteValue(scaling:GetX()), math:AbsoluteValue(scaling:GetY()), math:AbsoluteValue(scaling:GetZ()))
+    end
+
+    action Scale(Vector3 scale)
+        Math math
+        localScaling:Set(localScaling:GetX() * math:AbsoluteValue(scale:GetX()), localScaling:GetY() * math:AbsoluteValue(scale:GetY()), localScaling:GetZ() * math:AbsoluteValue(scale:GetZ()))
     end
 
     action GetLocalScaling(Vector3 out) returns Vector3

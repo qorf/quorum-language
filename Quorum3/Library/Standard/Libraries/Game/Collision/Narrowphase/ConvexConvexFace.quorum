@@ -1,0 +1,77 @@
+package Libraries.Game.Collision.Narrowphase
+
+use Libraries.Containers.Array
+use Libraries.Compute.Vector3
+use Libraries.Game.Collision.Narrowphase.ConvexConvexVertex
+
+class ConvexConvexFace 
+    Array<ConvexConvexVertex> vertices
+    Array<ConvexConvexFace> faces
+    Array<integer> edges
+    Vector3 normal
+    number distance = 0
+    integer mark = 0
+    ConvexConvexFace prev = undefined
+    ConvexConvexFace next = undefined
+
+    on create
+        faces:SetSize(3)
+        edges:SetSize(3)
+        repeat 3 times
+            ConvexConvexVertex w
+            vertices:Add(w)
+        end
+    end
+
+    action GetVertices returns Array<ConvexConvexVertex>
+        return vertices
+    end
+
+    action GetFaces returns Array<ConvexConvexFace>
+        return faces
+    end
+
+    action GetEdges returns Array<integer>
+        return edges
+    end
+
+    action GetNormal returns Vector3
+        return normal
+    end
+
+    action SetNormal(Vector3 normal)
+        me:normal = normal
+    end
+
+    action GetDistance returns number
+        return distance
+    end
+
+    action SetDistance(number distance)
+        me:distance = distance
+    end
+
+    action GetMark returns integer
+        return mark
+    end
+
+    action SetMark(integer mark)
+        me:mark = mark
+    end
+
+    action GetPrevious returns ConvexConvexFace
+        return prev
+    end
+
+    action SetPrevious(ConvexConvexFace face)
+        me:prev = face
+    end
+
+    action GetNext returns ConvexConvexFace
+        return next
+    end
+
+    action SetNext(ConvexConvexFace face)
+        me:next = face
+    end
+end

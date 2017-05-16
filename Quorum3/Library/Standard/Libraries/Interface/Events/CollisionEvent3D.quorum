@@ -4,24 +4,25 @@ use Libraries.Interface.Item3D
 use Libraries.Compute.Math
 use Libraries.Compute.Vector3
 use Libraries.Containers.Array
-use Libraries.Game.Collision.ContactEdge3D
-use Libraries.Game.Collision.ContactManifold3D
+use Libraries.Game.Collision.CollisionEdge3D
+use Libraries.Game.Collision.LocalCollisionPoints3D
 use Libraries.Game.Collision.Shapes.CollisionShape3D
 use Libraries.Game.Collision.Shapes.Box
 use Libraries.Game.Collision.Shapes.Sphere
 use Libraries.Game.Collision.Shapes.Cylinder
-use Libraries.Game.Collision.ManifoldPoint3D
+use Libraries.Game.Collision.CollisionPoint3D
 use Libraries.Interface.Events.CollisionListener3D
 use Libraries.Compute.Matrix3
-use Libraries.Game.Collision.ManifoldResult3D
+use Libraries.Game.Collision.CollisionPointsResult3D
 use Libraries.Compute.BitwiseOperations
-use Libraries.Game.Collision.ConvexConvexPairSolver
-use Libraries.Game.Collision.Transform3D
+use Libraries.Game.Collision.Narrowphase.ConvexConvexPairSolver
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Physics.all
 
 class CollisionEvent3D
     public constant number EPSILON = 0.00000011920928955078125
 
-    ManifoldResult3D result
+    CollisionPointsResult3D result
 
     Item3D itemA = undefined
     Item3D itemB = undefined
@@ -42,10 +43,16 @@ class CollisionEvent3D
     private CollisionEvent3D next = undefined
     private CollisionEvent3D previous = undefined
 
-    public ContactEdge3D nodeA
-    public ContactEdge3D nodeB
+    CollisionEdge3D nodeA
+    CollisionEdge3D nodeB
 
-    ContactManifold3D manifold
+    LocalCollisionPoints3D collisionPoints
+
+    boolean islandFlag = false
+
+    action GetCollisionPoints returns LocalCollisionPoints3D
+        return collisionPoints
+    end
 
     action Initialize(Item3D itemA, integer indexA, Item3D itemB, integer indexB)
         enabledFlag = true
@@ -56,8 +63,8 @@ class CollisionEvent3D
         me:itemB = itemB
         me:indexB = indexB
 
-        manifold:ClearManifold()
-        manifold:Set(itemA, itemB)
+        collisionPoints:ClearCollisionPoints()
+        collisionPoints:Set(itemA, itemB)
         result:Initialize(itemA, itemB)
 
         previous = undefined
@@ -160,11 +167,11 @@ class CollisionEvent3D
         boolean touching = false
         boolean wasTouching = touchingFlag
 
-        Transform3D transformA = itemA:GetCollisionTransform()
-        Transform3D transformB = itemB:GetCollisionTransform()
+        PhysicsPosition3D transformA = itemA:GetCollisionTransform()
+        PhysicsPosition3D transformB = itemB:GetCollisionTransform()
 
-        NarrowphaseEvaluation(manifold, transformA, transformB)
-        touching = manifold:GetPointCount() > 0
+        NarrowphaseEvaluation(collisionPoints, transformA, transformB)
+        touching = collisionPoints:GetPointCount() > 0
 
         touchingFlag = touching
 
@@ -183,11 +190,11 @@ class CollisionEvent3D
         end
     end
 
-    action GetNodeA returns ContactEdge3D
+    action GetNodeA returns CollisionEdge3D
         return nodeA
     end
 
-    action GetNodeB returns ContactEdge3D
+    action GetNodeB returns CollisionEdge3D
         return nodeB
     end
 
@@ -203,14 +210,14 @@ class CollisionEvent3D
 //        end
 //    end
 
-    private action NarrowphaseEvaluation(ContactManifold3D manifold, Transform3D transformA, Transform3D transformB)
+    private action NarrowphaseEvaluation(LocalCollisionPoints3D collisionPoints, PhysicsPosition3D transformA, PhysicsPosition3D transformB)
         CollisionShape3D shapeA = itemA:GetShape()
         CollisionShape3D shapeB = itemB:GetShape()
 
         if shapeA is Sphere and shapeB is Sphere
-            CollideSpheres(manifold, cast(Sphere, shapeA), transformA, cast(Sphere, shapeB), transformB, result)
+            CollideSpheres(collisionPoints, cast(Sphere, shapeA), transformA, cast(Sphere, shapeB), transformB, result)
         else
-            CollideConvexConvex(manifold, shapeA, transformA, shapeB, transformB, result)
+            CollideConvexConvex(collisionPoints, shapeA, transformA, shapeB, transformB, result)
         end
 
     end
@@ -218,15 +225,15 @@ class CollisionEvent3D
 // ********************************************************************************************************************
 // Sphere-Sphere collision algorithm and helpers
 
-    private action CollideSpheres(ContactManifold3D manifold, Sphere sphereA, Transform3D transformA, Sphere sphereB, Transform3D transformB, ManifoldResult3D result)
-        Transform3D tempTransform1
-        Transform3D tempTransform2
+    private action CollideSpheres(LocalCollisionPoints3D collisionPoints, Sphere sphereA, PhysicsPosition3D transformA, Sphere sphereB, PhysicsPosition3D transformB, CollisionPointsResult3D result)
+        PhysicsPosition3D tempTransform1
+        PhysicsPosition3D tempTransform2
 
-        tempTransform1:Set(itemA:GetCollisionTransform())
-        tempTransform2:Set(itemB:GetCollisionTransform())
+        tempTransform1:Set(transformA)
+        tempTransform2:Set(transformB)
 
-        manifold:ClearManifold()
-        result:SetManifold(manifold)
+        collisionPoints:ClearCollisionPoints()
+        result:SetCollisionPoints(collisionPoints)
 
         Vector3 diff
         diff:Set(tempTransform1:GetOrigin())
@@ -237,7 +244,7 @@ class CollisionEvent3D
         number radius1 = sphereB:GetRadius()
 
         if length > radius0 + radius1
-            result:RefreshContactPoints()
+            result:RefreshCollisionPoints()
             return now
         end
 
@@ -264,9 +271,9 @@ class CollisionEvent3D
         pos1:Set(tempTransform2:GetOrigin())
         pos1:Add(temp)
 
-        result:AddContactPoint(normalOnSurfaceB, pos1, distance)
+        result:AddCollisionPoint(normalOnSurfaceB, pos1, distance)
 
-        result:RefreshContactPoints()
+        result:RefreshCollisionPoints()
     end
 
     ConvexConvexPairSolver gjkPairDetector
@@ -274,24 +281,32 @@ class CollisionEvent3D
 // ********************************************************************************************************************
 // GJK Collision Algorithm and Helpers
 
-    private action CollideConvexConvex(ContactManifold3D manifold, CollisionShape3D shapeA, Transform3D transformA, CollisionShape3D shapeB, Transform3D transformB, ManifoldResult3D result)
-        manifold:ClearManifold()
+    private action CollideConvexConvex(LocalCollisionPoints3D collisionPoints, CollisionShape3D shapeA, PhysicsPosition3D transformA, CollisionShape3D shapeB, PhysicsPosition3D transformB, CollisionPointsResult3D result)
+        collisionPoints:ClearCollisionPoints()
 
-        result:SetManifold(manifold)
+        result:SetCollisionPoints(collisionPoints)
         number maximumDistanceSquared = 0
 
         gjkPairDetector:SetMinkowskiA(shapeA)
         gjkPairDetector:SetMinkowskiB(shapeB)
-        maximumDistanceSquared = shapeA:GetMargin() + shapeB:GetMargin() + manifold:GetContactBreakingThreshold()
+        maximumDistanceSquared = shapeA:GetMargin() + shapeB:GetMargin() + collisionPoints:GetCollisionBreakingThreshold()
         maximumDistanceSquared = maximumDistanceSquared * maximumDistanceSquared
 
-        Transform3D inputTransformA
+        PhysicsPosition3D inputTransformA
         inputTransformA:Set(transformA)
-        Transform3D inputTransformB
+        PhysicsPosition3D inputTransformB
         inputTransformB:Set(transformB)
 
         gjkPairDetector:GetClosestPoints(inputTransformA, inputTransformB, maximumDistanceSquared, result, false)
 
-        result:RefreshContactPoints()        
+        result:RefreshCollisionPoints()        
+    end
+
+    action SetInCollisionGroup(boolean flag)
+        islandFlag = flag
+    end
+
+    action InCollisionGroup returns boolean
+        return islandFlag
     end
 end

@@ -310,6 +310,22 @@ public class AudioManager
 	AL10.alSourcef(sourceId, AL10.AL_PITCH, pitch);
     }
     
+    public void SetSoundReferenceDistance (long soundID, float distance) 
+    {
+	if (!SoundIDIsActive(soundID)) 
+            return;
+	int sourceId = (int)soundIDToSource.get(soundID);
+	AL10.alSourcef(sourceId, AL10.AL_REFERENCE_DISTANCE, distance);
+    }
+    
+    public void SetSoundRolloff (long soundID, float rolloff) 
+    {
+	if (!SoundIDIsActive(soundID)) 
+            return;
+	int sourceId = (int)soundIDToSource.get(soundID);
+	AL10.alSourcef(sourceId, AL10.AL_ROLLOFF_FACTOR, rolloff);
+    }
+    
     public void SetSoundPan (long soundID, float pan) 
     {
 	if (!SoundIDIsActive(soundID)) 
@@ -317,8 +333,7 @@ public class AudioManager
 	int sourceID = (int)soundIDToSource.get(soundID);
 
         // This next call establishes the sound at XYZ coordinates.
-	AL10.alSource3f(sourceID, AL10.AL_POSITION, (float)Math.cos((pan - 1) * (float)Math.PI / 2), 0,
-			(float)Math.sin((pan + 1) * (float)Math.PI / 2));
+	AL10.alSource3f(sourceID, AL10.AL_POSITION, (float)Math.cos((pan - 1) * (float)Math.PI / 2), (float)Math.sin((pan + 1) * (float)Math.PI / 2), 0);
     }
     
     public void SetSoundFade (long soundID, float pan) 

@@ -1,0 +1,45 @@
+package Libraries.Game.Physics
+
+use Libraries.Compute.Vector2
+
+class Mass2D 
+    number mass = 0
+    Vector2 center
+    number inertia = 0
+
+    action Set(Mass2D mass)
+        me:mass = mass:mass
+        me:center:Set(mass:center)
+        me:inertia = mass:inertia
+    end
+
+    action Copy returns Mass2D
+        Mass2D newMass
+        newMass:Set(me)
+        return newMass
+    end
+
+    action SetMass(number mass)
+        me:mass = mass
+    end
+
+    action GetMass returns number
+        return mass
+    end
+
+    action GetCenter returns Vector2
+        return center
+    end
+
+    action SetCenter(Vector2 center)
+        me:center = center
+    end
+
+    action GetInertia returns number
+        return inertia
+    end
+
+    action SetInertia(number inertia)
+        me:inertia = inertia
+    end
+end

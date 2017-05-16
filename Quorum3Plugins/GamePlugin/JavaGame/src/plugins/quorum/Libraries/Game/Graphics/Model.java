@@ -103,7 +103,7 @@ public class Model
     public ModelBlueprint_ GetCachedSphere(double width, double height, double depth, int hDivisions, int vDivisions, Color_ color)
     {
         String blendKey = (color.GetAlpha() < 1.0 ? "BLENDED:" : "");
-        String searchKey = ":CYLINDER:DIFFUSE:" + blendKey + width + ":" + height + ":" + depth + ":" + hDivisions + ":" + vDivisions;
+        String searchKey = ":SPHERE:DIFFUSE:" + blendKey + width + ":" + height + ":" + depth + ":" + hDivisions + ":" + vDivisions;
         
         ModelBlueprint_ blueprint = hashTable.get(searchKey);
         if (blueprint == null)
@@ -117,7 +117,7 @@ public class Model
     
     public ModelBlueprint_ GetCachedSphere(double width, double height, double depth, int hDivisions, int vDivisions, Texture_ texture)
     {
-        String searchKey = ":CYLINDER:TEXTURED:" + width + ":" + height + ":" + depth + ":" + hDivisions + ":" + vDivisions;
+        String searchKey = ":SPHERE:TEXTURED:" + width + ":" + height + ":" + depth + ":" + hDivisions + ":" + vDivisions;
         
         ModelBlueprint_ blueprint = hashTable.get(searchKey);
         if (blueprint == null)

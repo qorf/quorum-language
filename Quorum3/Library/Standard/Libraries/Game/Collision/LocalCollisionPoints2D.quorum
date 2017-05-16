@@ -1,0 +1,79 @@
+use Libraries.Containers.Array
+use Libraries.Compute.Vector2
+
+package Libraries.Game.Collision
+
+class LocalCollisionPoints2D
+    public constant integer MAX_COLLISION_POINTS = 2
+
+    public constant integer CIRCLES = 0
+    public constant integer FACE_A = 1
+    public constant integer FACE_B = 2
+
+    Array<CollisionPoint2D> points
+    Vector2 localNormal
+    Vector2 localPoint
+    integer pointCount = 0
+
+    integer type = 1
+
+    on create
+        points:SetMaxSize(MAX_COLLISION_POINTS)
+        repeat MAX_COLLISION_POINTS times
+            CollisionPoint2D point
+            points:Add(point)
+        end
+    end
+
+    action Set(LocalCollisionPoints2D other)
+        localNormal:Set(other:localNormal)
+        localPoint:Set(other:localPoint)
+        pointCount = other:pointCount
+        type = other:type
+
+        integer i = 0
+        repeat other:pointCount times
+            CollisionPoint2D new
+            CollisionPoint2D old = other:points:Get(i)
+            new:Set(old)
+            me:points:Set(i, new)
+            i = i + 1
+        end
+    end
+
+    action GetPoints returns Array<CollisionPoint2D>
+            return points
+    end
+
+    action GetLocalNormal returns Vector2
+        return localNormal
+    end
+
+    action SetLocalNormal(Vector2 normal)
+        localNormal = normal
+    end
+
+    action GetLocalPoint returns Vector2
+        return localPoint
+    end
+
+    action SetLocalPoint(Vector2 point)
+        localPoint = point
+    end
+
+    action GetPointCount returns integer
+        return pointCount
+    end
+
+    action SetPointCount(integer count)
+        pointCount = count
+    end
+
+    action GetType returns integer
+        return type
+    end
+
+    action SetType(integer type)
+        me:type = type
+    end
+end

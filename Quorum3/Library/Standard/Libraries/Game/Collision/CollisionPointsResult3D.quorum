@@ -1,0 +1,133 @@
+package Libraries.Game.Collision
+
+use Libraries.Game.Collision.LocalCollisionPoints3D
+use Libraries.Compute.Vector3
+use Libraries.Interface.Item3D
+use Libraries.Compute.Matrix3
+use Libraries.Game.Collision.PhysicsPosition3D
+
+
+class CollisionPointsResult3D 
+    LocalCollisionPoints3D collisionPoints
+
+    PhysicsPosition3D rootTransformA
+    PhysicsPosition3D rootTransformB
+    Item3D body0
+    Item3D body1
+    integer partID0 = 0
+    integer partID1 = 0
+    integer index0 = 0
+    integer index1 = 0
+
+    action Initialize(Item3D body0, Item3D body1)
+        me:body0 = body0
+        me:body1 = body1
+        rootTransformA:Set(body0:GetCollisionTransform())
+        rootTransformB:Set(body1:GetCollisionTransform())
+    end
+
+    action GetCollisionPoints returns LocalCollisionPoints3D
+        return collisionPoints
+    end
+
+    action SetCollisionPoints(LocalCollisionPoints3D collisionPoints)
+        me:collisionPoints = collisionPoints
+    end
+
+    action SetShapeIdentifiers(integer partID0, integer index0, integer partID1, integer index1)
+        me:partID0 = partID0
+        me:index0 = index0
+        me:partID1 = partID1
+        me:index1 = index1
+    end
+
+    action AddCollisionPoint(Vector3 normalOnBInWorld, Vector3 pointInWorld, number depth)
+        if depth > collisionPoints:GetCollisionBreakingThreshold()
+            return now
+        end
+
+        boolean isSwapped = collisionPoints:GetBody0() not= body0
+
+        Vector3 pointA
+        pointA:Set(normalOnBInWorld)
+        pointA:Scale(depth)
+        pointA:Add(pointInWorld)
+
+        Vector3 localA
+        Vector3 localB        
+
+        if isSwapped
+            rootTransformB:InverseTransform(pointA, localA)
+            rootTransformA:InverseTransform(pointInWorld, localB)
+        else
+            rootTransformA:InverseTransform(pointA, localA)
+            rootTransformB:InverseTransform(pointInWorld, localB)
+        end
+
+        CollisionPoint3D newPoint
+        newPoint:Initialize(localA, localB, normalOnBInWorld, depth)
+
+        newPoint:GetWorldPositionOnA():Set(pointA)
+        newPoint:GetWorldPositionOnB():Set(pointInWorld)
+
+        integer insertIndex = collisionPoints:GetCacheEntry(newPoint)
+
+        newPoint:combinedFriction = CalculateCombinedFriction(body0, body1)
+        newPoint:combinedRestitution = CalculateCombinedRestitution(body0, body1)
+
+        newPoint:partID0 = partID0
+        newPoint:partID1 = partID1
+        newPoint:index0 = index0
+        newPoint:index1 = index1
+
+        if insertIndex >= 0
+            collisionPoints:ReplaceCollisionPoint(newPoint, insertIndex)
+        else
+            insertIndex = collisionPoints:AddCollisionPoint(newPoint)
+        end
+    end
+
+    action CalculateCombinedFriction(Item3D body0, Item3D body1) returns number
+        if not body0:IsPhysicsEnabled() or not body1:IsPhysicsEnabled()
+            return 0
+        end
+
+        number friction = body0:GetFriction() * body1:GetFriction()
+
+        number maxFriction = 10
+        if friction < -maxFriction
+            friction = -maxFriction
+        end
+        if friction > maxFriction
+            friction = maxFriction
+        end
+
+        return friction
+    end
+
+    action CalculateCombinedRestitution(Item3D body0, Item3D body1) returns number
+        if not body0:IsPhysicsEnabled() or not body1:IsPhysicsEnabled()
+            return 0
+        end
+
+        number max = body0:GetRestitution()
+        if max < body1:GetRestitution()
+           max = body1:GetRestitution()
+        end
+        return max
+    end
+
+    action RefreshCollisionPoints
+        if collisionPoints:GetPointCount() = 0
+            return now
+        end
+
+        boolean isSwapped = collisionPoints:GetBody0() not= body0
+
+        if isSwapped
+            collisionPoints:RefreshCollisionPoints(rootTransformB, rootTransformA)
+        else
+            collisionPoints:RefreshCollisionPoints(rootTransformA, rootTransformB)
+        end
+    end
+end

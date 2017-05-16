@@ -4105,6 +4105,56 @@ class Matrix4
             Project(matrix, vectors:Get(counter))
             counter = counter + 1
         end
+    end      
+
+    action GetElement(integer row, integer column) returns number
+        integer i = row
+        integer j = column
+        if i < 0 or i > 3 or j < 0 or j > 3
+            MatrixError matrix
+            matrix:SetErrorMessage("Invalid row or column number for a 4x4 matrix.")
+            alert(matrix)
+        end
+        if i = 0
+            if j = 0
+                return row0column0
+            elseif j = 1
+                return row0column1
+            elseif j = 2
+                return row0column2
+            else
+                return row0column3
+            end
+        elseif i = 1
+            if j = 0
+                return row1column0
+            elseif j = 1
+                return row1column1
+            elseif j = 2
+                return row1column2
+            else
+                return row1column3
+            end
+        elseif i = 2
+            if j = 0
+                return row2column0
+            elseif j = 1
+                return row2column1
+            elseif j = 2
+                return row2column2
+            else
+                return row2column3
+            end
+        else
+            if j = 0
+                return row3column0
+            elseif j = 1
+                return row3column1
+            elseif j = 2
+                return row3column2
+            else
+                return row3column3
+            end
+        end
     end
-      
 end

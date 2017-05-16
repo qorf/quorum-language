@@ -9,9 +9,30 @@ use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.Containers.List
 use Libraries.Language.Compile.Translate.ClassOpcode
 use Libraries.System.DateTime
+use Libraries.Web.Page.WebPage
+use Libraries.Web.Page.MetaData
+use Libraries.Web.Page.MainContent
+use Libraries.Web.Page.Header
+use Libraries.Web.Page.WebTable
+use Libraries.Web.Page.TableRow
+use Libraries.Web.Page.TableHeaderCell
+use Libraries.Web.Page.TableData
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.Link
+use Libraries.Web.Page.LineBreak
+use Libraries.Web.Page.ListItem
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.Input
+use Libraries.Web.Page.Form
+use Libraries.Web.Page.NavigationDivision
+use Libraries.Web.Page.Footer
+use Libraries.Web.Page.SmallText
+use Libraries.Web.Page.StrongText
+use Libraries.Web.Page.WebPageHeader
+use Libraries.Web.Page.HeaderLink
 
 class Compiler
-    public constant number VERSION = 4.0
+    public constant number VERSION = 5.0
     File main = undefined
     File outputFolder = undefined
     File pluginFolder = undefined
@@ -55,6 +76,15 @@ class Compiler
     constant text USE = "use"
     constant text PACKAGE = "package"
     HashTable<text, Class> lastGoodCompileHash
+    boolean writeJavaScriptToDisk = false
+
+    action IsWritingJavaScriptToDisk returns boolean
+        return writeJavaScriptToDisk
+    end
+
+    action SetWritingJavaScriptToDisk(boolean write)
+        writeJavaScriptToDisk = write
+    end
 
     action HasSpeechCallInCompile returns boolean
         return containsSpeechCommandInCompile
@@ -1231,142 +1261,233 @@ class Compiler
                 profiler:Add(time:GetEpochTime())
                 
             elseif currentOutputType = JAVASCRIPT
-                text result = ""
-                text plugins = ""
-                text main = ""
-                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
-                repeat while codes:HasNext()
-                    ClassOpcode code = codes:Next()
-                    Class clazz = code:GetClass()
-
-                    
-                    Class mainClazz = me:GetMainClass()
-                    text mainClazzName = mainClazz:GetStaticKey()
-                    text clazzName = clazz:GetStaticKey()
-                    //if (not clazzName:Contains("Libraries.System") or
-                    //    clazzName = "Libraries.System.DateTime"
-                    //    )
-                        if mainClazz:GetStaticKey() = clazzName
-                            main = code:WriteJavaScript()
-                        else
-                            result = result + code:WriteJavaScript()
-                        end
-
-                        //check if this class has a plugin. If it does, include it.
-                        if clazz:HasSystemAction()
-                            File folder = GetStandardLibraryFolder() 
-                            path = folder:GetPath() + "/Plugins/javascript/"
-                            
-                            key = clazz:GetStaticKey()
-                            Array<text> keys = key:Split("\.")
-                            i = 0
-                            repeat keys:GetSize() times
-                                newKey = keys:Get(i)
-                                if i = keys:GetSize() - 1
-                                    path = path + newKey + ".js"
-                                else
-                                    path = path + newKey + "/"
-                                end
-                                i = i + 1
-                            end
-                            File location
-                            location:SetWorkingDirectory(folder:GetWorkingDirectory())
-                            location:SetPath(path)
-                            if location:Exists() 
-                                value = location:Read()
-                                plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
-                            end
-                        end
-                    //end
+                convertedJavaScript = CompileToJavaScript(classOpcodes)
+                if IsWritingJavaScriptToDisk()
+                    WriteJavaScript(convertedJavaScript)
                 end
-                convertedJavaScript = plugins + result + main
+                
             elseif currentOutputType = DOCUMENT
-                text result = ""
-                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
-                repeat while codes:HasNext()
-                    ClassOpcode code = codes:Next()
-                    Class clazz = code:GetClass()
-
-                    text web = code:WriteToWeb()
-                    text key = clazz:GetStaticKey()
-                    text parentKey = ""
-                    Array<text> split = key:Split("\.")
-                    i = 0
-                    repeat split:GetSize() - 1 times
-                        parentKey = parentKey + split:Get(i) + "/"
-                        i = i + 1
-                    end
-                    key = "/" + key:Replace(".", "/") + ".php"
-
-                    
-                    buildFolder:CreateDirectories()
-                    File mom
-                    mom:SetWorkingDirectory(buildFolder:GetAbsolutePath())
-                    mom:SetPath(DOCUMENTATION_FOLDER + "/" + parentKey)
-                    mom:CreateDirectories()
-
-                    File documentationFile
-                    documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
-                    documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + key)
-
-                    
-                    documentationFile:Write(web)
-                    a = 5
-                end
-                
-                
-                text index = "<?php $classPageTitle = 'The Quorum Standard Library'; include('static/templates/pageheader.template.php'); ?>"
-                text dq = index:GetDoubleQuote()
-                text NL = index:GetCarriageReturn()
-
-                index = index + NL + " <div class=" + dq + "hero-unit" + dq + ">" + NL
-                index = index + "<div class=" + dq + "hero-unit-container" + dq + ">"
-		index = index + "<h1>The Quorum Standard Library</h1>"
-		index = index + "<p>Quorum includes library classes like: 1) computer games, 2) text-to-speech and audio playback, 3) Lego robots, and 4) support classes (e.g., arrays, lists, hash tables, math, console, system). The standard library is expanded in each release.</p>"
-		index = index + "</div></div>"
-                index = index + "<div class=" + dq + "content index-content" + dq + ">"
-
-                Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
-                repeat while packages:HasNext()
-                    text key = packages:Next()
-                    if not key:IsEmpty() //ignore the default package
-                        index = index + NL + "<table class=" + dq + "table index-package" + dq + ">"
-                        index = index + "<tr><th><h3 class=" + dq + "index_package_title" + dq + ">" + key + "</h3></th></tr>" + NL
-                        Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
-                        integer i2 = 0
-                        repeat classes:GetSize() times
-                            Class clazz = classes:Get(i2)
-                            index = index + "<tr><td class=" + dq + "primary" + dq + ">" + NL
-                            index = index + GetClassLinkFromIndex(clazz)//"<a href=" + dq + "" + dq + ">" + clazz:GetName() + "</a>" 
-                            
-                            Documentation doc = clazz:GetDocumentation()
-                            if doc not= undefined
-                                constant integer DOC_SIZE = 120
-                                text description = doc:GetDescription()
-                                if description = undefined
-                                    description = ""
-                                end
-                                if description:GetSize() > DOC_SIZE
-                                    description = description:GetSubtext(0, DOC_SIZE) + " ..."
-                                end
-
-                                index = index + ": " + description
-                            end
-
-                            index = index + "</td></tr>"
-                            i2 = i2 + 1
-                        end
-                        index = index + "</table>"
-                    end
-                end
-                index = index + NL + "</div" + NL + "<?php include('static/templates/pagefooter.template.php'); ?>"
-
-                File documentationFile
-                documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
-                documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + "libraries.php")
-                documentationFile:Write(index)
+                CreateDocumentation(classOpcodes)
             end
         end
+    end
+
+    private action WriteJavaScript(text value)
+        //check if the run folder is there.
+        File run = GetRunFolder()
+        if run not=undefined
+            if not run:Exists()
+                run:CreateDirectories()
+            end
+
+            File jsFile
+            jsFile:SetWorkingDirectory(run:GetAbsolutePath())
+            jsFile:SetPath(GetName() + ".js")
+            jsFile:Write(value)
+        end
+    end
+
+    private action AddDefaultHeaders returns NavigationDivision
+        NavigationDivision division
+        UnorderedList list
+        division:SetClassAttribute("headerNavBar outermostContainer")
+
+        Link logoLink
+        logoLink:SetIdentifier("homePageLink")
+        logoLink:AddImage("/media/QuorumLogo.png", "The Quorum Logo")
+        logoLink:SetAddress("https://www.quorumlanguage.com/")
+        logoLink:AddText("Quorum")
+
+        ListItem item
+        item:Add(logoLink)
+        list:Add(item)
+
+        text extension = ".html"
+        list:AddListItemLink("Download", "/download" + extension)
+        list:AddListItemLink("Reference", "/reference" + extension)
+        list:AddListItemLink("Libraries", "/libraries" + extension)
+        list:AddListItemLink("Lessons", "/lesson" + extension)
+        list:AddListItemLink("Bugs", "https://quorum.atlassian.net")
+        division:Add(list)
+        
+        //search bar
+        Form form
+        form:AddAttribute("role", "search")
+        form:SetIdentifier("searchForm")
+        Input searchInput
+        searchInput:SetIdentifier("searchFormInput")
+        searchInput:SetPlaceHolder("How do I create an array?")
+        searchInput:SetType("text")
+        form:Add(searchInput)
+        Input searchButton
+        searchButton:SetIdentifier("searchFormButton")
+        searchButton:SetDefaultValue("Search")
+        searchButton:SetType("submit")
+        form:Add(searchButton)
+        division:Add(form)
+        return division
+    end
+
+    private action GetFooter returns Footer
+        Footer footer
+        footer:AddText("The Quorum Programming Language")
+        footer:SetIdentifier("footer")
+        SmallText small
+        small:AddText("Copyright &copy; 2014-2016. Art and Design by Andreas Stefik, Evan Pierzina, and Kerry Ritter")
+        footer:Add(small)
+        return footer
+    end
+
+    private action CreateDocumentation(Array<ClassOpcode> classOpcodes)
+        NavigationDivision navigation = AddDefaultHeaders()
+        Footer footer = GetFooter()
+        text result = ""
+        Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+        repeat while codes:HasNext()
+            ClassOpcode code = codes:Next()
+            Class clazz = code:GetClass()
+
+            WebPage page = code:WriteToWebPage(navigation, footer)
+            text web = page:Generate()//code:WriteToWeb()
+            text key = clazz:GetStaticKey()
+            text parentKey = ""
+            Array<text> split = key:Split("\.")
+            i = 0
+            repeat split:GetSize() - 1 times
+                parentKey = parentKey + split:Get(i) + "/"
+                i = i + 1
+            end
+            key = "/" + key:Replace(".", "/") + ".html"
+
+
+            buildFolder:CreateDirectories()
+            File mom
+            mom:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+            mom:SetPath(DOCUMENTATION_FOLDER + "/" + parentKey)
+            mom:CreateDirectories()
+
+            File documentationFile
+            documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+            documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + key)
+            documentationFile:Write(web)
+        end
+
+        WebPage page
+        //add language headers
+        page:AddAttribute("xml:lang", "en")
+        page:SetLanguage("en")
+
+        //add the meta-data character set
+        MetaData charset
+        charset:SetCharacterSet("UTF-8")
+        page:AddMetaData(charset)
+
+        //auto-generate some sensible keywords
+        MetaData keywords
+        text keywordText = "programming for beginners, computer programming,
+        Quorum programming language, Standard Library"
+        keywords:AddAttribute("name", "keywords")
+        keywords:AddAttribute("content", keywordText)
+        page:AddMetaData(keywords)
+
+        MetaData viewport
+        viewport:SetContent("width=device-width, initial-scale=1")
+        viewport:SetName("viewport")
+        page:AddMetaData(viewport)
+
+        page:AddScript("/script/jquery-1.8.3.min.js")
+        page:AddScript("/script/script.js")
+        
+        //add style sheet tags
+        page:AddStylesheet("/style/style.css")
+        page:AddStylesheet("/style/google.css")
+        page:AddIcon("/media/favicon.ico")
+
+        //Add Responsive Stylesheets
+        WebPageHeader webHeader = page:GetWebPageHeader()
+        webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
+        webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 800px)"))
+        webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 801px)"))
+
+        page:SetWebPageTitle("Standard Library Index - Quorum Programming Language")
+        page:Add(navigation)
+        MainContent mainRegion
+        mainRegion:AddAttribute("role","main")
+
+        Header headDiv
+        headDiv:SetClassAttribute("pageHeader outermostContainer")
+        headDiv:AddHeading("Quorum Standard Library", 1)
+        page:Add(headDiv)
+
+        Division bodyDiv
+        bodyDiv:SetClassAttribute("bodyContainer")
+        bodyDiv:AddHeading("Quorum's Built-in Packages and Classes", 2)
+        bodyDiv:AddParagraph("Quorum includes library classes like: 1) computer 
+            games, 2) text-to-speech and audio playback, 3) Lego robots, and 
+            4) support classes (e.g., arrays, lists, hash tables, math, console, 
+            system). The standard library is expanded in each release.")
+
+        Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
+        repeat while packages:HasNext()
+            text key = packages:Next()
+            if not key:IsEmpty() //ignore the default package
+                WebTable table
+                table:SetBorder(true)
+
+                TableRow headerRow
+                TableHeaderCell packageNameHeaderCell
+                packageNameHeaderCell:AddText(key)
+                headerRow:Add(packageNameHeaderCell)
+                table:Add(headerRow)
+
+                Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
+                integer i2 = 0
+                repeat classes:GetSize() times
+                    Class clazz = classes:Get(i2)
+                    TableRow row
+
+                    TableData data
+                    data:Add(GetWebLinkForClassFromIndex(clazz, true))
+                    row:Add(data)
+
+                    Documentation doc = clazz:GetDocumentation()
+                    if doc not= undefined
+                        constant integer DOC_SIZE = 120
+                        text description = doc:GetDescription()
+                        if description = undefined
+                            description = ""
+                        end
+                        if description:GetSize() > DOC_SIZE
+                            description = description:GetSubtext(0, DOC_SIZE) + " ..."
+                        end
+                        data:AddText(": " + description)
+                    end
+                    table:Add(row)
+                    i2 = i2 + 1
+                end
+                bodyDiv:Add(table)
+                LineBreak break
+                bodyDiv:Add(break)
+            end
+        end
+
+        mainRegion:Add(bodyDiv)
+        page:Add(mainRegion)
+        page:Add(footer)
+
+        File documentationFile
+        documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+        documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + "libraries.html")
+        documentationFile:Write(page:Generate())
+    end
+
+    private action GetMediaStyleSheet(text name, text media) returns HeaderLink
+        HeaderLink link
+        link:SetAddress(name)
+        link:SetType("text/css")
+        link:SetRelationship("stylesheet")
+        link:SetMedia(media)
+        return link
     end
 
     private action GetClassLinkFromIndex(Class from) returns text
@@ -1386,6 +1507,34 @@ class Compiler
         end
         text dq = link:GetDoubleQuote()
         link = "<a href = " + dq + link + dq + ">" + from:GetName() + "</a>"
+        return link
+    end
+
+    private action GetWebLinkForClassFromIndex(Class from, boolean boldLink) returns Link
+        Link link
+        text key = from:GetStaticKey()
+        text linkText = ""
+        Array<text> fromSplit = key:Split("\.")
+        if fromSplit not= undefined
+            i = 0
+            repeat fromSplit:GetSize() times
+                if i < fromSplit:GetSize() - 1
+                    linkText = linkText + fromSplit:Get(i) + "/"
+                else
+                    linkText = linkText + fromSplit:Get(i) + ".html"
+                end
+                i = i + 1
+            end
+        end
+        link:SetAddress(linkText)
+        if boldLink
+            StrongText strong
+            strong:AddText(from:GetName())
+            link:Add(strong)
+        else 
+            link:AddText(from:GetName())
+        end
+        
         return link
     end
 
@@ -1472,7 +1621,8 @@ class Compiler
         
         // Booleans added for the game/sound plugins.
         boolean hasGame = symbolTable:HasClass("Libraries.Game.Game")
-        boolean hasAudio = symbolTable:HasClass("Libraries.Sound.Audio")
+        boolean hasAudio = symbolTable:HasClass("Libraries.Sound.Audio") or
+            symbolTable:HasClass("Libraries.Sound.AudioSamples") or symbolTable:HasClass("Libraries.Sound.Microphone")
 
         Iterator<Class> tempIterator = symbolTable:GetClassesInPackage("Libraries.Robots.Lego")
         boolean hasRobots = false
@@ -2016,57 +2166,75 @@ class Compiler
                     //generator:Write()
                 end
             elseif currentOutputType = JAVASCRIPT
-                text result = ""
-                text plugins = ""
-                text main = ""
-                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
-                repeat while codes:HasNext()
-                    ClassOpcode code = codes:Next()
-                    Class clazz = code:GetClass()
-
-                    
-                    Class mainClazz = me:GetMainClass()
-                    text mainClazzName = mainClazz:GetStaticKey()
-                    text clazzName = clazz:GetStaticKey()
-                    if (not clazzName:Contains("Libraries.System") or
-                        clazzName = "Libraries.System.DateTime"
-                        )
-                        if mainClazz:GetStaticKey() = clazzName
-                            main = code:WriteJavaScript()
-                        else
-                            result = result + code:WriteJavaScript()
-                        end
-
-                        //check if this class has a plugin. If it does, include it.
-                        if clazz:HasSystemAction()
-                            File folder = GetStandardLibraryFolder() 
-                            path = folder:GetPath() + "/Plugins/javascript/"
-                            
-                            key = clazz:GetStaticKey()
-                            Array<text> keys = key:Split("\.")
-                            i = 0
-                            repeat keys:GetSize() times
-                                newKey = keys:Get(i)
-                                if i = keys:GetSize() - 1
-                                    path = path + newKey + ".js"
-                                else
-                                    path = path + newKey + "/"
-                                end
-                                i = i + 1
-                            end
-                            File location
-                            location:SetWorkingDirectory(folder:GetWorkingDirectory())
-                            location:SetPath(path)
-                            if location:Exists() 
-                                value = location:Read()
-                                plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
-                            end
-                        end
-                    end
-                end
-                convertedJavaScript = plugins + result + main
+                convertedJavaScript = CompileToJavaScript(classOpcodes)
             end
         end
+    end
+
+    /*
+        This is a helper action to compile to JavaScript
+    */
+    private action CompileToJavaScript(Array<ClassOpcode> classOpcodes) returns text
+        text result = ""
+        text plugins = ""
+        text main = ""
+        Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+        repeat while codes:HasNext()
+            ClassOpcode code = codes:Next()
+            Class clazz = code:GetClass()
+//                    //write a bunch of plugins out
+//                    if clazz:HasSystemAction()
+//                        text value = code:WriteJavaScriptPlugin()
+//                        File myPlugin
+//                        myPlugin:SetWorkingDirectory("/Users/stefika/Desktop/Plugins")
+//                        text path = clazz:GetFile():GetPath()
+//                        path = path:Replace(".quorum", ".js")
+//                        myPlugin:SetPath(path)
+//                        File myPluginParent
+//                        myPluginParent:SetWorkingDirectory("/Users/stefika/Desktop/Plugins")
+//                        text pack = clazz:GetPackage():GetStaticKey()
+//                        pack = "/" + pack:Replace(".", "/")
+//                        myPluginParent:SetPath(pack)
+//                        myPluginParent:CreateDirectories()
+//                        myPlugin:Write(value)
+//                    end
+
+            Class mainClazz = me:GetMainClass()
+            text mainClazzName = mainClazz:GetStaticKey()
+            text clazzName = clazz:GetStaticKey()
+            if mainClazz:GetStaticKey() = clazzName
+                main = code:WriteJavaScript()
+            else
+                result = result + code:WriteJavaScript()
+            end
+
+            //check if this class has a plugin. If it does, include it.
+            if clazz:HasSystemAction()
+                File folder = GetStandardLibraryFolder() 
+                path = folder:GetPath() + "/Plugins/javascript/"
+
+                key = clazz:GetStaticKey()
+                Array<text> keys = key:Split("\.")
+                i = 0
+                repeat keys:GetSize() times
+                    newKey = keys:Get(i)
+                    if i = keys:GetSize() - 1
+                        path = path + newKey + ".js"
+                    else
+                        path = path + newKey + "/"
+                    end
+                    i = i + 1
+                end
+                File location
+                location:SetWorkingDirectory(folder:GetWorkingDirectory())
+                location:SetPath(path)
+                if location:Exists() 
+                    value = location:Read()
+                    plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
+                end
+            end
+        end
+        return plugins + result + main
     end
 
     action GetCompiledJavaScript returns text
@@ -2463,9 +2631,13 @@ class Compiler
     end
 
     action GetMainClass returns Class
-        text path = main:GetAbsolutePath()
-        Class c = symbolTable:GetClassInFile(path)
-        return c
+        if main not= undefined and symbolTable not= undefined
+            text path = main:GetAbsolutePath()
+            Class c = symbolTable:GetClassInFile(path)
+            return c
+        end
+        
+        return undefined
     end
 
     action SetMain(File file)

@@ -1,0 +1,176 @@
+package Libraries.Game.Collision
+
+use Libraries.Compute.Matrix3
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Vector3
+use Libraries.Compute.Quaternion
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+
+
+class PhysicsPosition3D 
+    Matrix3 basis
+    Vector3 origin
+
+    action Set(PhysicsPosition3D transform)
+        basis:Set(transform:basis)
+        origin:Set(transform:origin)
+    end
+
+    action Set(Matrix3 matrix)
+        basis:Set(matrix)
+        origin:Set(0, 0, 0)
+    end
+
+    action Set(Matrix4 matrix)
+        basis:Set(matrix)
+        origin:Set(matrix:row0column3, matrix:row1column3, matrix:row2column3)
+    end
+
+    action Set(Matrix3 basis, Vector3 origin)
+        me:basis:Set(basis)
+        me:origin:Set(origin)
+    end
+
+    action GetBasis returns Matrix3
+        return basis
+    end
+
+   action GetOrigin returns Vector3
+        return origin
+    end
+
+    action Transform(Vector3 vector)
+        vector:Multiply(basis)
+        vector:Add(origin)
+    end
+
+    action SetToIdentity
+        basis:IdentityMatrix()
+        origin:SetZero()
+    end
+
+    action Inverse
+        basis:Transpose()
+        origin:Scale(-1)
+        origin:Multiply(basis)
+    end
+
+    action Inverse(PhysicsPosition3D transform)
+        Set(transform)
+        Inverse()
+    end
+
+    action Multiply(PhysicsPosition3D transform)
+        Vector3 vector
+        vector:Set(origin)
+        Transform(vector)
+        
+        basis:Multiply(transform:basis)
+        origin:Set(vector)
+    end
+
+    action Multiply(PhysicsPosition3D transform1, PhysicsPosition3D transform2)
+        Vector3 vector
+        vector:Set(transform2:origin)
+        transform1:Transform(vector)
+
+        basis:Multiply(transform1:basis, transform2:basis)
+        origin:Set(vector)
+    end
+
+    action InverseTransform(Vector3 in, Vector3 out)
+        out:Set(in)
+        out:Subtract(origin)
+        
+        Matrix3 matrix
+        matrix:Set(basis)
+        matrix:Transpose()
+        out:Multiply(matrix)
+    end
+
+    action GetRotation returns Quaternion
+        Quaternion quaternion
+        number trace = basis:row0column0 + basis:row1column1 + basis:row2column2
+        
+        Math math
+
+        Array<number> temp
+        temp:SetSize(4)
+
+        if trace > 0
+            number s = math:SquareRoot(trace + 1)
+            temp:Set(3, s * 0.5)
+            s = 0.5 / s
+
+            temp:Set(0, ((basis:row2column1 - basis:row1column2) * s))
+            temp:Set(1, ((basis:row0column2 - basis:row2column0) * s))
+            temp:Set(2, ((basis:row1column0 - basis:row0column1) * s))
+        else
+            integer i = 0
+            if basis:row0column0 < basis:row1column1
+                if basis:row1column1 < basis:row2column2
+                    i = 2
+                else
+                    i = 1
+                end
+            else
+                if basis:row0column0 < basis:row2column2
+                    i = 2
+                else
+                    i = 0
+                end
+            end
+
+            integer j = (i + 1) mod 3
+            integer k = (i + 2) mod 3
+
+            number s = math:SquareRoot(basis:GetElement(i, i) - basis:GetElement(j, j) - basis:GetElement(k, k) + 1)
+            temp:Set(i, s * 0.5)
+            s = 0.5 / s
+
+            temp:Set(3, (basis:GetElement(k, j) - basis:GetElement(j, k)) * s)
+            temp:Set(j, (basis:GetElement(j, i) + basis:GetElement(i, j)) * s)
+            temp:Set(k, (basis:GetElement(k, i) + basis:GetElement(i, k)) * s)
+        end
+        quaternion:Set(temp:Get(0), temp:Get(1), temp:Get(2), temp:Get(3))     
+
+        return quaternion
+    end
+
+    action SetRotation(Quaternion quaternion)
+        number d = quaternion:GetX() * quaternion:GetX() + quaternion:GetY() * quaternion:GetY() + quaternion:GetZ() * quaternion:GetZ() + quaternion:GetW() * quaternion:GetW()
+        number s = 2.0 / d
+        number xs = quaternion:GetX() * s
+        number ys = quaternion:GetY() * s
+        number zs = quaternion:GetZ() * s
+        number wx = quaternion:GetW() * xs
+        number wy = quaternion:GetW() * ys
+        number wz = quaternion:GetW() * zs
+        number xx = quaternion:GetX() * xs
+        number xy = quaternion:GetX() * ys
+        number xz = quaternion:GetX() * zs
+        number yy = quaternion:GetY() * ys
+        number yz = quaternion:GetY() * zs
+        number zz = quaternion:GetZ() * zs
+        
+        basis:row0column0 = 1 - (yy + zz)
+        basis:row0column1 = xy - wz
+        basis:row0column2 = xz + wy
+        basis:row1column0 = xy + wz
+        basis:row1column1 = 1 - (xx + zz)
+        basis:row1column2 = yz - wx
+        basis:row2column0 = xz - wy
+        basis:row2column1 = yz + wx
+        basis:row2column2 = 1 - (xx + yy)        
+    end
+
+    action GetMatrix(Matrix4 matrix) returns Matrix4
+        matrix:Set(basis)
+        matrix:row0column3 = origin:GetX()
+        matrix:row1column3 = origin:GetY()
+        matrix:row2column3 = origin:GetZ()
+
+        return matrix
+    end
+end

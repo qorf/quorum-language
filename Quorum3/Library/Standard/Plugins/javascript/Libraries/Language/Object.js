@@ -89,7 +89,7 @@ function global_parseNumber(text) {
         var error = new quorum_Libraries_Language_Errors_CastError_();
         throw error;
     }
-    if(/^(\-|\+)?([0-9]+(\.[0-9]+)?|Infinity)$/.test(text)) {
+    if(/^(\-|\+)?([0-9]+(\.[0-9]+)?(e(\-|\+)?[0-9]+)?|Infinity)$/.test(text)) {
       return Number(text);
     } else {
         var error = new quorum_Libraries_Language_Errors_CastError_();
@@ -98,6 +98,8 @@ function global_parseNumber(text) {
 }
 
 function global_CheckCast(from, to) {
+    if (from === null || from === undefined)
+        return from;
     var names = from.parentNames_;
     for(i = 0; i < names.length; i++) {
         if(names[i] == to) {

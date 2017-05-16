@@ -1,0 +1,32 @@
+package Libraries.Game.Collision.Narrowphase
+
+class TimeOfImpactOutput2D 
+    public constant integer UNKNOWN = 0
+    public constant integer FAILED = 1
+    public constant integer OVERLAPPED = 2
+    public constant integer TOUCHING = 3
+    public constant integer SEPARATED = 4
+
+    integer state = UNKNOWN
+    number time = 0
+
+    action SetState(integer state)
+        if state <= 4
+            me:state = state
+        else
+            me:state = UNKNOWN
+        end
+    end
+
+    action GetState returns integer
+        return state
+    end
+
+    action SetTime(number time)
+        me:time = time
+    end
+
+    action GetTime returns number
+        return time
+    end
+end

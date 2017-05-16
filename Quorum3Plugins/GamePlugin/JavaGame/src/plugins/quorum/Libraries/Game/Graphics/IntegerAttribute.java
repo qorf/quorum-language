@@ -13,10 +13,10 @@ public class IntegerAttribute extends Attribute
 {
     public java.lang.Object me_ = null;
     
-    public final static int DEPTH_TEST = RegisterStatic("cullFace");
+    public final static int CULL_FACE = RegisterStatic("cullFace");
     
     public int GetCullFaceValue()
     {
-        return DEPTH_TEST;
+        return CULL_FACE;
     }
 }

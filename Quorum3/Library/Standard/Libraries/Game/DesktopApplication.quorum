@@ -29,42 +29,7 @@ class DesktopApplication is Application
         MainLoop()
         
     end 
-    
-    /* 
-      THE REAL SETUP
-      Notes: App listener is what stores their code, app config is obv, LwjglGraphics is GameDisplay
-
-      	public LwjglApplication (ApplicationListener listener, LwjglApplicationConfiguration config, LwjglGraphics graphics) {
-		LwjglNativesLoader.load();		
-
-		if (config.title == null) config.title = listener.getClass().getSimpleName();
-
-		this.graphics = graphics;
-		if (!LwjglApplicationConfiguration.disableAudio)
-			audio = new OpenALAudio(config.audioDeviceSimultaneousSources, config.audioDeviceBufferCount,
-				config.audioDeviceBufferSize);
-		files = new LwjglFiles();
-		input = new LwjglInput();
-		net = new LwjglNet();
-		this.listener = listener;
-		this.preferencesdir = config.preferencesDirectory;
-
-		Gdx.app = this;
-		Gdx.graphics = graphics;
-		Gdx.audio = audio;
-		Gdx.files = files;
-		Gdx.input = input;
-		Gdx.net = net;
-		initialize();
-	}
-        
-     */
-
      
-    //Kicks off the game in it's own thread from inside Java.
-    //Equivilent to the Initialize method.
-    //system action NativeSetup
-
     private action MainLoop
 
         DesktopDisplay display = cast(DesktopDisplay, parent:Application:display)
@@ -76,7 +41,7 @@ class DesktopApplication is Application
         integer lastWidth = display:GetWidth()
         integer lastHeight = display:GetHeight()
         
-        display:SetLastTime()   //Forced to get nanoseconds from java
+        display:SetLastTime()
 
         
         boolean wasActive = true
@@ -84,13 +49,7 @@ class DesktopApplication is Application
         //The actual workhorse loop.
         repeat until parent:Application:running = false
 
-            //parent:Application:glmanager:SetDrawingRegion(0, 0, display:GetWidth(), display:GetHeight())
-
             display:ProcessMessages()
-
-            //if display:IsCloseRequested() or game:exitRequested
-            //    Exit()
-            //end
 
             boolean isActive = display:IsActive()
 
@@ -110,10 +69,6 @@ class DesktopApplication is Application
 
             boolean shouldRender = false
 
-            // In libgdx, there is an "if" statement here looking for if
-            // graphics.canvas is != null. We skip straight to the else
-            // statement for now.
-
             DesktopConfiguration configuration
             configuration = cast(DesktopConfiguration, display:GetConfiguration())
 
@@ -128,14 +83,6 @@ class DesktopApplication is Application
 
                 display:SetResize(false)
 
-                // Checking glmanager for NullPointerException
-                // If null, check to see if GraphicsManager's
-                // GetGameGraphics() action is working properly.
-                    /*if glmanager = undefined
-                        output("WARNING: Undefined glmanager!")
-                    end*/
-
-
                 if configuration:autoResizeTextures
                     parent:Application:glmanager:SetDrawingRegion(0, 0, display:GetWidth(), display:GetHeight())
                 end
@@ -144,9 +91,6 @@ class DesktopApplication is Application
 
                 configuration:width = display:GetWidth()
                 configuration:height = display:GetHeight()
-
-                // We may want to rename "display:GetWidth" and "display:GetHeight"
-                // to "display:GetDisplayWidth" and "display:GetDisplayHeight"
 
                 // libgdx has another listener check here, as shown below.
                 // if (listener != null) listener.resize(Display.getWidth(), Display.getHeight());
@@ -162,8 +106,6 @@ class DesktopApplication is Application
             //this if(true) should be executeRunnables(). How to do this?
             if(true) shouldrender = true end
 
-            //input.update()
-            //|=
             if(display:shouldrender)
                 shouldrender = display:shouldrender
             end
@@ -171,7 +113,6 @@ class DesktopApplication is Application
 
             if(shouldrender)
                display:UpdateTime()
-               //increment frame
 
                // Temporary fix to full screen games not using the full viewport area.
                if configuration:fullScreen
@@ -179,36 +120,8 @@ class DesktopApplication is Application
                end
 
                parent:Application:game:ContinueGame()
-               //parent:Application:glmanager:SetDrawingRegion(0, 0, display:GetWidth(), display:GetHeight())
-               display:UpdateFalse()
-               //parent:Application:glmanager:SetDrawingRegion(0, 0, display:GetWidth(), display:GetHeight())
+               display:Update()
             end
-
-
-            /*
-                if (executeRunnables()) shouldRender = true;
-            // If one of the runnables set running to false, for example after an exit().
-            if (!running) break;
-            input.update();
-            shouldRender |= graphics.shouldRender();
-            input.processEvents();
-            if (audio != null) audio.update();
-            if (!isActive && graphics.config.backgroundFPS == -1) shouldRender = false;
-            int frameRate = isActive ? graphics.config.foregroundFPS : graphics.config.backgroundFPS;
-            if (shouldRender) {
-                graphics.updateTime();
-                graphics.frameId++;
-                listener.render();
-                Display.update(false);
-            } else {
-                // Sleeps to avoid wasting CPU in an empty loop.
-                if (frameRate == -1) frameRate = 10;
-                if (frameRate == 0) frameRate = graphics.config.backgroundFPS;
-                if (frameRate == 0) frameRate = 30;
-            }
-            if (frameRate > 0) Display.sync(frameRate);     
-
-            */
 
             display:SetConfiguration(configuration)
 
