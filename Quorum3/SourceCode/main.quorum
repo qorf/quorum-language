@@ -500,6 +500,8 @@ class Main is WebResponder
 
             if names:IsEmpty()
                 output "I noticed you asked for a program to be compiled, but that no files were passed."
+                output GetHelpText()
+                return now
             end
 
             Compile(name, names, false)
@@ -515,7 +517,9 @@ class Main is WebResponder
             end
 
             if names:IsEmpty()
-                output "I noticed you asked for a program to be compiled, but that no files were passed."
+                output "I noticed you asked for a program to be compiled to JavaScript, but that no files were passed."
+                output GetHelpText()
+                return now
             end
 
             Compile(name, names, false)
@@ -531,7 +535,9 @@ class Main is WebResponder
             Array<text> names = flagValues:GetValue(WEB_FLAG)
 
             if names:IsEmpty()
-                output "I noticed you asked for a program to be compiled, but that no files were passed."
+                output "I noticed you asked for a program to be compiled to the web, but that no files were passed."
+                output GetHelpText()
+                return now
             end
 
             Compile(name, names, true)
