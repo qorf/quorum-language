@@ -1,9 +1,10 @@
-package Libraries.Game.Collision
+package Libraries.Game.Collision.Narrowphase
 
 use Libraries.Game.Collision.Shapes.CollisionShape3D
 use Libraries.Compute.Vector3
-use Libraries.Game.Collision.ConvexConvexSimplexSolver
-use Libraries.Game.Collision.ConvexConvexCollisionSolver
+use Libraries.Game.Collision.Narrowphase.ConvexConvexSimplexSolver
+use Libraries.Game.Collision.Narrowphase.ConvexConvexCollisionSolver
+use Libraries.Game.Collision.PhysicsPosition3D
 
 class ConvexConvexPenetrationDepthSolver 
     ConvexConvexCollisionSolver gjkEpaSolver

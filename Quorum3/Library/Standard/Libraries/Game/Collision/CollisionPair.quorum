@@ -2,7 +2,7 @@ use Libraries.Language.Support.CompareResult
 
 package Libraries.Game.Collision
 
-class CollisionPair2D 
+class CollisionPair
     integer nodeIDA = -1
     integer nodeIDB = -1
 
@@ -27,7 +27,7 @@ class CollisionPair2D
         nodeIDB = id
     end
 
-    action Compare(CollisionPair2D otherPair) returns CompareResult
+    action Compare(CollisionPair otherPair) returns CompareResult
         CompareResult result
         if me:nodeIDA < otherPair:nodeIDA
             result:result = result:SMALLER

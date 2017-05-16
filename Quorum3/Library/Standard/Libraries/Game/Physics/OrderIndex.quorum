@@ -1,0 +1,24 @@
+package Libraries.Game.Physics
+
+use Libraries.Game.Physics.all
+
+class OrderIndex 
+    integer pointsIndex = -1
+    integer pointIndex = -1
+
+    action SetPointsIndex(integer index)
+        me:pointsIndex = index
+    end
+
+    action GetPointsIndex returns integer
+        return pointsIndex
+    end
+
+    action SetPointIndex(integer index)
+        me:pointIndex = index
+    end
+
+    action GetPointIndex returns integer
+        return pointIndex
+    end
+end

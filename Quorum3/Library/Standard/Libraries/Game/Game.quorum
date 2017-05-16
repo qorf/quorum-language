@@ -54,6 +54,8 @@ use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
 use Libraries.Interface.Events.CollisionListener2D
 use Libraries.Interface.Events.CollisionListener3D
+use Libraries.Compute.Vector2
+use Libraries.Compute.Vector3
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -411,8 +413,9 @@ class Game
         gameInput:ProcessInputEvents()
 
         UpdateAll()
-        Update(GetSecondsBetweenFrames())
-        TestForCollisions()
+        number seconds = GetSecondsBetweenFrames()
+        Update(seconds)
+        TestForCollisions(seconds)
         ClearScreen()
         DrawAll()
     end
@@ -1489,16 +1492,16 @@ class Game
         currentLayer3D:RemoveCollisionListener(listener)
     end
 
-    private action TestForCollisions
+    private action TestForCollisions(number seconds)
         integer i = 0
         repeat while i < layers:GetSize()
             Layer layer = layers:Get(i)
             if layer is Layer2D
                 Layer2D layer2D = cast(Layer2D, layer)
-                layer2D:TestForCollisions()
+                layer2D:TestForCollisions(seconds)
             else
                 Layer3D layer3D = cast(Layer3D, layer)
-                layer3D:TestForCollisions()
+                layer3D:TestForCollisions(seconds)
             end
 
             i = i + 1
@@ -2438,6 +2441,30 @@ class Game
         return currentLayer3D:GetPointLights()
     end
 
+    action SetGravity2D(Vector2 gravity)
+        currentLayer2D:SetGravity(gravity)
+    end 
+
+    action SetGravity2D(number gravityX, number gravityY)
+        currentLayer2D:SetGravity(gravityX, gravityY)
+    end
+
+    action EnablePhysics2D(boolean flag)
+        currentLayer2D:EnablePhysics(flag)
+    end
+
+    action SetGravity3D(Vector3 gravity)
+        currentLayer3D:SetGravity(gravity)
+    end 
+
+    action SetGravity3D(number gravityX, number gravityY, number gravityZ)
+        currentLayer3D:SetGravity(gravityX, gravityY, gravityZ)
+    end
+
+    action EnablePhysics3D(boolean flag)
+        currentLayer3D:EnablePhysics(flag)
+    end
+
     /*
     This action will set a game running on a desktop platform to use the given
     ScreenResolution. This will have no effect on non-desktop platforms. Using
@@ -2889,5 +2916,13 @@ class Game
     */
     action GetSkybox returns Skybox
         return GetCurrentLayer3D():GetSkybox()
+    end
+
+    action SetSimulationThreshold2D(number threshold)
+        GetCurrentLayer2D():SetSimulationThreshold(threshold)
+    end
+
+    action GetSimulationThreshold2D returns number
+        return GetCurrentLayer2D():GetSimulationThreshold()
     end
 end

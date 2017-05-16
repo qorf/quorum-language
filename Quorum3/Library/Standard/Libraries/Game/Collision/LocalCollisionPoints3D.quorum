@@ -7,6 +7,8 @@ use Libraries.Compute.Vector3
 use Libraries.Compute.Math
 use Libraries.Compute.Matrix3
 use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Physics.CollisionPersistentData
+use Libraries.Game.Physics.all
 
 class LocalCollisionPoints3D
     public constant integer MAX_COLLISION_POINTS = 4
@@ -193,6 +195,13 @@ class LocalCollisionPoints3D
         return nearestPoint
     end
 
+    action ClearPersistentData(CollisionPoint3D point)
+        CollisionPersistentData cpd = point:GetPersistentData()
+        if cpd not= undefined
+            point:SetPersistentData(undefined)
+        end
+    end
+
     action AddCollisionPoint(CollisionPoint3D newPoint) returns integer
         integer insertIndex = GetPointCount()
         if insertIndex = MAX_COLLISION_POINTS
@@ -201,6 +210,8 @@ class LocalCollisionPoints3D
             else
                 insertIndex = 0
             end
+
+            ClearPersistentData(points:Get(insertIndex))
         else
             pointCount = pointCount + 1
         end
@@ -209,9 +220,12 @@ class LocalCollisionPoints3D
     end
 
     action RemoveCollisionPoint(integer index)
+        ClearPersistentData(points:Get(index))
+
         integer lastUsedIndex = GetPointCount() - 1
         if index not= lastUsedIndex
             points:Get(index):Set(points:Get(lastUsedIndex))
+            points:Get(lastUsedIndex):SetPersistentData(undefined)
             points:Get(lastUsedIndex):SetAppliedImpulse(0)
             points:Get(lastUsedIndex):SetLateralFrictionInitialized(false)
             points:Get(lastUsedIndex):SetAppliedImpulseLateralA(0)
@@ -228,8 +242,11 @@ class LocalCollisionPoints3D
         number appliedLateralImpulse1 = points:Get(insertIndex):GetAppliedImpulseLateralA()
         number appliedLateralImpulse2 = points:Get(insertIndex):GetAppliedImpulseLateralB()
 
+        CollisionPersistentData cache = points:Get(insertIndex):GetPersistentData()
+
         points:Get(insertIndex):Set(newPoint)
         
+        points:Get(insertIndex):SetPersistentData(cache)
         points:Get(insertIndex):SetAppliedImpulse(appliedImpulse)
         points:Get(insertIndex):SetAppliedImpulseLateralA(appliedLateralImpulse1)
         points:Get(insertIndex):SetAppliedImpulseLateralB(appliedLateralImpulse2)
@@ -290,11 +307,16 @@ class LocalCollisionPoints3D
     end
 
     action ClearCollisionPoints
+        integer i = 0
+        repeat while i < pointCount
+            ClearPersistentData(points:Get(i))
+            i = i + 1
+        end
         pointCount = 0
     end
 
     action GetCollisionBreakingThreshold returns number
-        return 0.02
+        return 0.2
     end
 
     action GetIndexA returns integer

@@ -21,6 +21,9 @@ use Libraries.Game.Collision.Item2DNode
 use Libraries.Game.Collision.BroadphaseCollision2D
 use Libraries.Game.Collision.CollisionEdge2D
 use Libraries.Game.Collision.BoundingBox2D
+use Libraries.Game.Physics.PhysicsProperties2D
+use Libraries.Game.Physics.Mass2D
+use Libraries.Game.Physics.Joints.JointEdge2D
 
 /*
     The Item2D class represents any object that has a position in 2D space.
@@ -43,6 +46,8 @@ use Libraries.Game.Collision.BoundingBox2D
         myItem:SetHeight(15)
 */
 class Item2D is Item
+
+    constant text PHYSICS_ERROR_MESSAGE = "Enable physics to use this action"
     
     private Item2D parentItem = undefined
     private Array<Item2D> children
@@ -87,8 +92,12 @@ class Item2D is Item
     Sweep2D sweep
 
     CollisionEdge2D collisionList = undefined
+    JointEdge2D jointList = undefined
 
     PhysicsPosition2D transform0
+
+    PhysicsProperties2D properties = undefined
+    boolean physicsEnabled = false
 
     on create
         vertices:SetSize(20)
@@ -99,6 +108,13 @@ class Item2D is Item
     private boolean heightSet = false
     private boolean layerSet = false
     private boolean nodesSet = false
+    private boolean hasMoved = false
+
+    boolean updateTransform = true
+
+    boolean collideWithChildren = false
+
+    boolean shouldTriggerSimulation = true
 
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
@@ -123,6 +139,8 @@ class Item2D is Item
     constant integer C4 = 17
     constant integer U4 = 18
     constant integer V4 = 19
+
+    Math math
 
     /*
     This action sets the X coordinate of the Item.
@@ -252,8 +270,9 @@ class Item2D is Item
             SetShape(polygon)
         end
 
-        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
-        sweep:GetCenter():Set(transform:GetPosition())
+        if updateTransform
+            UpdateTransformX()
+        end
     end
 
     /*
@@ -275,8 +294,9 @@ class Item2D is Item
             SetShape(polygon)
         end
 
-        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
-        sweep:GetCenter():Set(transform:GetPosition())
+        if updateTransform
+            UpdateTransformY()
+        end
     end
 
     /*
@@ -334,7 +354,7 @@ class Item2D is Item
         number x = myItem:GetCenterX()
     */
     action GetCenterX returns number
-        return position:GetX() - GetWidth()/2
+        return position:GetX() + GetWidth()/2
     end
 
     /*
@@ -349,7 +369,7 @@ class Item2D is Item
         number y = myItem:GetCenterY()
     */
     action GetCenterY returns number
-        return position:GetY() - GetHeight()/2
+        return position:GetY() + GetHeight()/2
     end
     
     /*
@@ -402,8 +422,9 @@ class Item2D is Item
 
         offset:SetX(xAmount)
 
-        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
-        sweep:GetCenter():SetX(transform:GetPosition():GetX())
+        if updateTransform
+            UpdateTransformX()
+        end
 
         integer counter = 0
         repeat children:GetSize() times
@@ -436,8 +457,9 @@ class Item2D is Item
 
         offset:SetY(yAmount)
 
-        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
-        sweep:GetCenter():SetY(transform:GetPosition():GetY())
+        if updateTransform
+            UpdateTransformY()
+        end
 
         integer counter = 0
         repeat children:GetSize() times
@@ -510,11 +532,10 @@ class Item2D is Item
         offset:SetX(xAmount)
         offset:SetY(yAmount)
 
-
-        transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() / 2)
-        sweep:GetCenter():SetX(transform:GetPosition():GetX())
-        transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() / 2)
-        sweep:GetCenter():SetY(transform:GetPosition():GetY())
+        if updateTransform
+            UpdateTransformX()
+            UpdateTransformY()
+        end
 
         integer counter = 0
         repeat children:GetSize() times
@@ -600,8 +621,6 @@ class Item2D is Item
             vertices:Set(X4, x2)
             vertices:Set(Y4, parentY)
 
-            Math math
-
             if rotation not= 0 or scale:GetX() not= 1 or scale:GetY() not= 1
                 verticesChanged = true
             end
@@ -627,8 +646,13 @@ class Item2D is Item
             vertices:Set(X4, vertices:Get(X4) + xAmount)
         end
 
+        hasMoved = true
         position:SetX(position:GetX() + xAmount)
         SetOffsetX(offset:GetX())
+
+        if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
+            Simulate(true)
+        end
     end
 
     /*
@@ -650,8 +674,13 @@ class Item2D is Item
             vertices:Set(Y4, vertices:Get(Y4) + yAmount)
         end
 
+        hasMoved = true
         position:SetY(position:GetY() + yAmount)
         SetOffsetY(offset:GetY())
+
+        if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
+            Simulate(true)
+        end
     end
 
     /*
@@ -698,9 +727,14 @@ class Item2D is Item
             vertices:Set(Y4, vertices:Get(Y4) + yAmount)
         end
 
+        hasMoved = true
         position:SetX(position:GetX() + xAmount)
         position:SetY(position:GetY() + yAmount)
         SetOffset(offset:GetX(), offset:GetY())
+
+        if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
+            Simulate(true)
+        end
     end
 
     /*
@@ -1096,8 +1130,6 @@ class Item2D is Item
                 //localY2 = localY2 * (2 * (scaleY - 1) + 1)
             end
 
-            Math math
-
             if rotation not= 0
                 number radians = math:DegreesToRadians(-1 * rotation)
                 number cos = math:Cosine(radians)
@@ -1426,8 +1458,6 @@ class Item2D is Item
         vertices:Set(X4, x2)
         vertices:Set(Y4, parentY)
 
-        Math math
-
         if rotation not= 0 or scale:GetX() not= 1 or scale:GetY() not= 1
             verticesChanged = true
         end
@@ -1482,11 +1512,13 @@ class Item2D is Item
         myItem:SetRotation(90)
     */
     action SetRotation(number degrees)
-        Math math
         rotation = degrees
-        transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
-        sweep:angle = -1 * math:DegreesToRadians(rotation)
         verticesChanged = true
+        if updateTransform
+            UpdateTransformAngle()
+            UpdateTransformX()
+            UpdateTransformY()
+        end
         
         //Iterator<Item> childIterator = GetItems()
         
@@ -1520,6 +1552,10 @@ class Item2D is Item
                 counter = counter + 1
             end
         end
+
+        if physicsEnabled and not IsSimulated()
+            Simulate(true)
+        end
     end
 
     /*
@@ -1549,7 +1585,6 @@ class Item2D is Item
         number rotation = myItem:GetRotationInRadians()
     */
     action GetRotationInRadians returns number
-        Math math
         return math:DegreesToRadians(rotation)
     end
 
@@ -1565,12 +1600,15 @@ class Item2D is Item
         myItem:Rotate(65)
     */
     action Rotate(number degrees)
-        Math math
         rotation = rotation + degrees
-        transform:Set(transform:GetPosition(), -1 *  math:DegreesToRadians(rotation))
-        sweep:angle = -1 * math:DegreesToRadians(rotation)
         if degrees not= 0
             verticesChanged = true
+        end
+
+        if updateTransform
+            UpdateTransformAngle()
+            UpdateTransformX()
+            UpdateTransformY()
         end
 
         //Iterator<Item> childIterator = GetItems()
@@ -1605,6 +1643,10 @@ class Item2D is Item
                 counter = counter + 1
             end
         end
+
+        if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
+            Simulate(true)
+        end
     end
 
     /*
@@ -1621,13 +1663,17 @@ class Item2D is Item
         myItem:SetScale(1.25)
     */
     action SetScale(number scale)
-        Math math
         me:scale:SetX(scale)
         me:scale:SetY(scale)
         verticesChanged = true
 
         scaleOffset:SetX((me:scale:GetX() * GetWidth() - GetWidth())/2)
         scaleOffset:SetY((me:scale:GetY() * GetHeight() - GetHeight())/2)
+
+        if updateTransform
+            UpdateTransformX()
+            UpdateTransformY()
+        end
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -1648,6 +1694,10 @@ class Item2D is Item
         if rotation not= 0
             Rotate(0)
         end
+
+        if shape not= undefined
+            shape:Scale(me:scale:GetX(), me:scale:GetY())
+        end
     end
 
     /*
@@ -1665,13 +1715,17 @@ class Item2D is Item
         myItem:SetScale(1.5, 0.75)
     */
     action SetScale(number newX, number newY)
-        Math math
         scale:SetX(newX)
         scale:SetY(newY)
         verticesChanged = true
 
         scaleOffset:SetX((scale:GetX() * GetWidth() - GetWidth())/2)
         scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
+
+        if updateTransform
+            UpdateTransformX()
+            UpdateTransformY()
+        end
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -1691,6 +1745,10 @@ class Item2D is Item
 
         if rotation not= 0
             Rotate(0)
+        end
+
+        if shape not= undefined
+            shape:Scale(me:scale:GetX(), me:scale:GetY())
         end
     end
 
@@ -1744,7 +1802,6 @@ class Item2D is Item
         myItem:Scale(1.1)
     */
     action Scale(number amount)
-        Math math
         if amount <= 0
             return now
         end
@@ -1755,6 +1812,11 @@ class Item2D is Item
 
         scaleOffset:SetX((scale:GetX() * GetWidth() - GetWidth())/2)
         scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
+
+        if updateTransform
+            UpdateTransformX()
+            UpdateTransformY()
+        end
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -1792,6 +1854,9 @@ class Item2D is Item
                 Rotate(0)
             end
             */
+        if shape not= undefined
+            shape:Scale(me:scale:GetX(), me:scale:GetY())
+        end
     end
 
     /*
@@ -1825,6 +1890,11 @@ class Item2D is Item
         scaleOffset:SetX((scale:GetX() * GetWidth() - GetWidth())/2)
         scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
 
+        if updateTransform
+            UpdateTransformX()
+            UpdateTransformY()
+        end
+
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
 
@@ -1841,9 +1911,11 @@ class Item2D is Item
             end
         end
 
-        Math math
         if rotation not= 0
             Rotate(0)
+        end
+        if shape not= undefined
+            shape:Scale(me:scale:GetX(), me:scale:GetY())
         end
     end
 
@@ -2132,6 +2204,14 @@ class Item2D is Item
         collisionList = edge
     end
 
+    action GetJointList returns JointEdge2D
+        return jointList
+    end
+
+    action SetJointList(JointEdge2D edge)
+        jointList = edge
+    end
+
     /*
     This action is used by the Game libraries to create a reference to the layer
     that this Item2D exists on. It is automatically called as needed by the
@@ -2191,12 +2271,15 @@ class Item2D is Item
         me:transform:Set(transform)
     end
 
-    action GetPosition returns Vector2
-        return transform:GetPosition()
+    action GetTransform0 returns PhysicsPosition2D
+        return transform0
+    end
+
+    action SetTransform0(PhysicsPosition2D transform)
+        me:transform0:Set(transform)
     end
 
     action SynchronizeNodes
-        Math math
         PhysicsPosition2D xf1
 
         xf1:SetSine(math:Sine(sweep:GetAngle()))
@@ -2215,9 +2298,7 @@ class Item2D is Item
     end
 
     action SynchronizeTransform
-        Math math
-        transform:SetSine(math:Sine(sweep:GetAngle()))
-        transform:SetCosine(math:Cosine(sweep:GetAngle()))
+        transform:Set(transform:GetPosition(), sweep:GetAngle())
         number cosine = transform:GetCosine()
         number sine = transform:GetSine()
         Vector2 v = sweep:GetLocalCenter()
@@ -2310,6 +2391,10 @@ class Item2D is Item
         nodesSet = false
     end
 
+    action GetNodeCount returns integer
+        return nodeCount
+    end
+
     private action Synchronize(BroadphaseCollision2D broadphase, PhysicsPosition2D transform1, PhysicsPosition2D transform2)
         if nodeCount = 0
             return now
@@ -2399,5 +2484,711 @@ class Item2D is Item
 
     action GetChildren returns Array<Item2D>
         return children
+    end
+
+    action EnablePhysics(boolean flag)
+        physicsEnabled = flag
+    
+        if physicsEnabled
+            SetCollidable(true)
+            sweep:GetLocalCenter():SetZero()
+            sweep:GetCenter0():Set(transform:GetPosition())
+            sweep:GetCenter():Set(transform:GetPosition())
+            sweep:SetAngle0(transform:GetAngle())
+            sweep:SetAngle(transform:GetAngle())
+            sweep:SetAlpha0(0)
+            PhysicsProperties2D properties
+            me:properties = properties
+            properties:SetItem(me)
+        end
+    end
+
+    action IsPhysicsEnabled returns boolean
+        return physicsEnabled
+    end
+
+    action GetWorldCenter returns Vector2
+        return sweep:GetCenter()
+    end
+
+    action GetLocalCenter returns Vector2
+        return sweep:GetLocalCenter()
+    end
+
+    action SetLinearVelocity(Vector2 linearVelocity)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetLinearVelocity(linearVelocity)
+    end
+
+    action SetLinearVelocityX(number linearVelocityX)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetLinearVelocityX(linearVelocityX)
+    end
+
+    action SetLinearVelocityY(number linearVelocityY)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetLinearVelocityY(linearVelocityY)
+    end
+
+    action GetLinearVelocity returns Vector2
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetLinearVelocity()
+    end
+
+    action SetAngularVelocity(number angularVelocity)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetAngularVelocity(angularVelocity)
+    end
+
+    action GetAngularVelocity returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetAngularVelocity()
+    end
+
+    action SetForce(Vector2 force)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetForce(force)
+    end
+
+    action GetForce returns Vector2
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetForce()
+    end
+
+    action SetTorque(number torque)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetTorque(torque)
+    end
+
+    action GetTorque returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetTorque()
+    end
+
+    action ApplyForce(Vector2 force, Vector2 point)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyForce(force, point)
+    end
+
+    action ApplyForceToCenter(Vector2 force)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyForceToCenter(force)
+    end
+
+    action ApplyTorque(number torque)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyTorque(torque)
+    end
+
+    action ApplyLinearImpulse(Vector2 impulse, Vector2 point)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyLinearImpulse(impulse, point)
+    end
+
+    action ApplyAngularImpulse(number impulse)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:ApplyAngularImpulse(impulse)
+    end
+
+    action GetMass returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetMass()
+    end
+
+    action GetInverseMass returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetInverseMass()
+    end
+
+    action GetInertia returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetInertia()
+    end
+
+    action GetInverseInertia returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetInverseInertia()
+    end
+
+    action GetWorldPoint(Vector2 localPoint) returns Vector2
+        Vector2 vector
+        transform:MultiplyToOut(transform, localPoint, vector)
+        return vector
+    end
+
+    action GetWorldVector(Vector2 localVector) returns Vector2
+        Vector2 vector
+        number tempy = transform:GetSine() * localVector:GetX() + transform:GetCosine() * localVector:GetY()
+        vector:SetX(transform:GetCosine() * localVector:GetX() - transform:GetSine() * localVector:GetY())
+        vector:SetY(tempy)
+        return vector
+    end
+
+    action GetLocalPoint(Vector2 worldPoint) returns Vector2
+        Vector2 vector
+        vector:Set(transform:MultiplyAndTranslate(transform, worldPoint))
+        return vector
+    end
+
+    action GetLocalVector(Vector2 worldVector) returns Vector2
+        Vector2 vector
+        number tempy = -1 * transform:GetSine() * worldVector:GetX() + transform:GetCosine() * worldVector:GetY()
+        vector:SetX(transform:GetCosine() * worldVector:GetX() + transform:GetSine() * worldVector:GetY())
+        vector:SetY(tempy)
+        return vector
+    end
+
+    action GetLinearVelocityFromWorldPoint(Vector2 worldPoint) returns Vector2
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        Vector2 vector
+        number tempX = worldPoint:GetX() - sweep:GetCenter():GetX()
+        number tempY = worldPoint:GetY() - sweep:GetCenter():GetY()
+        vector:SetX(-1 * properties:GetAngularVelocity() * tempY + properties:GetLinearVelocity():GetX())
+        vector:SetY(properties:GetAngularVelocity() * tempX + properties:GetLinearVelocity():GetY())
+        return vector
+    end
+
+    action GetLinearVelocityFromLocalPoint(Vector2 localPoint) returns Vector2
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        Vector2 vector
+        vector:Set(GetWorldPoint(localPoint))
+        vector:Set(GetLinearVelocityFromWorldPoint(vector))
+        return vector
+    end
+
+    action GetLinearDamping returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetLinearDamping()
+    end
+
+    action SetLinearDamping(number linearDamping)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetLinearDamping(linearDamping)
+    end
+
+    action GetAngularDamping returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetAngularDamping()
+    end
+
+    action SetAngularDamping(number angularDamping)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetAngularDamping(angularDamping)
+    end
+
+    action GetResponsiveness returns integer
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetResponsiveness()
+    end
+
+    action SetResponsiveness(integer type)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetResponsiveness(type)
+    end
+
+    action SetDensity(number density)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+        properties:SetDensity(density)
+        ResetMass()
+    end
+
+    action GetDensity returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetDensity()
+    end
+
+    action SetFriction(number friction)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetFriction(friction)
+    end
+
+    action GetFriction returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetFriction()
+    end
+
+    action SetRestitution(number restitution)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetRestitution(restitution)
+    end
+
+    action GetRestitution returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetRestitution()
+    end
+
+    action SetCollisionGroupFlag(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetCollisionGroupFlag(flag)
+    end
+
+    action GetCollisionGroupFlag returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetCollisionGroupFlag()
+    end
+
+    action SetCollisionGroupIndex(integer index)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetCollisionGroupIndex(index)
+    end
+
+    action GetCollisionGroupIndex returns integer
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetCollisionGroupIndex()
+    end
+
+    action IsFastMoving returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:IsFastMoving()
+    end
+
+    action FastMoving(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:FastMoving(flag)
+    end
+
+    action RequireSimulation(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:RequireSimulation(flag)
+    end
+
+    action IsSimulationRequired returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:IsSimulationRequired()
+    end
+
+    action Simulate(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:Simulate(flag)
+    end
+
+    action IsSimulated returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:IsSimulated()
+    end
+
+    action CanRotate(boolean flag)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:CanRotate(flag)
+        ResetMass()
+    end
+
+    action IsRotationAllowed returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:IsRotationAllowed()
+    end
+
+    action SetSleepTime(number time)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetSleepTime(time)
+    end
+
+    action GetSleepTime returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetSleepTime()
+    end
+
+    action SetResponsive
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetResponsiveness(properties:RESPONSIVE)
+    end
+
+    action IsResponsive returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetResponsiveness() = properties:RESPONSIVE
+    end
+
+    action SetNonResponsive
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetResponsiveness(properties:NON_RESPONSIVE)
+    end
+
+    action IsNonResponsive returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetResponsiveness() = properties:NON_RESPONSIVE
+    end
+
+    action SetUnmovable
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        properties:SetResponsiveness(properties:UNMOVABLE)
+    end
+
+    action IsUnmovable returns boolean
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetResponsiveness() = properties:UNMOVABLE
+    end
+
+    action GetPhysicsProperties returns PhysicsProperties2D
+        return properties
+    end
+
+    action SetPhysicsProperties(PhysicsProperties2D properties)
+        me:properties = properties:Copy()
+        me:properties:SetItem(me)
+    end
+    
+    action SetUpdateTransform(boolean flag)
+        updateTransform = flag
+    end
+
+    action SetScreenPositionFromPhysicsPosition
+        shouldTriggerSimulation = false
+        MoveX(transform:GetPosition():GetX() - transform0:GetPosition():GetX())
+        MoveY(transform:GetPosition():GetY() - transform0:GetPosition():GetY())
+        Rotate(-1 * math:RadiansToDegrees(transform:GetAngle() - transform0:GetAngle()))
+        shouldTriggerSimulation = true
+    end
+
+    action HasMoved returns boolean
+        return hasMoved
+    end
+
+    action SetHasMoved(boolean flag)
+        hasMoved = flag
+    end
+
+    action GetMass(Mass2D mass)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        mass:SetMass(properties:GetMass())
+        mass:SetInertia(properties:GetRawInertia() + properties:GetMass() + (sweep:GetLocalCenter():GetX() * sweep:GetLocalCenter():GetX() + sweep:GetLocalCenter():GetY() * sweep:GetLocalCenter():GetY()))
+        mass:GetCenter():SetX(sweep:GetLocalCenter():GetX())
+        mass:GetCenter():SetY(sweep:GetLocalCenter():GetY())
+    end
+
+    action GetRawInertia returns number
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        return properties:GetRawInertia()
+    end
+
+    action SetMass(number mass)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+        properties:SetMass(mass)
+    end
+
+    action SetMass(Mass2D mass)
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        if properties:GetResponsiveness() not= properties:RESPONSIVE
+            return now
+        end
+
+        properties:SetInverseMass(0)
+        properties:SetInertia(0)
+        properties:SetInverseInertia(0)
+
+        properties:AssignMass(mass:GetMass())
+        if properties:GetMass() <= 0
+            properties:AssignMass(1)
+        end
+
+        properties:SetInverseMass(1.0 / properties:GetMass())
+
+        if mass:GetInertia() > 0 and properties:IsRotationAllowed()
+            properties:SetInertia(mass:GetInertia() - properties:GetMass() * mass:GetCenter():DotProduct(mass:GetCenter()))
+            properties:SetInverseInertia(1.0 / properties:GetRawInertia())
+        end
+
+        Vector2 oldCenter
+        oldCenter:Set(sweep:GetCenter())
+        sweep:GetLocalCenter():Set(mass:GetCenter())
+        sweep:GetCenter0():SetX((transform:GetCosine() * sweep:GetLocalCenter():GetX() - transform:GetSine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetX())
+        sweep:GetCenter0():SetY((transform:GetSine() * sweep:GetLocalCenter():GetX() + transform:GetCosine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetY())
+        sweep:GetCenter():Set(sweep:GetCenter0())
+
+        Vector2 temp
+        temp:Set(sweep:GetCenter()):Subtract(oldCenter)
+        number tempY = properties:GetAngularVelocity() * temp:GetX()
+        temp:SetX(-properties:GetAngularVelocity() * temp:GetY())
+        temp:SetY(tempY)
+        properties:GetLinearVelocity():Add(temp)
+    end
+
+    action ResetMass
+        Mass2D massData
+        if properties = undefined
+            alert(PHYSICS_ERROR_MESSAGE)
+        end
+
+        if properties:GetResponsiveness() = properties:UNMOVABLE or properties:GetResponsiveness() = properties:NON_RESPONSIVE
+            sweep:GetCenter0():Set(transform:GetPosition())
+            sweep:GetCenter():Set(transform:GetPosition())
+            sweep:SetAngle0(sweep:GetAngle())
+            properties:AssignMass(0)
+            properties:SetInverseMass(0)
+            properties:SetInertia(0)
+            properties:SetInverseInertia(0)
+            sweep:GetLocalCenter():SetZero()
+            return now
+        end
+
+        Vector2 localCenter
+        localCenter:SetZero()
+        Vector2 temp
+        shape:ComputeMass(massData, properties:GetDensity())
+        properties:AssignMass(massData:GetMass())
+        localCenter:Add(massData:GetCenter())
+        properties:SetInertia(massData:GetInertia())
+
+        if properties:GetMass() > 0
+            properties:SetInverseMass(1.0 / properties:GetMass())
+        else
+            properties:AssignMass(1)
+            properties:SetInverseMass(1)
+        end
+
+        if properties:GetRawInertia() > 0 and properties:IsRotationAllowed()
+            properties:SetInertia(properties:GetRawInertia() - (properties:GetMass() * localCenter:DotProduct(localCenter)))
+            properties:SetInverseInertia(1.0 / properties:GetRawInertia())
+        else
+            properties:SetInertia(0)
+            properties:SetInverseInertia(0)
+        end
+
+        Vector2 oldCenter
+        oldCenter:Set(sweep:GetCenter())
+        sweep:GetLocalCenter():Set(localCenter)
+        sweep:GetCenter0():SetX((transform:GetCosine() * sweep:GetLocalCenter():GetX() - transform:GetSine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetX())
+        sweep:GetCenter0():SetY((transform:GetSine() * sweep:GetLocalCenter():GetX() + transform:GetCosine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetY())
+        sweep:GetCenter():Set(sweep:GetCenter0())
+
+        temp:Set(sweep:GetCenter()):Subtract(oldCenter)
+
+        Vector2 temp2 = oldCenter
+        temp2:SetX(-properties:GetAngularVelocity() * temp:GetY())
+        temp2:SetY(properties:GetAngularVelocity() * temp:GetX())
+        properties:GetLinearVelocity():Add(temp2)
+    end
+
+    action ShouldCollide(Item2D otherItem) returns boolean
+        if not collideWithChildren
+            if otherItem = parentItem
+                return false
+            end
+            integer i = 0
+            repeat children:GetSize() times
+                Item2D child = children:Get(i)
+                if child = otherItem
+                    return false
+                end
+                i = i + 1
+            end
+        end
+
+        return true
+    end
+
+    action CollideWithChildren returns boolean
+        return collideWithChildren
+    end
+
+    action SetCollideWithChildren(boolean flag)
+        me:collideWithChildren = flag
+    end
+
+    action UpdateTransformX
+        if shape not= undefined and shape is Polygon
+            Polygon p = cast(Polygon, shape)
+            if p:IsBox()
+                transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
+            else
+                number x = (dimensions:GetX() * scale:GetX()) / 2
+                number y = (dimensions:GetY() * scale:GetY()) / 2
+                transform:GetPosition():SetX(position:GetX() + offset:GetX() + x - transform:GetCosine() * x + transform:GetSine() * y)
+            end
+        else
+            transform:GetPosition():SetX(position:GetX() + offset:GetX() + dimensions:GetX() * scale:GetX() / 2)
+        end
+        sweep:GetCenter0():SetX((transform:GetCosine() * sweep:GetLocalCenter():GetX() - transform:GetSine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetX())
+        sweep:GetCenter():SetX(sweep:GetCenter0():GetX())
+    end
+
+    action UpdateTransformY
+        if shape not= undefined and shape is Polygon
+            Polygon p = cast(Polygon, shape)
+            if p:IsBox()
+                transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
+            else
+                number x = (dimensions:GetX() * scale:GetX()) / 2
+                number y = (dimensions:GetY() * scale:GetY()) / 2
+                transform:GetPosition():SetY(position:GetY() + offset:GetY() + y - transform:GetSine() * x - transform:GetCosine() * y)
+            end
+        else
+            transform:GetPosition():SetY(position:GetY() + offset:GetY() + dimensions:GetY() * scale:GetY() / 2)
+        end
+        sweep:GetCenter0():SetY((transform:GetSine() * sweep:GetLocalCenter():GetX() + transform:GetCosine() * sweep:GetLocalCenter():GetY()) + transform:GetPosition():GetY())
+        sweep:GetCenter():SetY(sweep:GetCenter0():GetY())
+    end
+
+    action UpdateTransformAngle
+        transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
+        sweep:SetAngle(transform:GetAngle())
     end
 end

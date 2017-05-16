@@ -52,9 +52,22 @@ class CollisionManager2D
             edge = edge:GetNext()
         end
 
+        if not itemA:ShouldCollide(itemB)
+            return now
+        end
+
+        if not itemB:ShouldCollide(itemA)
+            return now
+        end
+
         // create collision event and add to collision event list
         CollisionEvent2D collision
         collision:Initialize(itemA, indexA, itemB, indexB)
+
+        indexA = collision:GetChildIndexA()
+        indexB = collision:GetChildIndexB()
+        itemA = collision:GetItemA()
+        itemB = collision:GetItemB()
         
         collision:SetPrevious(undefined)
         collision:SetNext(collisionList)
@@ -166,6 +179,36 @@ class CollisionManager2D
             // this involves, for example, ignoring collisions where both items
             // are declared as static bodies
             // should we allow user-defined collision filtering?
+
+            if not jump
+                if not itemA:ShouldCollide(itemB)
+                    CollisionEvent2D cNuke = collision
+                    collision = cNuke:GetNext()
+                    Destroy(cNuke)
+                    jump = true
+                end
+            end
+
+            if not jump
+                if not itemB:ShouldCollide(itemA)
+                    CollisionEvent2D cNuke = collision
+                    collision = cNuke:GetNext()
+                    Destroy(cNuke)
+                    jump = true
+                end
+            end
+
+            if not jump
+                if itemA:IsPhysicsEnabled() and itemB:IsPhysicsEnabled()
+                    boolean activeA = itemA:IsSimulated() and not itemA:IsUnmovable()
+                    boolean activeB = itemB:IsSimulated() and not itemB:IsUnmovable()
+
+                    if not activeA and not activeB
+                        collision = collision:GetNext()
+                        jump = true
+                    end
+                end
+            end
 
             if not jump
                 integer nodeIDA = itemA:GetNodes():Get(indexA):GetNodeID()

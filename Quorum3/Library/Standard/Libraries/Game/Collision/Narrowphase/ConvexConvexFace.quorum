@@ -1,8 +1,8 @@
-package Libraries.Game.Collision
+package Libraries.Game.Collision.Narrowphase
 
 use Libraries.Containers.Array
 use Libraries.Compute.Vector3
-use Libraries.Game.Collision.ConvexConvexVertex
+use Libraries.Game.Collision.Narrowphase.ConvexConvexVertex
 
 class ConvexConvexFace 
     Array<ConvexConvexVertex> vertices
@@ -64,7 +64,7 @@ class ConvexConvexFace
     end
 
     action SetPrevious(ConvexConvexFace face)
-        prev = face
+        me:prev = face
     end
 
     action GetNext returns ConvexConvexFace
@@ -72,6 +72,6 @@ class ConvexConvexFace
     end
 
     action SetNext(ConvexConvexFace face)
-        next = face
+        me:next = face
     end
 end

@@ -1,12 +1,13 @@
-package Libraries.Game.Collision
+package Libraries.Game.Collision.Narrowphase
 
 use Libraries.Compute.Vector3
 use Libraries.Game.Collision.Shapes.CollisionShape3D
-use Libraries.Game.Collision.ConvexConvexPenetrationDepthSolver
-use Libraries.Game.Collision.ConvexConvexSimplexSolver
+use Libraries.Game.Collision.Narrowphase.ConvexConvexPenetrationDepthSolver
+use Libraries.Game.Collision.Narrowphase.ConvexConvexSimplexSolver
 use Libraries.Game.Collision.CollisionPointsResult3D
 use Libraries.Compute.Matrix3
 use Libraries.Compute.Math
+use Libraries.Game.Collision.PhysicsPosition3D
 
 class ConvexConvexPairSolver
     // this class is an implementation of the JBullet class GjkPairDetector

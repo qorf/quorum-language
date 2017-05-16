@@ -1,4 +1,4 @@
-package Libraries.Game.Collision
+package Libraries.Game.Collision.Narrowphase
 
 use Libraries.Game.Collision.Shapes.CollisionShape3D
 use Libraries.Game.Collision.CollisionPointsResult3D
@@ -6,12 +6,14 @@ use Libraries.Compute.BitwiseOperations
 use Libraries.Containers.Array
 use Libraries.Compute.Matrix3
 use Libraries.Compute.Vector3
-use Libraries.Game.Collision.ConvexConvexCollisionSolverNode
+use Libraries.Game.Collision.Narrowphase.ConvexConvexCollisionSolverNode
 use Libraries.Compute.Math
 use Libraries.Compute.Quaternion
 use Libraries.Containers.Table
-use Libraries.Game.Collision.ConvexConvexDistanceSolver
-use Libraries.Game.Collision.ConvexConvexPenetrationSolver
+use Libraries.Game.Collision.Narrowphase.ConvexConvexDistanceSolver
+use Libraries.Game.Collision.Narrowphase.ConvexConvexPenetrationSolver
+use Libraries.Game.Collision.Narrowphase.ConvexConvexCollisionSolverResults
+use Libraries.Game.Collision.PhysicsPosition3D
 
 class ConvexConvexCollisionSolver
     BitwiseOperations bo
@@ -20,9 +22,9 @@ class ConvexConvexCollisionSolver
 
     ConvexConvexDistanceSolver gjk
 
-    constant number cstInf = cstPi:GetMaximumValue()
-    constant number cstPi = cst2Pi * 0.5
     constant number cst2Pi = 6.283185307179586232
+    constant number cstPi = cst2Pi * 0.5
+    constant number cstInf = cstPi:GetMaximumValue()
     constant integer GjkMaxIterations = 128
     constant integer hashSize = bo:ShiftLeft(1, 6)
     constant integer hashMask = hashSize - 1

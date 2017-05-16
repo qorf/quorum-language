@@ -1,9 +1,9 @@
-package Libraries.Game.Collision
+package Libraries.Game.Collision.Narrowphase
 
 use Libraries.Compute.Vector3
 use Libraries.Containers.Array
 use Libraries.Compute.Math
-use Libraries.Game.Collision.ConvexConvexSubSimplexClosestResult
+use Libraries.Game.Collision.Narrowphase.ConvexConvexSubSimplexClosestResult
 
 class ConvexConvexSimplexSolver
 // ****************************************************************************
@@ -548,7 +548,7 @@ class ConvexConvexSimplexSolver
     end
 
     action SetNumberOfVertices(integer numberOfVertices)
-        mumVertices = numberOfVertices
+        numVertices = numberOfVertices
     end
 
     action GetSimplexVectorW returns Array<Vector3>

@@ -28,6 +28,15 @@ use Libraries.Game.Collision.CollisionEdge3D
 use Libraries.Compute.Ray
 use Libraries.Compute.Vector3
 use Libraries.Compute.Matrix4
+use Libraries.Game.Physics.CollisionGroup3D
+use Libraries.Containers.Stack
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Physics.CollisionSolverInformation3D
+use Libraries.Game.Physics.Joints.Joint3D
+use Libraries.Game.Physics.Joints.JointEdge3D
+use Libraries.Compute.Math
+use Libraries.Compute.Quaternion
+use Libraries.Game.Physics.all
 
 /*
 The Layer3D class is used to manage a number of 3D objects, as well as manage
@@ -77,6 +86,7 @@ class Layer3D is Layer
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
     Array<TouchListener> touchListeners
+    Array<Joint3D> joints
     Camera camera = undefined
     Painter3D painter
     Environment environment
@@ -86,6 +96,23 @@ class Layer3D is Layer
 
     CollisionManager3D collisionManager
 
+    boolean physicsEnabled = false
+    boolean automaticallyClearForces = true
+    boolean warmStarting = true
+    boolean continuousPhysics = false
+    boolean subStepping = false
+    boolean stepComplete = true
+    boolean requireSimulation = false
+
+    number inverseDeltaTime0 = 0
+
+    Vector3 gravity
+
+    number physicsTimeStep = 1.0 / 60.0
+    integer maxSubSteps = 1
+
+
+    number localTime = 1.0 / 60.0
     /*
     This array is used when adding or removing Items to the game to find any
     lights in the children hierarchy that need to be added/removed from the
@@ -303,13 +330,13 @@ class Layer3D is Layer
         Iterator<Item3D> it = items:GetIterator()
         repeat while it:HasNext()
             Item3D body = it:Next()
-            CollisionEdge3D edge = body:collisionList
+            CollisionEdge3D edge = body:GetCollisionList()
             repeat while edge not= undefined
                 CollisionEdge3D edge0 = edge
                 edge = edge:GetNext()
                 collisionManager:Destroy(edge0:GetCollision())
             end
-            body:collisionList = undefined
+            body:SetCollisionList(undefined)
 
             body:DestroyNodes(collisionManager:GetBroadphase())
             body:SetCollidable(false)
@@ -357,13 +384,13 @@ class Layer3D is Layer
     end
     */
     action Remove(Item3D item)
-        CollisionEdge3D edge = item:collisionList
+        CollisionEdge3D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge3D edge0 = edge
             edge = edge:GetNext()
             collisionManager:Destroy(edge0:GetCollision())
         end
-        item:collisionList = undefined
+        item:SetCollisionList(undefined)
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
@@ -415,13 +442,13 @@ class Layer3D is Layer
     action RemoveAt(integer index) returns Item3D
         Item3D item = items:RemoveAt(index)
 
-        CollisionEdge3D edge = item:collisionList
+        CollisionEdge3D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge3D edge0 = edge
             edge = edge:GetNext()
             collisionManager:Destroy(edge0:GetCollision())
         end
-        item:collisionList = undefined
+        item:SetCollisionList(undefined)
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
@@ -471,13 +498,13 @@ class Layer3D is Layer
     action RemoveFromFront returns Item3D
         Item3D item = items:RemoveFromFront()
 
-        CollisionEdge3D edge = item:collisionList
+        CollisionEdge3D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge3D edge0 = edge
             edge = edge:GetNext()
             collisionManager:Destroy(edge0:GetCollision())
         end
-        item:collisionList = undefined
+        item:SetCollisionList(undefined)
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
@@ -526,13 +553,13 @@ class Layer3D is Layer
     action RemoveFromEnd returns Item3D
         Item3D item = items:RemoveFromEnd()
 
-        CollisionEdge3D edge = item:collisionList
+        CollisionEdge3D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge3D edge0 = edge
             edge = edge:GetNext()
             collisionManager:Destroy(edge0:GetCollision())
         end
-        item:collisionList = undefined
+        item:SetCollisionList(undefined)
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
@@ -2227,13 +2254,18 @@ class Layer3D is Layer
     the Game engine. This action will automatically be called by the Game class
     as necessary. Most users should never need to use this action directly.
     */
-    action TestForCollisions
+    action TestForCollisions(number seconds)
         if newItemAdded
             collisionManager:FindNewCollisions()
             newItemAdded = false
         end
 
         collisionManager:Collide()
+
+        if physicsEnabled
+            StepPhysics(seconds)
+            SetScreenPositionsFromPhysicsPositions()
+        end
 
         integer i = 0
         repeat while i < items:GetSize()
@@ -2325,5 +2357,505 @@ class Layer3D is Layer
     */
     action GetSkybox returns Skybox
         return skybox
+    end
+
+    action EnablePhysics(boolean flag)
+        physicsEnabled = flag
+    end
+
+    action PhysicsEnabled returns boolean
+        return physicsEnabled
+    end
+
+    action SetGravity(number x, number y, number z)
+        gravity:Set(x, y, z)
+    end
+
+    action SetGravity(Vector3 gravity)
+        me:gravity:Set(gravity)
+    end
+
+    action GetGravity returns Vector3
+        return gravity
+    end
+
+    action SetAutomaticallyClearForces(boolean flag)
+        automaticallyClearForces = flag
+    end
+
+    action AutomaticallyClearForces returns boolean
+        return automaticallyClearForces
+    end
+
+    action SetWarmStarting(boolean flag)
+        warmStarting = flag
+    end
+
+    action IsWarmStarting returns boolean
+        return warmStarting
+    end
+
+    action SetContinuousPhysics(boolean flag)
+        continuousPhysics = flag
+    end
+
+    action IsContinuousPhysics returns boolean
+        return continuousPhysics
+    end
+
+    action RequireSimulation(boolean flag)
+        if requireSimulation = flag
+            return now
+        end
+
+        requireSimulation = flag
+        if requireSimulation
+            integer i = 0
+            repeat items:GetSize() times
+                Item3D item = items:Get(i)
+                item:Simulate(true)
+                i = i + 1
+            end
+        end
+    end
+
+    action IsSimulationRequired returns boolean
+        return requireSimulation
+    end
+
+    action SetSubStepping(boolean flag)
+        subStepping = flag
+    end
+
+    action IsSubStepping returns boolean
+        return subStepping
+    end
+
+    action ClearForces
+        integer i = 0
+        repeat items:GetSize() times
+            Item3D body = items:Get(i)
+            if body:IsPhysicsEnabled()
+                body:GetForce():SetZero()
+                body:GetTorque():SetZero()
+            end
+            i = i + 1
+        end
+    end
+
+    action StepPhysics(number seconds)
+        integer numSimulationSubsteps = 0
+        integer maxSubSteps = me:maxSubSteps
+        number fixedTimeStep = physicsTimeStep
+
+        if maxSubSteps not= 0
+            localTime = localTime + seconds
+            if localTime >= fixedTimeStep
+                numSimulationSubsteps = cast(integer, localTime / fixedTimeStep)
+                localTime = localTime - (numSimulationSubsteps * fixedTimeStep)
+            end
+        else
+            fixedTimeStep = seconds
+            localTime = seconds
+            if math:AbsoluteValue(seconds) < 0.00000011920928955078125
+                numSimulationSubsteps = 0
+                maxSubSteps = 0
+            else
+                numSimulationSubsteps = 1
+                maxSubSteps = 1
+            end
+        end
+
+        if numSimulationSubsteps not= 0
+            integer clampedSimulationSteps = numSimulationSubsteps
+            if numSimulationSubsteps > maxSubSteps
+                clampedSimulationSteps = maxSubSteps
+            end
+
+            integer i = 0
+            repeat while i < clampedSimulationSteps
+                SolvePhysics(fixedTimeStep)
+                SynchronizeTransforms()
+                i = i + 1
+            end
+        end
+
+        if automaticallyClearForces
+            ClearForces()
+        end
+    end
+
+    private action PredictUnconstrainedMotion(number seconds)
+        PhysicsPosition3D temp
+
+        integer i = 0
+        repeat items:GetSize() times
+            Item3D item = items:Get(i)
+            if item:IsPhysicsEnabled()
+                if item:IsResponsive() and item:IsSimulated()
+                    temp:Set(item:GetInterpolationWorldTransform())
+                    item:IntegrateVelocities(seconds)
+                    item:ApplyDamping(seconds)
+                    item:PredictIntegratedTransform(seconds, temp)
+                end
+            end
+            i = i + 1
+        end
+    end
+
+    CollisionGroup3D island
+    Stack<Item3D> stack
+    CollisionSolverInformation3D solverInfo
+
+    action SolvePhysics(number seconds)
+        solverInfo:SetTimeStep(seconds)
+        island:SetSolverInformation(solverInfo)
+
+        integer i = 0
+        repeat items:GetSize() times
+            Item3D body = items:Get(i)
+            if body:IsPhysicsEnabled()
+                body:SetCollisionGroupFlag(false)
+            end
+            body:GetCollisionTransform():Set(body:GetCollisionTransform())
+            i = i + 1
+        end
+
+        CollisionEvent3D collision = collisionManager:GetCollisionList()
+        repeat until collision = undefined
+            collision:SetInCollisionGroup(false)
+            collision = collision:GetNext()
+        end
+
+        i = 0
+        repeat joints:GetSize() times
+            Joint3D joint = joints:Get(i)
+            joint:SetInCollisionGroup(false)
+            i = i + 1
+        end
+
+        i = 0
+        repeat items:GetSize() times
+            Item3D seed = items:Get(i)
+            if not seed:IsPhysicsEnabled()
+                // continue with loop -- this item does not need physics solved
+            elseif seed:GetCollisionGroupFlag()
+                // continue with loop -- this item has already had physics solved
+            elseif not seed:IsSimulated()
+                // continue with loop -- this item is not currently being simulated
+            elseif seed:IsUnmovable()
+                // continue with loop -- this item is unmovable and cannot start off a collision group
+            else
+                island:Empty()
+                stack:Empty()
+                stack:Push(seed)
+                seed:SetCollisionGroupFlag(true)
+
+                repeat while not stack:IsEmpty()
+                    Item3D body = stack:Pop()
+                    island:Add(body)
+
+                    body:Simulate(true)
+
+                    if body:IsUnmovable()
+                        // continue -- don't look for colliding items with unmovable items
+                        // to add to a collision group -- this keeps collision groups small
+                        // and faster to solve -- the items colliding with an unmovable
+                        // item will be a part of a separate collision group
+                    else
+                        CollisionEdge3D edge = body:GetCollisionList()
+                        repeat while edge not= undefined
+                            CollisionEvent3D collision1 = edge:GetCollision()
+                            if collision1:InCollisionGroup()
+                                // continue with group -- the collision has already been
+                                // accounted for in the collision group
+                            elseif not collision1:IsEnabled() or not collision1:IsTouching()
+                                // continue with group -- this collision is not currently
+                                // colliding (close, may collide in a few frames)
+                            else
+                                boolean physicsA = collision1:GetItemA():IsPhysicsEnabled()
+                                boolean physicsB = collision1:GetItemB():IsPhysicsEnabled()
+                                boolean sensor = not physicsA or not physicsB
+
+                                if sensor
+                                    // continue with group -- one or both items
+                                    // does not have physics enabled
+                                else
+                                    island:Add(collision1)
+                                    collision1:SetInCollisionGroup(true)
+
+                                    Item3D other = edge:GetOther()
+                                    if other:GetCollisionGroupFlag()
+                                        // continue with group -- the other item
+                                        // is already in this group
+                                    else
+                                        stack:Push(other)
+                                        other:SetCollisionGroupFlag(true)
+                                    end
+                                end
+                            end
+                            edge = edge:GetNext()
+                        end
+
+                        JointEdge3D jointEdge = body:GetJointList()
+                        repeat while jointEdge not= undefined
+                            Joint3D joint = jointEdge:GetJoint()
+                            if joint:InCollisionGroup()
+                                // continue with group -- the joint has already been
+                                // accounted for in the collision group
+                            else
+                                Item3D other = jointEdge:GetOther()
+
+                                island:Add(joint)
+                                joint:SetInCollisionGroup(true)
+
+                                if other:GetCollisionGroupFlag()
+                                    // continuee with group -- the other item is
+                                    // already in the group
+                                else
+                                    stack:Push(other)
+                                    other:SetCollisionGroupFlag(true)
+                                end
+                            end
+
+                            jointEdge = jointEdge:GetNext()
+                        end
+
+                        integer k = 0
+                        repeat body:GetItemCount() times
+                            Item3D child = body:GetItem(k)
+                            if child:GetCollisionGroupFlag()
+                                // continue with group -- the child item is
+                                // already in the group
+                            else
+                                stack:Push(child)
+                                child:SetCollisionGroupFlag(true)
+                            end
+                            k = k + 1
+                        end
+                    end
+                end
+
+                island:Solve(seconds, gravity, requireSimulation)
+
+                integer j = 0
+                repeat island:GetItemCount() times
+                    Item3D body = island:GetItem(j)
+                    if body:IsUnmovable()
+                        body:SetCollisionGroupFlag(false)
+                    end
+                    j = j + 1
+                end
+            end
+            i = i + 1
+        end
+
+        IntegrateTransforms(seconds)
+
+        i = 0
+        repeat items:GetSize() times
+            Item3D body = items:Get(i)
+            if not body:IsPhysicsEnabled() 
+                // do nothing -- physics is not enabled for this item
+            elseif (not body:GetCollisionGroupFlag()) and body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
+                // do nothing -- this item was never a part of a physics group
+            elseif body:GetResponsiveness() = body:GetPhysicsProperties():UNMOVABLE and not body:HasMoved()
+                // do nothing -- this item is unmovable so synchronizing its nodes
+                // is not necessary
+            else
+                body:SynchronizeNodes()
+                body:SetHasMoved(false)
+            end
+            i = i + 1
+        end
+
+        collisionManager:FindNewCollisions()
+    end
+    
+    Math math
+
+    action SynchronizeTransforms
+        PhysicsPosition3D predictedTransform
+
+        integer i = 0
+        repeat items:GetSize() times
+            Item3D body = items:Get(i)
+            if body:IsPhysicsEnabled() and body:IsResponsive()
+                PhysicsPosition3D curTrans
+                curTrans:Set(body:GetInterpolationWorldTransform())
+                Vector3 linvel
+                linvel:Set(body:GetInterpolatedLinearVelocity())
+                Vector3 angvel
+                angvel:Set(body:GetInterpolatedAngularVelocity())
+                number timestep = localTime * body:GetTimeOfImpact()
+                
+                predictedTransform:GetOrigin():Set(linvel):Scale(timestep):Add(curTrans:GetOrigin())
+                Vector3 axis
+                number fangle = angvel:Length()
+
+                if fangle * timestep > 0.5 * math:pi / 2
+                    fangle = (0.5 * math:pi / 2) / timestep
+                end
+
+                if fangle < 0.001
+                    axis:Set(angvel):Scale(0.5 * timestep - (timestep * timestep * timestep) * (0.020833333333) * fangle * fangle)
+                else
+                    axis:Set(angvel):Scale(math:Sine(0.5 * fangle * timestep) / fangle)
+                end
+                Quaternion dorn
+                dorn:Set(axis:GetX(), axis:GetY(), axis:GetZ(), math:Cosine(fangle * timestep * 0.5))
+                Quaternion orn0
+                orn0:Set(curTrans:GetRotation())
+
+                Quaternion predictedOrn
+                predictedOrn:Set(dorn):Multiply(orn0)
+                predictedOrn:Normalize()
+                predictedTransform:SetRotation(predictedOrn)
+
+                body:GetCollisionTransform():Set(predictedTransform)
+            end
+
+             i = i + 1
+        end
+    end
+
+    action ApplyGravity
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item3D item = items:Get(i)
+            if item:IsPhysicsEnabled()
+                if item:IsSimulated()
+                    if item:IsResponsive()
+                        Vector3 force
+                        force:Set(gravity):Scale(1.0 / item:GetInverseMass())
+                        item:ApplyForceToCenter(force)
+                    end
+                end
+            end
+            i = i + 1
+        end
+    end
+
+    action SaveKinematicState(number timeStep)
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item3D item = items:Get(i)
+            if item:IsPhysicsEnabled()
+                if item:IsSimulated()
+                    if item:IsResponsive()
+                        item:SaveKinematicState(timeStep)
+                    end
+                end
+            end
+
+            i = i + 1
+        end
+    end
+
+    action IntegrateTransforms(number timeStep)
+        Vector3 temp
+        PhysicsPosition3D tempTrans
+
+        PhysicsPosition3D predictedTransform
+
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item3D item = items:Get(i)
+            if item:IsPhysicsEnabled()
+                item:SetTimeOfImpact(1)
+
+                if item:IsSimulated() and item:IsResponsive()
+                    item:PredictIntegratedTransform(timeStep, predictedTransform)
+                    temp:Set(predictedTransform:GetOrigin())
+                    tempTrans:Set(item:GetCollisionTransform())
+                    temp:Subtract(tempTrans:GetOrigin())
+                    number squareMotion = temp:LengthSquared()
+
+                    //Continuous Collision Detection stuff for later...
+
+                    item:ProceedToTransform(predictedTransform)
+                end
+            end
+
+            i = i + 1
+        end
+    end
+
+    action SetScreenPositionsFromPhysicsPositions
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item3D item = items:Get(i)
+            if item:IsPhysicsEnabled()
+                item:SetScreenPositionFromPhysicsPosition()
+            end
+
+            i = i + 1
+        end
+    end
+
+    action AddJoint(Joint3D joint)
+        joints:Add(joint)
+
+        joint:GetEdgeA():SetJoint(joint)
+        joint:GetEdgeA():SetOther(joint:GetItemB())
+        joint:GetEdgeA():SetPrevious(undefined)
+        joint:GetEdgeA():SetNext(joint:GetItemA():GetJointList())
+        if joint:GetItemA():GetJointList() not= undefined
+            joint:GetItemA():GetJointList():SetPrevious(joint:GetEdgeA())
+        end
+        joint:GetItemA():SetJointList(joint:GetEdgeA())
+
+        joint:GetEdgeB():SetJoint(joint)
+        joint:GetEdgeB():SetOther(joint:GetItemA())
+        joint:GetEdgeB():SetPrevious(undefined)
+        joint:GetEdgeB():SetNext(joint:GetItemB():GetJointList())
+        if joint:GetItemB():GetJointList() not= undefined
+            joint:GetItemB():GetJointList():SetPrevious(joint:GetEdgeB())
+        end
+        joint:GetItemB():SetJointList(joint:GetEdgeB())
+
+        //TODO: Collision filtering?
+    end
+
+    action RemoveJoint(Joint3D joint)
+        joints:Remove(joint)
+
+        Item3D itemA = joint:GetItemA()
+        Item3D itemB = joint:GetItemB()
+
+        itemA:Simulate(true)
+        itemB:Simulate(true)
+
+        if joint:GetEdgeA():GetPrevious() not= undefined
+            joint:GetEdgeA():GetPrevious():SetNext(joint:GetEdgeA():GetNext())
+        end
+
+        if joint:GetEdgeA():GetNext() not= undefined
+            joint:GetEdgeA():GetNext():SetPrevious(joint:GetEdgeA():GetPrevious())
+        end
+
+        if joint:GetEdgeA() = itemA:GetJointList()
+            itemA:SetJointList(joint:GetEdgeA():GetNext())
+        end
+
+        joint:GetEdgeA():SetPrevious(undefined)
+        joint:GetEdgeA():SetNext(undefined)
+
+        if joint:GetEdgeB():GetPrevious() not= undefined
+            joint:GetEdgeB():GetPrevious():SetNext(joint:GetEdgeB():GetNext())
+        end
+
+        if joint:GetEdgeB():GetNext() not= undefined
+            joint:GetEdgeB():GetNext():SetPrevious(joint:GetEdgeB():GetPrevious())
+        end
+
+        if joint:GetEdgeB() = itemB:GetJointList()
+            itemB:SetJointList(joint:GetEdgeB():GetNext())
+        end
+
+        joint:GetEdgeB():SetPrevious(undefined)
+        joint:GetEdgeB():SetNext(undefined)
+
+        //TODO: collision filtering?
     end
 end

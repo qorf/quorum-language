@@ -1,0 +1,51 @@
+package Libraries.Game.Collision.Narrowphase
+
+use Libraries.Game.Collision.Sweep2D
+
+class TimeOfImpactInput2D 
+    DistanceProxy2D proxyA
+    DistanceProxy2D proxyB
+    Sweep2D sweepA
+    Sweep2D sweepB
+    number timeMax = 0
+
+    action SetProxyA(DistanceProxy2D proxy)
+        proxyA = proxy
+    end
+    
+    action GetProxyA returns DistanceProxy2D
+        return proxyA
+    end
+
+    action SetProxyB(DistanceProxy2D proxy)
+        proxyB = proxy
+    end
+
+    action GetProxyB returns DistanceProxy2D
+        return proxyB
+    end
+
+    action SetSweepA(Sweep2D sweep)
+        sweepA = sweep
+    end
+
+    action GetSweepA returns Sweep2D
+        return sweepA
+    end
+
+    action SetSweepB(Sweep2D sweep)
+        sweepB = sweep
+    end
+
+    action GetSweepB returns Sweep2D
+        return sweepB
+    end
+
+    action SetTimeMax(number timeMax)
+        me:timeMax = timeMax
+    end
+
+    action GetTimeMax returns number
+        return timeMax
+    end
+end

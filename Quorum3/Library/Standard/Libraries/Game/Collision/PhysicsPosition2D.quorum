@@ -11,15 +11,15 @@ class PhysicsPosition2D
     Math math
     
     action Set(PhysicsPosition2D other)
-        position:Set(other:position)
-        sine = other:sine
-        cosine = other:cosine
+        me:position:Set(other:position)
+        me:sine = other:sine
+        me:cosine = other:cosine
     end
 
     action Set(Vector2 position, number angle)
         me:position:Set(position)
-        sine = math:Sine(angle)
-        cosine = math:Cosine(angle)
+        me:sine = math:Sine(angle)
+        me:cosine = math:Cosine(angle)
     end
 
     action GetPosition returns Vector2
@@ -31,7 +31,7 @@ class PhysicsPosition2D
     end
 
     action GetAngle returns number
-        return math:InverseTangent(sine, cosine)
+        return math:InverseTangent(cosine, sine)
     end
 
     action GetSine returns number

@@ -1,0 +1,72 @@
+package Libraries.Game.Physics.Joints
+
+use Libraries.Compute.Vector2
+use Libraries.Containers.Array
+use Libraries.Game.Physics.TimeStep
+
+class JointSolverData2D 
+    //holds information about two bodies to pass to joint solver 
+
+    Array<Vector2> positions
+    Array<number> angles
+    Array<Vector2> linearVelocities
+    Array<number> angularVelocities
+    
+    TimeStep step
+
+    action SetPosition(Vector2 position, integer index)
+        positions:Set(index, position)
+    end
+
+    action SetPositions(Array<Vector2> targetPositions)
+        positions = targetPositions
+    end
+
+    action GetPositions() returns Array<Vector2>
+        return positions
+    end
+
+    action SetAngle(number angle, integer index)
+        angles:Set(index, angle)
+    end
+
+    action SetAngles(Array<number> targetAngles)
+        angles = targetAngles
+    end
+    
+    action GetAngles() returns Array<number>
+        return angles
+    end
+
+    action SetLinearVelocity(Vector2 linearVelocity, integer index)
+        linearVelocities:Set(index, linearVelocity)
+    end
+
+    action SetLinearVelocities(Array<Vector2> velocities)
+        linearVelocities = velocities
+    end
+
+    action GetLinearVelocities returns Array<Vector2>
+        return linearVelocities
+    end
+
+    action SetAngularVelocity(number angularVelocity, integer index)
+        angularVelocities:Set(index, angularVelocity)
+    end
+
+    action SetAngularVelocities(Array<number> velocities)
+        angularVelocities = velocities
+    end
+    
+    action GetAngularVelocities returns Array<number>
+        return angularVelocities
+    end
+
+    action GetTimeStep returns TimeStep
+        return step
+    end
+    
+    action SetTimeStep(TimeStep timeStep)
+        step = timeStep
+    end
+end
