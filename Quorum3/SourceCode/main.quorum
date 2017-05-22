@@ -42,6 +42,13 @@ class Main is WebResponder
         //CompileCompiler()
         //CompileSingleTest()
         //CompileGameEngine()
+        //TestWebCompilerErrors()
+    end
+
+    action TestWebCompilerErrors
+        WebRequest request
+        request:AddParameter("code", ";")
+        output Respond(request):GetPageText()
     end
 
     action GenerateDocumentation
@@ -759,7 +766,7 @@ For more information on writing programs in Quorum, visit www.quorumlanguage.com
         if compiler:IsCompilationErrorFree()
             response:SetPageText(compiler:GetCompiledJavaScript())
         else
-            response:SetPageText(compiler:GetCompilerErrorsAsShortText())
+            response:SetPageText(compiler:GetCompilerErrorsAsHTML())
         end
         return response
     end
