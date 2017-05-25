@@ -14,7 +14,6 @@ use Libraries.Compute.BitwiseOperations
 use Libraries.Game.Physics.OrderIndex
 use Libraries.Game.Physics.ConstraintDescription3D
 use Libraries.Game.Physics.CollisionConstraint3D
-use Libraries.Game.Physics.all
 
 class CollisionSolver3D
     constant integer MAX_SOLVER_POINTS = 16384
@@ -235,7 +234,6 @@ class CollisionSolver3D
 
     action SolveGroupSetup(Array<Item3D> bodies, integer numBodies, Array<LocalCollisionPoints3D> manifoldPtr, integer manifold_offset, integer numManifolds, 
                          Array<Joint3D> joints, integer joints_offset, integer numJoints, CollisionSolverInformation3D infoGlobal) returns number
-        Math math
         if numJoints + numManifolds = 0
             return 0
         end
@@ -540,8 +538,6 @@ class CollisionSolver3D
         integer numConstraintPool = tempSolverConstraintPool:GetSize()
         integer numFrictionPool = tempSolverFrictionConstraintPool:GetSize()
 
-        BitwiseOperations bo
-
         integer iteration = 0
         repeat while iteration < infoGlobal:GetNumberIterations()
             integer j = 0
@@ -709,7 +705,6 @@ class CollisionSolver3D
             j = j + 1
         end
 
-        BitwiseOperations bo
         integer iteration = 0
         repeat while iteration < numIter
             if infoGlobal:RandomizeOrder()
@@ -967,16 +962,15 @@ class CollisionSolver3D
         seed = 0
     end
 
+    Math math
+    BitwiseOperations bo
+
     private action Random returns integer
-        BitwiseOperations bo
         seed = bo:And((1664525 * seed + 1013904223), seed:GetMaximumValue())
         return seed
     end
 
     private action RandomInteger(integer n) returns integer
-        Math math
-        BitwiseOperations bo
-
         integer un = n
         integer r = Random()
         
