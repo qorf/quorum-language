@@ -16,11 +16,6 @@ class CollisionGroup3D
     Array<CollisionEvent3D> collisions
     Array<Joint3D> joints
 
-    Array<Vector3> positions
-    Array<Vector3> angles
-    Array<Vector3> linearVelocities
-    Array<Vector3> angularVelocities
-
     integer itemCount = 0
     integer jointCount = 0
     integer collisionCount = 0
@@ -39,10 +34,6 @@ class CollisionGroup3D
         collisionCount = 0
         collisions:Empty()
         jointCount = 0
-        positions:Empty()
-        angles:Empty()
-        linearVelocities:Empty()
-        angularVelocities:Empty()
     end
 
     action Add(Item3D item)

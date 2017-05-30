@@ -30,8 +30,11 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
     
     this.SetDisplayMode$quorum_integer$quorum_integer$quorum_boolean = function(width, height, fullscreen)
     {
-        // Not sure if we can/should change the canvas size from here. Returns false for now.
-        return false;
+        // Currently resizes canvas but does not support fullscreen.
+        canvas.width = width;
+        canvas.height = height;
+        
+        return canvas.width === width && canvas.height === height && !fullscreen;
     };
     
     this.GetWidth = function()

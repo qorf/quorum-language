@@ -43,6 +43,7 @@ function plugins_quorum_Libraries_Game_WebApplication_()
         display.SetLastTime();
         
         var canvas = display.plugin_.GetCanvas();
+        canvas.width = canvas.height * (canvas.clientWidth / canvas.clientHeight);
         var graphics = manager.GetGameGraphics();
         var initialized = graphics.plugin_.InitializeWebGL(canvas);
         

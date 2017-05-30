@@ -30,6 +30,7 @@ use Libraries.Web.Page.SmallText
 use Libraries.Web.Page.StrongText
 use Libraries.Web.Page.WebPageHeader
 use Libraries.Web.Page.HeaderLink
+use Libraries.Web.Page.OrderedList
 
 class Compiler
     public constant number VERSION = 5.0
@@ -2327,6 +2328,23 @@ class Compiler
             result = result + EOL + t
         end
         return result
+    end
+
+    action GetCompilerErrorsAsHTML returns text
+        text EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        Iterator<CompilerError> errors = compilerErrorManager:GetIterator()
+        Division division
+        division:SetClassAttribute("compilerErrorList")
+        division:AddParagraph("I did not understand:")
+        OrderedList list
+        repeat while errors:HasNext()
+            CompilerError error = errors:Next()
+            text t = error:GetShortDisplayName()
+            list:AddListItem(t)
+        end
+        division:Add(list)
+        return division:Generate()
     end
 
     /*
