@@ -139,7 +139,7 @@ class Microphone
     system action Stop
 
     /*
-    The Record action will wait for the given number of seconds and return an
+    The RecordUntilDone action will wait for the given number of seconds and return an
     AudioSamples object containing the recorded audio data over that time. This
     call is blocking, which means program execution must wait until this call is
     finished before it moves to the next line of code in the program.
@@ -156,13 +156,13 @@ class Microphone
 
     Microphone microphone
 
-    AudioSamples recording = microphone:Record(5)
+    AudioSamples recording = microphone:RecordUntilDone(5)
 
     Audio audio
     audio:Load(recording)
     audio:PlayUntilDone()
     */
-    action Record(number seconds) returns AudioSamples
+    action RecordUntilDone(number seconds) returns AudioSamples
         Math math
         integer size = GetSize()
         SetSizeInSeconds(seconds)
