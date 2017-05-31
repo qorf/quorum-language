@@ -1293,6 +1293,16 @@ class Compiler
         UnorderedList list
         division:SetClassAttribute("headerNavBar outermostContainer")
 
+        Division skipDivision
+        skipDivision:SetClassAttribute("skiptocontent")
+
+        Link skipLink
+        skipLink:AddText("skip to main content")
+        skipLink:SetAddress("#main")
+
+        skipDivision:Add(skipLink)
+        division:Add(skipDivision)
+
         Link logoLink
         logoLink:SetIdentifier("homePageLink")
         logoLink:AddImage("/media/QuorumLogo.png", "The Quorum Logo")
@@ -1304,26 +1314,34 @@ class Compiler
         list:Add(item)
 
         text extension = ".html"
-        list:AddListItemLink("Download", "/download" + extension)
+        list:AddListItemLink("Learn", "/learn" + extension)
+        list:AddListItemLink("Hour of Code", "/hourofcode/part1" + extension)
         list:AddListItemLink("Reference", "/reference" + extension)
         list:AddListItemLink("Libraries", "/libraries" + extension)
-        list:AddListItemLink("Lessons", "/lesson" + extension)
+        list:AddListItemLink("Download", "/download" + extension)
         list:AddListItemLink("Bugs", "https://quorum.atlassian.net")
         division:Add(list)
         
         //search bar
         Form form
+        form:SetFormAction("/search.php")
         form:AddAttribute("role", "search")
         form:SetIdentifier("searchForm")
+        form:SetPost(true)
+
         Input searchInput
+        searchInput:SetTitle("Search Input")
         searchInput:SetIdentifier("searchFormInput")
         searchInput:SetPlaceHolder("How do I create an array?")
         searchInput:SetType("text")
+        searchInput:SetName("search-query")
         form:Add(searchInput)
+
         Input searchButton
         searchButton:SetIdentifier("searchFormButton")
         searchButton:SetDefaultValue("Search")
         searchButton:SetType("submit")
+        searchButton:SetTitle("Submit Button")
         form:Add(searchButton)
         division:Add(form)
         return division
@@ -1334,7 +1352,8 @@ class Compiler
         footer:AddText("The Quorum Programming Language")
         footer:SetIdentifier("footer")
         SmallText small
-        small:AddText("Copyright &copy; 2014-2016. Art and Design by Andreas Stefik, Evan Pierzina, and Kerry Ritter")
+        small:AddText("Copyright &copy; 2014-2017. Art and Design by 
+            Andreas Stefik, Melissa Stefik, and Evan Pierzina")
         footer:Add(small)
         return footer
     end
@@ -1407,8 +1426,13 @@ class Compiler
         //Add Responsive Stylesheets
         WebPageHeader webHeader = page:GetWebPageHeader()
         webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
-        webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 800px)"))
-        webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 801px)"))
+        webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
+        webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
+
+        MetaData metaDataDescription
+        metaDataDescription:SetContent("Read more about the Quorum programming language's standard library.")
+        metaDataDescription:SetName("description")
+        page:AddMetaData(metaDataDescription)
 
         page:SetWebPageTitle("Standard Library Index - Quorum Programming Language")
         page:Add(navigation)
