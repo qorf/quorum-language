@@ -1704,7 +1704,7 @@ class Camera
     end
 
     /*
-    The SetFromEulerAngles action sets the direction and orientation of the
+    The SetYawPitchRoll action sets the direction and orientation of the
     Camera using yaw, pitch, and roll angles. All angles are in degrees. The
     starting direction of the Camera (when the provided yaw, pitch, and roll are
     0) is a camera pointing directly along the positive Z axis, with the top of
@@ -1764,11 +1764,11 @@ class Camera
             camera:SetPosition(-5, 2, -5)
             // The camera will be looking 45 degrees to the right and 30 degrees
             // down, and be tilted 30 degrees clockwise.
-            camera:SetFromEulerAngles(45, -30, 30)
+            camera:SetYawPitchRoll(45, -30, 30)
         end
     end
     */
-    action SetFromEulerAngles(number yaw, number pitch, number roll)
+    action SetYawPitchRoll(number yaw, number pitch, number roll)
         number y = math:DegreesToRadians(yaw)
         number p = math:DegreesToRadians(pitch)
         number cosP = math:Cosine(p)
