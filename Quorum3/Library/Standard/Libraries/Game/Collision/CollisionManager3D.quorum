@@ -106,6 +106,8 @@ class CollisionManager3D
             end
         end
 
+        collision:GetCollisionPoints():ClearCollisionPoints()
+
         if collision:GetPrevious() not= undefined
             collision:GetPrevious():SetNext(collision:GetNext())
         end

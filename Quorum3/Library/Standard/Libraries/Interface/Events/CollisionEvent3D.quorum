@@ -170,8 +170,6 @@ class CollisionEvent3D
         PhysicsPosition3D transformA = itemA:GetCollisionTransform()
         PhysicsPosition3D transformB = itemB:GetCollisionTransform()
 
-        result:Initialize(itemA, itemB)
-
         NarrowphaseEvaluation(collisionPoints, transformA, transformB)
         touching = collisionPoints:GetPointCount() > 0
 
@@ -217,8 +215,10 @@ class CollisionEvent3D
         CollisionShape3D shapeB = itemB:GetShape()
 
         if shapeA is Sphere and shapeB is Sphere
+            result:Initialize(itemA, itemB)
             CollideSpheres(collisionPoints, cast(Sphere, shapeA), transformA, cast(Sphere, shapeB), transformB, result)
         else
+            result:Initialize(itemA, itemB)
             CollideConvexConvex(collisionPoints, shapeA, transformA, shapeB, transformB, result)
         end
 
@@ -234,7 +234,6 @@ class CollisionEvent3D
         tempTransform1:Set(transformA)
         tempTransform2:Set(transformB)
 
-        //collisionPoints:ClearCollisionPoints()
         result:SetCollisionPoints(collisionPoints)
 
         Vector3 diff
@@ -284,8 +283,6 @@ class CollisionEvent3D
 // GJK Collision Algorithm and Helpers
 
     private action CollideConvexConvex(LocalCollisionPoints3D collisionPoints, CollisionShape3D shapeA, PhysicsPosition3D transformA, CollisionShape3D shapeB, PhysicsPosition3D transformB, CollisionPointsResult3D result)
-        //collisionPoints:ClearCollisionPoints()
-
         result:SetCollisionPoints(collisionPoints)
         number maximumDistanceSquared = 0
 
