@@ -257,10 +257,10 @@ class ClassOpcode is QuorumOpcode
         webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
         webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
 
-        MetaData description
-        description:SetContent("Read documentation for the Quorum programming language's " + clazz:GetStaticKey() + " class.")
-        description:SetName("description")
-        page:AddMetaData(description)
+        MetaData metaDataDescription
+        metaDataDescription:SetContent("Read documentation for the Quorum programming language's " + clazz:GetStaticKey() + " class.")
+        metaDataDescription:SetName("description")
+        page:AddMetaData(metaDataDescription)
 
         page:SetWebPageTitle(clazz:GetStaticKey() + " - Quorum Programming Language")
         page:Add(navigation)
