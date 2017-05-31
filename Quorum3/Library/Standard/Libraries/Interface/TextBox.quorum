@@ -353,7 +353,7 @@ class TextBox is Panel, KeyboardListener
                 textChanged = true
                 cursorMoved = true
             end
-        elseif ke:keyCode = ke:FORWARD_DEL
+        elseif ke:keyCode = ke:FORWARD_DELETE
             if cursorIndex not= responseStr:GetSize()
                 text preText = ""
                 if cursorIndex > 0
