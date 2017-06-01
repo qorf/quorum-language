@@ -113,6 +113,9 @@ class Box is CollisionShape3D
     action Set(number width, number height, number depth)
         Vector3 halfExtents
         halfExtents:Set(width / 2, height / 2, depth / 2)
+        Vector3 margin
+        margin:Set(GetMargin(), GetMargin(), GetMargin())
+        halfExtents:Add(margin)
         Set(halfExtents)
     end
 
