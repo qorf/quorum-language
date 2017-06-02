@@ -24,7 +24,7 @@ public class RawStreamingData extends DesktopData
 {
     protected ArrayList<AudioSamples_> samplesArray = new ArrayList<>();
     protected IntBuffer buffers;
-    protected int bufferCount = 3;
+    protected int bufferCount = 5;
     protected ArrayList<Integer> unusedBuffers = new ArrayList<>();
     protected int sourceID = -1;
     
@@ -450,7 +450,11 @@ public class RawStreamingData extends DesktopData
     @Override
     public boolean IsPlaying()
     {
-        return AL10.alGetSourcei(sourceID, AL10.AL_SOURCE_STATE) == AL10.AL_PLAYING;
+        boolean playing = AL10.alGetSourcei(sourceID, AL10.AL_SOURCE_STATE) == AL10.AL_PLAYING;
+        
+        // Unknown bug causes "INVALID_NAME" error from prior call. This flushes the error flags.
+        AL10.alGetError();
+        return playing;
     }
     
     @Override
