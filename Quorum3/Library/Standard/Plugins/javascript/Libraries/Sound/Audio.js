@@ -250,14 +250,13 @@ function plugins_quorum_Libraries_Sound_Audio_()
                 if (plugins_quorum_Libraries_Sound_Audio_.audioContext.state === 'suspended')
                     plugins_quorum_Libraries_Sound_Audio_.audioContext.resume();
                 
+                loading = false;
                 runQueuedActions();
             },
             function(e)
             {
                 console.log("Error decoding audio data: " + e.err);
             });
-            
-            loading = false;
         };
         
         loading = true;
@@ -451,7 +450,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
             return false;
         
         var duration = source.buffer.duration;
-        return (startTime !== 0 && pauseTime === 0 && (looping || startTime + duration < plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime));
+        return (startTime !== 0 && pauseTime === 0 && (looping || startTime + duration > plugins_quorum_Libraries_Sound_Audio_.audioContext.currentTime));
     };
     
     this.EnableLooping = function()
