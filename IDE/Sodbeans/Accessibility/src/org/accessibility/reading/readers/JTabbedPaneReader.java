@@ -19,9 +19,12 @@ public class JTabbedPaneReader extends AbstractScreenReader{
     private JTabbedPane tabbedPane;
 
     @Override
-    protected SpeechProcessor getKeyEventProcessor() {
+    protected SpeechProcessor getKeyEventProcessor() 
+    {
+               
         if(getUberEvent().key.getKeyCode() == KeyEvent.VK_LEFT ||
-            getUberEvent().key.getKeyCode() == KeyEvent.VK_RIGHT) {
+            getUberEvent().key.getKeyCode() == KeyEvent.VK_RIGHT ||
+            getUberEvent().key.getKeyCode() == KeyEvent.VK_TAB && getUberEvent().key.isControlDown()) {
             return getFocusEventProcessor();
         }
 
