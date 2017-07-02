@@ -24,6 +24,9 @@ use Libraries.Game.Collision.BoundingBox2D
 use Libraries.Game.Physics.PhysicsProperties2D
 use Libraries.Game.Physics.Mass2D
 use Libraries.Game.Physics.Joints.JointEdge2D
+use Libraries.Game.GameStateManager
+use Libraries.Game.Application
+use Libraries.Game.WebApplication
 
 /*
     The Item2D class represents any object that has a position in 2D space.
@@ -2488,6 +2491,33 @@ class Item2D is Item
 
     action EnablePhysics(boolean flag)
         physicsEnabled = flag
+
+        GameStateManager manager
+        Application application = manager:GetApplication()
+        if application is WebApplication and physicsEnabled
+            // If width and height are 0, most likely the item is being loaded
+            // in some capacity (e.g. loading a Drawable) and thus we need to
+            // wait for it before allowing it to use physics.
+            if GetWidth() = 0 and GetHeight() = 0
+                physicsEnabled = false
+                PhysicsProperties2D properties
+                me:properties = properties
+            else
+                SetCollidable(true)
+                sweep:GetLocalCenter():SetZero()
+                sweep:GetCenter0():Set(transform:GetPosition())
+                sweep:GetCenter():Set(transform:GetPosition())
+                sweep:SetAngle0(transform:GetAngle())
+                sweep:SetAngle(transform:GetAngle())
+                sweep:SetAlpha0(0)
+                if me:properties = undefined
+                    PhysicsProperties2D properties
+                    me:properties = properties
+                end
+                properties:SetItem(me)
+            end
+            return now
+        end
     
         if physicsEnabled
             SetCollidable(true)

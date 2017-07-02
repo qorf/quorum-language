@@ -97,8 +97,12 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.ContextMenu = function(event)
         {
-            if (plugins_quorum_Libraries_Game_WebInput_.disableContextMenu)
-                event.preventDefault();
+            var canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
+            if (canvas === document.activeElement)
+            {
+                if (plugins_quorum_Libraries_Game_WebInput_.disableContextMenu)
+                    event.preventDefault();
+            }
         };
         
         document.addEventListener('keydown', plugins_quorum_Libraries_Game_WebInput_.KeyDown, false);
