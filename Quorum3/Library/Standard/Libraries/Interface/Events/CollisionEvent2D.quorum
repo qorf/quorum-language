@@ -35,6 +35,8 @@ class CollisionEvent2D
     number restitution = 1
     number tangentSpeed = 0
 
+    boolean hasPhysicsResponse = true
+
     Math math
 
     private CollisionEvent2D next = undefined
@@ -49,6 +51,14 @@ class CollisionEvent2D
     CollisionEdge2D nodeB
 
     LocalCollisionPoints2D collisionPoints
+
+    action HasPhysicsResponse returns boolean
+        return hasPhysicsResponse
+    end
+
+    action SetHasPhysicsResponse(boolean flag)
+        me:hasPhysicsResponse = flag
+    end
 
     action Initialize(Item2D itemA, integer indexA, Item2D itemB, integer indexB)
         enabledFlag = true

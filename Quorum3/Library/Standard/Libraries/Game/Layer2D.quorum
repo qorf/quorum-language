@@ -1741,9 +1741,11 @@ class Layer2D is Layer
                             if collision1:InCollisionGroup()
                                 // continue with group -- the collision has already been
                                 // accounted for in the collision group
-                            elseif not collision1:IsEnabled() or not collision1:IsTouching()
+                            elseif not collision1:IsEnabled() or not collision1:IsTouching() or not collision1:HasPhysicsResponse()
                                 // continue with group -- this collision is not currently
-                                // colliding (close, may collide in a few frames)
+                                // colliding (close, may collide in a few frames) or this
+                                // collision has been disalbed from producing a physics
+                                // response
                             else
                                 boolean physicsA = collision1:GetItemA():IsPhysicsEnabled()
                                 boolean physicsB = collision1:GetItemB():IsPhysicsEnabled()
