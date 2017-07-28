@@ -2199,18 +2199,48 @@ class Item2D is Item
         end
     end
 
+    /*
+    This is an action used internally to retrieve the head of the liked list of 
+    collisions with this item. This action is used internally and users should 
+    not need to use this action.
+
+    Attribute: Returns The head of the linked list of collisions
+    */
     action GetCollisionList returns CollisionEdge2D
         return collisionList
     end
 
+    /*
+    This is an action used internally by the physics system to keep track of the
+    collisions with this item in a linked list structure. This action sets the
+    head of the linked list of collisions to the passed CollisionEdge2D object.
+    This action is used internally and users should not need to use this action.
+
+    Attribute: Parameter edge The new head of the linked list of collisions
+    */
     action SetCollisionList(CollisionEdge2D edge)
         collisionList = edge
     end
 
+    /*
+    This is an action used internally to retrieve the head of the liked list of 
+    joints connected to this item. This action is used internally and users
+    should not need to use this action.
+
+    Attribute: Returns The head of the linked list of connected joints
+    */
     action GetJointList returns JointEdge2D
         return jointList
     end
 
+    /*
+    This is an action used internally by the physics system to keep track of the
+    joints connected to this item in a linked list structure. This action sets the
+    head of the linked list of collisions to the passed CollisionEdge2D object.
+    This action is used internally and users should not need to use this action.
+
+    Attribute: Parameter The new head of the linked list of connected joints
+    */
     action SetJointList(JointEdge2D edge)
         jointList = edge
     end
@@ -2256,6 +2286,14 @@ class Item2D is Item
         return layer
     end
 
+    /*
+    This action is used internally by the physics system to set the position of
+    this item in the physics world. This action is used internally and users
+    users should not need to use this action.
+
+    Attribute: Parameter position The vector representing the position of the center of the item in physics space
+    Attribute: Parameter angle The rotation in radians of the item in physics space
+    */
     action SetTransform(Vector2 position, number angle)
         transform:Set(position, angle)
         
@@ -2266,22 +2304,56 @@ class Item2D is Item
         Synchronize(broadphase, transform, transform)
     end
 
+
+    /*
+    This action returns the position of the item in physical space. This acction is
+    used internally and should not be used by users to get the position of this
+    item on the screen.
+
+    Attribute: Returns The position and angle of this item in physics space
+    */
     action GetTransform returns PhysicsPosition2D
         return transform
     end
 
+    /*
+    This action sets the position of the item in physical space. This action is
+    used internally and should not be used by users to set the position of this
+    item on the screen.
+
+    Attribute: Parameter transform The position and angle of this item in physics space
+    */
     action SetTransform(PhysicsPosition2D transform)
         me:transform:Set(transform)
     end
 
+    /*
+    This action gets the position of the item in physics space from the previous
+    frame. This action is used internally and users should not need to use this
+    action
+
+    Attribute: Returns The position and angle of the item in physics space in the previous frame
+    */
     action GetTransform0 returns PhysicsPosition2D
         return transform0
     end
 
+    /*
+    This action sets the position of the item in physics space from the previous
+    frame. This action is used internally and users should not need to use this
+    action.
+
+    Attribute: Parameter transform The position and angle of the item in physics space in the previuos frame
+    */
     action SetTransform0(PhysicsPosition2D transform)
         me:transform0:Set(transform)
     end
 
+    /*
+    This action is used to syncronize the item's position in physics space with
+    its position in the tree used for broadphase collision. This action is used
+    internally and users should not need to use this action.
+    */
     action SynchronizeNodes
         PhysicsPosition2D xf1
 
@@ -2300,6 +2372,11 @@ class Item2D is Item
         end
     end
 
+    /*
+    This action is used to update this items position in physics space after
+    physics solving is finished for this item. This action is used internally
+    and users should not need to use this action.
+    */
     action SynchronizeTransform
         transform:Set(transform:GetPosition(), sweep:GetAngle())
         number cosine = transform:GetCosine()
@@ -2309,6 +2386,13 @@ class Item2D is Item
         transform:GetPosition():SetY(sweep:GetCenter():GetY() - sine * v:GetX() - cosine * v:GetY())
     end
 
+    /*
+    This action is used to advance the item forward in time in physics space to 
+    synchronize it for time of impact solving. This action is used internally
+    and users should not need to use this action.
+
+    Attribute Parameter time The amount of seconds to advance the item forward in time
+    */
     action Advance(number time)
         sweep:Advance(time)
         sweep:GetCenter():Set(sweep:GetCenter0())
@@ -2319,14 +2403,46 @@ class Item2D is Item
         transform:GetPosition():Scale(-1):Add(sweep:GetCenter())
     end
 
+    /*
+    This action returns the swept movement of this item used for time of impact
+    solving for the physics system. This action is used internally and users
+    should not need to call this action.
+
+    Attribute: Returns The swept motion of this item
+    */
     action GetSweep returns Sweep2D
         return sweep
     end
 
+    /*
+    This action returns an integer representing the type of collision shape
+    currently attached to this item.
+
+    Attribute: Returns The integer representing the type of collision shape for this item
+    */
     action GetShapeType returns integer
         return shape:GetType()
     end
 
+    /*
+    This action sets the collision shape of this item. The collision shape is the
+    shape the collision system will use to test for collisions with this item.
+    Note that this may be different from the shape drawn on the screen. A copy of
+    the passed shape is used for the collison shape for this item.
+
+    Attribute: Parameter shape The collision shape to use for this item
+    
+    Attribute: Example
+
+    use Libraries.Game.Drawable
+    use Libraries.Game.Collision.Shapes.Circle
+
+    Drawable ball
+    ball:Load("ball.png")
+    Circle circle
+    circle:SetRadius(30)
+    ball:SetShape(circle)
+    */
     action SetShape(CollisionShape2D shape)
         me:shape = shape:Copy()
 
@@ -2343,22 +2459,90 @@ class Item2D is Item
         end
     end
 
+    /*
+    This item returns the collision shape of this item. The collision shape is the
+    shape the collision system will use to test for collisions with this item.
+    Note that this may be different from the shape drawn on the screen.
+    
+    Attribute: Returns The collision shape for this item
+
+    Attribute: Example
+
+    use Libraries.Game.Drawable
+    use Libraries.Game.Collision.Shapes.Circle
+
+    Drawable ball
+    ball:Load("ball.png")
+    Circle circle
+    circle:SetRadius(30)
+    ball:SetShape(circle)
+    CollisionShape2D shape = ball:GetShape()
+    */
     action GetShape returns CollisionShape2D
         return shape
     end
 
+    /*
+    This item is used to test whether a passed point is on the collision shape
+    of this item.
+
+    Attribute: Parameter point The vector representing the point to test
+
+    Attribute: Returns True if the passed point is on the collisoin shape, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Interface.Drawable
+    use Libraries.Compute.Vector2
+
+    Drawable circle
+    circle:LoadFilledCircle(30)
+    circle:SetPosition(350, 400)
+    Vector2 point
+    point:Set(365, 410)
+    boolean result = circle:TestPoint(point)
+    */
     action TestPoint(Vector2 point) returns boolean
         return shape:TestPoint(transform, point)
     end
 
+    /*
+    This action is used to get the bounding box of the item. A bounding box is
+    an axis-alligned rectangle containing the shape used for broadphase collision.
+    This action is used internally and users should not need to use this action.
+
+    Attribute: Parameter childIndex The index of the collision shape attached to this item we want the bounding box of
+    
+    Attribute: Returns The bounding box of the collision shape attached to this item
+    */
     action GetBoundingBox(integer childIndex) returns BoundingBox2D
         return nodes:Get(childIndex):GetBoundingBox()
     end
 
+    /*
+    This action computes the distance of the passed point from the collision shape
+    attached to this item. This action is used internally and users should not
+    need to use this action.
+
+    Attribute: Parameter point The vector representing the point to compute the distance from
+    Attribute: Parameter childIndex The index of the collision shape attached to this item we want the bounding box of
+    Attribute: Parameter normalOut The direction of the point from the shape
+
+    Attribute: Returns The distance of the point from the collision shape of this item
+    */
     action ComputeDistance(Vector2 point, integer childIndex, Vector2 normalOut) returns number
         return shape:ComputeDistance(transform, point, childIndex, normalOut)
     end
 
+    /*
+    This action creates the nodes for this item for the broadphase collision.
+    This action is needed in order to add the item to the collision detection
+    system. This action is used internally and users should not need to use this
+    action.
+
+    Attribute: Parameter broadphase The broadphase to add this item to
+    Attribute: Parameter transform The current position of the item in physics space
+    */
     action CreateNodes(BroadphaseCollision2D broadphase, PhysicsPosition2D transform)
         if nodesSet or not collidable
             DestroyNodes(broadphase)
@@ -2380,6 +2564,13 @@ class Item2D is Item
         end
     end
 
+    /*
+    This action destroys the nodes for this item for the broadphase collision,
+    essentially removing it from the collision detection system. This action
+    is used internally and users should not need to use this action.
+
+    Attribute: Parameter broadphase The broadphase to remove this item's nodes from
+    */
     action DestroyNodes(BroadphaseCollision2D broadphase)
         integer i = 0
         repeat while i < nodeCount
@@ -2394,10 +2585,25 @@ class Item2D is Item
         nodesSet = false
     end
 
+    /*
+    This action gets the number of broadphase nodes this item has. This action
+    is used internally and users should not need to use this action.
+
+    Attribute: Returns The number of broadphase nodes attached to this item
+    */
     action GetNodeCount returns integer
         return nodeCount
     end
 
+    /*
+    This action is used to synchronize the nodes of this item in the broadphase.
+    This essentially updates the position of this item in the broadphase collision
+    tree if the item moved since the last frame.
+
+    Attribute: Parameter broadphase The broadphase that keeps track of this item
+    Attribute: Parameter transform1 The updated position of the item
+    Attribute: Parameter transform2 The old position of the item
+    */
     private action Synchronize(BroadphaseCollision2D broadphase, PhysicsPosition2D transform1, PhysicsPosition2D transform2)
         if nodeCount = 0
             return now
@@ -2450,10 +2656,31 @@ class Item2D is Item
         end
     end
 
+    /*
+    This action returns all of the broadphase nodes attached to this item in an
+    array. This action is used internally and users should not need to use this
+    action.
+
+    Attribute: Returns The broadphase nodes attached to this item in an array
+    */
     action GetNodes returns Array<Item2DNode>
         return nodes
     end
 
+    /*
+    This action sets this item to be collidable. Passing true turns on collision
+    for this item while passing false turns off collision for this item.
+
+    Attribute: Parameter flag Whether or not to turn collision on for this item
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Drawable
+    
+    Drawable circle
+    circle:LoadFilledCircle(30)
+    circle:SetCollidable(true)
+    */
     action SetCollidable(boolean flag)
         if collidable = flag
             return now
@@ -2481,14 +2708,60 @@ class Item2D is Item
         end
     end
 
+    /*
+    This action determines whether this item is collidable.
+
+    Attribute: Returns True if this item is collidable, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Drawable
+    
+    Drawable circle
+    circle:LoadFilledCircle(30)
+    circle:SetCollidable(true)
+    boolean result = circle:IsCollidable
+    */
     action IsCollidable returns boolean
         return collidable
     end
 
+    /*
+    This action gets the children of this item in an array.
+
+    Attribute: Returns The children of this item in an array
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+
+    Item2D parent
+    Item2D child1
+    Item2D child2
+
+    parent:Add(child1)
+    parent:Add(child2)
+
+    Array<Item2D> children = parent:GetChildren()
+    */
     action GetChildren returns Array<Item2D>
         return children
     end
 
+    /*
+    This action enables physics for this item. Passing true turns on physics for
+    this item while passing false turns off physics for this item.
+
+    Attribute: Parameter flag Whether or not to enable physics for this item
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Drawable
+
+    Drawable circle
+    circle:LoadFilledCircle(30)
+    circle:EnablePhysics(true)
+    */
     action EnablePhysics(boolean flag)
         physicsEnabled = flag
 
@@ -2533,18 +2806,65 @@ class Item2D is Item
         end
     end
 
+    /*
+    This action determines whether physics is currently enabled for this item.
+
+    Attribute: Returns True if physics is enabled for this item, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Drawable
+
+    Drawable circle
+    circle:LoadFilledCircle(30)
+    circle:EnablePhysics(true)
+    boolean result = circle:IsPhysicsEnabled()
+    */
     action IsPhysicsEnabled returns boolean
         return physicsEnabled
     end
 
+    /*
+    This action gets the position of the center of this item in global (world)
+    coordinates.
+
+    Attribute: Returns The vector representing the center of this item in global coordinates
+    */
     action GetWorldCenter returns Vector2
         return sweep:GetCenter()
     end
 
+
+    /*
+    This action gets the position of the center of this item in local coordinates
+    (i.e., with respect to itself).
+
+    Attribute: Returns The vector representing the center of this item in local coordinates
+    */
     action GetLocalCenter returns Vector2
         return sweep:GetLocalCenter()
     end
 
+    /*
+    This action sets the linear velocity of this item in units per second. Physics
+    must be enabled on this item before using this action.
+
+    Attribute: Parameter linearVelocity The vector representing the linear velocity of this item in units per second
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+    use Libraries.Compute.Vector2
+
+    Item2D item
+    Vector2 velocity
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    velocity:Set(100, 0)
+    item:SetLinearVelocity(velocity)
+    */
     action SetLinearVelocity(Vector2 linearVelocity)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2553,6 +2873,23 @@ class Item2D is Item
         properties:SetLinearVelocity(linearVelocity)
     end
 
+    /*
+    This action sets the x-component of this item's linear velocity in units
+    per second. Physics must be enabled on this item before using this action.
+
+    Attribute: Parameter linearVelocityX The x-component of this item's linear velocity in units per second
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+
+    Item2D item
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    item:SetLinearVelocityX(100)
+    */
     action SetLinearVelocityX(number linearVelocityX)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2561,6 +2898,23 @@ class Item2D is Item
         properties:SetLinearVelocityX(linearVelocityX)
     end
 
+    /*
+    This action sets the y-component of this item's linear velocity in units
+    per second. Physics must be enabled on this item before using this action.
+
+    Attribute: Parameter linearVelocityY The y-component of this item's linear velocity in units per second
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+
+    Item2D item
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    item:SetLinearVelocityY(100)
+    */
     action SetLinearVelocityY(number linearVelocityY)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2569,6 +2923,28 @@ class Item2D is Item
         properties:SetLinearVelocityY(linearVelocityY)
     end
 
+    /*
+    This action gets the linear velocity of this item in units per second. Physics
+    must be enabled on this item before using this action.
+
+    Attribute: Returns The vector representing the linear velocity of this item in units per second
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+    use Libraries.Compute.Vector2
+
+    Item2D item
+    Vector2 velocity
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    velocity:Set(100, 0)
+    item:SetLinearVelocity(velocity)
+
+    Vector2 currentVelocity = item:GetLinearVelocity()
+    */
     action GetLinearVelocity returns Vector2
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2577,6 +2953,22 @@ class Item2D is Item
         return properties:GetLinearVelocity()
     end
 
+    /*
+    This action sets this item's angular velocity in radians per second. Physics
+    must be enabled in this item before using this action.
+
+    Attribute: Parameter angularVelocity The angular velocity of this item in radians per second
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+
+    Item2D item
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    item:SetAngularVelocity(0.1)
+    */
     action SetAngularVelocity(number angularVelocity)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2585,6 +2977,23 @@ class Item2D is Item
         properties:SetAngularVelocity(angularVelocity)
     end
 
+    /*
+    This action gets this item's angular velocity in radians per second. Physics
+    must be enabled in this item before using this action.
+
+    Attribute: Returns The angular velocity of this item in radians per second
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+
+    Item2D item
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    item:SetAngularVelocity(0.1)
+    number angularVelocity = item:GetAngularVelocity()
+    */
     action GetAngularVelocity returns number
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2593,6 +3002,29 @@ class Item2D is Item
         return properties:GetAngularVelocity()
     end
 
+    /*
+    This action sets the total force on this item. The units are kilogram units
+    per second per second. This action should be used to set the total force on
+    this item. If we want to apply a force to this item, we should use the
+    ApplyForce actions instead. Physics must be enabled on this item before
+    using this action.
+
+    Attribute: Parameter force The total force in kilogram units per second per second
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+    use Libraries.Compute.Vector2
+
+    Item2D item
+    Vector2 force
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    force:Set(300, 350)
+    item:SetForce(force)
+    */
     action SetForce(Vector2 force)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2601,6 +3033,28 @@ class Item2D is Item
         properties:SetForce(force)
     end
 
+    /*
+    This action gets the total force on this item. The units are kilogram units
+    per second per second. Physics must be enabled on this item before using
+    this action.
+
+    Attribute: Returns The total force in kilogram units per second per second
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+    use Libraries.Compute.Vector2
+
+    Item2D item
+    Vector2 force
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    force:Set(300, 350)
+    item:SetForce(force)
+    Vector2 totalForce = item:GetForce()
+    */
     action GetForce returns Vector2
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2609,6 +3063,26 @@ class Item2D is Item
         return properties:GetForce()
     end
 
+    /*
+    This action sets the total torque on this item. The units are kilogram units
+    squared per second per second. This action should be used to set the total
+    torque on this item. If we want to apply a torque to this item, we should
+    use the ApplyTorque actions instead. Physics must be enabled on this action
+    before using this action.
+
+    Attribute: Parameter force The total torque in kilogram units squared per second per second
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+
+    Item2D item
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    item:SetTorque(200)
+    */
     action SetTorque(number torque)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2617,6 +3091,25 @@ class Item2D is Item
         properties:SetTorque(torque)
     end
 
+    /*
+    This action gets the total torque on this item. The units are kilogram units
+    squared per second per second. Physics must be enabled on this item before
+    using this action.
+
+    Attribute: Returns The total torque in kilogram units squared per second per second
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+
+    Item2D item
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    item:SetTorque(200)
+    number totalTorque = item:GetTorque()
+    */
     action GetTorque returns number
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2625,6 +3118,34 @@ class Item2D is Item
         return properties:GetTorque()
     end
 
+    /*
+    This action applies a force to this item at the passed point. The force is
+    in kilogram units per second per second. The point is the screen coordinates
+    where the point will be applied. If the point is not on the center of the item, 
+    then a torque will be introduced causing the item to rotate. Physics must be 
+    enabled on this item before using this action.
+
+    Attribute: Parameter force The force to apply to the item in kilogram units per second per second
+    Attribute: Parameter point The point at which to apply the force
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+    use Libraries.Interface.Item2D
+
+    Item2D item
+    Vector2 force
+    Vector2 point
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    
+    force:Set(300, 350)
+    point:Set(100, 100)    // apply the force to the top right corner of the item
+    
+    item:ApplyForce(force, point)
+    */
     action ApplyForce(Vector2 force, Vector2 point)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2633,6 +3154,30 @@ class Item2D is Item
         properties:ApplyForce(force, point)
     end
 
+    /*
+    This action applies a force to this item at the center of the item. The force
+    is in kilogram units per second per second. No torque is introduced to the
+    item when using this action. Physics must be enabled on this item before 
+    using this action.
+
+    Attribute: Parameter force The force to apply to the item in kilogram units per second per second
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector2
+    use Libraries.Interface.Item2D
+
+    Item2D item
+    Vector2 force
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    
+    force:Set(300, 350)
+    
+    item:ApplyForce(force)
+    */
     action ApplyForceToCenter(Vector2 force)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2641,6 +3186,23 @@ class Item2D is Item
         properties:ApplyForceToCenter(force)
     end
 
+    /*
+    This action applies a torque to this item. The units are kilogram units
+    squared per second per second. Physics must be enabled on this item before
+    using this action.
+
+    Attribute: Parameter torque The torque to apply to this item in kilogram units squared per second per second
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+
+    Item2D item
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    item:ApplyTorque(350)
+    */
     action ApplyTorque(number torque)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2649,6 +3211,35 @@ class Item2D is Item
         properties:ApplyTorque(torque)
     end
 
+    /*
+    This action applies a linear impulse to this item at the passed point. The 
+    impulse is in kilogram units per second. This immeadietly modifies the linear
+    velocity of this item. The point is the screen coordinates where the impulse
+    will be applied. If the point is not the center of the item, then the 
+    angular velocity of this item will also be modified. Physics must be enabled
+    on this item before using this action.
+
+    Attribute: Parameter impulse The impulse to apply in kilogram units per second
+    Attribute: Parameter point The point at which to apply the impulse
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+    use Libraries.Compute.Vector2
+
+    Item2D item
+    Vector2 impulse
+    Vector2 point
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+
+    impulse:Set(100)
+    point:Set(100, 100)     // apply the impulse to the top right corner
+
+    item:ApplyLinearImpulse(impulse, point)    
+    */
     action ApplyLinearImpulse(Vector2 impulse, Vector2 point)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2657,6 +3248,23 @@ class Item2D is Item
         properties:ApplyLinearImpulse(impulse, point)
     end
 
+    /*
+    This action applies an angular impulse to this item. The units are in
+    kilogram units squared per second. This modifies the angular velocity of
+    this item. Physics must be enabled on this item before using this action.
+
+    Attribute: Parameter impulse The angular impulse in kilogram units squared per second
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+
+    Item2D item
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    item:ApplyAngularImpulse(80)
+    */
     action ApplyAngularImpulse(number impulse)
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2665,6 +3273,24 @@ class Item2D is Item
         properties:ApplyAngularImpulse(impulse)
     end
 
+    /*
+    This action returns the mass of the item in kilograms. Physics must be
+    enabled on this item before using this action. If the item is non-responsive
+    or unmovable, the mass is zero.
+
+    Attribute: Returns The mass in kilograms
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+
+    Item2D item
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    item:SetMass(20)
+    number mass = item:GetMass()
+    */
     action GetMass returns number
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2673,6 +3299,23 @@ class Item2D is Item
         return properties:GetMass()
     end
 
+    /*
+    This action gets the inverse mass of the item (i.e., one divided by the mass
+    of this item). Physics must be enabled on this item before using this action.
+
+    Attribute: Returns The inverse mass of this item
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+
+    Item2D item
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    item:SetMass(20)
+    number inverseMass = item:GetInverseMass()
+    */
     action GetInverseMass returns number
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2681,6 +3324,23 @@ class Item2D is Item
         return properties:GetInverseMass()
     end
 
+    /*
+    This action gets the rotational inertia of this item. The inertia is in 
+    kilogram units squared.
+
+    Attribute: Returns The inertia of this item in kilogram units squared
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+
+    Item2D item
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    item:SetMass(20)
+    number inertia = item:GetInertia() 
+    */
     action GetInertia returns number
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2689,6 +3349,24 @@ class Item2D is Item
         return properties:GetInertia()
     end
 
+    /*
+    This action gets the inverse inertia of this item (i.e., one divided by the
+    inertia of this item). Physics must be enabled on this item before using
+    this action.
+
+    Attribute: Returns The inverse inertia of this item
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+
+    Item2D item
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:EnablePhysics(true)
+    item:SetMass(20)
+    number inverseInertia = item:GetInverseInertia() 
+    */
     action GetInverseInertia returns number
         if properties = undefined
             alert(PHYSICS_ERROR_MESSAGE)
@@ -2697,12 +3375,60 @@ class Item2D is Item
         return properties:GetInverseInertia()
     end
 
+    /*
+    Given a point relative to the center of this item, this action computes
+    and returns that point in screen coordinates.
+
+    Attribute: Parameter localPoint The point in coordinates with respect to the center of this item
+
+    Attribute: Returns The screen coordinates of the passed local point
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+    use Libraries.Compute.Vector2
+
+    Item2D item
+    Vector2 localPoint
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:SetPosition(400, 250)
+    
+    localPoint:Set(0, 0)    // Get the coordinates of the center of the item
+
+    Vector2 worldPoint = item:GetWorldPoint(localPoint)
+    */
     action GetWorldPoint(Vector2 localPoint) returns Vector2
         Vector2 vector
         transform:MultiplyToOut(transform, localPoint, vector)
         return vector
     end
 
+    /*
+    Given the local coordinates of a vector, this action computes the screen
+    coordinates of the corresponding vector.
+
+    Attribute: Parameter localVector The coordinates of a local vector
+
+    Attribute: Returns The coordinates of the corresponding global vector
+
+    Attribute Example
+
+    use Libraries.Interface.Item2D
+    use Libraries.Compute.Vector2
+
+    Item2D item
+    Vector2 localVector
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:SetPosition(400, 250)
+    
+    localVector:Set(0, 0)    // Get the coordinates of the center of the item
+
+    Vector2 worldVector = item:GetWorldVector(localVector)
+    */
     action GetWorldVector(Vector2 localVector) returns Vector2
         Vector2 vector
         number tempy = transform:GetSine() * localVector:GetX() + transform:GetCosine() * localVector:GetY()
@@ -2711,12 +3437,61 @@ class Item2D is Item
         return vector
     end
 
+    /*
+    Given a global point (i.e., the screen coordinates of the point), this action
+    computes the corresponding point relative to the center of this item.
+
+    Attribute: Parameter worldPoint The screen coordinates of the point to compute
+
+    Attribute: Returns The coordinates of the point relative to the center of this item
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+    use Libraries.Compute.Vector2
+
+    Item2D item
+    Vector2 worldPoint
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:SetPosition(400, 350)
+    
+    worldPoint:Set(400, 350)    // the lower left corner of the item
+
+    Vector2 localPoint = item:GetLocalPoint(worldPoint)
+    */
     action GetLocalPoint(Vector2 worldPoint) returns Vector2
         Vector2 vector
         vector:Set(transform:MultiplyAndTranslate(transform, worldPoint))
         return vector
     end
 
+    /*
+    Given the screen coordinates of a vector, this action computes the local
+    coordinates of the vector (i.e., the coordinates of the vector relative to
+    the center of this item)
+
+    Attribute: Parameter worldVector The screen coordinates of the vector
+
+    Attribute: Returns The local coordinates of the corresponding vector
+
+    Attribute: Example
+
+    use Libraries.Interface.Item2D
+    use Libraries.Compute.Vector2
+
+    Item2D item
+    Vector2 worldVector
+
+    item:SetWidth(100)
+    item:SetHeight(100)
+    item:SetPosition(400, 350)
+    
+    worldVector:Set(400, 350)    // the lower left corner of the item
+
+    Vector2 localVector = item:GetLocalVector(worldVector)
+    */
     action GetLocalVector(Vector2 worldVector) returns Vector2
         Vector2 vector
         number tempy = -1 * transform:GetSine() * worldVector:GetX() + transform:GetCosine() * worldVector:GetY()
