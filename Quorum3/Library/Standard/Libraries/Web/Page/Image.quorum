@@ -73,8 +73,12 @@ class Image is WebTag, FlowContent
     end
 
     /*
-        This action gets the alternative text if the address attribute of the 
-        image does not work. 
+        This action gets alternative text in an image.
+        This is used largely in accessibility technologies, 
+        where it provides an alternative representation of the image 
+        for technologies that benefit people
+        with disabilities. For example, a screen reader might read 
+        the alternative message out loud when focused on the image.
 
         Attribute: Returns The alternative text of the link. 
 
@@ -93,8 +97,12 @@ class Image is WebTag, FlowContent
     end
 
     /*
-        This action sets the alternative text if address attribute of the image 
-        does not work.
+        This action sets alternative text in an image.
+        This is used largely in accessibility technologies, 
+        where it provides an alternative representation of the image 
+        for technologies that benefit people
+        with disabilities. For example, a screen reader might read 
+        the alternative message out loud when focused on the image.
 
         Attribute: Parameter value The alternative text for an image.
 
