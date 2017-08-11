@@ -15,6 +15,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import javax.swing.Icon;
@@ -275,6 +276,10 @@ public class QuorumProject implements Project {
         setiPhoneSigningKey(properties.getProperty(QuorumProject.QUORUM_IPHONE_SIGNING_KEY));
         
         return properties;
+    }
+    
+    public Iterator<quorum.Libraries.System.File> getExtraSourceFiles() {
+        return extraSourceFiles.iterator();
     }
     
     public void resetSources(String sources) {

@@ -7,6 +7,7 @@ package org.quorum.language;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.project.FileOwnerQuery;
@@ -79,6 +80,11 @@ public class QuorumParser extends Parser{
                     File file = new File(directory.getAbsolutePath() + "/" + QuorumProject.SOURCES_DIR);
                     quorum.Libraries.System.File sourceFolder = Utility.toQuorumFile(file);
                     Array_ listing = sourceFolder.GetDirectoryListing();
+                    Iterator<quorum.Libraries.System.File> extras = ((QuorumProject) project).getExtraSourceFiles();
+                    while(extras.hasNext()) {
+                        quorum.Libraries.System.File next = extras.next();
+                        listing.Add(next);
+                    }
                     
                     getInfo().Set_Libraries_Language_Compile_ProjectInformation__source_(string);
                     getInfo().Set_Libraries_Language_Compile_ProjectInformation__sourceLocation_(quorumFile);

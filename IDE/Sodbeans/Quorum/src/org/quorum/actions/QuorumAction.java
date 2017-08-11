@@ -162,6 +162,12 @@ public abstract class QuorumAction implements Action {
             compiler.SetOutputType(compiler.JAVA_BYTECODE);
         }
         
+        Iterator<quorum.Libraries.System.File> extras = project.getExtraSourceFiles();
+        while(extras.hasNext()) {
+            quorum.Libraries.System.File next = extras.next();
+            listing.Add(next);
+        }
+        
         try {
             compiler.Compile(listing);
         } catch (final Exception e) {
