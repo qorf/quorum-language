@@ -145,6 +145,7 @@ public class QuorumCustomizer implements CustomizerProvider{
             } else {
                 properties.remove(QuorumProject.ADDITIONAL_SOURCES);
             }
+            ((QuorumProject)project).resetSources(sourceList);
             
             String pluginList = infoPanel.getPluginList();
             

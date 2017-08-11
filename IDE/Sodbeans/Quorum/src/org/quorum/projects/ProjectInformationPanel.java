@@ -478,8 +478,11 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
 
     private void removeSourceButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeSourceButtonActionPerformed
         DefaultListModel model = (DefaultListModel) sourceList.getModel();
-        int index = sourceList.getSelectedIndex();
-        model.remove(index);
+        int[] selectedIndices = sourceList.getSelectedIndices();
+        for(int i = selectedIndices.length - 1; i >= 0 ; i--) {
+            int index = selectedIndices[i];
+            model.remove(index);
+        }
     }//GEN-LAST:event_removeSourceButtonActionPerformed
 
     private void clearSourceButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearSourceButtonActionPerformed
