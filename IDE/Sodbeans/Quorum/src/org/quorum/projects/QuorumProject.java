@@ -67,6 +67,7 @@ public class QuorumProject implements Project {
     public static final String QUORUM_EXECUTABLE_NAME = "Quorum_Executable_Name";
     public static final String ADDITIONAL_PLUGIN_FOLDERS = "Additional_Plugin_Folders";
     public static final String ADDITIONAL_JARS = "Additional_Jars";
+    public static final String ADDITIONAL_SOURCES = "Additional_Sources";
     
     public static final String QUORUM_IPHONE_PROVISION = "Quorum_IPhone_Provision";
     public static final String QUORUM_IPHONE_SIGNING_KEY = "Quorum_IPhone_Signing_Key";
@@ -105,6 +106,7 @@ public class QuorumProject implements Project {
             new quorum.Libraries.Language.Compile.Compiler();
     private MainFileProvider mainFileProvider = new MainFileProvider(this);
     private quorum.Libraries.Language.Compile.CompilerResult_ sandboxResult = null;
+    private ArrayList<quorum.Libraries.System.File> extraSourceFiles = new ArrayList<quorum.Libraries.System.File>();
     
     public QuorumProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
@@ -260,6 +262,9 @@ public class QuorumProject implements Project {
         String jars = properties.getProperty(QuorumProject.ADDITIONAL_JARS);
         resetJars(jars);
         
+        String sources = properties.getProperty(QuorumProject.ADDITIONAL_SOURCES);
+        resetSources(sources);
+        
         String name = properties.getProperty(QuorumProject.QUORUM_EXECUTABLE_NAME);
         if(name != null) {
             compiler.SetName(name);
@@ -270,6 +275,23 @@ public class QuorumProject implements Project {
         setiPhoneSigningKey(properties.getProperty(QuorumProject.QUORUM_IPHONE_SIGNING_KEY));
         
         return properties;
+    }
+    
+    public void resetSources(String sources) {
+        File directory = FileUtil.toFile(this.getProjectDirectory());
+        if(sources != null) {
+            extraSourceFiles.clear();
+            String[] split = sources.split(";");
+            for(int i = 0; i < split.length; i++) {
+                String val = split[i];
+                File path = Utility.computeRelativePath(directory, val);
+                
+                quorum.Libraries.System.File toQuorumFile = Utility.toQuorumFile(path);
+                extraSourceFiles.add(toQuorumFile);
+            }
+        } else {
+            extraSourceFiles.clear();
+        }
     }
     
     public void resetJars(String jars) {
@@ -288,6 +310,7 @@ public class QuorumProject implements Project {
             compiler.EmptyAdditionalJars();
         }
     }
+    
     public void resetPluginFolder(String plugins) {
         File directory = FileUtil.toFile(this.getProjectDirectory());
         if(plugins != null) {

@@ -62,6 +62,11 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         if(property != null) {
             addItemsToJList(jarList, property);
         }
+        
+        property = properties.getProperty(QuorumProject.ADDITIONAL_SOURCES);
+        if(property != null) {
+            addItemsToJList(sourceList, property);
+        }
     }
     
     public void addItemsToJList(JList list, String string) {
@@ -92,6 +97,11 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         } else {
             return QuorumProject.QUORUM_LEGO_PROJECT;
         }
+    }
+    
+    public String getSourceList() {
+        DefaultListModel model = (DefaultListModel) sourceList.getModel();
+        return getPathsFromModel(model);
     }
     
     public String getJarList() {
