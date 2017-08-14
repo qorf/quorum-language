@@ -51,6 +51,9 @@ public class QuorumParser extends Parser{
         
         if(sme.sourceChanged()) {
             FileObject fo = snapshot.getSource().getFileObject();
+            if(fo == null) {
+                return;
+            }
             String extension = fo.getExt();
             
             if(extension.compareTo("quorum") != 0) {
