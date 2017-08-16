@@ -124,15 +124,8 @@ public class QuorumFile {
      * @param path
      * @return false if the path does not exist or does not refer to a directory.
      */
-    public boolean SetWorkingDirectoryNative(String path) {
-        File f = new File(path);
-        
-        if (!f.exists() || !f.isDirectory()) {
-            return false;
-        }
-        
+    public boolean SetWorkingDirectoryNative(String path) {        
         this.workingDirectory = path;
-        
         return true;
     }
    
