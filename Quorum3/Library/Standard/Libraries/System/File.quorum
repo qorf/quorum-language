@@ -723,6 +723,65 @@ class File
     system action Copy(File copy) returns boolean
 
     /*
+        Copy the file (or directory) specified to the new location specified.
+        The behavior of this action is highly dependent on the platform
+        and file system; always check the return value to ensure success. If the 
+        recursive flag is set, and Copy is called on a folder, then all subfolders
+        and files are also copied.
+
+        Attribute: Parameter copy the new location to copy the file to. Must be a valid file.
+        Attribute: Parameter recursive Whether or not to recursively copy all items in a folder.
+
+        Attribute: Returns True if the move succeeds; false otherwise.
+
+        Attribute: Example
+        use Libraries.System.File
+
+        // Move a file from one directory to another.
+        File f
+        f:SetPath("folder")
+
+        File copy
+        copy:SetPath("other")
+        boolean moveSucceeded = f:Copy(copy, true)
+        if moveSucceeded
+            output "Copy succeeded."
+        else
+            output "Copy failed."
+        end
+     */
+    action Copy(File file, boolean recursive) returns boolean
+        if not recursive
+            return Copy(file)
+        end
+
+        if IsDirectory()
+            Array<File> files = GetDirectoryListing()
+            Iterator<File> it = files:GetIterator()
+
+            boolean isTrue = true
+            repeat while it:HasNext()
+                File f = it:Next()
+
+                File newLocation
+                newLocation:SetWorkingDirectory(file:GetAbsolutePath())
+
+                if not newLocation:Exists()
+                    newLocation:CreateDirectories()
+                end
+                newLocation:SetPath(f:GetPath())
+                
+                
+                f:Copy(newLocation, recursive)
+                
+            end
+            return isTrue
+        else
+            return Copy(file)
+        end
+    end
+
+    /*
         Open this file for sequential reading. See the documentation of
         FileReaderBlueprint for more information on sequential reading.
 
