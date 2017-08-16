@@ -126,6 +126,7 @@ public class QuorumFile {
      */
     public boolean SetWorkingDirectoryNative(String path) {        
         this.workingDirectory = path;
+        this.file = new File(workingDirectory, this.path);
         return true;
     }
    
