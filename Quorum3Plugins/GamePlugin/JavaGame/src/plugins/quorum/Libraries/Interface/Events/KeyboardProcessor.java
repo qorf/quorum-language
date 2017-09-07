@@ -32,11 +32,17 @@ public class KeyboardProcessor {
 
                 // Check if the key was pressed down.
                 if (Keyboard.getEventKeyState())
+                {
                     event.eventType = event.PRESSED_KEY;
+                    InputMonitor.pressedKeys++;
+                }
                 // Otherwise, a key has just been released.
                 else
+                {
                     event.eventType = event.RELEASED_KEY;
-
+                    InputMonitor.pressedKeys--;
+                }
+                
                 events.Add(event);
             }
         }

@@ -38,6 +38,8 @@ class CollisionEvent3D
 //    number restitution = 1
 //    number tangentSpeed = 0
 
+    boolean hasPhysicsResponse = true
+
     Math math
 
     private CollisionEvent3D next = undefined
@@ -49,6 +51,14 @@ class CollisionEvent3D
     LocalCollisionPoints3D collisionPoints
 
     boolean islandFlag = false
+
+    action HasPhysicsResponse returns boolean
+        return hasPhysicsResponse
+    end
+
+    action SetHasPhysicsResponse(boolean flag)
+        me:hasPhysicsResponse = flag
+    end
 
     action GetCollisionPoints returns LocalCollisionPoints3D
         return collisionPoints

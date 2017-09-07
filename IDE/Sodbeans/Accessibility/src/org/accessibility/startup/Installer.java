@@ -42,7 +42,7 @@ public class Installer extends ModuleInstall implements Runnable{
     
     public static final String MAC_SPEECH = "modules/ext/CocoaSpeechServer.app/Contents/MacOS/CocoaSpeechServer";
     public static final String CODE_NAME_BASE = "org.accessibility";
-    public static final String STARTUP_STRING = "Starting Sodbeans 6.0";
+    public static final String STARTUP_STRING = "Starting Sodbeans 7.0";
     private ScreenReader reader = null;
     private TextToSpeech speech = null;
     

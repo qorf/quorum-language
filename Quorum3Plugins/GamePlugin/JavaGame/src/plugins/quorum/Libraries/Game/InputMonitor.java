@@ -17,9 +17,7 @@ import org.lwjgl.input.Mouse;
  */
 public class InputMonitor {
     public java.lang.Object me_ = null;
-    boolean keyJustPressed = false;
-    boolean[] justPressedKeys = new boolean[256];
-    int pressedKeys = 0;
+    public static int pressedKeys = 0;
   
     public final static int ANY_KEY = -1;
     public final static int NUM_0 = 7;

@@ -62,6 +62,11 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         if(property != null) {
             addItemsToJList(jarList, property);
         }
+        
+        property = properties.getProperty(QuorumProject.ADDITIONAL_SOURCES);
+        if(property != null) {
+            addItemsToJList(sourceList, property);
+        }
     }
     
     public void addItemsToJList(JList list, String string) {
@@ -92,6 +97,11 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         } else {
             return QuorumProject.QUORUM_LEGO_PROJECT;
         }
+    }
+    
+    public String getSourceList() {
+        DefaultListModel model = (DefaultListModel) sourceList.getModel();
+        return getPathsFromModel(model);
     }
     
     public String getJarList() {
@@ -143,6 +153,7 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         jRadioButton1 = new javax.swing.JRadioButton();
         pluginFolderChooser = new javax.swing.JFileChooser();
         jarFileChooser = new javax.swing.JFileChooser();
+        sourceFileChooser = new javax.swing.JFileChooser();
         jLabel2 = new javax.swing.JLabel();
         projectRadioButton = new javax.swing.JRadioButton();
         compiledWebProjectRadioButton = new javax.swing.JRadioButton();
@@ -162,6 +173,12 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         jarClearButton = new javax.swing.JButton();
         legoRadioButton = new javax.swing.JRadioButton();
         webBrowserRadioButton = new javax.swing.JRadioButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        sourceList = new javax.swing.JList<>();
+        jLabel5 = new javax.swing.JLabel();
+        addSourceButton = new javax.swing.JButton();
+        removeSourceButton = new javax.swing.JButton();
+        clearSourceButton = new javax.swing.JButton();
 
         jRadioButton1.setText("jRadioButton1");
 
@@ -169,6 +186,11 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         pluginFolderChooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
 
         jarFileChooser.setFileFilter(null);
+
+        sourceFileChooser.setFileFilter(null);
+        sourceFileChooser.setMultiSelectionEnabled(true);
+        sourceFileChooser.getAccessibleContext().setAccessibleName("Additional Source File Chooser");
+        sourceFileChooser.getAccessibleContext().setAccessibleDescription("This dialog allows you to select multiple quorum source files as an addition to your project.");
 
         jLabel2.setText("Select Project Type:");
 
@@ -242,6 +264,32 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         projectTypeButtonGroup.add(webBrowserRadioButton);
         webBrowserRadioButton.setText("Web Browser");
 
+        sourceList.setModel(new DefaultListModel());
+        jScrollPane3.setViewportView(sourceList);
+
+        jLabel5.setText("Additional Source Files");
+
+        addSourceButton.setText("Add");
+        addSourceButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addSourceButtonActionPerformed(evt);
+            }
+        });
+
+        removeSourceButton.setText("Remove");
+        removeSourceButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeSourceButtonActionPerformed(evt);
+            }
+        });
+
+        clearSourceButton.setText("Clear");
+        clearSourceButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearSourceButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -252,7 +300,7 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
                         .addGap(6, 6, 6)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 114, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 217, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 320, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -270,20 +318,25 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addGap(111, 111, 111))
+                            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(6, 6, 6)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 380, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 380, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jScrollPane3)
+                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE)
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(addPlugin, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(removePlugin, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
+                                    .addComponent(removePlugin, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(addJar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(removeJar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(pluginClearButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jarClearButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                    .addComponent(jarClearButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(addSourceButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(removeSourceButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(clearSourceButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -302,7 +355,7 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(compiledWebProjectRadioButton)
                     .addComponent(webBrowserRadioButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -324,7 +377,18 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
                         .addComponent(removeJar)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jarClearButton)))
-                .addContainerGap())
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel5)
+                .addGap(1, 1, 1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 181, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(addSourceButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(removeSourceButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(clearSourceButton)
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
 
         legoRadioButton.getAccessibleContext().setAccessibleDescription("This project type should be selected if you would like Quorum to automatically send programs to a lego robot after building.");
@@ -388,6 +452,44 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
         model.clear();
     }//GEN-LAST:event_jarClearButtonActionPerformed
 
+    private void addSourceButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addSourceButtonActionPerformed
+        File home = new File(System.getProperty("user.home"));
+        int returnVal = sourceFileChooser.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File[] files = sourceFileChooser.getSelectedFiles();
+            for(int i = 0; i < files.length; i++) {
+                File file = files[i];
+                if(file != null && file.isFile()) {
+                    String absolutePath = file.getAbsolutePath();
+                    if (absolutePath.length() > 7) {
+                        String extension = absolutePath.substring(absolutePath.length() - 7);
+                        if(extension.compareTo(".quorum") == 0) {
+                            String path = getPathRelativeToProject(file);
+                            DefaultListModel model = (DefaultListModel) sourceList.getModel();
+                            if(!model.contains(path) && path != null && !path.isEmpty()) {
+                                model.addElement(path);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }//GEN-LAST:event_addSourceButtonActionPerformed
+
+    private void removeSourceButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeSourceButtonActionPerformed
+        DefaultListModel model = (DefaultListModel) sourceList.getModel();
+        int[] selectedIndices = sourceList.getSelectedIndices();
+        for(int i = selectedIndices.length - 1; i >= 0 ; i--) {
+            int index = selectedIndices[i];
+            model.remove(index);
+        }
+    }//GEN-LAST:event_removeSourceButtonActionPerformed
+
+    private void clearSourceButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearSourceButtonActionPerformed
+        DefaultListModel model = (DefaultListModel) sourceList.getModel();
+        model.clear();
+    }//GEN-LAST:event_clearSourceButtonActionPerformed
+
     
     public String getPathRelativeToProject(File file) {
         String absolutePath = file.getAbsolutePath();
@@ -404,14 +506,18 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addJar;
     private javax.swing.JButton addPlugin;
+    private javax.swing.JButton addSourceButton;
+    private javax.swing.JButton clearSourceButton;
     private javax.swing.JRadioButton compiledWebProjectRadioButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JRadioButton jRadioButton1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JButton jarClearButton;
     private javax.swing.JFileChooser jarFileChooser;
     private javax.swing.JList jarList;
@@ -424,6 +530,9 @@ public class ProjectInformationPanel extends javax.swing.JPanel {
     private javax.swing.ButtonGroup projectTypeButtonGroup;
     private javax.swing.JButton removeJar;
     private javax.swing.JButton removePlugin;
+    private javax.swing.JButton removeSourceButton;
+    private javax.swing.JFileChooser sourceFileChooser;
+    private javax.swing.JList<String> sourceList;
     private javax.swing.JRadioButton webBrowserRadioButton;
     // End of variables declaration//GEN-END:variables
 }
