@@ -25,7 +25,7 @@ import plugins.quorum.Libraries.Game.GameRuntimeError;
 
 /**
  *
- * @author Taylor Bockman
+ * @author Taylor Bockman, William Allee
  * 
  * This is a utility class utilized exclusively by the Java plugin side.
  */
@@ -175,7 +175,7 @@ public class DesktopGraphics implements GraphicsManager {
     
     public void glGetShaderiv (int shader, int pname, IntBuffer params) 
     {
-        GL20.glGetShader(shader, pname, params);
+        GL20.glGetShaderiv(shader, pname, params);
     }
     
     public String glGetShaderInfoLog (int shader) 
@@ -210,7 +210,7 @@ public class DesktopGraphics implements GraphicsManager {
     
     public void glGetProgramiv (int program, int pname, IntBuffer params) 
     {
-	GL20.glGetProgram(program, pname, params);
+	GL20.glGetProgramiv(program, pname, params);
     }
     
     public int glGetAttribLocation (int program, String name) 
@@ -245,12 +245,12 @@ public class DesktopGraphics implements GraphicsManager {
 
     public void glUniform1iv (int location, int count, IntBuffer v) 
     {
-	GL20.glUniform1(location, v);
+	GL20.glUniform1iv(location, v);
     }
 
     public void glUniform1iv (int location, int count, int[] v, int offset) 
     {
-	GL20.glUniform1(location, toIntBuffer(v, offset, count));
+	GL20.glUniform1iv(location, toIntBuffer(v, offset, count));
     }
     
     public void glUniform1f (int location, float x) 
@@ -260,12 +260,12 @@ public class DesktopGraphics implements GraphicsManager {
     
     public void glUniform1fv (int location, int count, FloatBuffer v) 
     {
-	GL20.glUniform1(location, v);
+	GL20.glUniform1fv(location, v);
     }
 
     public void glUniform1fv (int location, int count, float[] v, int offset) 
     {
-	GL20.glUniform1(location, toFloatBuffer(v, offset, count));
+	GL20.glUniform1fv(location, toFloatBuffer(v, offset, count));
     }
     
     public void glUniform2i (int location, int x, int y) 
@@ -275,12 +275,12 @@ public class DesktopGraphics implements GraphicsManager {
 
     public void glUniform2iv (int location, int count, IntBuffer v) 
     {
-	GL20.glUniform2(location, v);
+	GL20.glUniform2iv(location, v);
     }
 
     public void glUniform2iv (int location, int count, int[] v, int offset) 
     {
-	GL20.glUniform2(location, toIntBuffer(v, offset, count << 1));
+	GL20.glUniform2iv(location, toIntBuffer(v, offset, count << 1));
     }
     
     public void glUniform2f (int location, float x, float y) 
@@ -290,12 +290,12 @@ public class DesktopGraphics implements GraphicsManager {
     
     public void glUniform2fv (int location, int count, FloatBuffer v) 
     {
-	GL20.glUniform2(location, v);
+	GL20.glUniform2fv(location, v);
     }
 
     public void glUniform2fv (int location, int count, float[] v, int offset) 
     {
-	GL20.glUniform2(location, toFloatBuffer(v, offset, count << 1));
+	GL20.glUniform2fv(location, toFloatBuffer(v, offset, count << 1));
     }
     
     public void glUniform3i (int location, int x, int y, int z) 
@@ -305,12 +305,12 @@ public class DesktopGraphics implements GraphicsManager {
 
     public void glUniform3iv (int location, int count, IntBuffer v) 
     {
-	GL20.glUniform3(location, v);
+	GL20.glUniform3iv(location, v);
     }
 
     public void glUniform3iv (int location, int count, int[] v, int offset) 
     {
-	GL20.glUniform3(location, toIntBuffer(v, offset, count * 3));
+	GL20.glUniform3iv(location, toIntBuffer(v, offset, count * 3));
     }
     
     public void glUniform3f (int location, float x, float y, float z) 
@@ -320,12 +320,12 @@ public class DesktopGraphics implements GraphicsManager {
     
     public void glUniform3fv (int location, int count, FloatBuffer v) 
     {
-	GL20.glUniform3(location, v);
+	GL20.glUniform3fv(location, v);
     }
 
     public void glUniform3fv (int location, int count, float[] v, int offset) 
     {
-	GL20.glUniform3(location, toFloatBuffer(v, offset, count * 3));
+	GL20.glUniform3fv(location, toFloatBuffer(v, offset, count * 3));
     }
     
     public void glUniform4i (int location, int x, int y, int z, int w) 
@@ -335,12 +335,12 @@ public class DesktopGraphics implements GraphicsManager {
 
     public void glUniform4iv (int location, int count, IntBuffer v) 
     {
-	GL20.glUniform4(location, v);
+	GL20.glUniform4iv(location, v);
     }
 
     public void glUniform4iv (int location, int count, int[] v, int offset) 
     {
-	GL20.glUniform4(location, toIntBuffer(v, offset, count << 2));
+	GL20.glUniform4iv(location, toIntBuffer(v, offset, count << 2));
     }
     
     public void glUniform4f (int location, float x, float y, float z, float w) 
@@ -350,71 +350,68 @@ public class DesktopGraphics implements GraphicsManager {
     
     public void glUniform4fv (int location, int count, FloatBuffer v) 
     {
-	GL20.glUniform4(location, v);
+	GL20.glUniform4fv(location, v);
     }
 
     public void glUniform4fv (int location, int count, float[] v, int offset) 
     {
-	GL20.glUniform4(location, toFloatBuffer(v, offset, count << 2));
+	GL20.glUniform4fv(location, toFloatBuffer(v, offset, count << 2));
     }
 
     public void glUniformMatrix2fv (int location, int count, boolean transpose, FloatBuffer value) 
     {
-	GL20.glUniformMatrix2(location, transpose, value);
+	GL20.glUniformMatrix2fv(location, transpose, value);
     }
 
     public void glUniformMatrix2fv (int location, int count, boolean transpose, float[] value, int offset) 
     {
-        GL20.glUniformMatrix2(location, transpose, toFloatBuffer(value, offset, count << 2));
+        GL20.glUniformMatrix2fv(location, transpose, toFloatBuffer(value, offset, count << 2));
     }
 
     public void glUniformMatrix3fv (int location, int count, boolean transpose, FloatBuffer value) 
     {
-	GL20.glUniformMatrix3(location, transpose, value);
+	GL20.glUniformMatrix3fv(location, transpose, value);
     }
 
     public void glUniformMatrix3fv (int location, int count, boolean transpose, float[] value, int offset) 
     {
-	GL20.glUniformMatrix3(location, transpose, toFloatBuffer(value, offset, count * 9));
+	GL20.glUniformMatrix3fv(location, transpose, toFloatBuffer(value, offset, count * 9));
     }
 
     public void glUniformMatrix4fv (int location, int count, boolean transpose, FloatBuffer value) 
     {
-	GL20.glUniformMatrix4(location, transpose, value);
+	GL20.glUniformMatrix4fv(location, transpose, value);
     }
 
     public void glUniformMatrix4fv (int location, int count, boolean transpose, float[] value, int offset) 
     {
-	GL20.glUniformMatrix4(location, transpose, toFloatBuffer(value, offset, count << 4));
+	GL20.glUniformMatrix4fv(location, transpose, toFloatBuffer(value, offset, count << 4));
     }
     
     public void glVertexAttribPointer (int indx, int size, int type, boolean normalized, int stride, Buffer buffer) 
     {
+        
 	if (buffer instanceof ByteBuffer) 
         {
-            if (type == GL_BYTE)
-		GL20.glVertexAttribPointer(indx, size, false, normalized, stride, (ByteBuffer)buffer);
-            else if (type == GL_UNSIGNED_BYTE)
-		GL20.glVertexAttribPointer(indx, size, true, normalized, stride, (ByteBuffer)buffer);
-            else if (type == GL_SHORT)
-		GL20.glVertexAttribPointer(indx, size, false, normalized, stride, ((ByteBuffer)buffer).asShortBuffer());
-            else if (type == GL_UNSIGNED_SHORT)
-		GL20.glVertexAttribPointer(indx, size, true, normalized, stride, ((ByteBuffer)buffer).asShortBuffer());
+            if (type == GL_BYTE || type == GL_UNSIGNED_BYTE)
+		GL20.glVertexAttribPointer(indx, size, type, normalized, stride, (ByteBuffer)buffer);
+            else if (type == GL_SHORT || type == GL_UNSIGNED_SHORT)
+		GL20.glVertexAttribPointer(indx, size, type, normalized, stride, ((ByteBuffer)buffer).asShortBuffer());
             else if (type == GL_FLOAT)
-		GL20.glVertexAttribPointer(indx, size, normalized, stride, ((ByteBuffer)buffer).asFloatBuffer());
+		GL20.glVertexAttribPointer(indx, size, type, normalized, stride, ((ByteBuffer)buffer).asFloatBuffer());
             else
 		throw new GameRuntimeError("Can't use " + buffer.getClass().getName() + " with type " + type
-						+ " with this method. Use ByteBuffer and one of GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, GL_UNSIGNED_SHORT or GL_FLOAT for type. Blame LWJGL");
+						+ " with this method. Use ByteBuffer and one of GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, GL_UNSIGNED_SHORT or GL_FLOAT for type.");
 	}
         else if (buffer instanceof FloatBuffer) 
         {
             if (type == GL_FLOAT)
-		GL20.glVertexAttribPointer(indx, size, normalized, stride, (FloatBuffer)buffer);
+		GL20.glVertexAttribPointer(indx, size, type, normalized, stride, (FloatBuffer)buffer);
             else
 		throw new GameRuntimeError("Can't use " + buffer.getClass().getName() + " with type " + type + " with this method.");
 	} 
         else
-            throw new GameRuntimeError("Can't use " + buffer.getClass().getName() + " with this method. Use ByteBuffer instead. Blame LWJGL");
+            throw new GameRuntimeError("Can't use " + buffer.getClass().getName() + " with this method. Use ByteBuffer instead.");
     }
     
     public void glVertexAttribPointer (int indx, int size, int type, boolean normalized, int stride, int ptr) 
@@ -459,22 +456,28 @@ public class DesktopGraphics implements GraphicsManager {
     
     public String glGetActiveUniform (int program, int index, IntBuffer size, Buffer type) 
     {
-	// FIXME this is less than ideal of course...
-	IntBuffer typeTmp = BufferUtils.createIntBuffer(2);
-	String name = GL20.glGetActiveUniform(program, index, 256, typeTmp);
-	size.put(typeTmp.get(0));
-	if (type instanceof IntBuffer) ((IntBuffer)type).put(typeTmp.get(1));
-	return name;
+        if (type instanceof IntBuffer)
+        {
+            return GL20.glGetActiveUniform(program, index, size, (IntBuffer)type);
+        }
+        else
+        {
+            IntBuffer typeTmp = BufferUtils.createIntBuffer(1);
+            return GL20.glGetActiveUniform(program, index, size, typeTmp);
+        }
     }
     
     public String glGetActiveAttrib (int program, int index, IntBuffer size, Buffer type) 
     {
-	// FIXME this is less than ideal of course...
-	IntBuffer typeTmp = BufferUtils.createIntBuffer(2);
-	String name = GL20.glGetActiveAttrib(program, index, 256, typeTmp);
-	size.put(typeTmp.get(0));
-	if (type instanceof IntBuffer) ((IntBuffer)type).put(typeTmp.get(1));
-	return name;
+        if (type instanceof IntBuffer)
+        {
+            return GL20.glGetActiveAttrib(program, index, size, (IntBuffer)type);
+        }
+        else
+        {
+            IntBuffer typeTmp = BufferUtils.createIntBuffer(1);
+            return GL20.glGetActiveAttrib(program, index, size, typeTmp);
+        }
     }
     
     public void glDrawElements (int mode, int count, int type, int indices) 
@@ -535,7 +538,7 @@ public class DesktopGraphics implements GraphicsManager {
     
     public void glGetIntegerv(int pname, IntBuffer params)
     {
-        GL11.glGetInteger(pname, params);
+        GL11.glGetIntegerv(pname, params);
     }
     
     public void glDepthFunc (int func) 

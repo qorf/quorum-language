@@ -5,16 +5,16 @@
  */
 package plugins.quorum.Libraries.Game;
 
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.DisplayMode;
-import org.lwjgl.opengl.PixelFormat;
-import org.lwjgl.LWJGLException;
 import quorum.Libraries.Game.Graphics.Color_;
 import quorum.Libraries.Game.ScreenResolution_;
 import quorum.Libraries.Containers.Array_;
 import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 
-import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
+import org.lwjgl.opengl.GLCapabilities;
 
 /**
  *
@@ -23,6 +23,18 @@ import org.lwjgl.opengl.GL11;
 public class DesktopDisplay {
 
     public java.lang.Object me_ = null;
+    
+    // May only be necessary for development. May be removed later.
+    GLFWErrorCallback errorCallback;
+    // Used to capture resize events. Currently does nothing.
+    GLFWFramebufferSizeCallback resizeCallback = new GLFWFramebufferSizeCallback()
+            {
+                @Override
+                public void invoke(long window, int width, int height)
+                {
+                    ResizeEvent(window, width, height);
+                }
+            };
     
     volatile boolean isContinuous = true;
     volatile boolean requestRendering = false;
@@ -33,198 +45,92 @@ public class DesktopDisplay {
     long lastTime = System.nanoTime();
     String extensions = null;
     
-    static int major;
-    static int minor;
+    static int major = 2;
+    static int minor = 1;
     quorum.Libraries.Game.Graphics.GraphicsManager_ gl20;
     
     /*
-     Right now setupDisplay only works on OpenGL and not software rendering.
-     Also, this should eventually throw an exception when it fails.
-     */
+    The window the game is using. For the initial transition to GLFW, this is
+    represents a single static window, which will remain over the entire
+    lifespan of the game. In another iteration (i.e. when adding multiple window
+    support in the Quorum API) this will need to transition to a more flexible
+    system. Even in a multiple window system there will most likely be a primary
+    "default" window, but that information would most likely be stored in Quorum
+    rather than here in the plugins.
+    */ 
+    private long window;
+    
+    // Describes the features available in the OpenGL context used by the
+    // primary window.
+    GLCapabilities glCapabilities;
+    
     public void SetupDisplay() 
     {
         quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
-            
-        dis.SetVSync(dis.config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
-            
-        Color_ color = dis.config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_();
-
-        if (dis.config.Get_Libraries_Game_DesktopConfiguration__defaultResolution_() == null)
+        quorum.Libraries.Game.DesktopConfiguration_ config = dis.config;
+        
+        GLFW.glfwInit();
+        GLFW.glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
+        
+        GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, glBoolean(config.Get_Libraries_Game_DesktopConfiguration__resizable_()));
+        // For ease of compatability with the LWJGL 2 release, we request OpenGL 2.1.
+        // This may change to a more modern release in the future.
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, major);
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, minor);
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_ANY_PROFILE); 
+        
+        /*
+        Handle for a GLFW monitor. If it's 0, GLFW treats it as null. If it's
+        not "null", the application is made fullscreen on that monitor.
+        Otherwise, the application is windowed.
+        */
+        long monitor;
+        
+        // Width and height of the window, or resolution to use for fullscreen.
+        int width;
+        int height;
+        
+        String name = config.Get_Libraries_Game_DesktopConfiguration__title_();
+        
+        ScreenResolution_ resolution = config.Get_Libraries_Game_DesktopConfiguration__defaultResolution_();
+        
+        if (resolution != null)
         {
-            boolean displayCreated = SetDisplayMode(dis.config.Get_Libraries_Game_DesktopConfiguration__width_(),
-                dis.config.Get_Libraries_Game_DesktopConfiguration__height_(),
-                dis.config.Get_Libraries_Game_DesktopConfiguration__fullScreen_());
-
-            if (!displayCreated)
-                throw new GameRuntimeError("An error ocurred in SetDisplayMode!");
+            // Use the given resolution.
+            width = resolution.GetWidth();
+            height = resolution.GetHeight();
+            
+            // This currently defaults to the primary monitor, but will most
+            // likely need to change with a multiple window system.
+            monitor = GLFW.glfwGetPrimaryMonitor();
         }
         else
-            SetScreenResolution(dis.config.Get_Libraries_Game_DesktopConfiguration__defaultResolution_());
-
-        //Set icons
-        Display.setTitle(dis.config.Get_Libraries_Game_DesktopConfiguration__title_());
-        Display.setResizable(dis.config.Get_Libraries_Game_DesktopConfiguration__resizable_());
-
-        //Reader beware: Casting double to float here. Since RGB can't be extremely large or
-        //               small this shouldn't have any effect on coloring.
-        Display.setInitialBackground((float) color.GetRed(), (float) color.GetGreen(), (float) color.GetBlue());
-        Display.setLocation(dis.config.Get_Libraries_Game_DesktopConfiguration__x_(),
-            dis.config.Get_Libraries_Game_DesktopConfiguration__y_());
-
-        createDisplayPixelFormat(); //Display is actually created in here
-        InitiateGLInstances();
-    }
-
-    public boolean SetDisplayMode(int width, int height, boolean fullScreen) 
-    {
-        quorum.Libraries.Game.DesktopDisplay quorumDisplay = (quorum.Libraries.Game.DesktopDisplay) me_;
-        
-        if (GetWidth() == width && GetHeight() == height && Display.isFullscreen() == fullScreen) 
         {
-            return true;
-        }
-
-        try 
-        {
-            org.lwjgl.opengl.DisplayMode targetDisplayMode = null;
-
-            if (fullScreen) 
-            {
-                org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
-                int freq = 0;
-
-                for (int i = 0; i < modes.length; i++) 
-                {
-                    org.lwjgl.opengl.DisplayMode current = modes[i];
-
-                    if ((current.getWidth() == width) && (current.getHeight() == height)) 
-                    {
-                        if ((targetDisplayMode == null) || (current.getFrequency() >= freq)) 
-                        {
-                            if ((targetDisplayMode == null) || (current.getBitsPerPixel() > targetDisplayMode.getBitsPerPixel())) 
-                            {
-                                targetDisplayMode = current;
-                                freq = targetDisplayMode.getFrequency();
-                            }
-                        }
-
-                        // if we've found a match for bpp and frequence against the
-                        // original display mode then it's probably best to go for this one
-                        // since it's most likely compatible with the monitor
-                        if ((current.getBitsPerPixel() == Display.getDesktopDisplayMode().getBitsPerPixel())
-                            && (current.getFrequency() == Display.getDesktopDisplayMode().getFrequency())) 
-                        {
-                            targetDisplayMode = current;
-                            break;
-                        }
-                    }
-                }
-            }
-            else 
-            {
-                targetDisplayMode = new org.lwjgl.opengl.DisplayMode(width, height);
-            }
-
-            if (targetDisplayMode == null) 
-            {
-                return false;
-            }
-
-            boolean resizable = !fullScreen && quorumDisplay.config.Get_Libraries_Game_DesktopConfiguration__resizable_();
-	    
-            Display.setDisplayMode(targetDisplayMode);
-            Display.setFullscreen(fullScreen);
-            // Workaround for bug in LWJGL whereby resizable state is lost on DisplayMode change
-            if (resizable == Display.isResizable()) {
-                    Display.setResizable(!resizable);
-            }
-            Display.setResizable(resizable);
-
-            float scaleFactor = Display.getPixelScaleFactor();
-            quorumDisplay.config.Set_Libraries_Game_DesktopConfiguration__width_((int)(targetDisplayMode.getWidth() * scaleFactor));
-            quorumDisplay.config.Set_Libraries_Game_DesktopConfiguration__height_((int)(targetDisplayMode.getHeight() * scaleFactor));
+            // Use the width and height of the config.
+            width = config.Get_Libraries_Game_DesktopConfiguration__width_();
+            height = config.Get_Libraries_Game_DesktopConfiguration__height_();
             
-            quorumDisplay.resize = true;
-            return true;
+            monitor = 0;
         }
-        catch (LWJGLException e) 
+        
+        window = GLFW.glfwCreateWindow(width, height, name, monitor, 0);
+        
+        if (window == 0)
         {
-            System.out.println("Error in SetDisplayMode!");
-            return false;
+            throw new GameRuntimeError("The Game display couldn't be initialized.");
         }
+        
+        GLFW.glfwMakeContextCurrent(window);
+        
+        glCapabilities = GL.createCapabilities();
+        GLFW.glfwShowWindow(window);
     }
-    
-    public DisplayMode GetDesktopDisplayMode() 
+
+    public void SetVSync(boolean vsync) 
     {
-        return Display.getDesktopDisplayMode();
-    }
-
-    public void SetVSync(boolean vsync) {
-        quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
-        dis.Set_Libraries_Game_DesktopDisplay__vsync_(vsync);
-        Display.setVSyncEnabled(vsync);
-    }
-
-    protected void createDisplayPixelFormat() 
-    {
-        //Create the display
-        try 
-        {
-            quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
-
-            if (dis.config.Get_Libraries_Game_DesktopConfiguration__useGL30_()) 
-            {
-                //Do nothing, we dont support GL30 yet.
-                System.out.println("useGL30 was set to true!");
-            }
-            else 
-            {
-                Display.create(new PixelFormat(
-                    dis.config.Get_Libraries_Game_ApplicationConfiguration__r_()
-                    + dis.config.Get_Libraries_Game_ApplicationConfiguration__g_()
-                    + dis.config.Get_Libraries_Game_ApplicationConfiguration__b_(),
-                    dis.config.Get_Libraries_Game_ApplicationConfiguration__a_(),
-                    dis.config.Get_Libraries_Game_ApplicationConfiguration__depth_(),
-                    dis.config.Get_Libraries_Game_ApplicationConfiguration__stencil_(),
-                    dis.config.Get_Libraries_Game_ApplicationConfiguration__samples_()));
-              
-            }
-
-        }
-        catch (LWJGLException e) 
-        {
-            e.printStackTrace();
-            Display.destroy();
-            throw new GameRuntimeError("createDisplayPixelFormat crashed!");
-
-            //Other important clean up stuff
-        }
-    }
-    
-    public void InitiateGLInstances()
-    {
-        String version = org.lwjgl.opengl.GL11.glGetString(GL11.GL_VERSION);
-	major = Integer.parseInt("" + version.charAt(0));
-	minor = Integer.parseInt("" + version.charAt(2));
-
-	if (major <= 1)
-            throw new GameRuntimeError("OpenGL 2.0 or higher with the FBO extension is required. OpenGL version: " + version);
-	if (major == 2 || version.contains("2.1")) 
-        {
-            if (!supportsExtension("GL_EXT_framebuffer_object") && !supportsExtension("GL_ARB_framebuffer_object")) {
-		throw new GameRuntimeError("OpenGL 2.0 or higher with the FBO extension is required. OpenGL version: " + version
-		+ ", FBO extension: false");
-			}
-	}
-
-        //GameState.SetGameGraphics(gl20);
-        //GameState.SetGameGraphics20Manager(gl20);
-    }
-    
-    public boolean supportsExtension (String extension) 
-    {
-		if (extensions == null) extensions = GameStateManager.nativeGraphics.glGetString(GraphicsManager.GL_EXTENSIONS);
-		return extensions.contains(extension);
+//        quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
+//        dis.Set_Libraries_Game_DesktopDisplay__vsync_(vsync);
+//        Display.setVSyncEnabled(vsync);
     }
 
     public void RequestRendering() {
@@ -244,43 +150,56 @@ public class DesktopDisplay {
     }
 
     public int GetDisplayX() {
-        return Display.getX();
+        int[] x = new int[1], y = new int[1];
+        GLFW.glfwGetFramebufferSize(window, x, y);
+        return x[0];
     }
 
     public int GetDisplayY() {
-        return Display.getY();
+        int[] x = new int[1], y = new int[1];
+        GLFW.glfwGetFramebufferSize(window, x, y);
+        return y[0];
     }
 
     public int GetWidth() {
-        return (int)(Display.getWidth() * Display.getPixelScaleFactor());
+        int[] width = new int[1], height = new int[1];
+        GLFW.glfwGetFramebufferSize(window, width, height);
+        return width[0];
     }
 
     public int GetHeight() {
-        return (int)(Display.getHeight() * Display.getPixelScaleFactor());
+        int[] width = new int[1], height = new int[1];
+        GLFW.glfwGetFramebufferSize(window, width, height);
+        return height[0];
     }
     
     public double GetPixelScaleFactor() {
-        return Display.getPixelScaleFactor();
+//        return Display.getPixelScaleFactor();
+        return 0;
     }
 
     public void ProcessMessages() {
-        Display.processMessages();
+//        Display.processMessages();
     }
 
     public boolean IsCloseRequested() {
-        return Display.isCloseRequested();
+//        return Display.isCloseRequested();
+        return false;
     }
 
     public void Destroy() {
-        Display.destroy();
+        // This will need to be revisited for a multiple window system.
+        GLFW.glfwDestroyWindow(window);
     }
 
     public boolean IsActive() {
-        return Display.isActive();
+//        return Display.isActive();
+        return false;
     }
     
     public boolean WasResized() {
-        return Display.wasResized();
+//        return Display.wasResized();
+        return false;
     }
     
     public void UpdateTime () 
@@ -310,84 +229,98 @@ public class DesktopDisplay {
     
     public void Update()
     {
-        Display.update(false);
+        GLFW.glfwPollEvents();
+        GLFW.glfwSwapBuffers(window);
     }
    
     public ScreenResolution_ GetDesktopResolution()
     {
-        ScreenResolution_ resolution = new quorum.Libraries.Game.ScreenResolution();
-        org.lwjgl.opengl.DisplayMode mode = Display.getDesktopDisplayMode();
-        resolution.Set_Libraries_Game_ScreenResolution__width_(mode.getWidth());
-        resolution.Set_Libraries_Game_ScreenResolution__height_(mode.getHeight());
-        resolution.Set_Libraries_Game_ScreenResolution__bitsPerPixel_(mode.getBitsPerPixel());
-        resolution.Set_Libraries_Game_ScreenResolution__frequency_(mode.getFrequency());
-        resolution.Set_Libraries_Game_ScreenResolution__fullscreen_(mode.isFullscreenCapable());
-        return resolution;
+//        ScreenResolution_ resolution = new quorum.Libraries.Game.ScreenResolution();
+//        org.lwjgl.opengl.DisplayMode mode = Display.getDesktopDisplayMode();
+//        resolution.Set_Libraries_Game_ScreenResolution__width_(mode.getWidth());
+//        resolution.Set_Libraries_Game_ScreenResolution__height_(mode.getHeight());
+//        resolution.Set_Libraries_Game_ScreenResolution__bitsPerPixel_(mode.getBitsPerPixel());
+//        resolution.Set_Libraries_Game_ScreenResolution__frequency_(mode.getFrequency());
+//        resolution.Set_Libraries_Game_ScreenResolution__fullscreen_(mode.isFullscreenCapable());
+//        return resolution;
+        return null;
     }
     
     public void GetAvailableResolutionsNative(Array_ array)
     {
-        try
-        {
-            org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
-            
-            for (int i = 0; i < modes.length; i++)
-            {
-                ScreenResolution_ resolution = new quorum.Libraries.Game.ScreenResolution();
-                org.lwjgl.opengl.DisplayMode mode = modes[i];
-                resolution.Set_Libraries_Game_ScreenResolution__width_(mode.getWidth());
-                resolution.Set_Libraries_Game_ScreenResolution__height_(mode.getHeight());
-                resolution.Set_Libraries_Game_ScreenResolution__bitsPerPixel_(mode.getBitsPerPixel());
-                resolution.Set_Libraries_Game_ScreenResolution__frequency_(mode.getFrequency());
-                resolution.Set_Libraries_Game_ScreenResolution__fullscreen_(mode.isFullscreenCapable());
-                array.Add(resolution);
-            }
-        }
-        catch(Exception ex)
-        {
-            throw new GameRuntimeError("An error occurred while retrieving available screen resolutions: " + ex.getMessage());
-        }
+//        try
+//        {
+//            org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
+//            
+//            for (int i = 0; i < modes.length; i++)
+//            {
+//                ScreenResolution_ resolution = new quorum.Libraries.Game.ScreenResolution();
+//                org.lwjgl.opengl.DisplayMode mode = modes[i];
+//                resolution.Set_Libraries_Game_ScreenResolution__width_(mode.getWidth());
+//                resolution.Set_Libraries_Game_ScreenResolution__height_(mode.getHeight());
+//                resolution.Set_Libraries_Game_ScreenResolution__bitsPerPixel_(mode.getBitsPerPixel());
+//                resolution.Set_Libraries_Game_ScreenResolution__frequency_(mode.getFrequency());
+//                resolution.Set_Libraries_Game_ScreenResolution__fullscreen_(mode.isFullscreenCapable());
+//                array.Add(resolution);
+//            }
+//        }
+//        catch(Exception ex)
+//        {
+//            throw new GameRuntimeError("An error occurred while retrieving available screen resolutions: " + ex.getMessage());
+//        }
     };
     
     public void SetScreenResolution(ScreenResolution_ resolution)
     {
-        try
-        {
-            org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
-            org.lwjgl.opengl.DisplayMode targetDisplayMode = null;
-            for (int i = 0; i < modes.length; i++)
-            {
-                org.lwjgl.opengl.DisplayMode mode = modes[i];
-                if (resolution.GetWidth() == mode.getWidth() && resolution.GetHeight() == mode.getHeight()
-                        && resolution.GetBitsPerPixel() == mode.getBitsPerPixel() 
-                        && resolution.GetFrequency() == mode.getFrequency()
-                        && resolution.IsFullscreen() == mode.isFullscreenCapable())
-                {
-                    targetDisplayMode = mode;
-                    break;
-                }
-            }
-            if (targetDisplayMode == null)
-                targetDisplayMode = new org.lwjgl.opengl.DisplayMode(resolution.GetWidth(), resolution.GetHeight());
-
-            Display.setDisplayMode(targetDisplayMode);
-            Display.setFullscreen(resolution.IsFullscreen());
-        }
-        catch(Exception ex)
-        {
-            throw new GameRuntimeError("An error occurred while setting the screen resolution: " + ex.getMessage());
-        }
+//        try
+//        {
+//            org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
+//            org.lwjgl.opengl.DisplayMode targetDisplayMode = null;
+//            for (int i = 0; i < modes.length; i++)
+//            {
+//                org.lwjgl.opengl.DisplayMode mode = modes[i];
+//                if (resolution.GetWidth() == mode.getWidth() && resolution.GetHeight() == mode.getHeight()
+//                        && resolution.GetBitsPerPixel() == mode.getBitsPerPixel() 
+//                        && resolution.GetFrequency() == mode.getFrequency()
+//                        && resolution.IsFullscreen() == mode.isFullscreenCapable())
+//                {
+//                    targetDisplayMode = mode;
+//                    break;
+//                }
+//            }
+//            if (targetDisplayMode == null)
+//                targetDisplayMode = new org.lwjgl.opengl.DisplayMode(resolution.GetWidth(), resolution.GetHeight());
+//
+//            Display.setDisplayMode(targetDisplayMode);
+//            Display.setFullscreen(resolution.IsFullscreen());
+//        }
+//        catch(Exception ex)
+//        {
+//            throw new GameRuntimeError("An error occurred while setting the screen resolution: " + ex.getMessage());
+//        }
     }
     
     public ScreenResolution_ GetScreenResolution()
     {
-        org.lwjgl.opengl.DisplayMode mode = Display.getDisplayMode();
-        ScreenResolution_ resolution = new quorum.Libraries.Game.ScreenResolution();
-        resolution.Set_Libraries_Game_ScreenResolution__width_(mode.getWidth());
-        resolution.Set_Libraries_Game_ScreenResolution__height_(mode.getHeight());
-        resolution.Set_Libraries_Game_ScreenResolution__frequency_(mode.getFrequency());
-        resolution.Set_Libraries_Game_ScreenResolution__bitsPerPixel_(mode.getBitsPerPixel());
-        resolution.Set_Libraries_Game_ScreenResolution__fullscreen_(mode.isFullscreenCapable());
-        return resolution;
+//        org.lwjgl.opengl.DisplayMode mode = Display.getDisplayMode();
+//        ScreenResolution_ resolution = new quorum.Libraries.Game.ScreenResolution();
+//        resolution.Set_Libraries_Game_ScreenResolution__width_(mode.getWidth());
+//        resolution.Set_Libraries_Game_ScreenResolution__height_(mode.getHeight());
+//        resolution.Set_Libraries_Game_ScreenResolution__frequency_(mode.getFrequency());
+//        resolution.Set_Libraries_Game_ScreenResolution__bitsPerPixel_(mode.getBitsPerPixel());
+//        resolution.Set_Libraries_Game_ScreenResolution__fullscreen_(mode.isFullscreenCapable());
+//        return resolution;
+        return null;
+    }
+    
+    public int glBoolean(boolean value)
+    {
+        return value ? org.lwjgl.opengl.GL11.GL_TRUE : org.lwjgl.opengl.GL11.GL_FALSE;
+    }
+    
+    public void ResizeEvent(long window, int width, int height)
+    {
+        // Handle resizing in a sensible manner.
+        // When the Quorum resizing API is implemented, inform listeners.
     }
 }
