@@ -21,10 +21,10 @@ import java.awt.event.PaintEvent;
 
 import javax.swing.SwingUtilities;
 
-import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.AWTGLCanvas;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.PixelFormat;
+//import org.lwjgl.LWJGLException;
+//import org.lwjgl.opengl.AWTGLCanvas;
+//import org.lwjgl.opengl.Display;
+//import org.lwjgl.opengl.PixelFormat;
 import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 
 /**
@@ -38,7 +38,7 @@ public class JavaCanvasApplication
     public JavaCanvasDisplay display;
 
     Game_ game;
-    AWTGLCanvas canvas;
+//    AWTGLCanvas canvas;
     
     boolean running = true;
     boolean exitRequested = false;
@@ -60,39 +60,39 @@ public class JavaCanvasApplication
         
         try
         {
-            canvas = new AWTGLCanvas(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice(),
-                new PixelFormat(), null)
-            {
-                private final Dimension minSize = new Dimension(0, 0);
-                private final NonSystemPaint nonSystemPaint = new NonSystemPaint(this);
-                
-                @Override
-                public Dimension getMinimumSize()
-                {
-                    return minSize;
-                }
-                
-                @Override
-                public void initGL()
-                {
-                    Create();
-                }
-                
-                @Override
-                public void paintGL()
-                {
-                    try
-                    {
-                        boolean systemPaint = !(EventQueue.getCurrentEvent() instanceof NonSystemPaint);
-                        Render(systemPaint);
-                        Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(nonSystemPaint);
-                    }
-                    catch (Throwable ex)
-                    {
-                        Exception(ex);
-                    }
-                }
-            };
+//            canvas = new AWTGLCanvas(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice(),
+//                new PixelFormat(), null)
+//            {
+//                private final Dimension minSize = new Dimension(0, 0);
+//                private final NonSystemPaint nonSystemPaint = new NonSystemPaint(this);
+//                
+//                @Override
+//                public Dimension getMinimumSize()
+//                {
+//                    return minSize;
+//                }
+//                
+//                @Override
+//                public void initGL()
+//                {
+//                    Create();
+//                }
+//                
+//                @Override
+//                public void paintGL()
+//                {
+//                    try
+//                    {
+//                        boolean systemPaint = !(EventQueue.getCurrentEvent() instanceof NonSystemPaint);
+//                        Render(systemPaint);
+//                        Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(nonSystemPaint);
+//                    }
+//                    catch (Throwable ex)
+//                    {
+//                        Exception(ex);
+//                    }
+//                }
+//            };
         }
         catch (Throwable ex)
         {
@@ -100,13 +100,13 @@ public class JavaCanvasApplication
             return;
         }
         
-        canvas.setBackground(new Color((float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetRed(),
-            (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetGreen(),
-            (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetBlue(),
-            (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetAlpha()));
-        
-        display = ((quorum.Libraries.Game.JavaCanvasDisplay)((quorum.Libraries.Game.JavaCanvasApplication)me_).canvasDisplay).plugin_;
-        display.canvas = canvas;
+//        canvas.setBackground(new Color((float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetRed(),
+//            (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetGreen(),
+//            (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetBlue(),
+//            (float)config.Get_Libraries_Game_DesktopConfiguration__initialBackgroundColor_().GetAlpha()));
+//        
+//        display = ((quorum.Libraries.Game.JavaCanvasDisplay)((quorum.Libraries.Game.JavaCanvasApplication)me_).canvasDisplay).plugin_;
+//        display.canvas = canvas;
     }
     
     public Game_ GetGame()
@@ -116,34 +116,35 @@ public class JavaCanvasApplication
     
     public Canvas GetCanvas()
     {
-        return canvas;
+        return null;//canvas;
     }
     
     public void Create()
     {
-        try
-        {
-            SetGlobals();
-            
-            display = ((quorum.Libraries.Game.JavaCanvasDisplay)GameStateManager.display).plugin_;
-            
-            display.InitiateGLInstances();
-            canvas.setVSyncEnabled(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
-            game.InitializeLayers();
-            game.CreateGame();
-            lastWidth = Math.max(1, canvas.getWidth());
-            lastHeight = Math.max(1, canvas.getHeight());
-            Start();
-        }
-        catch (Throwable ex)
-        {
-            Stopped();
-            Exception(ex);
-        }
+//        try
+//        {
+//            SetGlobals();
+//            
+//            display = ((quorum.Libraries.Game.JavaCanvasDisplay)GameStateManager.display).plugin_;
+//            
+//            display.InitiateGLInstances();
+//            canvas.setVSyncEnabled(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
+//            game.InitializeLayers();
+//            game.CreateGame();
+//            lastWidth = Math.max(1, canvas.getWidth());
+//            lastHeight = Math.max(1, canvas.getHeight());
+//            Start();
+//        }
+//        catch (Throwable ex)
+//        {
+//            Stopped();
+//            Exception(ex);
+//        }
     }
     
-    void Render (boolean shouldRender) throws LWJGLException
+    void Render (boolean shouldRender)// throws LWJGLException
     {
+        /*
         if (!running)
             return;
         
@@ -183,6 +184,7 @@ public class JavaCanvasApplication
         }
         
         Display.sync(GetFrameRate() * instanceCount);
+        */
     }
 
     protected int GetFrameRate () 
@@ -200,8 +202,9 @@ public class JavaCanvasApplication
     /** Returns true when the frame containing the canvas is the foreground window. */
     public boolean IsActive () 
     {
-        Component root = SwingUtilities.getRoot(canvas);
-        return root instanceof Frame ? ((Frame)root).isActive() : true;
+//        Component root = SwingUtilities.getRoot(canvas);
+//        return root instanceof Frame ? ((Frame)root).isActive() : true;
+        return false;
     }
     
     /** Called after {@link ApplicationListener} create and resize, but before the game loop iteration. */
@@ -232,14 +235,14 @@ public class JavaCanvasApplication
         //Array<LifecycleListener> listeners = lifecycleListeners;
         
         // To allow destroying of OpenGL textures during disposal.
-        if (canvas.isDisplayable())
-        {
-            MakeCurrent();
-        }
-        else
-        {
-            //error(logTag, "OpenGL context destroyed before application listener has had a chance to dispose of textures.");
-        }
+//        if (canvas.isDisplayable())
+//        {
+//            MakeCurrent();
+//        }
+//        else
+//        {
+//            //error(logTag, "OpenGL context destroyed before application listener has had a chance to dispose of textures.");
+//        }
         
 //        synchronized (listeners)
 //        {
@@ -271,7 +274,7 @@ public class JavaCanvasApplication
     {
         try 
         {
-            canvas.makeCurrent();
+//            canvas.makeCurrent();
             SetGlobals();
         }
         catch (Throwable ex) 
@@ -285,13 +288,14 @@ public class JavaCanvasApplication
     {
         try 
         {
-            return canvas.isCurrent();
+//            return canvas.isCurrent();
         }
         catch (Throwable ex) 
         {
             Exception(ex);
             return false;
         }
+        return false;
     }
     
     protected void Exception(Throwable ex) 
@@ -310,11 +314,11 @@ public class JavaCanvasApplication
         display = ((quorum.Libraries.Game.JavaCanvasDisplay)quorumDisplay).plugin_;
     }
     
-    static public class NonSystemPaint extends PaintEvent 
-    {
-        public NonSystemPaint (AWTGLCanvas canvas) 
-        {
-            super(canvas, UPDATE, new Rectangle(0, 0, 99999, 99999));
-        }
-    }
+//    static public class NonSystemPaint extends PaintEvent 
+//    {
+//        public NonSystemPaint (AWTGLCanvas canvas) 
+//        {
+//            super(canvas, UPDATE, new Rectangle(0, 0, 99999, 99999));
+//        }
+//    }
 }

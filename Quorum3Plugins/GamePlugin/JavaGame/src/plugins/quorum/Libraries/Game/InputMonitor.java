@@ -6,8 +6,8 @@
 
 package plugins.quorum.Libraries.Game;
 
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
+//import org.lwjgl.input.Keyboard;
+//import org.lwjgl.input.Mouse;
 
 /**
  * This class primarily manages taking care of receiving input.
@@ -131,22 +131,24 @@ public class InputMonitor {
   
     public boolean IsKeyPressed(int key)
     {
-        if(!Keyboard.isCreated()) 
-            return false;
-
-        if(key == ANY_KEY)
-        {
-            return pressedKeys > 0;
-        }
-        else
-        {
-            return Keyboard.isKeyDown(gdxToLwjglKeyCode(key));
-        }
+//        if(!Keyboard.isCreated()) 
+//            return false;
+//
+//        if(key == ANY_KEY)
+//        {
+//            return pressedKeys > 0;
+//        }
+//        else
+//        {
+//            return Keyboard.isKeyDown(gdxToLwjglKeyCode(key));
+//        }
+        return false;
     }
   
   
     public static int gdxToLwjglKeyCode(int code)
     {
+        /*
         switch(code)
         {
             case UP:
@@ -366,31 +368,33 @@ public class InputMonitor {
             default:
                 return Keyboard.KEY_NONE;
         }
+        */
+        return 0;
     }
   
     public int GetMouseX () 
     {
-	return (int)(Mouse.getX() * GameStateManager.display.GetPixelScaleFactor());
+	return 0;//(int)(Mouse.getX() * GameStateManager.display.GetPixelScaleFactor());
     }
 
     public int GetMouseY () 
     {
-	return (int)(Mouse.getY() * GameStateManager.display.GetPixelScaleFactor());
+	return 0;//(int)(Mouse.getY() * GameStateManager.display.GetPixelScaleFactor());
     }
   
     public boolean IsMouseButtonPressed(int button)
     {
-        return Mouse.isButtonDown(button);
+        return false;//Mouse.isButtonDown(button);
     }
     
     public boolean IsClicked()
     {
-        return Mouse.isButtonDown(0) || Mouse.isButtonDown(1) || Mouse.isButtonDown(2);
+        return false;//Mouse.isButtonDown(0) || Mouse.isButtonDown(1) || Mouse.isButtonDown(2);
     }
     
     public int IsScrolled()
     {
-        return Mouse.getDWheel();
+        return 0;//Mouse.getDWheel();
     }
     
 }

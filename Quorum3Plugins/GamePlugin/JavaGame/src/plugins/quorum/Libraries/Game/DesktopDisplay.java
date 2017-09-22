@@ -18,7 +18,7 @@ import org.lwjgl.opengl.GLCapabilities;
 
 /**
  *
- * @author Taylor Bockman
+ * @author Taylor Bockman, William Allee
  */
 public class DesktopDisplay {
 
@@ -89,9 +89,7 @@ public class DesktopDisplay {
         // Width and height of the window, or resolution to use for fullscreen.
         int width;
         int height;
-        
         String name = config.Get_Libraries_Game_DesktopConfiguration__title_();
-        
         ScreenResolution_ resolution = config.Get_Libraries_Game_DesktopConfiguration__defaultResolution_();
         
         if (resolution != null)
@@ -124,13 +122,16 @@ public class DesktopDisplay {
         
         glCapabilities = GL.createCapabilities();
         GLFW.glfwShowWindow(window);
+        
+        SetVSync(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
     }
 
     public void SetVSync(boolean vsync) 
     {
-//        quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
-//        dis.Set_Libraries_Game_DesktopDisplay__vsync_(vsync);
-//        Display.setVSyncEnabled(vsync);
+        // Applies to the current context. This is fine for the current system
+        // (one window with one context) but will need to be revised for a
+        // multiple window system.
+        GLFW.glfwSwapInterval(vsync ? 1 : 0);
     }
 
     public void RequestRendering() {
@@ -175,7 +176,7 @@ public class DesktopDisplay {
     
     public double GetPixelScaleFactor() {
 //        return Display.getPixelScaleFactor();
-        return 0;
+        return 1;
     }
 
     public void ProcessMessages() {
@@ -183,8 +184,8 @@ public class DesktopDisplay {
     }
 
     public boolean IsCloseRequested() {
-//        return Display.isCloseRequested();
-        return false;
+        // This will need to be revised for a multiple-window system.
+        return GLFW.glfwWindowShouldClose(window);
     }
 
     public void Destroy() {
