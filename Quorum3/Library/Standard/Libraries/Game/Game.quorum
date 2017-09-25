@@ -1225,7 +1225,11 @@ class Game
 
     */
     action SetFullScreen(boolean fullScreen)
-        desktopConfig:fullScreen = fullScreen
+        if fullScreen
+            UseDesktopResolution()
+        else
+            SetScreenSize(desktopConfig:width, desktopConfig:height)
+        end
     end
 
     /*

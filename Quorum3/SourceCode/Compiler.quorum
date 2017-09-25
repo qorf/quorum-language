@@ -1656,10 +1656,16 @@ class Compiler
         end
 
         if hasGame or hasAudio
-            File lwjgl
-            lwjgl:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-            lwjgl:SetPath("lwjgl.jar")
-            WriteJarToDisk(lwjgl)
+            File lwjglFolder
+            lwjglFolder:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+            lwjglFolder:SetPath("LWJGL")
+            Array<File> lwjglFiles = lwjglFolder:GetDirectoryListing()
+            integer counter = 0
+            repeat while counter < lwjglFiles:GetSize()
+                File file = lwjglFiles:Get(counter)
+                WriteJarToDisk(file)
+                counter = counter + 1
+            end
         end
 
         if hasRobots
@@ -2022,13 +2028,22 @@ class Compiler
             end
 
             if usesLWJGL
-                File lwjgl
-                lwjgl:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-                lwjgl:SetPath("lwjgl.jar")
-                if isFirst
-                    classpath = classpath + libraries + "/" + lwjgl:GetFileName()
-                else
-                    classpath = classpath + " " + libraries + "/" + lwjgl:GetFileName()
+                File lwjglFolder
+                lwjglFolder:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+                lwjglFolder:SetPath("LWJGL")
+                Array<File> lwjglFiles = lwjglFolder:GetDirectoryListing()
+                integer counter = 0
+                repeat while counter < lwjglFiles:GetSize()
+                    File file = lwjglFiles:Get(counter)
+                    
+                    if isFirst
+                        classpath = classpath + libraries + "/" + file:GetFileName()
+                        isFirst = false
+                    else
+                        classpath = classpath + line + "  " + libraries + "/" + file:GetFileName()
+                    end
+
+                    counter = counter + 1
                 end
             end
 

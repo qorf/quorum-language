@@ -10,12 +10,6 @@ the game is first created to set its initial data.
  */
 class DesktopConfiguration is ApplicationConfiguration
   
-    /* If true, will disable audio. */
-    public boolean disableAudio = false
-
-    /* If true, use OpenGL ES 3.0 */
-    public boolean useGL30 = false
-
     /* The initial width of the application screen. */
     public integer width = 800
 
@@ -28,35 +22,17 @@ class DesktopConfiguration is ApplicationConfiguration
     /* Initial y coordinate where the window will appear on screen. -1 for center. */
     public integer y = -1
 
-    /* If true, the application will run in full screen mode. */
-    public boolean fullScreen = false
-
-    /* For screen density emulation. */
-    public integer overrideDensity = -1
-
     /* If true, the application will use vSync. */
     public boolean vSyncEnabled = true
 
     /* The title of the application. */
     public text title = "Game"
 
-    /* Call System.exit() when the window is closed. */
-    public boolean forceExit = true
-
     /* If true, the window will be resizable. */
     public boolean resizable = false
 
     /* If true, the textures will automatically be resized when the window is resized. */
     public boolean autoResizeTextures = true
-
-    /* The maximum number of audio sources that can be played simultaneously. */
-    public integer audioDeviceSimultaneousSources = 16
-
-    /* The audio device buffer size in samples. */
-    public integer audioDeviceBufferSize = 512
-
-    /* The audio device buffer count. */
-    public integer audioDeviceBufferCount = 9
 
     //This private variable is a way to get around Quorum's 
     //lack of contructors. We basically use a temporary Color as a
@@ -72,12 +48,6 @@ class DesktopConfiguration is ApplicationConfiguration
 
     /* Target framerate when the window is not in the foreground. Use 0 to never sleep, -1 to not render. */
     public integer backgroundFPS = 60
-
-    /* Allows software OpenGL rendering if hardware acceleration was not available. */
-    public boolean allowSoftwareMode = false
-
-    /* Preferences directory on the desktop. Default is ".prefs/". */
-    public text preferencesDirectory = ".prefs/"
 
     /*
     The ScreenResolution to use when the game launches. If left undefined, the
