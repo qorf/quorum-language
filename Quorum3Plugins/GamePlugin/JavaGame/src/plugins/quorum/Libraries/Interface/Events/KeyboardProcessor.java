@@ -5,8 +5,8 @@
  */
 package plugins.quorum.Libraries.Interface.Events;
 
-//import org.lwjgl.input.Keyboard;
-
+import org.lwjgl.glfw.GLFW;
+import java.util.Queue;
 import plugins.quorum.Libraries.Game.InputMonitor;
 
 /**
@@ -16,260 +16,248 @@ import plugins.quorum.Libraries.Game.InputMonitor;
 public class KeyboardProcessor {
 
     public java.lang.Object me_ = null;
+    
+    public static Queue<quorum.Libraries.Interface.Events.KeyboardEvent> glfwEvents;
 
     public void Update() 
     {
         quorum.Libraries.Interface.Events.KeyboardProcessor quorumProcessor = (quorum.Libraries.Interface.Events.KeyboardProcessor) me_;
         quorum.Libraries.Containers.List_ events = quorumProcessor.events;
 
-//        if (Keyboard.isCreated()) 
-//        {
-//            while (Keyboard.next()) 
-//            {
-//                int keyCode = GetGameKeyCode(Keyboard.getEventKey());
-//                quorum.Libraries.Interface.Events.KeyboardEvent event = new quorum.Libraries.Interface.Events.KeyboardEvent();
-//                event.keyCode = keyCode;
-//
-//                // Check if the key was pressed down.
-//                if (Keyboard.getEventKeyState())
-//                {
-//                    event.eventType = event.PRESSED_KEY;
-//                    InputMonitor.pressedKeys++;
-//                }
-//                // Otherwise, a key has just been released.
-//                else
-//                {
-//                    event.eventType = event.RELEASED_KEY;
-//                    InputMonitor.pressedKeys--;
-//                }
-//                
-//                events.Add(event);
-//            }
-//        }
+        while (!glfwEvents.isEmpty()) 
+        {
+            quorum.Libraries.Interface.Events.KeyboardEvent event = glfwEvents.remove();
+
+            // Check if the key was pressed down and update the InputMonitor.
+            if (event.eventType == event.PRESSED_KEY)
+            {
+                InputMonitor.pressedKeys++;
+            }
+            // Otherwise, a key has just been released.
+            else
+            {
+                InputMonitor.pressedKeys--;
+            }
+
+            events.Add(event);
+        }
     }
 
-    public static int GetGameKeyCode(int lwjglKeyCode) 
+    public static int GetGameKeyCode(int glfwKeyCode) 
     {
-//        switch (lwjglKeyCode) 
-//        {
-//            case Keyboard.KEY_LBRACKET:
-//                return plugins.quorum.Libraries.Game.InputMonitor.LEFT_BRACKET;
-//            case Keyboard.KEY_RBRACKET:
-//                return plugins.quorum.Libraries.Game.InputMonitor.RIGHT_BRACKET;
-//            case Keyboard.KEY_GRAVE:
-//                return plugins.quorum.Libraries.Game.InputMonitor.GRAVE;
-//            case Keyboard.KEY_NUMLOCK:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUM_LOCK;
-//            case Keyboard.KEY_SCROLL:
-//                return plugins.quorum.Libraries.Game.InputMonitor.SCROLL_LOCK;
-//            case Keyboard.KEY_CAPITAL:
-//                return plugins.quorum.Libraries.Game.InputMonitor.CAPS_LOCK;
-//            case Keyboard.KEY_PAUSE:
-//                return plugins.quorum.Libraries.Game.InputMonitor.PAUSE;
-//            case Keyboard.KEY_SYSRQ:
-//                return plugins.quorum.Libraries.Game.InputMonitor.PRINT_SCREEN;
-//            case Keyboard.KEY_LMETA:
-//                return plugins.quorum.Libraries.Game.InputMonitor.META_LEFT;
-//            case Keyboard.KEY_RMETA:
-//                return plugins.quorum.Libraries.Game.InputMonitor.META_RIGHT;
-//            case Keyboard.KEY_EQUALS:
-//                return plugins.quorum.Libraries.Game.InputMonitor.EQUALS;
-//            case Keyboard.KEY_NUMPADCOMMA:
-//                return plugins.quorum.Libraries.Game.InputMonitor.COMMA;
-//            case Keyboard.KEY_0:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUM_0;
-//            case Keyboard.KEY_1:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUM_1;
-//            case Keyboard.KEY_2:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUM_2;
-//            case Keyboard.KEY_3:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUM_3;
-//            case Keyboard.KEY_4:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUM_4;
-//            case Keyboard.KEY_5:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUM_5;
-//            case Keyboard.KEY_6:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUM_6;
-//            case Keyboard.KEY_7:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUM_7;
-//            case Keyboard.KEY_8:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUM_8;
-//            case Keyboard.KEY_9:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUM_9;
-//            case Keyboard.KEY_A:
-//                return plugins.quorum.Libraries.Game.InputMonitor.A;
-//            case Keyboard.KEY_B:
-//                return plugins.quorum.Libraries.Game.InputMonitor.B;
-//            case Keyboard.KEY_C:
-//                return plugins.quorum.Libraries.Game.InputMonitor.C;
-//            case Keyboard.KEY_D:
-//                return plugins.quorum.Libraries.Game.InputMonitor.D;
-//            case Keyboard.KEY_E:
-//                return plugins.quorum.Libraries.Game.InputMonitor.E;
-//            case Keyboard.KEY_F:
-//                return plugins.quorum.Libraries.Game.InputMonitor.F;
-//            case Keyboard.KEY_G:
-//                return plugins.quorum.Libraries.Game.InputMonitor.G;
-//            case Keyboard.KEY_H:
-//                return plugins.quorum.Libraries.Game.InputMonitor.H;
-//            case Keyboard.KEY_I:
-//                return plugins.quorum.Libraries.Game.InputMonitor.I;
-//            case Keyboard.KEY_J:
-//                return plugins.quorum.Libraries.Game.InputMonitor.J;
-//            case Keyboard.KEY_K:
-//                return plugins.quorum.Libraries.Game.InputMonitor.K;
-//            case Keyboard.KEY_L:
-//                return plugins.quorum.Libraries.Game.InputMonitor.L;
-//            case Keyboard.KEY_M:
-//                return plugins.quorum.Libraries.Game.InputMonitor.M;
-//            case Keyboard.KEY_N:
-//                return plugins.quorum.Libraries.Game.InputMonitor.N;
-//            case Keyboard.KEY_O:
-//                return plugins.quorum.Libraries.Game.InputMonitor.O;
-//            case Keyboard.KEY_P:
-//                return plugins.quorum.Libraries.Game.InputMonitor.P;
-//            case Keyboard.KEY_Q:
-//                return plugins.quorum.Libraries.Game.InputMonitor.Q;
-//            case Keyboard.KEY_R:
-//                return plugins.quorum.Libraries.Game.InputMonitor.R;
-//            case Keyboard.KEY_S:
-//                return plugins.quorum.Libraries.Game.InputMonitor.S;
-//            case Keyboard.KEY_T:
-//                return plugins.quorum.Libraries.Game.InputMonitor.T;
-//            case Keyboard.KEY_U:
-//                return plugins.quorum.Libraries.Game.InputMonitor.U;
-//            case Keyboard.KEY_V:
-//                return plugins.quorum.Libraries.Game.InputMonitor.V;
-//            case Keyboard.KEY_W:
-//                return plugins.quorum.Libraries.Game.InputMonitor.W;
-//            case Keyboard.KEY_X:
-//                return plugins.quorum.Libraries.Game.InputMonitor.X;
-//            case Keyboard.KEY_Y:
-//                return plugins.quorum.Libraries.Game.InputMonitor.Y;
-//            case Keyboard.KEY_Z:
-//                return plugins.quorum.Libraries.Game.InputMonitor.Z;
-//            case Keyboard.KEY_LMENU:
-//                return plugins.quorum.Libraries.Game.InputMonitor.ALT_LEFT;
-//            case Keyboard.KEY_RMENU:
-//                return plugins.quorum.Libraries.Game.InputMonitor.ALT_RIGHT;
-//            case Keyboard.KEY_BACKSLASH:
-//                return plugins.quorum.Libraries.Game.InputMonitor.BACKSLASH;
-//            case Keyboard.KEY_COMMA:
-//                return plugins.quorum.Libraries.Game.InputMonitor.COMMA;
-//            case Keyboard.KEY_DELETE:
-//                return plugins.quorum.Libraries.Game.InputMonitor.FORWARD_DELETE;
-//            case Keyboard.KEY_LEFT:
-//                return plugins.quorum.Libraries.Game.InputMonitor.LEFT;
-//            case Keyboard.KEY_RIGHT:
-//                return plugins.quorum.Libraries.Game.InputMonitor.RIGHT;
-//            case Keyboard.KEY_UP:
-//                return plugins.quorum.Libraries.Game.InputMonitor.UP;
-//            case Keyboard.KEY_DOWN:
-//                return plugins.quorum.Libraries.Game.InputMonitor.DOWN;
-//            case Keyboard.KEY_RETURN:
-//                return plugins.quorum.Libraries.Game.InputMonitor.ENTER;
-//            case Keyboard.KEY_HOME:
-//                return plugins.quorum.Libraries.Game.InputMonitor.HOME;
-//            case Keyboard.KEY_MINUS:
-//                return plugins.quorum.Libraries.Game.InputMonitor.MINUS;
-//            case Keyboard.KEY_PERIOD:
-//                return plugins.quorum.Libraries.Game.InputMonitor.PERIOD;
-//            case Keyboard.KEY_SEMICOLON:
-//                return plugins.quorum.Libraries.Game.InputMonitor.SEMICOLON;
-//            case Keyboard.KEY_LSHIFT:
-//                return plugins.quorum.Libraries.Game.InputMonitor.SHIFT_LEFT;
-//            case Keyboard.KEY_RSHIFT:
-//                return plugins.quorum.Libraries.Game.InputMonitor.SHIFT_RIGHT;
-//            case Keyboard.KEY_SLASH:
-//                return plugins.quorum.Libraries.Game.InputMonitor.SLASH;
-//            case Keyboard.KEY_SPACE:
-//                return plugins.quorum.Libraries.Game.InputMonitor.SPACE;
-//            case Keyboard.KEY_TAB:
-//                return plugins.quorum.Libraries.Game.InputMonitor.TAB;
-//            case Keyboard.KEY_LCONTROL:
-//                return plugins.quorum.Libraries.Game.InputMonitor.CONTROL_LEFT;
-//            case Keyboard.KEY_RCONTROL:
-//                return plugins.quorum.Libraries.Game.InputMonitor.CONTROL_RIGHT;
-//            case Keyboard.KEY_NEXT:
-//                return plugins.quorum.Libraries.Game.InputMonitor.PAGE_DOWN;
-//            case Keyboard.KEY_PRIOR:
-//                return plugins.quorum.Libraries.Game.InputMonitor.PAGE_UP;
-//            case Keyboard.KEY_ESCAPE:
-//                return plugins.quorum.Libraries.Game.InputMonitor.ESCAPE;
-//            case Keyboard.KEY_END:
-//                return plugins.quorum.Libraries.Game.InputMonitor.END;
-//            case Keyboard.KEY_INSERT:
-//                return plugins.quorum.Libraries.Game.InputMonitor.INSERT;
-//            case Keyboard.KEY_BACK:
-//                return plugins.quorum.Libraries.Game.InputMonitor.BACKSPACE;
-//            case Keyboard.KEY_APOSTROPHE:
-//                return plugins.quorum.Libraries.Game.InputMonitor.APOSTROPHE;
-//            case Keyboard.KEY_POWER:
-//                return plugins.quorum.Libraries.Game.InputMonitor.POWER;
-//            case Keyboard.KEY_F1:
-//                return plugins.quorum.Libraries.Game.InputMonitor.F1;
-//            case Keyboard.KEY_F2:
-//                return plugins.quorum.Libraries.Game.InputMonitor.F2;
-//            case Keyboard.KEY_F3:
-//                return plugins.quorum.Libraries.Game.InputMonitor.F3;
-//            case Keyboard.KEY_F4:
-//                return plugins.quorum.Libraries.Game.InputMonitor.F4;
-//            case Keyboard.KEY_F5:
-//                return plugins.quorum.Libraries.Game.InputMonitor.F5;
-//            case Keyboard.KEY_F6:
-//                return plugins.quorum.Libraries.Game.InputMonitor.F6;
-//            case Keyboard.KEY_F7:
-//                return plugins.quorum.Libraries.Game.InputMonitor.F7;
-//            case Keyboard.KEY_F8:
-//                return plugins.quorum.Libraries.Game.InputMonitor.F8;
-//            case Keyboard.KEY_F9:
-//                return plugins.quorum.Libraries.Game.InputMonitor.F9;
-//            case Keyboard.KEY_F10:
-//                return plugins.quorum.Libraries.Game.InputMonitor.F10;
-//            case Keyboard.KEY_F11:
-//                return plugins.quorum.Libraries.Game.InputMonitor.F11;
-//            case Keyboard.KEY_F12:
-//                return plugins.quorum.Libraries.Game.InputMonitor.F12;
-//            case Keyboard.KEY_COLON:
-//                return plugins.quorum.Libraries.Game.InputMonitor.COLON;
-//            case Keyboard.KEY_NUMPAD0:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_0;
-//            case Keyboard.KEY_NUMPAD1:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_1;
-//            case Keyboard.KEY_NUMPAD2:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_2;
-//            case Keyboard.KEY_NUMPAD3:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_3;
-//            case Keyboard.KEY_NUMPAD4:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_4;
-//            case Keyboard.KEY_NUMPAD5:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_5;
-//            case Keyboard.KEY_NUMPAD6:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_6;
-//            case Keyboard.KEY_NUMPAD7:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_7;
-//            case Keyboard.KEY_NUMPAD8:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_8;
-//            case Keyboard.KEY_NUMPAD9:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_9;
-//            case Keyboard.KEY_ADD:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_PLUS;
-//            case Keyboard.KEY_DECIMAL:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_DECIMAL;
-//            case Keyboard.KEY_DIVIDE:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_SLASH;
-//            case Keyboard.KEY_MULTIPLY:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_STAR;
-//            case Keyboard.KEY_NUMPADENTER:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_ENTER;
-//            case Keyboard.KEY_NUMPADEQUALS:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_EQUALS;
-//            case Keyboard.KEY_SUBTRACT:
-//                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_MINUS;
-//            default:
-//                return plugins.quorum.Libraries.Game.InputMonitor.UNKNOWN;
-//        }
-        return 0;
+        switch (glfwKeyCode)
+        {
+            case GLFW.GLFW_KEY_LEFT_BRACKET:
+                return plugins.quorum.Libraries.Game.InputMonitor.LEFT_BRACKET;
+            case GLFW.GLFW_KEY_RIGHT_BRACKET:
+                return plugins.quorum.Libraries.Game.InputMonitor.RIGHT_BRACKET;
+            case GLFW.GLFW_KEY_GRAVE_ACCENT:
+                return plugins.quorum.Libraries.Game.InputMonitor.GRAVE;
+            case GLFW.GLFW_KEY_NUM_LOCK:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUM_LOCK;
+            case GLFW.GLFW_KEY_SCROLL_LOCK:
+                return plugins.quorum.Libraries.Game.InputMonitor.SCROLL_LOCK;
+            case GLFW.GLFW_KEY_CAPS_LOCK:
+                return plugins.quorum.Libraries.Game.InputMonitor.CAPS_LOCK;
+            case GLFW.GLFW_KEY_PAUSE:
+                return plugins.quorum.Libraries.Game.InputMonitor.PAUSE;
+            case GLFW.GLFW_KEY_PRINT_SCREEN:
+                return plugins.quorum.Libraries.Game.InputMonitor.PRINT_SCREEN;
+            case GLFW.GLFW_KEY_LEFT_SUPER:
+                return plugins.quorum.Libraries.Game.InputMonitor.META_LEFT;
+            case GLFW.GLFW_KEY_RIGHT_SUPER:
+                return plugins.quorum.Libraries.Game.InputMonitor.META_RIGHT;
+            case GLFW.GLFW_KEY_EQUAL:
+                return plugins.quorum.Libraries.Game.InputMonitor.EQUALS;
+            case GLFW.GLFW_KEY_0:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUM_0;
+            case GLFW.GLFW_KEY_1:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUM_1;
+            case GLFW.GLFW_KEY_2:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUM_2;
+            case GLFW.GLFW_KEY_3:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUM_3;
+            case GLFW.GLFW_KEY_4:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUM_4;
+            case GLFW.GLFW_KEY_5:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUM_5;
+            case GLFW.GLFW_KEY_6:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUM_6;
+            case GLFW.GLFW_KEY_7:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUM_7;
+            case GLFW.GLFW_KEY_8:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUM_8;
+            case GLFW.GLFW_KEY_9:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUM_9;
+            case GLFW.GLFW_KEY_A:
+                return plugins.quorum.Libraries.Game.InputMonitor.A;
+            case GLFW.GLFW_KEY_B:
+                return plugins.quorum.Libraries.Game.InputMonitor.B;
+            case GLFW.GLFW_KEY_C:
+                return plugins.quorum.Libraries.Game.InputMonitor.C;
+            case GLFW.GLFW_KEY_D:
+                return plugins.quorum.Libraries.Game.InputMonitor.D;
+            case GLFW.GLFW_KEY_E:
+                return plugins.quorum.Libraries.Game.InputMonitor.E;
+            case GLFW.GLFW_KEY_F:
+                return plugins.quorum.Libraries.Game.InputMonitor.F;
+            case GLFW.GLFW_KEY_G:
+                return plugins.quorum.Libraries.Game.InputMonitor.G;
+            case GLFW.GLFW_KEY_H:
+                return plugins.quorum.Libraries.Game.InputMonitor.H;
+            case GLFW.GLFW_KEY_I:
+                return plugins.quorum.Libraries.Game.InputMonitor.I;
+            case GLFW.GLFW_KEY_J:
+                return plugins.quorum.Libraries.Game.InputMonitor.J;
+            case GLFW.GLFW_KEY_K:
+                return plugins.quorum.Libraries.Game.InputMonitor.K;
+            case GLFW.GLFW_KEY_L:
+                return plugins.quorum.Libraries.Game.InputMonitor.L;
+            case GLFW.GLFW_KEY_M:
+                return plugins.quorum.Libraries.Game.InputMonitor.M;
+            case GLFW.GLFW_KEY_N:
+                return plugins.quorum.Libraries.Game.InputMonitor.N;
+            case GLFW.GLFW_KEY_O:
+                return plugins.quorum.Libraries.Game.InputMonitor.O;
+            case GLFW.GLFW_KEY_P:
+                return plugins.quorum.Libraries.Game.InputMonitor.P;
+            case GLFW.GLFW_KEY_Q:
+                return plugins.quorum.Libraries.Game.InputMonitor.Q;
+            case GLFW.GLFW_KEY_R:
+                return plugins.quorum.Libraries.Game.InputMonitor.R;
+            case GLFW.GLFW_KEY_S:
+                return plugins.quorum.Libraries.Game.InputMonitor.S;
+            case GLFW.GLFW_KEY_T:
+                return plugins.quorum.Libraries.Game.InputMonitor.T;
+            case GLFW.GLFW_KEY_U:
+                return plugins.quorum.Libraries.Game.InputMonitor.U;
+            case GLFW.GLFW_KEY_V:
+                return plugins.quorum.Libraries.Game.InputMonitor.V;
+            case GLFW.GLFW_KEY_W:
+                return plugins.quorum.Libraries.Game.InputMonitor.W;
+            case GLFW.GLFW_KEY_X:
+                return plugins.quorum.Libraries.Game.InputMonitor.X;
+            case GLFW.GLFW_KEY_Y:
+                return plugins.quorum.Libraries.Game.InputMonitor.Y;
+            case GLFW.GLFW_KEY_Z:
+                return plugins.quorum.Libraries.Game.InputMonitor.Z;
+            case GLFW.GLFW_KEY_LEFT_ALT:
+                return plugins.quorum.Libraries.Game.InputMonitor.ALT_LEFT;
+            case GLFW.GLFW_KEY_RIGHT_ALT:
+                return plugins.quorum.Libraries.Game.InputMonitor.ALT_RIGHT;
+            case GLFW.GLFW_KEY_BACKSLASH:
+                return plugins.quorum.Libraries.Game.InputMonitor.BACKSLASH;
+            case GLFW.GLFW_KEY_COMMA:
+                return plugins.quorum.Libraries.Game.InputMonitor.COMMA;
+            case GLFW.GLFW_KEY_DELETE:
+                return plugins.quorum.Libraries.Game.InputMonitor.FORWARD_DELETE;
+            case GLFW.GLFW_KEY_LEFT:
+                return plugins.quorum.Libraries.Game.InputMonitor.LEFT;
+            case GLFW.GLFW_KEY_RIGHT:
+                return plugins.quorum.Libraries.Game.InputMonitor.RIGHT;
+            case GLFW.GLFW_KEY_UP:
+                return plugins.quorum.Libraries.Game.InputMonitor.UP;
+            case GLFW.GLFW_KEY_DOWN:
+                return plugins.quorum.Libraries.Game.InputMonitor.DOWN;
+            case GLFW.GLFW_KEY_ENTER:
+                return plugins.quorum.Libraries.Game.InputMonitor.ENTER;
+            case GLFW.GLFW_KEY_HOME:
+                return plugins.quorum.Libraries.Game.InputMonitor.HOME;
+            case GLFW.GLFW_KEY_MINUS:
+                return plugins.quorum.Libraries.Game.InputMonitor.MINUS;
+            case GLFW.GLFW_KEY_PERIOD:
+                return plugins.quorum.Libraries.Game.InputMonitor.PERIOD;
+            case GLFW.GLFW_KEY_SEMICOLON:
+                return plugins.quorum.Libraries.Game.InputMonitor.SEMICOLON;
+            case GLFW.GLFW_KEY_LEFT_SHIFT:
+                return plugins.quorum.Libraries.Game.InputMonitor.SHIFT_LEFT;
+            case GLFW.GLFW_KEY_RIGHT_SHIFT:
+                return plugins.quorum.Libraries.Game.InputMonitor.SHIFT_RIGHT;
+            case GLFW.GLFW_KEY_SLASH:
+                return plugins.quorum.Libraries.Game.InputMonitor.SLASH;
+            case GLFW.GLFW_KEY_SPACE:
+                return plugins.quorum.Libraries.Game.InputMonitor.SPACE;
+            case GLFW.GLFW_KEY_TAB:
+                return plugins.quorum.Libraries.Game.InputMonitor.TAB;
+            case GLFW.GLFW_KEY_LEFT_CONTROL:
+                return plugins.quorum.Libraries.Game.InputMonitor.CONTROL_LEFT;
+            case GLFW.GLFW_KEY_RIGHT_CONTROL:
+                return plugins.quorum.Libraries.Game.InputMonitor.CONTROL_RIGHT;
+            case GLFW.GLFW_KEY_PAGE_DOWN:
+                return plugins.quorum.Libraries.Game.InputMonitor.PAGE_DOWN;
+            case GLFW.GLFW_KEY_PAGE_UP:
+                return plugins.quorum.Libraries.Game.InputMonitor.PAGE_UP;
+            case GLFW.GLFW_KEY_ESCAPE:
+                return plugins.quorum.Libraries.Game.InputMonitor.ESCAPE;
+            case GLFW.GLFW_KEY_END:
+                return plugins.quorum.Libraries.Game.InputMonitor.END;
+            case GLFW.GLFW_KEY_INSERT:
+                return plugins.quorum.Libraries.Game.InputMonitor.INSERT;
+            case GLFW.GLFW_KEY_BACKSPACE:
+                return plugins.quorum.Libraries.Game.InputMonitor.BACKSPACE;
+            case GLFW.GLFW_KEY_APOSTROPHE:
+                return plugins.quorum.Libraries.Game.InputMonitor.APOSTROPHE;
+            case GLFW.GLFW_KEY_F1:
+                return plugins.quorum.Libraries.Game.InputMonitor.F1;
+            case GLFW.GLFW_KEY_F2:
+                return plugins.quorum.Libraries.Game.InputMonitor.F2;
+            case GLFW.GLFW_KEY_F3:
+                return plugins.quorum.Libraries.Game.InputMonitor.F3;
+            case GLFW.GLFW_KEY_F4:
+                return plugins.quorum.Libraries.Game.InputMonitor.F4;
+            case GLFW.GLFW_KEY_F5:
+                return plugins.quorum.Libraries.Game.InputMonitor.F5;
+            case GLFW.GLFW_KEY_F6:
+                return plugins.quorum.Libraries.Game.InputMonitor.F6;
+            case GLFW.GLFW_KEY_F7:
+                return plugins.quorum.Libraries.Game.InputMonitor.F7;
+            case GLFW.GLFW_KEY_F8:
+                return plugins.quorum.Libraries.Game.InputMonitor.F8;
+            case GLFW.GLFW_KEY_F9:
+                return plugins.quorum.Libraries.Game.InputMonitor.F9;
+            case GLFW.GLFW_KEY_F10:
+                return plugins.quorum.Libraries.Game.InputMonitor.F10;
+            case GLFW.GLFW_KEY_F11:
+                return plugins.quorum.Libraries.Game.InputMonitor.F11;
+            case GLFW.GLFW_KEY_F12:
+                return plugins.quorum.Libraries.Game.InputMonitor.F12;
+            case GLFW.GLFW_KEY_KP_0:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_0;
+            case GLFW.GLFW_KEY_KP_1:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_1;
+            case GLFW.GLFW_KEY_KP_2:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_2;
+            case GLFW.GLFW_KEY_KP_3:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_3;
+            case GLFW.GLFW_KEY_KP_4:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_4;
+            case GLFW.GLFW_KEY_KP_5:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_5;
+            case GLFW.GLFW_KEY_KP_6:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_6;
+            case GLFW.GLFW_KEY_KP_7:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_7;
+            case GLFW.GLFW_KEY_KP_8:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_8;
+            case GLFW.GLFW_KEY_KP_9:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_9;
+            case GLFW.GLFW_KEY_KP_ADD:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_PLUS;
+            case GLFW.GLFW_KEY_KP_DECIMAL:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_DECIMAL;
+            case GLFW.GLFW_KEY_KP_DIVIDE:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_SLASH;
+            case GLFW.GLFW_KEY_KP_MULTIPLY:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_STAR;
+            case GLFW.GLFW_KEY_KP_ENTER:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_ENTER;
+            case GLFW.GLFW_KEY_KP_EQUAL:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_EQUALS;
+            case GLFW.GLFW_KEY_KP_SUBTRACT:
+                return plugins.quorum.Libraries.Game.InputMonitor.NUMPAD_MINUS;
+            default:
+                return plugins.quorum.Libraries.Game.InputMonitor.UNKNOWN;
+        }
     }
 
 }

@@ -6,7 +6,7 @@
 
 package plugins.quorum.Libraries.Game;
 
-//import org.lwjgl.input.Keyboard;
+import org.lwjgl.glfw.GLFW;
 //import org.lwjgl.input.Mouse;
 
 /**
@@ -131,270 +131,272 @@ public class InputMonitor {
   
     public boolean IsKeyPressed(int key)
     {
-//        if(!Keyboard.isCreated()) 
-//            return false;
-//
-//        if(key == ANY_KEY)
-//        {
-//            return pressedKeys > 0;
-//        }
-//        else
-//        {
-//            return Keyboard.isKeyDown(gdxToLwjglKeyCode(key));
-//        }
-        return false;
+        if(key == ANY_KEY)
+        {
+            return pressedKeys > 0;
+        }
+        else
+        {
+            return GLFW.glfwGetKey(DesktopDisplay.window, QuorumToGLFWKeyCode(key)) == GLFW.GLFW_PRESS;
+        }
     }
   
   
-    public static int gdxToLwjglKeyCode(int code)
+    public static int QuorumToGLFWKeyCode(int code)
     {
-        /*
         switch(code)
         {
             case UP:
-                return Keyboard.KEY_UP;
+                return GLFW.GLFW_KEY_UP;
             case DOWN:
-                return Keyboard.KEY_DOWN;
+                return GLFW.GLFW_KEY_DOWN;
             case LEFT:
-                return Keyboard.KEY_LEFT;
+                return GLFW.GLFW_KEY_LEFT;
             case RIGHT:
-                return Keyboard.KEY_RIGHT;
+                return GLFW.GLFW_KEY_RIGHT;
             case CLEAR:
-                return Keyboard.KEY_CLEAR;
+                // No corresponding GLFW constant. This may be removed later.
+                return GLFW.GLFW_KEY_UNKNOWN;
             case APOSTROPHE:
-                return Keyboard.KEY_APOSTROPHE;
+                return GLFW.GLFW_KEY_APOSTROPHE;
             case LEFT_BRACKET:
-                return Keyboard.KEY_LBRACKET;
+                return GLFW.GLFW_KEY_LEFT_BRACKET;
             case RIGHT_BRACKET:
-                return Keyboard.KEY_RBRACKET;
+                return GLFW.GLFW_KEY_RIGHT_BRACKET;
             case GRAVE:
-                return Keyboard.KEY_GRAVE;
+                return GLFW.GLFW_KEY_GRAVE_ACCENT;
             case NUM_LOCK:
-                return Keyboard.KEY_NUMLOCK;
+                return GLFW.GLFW_KEY_NUM_LOCK;
             case CAPS_LOCK:
-                return Keyboard.KEY_CAPITAL;
+                return GLFW.GLFW_KEY_CAPS_LOCK;
             case SCROLL_LOCK:
-                return Keyboard.KEY_SCROLL;
+                return GLFW.GLFW_KEY_SCROLL_LOCK;
             case EQUALS:
-                return Keyboard.KEY_EQUALS;
+                return GLFW.GLFW_KEY_EQUAL;
             case META_LEFT:
-                return Keyboard.KEY_LMETA;
+                return GLFW.GLFW_KEY_LEFT_SUPER;
             case META_RIGHT:
-                return Keyboard.KEY_RMETA;
+                return GLFW.GLFW_KEY_RIGHT_SUPER;
             case NUM_0:
-                return Keyboard.KEY_0;
+                return GLFW.GLFW_KEY_0;
             case NUM_1:
-                return Keyboard.KEY_1;
+                return GLFW.GLFW_KEY_1;
             case NUM_2:
-                return Keyboard.KEY_2;
+                return GLFW.GLFW_KEY_2;
             case NUM_3:
-                return Keyboard.KEY_3;
+                return GLFW.GLFW_KEY_3;
             case NUM_4:
-                return Keyboard.KEY_4;
+                return GLFW.GLFW_KEY_4;
             case NUM_5:
-                return Keyboard.KEY_5;
+                return GLFW.GLFW_KEY_5;
             case NUM_6:
-                return Keyboard.KEY_6;
+                return GLFW.GLFW_KEY_6;
             case NUM_7:
-                return Keyboard.KEY_7;
+                return GLFW.GLFW_KEY_7;
             case NUM_8:
-                return Keyboard.KEY_8;
+                return GLFW.GLFW_KEY_8;
             case NUM_9:
-                return Keyboard.KEY_9;
+                return GLFW.GLFW_KEY_9;
             case A:
-                return Keyboard.KEY_A;
+                return GLFW.GLFW_KEY_A;
             case B:
-                return Keyboard.KEY_B;
+                return GLFW.GLFW_KEY_B;
             case C:
-                return Keyboard.KEY_C;
+                return GLFW.GLFW_KEY_C;
             case D:
-                return Keyboard.KEY_D;
+                return GLFW.GLFW_KEY_D;
             case E:
-                return Keyboard.KEY_E;
+                return GLFW.GLFW_KEY_E;
             case F:
-                return Keyboard.KEY_F;
+                return GLFW.GLFW_KEY_F;
             case G:
-                return Keyboard.KEY_G;
+                return GLFW.GLFW_KEY_G;
             case H:
-                return Keyboard.KEY_H;
+                return GLFW.GLFW_KEY_H;
             case I:
-                return Keyboard.KEY_I;
+                return GLFW.GLFW_KEY_I;
             case J:
-                return Keyboard.KEY_J;
+                return GLFW.GLFW_KEY_J;
             case K:
-                return Keyboard.KEY_K;
+                return GLFW.GLFW_KEY_K;
             case L:
-                return Keyboard.KEY_L;
+                return GLFW.GLFW_KEY_L;
             case M:
-                return Keyboard.KEY_M;
+                return GLFW.GLFW_KEY_M;
             case N:
-                return Keyboard.KEY_N;
+                return GLFW.GLFW_KEY_N;
             case O:
-                return Keyboard.KEY_O;
+                return GLFW.GLFW_KEY_O;
             case P:
-                return Keyboard.KEY_P;
+                return GLFW.GLFW_KEY_P;
             case Q:
-                return Keyboard.KEY_Q;
+                return GLFW.GLFW_KEY_Q;
             case R:
-                return Keyboard.KEY_R;
+                return GLFW.GLFW_KEY_R;
             case S:
-                return Keyboard.KEY_S;
+                return GLFW.GLFW_KEY_S;
             case T:
-                return Keyboard.KEY_T;
+                return GLFW.GLFW_KEY_T;
             case U:
-                return Keyboard.KEY_U;
+                return GLFW.GLFW_KEY_U;
             case V:
-                return Keyboard.KEY_V;
+                return GLFW.GLFW_KEY_V;
             case W:
-                return Keyboard.KEY_W;
+                return GLFW.GLFW_KEY_W;
             case X:
-                return Keyboard.KEY_X;
+                return GLFW.GLFW_KEY_X;
             case Y:
-                return Keyboard.KEY_Y;
+                return GLFW.GLFW_KEY_Y;
             case Z:
-                return Keyboard.KEY_Z;
+                return GLFW.GLFW_KEY_Z;
             case ALT_LEFT:
-                return Keyboard.KEY_LMENU;
+                return GLFW.GLFW_KEY_LEFT_ALT;
             case ALT_RIGHT:
-                return Keyboard.KEY_RMENU;
+                return GLFW.GLFW_KEY_RIGHT_ALT;
             case BACKSLASH:
-                return Keyboard.KEY_BACKSLASH;
+                return GLFW.GLFW_KEY_BACKSLASH;
             case COMMA:
-                return Keyboard.KEY_COMMA;
+                return GLFW.GLFW_KEY_COMMA;
             case FORWARD_DELETE:
-                return Keyboard.KEY_DELETE;
+                return GLFW.GLFW_KEY_DELETE;
             case ENTER:
-                return Keyboard.KEY_RETURN;
+                return GLFW.GLFW_KEY_ENTER;
             case HOME:
-                return Keyboard.KEY_HOME;
+                return GLFW.GLFW_KEY_HOME;
             case END:
-                return Keyboard.KEY_END;
+                return GLFW.GLFW_KEY_END;
             case PAGE_DOWN:
-                return Keyboard.KEY_NEXT;
+                return GLFW.GLFW_KEY_PAGE_DOWN;
             case PAGE_UP:
-                return Keyboard.KEY_PRIOR;
+                return GLFW.GLFW_KEY_PAGE_UP;
             case INSERT:
-                return Keyboard.KEY_INSERT;
+                return GLFW.GLFW_KEY_INSERT;
             case MINUS:
-                return Keyboard.KEY_MINUS;
+                return GLFW.GLFW_KEY_MINUS;
             case POWER:
-                return Keyboard.KEY_POWER;
+                // No corresponding GLFW constant. This may be removed later.
+                return GLFW.GLFW_KEY_UNKNOWN;
             case PERIOD:
-                return Keyboard.KEY_PERIOD;
+                return GLFW.GLFW_KEY_PERIOD;
             case NUMPAD_PLUS:
-                return Keyboard.KEY_ADD;
+                return GLFW.GLFW_KEY_KP_ADD;
             case NUMPAD_MINUS:
-                return Keyboard.KEY_SUBTRACT;
+                return GLFW.GLFW_KEY_KP_SUBTRACT;
             case NUMPAD_ENTER:
-                return Keyboard.KEY_NUMPADENTER;
+                return GLFW.GLFW_KEY_KP_ENTER;
             case NUMPAD_SLASH:
-                return Keyboard.KEY_DIVIDE;
+                return GLFW.GLFW_KEY_KP_DIVIDE;
             case NUMPAD_STAR:
-                return Keyboard.KEY_MULTIPLY;
+                return GLFW.GLFW_KEY_KP_MULTIPLY;
             case NUMPAD_DECIMAL:
-                return Keyboard.KEY_DECIMAL;
+                return GLFW.GLFW_KEY_KP_DECIMAL;
             case NUMPAD_EQUALS:
-                return Keyboard.KEY_NUMPADEQUALS;
+                return GLFW.GLFW_KEY_KP_EQUAL;
             case SEMICOLON:
-                return Keyboard.KEY_SEMICOLON;
+                return GLFW.GLFW_KEY_SEMICOLON;
             case SHIFT_LEFT:
-                return Keyboard.KEY_LSHIFT;
+                return GLFW.GLFW_KEY_LEFT_SHIFT;
             case SHIFT_RIGHT:
-                return Keyboard.KEY_RSHIFT;
+                return GLFW.GLFW_KEY_RIGHT_SHIFT;
             case SLASH:
-                return Keyboard.KEY_SLASH;
+                return GLFW.GLFW_KEY_SLASH;
             case SPACE:
-                return Keyboard.KEY_SPACE;
+                return GLFW.GLFW_KEY_SPACE;
             case TAB:
-                return Keyboard.KEY_TAB;
+                return GLFW.GLFW_KEY_TAB;
             case BACKSPACE:
-                return Keyboard.KEY_BACK;
+                return GLFW.GLFW_KEY_BACKSPACE;
             case CONTROL_LEFT:
-                return Keyboard.KEY_LCONTROL;
+                return GLFW.GLFW_KEY_LEFT_CONTROL;
             case CONTROL_RIGHT:
-                return Keyboard.KEY_RCONTROL;
+                return GLFW.GLFW_KEY_RIGHT_CONTROL;
             case ESCAPE:
-                return Keyboard.KEY_ESCAPE;
+                return GLFW.GLFW_KEY_ESCAPE;
             case F1:
-                return Keyboard.KEY_F1;
+                return GLFW.GLFW_KEY_F1;
             case F2:
-                return Keyboard.KEY_F2;
+                return GLFW.GLFW_KEY_F2;
             case F3:
-                return Keyboard.KEY_F3;
+                return GLFW.GLFW_KEY_F3;
             case F4:
-                return Keyboard.KEY_F4;
+                return GLFW.GLFW_KEY_F4;
             case F5:
-                return Keyboard.KEY_F5;
+                return GLFW.GLFW_KEY_F5;
             case F6:
-                return Keyboard.KEY_F6;
+                return GLFW.GLFW_KEY_F6;
             case F7:
-                return Keyboard.KEY_F7;
+                return GLFW.GLFW_KEY_F7;
             case F8:
-                return Keyboard.KEY_F8;
+                return GLFW.GLFW_KEY_F8;
             case F9:
-                return Keyboard.KEY_F9;
+                return GLFW.GLFW_KEY_F9;
             case F10:
-                return Keyboard.KEY_F10;
+                return GLFW.GLFW_KEY_F10;
             case F11:
-                return Keyboard.KEY_F11;
+                return GLFW.GLFW_KEY_F11;
             case F12:
-                return Keyboard.KEY_F12;
+                return GLFW.GLFW_KEY_F12;
             case COLON:
-                return Keyboard.KEY_COLON;
+                // No corresponding GLFW constant. This may be removed later.
+                return GLFW.GLFW_KEY_UNKNOWN;
             case NUMPAD_0:
-                return Keyboard.KEY_NUMPAD0;
+                return GLFW.GLFW_KEY_KP_0;
             case NUMPAD_1:
-                return Keyboard.KEY_NUMPAD1;
+                return GLFW.GLFW_KEY_KP_1;
             case NUMPAD_2:
-                return Keyboard.KEY_NUMPAD2;
+                return GLFW.GLFW_KEY_KP_2;
             case NUMPAD_3:
-                return Keyboard.KEY_NUMPAD3;
+                return GLFW.GLFW_KEY_KP_3;
             case NUMPAD_4:
-                return Keyboard.KEY_NUMPAD4;
+                return GLFW.GLFW_KEY_KP_4;
             case NUMPAD_5:
-                return Keyboard.KEY_NUMPAD5;
+                return GLFW.GLFW_KEY_KP_5;
             case NUMPAD_6:
-                return Keyboard.KEY_NUMPAD6;
+                return GLFW.GLFW_KEY_KP_6;
             case NUMPAD_7:
-                return Keyboard.KEY_NUMPAD7;
+                return GLFW.GLFW_KEY_KP_7;
             case NUMPAD_8:
-                return Keyboard.KEY_NUMPAD8;
+                return GLFW.GLFW_KEY_KP_8;
             case NUMPAD_9:
-                return Keyboard.KEY_NUMPAD9;
+                return GLFW.GLFW_KEY_KP_9;
             case PAUSE:
-                return Keyboard.KEY_PAUSE;
+                return GLFW.GLFW_KEY_PAUSE;
             case PRINT_SCREEN:
-                return Keyboard.KEY_SYSRQ;
+                return GLFW.GLFW_KEY_PRINT_SCREEN;
             default:
-                return Keyboard.KEY_NONE;
+                return GLFW.GLFW_KEY_UNKNOWN;
         }
-        */
-        return 0;
     }
   
     public int GetMouseX () 
     {
-	return 0;//(int)(Mouse.getX() * GameStateManager.display.GetPixelScaleFactor());
+        double[] x = new double[1], y = new double[1];
+        GLFW.glfwGetCursorPos(DesktopDisplay.window, x, y);
+        return (int)(x[0] * GameStateManager.display.GetPixelScaleFactor());
     }
 
     public int GetMouseY () 
     {
-	return 0;//(int)(Mouse.getY() * GameStateManager.display.GetPixelScaleFactor());
+	double[] x = new double[1], y = new double[1];
+        GLFW.glfwGetCursorPos(DesktopDisplay.window, x, y);
+        return (int)(y[0] * GameStateManager.display.GetPixelScaleFactor());
     }
   
     public boolean IsMouseButtonPressed(int button)
     {
-        return false;//Mouse.isButtonDown(button);
+        return GLFW.glfwGetMouseButton(DesktopDisplay.window, button) == GLFW.GLFW_PRESS;
     }
     
     public boolean IsClicked()
     {
-        return false;//Mouse.isButtonDown(0) || Mouse.isButtonDown(1) || Mouse.isButtonDown(2);
+        return GLFW.glfwGetMouseButton(DesktopDisplay.window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS
+            || GLFW.glfwGetMouseButton(DesktopDisplay.window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS
+            ||GLFW.glfwGetMouseButton(DesktopDisplay.window, GLFW.GLFW_MOUSE_BUTTON_MIDDLE) == GLFW.GLFW_PRESS;
     }
     
     public int IsScrolled()
     {
-        return 0;//Mouse.getDWheel();
+        return (int)DesktopDisplay.scroll;
     }
     
 }

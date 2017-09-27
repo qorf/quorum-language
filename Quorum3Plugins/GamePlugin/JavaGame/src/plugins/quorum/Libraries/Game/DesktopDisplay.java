@@ -14,7 +14,10 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
+import org.lwjgl.glfw.GLFWKeyCallback;
+import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.opengl.GLCapabilities;
+import plugins.quorum.Libraries.Interface.Events.KeyboardProcessor;
 
 /**
  *
@@ -28,13 +31,31 @@ public class DesktopDisplay {
     GLFWErrorCallback errorCallback;
     // Used to capture resize events. Currently does nothing.
     GLFWFramebufferSizeCallback resizeCallback = new GLFWFramebufferSizeCallback()
+        {
+            @Override
+            public void invoke(long window, int width, int height)
             {
-                @Override
-                public void invoke(long window, int width, int height)
-                {
-                    ResizeEvent(window, width, height);
-                }
-            };
+                ResizeEvent(window, width, height);
+            }
+        };
+    
+    GLFWScrollCallback scrollCallback = new GLFWScrollCallback()
+        {
+            @Override
+            public void invoke(long window, double xOffset, double yOffset)
+            {
+                ScrollEvent(window, xOffset, yOffset);
+            }
+        };
+    
+    GLFWKeyCallback keyboardCallback = new GLFWKeyCallback()
+    {
+        @Override
+        public void invoke(long window, int key, int code, int action, int modifiers)
+        {
+            KeyboardEvent(window, key, code, action, modifiers);
+        }
+    };
     
     volatile boolean isContinuous = true;
     volatile boolean requestRendering = false;
@@ -58,7 +79,15 @@ public class DesktopDisplay {
     "default" window, but that information would most likely be stored in Quorum
     rather than here in the plugins.
     */ 
-    private long window;
+    public static long window = 0;
+    
+    /*
+    The DesktopDisplay provides a default scroll wheel listener which is used to
+    mark the amount scrolled on each frame. This is used for the InputMonitor on
+    desktop platforms in order to provide pollable mouse wheel information. This
+    will also need to be reviewed for a multiple window system.
+    */
+    public static double scroll = 0;
     
     // Describes the features available in the OpenGL context used by the
     // primary window.
@@ -66,6 +95,11 @@ public class DesktopDisplay {
     
     public void SetupDisplay() 
     {
+        if (window != 0)
+        {
+            throw new GameRuntimeError("A display has already been set up. Multiple displays are not supported yet.");
+        }
+        
         quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
         quorum.Libraries.Game.DesktopConfiguration_ config = dis.config;
         
@@ -124,6 +158,8 @@ public class DesktopDisplay {
         GLFW.glfwShowWindow(window);
         
         SetVSync(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
+        
+        GLFW.glfwSetFramebufferSizeCallback(window, resizeCallback);
     }
 
     public void SetVSync(boolean vsync) 
@@ -323,5 +359,25 @@ public class DesktopDisplay {
     {
         // Handle resizing in a sensible manner.
         // When the Quorum resizing API is implemented, inform listeners.
+    }
+    
+    public void ScrollEvent(long window, double xOffset, double yOffset)
+    {
+        // This is handled here to provide a default behavior for the
+        // InputMonitor on Desktop, because GLFW doesn't allow polling of the
+        // scroll wheel.
+        scroll = yOffset;
+    }
+    
+    public void KeyboardEvent(long window, int key, int code, int action, int modifiers)
+    {
+        quorum.Libraries.Interface.Events.KeyboardEvent event = new quorum.Libraries.Interface.Events.KeyboardEvent();
+        event.keyCode = KeyboardProcessor.GetGameKeyCode(key);
+        if (action == GLFW.GLFW_PRESS)
+            event.eventType = event.PRESSED_KEY;
+        else if (action == GLFW.GLFW_RELEASE)
+            event.eventType = event.RELEASED_KEY;
+        
+        
     }
 }
