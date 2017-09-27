@@ -64,7 +64,14 @@ public class Run extends QuorumAction implements ActionListener {
             // Spawn a new Java process that will run "Default.jar" from the project directory.
             String java = System.getProperty("java.home");
             java += File.separator + "bin" + File.separator + "java";
-            ProcessBuilder builder = new ProcessBuilder(java, "-Dsodbeans=1", "-jar", runName);
+            ProcessBuilder builder;
+            
+            String os = System.getProperty("os.name");
+            if(os.equals("Mac OS X")) 
+                builder = new ProcessBuilder(java, "-Dsodbeans=1", "-XstartOnFirstThread", "-jar", runName);
+            else
+                builder = new ProcessBuilder(java, "-Dsodbeans=1", "-jar", runName);
+            
             builder.directory(runDirectory.getParentFile());
 
             // Start the process.
