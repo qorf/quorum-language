@@ -12,12 +12,15 @@ import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
 
 import org.lwjgl.opengl.GL;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
+import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.opengl.GLCapabilities;
 import plugins.quorum.Libraries.Interface.Events.KeyboardProcessor;
+import plugins.quorum.Libraries.Interface.Events.MouseProcessor;
 
 /**
  *
@@ -53,7 +56,25 @@ public class DesktopDisplay {
         @Override
         public void invoke(long window, int key, int code, int action, int modifiers)
         {
-            KeyboardEvent(window, key, code, action, modifiers);
+            KeyboardProcessor.AddKeyboardEvent(window, key, code, action, modifiers);
+        }
+    };
+    
+    GLFWCursorPosCallback mouseMovementCallback = new GLFWCursorPosCallback()
+    {
+        @Override
+        public void invoke(long window, double x, double y)
+        {
+            MouseProcessor.AddMouseMovementEvent(window, x, y);
+        }
+    };
+    
+    GLFWMouseButtonCallback mouseCallback = new GLFWMouseButtonCallback()
+    {
+        @Override
+        public void invoke(long window, int button, int action, int modifiers)
+        {
+            MouseProcessor.AddMouseEvent(window, button, action, modifiers);
         }
     };
     
@@ -367,17 +388,5 @@ public class DesktopDisplay {
         // InputMonitor on Desktop, because GLFW doesn't allow polling of the
         // scroll wheel.
         scroll = yOffset;
-    }
-    
-    public void KeyboardEvent(long window, int key, int code, int action, int modifiers)
-    {
-        quorum.Libraries.Interface.Events.KeyboardEvent event = new quorum.Libraries.Interface.Events.KeyboardEvent();
-        event.keyCode = KeyboardProcessor.GetGameKeyCode(key);
-        if (action == GLFW.GLFW_PRESS)
-            event.eventType = event.PRESSED_KEY;
-        else if (action == GLFW.GLFW_RELEASE)
-            event.eventType = event.RELEASED_KEY;
-        
-        
     }
 }

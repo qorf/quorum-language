@@ -17,16 +17,18 @@ public class KeyboardProcessor {
 
     public java.lang.Object me_ = null;
     
-    public static Queue<quorum.Libraries.Interface.Events.KeyboardEvent> glfwEvents;
+    // Events are provided to this queue from the DesktopDisplay. See the
+    // KeyboardEvent method in plugins.quorum.Libraries.Game.DesktopDisplay
+    public static Queue<quorum.Libraries.Interface.Events.KeyboardEvent> keyboardEvents;
 
     public void Update() 
     {
         quorum.Libraries.Interface.Events.KeyboardProcessor quorumProcessor = (quorum.Libraries.Interface.Events.KeyboardProcessor) me_;
         quorum.Libraries.Containers.List_ events = quorumProcessor.events;
 
-        while (!glfwEvents.isEmpty()) 
+        while (!keyboardEvents.isEmpty()) 
         {
-            quorum.Libraries.Interface.Events.KeyboardEvent event = glfwEvents.remove();
+            quorum.Libraries.Interface.Events.KeyboardEvent event = keyboardEvents.remove();
 
             // Check if the key was pressed down and update the InputMonitor.
             if (event.eventType == event.PRESSED_KEY)
@@ -258,6 +260,22 @@ public class KeyboardProcessor {
             default:
                 return plugins.quorum.Libraries.Game.InputMonitor.UNKNOWN;
         }
+    }
+    
+    /*
+    Converts the given GLFW keyboard event information into a Quorum
+    KeyboardEvent and adds it to the processor queue.
+    */
+    public static void AddKeyboardEvent(long window, int key, int code, int action, int modifiers)
+    {
+        quorum.Libraries.Interface.Events.KeyboardEvent event = new quorum.Libraries.Interface.Events.KeyboardEvent();
+        event.keyCode = GetGameKeyCode(key);
+        if (action == GLFW.GLFW_PRESS)
+            event.eventType = event.PRESSED_KEY;
+        else if (action == GLFW.GLFW_RELEASE)
+            event.eventType = event.RELEASED_KEY;
+        
+        keyboardEvents.add(event);
     }
 
 }

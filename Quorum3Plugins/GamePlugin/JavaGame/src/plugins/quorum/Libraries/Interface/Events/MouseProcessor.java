@@ -5,8 +5,7 @@
  */
 package plugins.quorum.Libraries.Interface.Events;
 
-//import org.lwjgl.input.Mouse;
-//import org.lwjgl.opengl.Display;
+import quorum.Libraries.Interface.Events.MouseEvent;
 
 /**
  *
@@ -15,8 +14,24 @@ package plugins.quorum.Libraries.Interface.Events;
 public class MouseProcessor 
 {
     public java.lang.Object me_ = null;
+
+    /*
+    Bitmask of the currently pressed buttons on the mouse. The nth bit
+    represents the nth mouse button, using the following constants from Quorum:
+    LEFT = 0
+    RIGHT = 1
+    MIDDLE = 2
+    BACK = 3
+    FORWARD = 4
     
-    int pressedButtons = 0;
+    For example, 00001 represents the left button down, all others up.
+    01100 represents the middle and back buttons down, all others up.
+    */
+    public static int pressedButtons = 0;
+    
+    // The position of the cursor during the last added mouse event.
+    private static double lastX = 0;
+    private static double lastY = 0;
     
     public void GetCurrentEventsNative()
     {
@@ -85,6 +100,42 @@ public class MouseProcessor
 //                events.Add(event);
 //            }
 //        }
+    }
+    
+    /*
+    Converts the given GLFW cursor position event information into a Quorum
+    MouseEvent and adds it to the processor queue.
+    */
+    public static void AddMouseMovementEvent(long window, double x, double y)
+    {
+        if (pressedButtons == 0)
+        {
+            MouseEvent event = new MouseEvent();
+            event.x = (int)x;
+            event.y = (int)y;
+            event.movementX = (int)(x - lastX);
+            event.movementY = (int)(y - lastY);
+            event.eventType = event.MOVED_MOUSE;
+        }
+        else
+        {
+            // Handle mouse drag event.
+        }
+        
+        // The Quorum MouseEvent requires casting to int for its fields, but we
+        // still retain the information in lastX and lastY as doubles so that we
+        // maintain sub-pixel precision for future changes.
+        lastX = x;
+        lastY = y;
+    }
+    
+    /*
+    Converts the given GLFW mouse event information into a Quorum MouseEvent and
+    adds it to the processor queue.
+    */
+    public static void AddMouseEvent(long window, int button, int action, int modifiers)
+    {
+        
     }
     
 }
