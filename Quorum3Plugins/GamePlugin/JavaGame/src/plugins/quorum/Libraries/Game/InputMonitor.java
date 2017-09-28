@@ -396,7 +396,9 @@ public class InputMonitor {
     
     public int IsScrolled()
     {
-        return (int)DesktopDisplay.scroll;
+        int scroll = (int)DesktopDisplay.scroll;
+        DesktopDisplay.scroll = 0;
+        return scroll;
     }
     
 }

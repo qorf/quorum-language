@@ -47,7 +47,11 @@ public class DesktopDisplay {
             @Override
             public void invoke(long window, double xOffset, double yOffset)
             {
-                ScrollEvent(window, xOffset, yOffset);
+                // This is stored here to provide a default behavior for the
+                // InputMonitor on Desktop, because GLFW doesn't allow polling of the
+                // scroll wheel.
+                scroll = yOffset;
+                MouseProcessor.AddMouseWheelEvent(window, xOffset, yOffset);
             }
         };
     
@@ -181,6 +185,10 @@ public class DesktopDisplay {
         SetVSync(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
         
         GLFW.glfwSetFramebufferSizeCallback(window, resizeCallback);
+        GLFW.glfwSetKeyCallback(window, keyboardCallback);
+        GLFW.glfwSetCursorPosCallback(window, mouseMovementCallback);
+        GLFW.glfwSetMouseButtonCallback(window, mouseCallback);
+        GLFW.glfwSetScrollCallback(window, scrollCallback);
     }
 
     public void SetVSync(boolean vsync) 
@@ -221,13 +229,15 @@ public class DesktopDisplay {
 
     public int GetWidth() {
         int[] width = new int[1], height = new int[1];
-        GLFW.glfwGetFramebufferSize(window, width, height);
+//        GLFW.glfwGetFramebufferSize(window, width, height);
+        GLFW.glfwGetWindowSize(window, width, height);
         return width[0];
     }
 
     public int GetHeight() {
         int[] width = new int[1], height = new int[1];
-        GLFW.glfwGetFramebufferSize(window, width, height);
+//        GLFW.glfwGetFramebufferSize(window, width, height);
+        GLFW.glfwGetWindowSize(window, width, height);
         return height[0];
     }
     
@@ -382,11 +392,12 @@ public class DesktopDisplay {
         // When the Quorum resizing API is implemented, inform listeners.
     }
     
-    public void ScrollEvent(long window, double xOffset, double yOffset)
+    // Only works on Windows platforms. This will fail on other platforms.
+    public static long GetWindowsHandle(quorum.Libraries.Game.IOSApplication_ i)
     {
-        // This is handled here to provide a default behavior for the
-        // InputMonitor on Desktop, because GLFW doesn't allow polling of the
-        // scroll wheel.
-        scroll = yOffset;
+        quorum.Libraries.Game.IOSApplication app = (quorum.Libraries.Game.IOSApplication)i;
+        IOSApplication plugin = app.plugin_;
+        
+        return org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(window);
     }
 }

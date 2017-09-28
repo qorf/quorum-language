@@ -5,7 +5,10 @@
  */
 package plugins.quorum.Libraries.Interface.Events;
 
+import org.lwjgl.glfw.GLFW;
+import java.util.LinkedList;
 import quorum.Libraries.Interface.Events.MouseEvent;
+import plugins.quorum.Libraries.Game.GameStateManager;
 
 /**
  *
@@ -16,18 +19,20 @@ public class MouseProcessor
     public java.lang.Object me_ = null;
 
     /*
-    Bitmask of the currently pressed buttons on the mouse. The nth bit
-    represents the nth mouse button, using the following constants from Quorum:
-    LEFT = 0
-    RIGHT = 1
-    MIDDLE = 2
-    BACK = 3
-    FORWARD = 4
+    Bitmask of the currently pressed buttons on the mouse. The bitmask is based
+    on these constants:
+    LEFT = 1
+    RIGHT = 2
+    MIDDLE = 4
+    BACK = 8
+    FORWARD = 16
     
     For example, 00001 represents the left button down, all others up.
     01100 represents the middle and back buttons down, all others up.
     */
     public static int pressedButtons = 0;
+    
+    public static LinkedList<MouseEvent> mouseEvents = new LinkedList<>();
     
     // The position of the cursor during the last added mouse event.
     private static double lastX = 0;
@@ -39,67 +44,10 @@ public class MouseProcessor
         
         quorum.Libraries.Containers.List_ events = quorumProcessor.events;
         
-//        if (Mouse.isCreated())
-//        {
-//            
-//            while (Mouse.next())
-//            {
-//                quorum.Libraries.Interface.Events.MouseEvent event = new quorum.Libraries.Interface.Events.MouseEvent();
-//                
-//                event.x = (int)(Mouse.getEventX() * Display.getPixelScaleFactor());
-//                event.y = (int)(Mouse.getEventY() * Display.getPixelScaleFactor());
-//                
-//                int button = Mouse.getEventButton();
-//                
-//                // Ignore any unknown buttons.
-//                if (button < -1 || button > 4)
-//                    continue;
-//                
-//                event.mouseButton = button;
-//                
-//                // If the button is -1, then no button was pressed. Check for
-//                // mouse dragged, scrolled, or moved.
-//                if (button == -1)
-//                {
-//                    if (Mouse.getEventDWheel() != 0)
-//                    {
-//                        event.eventType = event.SCROLLED_MOUSE;
-//                        event.scrollAmount = Mouse.getEventDWheel();
-//                    }
-//                    else
-//                    {
-//                        if (pressedButtons > 0)
-//                            event.eventType = event.DRAGGED_MOUSE;
-//                        else
-//                            event.eventType = event.MOVED_MOUSE;
-//                        
-//                        event.movementX = (int)(Mouse.getEventDX() * Display.getPixelScaleFactor());
-//                        event.movementY = (int)(Mouse.getEventDY() * Display.getPixelScaleFactor());
-//                    }
-//                }
-//                else
-//                {
-//                    if (Mouse.getEventButtonState())
-//                    {   
-//                        event.eventType = event.CLICKED_MOUSE;
-//                        pressedButtons++;
-//                    }
-//                    else
-//                    {
-//                        event.eventType = event.RELEASED_MOUSE;
-//                        pressedButtons--;
-//                    }
-//                }
-//                /*
-//				touchEvents.add(event);
-//				mouseX = event.x;
-//				mouseY = event.y;
-//				deltaX = (int)(Mouse.getEventDX() * Display.getPixelScaleFactor());
-//				deltaY = (int)(Mouse.getEventDY() * Display.getPixelScaleFactor());
-//                */
-//                events.Add(event);
-//            }
-//        }
+        while (!mouseEvents.isEmpty())
+        {
+            events.Add(mouseEvents.remove());
+        }
     }
     
     /*
@@ -108,25 +56,27 @@ public class MouseProcessor
     */
     public static void AddMouseMovementEvent(long window, double x, double y)
     {
+        // Invert the y-axis (GLFW places 0,0 at top-left.)
+        y = GameStateManager.display.GetHeight() - y;
+        
+        MouseEvent event = new MouseEvent();
+        event.x = (int)x;
+        event.y = (int)y;
+        event.movementX = (int)(x - lastX);
+        event.movementY = (int)(y - lastY);
+        event.mouseButton = pressedButtons;
         if (pressedButtons == 0)
-        {
-            MouseEvent event = new MouseEvent();
-            event.x = (int)x;
-            event.y = (int)y;
-            event.movementX = (int)(x - lastX);
-            event.movementY = (int)(y - lastY);
             event.eventType = event.MOVED_MOUSE;
-        }
         else
-        {
-            // Handle mouse drag event.
-        }
+            event.eventType = event.DRAGGED_MOUSE;
         
         // The Quorum MouseEvent requires casting to int for its fields, but we
         // still retain the information in lastX and lastY as doubles so that we
         // maintain sub-pixel precision for future changes.
         lastX = x;
         lastY = y;
+        
+        mouseEvents.add(event);
     }
     
     /*
@@ -135,7 +85,42 @@ public class MouseProcessor
     */
     public static void AddMouseEvent(long window, int button, int action, int modifiers)
     {
+        int quorumButton = 1 << button;
+
+        MouseEvent event = new MouseEvent();
         
+        if (action == GLFW.GLFW_PRESS)
+        {
+            // Set the bit of the button to 1.
+            pressedButtons |= quorumButton;
+            event.eventType = event.CLICKED_MOUSE;
+        }
+        else
+        {
+            // Set the bit of the button to 0.
+            pressedButtons &= ~(quorumButton);
+            event.eventType = event.RELEASED_MOUSE;
+        }
+        
+        event.x = (int)lastX;
+        event.y = (int)lastY;
+        event.mouseButton = quorumButton;
+        
+        mouseEvents.add(event);
+    }
+    
+    /*
+    Converts the given GLFW scroll event information into a Quorum MouseEvent 
+    and adds it to the processor queue.
+    */
+    public static void AddMouseWheelEvent(long window, double x, double y)
+    {
+        MouseEvent event = new MouseEvent();
+        event.eventType = event.SCROLLED_MOUSE;
+        event.scrollAmount = y;
+        event.x = (int)lastX;
+        event.y = (int)lastY;
+        mouseEvents.add(event);
     }
     
 }

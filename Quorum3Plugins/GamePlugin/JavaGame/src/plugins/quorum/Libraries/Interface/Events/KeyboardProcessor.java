@@ -6,7 +6,7 @@
 package plugins.quorum.Libraries.Interface.Events;
 
 import org.lwjgl.glfw.GLFW;
-import java.util.Queue;
+import java.util.LinkedList;
 import plugins.quorum.Libraries.Game.InputMonitor;
 
 /**
@@ -19,7 +19,7 @@ public class KeyboardProcessor {
     
     // Events are provided to this queue from the DesktopDisplay. See the
     // KeyboardEvent method in plugins.quorum.Libraries.Game.DesktopDisplay
-    public static Queue<quorum.Libraries.Interface.Events.KeyboardEvent> keyboardEvents;
+    public static LinkedList<quorum.Libraries.Interface.Events.KeyboardEvent> keyboardEvents = new LinkedList<>();
 
     public void Update() 
     {
