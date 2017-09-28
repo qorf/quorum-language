@@ -28,19 +28,19 @@ class MouseEvent
     public constant integer ANY = -1
 
     /* A code used for mouseButton to indicate the left mouse button. */
-    public constant integer LEFT = 0
+    public constant integer LEFT = 1
 
     /* A code used for mouseButton to indicate the right mouse button. */
-    public constant integer RIGHT = 1
+    public constant integer RIGHT = 2
 
     /* A code used for mouseButton to indicate the middle mouse button. */
-    public constant integer MIDDLE = 2
+    public constant integer MIDDLE = 4
 
     /* A code used for mouseButton to indicate the back mouse button. */
-    public constant integer BACK = 3
+    public constant integer BACK = 8
 
     /* A code used for mouseButton to indicate the forward mouse button. */
-    public constant integer FORWARD = 4
+    public constant integer FORWARD = 16
 
     /* Which mouse button, if any, is the subject of the event. If no mouse
     button is involved in the event, this will be ANY. */
@@ -407,4 +407,89 @@ class MouseEvent
         return source
     end
 
+    /*
+    This action checks if this event was trigged by a mouse button being
+    clicked. If it was, the action returns true. Otherwise, it returns false.
+
+    Attribute: Returns Whether or not this event was triggered by a mouse click.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Events.MouseListener
+
+    class Main is Game, MouseListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddMouseListener(me)
+        end
+
+        action ClickedMouse(MouseEvent event)
+            OutputEvent(event)
+        end
+
+        action ReleasedMouse(MouseEvent event)
+            OutputEvent(event)
+        end
+
+        action OutputEvent(MouseEvent event)
+            if event:IsClicked()
+                output "The mouse button was clicked!"
+            elseif event:IsReleased()
+                output "The mouse button was released!"
+            end
+        end
+    end
+    */
+    action IsClicked returns boolean
+        return eventType = CLICKED_MOUSE
+    end
+
+    /*
+    This action checks if this event was trigged by a mouse button being
+    released. If it was, the action returns true. Otherwise, it returns false.
+
+    Attribute: Returns Whether or not this event was triggered by a mouse button being released.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Events.MouseListener
+
+    class Main is Game, MouseListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            AddMouseListener(me)
+        end
+
+        action ClickedMouse(MouseEvent event)
+            OutputEvent(event)
+        end
+
+        action ReleasedMouse(MouseEvent event)
+            OutputEvent(event)
+        end
+
+        action OutputEvent(MouseEvent event)
+            if event:IsClicked()
+                output "The mouse button was clicked!"
+            elseif event:IsReleased()
+                output "The mouse button was released!"
+            end
+        end
+    end
+    */
+    action IsReleased returns boolean
+        return eventType = RELEASED_MOUSE
+    end
 end
