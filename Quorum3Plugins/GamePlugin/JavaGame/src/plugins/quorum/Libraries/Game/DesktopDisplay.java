@@ -18,9 +18,11 @@ import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
+import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GLCapabilities;
 import plugins.quorum.Libraries.Interface.Events.KeyboardProcessor;
 import plugins.quorum.Libraries.Interface.Events.MouseProcessor;
+import quorum.Libraries.Game.ScreenResolution;
 
 /**
  *
@@ -90,10 +92,13 @@ public class DesktopDisplay {
     int fps;
     long lastTime = System.nanoTime();
     String extensions = null;
+    private boolean initialized = false;
     
     static int major = 2;
     static int minor = 1;
     quorum.Libraries.Game.Graphics.GraphicsManager_ gl20;
+    
+    ScreenResolution_ resolution;
     
     /*
     The window the game is using. For the initial transition to GLFW, this is
@@ -128,7 +133,7 @@ public class DesktopDisplay {
         quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
         quorum.Libraries.Game.DesktopConfiguration_ config = dis.config;
         
-        GLFW.glfwInit();
+        Initialize();
         GLFW.glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
         
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, glBoolean(config.Get_Libraries_Game_DesktopConfiguration__resizable_()));
@@ -149,7 +154,7 @@ public class DesktopDisplay {
         int width;
         int height;
         String name = config.Get_Libraries_Game_DesktopConfiguration__title_();
-        ScreenResolution_ resolution = config.Get_Libraries_Game_DesktopConfiguration__defaultResolution_();
+        resolution = config.Get_Libraries_Game_DesktopConfiguration__defaultResolution_();
         
         if (resolution != null)
         {
@@ -163,6 +168,8 @@ public class DesktopDisplay {
         }
         else
         {
+            resolution = GetResolutionFromConfiguration();
+            
             // Use the width and height of the config.
             width = config.Get_Libraries_Game_DesktopConfiguration__width_();
             height = config.Get_Libraries_Game_DesktopConfiguration__height_();
@@ -303,85 +310,100 @@ public class DesktopDisplay {
    
     public ScreenResolution_ GetDesktopResolution()
     {
-//        ScreenResolution_ resolution = new quorum.Libraries.Game.ScreenResolution();
-//        org.lwjgl.opengl.DisplayMode mode = Display.getDesktopDisplayMode();
-//        resolution.Set_Libraries_Game_ScreenResolution__width_(mode.getWidth());
-//        resolution.Set_Libraries_Game_ScreenResolution__height_(mode.getHeight());
-//        resolution.Set_Libraries_Game_ScreenResolution__bitsPerPixel_(mode.getBitsPerPixel());
-//        resolution.Set_Libraries_Game_ScreenResolution__frequency_(mode.getFrequency());
-//        resolution.Set_Libraries_Game_ScreenResolution__fullscreen_(mode.isFullscreenCapable());
-//        return resolution;
-        return null;
+        Initialize();
+        ScreenResolution_ res = new quorum.Libraries.Game.ScreenResolution();
+        GLFWVidMode videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
+        res.Set_Libraries_Game_ScreenResolution__width_(videoMode.width());
+        res.Set_Libraries_Game_ScreenResolution__height_(videoMode.height());
+        res.Set_Libraries_Game_ScreenResolution__redBits_(videoMode.redBits());
+        res.Set_Libraries_Game_ScreenResolution__greenBits_(videoMode.greenBits());
+        res.Set_Libraries_Game_ScreenResolution__blueBits_(videoMode.blueBits());
+        res.Set_Libraries_Game_ScreenResolution__frequency_(videoMode.refreshRate());
+        res.Set_Libraries_Game_ScreenResolution__fullscreen_(true);
+        return res;
     }
     
     public void GetAvailableResolutionsNative(Array_ array)
     {
-//        try
-//        {
-//            org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
-//            
-//            for (int i = 0; i < modes.length; i++)
-//            {
-//                ScreenResolution_ resolution = new quorum.Libraries.Game.ScreenResolution();
-//                org.lwjgl.opengl.DisplayMode mode = modes[i];
-//                resolution.Set_Libraries_Game_ScreenResolution__width_(mode.getWidth());
-//                resolution.Set_Libraries_Game_ScreenResolution__height_(mode.getHeight());
-//                resolution.Set_Libraries_Game_ScreenResolution__bitsPerPixel_(mode.getBitsPerPixel());
-//                resolution.Set_Libraries_Game_ScreenResolution__frequency_(mode.getFrequency());
-//                resolution.Set_Libraries_Game_ScreenResolution__fullscreen_(mode.isFullscreenCapable());
-//                array.Add(resolution);
-//            }
-//        }
-//        catch(Exception ex)
-//        {
-//            throw new GameRuntimeError("An error occurred while retrieving available screen resolutions: " + ex.getMessage());
-//        }
+        Initialize();
+        GLFWVidMode.Buffer videoModes = GLFW.glfwGetVideoModes(GLFW.glfwGetPrimaryMonitor());
+        while (videoModes.hasRemaining())
+        {
+            GLFWVidMode mode = videoModes.get();
+            ScreenResolution_ res = new quorum.Libraries.Game.ScreenResolution();
+            res.Set_Libraries_Game_ScreenResolution__width_(mode.width());
+            res.Set_Libraries_Game_ScreenResolution__height_(mode.height());
+            res.Set_Libraries_Game_ScreenResolution__redBits_(mode.redBits());
+            res.Set_Libraries_Game_ScreenResolution__greenBits_(mode.greenBits());
+            res.Set_Libraries_Game_ScreenResolution__blueBits_(mode.blueBits());
+            res.Set_Libraries_Game_ScreenResolution__frequency_(mode.refreshRate());
+            res.Set_Libraries_Game_ScreenResolution__fullscreen_(true);
+            array.Add(res);
+        }
     };
     
     public void SetScreenResolution(ScreenResolution_ resolution)
     {
-//        try
-//        {
-//            org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
-//            org.lwjgl.opengl.DisplayMode targetDisplayMode = null;
-//            for (int i = 0; i < modes.length; i++)
-//            {
-//                org.lwjgl.opengl.DisplayMode mode = modes[i];
-//                if (resolution.GetWidth() == mode.getWidth() && resolution.GetHeight() == mode.getHeight()
-//                        && resolution.GetBitsPerPixel() == mode.getBitsPerPixel() 
-//                        && resolution.GetFrequency() == mode.getFrequency()
-//                        && resolution.IsFullscreen() == mode.isFullscreenCapable())
-//                {
-//                    targetDisplayMode = mode;
-//                    break;
-//                }
-//            }
-//            if (targetDisplayMode == null)
-//                targetDisplayMode = new org.lwjgl.opengl.DisplayMode(resolution.GetWidth(), resolution.GetHeight());
-//
-//            Display.setDisplayMode(targetDisplayMode);
-//            Display.setFullscreen(resolution.IsFullscreen());
-//        }
-//        catch(Exception ex)
-//        {
-//            throw new GameRuntimeError("An error occurred while setting the screen resolution: " + ex.getMessage());
-//        }
+        // Currently the bit depths of the resolution are ignored as it isn't
+        // possible to change it without destruction and recreation of the
+        // window, which requires reinitializing all OpenGL assets - this is a
+        // feature that we'll need for Android support later anyway.
+        if (resolution.IsFullscreen())
+        {
+            GLFW.glfwSetWindowMonitor(window, GLFW.glfwGetPrimaryMonitor(), 0, 0, resolution.GetWidth(), resolution.GetHeight(), resolution.GetFrequency());
+        }
+        else
+        {
+            GLFWVidMode videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
+            int x = videoMode.width() - resolution.GetWidth();
+            if (x > 0)
+                x = x / 2;
+            else
+                x = 0;
+            
+            // Provide minimum space of 20 units for the top bar.
+            int y = videoMode.height() - resolution.GetHeight();
+            if (y > 40)
+                y = y / 2;
+            else
+                y = 20;
+            
+            GLFW.glfwSetWindowMonitor(window, 0, x, y, resolution.GetWidth(), resolution.GetHeight(), resolution.GetFrequency());
+        }
+        
+        this.resolution = resolution;
+    }
+    
+    public boolean SetDisplayMode(int width, int height, boolean fullscreen)
+    {
+        try
+        {
+            ScreenResolution res = new ScreenResolution();
+            res.Set_Libraries_Game_ScreenResolution__width_(width);
+            res.Set_Libraries_Game_ScreenResolution__height_(height);
+            res.Set_Libraries_Game_ScreenResolution__fullscreen_(fullscreen);
+            // Use default GLFW values for bits.
+            res.Set_Libraries_Game_ScreenResolution__redBits_(8);
+            res.Set_Libraries_Game_ScreenResolution__greenBits_(8);
+            res.Set_Libraries_Game_ScreenResolution__blueBits_(8);
+            // Use the refresh rate of the current desktop resolution (it's most likely the default GLFW will use).
+            GLFWVidMode videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
+            res.Set_Libraries_Game_ScreenResolution__frequency_(videoMode.refreshRate());
+            SetScreenResolution(res);
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
+        return true;
     }
     
     public ScreenResolution_ GetScreenResolution()
     {
-//        org.lwjgl.opengl.DisplayMode mode = Display.getDisplayMode();
-//        ScreenResolution_ resolution = new quorum.Libraries.Game.ScreenResolution();
-//        resolution.Set_Libraries_Game_ScreenResolution__width_(mode.getWidth());
-//        resolution.Set_Libraries_Game_ScreenResolution__height_(mode.getHeight());
-//        resolution.Set_Libraries_Game_ScreenResolution__frequency_(mode.getFrequency());
-//        resolution.Set_Libraries_Game_ScreenResolution__bitsPerPixel_(mode.getBitsPerPixel());
-//        resolution.Set_Libraries_Game_ScreenResolution__fullscreen_(mode.isFullscreenCapable());
-//        return resolution;
-        return null;
+        return resolution != null ? resolution : GetResolutionFromConfiguration();
     }
     
-    public int glBoolean(boolean value)
+    public static int glBoolean(boolean value)
     {
         return value ? org.lwjgl.opengl.GL11.GL_TRUE : org.lwjgl.opengl.GL11.GL_FALSE;
     }
@@ -399,5 +421,44 @@ public class DesktopDisplay {
         IOSApplication plugin = app.plugin_;
         
         return org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(window);
+    }
+    
+    /*
+    Used to retrieve or construct a screen resolution from the
+    DesktopConfiguration. Used to provide a screen resolution if the display
+    doesn't have one itself yet.
+    */
+    private ScreenResolution_ GetResolutionFromConfiguration()
+    {
+        Initialize();
+        
+        quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
+        quorum.Libraries.Game.DesktopConfiguration_ config = dis.config;
+        
+        if (config.Get_Libraries_Game_DesktopConfiguration__defaultResolution_() != null)
+            return config.Get_Libraries_Game_DesktopConfiguration__defaultResolution_();
+        
+        ScreenResolution res = new ScreenResolution();
+        res.Set_Libraries_Game_ScreenResolution__width_(config.Get_Libraries_Game_DesktopConfiguration__width_());
+        res.Set_Libraries_Game_ScreenResolution__height_(config.Get_Libraries_Game_DesktopConfiguration__height_());
+        res.Set_Libraries_Game_ScreenResolution__fullscreen_(false);
+        // Use default GLFW values for bits.
+        res.Set_Libraries_Game_ScreenResolution__redBits_(8);
+        res.Set_Libraries_Game_ScreenResolution__greenBits_(8);
+        res.Set_Libraries_Game_ScreenResolution__blueBits_(8);
+        // Use the refresh rate of the current desktop resolution (it's most likely the default GLFW will use).
+        GLFWVidMode videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
+        res.Set_Libraries_Game_ScreenResolution__frequency_(videoMode.refreshRate());
+        return res;
+    }
+    
+    // Initialize GLFW, if it hasn't been initialized already.
+    private void Initialize()
+    {
+        if (!initialized)
+        {
+            GLFW.glfwInit();
+            initialized = true;
+        }
     }
 }
