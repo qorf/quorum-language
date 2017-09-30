@@ -4,7 +4,9 @@ class ScreenResolution
     integer width = 0
     integer height = 0
     integer frequency = 0
-    integer bitsPerPixel = 0
+    integer redBits = 0
+    integer greenBits = 0
+    integer blueBits = 0
     boolean fullscreen = false
     
     action GetWidth returns integer
@@ -19,8 +21,16 @@ class ScreenResolution
         return frequency
     end
 
-    action GetBitsPerPixel returns integer
-        return bitsPerPixel
+    action GetRedBits returns integer
+        return redBits
+    end
+
+    action GetGreenBits returns integer
+        return greenBits
+    end
+    
+    action GetBlueBits returns integer
+        return blueBits
     end
 
     action IsFullscreen returns boolean

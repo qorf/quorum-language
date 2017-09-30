@@ -2825,6 +2825,7 @@ class Game
             return display:GetScreenResolution()
         elseif SelectApplicationTypeNative() = DESKTOP_APPLICATION
             DesktopDisplay display
+            display:SetConfiguration(desktopConfig)
             return display:GetScreenResolution()
         end
         return undefined
