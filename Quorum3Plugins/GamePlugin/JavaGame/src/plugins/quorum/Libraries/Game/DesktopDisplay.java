@@ -415,11 +415,8 @@ public class DesktopDisplay {
     }
     
     // Only works on Windows platforms. This will fail on other platforms.
-    public static long GetWindowsHandle(quorum.Libraries.Game.IOSApplication_ i)
+    public static long GetWindowsHandle()
     {
-        quorum.Libraries.Game.IOSApplication app = (quorum.Libraries.Game.IOSApplication)i;
-        IOSApplication plugin = app.plugin_;
-        
         return org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(window);
     }
     
