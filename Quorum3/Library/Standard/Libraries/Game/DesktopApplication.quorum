@@ -49,23 +49,15 @@ class DesktopApplication is Application
         //The actual workhorse loop.
         repeat until parent:Application:running = false
 
-            //display:ProcessMessages()
-
             boolean isActive = display:IsActive()
 
             if wasActive and not isActive
                 wasActive = false
-                // listener:Pause()
             end
-
-            // We may need LifeCycleListeners here.
 
             if not wasActive and isActive
                 wasActive = true
-                // listener:Resume()
             end
-
-            // We may need LifeCycleListeners here.
 
             boolean shouldRender = false
 
@@ -75,16 +67,14 @@ class DesktopApplication is Application
             configuration:x = display:GetDisplayX()
             configuration:y = display:GetDisplayY()
 
-            // Note: Using GetDisplayX and GetDisplayY to differentiate between
-            // retrieving the current config's x and y and getting the x and y
-            // from calling the static Display.
             boolean shouldrender = false
             if display:GetResize() or display:WasResized() or (display:GetWidth() not= configuration:width) or (display:GetHeight() not= configuration:height)
 
                 display:SetResize(false)
 
                 if configuration:autoResizeTextures
-                    parent:Application:glmanager:SetDrawingRegion(0, 0, display:GetWidth(), display:GetHeight())
+                    number scale = display:GetPixelScaleFactor()
+                    parent:Application:glmanager:SetDrawingRegion(0, 0, cast(integer, display:GetWidth() * scale), cast(integer, display:GetHeight() * scale))
                 end
 
                 display:RequestRendering()
@@ -92,32 +82,21 @@ class DesktopApplication is Application
                 configuration:width = display:GetWidth()
                 configuration:height = display:GetHeight()
 
-                // libgdx has another listener check here, as shown below.
-                // if (listener != null) listener.resize(Display.getWidth(), Display.getHeight());
-
-                // Not sure if RequestRendering will need the display's config
-                // already updated. If so, just remove comment from below line:
-
                 display:SetConfiguration(configuration)
 
             end
 
-            //The remainder of the libgdx code to be included here is commented:
-            //this if(true) should be executeRunnables(). How to do this?
-            if(true) shouldrender = true end
-
-            if(display:shouldrender)
-                shouldrender = display:shouldrender
+            if(true)
+                shouldrender = true 
             end
+
+//            if(display:shouldrender)
+//                shouldrender = display:shouldrender
+//            end
 
 
             if(shouldrender)
                display:UpdateTime()
-
-               // Temporary fix to full screen games not using the full viewport area.
-//               if configuration:fullScreen
-//                   parent:Application:glmanager:SetDrawingRegion(0, 0, display:GetWidth(), display:GetHeight())
-//               end
 
                parent:Application:game:ContinueGame()
                display:Update()
