@@ -5,6 +5,8 @@
  */
 package plugins.quorum.Libraries.Game;
 
+import java.nio.IntBuffer;
+import org.lwjgl.BufferUtils;
 import quorum.Libraries.Game.Graphics.Color_;
 import quorum.Libraries.Game.ScreenResolution_;
 import quorum.Libraries.Containers.Array_;
@@ -19,6 +21,7 @@ import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
 import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLCapabilities;
 import plugins.quorum.Libraries.Interface.Events.KeyboardProcessor;
 import plugins.quorum.Libraries.Interface.Events.MouseProcessor;
@@ -98,7 +101,10 @@ public class DesktopDisplay {
     static int minor = 1;
     quorum.Libraries.Game.Graphics.GraphicsManager_ gl20;
     
+    // Quorum representation of current resolution.
     ScreenResolution_ resolution;
+    // GLFW representation of the original desktop resolution.
+    GLFWVidMode desktopResolution;
     
     /*
     The window the game is using. For the initial transition to GLFW, this is
@@ -134,6 +140,9 @@ public class DesktopDisplay {
         quorum.Libraries.Game.DesktopConfiguration_ config = dis.config;
         
         Initialize();
+        // Save the original desktop resolution, if it hasn't already been requested.
+        GetOriginalResolution();
+        
         GLFW.glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
         
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, glBoolean(config.Get_Libraries_Game_DesktopConfiguration__resizable_()));
@@ -224,33 +233,44 @@ public class DesktopDisplay {
 
     public int GetDisplayX() {
         int[] x = new int[1], y = new int[1];
-        GLFW.glfwGetFramebufferSize(window, x, y);
+        GLFW.glfwGetWindowPos(window, x, y);
         return x[0];
     }
 
     public int GetDisplayY() {
         int[] x = new int[1], y = new int[1];
-        GLFW.glfwGetFramebufferSize(window, x, y);
+        GLFW.glfwGetWindowPos(window, x, y);
         return y[0];
     }
 
     public int GetWidth() {
         int[] width = new int[1], height = new int[1];
-//        GLFW.glfwGetFramebufferSize(window, width, height);
         GLFW.glfwGetWindowSize(window, width, height);
         return width[0];
     }
 
     public int GetHeight() {
         int[] width = new int[1], height = new int[1];
-//        GLFW.glfwGetFramebufferSize(window, width, height);
         GLFW.glfwGetWindowSize(window, width, height);
         return height[0];
     }
     
+    public int GetFramebufferWidth()
+    {
+        int[] width = new int[1], height = new int[1];
+        GLFW.glfwGetFramebufferSize(window, width, height);
+        return width[0];
+    }
+    
+    public int GetFramebufferHeight()
+    {
+        int[] width = new int[1], height = new int[1];
+        GLFW.glfwGetFramebufferSize(window, width, height);
+        return height[0];
+    }
+    
     public double GetPixelScaleFactor() {
-//        return Display.getPixelScaleFactor();
-        return 1;
+        return (double)GetFramebufferWidth() / (double)GetWidth();
     }
 
     public void ProcessMessages() {
@@ -268,8 +288,7 @@ public class DesktopDisplay {
     }
 
     public boolean IsActive() {
-//        return Display.isActive();
-        return false;
+        return GLFW.glfwGetWindowAttrib(window, GLFW.GLFW_VISIBLE) == GLFW.GLFW_TRUE;
     }
     
     public boolean WasResized() {
@@ -307,12 +326,12 @@ public class DesktopDisplay {
         GLFW.glfwPollEvents();
         GLFW.glfwSwapBuffers(window);
     }
-   
+
     public ScreenResolution_ GetDesktopResolution()
     {
         Initialize();
         ScreenResolution_ res = new quorum.Libraries.Game.ScreenResolution();
-        GLFWVidMode videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
+        GLFWVidMode videoMode = GetOriginalResolution();
         res.Set_Libraries_Game_ScreenResolution__width_(videoMode.width());
         res.Set_Libraries_Game_ScreenResolution__height_(videoMode.height());
         res.Set_Libraries_Game_ScreenResolution__redBits_(videoMode.redBits());
@@ -321,6 +340,17 @@ public class DesktopDisplay {
         res.Set_Libraries_Game_ScreenResolution__frequency_(videoMode.refreshRate());
         res.Set_Libraries_Game_ScreenResolution__fullscreen_(true);
         return res;
+    }
+
+    /*
+    Returns the original desktop resolution of this monitor before the game
+    launched a window.
+    */
+    private GLFWVidMode GetOriginalResolution()
+    {
+        return desktopResolution != null ? 
+            desktopResolution : 
+            (desktopResolution = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()));
     }
     
     public void GetAvailableResolutionsNative(Array_ array)
@@ -354,7 +384,7 @@ public class DesktopDisplay {
         }
         else
         {
-            GLFWVidMode videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
+            GLFWVidMode videoMode = GetOriginalResolution();
             int x = videoMode.width() - resolution.GetWidth();
             if (x > 0)
                 x = x / 2;
