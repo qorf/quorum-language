@@ -2201,8 +2201,8 @@ class Item2D is Item
 
         if GetPixelClipping()
             if painter:IsClipping()
-                number startLeft = painter:GetLeftClipCoordinate()
-                number startRight = painter:GetRightClipCoordinate()
+                number startLeft = painter:GetClipX()
+                number startRight = painter:GetClipX2()
                 number left = startLeft
                 number right = startRight
                 number x = GetX()
@@ -2219,8 +2219,8 @@ class Item2D is Item
                     return now
                 end
 
-                number startBottom = painter:GetBottomClipCoordinate()
-                number startTop = painter:GetTopClipCoordinate()
+                number startBottom = painter:GetClipY()
+                number startTop = painter:GetClipY2()
                 number bottom = startBottom
                 number top = startTop
                 if y > bottom
@@ -2243,7 +2243,7 @@ class Item2D is Item
 
                 painter:SetClipCoordinates(startLeft, startRight, startBottom, startTop)
             else
-                painter:SetClipCoordinates(GetX(), GetX() + GetX() + GetWidth(), GetY(), GetY() + GetHeight())
+                painter:SetClipDimensions(GetX(), GetY(), GetWidth(), GetHeight())
                 painter:SetClipping(true)
 
                 integer counter = 0

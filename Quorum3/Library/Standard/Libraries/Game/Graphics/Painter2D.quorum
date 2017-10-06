@@ -55,13 +55,18 @@ class Painter2D
     private Array<number> vertices
 
     /*
-    Coordinates used for clipping via glScissor. The coordinates form an axis
-    aligned rectangle.
+    Values used for clipping via glScissor. The coordinates form an axis
+    aligned rectangle. glScissor requires the values of clipX, clipY, clipWidth,
+    and clipHeight. clipX2 and clipY2 (the right and top coordinates of the
+    square, respectively) are stored due to the possibility of frequent reuse
+    by items during drawing.
     */
-    number leftClip = 0
-    number rightClip = 0
-    number bottomClip = 0
-    number topClip = 0
+    number clipX = 0
+    number clipY = 0
+    number clipX2 = 0
+    number clipY2 = 0
+    number clipWidth = 0
+    number clipHeight = 0
 
     on create
         color = color:White()
@@ -440,42 +445,66 @@ class Painter2D
     /*
 
     */
-    action GetLeftClipCoordinate returns number
-        return leftClip
+    action GetClipX returns number
+        return clipX
     end
 
     /*
 
     */
-    action GetRightClipCoordinate returns number
-        return rightClip
+    action GetClipY returns number
+        return clipY
     end
 
     /*
 
     */
-    action GetBottomClipCoordinate returns number
-        return bottomClip
+    action GetClipX2 returns number
+        return clipX2
     end
 
     /*
 
     */
-    action GetTopClipCoordinate returns number
-        return topClip
+    action GetClipY2 returns number
+        return clipY2
     end
 
     /*
 
     */
-    action SetClipCoordinates(number left, number right, number bottom, number top)
-        leftClip = left
-        rightClip = right
-        bottomClip = bottom
-        topClip = top
-        if IsClipping()
-            UpdateClipping()
-        end
+    action GetClipWidth returns number
+        return clipWidth
+    end
+
+    /*
+
+    */
+    action GetClipHeight returns number
+        return clipHeight
+    end
+
+    /*
+
+    */
+    action SetClipCoordinates(number x1, number y1, number x2, number y2)
+        clipX = x1
+        clipY = y1
+        clipX2 = x2
+        clipY2 = y2
+        clipWidth = x2 - x1
+        clipHeight = y2 - y1
+        UpdateClipping()
+    end
+
+    action SetClipDimensions(number x, number y, number width, number height)
+        clipX = x
+        clipY = y
+        clipX2 = x + width
+        clipY2 = y + height
+        clipWidth = width
+        clipHeight = height
+        UpdateClipping()
     end
 
     private system action UpdateClipping
