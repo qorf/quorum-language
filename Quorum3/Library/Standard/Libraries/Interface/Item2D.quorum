@@ -119,6 +119,13 @@ class Item2D is Item
 
     boolean shouldTriggerSimulation = true
 
+    /* 
+    This value is used to determine if the Item's dimensions should be used
+    for pixel clipping of the Item and its children during drawing (via the
+    glScissor function).
+    */
+    boolean clipPixels = false
+
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
     // the second vertex, respectively.
@@ -2192,10 +2199,67 @@ class Item2D is Item
             return now
         end
 
-        integer counter = 0
-        repeat children:GetSize() times
-            children:Get(counter):Draw(painter)
-            counter = counter + 1
+        if GetPixelClipping()
+            if painter:IsClipping()
+                number startLeft = painter:GetLeftClipCoordinate()
+                number startRight = painter:GetRightClipCoordinate()
+                number left = startLeft
+                number right = startRight
+                number x = GetX()
+                number y = GetY()
+                number width = GetWidth()
+                number height = GetHeight()
+                if x > left
+                    left = x
+                end
+                if (x + width) < right
+                    right = x + width
+                end
+                if left > right
+                    return now
+                end
+
+                number startBottom = painter:GetBottomClipCoordinate()
+                number startTop = painter:GetTopClipCoordinate()
+                number bottom = startBottom
+                number top = startTop
+                if y > bottom
+                    bottom = y
+                end
+                if (y + height) < top
+                    top = y + height
+                end
+                if bottom > top
+                    return now
+                end
+
+                painter:SetClipCoordinates(left, right, bottom, top)
+
+                integer counter = 0
+                repeat children:GetSize() times
+                    children:Get(counter):Draw(painter)
+                    counter = counter + 1
+                end
+
+                painter:SetClipCoordinates(startLeft, startRight, startBottom, startTop)
+            else
+                painter:SetClipCoordinates(GetX(), GetX() + GetX() + GetWidth(), GetY(), GetY() + GetHeight())
+                painter:SetClipping(true)
+
+                integer counter = 0
+                repeat children:GetSize() times
+                    children:Get(counter):Draw(painter)
+                    counter = counter + 1
+                end
+
+                painter:SetClipping(false)
+            end
+        else
+            integer counter = 0
+            repeat children:GetSize() times
+                children:Get(counter):Draw(painter)
+                counter = counter + 1
+            end
         end
     end
 
@@ -3995,5 +4059,32 @@ class Item2D is Item
     action UpdateTransformAngle
         transform:Set(transform:GetPosition(), -1 * math:DegreesToRadians(rotation))
         sweep:SetAngle(transform:GetAngle())
+    end
+
+    /*
+    The SetPixelClipping action is used to enable or disable pixel clipping. If
+    it is enabled, when the Item and its children are drawn as part of the Draw
+    action, any pixels that would be drawn outside of the unrotated dimensions
+    of the Item are not rendered. In other words, the Item will only draw inside
+    the exact rectangle formed by its x, y position and its width and height.
+
+    Attribute: Parameter clip True to enable pixel clipping, false to disable.
+    */
+    action SetPixelClipping(boolean clip)
+        clipPixels = clip
+    end
+
+    /*
+    The GetPixelClipping action returns true if pixel clipping is enabled, or
+    false if it is disabled. If it is enabled, when the Item and its children 
+    are drawn as part of the Draw action, any pixels that would be drawn outside
+    of the unrotated dimensions of the Item are not rendered. In other words, 
+    the Item will only draw inside the exact rectangle formed by its x, y 
+    position and its width and height.
+
+    Attribute: Returns Whether or not pixel clipping is enabled for this Item.
+    */
+    action GetPixelClipping returns boolean
+        return clipPixels
     end
 end

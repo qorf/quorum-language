@@ -901,6 +901,7 @@ class Layer2D is Layer
 
         integer counter = 0
         repeat items:GetSize() times
+            painter:SetClipping(false)
             items:Get(counter):Draw(painter)
             counter = counter + 1
         end

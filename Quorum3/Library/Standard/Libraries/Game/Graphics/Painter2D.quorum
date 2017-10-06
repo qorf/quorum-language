@@ -54,6 +54,15 @@ class Painter2D
 
     private Array<number> vertices
 
+    /*
+    Coordinates used for clipping via glScissor. The coordinates form an axis
+    aligned rectangle.
+    */
+    number leftClip = 0
+    number rightClip = 0
+    number bottomClip = 0
+    number topClip = 0
+
     on create
         color = color:White()
         SetColor(color)
@@ -417,5 +426,58 @@ class Painter2D
     private action GetVertices returns Array<number>
         return vertices
     end
+
+    /*
+    
+    */
+    system action SetClipping(boolean clip)
+
+    /*
+
+    */
+    system action IsClipping returns boolean
+
+    /*
+
+    */
+    action GetLeftClipCoordinate returns number
+        return leftClip
+    end
+
+    /*
+
+    */
+    action GetRightClipCoordinate returns number
+        return rightClip
+    end
+
+    /*
+
+    */
+    action GetBottomClipCoordinate returns number
+        return bottomClip
+    end
+
+    /*
+
+    */
+    action GetTopClipCoordinate returns number
+        return topClip
+    end
+
+    /*
+
+    */
+    action SetClipCoordinates(number left, number right, number bottom, number top)
+        leftClip = left
+        rightClip = right
+        bottomClip = bottom
+        topClip = top
+        if IsClipping()
+            UpdateClipping()
+        end
+    end
+
+    private system action UpdateClipping
 
 end
