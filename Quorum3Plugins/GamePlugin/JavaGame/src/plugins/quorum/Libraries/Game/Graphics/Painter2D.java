@@ -15,6 +15,8 @@ import quorum.Libraries.Compute.Matrix4;
 import quorum.Libraries.Game.Graphics.Mesh_;
 import quorum.Libraries.Game.Graphics.Mesh;
 import quorum.Libraries.Game.Graphics.IndexArray;
+import quorum.Libraries.Compute.Vector3;
+import quorum.Libraries.Game.GameDisplay_;
 
 /**
  *
@@ -56,8 +58,8 @@ public class Painter2D
     float colorValue; // Initialized by constructor.
     
     boolean isClipping = false;
-    
-    Camera_ camera;
+    // A vector used for calculating points via the combined view/projection matrix.
+    private final static Vector3 clipPoint = new Vector3();
     
     public Painter2D()
     {
@@ -177,6 +179,15 @@ public class Painter2D
             shader.Begin();
         SetupMatrices();
         quorumBatch.drawing = true;
+        if (isClipping)
+        {
+            UpdateClipping();
+            GameStateManager.nativeGraphics.glEnable(GraphicsManager.GL_SCISSOR_TEST);
+        }
+        else
+        {
+            GameStateManager.nativeGraphics.glDisable(GraphicsManager.GL_SCISSOR_TEST);
+        }
     }
     
     public void End()
@@ -196,6 +207,9 @@ public class Painter2D
         gl.glDepthMask(true);
         if (IsBlendingEnabled())
             gl.glDisable(GraphicsManager.GL_BLEND);
+
+        if (isClipping)
+            gl.glDisable(GraphicsManager.GL_SCISSOR_TEST);
         
         if (useFontShader)
             fontShader.End();
@@ -440,7 +454,6 @@ public class Painter2D
     
     public void ApplyCamera(Camera_ camera)
     {
-        this.camera = camera;
         SetProjectionMatrix(camera.GetCombinedMatrix());
     }
     
@@ -449,29 +462,73 @@ public class Painter2D
         if (clip == isClipping)
             return;
         
-        GraphicsManager graphics = GameStateManager.nativeGraphics;
-        
-        if (clip)
-        {
-            
-            graphics.glEnable(GraphicsManager.GL_SCISSOR_TEST);
-        }
-        else
-        {
-            
-        }
-        
         isClipping = clip;
+        
+        final quorum.Libraries.Game.Graphics.Painter2D quorumPainter = (quorum.Libraries.Game.Graphics.Painter2D) me_;
+        
+        if (quorumPainter.drawing)
+        {
+            UpdateClipping();
+
+            GraphicsManager graphics = GameStateManager.nativeGraphics;
+        
+            if (clip)
+                graphics.glEnable(GraphicsManager.GL_SCISSOR_TEST);
+            else
+                graphics.glDisable(GraphicsManager.GL_SCISSOR_TEST);
+        }
     }
     
     public void UpdateClipping()
     {
-        if (!isClipping)
+        quorum.Libraries.Game.Graphics.Painter2D_ painter = ((quorum.Libraries.Game.Graphics.Painter2D_)me_);
+        
+        if (!painter.Get_Libraries_Game_Graphics_Painter2D__drawing_() || !isClipping)
             return;
         
-        quorum.Libraries.Game.Graphics.Painter2D_ quorumPainter = ((quorum.Libraries.Game.Graphics.Painter2D_)me_);
+        GameDisplay_ display = GameStateManager.display;
         
+        clipPoint.Set(painter.GetClipX(), painter.GetClipY(), 0);
         
+        /*
+        The result of the multiplication will produce a vector containing
+        values between -1 and 1. We want to adjust the range to 0 to 1 and then
+        use the display's width and pixel factor to find the actual pixel values
+        the clip point will apply to.
+        */
+        clipPoint.Multiply(combinedMatrix);
+        int x = (int)((clipPoint.GetX() + 1) / 2.0 * display.GetWidth() * display.GetPixelScaleFactor());
+        int y = (int)((clipPoint.GetY() + 1) / 2.0 * display.GetHeight() * display.GetPixelScaleFactor());
+        
+        clipPoint.Set(painter.GetClipX2(), painter.GetClipY2(), 0);
+        
+        clipPoint.Multiply(combinedMatrix);
+        int x2 = (int)((clipPoint.GetX() + 1) / 2.0 * display.GetWidth() * display.GetPixelScaleFactor());
+        int y2 = (int)((clipPoint.GetY() + 1) / 2.0 * display.GetHeight() * display.GetPixelScaleFactor());
+        
+        int width, height;
+        
+        if (x2 >= x)
+        {
+            width = x2 - x;
+        }
+        else
+        {
+            width = x - x2;
+            x = x2;
+        }
+        
+        if (y2 >= y)
+        {
+            height = y2 - y;
+        }
+        else
+        {
+            height = y - y2;
+            y = y2;
+        }
+        
+        GameStateManager.nativeGraphics.glScissor(x, y, width, height);
     }
     
     public boolean IsClipping()
