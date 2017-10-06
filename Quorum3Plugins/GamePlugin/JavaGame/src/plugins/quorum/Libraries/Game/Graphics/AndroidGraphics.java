@@ -546,6 +546,11 @@ public class AndroidGraphics implements GraphicsManager
     {
         GLES20.glCullFace(mode);
     }
+    
+    public void glScissor(int x, int y, int width, int height)
+    {
+        GLES20.glScissor(x, y, width, height);
+    }
   
     /*
     private IntBuffer toIntBuffer (int v[], int offset, int count) 

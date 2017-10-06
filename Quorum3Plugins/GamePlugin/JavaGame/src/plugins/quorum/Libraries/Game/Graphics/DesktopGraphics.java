@@ -555,6 +555,11 @@ public class DesktopGraphics implements GraphicsManager {
     {
         GL11.glCullFace(mode);
     }
+    
+    public void glScissor(int x, int y, int width, int height)
+    {
+        GL11.glScissor(x, y, width, height);
+    }
   
     private IntBuffer toIntBuffer (int v[], int offset, int count) 
     {
@@ -564,20 +569,20 @@ public class DesktopGraphics implements GraphicsManager {
 	return intBuffer;
     }
 
-	private void ensureBufferCapacity (int numBytes) 
-        {
-            if (buffer == null || buffer.capacity() < numBytes) {
-		buffer = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newByteBuffer(numBytes);
-		floatBuffer = buffer.asFloatBuffer();
-		intBuffer = buffer.asIntBuffer();
-            }
-	}
-
-	private FloatBuffer toFloatBuffer (float v[], int offset, int count) {
-		ensureBufferCapacity(count << 2);
-		floatBuffer.clear();
-		plugins.quorum.Libraries.Game.libGDX.BufferUtils.copy(v, floatBuffer, count, offset);
-		return floatBuffer;
+    private void ensureBufferCapacity (int numBytes) 
+    {
+        if (buffer == null || buffer.capacity() < numBytes) {
+            buffer = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newByteBuffer(numBytes);
+            floatBuffer = buffer.asFloatBuffer();
+            intBuffer = buffer.asIntBuffer();
         }
+    }
+
+    private FloatBuffer toFloatBuffer (float v[], int offset, int count) {
+            ensureBufferCapacity(count << 2);
+            floatBuffer.clear();
+            plugins.quorum.Libraries.Game.libGDX.BufferUtils.copy(v, floatBuffer, count, offset);
+            return floatBuffer;
+    }
 }
 

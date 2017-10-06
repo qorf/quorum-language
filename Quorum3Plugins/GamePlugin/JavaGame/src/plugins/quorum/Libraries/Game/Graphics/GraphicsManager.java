@@ -176,6 +176,8 @@ public interface GraphicsManager {
     public void glDrawArrays (int mode, int first, int count);
     
     public void glBlendFunc (int sfactor, int dfactor);
+    
+    public void glScissor(int x, int y, int width, int height);
   
     /* 
     This is actually glTexParameteri. It was renamed early in the development

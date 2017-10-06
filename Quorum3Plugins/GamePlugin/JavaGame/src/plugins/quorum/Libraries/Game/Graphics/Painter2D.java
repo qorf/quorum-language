@@ -55,6 +55,10 @@ public class Painter2D
     
     float colorValue; // Initialized by constructor.
     
+    boolean isClipping = false;
+    
+    Camera_ camera;
+    
     public Painter2D()
     {
         // The default constructor in Java does nothing. Note that the default
@@ -436,9 +440,43 @@ public class Painter2D
     
     public void ApplyCamera(Camera_ camera)
     {
-//        calcMatrix.Set(camera.GetCombinedMatrix());
-//        SetProjectionMatrix(calcMatrix);
+        this.camera = camera;
         SetProjectionMatrix(camera.GetCombinedMatrix());
+    }
+    
+    public void SetClipping(boolean clip)
+    {
+        if (clip == isClipping)
+            return;
+        
+        GraphicsManager graphics = GameStateManager.nativeGraphics;
+        
+        if (clip)
+        {
+            
+            graphics.glEnable(GraphicsManager.GL_SCISSOR_TEST);
+        }
+        else
+        {
+            
+        }
+        
+        isClipping = clip;
+    }
+    
+    public void UpdateClipping()
+    {
+        if (!isClipping)
+            return;
+        
+        quorum.Libraries.Game.Graphics.Painter2D_ quorumPainter = ((quorum.Libraries.Game.Graphics.Painter2D_)me_);
+        
+        
+    }
+    
+    public boolean IsClipping()
+    {
+        return isClipping;
     }
         
     /*
