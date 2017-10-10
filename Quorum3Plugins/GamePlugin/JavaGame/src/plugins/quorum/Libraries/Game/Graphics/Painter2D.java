@@ -473,9 +473,14 @@ public class Painter2D
             GraphicsManager graphics = GameStateManager.nativeGraphics;
         
             if (clip)
+            {
                 graphics.glEnable(GraphicsManager.GL_SCISSOR_TEST);
+            }
             else
+            {
+                Flush();
                 graphics.glDisable(GraphicsManager.GL_SCISSOR_TEST);
+            }
         }
     }
     
@@ -485,6 +490,8 @@ public class Painter2D
         
         if (!painter.Get_Libraries_Game_Graphics_Painter2D__drawing_() || !isClipping)
             return;
+        
+        Flush();
         
         GameDisplay_ display = GameStateManager.display;
         
