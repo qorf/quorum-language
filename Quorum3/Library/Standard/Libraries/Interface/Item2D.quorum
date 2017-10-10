@@ -2199,14 +2199,14 @@ class Item2D is Item
             return now
         end
 
-        if GetPixelClipping()
+        if IsClipping()
             if painter:IsClipping()
                 number startLeft = painter:GetClipX()
                 number startRight = painter:GetClipX2()
                 number left = startLeft
                 number right = startRight
-                number x = GetX()
-                number y = GetY()
+                number x = GetGlobalX()
+                number y = GetGlobalY()
                 number width = GetWidth()
                 number height = GetHeight()
                 if x > left
@@ -4062,7 +4062,7 @@ class Item2D is Item
     end
 
     /*
-    The SetPixelClipping action is used to enable or disable pixel clipping. If
+    The SetClipping action is used to enable or disable clipping. If
     it is enabled, when the Item and its children are drawn as part of the Draw
     action, any pixels that would be drawn outside of the unrotated dimensions
     of the Item are not rendered. In other words, the Item will only draw inside
@@ -4070,12 +4070,12 @@ class Item2D is Item
 
     Attribute: Parameter clip True to enable pixel clipping, false to disable.
     */
-    action SetPixelClipping(boolean clip)
+    action SetClipping(boolean clip)
         clipPixels = clip
     end
 
     /*
-    The GetPixelClipping action returns true if pixel clipping is enabled, or
+    The IsClipping action returns true if pixel clipping is enabled, or
     false if it is disabled. If it is enabled, when the Item and its children 
     are drawn as part of the Draw action, any pixels that would be drawn outside
     of the unrotated dimensions of the Item are not rendered. In other words, 
@@ -4084,7 +4084,7 @@ class Item2D is Item
 
     Attribute: Returns Whether or not pixel clipping is enabled for this Item.
     */
-    action GetPixelClipping returns boolean
+    action IsClipping returns boolean
         return clipPixels
     end
 end

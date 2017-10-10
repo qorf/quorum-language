@@ -433,59 +433,91 @@ class Painter2D
     end
 
     /*
-    
+    The SetClipping action enables pixel clipping for anything which is drawn by
+    this Painter. Pixels are clipped in a rectangle defined by the Painter's
+    clip coordinates.
+
+    Attribute: Parameter clip True to enable clipping, false to disable clipping.
     */
     system action SetClipping(boolean clip)
 
     /*
+    The IsClipping action returns whether or not the Painter is currently
+    using pixel clipping during drawing.
 
+    Attribute: Returns True to enable clipping, false to disable clipping.
     */
     system action IsClipping returns boolean
 
     /*
+    The GetClipX action returns the x coordinate (in world coordinates) of the
+    bottom-left corner of the clipping rectangle.
 
+    Attribute: Returns The bottom-left x coordinate of the clipping rectangle.
     */
     action GetClipX returns number
         return clipX
     end
 
     /*
+    The GetClipY action returns the y coordinate (in world coordinates) of the
+    bottom-left corner of the clipping rectangle.
 
+    Attribute: Returns The bottom-left y coordinate of the clipping rectangle.
     */
     action GetClipY returns number
         return clipY
     end
 
     /*
+    The GetClipX2 action returns the x coordinate (in world coordinates) of the
+    top-right corner of the clipping rectangle.
 
+    Attribute: Returns The top-right x coordinate of the clipping rectangle.
     */
     action GetClipX2 returns number
         return clipX2
     end
 
     /*
+    The GetClipY2 action returns the y coordinate (in world coordinates) of the
+    top-right corner of the clipping rectangle.
 
+    Attribute: Returns The top-right y coordinate of the clipping rectangle.
     */
     action GetClipY2 returns number
         return clipY2
     end
 
     /*
+    The GetClipWidth action returns the width (in world coordinates) of the
+    clipping rectangle.
 
+    Attribute: Returns The width of the clipping rectangle.
     */
     action GetClipWidth returns number
         return clipWidth
     end
 
     /*
+    The GetClipHeight action returns the height (in world coordinates) of the
+    clipping rectangle.
 
+    Attribute: Returns The height of the clipping rectangle.
     */
     action GetClipHeight returns number
         return clipHeight
     end
 
     /*
+    The SetClipCoordinates action sets the x, y coordinates of the bottom-left
+    corner and the x, y coordinates of the top-right corner of the clipping
+    rectangle.
 
+    Attribute: Parameter x1 The x coordinate of the left side of the rectangle.
+    Attribute: Parameter y1 The y coordinate of the bottom side of the rectangle.
+    Attribute: Parameter x2 The x coordinate of the right side of the rectangle.
+    Attribute: Parameter y2 The y coordinate of the top side of the rectangle.
     */
     action SetClipCoordinates(number x1, number y1, number x2, number y2)
         clipX = x1
@@ -497,6 +529,15 @@ class Painter2D
         UpdateClipping()
     end
 
+    /*
+    The SetClipDimensions action sets the x, y coordinates of the bottom-left
+    corner and the width and height of the clipping rectangle.
+
+    Attribute: Parameter x The x coordinate of the left side of the rectangle.
+    Attribute: Parameter y The y coordinate of the bottom side of the rectangle.
+    Attribute: Parameter width The width of the rectangle.
+    Attribute: Parameter height The height of the rectangle.
+    */
     action SetClipDimensions(number x, number y, number width, number height)
         clipX = x
         clipY = y

@@ -34,6 +34,12 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
     var colorValue;
     
     /*
+     * Variables used for the pixel clipping (glScissor) system.
+     */
+    var isClipping = false;
+    var clipPoint = new quorum_Libraries_Compute_Vector3_();
+    
+    /*
      * Maintains a copy of the "full-sized" indices array. Necessary because the
      * current IndexArray implementation can't be used to send only parts of an
      * array buffer, so it must be set to the "partial" array instead.
@@ -191,6 +197,15 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         
         this.SetupMatrices();
         this.me_.drawing = true;
+        if (isClipping)
+        {
+            this.UpdateClipping();
+            graphics.glEnable(graphics.gl.SCISSOR_TEST);
+        }
+        else
+        {
+            graphics.glDisable(graphics.gl.SCISSOR_TEST);
+        }
     };
     
     this.End = function() 
@@ -212,6 +227,9 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         graphics.glDepthMask(true);
         if (this.IsBlendingEnabled())
             graphics.glDisable(graphics.gl.BLEND);
+        
+        if (isClipping)
+            graphics.glDisable(graphics.gl.SCISSOR_TEST);
         
         if (useFontShader)
             fontShader.End();
@@ -427,4 +445,80 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         this.SetProjectionMatrix(camera.GetCombinedMatrix());
     };
     
+    this.SetClipping$quorum_boolean = function(clip)
+    {
+        if (clip == isClipping)
+            return;
+        
+        isClipping = clip;
+        
+        if (this.me_.IsDrawing())
+        {
+            this.UpdateClipping();
+            
+            var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+            
+            if (clip)
+            {
+                graphics.glEnable(graphics.gl.SCISSOR_TEST);
+            }
+            else
+            {
+                this.Flush();
+                graphics.glDisable(graphics.gl.SCISSOR_TEST);
+            }
+        }
+    };
+    
+    this.UpdateClipping = function()
+    {
+        var me_ = this.me_;
+        
+        if (!me_.IsDrawing() || !isClipping)
+            return;
+        
+        this.Flush();
+        
+        var display = plugins_quorum_Libraries_Game_GameStateManager_.display;
+        
+        clipPoint.Set$quorum_number$quorum_number$quorum_number(me_.GetClipX(), me_.GetClipY(), 0);
+        clipPoint.Multiply$quorum_Libraries_Compute_Matrix4(combinedMatrix);
+        var x = ((clipPoint.GetX() + 1) / 2.0 * display.GetWidth() * display.GetPixelScaleFactor()) | 0;
+        var y = ((clipPoint.GetY() + 1) / 2.0 * display.GetHeight() * display.GetPixelScaleFactor()) | 0;
+        
+        clipPoint.Set$quorum_number$quorum_number$quorum_number(me_.GetClipX2(), me_.GetClipY2(), 0);
+        
+        clipPoint.Multiply$quorum_Libraries_Compute_Matrix4(combinedMatrix);
+        var x2 = ((clipPoint.GetX() + 1) / 2.0 * display.GetWidth() * display.GetPixelScaleFactor()) | 0;
+        var y2 = ((clipPoint.GetY() + 1) / 2.0 * display.GetHeight() * display.GetPixelScaleFactor()) | 0;
+        
+        var width, height;
+        
+        if (x2 >= x)
+        {
+            width = x2 - x;
+        }
+        else
+        {
+            width = x - x2;
+            x = x2;
+        }
+        
+        if (y2 >= y)
+        {
+            height = y2 - y;
+        }
+        else
+        {
+            height = y - y2;
+            y = y2;
+        }
+        
+        plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics.glScissor(x, y, width, height);
+    };
+    
+    this.IsClipping = function()
+    {
+        return isClipping;
+    };
 }

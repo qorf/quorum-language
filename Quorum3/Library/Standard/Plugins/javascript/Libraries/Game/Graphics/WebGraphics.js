@@ -489,6 +489,12 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     this.glCullFace = function(mode)
     {
         gl.cullFace(mode);
-    };     
+    };
+    
+    // Expected parameters: integer, integer, integer, integer
+    this.glScissor = function(x, y, width, height)
+    {
+        gl.scissor(x, y, width, height);
+    };
 }
 
