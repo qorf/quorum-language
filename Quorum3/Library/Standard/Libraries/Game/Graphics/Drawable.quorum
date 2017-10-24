@@ -80,7 +80,9 @@ class Drawable is TextureRegion, Item2D
     constant integer DRAWABLE_SIZE = 4 * VERTEX_SIZE
 
     private Color color
+    private Gradient gradient
     private boolean useCustomColor = false
+    private boolean useCustomGradient = false
 
     on create
         color = color:White()
@@ -466,7 +468,7 @@ class Drawable is TextureRegion, Item2D
             end
     */
     action SetColor(Color tint)
-        useCustomColor = true
+        EnableCustomColor()
         color = tint
         number colorValue = tint:EncodeColorAsNumber()
 
@@ -476,6 +478,64 @@ class Drawable is TextureRegion, Item2D
         vertices:Set(C2, colorValue)
         vertices:Set(C3, colorValue)
         vertices:Set(C4, colorValue)
+    end
+
+    /*
+    Sets the color filter on this Drawable. This will reduce the intensity of
+    colors in the Drawable that are not part of the filter, while leaving the
+    other colors that are part of the filter as the same.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Game
+
+            class Main is Game
+
+                Drawable circle
+                Color red
+                Color yellow
+
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    red:SetColor(1, 0, 0, 1)
+                    yellow:SetColor(1, 1, 0, 1)
+                    circle:LoadFilledCircle(50, yellow)
+                    circle:SetColor(red)
+                    circle:SetPosition(50, 100)
+                    Add(circle)
+                end
+            end
+    */
+    action SetGradient(Gradient tint)
+        EnableCustomGradient()
+        gradient = tint
+
+        Array<number> vertices = GetVertices()
+
+        vertices:Set(C1, tint:GetBottomLeft():EncodeColorAsNumber())
+        vertices:Set(C2, tint:GetTopLeft():EncodeColorAsNumber())
+        vertices:Set(C3, tint:GetTopRight():EncodeColorAsNumber())
+        vertices:Set(C4, tint:GetBottomRight():EncodeColorAsNumber())
+    end
+
+    private action EnableCustomColor
+        useCustomColor = true
+        useCustomGradient = false
+    end
+
+    private action EnableCustomGradient
+        useCustomColor = false
+        useCustomGradient = true
+    end
+
+    private action DisableCustomTint
+        useCustomColor = false
+        useCustomGradient = false
     end
 
     /*
@@ -564,7 +624,7 @@ class Drawable is TextureRegion, Item2D
             end
     */
     action SetColor(number red, number green, number blue, number alpha)
-        useCustomColor = true
+        EnableCustomColor()
         color:SetColor(red, green, blue, alpha)
         BitwiseOperations ops
         NumberUtilities utility
@@ -591,7 +651,7 @@ class Drawable is TextureRegion, Item2D
     internal use and should not be needed by most users.
     */
     action SetColor(number colorValue)
-        useCustomColor = true
+        EnableCustomColor()
         Array<number> vertices = GetVertices()
 
         vertices:Set(C1, colorValue)
@@ -601,7 +661,8 @@ class Drawable is TextureRegion, Item2D
     end
 
     /*
-    This action returns the current color filter on the Drawable.
+    This action returns the color filter stored in the Drawable. To see if it's
+    currently in use, use the UsingCustomColor action.
 
     Attribute: Example
 
@@ -625,18 +686,6 @@ class Drawable is TextureRegion, Item2D
         end
     */
     action GetColor returns Color
-        /*NumberUtilities utility
-        BitwiseOperations ops
-
-        Array<number> vertices = GetVertices()
-
-        integer intBits = utility:EncodeNumberAsInteger(vertices:Get(C1))
-
-        color:SetRed(ops:And(intBits, 255) / 255.0)
-        color:SetGreen(ops:And(ops:ShiftRight(intBits, 8), 255) / 255.0)
-        color:SetBlue(ops:And(ops:ShiftRight(intBits, 16), 255) / 255.0)
-        color:SetAlpha(ops:And(ops:ShiftRight(intBits, 24), 255) / 255.0)
-        */
         return color
     end
 
@@ -812,16 +861,95 @@ class Drawable is TextureRegion, Item2D
 
                 Drawable drawable
                 drawable:LoadFilledCircle(100, cyan)
-                output "Drawable has custom color filter = " + drawable:UseCustomColor()
+                output "Drawable has custom color filter = " + drawable:UsingCustomColor()
                 
                 drawable:SetColor(0, 1, 0, 1)
-                output "Drawable now has custom color filter = " + drawable:UseCustomColor()
+                output "Drawable now has custom color filter = " + drawable:UsingCustomColor()
             end
 
         end
     */
-    action UseCustomColor returns boolean
+    action UsingCustomColor returns boolean
         return useCustomColor
+    end
+
+    /*
+    This action returns whether or not the Drawable is using a gradient.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Gradient
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Color cyan
+                cyan:SetColor(0, 1, 1, 1)
+
+                Drawable drawable
+                drawable:LoadFilledCircle(100, cyan)
+                output "Drawable has custom color gradient? " + drawable:UsingCustomGradient()
+                
+                Gradient gradient
+                Color color
+                gradient:Set(color:Red(), color:Green(), color:Blue(), color:White())
+                drawable:SetGradient(gradient)
+                output "Drawable now has custom color gradient? " + drawable:UsingCustomGradient()
+            end
+        end
+    */
+    action UsingCustomGradient returns boolean
+        return useCustomGradient
+    end
+
+    /*
+    This action returns whether or not the Drawable is being tinted by either a
+    color filter or a gradient.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Gradient
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Color cyan
+                cyan:SetColor(0, 1, 1, 1)
+
+                Drawable drawable
+                drawable:LoadFilledCircle(100, cyan)
+                // This will return true - the circle is using a cyan tint.
+                output "Is the Drawable tinted with a color? " + drawable:UsingCustomTint()
+                
+                Gradient gradient
+                Color color
+                gradient:Set(color:Red(), color:Green(), color:Blue(), color:White())
+                drawable:SetGradient(gradient)
+                // This will return true because the circle is tinted with a gradient.
+                output "After using a gradient, is the Drawable tinted? " + drawable:UsingCustomTint()
+
+                drawable:UseDefaultColor()
+                // This should return false. The Drawable is no longer using a tint.
+                output "After resetting the color, is the Drawable still tinted? " + drawable:UsingCustomTint()
+            end
+        end
+    */
+    action UsingCustomTint returns boolean
+        return useCustomColor or useCustomGradient
     end
 
     /*
@@ -846,16 +974,16 @@ class Drawable is TextureRegion, Item2D
                 Drawable drawable
                 drawable:LoadFilledCircle(100, cyan)
                 drawable:SetColor(0, 1, 0, 1)
-                output "Drawable has custom color filter = " + drawable:UseCustomColor()
+                output "Drawable has custom color filter = " + drawable:UsingCustomColor()
                 
                 drawable:UseDefaultColor()
-                output "Drawable now has custom color filter = " + drawable:UseCustomColor()
+                output "Drawable now has custom color filter = " + drawable:UsingCustomColor()
             end
 
         end
     */
     action UseDefaultColor
-        useCustomColor = false
+        DisableCustomTint()
     end
 
     /*
@@ -1243,6 +1371,42 @@ class Drawable is TextureRegion, Item2D
     end
 
     /*
+    This action will create a new Texture with a solid rectangle with the given 
+    width and height and apply a gradient to it. This texture is then loaded 
+    into the Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Graphics.Gradient
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Color color
+                    Gradient gradient
+                    gradient:Set(color:Red(), color:White(), color:Green(), color:Blue())
+                    Drawable rectangle
+                    rectangle:LoadFilledRectangle(200, 100, gradient)
+                    rectangle:SetPosition(50, 50)
+                    Add(rectangle)
+                end
+            end
+    */
+    action LoadFilledRectangle(integer width, integer height, Gradient gradient)
+        Texture temp
+        temp:LoadFilledRectangle(width, height)
+        Load(temp)
+        SetGradient(gradient)
+    end
+
+    /*
     This action will create a new Texture with a hollow black circle with the
     given radius. This texture is then loaded into the Drawable.
 
@@ -1383,6 +1547,44 @@ class Drawable is TextureRegion, Item2D
     end
 
     /*
+    This action will create a new Texture with a solid circle with the given
+    gradient applied to it. This texture is then loaded into the Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Graphics.Gradient
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Color color
+                    Gradient gradient
+                    gradient:Set(color:Blue(), color:Cyan(), color:Purple(), color:Teal())
+                    Drawable circle
+                    circle:LoadFilledCircle(75, gradient)
+                    circle:SetPosition(50, 50)
+                    Add(circle)
+                end
+            end
+    */
+    action LoadFilledCircle(integer radius, Gradient gradient)
+        Texture temp
+        temp:LoadFilledCircle(radius)
+        Load(temp)
+        SetGradient(gradient)
+        Circle circle
+        circle:SetRadius(radius)
+        SetShape(circle)
+    end
+
+    /*
     This action will create a new Texture with a solid black triangle that is
     made of the points identified by the three given points. The three points
     are relative to the origin of the Drawable. This texture is then loaded into
@@ -1461,6 +1663,56 @@ class Drawable is TextureRegion, Item2D
         temp:LoadFilledTriangle(x1, y1, x2, y2, x3, y3)
         Load(temp)
         SetColor(color)
+        Vector2 vertex1
+        Vector2 vertex2
+        Vector2 vertex3
+        vertex1:Set(x1, y1)
+        vertex2:Set(x2, y2)
+        vertex3:Set(x3, y3)
+        Array<Vector2> vertices
+        vertices:Add(vertex1)
+        vertices:Add(vertex2)
+        vertices:Add(vertex3)
+        Polygon polygon
+        polygon:Set(vertices, 3)
+        SetShape(polygon)
+    end
+
+    /*
+    This action will create a new Texture with a solid triangle using the
+    provided gradient. The triangle is made of the points identified by the 
+    three given points. The three points are relative to the origin of the 
+    Drawable. This texture is then loaded into the Drawable.
+
+    Attribute: Example
+
+            use Libraries.Game.Graphics.Drawable
+            use Libraries.Game.Graphics.Color
+            use Libraries.Game.Graphics.Gradient
+            use Libraries.Game.Game
+
+            class Main is Game
+                
+                action Main
+                    StartGame()
+                end
+
+                action CreateGame
+                    Color color
+                    Gradient gradient
+                    gradient:Set(color:Red(), color:Red(), color:Blue(), color:Blue())
+                    Drawable triangle
+                    triangle:LoadFilledTriangle(0, 0, 200, 200, 400, 0, gradient)
+                    triangle:SetPosition(50, 50)
+                    Add(triangle)
+                end
+            end
+    */
+    action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, Gradient gradient)
+        Texture temp
+        temp:LoadFilledTriangle(x1, y1, x2, y2, x3, y3)
+        Load(temp)
+        SetGradient(gradient)
         Vector2 vertex1
         Vector2 vertex2
         Vector2 vertex3
