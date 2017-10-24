@@ -261,7 +261,7 @@ public class Painter2D
         // occurs).
         drawable.PrepareVertices();
         
-        if (!drawable.UseCustomColor())
+        if (!drawable.UsingCustomTint())
         {
             for (int i = 2; i < drawable.Get_Libraries_Game_Graphics_Drawable__DRAWABLE_SIZE_(); i = i + drawable.Get_Libraries_Game_Graphics_Drawable__VERTEX_SIZE_())
                 drawable.SetVertex(i, colorValue);
