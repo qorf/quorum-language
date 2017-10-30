@@ -1,0 +1,90 @@
+package Libraries.Game
+
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Interface.Item
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.FocusListener
+
+class FocusManager 
+
+    Array<Item> items
+    integer index = 0
+    GameStateManager manager
+
+    action SetItems(Array<Item> array)
+        items = array
+    end
+
+    action GetItems returns Array<Item>
+        return items
+    end
+
+    action SetFocus(Item item)
+        integer i = items:GetFirstLocation(item)
+        if i >= 0
+            SetFocus(i)
+        end
+    end
+
+    private action SetFocus(integer i)
+        if items:GetSize() = 0
+            return now
+        end
+
+        if i < 0
+            i = i + items:GetSize()
+        elseif i >= items:GetSize()
+            i = i mod items:GetSize()
+        end
+        Item oldFocus = manager:GetFocus()
+        Item item = items:Get(i)
+
+        if oldFocus = item
+            return now
+        end
+
+        FocusEvent event
+        event:Initialize(oldFocus, item)
+        
+        index = i
+        manager:SetFocus(item)
+        
+        if oldFocus not= undefined
+            Iterator<FocusListener> iterator = oldFocus:GetFocusListeners()
+            repeat while iterator:HasNext()
+                FocusListener listener = iterator:Next()
+                listener:LostFocus(event)
+            end
+        end
+
+        if item not= undefined
+            Iterator<FocusListener> iterator = item:GetFocusListeners()
+            repeat while iterator:HasNext()
+                FocusListener listener = iterator:Next()
+                listener:GainedFocus(event)
+            end
+        end
+    end
+
+    action FocusNextItem
+        if GetFocus() = undefined
+            SetFocus(0)
+        else
+            SetFocus(index + 1)
+        end
+    end
+
+    action FocusPreviousItem
+        if GetFocus() = undefined
+            SetFocus(items:GetSize() - 1)
+        else
+            SetFocus(index - 1)
+        end
+    end
+
+    action GetFocus returns Item
+        return manager:GetFocus()
+    end
+
+end

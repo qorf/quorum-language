@@ -1,9 +1,11 @@
 package Libraries.Game
 
 use Libraries.Game.Application
+use Libraries.Game.Game
 use Libraries.Game.GameDisplay
-use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.GameInput
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Interface.Item
 
 /*
     The GameStateManager is an internal class, used by the game engine to
@@ -12,6 +14,17 @@ use Libraries.Game.GameInput
 */
 class GameStateManager 
     
+    /*
+    This action is used by the engine to store a reference to the currently
+    running Game class.
+    */
+    system action SetGame(Game game)
+
+    /*
+    This action returns a reference to the Game class.
+    */
+    system action GetGame returns Game
+
     /* 
     This action is used by the engine to set the game's application info in the
     plugins. 
@@ -77,5 +90,15 @@ class GameStateManager
     running on.
     */
     system action GetOperatingSystem returns text
+
+    /*
+    This action sets the focus on the given item.
+    */
+    system action SetFocus(Item item)
+
+    /*
+    This action returns the current Item that is focused.
+    */
+    system action GetFocus returns Item
 
 end

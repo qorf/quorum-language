@@ -25,6 +25,7 @@ use Libraries.Game.WebApplication
 use Libraries.Game.WebDisplay
 use Libraries.Game.WebConfiguration
 use Libraries.Game.WebInput
+use Libraries.Game.FocusManager
 use Libraries.Game.Graphics.WebGraphics
 use Libraries.Game.Graphics.IOSGraphics
 use Libraries.Game.Graphics.Painter2D
@@ -44,6 +45,9 @@ use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.FocusListener
+use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
 use Libraries.Interface.Events.CollisionEvent
@@ -83,18 +87,17 @@ Attribute: Example
 */
 class Game
 
-    //public Painter2D batch = undefined
     DesktopConfiguration desktopConfig
     IOSConfiguration iosConfig
     AndroidConfiguration androidConfig
     WebConfiguration webConfig
     GraphicsManager gl20 = undefined
     GameStateManager manager
+    FocusManager focusManager
 
     public boolean exitRequested = false
 
     // Variables used for Panels and the event system.
-    //private Panel activePanel = undefined
     private GameInput gameInput = undefined
     private List<Item2D> collisionList
     private List<CollisionEvent> currentCollisions
@@ -125,14 +128,14 @@ class Game
         use Libraries.Game.Game
 
         class Main
-            action main
+            action Main
                 Game game
                 Game:StartGame()
             end
         end
     */
     action StartGame
-    
+        manager:SetGame(me)
         Application application = SelectApplicationType()
         if application = undefined
             alert("I could not identify what type of application to use for this operating system!")
@@ -269,6 +272,9 @@ class Game
         end
     */
     action Add(Item2D item)
+        if item:IsFocusable()
+            focusManager:GetItems():Add(item)
+        end
         currentLayer2D:Add(item)
     end
 
@@ -299,6 +305,9 @@ class Game
         end
     */
     action Add(Item3D item)
+        if item:IsFocusable()
+            focusManager:GetItems():Add(item)
+        end
         currentLayer3D:Add(item)
     end
 
@@ -2098,6 +2107,9 @@ class Game
     end
     */
     action Add(PointLight light)
+        if light:IsFocusable()
+            focusManager:GetItems():Add(light)
+        end
         currentLayer3D:Add(light)
     end
 
@@ -2929,5 +2941,40 @@ class Game
 
     action GetSimulationThreshold2D returns number
         return GetCurrentLayer2D():GetSimulationThreshold()
+    end
+
+    /*
+    This action sets the focus on the given item. This will immediately notify
+    all focus listeners on the previous focus that the Item has lost focus, and
+    all focus listeners on the new focus that the Item has gained focus.
+
+    Attribute: Parameter item The Item to gain focus.
+    */
+    action SetFocus(Item item)
+        focusManager:SetFocus(item)
+    end
+
+    /*
+    This action returns the current Item that is focused.
+
+    Attribute: Returns The currently focused Item.
+    */
+    action GetFocus returns Item
+        return focusManager:GetFocus()
+    end
+
+    /*
+
+    */
+    action SetFocusManager(FocusManager focus)
+        manager:SetFocus(undefined)
+        focusManager = focus
+    end
+
+    /*
+
+    */
+    action GetFocusManager returns FocusManager
+        return focusManager
     end
 end

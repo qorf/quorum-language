@@ -8,8 +8,10 @@ use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.FocusListener
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Shapes.Rectangle
+use Libraries.Game.GameStateManager
 use Libraries.Compute.Math
 
 
@@ -26,11 +28,13 @@ class Item
     text name = "Unnamed"
     text description = ""
     boolean visible = true
+    boolean focusable = false
 
     Array<MouseListener> mouseListeners
     Array<MouseMovementListener> mouseMoveListeners
     Array<MouseWheelListener> mouseWheelListeners
     Array<TouchListener> touchListeners
+    Array<FocusListener> focusListeners
 
     /*
     This action is used internally to allow the Item class to pass actions to
@@ -264,7 +268,10 @@ class Item
     end
 
     /*
-    FIX ME: Add comments
+    This action returns an Iterator containing all of the MouseListeners
+    that have been added to this Item using the AddMouseListener action.
+
+    Attribute: Returns An iterator containing all of the registered MouseListeners.
     */
     action GetMouseListeners returns Iterator<MouseListener>
         return mouseListeners:GetIterator()
@@ -302,7 +309,10 @@ class Item
     end
 
     /*
-    FIX ME: Add comments
+    This action returns an Iterator containing all of the MouseMovementListeners
+    that have been added to this Item using the AddMouseMovementListener action.
+
+    Attribute: Returns An iterator containing all of the registered MouseMovementListeners.
     */
     action GetMouseMovementListeners returns Iterator<MouseMovementListener>
         return mouseMoveListeners:GetIterator()
@@ -341,13 +351,17 @@ class Item
     end
 
     /*
-    FIX ME: Add comments
+    This action returns an Iterator containing all of the MouseWheelListeners
+    that have been added to this Item using the AddMouseWheelListener action.
+
+    Attribute: Returns An iterator containing all of the registered MouseWheelListeners.
     */
     action GetMouseWheelListeners returns Iterator<MouseWheelListener>
         return mouseWheelListeners:GetIterator()
     end
 
-    /* This action adds a TouchListener to the Item. If the Item ever receives a
+    /* 
+    This action adds a TouchListener to the Item. If the Item ever receives a
     TouchEvent, the listener will be notified.
 
     Attribute: Example
@@ -362,7 +376,8 @@ class Item
         touchListeners:Add(listener)
     end
 
-    /* This action removes a TouchListener from the Item. The listener will no
+    /* 
+    This action removes a TouchListener from the Item. The listener will no
     longer receive notification if the Item gets a TouchEvent.
 
     Attribute: Example
@@ -379,10 +394,57 @@ class Item
     end
 
     /*
-    FIX ME: Add comments
+    This action returns an Iterator containing all of the TouchListeners
+    that have been added to this Item using the AddTouchListener action.
+
+    Attribute: Returns An iterator containing all of the registered TouchListeners.
     */
     action GetTouchListeners returns Iterator<TouchListener>
         return touchListeners:GetIterator()
+    end
+
+    /* 
+    This action adds a FocusListener to the Item. When the Item receives a
+    FocusEvent due to either gaining or losing the focus, the listener will be
+    notified.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.FocusListener
+        Item myItem
+        FocusListener listener
+        myItem:AddFocusListener(listener)
+    */
+    action AddFocusListener(FocusListener listener)
+        focusListeners:Add(listener)
+    end
+
+    /* 
+    This action removes a FocusListener from the Item. The listener will no
+    longer receive notification if the Item gets a FocusEvent.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.FocusListener
+        Item myItem
+        FocusListener listener
+        myItem:AddFocusListener(listener)
+        myItem:RemoveFocusListener(listener)
+    */
+    action RemoveFocusListener(FocusListener listener)
+        focusListeners:Remove(listener)
+    end
+
+    /*
+    This action returns an Iterator containing all of the FocusListeners
+    that have been added to this Item using the AddFocusListener action.
+
+    Attribute: Returns An iterator containing all of the registered FocusListeners.
+    */
+    action GetFocusListeners returns Iterator<FocusListener>
+        return focusListeners:GetIterator()
     end
 
     /*  This action updates the item. It takes a number parameter that should
@@ -713,5 +775,51 @@ class Item
         myItem:MoveZ(25)
     */
     blueprint action MoveZ(number zAmount)
+
+    /*
+    This action returns whether or not the Item can currently receive focus.
+    This property can be set with SetFocusable().
+    */
+    action IsFocusable returns boolean
+        return focusable
+    end
+
+    /*
+    The SetFocusable action sets whether or not this Item should be focusable.
+    If the Item is currently focused and made unfocusable, then it will lose
+    focus, and there will be no focused element.
+    */
+    action SetFocusable(boolean focus)
+        if not focus and IsFocused()
+            GameStateManager manager
+            manager:GetGame():SetFocus(undefined)
+        end
+        focusable = focus
+    end
+
+    /*
+    The IsFocused action determines if this Item is currently focused, returning
+    true if it is, or false if it is not.
+    */
+    action IsFocused returns boolean
+        GameStateManager manager
+        // Although we can get the focus directly from the manager, we request
+        // it from the Game instead. This allows the Game to do any necessary
+        // additional book-keeping.
+        return manager:GetGame():GetFocus() = me
+    end
+
+    /*
+    This action sets focus on this Item. If the Item is not focusable, this
+    action will do nothing.
+    */
+    action Focus
+        if not IsFocusable()
+            return now
+        end
+
+        GameStateManager manager
+        manager:GetGame():SetFocus(me)
+    end
 
 end
