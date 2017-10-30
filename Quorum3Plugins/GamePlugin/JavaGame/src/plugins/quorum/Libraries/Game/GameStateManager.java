@@ -10,8 +10,10 @@ import quorum.Libraries.Game.Graphics.GraphicsManager_;
 import quorum.Libraries.Game.Application_;
 import quorum.Libraries.Game.GameDisplay_;
 import quorum.Libraries.Game.GameInput_;
+import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.Graphics.DesktopGraphics;
 import quorum.Libraries.Game.Graphics.IOSGraphics;
+import quorum.Libraries.Interface.Item_;
 
 /**
  * A helper class that contains static references to individual components that
@@ -27,10 +29,12 @@ import quorum.Libraries.Game.Graphics.IOSGraphics;
 public class GameStateManager 
 {
     public java.lang.Object me_ = null;
+    public static Game_ game;
     public static Application_ application;
     public static GameDisplay_ display;
     public static GraphicsManager_ graphics;
     public static GameInput_ input;
+    public static Item_ focus;
 
     public static String nativePath;
     public static String operatingSystem;
@@ -61,6 +65,16 @@ public class GameStateManager
             System.out.println("Couldn't detect os! OS was " + os);
             nativeGraphics = null;
         }
+    }
+    
+    public Game_ GetGame()
+    {
+        return game;
+    }
+    
+    public void SetGame(Game_ g)
+    {
+        game = g;
     }
     
     public Application_ GetApplication() 
@@ -132,5 +146,14 @@ public class GameStateManager
     {
         return operatingSystem;
     }
-  
+
+    public void SetFocus(Item_ item)
+    {
+        focus = item;
+    }
+    
+    public Item_ GetFocus()
+    {
+        return focus;
+    }
 }
