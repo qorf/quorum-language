@@ -36,7 +36,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/Source/BufferUtils.o \
-	${OBJECTDIR}/Source/Font.o \
 	${OBJECTDIR}/Source/Matrix4.o \
 	${OBJECTDIR}/Source/PixelMap.o \
 	${OBJECTDIR}/Source/gdx2d.o \
@@ -68,37 +67,32 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libGameEngineCPlugins.${CND_DLIB_EXT}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libGameEngineCPlugins.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -dynamiclib -install_name libGameEngineCPlugins.${CND_DLIB_EXT} -fPIC
 
-${OBJECTDIR}/Source/BufferUtils.o: Source/BufferUtils.cpp 
+${OBJECTDIR}/Source/BufferUtils.o: Source/BufferUtils.cpp
 	${MKDIR} -p ${OBJECTDIR}/Source
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/BufferUtils.o Source/BufferUtils.cpp
 
-${OBJECTDIR}/Source/Font.o: Source/Font.c 
-	${MKDIR} -p ${OBJECTDIR}/Source
-	${RM} "$@.d"
-	$(COMPILE.c) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/Font.o Source/Font.c
-
-${OBJECTDIR}/Source/Matrix4.o: Source/Matrix4.cpp 
+${OBJECTDIR}/Source/Matrix4.o: Source/Matrix4.cpp
 	${MKDIR} -p ${OBJECTDIR}/Source
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/Matrix4.o Source/Matrix4.cpp
 
-${OBJECTDIR}/Source/PixelMap.o: Source/PixelMap.cpp 
+${OBJECTDIR}/Source/PixelMap.o: Source/PixelMap.cpp
 	${MKDIR} -p ${OBJECTDIR}/Source
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/PixelMap.o Source/PixelMap.cpp
 
-${OBJECTDIR}/Source/gdx2d.o: Source/gdx2d.c 
+${OBJECTDIR}/Source/gdx2d.o: Source/gdx2d.c
 	${MKDIR} -p ${OBJECTDIR}/Source
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/gdx2d.o Source/gdx2d.c
 
-${OBJECTDIR}/Source/jpgd.o: Source/jpgd.cpp 
+${OBJECTDIR}/Source/jpgd.o: Source/jpgd.cpp
 	${MKDIR} -p ${OBJECTDIR}/Source
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/jpgd.o Source/jpgd.cpp
 
-${OBJECTDIR}/Source/jpgd_c.o: Source/jpgd_c.cpp 
+${OBJECTDIR}/Source/jpgd_c.o: Source/jpgd_c.cpp
 	${MKDIR} -p ${OBJECTDIR}/Source
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Source/jpgd_c.o Source/jpgd_c.cpp
@@ -109,7 +103,6 @@ ${OBJECTDIR}/Source/jpgd_c.o: Source/jpgd_c.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libGameEngineCPlugins.${CND_DLIB_EXT}
 
 # Subprojects
 .clean-subprojects:

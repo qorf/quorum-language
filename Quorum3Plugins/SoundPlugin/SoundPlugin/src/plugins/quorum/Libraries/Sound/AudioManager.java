@@ -6,7 +6,6 @@
 package plugins.quorum.Libraries.Sound;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.LWJGLException;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
 
@@ -16,6 +15,9 @@ import java.util.HashMap;
 import java.util.ArrayList;
 
 import static org.lwjgl.openal.AL10.*;
+import org.lwjgl.openal.ALC;
+import org.lwjgl.openal.ALC10;
+import org.lwjgl.openal.ALCCapabilities;
 
 /**
  *
@@ -66,6 +68,10 @@ public class AudioManager
     ArrayList<StreamingData> streamedAudio = new ArrayList();
     // Array<OpenALMusic> music = new Array(false, 1, OpenALMusic.class);
     
+    private long device = 0;
+    private long context = 0;
+    
+    
     public AudioManager()
     {
         this(64,9,512);
@@ -78,9 +84,9 @@ public class AudioManager
         
         try 
         {
-            AL.create();
+            ALCreate();
 	} 
-        catch (LWJGLException ex) 
+        catch (Exception ex) 
         {
             noDevice = true;
             ex.printStackTrace();
@@ -104,15 +110,15 @@ public class AudioManager
         
         FloatBuffer orientation = (FloatBuffer)BufferUtils.createFloatBuffer(6)
             .put(new float[] {0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f}).flip();
-        alListener(AL_ORIENTATION, orientation);
+        alListenerfv(AL_ORIENTATION, orientation);
         
         FloatBuffer velocity = (FloatBuffer)BufferUtils.createFloatBuffer(3)
             .put(new float[] {0.0f, 0.0f, 0.0f}).flip();
-	alListener(AL_VELOCITY, velocity);
+	alListenerfv(AL_VELOCITY, velocity);
         
         FloatBuffer position = (FloatBuffer)BufferUtils.createFloatBuffer(3)
             .put(new float[] {0.0f, 0.0f, 0.0f}).flip();
-	alListener(AL_POSITION, position);
+	alListenerfv(AL_POSITION, position);
         
         recentSounds = new AudioData[simultaneousSources];
     }
@@ -382,18 +388,26 @@ public class AudioManager
         sourceToSoundID.clear();
         soundIDToSource.clear();
 
-        AL.destroy();
-        while (AL.isCreated()) 
-        {
-            try 
-            {
-                Thread.sleep(10);
-            } 
-            catch (InterruptedException e) 
-            {
-            // Ignored exception
-            }
-        }
+        ALDestroy();
+    }
+    
+    private void ALCreate()
+    {
+        device = ALC10.alcOpenDevice((java.nio.ByteBuffer)null);
+        ALCCapabilities caps = ALC.createCapabilities(device);
+        
+        context = ALC10.alcCreateContext(device, (java.nio.IntBuffer)null);
+        ALC10.alcMakeContextCurrent(context);
+        AL.createCapabilities(caps);
+    }
+    
+    private void ALDestroy()
+    {
+        ALC10.alcMakeContextCurrent(0);
+        ALC10.alcDestroyContext(context);
+        ALC10.alcCloseDevice(device);
+        context = 0;
+        device = 0;
     }
         
     /** Retains a list of the most recently played sounds and stops the sound played least recently if necessary for a new sound to
@@ -508,7 +522,7 @@ public class AudioManager
         FloatBuffer orientation = (FloatBuffer)BufferUtils.createFloatBuffer(6)
             .put(new float[] {(float)x, (float)y, (float)z, (float)listenerUpX, (float)listenerUpY, (float)listenerUpZ}).flip();
         
-        alListener(AL_ORIENTATION, orientation);
+        alListenerfv(AL_ORIENTATION, orientation);
     }
     
     public static void SetListenerUp(double x, double y, double z)
@@ -516,7 +530,7 @@ public class AudioManager
         FloatBuffer orientation = (FloatBuffer)BufferUtils.createFloatBuffer(6)
             .put(new float[] {(float)listenerDirectionX, (float)listenerDirectionY, (float)listenerDirectionZ, (float)x, (float)y, (float)z}).flip();
         
-        alListener(AL_ORIENTATION, orientation);
+        alListenerfv(AL_ORIENTATION, orientation);
     }
     
     public static double GetListenerDirectionX()

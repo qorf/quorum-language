@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="95">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>Source/BufferUtils.h</itemPath>
-      <itemPath>Source/Font.h</itemPath>
       <itemPath>Source/Matrix4.h</itemPath>
       <itemPath>Source/PixelMap.h</itemPath>
       <itemPath>Source/gdx2d.h</itemPath>
@@ -21,7 +20,6 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>Source/BufferUtils.cpp</itemPath>
-      <itemPath>Source/Font.c</itemPath>
       <itemPath>Source/Matrix4.cpp</itemPath>
       <itemPath>Source/PixelMap.cpp</itemPath>
       <itemPath>Source/gdx2d.c</itemPath>
@@ -51,37 +49,26 @@
       <compileType>
         <cTool>
           <incDir>
-            <pElem>../freetype-2.5.5/include</pElem>
-            <pElem>/Library/Java/JavaVirtualMachines/jdk1.8.0_05.jdk/Contents/Home/include</pElem>
-            <pElem>/Library/Java/JavaVirtualMachines/jdk1.8.0_05.jdk/Contents/Home/include/darwin</pElem>
+            <pElem>/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include</pElem>
+            <pElem>/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin</pElem>
           </incDir>
           <commandLine>-shared</commandLine>
         </cTool>
         <ccTool>
           <incDir>
-            <pElem>/Library/Java/JavaVirtualMachines/jdk1.8.0_05.jdk/Contents/Home/include</pElem>
-            <pElem>/Library/Java/JavaVirtualMachines/jdk1.8.0_05.jdk/Contents/Home/include/darwin</pElem>
-            <pElem>../freetype-2.5.5/include</pElem>
+            <pElem>/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include</pElem>
+            <pElem>/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/include/darwin</pElem>
           </incDir>
           <commandLine>-shared</commandLine>
         </ccTool>
         <linkerTool>
           <output>dist/libGameEngineCPlugins.so</output>
           <commandlineTool>g++</commandlineTool>
-          <linkerLibItems>
-            <linkerLibFileItem>libfreetype.6.dylib</linkerLibFileItem>
-            <linkerLibFileItem>libfreetype.a</linkerLibFileItem>
-            <linkerLibFileItem>libfreetype.dylib</linkerLibFileItem>
-          </linkerLibItems>
         </linkerTool>
       </compileType>
       <item path="Source/BufferUtils.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Source/BufferUtils.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Source/Font.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="Source/Font.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Source/Matrix4.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -129,10 +116,6 @@
       <item path="Source/BufferUtils.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Source/BufferUtils.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Source/Font.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="Source/Font.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Source/Matrix4.cpp" ex="false" tool="1" flavor2="0">
       </item>
