@@ -215,6 +215,7 @@ class Game
         */
         gameInput:SetLayers(layers)
 
+        SetFocusManager(focusManager)
         application:Setup(me)
     end
 
@@ -2968,7 +2969,11 @@ class Game
     */
     action SetFocusManager(FocusManager focus)
         manager:SetFocus(undefined)
+        if focusManager not= undefined
+            RemoveKeyboardListener(focusManager)
+        end
         focusManager = focus
+        AddKeyboardListener(focus)
     end
 
     /*
