@@ -401,4 +401,9 @@ public class InputMonitor {
         return scroll;
     }
     
+    public int NumberOfKeysPressed()
+    {
+        return pressedKeys;
+    }
+    
 }
