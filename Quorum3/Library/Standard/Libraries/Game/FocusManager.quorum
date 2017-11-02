@@ -14,6 +14,7 @@ use Libraries.Interface.Events.KeyboardListener
 class FocusManager is KeyboardListener
 
     Array<Item> items
+    Array<FocusListener> listeners
     integer index = 0
     GameStateManager manager
     InputMonitor monitor
@@ -79,6 +80,14 @@ class FocusManager is KeyboardListener
         end
     end
 
+    action Add(FocusListener listener)
+        listeners:Add(listener)
+    end
+
+    action Remove(FocusListener listener)
+        listeners:Remove(listener)
+    end
+
     action SetFocus(Item item)
         integer i = items:GetFirstLocation(item)
         if i >= 0
@@ -135,6 +144,13 @@ class FocusManager is KeyboardListener
                 FocusListener listener = iterator:Next()
                 listener:GainedFocus(event)
             end
+        end
+
+        Iterator<FocusListener> iterator = listeners:GetIterator()
+        repeat while iterator:HasNext()
+            FocusListener listener = iterator:Next()
+            listener:GainedFocus(event)
+            listener:LostFocus(event)
         end
     end
 

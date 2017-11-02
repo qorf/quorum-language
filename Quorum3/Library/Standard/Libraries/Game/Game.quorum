@@ -2979,4 +2979,19 @@ class Game
     action GetFocusManager returns FocusManager
         return focusManager
     end
+
+    /*
+
+    */
+    action AddFocusListener(FocusListener listener)
+        focusManager:Add(listener)
+    end
+
+    /*
+
+    */
+    action RemoveFocusListener(FocusListener listener)
+        focusManager:Remove(listener)
+    end
+
 end

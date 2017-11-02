@@ -810,14 +810,12 @@ class Item
     end
 
     /*
-    This action sets focus on this Item. If the Item is not focusable, this
-    action will do nothing.
+    This action sets focus on this Item. If the Item is not focusable, it will
+    instead look through the parent hierarchy and set focus on the first
+    focusable ancestor. If no focusable Item can be found, this action will have
+    no effect.
     */
     action Focus
-        if not IsFocusable()
-            return now
-        end
-
         GameStateManager manager
         manager:GetGame():SetFocus(me)
     end
