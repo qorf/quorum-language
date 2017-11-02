@@ -1335,10 +1335,13 @@ class Item2D is Item
             return now
         end
 
+        boolean wasSent = false
+
         if event:eventType = event:MOVED_MOUSE
             Iterator<MouseMovementListener> iterator = GetMouseMovementListeners()
             if iterator:HasNext()
                 event:SetEventHandled(true)
+                wasSent = true
             end
 
             repeat while iterator:HasNext()
@@ -1349,6 +1352,7 @@ class Item2D is Item
             Iterator<MouseMovementListener> iterator = GetMouseMovementListeners()
             if iterator:HasNext()
                 event:SetEventHandled(true)
+                wasSent = true
             end
 
             repeat while iterator:HasNext()
@@ -1359,6 +1363,7 @@ class Item2D is Item
             Iterator<MouseListener> iterator = GetMouseListeners()
             if iterator:HasNext()
                 event:SetEventHandled(true)
+                wasSent = true
             end
 
             repeat while iterator:HasNext()
@@ -1369,6 +1374,7 @@ class Item2D is Item
             Iterator<MouseListener> iterator = GetMouseListeners()
             if iterator:HasNext()
                 event:SetEventHandled(true)
+                wasSent = true
             end
 
             repeat while iterator:HasNext()
@@ -1379,6 +1385,7 @@ class Item2D is Item
             Iterator<MouseWheelListener> iterator = GetMouseWheelListeners()
             if iterator:HasNext()
                 event:SetEventHandled(true)
+                wasSent = true
             end
 
             repeat while iterator:HasNext()
@@ -1386,8 +1393,12 @@ class Item2D is Item
             end
         end
 
-        if not event:WasEventHandled() and parentItem not= undefined
-            parentItem:ProcessMouseEvent(event)
+        if not wasSent
+            if parentItem not= undefined
+                parentItem:ProcessMouseEvent(event)
+            else
+                event:SetEventHandled(true)
+            end
         end
     end
 

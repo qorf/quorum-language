@@ -1076,7 +1076,6 @@ class Layer3D is Layer
         end
 
         if processing
-
             if event:eventType = event:MOVED_MOUSE
                 if mouseMovementListeners:GetSize() > 0
                     counter = 0
@@ -1127,7 +1126,10 @@ class Layer3D is Layer
                     end
                 end
             end
+        end
 
+        if event:GetSource() not= undefined and event:eventType = event:CLICKED_MOUSE
+            event:GetSource():Focus()
         end
     end
 
