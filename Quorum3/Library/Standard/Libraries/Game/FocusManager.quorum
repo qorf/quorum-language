@@ -44,20 +44,17 @@ class FocusManager is KeyboardListener
             items:Add(item)
         end
 
-        integer counter = 0
         if item is Item2D
             Item2D original = cast(Item2D, item)
-            Array<Item2D> children = original:GetChildren()
-            repeat while counter < children:GetSize()
-                Add(children:Get(counter))
-                counter = counter + 1
+            Iterator<Item2D> children = original:GetItems()
+            repeat while children:HasNext()
+                Add(children:Next())
             end
         elseif item is Item3D
             Item3D original = cast(Item3D, item)
-            Array<Item3D> children = original:GetChildren()
-            repeat while counter < children:GetSize()
-                Add(children:Get(counter))
-                counter = counter + 1
+            Iterator<Item3D> children = original:GetItems()
+            repeat while children:HasNext()
+                Add(children:Next())
             end
         end
     end
@@ -69,13 +66,13 @@ class FocusManager is KeyboardListener
 
         if item is Item2D
             Item2D original = cast(Item2D, item)
-            Iterator<Item2D> children = original:GetChildren()
+            Iterator<Item2D> children = original:GetItems()
             repeat while children:HasNext()
                 Remove(children:Next())
             end
         elseif item is Item3D
-            Item2D original = cast(Item3D, item)
-            Iterator<Item3D> children = original:GetChildren()
+            Item3D original = cast(Item3D, item)
+            Iterator<Item3D> children = original:GetItems()
             repeat while children:HasNext()
                 Remove(children:Next())
             end
@@ -86,6 +83,18 @@ class FocusManager is KeyboardListener
         integer i = items:GetFirstLocation(item)
         if i >= 0
             SetFocus(i)
+        else
+            if item is Item2D
+                Item2D item2D = cast(Item2D, item)
+                if item2D:GetParent() not= undefined
+                    SetFocus(item2D:GetParent())
+                end
+            elseif item is Item3D
+                Item3D item3D = cast(Item3D, item)
+                if item3D:GetParent() not= undefined
+                    SetFocus(item3D:GetParent())
+                end
+            end
         end
     end
 
