@@ -5,6 +5,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
         plugins_quorum_Libraries_Game_WebInput_.mouseEvents = [];
         plugins_quorum_Libraries_Game_WebInput_.keyboardEvents = [];
         plugins_quorum_Libraries_Game_WebInput_.pressedKeys = {};
+        plugins_quorum_Libraries_Game_WebInput_.pressedKeysCount = 0;
         plugins_quorum_Libraries_Game_WebInput_.mouseInfo = {};
         plugins_quorum_Libraries_Game_WebInput_.mouseInfo.x = 0;
         plugins_quorum_Libraries_Game_WebInput_.mouseInfo.y = 0;
@@ -19,6 +20,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                 if (!plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()])
                 {
                     plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()] = true;
+                    plugins_quorum_Libraries_Game_WebInput_.pressedKeysCount++;
                     plugins_quorum_Libraries_Game_WebInput_.keyboardEvents.push(quorumEvent);
                 }
             }
@@ -32,6 +34,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                 if (plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()])
                 {
                     plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()] = false;
+                    plugins_quorum_Libraries_Game_WebInput_.pressedKeysCount--;
                     plugins_quorum_Libraries_Game_WebInput_.keyboardEvents.push(quorumEvent);
                 }
             }

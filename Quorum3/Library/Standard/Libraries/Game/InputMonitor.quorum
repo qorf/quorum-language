@@ -295,4 +295,33 @@ class InputMonitor
         return false
     end
 
+    /*
+    This action returns the number of keys that are currently pressed on the
+    keyboard.
+
+    Attribute: Returns The number of keys that are pressed.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.InputMonitor
+
+    class Main is Game
+
+        InputMonitor monitor
+
+        action Main
+            StartGame()
+        end
+
+        action Update(number seconds)
+            integer keys = monitor:NumberOfKeysPressed()
+            if keys > 0
+                output keys + " keys are pressed."
+            end
+        end
+    end
+    */
+    system action NumberOfKeysPressed returns integer
+
 end

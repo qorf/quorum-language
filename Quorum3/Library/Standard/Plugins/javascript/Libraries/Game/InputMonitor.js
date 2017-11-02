@@ -65,6 +65,11 @@ function plugins_quorum_Libraries_Game_InputMonitor_()
         plugins_quorum_Libraries_Game_WebInput_.mouseInfo.wheel = 0;
         return wheel;
     };
+    
+    this.NumberOfKeysPressed = function()
+    {
+        return plugins_quorum_Libraries_Game_WebInput_.pressedKeysCount;
+    };
 }
 
 

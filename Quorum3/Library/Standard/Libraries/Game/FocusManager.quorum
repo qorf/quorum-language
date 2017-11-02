@@ -4,6 +4,8 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Game.InputMonitor
 use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Interface.Item3D
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.FocusListener
 use Libraries.Interface.Events.KeyboardEvent
@@ -35,6 +37,49 @@ class FocusManager is KeyboardListener
 
     action GetItems returns Array<Item>
         return items
+    end
+
+    action Add(Item item)
+        if item:IsFocusable()
+            items:Add(item)
+        end
+
+        integer counter = 0
+        if item is Item2D
+            Item2D original = cast(Item2D, item)
+            Array<Item2D> children = original:GetChildren()
+            repeat while counter < children:GetSize()
+                Add(children:Get(counter))
+                counter = counter + 1
+            end
+        elseif item is Item3D
+            Item3D original = cast(Item3D, item)
+            Array<Item3D> children = original:GetChildren()
+            repeat while counter < children:GetSize()
+                Add(children:Get(counter))
+                counter = counter + 1
+            end
+        end
+    end
+
+    action Remove(Item item)
+        if items:Has(item)
+            items:Remove(item)
+        end
+
+        if item is Item2D
+            Item2D original = cast(Item2D, item)
+            Iterator<Item2D> children = original:GetChildren()
+            repeat while children:HasNext()
+                Remove(children:Next())
+            end
+        elseif item is Item3D
+            Item2D original = cast(Item3D, item)
+            Iterator<Item3D> children = original:GetChildren()
+            repeat while children:HasNext()
+                Remove(children:Next())
+            end
+        end
     end
 
     action SetFocus(Item item)
@@ -138,15 +183,21 @@ class FocusManager is KeyboardListener
     */
     private action KeysPressed(KeyboardEvent event, Array<Array<integer>> combinations) returns boolean
         integer i = 0
+        integer pressedKeys = monitor:NumberOfKeysPressed()
         repeat while i < combinations:GetSize()
             Array<integer> keys = combinations:Get(i)
             integer j = 0
             boolean hasKey = false
 
+            if pressedKeys not= keys:GetSize()
+                j = keys:GetSize()
+            end
+
             /*
             A combination is satisfied only if:
             1. The key given as part of the event is part of the combination.
             2. All other keys in the combination are also held down.
+            3. No extra keys are pressed (only keys in the combination are held).
             */
             repeat while j < keys:GetSize()
                 integer current = keys:Get(j)

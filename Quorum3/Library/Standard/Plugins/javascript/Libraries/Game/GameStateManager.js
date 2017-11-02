@@ -16,6 +16,26 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
         plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_ = true;
     }
     
+    this.SetGame$quorum_Libraries_Game_Game = function(game)
+    {
+        plugins_quorum_Libraries_Game_GameStateManager_.game = game;
+    };
+    
+    this.GetGame = function()
+    {
+        return plugins_quorum_Libraries_Game_GameStateManager_.game;
+    };
+    
+    this.SetFocus$quorum_Libraries_Interface_Item = function(item)
+    {
+        plugins_quorum_Libraries_Game_GameStateManager_.focus = item;
+    };
+    
+    this.GetFocus = function()
+    {
+        return plugins_quorum_Libraries_Game_GameStateManager_.focus;
+    };
+    
     this.SetApplication$quorum_Libraries_Game_Application = function(app) 
     {
         plugins_quorum_Libraries_Game_GameStateManager_.application = app;

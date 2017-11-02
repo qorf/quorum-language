@@ -273,9 +273,7 @@ class Game
         end
     */
     action Add(Item2D item)
-        if item:IsFocusable()
-            focusManager:GetItems():Add(item)
-        end
+        focusManager:Add(item)
         currentLayer2D:Add(item)
     end
 
@@ -306,9 +304,7 @@ class Game
         end
     */
     action Add(Item3D item)
-        if item:IsFocusable()
-            focusManager:GetItems():Add(item)
-        end
+        focusManager:Add(item)
         currentLayer3D:Add(item)
     end
 
@@ -342,6 +338,7 @@ class Game
         end
     */
     action Remove(Item2D item)
+        focusManager:Remove(item)
         currentLayer2D:Remove(item)
     end
 
@@ -375,6 +372,7 @@ class Game
         end
     */
     action Remove(Item3D item)
+        focusManager:Remove(item)
         currentLayer3D:Remove(item)
     end
 
@@ -2108,9 +2106,7 @@ class Game
     end
     */
     action Add(PointLight light)
-        if light:IsFocusable()
-            focusManager:GetItems():Add(light)
-        end
+        focusManager:Add(light)
         currentLayer3D:Add(light)
     end
 
@@ -2244,6 +2240,7 @@ class Game
 
     */
     action Remove(PointLight light)
+        focusManager:Remove(light)
         currentLayer3D:Remove(light)
     end
 
