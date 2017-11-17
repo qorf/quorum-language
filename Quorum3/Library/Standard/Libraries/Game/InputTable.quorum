@@ -1,0 +1,58 @@
+package Libraries.Game
+
+use Libraries.Containers.HashTable
+
+class InputTable 
+
+    /*
+    The table that maps input to Behavior objects.
+    */
+    HashTable<InputSet, Behavior> table
+
+    text identifier = ""
+
+    action GetIdentifier returns text
+        return identifier
+    end
+
+    action SetIdentifier(text id)
+        identifier = id
+    end
+
+    action Add(InputSet set, Behavior behavior)
+        table:Add(set, behavior)
+    end
+
+    action RemoveKey(InputSet set) returns boolean
+        return table:RemoveKey(set)
+    end
+
+    action HasKey(InputSet set) returns boolean
+        return table:HasKey(set)
+    end
+
+    action HasValue(Behavior behavior) returns boolean
+        return table:HasValue(behavior)
+    end
+
+    action GetValue(InputSet set) returns Behavior
+        if table:HasKey(set)
+            return table:GetValue(set)
+        end
+
+        return undefined
+    end
+
+    action GetKey(Behavior behavior) returns InputSet set
+        return table:GetKey(behavior)
+    end
+
+    action Empty
+        table:Empty()
+    end
+
+    action GetSize returns integer
+        return table:GetSize()
+    end
+
+end

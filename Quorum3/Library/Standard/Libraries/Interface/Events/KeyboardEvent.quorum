@@ -202,7 +202,9 @@ class KeyboardEvent
     end
     */
     action ToText(integer keycode) returns text
-        if keycode < 0
+        if keycode = -1
+            return "Any Key"
+        elseif keycode < 0
             Error error
             error:SetErrorMessage("Keycode cannot be negative, keycode: " + keycode)
             alert(error)
@@ -253,7 +255,9 @@ class KeyboardEvent
     end
     */
     action ToTextShift(integer keycode) returns text
-        if keycode < 0
+        if keycode = -1
+            return "Any Key"
+        elseif keycode < 0
             Error error
             error:SetErrorMessage("Keycode cannot be negative, keycode: " + keycode)
             alert(error)

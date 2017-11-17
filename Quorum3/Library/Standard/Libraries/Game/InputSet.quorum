@@ -1,0 +1,113 @@
+package Libraries.Game
+
+use Libraries.Containers.Array
+
+class InputSet 
+
+    /*
+    Constants used for the keyboard modifiers.
+    */
+    public constant integer SHIFT = 1
+    public constant integer CONTROL = 2
+    public constant integer ALT = 3
+    public constant integer META = 4
+
+    /*
+    Constants used to determine the type of input used for the InputSet.
+    */
+    public constant integer KEYBOARD_INPUT = 1
+    public constant integer MOUSE_INPUT = 2
+
+    constant text SHIFT_TEXT = "Shift"
+    constant text CONTROL_TEXT = "Control"
+    constant text ALT_TEXT = "Alt"
+    constant text META_TEXT = "Meta"
+    
+    /*
+    An array containing all of the modifier keys. These must be keyboard keys.
+    Typically an InputSet is only satisfied if all of the modifier keys are held
+    before the final input value is received, and no additional modifier keys
+    are being held.
+    */
+    Array<integer> modifiers
+
+    /*
+    The input value that satisfies the InputSet's conditions, so long as the
+    proper modifier keys are held down. May be either mouse or keyboard input.
+    */
+    integer value = 0
+
+    /*
+    Whether the final value of the InputSet is mouse or keyboard input.
+    */
+    integer type = 0
+
+    action AddModifier(integer modifier)
+        if not modifiers:Contains(modifier)
+            modifiers:Add(modifier)
+        end
+    end
+
+    action RemoveModifier
+        modifiers:Remove(modifier)
+    end
+
+    action EmptyModifiers
+        modifiers:Empty()
+    end
+
+    action Empty
+        type = 0
+        modifiers:Empty()
+    end
+
+    action SetKeyboardInput(integer key)
+        value = key
+        type = KEYBOARD
+    end
+
+    action SetMouseInput(integer mouseButton)
+        value = mouseButton
+        type = MOUSE
+    end
+
+    action GetInputType returns integer
+        return type
+    end
+
+    action GetInputValue returns integer
+        return type
+    end
+
+    action GetModifiers returns Array<integer>
+        return modifiers
+    end
+
+    action Equals(Object o) returns boolean
+        if o is InputSet
+            return Equals(cast(InputSet, 0))
+        end
+        return false
+    end
+
+    action Equals(InputSet set) returns boolean
+        if type not= set:GetInputType() or value not= set:GetInputValue()
+            return false
+        end
+
+        Array<integer> mods = set:GetModifiers()
+        if modifiers:GetSize() not= mods:GetSize()
+            return false
+        end
+
+        integer counter = 0
+        repeat while counter < modifiers:GetSize()
+            if not mods:Contains(modifiers:Get(counter))
+                return false
+            end
+            counter = counter + 1
+        end
+
+        return true
+    end
+end
