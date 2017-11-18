@@ -1,6 +1,7 @@
 package Libraries.Game
 
 use Libraries.Containers.Array
+use Libraries.Containers.HashTable
 use Libraries.Interface.Events.KeyboardListener
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
@@ -16,6 +17,8 @@ an InputMonitor instead.
 class GameInput
 
     Array<Layer> layers = undefined
+    HashTable<text, InputTable> inputTables
+    InputTable defaultTable
 
     /*
     This action sets a reference to the layers stored in the Game class that the
@@ -24,6 +27,56 @@ class GameInput
     */
     action SetLayers(Array<Layer> array)
         layers = array
+    end
+
+    /*
+    This action sets the InputTable to be used by this GameInput. When the Game
+    receives input, the GameInput will automatically trigger Behaviors from the
+    InputTable.
+    */
+    action SetDefaultInputTable(InputTable inputTable)
+        defaultTable = inputTable
+    end
+
+    /*
+    This action returns the InputTable that the GameInput is using to
+    automatically trigger Behaviors for certain input values.
+    */
+    action GetDefaultInputTable returns InputTable
+        return defaultTable
+    end
+
+    /*
+    This action adds an InputTable to the GameInput. If at any point during the
+    Game the currently focused Item has an input group that matches the
+    identifier of the table, the table will be used to trigger Behaviors.
+    */
+    action AddInputTable(InputTable table)
+        inputTables:Add(table:GetIdentifier(), table)
+    end
+
+    /*
+    This action retrieves an InputTable with the matching identifier from the
+    GameInput (if there is one). If there is no InputTable with this identifier,
+    the action will return undefined.
+    */
+    action GetInputTable(text key) returns InputTable
+        if inputTables:HasKey(key)
+            return inputTables:GetValue(key)
+        end
+        return undefined
+    end
+
+    /*
+    This action removes the InputTable with the matching identifier from the
+    GameInput (if there is one). If the InputTable is found, it will be returned
+    - otherwise, the action returns undefined.
+    */
+    action RemoveInputTable(text key) returns InputTable
+        if inputTables:HasKey(key)
+            return inputTables:RemoveKey(key)
+        end
+        return undefined
     end
 
     /*

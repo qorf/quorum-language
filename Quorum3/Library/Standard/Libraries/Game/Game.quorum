@@ -2994,4 +2994,44 @@ class Game
         focusManager:Remove(listener)
     end
 
+    /*
+
+    */
+    action GetDefaultInputTable returns InputTable
+        return gameInput:GetDefaultInputTable()
+    end
+
+    /*
+
+    */
+    action SetDefaultInputTable(InputTable table)
+        gameInput:SetDefaultInputTable(table)
+    end
+
+    /*
+    This action adds an InputTable to the Game. If at any point the
+    currently focused Item has an input group that matches the
+    identifier of the table, the table will be used to trigger Behaviors.
+    */
+    action AddInputTable(InputTable table)
+        gameInput:AddInputTable(table)
+    end
+
+    /*
+    This action retrieves an InputTable with the matching identifier from the
+    Game (if there is one). If there is no InputTable with this identifier,
+    the action will return undefined.
+    */
+    action GetInputTable(text key) returns InputTable
+        return gameInput:GetInputTable(key)
+    end
+
+    /*
+    This action removes the InputTable with the matching identifier from the
+    Game (if there is one). If the InputTable is found, it will be returned
+    - otherwise, the action returns undefined.
+    */
+    action RemoveInputTable(text key) returns InputTable
+        return gameInput:RemoveInputTable(key)
+    end
 end

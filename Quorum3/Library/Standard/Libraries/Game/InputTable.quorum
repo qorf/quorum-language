@@ -23,7 +23,7 @@ class InputTable
         table:Add(set, behavior)
     end
 
-    action RemoveKey(InputSet set) returns boolean
+    action RemoveKey(InputSet set) returns Behavior
         return table:RemoveKey(set)
     end
 
@@ -43,7 +43,7 @@ class InputTable
         return undefined
     end
 
-    action GetKey(Behavior behavior) returns InputSet set
+    action GetKey(Behavior behavior) returns InputSet
         return table:GetKey(behavior)
     end
 
@@ -53,6 +53,12 @@ class InputTable
 
     action GetSize returns integer
         return table:GetSize()
+    end
+
+    action ProcessInput(InputSet set)
+        if table:HasKey(set)
+            Behavior behavior = table:GetValue(set)
+        end
     end
 
 end

@@ -1,113 +1,115 @@
 package Libraries.Game
 
+use Libraries.Compute.BitwiseOperations
 use Libraries.Containers.Array
 
 class InputSet 
 
     /*
-    Constants used for the keyboard modifiers.
+    Bit positional constants. These can be modified to adjust the positioning of
+    all the bits used to store information.
     */
-    public constant integer SHIFT = 1
-    public constant integer CONTROL = 2
-    public constant integer ALT = 3
-    public constant integer META = 4
+    constant integer VALUE_SIZE = 8
+    constant integer TYPE_SIZE = 1
+    public constant integer SHIFT = TYPE_SIZE + VALUE_SIZE
+    public constant integer CONTROL = SHIFT + 1
+    public constant integer ALT = CONTROL + 1
+    public constant integer META = ALT + 1
 
-    /*
-    Constants used to determine the type of input used for the InputSet.
-    */
-    public constant integer KEYBOARD_INPUT = 1
-    public constant integer MOUSE_INPUT = 2
-
+    public constant integer KEYBOARD_INPUT = 0
+    public constant integer MOUSE_INPUT = 1
     constant text SHIFT_TEXT = "Shift"
     constant text CONTROL_TEXT = "Control"
     constant text ALT_TEXT = "Alt"
     constant text META_TEXT = "Meta"
-    
-    /*
-    An array containing all of the modifier keys. These must be keyboard keys.
-    Typically an InputSet is only satisfied if all of the modifier keys are held
-    before the final input value is received, and no additional modifier keys
-    are being held.
-    */
-    Array<integer> modifiers
+
+    constant BitwiseOperations bits
 
     /*
-    The input value that satisfies the InputSet's conditions, so long as the
-    proper modifier keys are held down. May be either mouse or keyboard input.
-    */
-    integer value = 0
+    Where the actual information is stored for the InputSet. Storing in this
+    format allows for matching InputSets to be used as keys into a HashTable,
+    even if the objects themselves have different hashcodes.
 
-    /*
-    Whether the final value of the InputSet is mouse or keyboard input.
+    The individual bits represent the following information:
+        1st to 8th bits: Integer value of the key or mouse input.
+        9th bits: 0 if the input is keyboard input, 1 if the input is mouse input.
+        10th bit: Shift key modifier - 1 if required, 0 otherwise.
+        11th bit: Control key modifier - 1 if required, 0 otherwise.
+        12th bit: Alt key modifier - 1 if required, 0 otherwise.
+        13th bit: Meta key modifier - 1 if required, 0 otherwise.
     */
-    integer type = 0
+    integer bitmask = 0
 
     action AddModifier(integer modifier)
-        if not modifiers:Contains(modifier)
-            modifiers:Add(modifier)
-        end
+        bitmask = bits:Or(bitmask, bits:ShiftLeft(1, modifier))
     end
 
-    action RemoveModifier
-        modifiers:Remove(modifier)
+    action RemoveModifier(integer modifier)
+        bitmask = bits:And(bitmask, bits:Negate(bits:ShiftLeft(1, modifier)))
+    end
+
+    action HasModifier(integer modifier) returns boolean
+        return bits:And(1, bits:ShiftRight(bitmask, modifier)) = 1
     end
 
     action EmptyModifiers
-        modifiers:Empty()
+        bitmask = bits:And(bitmask, bits:Negate(bits:ShiftLeft(-1, TYPE_SIZE + VALUE_SIZE + 1)))
     end
 
     action Empty
-        type = 0
-        modifiers:Empty()
+        bitmask = 0
     end
 
     action SetKeyboardInput(integer key)
-        value = key
-        type = KEYBOARD
+        // Shifting one extra space will insert a 0 in the type bit, marking it as keyboard input.
+        bitmask = bits:And(bitmask, bits:ShiftLeft(-1, TYPE_SIZE + VALUE_SIZE + 1))
+        bitmask = bits:Or(bitmask, key)
     end
 
     action SetMouseInput(integer mouseButton)
-        value = mouseButton
-        type = MOUSE
+        bitmask = bits:And(bitmask, bits:ShiftLeft(-1, TYPE_SIZE + VALUE_SIZE))
+        // Manually set the type bit to 1 to indicate mouse input.
+        bitmask = bits:Or(bitmask, bits:ShiftLeft(1, VALUE_SIZE))
+        bitmask = bits:Or(bitmask, mouseButton)
     end
 
     action GetInputType returns integer
-        return type
+        return bits:And(1, bits:ShiftRight(bitmask, VALUE_SIZE))
     end
 
     action GetInputValue returns integer
-        return type
+        return bits:And(bitmask, bits:Negate(bits:ShiftLeft(-1, VALUE_SIZE)))
     end
 
     action GetModifiers returns Array<integer>
+        Array<integer> modifiers
+        if HasModifier(SHIFT)
+            modifiers:Add(SHIFT)
+        end
+        if HasModifier(CONTROL)
+            modifiers:Add(CONTROL)
+        end
+        if HasModifier(ALT)
+            modifiers:Add(ALT)
+        end
+        if HasModifier(META)
+            modifiers:Add(META)
+        end
         return modifiers
+    end
+
+    action GetHashCode returns integer
+        return bitmask
     end
 
     action Equals(Object o) returns boolean
         if o is InputSet
-            return Equals(cast(InputSet, 0))
+            return Equals(cast(InputSet, o))
         end
         return false
     end
 
     action Equals(InputSet set) returns boolean
-        if type not= set:GetInputType() or value not= set:GetInputValue()
-            return false
-        end
-
-        Array<integer> mods = set:GetModifiers()
-        if modifiers:GetSize() not= mods:GetSize()
-            return false
-        end
-
-        integer counter = 0
-        repeat while counter < modifiers:GetSize()
-            if not mods:Contains(modifiers:Get(counter))
-                return false
-            end
-            counter = counter + 1
-        end
-
-        return true
+        return bitmask = set:GetHashCode()
     end
 end
