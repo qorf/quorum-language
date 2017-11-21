@@ -55,10 +55,12 @@ class InputTable
         return table:GetSize()
     end
 
-    action ProcessInput(InputSet set)
+    action ProcessInput(InputSet set) returns boolean
         if table:HasKey(set)
             Behavior behavior = table:GetValue(set)
+            return true
         end
+        return false
     end
 
 end

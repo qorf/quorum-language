@@ -11,13 +11,16 @@ class InputSet
     */
     constant integer VALUE_SIZE = 8
     constant integer TYPE_SIZE = 1
-    public constant integer SHIFT = TYPE_SIZE + VALUE_SIZE
+    constant integer TRIGGER_SIZE = 1
+    public constant integer SHIFT = VALUE_SIZE + TYPE_SIZE + TRIGGER_SIZE
     public constant integer CONTROL = SHIFT + 1
     public constant integer ALT = CONTROL + 1
     public constant integer META = ALT + 1
 
     public constant integer KEYBOARD_INPUT = 0
     public constant integer MOUSE_INPUT = 1
+    public constant integer PRESS = 0
+    public constant integer RELEASE = 1
     constant text SHIFT_TEXT = "Shift"
     constant text CONTROL_TEXT = "Control"
     constant text ALT_TEXT = "Alt"
@@ -32,11 +35,12 @@ class InputSet
 
     The individual bits represent the following information:
         1st to 8th bits: Integer value of the key or mouse input.
-        9th bits: 0 if the input is keyboard input, 1 if the input is mouse input.
-        10th bit: Shift key modifier - 1 if required, 0 otherwise.
-        11th bit: Control key modifier - 1 if required, 0 otherwise.
-        12th bit: Alt key modifier - 1 if required, 0 otherwise.
-        13th bit: Meta key modifier - 1 if required, 0 otherwise.
+        9th bit: 0 if the input is keyboard input, 1 if the input is mouse input.
+        10th bit: 0 if the input triggers on press, 1 if the input triggers on release.
+        11th bit: Shift key modifier - 1 if required, 0 otherwise.
+        12th bit: Control key modifier - 1 if required, 0 otherwise.
+        13th bit: Alt key modifier - 1 if required, 0 otherwise.
+        14th bit: Meta key modifier - 1 if required, 0 otherwise.
     */
     integer bitmask = 0
 
@@ -53,7 +57,7 @@ class InputSet
     end
 
     action EmptyModifiers
-        bitmask = bits:And(bitmask, bits:Negate(bits:ShiftLeft(-1, TYPE_SIZE + VALUE_SIZE + 1)))
+        bitmask = bits:And(bitmask, bits:Negate(bits:ShiftLeft(-1, SHIFT + 1)))
     end
 
     action Empty
@@ -62,15 +66,27 @@ class InputSet
 
     action SetKeyboardInput(integer key)
         // Shifting one extra space will insert a 0 in the type bit, marking it as keyboard input.
-        bitmask = bits:And(bitmask, bits:ShiftLeft(-1, TYPE_SIZE + VALUE_SIZE + 1))
+        bitmask = bits:And(bitmask, bits:ShiftLeft(-1, VALUE_SIZE + TYPE_SIZE + 1))
         bitmask = bits:Or(bitmask, key)
     end
 
     action SetMouseInput(integer mouseButton)
-        bitmask = bits:And(bitmask, bits:ShiftLeft(-1, TYPE_SIZE + VALUE_SIZE))
+        bitmask = bits:And(bitmask, bits:ShiftLeft(-1, VALUE_SIZE + TYPE_SIZE))
         // Manually set the type bit to 1 to indicate mouse input.
         bitmask = bits:Or(bitmask, bits:ShiftLeft(1, VALUE_SIZE))
         bitmask = bits:Or(bitmask, mouseButton)
+    end
+
+    action SetInputTrigger(integer type)
+        if type = 0
+            bitmask = bits:And(bitmask, bits:ShiftLeft(-1, VALUE_SIZE + TYPE_SIZE + TRIGGER_SIZE + 1))
+        elseif type = 1
+            bitmask = bits:Or(bitmask, bits:ShiftLeft(1, VALUE_SIZE + TYPE_SIZE))
+        end
+    end
+
+    action GetInputTrigger returns integer
+        return bits:And(1, bits:ShiftRight(bitmask, VALUE_SIZE + TYPE_SIZE))
     end
 
     action GetInputType returns integer
@@ -96,6 +112,16 @@ class InputSet
             modifiers:Add(META)
         end
         return modifiers
+    end
+
+    action Set(InputSet set)
+        bitmask = set:GetHashCode()
+    end
+
+    action Copy returns InputSet
+        InputSet set
+        set:Set(me)
+        return set
     end
 
     action GetHashCode returns integer

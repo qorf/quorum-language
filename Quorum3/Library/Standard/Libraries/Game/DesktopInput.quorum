@@ -3,6 +3,7 @@ package Libraries.Game
 use Libraries.Containers.Array
 use Libraries.Containers.List
 use Libraries.Interface.Item
+use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.KeyboardListener
 use Libraries.Interface.Events.KeyboardProcessor
 use Libraries.Interface.Events.MouseEvent
@@ -22,6 +23,9 @@ class DesktopInput is GameInput
 
     private KeyboardProcessor keyboardProcessor
     private MouseProcessor mouseProcessor
+
+    Array<KeyboardListener> keyboardListeners
+    Array<integer> keyboardModifiers
 
     Array<MouseListener> mouseListeners
     Array<MouseMovementListener> mouseMovementListeners
@@ -54,7 +58,60 @@ class DesktopInput is GameInput
         end
 
         keyboardProcessor:Update()
-        keyboardProcessor:ProcessEvents()
+        
+        if keyboardProcessor:HasEvents() and not keyboardListeners:IsEmpty()
+            ProcessKeyboardEvent(keyboardProcessor:GetEvents())
+        end
+    end
+
+    private action ProcessKeyboardEvent(List<KeyboardEvent> events)
+//        KeyboardEvent currentEvent = undefined
+//        KeyboardListener currentListener = undefined
+//
+//        repeat while not events:IsEmpty()
+//            currentEvent = events:RemoveFromFront()
+//
+//            if currentEvent:eventType = currentEvent:PRESSED_KEY
+//                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
+//                    keyboardModifiers:AddModifier(keyboardModifiers:SHIFT)
+//                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
+//                    keyboardModifiers:AddModifier(keyboardModifiers:ALT)
+//                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
+//                    keyboardModifiers:AddModifier(keyboardModifiers:CONTROL)
+//                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
+//                    keyboardModifiers:AddModifier(keyboardModifiers:META)
+//                end
+//            else
+//                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
+//                    keyboardModifiers:RemoveModifier(keyboardModifiers:SHIFT)
+//                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
+//                    keyboardModifiers:RemoveModifier(keyboardModifiers:ALT)
+//                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
+//                    keyboardModifiers:RemoveModifier(keyboardModifiers:CONTROL)
+//                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
+//                    keyboardModifiers:RemoveModifier(keyboardModifiers:META)
+//                end
+//            end
+//
+//            InputSet set = keyboardModifiers:Copy()
+//            set:SetKeyboardInput(currentEvent:keyCode)
+//
+//            if currentEvent:eventType = currentEvent:RELEASED_KEY
+//                set:SetInputTrigger(set:RELEASED)
+//            end
+//            
+//
+//            repeat while listenIterator:HasNext()
+//                currentListener = listenIterator:Next()
+//                if currentEvent:eventType = currentEvent:PRESSED_KEY
+//                    currentListener:PressedKey(currentEvent)
+//                elseif currentEvent:eventType = currentEvent:RELEASED_KEY
+//                    currentListener:ReleasedKey(currentEvent)
+//                end
+//            end
+//
+//            listenIterator:Rewind()
+//        end
     end
 
     /*
@@ -104,7 +161,7 @@ class DesktopInput is GameInput
     keyboard. This action is automatically called by the Game class when needed.
     */
     action AddKeyboardListener(KeyboardListener listener)
-        keyboardProcessor:AddListener(listener)
+        keyboardListeners:Add(listener)
     end
 
     /*
@@ -114,7 +171,7 @@ class DesktopInput is GameInput
     needed.
     */
     action RemoveKeyboardListener(KeyboardListener listener)
-        keyboardProcessor:RemoveListener(listener)
+        keyboardListeners:Remove(listener)
     end
 
     /*
