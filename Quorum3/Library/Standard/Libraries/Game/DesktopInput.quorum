@@ -2,6 +2,7 @@ package Libraries.Game
 
 use Libraries.Containers.Array
 use Libraries.Containers.List
+use Libraries.Containers.Iterator
 use Libraries.Interface.Item
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.KeyboardListener
@@ -25,11 +26,13 @@ class DesktopInput is GameInput
     private MouseProcessor mouseProcessor
 
     Array<KeyboardListener> keyboardListeners
-    Array<integer> keyboardModifiers
+    InputSet keyboardModifiers
 
     Array<MouseListener> mouseListeners
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
+
+    GameStateManager manager
 
     /*
     This action will identify all input events that have occurred and notify
@@ -65,53 +68,68 @@ class DesktopInput is GameInput
     end
 
     private action ProcessKeyboardEvent(List<KeyboardEvent> events)
-//        KeyboardEvent currentEvent = undefined
-//        KeyboardListener currentListener = undefined
-//
-//        repeat while not events:IsEmpty()
-//            currentEvent = events:RemoveFromFront()
-//
-//            if currentEvent:eventType = currentEvent:PRESSED_KEY
-//                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
-//                    keyboardModifiers:AddModifier(keyboardModifiers:SHIFT)
-//                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
-//                    keyboardModifiers:AddModifier(keyboardModifiers:ALT)
-//                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
-//                    keyboardModifiers:AddModifier(keyboardModifiers:CONTROL)
-//                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
-//                    keyboardModifiers:AddModifier(keyboardModifiers:META)
-//                end
-//            else
-//                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
-//                    keyboardModifiers:RemoveModifier(keyboardModifiers:SHIFT)
-//                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
-//                    keyboardModifiers:RemoveModifier(keyboardModifiers:ALT)
-//                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
-//                    keyboardModifiers:RemoveModifier(keyboardModifiers:CONTROL)
-//                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
-//                    keyboardModifiers:RemoveModifier(keyboardModifiers:META)
-//                end
-//            end
-//
-//            InputSet set = keyboardModifiers:Copy()
-//            set:SetKeyboardInput(currentEvent:keyCode)
-//
-//            if currentEvent:eventType = currentEvent:RELEASED_KEY
-//                set:SetInputTrigger(set:RELEASED)
-//            end
-//            
-//
-//            repeat while listenIterator:HasNext()
-//                currentListener = listenIterator:Next()
-//                if currentEvent:eventType = currentEvent:PRESSED_KEY
-//                    currentListener:PressedKey(currentEvent)
-//                elseif currentEvent:eventType = currentEvent:RELEASED_KEY
-//                    currentListener:ReleasedKey(currentEvent)
-//                end
-//            end
-//
-//            listenIterator:Rewind()
-//        end
+        KeyboardEvent currentEvent = undefined
+        KeyboardListener currentListener = undefined
+        Iterator<KeyboardListener> listenIterator = keyboardListeners:GetIterator()
+
+        text inputGroup = manager:GetFocus():GetInputGroup()
+
+        repeat while not events:IsEmpty()
+            currentEvent = events:RemoveFromFront()
+
+            if currentEvent:eventType = currentEvent:PRESSED_KEY
+                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
+                    keyboardModifiers:AddModifier(keyboardModifiers:SHIFT)
+                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
+                    keyboardModifiers:AddModifier(keyboardModifiers:ALT)
+                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
+                    keyboardModifiers:AddModifier(keyboardModifiers:CONTROL)
+                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
+                    keyboardModifiers:AddModifier(keyboardModifiers:META)
+                end
+            else
+                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
+                    keyboardModifiers:RemoveModifier(keyboardModifiers:SHIFT)
+                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
+                    keyboardModifiers:RemoveModifier(keyboardModifiers:ALT)
+                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
+                    keyboardModifiers:RemoveModifier(keyboardModifiers:CONTROL)
+                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
+                    keyboardModifiers:RemoveModifier(keyboardModifiers:META)
+                end
+            end
+
+            InputSet set = keyboardModifiers:Copy()
+            set:SetKeyboardInput(currentEvent:keyCode)
+
+            if currentEvent:eventType = currentEvent:RELEASED_KEY
+                set:SetInputTrigger(set:RELEASE)
+            end
+            
+            InputTable table = GetInputTable(inputGroup)
+
+            /*
+            Using boolean short-circuit evaluation. If the table is defined,
+            the input is processed - if the input set wasn't found in the table,
+            it returns false. Thus the default table is referenced if there was
+            no table with an identifier matching the input group, or if such a
+            table existed but didn't handle this InputSet.
+            */
+            if table = undefined or table:ProcessInput(set) = false
+                GetDefaultInputTable():ProcessInput(set)
+            end
+
+            repeat while listenIterator:HasNext()
+                currentListener = listenIterator:Next()
+                if currentEvent:eventType = currentEvent:PRESSED_KEY
+                    currentListener:PressedKey(currentEvent)
+                elseif currentEvent:eventType = currentEvent:RELEASED_KEY
+                    currentListener:ReleasedKey(currentEvent)
+                end
+            end
+
+            listenIterator:Rewind()
+        end
     end
 
     /*

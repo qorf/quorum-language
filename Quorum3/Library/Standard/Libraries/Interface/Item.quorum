@@ -27,6 +27,7 @@ class Item
 
     text name = "Unnamed"
     text description = ""
+    text inputGroup = ""
     boolean visible = true
     boolean focusable = false
 
@@ -662,6 +663,44 @@ class Item
     */
     action GetDescription returns text
         return description
+    end
+
+    /*
+    This action sets the input group for this Item. When used with the Game
+    libraries, this tag describes what InputTable (if any) can interact with
+    this Item due to input.
+
+    Attribute: Parameter group The new input group to use.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item item
+        item:SetInputGroup("arrowKeys")
+        output "My item's input group is : " + item:GetInputGroup()
+    */
+    action SetInputGroup(text group)
+        inputGroup = group
+    end
+
+    /*
+    This action returns the input group for this Item. When used with the Game
+    libraries, this tag describes what InputTable (if any) can interact with
+    this Item due to input.
+
+    Attribute: Returns The input group tag being used by this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+
+        Item item
+        item:SetInputGroup("arrowKeys")
+        output "My item's input group is : " + item:GetInputGroup()
+    */
+    action GetInputGroup returns text
+        return inputGroup
     end
 
 //    action GetItemAt(number x, number y, number z) returns Item
