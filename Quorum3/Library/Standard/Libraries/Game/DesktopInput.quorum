@@ -72,7 +72,11 @@ class DesktopInput is GameInput
         KeyboardListener currentListener = undefined
         Iterator<KeyboardListener> listenIterator = keyboardListeners:GetIterator()
 
-        text inputGroup = manager:GetFocus():GetInputGroup()
+        text inputGroup = ""
+        Item focusedItem = manager:GetFocus()
+        if focusedItem not= undefined
+            inputGroup = focusedItem:GetInputGroup()
+        end
 
         repeat while not events:IsEmpty()
             currentEvent = events:RemoveFromFront()
@@ -115,8 +119,8 @@ class DesktopInput is GameInput
             no table with an identifier matching the input group, or if such a
             table existed but didn't handle this InputSet.
             */
-            if table = undefined or table:ProcessInput(set) = false
-                GetDefaultInputTable():ProcessInput(set)
+            if table = undefined or table:ProcessInput(set, focusedItem) = false
+                GetDefaultInputTable():ProcessInput(set, focusedItem)
             end
 
             repeat while listenIterator:HasNext()

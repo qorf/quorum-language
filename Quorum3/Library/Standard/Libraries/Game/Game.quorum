@@ -34,12 +34,19 @@ use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Skybox
+use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.DirectionalLight
+use Libraries.Game.Graphics.AmbientLight
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Behaviors.FocusNextBehavior
+use Libraries.Game.Behaviors.FocusPreviousBehavior
 use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.System.File
 use Libraries.System.Properties
 use Libraries.Interface.Panel
+use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.KeyboardListener
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
@@ -52,10 +59,6 @@ use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
 use Libraries.Interface.Events.CollisionEvent
 use Libraries.Interface.Events.TouchListener
-use Libraries.Game.Graphics.PointLight
-use Libraries.Game.Graphics.DirectionalLight
-use Libraries.Game.Graphics.AmbientLight
-use Libraries.Game.Graphics.Camera
 use Libraries.Interface.Events.CollisionListener2D
 use Libraries.Interface.Events.CollisionListener3D
 use Libraries.Compute.Vector2
@@ -216,7 +219,30 @@ class Game
         gameInput:SetLayers(layers)
 
         SetFocusManager(focusManager)
+        CreateDefaultInputTables()
         application:Setup(me)
+    end
+
+    /*
+    Used to create the initial InputTables used for default input handling.
+    */
+    private action CreateDefaultInputTables
+        KeyboardEvent keys
+        MouseEvent mouse
+
+        InputTable defaultTable = GetDefaultInputTable()
+
+        // Creating input sets for the default focus behaviors.
+        InputSet tabFocus
+        tabFocus:SetKeyboardInput(keys:TAB)
+        FocusNextBehavior tabBehavior
+        defaultTable:Add(tabFocus, tabBehavior)
+
+        InputSet shiftTabFocus
+        shiftTabFocus:SetKeyboardInput(keys:TAB)
+        shiftTabFocus:AddModifier(shiftTabFocus:SHIFT)
+        FocusPreviousBehavior shiftTabBehavior
+        defaultTable:Add(shiftTabFocus, shiftTabBehavior)
     end
 
     /*
