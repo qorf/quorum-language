@@ -1,0 +1,43 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Selectable
+use Libraries.Containers.Array
+
+class SelectionEvent 
+    public constant integer SINGLE = 1
+    public constant integer RANGE = 2
+    public constant integer MULTIPLE = 3
+
+    integer selectableType = 0
+
+    public constant integer SELECTED = 4
+    public constant integer DESELECTED = 5
+    
+    integer eventType = 0
+
+    Selectable selectable = undefined
+    Array<integer> modified = undefined
+    
+    action Initialize(integer selectableType, integer eventType, Selectable selectable, Array<integer> modified)
+        me:selectableType = selectableType
+        me:eventType = eventType
+        me:selectable = selectable
+        me:modified = modified
+    end
+
+    action GetSelectableType returns integer
+        return selectableType
+    end
+
+    action GetEventType returns integer
+        return eventType
+    end
+
+    action GetSelectable returns Selectable
+        return selectable
+    end
+
+    action GetModifiedIndices returns Array<integer>
+        return modified
+    end
+end

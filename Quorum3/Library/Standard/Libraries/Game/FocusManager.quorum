@@ -10,6 +10,7 @@ use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.FocusListener
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.KeyboardListener
+use Libraries.Interface.Events.SelectionEvent
 
 class FocusManager is KeyboardListener
 
@@ -174,76 +175,7 @@ class FocusManager is KeyboardListener
         return manager:GetFocus()
     end
 
-//    action SetDefaultFocusKeys
-//        focusNextKeys:Empty()
-//        focusPreviousKeys:Empty()
-//        KeyboardEvent keys
-//
-//        Array<integer> focusNext
-//        focusNext:Add(keys:TAB)
-//        focusNextKeys:Add(focusNext)
-//
-//        Array<integer> focusPreviousLeft
-//        focusPreviousLeft:Add(keys:TAB)
-//        focusPreviousLeft:Add(keys:SHIFT_LEFT)
-//        focusPreviousKeys:Add(focusPreviousLeft)
-//        
-//        Array<integer> focusPreviousRight
-//        focusPreviousRight:Add(keys:TAB)
-//        focusPreviousRight:Add(keys:SHIFT_RIGHT)
-//        focusPreviousKeys:Add(focusPreviousRight)
-//    end
-//
-//    action PressedKey(KeyboardEvent event)
-//        if KeysPressed(event, focusNextKeys)
-//            FocusNextItem()
-//        elseif KeysPressed(event, focusPreviousKeys)
-//            FocusPreviousItem()
-//        end
-//    end
-
-    /*
-    Tests if one of the combinations provided is satisfied, and if the provided
-    KeyboardEvent is one of the keys necessary to satisfy that combination.
-    */
-//    private action KeysPressed(KeyboardEvent event, Array<Array<integer>> combinations) returns boolean
-//        integer i = 0
-//        integer pressedKeys = monitor:NumberOfKeysPressed()
-//        repeat while i < combinations:GetSize()
-//            Array<integer> keys = combinations:Get(i)
-//            integer j = 0
-//            boolean hasKey = false
-//
-//            if pressedKeys not= keys:GetSize()
-//                j = keys:GetSize()
-//            end
-//
-//            /*
-//            A combination is satisfied only if:
-//            1. The key given as part of the event is part of the combination.
-//            2. All other keys in the combination are also held down.
-//            3. No extra keys are pressed (only keys in the combination are held).
-//            */
-//            repeat while j < keys:GetSize()
-//                integer current = keys:Get(j)
-//                if event:keyCode = current
-//                    hasKey = true
-//                    j = j + 1
-//                elseif monitor:IsKeyPressed(current)
-//                    j = j + 1
-//                else
-//                    hasKey = false
-//                    j = keys:GetSize()
-//                end
-//            end
-//
-//            if hasKey
-//                return true
-//            end
-//
-//            i = i + 1
-//        end
-//
-//        return false
-//    end
+    action SelectionChanged(SelectionEvent event)
+        // Dispatch the event as necessary, especially to the accessibility back-end.
+    end
 end

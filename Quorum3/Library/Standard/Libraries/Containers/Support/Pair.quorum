@@ -1,0 +1,41 @@
+package Libraries.Containers.Support
+
+use Libraries.Language.Support.CompareResult
+
+class Pair <Type>
+
+    Type first = undefined
+    Type second = undefined
+
+    action Set(Type first, Type second)
+        me:first = first
+        me:second = second
+    end
+    
+    action GetFirstValue returns Type
+        return first
+    end
+
+    action GetSecondValue returns Type
+        return second
+    end
+
+    action GetGreatestValue returns Type
+        CompareResult result = first:Compare(second)
+        if result:result = result:LARGER
+            return first
+        else
+            return second
+        end
+    end
+
+    action GetLeastValue returns Type
+        CompareResult result = first:Compare(second)
+        if result:result = result:SMALLER
+            return first
+        else
+            return second
+        end
+    end
+    
+end
