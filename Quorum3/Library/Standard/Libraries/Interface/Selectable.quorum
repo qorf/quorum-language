@@ -85,10 +85,12 @@ class Selectable
         if eventType = SELECTED
             repeat while counter < listeners:GetSize()
                 listeners:Get(counter):Selected(event)
+                counter = counter + 1
             end
         elseif eventType = DESELECTED
             repeat while counter < listeners:GetSize()
                 listeners:Get(counter):Deselected(event)
+                counter = counter + 1
             end
         end
 
