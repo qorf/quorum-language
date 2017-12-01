@@ -997,7 +997,7 @@ class Layer2D is Layer
 
         repeat while counter > 0 and processing
             counter = counter - 1
-            temp = items:Get(counter):GetItemAt(pointVector:GetX(), pointVector:GetY())
+            temp = items:Get(counter):GetVisibleItemAt(pointVector:GetX(), pointVector:GetY())
 
             if temp not= undefined
                 event:SetSource(temp)

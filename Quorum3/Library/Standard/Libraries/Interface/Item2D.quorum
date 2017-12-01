@@ -1307,6 +1307,48 @@ class Item2D is Item
     end
 
     /*  
+    This action searches through all Items stored in this Item2D and finds the
+    deepest Item which contains the given point in global coordinates. This
+    action will only return items which are visible (that is, IsShowing()
+    returns true).
+
+    Attribute: Returns The deepest visible item in the children hierarchy at the given point.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D parentItem
+        Item2D child
+        Item2D grandchild
+        parentItem:Add(child)
+        child:Add(grandchild)
+        grandchild:SetHeight(100)
+        grandchild:SetWidth(100)
+        Item2D temp = parentItem:GetVisibleItemAt(75, 75)
+
+    */
+    action GetVisibleItemAt(number x, number y) returns Item2D
+        integer counter = children:GetSize()
+        Item2D temp = undefined
+        boolean found = false
+        repeat while counter > 0 and not found
+            counter = counter - 1
+            temp = children:Get(counter)
+            temp = temp:GetVisibleItemAt(x, y)
+            if temp not= undefined
+                found = true
+            end
+        end
+
+        if not found and IsShowing() and Contains(x, y)
+            return me
+        else
+            return temp
+        end
+    end
+
+    /*  
     This action takes a mouse event and handles it. It will first test to 
     see if the mouse event took place within the bounds of this Item. If so, it
     will notify any MouseListeners of the event. If the event was not contained
@@ -2254,7 +2296,7 @@ class Item2D is Item
 
                 painter:SetClipCoordinates(startLeft, startRight, startBottom, startTop)
             else
-                painter:SetClipDimensions(GetX(), GetY(), GetWidth(), GetHeight())
+                painter:SetClipDimensions(GetGlobalX(), GetGlobalY(), GetWidth(), GetHeight())
                 painter:SetClipping(true)
 
                 integer counter = 0
