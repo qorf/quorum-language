@@ -366,32 +366,32 @@ class Main is WebResponder
         compiler:SetOutputFolder(root)
         File main
         //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
-        main:SetWorkingDirectory("/Users/alleew/NetBeansProjects/Playground/SourceCode")
-        main:SetPath("main.quorum") //CallMethodCallingBlueprint
+        //main:SetWorkingDirectory("/Users/alleew/NetBeansProjects/Playground/SourceCode")
+        main:SetPath("Library/Tests/Inheritance/Fail/CircularInheritance.quorum") //CallMethodCallingBlueprint
 
         File class2
         //class2:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
-        class2:SetPath("Library/Tests/Inheritance/Pass/LandVehicle.quorum")
+        class2:SetPath("Library/Tests/Inheritance/Fail/D.quorum")
         
         File class3
-        class3:SetPath("Library/Tests/Inheritance/Pass/GasPoweredVehicle.quorum")
+        class3:SetPath("Library/Tests/Inheritance/Fail/E.quorum")
 
         File class4
-        class4:SetPath("Library/Tests/Inheritance/Pass/Truck.quorum")
+        class4:SetPath("Library/Tests/Inheritance/Fail/F.quorum")
 
         File class5
         class5:SetPath("Library/Tests/Inheritance/Pass/GrandChildWithMultiple.quorum")
         Array<File> files
 
         files:Add(main)
-        //files:Add(class2)
-        //files:Add(class3)
-        //files:Add(class4)
+        files:Add(class2)
+        files:Add(class3)
+        files:Add(class4)
         //files:Add(class5)
 
         //compiler:SetOutputSpeech(false) //don't speak while in test mode
         //compiler:SetIsWebApplication(true)
-        compiler:SetOutputType(compiler:JAVASCRIPT)
+        //compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:SetMain(main)
         compiler:Compile(files)
 
