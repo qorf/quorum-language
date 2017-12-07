@@ -1,0 +1,47 @@
+package Libraries.Interface
+
+use Libraries.Interface.Item
+
+class AccessibilityManager 
+
+    system action test
+
+    // Initialize: Allows the Java code to retreive the native windows handle for the
+    //             main GLFW window that is created for the game. It also calls down
+    //             to the native level so that the DLL can register the control classes
+    //             with Windows API so that Add() can add controls to the accessibility
+    //             tree through UI Automation.
+    //             NOTE: This action must be called after the GLFW window is already created.
+    //                   Otherwise, the accessibilty manager won't work.
+    system action Initialize
+
+    // GetFocus: Returns the Item that the accessibility manager last
+    //           received from the SetFocus action.
+    system action GetFocus returns Item
+
+    // SetFocus: Tells the accessibility manager that focus has changed to the 
+    //           given Item. As far as the native code is concerned, focus changes
+    //           only raise an event with UI Automation. No focus state is maintained
+    //           at the native level.
+    system action SetFocus(Item item) returns boolean
+
+    // RegisterItem: Same as add.
+    // TODO: Delete this method and replace with add once enum types have been added to Item.
+    system action RegisterItem(Item item, Text className) returns boolean
+    
+    // Add: Registers an Item with the native accessibility code so the screen readers can access information about it.
+    system action Add(Item item)
+
+    // Remove: Removes an Item from the native accessibility tree so that it is no longer available to screen readers.
+    system action Remove(Item item)
+
+
+    // ===== actions for Buttons
+    
+    // == Pushbuttons
+    system action InvokeButton(Item button) returns boolean
+
+    // == Togglebuttons
+    system action UpdateToggleState(Item button, boolean selected) returns boolean
+
+end
