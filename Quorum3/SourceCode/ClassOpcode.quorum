@@ -1331,7 +1331,7 @@ class ClassOpcode is QuorumOpcode
     end
 
     private action WriteParents(JavaBytecodeMethodWriter methodWriter)
-        Iterator<Class> parents = clazz:GetParentClasses()
+        Iterator<Class> parents = clazz:GetParentCreationOrder()
         text classBytecodeName = converter:ConvertStaticKeyToBytecodePath(staticKey)
         
 
