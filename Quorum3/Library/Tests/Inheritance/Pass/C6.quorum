@@ -1,2 +1,14 @@
-class C6 is B6
+use Libraries.Containers.Array
+
+class C6
+    Array<text> test
+
+    on create
+        test:SetSize(20)
+        Update()
+    end
+
+    action Update
+        output "Update from C6"
+    end
 end
