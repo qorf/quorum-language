@@ -145,14 +145,14 @@ class MultipleLineText
                 left = leftChild
                 right = rightChild
                 weight = left:GetLength()
-                leafWeight = left:GetLeafCount()
-                leafCount = left:GetLeafCount() + right:GetLeafCount()
+                leafWeight = left:GetLineCount()
+                leafCount = left:GetLineCount() + right:GetLineCount()
                 fibonacciArray = left:GetFibonacciArray()
                 SetDepth(left, right)
             else
                 weight = leftChild:GetWeight()
                 leafWeight = leftChild:GetLeafWeight()
-                leafCount = leftChild:GetLeafCount()
+                leafCount = leftChild:GetLineCount()
                 characters = leftChild:GetCharacters()
                 right = leftChild:GetRight()
                 left = leftChild:GetLeft()
@@ -162,7 +162,7 @@ class MultipleLineText
         elseif rightChild not= undefined
             weight = rightChild:GetWeight()
             leafWeight = rightChild:GetLeafWeight()
-            leafCount = rightChild:GetLeafCount()
+            leafCount = rightChild:GetLineCount()
             characters = rightChild:GetCharacters()
             left = rightChild:GetLeft()
             right = rightChild:GetRight()
@@ -200,10 +200,6 @@ class MultipleLineText
 
     private action GetLeafWeight returns integer
         return leafWeight
-    end
-
-    private action GetLeafCount returns integer
-        return leafCount
     end
 
     private action GetDepth returns integer
@@ -253,7 +249,7 @@ class MultipleLineText
     */
     private action RefillLine(integer lineIndex) returns MultipleLineText
         // Don't attempt to refill the last line, or an invalidly large line index.
-        if lineIndex >= GetLeafCount() - 1
+        if lineIndex >= GetLineCount() - 1
             return me
         end
 
@@ -528,7 +524,7 @@ class MultipleLineText
     end
     */
     action NeedsBalancing returns boolean
-        return GetLeafCount() < GetFibonacciNumber(GetDepth())
+        return GetLineCount() < GetFibonacciNumber(GetDepth())
     end
 
     /*
@@ -585,7 +581,7 @@ class MultipleLineText
         integer counter = startIndex
         MultipleLineText progress = undefined
         MultipleLineText current = undefined
-        repeat while GetFibonacciNumber(counter) <= tree:GetLeafCount()
+        repeat while GetFibonacciNumber(counter) <= tree:GetLineCount()
             if trees:GetSize() > counter
                 current = trees:Get(counter)
                 if current not= undefined
@@ -890,6 +886,13 @@ class MultipleLineText
             return GetWeight() + right:GetLength()
         end
         return GetWeight()
+    end
+
+    /*
+
+    */
+    action GetLineCount returns integer
+        return leafCount
     end
 
     /*

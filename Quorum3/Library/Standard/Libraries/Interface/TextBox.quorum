@@ -1,586 +1,382 @@
 package Libraries.Interface
 
-use Libraries.Game.Game
-use Libraries.Interface.Events.KeyboardListener
-use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Drawable
-use Libraries.Game.Graphics.Texture
-use Libraries.Game.Graphics.Label
-use Libraries.Game.InputMonitor
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Font
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseWheelListener
+use Libraries.Containers.Array
+use Libraries.Containers.MultipleLineText
+use Libraries.System.File
+use Libraries.Game.Graphics.Glyph
+use Libraries.Game.Graphics.Painter2D
 
+class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListener
 
-/*
-    The TextBox class is an extension of the Libraries.Interface.Panel class, 
-    and is used to receive text input from the user. 
+    /*
+    All of the text contained in this object.
+    */
+    MultipleLineText textValue
 
-    Attribute: Example
+    /*
+    The font used for the text. For future iterations, this will be replaced by
+    an iterable structure, along with information indicating at what line and
+    character positions the font changes.
+    */
+    Font font
 
-        use Libraries.Interface.TextBox
-        use Libraries.Game.Game
+    /*
+    The color of characters. For future iterations, this will be replaced by an
+    iterable structure, along with information indicating at what line and
+    character positions the font changes.
+    */
+    Color characterColor
 
-        class Main is Game
+    /*
+    The first line that's visible at the current position of the scroll track.
+    */
+    integer firstLine = 0
 
-            action Main
-                StartGame()
-            end
+    /*
+    How close to the top of the scroll area the top of the vertical view is. A
+    value of 1.0 means the top of the vertical view is at the top of the scroll
+    area, while a value of 0.0 indicates the top of the vertical view is at the
+    very bottom of the scroll area (which is only possible in the unlikely case
+    that the height of the viewing region is 0). This is used to calculate the
+    firstLine value.
+    */
+    number verticalViewPercentage = 1.0
 
-            action CreateGame
-                TextBox box
-                box:SetPosition(100, 100)
-                box:Initialize(100, 100)
-                Add(box)
-                AddKeyboardListener(box)
-            end
+    /*
+    An array of lines which are visible on the screen, where each line is
+    composed of an array of drawables representing each character on the line.
+    */
+    Array<Array<Drawable>> lineCharacters
 
-        end
-*/
-class TextBox is Panel, KeyboardListener
-    private InputMonitor im
-    private Label response
-    private text responseStr = ""
-    private text oldResponse = ""
-    private boolean textChanged = true
+    Drawable background
+    Drawable horizontalBar
+    Drawable horizontalControl
+    Drawable verticalBar
+    Drawable verticalControl
 
-    private Drawable lineCursor
-    private integer cursorIndex = 0
-    private boolean cursorMoved = true
-    private number blinkTimer = 0
-    private number blinkRate = 0.5
+    number scrollDistance = 3
+    integer barThickness = 20
+
+    number vertical = 1.0
+    number horizontal = 0
+
+    public constant integer VISIBLE_IF_NEEDED = 1
+    public constant integer ALWAYS_VISIBLE = 2
+    public constant integer NEVER_VISIBLE = 3
+
+    integer verticalMode = VISIBLE_IF_NEEDED
+    integer horizontalMode = VISIBLE_IF_NEEDED
+
+    /*
+    Values used for when the control is dragged along the scroll track.
+    */
+    boolean isClicked = false
+    boolean verticalChanging = true
+    number clickPointOffset = 0
 
     on create
-        Color white
-        white = white:White()
-        SetBackgroundColor(white)
+        SetName("Text Box")
+        SetClipping(true)
+        AddMouseWheelListener(me)
+        AddMouseListener(me)
+        AddMouseMovementListener(me)
 
-        Color nearWhite
-        nearWhite:SetColor(0.9, 0.9, 0.9, 1)
-        SetBorderColor(nearWhite)
-    end
+        Add(background)
 
-    /*
-    The Initialize action sets the starting width and height of the TextBox,
-    loads the default background and border, and prepares the box for input.
+        textValue:DisableTextWrapping()
 
-    Attribute: Parameter width The width of the text box.
-    Attribute: Parameter height The height of the text box.
-
-    Attribute: Example
-
-        use Libraries.Interface.TextBox
-        use Libraries.Game.Game
-
-        class Main is Game
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                TextBox box
-                box:Initialize(100, 100)
-                Add(box)
-                AddKeyboardListener(box)
-            end
-
-        end
-    */
-    action Initialize(number width, number height)
-        parent:Panel:Initialize(width, height)
-        
-        integer spacing = response:GetLineHeight() / 4
-
-        response:SetPosition(spacing, height - response:GetLineHeight() - spacing)
-        response:SetWidth(width - 2 * spacing)
-        Add(response)
-
-        Texture lineTexture
-        Color nearBlack
-        nearBlack:SetColor(0.1, 0.1, 0.1, 1)
-        lineTexture:LoadFilledRectangle(2, spacing * 3, nearBlack)
-        lineCursor:Load(lineTexture)
-
-        lineCursor:SetPosition(spacing, height - response:GetLineHeight() - spacing)
-        Add(lineCursor)
-    end
-
-    /*
-    Returns the input that the user has put in the TextBox.
-
-    Attribute: Example
-
-        use Libraries.Interface.TextBox
-        use Libraries.Game.Game
-        use Libraries.Game.InputMonitor
-        use Libraries.Interface.Events.KeyboardEvent
-
-        class Main is Game
-
-            TextBox box
-            InputMonitor monitor
-            KeyboardEvent keys
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                box:Initialize(100, 100)
-                Add(box)
-                AddKeyboardListener(box)
-            end
-
-            action Update(number time)
-                if monitor:IsKeyPressed(keys:ENTER)
-                    output box:GetInput()
-                end
-            end
-
-        end
-    */
-    action GetInput returns text
-        return responseStr
-    end
-
-    /*
-    Sets the input field inside the TextBox. If the cursor position extends past
-    the end of the new text, it will be moved to the end of the new text.
-
-    Attribute: Example
-
-        use Libraries.Interface.TextBox
-        use Libraries.Game.Game
-        use Libraries.Game.InputMonitor
-        use Libraries.Interface.Events.KeyboardEvent
-
-        class Main is Game
-
-            TextBox box
-            InputMonitor monitor
-            KeyboardEvent keys
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                box:Initialize(200, 100)
-                Add(box)
-                AddKeyboardListener(box)
-            end
-
-            action Update(number time)
-                if monitor:IsKeyPressed(keys:ENTER)
-                    box:SetInput("ENTER was pressed!")
-                end
-            end
-
-        end
-    */
-    action SetInput(text newInput)
-        if (responseStr not= newInput)
-            responseStr = newInput
-            textChanged = true
-            if cursorIndex > newInput:GetSize()
-                cursorIndex = newInput:GetSize()
-                cursorMoved = true
-            end
-        end
-    end
-
-    /*
-    Resets the text field of the TextBox so that it is empty. The cursor will be
-    reset back to the beginning of the TextBox, as well.
-
-    Attribute: Example
-
-        use Libraries.Interface.TextBox
-        use Libraries.Game.Game
-        use Libraries.Game.InputMonitor
-        use Libraries.Interface.Events.KeyboardEvent
-
-        class Main is Game
-
-            TextBox box
-            InputMonitor monitor
-            KeyboardEvent keys
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                box:Initialize(200, 100)
-                Add(box)
-                AddKeyboardListener(box)
-            end
-
-            action Update(number time)
-                if monitor:IsKeyPressed(keys:ENTER)
-                    box:Empty()
-                end
-            end
-
-        end
-    */
-    action Empty
-        SetInput("")
-    end
-
-    /*
-    This action positions the cursor and makes it blink on and off. When TextBox
-    is used in conjunction with the Game class, this action will automatically
-    be called by Game immediately after Game:Update() is called if the TextBox
-    is a part of the Game via the Add(Item) action.
-    */
-    action Update(number delta)
-        UpdateText()
-
-        if cursorMoved
-            blinkTimer = 0
-            lineCursor:Show()
-
-            if cursorIndex = 0
-                lineCursor:SetPosition(response:GetX(), response:GetY())
-            else
-                Item2D temp = response:GetItem(cursorIndex - 1)
-                lineCursor:SetPosition(response:GetX() + temp:GetX() + temp:GetWidth(), response:GetY() + temp:GetY())
-            end
+        if font:FontIsAvailable("Courier New")
+            font:LoadFont("Courier New")
+        elseif font:FontIsAvailable("Courier")
+            font:LoadFont("Courier")
+        elseif font:FontIsAvailable("Arial")
+            font:LoadFont("Arial")
         else
-            blinkTimer = blinkTimer + delta
-            if blinkTimer > blinkRate
-                blinkTimer = 0
-                if lineCursor:IsShowing()
-                    lineCursor:Hide()
-                else
-                    lineCursor:Show()
-                end
+            Array<File> availableFontFiles = font:GetAvailableFonts()
+            if availableFontFiles:GetSize() > 0
+                font:LoadFont(availableFontFiles:Get(0))
             end
         end
+    end
 
-        cursorMoved = false
+    action Initialize(number width, number height, Color backgroundColor)
+        if backgroundColor not= undefined
+            background:LoadFilledRectangle(cast(integer, width), cast(integer, height), backgroundColor)
+        end
 
+        SetWidth(width)
+        SetHeight(height)
+
+        CreateScrollBars()
+
+        verticalBar:SetName("Vertical Scroll Track")
+        verticalControl:SetName("Vertical Scroll Control")
+    end
+
+    action Initialize(number width, number height, Color backgroundColor, text value)
+        textValue:Initialize(value)
+        Initialize(width, height, backgroundColor)
+        GetLineDrawables()
     end
 
     /*
-    This action listens for a key on the keyboard to be pressed. When a key is
-    pressed, if it is a valid symbol, it will be added to the text box's input.
-    When used in conjunction with the Game class, this will be called
-    automatically if added to the Game via the AddKeyboardListener(KeyboardListener)
-    action.
+    Makes everything from scratch. For initialization purposes.
     */
-    action PressedKey(KeyboardEvent ke)
-        ShiftPressed = false
-        if im:IsKeyPressed(ke:SHIFT_LEFT) or im:IsKeyPressed(ke:SHIFT_RIGHT)
-            ShiftPressed = true
-        end
+    private action GetLineDrawables
+        Array<MultipleLineText> lines = textValue:GetLines()
+        integer totalLines = lines:GetSize()
+        integer lineHeight = font:GetLineHeight()
+        number visibleLine = totalLines - (totalLines * verticalViewPercentage)
+//        output totalLines + " - " + "(" + totalLines + " * " + verticalViewPercentage + ") = " + visibleLine
+        firstLine = cast(integer, visibleLine)
+        
+        lineCharacters:Empty()
+        background:Empty()
 
-        if (ke:keyCode >= ke:NUM_0 and ke:keyCode <= ke:NUM_9) or (ke:keyCode >= ke:NUMPAD_0 and ke:keyCode <= ke:NUMPAD_9)
-            text preText = ""
-            if cursorIndex not= 0
-                preText = responseStr:GetSubtext(0, cursorIndex)
+        number yPosition = GetHeight() + (visibleLine - firstLine) * lineHeight 
+        integer counter = firstLine
+        repeat while counter < totalLines and yPosition > 0
+            yPosition = yPosition - lineHeight
+
+            text line = lines:Get(counter):GetText()
+            integer size = line:GetSize()
+            if line:EndsWith(line:GetLineFeed())
+                size = size - 1
             end
 
-            text postText = ""
-            if cursorIndex not= responseStr:GetSize()
-                postText = responseStr:GetSubtext(cursorIndex)
-            end
-
-            text midText = ke:ToText(ke:keyCode, ShiftPressed)
-
-            if midText:Contains("Numpad")
-                midText = midText:Replace("Numpad", "")
-            end
-
-            responseStr = preText + midText + postText
-            textChanged = true
-            cursorIndex = cursorIndex + 1
-            cursorMoved = true
-        elseif (ke:keyCode >= ke:A and ke:keyCode <= ke:Z) or IsPunctuation(ke:keyCode)
-            text preText = ""
-            if cursorIndex not= 0
-                preText = responseStr:GetSubtext(0, cursorIndex)
-            end
-
-            text postText = ""
-            if cursorIndex not= responseStr:GetSize()
-                postText = responseStr:GetSubtext(cursorIndex)
-            end
-
-            responseStr = preText + ke:ToText(ke:keyCode, ShiftPressed) + postText
-            textChanged = true
-            cursorIndex = cursorIndex + 1
-            cursorMoved = true
-        elseif ke:keyCode = ke:SPACE
-            text preText = ""
-            if cursorIndex not= 0
-                preText = responseStr:GetSubtext(0, cursorIndex)
-            end
-
-            text postText = ""
-            if cursorIndex not= responseStr:GetSize()
-                postText = responseStr:GetSubtext(cursorIndex)
-            end
-
-            responseStr = preText + " " + postText
-            textChanged = true
-            cursorIndex = cursorIndex + 1
-            cursorMoved = true
-        elseif ke:keyCode = ke:LEFT
-            if cursorIndex > 0
-                cursorIndex = cursorIndex - 1
-                cursorMoved = true
-            end
-        elseif ke:keyCode = ke:RIGHT
-            if cursorIndex < response:GetItemCount()
-                cursorIndex = cursorIndex + 1
-                cursorMoved = true
-            end
-        elseif ke:keyCode = ke:BACKSPACE
-            if cursorIndex not= 0
-                text preText = ""
-                if cursorIndex > 1
-                    preText = responseStr:GetSubtext(0, cursorIndex - 1)
+            Array<Drawable> drawables
+            integer characterCounter = 0
+            number x = 0
+            repeat size times
+                Glyph glyph = font:GetGlyph(line:GetCharacter(characterCounter))
+                Drawable draw = glyph:drawable
+                if draw not= undefined
+                    draw:SetPosition(x + glyph:lengthToGlyph, yPosition + glyph:heightFromBaseLine - draw:GetHeight())
+                    drawables:Add(draw)
+                    background:Add(draw)
                 end
-
-                text postText = ""
-                if cursorIndex not= responseStr:GetSize()
-                    postText = responseStr:GetSubtext(cursorIndex)
-                end
-
-                responseStr = preText + postText
-                cursorIndex = cursorIndex - 1
-                textChanged = true
-                cursorMoved = true
+                x = x + glyph:horizontalAdvance
+                characterCounter = characterCounter + 1
             end
-        elseif ke:keyCode = ke:FORWARD_DELETE
-            if cursorIndex not= responseStr:GetSize()
-                text preText = ""
-                if cursorIndex > 0
-                    preText = responseStr:GetSubtext(0, cursorIndex)
-                end
 
-                text postText = ""
-                if cursorIndex < responseStr:GetSize() - 1
-                    postText = responseStr:GetSubtext(cursorIndex + 1)
-                end
-                responseStr = preText + postText
-                
-                // Note that the cursorIndex does not change, but we want to
-                // re-evaluate the cursor's position because the text has moved.
-                textChanged = true
-                cursorMoved = true
-            end
+            lineCharacters:Add(drawables)
+            counter = counter + 1
         end
     end
 
-    private action IsPunctuation(integer keyCode) returns boolean
-        boolean value = keyCode >= 68 and keyCode <= 76
-        value = value or keyCode = 17 or keyCode = 55 or keyCode = 56 or keyCode = 81
-        return value
+    action SetWidth(integer newWidth)
+        parent:Libraries.Interface.Item2D:SetWidth(newWidth)
+        horizontalBar:SetWidth(newWidth)
     end
 
-    private action UpdateText
-        if textChanged
-            response:SetText(responseStr)
-            if response:GetTextHeight() > GetHeight()
-                response:SetText(oldResponse)
+    action SetHeight(integer newHeight)
+        parent:Libraries.Interface.Item2D:SetHeight(newHeight)
+        verticalBar:SetHeight(newHeight)
+    end
+
+    private action CreateScrollBars
+        Color color
+        number height = GetHeight()
+        number width = GetWidth()
+//        number verticalRatio = height / scrollAnchor:GetHeight()
+        number verticalRatio = height / GetScrollRegionHeight()
+        number horizontalRatio = width / GetScrollRegionWidth()
+        boolean verticalVisible = (verticalMode = ALWAYS_VISIBLE or (verticalMode = VISIBLE_IF_NEEDED and verticalRatio < 1.0))
+        boolean horizontalVisible = (horizontalMode = ALWAYS_VISIBLE or (horizontalMode = VISIBLE_IF_NEEDED and horizontalRatio < 1.0))
+        number barHeight = height
+        number barWidth = width
+        if verticalVisible and horizontalVisible
+            barHeight = height - barThickness
+            barWidth = width - barThickness
+            verticalBar:SetY(barThickness)
+        end
+
+        if verticalVisible
+            verticalBar:LoadFilledRectangle(barThickness, cast(integer, barHeight), color:CustomColor(0.9, 0.9, 0.9, 1))
+            verticalBar:SetX(width - barThickness)
+            parent:Item2D:Add(verticalBar)
+
+            verticalControl:LoadFilledRectangle(barThickness, cast(integer, verticalRatio * height), color:CustomColor(0.75, 0.75, 0.75, 1))
+            verticalControl:SetY(height - verticalRatio * height - (height - barHeight))
+            verticalBar:Add(verticalControl)
+            verticalBar:Show()
+        else
+            verticalBar:Hide()
+        end
+
+        if horizontalVisible
+            horizontalBar:LoadFilledRectangle(cast(integer, barWidth), barThickness, color:CustomColor(0.9, 0.9, 0.9, 1))
+            parent:Item2D:Add(horizontalBar)
+
+            horizontalControl:LoadFilledRectangle(cast(integer, horizontalRatio * width), barThickness, color:CustomColor(0.75, 0.75, 0.75, 1))
+//            horizontalControl:SetY(height - ratio * height)
+            horizontalBar:Add(horizontalControl)
+            horizontalBar:Show()
+        else
+            horizontalBar:Hide()
+        end
+
+        UpdatePaneView(0, 1.0)
+    end
+
+    action SetScrollDistance(number distance)
+        scrollDistance = distance
+    end
+
+    action GetScrollDistance returns number
+        return scrollDistance
+    end
+
+    action ScrolledMouse(MouseEvent event)
+        number y = GetVerticalTrackPercentage(verticalControl:GetY() + event:scrollAmount * scrollDistance * 10)
+        UpdatePaneView(horizontal, y)
+    end
+
+    action DraggedMouse(MouseEvent event)
+        if isClicked
+            // Determine if we are updating the vertical or horizontal bar.
+            if verticalChanging
+                number y = GetVerticalTrackPercentage(event:GetY() - verticalBar:GetGlobalY()) - clickPointOffset
+                UpdatePaneView(horizontal, y)
             else
-                oldResponse = responseStr
+                number x = GetHorizontalTrackPercentage(event:GetX() - horizontalBar:GetGlobalX()) - clickPointOffset
+                UpdatePaneView(x, vertical)
             end
-
-            textChanged = false
         end
     end
 
-    /*
-    Sets the number of seconds that should pass between the cursor blinking on
-    or off.
-
-    Attribute: Example
-
-        use Libraries.Interface.TextBox
-        use Libraries.Game.Game
-
-        class Main is Game
-
-            action Main
-                StartGame()
+    action ClickedMouse(MouseEvent event)
+        if event:GetSource() not= undefined and event:GetSource() is Item2D
+            Item2D source = cast(Item2D, event:GetSource())
+            if source:Equals(verticalControl)
+                isClicked = true
+                verticalChanging = true
+                clickPointOffset = GetVerticalTrackPercentage(event:GetY() - verticalBar:GetGlobalY()) - vertical
+            elseif source:Equals(horizontalControl)
+                isClicked = true
+                verticalChanging = false
+                clickPointOffset = GetHorizontalTrackPercentage(event:GetX() - horizontalBar:GetGlobalX()) - horizontal
+            else
+                isClicked = false
             end
-
-            action CreateGame
-                TextBox box
-                box:Initialize(100, 100)
-                box:SetBlinkRate(0.25)
-                Add(box)
-                AddKeyboardListener(box)
-            end
-
         end
-    */
-    action SetBlinkRate(number rate)
-        blinkRate = rate
     end
 
-    /*
-    Returns the current number of seconds that are allowed to pass between the
-    cursor blinking on and off.
-
-    Attribute: Example
-
-        use Libraries.Interface.TextBox
-        use Libraries.Game.Game
-
-        class Main is Game
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                TextBox box
-                box:Initialize(100, 100)
-                Add(box)
-                AddKeyboardListener(box)
-                output "The default blink rate is " + box:GetBlinkRate()
-            end
-
-        end
-    */
-    action GetBlinkRate returns number
-        return blinkRate
+    action ReleasedMouse(MouseEvent event)
+        isClicked = false
     end
 
-    /*
-    This action enables the text box, making it accept input and making the
-    cursor visible. Note that the text box is enabled by default.
-    */ /*
-    action Enable
-        AddKeyboardListener(me)
-        lineCursor:Show()
-    end */
+//    action SetRegionSize(number width, number height)
+//        scrollAnchor:SetWidth(width)
+//        scrollAnchor:SetHeight(height)
+//        CreateScrollBars()
+//    end
+//
+//    action FitRegionToContents
+//        Number width
+//        width:SetValue(0)
+//        Number height
+//        height:SetValue(0)
+//        FindDimensions(scrollAnchor:GetChildren(), width, height)
+//        SetRegionSize(width:GetValue() - scrollAnchor:GetGlobalX(), height:GetValue() - scrollAnchor:GetGlobalY())
+//    end
+//
+//    private action FindDimensions(Array<Item2D> items, Number width, Number height)
+//        integer counter = 0
+//        repeat while counter < items:GetSize()
+//            Item2D item = items:Get(counter)
+//
+//            if item:GetGlobalX() + item:GetWidth() > width:GetValue()
+//                width:SetValue(item:GetGlobalX() + item:GetWidth())
+//            end
+//
+//            if item:GetGlobalY() + item:GetHeight() > height:GetValue()
+//                height:SetValue(item:GetGlobalY() + item:GetHeight())
+//            end
+//
+//            if not item:IsClipping()
+//                FindDimensions(item:GetChildren(), width, height)
+//            end
+//
+//            counter = counter + 1
+//        end
+//    end
 
     /*
-    This action disables the text box, preventing it from accepting input and
-    hiding the cursor.
-
-    Attribute: Example
-
-        use Libraries.Interface.TextBox
-        use Libraries.Game.Game
-
-        class Main is Game
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                TextBox box
-                box:Initialize(100, 100)
-                Add(box)
-                AddKeyboardListener(box)
-                box:Disable()
-            end
-
-        end
-    */ /*
-    action Disable
-        // Update text to set the most recent text, if needed.
-        UpdateText()
-
-        lineCursor:Hide()
-
-        RemoveKeyboardListener(me)
-    end */
-
-    /*
-    Returns the position of the text cursor within the TextBox. The position can
-    be considered as the number of characters before the cursor.
-
-    Attribute: Returns The number of characters before the cursor.
-
-    Attribute: Example
-
-        use Libraries.Interface.TextBox
-        use Libraries.Game.Game
-        use Libraries.Game.InputMonitor
-        use Libraries.Interface.Events.KeyboardEvent
-
-        class Main is Game
-
-            TextBox box
-            InputMonitor monitor
-            KeyboardEvent keys
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                box:Initialize(100, 100)
-                Add(box)
-                AddKeyboardListener(box)
-            end
-
-            action Update(number time)
-                if monitor:IsKeyPressed(keys:ENTER)
-                    output "The cursor is at " + box:GetCursorPosition()
-                end
-            end
-
-        end
+    Takes values between 0.0 and 1.0 as percentage-style positions for the
+    vertical and horizontal scroll bars and view area.
     */
-    action GetCursorPosition returns integer
-        return cursorIndex
+    action UpdatePaneView(number horizontal, number vertical)
+        if vertical > 1.0
+            vertical = 1.0
+        elseif vertical < 0.0
+            vertical = 0.0
+        end
+
+        if horizontal > 1.0
+            horizontal = 1.0
+        elseif horizontal < 0.0
+            horizontal = 0.0
+        end
+
+        number sharedSpaceOffset = 0
+        if horizontalBar:IsShowing() and verticalBar:IsShowing()
+            sharedSpaceOffset = barThickness
+        end
+
+        number adjustedHeight = GetHeight() - verticalControl:GetHeight() - sharedSpaceOffset
+        verticalControl:SetY(adjustedHeight * vertical)
+
+        number adjustedWidth = GetWidth() - horizontalControl:GetWidth() - sharedSpaceOffset
+        horizontalControl:SetX(adjustedWidth * horizontal)
+
+        number adjustedScrollWidth = GetScrollRegionWidth() - GetWidth()
+        number adjustedScrollHeight = GetScrollRegionHeight() - GetHeight()
+        
+//        scrollAnchor:SetPosition(-adjustedScrollWidth * horizontal, -adjustedScrollHeight * vertical)
+
+        verticalViewPercentage = (verticalControl:GetHeight() + verticalControl:GetY() + sharedSpaceOffset) / GetHeight()
+
+        me:vertical = vertical
+        me:horizontal = horizontal
+
+        GetLineDrawables()
     end
 
-    /*
-    Returns the input that the user has put in the TextBox.
+    private action GetVerticalTrackPercentage(number y) returns number
+        return y / (GetHeight() - verticalControl:GetHeight())
+    end
 
-    Attribute: Example
+    private action GetHorizontalTrackPercentage(number x) returns number
+        return x / (GetWidth() - horizontalControl:GetWidth())
+    end
 
-        use Libraries.Interface.TextBox
-        use Libraries.Game.Game
-        use Libraries.Game.InputMonitor
-        use Libraries.Interface.Events.KeyboardEvent
-
-        class Main is Game
-
-            TextBox box
-            InputMonitor monitor
-            KeyboardEvent keys
-
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                box:Initialize(100, 100)
-                Add(box)
-                AddKeyboardListener(box)
-            end
-
-            action Update(number time)
-                if monitor:IsKeyPressed(keys:HOME)
-                    box:SetCursorPosition(0)
-                end
-            end
-
+    action GetScrollRegionHeight returns number
+        // This approach works so long as the font is universally styled (and
+        // thus all lines are the same height).
+        number height = textValue:GetLineCount() * font:GetLineHeight()
+        if height > GetHeight()
+            return height
+        else
+            return GetHeight()
         end
-    */
-    action SetCursorPosition(integer position)
-        if position > response:GetItemCount()
-            alert("I was asked to set the cursor's position to " + position + ", but the last position was " + response:GetItemCount())
-        end
+    end
 
-        if position < 0
-            alert("I was asked to set the cursor's position to " + position + ", but I can't set the position to a negative value!")
-        end
-
-        if position not= cursorIndex
-            cursorIndex = position
-            cursorMoved = true
+    action GetScrollRegionWidth returns number
+        // Temporary value for testing only. Should be calculated from longest line's width.
+        number width = 1000
+        if width > GetWidth()
+            return width
+        else
+            return GetWidth()
         end
     end
 end
