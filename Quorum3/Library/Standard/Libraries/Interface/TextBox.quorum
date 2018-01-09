@@ -135,7 +135,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         integer totalLines = lines:GetSize()
         integer lineHeight = font:GetLineHeight()
         number visibleLine = totalLines - (totalLines * verticalViewPercentage)
-//        output totalLines + " - " + "(" + totalLines + " * " + verticalViewPercentage + ") = " + visibleLine
         firstLine = cast(integer, visibleLine)
         
         lineCharacters:Empty()
@@ -196,6 +195,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         if verticalVisible and horizontalVisible
             barHeight = height - barThickness
             barWidth = width - barThickness
+            verticalRatio = barHeight / GetScrollRegionHeight()
+            horizontalRatio = barWidth / GetScrollRegionWidth()
             verticalBar:SetY(barThickness)
         end
 
@@ -316,21 +317,34 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     */
     action UpdatePaneView(number horizontal, number vertical)
         if vertical > 1.0
-            vertical = 1.0
+            if me:vertical = 1.0
+                return now
+            else
+                vertical = 1.0
+            end
         elseif vertical < 0.0
-            vertical = 0.0
+            if me:vertical = 0.0
+                return now
+            else
+                vertical = 0.0
+            end
         end
 
         if horizontal > 1.0
-            horizontal = 1.0
+            if me:horizontal = 1.0
+                return now
+            else
+                horizontal = 1.0
+            end
         elseif horizontal < 0.0
-            horizontal = 0.0
+            if me:horizontal = 0.0
+                return now
+            else
+                horizontal = 0.0
+            end
         end
 
-        number sharedSpaceOffset = 0
-        if horizontalBar:IsShowing() and verticalBar:IsShowing()
-            sharedSpaceOffset = barThickness
-        end
+        number sharedSpaceOffset = GetSharedSpaceOffset()
 
         number adjustedHeight = GetHeight() - verticalControl:GetHeight() - sharedSpaceOffset
         verticalControl:SetY(adjustedHeight * vertical)
@@ -343,12 +357,19 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         
 //        scrollAnchor:SetPosition(-adjustedScrollWidth * horizontal, -adjustedScrollHeight * vertical)
 
-        verticalViewPercentage = (verticalControl:GetHeight() + verticalControl:GetY() + sharedSpaceOffset) / GetHeight()
+        verticalViewPercentage = (verticalControl:GetHeight() + verticalControl:GetY()) / verticalBar:GetHeight()
 
         me:vertical = vertical
         me:horizontal = horizontal
 
         GetLineDrawables()
+    end
+
+    private action GetSharedSpaceOffset returns number
+        if horizontalBar:IsShowing() and verticalBar:IsShowing()
+            return barThickness
+        end
+        return 0
     end
 
     private action GetVerticalTrackPercentage(number y) returns number
@@ -362,7 +383,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     action GetScrollRegionHeight returns number
         // This approach works so long as the font is universally styled (and
         // thus all lines are the same height).
-        number height = textValue:GetLineCount() * font:GetLineHeight()
+        number height = textValue:GetLineCount() * font:GetLineHeight() + GetSharedSpaceOffset()
         if height > GetHeight()
             return height
         else
@@ -378,5 +399,13 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         else
             return GetWidth()
         end
+    end
+
+    action SetVerticalBarVisibility(integer mode)
+        verticalMode = mode
+    end
+
+    action SetHorizontalBarVisibility(integer mode)
+        horizontalMode = mode
     end
 end
