@@ -891,6 +891,24 @@ class MultipleLineText
     /*
 
     */
+    action GetWidth returns number
+        if IsLeaf()
+            // For monospaced fonts.
+            return characters:GetSize()
+        else
+            number leftWidth = left:GetWidth()
+            number rightWidth = right:GetWidth()
+            if leftWidth > rightWidth
+                return leftWidth
+            else
+                return rightWidth
+            end
+        end
+    end
+
+    /*
+
+    */
     action GetLineCount returns integer
         return leafCount
     end

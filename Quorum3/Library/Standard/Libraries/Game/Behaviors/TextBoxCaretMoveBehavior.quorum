@@ -1,0 +1,30 @@
+package Libraries.Game.Behaviors
+
+use Libraries.Interface.Item
+use Libraries.Interface.TextBox
+
+class TextBoxCaretMoveBehavior is Behavior
+    
+    public constant integer LEFT = 1
+    public constant integer RIGHT = 2
+    public constant integer DOWN = 3
+    public constant integer UP = 4
+ 
+    integer direction = 0
+
+    action SetDirection(integer direction)
+        me:direction = direction
+    end
+
+    action GetDirection returns integer
+        return direction
+    end
+
+    action Begin(Item item)
+        /*
+        Begin advancing the caret in the given direction. It will continue to
+        advance in that direction until the key is released or a new movement
+        command overrides it.
+        */
+    end
+end

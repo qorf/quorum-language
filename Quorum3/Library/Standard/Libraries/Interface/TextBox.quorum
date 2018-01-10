@@ -51,6 +51,12 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     number verticalViewPercentage = 1.0
 
     /*
+    The width of the scroll region, as calculated by the longest line of text.
+    A value of -1 indicates the width needs to be recalculated.
+    */
+    number scrollRegionWidth = -1
+
+    /*
     An array of lines which are visible on the screen, where each line is
     composed of an array of drawables representing each character on the line.
     */
@@ -84,6 +90,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     on create
         SetName("Text Box")
+        SetInputGroup("TextBox")
         SetClipping(true)
         AddMouseWheelListener(me)
         AddMouseListener(me)
@@ -97,6 +104,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             font:LoadFont("Courier New")
         elseif font:FontIsAvailable("Courier")
             font:LoadFont("Courier")
+        elseif font:FontIsAvailable("cour")
+            font:LoadFont("cour")
         elseif font:FontIsAvailable("Arial")
             font:LoadFont("Arial")
         else
@@ -153,7 +162,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
             Array<Drawable> drawables
             integer characterCounter = 0
-            number x = 0
+            number x = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset()))
             repeat size times
                 Glyph glyph = font:GetGlyph(line:GetCharacter(characterCounter))
                 Drawable draw = glyph:drawable
@@ -205,7 +214,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             verticalBar:SetX(width - barThickness)
             parent:Item2D:Add(verticalBar)
 
-            verticalControl:LoadFilledRectangle(barThickness, cast(integer, verticalRatio * height), color:CustomColor(0.75, 0.75, 0.75, 1))
+            verticalControl:LoadFilledRectangle(barThickness, cast(integer, verticalRatio * barHeight), color:CustomColor(0.75, 0.75, 0.75, 1))
             verticalControl:SetY(height - verticalRatio * height - (height - barHeight))
             verticalBar:Add(verticalControl)
             verticalBar:Show()
@@ -357,7 +366,11 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         
 //        scrollAnchor:SetPosition(-adjustedScrollWidth * horizontal, -adjustedScrollHeight * vertical)
 
-        verticalViewPercentage = (verticalControl:GetHeight() + verticalControl:GetY()) / verticalBar:GetHeight()
+        if verticalBar:IsShowing()
+            verticalViewPercentage = (verticalControl:GetHeight() + verticalControl:GetY()) / verticalBar:GetHeight()
+        else
+            verticalViewPercentage = 1.0
+        end
 
         me:vertical = vertical
         me:horizontal = horizontal
@@ -383,7 +396,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     action GetScrollRegionHeight returns number
         // This approach works so long as the font is universally styled (and
         // thus all lines are the same height).
-        number height = textValue:GetLineCount() * font:GetLineHeight() + GetSharedSpaceOffset()
+        number height = textValue:GetLineCount() * font:GetLineHeight()// + GetSharedSpaceOffset()
         if height > GetHeight()
             return height
         else
@@ -392,13 +405,56 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     action GetScrollRegionWidth returns number
-        // Temporary value for testing only. Should be calculated from longest line's width.
-        number width = 1000
-        if width > GetWidth()
-            return width
+        if scrollRegionWidth = -1
+            CalculateRegionWidth()
+        end
+        if scrollRegionWidth > GetWidth()
+            return scrollRegionWidth
         else
             return GetWidth()
         end
+    end
+
+    /*
+    Calculates the width of the region by finding the longest line. Potentially
+    expensive depending on how it needs to be calculated.
+    */
+    private action CalculateRegionWidth
+        /*
+        The ideal long-term solution is to have each line in the
+        MultipleLineText class maintain its width, which is updated during
+        changes. Then finding the width is O(n) for n lines. Currently that
+        class only maintains text for monospaced fonts, so we calculate from
+        that for now.
+
+        This approach only works due to the constrained conditions of the first
+        version of this TextBox:
+            - All of the text is styled with a single font.
+            - The text is monospaced. If it isn't, we attempt to err on the side
+              of too much space, rather than not enough.
+        */
+        Array<MultipleLineText> lines = textValue:GetLines()
+        
+        /*
+        For monospaced fonts, this choice is arbitrary. For non-monospaced
+        fonts, W is typically one of the broadest characters, but this is
+        imprecise at best. This approach is only meant as a short-term solution
+        to quickly calculate the width of lines. MultipleLineText will handle
+        this more elegantly in the future.
+        */
+        number glyphWidth = font:GetGlyph("W"):horizontalAdvance
+        number width = -1
+
+        integer counter = 0
+        repeat while counter < lines:GetSize()
+            number lineWidth = lines:Get(counter):GetWidth() * glyphWidth
+            if lineWidth > width
+                width = lineWidth
+            end
+            counter = counter + 1
+        end
+
+        scrollRegionWidth = width
     end
 
     action SetVerticalBarVisibility(integer mode)
