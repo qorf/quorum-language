@@ -36,9 +36,13 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     Color characterColor
 
     /*
-    The first line that's visible at the current position of the scroll track.
+    The first line that's visible at the current position of the scroll track. A
+    non-integer value indicates that the first line is partially off of the top
+    of the screen - for example, a value of 2.6 indicates that line 2 is the
+    first visible line, where 60% of the line's height is off the top of the 
+    pane.
     */
-    integer firstLine = 0
+    number firstLine = 0
 
     /*
     How close to the top of the scroll area the top of the vertical view is. A
@@ -62,12 +66,38 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     */
     Array<Array<Drawable>> lineCharacters
 
+    Drawable caret
+    integer caretThickness = 1
+    Color caretColor = characterColor:Black()
+
+    /*
+    Whether the caret is active or not. This does not necessarily mean the caret
+    is visible at any exact moment - the caret might be non-visible even while
+    active, for example if the caret has been idle and is blinking. This boolean
+    effectively ensures that the caret is usable, i.e., the text box has focus.
+    */
+    boolean caretActive = false
+
+    number caretIdleTime = 1.0
+    number caretBlinkTime = 0.35
+    number caretTimer = 0
+
+    /*
+    The caret's position is known using three values:
+        caretLine, which line the caret is on.
+        caretCharacter, the character index of the caret on its particular line.
+        caretX, the actual X position of the caret, which is used for vertical movement.
+    */
+    integer caretLine = 0
+    integer caretCharacter = 0
+    number caretX = 0
+
     Drawable background
     Drawable horizontalBar
     Drawable horizontalControl
     Drawable verticalBar
     Drawable verticalControl
-
+    
     number scrollDistance = 3
     integer barThickness = 20
 
@@ -128,6 +158,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         verticalBar:SetName("Vertical Scroll Track")
         verticalControl:SetName("Vertical Scroll Control")
+
+        InitializeCaret()
+        caret:Hide()
+        caretActive = false
     end
 
     action Initialize(number width, number height, Color backgroundColor, text value)
@@ -143,14 +177,14 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         Array<MultipleLineText> lines = textValue:GetLines()
         integer totalLines = lines:GetSize()
         integer lineHeight = font:GetLineHeight()
-        number visibleLine = totalLines - (totalLines * verticalViewPercentage)
-        firstLine = cast(integer, visibleLine)
+        firstLine = totalLines - (totalLines * verticalViewPercentage)
+        integer firstLineInteger = cast(integer, firstLine)
         
         lineCharacters:Empty()
         background:Empty()
 
-        number yPosition = GetHeight() + (visibleLine - firstLine) * lineHeight 
-        integer counter = firstLine
+        number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
+        integer counter = firstLineInteger
         repeat while counter < totalLines and yPosition > 0
             yPosition = yPosition - lineHeight
 
@@ -178,6 +212,66 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             lineCharacters:Add(drawables)
             counter = counter + 1
         end
+
+        PositionCaret()
+        background:Add(caret)
+    end
+
+    private action InitializeCaret
+        if caret:IsLoaded()
+            if caret:GetWidth() not= caretThickness or caret:GetHeight() not= font:GetLineHeight()
+                caret:Dispose()
+            else
+                return now
+            end
+        end
+        caret:LoadFilledRectangle(caretThickness, font:GetLineHeight(), caretColor)
+    end
+
+    /*
+    Positions the caret on the screen using the caretLine and caretCharacter
+    values. Also calculates the new x position of the caret, which is returned.
+    Depending on context, this value can be saved to overwrite the previous
+    caretX, or ignored to preserve the old value.
+    */
+    private action PositionCaret returns number
+        number lineOffset = (caretLine - firstLine + 1) * font:GetLineHeight()
+        
+        number x = 0
+        number horizontalOffset = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset()))
+        MultipleLineText line = textValue:GetLine(caretLine)
+        text lineCharacters = line:GetText()
+
+        integer counter = 0
+        repeat while counter < caretCharacter
+            Glyph glyph = font:GetGlyph(lineCharacters:GetCharacter(counter))
+            x = x + glyph:horizontalAdvance
+            counter = counter + 1
+        end
+
+        caret:SetPosition(x + horizontalOffset, GetHeight() - lineOffset - font:GetLineHeight() / 4)
+        return x
+    end
+
+    /*
+    For testing purposes.
+    */
+    action SetCaretPosition(integer line, integer index)
+        caretLine = line
+        caretCharacter = index
+        caretX = PositionCaret()
+    end
+
+    action ShowCaret
+        caret:Show()
+        caretX = PositionCaret()
+        caretActive = true
+        caretTimer = caretIdleTime
+    end
+
+    action HideCaret
+        caret:Hide()
+        caretActive = false
     end
 
     action SetWidth(integer newWidth)
@@ -463,5 +557,19 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     action SetHorizontalBarVisibility(integer mode)
         horizontalMode = mode
+    end
+
+    action Update(number seconds)
+        if caretActive
+            caretTimer = caretTimer - seconds
+            if caretTimer < 0
+                caretTimer = caretTimer + caretBlinkTime
+                if caret:IsShowing()
+                    caret:Hide()
+                else
+                    caret:Show()
+                end
+            end
+        end
     end
 end
