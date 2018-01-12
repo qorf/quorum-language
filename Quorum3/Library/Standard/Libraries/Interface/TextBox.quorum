@@ -13,6 +13,7 @@ use Libraries.Containers.MultipleLineText
 use Libraries.System.File
 use Libraries.Game.Graphics.Glyph
 use Libraries.Game.Graphics.Painter2D
+use Libraries.Compute.Math
 
 class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListener
 
@@ -117,6 +118,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     boolean isClicked = false
     boolean verticalChanging = true
     number clickPointOffset = 0
+
+    Math math
 
     on create
         SetName("Text Box")
@@ -262,9 +265,101 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretX = PositionCaret()
     end
 
+    action MoveCaretLeft
+        if caretCharacter = 0
+            if caretLine = 0
+                return now
+            else
+                caretLine = caretLine - 1
+                text lineText = textValue:GetLine(caretLine):GetText()
+                caretCharacter = lineText:GetSize()
+                if lineText:EndsWith(lineText:GetLineFeed())
+                    caretCharacter = caretCharacter - 1
+                end
+            end
+        else
+            caretCharacter = caretCharacter - 1
+        end
+        caretX = PositionCaret()
+        ShowCaret()
+    end
+
+    action MoveCaretRight
+        text lineText = textValue:GetLine(caretLine):GetText()
+        integer size = lineText:GetSize()
+        if lineText:EndsWith(lineText:GetLineFeed())
+            size = size - 1
+        end
+        if caretCharacter >= size
+            if caretLine + 1 = textValue:GetLineCount()
+                return now
+            end
+            caretLine = caretLine + 1
+            caretCharacter = 0
+        else
+            caretCharacter = caretCharacter + 1
+        end
+        caretX = PositionCaret()
+        ShowCaret()
+    end
+
+    action MoveCaretDown
+        if caretLine + 1 = textValue:GetLineCount()
+            return now
+        end
+        caretLine = caretLine + 1
+        caretCharacter = GetNearestCharacter(caretLine, caretX)
+        // Don't store the returned value from PositionCaret() - keeping the old
+        // value lets it flow more naturally across lines of varying length.
+        PositionCaret()
+        ShowCaret()
+    end
+
+    action MoveCaretUp
+        if caretLine = 0
+            return now
+        end
+        caretLine = caretLine - 1
+        caretCharacter = GetNearestCharacter(caretLine, caretX)
+        // Don't store the returned value from PositionCaret() - keeping the old
+        // value lets it flow more naturally across lines of varying length.
+        PositionCaret()
+        ShowCaret()
+    end
+
+    /*
+    For the given line, find the character index for the closest possible cursor
+    position. Used for vertical caret navigation.
+    */
+    private action GetNearestCharacter(integer line, number position) returns integer
+        text lineText = textValue:GetLine(caretLine):GetText()
+        integer size = lineText:GetSize()
+        if lineText:EndsWith(lineText:GetLineFeed())
+            size = size - 1
+        end
+
+        number x1 = 0
+        number x2 = 0
+        integer counter = 0
+        number distance1 = position
+        repeat while counter < size
+            Glyph glyph = font:GetGlyph(lineText:GetCharacter(counter))
+            x2 = x1 + glyph:horizontalAdvance
+            number distance2 = math:AbsoluteValue(position - x2)
+            if distance1 < distance2
+                return counter
+            end
+            
+            distance1 = distance2
+            x1 = x2
+            counter = counter + 1
+        end
+
+        return counter
+    end
+
     action ShowCaret
         caret:Show()
-        caretX = PositionCaret()
         caretActive = true
         caretTimer = caretIdleTime
     end
