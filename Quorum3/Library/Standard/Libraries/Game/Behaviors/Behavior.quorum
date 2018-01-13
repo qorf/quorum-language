@@ -4,6 +4,29 @@ use Libraries.Interface.Item
 
 class Behavior 
 
+    number timer = 0
+    boolean timed = false
+
+    action SetTimer(number seconds)
+        timer = seconds
+    end
+
+    action GetTimer returns number
+        return timer
+    end
+
+    action EnableTimer
+        timed = true
+    end
+
+    action DisableTimer
+        timed = false
+    end
+
+    action IsTimed returns boolean
+        return timed
+    end
+
     action Begin(Item item)
 
     end

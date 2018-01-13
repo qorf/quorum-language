@@ -8,6 +8,8 @@ use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
+use Libraries.Interface.Events.FocusListener
+use Libraries.Interface.Events.FocusEvent
 use Libraries.Containers.Array
 use Libraries.Containers.MultipleLineText
 use Libraries.System.File
@@ -15,7 +17,7 @@ use Libraries.Game.Graphics.Glyph
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Compute.Math
 
-class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListener
+class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListener, FocusListener
 
     /*
     All of the text contained in this object.
@@ -81,6 +83,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     number caretIdleTime = 1.0
     number caretBlinkTime = 0.35
+    number caretMoveTime = 0.1
     number caretTimer = 0
 
     /*
@@ -124,6 +127,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     on create
         SetName("Text Box")
         SetInputGroup("TextBox")
+        SetFocusable(true)
+        AddFocusListener(me)
         SetClipping(true)
         AddMouseWheelListener(me)
         AddMouseListener(me)
@@ -266,6 +271,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     action MoveCaretLeft
+        if not caretActive
+            return now
+        end
+
         if caretCharacter = 0
             if caretLine = 0
                 return now
@@ -285,6 +294,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     action MoveCaretRight
+        if not caretActive
+            return now
+        end
+
         text lineText = textValue:GetLine(caretLine):GetText()
         integer size = lineText:GetSize()
         if lineText:EndsWith(lineText:GetLineFeed())
@@ -304,6 +317,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     action MoveCaretDown
+        if not caretActive
+            return now
+        end
+
         if caretLine + 1 = textValue:GetLineCount()
             return now
         end
@@ -316,6 +333,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     action MoveCaretUp
+        if not caretActive
+            return now
+        end
+
         if caretLine = 0
             return now
         end
@@ -471,6 +492,14 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     action ReleasedMouse(MouseEvent event)
         isClicked = false
+    end
+
+    action GainedFocus(FocusEvent event)
+        ShowCaret()
+    end
+
+    action LostFocus(FocusEvent event)
+        HideCaret()
     end
 
 //    action SetRegionSize(number width, number height)
@@ -666,5 +695,13 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
                 end
             end
         end
+    end
+
+    action GetCaretIdleTime returns number
+        return caretIdleTime
+    end
+
+    action GetCaretMoveTime returns number
+        return caretMoveTime
     end
 end

@@ -6,7 +6,9 @@ use Libraries.Interface.TextBox
 class TextBoxCaretStopBehavior is Behavior
     action Begin(Item item)
         /*
-        Inform the TextBox to stop moving the caret.
+        For testing purposes only. This wipes out all behaviors on the Item, not
+        just the movement ones, and thus will not work as a long term solution.
         */
+        item:CancelBehaviors()
     end
 end

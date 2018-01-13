@@ -3,7 +3,7 @@ package Libraries.Game.Behaviors
 use Libraries.Interface.Item
 use Libraries.Interface.TextBox
 
-class TextBoxCaretMoveBehavior is Behavior
+class TextBoxCaretStartMoveBehavior is Behavior
     
     public constant integer LEFT = 1
     public constant integer RIGHT = 2
@@ -27,27 +27,27 @@ class TextBoxCaretMoveBehavior is Behavior
 
         TextBox box = cast(TextBox, item)
 
+        TextBoxCaretMoveBehavior behavior
+        behavior:SetTimer(box:GetCaretIdleTime())
+        behavior:EnableTimer()
+
+        /*
+        Begin advancing the caret in the given direction. It will continue to
+        advance in that direction until the key is released or a new movement
+        command overrides it.
+        */
         if direction = LEFT
-            box:MoveCaretLeft()
+            behavior:SetDirection(LEFT)
+            box:AddBehavior(behavior)
         elseif direction = RIGHT
-            box:MoveCaretRight()
+            behavior:SetDirection(RIGHT)
+            box:AddBehavior(behavior)
         elseif direction = DOWN
-            box:MoveCaretDown()
+            behavior:SetDirection(DOWN)
+            box:AddBehavior(behavior)
         elseif direction = UP
-            box:MoveCaretUp()
+            behavior:SetDirection(UP)
+            box:AddBehavior(behavior)
         end
-    end
-
-    action Update(number seconds, Item item)
-    end
-
-    action Finish(Item item)
-        if not (item is TextBox)
-            return now
-        end
-
-        TextBox box = cast(TextBox, item)
-        SetTimer(box:GetCaretMoveTime())
-        box:AddBehavior(me)
     end
 end

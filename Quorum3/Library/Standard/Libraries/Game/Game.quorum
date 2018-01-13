@@ -40,6 +40,8 @@ use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Behaviors.FocusNextBehavior
 use Libraries.Game.Behaviors.FocusPreviousBehavior
+use Libraries.Game.Behaviors.TextBoxCaretStartMoveBehavior
+use Libraries.Game.Behaviors.TextBoxCaretStopBehavior
 use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -243,6 +245,58 @@ class Game
         shiftTabFocus:AddModifier(shiftTabFocus:SHIFT)
         FocusPreviousBehavior shiftTabBehavior
         defaultTable:Add(shiftTabFocus, shiftTabBehavior)
+
+        // Creating input sets for the default TextBox behaviors.
+        InputTable textBoxTable
+        textBoxTable:SetIdentifier("TextBox")
+
+        InputSet leftArrow
+        leftArrow:SetKeyboardInput(keys:LEFT)
+        TextBoxCaretStartMoveBehavior textBoxLeftBehavior
+        textBoxLeftBehavior:SetDirection(textBoxLeftBehavior:LEFT)
+        textBoxTable:Add(leftArrow, textBoxLeftBehavior)
+
+        InputSet rightArrow
+        rightArrow:SetKeyboardInput(keys:RIGHT)
+        TextBoxCaretStartMoveBehavior textBoxRightBehavior
+        textBoxRightBehavior:SetDirection(textBoxRightBehavior:RIGHT)
+        textBoxTable:Add(rightArrow, textBoxRightBehavior)
+
+        InputSet downArrow
+        downArrow:SetKeyboardInput(keys:DOWN)
+        TextBoxCaretStartMoveBehavior textBoxDownBehavior
+        textBoxDownBehavior:SetDirection(textBoxDownBehavior:DOWN)
+        textBoxTable:Add(downArrow, textBoxDownBehavior)
+
+        InputSet upArrow
+        upArrow:SetKeyboardInput(keys:UP)
+        TextBoxCaretStartMoveBehavior textBoxUpBehavior
+        textBoxUpBehavior:SetDirection(textBoxUpBehavior:UP)
+        textBoxTable:Add(upArrow, textBoxUpBehavior)
+
+        TextBoxCaretStopBehavior textBoxStopBehavior
+
+        InputSet releaseLeftArrow
+        releaseLeftArrow:SetKeyboardInput(keys:LEFT)
+        releaseLeftArrow:SetInputTrigger(releaseLeftArrow:RELEASE)
+        textBoxTable:Add(releaseLeftArrow, textBoxStopBehavior)
+
+        InputSet releaseRightArrow
+        releaseRightArrow:SetKeyboardInput(keys:RIGHT)
+        releaseRightArrow:SetInputTrigger(releaseRightArrow:RELEASE)
+        textBoxTable:Add(releaseRightArrow, textBoxStopBehavior)
+
+        InputSet releaseDownArrow
+        releaseDownArrow:SetKeyboardInput(keys:DOWN)
+        releaseDownArrow:SetInputTrigger(releaseDownArrow:RELEASE)
+        textBoxTable:Add(releaseDownArrow, textBoxStopBehavior)
+
+        InputSet releaseUpArrow
+        releaseUpArrow:SetKeyboardInput(keys:UP)
+        releaseUpArrow:SetInputTrigger(releaseUpArrow:RELEASE)
+        textBoxTable:Add(releaseUpArrow, textBoxStopBehavior)
+
+        gameInput:AddInputTable(textBoxTable)
     end
 
     /*
