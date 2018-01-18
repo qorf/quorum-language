@@ -261,6 +261,15 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         return x
     end
 
+    action GoToLine(number line)
+        Array<MultipleLineText> lines = textValue:GetLines()
+        number paneHeight = GetHeight() - GetSharedSpaceOffset()
+        number lineSpace = lines:GetSize() * font:GetLineHeight() - paneHeight
+        number viableLines = lines:GetSize() - (paneHeight / font:GetLineHeight())
+        number newVertical = 1.0 - (line / viableLines)
+        UpdatePaneView(horizontal, newVertical)
+    end
+
     /*
     For testing purposes.
     */
@@ -324,8 +333,15 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         if caretLine + 1 = textValue:GetLineCount()
             return now
         end
+
         caretLine = caretLine + 1
         caretCharacter = GetNearestCharacter(caretLine, caretX)
+
+        number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
+        if caretLine > (firstLine + visibleLines - 1)
+            GoToLine(caretLine - visibleLines + 1)
+        end
+
         // Don't store the returned value from PositionCaret() - keeping the old
         // value lets it flow more naturally across lines of varying length.
         PositionCaret()
@@ -340,8 +356,14 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         if caretLine = 0
             return now
         end
+
         caretLine = caretLine - 1
         caretCharacter = GetNearestCharacter(caretLine, caretX)
+
+        if caretLine < firstLine
+            GoToLine(caretLine)
+        end
+        
         // Don't store the returned value from PositionCaret() - keeping the old
         // value lets it flow more naturally across lines of varying length.
         PositionCaret()
@@ -353,7 +375,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     position. Used for vertical caret navigation.
     */
     private action GetNearestCharacter(integer line, number position) returns integer
-        text lineText = textValue:GetLine(caretLine):GetText()
+        text lineText = textValue:GetLine(line):GetText()
         integer size = lineText:GetSize()
         if lineText:EndsWith(lineText:GetLineFeed())
             size = size - 1
