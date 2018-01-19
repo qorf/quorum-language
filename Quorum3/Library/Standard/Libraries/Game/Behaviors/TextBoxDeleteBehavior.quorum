@@ -1,0 +1,47 @@
+package Libraries.Game.Behaviors
+
+use Libraries.Interface.Item
+use Libraries.Interface.TextBox
+
+class TextBoxDeleteBehavior is Behavior
+    
+    public constant integer BACKWARD = 1
+    public constant integer FORWARD = 2
+ 
+    integer direction = 0
+
+    action SetDirection(integer direction)
+        me:direction = direction
+    end
+
+    action GetDirection returns integer
+        return direction
+    end
+
+    action Begin(Item item)
+        if not (item is TextBox)
+            return now
+        end
+
+        TextBox box = cast(TextBox, item)
+
+        if direction = BACKWARD
+            box:DeleteBackward()
+        elseif direction = FORWARD
+            box:DeleteForward()
+        end
+    end
+
+    action Update(number seconds, Item item)
+    end
+
+    action Finish(Item item)
+        if not (item is TextBox)
+            return now
+        end
+
+        TextBox box = cast(TextBox, item)
+        SetTimer(box:GetCaretMoveTime())
+        box:AddBehavior(me)
+    end
+end

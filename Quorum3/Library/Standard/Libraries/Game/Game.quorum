@@ -41,7 +41,8 @@ use Libraries.Game.Graphics.Camera
 use Libraries.Game.Behaviors.FocusNextBehavior
 use Libraries.Game.Behaviors.FocusPreviousBehavior
 use Libraries.Game.Behaviors.TextBoxCaretStartMoveBehavior
-use Libraries.Game.Behaviors.TextBoxCaretStopBehavior
+use Libraries.Game.Behaviors.TextBoxStartDeleteBehavior
+use Libraries.Game.Behaviors.CancelBehavior
 use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -274,27 +275,49 @@ class Game
         textBoxUpBehavior:SetDirection(textBoxUpBehavior:UP)
         textBoxTable:Add(upArrow, textBoxUpBehavior)
 
-        TextBoxCaretStopBehavior textBoxStopBehavior
+        CancelBehavior cancelBehavior
 
         InputSet releaseLeftArrow
         releaseLeftArrow:SetKeyboardInput(keys:LEFT)
         releaseLeftArrow:SetInputTrigger(releaseLeftArrow:RELEASE)
-        textBoxTable:Add(releaseLeftArrow, textBoxStopBehavior)
+        textBoxTable:Add(releaseLeftArrow, cancelBehavior)
 
         InputSet releaseRightArrow
         releaseRightArrow:SetKeyboardInput(keys:RIGHT)
         releaseRightArrow:SetInputTrigger(releaseRightArrow:RELEASE)
-        textBoxTable:Add(releaseRightArrow, textBoxStopBehavior)
+        textBoxTable:Add(releaseRightArrow, cancelBehavior)
 
         InputSet releaseDownArrow
         releaseDownArrow:SetKeyboardInput(keys:DOWN)
         releaseDownArrow:SetInputTrigger(releaseDownArrow:RELEASE)
-        textBoxTable:Add(releaseDownArrow, textBoxStopBehavior)
+        textBoxTable:Add(releaseDownArrow, cancelBehavior)
 
         InputSet releaseUpArrow
         releaseUpArrow:SetKeyboardInput(keys:UP)
         releaseUpArrow:SetInputTrigger(releaseUpArrow:RELEASE)
-        textBoxTable:Add(releaseUpArrow, textBoxStopBehavior)
+        textBoxTable:Add(releaseUpArrow, cancelBehavior)
+
+        InputSet backspace
+        backspace:SetKeyboardInput(keys:BACKSPACE)
+        TextBoxStartDeleteBehavior backDeleteBehavior
+        backDeleteBehavior:SetDirection(backDeleteBehavior:BACKWARD)
+        textBoxTable:Add(backspace, backDeleteBehavior)
+
+        InputSet delete
+        delete:SetKeyboardInput(keys:FORWARD_DELETE)
+        TextBoxStartDeleteBehavior forwardDeleteBehavior
+        forwardDeleteBehavior:SetDirection(forwardDeleteBehavior:FORWARD)
+        textBoxTable:Add(delete, forwardDeleteBehavior)
+
+        InputSet releaseBackspace
+        releaseBackspace:SetKeyboardInput(keys:BACKSPACE)
+        releaseBackspace:SetInputTrigger(releaseBackspace:RELEASE)
+        textBoxTable:Add(releaseBackspace, cancelBehavior)
+
+        InputSet releaseDelete
+        releaseDelete:SetKeyboardInput(keys:FORWARD_DELETE)
+        releaseDelete:SetInputTrigger(releaseDelete:RELEASE)
+        textBoxTable:Add(releaseDelete, cancelBehavior)
 
         gameInput:AddInputTable(textBoxTable)
     end

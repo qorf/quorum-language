@@ -298,6 +298,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         else
             caretCharacter = caretCharacter - 1
         end
+        FitCharacterOnScreen(caretLine, caretCharacter)
         caretX = PositionCaret()
         ShowCaret()
     end
@@ -321,8 +322,43 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         else
             caretCharacter = caretCharacter + 1
         end
+        FitCharacterOnScreen(caretLine, caretCharacter)
         caretX = PositionCaret()
         ShowCaret()
+    end
+
+    /*
+    Fits a character horizontally on the screen. Does not adjust vertical
+    positioning of the pane.
+    */
+    private action FitCharacterOnScreen(integer line, integer character)
+        number sharedSpace = GetSharedSpaceOffset()
+        number left = horizontal * (GetScrollRegionWidth() - (GetWidth() - sharedSpace))
+        number right = left + GetWidth() - sharedSpace
+
+        text lineCharacters = textValue:GetLines():Get(line):GetText()
+        integer counter = 0
+        number x = 0
+        
+        repeat while counter < character
+            Glyph glyph = font:GetGlyph(lineCharacters:GetCharacter(counter))
+            x = x + glyph:horizontalAdvance
+            counter = counter + 1
+        end
+
+
+        if x < left
+            number newHorizontal = x / (GetScrollRegionWidth() - (GetWidth() - sharedSpace))
+            UpdatePaneView(newHorizontal, vertical)
+        else
+            if lineCharacters:GetSize() > counter
+                x = x + font:GetGlyph(lineCharacters:GetCharacter(counter)):horizontalAdvance
+            end
+            if x > right
+                number newHorizontal = (x - (GetWidth() - sharedSpace)) / (GetScrollRegionWidth() - (GetWidth() - sharedSpace))
+                UpdatePaneView(newHorizontal, vertical)
+            end
+        end
     end
 
     action MoveCaretDown
@@ -342,6 +378,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             GoToLine(caretLine - visibleLines + 1)
         end
 
+        FitCharacterOnScreen(caretLine, caretCharacter)
         // Don't store the returned value from PositionCaret() - keeping the old
         // value lets it flow more naturally across lines of varying length.
         PositionCaret()
@@ -363,7 +400,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         if caretLine < firstLine
             GoToLine(caretLine)
         end
-        
+
+        FitCharacterOnScreen(caretLine, caretCharacter)
         // Don't store the returned value from PositionCaret() - keeping the old
         // value lets it flow more naturally across lines of varying length.
         PositionCaret()
@@ -410,6 +448,45 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     action HideCaret
         caret:Hide()
         caretActive = false
+    end
+
+    action DeleteBackward
+        integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+        if index = 0
+            return now
+        end
+
+        if caretCharacter = 0
+            caretLine = caretLine - 1
+            caretCharacter = textValue:GetLine(caretLine):GetText():GetSize()
+        end
+
+        textValue = textValue:Delete(index - 1, index)
+        caretCharacter = caretCharacter - 1
+
+//        if caretLine < firstLine
+//            GoToLine(caretLine)
+//        end
+
+        FitCharacterOnScreen(caretLine, caretCharacter)
+        GetLineDrawables()
+        PositionCaret()
+        ShowCaret()
+    end
+
+    action DeleteForward
+        if caretLine = textValue:GetLineCount() - 1
+            text line = textValue:GetLine(caretLine):GetText()
+            if caretCharacter = line:GetSize()
+                return now
+            end
+        end
+
+        integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+        textValue = textValue:Delete(index, index + 1)
+        GetLineDrawables()
+        PositionCaret()
+        ShowCaret()
     end
 
     action SetWidth(integer newWidth)

@@ -1,0 +1,14 @@
+package Libraries.Game.Behaviors
+
+use Libraries.Interface.Item
+use Libraries.Interface.TextBox
+
+class CancelBehavior is Behavior
+    action Begin(Item item)
+        /*
+        This wipes out all behaviors on the Item. If you need to cancel only
+        some behaviors, while allowing others to persist, use an alternative.
+        */
+        item:CancelBehaviors()
+    end
+end
