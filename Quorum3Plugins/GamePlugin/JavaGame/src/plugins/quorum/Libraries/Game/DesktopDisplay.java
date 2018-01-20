@@ -20,8 +20,8 @@ import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
+import org.lwjgl.glfw.GLFWCharCallback;
 import org.lwjgl.glfw.GLFWVidMode;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLCapabilities;
 import plugins.quorum.Libraries.Interface.Events.KeyboardProcessor;
 import plugins.quorum.Libraries.Interface.Events.MouseProcessor;
@@ -84,6 +84,18 @@ public class DesktopDisplay {
         public void invoke(long window, int button, int action, int modifiers)
         {
             MouseProcessor.AddMouseEvent(window, button, action, modifiers);
+        }
+    };
+    
+    GLFWCharCallback textCallback = new GLFWCharCallback()
+    {
+        @Override
+        public void invoke(long window, int codepoint) {
+            char[] chars = Character.toChars(codepoint);
+            String s = "";
+            for (int i = 0; i < chars.length; i++)
+                s = s + chars[i];
+            
         }
     };
     
@@ -205,6 +217,7 @@ public class DesktopDisplay {
         GLFW.glfwSetCursorPosCallback(window, mouseMovementCallback);
         GLFW.glfwSetMouseButtonCallback(window, mouseCallback);
         GLFW.glfwSetScrollCallback(window, scrollCallback);
+        GLFW.glfwSetCharCallback(window, textCallback);
     }
 
     public void SetVSync(boolean vsync) 
