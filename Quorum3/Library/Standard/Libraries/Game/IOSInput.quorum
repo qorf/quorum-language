@@ -8,6 +8,7 @@ use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
+use Libraries.Interface.Events.TextInputListener
 use Libraries.Interface.Item
 use Libraries.Interface.Panel
 
@@ -167,6 +168,24 @@ class IOSInput is GameInput
     */
     action RemoveMouseWheelListener(MouseWheelListener listener)
         // Do nothing - mouse isn't supported on iOS.
+    end
+
+    /*
+    This action will add a TextInputListener to the GameInput. The 
+    GameInput will notify the TextInputListener when the user provides text
+    input to the game via the keyboard.
+    */
+    action AddTextInputListener(TextInputListener listener)
+        // TO-DO
+    end
+
+    /*
+    This action will remove a TextInputListener from the GameInput. The
+    GameInput will no longer notify the given TextInputListener of 
+    TextInputEvents. 
+    */
+    action RemoveTextInputListener(TextInputListener listener)
+        // TO-DO
     end
 
     /*

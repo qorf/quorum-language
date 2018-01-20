@@ -57,6 +57,7 @@ use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.FocusListener
+use Libraries.Interface.Events.TextInputListener
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
@@ -1014,7 +1015,7 @@ class Game
 
         class Main is Game
 
-            Keyboard listener
+            KeyboardListener listener
 
             action Main
                 StartGame()
@@ -1028,6 +1029,35 @@ class Game
     */
     action AddKeyboardListener(KeyboardListener listener)
         gameInput:AddKeyboardListener(listener)
+    end
+
+    /*
+    This action adds a TextInputListener to the Game. The listener will be 
+    notified when the Game receives textual input from the keyboard.
+
+    Attribute: Parameter listener The TextInputListener to add to the Game.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TextInputListener
+
+        class Main is Game
+
+            TextInputListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTextInputListener(listener)
+            end
+            
+        end
+    */
+    action AddTextInputListener(TextInputListener listener)
+        gameInput:AddTextInputListener(listener)
     end
 
     /*
@@ -1155,6 +1185,37 @@ class Game
     */
     action RemoveKeyboardListener(KeyboardListener listener)
         gameInput:RemoveKeyboardListener(listener)
+    end
+
+    /*
+    This action removes a TextInputListener from the Game. The listener will no
+    longer receive events for text input from the keyboard.
+
+    Attribute: Parameter listener The TextInputListener to be removed from the Game.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.TextInputListener
+
+        class Main is Game
+
+            TextInputListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddTextInputListener(listener)
+
+                RemoveTextInputListener(listener)
+            end
+            
+        end
+    */
+    action RemoveTextInputListener(TextInputListener listener)
+        gameInput:RemoveTextInputListener(listener)
     end
 
     /*

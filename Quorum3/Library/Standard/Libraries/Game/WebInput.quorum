@@ -8,6 +8,7 @@ use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Events.TextInputListener
 use Libraries.Containers.Array
 
 class WebInput is GameInput
@@ -214,4 +215,21 @@ class WebInput is GameInput
         // Do nothing - the web uses mouse input, not touch input.
     end
 
+    /*
+    This action will add a TextInputListener to the GameInput. The 
+    GameInput will notify the TextInputListener when the user provides text
+    input to the game via the keyboard.
+    */
+    action AddTextInputListener(TextInputListener listener)
+        // TO-DO
+    end
+
+    /*
+    This action will remove a TextInputListener from the GameInput. The
+    GameInput will no longer notify the given TextInputListener of 
+    TextInputEvents. 
+    */
+    action RemoveTextInputListener(TextInputListener listener)
+        // TO-DO
+    end
 end

@@ -1,0 +1,13 @@
+package Libraries.Interface.Events
+
+class TextInputEvent 
+    text value = ""
+
+    action SetText(text newValue)
+        value = newValue
+    end
+
+    action GetText returns text
+        return value
+    end
+end

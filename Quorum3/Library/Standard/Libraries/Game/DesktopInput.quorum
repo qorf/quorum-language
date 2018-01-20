@@ -13,6 +13,9 @@ use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
+use Libraries.Interface.Events.TextInputEvent
+use Libraries.Interface.Events.TextInputListener
+use Libraries.Interface.Events.TextInputProcessor
 
 /*
 This class automatically handles input and notifies event listeners for Games
@@ -24,6 +27,7 @@ class DesktopInput is GameInput
 
     private KeyboardProcessor keyboardProcessor
     private MouseProcessor mouseProcessor
+    private TextInputProcessor textInputProcessor
 
     Array<KeyboardListener> keyboardListeners
     InputSet keyboardModifiers
@@ -31,6 +35,7 @@ class DesktopInput is GameInput
     Array<MouseListener> mouseListeners
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
+    Array<TextInputListener> textInputListeners
 
     GameStateManager manager
 
@@ -62,8 +67,14 @@ class DesktopInput is GameInput
 
         keyboardProcessor:Update()
         
-        if keyboardProcessor:HasEvents() and not keyboardListeners:IsEmpty()
+        if keyboardProcessor:HasEvents()
             ProcessKeyboardEvent(keyboardProcessor:GetEvents())
+        end
+
+        textInputProcessor:Update()
+        
+        if textInputProcessor:HasEvents()
+            ProcessTextInputEvent(textInputProcessor:GetEvents())
         end
     end
 
@@ -130,6 +141,71 @@ class DesktopInput is GameInput
                 elseif currentEvent:eventType = currentEvent:RELEASED_KEY
                     currentListener:ReleasedKey(currentEvent)
                 end
+            end
+
+            listenIterator:Rewind()
+        end
+    end
+
+    private action ProcessTextInputEvent(List<TextInputEvent> events)
+        TextInputEvent currentEvent = undefined
+        TextInputListener currentListener = undefined
+        Iterator<TextInputListener> listenIterator = textInputListeners:GetIterator()
+
+        text inputGroup = ""
+        Item focusedItem = manager:GetFocus()
+        if focusedItem not= undefined
+            inputGroup = focusedItem:GetInputGroup()
+        end
+
+        repeat while not events:IsEmpty()
+            currentEvent = events:RemoveFromFront()
+
+//            if currentEvent:eventType = currentEvent:PRESSED_KEY
+//                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
+//                    keyboardModifiers:AddModifier(keyboardModifiers:SHIFT)
+//                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
+//                    keyboardModifiers:AddModifier(keyboardModifiers:ALT)
+//                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
+//                    keyboardModifiers:AddModifier(keyboardModifiers:CONTROL)
+//                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
+//                    keyboardModifiers:AddModifier(keyboardModifiers:META)
+//                end
+//            else
+//                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
+//                    keyboardModifiers:RemoveModifier(keyboardModifiers:SHIFT)
+//                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
+//                    keyboardModifiers:RemoveModifier(keyboardModifiers:ALT)
+//                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
+//                    keyboardModifiers:RemoveModifier(keyboardModifiers:CONTROL)
+//                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
+//                    keyboardModifiers:RemoveModifier(keyboardModifiers:META)
+//                end
+//            end
+
+            InputSet set = keyboardModifiers:Copy()
+//            set:SetKeyboardInput(currentEvent:keyCode)
+
+//            if currentEvent:eventType = currentEvent:RELEASED_KEY
+//                set:SetInputTrigger(set:RELEASE)
+//            end
+            
+            InputTable table = GetInputTable(inputGroup)
+
+            /*
+            Using boolean short-circuit evaluation. If the table is defined,
+            the input is processed - if the input set wasn't found in the table,
+            it returns false. Thus the default table is referenced if there was
+            no table with an identifier matching the input group, or if such a
+            table existed but didn't handle this InputSet.
+            */
+            if table = undefined or table:ProcessInput(set, focusedItem) = false
+                GetDefaultInputTable():ProcessInput(set, focusedItem)
+            end
+
+            repeat while listenIterator:HasNext()
+                currentListener = listenIterator:Next()
+                currentListener:TextInput(currentEvent)
             end
 
             listenIterator:Rewind()
@@ -236,6 +312,24 @@ class DesktopInput is GameInput
     */
     action AddTouchListener(TouchListener listener)
         // Do nothing - touch isn't supported on Desktop.
+    end
+
+    /*
+    This action will add a TextInputListener to the DesktopInput. The 
+    DesktopInput will notify the TextInputListener when the user provides text
+    input to the game via the keyboard.
+    */
+    action AddTextInputListener(TextInputListener listener)
+        textInputListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a TextInputListener from the DesktopInput. The
+    DesktopInput will no longer notify the given TextInputListener of 
+    TextInputEvents. 
+    */
+    action RemoveTextInputListener(TextInputListener listener)
+        textInputListeners:Remove(listener)
     end
 
     /*
