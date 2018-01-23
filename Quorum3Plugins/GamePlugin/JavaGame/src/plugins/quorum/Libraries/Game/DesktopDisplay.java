@@ -25,6 +25,7 @@ import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GLCapabilities;
 import plugins.quorum.Libraries.Interface.Events.KeyboardProcessor;
 import plugins.quorum.Libraries.Interface.Events.MouseProcessor;
+import plugins.quorum.Libraries.Interface.Events.TextInputProcessor;
 import quorum.Libraries.Game.ScreenResolution;
 
 /**
@@ -95,7 +96,7 @@ public class DesktopDisplay {
             String s = "";
             for (int i = 0; i < chars.length; i++)
                 s = s + chars[i];
-            
+            TextInputProcessor.AddTextInputEvent(window, codepoint, s);
         }
     };
     

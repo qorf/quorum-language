@@ -5,8 +5,8 @@
  */
 package plugins.quorum.Libraries.Interface.Events;
 
+import quorum.Libraries.Interface.Events.TextInputEvent;
 import java.util.LinkedList;
-import plugins.quorum.Libraries.Game.InputMonitor;
 
 /**
  *
@@ -18,18 +18,26 @@ public class TextInputProcessor
     
     // Events are provided to this queue from the DesktopDisplay. See the
     // KeyboardEvent method in plugins.quorum.Libraries.Game.DesktopDisplay
-//    public static LinkedList<quorum.Libraries.Interface.Events.KeyboardEvent> keyboardEvents = new LinkedList<>();
+    public static LinkedList<quorum.Libraries.Interface.Events.TextInputEvent> textEvents = new LinkedList<>();
 
     public void Update() 
     {
-//        quorum.Libraries.Interface.Events.KeyboardProcessor quorumProcessor = (quorum.Libraries.Interface.Events.KeyboardProcessor) me_;
-//        quorum.Libraries.Containers.List_ events = quorumProcessor.events;
-//
-//        while (!keyboardEvents.isEmpty()) 
-//        {
-//            quorum.Libraries.Interface.Events.KeyboardEvent event = keyboardEvents.remove();
-//
-//            events.Add(event);
-//        }
+        quorum.Libraries.Interface.Events.TextInputProcessor quorumProcessor = (quorum.Libraries.Interface.Events.TextInputProcessor) me_;
+        quorum.Libraries.Containers.List_ events = quorumProcessor.events;
+
+        while (!textEvents.isEmpty()) 
+        {
+            quorum.Libraries.Interface.Events.TextInputEvent event = textEvents.remove();
+
+            events.Add(event);
+        }
+    }
+    
+    public static void AddTextInputEvent(long window, int codepoint, String text)
+    {
+        TextInputEvent event = new TextInputEvent();
+        event.SetText(text);
+        event.SetUnicodeValue(codepoint);
+        textEvents.add(event);
     }
 }
