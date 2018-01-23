@@ -1,14 +1,18 @@
 package Libraries.Game.Behaviors
 
 use Libraries.Interface.Item
-use Libraries.Interface.TextBox
+use Libraries.Interface.Events.BehaviorEvent
 
 class CancelBehavior is Behavior
-    action Begin(Item item)
+    action Begin(BehaviorEvent event)
+        Item item = event:GetItem()
+
         /*
         This wipes out all behaviors on the Item. If you need to cancel only
         some behaviors, while allowing others to persist, use an alternative.
         */
-        item:CancelBehaviors()
+        if item not= undefined
+            item:CancelBehaviors()
+        end
     end
 end

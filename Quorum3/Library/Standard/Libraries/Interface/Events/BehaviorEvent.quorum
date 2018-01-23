@@ -1,0 +1,43 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Item
+
+class BehaviorEvent 
+    Item item = undefined
+    KeyboardEvent keyboardEvent = undefined
+    MouseEvent mouseEvent = undefined
+    TextInputEvent textInputEvent = undefined
+
+    action GetItem returns Item
+        return item
+    end
+
+    action SetItem(Item i)
+        item = i
+    end
+
+    action GetKeyboardEvent returns KeyboardEvent
+        return keyboardEvent
+    end
+
+    action SetKeyboardEvent(KeyboardEvent event)
+        keyboardEvent = event
+    end
+
+    action GetMouseEvent returns MouseEvent
+        return mouseEvent
+    end
+
+    action SetMouseEvent(MouseEvent event)
+        mouseEvent = event
+    end
+
+    action GetTextInputEvent returns TextInputEvent
+        return textInputEvent
+    end
+
+    action SetTextInputEvent(TextInputEvent event)
+        textInputEvent = event
+    end
+
+end

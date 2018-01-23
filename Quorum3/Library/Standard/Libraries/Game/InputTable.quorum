@@ -3,7 +3,7 @@ package Libraries.Game
 use Libraries.Containers.HashTable
 use Libraries.Game.InputSet
 use Libraries.Game.Behaviors.Behavior
-use Libraries.Interface.Item
+use Libraries.Interface.Events.BehaviorEvent
 
 class InputTable 
 
@@ -58,10 +58,10 @@ class InputTable
         return table:GetSize()
     end
 
-    action ProcessInput(InputSet set, Item item) returns boolean
+    action ProcessInput(InputSet set, BehaviorEvent event) returns boolean
         if table:HasKey(set)
             Behavior behavior = table:GetValue(set)
-            behavior:Begin(item)
+            behavior:Begin(event)
             return true
         end
         return false

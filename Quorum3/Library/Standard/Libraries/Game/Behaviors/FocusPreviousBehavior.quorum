@@ -1,13 +1,13 @@
 package Libraries.Game.Behaviors
 
 use Libraries.Game.GameStateManager
-use Libraries.Interface.Item
+use Libraries.Interface.Events.BehaviorEvent
 
 class FocusPreviousBehavior is Behavior
 
     GameStateManager manager
 
-    action Begin(Item item)
+    action Begin(BehaviorEvent event)
         manager:GetGame():GetFocusManager():FocusPreviousItem()
     end
 end

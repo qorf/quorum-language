@@ -16,6 +16,7 @@ use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.TextInputEvent
 use Libraries.Interface.Events.TextInputListener
 use Libraries.Interface.Events.TextInputProcessor
+use Libraries.Interface.Events.BehaviorEvent
 
 /*
 This class automatically handles input and notifies event listeners for Games
@@ -121,6 +122,10 @@ class DesktopInput is GameInput
                 set:SetInputTrigger(set:RELEASE)
             end
             
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetItem(focusedItem)
+            behaviorEvent:SetKeyboardEvent(currentEvent)
+
             InputTable table = GetInputTable(inputGroup)
 
             /*
@@ -130,8 +135,8 @@ class DesktopInput is GameInput
             no table with an identifier matching the input group, or if such a
             table existed but didn't handle this InputSet.
             */
-            if table = undefined or table:ProcessInput(set, focusedItem) = false
-                GetDefaultInputTable():ProcessInput(set, focusedItem)
+            if table = undefined or table:ProcessInput(set, behaviorEvent) = false
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
             end
 
             repeat while listenIterator:HasNext()
@@ -190,6 +195,10 @@ class DesktopInput is GameInput
 //                set:SetInputTrigger(set:RELEASE)
 //            end
             
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetItem(focusedItem)
+            behaviorEvent:SetTextInputEvent(currentEvent)
+
             InputTable table = GetInputTable(inputGroup)
 
             /*
@@ -199,9 +208,9 @@ class DesktopInput is GameInput
             no table with an identifier matching the input group, or if such a
             table existed but didn't handle this InputSet.
             */
-            if table = undefined or table:ProcessInput(set, focusedItem) = false
-                GetDefaultInputTable():ProcessInput(set, focusedItem)
-            end
+//            if table = undefined or table:ProcessInput(set, focusedItem) = false
+//                GetDefaultInputTable():ProcessInput(set, focusedItem)
+//            end
 
             repeat while listenIterator:HasNext()
                 currentListener = listenIterator:Next()

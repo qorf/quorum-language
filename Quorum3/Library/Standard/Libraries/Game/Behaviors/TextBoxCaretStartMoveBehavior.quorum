@@ -2,6 +2,7 @@ package Libraries.Game.Behaviors
 
 use Libraries.Interface.Item
 use Libraries.Interface.TextBox
+use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Game.Behaviors.TextBoxCaretMoveBehavior
 
 class TextBoxCaretStartMoveBehavior is Behavior
@@ -21,7 +22,8 @@ class TextBoxCaretStartMoveBehavior is Behavior
         return direction
     end
 
-    action Begin(Item item)
+    action Begin(BehaviorEvent event)
+        Item item = event:GetItem()
         if not (item is TextBox)
             return now
         end
@@ -30,7 +32,6 @@ class TextBoxCaretStartMoveBehavior is Behavior
 
         TextBoxCaretMoveBehavior behavior
         behavior:SetTimer(box:GetCaretIdleTime())
-        behavior:EnableTimer()
 
         /*
         Begin advancing the caret in the given direction. It will continue to

@@ -464,13 +464,14 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         textValue = textValue:Delete(index - 1, index)
         caretCharacter = caretCharacter - 1
 
-//        if caretLine < firstLine
-//            GoToLine(caretLine)
-//        end
+        if caretLine < firstLine
+            output "firstLine = " + firstLine + ", caretLine = " + caretLine
+            GoToLine(caretLine)
+        end
 
         FitCharacterOnScreen(caretLine, caretCharacter)
         GetLineDrawables()
-        PositionCaret()
+        caretX = PositionCaret()
         ShowCaret()
     end
 

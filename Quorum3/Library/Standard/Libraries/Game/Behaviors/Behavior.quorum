@@ -1,42 +1,23 @@
 package Libraries.Game.Behaviors
 
-use Libraries.Interface.Item
+use Libraries.Interface.Events.BehaviorEvent
 
 class Behavior 
-
-    number timer = 0
-    boolean timed = false
-
-    action SetTimer(number seconds)
-        timer = seconds
-    end
-
-    action GetTimer returns number
-        return timer
-    end
-
-    action EnableTimer
-        timed = true
-    end
-
-    action DisableTimer
-        timed = false
-    end
-
-    action IsTimed returns boolean
-        return timed
-    end
-
-    action Begin(Item item)
-
-    end
-
-    action Update(number seconds, Item item)
-
-    end
-
-    action Finish(Item item)
-
-    end
     
+    action Begin(BehaviorEvent event)
+
+    end
+
+    action Update(number seconds)
+
+    end
+
+    action Finish
+        
+    end
+
+    action IsFinished returns boolean
+        return false
+    end
+
 end

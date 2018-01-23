@@ -2,12 +2,15 @@ package Libraries.Game.Behaviors
 
 use Libraries.Interface.Item
 use Libraries.Interface.TextBox
+use Libraries.Interface.Events.BehaviorEvent
 
-class TextBoxDeleteBehavior is Behavior
+class TextBoxDeleteBehavior is TimedBehavior
     
     public constant integer BACKWARD = 1
     public constant integer FORWARD = 2
  
+    TextBox textBox = undefined
+
     integer direction = 0
 
     action SetDirection(integer direction)
@@ -18,30 +21,27 @@ class TextBoxDeleteBehavior is Behavior
         return direction
     end
 
-    action Begin(Item item)
+    action Begin(BehaviorEvent event)
+        Item item = event:GetItem()
         if not (item is TextBox)
             return now
         end
 
-        TextBox box = cast(TextBox, item)
+        textBox = cast(TextBox, item)
 
         if direction = BACKWARD
-            box:DeleteBackward()
+            textBox:DeleteBackward()
         elseif direction = FORWARD
-            box:DeleteForward()
+            textBox:DeleteForward()
         end
-    end
-
-    action Update(number seconds, Item item)
     end
 
     action Finish(Item item)
-        if not (item is TextBox)
+        if textBox = undefined
             return now
         end
 
-        TextBox box = cast(TextBox, item)
-        SetTimer(box:GetCaretMoveTime())
-        box:AddBehavior(me)
+        SetTimer(textBox:GetCaretMoveTime())
+        textBox:AddBehavior(me)
     end
 end

@@ -2,6 +2,7 @@ package Libraries.Game.Behaviors
 
 use Libraries.Interface.Item
 use Libraries.Interface.TextBox
+use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Game.Behaviors.TextBoxDeleteBehavior
 
 class TextBoxStartDeleteBehavior is Behavior
@@ -19,7 +20,8 @@ class TextBoxStartDeleteBehavior is Behavior
         return direction
     end
 
-    action Begin(Item item)
+    action Begin(BehaviorEvent event)
+        Item item = event:GetItem()
         if not (item is TextBox)
             return now
         end
@@ -28,7 +30,6 @@ class TextBoxStartDeleteBehavior is Behavior
 
         TextBoxDeleteBehavior behavior
         behavior:SetTimer(box:GetCaretIdleTime())
-        behavior:EnableTimer()
 
         /*
         Begin deleting in the given direction. Deletion will continue until the

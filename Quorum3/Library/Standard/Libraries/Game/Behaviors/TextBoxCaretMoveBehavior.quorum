@@ -1,15 +1,18 @@
 package Libraries.Game.Behaviors
 
 use Libraries.Interface.Item
+use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.TextBox
 
-class TextBoxCaretMoveBehavior is Behavior
+class TextBoxCaretMoveBehavior is TimedBehavior
     
     public constant integer LEFT = 1
     public constant integer RIGHT = 2
     public constant integer DOWN = 3
     public constant integer UP = 4
  
+    TextBox textBox = undefined
+
     integer direction = 0
 
     action SetDirection(integer direction)
@@ -20,34 +23,31 @@ class TextBoxCaretMoveBehavior is Behavior
         return direction
     end
 
-    action Begin(Item item)
+    action Begin(BehaviorEvent event)
+        Item item = event:GetItem()
         if not (item is TextBox)
             return now
         end
 
-        TextBox box = cast(TextBox, item)
+        textBox = cast(TextBox, item)
 
         if direction = LEFT
-            box:MoveCaretLeft()
+            textBox:MoveCaretLeft()
         elseif direction = RIGHT
-            box:MoveCaretRight()
+            textBox:MoveCaretRight()
         elseif direction = DOWN
-            box:MoveCaretDown()
+            textBox:MoveCaretDown()
         elseif direction = UP
-            box:MoveCaretUp()
+            textBox:MoveCaretUp()
         end
     end
 
-    action Update(number seconds, Item item)
-    end
-
-    action Finish(Item item)
-        if not (item is TextBox)
+    action Finish
+        if textBox = undefined
             return now
         end
 
-        TextBox box = cast(TextBox, item)
-        SetTimer(box:GetCaretMoveTime())
-        box:AddBehavior(me)
+        SetTimer(textBox:GetCaretMoveTime())
+        textBox:AddBehavior(me)
     end
 end
