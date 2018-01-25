@@ -1,0 +1,106 @@
+package Libraries.Network
+
+use Libraries.Containers.List
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+
+class NetworkRequest 
+    List<NetworkRequestListener> listeners
+    NetworkRequestParameters parameters
+
+    on create
+        // set required defaults
+    end
+
+    action SendRequest(NetworkRequestParameters parameters)
+        me:parameters = parameters
+    end
+
+    action SendRequest(text webAddress)
+        parameters:SetWebAddress(webAddress)
+    end
+
+    action SendRequest(text webAddress, NetworkRequestType type)
+        parameters:SetWebAddress(webAddress)
+        parameters:SetNetworkRequestType(type)
+    end
+
+    action SendRequest(text webAddress, NetworkRequestParameters parameters)
+        me:parameters = parameters
+        me:parameters:SetWebAddress(webAddress)
+
+    end
+
+    action SendRequest(text webAddress, text data)
+        parameters:SetWebAddress(webAddress)
+        parameters:SetData(data)
+    end
+
+    action SendRequest(text webAddress, text data, NetworkRequestType type)
+        parameters:SetWebAddress(webAddress)
+        parameters:SetData(data)
+        parameters:SetNetworkRequestType(type)
+    end
+
+    action SendRequest(text webAddress, text data, NetworkRequestParameters parameters)
+        me:parameters = parameters
+        parameters:SetWebAddress(webAddress)
+        parameters:SetData(data)
+    end
+
+    action SendRequest(text webAddress, JavaScriptObjectNotation data)
+        parameters:SetWebAddress(webAddress)
+        parameters:SetData(data)
+    end
+
+    action SendRequest(text webAddress, JavaScriptObjectNotation data, NetworkRequestType type)
+        parameters:SetWebAddress(webAddress)
+        parameters:SetData(data)
+        parameters:SetNetworkRequestType(type)
+    end
+
+    action SendRequest(text webAddress, JavaScriptObjectNotation data, NetworkRequestParameters parameters)
+        me:parameters = parameters
+        parameters:SetWebAddress(webAddress)
+        parameters:SetData(data)
+    end
+
+    action SendRequest(text webAddress, HashTable<text, text> data)
+        parameters:SetWebAddress(webAddress)
+        parameters:SetData(data)
+    end
+
+    action SendRequest(text webAddress, HashTable<text, text> data, NetworkRequestType type)
+        parameters:SetWebAddress(webAddress)
+        parameters:SetData(data)
+        parameters:SetNetworkRequestType(type)
+    end
+
+    action SendRequest(text webAddress, HashTable<text, text> data, NetworkRequestParameters parameters)
+        me:parameters = parameters
+        parameters:SetWebAddress(webAddress)
+        parameters:SetData(data)
+    end
+
+    action AddListener(NetworkRequestListener listener)
+        listeners:Add(listener)
+    end
+
+    action RemoveListener(NetworkRequestListener listener)
+        listeners:Remove(listener)
+    end
+
+    action GetListenerIterator() returns Iterator<NetworkRequestListener>
+        return listeners:GetIterator()
+    end
+
+    action Notify(NetworkResponseEvent response)
+        Iterator<NetworkRequestListener> iterator = listeners:GetIterator()
+        repeat while iterator:HasNext()
+            NetworkRequestListener listener = iterator:Next()
+            listener:ResponseReceived(response)
+        end
+    end
+
+
+end
