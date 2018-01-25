@@ -1,0 +1,24 @@
+package Libraries.Network
+
+use Libraries.System.File
+
+class JavaScriptObjectNotation
+    JavaScriptObjectNotationListener listener
+    JavaScriptObjectNotationLexer lexer
+    JavaScriptObjectNotationParser parser
+
+    action GetListener returns JavaScriptObjectNotationListener
+        return listener
+    end
+
+    action SetListener(JavaScriptObjectNotationListener listener)
+        me:listener = listener
+        lexer:SetListener(listener)
+        parser:SetListener(listener)
+    end
+
+    action Read(File file)
+        lexer:Read(file)
+        parser:Parse(lexer)
+    end
+end

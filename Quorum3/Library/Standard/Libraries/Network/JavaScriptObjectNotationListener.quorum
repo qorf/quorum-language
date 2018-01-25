@@ -1,0 +1,51 @@
+package Libraries.Network
+
+class JavaScriptObjectNotationListener
+    action EnterStart
+    end
+
+    action ExitStart
+    end
+
+    action EnterObject
+    end
+
+    action ExitObject
+    end
+
+    action EnterArray
+    end
+
+    action ExitArray
+    end
+
+    action EnterPair
+    end
+
+    action ExitPair
+    end
+
+    action EnterValue
+    end
+
+    action ExitValue
+    end
+
+    action VisitString(JavaScriptObjectNotationTerminal terminal)
+    end
+
+    action VisitNumber(JavaScriptObjectNotationTerminal terminal)
+    end
+
+    action VisitTrue(JavaScriptObjectNotationTerminal terminal)
+    end
+
+    action VisitFalse(JavaScriptObjectNotationTerminal terminal)
+    end
+
+    action VisitNull(JavaScriptObjectNotationTerminal terminal)
+    end
+
+    action VisitError(JavaScriptObjectNotationError error)
+    end
+end
