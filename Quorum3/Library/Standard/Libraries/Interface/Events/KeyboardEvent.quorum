@@ -12,16 +12,16 @@ class KeyboardEvent
 
     /*  
     The keyCode corresponds to one of the constant values in this class. 
-    The default value of -1 is equal to the "ANY_KEY" constant. 
+    The default value of 0 is equal to the "UNKNOWN" constant. 
     */
-    public integer keyCode = -1
+    public integer keyCode = 0
 
     /* 
     This is either PRESSED_KEY or RELEASED_KEY. 
     */
     public integer eventType = 0
 
-    public constant integer ANY_KEY = -1
+    public constant integer ANY_KEY = 1
     public constant integer NUM_0 = 7
     public constant integer NUM_1 = 8
     public constant integer NUM_2 = 9

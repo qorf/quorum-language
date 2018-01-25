@@ -4,7 +4,7 @@ use Libraries.Interface.Item
 use Libraries.Interface.Events.BehaviorEvent
 
 class CancelBehavior is Behavior
-    action Begin(BehaviorEvent event)
+    action Run(BehaviorEvent event)
         Item item = event:GetItem()
 
         /*

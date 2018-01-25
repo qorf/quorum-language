@@ -21,7 +21,7 @@ class TextBoxDeleteBehavior is TimedBehavior
         return direction
     end
 
-    action Begin(BehaviorEvent event)
+    action Run(BehaviorEvent event)
         Item item = event:GetItem()
         if not (item is TextBox)
             return now
@@ -36,7 +36,7 @@ class TextBoxDeleteBehavior is TimedBehavior
         end
     end
 
-    action Finish(Item item)
+    action Dispose(Item item)
         if textBox = undefined
             return now
         end

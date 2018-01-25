@@ -20,7 +20,7 @@ class TextBoxStartDeleteBehavior is Behavior
         return direction
     end
 
-    action Begin(BehaviorEvent event)
+    action Run(BehaviorEvent event)
         Item item = event:GetItem()
         if not (item is TextBox)
             return now

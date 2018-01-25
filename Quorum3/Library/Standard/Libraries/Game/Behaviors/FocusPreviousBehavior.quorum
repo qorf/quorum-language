@@ -7,7 +7,7 @@ class FocusPreviousBehavior is Behavior
 
     GameStateManager manager
 
-    action Begin(BehaviorEvent event)
+    action Run(BehaviorEvent event)
         manager:GetGame():GetFocusManager():FocusPreviousItem()
     end
 end

@@ -527,7 +527,7 @@ class Item
 
             if behavior:IsFinished()
                 behaviors:RemoveAt(counter)
-                behavior:Finish()
+                behavior:Dispose()
             else
                 behavior:Update(seconds)
                 counter = counter + 1
@@ -885,7 +885,7 @@ class Item
         event:SetItem(me)
 
         behaviors:Add(behavior)
-        behavior:Begin(event)
+        behavior:Run(event)
     end
 
     /*
