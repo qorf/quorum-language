@@ -8,9 +8,9 @@ class NetworkRequest
     List<NetworkRequestListener> listeners
     NetworkRequestParameters parameters
 
-    on create
-        // set required defaults
-    end
+    system action Get(text url)
+
+    system action Get(text url, text params)
 
     action SendRequest(NetworkRequestParameters parameters)
         me:parameters = parameters
@@ -101,6 +101,5 @@ class NetworkRequest
             listener:ResponseReceived(response)
         end
     end
-
 
 end

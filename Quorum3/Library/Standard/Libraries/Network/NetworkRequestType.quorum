@@ -9,32 +9,50 @@ class NetworkRequestType
     integer DELETE = 5
     integer type = POST
 
-    action SetNetworkRequestTypeToHEAD()
+    action HEAD()
         type = HEAD
     end
 
-    action SetNetworkRequestTypeToGET()
+    action GET()
         type = GET
     end
 
-    action SetNetworkRequestTypeToPOST()
+    action POST()
         type = POST
     end
 
-    action SetNetworkRequestTypeToPUT()
+    action PUT()
         type = PUT
     end
 
-    action SetNetworkRequestTypeToPATCH()
+    action PATCH()
         type = PATCH
     end
 
-    action SetNetworkRequestTypeToDELETE()
+    action DELETE()
         type = DELETE
     end
 
     action GetType() returns integer
         return type
+    end
+
+    action GetType(integer type) returns text
+        if type = HEAD
+            return "HEAD"
+        elseif type = GET
+            return "GET"
+        elseif type = POST
+            return "POST"
+        elseif type = PUT
+            return "PUT"
+        elseif type = PATCH
+            return "PATCH"
+        elseif type = DELETE
+            return "DELETE"
+        else
+            return "none"
+        end
     end
 
     action IsHEAD() returns boolean
@@ -61,5 +79,4 @@ class NetworkRequestType
         return type = DELETE
     end
 
-    
 end

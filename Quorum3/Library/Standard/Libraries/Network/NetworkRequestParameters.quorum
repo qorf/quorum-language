@@ -26,7 +26,7 @@ class NetworkRequestParameters
     text securityKey  = ""
 
     on create
-        type:SetNetworkRequestTypeToPOST()
+        me:type:POST()
     end
 
     action SetNetworkRequestType(NetworkRequestType type)
@@ -34,27 +34,27 @@ class NetworkRequestParameters
     end
 
     action SetNetworkRequestTypeToHEAD()
-        type:SetNetworkRequestTypeToHEAD()
+        me:type:HEAD()
     end
 
     action SetNetworkRequestTypeToGET()
-        type:SetNetworkRequestTypeToGET()
+        me:type:GET()
     end
 
     action SetNetworkRequestTypeToPOST()
-        type:SetNetworkRequestTypeToPOST()
+        me:type:POST()
     end
 
     action SetNetworkRequestTypeToPUT()
-        type:SetNetworkRequestTypeToPUT()
+        me:type:PUT()
     end
 
     action SetNetworkRequestTypeToPATCH()
-        type:SetNetworkRequestTypeToPATCH()
+        me:type:PATCH()
     end
 
     action SetNetworkRequestTypeToDELETE()
-        type:SetNetworkRequestTypeToDELETE()
+        me:type:DELETE()
     end
 
     action SetWebAddress(text webAddress)
