@@ -1,0 +1,20 @@
+package Libraries.Game.Behaviors
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.TextBox
+
+class TextBoxNewLineBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if not (item is TextBox)
+            return now
+        end
+
+        text lineFeed = ""
+        lineFeed = lineFeed:GetLineFeed()
+
+        TextBox box = cast(TextBox, item)
+        box:Insert(lineFeed)
+    end
+end

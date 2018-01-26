@@ -4,163 +4,163 @@ use Libraries.Containers.List
 use Libraries.Containers.HashTable
 
 class NetworkResponseEvent 
-    text apparentEncoding = ""
-    text encoding = ""
-    text headers = ""
-    List<text> headerLinks
-    List<NetworkResponseEvent> history
-    boolean isPermanentRedirect = false
-    boolean isRedirect = false
-    PreparedRequest nextRequest // PreparedRequest object to which this is a response
-    JavaScriptObjectNotation responseJSON
-    text responseRaw = ""   //File-like object representation of response (advanced). Requires stream=True
-    text responseText = ""
-    text savedLocalData = ""
-    number secondsElapsed = 0.0
-    integer statusCode = 0
-    text statusText = ""
-    text webAddress = ""
-    //iter_content    // Iterator for response data
-    //iter_lines      // Iterator for response data
-
-    action Close()
-    end
-
-    action GetApparentEncoding() returns text
-        return apparentEncoding
-    end
-
-    action GetEncoding() returns text
-        return encoding
-    end
-
-    action GetHeaders() returns text
-        return headers
-    end
-
-    action GetHeaderLinks() returns List<text>
-        List<text> links
-        return links
-    end
-
-    action GetHistory() returns List<NetworkResponseEvent> 
-        return history
-    end
-
-    action GetNextRequest() returns PreparedRequest
-        return nextRequest
-    end
-
-    action GetResponseJSON() returns JavaScriptObjectNotation
-        return responseJSON
-    end
-
-    action GetResponseRaw() returns text
-        return responseRaw
-    end
-
-    action GetResponseText() returns text
-        return responseText
-    end
-
-    action GetSavedLocalData() returns text
-        return savedLocalData
-    end
-
-    action GetSecondsElapsed() returns number
-        return secondsElapsed
-    end
-
-    action GetStatusText() returns text
-        return statusText
-    end
-
-    action GetStatusCode() returns integer
-        return statusCode
-    end
-
-    action GetWebAddress() returns text
-        return webAddress
-    end
-
-    action IsOk() returns boolean
-        if statusCode < 400
-            return true
-        else
-            return false
-        end
-    end
-
-    action IsPermanentRedirect() returns boolean
-        return isPermanentRedirect
-    end
-
-    action IsRedirect() returns boolean
-        return isRedirect
-    end
-
-    action SetApparentEncoding(text apparentEncoding)
-        me:apparentEncoding = apparentEncoding
-    end
-
-    action SetEncoding(text encoding)
-        me:encoding = encoding
-    end
-
-    action SetHeaders(text headers)
-        me:headers = headers
-    end
-
-    action SetHeaderLinks(List<text> headerLinks)
-        me:headerLinks = headerLinks
-    end
-
-    action SetHistory(List<NetworkResponseEvent> history)
-        me:history = history
-    end
-
-    action SetNextRequest(PreparedRequest nextRequest)
-        me:nextRequest = nextRequest
-    end
-
-    action SetResponseJSON(JavaScriptObjectNotation response)
-        me:responseJSON = responseJSON
-    end
-
-    action SetResponseRaw(text responseRaw)
-        me:responseRaw = responseRaw
-    end
-
-    action SetResponseText(text responseText)
-        me:responseText = responseText
-    end
-
-    action SetSavedLocalData(text savedLocalData)
-        me:savedLocalData = savedLocalData
-    end
-
-    action SetSecondsElapsed(number secondsElapsed)
-        me:secondsElapsed = secondsElapsed
-    end
-
-    action SetStatusText(text statusText)
-        me:statusText = statusText
-    end
-
-    action SetStatusCode(integer statusCode)
-        me:statusCode = statusCode
-    end
-
-    action SetWebAddress(text webAddress)
-        me:webAddress = webAddress
-    end
-
-    action SetIsPermanentRedirect(boolean isPermanentRedirect)
-        me:isPermanentRedirect = isPermanentRedirect
-    end
-
-    action SetIsRedirect(boolean isRedirect)
-        me:isRedirect = isRedirect
-    end
+//    text apparentEncoding = ""
+//    text encoding = ""
+//    text headers = ""
+//    List<text> headerLinks
+//    List<NetworkResponseEvent> history
+//    boolean isPermanentRedirect = false
+//    boolean isRedirect = false
+//    PreparedRequest nextRequest // PreparedRequest object to which this is a response
+//    JavaScriptObjectNotation responseJSON
+//    text responseRaw = ""   //File-like object representation of response (advanced). Requires stream=True
+//    text responseText = ""
+//    text savedLocalData = ""
+//    number secondsElapsed = 0.0
+//    integer statusCode = 0
+//    text statusText = ""
+//    text webAddress = ""
+//    //iter_content    // Iterator for response data
+//    //iter_lines      // Iterator for response data
+//
+//    action Close()
+//    end
+//
+//    action GetApparentEncoding() returns text
+//        return apparentEncoding
+//    end
+//
+//    action GetEncoding() returns text
+//        return encoding
+//    end
+//
+//    action GetHeaders() returns text
+//        return headers
+//    end
+//
+//    action GetHeaderLinks() returns List<text>
+//        List<text> links
+//        return links
+//    end
+//
+//    action GetHistory() returns List<NetworkResponseEvent> 
+//        return history
+//    end
+//
+//    action GetNextRequest() returns PreparedRequest
+//        return nextRequest
+//    end
+//
+//    action GetResponseJSON() returns JavaScriptObjectNotation
+//        return responseJSON
+//    end
+//
+//    action GetResponseRaw() returns text
+//        return responseRaw
+//    end
+//
+//    action GetResponseText() returns text
+//        return responseText
+//    end
+//
+//    action GetSavedLocalData() returns text
+//        return savedLocalData
+//    end
+//
+//    action GetSecondsElapsed() returns number
+//        return secondsElapsed
+//    end
+//
+//    action GetStatusText() returns text
+//        return statusText
+//    end
+//
+//    action GetStatusCode() returns integer
+//        return statusCode
+//    end
+//
+//    action GetWebAddress() returns text
+//        return webAddress
+//    end
+//
+//    action IsOk() returns boolean
+//        if statusCode < 400
+//            return true
+//        else
+//            return false
+//        end
+//    end
+//
+//    action IsPermanentRedirect() returns boolean
+//        return isPermanentRedirect
+//    end
+//
+//    action IsRedirect() returns boolean
+//        return isRedirect
+//    end
+//
+//    action SetApparentEncoding(text apparentEncoding)
+//        me:apparentEncoding = apparentEncoding
+//    end
+//
+//    action SetEncoding(text encoding)
+//        me:encoding = encoding
+//    end
+//
+//    action SetHeaders(text headers)
+//        me:headers = headers
+//    end
+//
+//    action SetHeaderLinks(List<text> headerLinks)
+//        me:headerLinks = headerLinks
+//    end
+//
+//    action SetHistory(List<NetworkResponseEvent> history)
+//        me:history = history
+//    end
+//
+//    action SetNextRequest(PreparedRequest nextRequest)
+//        me:nextRequest = nextRequest
+//    end
+//
+//    action SetResponseJSON(JavaScriptObjectNotation response)
+//        me:responseJSON = responseJSON
+//    end
+//
+//    action SetResponseRaw(text responseRaw)
+//        me:responseRaw = responseRaw
+//    end
+//
+//    action SetResponseText(text responseText)
+//        me:responseText = responseText
+//    end
+//
+//    action SetSavedLocalData(text savedLocalData)
+//        me:savedLocalData = savedLocalData
+//    end
+//
+//    action SetSecondsElapsed(number secondsElapsed)
+//        me:secondsElapsed = secondsElapsed
+//    end
+//
+//    action SetStatusText(text statusText)
+//        me:statusText = statusText
+//    end
+//
+//    action SetStatusCode(integer statusCode)
+//        me:statusCode = statusCode
+//    end
+//
+//    action SetWebAddress(text webAddress)
+//        me:webAddress = webAddress
+//    end
+//
+//    action SetIsPermanentRedirect(boolean isPermanentRedirect)
+//        me:isPermanentRedirect = isPermanentRedirect
+//    end
+//
+//    action SetIsRedirect(boolean isRedirect)
+//        me:isRedirect = isRedirect
+//    end
 
 end

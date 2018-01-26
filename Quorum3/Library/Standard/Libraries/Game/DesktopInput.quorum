@@ -1,5 +1,9 @@
 package Libraries.Game
 
+use Libraries.Game.all
+use Libraries.Game.Behaviors.all
+use Libraries.Interface.all
+use Libraries.Interface.Events.all
 use Libraries.Containers.Array
 use Libraries.Containers.List
 use Libraries.Containers.Iterator
@@ -176,7 +180,7 @@ class DesktopInput is GameInput
         repeat while not events:IsEmpty()
             currentEvent = events:RemoveFromFront()
 
-            InputSet set = keyboardModifiers:Copy()
+            InputSet set
             set:SetInputType(set:TEXT_INPUT)
 
             BehaviorEvent behaviorEvent

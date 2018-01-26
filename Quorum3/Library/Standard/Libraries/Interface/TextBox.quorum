@@ -490,6 +490,14 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         ShowCaret()
     end
 
+    action Insert(text value)
+        textValue = textValue:Insert(GetCaretIndex(), value)
+        caretCharacter = caretCharacter + value:GetSize()
+        GetLineDrawables()
+        PositionCaret()
+        ShowCaret()
+    end
+
     action SetWidth(integer newWidth)
         parent:Libraries.Interface.Item2D:SetWidth(newWidth)
         horizontalBar:SetWidth(newWidth)
@@ -803,5 +811,17 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     action GetCaretMoveTime returns number
         return caretMoveTime
+    end
+
+    action GetCaretLine returns integer
+        return caretLine
+    end
+
+    action GetCaretIndex returns integer
+        return textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+    end
+
+    action GetCaretLineIndex returns integer
+        return caretCharacter
     end
 end

@@ -42,6 +42,8 @@ use Libraries.Game.Behaviors.FocusNextBehavior
 use Libraries.Game.Behaviors.FocusPreviousBehavior
 use Libraries.Game.Behaviors.TextBoxCaretStartMoveBehavior
 use Libraries.Game.Behaviors.TextBoxStartDeleteBehavior
+use Libraries.Game.Behaviors.TextBoxNewLineBehavior
+use Libraries.Game.Behaviors.TextBoxInsertBehavior
 use Libraries.Game.Behaviors.CancelBehavior
 use Libraries.Containers.List
 use Libraries.Containers.Array
@@ -319,6 +321,16 @@ class Game
         releaseDelete:SetKeyboardInput(keys:FORWARD_DELETE)
         releaseDelete:SetInputTrigger(releaseDelete:RELEASE)
         textBoxTable:Add(releaseDelete, cancelBehavior)
+
+        InputSet enter
+        enter:SetKeyboardInput(keys:ENTER)
+        TextBoxNewLineBehavior newLineBehavior
+        textBoxTable:Add(enter, newLineBehavior)
+
+        InputSet textInputSet
+        textInputSet:SetInputType(textInputSet:TEXT_INPUT)
+        TextBoxInsertBehavior insertBehavior
+        textBoxTable:Add(textInputSet, insertBehavior)
 
         gameInput:AddInputTable(textBoxTable)
     end
