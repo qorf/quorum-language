@@ -7,6 +7,7 @@
 package plugins.quorum.Libraries.Game;
 
 import org.lwjgl.glfw.GLFW;
+import plugins.quorum.Libraries.Interface.Events.MouseProcessor;
 //import org.lwjgl.input.Mouse;
 
 /**
@@ -19,7 +20,7 @@ public class InputMonitor {
     public java.lang.Object me_ = null;
     public static int pressedKeys = 0;
   
-    public final static int ANY_KEY = -1;
+    public final static int ANY_KEY = 1;
     public final static int NUM_0 = 7;
     public final static int NUM_1 = 8;
     public final static int NUM_2 = 9;
@@ -384,14 +385,13 @@ public class InputMonitor {
   
     public boolean IsMouseButtonPressed(int button)
     {
-        return GLFW.glfwGetMouseButton(DesktopDisplay.window, button) == GLFW.GLFW_PRESS;
+        return (MouseProcessor.pressedButtons & button) != 0;
+        //return GLFW.glfwGetMouseButton(DesktopDisplay.window, button) == GLFW.GLFW_PRESS;
     }
     
     public boolean IsClicked()
     {
-        return GLFW.glfwGetMouseButton(DesktopDisplay.window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS
-            || GLFW.glfwGetMouseButton(DesktopDisplay.window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS
-            ||GLFW.glfwGetMouseButton(DesktopDisplay.window, GLFW.GLFW_MOUSE_BUTTON_MIDDLE) == GLFW.GLFW_PRESS;
+        return MouseProcessor.pressedButtons != 0;
     }
     
     public int IsScrolled()

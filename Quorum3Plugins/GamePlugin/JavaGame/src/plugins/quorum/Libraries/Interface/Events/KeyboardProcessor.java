@@ -36,7 +36,7 @@ public class KeyboardProcessor {
                 InputMonitor.pressedKeys++;
             }
             // Otherwise, a key has just been released.
-            else
+            else if (event.eventType == event.RELEASED_KEY)
             {
                 InputMonitor.pressedKeys--;
             }
