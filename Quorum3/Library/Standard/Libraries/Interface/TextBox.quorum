@@ -465,7 +465,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretCharacter = caretCharacter - 1
 
         if caretLine < firstLine
-            output "firstLine = " + firstLine + ", caretLine = " + caretLine
             GoToLine(caretLine)
         end
 
@@ -492,7 +491,28 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     action Insert(text value)
         textValue = textValue:Insert(GetCaretIndex(), value)
-        caretCharacter = caretCharacter + value:GetSize()
+        
+        // Determine how many new lines are produced from the insert so that we
+        // know where to position the caret.
+        integer counter = value:GetSize()
+        integer characters = 0
+        integer newLines = 0
+        repeat while counter > 0
+            counter = counter - 1
+            if value:GetCharacter(counter) = value:GetLineFeed()
+                newLines = newLines + 1
+            elseif newLines = 0
+                characters = characters + 1
+            end
+        end
+
+        if newLines = 0
+            caretCharacter = caretCharacter + characters
+        else
+            caretLine = caretLine + newLines
+            caretCharacter = characters
+        end
+
         GetLineDrawables()
         PositionCaret()
         ShowCaret()
@@ -823,5 +843,13 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     action GetCaretLineIndex returns integer
         return caretCharacter
+    end
+
+    action GetLines returns MultipleLineText
+        return textValue
+    end
+
+    action GetText returns text
+        return textValue:GetText()
     end
 end

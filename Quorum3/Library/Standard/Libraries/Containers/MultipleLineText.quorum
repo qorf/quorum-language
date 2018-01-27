@@ -79,18 +79,26 @@ class MultipleLineText
         Array<integer> fibonacci
         fibonacci:Add(1)
         fibonacci:Add(2)
-        Initialize(value, leafSize, fibonacci)
+        Initialize(value, leafSize, fibonacci, true)
     end
 
-    private action Initialize(text value, number leafSize, Array<integer> fibonacci)
+    private action Initialize(text value, number leafSize, Array<integer> fibonacci, boolean keepEmptyEndLine)
         maxLeafSize = leafSize
         fibonacciArray = fibonacci
         if TextFitsInLine(value)
-            characters = value
-            weight = value:GetSize()
-            leafWeight = 0
-            leafCount = 1
-            depth = 0
+            if (keepEmptyEndLine and value:EndsWith(value:GetLineFeed()))
+                MultipleLineText leftChild
+                MultipleLineText rightChild
+                leftChild:Initialize(value, leafSize, fibonacci, false)
+                rightChild:Initialize("", leafSize, fibonacci, false)
+                SetChildren(leftChild, rightChild)
+            else
+                characters = value
+                weight = value:GetSize()
+                leafWeight = 0
+                leafCount = 1
+                depth = 0
+            end
         else
             MultipleLineText leftChild
             MultipleLineText rightChild
@@ -109,7 +117,12 @@ class MultipleLineText
             repeat while not lines:IsEmpty()
                 MultipleLineText newNode
                 newNode:Initialize(lines:RemoveFromFront())
-                rightChild = rightChild:Concatenate(newNode)
+                if (not keepEmptyEndLine) and lines:IsEmpty() and newNode:GetText():GetSize() = 0
+                    // Don't add the last line if it's empty and we're not
+                    // explicitly asked to keep it.
+                else
+                    rightChild = rightChild:Concatenate(newNode)
+                end
             end
 
             SetChildren(leftChild, rightChild)
@@ -404,7 +417,11 @@ class MultipleLineText
     action LineIndexFromCharacterIndex(integer index) returns integer
         integer weight = GetWeight()
         if index >= weight
-            return right:LineIndexFromCharacterIndex(index - weight) + GetLeafWeight()
+            if right not= undefined
+                return right:LineIndexFromCharacterIndex(index - weight) + GetLeafWeight()
+            else
+                return 0
+            end
         elseif left not= undefined
             return left:LineIndexFromCharacterIndex(index)
         else
@@ -493,7 +510,7 @@ class MultipleLineText
     private action RecursiveConcatenate(Text value) returns MultipleLineText
         if IsLeaf()
             MultipleLineText newTree
-            newTree:Initialize(characters + value:GetValue(), maxLeafSize, fibonacciArray)
+            newTree:Initialize(characters + value:GetValue(), maxLeafSize, fibonacciArray, true)
             return newTree
         else
             MultipleLineText newRight = right:Concatenate(value)
@@ -637,11 +654,25 @@ class MultipleLineText
         if index < 0
             alert("I can not insert text at a negative index. I was asked to insert at index " + index + ".")
         end
-        if index > GetLength()
+        integer length = GetLength()
+        if index > length
             alert("I can not insert text at the given index because it is too large. I was asked to insert at index " + index + 
                 ", but the last available index to insert at is " + GetLength() + ".")
         end
-        MultipleLineText newTree = RecursiveInsert(index, value)    
+
+        if index = length
+            return Concatenate(value)
+        end
+
+        integer size = GetLineCount()
+        integer line = LineIndexFromCharacterIndex(index)
+
+        MultipleLineText newTree = RecursiveInsert(index, value)
+
+        integer newSize = newTree:GetLineCount()
+        line = line + (newSize - size)
+        newTree = newTree:RefillLine(line)
+    
         if newTree:NeedsBalancing()
             newTree = newTree:Balance()
         end
@@ -665,7 +696,7 @@ class MultipleLineText
             end
 
             MultipleLineText newTree
-            newTree:Initialize(newText, maxLeafSize, fibonacciArray)
+            newTree:Initialize(newText, maxLeafSize, fibonacciArray, false)
             return newTree
         else
             MultipleLineText newTree
@@ -714,7 +745,7 @@ class MultipleLineText
         MultipleLineText newTree = RecursiveDelete(startIndex, endIndex)
         if newTree = undefined
             MultipleLineText emptyTree
-            emptyTree:Initialize("", maxLeafSize, fibonacciArray)
+            emptyTree:Initialize("", maxLeafSize, fibonacciArray, true)
             return emptyTree
         else
             newTree = newTree:RefillLine(LineIndexFromCharacterIndex(startIndex))
@@ -770,7 +801,7 @@ class MultipleLineText
                 if endIndex < characterSize
                     newText = newText + characters:GetSubtext(endIndex, characterSize)
                 end
-                newTree:Initialize(newText, maxLeafSize, fibonacciArray)
+                newTree:Initialize(newText, maxLeafSize, fibonacciArray, true)
             end
         end
 
