@@ -31,7 +31,8 @@ public class NetworkRequest {
     }
     
     public void Get(String url, String params) throws Exception {
-        String formattedURL = url + "?" + URLEncoder.encode(params, "UTF-8");
+        String formattedURL = url + "?" + params;
+        System.out.println(formattedURL);
         Get(formattedURL);
     }
 }
