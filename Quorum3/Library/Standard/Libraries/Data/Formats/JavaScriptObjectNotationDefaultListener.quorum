@@ -1,0 +1,212 @@
+package Libraries.Data.Formats
+
+use Libraries.Containers.Stack
+use Libraries.Containers.Array
+
+use Libraries.Data.Formats.JavaScriptObjectNotationError
+use Libraries.Data.Formats.JavaScriptObjectNotationListener
+use Libraries.Data.Formats.JavaScriptObjectNotationObject
+use Libraries.Data.Formats.JavaScriptObjectNotationTerminal
+use Libraries.Data.Formats.JavaScriptObjectNotationToken
+
+class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListener
+    JavaScriptObjectNotationObject object = undefined
+    Stack<JavaScriptObjectNotationObject> objects
+    Stack<integer> opStack
+    constant integer inObject = 0
+    constant integer inArray = 1
+    constant integer inPair = 2
+    constant integer inValue = 3
+
+    action GetObject returns JavaScriptObjectNotationObject
+        return object
+    end
+
+    action EnterStart
+    end
+
+    action ExitStart
+    end
+
+    action EnterObject
+        JavaScriptObjectNotationObject newObject
+        newObject:SetObject()
+        //this is the root, which is a special object
+        if object = undefined
+            object = newObject
+            
+        //this is a new object being pushed on. This object is the 
+        //value of another JSON element, so make the "parent" the object
+        else 
+            JavaScriptObjectNotationObject value = objects:Peek()
+            //value:SetObject()
+            value:Add(newObject)
+        end
+
+        objects:Push(newObject)
+        opStack:Push(inObject)
+    end
+
+    action ExitObject
+        objects:Pop()
+        opStack:Pop()
+    end
+
+    action EnterArray
+        JavaScriptObjectNotationObject newObject
+        newObject:SetArray()
+        //this is the root, which is a special object
+        if object = undefined
+            object = newObject
+            
+        //this is a new object being pushed on. This object is the 
+        //value of another JSON element, so make the "parent" the object
+        else 
+            JavaScriptObjectNotationObject value = objects:Peek()
+            value:Add(newObject)
+        end
+
+        objects:Push(newObject)
+        opStack:Push(inArray)
+    end
+
+    action ExitArray
+        objects:Pop()
+        opStack:Pop()
+    end
+
+    action EnterPair
+        JavaScriptObjectNotationObject newObject
+        JavaScriptObjectNotationObject peek = objects:Peek()
+        opStack:Push(inPair)
+        objects:Push(newObject)
+        peek:Add(newObject)
+    end
+
+    action ExitPair
+        opStack:Pop()
+        objects:Pop()
+    end
+
+    action EnterValue
+        opStack:Push(inValue)
+    end
+
+    action ExitValue
+        opStack:Pop()
+    end
+
+    action VisitText(JavaScriptObjectNotationTerminal terminal)
+        integer op = opStack:Peek()
+        JavaScriptObjectNotationObject obj = objects:Peek()
+        JavaScriptObjectNotationToken token = terminal:GetToken()
+        if op = inPair
+            obj:SetKey(token:value)
+        elseif op = inValue
+            //check if there is a token behind the peek 
+            //and further check if this is an array
+            integer peek = opStack:Pop()
+            integer peekBehind = opStack:Peek()
+            opStack:Push(peek)
+            if peekBehind = inArray
+                JavaScriptObjectNotationObject newObject
+                newObject:SetText(token:value)
+                obj:Add(newObject)
+            else
+                obj:SetText(token:value)
+            end
+        end
+    end
+
+    action VisitNumber(JavaScriptObjectNotationTerminal terminal)
+        integer op = opStack:Peek()
+        JavaScriptObjectNotationObject obj = objects:Peek()
+        JavaScriptObjectNotationToken token = terminal:GetToken()
+        if op = inPair
+            obj:SetKey(token:value)
+        elseif op = inValue
+            //check if there is a token behind the peek 
+            //and further check if this is an array
+            integer peek = opStack:Pop()
+            integer peekBehind = opStack:Peek()
+            opStack:Push(peek)
+            number val = cast(number, token:value)
+            if peekBehind = inArray
+                JavaScriptObjectNotationObject newObject
+                newObject:SetNumber(val)
+                obj:Add(newObject)
+            else
+                obj:SetNumber(val)
+            end
+        end
+    end
+
+    action VisitTrue(JavaScriptObjectNotationTerminal terminal)
+        integer op = opStack:Peek()
+        JavaScriptObjectNotationObject obj = objects:Peek()
+        JavaScriptObjectNotationToken token = terminal:GetToken()
+        if op = inPair
+            obj:SetKey(token:value)
+        elseif op = inValue
+            //check if there is a token behind the peek 
+            //and further check if this is an array
+            integer peek = opStack:Pop()
+            integer peekBehind = opStack:Peek()
+            opStack:Push(peek)
+            if peekBehind = inArray
+                JavaScriptObjectNotationObject newObject
+                newObject:SetBoolean(true)
+                obj:Add(newObject)
+            else
+                obj:SetBoolean(true)
+            end
+        end
+    end
+
+    action VisitFalse(JavaScriptObjectNotationTerminal terminal)
+        integer op = opStack:Peek()
+        JavaScriptObjectNotationObject obj = objects:Peek()
+        JavaScriptObjectNotationToken token = terminal:GetToken()
+        if op = inPair
+            obj:SetKey(token:value)
+        elseif op = inValue
+            //check if there is a token behind the peek 
+            //and further check if this is an array
+            integer peek = opStack:Pop()
+            integer peekBehind = opStack:Peek()
+            opStack:Push(peek)
+            if peekBehind = inArray
+                JavaScriptObjectNotationObject newObject
+                newObject:SetBoolean(false)
+                obj:Add(newObject)
+            else
+                obj:SetBoolean(false)
+            end
+        end
+    end
+
+    action VisitUndefined(JavaScriptObjectNotationTerminal terminal)
+        integer op = opStack:Peek()
+        JavaScriptObjectNotationObject obj = objects:Peek()
+        JavaScriptObjectNotationToken token = terminal:GetToken()
+        if op = inPair
+            obj:SetKey(token:value)
+        elseif op = inValue
+            //check if there is a token behind the peek 
+            //and further check if this is an array
+            integer peek = opStack:Pop()
+            integer peekBehind = opStack:Peek()
+            opStack:Push(peek)
+            if peekBehind = inArray
+                JavaScriptObjectNotationObject newObject
+                newObject:SetNull()
+                obj:Add(newObject)
+            else
+                obj:SetNull()
+            end
+        end
+    end
+
+    action VisitError(JavaScriptObjectNotationError error)
+    end
+end
