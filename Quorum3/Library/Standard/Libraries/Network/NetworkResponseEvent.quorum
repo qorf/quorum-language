@@ -2,6 +2,12 @@ package Libraries.Network
 
 use Libraries.Containers.List
 use Libraries.Containers.HashTable
+use Libraries.Data.Formats.JavaScriptObjectNotationObject
+
+/**
+ *
+ * @author Patrick Daleiden
+ */
 
 class NetworkResponseEvent 
     text apparentEncoding = ""
@@ -12,7 +18,7 @@ class NetworkResponseEvent
     boolean isPermanentRedirect = false
     boolean isRedirect = false
     PreparedRequest nextRequest // PreparedRequest object to which this is a response
-    JavaScriptObjectNotation responseJSON
+    JavaScriptObjectNotationObject responseJSON
     text responseRaw = ""   //File-like object representation of response (advanced). Requires stream=True
     text responseText = ""
     text savedLocalData = ""
@@ -51,7 +57,7 @@ class NetworkResponseEvent
         return nextRequest
     end
 
-    action GetResponseJSON() returns JavaScriptObjectNotation
+    action GetResponseJSON() returns JavaScriptObjectNotationObject
         return responseJSON
     end
 
@@ -123,8 +129,8 @@ class NetworkResponseEvent
         me:nextRequest = nextRequest
     end
 
-    action SetResponseJSON(JavaScriptObjectNotation response)
-        me:responseJSON = responseJSON
+    action SetResponseJSON(JavaScriptObjectNotationObject response)
+        me:responseJSON = response
     end
 
     action SetResponseRaw(text responseRaw)

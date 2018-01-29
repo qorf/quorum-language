@@ -1,13 +1,19 @@
 package Libraries.Network
 
 use Libraries.Containers.HashTable
+use Libraries.Data.Formats.JavaScriptObjectNotationObject
+
+/**
+ *
+ * @author Patrick Daleiden
+ */
 
 class NetworkRequestParameters 
     NetworkRequestType type
     text webAddress = ""
     HashTable<text, text> parameters
     HashTable<text, text> data
-    JavaScriptObjectNotation jsonData
+    JavaScriptObjectNotationObject jsonData
     HashTable<text, text> messageHeaders
     HashTable<text, text> savedLocalData
     HashTable<text, text> files
@@ -65,7 +71,7 @@ class NetworkRequestParameters
         me:parameters = parameters
     end
 
-    action SetParameters(JavaScriptObjectNotation parameters)
+    action SetParameters(JavaScriptObjectNotationObject parameters)
         HashTable<text, text> reformattedParameters
         // format to HashTable
         me:parameters = reformattedParameters
@@ -81,7 +87,7 @@ class NetworkRequestParameters
         me:data = data
     end
 
-    action SetData(JavaScriptObjectNotation data)
+    action SetData(JavaScriptObjectNotationObject data)
         HashTable<text, text> reformattedData
         // format to HashTable
         me:data = reformattedData
@@ -93,7 +99,7 @@ class NetworkRequestParameters
         me:data = reformattedData
     end
     
-    action SetAdditionalData(JavaScriptObjectNotation data)
+    action SetAdditionalData(JavaScriptObjectNotationObject data)
         me:jsonData = data
     end
 

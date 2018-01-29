@@ -3,6 +3,12 @@ package Libraries.Network
 use Libraries.Containers.List
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
+use Libraries.Data.Formats.JavaScriptObjectNotationObject
+
+/**
+ *
+ * @author Patrick Daleiden
+ */
 
 class NetworkRequest 
     List<NetworkRequestListener> listeners
@@ -48,18 +54,18 @@ class NetworkRequest
         parameters:SetData(data)
     end
 
-    action SendRequest(text webAddress, JavaScriptObjectNotation data)
+    action SendRequest(text webAddress, JavaScriptObjectNotationObject data)
         parameters:SetWebAddress(webAddress)
         parameters:SetData(data)
     end
 
-    action SendRequest(text webAddress, JavaScriptObjectNotation data, NetworkRequestType type)
+    action SendRequest(text webAddress, JavaScriptObjectNotationObject data, NetworkRequestType type)
         parameters:SetWebAddress(webAddress)
         parameters:SetData(data)
         parameters:SetNetworkRequestType(type)
     end
 
-    action SendRequest(text webAddress, JavaScriptObjectNotation data, NetworkRequestParameters parameters)
+    action SendRequest(text webAddress, JavaScriptObjectNotationObject data, NetworkRequestParameters parameters)
         me:parameters = parameters
         parameters:SetWebAddress(webAddress)
         parameters:SetData(data)
