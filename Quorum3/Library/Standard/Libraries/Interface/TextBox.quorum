@@ -511,10 +511,18 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         else
             caretLine = caretLine + newLines
             caretCharacter = characters
+
+            // Resize bars for the new scroll region height.
         end
 
+        number lineWidth = GetLineWidth(caretLine)
+        if lineWidth > GetScrollRegionWidth()
+            // Increase scroll region height and resize bars.
+        end
+
+        FitCharacterOnScreen(caretLine, caretCharacter)
         GetLineDrawables()
-        PositionCaret()
+        caretX = PositionCaret()
         ShowCaret()
     end
 
@@ -801,6 +809,22 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
 
         scrollRegionWidth = width
+    end
+
+    private action GetLineWidth(integer index) returns number
+        
+        MultipleLineText line = textValue:GetLine(index)
+        
+        /*
+        For monospaced fonts, this choice is arbitrary. For non-monospaced
+        fonts, W is typically one of the broadest characters, but this is
+        imprecise at best. This approach is only meant as a short-term solution
+        to quickly calculate the width of lines. MultipleLineText will handle
+        this more elegantly in the future.
+        */
+        number glyphWidth = font:GetGlyph("W"):horizontalAdvance
+
+        return glyphWidth * line:GetWidth()
     end
 
     action SetVerticalBarVisibility(integer mode)

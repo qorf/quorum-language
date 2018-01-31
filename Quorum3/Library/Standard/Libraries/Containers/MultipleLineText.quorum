@@ -321,6 +321,7 @@ class MultipleLineText
     Remove the specified number of characters from the beginning of the line.
     */
     private action RemoveFromLine(integer lineIndex, integer count) returns MultipleLineText
+        integer weight = GetLeafWeight()
         if IsLeaf()
             return RecursiveDelete(0, count)
         elseif lineIndex >= weight
@@ -552,7 +553,18 @@ class MultipleLineText
     output result:GetText()
     */
     action Concatenate(text value) returns MultipleLineText
-        return RecursiveConcatenate(value)
+        
+        MultipleLineText result = RecursiveConcatenate(value)
+
+        if value:EndsWith(value:GetLineFeed())
+            // Manually insert a blank line at the end of the tree.
+            MultipleLineText newLine
+            newLine:Initialize("", maxLeafSize, fibonacciArray, false)
+            
+            result = result:Concatenate(newLine)
+        end
+
+        return result
     end
 
     private action RecursiveConcatenate(Text value) returns MultipleLineText
@@ -561,7 +573,7 @@ class MultipleLineText
             newTree:Initialize(characters + value:GetValue(), maxLeafSize, fibonacciArray, false)
             return newTree
         else
-            MultipleLineText newRight = right:Concatenate(value)
+            MultipleLineText newRight = right:RecursiveConcatenate(value)
             MultipleLineText newTree
             newTree:SetChildren(left, newRight)
             return newTree
