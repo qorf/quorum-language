@@ -16,8 +16,9 @@ use Libraries.System.File
 use Libraries.Game.Graphics.Glyph
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Compute.Math
+use Libraries.Containers.Support.Pair
 
-class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListener, FocusListener
+class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListener, FocusListener, Selectable
 
     /*
     All of the text contained in this object.
@@ -133,6 +134,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         AddMouseWheelListener(me)
         AddMouseListener(me)
         AddMouseMovementListener(me)
+
+        SetSelectionType(parent:Selectable:RANGE_SELECTION)
 
         Add(background)
 
@@ -284,6 +287,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             return now
         end
 
+        integer oldIndex = GetCaretIndex()
+
         if caretCharacter = 0
             if caretLine = 0
                 return now
@@ -294,6 +299,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
                 if lineText:EndsWith(lineText:GetLineFeed())
                     caretCharacter = caretCharacter - 1
                 end
+
+                if caretLine < firstLine
+                   GoToLine(caretLine)
+                end
             end
         else
             caretCharacter = caretCharacter - 1
@@ -301,12 +310,17 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         FitCharacterOnScreen(caretLine, caretCharacter)
         caretX = PositionCaret()
         ShowCaret()
+
+        DeselectIndex(oldIndex)
+        SelectIndex(GetCaretIndex())
     end
 
     action MoveCaretRight
         if not caretActive
             return now
         end
+
+        integer oldIndex = GetCaretIndex()
 
         text lineText = textValue:GetLine(caretLine):GetText()
         integer size = lineText:GetSize()
@@ -319,12 +333,20 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             end
             caretLine = caretLine + 1
             caretCharacter = 0
+
+            number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
+            if caretLine > (firstLine + visibleLines - 1)
+                GoToLine(caretLine - visibleLines + 1)
+            end
         else
             caretCharacter = caretCharacter + 1
         end
         FitCharacterOnScreen(caretLine, caretCharacter)
         caretX = PositionCaret()
         ShowCaret()
+
+        DeselectIndex(oldIndex)
+        SelectIndex(GetCaretIndex())
     end
 
     /*
@@ -336,7 +358,18 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         number left = horizontal * (GetScrollRegionWidth() - (GetWidth() - sharedSpace))
         number right = left + GetWidth() - sharedSpace
 
-        text lineCharacters = textValue:GetLines():Get(line):GetText()
+        text lineCharacters = ""
+
+        // This line has been sometimes crashing the program. The check/detect
+        // block here is used in case of error to gather additional info.
+        check
+            lineCharacters = textValue:GetLines():Get(line):GetText()
+        detect Error
+            output "FitCharacterOnScreen crashed due to invalid location in array."
+            output "Line count: " + textValue:GetLineCount() + ", line = " + line + ", character = " + character
+            alert("CRASHED.")
+        end
+
         integer counter = 0
         number x = 0
         
@@ -370,6 +403,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             return now
         end
 
+        integer oldIndex = GetCaretIndex()
+
         caretLine = caretLine + 1
         caretCharacter = GetNearestCharacter(caretLine, caretX)
 
@@ -383,6 +418,9 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         // value lets it flow more naturally across lines of varying length.
         PositionCaret()
         ShowCaret()
+
+        DeselectIndex(oldIndex)
+        SelectIndex(GetCaretIndex())
     end
 
     action MoveCaretUp
@@ -393,6 +431,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         if caretLine = 0
             return now
         end
+
+        integer oldIndex = GetCaretIndex()
 
         caretLine = caretLine - 1
         caretCharacter = GetNearestCharacter(caretLine, caretX)
@@ -406,6 +446,9 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         // value lets it flow more naturally across lines of varying length.
         PositionCaret()
         ShowCaret()
+
+        DeselectIndex(oldIndex)
+        SelectIndex(GetCaretIndex())
     end
 
     /*
@@ -456,9 +499,17 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             return now
         end
 
+        boolean shouldResize = false
+        number oldLength = GetLineWidth(caretLine)
+
         if caretCharacter = 0
             caretLine = caretLine - 1
             caretCharacter = textValue:GetLine(caretLine):GetText():GetSize()
+            shouldResize = true
+        elseif oldLength = GetScrollRegionWidth()
+            // Force a recalculation of the width by setting its value to -1.
+            scrollRegionWidth = -1
+            shouldResize = true
         end
 
         textValue = textValue:Delete(index - 1, index)
@@ -466,6 +517,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         if caretLine < firstLine
             GoToLine(caretLine)
+        end
+
+        if shouldResize
+            CreateScrollBars()
         end
 
         FitCharacterOnScreen(caretLine, caretCharacter)
@@ -512,12 +567,21 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             caretLine = caretLine + newLines
             caretCharacter = characters
 
-            // Resize bars for the new scroll region height.
+            // Resize the scroll region height and resize bars.
+            CreateScrollBars()
+
+            number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
+            if caretLine > (firstLine + visibleLines - 1)
+                GoToLine(caretLine - visibleLines + 1)
+            end
         end
 
         number lineWidth = GetLineWidth(caretLine)
         if lineWidth > GetScrollRegionWidth()
-            // Increase scroll region height and resize bars.
+            // Increase scroll region width and resize bars.
+            // Setting the scroll region width to -1 forces recalculation.
+            scrollRegionWidth = -1
+            CreateScrollBars()
         end
 
         FitCharacterOnScreen(caretLine, caretCharacter)
@@ -547,6 +611,20 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         boolean horizontalVisible = (horizontalMode = ALWAYS_VISIBLE or (horizontalMode = VISIBLE_IF_NEEDED and horizontalRatio < 1.0))
         number barHeight = height
         number barWidth = width
+
+        if verticalBar:IsLoaded()
+            verticalBar:Dispose()
+        end
+        if horizontalBar:IsLoaded()
+            horizontalBar:Dispose()
+        end
+        if verticalControl:IsLoaded()
+            verticalControl:Dispose()
+        end
+        if horizontalControl:IsLoaded()
+            horizontalControl:Dispose()
+        end
+
         if verticalVisible and horizontalVisible
             barHeight = height - barThickness
             barWidth = width - barThickness
@@ -580,7 +658,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             horizontalBar:Hide()
         end
 
-        UpdatePaneView(0, 1.0)
+        UpdatePaneView(horizontal, vertical)
     end
 
     action SetScrollDistance(number distance)
@@ -875,5 +953,41 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     action GetText returns text
         return textValue:GetText()
+    end
+
+    action GetSingleSelection(integer index) returns Selection
+        Selection selection
+        selection:SetDisplayName("")
+        return selection
+    end
+
+    action GetRangeSelection(Pair<integer> range) returns Array<Selection>
+        Array<Selection> array
+        Selection selection
+        text selectedText = textValue:GetText():GetSubtext(range:GetLeastValue(), range:GetGreatestValue())
+        selection:SetDisplayName(selectedText)
+        array:Add(selection)
+        return array
+    end
+
+    action GetMultipleSelection(Array<Pair<integer>> ranges) returns Array<Selection>
+        if ranges:GetSize() = 1
+            return GetRangeSelection(ranges:Get(0))
+        end
+
+        alert("Multiple selection is not supported for TextBox yet. Use GetRangeSelection() instead.")
+    end
+
+    action GetSelectableSize returns integer
+        // The caret can be placed anywhere between 0 and the length of the
+        // text (including after the last character), resulting in length + 1.
+        return textValue:GetLength() + 1
+    end
+
+    action GetCurrentSelection returns Array<Selection>
+        // When selection is fully supported, this will be replaced with the
+        // actual start and end indices of the selection.
+        integer caretIndex = GetCaretIndex()
+        return GetRangeSelection(caretIndex, caretIndex)
     end
 end
