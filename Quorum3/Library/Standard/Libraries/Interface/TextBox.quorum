@@ -367,6 +367,26 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         detect Error
             output "FitCharacterOnScreen crashed due to invalid location in array."
             output "Line count: " + textValue:GetLineCount() + ", line = " + line + ", character = " + character
+
+            integer counter = 0
+            Array<MultipleLineText> lines = lastText:GetLines()
+            text quote = ""
+            quote = quote:GetDoubleQuote()
+
+            output "Previous text: "
+            repeat while counter < lines:GetSize()
+                output counter + quote + lines:Get(counter):GetText() + quote
+                counter = counter + 1
+            end
+
+            counter = 0
+            lines = textValue:GetLines()
+            output "New text: "
+            repeat while counter < lines:GetSize()
+                output counter + quote + lines:Get(counter):GetText() + quote
+                counter = counter + 1
+            end
+
             alert("CRASHED.")
         end
 
@@ -493,11 +513,17 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretActive = false
     end
 
+    // FOR DEBUGGING PURPOSES ONLY. Holds the last value of MultipleLineText
+    // before the deletion. 
+    MultipleLineText lastText = undefined
+
     action DeleteBackward
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
         if index = 0
             return now
         end
+
+        lastText = textValue
 
         boolean shouldResize = false
         number oldLength = GetLineWidth(caretLine)
