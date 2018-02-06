@@ -121,10 +121,17 @@ class Item2D is Item
 
     /* 
     This value is used to determine if the Item's dimensions should be used
-    for pixel clipping of the Item and its children during drawing (via the
-    glScissor function).
+    for pixel clipping of the Item, its children, and visual content during 
+    drawing (via the glScissor function).
     */
     boolean clipPixels = false
+
+    /*
+    Visual content attached to this Item2D. Visual content is drawn during calls
+    to Draw(Painter2D), but isn't added to the Game in the same way children
+    are, and thus isn't eligible for things like events.
+    */
+    VisualContent2D visualContent = undefined
 
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
@@ -2288,6 +2295,10 @@ class Item2D is Item
 
                 painter:SetClipCoordinates(left, right, bottom, top)
 
+                if visualContent not= undefined
+                    visualContent:Draw(painter)
+                end
+
                 integer counter = 0
                 repeat children:GetSize() times
                     children:Get(counter):Draw(painter)
@@ -2299,6 +2310,10 @@ class Item2D is Item
                 painter:SetClipDimensions(GetGlobalX(), GetGlobalY(), GetWidth(), GetHeight())
                 painter:SetClipping(true)
 
+                if visualContent not= undefined
+                    visualContent:Draw(painter)
+                end
+
                 integer counter = 0
                 repeat children:GetSize() times
                     children:Get(counter):Draw(painter)
@@ -2308,6 +2323,11 @@ class Item2D is Item
                 painter:SetClipping(false)
             end
         else
+
+            if visualContent not= undefined
+                visualContent:Draw(painter)
+            end
+
             integer counter = 0
             repeat children:GetSize() times
                 children:Get(counter):Draw(painter)

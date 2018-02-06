@@ -1,0 +1,14 @@
+package Libraries.Interface
+
+use Libraries.Game.Graphics.Painter2D
+
+class VisualContent2D 
+
+    blueprint action Draw(Painter2D painter)
+
+    blueprint action IsResizable returns boolean
+
+    blueprint action Resize(number width, number height)
+
+    blueprint action SetPosition(number x, number y)
+end
