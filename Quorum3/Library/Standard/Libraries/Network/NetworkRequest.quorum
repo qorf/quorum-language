@@ -101,6 +101,7 @@ class NetworkRequest
     end
     
     action SetResponse(text response)
+        output "in SetResponse: " + response
         NetworkResponseEvent responseEvent
         responseEvent:SetResponseText(response)
         Notify(responseEvent)
