@@ -7,7 +7,6 @@ package plugins.quorum.Libraries.Network;
 
 import java.net.*;
 import java.io.*;
-import plugins.quorum.Libraries.Network.NetworkRequest;
 
 
 /**
@@ -19,7 +18,7 @@ public class NetworkRequest {
     public java.lang.Object me_ = null;
 
     public void Get(String url) throws Exception {
-        final plugins.quorum.Libraries.Network.NetworkRequest quorumNetworkRequest = (plugins.quorum.Libraries.Network.NetworkRequest) me_;
+        final quorum.Libraries.Network.NetworkRequest quorumNetworkRequest = (quorum.Libraries.Network.NetworkRequest) me_;
 
         URL Url = new URL(url);
         HttpURLConnection connection = (HttpURLConnection) Url.openConnection();
