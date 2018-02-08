@@ -290,6 +290,10 @@ class Item2D is Item
         if updateTransform
             UpdateTransformX()
         end
+
+        if visualContent not= undefined
+            visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        end
     end
 
     /*
@@ -313,6 +317,10 @@ class Item2D is Item
 
         if updateTransform
             UpdateTransformY()
+        end
+
+        if visualContent not= undefined
+            visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
     end
 
@@ -443,6 +451,10 @@ class Item2D is Item
             UpdateTransformX()
         end
 
+        if visualContent not= undefined
+            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
+
         integer counter = 0
         repeat children:GetSize() times
             children:Get(counter):SetOffsetX(position:GetX() + xAmount)
@@ -476,6 +488,10 @@ class Item2D is Item
 
         if updateTransform
             UpdateTransformY()
+        end
+
+        if visualContent not= undefined
+            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
         end
 
         integer counter = 0
@@ -552,6 +568,10 @@ class Item2D is Item
         if updateTransform
             UpdateTransformX()
             UpdateTransformY()
+        end
+
+        if visualContent not= undefined
+            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
         end
 
         integer counter = 0
@@ -667,6 +687,10 @@ class Item2D is Item
         position:SetX(position:GetX() + xAmount)
         SetOffsetX(offset:GetX())
 
+        if visualContent not= undefined
+            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
+
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
             Simulate(true)
         end
@@ -694,6 +718,10 @@ class Item2D is Item
         hasMoved = true
         position:SetY(position:GetY() + yAmount)
         SetOffsetY(offset:GetY())
+
+        if visualContent not= undefined
+            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
             Simulate(true)
@@ -748,6 +776,10 @@ class Item2D is Item
         position:SetX(position:GetX() + xAmount)
         position:SetY(position:GetY() + yAmount)
         SetOffset(offset:GetX(), offset:GetY())
+
+        if visualContent not= undefined
+            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
             Simulate(true)
@@ -804,6 +836,10 @@ class Item2D is Item
     action FlipX
         flipX = not flipX
 
+        if visualContent not= undefined
+            visualContent:UpdateFlipping(flipX, flipY)
+        end
+
         integer counter = 0
         repeat children:GetSize() times
             children:Get(counter):FlipX()
@@ -824,6 +860,10 @@ class Item2D is Item
     */
     action FlipY
         flipY = not flipY
+
+        if visualContent not= undefined
+            visualContent:UpdateFlipping(flipX, flipY)
+        end
 
         integer counter = 0
         repeat children:GetSize() times
@@ -1590,9 +1630,10 @@ class Item2D is Item
             UpdateTransformY()
         end
         
-        //Iterator<Item> childIterator = GetItems()
-        
-        //if childIterator:HasNext()
+        if visualContent not= undefined
+            visualContent:UpdateRotation(rotation)
+        end
+
         if children:GetSize() > 0
 
             Item2D temp = undefined
@@ -1681,9 +1722,10 @@ class Item2D is Item
             UpdateTransformY()
         end
 
-        //Iterator<Item> childIterator = GetItems()
-        
-        //if childIterator:HasNext()
+        if visualContent not= undefined
+            visualContent:UpdateRotation(rotation)
+        end
+
         if children:GetSize() > 0
 
             Item2D temp = undefined
@@ -1745,6 +1787,10 @@ class Item2D is Item
             UpdateTransformY()
         end
 
+        if visualContent not= undefined
+            visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        end
+
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
 
@@ -1795,6 +1841,10 @@ class Item2D is Item
         if updateTransform
             UpdateTransformX()
             UpdateTransformY()
+        end
+
+        if visualContent not= undefined
+            visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
         Iterator<Item2D> childIterator = GetItems()
@@ -1888,6 +1938,10 @@ class Item2D is Item
             UpdateTransformY()
         end
 
+        if visualContent not= undefined
+            visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        end
+
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
 
@@ -1963,6 +2017,10 @@ class Item2D is Item
         if updateTransform
             UpdateTransformX()
             UpdateTransformY()
+        end
+
+        if visualContent not= undefined
+            visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
         Iterator<Item2D> childIterator = GetItems()
@@ -4159,5 +4217,18 @@ class Item2D is Item
     */
     action IsClipping returns boolean
         return clipPixels
+    end
+
+    action SetVisualContent(VisualContent2D content)
+        visualContent = content
+        visualContent:SetItem(me)
+        visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        visualContent:UpdateFlipping(flipX, flipY)
+        visualContent:UpdateRotation(GetRotation())
+    end
+
+    action GetVisualContent returns VisualContent2D
+        return visualContent
     end
 end

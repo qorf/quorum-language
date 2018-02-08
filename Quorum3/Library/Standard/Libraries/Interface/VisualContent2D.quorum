@@ -4,11 +4,23 @@ use Libraries.Game.Graphics.Painter2D
 
 class VisualContent2D 
 
+    Item2D item = undefined
+
+    action SetItem(Item2D item)
+        me:item = item
+    end
+
+    action GetItem returns Item2D
+        return item
+    end
+
     blueprint action Draw(Painter2D painter)
 
-    blueprint action IsResizable returns boolean
+    blueprint action UpdateSize(number width, number height)
 
-    blueprint action Resize(number width, number height)
+    blueprint action UpdatePosition(number x, number y)
+    
+    blueprint action UpdateRotation(number angle)
 
-    blueprint action SetPosition(number x, number y)
+    blueprint action UpdateFlipping(boolean flipX, boolean flipY)
 end
