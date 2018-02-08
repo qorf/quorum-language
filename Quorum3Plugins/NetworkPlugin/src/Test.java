@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-import plugins.quorum.Libraries.Network.*;
+import plugins.quorum.Libraries.Network.NetworkRequest;
 
 /*
  * @author patrick
@@ -18,9 +18,10 @@ public class Test {
         String url = "http://kitana.ddns.net/GETtest.php";
         String paramsJSON = "{\"name\":\"Fred Flintstone\",\"city\":\"Bedrock\"}";
         String paramsGET = "name=Fred%20Flintstone&city=Bedrock";
-        NetworkRequest nr = new NetworkRequest();
-        nr.Get(url);
-        nr.Get(url, paramsGET);
+        Object obj = new Object();
+        //NetworkRequest nr = new NetworkRequest(obj);
+        //nr.Get(url);
+        //nr.Get(url, paramsGET);
     }
     
 }
