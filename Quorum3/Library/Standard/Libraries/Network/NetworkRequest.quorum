@@ -99,6 +99,12 @@ class NetworkRequest
     action GetListenerIterator() returns Iterator<NetworkRequestListener>
         return listeners:GetIterator()
     end
+    
+    action SetResponse(text response)
+        NetworkResponseEvent responseEvent
+        responseEvent:SetResponseText(response)
+        Notify(responseEvent)
+    end
 
     action Notify(NetworkResponseEvent response)
         Iterator<NetworkRequestListener> iterator = listeners:GetIterator()

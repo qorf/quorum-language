@@ -31,10 +31,6 @@ class NetworkRequestParameters
     text securityCertificate  = ""
     text securityKey  = ""
 
-    on create
-        me:type:POST()
-    end
-
     action SetNetworkRequestType(NetworkRequestType type)
         me:type = type
     end

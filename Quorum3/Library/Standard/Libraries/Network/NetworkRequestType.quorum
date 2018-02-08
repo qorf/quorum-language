@@ -14,6 +14,10 @@ class NetworkRequestType
     integer DELETE = 5
     integer type = POST
 
+    on create
+        type = POST
+    end
+
     action HEAD()
         type = HEAD
     end
