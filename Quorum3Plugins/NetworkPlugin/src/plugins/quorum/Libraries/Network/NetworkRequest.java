@@ -27,11 +27,12 @@ public class NetworkRequest {
         connection.setDoOutput(true);
         BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
         String line;
+        String response = "";
         while ((line = in.readLine()) != null) {
-            System.out.println(line);
+            response += line + '\n';
         }
         in.close();
-        quorumNetworkRequest.SetResponse("Response Get(url):\n" + url);
+        quorumNetworkRequest.SetResponse(response);
     }
     
     public void Get(String url, String params) throws Exception {
