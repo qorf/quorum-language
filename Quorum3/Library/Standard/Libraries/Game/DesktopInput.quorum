@@ -21,6 +21,9 @@ use Libraries.Interface.Events.TextInputEvent
 use Libraries.Interface.Events.TextInputListener
 use Libraries.Interface.Events.TextInputProcessor
 use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.ResizeEvent
+use Libraries.Interface.Events.ResizeListener
+use Libraries.Interface.Events.ResizeProcessor
 
 /*
 This class automatically handles input and notifies event listeners for Games
@@ -33,6 +36,7 @@ class DesktopInput is GameInput
     private KeyboardProcessor keyboardProcessor
     private MouseProcessor mouseProcessor
     private TextInputProcessor textInputProcessor
+    private ResizeProcessor resizeProcessor
 
     Array<KeyboardListener> keyboardListeners
     InputSet keyboardModifiers
@@ -41,6 +45,7 @@ class DesktopInput is GameInput
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
     Array<TextInputListener> textInputListeners
+    Array<ResizeListener> resizeListeners
 
     GameStateManager manager
 
@@ -81,6 +86,22 @@ class DesktopInput is GameInput
         if textInputProcessor:HasEvents()
             ProcessTextInputEvent(textInputProcessor:GetEvents())
         end
+
+        resizeProcessor:Update()
+        
+        if resizeProcessor:HasEvents()
+            List<ResizeEvent> resizeEvents = resizeProcessor:GetEvents()
+
+            repeat while (not resizeEvents:IsEmpty())
+                ResizeEvent event = resizeEvents:RemoveFromFront()
+                integer counter = 0
+                repeat while counter < resizeListeners:GetSize()
+                    resizeListeners:Get(counter):SizeChanged(event)
+                    counter = counter + 1
+                end
+            end
+        end
+
     end
 
     private action ProcessKeyboardEvent(List<KeyboardEvent> events)
@@ -362,4 +383,21 @@ class DesktopInput is GameInput
         // Do nothing - touch isn't supported on Desktop.
     end
 
+    /*
+    This action will add a ResizeListener to the GameInput. The 
+    GameInput will notify the ResizeListener when the size of the game space
+    changes, e.g. the window changes size or goes fullscreen.
+    */
+    action AddResizeListener(ResizeListener listener)
+        resizeListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a ResizeListener from the GameInput. The
+    GameInput will no longer notify the given ResizeListener of 
+    ResizeEvents. 
+    */
+    action RemoveResizeListener(ResizeListener listener)
+        resizeListeners:Remove(listener)
+    end
 end

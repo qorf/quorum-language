@@ -8,6 +8,7 @@ use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.TextInputListener
+use Libraries.Interface.Events.ResizeListener
 
 /*
 This class is the base interface for how the Game will automatically handle
@@ -177,4 +178,18 @@ class GameInput
     */
     blueprint action RemoveTextInputListener(TextInputListener listener)
 
+    /*
+    This action will add a ResizeListener to the GameInput. The 
+    GameInput will notify the ResizeListener when the size of the game space
+    changes, e.g. the window changes size or goes fullscreen.
+    */
+    blueprint action AddResizeListener(ResizeListener listener)
+
+    /*
+    This action will remove a ResizeListener from the GameInput. The
+    GameInput will no longer notify the given ResizeListener of 
+    ResizeEvents. 
+    */
+    blueprint action RemoveResizeListener(ResizeListener listener)
+    
 end

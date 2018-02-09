@@ -9,6 +9,7 @@ use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.TextInputListener
+use Libraries.Interface.Events.ResizeListener
 use Libraries.Containers.Array
 
 class WebInput is GameInput
@@ -17,6 +18,7 @@ class WebInput is GameInput
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
     Array<KeyboardListener> keyboardListeners
+    Array<ResizeListener> resizeListeners
 
     /* 
     Arrays storing the events that have occurred. These are filled by the
@@ -231,5 +233,23 @@ class WebInput is GameInput
     */
     action RemoveTextInputListener(TextInputListener listener)
         // TO-DO
+    end
+
+    /*
+    This action will add a ResizeListener to the GameInput. The 
+    GameInput will notify the ResizeListener when the size of the game space
+    changes, e.g. the window changes size or goes fullscreen.
+    */
+    action AddResizeListener(ResizeListener listener)
+        resizeListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a ResizeListener from the GameInput. The
+    GameInput will no longer notify the given ResizeListener of 
+    ResizeEvents. 
+    */
+    action RemoveResizeListener(ResizeListener listener)
+        resizeListeners:Remove(listener)
     end
 end

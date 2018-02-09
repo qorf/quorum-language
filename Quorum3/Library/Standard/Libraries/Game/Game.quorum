@@ -60,6 +60,7 @@ use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.FocusListener
 use Libraries.Interface.Events.TextInputListener
+use Libraries.Interface.Events.ResizeListener
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
@@ -1073,6 +1074,36 @@ class Game
     end
 
     /*
+    This action adds a ResizeListener to the Game. The listener will be 
+    notified when the size of the Game rendering space changes size, such as a
+    window being resized or made fullscreen, or a phone rotating orientation.
+
+    Attribute: Parameter listener The ResizeListener to add to the Game.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.ResizeListener
+
+        class Main is Game
+
+            ResizeListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddResizeListener(listener)
+            end
+            
+        end
+    */
+    action AddResizeListener(ResizeListener listener)
+        gameInput:AddResizeListener(listener)
+    end
+
+    /*
     This action removes a MouseListener from the Game. The mouse listener will 
     no longer receive mouse events from the Game. If the given MouseListener was
     not part of the Game, then this will have no effect.
@@ -1228,6 +1259,37 @@ class Game
     */
     action RemoveTextInputListener(TextInputListener listener)
         gameInput:RemoveTextInputListener(listener)
+    end
+
+    /*
+    This action removes a ResizeListener from the Game. The listener will no
+    longer receive resize events.
+
+    Attribute: Parameter listener The ResizeListener to be removed from the Game.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.ResizeListener
+
+        class Main is Game
+
+            ResizeListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddResizeListener(listener)
+
+                RemoveResizeListener(listener)
+            end
+            
+        end
+    */
+    action RemoveResizeListener(ResizeListener listener)
+        gameInput:RemoveResizeListener(listener)
     end
 
     /*

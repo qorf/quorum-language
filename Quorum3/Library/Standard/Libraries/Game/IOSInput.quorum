@@ -9,6 +9,7 @@ use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.TextInputListener
+use Libraries.Interface.Events.ResizeListener
 use Libraries.Interface.Item
 use Libraries.Interface.Panel
 
@@ -22,6 +23,7 @@ class IOSInput is GameInput
 
     Array<TouchListener> touchListeners
     List<TouchEvent> touchEvents
+    Array<ResizeListener> resizeListeners
 
     on create
         InitializePlugin(touchEvents)
@@ -194,6 +196,24 @@ class IOSInput is GameInput
     */
     action RemoveTouchListener(TouchListener listener)
         touchListeners:Remove(listener)
+    end
+
+    /*
+    This action will add a ResizeListener to the GameInput. The 
+    GameInput will notify the ResizeListener when the size of the game space
+    changes, e.g. the window changes size or goes fullscreen.
+    */
+    action AddResizeListener(ResizeListener listener)
+        resizeListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a ResizeListener from the GameInput. The
+    GameInput will no longer notify the given ResizeListener of 
+    ResizeEvents. 
+    */
+    action RemoveResizeListener(ResizeListener listener)
+        resizeListeners:Remove(listener)
     end
 
     private system action InitializePlugin(List<TouchEvent> list)
