@@ -16,7 +16,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
+import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
@@ -25,6 +25,7 @@ import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GLCapabilities;
 import plugins.quorum.Libraries.Interface.Events.KeyboardProcessor;
 import plugins.quorum.Libraries.Interface.Events.MouseProcessor;
+import plugins.quorum.Libraries.Interface.Events.ResizeProcessor;
 import plugins.quorum.Libraries.Interface.Events.TextInputProcessor;
 import quorum.Libraries.Game.ScreenResolution;
 
@@ -39,12 +40,13 @@ public class DesktopDisplay {
     // May only be necessary for development. May be removed later.
     GLFWErrorCallback errorCallback;
     // Used to capture resize events. Currently does nothing.
-    GLFWFramebufferSizeCallback resizeCallback = new GLFWFramebufferSizeCallback()
+    
+    GLFWWindowSizeCallback resizeCallback = new GLFWWindowSizeCallback()
         {
             @Override
             public void invoke(long window, int width, int height)
             {
-                ResizeEvent(window, width, height);
+                ResizeProcessor.AddResizeEvent(window, width, height);
             }
         };
     
@@ -213,7 +215,7 @@ public class DesktopDisplay {
         
         SetVSync(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
         
-        GLFW.glfwSetFramebufferSizeCallback(window, resizeCallback);
+        GLFW.glfwSetWindowSizeCallback(window, resizeCallback);
         GLFW.glfwSetKeyCallback(window, keyboardCallback);
         GLFW.glfwSetCursorPosCallback(window, mouseMovementCallback);
         GLFW.glfwSetMouseButtonCallback(window, mouseCallback);
@@ -450,12 +452,6 @@ public class DesktopDisplay {
     public static int glBoolean(boolean value)
     {
         return value ? org.lwjgl.opengl.GL11.GL_TRUE : org.lwjgl.opengl.GL11.GL_FALSE;
-    }
-    
-    public void ResizeEvent(long window, int width, int height)
-    {
-        // Handle resizing in a sensible manner.
-        // When the Quorum resizing API is implemented, inform listeners.
     }
     
     // Only works on Windows platforms. This will fail on other platforms.
