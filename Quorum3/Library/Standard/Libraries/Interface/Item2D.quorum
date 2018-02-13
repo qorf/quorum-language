@@ -133,6 +133,12 @@ class Item2D is Item
     */
     VisualContent2D visualContent = undefined
 
+    /*
+    Layout objects are used to reactively set the position and dimensions of
+    Items relative to either screen dimensions or parent Item dimensions.
+    */
+    Layout layout = undefined
+
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
     // the second vertex, respectively.
@@ -636,7 +642,7 @@ class Item2D is Item
         Item2D myItem
         myItem:SetSize(100, 50)
     */
-    action SetSize(integer newWidth, integer newHeight)
+    action SetSize(number newWidth, number newHeight)
         SetWidth(newWidth)
         SetHeight(newHeight)
 
@@ -4231,4 +4237,37 @@ class Item2D is Item
     action GetVisualContent returns VisualContent2D
         return visualContent
     end
+
+    action SetLayout(Layout newLayout)
+        layout = newLayout
+    end
+
+    action GetLayout returns Layout
+        return layout
+    end
+
+    action Resize
+        if layout not= undefined
+            number containerWidth = 0
+            number containerHeight = 0
+            if parentItem not= undefined
+                containerWidth = parentItem:GetWidth()
+                containerHeight = parentItem:GetHeight()
+            else
+                GameStateManager manager
+                containerWidth = manager:GetGameDisplay():GetWidth()
+                containerHeight = manager:GetGameDisplay():GetHeight()
+            end
+
+            SetPosition(containerWidth * layout:GetPercentageX(), containerHeight * layout:GetPercentageY())
+            SetSize(containerWidth * layout:GetPercentageWidth(), containerHeight * layout:GetPercentageHeight())
+
+            integer counter = 0
+            repeat while counter < children:GetSize()
+                children:Get(counter):Resize()
+                counter = counter + 1
+            end
+        end
+    end
+
 end

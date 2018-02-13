@@ -99,6 +99,12 @@ class DesktopInput is GameInput
                     resizeListeners:Get(counter):SizeChanged(event)
                     counter = counter + 1
                 end
+
+                counter = 0
+                repeat while counter < layers:GetSize()
+                    layers:Get(counter):Resize(event)
+                    counter = counter + 1
+                end
             end
         end
 

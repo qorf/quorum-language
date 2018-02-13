@@ -1,0 +1,65 @@
+package Libraries.Interface
+
+use Libraries.Containers.Support.Pair
+
+class Layout 
+
+    // Margin margin
+    // Padding padding
+
+    number xPercentage = 0.0
+    number yPercentage = 0.0
+    number widthPercentage = 0.0
+    number heightPercentage = 0.0
+
+    Pair<number> widthRange
+    Pair<number> heightRange
+
+    action SetPercentageX(number x)
+        xPercentage = x
+    end
+
+    action GetPercentageX returns number
+        return xPercentage
+    end
+
+    action SetPercentageY(number y)
+        yPercentage = y
+    end
+
+    action GetPercentageY returns number
+        return yPercentage
+    end
+
+    action SetPercentageWidth(number width)
+        widthPercentage = width
+    end
+
+    action GetPercentageWidth returns number
+        return widthPercentage
+    end
+
+    action SetPercentageHeight(number height)
+        heightPercentage = height
+    end
+
+    action GetPercentageHeight returns number
+        return heightPercentage
+    end
+
+    action SetWidthRange(number minimum, number maximum)
+        widthRange:Set(minimum, maximum)
+    end
+
+    action GetWidthRange returns Pair<number>
+        return widthRange
+    end
+
+    action SetHeightRange(number minimum, number maximum)
+        heightRange:Set(minimum, maximum)
+    end
+
+    action GetHeightRange returns Pair<number>
+        return heightRange
+    end
+end

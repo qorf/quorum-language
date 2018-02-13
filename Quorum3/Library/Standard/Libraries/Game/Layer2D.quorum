@@ -4,6 +4,7 @@ use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.OrthographicCamera
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.ResizeEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
@@ -2179,5 +2180,24 @@ class Layer2D is Layer
 
     action GetSimulationThreshold returns number
         return island:GetSimulationThreshold()
+    end
+
+    action Resize(ResizeEvent event)
+        number width = event:GetWidth()
+        number height = event:GetHeight()
+        number xAdjust = (width - camera:GetWidth()) / 2
+        number yAdjust = (height - camera:GetHeight()) / 2
+
+        camera:Move(xAdjust, yAdjust, 0)
+        camera:SetWidth(width)
+        camera:SetHeight(height)
+
+        camera:Update()
+
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            items:Get(counter):Resize()
+            counter = counter + 1
+        end
     end
 end

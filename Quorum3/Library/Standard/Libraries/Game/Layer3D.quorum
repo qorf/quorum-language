@@ -3,6 +3,7 @@ package Libraries.Game
 use Libraries.Interface.Item3D
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.ResizeEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
@@ -2860,5 +2861,17 @@ class Layer3D is Layer
         joint:GetEdgeB():SetNext(undefined)
 
         //TODO: collision filtering?
+    end
+
+    action Resize(ResizeEvent event)
+        number width = event:GetWidth()
+        number height = event:GetHeight()
+
+        camera:SetWidth(width)
+        camera:SetHeight(height)
+
+        camera:Update()
+
+        // Resize items, if reasonable to do so, here.
     end
 end

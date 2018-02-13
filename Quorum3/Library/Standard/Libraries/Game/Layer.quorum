@@ -3,6 +3,7 @@ package Libraries.Game
 use Libraries.Game.Graphics.Camera
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.ResizeEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
@@ -11,6 +12,8 @@ use Libraries.Interface.Events.TouchListener
 class Layer 
     
     boolean visible = true
+
+    boolean automaticResizing = true
 
     /*
     This action will update all of the items contained within this Layer. The
@@ -537,5 +540,31 @@ class Layer
 
     */
     blueprint action RemoveTouchListener(TouchListener listener)
+
+    /*
+    This action sets if the Layer should automatically respond to ResizeEvents.
+    If this value is true, then the Layer will automatically adjust the camera
+    and resize Items on the Layer when a ResizeEvent occurs.
+    */
+    action SetAutomaticResizing(boolean resizing)
+        automaticResizing = resizing
+    end
+
+    /*
+    This action returns whether or not the Layer will automatically respond to 
+    ResizeEvents. If this value is true, then the Layer will automatically 
+    adjust the camera and resize Items on the Layer when a ResizeEvent occurs.
+    */
+    action GetAutomaticResizing returns boolean
+        return automaticResizing
+    end
+
+    /*
+    This action will resize the Layer to match the dimensions of the provided
+    ResizeEvent. This action is called automatically by the Game engine if the
+    GetAutomaticResizing() value returns true. Users should not typically need
+    to call this action directly.
+    */
+    blueprint action Resize(ResizeEvent event)
 
 end
