@@ -71,9 +71,9 @@ class TextBoxControl
 		LRESULT CALLBACK TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
 		LRESULT OnSetFocus(HWND hwnd);
 		LRESULT OnKillFocus();
-		LRESULT UpdateCaret(HWND hwnd);
+		LRESULT UpdateCaret(HWND hwnd, LPARAM caretPosition);
 
-		EndPoint caretPosition;
+		EndPoint m_caretPosition;
 		bool isActive;
 		TextLine *lines;
 		int lineCount;

@@ -9,12 +9,12 @@ TextBoxControl::TextBoxControl(_In_reads_(lineCount) TextLine * lines, _In_ int 
 {
 	TextBoxControl::lines = lines;
 	TextBoxControl::lineCount = lineCount;
-	caretPosition.line = caret.line;
-	caretPosition.character = caret.character;
+	m_caretPosition.line = caret.line;
+	m_caretPosition.character = caret.character;
 	isActive = false;
 }
 
-// RegisterButtonControl: Registers the ToggleButtonControl with Windows API so that it can used and later be registered with UI Automation
+// RegisterButtonControl: Registers the TextControl with Windows API so that it can used and later be registered with UI Automation
 void TextBoxControl::RegisterTextControl(HINSTANCE hInstance)
 {
 	WNDCLASSEXW wc;
@@ -42,6 +42,10 @@ void TextBoxControl::RegisterTextControl(HINSTANCE hInstance)
 
 		//Free the buffer.
 		LocalFree(messageBuffer);
+	}
+	else
+	{
+		std::cout << "Register Text Control Successful." << std::endl;
 	}
 }
 
@@ -208,11 +212,11 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIB
 	else if (attribute == UIA_CaretPositionAttributeId)
 	{
 		retval.vt = VT_I4;
-		if (caretPosition.character == 0)
+		if (m_caretPosition.character == 0)
 		{
 			retval.lVal = CaretPosition_BeginningOfLine;
 		}
-		else if (caretPosition.character == GetLineLength(caretPosition.line))
+		else if (m_caretPosition.character == GetLineLength(m_caretPosition.line))
 		{
 			retval.lVal = CaretPosition_EndOfLine;
 		}
@@ -323,7 +327,7 @@ bool TextBoxControl::IsActive()
 
 EndPoint TextBoxControl::GetCaretPosition()
 {
-	return caretPosition;
+	return m_caretPosition;
 }
 
 LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
@@ -381,7 +385,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case CUSTOM_UPDATECARET:
 	{
-		lResult = UpdateCaret(hwnd);
+		lResult = UpdateCaret(hwnd, wParam);
 		break;
 	}
 	case CUSTOM_SETNAME:
@@ -409,8 +413,10 @@ LRESULT TextBoxControl::OnKillFocus()
 	return 0;
 }
 
-LRESULT TextBoxControl::UpdateCaret(HWND hwnd)
+LRESULT TextBoxControl::UpdateCaret(HWND hwnd, LPARAM caretPosition)
 {
+
+	//m_caretPosition = caretPosition;
 	NotifyCaretPositionChanged(hwnd, this);
 	return 0;
 }

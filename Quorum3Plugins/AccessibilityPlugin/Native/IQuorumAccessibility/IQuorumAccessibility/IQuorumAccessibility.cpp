@@ -162,10 +162,9 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	GLFW_HWND = (HWND)jlongHWND;
 
 	// The send message parameters are:
-	//	GLFW_HWND: The HWND of the control that should get focus
-	//	CUSTOM_SETFOCUS: The message to that control's window procedure that will respond to the focus change. This parameter can be arbitrary since custom messages are allowed.
-	//	The last two parameters wParam and lParam are basically arbitrary and in no way need to be the values chosen here. However, they should be used as a way to uniquely identify
-	//	the difference between manually sending this message for focus and Windows API sending a WM_SETFOCUS message.
+	//	GLFW_HWND: The HWND of the control that we want to send a message to
+	//	CUSTOM_SETFOCUS: The message to that control's window procedure which it will respond to. Custom messages are allowed and are kept in the CustomMessages.h file for consistency throughout the library.
+	//	The last two parameters wParam and lParam are basically arbitrary and in no way need to be the values chosen here. By convention wParam is used to send integers and lParam is used to send pointers.
 	SendMessage(GLFW_HWND, CUSTOM_SETFOCUS, 0, 0);
 	
 	return PtrToLong(GLFW_HWND);
@@ -177,10 +176,6 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	HWND GLFW_HWND;
 	GLFW_HWND = (HWND)jlongHWND;
 
-	// The send message parameters are:
-	//	GLFW_HWND: The HWND of the control that should get focus
-	//	CUSTOM_INVOKEBUTTON: The message to that control's window procedure that will respond to the focus change. This parameter can be arbitrary since custom messages are allowed.
-	//	The last two parameters wParam and lParam are basically arbitrary and in no way need to be the values chosen here. However, they can be used to pass values to a WndProc.
 	SendMessage(GLFW_HWND, CUSTOM_INVOKEBUTTON, 0, 0);
 
 	return PtrToLong(GLFW_HWND);
@@ -206,10 +201,5 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	}
 
 	return true;
-	// The send message parameters are:
-	//	GLFW_HWND: The HWND of the control that should get focus
-	//	WM_LBUTTONDOWN: The message to that control's window procedure that will respond to the focus change. This parameter can be arbitrary since custom messages are allowed.
-	//	The last two parameters wParam and lParam are basically arbitrary and in no way need to be the values chosen here. However, they can be used to pass values to a WndProc.
-	//SendMessage(GLFW_HWND, CUSTOM_INVOKEBUTTON, 0, 0);
 
 }
