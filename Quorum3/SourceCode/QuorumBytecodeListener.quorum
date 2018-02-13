@@ -1814,7 +1814,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                     + ". This means it cannot be accessed from class "
                     + currentClass:GetStaticKey() + " unless " + act:GetName() + " is made public.")
                 CompilerErrorType errorType
-                errorType:SetCurrentType(errorType:OTHER)
+                errorType:SetCurrentType(errorType:ACCESS_ERROR)
                 error:SetCompilerErrorType(errorType)
                 CompilerErrorManager manager = GetCompilerErrorManager()
                 manager:Add(error)
@@ -2319,7 +2319,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                                 + ", but it is private in parent class "
                                 + callingName + ".")
                             CompilerErrorType errorType
-                            errorType:SetCurrentType(errorType:OTHER)
+                            errorType:SetCurrentType(errorType:ACCESS_ERROR)
                             error:SetCompilerErrorType(errorType)
                             CompilerErrorManager manager = GetCompilerErrorManager()
                             manager:Add(error)
@@ -2419,7 +2419,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                                 + ". This means it cannot be accessed from class "
                                 + currentClass:GetStaticKey() + " unless " + name + " is made public.")
                             CompilerErrorType errorType
-                            errorType:SetCurrentType(errorType:OTHER)
+                            errorType:SetCurrentType(errorType:ACCESS_ERROR)
                             error:SetCompilerErrorType(errorType)
                             error:SetFile(GetFile())
                             CompilerErrorManager manager = GetCompilerErrorManager()

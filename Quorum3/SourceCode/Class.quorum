@@ -399,7 +399,7 @@ class Class is Symbol
         error:SetLineNumberEnd(method:GetLineNumber())
         error:SetColumnNumber(method:GetColumnNumber())
         error:SetColumnNumber(method:GetColumnNumber())
-        error:SetErrorMessage("Action " + method:GetDisplayName() + " has already been defined.")
+        error:SetErrorMessage("Action " + method:GetDisplayName() + " is already defined. That is not possible, because I would not know which definition to use.")
         return error
     end
 
@@ -504,7 +504,7 @@ class Class is Symbol
                     type:SetCurrentType(type:MISSING_USE)
                     error:SetCompilerErrorType(type)
                     error:SetErrorMessage("I could not locate the package named "
-                        +  noAllKey + ". Are you sure you spelled it correct?" )
+                        +  noAllKey + ". Are you sure you spelled it correctly?" )
                     errors:Add(error)
                 end
             else 
@@ -517,8 +517,8 @@ class Class is Symbol
                     CompilerErrorType type
                     type:SetCurrentType(type:MISSING_USE)
                     error:SetCompilerErrorType(type)
-                    error:SetErrorMessage("I could not locate the use statement named "
-                        +   name:GetStaticKey() + ". Are you sure you spelled it correct?" )
+                    error:SetErrorMessage("I could not locate the package named "
+                        +   name:GetStaticKey() + ". Are you sure you spelled it correctly?" )
                     errors:Add(error)
                 end
             end
