@@ -1271,7 +1271,7 @@ class ClassOpcode is QuorumOpcode
 
         //if any of the parents have constructors, call them.
         if isParent
-            Iterator<Class> parents = clazz:GetParentClasses()
+            Iterator<Class> parents = clazz:GetParentCreationOrder()
             text classBytecodeName = converter:ConvertStaticKeyToBytecodePath(staticKey)
 
 
@@ -1331,7 +1331,7 @@ class ClassOpcode is QuorumOpcode
     end
 
     private action WriteParents(JavaBytecodeMethodWriter methodWriter)
-        Iterator<Class> parents = clazz:GetParentClasses()
+        Iterator<Class> parents = clazz:GetParentCreationOrder()
         text classBytecodeName = converter:ConvertStaticKeyToBytecodePath(staticKey)
         
 
@@ -1348,7 +1348,6 @@ class ClassOpcode is QuorumOpcode
                 methodWriter:VisitInstruction(opcodes:GetDuplicate())
 
                 //push false on the parents and call a separate constructor
-                //methodWriter:VisitInstruction(opcodes:GetIntegerZero())
                 methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
                 text convertedConstructorParentName = "L" + converted + "_;"
                 methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), converted, CONSTRUCTOR_JAVA_NAME, "(" + convertedConstructorParentName + ")V", false)
@@ -1358,7 +1357,7 @@ class ClassOpcode is QuorumOpcode
         
         //now that all parents have been instantiated, get 
         //their parents and set them appropriately
-        parents = clazz:GetParentClasses()
+        parents = clazz:GetParentCreationOrder()
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
@@ -1575,7 +1574,7 @@ class ClassOpcode is QuorumOpcode
 
         //initialize all of the parent objects as values, if appropriate
         convertedSource = convertedSource + "if(parents == null) {" + EOL
-        parents = clazz:GetParentClasses()
+        parents = clazz:GetParentCreationOrder()
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
@@ -1586,7 +1585,7 @@ class ClassOpcode is QuorumOpcode
 
         //now that all parents have been instantiated, get 
         //their parents and set them appropriately
-        parents = clazz:GetParentClasses()
+        parents = clazz:GetParentCreationOrder()
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
@@ -1610,7 +1609,7 @@ class ClassOpcode is QuorumOpcode
 
         //now that all of the parents have had their parent's set, 
         //call their constructors.
-        parents = clazz:GetParentClasses()
+        parents = clazz:GetParentCreationOrder()
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()

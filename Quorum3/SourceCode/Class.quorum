@@ -32,6 +32,7 @@ class Class is Symbol
     HashTable<text, Class> validUses
     HashTable<text, Class> validUsesFullyQualified
     HashTable<text, Class> parents
+    Array<Class> parentCreationOrder = undefined
     Array<Class> directParents
     Array<text> generics
     HashTable<text, integer> genericHash
@@ -1497,10 +1498,92 @@ class Class is Symbol
             end
         end
 
+        
+
         //regardless of whether the user has errors in their code,
         //the parents have been resolved.
         isResolvingParents = false
         areParentsResolved = true
+        if not errors:HasErrors()
+            ComputeParentCreationOrder(errors)
+        end
+    end
+
+    /*
+        This action computes the order that parents should be instantiated in 
+        when a child is created, for a particular class hierarchy.
+    */
+    private action ComputeParentCreationOrder(CompilerErrorManager errors)
+        Iterator<Class> parentIterator = parents:GetValueIterator()
+        if not parentIterator:HasNext()
+            return now
+        end
+
+        HashTable<text, integer> order
+        repeat while parentIterator:HasNext()
+            Class par = parentIterator:Next()
+            text key = par:GetStaticKey()
+            order:Add(key, 0)
+        end
+
+        parentIterator = parents:GetValueIterator()
+        repeat while parentIterator:HasNext()
+            Class par = parentIterator:Next()
+            text key = par:GetStaticKey()
+            
+            //Get all of the parents and add 1 for everything in the flattened list
+            Iterator<Class> grandParentIterator = par:GetParentClasses()
+            repeat while grandParentIterator:HasNext()
+                Class grandparent = grandParentIterator:Next()
+                text grandparentKey = grandparent:GetStaticKey()
+                integer value = order:GetValue(grandparentKey)
+                order:Set(grandparentKey, value + 1)
+            end
+        end
+        Array<ClassAttribute> attributes
+        Iterator<text> keys = order:GetKeyIterator()
+        repeat while keys:HasNext()
+            text key = keys:Next()
+            integer value = order:GetValue(key)
+            ClassAttribute attribute
+            attribute:name = key
+            attribute:value = value
+            attributes:Add(attribute)
+        end
+
+        text theFirstOrder = ""
+        attributes:Sort()
+        Array<Class> parentCreationOrderArray
+        i = 0
+        repeat while i < attributes:GetSize()
+            text key = attributes:Get(i):name
+            //get the parent corresponding to this key
+            Class newParent = GetParentClass(key)
+            //create the array
+            parentCreationOrderArray:Add(newParent)
+            i = i + 1
+        end
+
+        if not errors:HasErrors()
+            parentCreationOrder = parentCreationOrderArray
+        end
+    end
+
+    /*
+        This action returns the order in which parents should be instantiated.
+        It provides an optimal ordering to ensure children do not get created 
+        before their parents.
+    */
+    action  GetParentCreationOrder returns Iterator<Class>
+        if GetStaticKey() = LIBRARIES_LANGUAGE_OBJECT and parentCreationOrder = undefined
+            Array<Class> parentCreationOrderArray
+            parentCreationOrder = parentCreationOrderArray
+        end
+
+        if parentCreationOrder = undefined
+            return parents:GetValueIterator()
+        end
+        return parentCreationOrder:GetIterator()
     end
 
     /*
