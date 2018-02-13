@@ -1,0 +1,197 @@
+package plugins.quorum.Libraries.Interface;
+
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import quorum.Libraries.Interface.Item_;
+import plugins.quorum.Libraries.Game.DesktopDisplay;
+import static org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window;
+import quorum.Libraries.Language.Types.Text_;
+
+
+/**
+ *
+ * @author Matthew Raybuck
+ */
+public class AccessibilityManager 
+{
+    static   //static initializer code
+    {
+        try
+        {
+            java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+            String runLocation = file.getParentFile().getAbsolutePath();
+            
+            String nativeFile;
+            
+            if (System.getProperty("os.arch").contains("x86"))
+                nativeFile = runLocation + "\\jni\\AccessibilityManagerWindows32.dll";
+            else
+                nativeFile = runLocation + "\\jni\\AccessibilityManagerWindows64.dll";
+            
+            System.load(nativeFile);
+        }
+        catch (URISyntaxException ex) 
+        {
+            Logger.getLogger(AccessibilityManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    } 
+    
+    public AccessibilityManager(){};
+    
+    public java.lang.Object me_ = null;
+    
+    // Container to associate the Quorum item with its respective HWND.
+    private final HashMap<Item_, Long> itemMap = new HashMap<>();
+    private Item_ focusedItem = null;
+    // The handle to the main game window that GLFW creates
+    private long mainWindow;
+
+    
+    // ====== Native Windows API (Win32) Function Declarations
+    
+    
+    private native void NativeWin32InitializeAccessibility();
+    
+    private native void NativeWin32ShutdownAccessibility();
+    
+    // NativePrint: For debugging
+    private native void NativePrint();
+    
+    // NativeWin32CreateWindow: The name for this function is somewhat misleading and it is to maintain Windows API naming conventions down
+    //                          at the C level. A window isn't being created for a given item. Windows calls everything a window regardless
+    //                          of what it actually is. All this function does is tell Windows API that something is there so that a function
+    //                          in C can register it with UI Automation.
+    //      Returns: null on failure, otherwise itemHWND associated with item
+    private native long NativeWin32CreateWindow(long parentWindow, String name, String description, String className);
+    
+    // NativeWin32SetFocus: Sets the keyboard focus onto the given item with UI Automation.
+    //      Returns: null on failure, otherwise itemHWND of previously focused item.
+    private native long NativeWin32SetFocus(long itemHWND);
+    
+    
+    // NativeWin32InvokeButton: Calls the native method that will raise a UI Automation that tells the screen reader that the button was iteracted with.
+    private native boolean NativeWin32InvokeButton(long itemHWND);
+    
+    // NativeWin32UpdateToggleStatus: Calls the native method that is responsible for updating the native control's toggle status (on or off)
+    //                                and raising the appropriate UI Automation event.
+    private native boolean NativeWin32UpdateToggleStatus(long itemHWND, boolean selected);
+    
+    // NativeWin32TextBoxTextSelectionChanged: Calls the native method that will raise a UI Automation event for Text being changed.
+    // TODO: Figure out what parameters are necessary to accomplish this.
+    private native boolean NativeWin32TextBoxTextSelectionChanged(long itemHWND, String TextValue);
+    
+    
+    // ===== Accessiblity Manager Function Declarations
+    
+    // Initialize: Gets the window handle (a pointer) for the Quorum Game window and initializes the native accessiblity library.
+    //             This has to be called after the game window already exists otherwise Accessiblity won't work. It should never be
+    //             called more than once either.
+    public void Initialize()
+    {
+        mainWindow = glfwGetWin32Window(DesktopDisplay.window);
+        NativeWin32InitializeAccessibility();
+    }
+    
+    // Shutdown: Closes the COM library on the native level.
+    public void Shutdown()
+    {
+        NativeWin32ShutdownAccessibility();
+    }
+    
+    // RegisterItem: registers the given item with UI Automation.
+    //      Returns: boolean of success or failure.
+    public boolean RegisterItem(Item_ item, Text_ className)
+    {       
+        // Register the item with UI Automation
+        // TODO: parameters
+        // Allowing the manual typing of an object's class can cause a crash if it isn't exactly 1-to-1 with the native level. 
+        // Probably not going to be a final solution for requesting type from Quorum
+        long itemHWND = NativeWin32CreateWindow(mainWindow, item.GetName(), item.GetDescription(), className.GetValue());
+
+        if (itemHWND != 0)
+        {
+            // Add item and respective HWND to collection.
+            itemMap.put(item, itemHWND);
+            
+            return true;
+        }
+        else
+            return false;
+    }
+    
+    // GetFocus: Returns the current item that has focus with UI Automation.
+    public Item_ GetFocus()
+    {
+        return focusedItem;
+    }
+    
+    // SetFocus: Sets the focus to the specified item in UI Automation. This will also update what item has focus within the
+    //           Accessibility Manager.
+    //      Returns: boolean of success or failure.
+    public boolean SetFocus(Item_ item)
+    {
+        // Retreive HWND for given object
+        long itemHWND = itemMap.get(item);
+//        long prevousFocusedItem;
+        if (itemHWND != 0)
+        {
+//            prevousFocusedItem = NativeWin32SetFocus(itemHWND);
+            
+            if(NativeWin32SetFocus(itemHWND) != 0)
+            {
+                // TODO: Decide whether or not to capture return value of NativeWin32SetFocus and store it for something.
+                
+                // Update focesedItem to the new focused item.
+                focusedItem = item;
+                //NativeWin32SetFocus(mainWindow);
+                return true;
+            }
+            else
+                return false;
+        }
+        else
+            return false;
+    }
+    
+    // InvokeButton: Invoke a button through UI Automation
+    //      Returns: boolean of success or failure.
+    public boolean InvokeButton(Item_ button)
+    {
+        // Retreive HWND for given object
+        long itemHWND = itemMap.get(button);
+        
+        if (itemHWND != 0)
+        {
+            boolean bool = NativeWin32InvokeButton(itemHWND);
+            
+            return bool;
+        }
+        else
+            return false;
+
+    }
+    
+    // UpdateToggleState: Update the selected status of a toggle button down at the native
+    //                    level. This can be used for any button that can be toggled.
+    //      Returns: boolean of success or failure
+    public boolean UpdateToggleState(Item_ button, boolean selected)
+    {
+        // Retreive HWND for given object
+        long itemHWND = itemMap.get(button);
+        
+        if (itemHWND != 0)
+        {
+            boolean bool = NativeWin32UpdateToggleStatus(itemHWND, selected);
+            
+            return bool;
+        }
+        else            
+            return false;
+    }
+    
+    
+    
+}
