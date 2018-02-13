@@ -1,0 +1,223 @@
+#define INITGUID
+#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+
+#include <ole2.h>
+#include <UIAutomation.h>
+
+#include "RadioButtonProvider.h"
+#include "RadioButtonControl.h"
+
+#include <iostream>
+#include <string>
+
+RadioButtonProvider::RadioButtonProvider(HWND hwnd, RadioButtonControl* pButtonControl) : m_refCount(1), m_buttonControlHWnd(hwnd), m_pButtonControl(pButtonControl)
+{
+	// Nothing to do.
+}
+
+RadioButtonProvider::~RadioButtonProvider()
+{
+	// Nothing to do.
+}
+
+// =========== IUnknown implementation.
+
+IFACEMETHODIMP_(ULONG) RadioButtonProvider::AddRef()
+{
+	return InterlockedIncrement(&m_refCount);
+}
+
+IFACEMETHODIMP_(ULONG) RadioButtonProvider::Release()
+{
+	long val = InterlockedDecrement(&m_refCount);
+	if (val == 0)
+	{
+		delete this;
+	}
+	return val;
+}
+
+IFACEMETHODIMP RadioButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface)
+{
+	if (riid == __uuidof(IUnknown))
+	{
+		*ppInterface = static_cast<IRawElementProviderSimple*>(this);
+	}
+	else if (riid == __uuidof(IRawElementProviderSimple))
+	{
+		*ppInterface = static_cast<IRawElementProviderSimple*>(this);
+	}
+	else if (riid == __uuidof(ISelectionItemProvider))
+	{
+		*ppInterface = static_cast<ISelectionItemProvider*>(this);
+	}
+	else
+	{
+		*ppInterface = NULL;
+		return E_NOINTERFACE;
+	}
+
+	(static_cast<IUnknown*>(*ppInterface))->AddRef();
+	return S_OK;
+}
+
+
+// =========== IRawElementProviderSimple implementation
+
+// Get provider options.
+IFACEMETHODIMP RadioButtonProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
+{
+	*pRetVal = ProviderOptions_ServerSideProvider;
+	return S_OK;
+}
+
+// Get the object that supports ISelectionItemPattern.
+IFACEMETHODIMP RadioButtonProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
+{
+	if (patternId == UIA_SelectionItemPatternId)
+	{
+		AddRef();
+		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
+	}
+	else
+	{
+		*pRetVal = NULL;
+	}
+	return S_OK;
+}
+
+// Gets custom properties.
+IFACEMETHODIMP RadioButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
+{
+	if (propertyId == UIA_LocalizedControlTypePropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(L"Radio Button");
+	}
+	else if (propertyId == UIA_HelpTextPropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(L"Help Text here");
+	}
+	else if (propertyId == UIA_ControlTypePropertyId)
+	{
+		pRetVal->vt = VT_I4;
+		pRetVal->lVal = UIA_RadioButtonControlTypeId;
+	}
+	else if (propertyId == UIA_IsSelectionItemPatternAvailablePropertyId)
+	{
+		pRetVal->vt = VT_BOOL;
+		pRetVal->boolVal = VARIANT_TRUE;
+	}
+	else if (propertyId == UIA_IsEnabledPropertyId)
+	{
+		// This tells the screen reader whether or not the control can be interacted with.
+		// Hardcoded to true but this property could be dynamic depending on the needs of the Quorum GUI.
+		pRetVal->vt = VT_BOOL;
+		pRetVal->boolVal = VARIANT_TRUE;
+	}
+	else if (propertyId == UIA_NamePropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(m_pButtonControl->GetName());
+	}
+	else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
+	{
+		// Tells the screen reader that this control is capable of getting keyboard focus.
+		// This isn't enough for the screen reader to announce the control's existence to the user when it gains focus in Quorum.
+		// UIA_HasKeyboardFocusPropertyId is respondsible for whether or not the screen reader announces that this control gained focus.
+		pRetVal->vt = VT_BOOL;
+		pRetVal->boolVal = VARIANT_TRUE;
+	}
+	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
+	{
+		// This tells the screen reader whether or not this control has Keyboard focus. Normally, only one control/window is allowed to have keyboard focus at a time
+		// but by lying and having every instance of this control report that it has keyboard focus then we don't have to mantain what has focus on the native level.
+		pRetVal->vt = VT_BOOL;
+		pRetVal->boolVal = VARIANT_TRUE;
+	}
+	else
+	{
+		pRetVal->vt = VT_EMPTY;
+		// UI Automation will attempt to get the property from the host window provider.
+		// If the property is found then it will have the UI Automation defaults listed in the Microsoft Developer's Network documentation.
+		// More often than not the default values are responsible for a control not functioning properly with a screen reader.
+	}
+
+	return S_OK;
+}
+
+// Gets the UI Automation provider for the host window. This provider supplies most properties.
+IFACEMETHODIMP RadioButtonProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
+{
+	return UiaHostProviderFromHwnd(m_buttonControlHWnd, pRetVal);
+}
+
+
+// =========== ISelectionItemProvider implementation.
+
+// Select: Deselects any selected items and then selects the current element.
+IFACEMETHODIMP RadioButtonProvider::Select()
+{
+	if (UiaClientsAreListening())
+	{
+		UiaRaiseAutomationEvent(this, UIA_SelectionItem_ElementSelectedEventId);
+	}
+
+	return S_OK;
+}
+
+// AddToSelection: Adds the current element to the collection of selected items.
+IFACEMETHODIMP RadioButtonProvider::AddToSelection()
+{
+	Select();
+	return S_OK;
+}
+
+// RemoveFromSelection: Removes the current element from the collection of selected items.
+//						One and only one item must always be selected, so this is not implemented.
+IFACEMETHODIMP RadioButtonProvider::RemoveFromSelection()
+{
+	return UIA_E_INVALIDOPERATION;
+}
+
+// get_IsSelected: Indicates whether an item is selected. 
+IFACEMETHODIMP RadioButtonProvider::get_IsSelected(_Out_ BOOL * pRetVal)
+{
+
+	if (m_pButtonControl->GetState())
+	{
+		*pRetVal = TRUE;
+	}
+	else
+	{
+		*pRetVal = FALSE;
+	}
+
+
+	return S_OK;
+
+
+}
+
+// get_SelectionContainer: Specifies the provider that implements ISelectionProvider and acts as the container for the calling object.
+//						   For the Microsoft Win32 version of the radio button, the selection container is not supported because it is not possible
+//						   to obtain this information from that legacy framework.
+IFACEMETHODIMP RadioButtonProvider::get_SelectionContainer(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
+{
+	*pRetVal = NULL;
+	return S_OK;
+}
+
+// =========== Other Methods
+
+void RadioButtonProvider::NotifyFocusGained()
+{
+	if (UiaClientsAreListening())
+	{
+		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
+	}
+}
