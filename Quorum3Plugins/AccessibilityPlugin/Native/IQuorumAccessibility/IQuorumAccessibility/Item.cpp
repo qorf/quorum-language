@@ -60,8 +60,6 @@ void Item::RegisterControl(HINSTANCE hInstance)
 		//Free the buffer.
 		LocalFree(messageBuffer);
 	}
-	else
-		printf("RegisterClass was successful.\n");
 }
 
 
