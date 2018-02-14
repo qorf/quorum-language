@@ -137,7 +137,7 @@ class Item2D is Item
     Layout objects are used to reactively set the position and dimensions of
     Items relative to either screen dimensions or parent Item dimensions.
     */
-    Layout layout = undefined
+    Array<Layout> layouts
 
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
@@ -4238,16 +4238,21 @@ class Item2D is Item
         return visualContent
     end
 
-    action SetLayout(Layout newLayout)
-        layout = newLayout
+    action AddLayout(Layout layout)
+        layouts:Add(layout)
+        layouts:Sort()
     end
 
-    action GetLayout returns Layout
-        return layout
+    action RemoveLayout(Layout layout)
+        layouts:Remove(layout)
+    end
+
+    action GetLayouts returns Array<Layout>
+        return layouts
     end
 
     action Resize
-        if layout not= undefined
+        if not layouts:IsEmpty()
             number containerWidth = 0
             number containerHeight = 0
             if parentItem not= undefined
@@ -4259,10 +4264,31 @@ class Item2D is Item
                 containerHeight = manager:GetGameDisplay():GetHeight()
             end
 
+            Layout layout = undefined
+            integer counter = layouts:GetSize()
+            boolean searching = true
+
+            /*
+            Layouts are sorted by minimum width, or minimum height if minimum
+            widths are equal. When we find an invalid layout, it's assumed that
+            all following layouts will also be invalid.
+            */
+            repeat while counter > 0 and searching
+                counter = counter - 1
+                Layout temp = layouts:Get(counter)
+                if (temp:GetMaximumWidth() >= containerWidth and temp:GetMaximumHeight() >= containerHeight)
+//                    output "Swapping to temp (width = " + temp:GetMaximumWidth() + ", height = " + temp:GetMaximumHeight() + ")."
+                    layout = temp
+                else
+//                    output "Stopping search (width = " + temp:GetMaximumWidth() + ", height = " + temp:GetMaximumHeight() + ") for container dimensions " + containerWidth + " x " + containerHeight + "."
+                    searching = false
+                end
+            end
+
             SetPosition(containerWidth * layout:GetPercentageX(), containerHeight * layout:GetPercentageY())
             SetSize(containerWidth * layout:GetPercentageWidth(), containerHeight * layout:GetPercentageHeight())
 
-            integer counter = 0
+            counter = 0
             repeat while counter < children:GetSize()
                 children:Get(counter):Resize()
                 counter = counter + 1
