@@ -29,11 +29,10 @@ class Item
 
     public constant integer ITEM = 0
     public constant integer CUSTOM = 1
-    public constant integer BUTTON = 2
-    public constant integer TOGGLE_BUTTON = 3
-    public constant integer RADIO_BUTTON = 4
-    public constant integer PUSH_BUTTON = 5
-    public constant integer TEXTBOX = 6
+    public constant integer TOGGLE_BUTTON = 2
+    public constant integer RADIO_BUTTON = 3
+    public constant integer PUSH_BUTTON = 4
+    public constant integer TEXTBOX = 5
 
     private integer accessibilityCode = 0
 
@@ -936,14 +935,12 @@ class Item
         elseif (accessibilityCode = 1)
             return "CUSTOM"
         elseif (accessibilityCode = 2)
-            return "BUTTON"
-        elseif (accessibilityCode = 3)
             return "TOGGLE_BUTTON"
-        elseif (accessibilityCode = 4)
+        elseif (accessibilityCode = 3)
             return "RADIO_BUTTON"
-        elseif (accessibilityCode = 5)
+        elseif (accessibilityCode = 4)
             return "PUSH_BUTTON"
-        elseif (accessibilityCode = 6)
+        elseif (accessibilityCode = 5)
             return "TEXTBOX"
         else
             return "ITEM"

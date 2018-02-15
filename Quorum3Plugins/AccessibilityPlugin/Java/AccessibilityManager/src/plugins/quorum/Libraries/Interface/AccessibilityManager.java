@@ -67,6 +67,12 @@ public class AccessibilityManager
     //      Returns: null on failure, otherwise itemHWND associated with item
     private native long NativeWin32CreateWindow(long parentWindow, String name, String description, String className);
     
+    private native long NativeWin32CreateItem(long parentWindow, String name, String description, String className);
+    private native long NativeWin32CreatePushButton(long parentWindow, String name, String description, String className);
+    private native long NativeWin32CreateToggleButton(long parentWindow, String name, String description, String className);
+    private native long NativeWin32CreateRadioButton(long parentWindow, String name, String description, String className);
+    private native long NativeWin32CreateTextBox(long parentWindow, String name, String description, String className, int cursorPosition, int lineCount, String line);
+    
     // NativeWin32SetFocus: Sets the keyboard focus onto the given item with UI Automation.
     //      Returns: null on failure, otherwise itemHWND of previously focused item.
     private native long NativeWin32SetFocus(long itemHWND);
@@ -111,6 +117,48 @@ public class AccessibilityManager
         // Probably not going to be a final solution for requesting type from Quorum
         long itemHWND = NativeWin32CreateWindow(mainWindow, item.GetName(), item.GetDescription(), className.GetValue());
 
+        if (itemHWND != 0)
+        {
+            // Add item and respective HWND to collection.
+            itemMap.put(item, itemHWND);
+            
+            return true;
+        }
+        else
+            return false;
+    }
+    
+    
+    public boolean Add(Item_ item)
+    {
+        long itemHWND = 0;
+        
+        switch(item.GetAccessibilityCode())
+        {
+            case 0: // Item
+                itemHWND = NativeWin32CreateItem(mainWindow, item.GetName(), item.GetDescription(), "QUORUM_ITEM");
+                break;
+            case 1: // Custom
+                // Not implemented yet. Create as Item for now.
+                itemHWND = NativeWin32CreateItem(mainWindow, item.GetName(), item.GetDescription(), "QUORUM_ITEM");
+                break;
+            case 2: // ToggleButton
+                itemHWND = NativeWin32CreateToggleButton(mainWindow, item.GetName(), item.GetDescription(), "QUORUM_TOGGLEBUTTON");
+                break;
+            case 3: // RadioButton
+                itemHWND = NativeWin32CreateRadioButton(mainWindow, item.GetName(), item.GetDescription(), "QUORUM_RADIOBUTTON");
+                break;
+            case 4: // PushButton
+                itemHWND = NativeWin32CreatePushButton(mainWindow, item.GetName(), item.GetDescription(), "QUORUM_BUTTON");
+                break;
+            case 5: // TextBox
+                // Not implemented yet.
+                break;
+            default: // Assume Item
+                itemHWND = NativeWin32CreateItem(mainWindow, item.GetName(), item.GetDescription(), "QUORUM_ITEM");
+                break;
+        }
+        
         if (itemHWND != 0)
         {
             // Add item and respective HWND to collection.
