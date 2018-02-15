@@ -27,6 +27,16 @@ use Libraries.Compute.Math
 */
 class Item 
 
+    public constant integer ITEM = 0;
+    public constant integer CUSTOM = 1;
+    public constant integer BUTTON = 2;
+    public constant integer TOGGLE_BUTTON = 3;
+    public constant integer RADIO_BUTTON = 4;
+    public constant integer PUSH_BUTTON = 5;
+    public constant integer TEXTBOX = 6;
+
+    private integer accessibilityCode = 0;
+
     text name = "Unnamed"
     text description = ""
     text inputGroup = ""
@@ -894,6 +904,49 @@ class Item
     */
     action CancelBehaviors
         behaviors:Empty()
+    end
+
+
+    /*
+        This action returns the current accessiblity code for this Item
+    */
+    action GetAccessibilityCode() returns integer
+        return accessibilityCode
+    end
+
+    /*
+        This action changes the accessibility code for this Item. This should be
+        done with care because setting the accessiblity code to the incorrect 
+        type can cause accessibility to stop functioning or, in some cases,
+        cause the program to crash.
+        
+        Attribute: Parameter newAccessibilityCode the new accessibility code for this Item.
+                                                  
+    */
+    action SetAccessibilityCode(integer newAccessiblityCode)
+        accessibilityCode = newAccessibilityCode
+    end
+
+    /*
+        This action returns the name of the accessiblity code for this Item as Text
+    */
+    action GetAccessibilityType() returns text
+        if (accessibilityCode = 0)
+            return "ITEM"
+        else if (accessibilityCode = 1)
+            return "CUSTOM"
+        else if (accessibilityCode = 2)
+            return "BUTTON"
+        else if (accessibilityCode = 3)
+            return "TOGGLE_BUTTON"
+        else if (accessibilityCode = 4)
+            return "RADIO_BUTTON"
+        else if (accessibilityCode = 5)
+            return "PUSH_BUTTON"
+        else if (accessibilityCode = 6)
+            return "TEXTBOX"
+        end
+
     end
 
 end
