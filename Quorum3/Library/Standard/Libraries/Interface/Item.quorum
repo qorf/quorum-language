@@ -27,15 +27,15 @@ use Libraries.Compute.Math
 */
 class Item 
 
-    public constant integer ITEM = 0;
-    public constant integer CUSTOM = 1;
-    public constant integer BUTTON = 2;
-    public constant integer TOGGLE_BUTTON = 3;
-    public constant integer RADIO_BUTTON = 4;
-    public constant integer PUSH_BUTTON = 5;
-    public constant integer TEXTBOX = 6;
+    public constant integer ITEM = 0
+    public constant integer CUSTOM = 1
+    public constant integer BUTTON = 2
+    public constant integer TOGGLE_BUTTON = 3
+    public constant integer RADIO_BUTTON = 4
+    public constant integer PUSH_BUTTON = 5
+    public constant integer TEXTBOX = 6
 
-    private integer accessibilityCode = 0;
+    private integer accessibilityCode = 0
 
     text name = "Unnamed"
     text description = ""
@@ -923,7 +923,7 @@ class Item
         Attribute: Parameter newAccessibilityCode the new accessibility code for this Item.
                                                   
     */
-    action SetAccessibilityCode(integer newAccessiblityCode)
+    action SetAccessibilityCode(integer newAccessibilityCode)
         accessibilityCode = newAccessibilityCode
     end
 
@@ -933,20 +933,21 @@ class Item
     action GetAccessibilityType() returns text
         if (accessibilityCode = 0)
             return "ITEM"
-        else if (accessibilityCode = 1)
+        elseif (accessibilityCode = 1)
             return "CUSTOM"
-        else if (accessibilityCode = 2)
+        elseif (accessibilityCode = 2)
             return "BUTTON"
-        else if (accessibilityCode = 3)
+        elseif (accessibilityCode = 3)
             return "TOGGLE_BUTTON"
-        else if (accessibilityCode = 4)
+        elseif (accessibilityCode = 4)
             return "RADIO_BUTTON"
-        else if (accessibilityCode = 5)
+        elseif (accessibilityCode = 5)
             return "PUSH_BUTTON"
-        else if (accessibilityCode = 6)
+        elseif (accessibilityCode = 6)
             return "TEXTBOX"
+        else
+            return "ITEM"
         end
-
     end
 
 end

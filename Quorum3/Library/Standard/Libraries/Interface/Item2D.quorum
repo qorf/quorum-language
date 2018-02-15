@@ -4266,22 +4266,17 @@ class Item2D is Item
 
             Layout layout = undefined
             integer counter = layouts:GetSize()
-            boolean searching = true
 
             /*
             Layouts are sorted by minimum width, or minimum height if minimum
             widths are equal. When we find an invalid layout, it's assumed that
             all following layouts will also be invalid.
             */
-            repeat while counter > 0 and searching
+            repeat while counter > 0
                 counter = counter - 1
                 Layout temp = layouts:Get(counter)
                 if (temp:GetMaximumWidth() >= containerWidth and temp:GetMaximumHeight() >= containerHeight)
-//                    output "Swapping to temp (width = " + temp:GetMaximumWidth() + ", height = " + temp:GetMaximumHeight() + ")."
                     layout = temp
-                else
-//                    output "Stopping search (width = " + temp:GetMaximumWidth() + ", height = " + temp:GetMaximumHeight() + ") for container dimensions " + containerWidth + " x " + containerHeight + "."
-                    searching = false
                 end
             end
 
