@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import quorum.Libraries.Interface.Item_;
+import quorum.Libraries.Language.Types.Text_;
+import quorum.Libraries.Interface.TextBox_;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
 import static org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window;
-import quorum.Libraries.Language.Types.Text_;
+
 
 
 /**
@@ -67,11 +69,11 @@ public class AccessibilityManager
     //      Returns: null on failure, otherwise itemHWND associated with item
     private native long NativeWin32CreateWindow(long parentWindow, String name, String description, String className);
     
-    private native long NativeWin32CreateItem(long parentWindow, String name, String description, String className);
-    private native long NativeWin32CreatePushButton(long parentWindow, String name, String description, String className);
-    private native long NativeWin32CreateToggleButton(long parentWindow, String name, String description, String className);
-    private native long NativeWin32CreateRadioButton(long parentWindow, String name, String description, String className);
-    private native long NativeWin32CreateTextBox(long parentWindow, String name, String description, String className, int cursorPosition, int lineCount, String line);
+    private native long NativeWin32CreateItem(long parentWindow, String name, String description);
+    private native long NativeWin32CreatePushButton(long parentWindow, String name, String description);
+    private native long NativeWin32CreateToggleButton(long parentWindow, String name, String description);
+    private native long NativeWin32CreateRadioButton(long parentWindow, String name, String description);
+    private native long NativeWin32CreateTextBox(long parentWindow, String name, String description, int cursorPosition, int lineCount, String line);
     
     // NativeWin32SetFocus: Sets the keyboard focus onto the given item with UI Automation.
     //      Returns: null on failure, otherwise itemHWND of previously focused item.
@@ -132,30 +134,31 @@ public class AccessibilityManager
     public boolean Add(Item_ item)
     {
         long itemHWND = 0;
-        
+                
         switch(item.GetAccessibilityCode())
         {
             case 0: // Item
-                itemHWND = NativeWin32CreateItem(mainWindow, item.GetName(), item.GetDescription(), "QUORUM_ITEM");
+                itemHWND = NativeWin32CreateItem(mainWindow, item.GetName(), item.GetDescription());
                 break;
             case 1: // Custom
                 // Not implemented yet. Create as Item for now.
-                itemHWND = NativeWin32CreateItem(mainWindow, item.GetName(), item.GetDescription(), "QUORUM_ITEM");
+                itemHWND = NativeWin32CreateItem(mainWindow, item.GetName(), item.GetDescription());
                 break;
             case 2: // ToggleButton
-                itemHWND = NativeWin32CreateToggleButton(mainWindow, item.GetName(), item.GetDescription(), "QUORUM_TOGGLEBUTTON");
+                itemHWND = NativeWin32CreateToggleButton(mainWindow, item.GetName(), item.GetDescription());
                 break;
             case 3: // RadioButton
-                itemHWND = NativeWin32CreateRadioButton(mainWindow, item.GetName(), item.GetDescription(), "QUORUM_RADIOBUTTON");
+                itemHWND = NativeWin32CreateRadioButton(mainWindow, item.GetName(), item.GetDescription());
                 break;
             case 4: // PushButton
-                itemHWND = NativeWin32CreatePushButton(mainWindow, item.GetName(), item.GetDescription(), "QUORUM_BUTTON");
+                itemHWND = NativeWin32CreatePushButton(mainWindow, item.GetName(), item.GetDescription());
                 break;
             case 5: // TextBox
-                // Not implemented yet.
+                TextBox_ textbox = (TextBox_)item;
+                
                 break;
             default: // Assume Item
-                itemHWND = NativeWin32CreateItem(mainWindow, item.GetName(), item.GetDescription(), "QUORUM_ITEM");
+                itemHWND = NativeWin32CreateItem(mainWindow, item.GetName(), item.GetDescription());
                 break;
         }
         
