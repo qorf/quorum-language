@@ -44,7 +44,7 @@ void Item::RegisterControl(HINSTANCE hInstance)
 	wc.lpfnWndProc = ControlWndProc;
 	wc.hInstance = hInstance;
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.lpszClassName = L"ITEM";
+	wc.lpszClassName = L"QUORUM_ITEM";
 
 	if (RegisterClassExW(&wc) == 0)
 	{

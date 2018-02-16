@@ -5,7 +5,7 @@
 #include <UIAutomation.h>
 
 #include "Item.h"
-#include "ButtonControl.h"
+#include "PushButtonControl.h"
 #include "RadioButtonControl.h"
 #include "ToggleButtonControl.h"
 #include "TextBoxControl.h"
@@ -49,22 +49,11 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 ////////////
 ////////////////////////////////////////////////////////////////////////////
 
-// NativeWin32InitializeAccessibility: Registers the type classes with Windows API so that controls can be made with them. It also calls CoInitialize so that
-//									   COM interface library functions are availible for use. This only ever needs to be called once. Never call this more than once.
+// NativeWin32InitializeAccessibility: Calls CoInitialize so that COM interface library functions are availible for use. This only ever needs to be called once. Never call this more than once.
 //									   CoUninitialize must be called the same number of times as CoInitialize.
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility(JNIEnv *env, jobject obj)
 {
 	HRESULT hr = CoInitialize(NULL);
-
-	if (hr == S_OK)
-	{
-		// Register the window class for the Item control.
-		Item::RegisterControl(GetModuleHandle(NULL));
-		ButtonControl::RegisterButtonControl(GetModuleHandle(NULL));
-		RadioButtonControl::RegisterButtonControl(GetModuleHandle(NULL));
-		ToggleButtonControl::RegisterButtonControl(GetModuleHandle(NULL));
-		TextBoxControl::RegisterTextControl(GetModuleHandle(NULL));
-	}
 }
 
 // NativeWin32ShutdownAccessibility: Closes the COM library gracefully.
@@ -97,6 +86,8 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wClassName = CreateWideStringFromUTF8Win32(nativeClassName);
 
 	HWND customControlHandle;
+
+
 
 	if (parentWindow != NULL)
 	{
@@ -144,6 +135,113 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 		printf("Native Code - Error: parent window casting to HWND failed.\n");
 		fflush(stdout);
 	}
+
+	env->ReleaseStringUTFChars(itemName, nativeItemName);
+	env->ReleaseStringUTFChars(description, nativeDescription);
+	env->ReleaseStringUTFChars(className, nativeClassName);
+
+	return 0;
+
+}
+
+// NativeWin32CreatePushButton: Creates a window that contains the accessible information for a PushButton that was passed into this function.
+//		Returns: jlong which is the HWND for the window. This is used to further interact with the button after creation. i.e., to rename the button later should the name be changed. Also, used to keep track of it in java.
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreatePushButton(JNIEnv *env, jobject obj, jlong parentWindowHWND, jstring buttonName, jstring description)
+{
+
+	HWND parentWindow;
+	parentWindow = (HWND)parentWindowHWND;
+
+	const char *nativeButtonName = env->GetStringUTFChars(buttonName, 0);
+	const char *nativeDescription = env->GetStringUTFChars(description, 0);
+
+	WCHAR* wButtonName = CreateWideStringFromUTF8Win32(nativeButtonName);
+	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+
+
+	HWND buttonControlHandle;
+
+	buttonControlHandle = PushButtonControl::Create(parentWindow, GetModuleHandle(NULL), wButtonName, wDescription);
+
+	env->ReleaseStringUTFChars(buttonName, nativeButtonName);
+	env->ReleaseStringUTFChars(description, nativeDescription);
+
+	return (jlong)buttonControlHandle;
+
+}
+
+// NativeWin32CreateToggleButton: 
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateToggleButton(JNIEnv *env, jobject obj, jlong parentWindowHWND, jstring itemName, jstring description, jstring className)
+{
+
+	HWND parentWindow;
+	parentWindow = (HWND)parentWindowHWND;
+
+	const char *nativeItemName = env->GetStringUTFChars(itemName, 0);
+	const char *nativeDescription = env->GetStringUTFChars(description, 0);
+	const char *nativeClassName = env->GetStringUTFChars(className, 0);
+
+	WCHAR* wItemName = CreateWideStringFromUTF8Win32(nativeItemName);
+	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+	WCHAR* wClassName = CreateWideStringFromUTF8Win32(nativeClassName);
+
+	HWND customControlHandle;
+
+
+
+	env->ReleaseStringUTFChars(itemName, nativeItemName);
+	env->ReleaseStringUTFChars(description, nativeDescription);
+	env->ReleaseStringUTFChars(className, nativeClassName);
+
+	return 0;
+
+}
+
+// NativeWin32CreateRadioButton: 
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateRadioButton(JNIEnv *env, jobject obj, jlong parentWindowHWND, jstring itemName, jstring description, jstring className)
+{
+
+	HWND parentWindow;
+	parentWindow = (HWND)parentWindowHWND;
+
+	const char *nativeItemName = env->GetStringUTFChars(itemName, 0);
+	const char *nativeDescription = env->GetStringUTFChars(description, 0);
+	const char *nativeClassName = env->GetStringUTFChars(className, 0);
+
+	WCHAR* wItemName = CreateWideStringFromUTF8Win32(nativeItemName);
+	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+	WCHAR* wClassName = CreateWideStringFromUTF8Win32(nativeClassName);
+
+	HWND customControlHandle;
+
+
+
+	env->ReleaseStringUTFChars(itemName, nativeItemName);
+	env->ReleaseStringUTFChars(description, nativeDescription);
+	env->ReleaseStringUTFChars(className, nativeClassName);
+
+	return 0;
+
+}
+
+// NativeWin32CreateTextBox: 
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTextBox(JNIEnv *env, jobject obj, jlong parentWindowHWND, jstring itemName, jstring description, jstring className)
+{
+
+	HWND parentWindow;
+	parentWindow = (HWND)parentWindowHWND;
+
+	const char *nativeItemName = env->GetStringUTFChars(itemName, 0);
+	const char *nativeDescription = env->GetStringUTFChars(description, 0);
+	const char *nativeClassName = env->GetStringUTFChars(className, 0);
+
+	WCHAR* wItemName = CreateWideStringFromUTF8Win32(nativeItemName);
+	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+	WCHAR* wClassName = CreateWideStringFromUTF8Win32(nativeClassName);
+
+	HWND customControlHandle;
+
+
 
 	env->ReleaseStringUTFChars(itemName, nativeItemName);
 	env->ReleaseStringUTFChars(description, nativeDescription);

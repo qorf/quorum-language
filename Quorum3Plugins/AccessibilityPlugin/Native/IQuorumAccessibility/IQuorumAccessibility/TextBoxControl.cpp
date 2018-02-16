@@ -332,12 +332,14 @@ EndPoint TextBoxControl::GetCaretPosition()
 
 LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
+	std::cout << "Static Textbox WndProc called." << std::endl;
+
 	TextBoxControl * pControl = reinterpret_cast<TextBoxControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 	if (message == WM_NCCREATE)
 	{
-		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
-		pControl = reinterpret_cast<TextBoxControl*>(createStruct->lpCreateParams);
-		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pControl));
+		//CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
+		//pControl = reinterpret_cast<TextBoxControl*>(createStruct->lpCreateParams);
+		//SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pControl));
 	}
 
 	if (message == WM_NCDESTROY)
@@ -348,6 +350,7 @@ LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT me
 
 	if (pControl != NULL)
 	{
+		std::cout << "pControl is not null." << std::endl;
 		return pControl->TextBoxControlWndProc(hwnd, message, wParam, lParam);
 	}
 
