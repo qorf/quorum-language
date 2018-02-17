@@ -7,27 +7,27 @@
 #include <ole2.h>
 #include <UIAutomation.h>
 
-#include "ButtonProvider.h"
-#include "ButtonControl.h"
+#include "PushButtonProvider.h"
+#include "PushButtonControl.h"
 
-ButtonProvider::ButtonProvider(HWND hwnd, ButtonControl* pButtonControl) : m_refCount(1), m_buttonControlHWnd(hwnd), m_pButtonControl(pButtonControl)
+PushButtonProvider::PushButtonProvider(HWND hwnd, PushButtonControl* pButtonControl) : m_refCount(1), m_buttonControlHWnd(hwnd), m_pButtonControl(pButtonControl)
 {
 	// Nothing to do.
 }
 
-ButtonProvider::~ButtonProvider()
+PushButtonProvider::~PushButtonProvider()
 {
 	// Nothing to do.
 }
 
 // =========== IUnknown implementation.
 
-IFACEMETHODIMP_(ULONG) ButtonProvider::AddRef()
+IFACEMETHODIMP_(ULONG) PushButtonProvider::AddRef()
 {
 	return InterlockedIncrement(&m_refCount);
 }
 
-IFACEMETHODIMP_(ULONG) ButtonProvider::Release()
+IFACEMETHODIMP_(ULONG) PushButtonProvider::Release()
 {
 	long val = InterlockedDecrement(&m_refCount);
 	if (val == 0)
@@ -37,7 +37,7 @@ IFACEMETHODIMP_(ULONG) ButtonProvider::Release()
 	return val;
 }
 
-IFACEMETHODIMP ButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface)
+IFACEMETHODIMP PushButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** ppInterface)
 {
 	if (riid == __uuidof(IUnknown))
 	{
@@ -65,14 +65,14 @@ IFACEMETHODIMP ButtonProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void** 
 // =========== IRawElementProviderSimple implementation
 
 // Get provider options.
-IFACEMETHODIMP ButtonProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
+IFACEMETHODIMP PushButtonProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 {
 	*pRetVal = ProviderOptions_ServerSideProvider;
 	return S_OK;
 }
 
 // Get the object that supports IInvokePattern.
-IFACEMETHODIMP ButtonProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
+IFACEMETHODIMP PushButtonProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
 	if (patternId == UIA_InvokePatternId)
 	{
@@ -87,7 +87,7 @@ IFACEMETHODIMP ButtonProvider::GetPatternProvider(PATTERNID patternId, _Outptr_r
 }
 
 // Gets custom properties.
-IFACEMETHODIMP ButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
+IFACEMETHODIMP PushButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT* pRetVal)
 {
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
@@ -142,7 +142,7 @@ IFACEMETHODIMP ButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VAR
 }
 
 // Gets the UI Automation provider for the host window. This provider supplies most properties.
-IFACEMETHODIMP ButtonProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
+IFACEMETHODIMP PushButtonProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple** pRetVal)
 {
 	return UiaHostProviderFromHwnd(m_buttonControlHWnd, pRetVal);
 }
@@ -151,14 +151,14 @@ IFACEMETHODIMP ButtonProvider::get_HostRawElementProvider(_Outptr_result_maybenu
 // =========== IInvokeProvider implementation.
 
 // Invoke
-IFACEMETHODIMP ButtonProvider::Invoke()
+IFACEMETHODIMP PushButtonProvider::Invoke()
 {
 	PostMessage(m_buttonControlHWnd, CUSTOM_INVOKEBUTTON, NULL, NULL);
 	return S_OK;
 }
 
 // =========== Other Methods
-void ButtonProvider::NotifyFocusGained()
+void PushButtonProvider::NotifyFocusGained()
 {
 	if (UiaClientsAreListening())
 	{

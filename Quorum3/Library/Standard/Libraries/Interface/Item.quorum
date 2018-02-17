@@ -923,7 +923,9 @@ class Item
                                                   
     */
     action SetAccessibilityCode(integer newAccessibilityCode)
-        accessibilityCode = newAccessibilityCode
+        if ( newAccessibilityCode < 6 and newAccessibilityCode >= 0)
+            accessibilityCode = newAccessibilityCode
+        end
     end
 
     /*
