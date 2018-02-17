@@ -63,18 +63,68 @@ class DesktopInput is GameInput
 
         repeat mouseEvents:GetSize() times
             mouseEvent = mouseEvents:RemoveFromFront()
+            Item target = undefined
 
             integer counter = layers:GetSize()
             repeat while counter > 0 and not mouseEvent:WasEventHandled()
                 counter = counter - 1
-                layers:Get(counter):ProcessMouseEvent(mouseEvent)
+                Item temp = layers:Get(counter):ProcessMouseEvent(mouseEvent)
+                if target = undefined and temp not= undefined
+                    target = temp
+                end
             end
 
             if not mouseEvent:WasEventHandled()
                 NotifyMouseListeners(mouseEvent)
             end
+
+            if target not= undefined
+
+                InputSet set = keyboardModifiers:Copy()
+                set:SetMouseInput(mouseEvent:mouseButton)
+
+                InputSet anySet = keyboardModifiers:Copy()
+                anySet:SetMouseInput(mouseEvent:ANY)
+
+                if mouseEvent:eventType = mouseEvent:MOVED_MOUSE or mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE
+                    set:SetInputType(set:MOUSE_MOVEMENT_INPUT)
+                    anySet:SetInputType(set:MOUSE_MOVEMENT_INPUT)
+                elseif mouseEvent:eventType = mouseEvent:CLICKED_MOUSE
+                    // No further changes to the set need to be made in this case.
+                elseif mouseEvent:eventType = mouseEvent:RELEASED_MOUSE
+                    set:SetInputTrigger(set:RELEASE)
+                    anySet:SetInputTrigger(set:RELEASE)
+                elseif mouseEvent:eventType = mouseEvent:SCROLLED_MOUSE
+                    set:SetInputType(set:MOUSE_WHEEL_INPUT)
+                    anySet:SetInputType(set:MOUSE_WHEEL_INPUT)
+                end
+
+                BehaviorEvent behaviorEvent
+                behaviorEvent:SetItem(target)
+                behaviorEvent:SetMouseEvent(mouseEvent)
+
+                InputTable table = GetInputTable(target:GetInputGroup())
+
+                /*
+                If the table exists, attempt to trigger behaviors that use that
+                specific input or that trigger on any input of that type. Once both
+                are tested, if neither were successful, try to trigger behaviors
+                from the default input table instead.
+                */
+                boolean processed = (table not= undefined)
+                if processed
+                    processed = table:ProcessInput(set, behaviorEvent)
+                    processed = table:ProcessInput(anySet, behaviorEvent) or processed
+                end
+
+                if not processed
+                    GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+                    GetDefaultInputTable():ProcessInput(anySet, behaviorEvent)
+                end
+            end
         end
 
+        // Begin processing other event types.
         keyboardProcessor:Update()
         
         if keyboardProcessor:HasEvents()

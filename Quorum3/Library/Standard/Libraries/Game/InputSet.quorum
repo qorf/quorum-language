@@ -81,9 +81,10 @@ class InputSet
     end
 
     action SetInputType(integer type)
-        integer mask = bits:Or(bits:ShiftLeft(-1, TYPE_SIZE), type)
+        integer mask = bits:ShiftLeft(-1, TYPE_SIZE)
         mask = bits:Or(bits:ShiftLeft(mask, VALUE_SIZE), bits:Negate(bits:ShiftLeft(-1, VALUE_SIZE)))
-        bitmask = bits:And(bitmask, mask)
+        mask = bits:And(bitmask, mask)
+        bitmask = bits:Or(mask, bits:ShiftLeft(type, VALUE_SIZE))
     end
 
     action SetInputTrigger(integer type)

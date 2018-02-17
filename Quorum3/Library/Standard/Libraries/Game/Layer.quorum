@@ -1,6 +1,7 @@
 package Libraries.Game
 
 use Libraries.Game.Graphics.Camera
+use Libraries.Interface.Item
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Interface.Events.ResizeEvent
@@ -219,8 +220,9 @@ class Layer
     needed. Most users will never need to use this action directly.
 
     Attribute: Parameter event The MouseEvent to send to the MouseListeners.
+    Attribute: Returns The Item which intercepted the event, or undefined if no Item received the event.
     */
-    blueprint action ProcessMouseEvent(MouseEvent event)
+    blueprint action ProcessMouseEvent(MouseEvent event) returns Item
 
     /*
     This action will notify touch listeners that are a part of this layer of the

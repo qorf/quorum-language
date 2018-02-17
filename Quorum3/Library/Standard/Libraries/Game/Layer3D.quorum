@@ -1,5 +1,6 @@
 package Libraries.Game
 
+use Libraries.Interface.Item
 use Libraries.Interface.Item3D
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
@@ -1030,13 +1031,15 @@ class Layer3D is Layer
     needed. Most users will never need to use this action directly.
 
     Attribute: Parameter event The MouseEvent to send to the MouseListeners.
+    Attribute: Returns The Item which intercepted the event, or undefined if no Item received the event.
     */
-    action ProcessMouseEvent(MouseEvent event)
+    action ProcessMouseEvent(MouseEvent event) returns Item
         Ray ray = camera:GetPickRay(event:GetX(), event:GetY())
         Vector3 origin = ray:GetOrigin()
 
         integer counter = 0
         Item3D temp = undefined
+        Item result = undefined
 
         /*
         TO-DO: This array of all items is regenerated for each mouse event
@@ -1070,6 +1073,9 @@ class Layer3D is Layer
                 event:SetSource(eventTargetArray:Get(counter):GetValue())
                 eventTargetArray:Get(counter):GetValue():ProcessMouseEvent(event)
                 processing = not event:WasEventHandled()
+                if event:WasEventHandled()
+                    result = eventTargetArray:Get(counter):GetValue()
+                end
                 counter = counter + 1
             end
 
@@ -1132,6 +1138,8 @@ class Layer3D is Layer
         if event:GetSource() not= undefined and event:eventType = event:CLICKED_MOUSE
             event:GetSource():Focus()
         end
+
+        return result
     end
 
     /*

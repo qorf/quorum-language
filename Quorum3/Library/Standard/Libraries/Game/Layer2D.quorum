@@ -10,6 +10,7 @@ use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
 use Libraries.Containers.Array
+use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Color
@@ -987,12 +988,14 @@ class Layer2D is Layer
     needed. Most users will never need to use this action directly.
 
     Attribute: Parameter event The MouseEvent to send to the MouseListeners.
+    Attribute: Returns The Item which intercepted the event, or undefined if no Item received the event.
     */
-    action ProcessMouseEvent(MouseEvent event)
+    action ProcessMouseEvent(MouseEvent event) returns Item
     
         boolean processing = true
         integer counter = items:GetSize()
         Item2D temp = undefined
+        Item result = undefined
 
         Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
 
@@ -1004,6 +1007,9 @@ class Layer2D is Layer
                 event:SetSource(temp)
                 temp:ProcessMouseEvent(event)
                 processing = not event:WasEventHandled()
+                if event:WasEventHandled()
+                    result = temp
+                end
             end
         end
 
@@ -1063,6 +1069,8 @@ class Layer2D is Layer
         if event:GetSource() not= undefined and event:eventType = event:CLICKED_MOUSE
             event:GetSource():Focus()
         end
+
+        return result
     end
 
     /*
