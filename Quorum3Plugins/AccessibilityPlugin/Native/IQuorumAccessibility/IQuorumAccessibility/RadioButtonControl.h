@@ -18,19 +18,27 @@ public:
 	RadioButtonControl();
 	virtual ~RadioButtonControl();
 
-	RadioButtonProvider* GetButtonProvider(HWND hwnd);
+	static HWND Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
+
+	RadioButtonProvider* GetButtonProvider(_In_ HWND hwnd);
 	HWND GetHWND();
 
 
-	void InvokeButton(HWND hwnd);
-	static void RegisterButtonControl(HINSTANCE hInstance);
+	void InvokeButton(_In_ HWND hwnd);
 	WCHAR* GetName();
-	void SetName(WCHAR* name);
+	void SetName(_In_ WCHAR* name);
 	void SetFocus();
-	void SetState(bool controlState);
+	void SetState(_In_ bool controlState);
 	bool GetState();
 
 private:
+	static LRESULT CALLBACK StaticRadioButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
+	LRESULT CALLBACK RadioButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
+
+	static bool Initialize(_In_ HINSTANCE hInstance);
+	static bool Initialized;
+
+
 	bool m_isOn;
 	WCHAR* m_buttonName;
 	HWND m_buttonControlHWND;

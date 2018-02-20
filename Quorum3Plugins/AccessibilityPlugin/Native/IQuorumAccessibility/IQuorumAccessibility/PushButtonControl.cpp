@@ -7,9 +7,6 @@
 
 bool PushButtonControl::Initialized = false;
 
-// Forward declarations.
-LRESULT CALLBACK ButtonControlWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-
 /**** Button methods ***/
 
 // PushButtonControl: Constructor. Sets the default values for the button.
@@ -33,7 +30,7 @@ PushButtonProvider* PushButtonControl::GetButtonProvider(_In_ HWND hwnd)
 {
 	if (m_buttonProvider == NULL)
 	{
-		m_buttonProvider = new (std::nothrow) PushButtonProvider(hwnd, this);
+		m_buttonProvider = new PushButtonProvider(hwnd, this);
 	}
 	return m_buttonProvider;
 }
@@ -105,7 +102,7 @@ HWND PushButtonControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ W
 
 		control->m_buttonControlHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_PUSHBUTTON",
-			buttonDescription,
+			buttonName,
 			WS_VISIBLE | WS_CHILD,
 			-1,
 			-1,
@@ -184,7 +181,7 @@ LRESULT CALLBACK PushButtonControl::StaticButtonControlWndProc(_In_ HWND hwnd, _
 }
 
 // Control window procedure.
-LRESULT CALLBACK PushButtonControl::ButtonControlWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK PushButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 
 	switch (message)
@@ -194,7 +191,7 @@ LRESULT CALLBACK PushButtonControl::ButtonControlWndProc(HWND hwnd, UINT message
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->m_buttonProvider);
+			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
 		}
 
 		return 0;
