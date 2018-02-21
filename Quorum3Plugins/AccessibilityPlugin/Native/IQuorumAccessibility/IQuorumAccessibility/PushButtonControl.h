@@ -18,7 +18,7 @@ public:
 	PushButtonControl();
 	virtual ~PushButtonControl();
 
-	static HWND Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* buttonName, WCHAR* buttonDescription);
+	static HWND Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
 
 	PushButtonProvider* GetButtonProvider(_In_ HWND hwnd);
 	HWND GetHWND();
