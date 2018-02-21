@@ -1,0 +1,150 @@
+package Libraries.Interface
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Painter2D
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Gradient
+
+class ImageInterfaceContent is Drawable, GraphicUserInterfaceContent
+    
+    boolean resizing = true
+    Color previousColor = undefined
+    Gradient previousGradient = undefined
+
+    Color clickColor
+    Gradient clickGradient = undefined
+
+    on create
+        clickColor = clickColor:Gray()
+    end
+
+    action Initialize(Drawable drawable)
+        Load(drawable:GetTexture())
+    end
+
+    action SetResizing(boolean shouldResize)
+        resizing = shouldResize
+    end
+
+    action GetResizing returns boolean
+        return resizing
+    end
+
+    action Draw(Painter2D painter)
+        parent:Drawable:Draw(painter)
+    end
+
+    action UpdateSize(number width, number height)
+        Texture texture = GetTexture()
+        if texture = undefined or resizing = false
+            return now
+        end
+
+        number scaleX = width / texture:GetWidth()
+        number scaleY = height / texture:GetHeight()
+        SetScale(scaleX, scaleY)
+    end
+
+    action UpdatePosition(number x, number y)
+        SetPosition(x, y)
+    end
+
+    action UpdateRotation(number angle)
+        SetRotation(angle)
+    end
+
+    action UpdateFlipping(boolean flipX, boolean flipY)
+        SetFlipX(flipX)
+        SetFlipY(flipY)
+    end
+
+    private action MixColors(Color c1, Color c2) returns Color
+        Color color
+
+        color:SetColor(c1:GetRed() + c2:GetRed() / 2,
+            c1:GetGreen() + c2:GetGreen() / 2,
+            c1:GetBlue() + c2:GetBlue() / 2,
+            c1:GetAlpha() + c2:GetAlpha() / 2)
+
+        return color
+    end
+
+    action BeginMouseOver
+        // TO DO
+    end
+
+    action EndMouseOver
+        // TO DO
+    end
+
+    action ClickedMouse
+        if UsingCustomColor()
+            previousColor = GetColor()
+            if clickColor not= undefined
+                Color newColor = MixColors(previousColor, clickColor)
+                SetColor(newColor)
+            elseif clickGradient not= undefined
+                Gradient newGradient
+
+                Color newBottomLeft = MixColors(previousColor, clickGradient:GetBottomLeft())
+                Color newBottomRight = MixColors(previousColor, clickGradient:GetBottomRight())
+                Color newTopLeft = MixColors(previousColor, clickGradient:GetTopLeft())
+                Color newTopRight = MixColors(previousColor, clickGradient:GetTopRight())
+                newGradient:Set(newBottomLeft, newBottomRight, newTopLeft, newTopRight)
+
+                SetGradient(newGradient)
+            end
+        elseif UsingCustomGradient()
+            previousGradient = GetGradient()
+            if clickColor not= undefined
+                Gradient newGradient
+
+                Color newBottomLeft = MixColors(previousGradient:GetBottomLeft(), clickColor)
+                Color newBottomRight = MixColors(previousGradient:GetBottomRight(), clickColor)
+                Color newTopLeft = MixColors(previousGradient:GetTopLeft(), clickColor)
+                Color newTopRight = MixColors(previousGradient:GetTopRight(), clickColor)
+                newGradient:Set(newBottomLeft, newBottomRight, newTopLeft, newTopRight)
+
+                SetGradient(newGradient)
+            elseif clickGradient not= undefined
+                Gradient newGradient
+
+                Color newBottomLeft = MixColors(previousGradient:GetBottomLeft(), clickGradient:GetBottomLeft())
+                Color newBottomRight = MixColors(previousGradient:GetBottomRight(), clickGradient:GetBottomRight())
+                Color newTopLeft = MixColors(previousGradient:GetTopLeft(), clickGradient:GetTopLeft())
+                Color newTopRight = MixColors(previousGradient:GetTopRight(), clickGradient:GetTopRight())
+                newGradient:Set(newBottomLeft, newBottomRight, newTopLeft, newTopRight)
+
+                SetGradient(newGradient)
+            end
+        else
+            if clickColor not= undefined
+                SetColor(clickColor)
+            elseif clickGradient not= undefined
+                SetGradient(clickGradient)
+            end
+        end
+    end
+
+    action ReleasedMouse
+        if previousColor not= undefined
+            SetColor(previousColor)
+            previousColor = undefined
+        elseif previousGradient not= undefined
+            SetGradient(previousGradient)
+            previousGradient = undefined
+        else
+            DisableCustomTint()
+        end
+    end
+
+    action GainedSelection
+        // TO DO
+    end
+
+    action LostSelection
+        // TO DO
+    end
+
+end
