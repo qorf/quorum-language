@@ -4,15 +4,20 @@ use Libraries.Language.Support.CompareResult
 
 class Layout 
 
-    // Margin margin
-    // Padding padding
-
     number xPercentage = 0.0
     number yPercentage = 0.0
+    number offsetX = 0
+    number offsetY = 0
     number widthPercentage = 0.0
     number heightPercentage = 0.0
+    number widthOffset = 0
+    number heightOffset = 0
+    number minimumWidth = 0
+    number minimumHeight = 0
     number maximumWidth = widthPercentage:GetPositiveInfinityValue()
     number maximumHeight = heightPercentage:GetPositiveInfinityValue()
+    number maximumContainerWidth = widthPercentage:GetPositiveInfinityValue()
+    number maximumContainerHeight = heightPercentage:GetPositiveInfinityValue()
 
     action SetPercentageX(number x)
         xPercentage = x
@@ -28,6 +33,22 @@ class Layout
 
     action GetPercentageY returns number
         return yPercentage
+    end
+
+    action SetOffsetX(number x)
+        offsetX = x
+    end
+
+    action GetOffsetX returns number
+        return offsetX
+    end
+
+    action SetOffsetY(number y)
+        offsetY = y
+    end
+
+    action GetOffsetY returns number
+        return offsetY
     end
 
     action SetPercentageWidth(number width)
@@ -46,34 +67,82 @@ class Layout
         return heightPercentage
     end
 
-    action SetMaximumWidth(number maximum)
-        maximumWidth = maximum
+    action SetWidthOffset(number width)
+        widthOffset = width
+    end
+
+    action GetWidthOffset returns number
+        return widthOffset
+    end
+
+    action SetHeightOffset(number height)
+        heightOffset = height
+    end
+
+    action GetHeightOffset returns number
+        return heightOffset
+    end
+
+    action SetMinimumWidth(number width)
+        minimumWidth = width
+    end
+
+    action GetMinimumWidth returns number
+        return minimumWidth
+    end
+
+    action SetMinimumHeight(number height)
+        minimumHeight = height
+    end
+
+    action GetMinimumHeight returns number
+        return minimumHeight
+    end
+
+    action SetMaximumWidth(number width)
+        maximumWidth = width
     end
 
     action GetMaximumWidth returns number
         return maximumWidth
     end
 
-    action SetMaximumHeight(number maximum)
-        maximumHeight = maximum
+    action SetMaximumHeight(number height)
+        maximumHeight = height
     end
 
     action GetMaximumHeight returns number
         return maximumHeight
     end
 
+    action SetMaximumContainerWidth(number maximum)
+        maximumContainerWidth = maximum
+    end
+
+    action GetMaximumContainerWidth returns number
+        return maximumContainerWidth
+    end
+
+    action SetMaximumContainerHeight(number maximum)
+        maximumContainerHeight = maximum
+    end
+
+    action GetMaximumContainerHeight returns number
+        return maximumContainerHeight
+    end
+
     action Compare(Object object) returns CompareResult
         if object is Layout
             Layout layout = cast(Layout, object)
-            number myWidth = GetMaximumWidth()
-            number testWidth = layout:GetMaximumWidth()
+            number myWidth = GetMaximumContainerWidth()
+            number testWidth = layout:GetMaximumContainerWidth()
             CompareResult result
 
             if myWidth < testWidth
                 result:result = result:SMALLER
             elseif myWidth = testWidth
-                number myHeight = GetMaximumHeight()
-                number testHeight = layout:GetMaximumHeight()
+                number myHeight = GetMaximumContainerHeight()
+                number testHeight = layout:GetMaximumContainerHeight()
 
                 if myHeight < testHeight
                     result:result = result:SMALLER
