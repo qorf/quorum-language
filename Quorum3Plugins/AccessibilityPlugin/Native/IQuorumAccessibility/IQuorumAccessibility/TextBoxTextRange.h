@@ -45,7 +45,7 @@ private:
 	// Ref Counter for this COM object
 	ULONG m_refCount;
 
-	HWND m_TextBoxControlHWND; // The HWND for this object
-	TextBoxControl* m_pTextBoxControl; // The control object that this UIA object is referring to
-	Range m_range; // The range for this instance of TextAreaTextRange
+	HWND m_TextBoxControlHWND;				// The HWND for this object
+	TextBoxControl* m_pTextBoxControl;		// The control object that this UIA object is referring to
+	Range m_range;							// The range for this instance of TextAreaTextRange
 };

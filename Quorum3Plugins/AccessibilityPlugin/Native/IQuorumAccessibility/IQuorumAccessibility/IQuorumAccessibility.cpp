@@ -243,26 +243,31 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 }
 
 // NativeWin32CreateTextBox: 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTextBox(JNIEnv *env, jobject obj, jlong parentWindowHWND, jstring itemName, jstring description)
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTextBox(JNIEnv *env, jobject obj, jlong parentWindowHWND, jstring textboxName, jstring description)
 {
 
 	HWND parentWindow;
 	parentWindow = (HWND)parentWindowHWND;
 
-	const char *nativeItemName = env->GetStringUTFChars(itemName, 0);
+	const char *nativeTextboxName = env->GetStringUTFChars(textboxName, 0);
 	const char *nativeDescription = env->GetStringUTFChars(description, 0);
 
-	WCHAR* wItemName = CreateWideStringFromUTF8Win32(nativeItemName);
+	WCHAR* wTextboxName = CreateWideStringFromUTF8Win32(nativeTextboxName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	HWND customControlHandle;
+	HWND textboxControlHandle;
+	
+	EndPoint caret;
+	caret.character = 0;
+	caret.line = 0;
+	TextLine line = {L"Nope."};
 
+	textboxControlHandle = TextBoxControl::Create(parentWindow, GetModuleHandle(NULL), wTextboxName, wDescription, &line, 0, caret);
 
-
-	env->ReleaseStringUTFChars(itemName, nativeItemName);
+	env->ReleaseStringUTFChars(textboxName, nativeTextboxName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
 
-	return 0;
+	return PtrToLong(textboxControlHandle);
 
 }
 

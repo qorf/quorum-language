@@ -65,7 +65,7 @@ bool Item::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND Item::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCHAR* buttonDescription)
+HWND Item::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription)
 {
 
 	if (!Initialized)
