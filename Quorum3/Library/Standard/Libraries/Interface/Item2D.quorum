@@ -4275,13 +4275,29 @@ class Item2D is Item
             repeat while counter > 0
                 counter = counter - 1
                 Layout temp = layouts:Get(counter)
-                if (temp:GetMaximumWidth() >= containerWidth and temp:GetMaximumHeight() >= containerHeight)
+                if (temp:GetMaximumContainerWidth() >= containerWidth and temp:GetMaximumContainerHeight() >= containerHeight)
                     layout = temp
                 end
             end
 
-            SetPosition(containerWidth * layout:GetPercentageX(), containerHeight * layout:GetPercentageY())
-            SetSize(containerWidth * layout:GetPercentageWidth(), containerHeight * layout:GetPercentageHeight())
+            SetPosition(containerWidth * layout:GetPercentageX() + layout:GetOffsetX(), containerHeight * layout:GetPercentageY() + layout:GetOffsetY())
+
+            number width = containerWidth * layout:GetPercentageWidth() + layout:GetWidthOffset() 
+            number height = containerHeight * layout:GetPercentageHeight() + layout:GetHeightOffset()
+
+            if width < layout:GetMinimumWidth()
+                width = layout:GetMinimumWidth()
+            elseif width > layout:GetMaximumWidth()
+                width = layout:GetMaximumWidth()
+            end
+
+            if height < layout:GetMinimumHeight()
+                height = layout:GetMinimumHeight()
+            elseif height > layout:GetMaximumHeight()
+                height = layout:GetMaximumHeight()
+            end
+
+            SetSize(width, height)
 
             counter = 0
             repeat while counter < children:GetSize()

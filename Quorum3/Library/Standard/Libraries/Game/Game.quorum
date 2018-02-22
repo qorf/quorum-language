@@ -45,6 +45,8 @@ use Libraries.Game.Behaviors.TextBoxStartDeleteBehavior
 use Libraries.Game.Behaviors.TextBoxNewLineBehavior
 use Libraries.Game.Behaviors.TextBoxInsertBehavior
 use Libraries.Game.Behaviors.CancelBehavior
+use Libraries.Game.Behaviors.GraphicUserInterfaces.ClickDownBehavior
+use Libraries.Game.Behaviors.GraphicUserInterfaces.ClickUpBehavior
 use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -334,6 +336,22 @@ class Game
         textBoxTable:Add(textInputSet, insertBehavior)
 
         gameInput:AddInputTable(textBoxTable)
+
+        InputTable buttonTable
+        buttonTable:SetIdentifier("Button")
+
+        InputSet clickDown
+        clickDown:SetMouseInput(mouse:ANY)
+        ClickDownBehavior downBehavior
+        buttonTable:Add(clickDown, downBehavior)
+
+        InputSet clickUp
+        clickUp:SetMouseInput(mouse:ANY)
+        clickUp:SetInputTrigger(clickUp:RELEASE)
+        ClickUpBehavior upBehavior
+        buttonTable:Add(clickUp, upBehavior)
+
+        gameInput:AddInputTable(buttonTable)
     end
 
     /*
