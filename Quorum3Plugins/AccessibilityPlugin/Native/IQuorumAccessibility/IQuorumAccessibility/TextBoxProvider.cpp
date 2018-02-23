@@ -4,7 +4,7 @@
 #include "TextBoxControl.h"
 #include "TextBoxTextRange.h"
 
-void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
+void TextBoxProvider::NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 {
 	TextBoxProvider *eventControl = new TextBoxProvider(hwnd, control);
 	if (eventControl == NULL)
@@ -18,7 +18,7 @@ void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 	}
 }
 
-void NotifyFocusGained(_In_ HWND hwnd, _In_ TextBoxControl *control)
+void TextBoxProvider::NotifyFocusGained(_In_ HWND hwnd, _In_ TextBoxControl *control)
 {
 	TextBoxProvider *eventControl = new TextBoxProvider(hwnd, control);
 	if (eventControl == NULL)
@@ -111,7 +111,7 @@ IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 	else if (propertyId == UIA_NamePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"It's a Text Box.");
+		pRetVal->bstrVal = SysAllocString(m_pTextBoxControl->GetName());
 	}
 	else if (propertyId == UIA_ControlTypePropertyId)
 	{

@@ -5,6 +5,8 @@
 #include "TextBoxControl.h"
 #include "TextBoxProvider.h"
 
+bool TextBoxControl::Initialized = false;
+
 TextBoxControl::TextBoxControl(_In_reads_(lineCount) TextLine * lines, _In_ int lineCount, _In_ EndPoint caret)
 {
 	TextBoxControl::lines = lines;
@@ -15,7 +17,7 @@ TextBoxControl::TextBoxControl(_In_reads_(lineCount) TextLine * lines, _In_ int 
 }
 
 // RegisterButtonControl: Registers the TextControl with Windows API so that it can used and later be registered with UI Automation
-void TextBoxControl::RegisterTextControl(HINSTANCE hInstance)
+bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 {
 	WNDCLASSEXW wc;
 
@@ -42,11 +44,69 @@ void TextBoxControl::RegisterTextControl(HINSTANCE hInstance)
 
 		//Free the buffer.
 		LocalFree(messageBuffer);
+
+		return false;
 	}
-	else
+
+	return true;
+}
+
+
+HWND TextBoxControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_reads_(lineCount) TextLine * lines, _In_ int lineCount, _In_ EndPoint caret)
+{
+
+	if (!Initialized)
 	{
-		std::cout << "Register Text Control Successful." << std::endl;
+		Initialized = Initialize(instance);
 	}
+
+	if (Initialized)
+	{
+		TextBoxControl * control = new TextBoxControl(lines, lineCount, caret);
+
+		control->m_TextboxHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
+			L"QUORUM_TEXTBOX",
+			textboxName,
+			WS_VISIBLE | WS_CHILD,
+			-1,
+			-1,
+			1,
+			1,
+			parent, // Parent window
+			NULL,
+			instance,
+			static_cast<PVOID>(control));
+
+		if (control->m_TextboxHWND == 0)
+		{
+			DWORD errorMessageID = ::GetLastError();
+
+			LPSTR messageBuffer = nullptr;
+			size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+				NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+			std::string message(messageBuffer, size);
+			std::cout << "Native Code - CreateWindowExW Error " << errorMessageID << ": " << message;
+			fflush(stdout);
+
+			//Free the buffer.
+			LocalFree(messageBuffer);
+		}
+		else
+		{
+			control->SetName(textboxName);
+
+			if (UiaClientsAreListening())
+			{
+				control->GetTextBoxProvider();
+			}
+
+			return control->m_TextboxHWND;
+		}
+	}
+
+	return 0; // Indicates failure to create window.
+
 }
 
 TextLine * TextBoxControl::GetLine(_In_ int line)
@@ -320,6 +380,15 @@ bool TextBoxControl::StepLine( _In_ EndPoint start, _In_ bool forward, _Out_ End
 	return true;
 }
 
+TextBoxProvider* TextBoxControl::GetTextBoxProvider()
+{
+	if (m_pTextBoxProvider == NULL)
+	{
+		m_pTextBoxProvider = new TextBoxProvider(this->m_TextboxHWND, this);
+	}
+	return m_pTextBoxProvider;
+}
+
 bool TextBoxControl::IsActive()
 {
 	return isActive;
@@ -330,28 +399,36 @@ EndPoint TextBoxControl::GetCaretPosition()
 	return m_caretPosition;
 }
 
+WCHAR* TextBoxControl::GetName()
+{
+	return m_pTextboxName;
+}
+
+void TextBoxControl::SetName(_In_ WCHAR* name)
+{
+	m_pTextboxName = name;
+}
+
 LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
-	std::cout << "Static Textbox WndProc called." << std::endl;
 
-	TextBoxControl * pControl = reinterpret_cast<TextBoxControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	TextBoxControl * pThis = reinterpret_cast<TextBoxControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 	if (message == WM_NCCREATE)
 	{
-		//CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
-		//pControl = reinterpret_cast<TextBoxControl*>(createStruct->lpCreateParams);
-		//SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pControl));
+		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
+		pThis = reinterpret_cast<TextBoxControl*>(createStruct->lpCreateParams);
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
 	}
 
 	if (message == WM_NCDESTROY)
 	{
-		pControl = NULL;
+		pThis = NULL;
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, NULL);
 	}
 
-	if (pControl != NULL)
+	if (pThis != NULL)
 	{
-		std::cout << "pControl is not null." << std::endl;
-		return pControl->TextBoxControlWndProc(hwnd, message, wParam, lParam);
+		return pThis->TextBoxControlWndProc(hwnd, message, wParam, lParam);
 	}
 
 	return DefWindowProc(hwnd, message, wParam, lParam);
@@ -362,8 +439,10 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	LRESULT lResult = 0;
 	switch (message)
 	{
+	// Register with UI Automation.
 	case WM_GETOBJECT:
 	{
+		// If the lParam matches the RootObjectId, send back the RawElementProvider
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			IRawElementProviderSimple * provider = new TextBoxProvider(hwnd, this);
@@ -372,27 +451,27 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 				lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
 				provider->Release();
 			}
-
 		}
 		break;
 	}
 	case CUSTOM_SETFOCUS:
 	{
-		lResult = OnSetFocus(hwnd);
+		lResult = SetFocus(this->m_TextboxHWND);
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		lResult = OnKillFocus();
+		lResult = KillFocus();
 		break;
 	}
 	case CUSTOM_UPDATECARET:
 	{
-		lResult = UpdateCaret(hwnd, wParam);
+		lResult = UpdateCaret(hwnd, lParam);
 		break;
 	}
 	case CUSTOM_SETNAME:
 	{
+		this->SetName((WCHAR*)lParam);
 		break;
 	}
 	default:
@@ -403,23 +482,23 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	return lResult;
 }
 
-LRESULT TextBoxControl::OnSetFocus(HWND hwnd)
+LRESULT TextBoxControl::SetFocus(_In_ HWND hwnd)
 {
-	NotifyFocusGained(hwnd, this);
+	this->m_pTextBoxProvider->NotifyFocusGained(hwnd, this);
 	isActive = true;
 	return 0;
 }
 
-LRESULT TextBoxControl::OnKillFocus()
+LRESULT TextBoxControl::KillFocus()
 {
 	isActive = false;
 	return 0;
 }
 
-LRESULT TextBoxControl::UpdateCaret(HWND hwnd, LPARAM caretPosition)
+LRESULT TextBoxControl::UpdateCaret(_In_ HWND hwnd, _In_ LPARAM caretPosition)
 {
 
 	//m_caretPosition = caretPosition;
-	NotifyCaretPositionChanged(hwnd, this);
+	this->m_pTextBoxProvider->NotifyCaretPositionChanged(hwnd, this);
 	return 0;
 }

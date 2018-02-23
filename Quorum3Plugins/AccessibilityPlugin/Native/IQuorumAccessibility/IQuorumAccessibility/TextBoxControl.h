@@ -48,18 +48,23 @@ inline int QuickCompareEndpoints(_In_ EndPoint endpoint1, _In_ EndPoint endpoint
 	}
 }
 
+class TextBoxProvider;
+
 class TextBoxControl
 {
 	public:
 		TextBoxControl(_In_reads_(lineCount) TextLine *lines, _In_ int lineCount, _In_ EndPoint caret);
-		static void RegisterTextControl(HINSTANCE hInstance);
-
+		
+		static HWND Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_reads_(lineCount) TextLine * lines, _In_ int lineCount, _In_ EndPoint caret);
 
 		TextLine *GetLine(_In_ int line);
 		int GetLineLength(_In_ int line);
 		int GetLineCount();
 		EndPoint GetEnd();
 
+		TextBoxProvider* GetTextBoxProvider();
+		WCHAR* GetName();
+		void SetName(_In_ WCHAR* name);
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
 		bool StepLine(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
@@ -69,15 +74,22 @@ class TextBoxControl
 	private:
 		static LRESULT CALLBACK StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
 		LRESULT CALLBACK TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
-		LRESULT OnSetFocus(HWND hwnd);
-		LRESULT OnKillFocus();
-		LRESULT UpdateCaret(HWND hwnd, LPARAM caretPosition);
+		
+		static bool Initialize(_In_ HINSTANCE hInstance);
+		static bool Initialized;
+		
+		
+		LRESULT SetFocus(_In_ HWND hwnd);
+		LRESULT KillFocus();
+		LRESULT UpdateCaret(_In_ HWND hwnd, _In_ LPARAM caretPosition);
 
+		HWND m_TextboxHWND;
 		EndPoint m_caretPosition;
 		bool isActive;
 		TextLine *lines;
 		int lineCount;
-		//TextBoxProvider* m_TextBoxProvider; // Necessary?
+		WCHAR* m_pTextboxName;
+		TextBoxProvider* m_pTextBoxProvider;
 
 
 };
