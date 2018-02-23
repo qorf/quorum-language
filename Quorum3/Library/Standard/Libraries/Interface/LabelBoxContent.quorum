@@ -119,12 +119,24 @@ class LabelBoxContent is Item2D, GraphicUserInterfaceContent
         label:SetText(newText)
     end
 
+    action GetText returns text
+        return label:GetText()
+    end
+
+    action SetFont(Font font)
+        label:SetFont(font)
+    end
+
     action GetFont returns Font
         return label:GetFont()
     end
 
     action SetBorderThickness(integer thickness)
         borderThickness = thickness
+    end
+
+    action GetBorderThickness returns integer
+        return borderThickness
     end
 
     action Draw(Painter2D painter)
@@ -168,7 +180,7 @@ class LabelBoxContent is Item2D, GraphicUserInterfaceContent
         // Adjust the label upwards if it takes multiple lines.
         number yOffset = labelHeight - label:GetLineHeight()
 
-        label:SetPosition((background:GetWidth() * background:GetScaleX() - labelWidth) / 2 + background:GetX(), (background:GetHeight() * background:GetScaleY() - labelHeight) / 2 + background:GetY() + yOffset)
+        label:SetPosition(cast(integer, (background:GetWidth() * background:GetScaleX() - labelWidth) / 2 + background:GetX()), cast(integer, (background:GetHeight() * background:GetScaleY() - labelHeight) / 2 + background:GetY() + yOffset))
     end
 
     action UpdatePosition(number x, number y)
@@ -211,4 +223,24 @@ class LabelBoxContent is Item2D, GraphicUserInterfaceContent
         // TO DO
     end
 
+    action Copy returns GraphicUserInterfaceContent
+        LabelBoxContent content
+        if background:UsingCustomGradient()
+            if border:UsingCustomGradient()
+                content:Initialize(background:GetGradient(), border:GetGradient())
+            else
+                content:Initialize(background:GetGradient(), border:GetColor())
+            end
+        else
+            if border:UsingCustomGradient()
+                content:Initialize(background:GetColor(), border:GetGradient())
+            else
+                content:Initialize(background:GetColor(), border:GetColor())
+            end
+        end
+
+        content:SetBorderThickness(GetBorderThickness())
+        content:SetText(GetText())
+        return content
+    end
 end

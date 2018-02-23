@@ -90,10 +90,11 @@ class Button is GraphicUserInterface
         gradient:Set(gray, gray, lightGray, lightGray)
         content:SetBorderThickness(2)
         content:Initialize(gradient, color:Black())
-        content:SetText(label)
 
         SetVisualContent(content)
         SetSize(width, height)
+
+        SetName(label)
     end
 
     action Initialize(Drawable drawable)
@@ -162,5 +163,12 @@ class Button is GraphicUserInterface
     action ReleasedMouse
         parent:GraphicUserInterface:ReleasedMouse()
         RunBehavior()
+    end
+
+    action SetName(text name)
+        if GetVisualContent() is GraphicUserInterfaceContent
+            GraphicUserInterfaceContent content = cast(GraphicUserInterfaceContent, GetVisualContent())
+            content:SetText(name)
+        end
     end
 end

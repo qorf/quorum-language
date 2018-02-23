@@ -147,4 +147,10 @@ class ImageInterfaceContent is Drawable, GraphicUserInterfaceContent
         // TO DO
     end
 
+    action Copy returns GraphicUserInterfaceContent
+        ImageInterfaceContent content
+        content:Initialize(me)
+        return content
+    end
+
 end
