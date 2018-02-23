@@ -8,6 +8,7 @@ package plugins.quorum.Libraries.Game.Graphics;
 import java.nio.ByteBuffer;
 
 import quorum.Libraries.Game.Graphics.Color_;
+import quorum.Libraries.Game.Graphics.TextureFilter;
 
 /**
  *
@@ -377,6 +378,11 @@ public class Font
 
             quorum.Libraries.Game.Graphics.Texture texture = new quorum.Libraries.Game.Graphics.Texture();
             texture.LoadFromTextureData(texData);
+            TextureFilter minFilter = new TextureFilter();
+            TextureFilter magFilter = new TextureFilter();
+            minFilter.ConstructTextureFilter(minFilter.LINEAR);
+            magFilter.ConstructTextureFilter(magFilter.LINEAR);
+            texture.SetFilter(minFilter, magFilter);
             
             quorum.Libraries.Game.Graphics.Color c = new quorum.Libraries.Game.Graphics.Color();
             c.SetColor(color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha());
