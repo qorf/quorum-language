@@ -157,7 +157,9 @@ class Button is GraphicUserInterface
     end
 
     action RunBehavior(BehaviorEvent event)
-        activationBehavior:Run(event)
+        if activationBehavior not= undefined
+            activationBehavior:Run(event)
+        end
     end
 
     action ReleasedMouse

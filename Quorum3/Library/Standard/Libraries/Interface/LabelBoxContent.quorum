@@ -26,6 +26,7 @@ class LabelBoxContent is Item2D, GraphicUserInterfaceContent
         Add(background)
 
         InitializeEffects()
+        SetText("")
     end
 
     action Initialize(Gradient backgroundGradient, Color borderColor)
@@ -35,6 +36,7 @@ class LabelBoxContent is Item2D, GraphicUserInterfaceContent
         Add(background)
 
         InitializeEffects()
+        SetText("")
     end
 
     action Initialize(Color backgroundColor, Gradient borderGradient)
@@ -44,6 +46,7 @@ class LabelBoxContent is Item2D, GraphicUserInterfaceContent
         Add(background)
 
         InitializeEffects()
+        SetText("")
     end
 
     action Initialize(Gradient backgroundGradient, Gradient borderGradient)
@@ -53,6 +56,7 @@ class LabelBoxContent is Item2D, GraphicUserInterfaceContent
         Add(background)
 
         InitializeEffects()
+        SetText("")
     end
 
     action Initialize(Color backgroundColor, Color borderColor, text labelText)
@@ -117,6 +121,14 @@ class LabelBoxContent is Item2D, GraphicUserInterfaceContent
 
     action SetText(text newText)
         label:SetText(newText)
+        
+        number labelWidth = label:GetTextWidth()
+        number labelHeight = label:GetTextHeight()
+
+        // Adjust the label upwards if it takes multiple lines.
+        number yOffset = labelHeight - label:GetLineHeight()
+
+        label:SetPosition(cast(integer, (background:GetWidth() * background:GetScaleX() - labelWidth) / 2 + background:GetX()), cast(integer, (background:GetHeight() * background:GetScaleY() - labelHeight) / 2 + background:GetY() + yOffset))
     end
 
     action GetText returns text
@@ -173,14 +185,7 @@ class LabelBoxContent is Item2D, GraphicUserInterfaceContent
 
         label:SetWidth(background:GetWidth() * background:GetScaleX())
         // Force the label to readjust to its new size.
-        label:SetText(label:GetText())
-        number labelWidth = label:GetTextWidth()
-        number labelHeight = label:GetTextHeight()
-
-        // Adjust the label upwards if it takes multiple lines.
-        number yOffset = labelHeight - label:GetLineHeight()
-
-        label:SetPosition(cast(integer, (background:GetWidth() * background:GetScaleX() - labelWidth) / 2 + background:GetX()), cast(integer, (background:GetHeight() * background:GetScaleY() - labelHeight) / 2 + background:GetY() + yOffset))
+        SetText(label:GetText())
     end
 
     action UpdatePosition(number x, number y)

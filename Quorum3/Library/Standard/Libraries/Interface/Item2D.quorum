@@ -300,6 +300,8 @@ class Item2D is Item
         if visualContent not= undefined
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
+
+        ResizeChildren()
     end
 
     /*
@@ -328,6 +330,8 @@ class Item2D is Item
         if visualContent not= undefined
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
+
+        ResizeChildren()
     end
 
     /*
@@ -1797,6 +1801,8 @@ class Item2D is Item
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
+        ResizeChildren()
+
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
 
@@ -1852,6 +1858,8 @@ class Item2D is Item
         if visualContent not= undefined
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
+
+        ResizeChildren()
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -1948,6 +1956,8 @@ class Item2D is Item
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
+        ResizeChildren()
+
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
 
@@ -2028,6 +2038,8 @@ class Item2D is Item
         if visualContent not= undefined
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
+
+        ResizeChildren()
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -4298,13 +4310,14 @@ class Item2D is Item
             end
 
             SetSize(width, height)
-
-            counter = 0
-            repeat while counter < children:GetSize()
-                children:Get(counter):Resize()
-                counter = counter + 1
-            end
         end
     end
 
+    private action ResizeChildren
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            children:Get(counter):Resize()
+            counter = counter + 1
+        end
+    end
 end
