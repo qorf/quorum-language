@@ -39,14 +39,28 @@ public class DesktopDisplay {
     
     // May only be necessary for development. May be removed later.
     GLFWErrorCallback errorCallback;
-    // Used to capture resize events. Currently does nothing.
+    
+    // Whether or not the window was resized during the last cycle.
+    boolean wasResized = false;
     
     GLFWWindowSizeCallback resizeCallback = new GLFWWindowSizeCallback()
         {
             @Override
             public void invoke(long window, int width, int height)
             {
+                wasResized = true;
                 ResizeProcessor.AddResizeEvent(window, width, height);
+                GameStateManager.game.ContinueGame();
+                GLFW.glfwSwapBuffers(window);
+                
+                /* 
+                Draw the game to the other buffer as well. This means we're
+                technically drawing twice on every resize, but this guarantees
+                that if we swap to the other buffer that it won't have junk
+                data. Resizing the screen is a rare operation, so this should
+                have a minor impact on overall perfo
+                */
+                UpdateBuffer();
             }
         };
     
@@ -308,8 +322,9 @@ public class DesktopDisplay {
     }
     
     public boolean WasResized() {
-//        return Display.wasResized();
-        return false;
+        boolean resized = wasResized;
+        wasResized = false;
+        return resized;
     }
     
     public void UpdateTime () 
@@ -335,6 +350,12 @@ public class DesktopDisplay {
     public void SetLastTime()
     {
         lastTime = System.nanoTime();
+    }
+    
+    public void UpdateBuffer()
+    {
+        GameStateManager.game.ClearScreen();
+        GameStateManager.game.DrawAll();
     }
     
     public void Update()
