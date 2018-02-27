@@ -4,8 +4,11 @@
 #include "TextBoxControl.h"
 #include "TextBoxTextRange.h"
 
+#include <iostream>
+
 void TextBoxProvider::NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 {
+	//std::cout << "NotifyCaretPositionChanged" << std::endl;
 	TextBoxProvider *eventControl = new TextBoxProvider(hwnd, control);
 	if (eventControl == NULL)
 	{

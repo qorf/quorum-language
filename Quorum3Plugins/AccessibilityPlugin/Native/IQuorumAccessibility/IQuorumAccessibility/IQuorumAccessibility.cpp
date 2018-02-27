@@ -69,81 +69,6 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 }
 
-// NativeWin32CreateWindow: This will create the window for an item so that it can be registered with UI Automation. This function is capable of creating a "ghost window" over the actual control
-//							that will allow for automatic mouseover support or it can create a featureless window that only serves to tell UI Automation that something exists inside the game window.
-JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateWindow(JNIEnv *env, jobject obj, jlong parentWindowHWND, jstring itemName, jstring description, jstring className)
-{
-
-	HWND parentWindow;
-	parentWindow = (HWND)parentWindowHWND;
-
-	const char *nativeItemName = env->GetStringUTFChars(itemName, 0);
-	const char *nativeDescription = env->GetStringUTFChars(description, 0);
-	const char *nativeClassName = env->GetStringUTFChars(className, 0);
-
-	WCHAR* wItemName = CreateWideStringFromUTF8Win32(nativeItemName);
-	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
-	WCHAR* wClassName = CreateWideStringFromUTF8Win32(nativeClassName);
-
-	HWND customControlHandle;
-
-
-
-	if (parentWindow != NULL)
-	{
-		//std::wcout << wClassName << std::endl;
-		//fflush(stdout);
-
-		customControlHandle = CreateWindowExW(WS_EX_WINDOWEDGE,
-			wClassName,
-			wDescription,
-			WS_VISIBLE | WS_CHILD,
-			-1,
-			-1,
-			1,
-			1,
-			parentWindow, // Parent window
-			NULL,
-			GetModuleHandle(NULL),
-			NULL);
-
-		if (customControlHandle == 0)
-		{
-			DWORD errorMessageID = ::GetLastError();
-
-			LPSTR messageBuffer = nullptr;
-			size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-				NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
-
-			std::string message(messageBuffer, size);
-			std::cout << "Native Code - CreateWindowExW Error " << errorMessageID << ": " << message;
-			fflush(stdout);
-
-			//Free the buffer.
-			LocalFree(messageBuffer);
-		}
-		else
-		{
-
-			SendMessage(customControlHandle, CUSTOM_SETNAME, (WPARAM)0, (LPARAM)wItemName);
-			return (jlong)customControlHandle;
-
-		}
-	}
-	else
-	{
-		printf("Native Code - Error: parent window casting to HWND failed.\n");
-		fflush(stdout);
-	}
-
-	env->ReleaseStringUTFChars(itemName, nativeItemName);
-	env->ReleaseStringUTFChars(description, nativeDescription);
-	env->ReleaseStringUTFChars(className, nativeClassName);
-
-	return 0;
-
-}
-
 // NativeWin32CreateTextBox: 
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateItem(JNIEnv *env, jobject obj, jlong parentWindowHWND, jstring itemName, jstring description)
 {
@@ -243,7 +168,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 }
 
 // NativeWin32CreateTextBox: 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTextBox(JNIEnv *env, jobject obj, jlong parentWindowHWND, jstring textboxName, jstring description)
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTextBox(JNIEnv *env, jobject obj, jlong parentWindowHWND, jstring textboxName, jstring description, jstring currentLineText, jint caretLine, jint caretCharacter)
 {
 
 	HWND parentWindow;
@@ -251,24 +176,44 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	const char *nativeTextboxName = env->GetStringUTFChars(textboxName, 0);
 	const char *nativeDescription = env->GetStringUTFChars(description, 0);
+	const char *nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
 
 	WCHAR* wTextboxName = CreateWideStringFromUTF8Win32(nativeTextboxName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+	WCHAR* wCurrentLineText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
 
 	HWND textboxControlHandle;
 	
 	EndPoint caret;
-	caret.character = 0;
-	caret.line = 0;
-	TextLine line = {L"Nope."};
+	caret.character = (int)caretCharacter;
+	caret.line = (int)caretLine;
+	//TextLine line = { wCurrentLineText };
+	TextLine line = { L"Hello world!" };
 
-	textboxControlHandle = TextBoxControl::Create(parentWindow, GetModuleHandle(NULL), wTextboxName, wDescription, &line, 0, caret);
+	textboxControlHandle = TextBoxControl::Create(parentWindow, GetModuleHandle(NULL), wTextboxName, wDescription, &line, 1, caret);
 
 	env->ReleaseStringUTFChars(textboxName, nativeTextboxName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
+	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
+
 
 	return PtrToLong(textboxControlHandle);
 
+}
+
+JNIEXPORT void Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextBoxTextSelectionChanged(JNIEnv *env, jobject obj, jlong textboxHWND, jstring currentLineText, jint caretLine, jint caretCharacter)
+{
+	const char *nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
+	WCHAR* wCurrentLineText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
+
+	EndPoint caret;
+	caret.line = (int)caretLine;
+	caret.character = (int)caretCharacter;
+
+	//SendMessage((HWND)textboxHWND, CUSTOM_SETTEXT, 0, (LPARAM)wCurrentLineText);
+	SendMessage((HWND)textboxHWND, CUSTOM_UPDATECARET, 0, (LPARAM)&caret);
+
+	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
 }
 
 // NativeWin32SetFocus: This function will send a message to the window procedure for the given jlongHWND to set focus. Each window procedure may handle that message differently but in general a window procedure will raise
