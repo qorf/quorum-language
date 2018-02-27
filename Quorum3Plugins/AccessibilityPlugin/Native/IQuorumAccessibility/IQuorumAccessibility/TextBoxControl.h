@@ -81,7 +81,7 @@ class TextBoxControl
 		
 		LRESULT SetFocus(_In_ HWND hwnd);
 		LRESULT KillFocus();
-		LRESULT UpdateCaret(_In_ HWND hwnd, _In_ LPARAM caretPosition);
+		LRESULT UpdateCaret(_In_ HWND hwnd, _In_ EndPoint* caretPosition);
 
 		HWND m_TextboxHWND;
 		EndPoint m_caretPosition;

@@ -30,7 +30,7 @@ class AccessibilityManager
     system action RegisterItem(Item item, Text className) returns boolean
     
     // Add: Registers an Item with the native accessibility code so the screen readers can access information about it.
-    system action Add(Item item)
+    system action Add(Item item) returns boolean
 
     // Remove: Removes an Item from the native accessibility tree so that it is no longer available to screen readers.
     system action Remove(Item item)
@@ -43,5 +43,11 @@ class AccessibilityManager
 
     // == Togglebuttons
     system action UpdateToggleState(Item button, boolean selected) returns boolean
+
+    // ===== actions for Textbox
+
+    // TextSelectionChanged: This action will be called whenever the caret position has changed,
+    //                       and text on the textline has been delete or added.
+    system action TextSelectionChanged(Item Textbox)
 
 end

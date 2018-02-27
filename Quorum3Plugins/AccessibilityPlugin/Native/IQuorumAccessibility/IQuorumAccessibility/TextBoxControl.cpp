@@ -466,12 +466,17 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case CUSTOM_UPDATECARET:
 	{
-		lResult = UpdateCaret(hwnd, lParam);
+		lResult = UpdateCaret(hwnd, (EndPoint*)lParam);
 		break;
 	}
 	case CUSTOM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
+		break;
+	}
+	case CUSTOM_SETTEXT:
+	{
+		this->lines->text = (WCHAR*)lParam;
 		break;
 	}
 	default:
@@ -495,10 +500,10 @@ LRESULT TextBoxControl::KillFocus()
 	return 0;
 }
 
-LRESULT TextBoxControl::UpdateCaret(_In_ HWND hwnd, _In_ LPARAM caretPosition)
+LRESULT TextBoxControl::UpdateCaret(_In_ HWND hwnd, _In_ EndPoint* caretPosition)
 {
 
-	//m_caretPosition = caretPosition;
+	m_caretPosition = *caretPosition;
 	this->m_pTextBoxProvider->NotifyCaretPositionChanged(hwnd, this);
 	return 0;
 }
