@@ -1,5 +1,7 @@
-package Libraries.Interface
+package Libraries.Interface.Layouts
 
+use Libraries.Interface.Item2D
+use Libraries.Containers.Array
 use Libraries.Language.Support.CompareResult
 
 class Layout 
@@ -18,6 +20,40 @@ class Layout
     number maximumHeight = heightPercentage:GetPositiveInfinityValue()
     number maximumContainerWidth = widthPercentage:GetPositiveInfinityValue()
     number maximumContainerHeight = heightPercentage:GetPositiveInfinityValue()
+
+    action Apply(Item2D item, number containerWidth, number containerHeight)
+        item:SetPosition(containerWidth * GetPercentageX() + GetOffsetX(), containerHeight * GetPercentageY() + GetOffsetY())
+
+        number width = containerWidth * GetPercentageWidth() + GetWidthOffset() 
+        number height = containerHeight * GetPercentageHeight() + GetHeightOffset()
+
+        if width < GetMinimumWidth()
+            width = GetMinimumWidth()
+        elseif width > GetMaximumWidth()
+            width = GetMaximumWidth()
+        end
+
+        if height < GetMinimumHeight()
+            height = GetMinimumHeight()
+        elseif height > GetMaximumHeight()
+            height = GetMaximumHeight()
+        end
+
+        item:SetSize(width, height)
+
+        Layout(item)
+
+        integer counter = 0
+        Array<Item2D> children = item:GetChildren()
+        repeat while counter < children:GetSize()
+            children:Get(counter):Resize()
+            counter = counter + 1
+        end
+    end
+
+    action Layout(Item2D item)
+        
+    end
 
     action SetPercentageX(number x)
         xPercentage = x

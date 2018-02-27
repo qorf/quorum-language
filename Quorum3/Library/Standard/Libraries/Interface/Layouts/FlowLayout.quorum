@@ -1,0 +1,31 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Item2D
+use Libraries.Containers.Array
+
+class FlowLayout is Layout
+    
+    action Layout(Item2D item)
+        number x = 0
+        number y = 0
+
+        number tallestHeight = 0
+        Array<Item2D> kids = item:GetChildren()
+        i = 0
+        repeat while i < kids:GetSize()
+            Item2D kid = kids:Get(i)
+            if kid:GetHeight() > tallestHeight
+                tallestHeight = kid:GetHeight()
+            end
+
+            if x + kid:GetWidth() > item:GetWidth()
+                y = y - tallestHeight
+                x = 0
+            end
+            kid:SetPosition(x, y)
+            x = x + kid:GetWidth()
+            i = i + 1
+        end
+    end
+
+end

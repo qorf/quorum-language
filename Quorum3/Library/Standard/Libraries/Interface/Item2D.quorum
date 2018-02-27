@@ -1,6 +1,7 @@
 package Libraries.Interface
 
 use Libraries.Interface.Item
+use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
@@ -125,6 +126,14 @@ class Item2D is Item
     drawing (via the glScissor function).
     */
     boolean clipPixels = false
+
+    /*
+    Whether or not the Item is currently in the middle of resizing itself (i.e.
+    it has entered the Resize action and hasn't returned from it yet). This is
+    used as a sort of pseudo-lock, ensuring that if the Item is already
+    resizing, it can't call the Resize action again recursively.
+    */
+    boolean isResizing = false
 
     /*
     Visual content attached to this Item2D. Visual content is drawn during calls
@@ -301,7 +310,7 @@ class Item2D is Item
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
-        ResizeChildren()
+        Resize()
     end
 
     /*
@@ -330,8 +339,8 @@ class Item2D is Item
         if visualContent not= undefined
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
-
-        ResizeChildren()
+        
+        Resize()
     end
 
     /*
@@ -1801,7 +1810,7 @@ class Item2D is Item
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
-        ResizeChildren()
+        Resize()
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -1859,7 +1868,7 @@ class Item2D is Item
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
-        ResizeChildren()
+        Resize()
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -1956,7 +1965,7 @@ class Item2D is Item
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
-        ResizeChildren()
+        Resize()
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -2039,7 +2048,7 @@ class Item2D is Item
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
-        ResizeChildren()
+        Resize()
 
         Iterator<Item2D> childIterator = GetItems()
         if childIterator:HasNext()
@@ -4264,6 +4273,13 @@ class Item2D is Item
     end
 
     action Resize
+        // If we're already resizing, return immediately from a recursive call.
+        if isResizing
+            return now
+        end
+
+        isResizing = true
+
         if not layouts:IsEmpty()
             number containerWidth = 0
             number containerHeight = 0
@@ -4292,32 +4308,10 @@ class Item2D is Item
                 end
             end
 
-            SetPosition(containerWidth * layout:GetPercentageX() + layout:GetOffsetX(), containerHeight * layout:GetPercentageY() + layout:GetOffsetY())
-
-            number width = containerWidth * layout:GetPercentageWidth() + layout:GetWidthOffset() 
-            number height = containerHeight * layout:GetPercentageHeight() + layout:GetHeightOffset()
-
-            if width < layout:GetMinimumWidth()
-                width = layout:GetMinimumWidth()
-            elseif width > layout:GetMaximumWidth()
-                width = layout:GetMaximumWidth()
-            end
-
-            if height < layout:GetMinimumHeight()
-                height = layout:GetMinimumHeight()
-            elseif height > layout:GetMaximumHeight()
-                height = layout:GetMaximumHeight()
-            end
-
-            SetSize(width, height)
+            layout:Apply(me, containerWidth, containerHeight)
         end
+
+        isResizing = false
     end
 
-    private action ResizeChildren
-        integer counter = 0
-        repeat while counter < children:GetSize()
-            children:Get(counter):Resize()
-            counter = counter + 1
-        end
-    end
 end
