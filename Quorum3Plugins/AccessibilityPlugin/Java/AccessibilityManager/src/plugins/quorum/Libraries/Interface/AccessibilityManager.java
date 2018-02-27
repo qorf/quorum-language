@@ -62,23 +62,21 @@ public class AccessibilityManager
     // NativePrint: For debugging
     private native void NativePrint();
     
-    // NativeWin32CreateWindow: The name for this function is somewhat misleading and it is to maintain Windows API naming conventions down
-    //                          at the C level. A window isn't being created for a given item. Windows calls everything a window regardless
-    //                          of what it actually is. All this function does is tell Windows API that something is there so that a function
-    //                          in C can register it with UI Automation.
+    // NativeWin32CreateItem: Creates a custom control with the most basic accessibility information in UI Automation.
     //      Returns: null on failure, otherwise itemHWND associated with item
-    private native long NativeWin32CreateWindow(long parentWindow, String name, String description, String className);
-    
     private native long NativeWin32CreateItem(long parentWindow, String name, String description);
+    
+    // NativeWin32CreatePushButton: Creates a button control in UI Automation.
+    //      Returns: null on failure, otherwise itemHWND associated with item
     private native long NativeWin32CreatePushButton(long parentWindow, String name, String description);
+    
+    // NativeWin32CreateToggleButton: Creates a checkbox control in UI Automation.
+    //      Returns: null on failure, otherwise itemHWND associated with item
     private native long NativeWin32CreateToggleButton(long parentWindow, String name, String description);
+    
+    // NativeWin32CreateRadioButton: Creates a radio button control in UI Automation.
+    //      Returns: null on failure, otherwise itemHWND associated with item
     private native long NativeWin32CreateRadioButton(long parentWindow, String name, String description);
-    private native long NativeWin32CreateTextBox(long parentWindow, String name, String description, int cursorPosition, int lineCount, String line);
-    
-    // NativeWin32SetFocus: Sets the keyboard focus onto the given item with UI Automation.
-    //      Returns: null on failure, otherwise itemHWND of previously focused item.
-    private native long NativeWin32SetFocus(long itemHWND);
-    
     
     // NativeWin32InvokeButton: Calls the native method that will raise a UI Automation that tells the screen reader that the button was iteracted with.
     private native boolean NativeWin32InvokeButton(long itemHWND);
@@ -86,11 +84,22 @@ public class AccessibilityManager
     // NativeWin32UpdateToggleStatus: Calls the native method that is responsible for updating the native control's toggle status (on or off)
     //                                and raising the appropriate UI Automation event.
     private native boolean NativeWin32UpdateToggleStatus(long itemHWND, boolean selected);
-    
+
+    // NativeWin32CreateTextBox: Creates an edit control in UI Automation.
+    //      Returns: null on failure, otherwise itemHWND associated with item
+    private native long NativeWin32CreateTextBox(long parentWindow, String name, String description, String currentLineText, int caretLine, int caretCharacter);
+
     // NativeWin32TextBoxTextSelectionChanged: Calls the native method that will raise a UI Automation event for Text being changed.
     // TODO: Figure out what parameters are necessary to accomplish this.
-    private native boolean NativeWin32TextBoxTextSelectionChanged(long itemHWND, String TextValue);
+    private native boolean NativeWin32TextBoxTextSelectionChanged(long itemHWND, String TextValue, int caretLine, int caretCharacter);
     
+    
+    // NativeWin32SetFocus: Sets the keyboard focus onto the given item with UI Automation.
+    //      Returns: null on failure, otherwise itemHWND of previously focused item.
+    private native long NativeWin32SetFocus(long itemHWND);
+    
+    
+
     
     // ===== Accessiblity Manager Function Declarations
     
@@ -109,32 +118,10 @@ public class AccessibilityManager
         NativeWin32ShutdownAccessibility();
     }
     
-    // RegisterItem: registers the given item with UI Automation.
-    //      Returns: boolean of success or failure.
-    public boolean RegisterItem(Item_ item, Text_ className)
-    {       
-        // Register the item with UI Automation
-        // TODO: parameters
-        // Allowing the manual typing of an object's class can cause a crash if it isn't exactly 1-to-1 with the native level. 
-        // Probably not going to be a final solution for requesting type from Quorum
-        long itemHWND = NativeWin32CreateWindow(mainWindow, item.GetName(), item.GetDescription(), className.GetValue());
-
-        if (itemHWND != 0)
-        {
-            // Add item and respective HWND to collection.
-            itemMap.put(item, itemHWND);
-            
-            return true;
-        }
-        else
-            return false;
-    }
-    
-    
     public boolean Add(Item_ item)
     {
         long itemHWND = 0;
-                
+        
         switch(item.GetAccessibilityCode())
         {
             case 0: // Item
@@ -155,7 +142,7 @@ public class AccessibilityManager
                 break;
             case 5: // TextBox
                 TextBox_ textbox = (TextBox_)item;
-                
+                itemHWND = NativeWin32CreateTextBox(mainWindow, textbox.GetName(), textbox.GetDescription(), textbox.GetCurrentLineText(), textbox.GetCaretLine(), textbox.GetCaretLineIndex());
                 break;
             default: // Assume Item
                 itemHWND = NativeWin32CreateItem(mainWindow, item.GetName(), item.GetDescription());
@@ -243,6 +230,13 @@ public class AccessibilityManager
             return false;
     }
     
-    
+    public void TextSelectionChanged(Item_ textbox)
+    {
+        long itemHWND = itemMap.get(textbox);
+        
+        TextBox_ text = (TextBox_)textbox;
+        
+        NativeWin32TextBoxTextSelectionChanged(itemHWND, text.GetCurrentLineText(), text.GetCaretLine(), text.GetCaretLineIndex());
+    }
     
 }

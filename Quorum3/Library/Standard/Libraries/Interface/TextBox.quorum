@@ -294,7 +294,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
                 return now
             else
                 caretLine = caretLine - 1
-                text lineText = textValue:GetLine(caretLine):GetText()
+                text lineText = GetCurrentLineText()
                 caretCharacter = lineText:GetSize()
                 if lineText:EndsWith(lineText:GetLineFeed())
                     caretCharacter = caretCharacter - 1
@@ -322,7 +322,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         integer oldIndex = GetCaretIndex()
 
-        text lineText = textValue:GetLine(caretLine):GetText()
+        text lineText = GetCurrentLineText()
         integer size = lineText:GetSize()
         if lineText:EndsWith(lineText:GetLineFeed())
             size = size - 1
@@ -557,7 +557,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     action DeleteForward
         if caretLine = textValue:GetLineCount() - 1
-            text line = textValue:GetLine(caretLine):GetText()
+            text line = GetCurrentLineText()
             if caretCharacter = line:GetSize()
                 return now
             end
@@ -1015,5 +1015,9 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         // actual start and end indices of the selection.
         integer caretIndex = GetCaretIndex()
         return GetRangeSelection(caretIndex, caretIndex)
+    end
+
+    action GetCurrentLineText() returns text
+        return textValue:GetLine(caretLine):GetText()
     end
 end
