@@ -69,7 +69,6 @@ class DesktopApplication is Application
 
             boolean shouldrender = false
             if display:GetResize() or display:WasResized() or (display:GetWidth() not= configuration:width) or (display:GetHeight() not= configuration:height)
-
                 display:SetResize(false)
 
                 if configuration:autoResizeTextures
@@ -84,11 +83,14 @@ class DesktopApplication is Application
 
                 display:SetConfiguration(configuration)
 
+                shouldrender = false
+            else
+                shouldrender = true
             end
 
-            if(true)
-                shouldrender = true 
-            end
+//            if(true)
+//                shouldrender = true 
+//            end
 
 //            if(display:shouldrender)
 //                shouldrender = display:shouldrender
