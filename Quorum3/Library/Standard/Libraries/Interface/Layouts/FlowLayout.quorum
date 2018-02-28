@@ -14,18 +14,25 @@ class FlowLayout is Layout
         i = 0
         repeat while i < kids:GetSize()
             Item2D kid = kids:Get(i)
-            if kid:GetHeight() > tallestHeight
-                tallestHeight = kid:GetHeight()
-            end
 
             if x + kid:GetWidth() > item:GetWidth()
                 y = y - tallestHeight
                 x = 0
+                tallestHeight = 0
             end
+
+            if kid:GetHeight() > tallestHeight
+                tallestHeight = kid:GetHeight()
+            end
+
             kid:SetPosition(x, y)
             x = x + kid:GetWidth()
             i = i + 1
         end
+
+        number oldHeight = item:GetHeight()
+        item:SetHeight(tallestHeight - y)
+        item:MoveY(oldHeight - (tallestHeight - y))
     end
 
 end
