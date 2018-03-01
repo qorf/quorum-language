@@ -21,30 +21,24 @@ import static org.lwjgl.util.nfd.NativeFileDialog.NFD_OpenDialog;
 public class FileChooser {
     public java.lang.Object me_ = null;
     
-    public void OpenSaveFileDialogNative(String path) {
+    public String OpenFileDialogNative(String path, String filter) {
         PointerBuffer outPath = memAllocPointer(1);
-        try {
-            checkResult(
-                NFD_OpenDialog("png,jpg;pdf", null, outPath),
-                outPath
-            );
+        String resultPath = null;
+        try {//example filter: "png,jpg;pdf"
+            int result = NFD_OpenDialog(filter, path, outPath);
+            switch (result) {
+                case NFD_OKAY:
+                    resultPath = outPath.getStringUTF8(0);
+                    break;
+                case NFD_CANCEL:
+                    resultPath = null;
+                    break;
+                default: // NFD_ERROR
+                    resultPath = null;
+            }
         } finally {
             memFree(outPath);
         }
-    }
-    
-    private static void checkResult(int result, PointerBuffer path) {
-        switch (result) {
-            case NFD_OKAY:
-                System.out.println("Success!");
-                System.out.println(path.getStringUTF8(0));
-                //nNFD_Free(path.get(0));
-                break;
-            case NFD_CANCEL:
-                System.out.println("User pressed cancel.");
-                break;
-            default: // NFD_ERROR
-                System.err.format("Error: %s\n", NFD_GetError());
-        }
+        return resultPath;
     }
 }
