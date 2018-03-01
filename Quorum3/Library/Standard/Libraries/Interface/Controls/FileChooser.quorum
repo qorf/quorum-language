@@ -1,0 +1,11 @@
+package Libraries.Interface.Controls
+
+use Libraries.System.File
+
+class FileChooser 
+    action OpenSaveFileDialog(File location)
+        OpenSaveFileDialogNative("")
+    end
+
+    system action OpenSaveFileDialogNative(text path)
+end
