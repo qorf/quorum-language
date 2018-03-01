@@ -3,9 +3,11 @@ package Libraries.Interface.Controls
 use Libraries.System.File
 
 class FileChooser 
-    action OpenSaveFileDialog(File location)
-        OpenSaveFileDialogNative("")
+    action OpenFileDialog(File location, File filer) returns File
+        text result = OpenFileDialogNative(undefined, "")
+        output result
+        return undefined
     end
 
-    system action OpenSaveFileDialogNative(text path)
+    system action OpenFileDialogNative(text path, text filter) returns text
 end
