@@ -88,9 +88,10 @@ class DesktopDisplay is GameDisplay
     end
 
     /*
-    This action checks for input events and processes them.
+    This action forces the Game to draw its contents to the DesktopDisplay's
+    internal buffer without drawing them to the screen.
     */
-//    system action ProcessMessages
+    system action UpdateBuffer
 
     /*
     This action determines if the user has tried to close the window by clicking

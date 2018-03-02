@@ -194,7 +194,7 @@ class File
     end
 
     /*
-        Get the ABSOLUTE path this File object represents. Essentially, this is
+        Get the absolute path this File object represents. Essentially, this is
         the same concept as GetPath, but the path is "absolute", that is, it is
         NOT dependent on the working directory of a File object. The absolute path
         is the working directory of File and the path of File concatenated together.
@@ -212,6 +212,44 @@ class File
     */
     action GetAbsolutePath returns text
         return GetAbsolutePathNative()
+    end
+
+    /*
+        This is convenience action to set the working directory and path
+        from the absolute path to a file. Essentially, this is
+        the same concept as SetPath, except that the default working directory
+        will be set to the parent of the file.
+
+        Attribute: Parameter the absolute path this File object represents.
+
+        Attribute: Example
+        use Libraries.System.File
+        // Construct a file object to refer to "C:\Windows\System32".
+        File sys
+        sys:SetAbsolutePath("C:\Windows\System32")
+        output sys:GetAbsolutePath() // prints "C:\Windows\System32"
+    */
+    action SetAbsolutePath(text value)
+        if value = undefined
+            return now
+        end
+
+        text working = ""
+        text path = ""
+        integer i = value:GetSize() - 1
+        repeat while i > 0
+            text char = value:GetCharacter(i)
+            if char = "/" or char = "\"
+                //split it up and you have your directories
+                working = value:GetSubtext(0, i)
+                path = value:GetSubtext(i + 1, value:GetSize())
+                SetWorkingDirectory(working)
+                SetPath(path)
+                return now
+            end
+            i = i - 1
+        end
+        alert("Tried to process an Absolute Path, but the text value given: " + value + " was invalid.")
     end
 
     /*

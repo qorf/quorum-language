@@ -1,0 +1,57 @@
+package Libraries.Interface.Controls
+
+use Libraries.System.File
+
+class FileChooser 
+
+    action OpenFileDialog returns File
+        return OpenFileDialog(undefined, undefined)
+    end
+
+    action OpenFileDialog(FileFilter filter) returns File
+        return OpenFileDialog(undefined, filter)
+    end
+
+    action OpenFileDialog(File location, FileFilter filter) returns File
+        text filterText = undefined
+        if filter not= undefined
+            filterText = filter:GetCombinedFilter()
+        end
+
+        text path = undefined
+        if location not= undefined
+            path = location:GetAbsolutePath()
+        end
+
+        text result = OpenFileDialogNative(path, filterText)
+        File file
+        file:SetAbsolutePath(result)
+        return file
+    end
+
+    system action OpenFileDialogNative(text path, text filter) returns text
+
+    private action GetAbsolutePathFile(text value) returns File
+        if value = undefined
+            return undefined
+        end
+
+        text working = ""
+        text path = ""
+        integer i = value:GetSize() - 1
+        repeat while i > 0
+            text char = value:GetCharacter(i)
+            if char = "/" or char = "\"
+                //split it up and you have your directories
+                working = value:GetSubtext(0, i)
+                path = value:GetSubtext(i + 1, value:GetSize())
+                File file
+                file:SetWorkingDirectory(working)
+                file:SetPath(path)
+                return file
+            end
+            i = i - 1
+        end
+        return undefined
+    end
+end
