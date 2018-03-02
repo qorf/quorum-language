@@ -3,9 +3,8 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 
 /*
-    This class allows us to create an open or save dialog and to give it a file
-    filter as an option. For example, we could allow the system to only accept
-    png image files, xml files, or something else.
+    This class represents a filter for files in an open or save dialog. It does 
+    not do much on its own, but is used in relation to the FileChooser class.
 
     Attribute: Example
 
@@ -30,7 +29,7 @@ use Libraries.Containers.Iterator
                 end
             end
         end
-    */
+*/
 class FileFilter 
     Array<text> filters
     boolean acceptAll = true
