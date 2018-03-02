@@ -168,6 +168,7 @@ class Button is GraphicUserInterface
     end
 
     action SetName(text name)
+        parent:Item2D:SetName(name)
         if GetVisualContent() is GraphicUserInterfaceContent
             GraphicUserInterfaceContent content = cast(GraphicUserInterfaceContent, GetVisualContent())
             content:SetText(name)
