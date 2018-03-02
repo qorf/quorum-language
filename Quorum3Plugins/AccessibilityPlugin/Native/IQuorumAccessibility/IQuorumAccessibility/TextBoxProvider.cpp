@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-void TextBoxProvider::NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
+void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 {
 	//std::cout << "NotifyCaretPositionChanged" << std::endl;
 	TextBoxProvider *eventControl = new TextBoxProvider(hwnd, control);
@@ -17,11 +17,12 @@ void TextBoxProvider::NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxCon
 	else
 	{
 		UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
+		UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
 		eventControl->Release();
 	}
 }
 
-void TextBoxProvider::NotifyFocusGained(_In_ HWND hwnd, _In_ TextBoxControl *control)
+void NotifyFocusGained(_In_ HWND hwnd, _In_ TextBoxControl *control)
 {
 	TextBoxProvider *eventControl = new TextBoxProvider(hwnd, control);
 	if (eventControl == NULL)
@@ -38,6 +39,8 @@ void TextBoxProvider::NotifyFocusGained(_In_ HWND hwnd, _In_ TextBoxControl *con
 TextBoxProvider::TextBoxProvider(_In_ HWND hwnd, _In_ TextBoxControl *control) : m_refCount(1), m_TextBoxControlHWND(hwnd), m_pTextBoxControl(control)
 {
 	// Nothing to do here.
+	EndPoint caret = m_pTextBoxControl->GetCaretPosition();
+	std::cout << "Native caret.Line: " << caret.line << std::endl << "Native caret.Character: " << caret.character << std::endl;
 }
 
 TextBoxProvider::~TextBoxProvider()
@@ -89,22 +92,38 @@ IFACEMETHODIMP TextBoxProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void *
 
 IFACEMETHODIMP TextBoxProvider::get_ProviderOptions(_Out_ ProviderOptions *pRetVal)
 {
-	*pRetVal = ProviderOptions_ServerSideProvider;
+	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
 	return S_OK;
 }
 
 IFACEMETHODIMP TextBoxProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown ** pRetVal)
 {
 	*pRetVal = NULL;
+
+	/*if (patternId == UIA_TextPatternId)
+	{
+		*pRetVal = static_cast<ITextProvider *>(this);
+		(*pRetVal)->AddRef();
+	}*/
+
 	return S_OK;
 }
 
 IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT * pRetVal)
 {
+	
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(L"Text Box");
+	}
+	else if (propertyId == UIA_AutomationIdPropertyId)
+	{
+		pRetVal->bstrVal = SysAllocString(L"Text Box");
+		if (pRetVal->bstrVal != NULL)
+		{
+			pRetVal->vt = VT_BSTR;
+		}
 	}
 	else if (propertyId == UIA_HelpTextPropertyId)
 	{
@@ -120,6 +139,7 @@ IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 	{
 		pRetVal->vt = VT_I4;
 		pRetVal->lVal = UIA_EditControlTypeId;
+		//pRetVal->lVal = UIA_DocumentControlTypeId;
 	}
 	else if (propertyId == UIA_IsEnabledPropertyId)
 	{
