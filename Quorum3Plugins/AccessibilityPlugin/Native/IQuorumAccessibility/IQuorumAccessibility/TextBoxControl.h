@@ -79,9 +79,9 @@ class TextBoxControl
 		static bool Initialized;
 		
 		
-		LRESULT SetFocus(_In_ HWND hwnd);
+		LRESULT SetFocus();
 		LRESULT KillFocus();
-		LRESULT UpdateCaret(_In_ HWND hwnd, _In_ EndPoint* caretPosition);
+		LRESULT UpdateCaret(_In_ EndPoint* caretPosition);
 
 		HWND m_TextboxHWND;
 		EndPoint m_caretPosition;

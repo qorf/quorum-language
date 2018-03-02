@@ -135,9 +135,9 @@ int TextBoxControl::GetLineCount()
 
 EndPoint TextBoxControl::GetEnd()
 {
-	EndPoint ep = { lineCount - 1, 0 };
-	ep.character = GetLineLength(ep.line);
-	return ep;
+	EndPoint endOfText = { lineCount - 1, 0 };
+	endOfText.character = GetLineLength(endOfText.line);
+	return endOfText;
 }
 
 VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute)
@@ -448,6 +448,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 			IRawElementProviderSimple * provider = new TextBoxProvider(hwnd, this);
 			if (provider != NULL)
 			{
+				std::cout << "UIA Requested a Provider" << std::endl;
 				lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
 				provider->Release();
 			}
@@ -456,7 +457,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case CUSTOM_SETFOCUS:
 	{
-		lResult = SetFocus(this->m_TextboxHWND);
+		lResult = SetFocus();
 		break;
 	}
 	case WM_KILLFOCUS:
@@ -466,7 +467,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case CUSTOM_UPDATECARET:
 	{
-		lResult = UpdateCaret(hwnd, (EndPoint*)lParam);
+		lResult = UpdateCaret((EndPoint*)lParam);
 		break;
 	}
 	case CUSTOM_SETNAME:
@@ -487,9 +488,9 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	return lResult;
 }
 
-LRESULT TextBoxControl::SetFocus(_In_ HWND hwnd)
+LRESULT TextBoxControl::SetFocus()
 {
-	this->m_pTextBoxProvider->NotifyFocusGained(hwnd, this);
+	NotifyFocusGained(this->m_TextboxHWND, this);
 	isActive = true;
 	return 0;
 }
@@ -500,10 +501,9 @@ LRESULT TextBoxControl::KillFocus()
 	return 0;
 }
 
-LRESULT TextBoxControl::UpdateCaret(_In_ HWND hwnd, _In_ EndPoint* caretPosition)
+LRESULT TextBoxControl::UpdateCaret( _In_ EndPoint* caretPosition)
 {
-
 	m_caretPosition = *caretPosition;
-	this->m_pTextBoxProvider->NotifyCaretPositionChanged(hwnd, this);
+	NotifyCaretPositionChanged(this->m_TextboxHWND, this);
 	return 0;
 }

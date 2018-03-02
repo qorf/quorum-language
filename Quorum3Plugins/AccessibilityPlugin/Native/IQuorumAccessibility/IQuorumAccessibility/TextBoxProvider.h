@@ -26,8 +26,6 @@ class TextBoxProvider : public IRawElementProviderSimple, public ITextProvider
 		IFACEMETHODIMP get_DocumentRange(_Outptr_result_maybenull_ ITextRangeProvider ** retVal);
 		IFACEMETHODIMP get_SupportedTextSelection(_Out_ SupportedTextSelection * retVal);
 
-		void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control);
-		void NotifyFocusGained(_In_ HWND hwnd, _In_ TextBoxControl *control);
 
 	private:
 		ULONG m_refCount;
@@ -36,3 +34,5 @@ class TextBoxProvider : public IRawElementProviderSimple, public ITextProvider
 		TextBoxControl* m_pTextBoxControl;
 };
 
+void NotifyFocusGained(_In_ HWND hwnd, _In_ TextBoxControl *control);
+void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control);
