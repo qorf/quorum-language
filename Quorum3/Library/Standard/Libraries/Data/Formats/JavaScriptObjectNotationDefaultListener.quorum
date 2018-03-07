@@ -5,20 +5,20 @@ use Libraries.Containers.Array
 
 use Libraries.Data.Formats.JavaScriptObjectNotationError
 use Libraries.Data.Formats.JavaScriptObjectNotationListener
-use Libraries.Data.Formats.JavaScriptObjectNotationObject
+use Libraries.Data.Formats.JavaScriptObjectNotation
 use Libraries.Data.Formats.JavaScriptObjectNotationTerminal
 use Libraries.Data.Formats.JavaScriptObjectNotationToken
 
 class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListener
-    JavaScriptObjectNotationObject object = undefined
-    Stack<JavaScriptObjectNotationObject> objects
+    JavaScriptObjectNotation object = undefined
+    Stack<JavaScriptObjectNotation> objects
     Stack<integer> opStack
     constant integer inObject = 0
     constant integer inArray = 1
     constant integer inPair = 2
     constant integer inValue = 3
 
-    action GetObject returns JavaScriptObjectNotationObject
+    action GetObject returns JavaScriptObjectNotation
         return object
     end
 
@@ -29,7 +29,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
     end
 
     action EnterObject
-        JavaScriptObjectNotationObject newObject
+        JavaScriptObjectNotation newObject
         newObject:SetObject()
         //this is the root, which is a special object
         if object = undefined
@@ -38,7 +38,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
         //this is a new object being pushed on. This object is the 
         //value of another JSON element, so make the "parent" the object
         else 
-            JavaScriptObjectNotationObject value = objects:Peek()
+            JavaScriptObjectNotation value = objects:Peek()
             //value:SetObject()
             value:Add(newObject)
         end
@@ -53,7 +53,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
     end
 
     action EnterArray
-        JavaScriptObjectNotationObject newObject
+        JavaScriptObjectNotation newObject
         newObject:SetArray()
         //this is the root, which is a special object
         if object = undefined
@@ -62,7 +62,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
         //this is a new object being pushed on. This object is the 
         //value of another JSON element, so make the "parent" the object
         else 
-            JavaScriptObjectNotationObject value = objects:Peek()
+            JavaScriptObjectNotation value = objects:Peek()
             value:Add(newObject)
         end
 
@@ -76,8 +76,8 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
     end
 
     action EnterPair
-        JavaScriptObjectNotationObject newObject
-        JavaScriptObjectNotationObject peek = objects:Peek()
+        JavaScriptObjectNotation newObject
+        JavaScriptObjectNotation peek = objects:Peek()
         opStack:Push(inPair)
         objects:Push(newObject)
         peek:Add(newObject)
@@ -98,7 +98,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
 
     action VisitText(JavaScriptObjectNotationTerminal terminal)
         integer op = opStack:Peek()
-        JavaScriptObjectNotationObject obj = objects:Peek()
+        JavaScriptObjectNotation obj = objects:Peek()
         JavaScriptObjectNotationToken token = terminal:GetToken()
         if op = inPair
             obj:SetKey(token:value)
@@ -109,7 +109,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
             integer peekBehind = opStack:Peek()
             opStack:Push(peek)
             if peekBehind = inArray
-                JavaScriptObjectNotationObject newObject
+                JavaScriptObjectNotation newObject
                 newObject:SetText(token:value)
                 obj:Add(newObject)
             else
@@ -120,7 +120,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
 
     action VisitNumber(JavaScriptObjectNotationTerminal terminal)
         integer op = opStack:Peek()
-        JavaScriptObjectNotationObject obj = objects:Peek()
+        JavaScriptObjectNotation obj = objects:Peek()
         JavaScriptObjectNotationToken token = terminal:GetToken()
         if op = inPair
             obj:SetKey(token:value)
@@ -132,7 +132,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
             opStack:Push(peek)
             number val = cast(number, token:value)
             if peekBehind = inArray
-                JavaScriptObjectNotationObject newObject
+                JavaScriptObjectNotation newObject
                 newObject:SetNumber(val)
                 obj:Add(newObject)
             else
@@ -143,7 +143,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
 
     action VisitTrue(JavaScriptObjectNotationTerminal terminal)
         integer op = opStack:Peek()
-        JavaScriptObjectNotationObject obj = objects:Peek()
+        JavaScriptObjectNotation obj = objects:Peek()
         JavaScriptObjectNotationToken token = terminal:GetToken()
         if op = inPair
             obj:SetKey(token:value)
@@ -154,7 +154,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
             integer peekBehind = opStack:Peek()
             opStack:Push(peek)
             if peekBehind = inArray
-                JavaScriptObjectNotationObject newObject
+                JavaScriptObjectNotation newObject
                 newObject:SetBoolean(true)
                 obj:Add(newObject)
             else
@@ -165,7 +165,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
 
     action VisitFalse(JavaScriptObjectNotationTerminal terminal)
         integer op = opStack:Peek()
-        JavaScriptObjectNotationObject obj = objects:Peek()
+        JavaScriptObjectNotation obj = objects:Peek()
         JavaScriptObjectNotationToken token = terminal:GetToken()
         if op = inPair
             obj:SetKey(token:value)
@@ -176,7 +176,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
             integer peekBehind = opStack:Peek()
             opStack:Push(peek)
             if peekBehind = inArray
-                JavaScriptObjectNotationObject newObject
+                JavaScriptObjectNotation newObject
                 newObject:SetBoolean(false)
                 obj:Add(newObject)
             else
@@ -187,7 +187,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
 
     action VisitUndefined(JavaScriptObjectNotationTerminal terminal)
         integer op = opStack:Peek()
-        JavaScriptObjectNotationObject obj = objects:Peek()
+        JavaScriptObjectNotation obj = objects:Peek()
         JavaScriptObjectNotationToken token = terminal:GetToken()
         if op = inPair
             obj:SetKey(token:value)
@@ -198,11 +198,11 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
             integer peekBehind = opStack:Peek()
             opStack:Push(peek)
             if peekBehind = inArray
-                JavaScriptObjectNotationObject newObject
-                newObject:SetNull()
+                JavaScriptObjectNotation newObject
+                newObject:SetUndefined()
                 obj:Add(newObject)
             else
-                obj:SetNull()
+                obj:SetUndefined()
             end
         end
     end

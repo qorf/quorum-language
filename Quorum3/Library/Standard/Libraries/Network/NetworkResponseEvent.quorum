@@ -2,7 +2,7 @@ package Libraries.Network
 
 use Libraries.Containers.List
 use Libraries.Containers.HashTable
-use Libraries.Data.Formats.JavaScriptObjectNotationObject
+//use Libraries.Data.Formats.JavaScriptObjectNotation
 
 /**
  *
@@ -10,71 +10,42 @@ use Libraries.Data.Formats.JavaScriptObjectNotationObject
  */
 
 class NetworkResponseEvent 
-    text apparentEncoding = ""
-    text encoding = ""
-    text headers = ""
-    List<text> headerLinks
-    List<NetworkResponseEvent> history
-    boolean isPermanentRedirect = false
-    boolean isRedirect = false
-    PreparedRequest nextRequest // PreparedRequest object to which this is a response
-    JavaScriptObjectNotationObject responseJSON
-    text responseRaw = ""   //File-like object representation of response (advanced). Requires stream=True
-    text responseText = ""
-    text savedLocalData = ""
-    number secondsElapsed = 0.0
+    text webAddress = ""
     integer statusCode = 0
     text statusText = ""
-    text webAddress = ""
+    text encoding = ""
+    text contentType = ""
+    text responseText = ""
+    text responseMessage = ""
+
+//    text apparentEncoding = ""
+//    text headers = ""
+//    List<text> headerLinks
+//    List<NetworkResponseEvent> history
+//    boolean isPermanentRedirect = false
+//    boolean isRedirect = false
+//    JavaScriptObjectNotation responseJSON = undefined
+//    text responseRaw = ""   //File-like object representation of response (advanced). Requires stream=True
+//    text savedLocalData = ""
+//    number secondsElapsed = 0.0
+//    PreparedRequest nextRequest // PreparedRequest object to which this is a response
     //iter_content    // Iterator for response data
     //iter_lines      // Iterator for response data
 
-    action Close()
-    end
-
-    action GetApparentEncoding() returns text
-        return apparentEncoding
+    action GetContentType() returns text
+        return contentType
     end
 
     action GetEncoding() returns text
         return encoding
     end
 
-    action GetHeaders() returns text
-        return headers
-    end
-
-    action GetHeaderLinks() returns List<text>
-        List<text> links
-        return links
-    end
-
-    action GetHistory() returns List<NetworkResponseEvent> 
-        return history
-    end
-
-    action GetNextRequest() returns PreparedRequest
-        return nextRequest
-    end
-
-    action GetResponseJSON() returns JavaScriptObjectNotationObject
-        return responseJSON
-    end
-
-    action GetResponseRaw() returns text
-        return responseRaw
-    end
-
     action GetResponseText() returns text
         return responseText
     end
 
-    action GetSavedLocalData() returns text
-        return savedLocalData
-    end
-
-    action GetSecondsElapsed() returns number
-        return secondsElapsed
+    action GetResponseMessage() returns text
+        return responseMessage
     end
 
     action GetStatusText() returns text
@@ -89,64 +60,20 @@ class NetworkResponseEvent
         return webAddress
     end
 
-    action IsOk() returns boolean
-        if statusCode < 400
-            return true
-        else
-            return false
-        end
-    end
-
-    action IsPermanentRedirect() returns boolean
-        return isPermanentRedirect
-    end
-
-    action IsRedirect() returns boolean
-        return isRedirect
-    end
-
-    action SetApparentEncoding(text apparentEncoding)
-        me:apparentEncoding = apparentEncoding
+    action SetContentType(text value)
+        me:contentType = value
     end
 
     action SetEncoding(text encoding)
         me:encoding = encoding
     end
 
-    action SetHeaders(text headers)
-        me:headers = headers
-    end
-
-    action SetHeaderLinks(List<text> headerLinks)
-        me:headerLinks = headerLinks
-    end
-
-    action SetHistory(List<NetworkResponseEvent> history)
-        me:history = history
-    end
-
-    action SetNextRequest(PreparedRequest nextRequest)
-        me:nextRequest = nextRequest
-    end
-
-    action SetResponseJSON(JavaScriptObjectNotationObject response)
-        me:responseJSON = response
-    end
-
-    action SetResponseRaw(text responseRaw)
-        me:responseRaw = responseRaw
-    end
-
     action SetResponseText(text responseText)
         me:responseText = responseText
     end
 
-    action SetSavedLocalData(text savedLocalData)
-        me:savedLocalData = savedLocalData
-    end
-
-    action SetSecondsElapsed(number secondsElapsed)
-        me:secondsElapsed = secondsElapsed
+    action SetResponseMessage(text responseMessage)
+        me:responseMessage = responseMessage
     end
 
     action SetStatusText(text statusText)
@@ -161,12 +88,103 @@ class NetworkResponseEvent
         me:webAddress = webAddress
     end
 
-    action SetIsPermanentRedirect(boolean isPermanentRedirect)
-        me:isPermanentRedirect = isPermanentRedirect
+    action IsOk() returns boolean
+        if statusCode < 400
+            return true
+        else
+            return false
+        end
     end
 
-    action SetIsRedirect(boolean isRedirect)
-        me:isRedirect = isRedirect
-    end
+//    action GetApparentEncoding() returns text
+//        return apparentEncoding
+//    end
+
+//    action GetHeaders() returns text
+//        return headers
+//    end
+
+//    action GetHeaderLinks() returns List<text>
+//        List<text> links
+//        return links
+//    end
+
+//    action GetHistory() returns List<NetworkResponseEvent> 
+//        return history
+//    end
+
+//    action GetNextRequest() returns PreparedRequest
+//        return nextRequest
+//    end
+
+//    action GetResponseJSON() returns JavaScriptObjectNotation
+//        return responseJSON
+//    end
+
+//    action GetResponseRaw() returns text
+//        return responseRaw
+//    end
+
+
+//    action GetSavedLocalData() returns text
+//        return savedLocalData
+//    end
+
+//    action GetSecondsElapsed() returns number
+//        return secondsElapsed
+//    end
+
+//    action IsPermanentRedirect() returns boolean
+//        return isPermanentRedirect
+//    end
+
+//    action IsRedirect() returns boolean
+//        return isRedirect
+//    end
+
+//    action SetApparentEncoding(text apparentEncoding)
+//        me:apparentEncoding = apparentEncoding
+//    end
+
+//    action SetHeaders(text headers)
+//        me:headers = headers
+//    end
+
+//    action SetHeaderLinks(List<text> headerLinks)
+//        me:headerLinks = headerLinks
+//    end
+
+//    action SetHistory(List<NetworkResponseEvent> history)
+//        me:history = history
+//    end
+
+//    action SetNextRequest(PreparedRequest nextRequest)
+//        me:nextRequest = nextRequest
+//    end
+
+//    action SetResponseJSON(JavaScriptObjectNotation response)
+//        me:responseJSON = response
+//    end
+
+//    action SetResponseRaw(text responseRaw)
+//        me:responseRaw = responseRaw
+//    end
+
+//    action SetSavedLocalData(text savedLocalData)
+//        me:savedLocalData = savedLocalData
+//    end
+
+//    action SetSecondsElapsed(number secondsElapsed)
+//        me:secondsElapsed = secondsElapsed
+//    end
+
+
+//    action SetIsPermanentRedirect(boolean isPermanentRedirect)
+//        me:isPermanentRedirect = isPermanentRedirect
+//    end
+
+//    action SetIsRedirect(boolean isRedirect)
+//        me:isRedirect = isRedirect
+//    end
 
 end

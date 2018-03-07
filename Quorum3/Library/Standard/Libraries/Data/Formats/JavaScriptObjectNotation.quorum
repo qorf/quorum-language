@@ -1,236 +1,334 @@
 package Libraries.Data.Formats
 
-use Libraries.System.File
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Data.Formats.JavaScriptObjectNotationReader
 
-use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
-use Libraries.Data.Formats.JavaScriptObjectNotationLexer
-use Libraries.Data.Formats.JavaScriptObjectNotationListener
-use Libraries.Data.Formats.JavaScriptObjectNotationParser
+class JavaScriptObjectNotation
+    Array<JavaScriptObjectNotation> array
+    JavaScriptObjectNotation objectValue = undefined
+    text textValue = ""
+    number numberValue = 0.0
+    integer integerValue = 0
+    boolean booleanValue = false
+    integer type = 0
+    constant integer INTEGER = 1
+    constant integer NUMBER = 2
+    constant integer TEXT = 3
+    constant integer BOOLEAN = 4
+    constant integer UNDEFINED = 5
+    constant integer ARRAY = 6
+    constant integer OBJECT = 7
+    text key = ""
+    boolean object = false
+    integer spaces = 4
+    boolean prettyPrint = true
 
-/*
-This class can read in JavaScriptObjectNotation (JSON) files from text values or 
-from disk. When it reads them in, the object is parsed and placed into a set of 
-objects. Alternatively, this class allows the programmer to set a listener object 
-that can receive information about how the JSON file is being parsed as it occurs. 
+    action GetIterator() returns Iterator<JavaScriptObjectNotation>
+        return array:GetIterator()
+    end
 
-Attribute: Example
+    action Read(text data)
+        // load object with JSON formatted text data 
+        JavaScriptObjectNotationReader reader
+        me:objectValue = reader:ReadToObject(data)
+    end
 
-use Libraries.Data.Formats.JavaScriptObjectNotation
-use Libraries.Data.Formats.JavaScriptObjectNotationObject
-class Main
-   action Main
-      text dq = ""
-        dq = dq:GetDoubleQuote()
-        JavaScriptObjectNotation json
-        text myValue = "{" + dq + "data" + dq + ": [21.5, 22.7, 23.9]}"
-        JavaScriptObjectNotationObject object = json:ReadToObject(myValue)
+    action Read(HashTable<text, text> data)
+        // load object with HashTable data
+        Iterator<text> it = data:GetKeyIterator()
+        repeat while it:HasNext()
+            text key = it:Next()
+            text value = data:GetValue(key)
+            Add(key, value)
+        end
+    end
+
+    action GetValue() returns text
+        if IsText()
+            return textValue
+        elseif IsNumber()
+            return cast(text, numberValue)
+        elseif IsInteger()
+            return cast(text, integerValue)
+        elseif IsBoolean()
+            return cast(text, booleanValue)
+        elseif IsObject()
+            return objectValue:ToText()
+        end
+        return ""
+    end
+
+    action IsPrettyPrint returns boolean
+        return prettyPrint
+    end
+
+    action SetPrettyPrint(boolean print)
+        prettyPrint = print
+    end
+
+    action IsObject returns boolean
+        return type = OBJECT
+    end
+
+    action SetObject
+        type = OBJECT
+    end
+
+    action GetKey returns text
+        return key
+    end
+
+    action SetKey(text key)
+        me:key = key
+    end
+
+    action Add(JavaScriptObjectNotation object)
+        object:SetPrettyPrint(IsPrettyPrint())
+        array:Add(object)
+    end
+
+    action Add(text key, JavaScriptObjectNotation value)
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetObject(value)
+        object:SetKey(key)
+        array:Add(object)
+    end
+
+    action Add(text key, text value) 
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetText(value)
+        object:SetKey(key)
+        array:Add(object)
+    end
+
+    action Add(text key, boolean value) 
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetBoolean(value)
+        object:SetKey(key)
+        array:Add(object)
+    end
+
+    action Add(text key, number value) 
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetNumber(value)
+        object:SetKey(key)
+        array:Add(object)
+    end
+
+    action Add(text key, integer value) 
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetInteger(value)
+        object:SetKey(key)
+        array:Add(object)
+    end
+
+    action GetText returns text
+        return textValue
+    end
+
+    /* 
+        Because the JavaScript Object Notation specification only lists numbers
+        as possible inputs, a setter for integer does not exist. This action 
+        takes a number input and casts it to an integer automatically. If the number
+        is not an integer, an error is thrown.
+
+        Problem is that some APIs (like skynet) using x-www-form-urlencoded need integers - pd
+    */ 
+    action GetInteger returns integer
+        return integerValue
+//        return cast(integer, numberValue)
+    end
+
+    action GetNumber returns number
+        return numberValue
+    end
+
+    action GetBoolean returns boolean
+        return booleanValue
+    end
+
+    action SetText(text value)
+        textValue = value
+        type = TEXT
+    end
+
+    action SetNumber(number value)
+        numberValue = value
+        type = NUMBER
+    end
+
+    action SetInteger(integer value)
+        integerValue = value
+        type = INTEGER
+    end
+
+    action SetBoolean(boolean value)
+        booleanValue = value
+        type = BOOLEAN
+    end
+
+    action SetObject(JavaScriptObjectNotation value)
+        objectValue = value
+        type = OBJECT
+    end
+
+    action IsBoolean returns boolean
+        if type = BOOLEAN
+           return true
+        end
+        return false
+    end
+
+    action SetUndefined
+        type = UNDEFINED
+    end
+
+    action SetArray
+        type = ARRAY
+    end
+
+    action IsArray returns boolean
+        if type = ARRAY
+           return true
+        end
+        return false
+    end
+
+    action IsUndefined returns boolean
+        if type = UNDEFINED
+           return true
+        end
+        return false
+    end
+
+    action IsText returns boolean
+        if type = TEXT
+           return true
+        end
+        return false
+    end
+
+    action IsNumber returns boolean
+        if type = NUMBER
+           return true
+        end
+        return false
+    end
+
+    action IsInteger returns boolean
+        if type = INTEGER
+           return true
+        end
+        return false
+    end
+
+    action Get(integer index) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation value = array:Get(index)
+        return value
+    end
+
+    action Remove(integer index)
+        array:RemoveAt(index)
+    end
+
+    action GetSize returns integer
+        return array:GetSize()
+    end
+
+    action IsEmpty returns boolean
+        return array:IsEmpty()
+    end
+
+    private action GetSpaces(integer level) returns text
+        text space = ""
+        repeat spaces * level times
+            space = space + " "
+        end
+        return space
+    end
+
+    private action ToText(integer level) returns text
+        text result = ""
+        text dq = result:GetDoubleQuote()
+        text line = ""
+        text space = ""
+        if IsPrettyPrint()
+            space = GetSpaces(level)
+            line = result:GetCarriageReturn()
+        end
+        
+        if key not= undefined and not key:IsEmpty()
+            result = result + space + dq + key + dq + ": " 
+        end
+
+        if IsObject()
+            if level > 0
+                result = result + line + space + "{" + line
+            else
+                result = result + "{" + line
+            end
+        elseif IsArray() 
+            result = result + "["
+        end
+            
+        if IsText()
+            result = result + dq + textValue + dq
+        elseif IsBoolean()
+            result = result + booleanValue
+        elseif IsNumber()
+            result = result + numberValue
+        elseif IsInteger()
+            result = result + integerValue
+        elseif IsObject()
+            objectValue:SetPrettyPrint(IsPrettyPrint())
+            result = result + objectValue:ToText(level)
+        end
+        
+        //get all children
         i = 0
-        repeat while i < object:GetSize()
-            JavaScriptObjectNotationObject next = object:Get(i)
-            if next:GetKey() = "data"
-                output "data"
-                JavaScriptObjectNotationObject array = next:Get(0)
-                j = 0
-                repeat while j < array:GetSize()
-                    JavaScriptObjectNotationObject item = array:Get(j)
-                    output item:GetNumber()
-                    j = j + 1
+        repeat while i < array:GetSize()
+            JavaScriptObjectNotation value = array:Get(i)
+            value:SetPrettyPrint(IsPrettyPrint())
+            if IsArray()
+                result = result + value:ToText(level)
+            else
+                result = result + value:ToText(level + 1)
+            end
+
+            if i not= array:GetSize() - 1
+                text isNext = ", "
+                if not IsArray()
+                    isNext = isNext + line
                 end
+                result = result + isNext
             end
             i = i + 1
         end
-   end
-end
-*/
-class JavaScriptObjectNotation
-    JavaScriptObjectNotationListener listener
-    JavaScriptObjectNotationLexer lexer
-    JavaScriptObjectNotationParser parser
 
-    /*
-        This action retrieves a listener, if one was set, that receives events 
-        related to parsing the JavaScriptObjectNotation (JSON) text.
-    */
-    action GetListener returns JavaScriptObjectNotationListener
-        return listener
-    end
-
-    /*
-        This action sets a listener, if one was set, that receives events 
-        related to parsing the JavaScriptObjectNotation (JSON) text.
-    */
-    action SetListener(JavaScriptObjectNotationListener listener)
-        me:listener = listener
-        lexer:SetListener(listener)
-        parser:SetListener(listener)
-    end
-
-    /*
-        This action reads a file from disk and asks the JavaScriptObjectNotation 
-        system to read it in. Unlike ReadToObject(File file), which reads the 
-        file to an object representing the original source, this action is 
-        designed to allow the programmer to manually follow the parse as it 
-        proceeds. As such, to obtain any information from the system, the 
-        programmer needs to extend the JavaScriptObjectNotationListener class 
-        and use it to capture events as they are parsed. For most users, use of 
-        ReadToObject(File file) is recommended over this one.
-
-        Attribute: Parameter file The file to be parsed
-
-        Attribute: Example
-
-        use Libraries.Data.Formats.JavaScriptObjectNotation
-        use Libraries.Data.Formats.JavaScriptObjectNotationObject
-        use Libraries.Data.Formats.JavaScriptObjectNotationListener
-
-        class Main is JavaScriptObjectNotationListener
-            action Main
-                JavaScriptObjectNotation json
-                json:SetListener(me)
-
-                File file
-                file:SetPath("Test.json")   
-                json:Read(file)
-            end
-           
-            //output any values
-            action VisitString(JavaScriptObjectNotationTerminal terminal)
-                output token:value
-            end
+        if IsObject()
+            result = result + line + space + "}"
+        elseif IsArray() 
+            result = result + "]"
         end
-    */
-    action Read(File file)
-        lexer:Read(file)
-        parser:Parse(lexer)
+
+        return result
     end
 
-    /*
-        This action reads a file from disk and asks the JavaScriptObjectNotation 
-        system to read it in. Unlike ReadToObject(File file), which reads the 
-        file to an object representing the original source, this action is 
-        designed to allow the programmer to manually follow the parse as it 
-        proceeds. As such, to obtain any information from the system, the 
-        programmer needs to extend the JavaScriptObjectNotationListener class 
-        and use it to capture events as they are parsed. For most users, use of 
-        ReadToObject(File file) is recommended over this one.
-
-        Attribute: Parameter file The file to be parsed
-
-        Attribute: Example
-
-        use Libraries.Data.Formats.JavaScriptObjectNotation
-        use Libraries.Data.Formats.JavaScriptObjectNotationObject
-        use Libraries.Data.Formats.JavaScriptObjectNotationListener
-
-        class Main is JavaScriptObjectNotationListener
-            action Main
-                JavaScriptObjectNotation json
-                json:SetListener(me)
-
-                File file
-                file:SetPath("Test.json")   
-                json:Read(file:Read())
-            end
-           
-            //output any values
-            action VisitString(JavaScriptObjectNotationTerminal terminal)
-                output token:value
-            end
+    action ToText returns text
+        text result = ""
+        text line = result:GetCarriageReturn()
+        if IsPrettyPrint()
+            result = "{" + line + ToText(0) + line + "}"
+        else
+            result = "{" + ToText(0) + "}"
         end
-    */
-    action Read(text value)
-        lexer:Read(value)
-        parser:Parse(lexer)
-    end
-
-    /*
-    This action can read in JavaScriptObjectNotation (JSON) files from text values. 
-    When it reads them in, the object is parsed and placed into a set of 
-    objects. 
-
-    Attribute: Example
-
-    use Libraries.Data.Formats.JavaScriptObjectNotation
-    use Libraries.Data.Formats.JavaScriptObjectNotationObject
-    class Main
-       action Main
-            JavaScriptObjectNotation json
-            
-            File file
-            file:SetPath("Test.json")
-            JavaScriptObjectNotationObject object = json:ReadToObject(file)
-            i = 0
-            repeat while i < object:GetSize()
-                JavaScriptObjectNotationObject next = object:Get(i)
-                if next:GetKey() = "data"
-                    output "data"
-                    JavaScriptObjectNotationObject array = next:Get(0)
-                    j = 0
-                    repeat while j < array:GetSize()
-                        JavaScriptObjectNotationObject item = array:Get(j)
-                        output item:GetNumber()
-                        j = j + 1
-                    end
-                end
-                i = i + 1
-            end
-       end
-    end
-    */
-    action ReadToObject(File file) returns JavaScriptObjectNotationObject
-        if file not= undefined and file:Exists() and file:IsFile()
-            text value = file:Read()
-            return ReadToObject(value)
-        end
-        return undefined
-    end
-
-    /*
-    This action can read in JavaScriptObjectNotation (JSON) files from text values. 
-    When it reads them in, the object is parsed and placed into a set of 
-    objects. 
-
-    Attribute: Example
-
-    use Libraries.Data.Formats.JavaScriptObjectNotation
-    use Libraries.Data.Formats.JavaScriptObjectNotationObject
-    class Main
-       action Main
-          text dq = ""
-            dq = dq:GetDoubleQuote()
-            JavaScriptObjectNotation json
-            text myValue = "{" + dq + "data" + dq + ": [21.5, 22.7, 23.9]}"
-            JavaScriptObjectNotationObject object = json:ReadToObject(myValue)
-            i = 0
-            repeat while i < object:GetSize()
-                JavaScriptObjectNotationObject next = object:Get(i)
-                if next:GetKey() = "data"
-                    output "data"
-                    JavaScriptObjectNotationObject array = next:Get(0)
-                    j = 0
-                    repeat while j < array:GetSize()
-                        JavaScriptObjectNotationObject item = array:Get(j)
-                        output item:GetNumber()
-                        j = j + 1
-                    end
-                end
-                i = i + 1
-            end
-       end
-    end
-    */
-    action ReadToObject(text value) returns JavaScriptObjectNotationObject
-        if value = undefined
-            return undefined
-        end
-        JavaScriptObjectNotationDefaultListener listen
-        JavaScriptObjectNotationLexer lex
-        JavaScriptObjectNotationParser parse
-
-        lex:SetListener(listen)
-        parse:SetListener(listen)
-        lex:Read(value)
-        parse:Parse(lex)
-        return listen:GetObject()
+        return result
     end
 end

@@ -6,62 +6,44 @@ package Libraries.Network
  */
 
 class NetworkRequestType 
-    integer HEAD = 0
-    integer GET = 1
-    integer POST = 2
-    integer PUT = 3
-    integer PATCH = 4
-    integer DELETE = 5
-    integer type = POST
+    private integer HEAD = 0
+    private integer GET = 1
+    private integer POST = 2
+    private integer PUT = 3
+    private integer PATCH = 4
+    private integer DELETE = 5
+    private integer type = POST
 
     on create
         type = POST
     end
 
-    action HEAD()
+    action SetToHEAD()
         type = HEAD
     end
 
-    action GET()
+    action SetToGET()
         type = GET
     end
 
-    action POST()
+    action SetToPOST()
         type = POST
     end
 
-    action PUT()
+    action SetToPUT()
         type = PUT
     end
 
-    action PATCH()
+    action SetToPATCH()
         type = PATCH
     end
 
-    action DELETE()
+    action SetToDELETE()
         type = DELETE
     end
 
     action GetType() returns integer
         return type
-    end
-
-    action GetType(integer type) returns text
-        if type = HEAD
-            return "HEAD"
-        elseif type = GET
-            return "GET"
-        elseif type = POST
-            return "POST"
-        elseif type = PUT
-            return "PUT"
-        elseif type = PATCH
-            return "PATCH"
-        elseif type = DELETE
-            return "DELETE"
-        else
-            return "none"
-        end
     end
 
     action IsHEAD() returns boolean
@@ -86,6 +68,24 @@ class NetworkRequestType
 
     action IsDELETE() returns boolean
         return type = DELETE
+    end
+
+    action ToText() returns text
+        if type = HEAD
+            return "HEAD"
+        elseif type = GET
+            return "GET"
+        elseif type = POST
+            return "POST"
+        elseif type = PUT
+            return "PUT"
+        elseif type = PATCH
+            return "PATCH"
+        elseif type = DELETE
+            return "DELETE"
+        else
+            return "none"
+        end
     end
 
 end
