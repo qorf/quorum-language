@@ -32,7 +32,7 @@ public class NetworkRequest {
             response += line + '\n';
         }
         in.close();
-        quorumNetworkRequest.SetResponse(response);
+//        quorumNetworkRequest.SetResponse(response);
     }
     
     public void Get(String url, String params) throws Exception {
