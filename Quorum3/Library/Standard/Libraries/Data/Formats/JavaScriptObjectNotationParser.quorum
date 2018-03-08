@@ -192,8 +192,8 @@ class JavaScriptObjectNotationParser
                 currentToken = currentToken + 1
                 if currentToken < lexer:GetSize()
                     JavaScriptObjectNotationToken value = lexer:GetToken(currentToken)
-                    if token:tokenID = lexer:RIGHT_BRACE
-                        currentToken = currentToken + 1 //skip this token
+                    if value:tokenID = lexer:RIGHT_BRACE
+                        //nothing more to do here
                         listener:ExitArray()
                         return now
                     end
