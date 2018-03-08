@@ -50,6 +50,14 @@ class DesktopInput is GameInput
     GameStateManager manager
 
     /*
+    The source of the last Mouse event. Certain kinds of InputSets are satisfied
+    when this changes, e.g. an InputSet concerned with mouse movement enters its
+    "end" state when the mouse moves off of the lastMouseSource onto a different
+    item (thus making the new item the lastMouseSource).
+    */
+    Item lastMouseSource = undefined
+
+    /*
     This action will identify all input events that have occurred and notify
     all relevant event listeners. For certain kinds of input, e.g. mouse or
     touch input, only listeners that were added to the active panel will be
@@ -92,8 +100,27 @@ class DesktopInput is GameInput
             repeat while counter > 0 and not mouseEvent:WasEventHandled()
                 counter = counter - 1
                 Item temp = layers:Get(counter):ProcessMouseEvent(mouseEvent)
-                if temp not= undefined
-                    target = temp
+
+                if lastMouseSource not= mouseEvent:GetSource()
+                    text last = ""
+                    if lastMouseSource not= undefined
+                        last = lastMouseSource:GetName()
+                    else
+                        last = "UNDEF"
+                    end
+                    lastMouseSource = mouseEvent:GetSource()
+                    text new = ""
+                    if lastMouseSource not= undefined
+                        new = lastMouseSource:GetName()
+                    else
+                        new = "UNDEF"
+                    end
+                    text quote = last:GetDoubleQuote()
+//                    output "Changed source from " + quote + last + quote + " to " + quote + new + quote
+                end
+
+                if mouseEvent:GetSource() not= undefined
+                    target = mouseEvent:GetSource()
                     behaviorEvent:SetItem(target)
 
                     InputTable table = GetInputTable(target:GetInputGroup())
@@ -105,8 +132,11 @@ class DesktopInput is GameInput
                     be handled.
                     */
                     if table not= undefined
-                        table:ProcessInput(set, behaviorEvent)
-                        table:ProcessInput(anySet, behaviorEvent)
+                        boolean success = table:ProcessInput(set, behaviorEvent)
+                        success = table:ProcessInput(anySet, behaviorEvent) or success
+                        if success
+                            mouseEvent:SetEventHandled(true)
+                        end
                         hadInputTable = true
                     end
                 end
