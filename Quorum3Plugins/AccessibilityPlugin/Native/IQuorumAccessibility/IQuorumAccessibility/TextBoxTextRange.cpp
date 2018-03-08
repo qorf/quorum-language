@@ -1,7 +1,7 @@
 #include <strsafe.h>
 
 #include "TextBoxTextRange.h"
-#include "TextBoxProvider.h"
+#include "TextBoxTextAreaProvider.h"
 
 //For debugging
 #include <iostream>
@@ -290,7 +290,7 @@ IFACEMETHODIMP TextBoxTextRange::GetEnclosingElement(_Outptr_result_maybenull_ I
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	*pRetVal = new TextBoxProvider(m_TextBoxControlHWND, m_pTextBoxControl);
+	*pRetVal = new TextBoxTextAreaProvider(m_TextBoxControlHWND, m_pTextBoxControl);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 }
 
@@ -379,7 +379,7 @@ IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVa
 		// Ensure the string is null-terminated
 		textBuilder[writePos] = '\0';
 
-		*pRetVal = SysAllocString(textBuilder);
+		*pRetVal = SysAllocString(L"No!");
 		if (*pRetVal == NULL)
 		{
 			hr = E_OUTOFMEMORY;

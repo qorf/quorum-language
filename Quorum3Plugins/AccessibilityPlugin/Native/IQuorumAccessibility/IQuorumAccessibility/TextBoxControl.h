@@ -48,7 +48,7 @@ inline int QuickCompareEndpoints(_In_ EndPoint endpoint1, _In_ EndPoint endpoint
 	}
 }
 
-class TextBoxProvider;
+class TextBoxTextAreaProvider;
 
 class TextBoxControl
 {
@@ -62,7 +62,7 @@ class TextBoxControl
 		int GetLineCount();
 		EndPoint GetEnd();
 
-		TextBoxProvider* GetTextBoxProvider();
+		TextBoxTextAreaProvider* GetTextBoxProvider();
 		WCHAR* GetName();
 		void SetName(_In_ WCHAR* name);
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
@@ -89,7 +89,7 @@ class TextBoxControl
 		TextLine *lines;
 		int lineCount;
 		WCHAR* m_pTextboxName;
-		TextBoxProvider* m_pTextBoxProvider;
+		TextBoxTextAreaProvider* m_pTextBoxProvider;
 
 
 };
