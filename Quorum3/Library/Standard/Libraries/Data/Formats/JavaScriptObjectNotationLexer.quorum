@@ -242,7 +242,7 @@ class JavaScriptObjectNotationLexer
                     ThrowError(currentLine,currentColumn,i, "I found a token that starts with the letter t, but the stream stops before I can process the word true")
                 end
             elseif char = "f"
-                //check the next three characters to see if they match "true"
+                //check the next three characters to see if they match "false"
                 //if they don't, this is an error
                 if i + 4 < value:GetSize()
                     char = value:GetCharacter(i + 1)
@@ -269,7 +269,7 @@ class JavaScriptObjectNotationLexer
                     token:value = "false"
                     tokens:Add(token)
                 else //this is a lexer error, throw an error message
-                    ThrowError(currentLine,currentColumn,i, "I found a token that starts with the letter t, but the stream stops before I can process the word false")
+                    ThrowError(currentLine,currentColumn,i, "I found a token that starts with the letter f, but the stream stops before I can process the word false")
                 end
             elseif char = "n"
                 //check the next three characters to see if they match "true"
@@ -294,7 +294,7 @@ class JavaScriptObjectNotationLexer
                     token:value = "null"
                     tokens:Add(token)
                 else //this is a lexer error, throw an error message
-                    ThrowError(currentLine,currentColumn,i, "I found a token that starts with the letter t, but the stream stops before I can process the word null")
+                    ThrowError(currentLine,currentColumn,i, "I found a token that starts with the letter n, but the stream stops before I can process the word null")
                 end
             end
 
