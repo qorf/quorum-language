@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN"
+                            "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>
+    <folder name="Actions">
+        <folder name="Accessibility">
+            <file name="org-magnification-DecreaseZoom.instance">
+                <!--org.accessibility.magnification.DecreaseZoom-->
+                <attr
+                    bundlevalue="org.accessibility.magnification.Bundle#CTL_DecreaseZoom" name="displayName"/>
+                <attr
+                    methodvalue="org.openide.awt.Actions.alwaysEnabled" name="instanceCreate"/>
+                <attr name="delegate" newvalue="org.accessibility.magnification.DecreaseZoom"/>
+                <attr boolvalue="false" name="noIconInMenu"/>
+            </file>
+            <file name="org-magnification-IncreaseZoom.instance">
+                <!--org.accessibility.magnification.IncreaseZoom-->
+                <attr
+                    bundlevalue="org.accessibility.magnification.Bundle#CTL_IncreaseZoom" name="displayName"/>
+                <attr
+                    methodvalue="org.openide.awt.Actions.alwaysEnabled" name="instanceCreate"/>
+                <attr name="delegate" newvalue="org.accessibility.magnification.IncreaseZoom"/>
+                <attr boolvalue="false" name="noIconInMenu"/>
+            </file>
+            <file name="org-magnification-ToggleFullScreen.instance">
+                <!--org.accessibility.magnification.ToggleFullScreen-->
+                <attr
+                    bundlevalue="org.accessibility.magnification.Bundle#CTL_ToggleFullScreen" name="displayName"/>
+                <attr
+                    methodvalue="org.openide.awt.Actions.alwaysEnabled" name="instanceCreate"/>
+                <attr name="delegate" newvalue="org.accessibility.magnification.ToggleFullScreen"/>
+                <attr boolvalue="false" name="noIconInMenu"/>
+            </file>
+            <file name="org-magnification-ToggleMagnification.instance">
+                <!--org.accessibility.magnification.ToggleMagnification-->
+                <attr
+                    bundlevalue="org.accessibility.magnification.Bundle#CTL_ToggleMagnification" name="displayName"/>
+                <attr
+                    methodvalue="org.openide.awt.Actions.alwaysEnabled" name="instanceCreate"/>
+                <attr name="delegate" newvalue="org.accessibility.magnification.ToggleMagnification"/>
+                <attr boolvalue="false" name="noIconInMenu"/>
+            </file>
+            <file name="org-accessibility-options-ToggleSpeech.instance">
+                <!--org.accessibility.options.ToggleSpeech-->
+                <attr
+                    bundlevalue="org.accessibility.options.Bundle#CTL_ToggleSpeech" name="displayName"/>
+                <attr
+                    methodvalue="org.openide.awt.Actions.alwaysEnabled" name="instanceCreate"/>
+                <attr name="delegate" newvalue="org.accessibility.options.ToggleSpeech"/>
+                <attr boolvalue="false" name="noIconInMenu"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Menu">
+        <folder name="Tools">
+            <folder name="Accessibility">
+                <file name="org-magnification-DecreaseZoom.shadow">
+                    <!--org.accessibility.magnification.DecreaseZoom-->
+                    <attr name="originalFile" stringvalue="Actions/Accessibility/org-magnification-DecreaseZoom.instance"/>
+                    <attr intvalue="300" name="position"/>
+                </file>
+                <file name="org-magnification-IncreaseZoom.shadow">
+                    <!--org.accessibility.magnification.IncreaseZoom-->
+                    <attr name="originalFile" stringvalue="Actions/Accessibility/org-magnification-IncreaseZoom.instance"/>
+                    <attr intvalue="200" name="position"/>
+                </file>
+                <file name="org-magnification-IncreaseZoom-separatorBefore.instance">
+                    <!--org.accessibility.magnification.IncreaseZoom-->
+                    <attr name="instanceCreate" newvalue="javax.swing.JSeparator"/>
+                    <attr intvalue="150" name="position"/>
+                </file>
+                <file name="org-magnification-ToggleFullScreen.shadow">
+                    <!--org.accessibility.magnification.ToggleFullScreen-->
+                    <attr name="originalFile" stringvalue="Actions/Accessibility/org-magnification-ToggleFullScreen.instance"/>
+                    <attr intvalue="25" name="position"/>
+                </file>
+                <file name="org-magnification-ToggleMagnification.shadow">
+                    <!--org.accessibility.magnification.ToggleMagnification-->
+                    <attr name="originalFile" stringvalue="Actions/Accessibility/org-magnification-ToggleMagnification.instance"/>
+                    <attr intvalue="-100" name="position"/>
+                </file>
+                <file name="org-accessibility-options-ToggleSpeech.shadow">
+                    <!--org.accessibility.options.ToggleSpeech-->
+                    <attr name="originalFile" stringvalue="Actions/Accessibility/org-accessibility-options-ToggleSpeech.instance"/>
+                    <attr intvalue="-200" name="position"/>
+                </file>
+            </folder>
+        </folder>
+    </folder>
+    <folder name="Shortcuts">
+        <file name="S-BACK_QUOTE.shadow">
+            <!--org.accessibility.magnification.DecreaseZoom-->
+            <attr name="originalFile" stringvalue="Actions/Accessibility/org-magnification-DecreaseZoom.instance"/>
+        </file>
+        <file name="D-BACK_QUOTE.shadow">
+            <!--org.accessibility.magnification.IncreaseZoom-->
+            <attr name="originalFile" stringvalue="Actions/Accessibility/org-magnification-IncreaseZoom.instance"/>
+        </file>
+        <file name="O-BACK_QUOTE.shadow">
+            <!--org.accessibility.magnification.ToggleFullScreen-->
+            <attr name="originalFile" stringvalue="Actions/Accessibility/org-magnification-ToggleFullScreen.instance"/>
+        </file>
+        <file name="DS-BACK_QUOTE.shadow">
+            <!--org.accessibility.magnification.ToggleMagnification-->
+            <attr name="originalFile" stringvalue="Actions/Accessibility/org-magnification-ToggleMagnification.instance"/>
+        </file>
+        <file name="CAS-T.shadow">
+            <!--org.accessibility.options.ToggleSpeech-->
+            <attr name="originalFile" stringvalue="Actions/Accessibility/org-accessibility-options-ToggleSpeech.instance"/>
+        </file>
+    </folder>
+    <folder name="OptionsDialog">
+        <folder name="Accessibility">
+            <file name="org-accessibility-windows-GeneralOptionsPanelController.instance">
+                <!--org.accessibility.windows.GeneralOptionsPanelController-->
+                <attr
+                    methodvalue="org.netbeans.spi.options.AdvancedOption.createSubCategory" name="instanceCreate"/>
+                <attr name="controller" newvalue="org.accessibility.windows.GeneralOptionsPanelController"/>
+                <attr
+                    bundlevalue="org.accessibility.windows.Bundle#AdvancedOption_DisplayName_General" name="displayName"/>
+                <attr
+                    bundlevalue="org.accessibility.windows.Bundle#AdvancedOption_Keywords_General" name="keywords"/>
+                <attr name="keywordsCategory" stringvalue="Accessibility/General"/>
+            </file>
+            <!--org.accessibility.windows-->
+            <attr intvalue="0" name="position"/>
+        </folder>
+        <file name="Accessibility.instance">
+            <!--org.accessibility.windows-->
+            <attr
+                methodvalue="org.netbeans.spi.options.OptionsCategory.createCategory" name="instanceCreate"/>
+            <attr name="advancedOptionsFolder" stringvalue="OptionsDialog/Accessibility"/>
+            <attr
+                bundlevalue="org.accessibility.windows.Bundle#OptionsCategory_Name_Accessibility" name="categoryName"/>
+            <attr name="iconBase" stringvalue="org/accessibility/resources/Accessibility.png"/>
+            <attr
+                bundlevalue="org.accessibility.windows.Bundle#OptionsCategory_Keywords_Accessibility" name="keywords"/>
+            <attr name="keywordsCategory" stringvalue="Accessibility"/>
+        </file>
+    </folder>
+</filesystem>
