@@ -3,6 +3,7 @@
 #include <strsafe.h>
 
 #include "TextBoxControl.h"
+#include "TextBoxTextAreaProvider.h"
 #include "TextBoxProvider.h"
 
 bool TextBoxControl::Initialized = false;
@@ -380,11 +381,11 @@ bool TextBoxControl::StepLine( _In_ EndPoint start, _In_ bool forward, _Out_ End
 	return true;
 }
 
-TextBoxProvider* TextBoxControl::GetTextBoxProvider()
+TextBoxTextAreaProvider* TextBoxControl::GetTextBoxProvider()
 {
 	if (m_pTextBoxProvider == NULL)
 	{
-		m_pTextBoxProvider = new TextBoxProvider(this->m_TextboxHWND, this);
+		m_pTextBoxProvider = new TextBoxTextAreaProvider(this->m_TextboxHWND, this);
 	}
 	return m_pTextBoxProvider;
 }
@@ -448,7 +449,6 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 			IRawElementProviderSimple * provider = new TextBoxProvider(hwnd, this);
 			if (provider != NULL)
 			{
-				std::cout << "UIA Requested a Provider" << std::endl;
 				lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
 				provider->Release();
 			}
