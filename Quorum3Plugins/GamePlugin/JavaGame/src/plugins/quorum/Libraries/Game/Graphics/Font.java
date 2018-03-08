@@ -378,11 +378,17 @@ public class Font
 
             quorum.Libraries.Game.Graphics.Texture texture = new quorum.Libraries.Game.Graphics.Texture();
             texture.LoadFromTextureData(texData);
-            TextureFilter minFilter = new TextureFilter();
-            TextureFilter magFilter = new TextureFilter();
-            minFilter.ConstructTextureFilter(minFilter.LINEAR);
-            magFilter.ConstructTextureFilter(magFilter.LINEAR);
-            texture.SetFilter(minFilter, magFilter);
+            
+            /*
+            Setting the texture filter to linear makes text look much better
+            when it isn't lying cleanly along pixel boundaries, but makes it
+            look muddier in general.
+            */
+//            TextureFilter minFilter = new TextureFilter();
+//            TextureFilter magFilter = new TextureFilter();
+//            minFilter.ConstructTextureFilter(minFilter.LINEAR);
+//            magFilter.ConstructTextureFilter(magFilter.LINEAR);
+//            texture.SetFilter(minFilter, magFilter);
             
             quorum.Libraries.Game.Graphics.Color c = new quorum.Libraries.Game.Graphics.Color();
             c.SetColor(color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha());

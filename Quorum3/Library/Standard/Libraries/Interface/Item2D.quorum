@@ -310,6 +310,20 @@ class Item2D is Item
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
+        if verticesChanged = false
+            if rotation not= 0 or scale:GetX() not= 1
+                verticesChanged = true
+            else
+                number parentX = GetGlobalX()
+                number x2 = parentX + dimensions:GetX()
+
+                vertices:Set(X1, parentX)
+                vertices:Set(X2, parentX)
+                vertices:Set(X3, x2)
+                vertices:Set(X4, x2)
+            end
+        end
+
         Resize()
     end
 
@@ -338,6 +352,20 @@ class Item2D is Item
 
         if visualContent not= undefined
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        end
+
+        if verticesChanged = false
+            if rotation not= 0 or scale:GetY() not= 1
+                verticesChanged = true
+            else
+                number parentY = GetGlobalY()
+                number y2 = parentY + dimensions:GetY()
+
+                vertices:Set(Y1, parentY)
+                vertices:Set(Y2, y2)
+                vertices:Set(Y3, y2)
+                vertices:Set(Y4, parentY)
+            end
         end
         
         Resize()
@@ -656,31 +684,46 @@ class Item2D is Item
         myItem:SetSize(100, 50)
     */
     action SetSize(number newWidth, number newHeight)
-        SetWidth(newWidth)
-        SetHeight(newHeight)
+        dimensions:Set(newWidth, newHeight)
+
+        Polygon polygon
+        // This may need to consider scale in the future.
+        polygon:SetAsBox(newWidth, newHeight)
+        SetShape(polygon)
+
+        if updateTransform
+            UpdateTransformX()
+            UpdateTransformY()
+        end
+
+        if visualContent not= undefined
+            visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        end
 
         if verticesChanged = false
-            number parentX = position:GetX()
-            number parentY = position:GetY()
-            number x2 = parentX + dimensions:GetX()
-            number y2 = parentY + dimensions:GetY()
-
-            vertices:Set(X1, parentX)
-            vertices:Set(Y1, parentY)
-
-            vertices:Set(X2, parentX)
-            vertices:Set(Y2, y2)
-
-            vertices:Set(X3, x2)
-            vertices:Set(Y3, y2)
-
-            vertices:Set(X4, x2)
-            vertices:Set(Y4, parentY)
-
             if rotation not= 0 or scale:GetX() not= 1 or scale:GetY() not= 1
                 verticesChanged = true
+            else
+                number parentX = GetGlobalX()
+                number parentY = GetGlobalY()
+                number x2 = parentX + dimensions:GetX()
+                number y2 = parentY + dimensions:GetY()
+
+                vertices:Set(X1, parentX)
+                vertices:Set(Y1, parentY)
+
+                vertices:Set(X2, parentX)
+                vertices:Set(Y2, y2)
+
+                vertices:Set(X3, x2)
+                vertices:Set(Y3, y2)
+
+                vertices:Set(X4, x2)
+                vertices:Set(Y4, parentY)
             end
         end
+
+        Resize()
     end
 
     /*

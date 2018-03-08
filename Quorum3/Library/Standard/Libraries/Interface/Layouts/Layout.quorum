@@ -21,8 +21,16 @@ class Layout
     number maximumContainerWidth = widthPercentage:GetPositiveInfinityValue()
     number maximumContainerHeight = heightPercentage:GetPositiveInfinityValue()
 
+    /*
+    What point along the Item2D, as a percentage, should be placed at the given
+    x and y coordinates defined by the x/y percentage and offsets. For example,
+    a value of 0.5 for the origin x and y percent will center the Item at the
+    given position.
+    */
+    number originPercentageX = 0
+    number originPercentageY = 0
+
     action Apply(Item2D item, number containerWidth, number containerHeight)
-        item:SetPosition(containerWidth * GetPercentageX() + GetOffsetX(), containerHeight * GetPercentageY() + GetOffsetY())
 
         number width = containerWidth * GetPercentageWidth() + GetWidthOffset() 
         number height = containerHeight * GetPercentageHeight() + GetHeightOffset()
@@ -39,6 +47,7 @@ class Layout
             height = GetMaximumHeight()
         end
 
+        item:SetPosition(containerWidth * GetPercentageX() + GetOffsetX() - width * originPercentageX, containerHeight * GetPercentageY() + GetOffsetY() - height * originPercentageY)
         item:SetSize(width, height)
 
         Layout(item)
@@ -165,6 +174,22 @@ class Layout
 
     action GetMaximumContainerHeight returns number
         return maximumContainerHeight
+    end
+
+    action SetPercentageOriginX(number x)
+        originPercentageX = x
+    end
+
+    action GetPercentageOriginX returns number
+        return originPercentageX
+    end
+
+    action SetPercentageOriginY(number y)
+        originPercentageY = y
+    end
+
+    action GetPercentageOriginY returns number
+        return originPercentageY
     end
 
     action Compare(Object object) returns CompareResult
