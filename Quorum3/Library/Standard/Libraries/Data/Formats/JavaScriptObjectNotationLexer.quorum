@@ -20,9 +20,10 @@ class JavaScriptObjectNotationLexer
     public constant integer COMMA = 5
     public constant integer COLON = 6
     public constant integer NUMBER = 7
-    public constant integer TRUE = 8
-    public constant integer FALSE = 9
-    public constant integer NULL = 10
+    public constant integer INTEGER = 8
+    public constant integer TRUE = 9
+    public constant integer FALSE = 10
+    public constant integer NULL = 11
 
     /* The raw tokens from the lex. */
     Array<JavaScriptObjectNotationToken> tokens
@@ -130,6 +131,7 @@ class JavaScriptObjectNotationLexer
                 if j < value:GetSize()
                     char2 = value:GetCharacter(j)
                     if char2 = "."
+                        token:tokenID = NUMBER
                         string = string + char2
                         j = j + 1
                         done = false
@@ -148,6 +150,8 @@ class JavaScriptObjectNotationLexer
                                 done = true
                             end
                         end
+                    else
+                        token:tokenID = INTEGER
                     end
                 end
 
@@ -156,6 +160,7 @@ class JavaScriptObjectNotationLexer
                 if j < value:GetSize()
                     char2 = value:GetCharacter(j)
                     if char2 = "e" or char2 = "E"
+                        token:tokenID = NUMBER
                         string = string + char2
                         j = j + 1
 
@@ -189,7 +194,6 @@ class JavaScriptObjectNotationLexer
                 end
 
                 i = j - 1
-                token:tokenID = NUMBER
                 token:value = string
                 tokens:Add(token)
             elseif char = "{"

@@ -158,6 +158,10 @@ class JavaScriptObjectNotationParser
                 JavaScriptObjectNotationTerminal terminal
                 terminal:SetToken(lexer:GetToken(currentToken))
                 listener:VisitNumber(terminal)
+            elseif token:tokenID = lexer:INTEGER
+                JavaScriptObjectNotationTerminal terminal
+                terminal:SetToken(lexer:GetToken(currentToken))
+                listener:VisitInteger(terminal)
             elseif token:tokenID = lexer:LEFT_BRACKET
                 ParseObject()
             elseif token:tokenID = lexer:LEFT_BRACE

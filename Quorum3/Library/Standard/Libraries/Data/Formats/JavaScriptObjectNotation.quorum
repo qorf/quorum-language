@@ -3,11 +3,11 @@ package Libraries.Data.Formats
 use Libraries.Containers.HashTable
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
-use Libraries.Data.Formats.JavaScriptObjectNotationReader
+use Libraries.System.File
+//use Libraries.Data.Formats.JavaScriptObjectNotationReader
 
 class JavaScriptObjectNotation
     Array<JavaScriptObjectNotation> array
-    JavaScriptObjectNotation objectValue = undefined
     text textValue = ""
     number numberValue = 0.0
     integer integerValue = 0
@@ -20,69 +20,11 @@ class JavaScriptObjectNotation
     constant integer UNDEFINED = 5
     constant integer ARRAY = 6
     constant integer OBJECT = 7
+    constant integer PARENT = 8
     text key = ""
     boolean object = false
     integer spaces = 4
     boolean prettyPrint = true
-
-    action GetIterator() returns Iterator<JavaScriptObjectNotation>
-        return array:GetIterator()
-    end
-
-    action Read(text data)
-        // load object with JSON formatted text data 
-        JavaScriptObjectNotationReader reader
-        me:objectValue = reader:ReadToObject(data)
-    end
-
-    action Read(HashTable<text, text> data)
-        // load object with HashTable data
-        Iterator<text> it = data:GetKeyIterator()
-        repeat while it:HasNext()
-            text key = it:Next()
-            text value = data:GetValue(key)
-            Add(key, value)
-        end
-    end
-
-    action GetValue() returns text
-        if IsText()
-            return textValue
-        elseif IsNumber()
-            return cast(text, numberValue)
-        elseif IsInteger()
-            return cast(text, integerValue)
-        elseif IsBoolean()
-            return cast(text, booleanValue)
-        elseif IsObject()
-            return objectValue:ToText()
-        end
-        return ""
-    end
-
-    action IsPrettyPrint returns boolean
-        return prettyPrint
-    end
-
-    action SetPrettyPrint(boolean print)
-        prettyPrint = print
-    end
-
-    action IsObject returns boolean
-        return type = OBJECT
-    end
-
-    action SetObject
-        type = OBJECT
-    end
-
-    action GetKey returns text
-        return key
-    end
-
-    action SetKey(text key)
-        me:key = key
-    end
 
     action Add(JavaScriptObjectNotation object)
         object:SetPrettyPrint(IsPrettyPrint())
@@ -92,15 +34,7 @@ class JavaScriptObjectNotation
     action Add(text key, JavaScriptObjectNotation value)
         JavaScriptObjectNotation object
         object:SetPrettyPrint(IsPrettyPrint())
-        object:SetObject(value)
-        object:SetKey(key)
-        array:Add(object)
-    end
-
-    action Add(text key, text value) 
-        JavaScriptObjectNotation object
-        object:SetPrettyPrint(IsPrettyPrint())
-        object:SetText(value)
+        object:Add(value)
         object:SetKey(key)
         array:Add(object)
     end
@@ -113,14 +47,6 @@ class JavaScriptObjectNotation
         array:Add(object)
     end
 
-    action Add(text key, number value) 
-        JavaScriptObjectNotation object
-        object:SetPrettyPrint(IsPrettyPrint())
-        object:SetNumber(value)
-        object:SetKey(key)
-        array:Add(object)
-    end
-
     action Add(text key, integer value) 
         JavaScriptObjectNotation object
         object:SetPrettyPrint(IsPrettyPrint())
@@ -129,70 +55,99 @@ class JavaScriptObjectNotation
         array:Add(object)
     end
 
-    action GetText returns text
-        return textValue
+    action Add(text key, number value) 
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetNumber(value)
+        object:SetKey(key)
+        array:Add(object)
     end
 
-    /* 
-        Because the JavaScript Object Notation specification only lists numbers
-        as possible inputs, a setter for integer does not exist. This action 
-        takes a number input and casts it to an integer automatically. If the number
-        is not an integer, an error is thrown.
-
-    */ 
-
-// Problem is that some APIs (like skynet) using x-www-form-urlencoded need integers - pd
-    action GetInteger returns integer
-        return integerValue
-//        return cast(integer, numberValue)
+    action Add(text key, text value) 
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetText(value)
+        object:SetKey(key)
+        array:Add(object)
     end
 
-    action GetNumber returns number
-        return numberValue
+    action Get(integer index) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation value = array:Get(index)
+        return value
     end
 
     action GetBoolean returns boolean
         return booleanValue
     end
 
-    action SetText(text value)
-        textValue = value
-        type = TEXT
+    action GetKey returns text
+        return key
     end
 
-    action SetNumber(number value)
-        numberValue = value
-        type = NUMBER
-    end
-
-    action SetInteger(integer value)
-        integerValue = value
-        type = INTEGER
-    end
-
-    action SetBoolean(boolean value)
-        booleanValue = value
-        type = BOOLEAN
-    end
-
-    action SetObject(JavaScriptObjectNotation value)
-        objectValue = value
-        type = OBJECT
-    end
-
-    action IsBoolean returns boolean
-        if type = BOOLEAN
-           return true
+    action GetKeys() returns Array<text>
+        Array<text> result
+        Iterator<JavaScriptObjectNotation> it = me:GetIterator()
+        repeat while it:HasNext()
+            JavaScriptObjectNotation child = it:Next()
+            result:Add(child:GetKey())
         end
-        return false
+        return result
     end
 
-    action SetUndefined
-        type = UNDEFINED
+    action GetInteger returns integer
+        return integerValue
     end
 
-    action SetArray
-        type = ARRAY
+    action GetIterator() returns Iterator<JavaScriptObjectNotation>
+        return array:GetIterator()
+    end
+
+    action GetNumber returns number
+        return numberValue
+    end
+
+    action GetSize returns integer
+        return array:GetSize()
+    end
+
+    action GetText returns text
+        return textValue
+    end
+
+    action GetType returns integer
+        return type
+    end
+
+    action GetValue(text key) returns text
+        Iterator<JavaScriptObjectNotation> it = me:GetIterator()
+        repeat while it:HasNext()
+            JavaScriptObjectNotation child = it:Next()
+            if child:GetKey() = key
+                return child:GetValue()
+            end
+        end
+        return "No item called " + key + " found"
+    end
+
+    action GetValue() returns text
+        if IsText()
+            return textValue
+        elseif IsNumber()
+            return cast(text, numberValue)
+        elseif IsInteger()
+            return cast(text, integerValue)
+        elseif IsBoolean()
+            return cast(text, booleanValue)
+        elseif IsObject()
+            return me:array:Get(0):ToText()
+        elseif IsArray()
+            return me:array:Get(0):ToText()
+        elseif IsUndefined()
+            return "null"
+        elseif type = 0
+            return me:array:Get(0):ToText()
+        end
+        return ""
     end
 
     action IsArray returns boolean
@@ -202,15 +157,19 @@ class JavaScriptObjectNotation
         return false
     end
 
-    action IsUndefined returns boolean
-        if type = UNDEFINED
+    action IsBoolean returns boolean
+        if type = BOOLEAN
            return true
         end
         return false
     end
 
-    action IsText returns boolean
-        if type = TEXT
+    action IsEmpty returns boolean
+        return array:IsEmpty()
+    end
+
+    action IsInteger returns boolean
+        if type = INTEGER
            return true
         end
         return false
@@ -223,28 +182,124 @@ class JavaScriptObjectNotation
         return false
     end
 
-    action IsInteger returns boolean
-        if type = INTEGER
+    action IsObject returns boolean
+        return type = OBJECT
+    end
+
+    action IsParent returns boolean
+        return type = PARENT
+    end
+
+    action IsPrettyPrint returns boolean
+        return prettyPrint
+    end
+
+    action IsText returns boolean
+        if type = TEXT
            return true
         end
         return false
     end
 
-    action Get(integer index) returns JavaScriptObjectNotation
-        JavaScriptObjectNotation value = array:Get(index)
-        return value
+    action IsUndefined returns boolean
+        if type = UNDEFINED
+           return true
+        end
+        return false
+    end
+
+    action Read(File file)
+        if file not= undefined and file:Exists() and file:IsFile()
+            text value = file:Read()
+            Read(value)
+        else
+            output "File: " + file:GetFileName() + " is not found"
+        end
+    end
+
+    action Read(text data)
+        // load object with JSON formatted text data 
+        JavaScriptObjectNotation json = ReadToObject(data)
+        me:type = PARENT
+        Iterator<JavaScriptObjectNotation> it = json:GetIterator()
+        repeat while it:HasNext()
+            JavaScriptObjectNotation object = it:Next()
+            Add(object)
+        end
+    end
+
+    action Read(HashTable<text, text> data)
+        // load object with HashTable data
+        me:type = PARENT
+        Iterator<text> it = data:GetKeyIterator()
+        repeat while it:HasNext()
+            text key = it:Next()
+            text value = data:GetValue(key)
+            Add(key, value)
+        end
+    end
+
+    private action ReadToObject(text value) returns JavaScriptObjectNotation
+        if value = undefined
+            return undefined
+        end
+        JavaScriptObjectNotationDefaultListener listen
+        JavaScriptObjectNotationLexer lex
+        JavaScriptObjectNotationParser parse
+
+        lex:SetListener(listen)
+        parse:SetListener(listen)
+        lex:Read(value)
+        parse:Parse(lex)
+        return listen:GetObject()
     end
 
     action Remove(integer index)
         array:RemoveAt(index)
     end
 
-    action GetSize returns integer
-        return array:GetSize()
+    action SetBoolean(boolean value)
+        booleanValue = value
+        type = BOOLEAN
     end
 
-    action IsEmpty returns boolean
-        return array:IsEmpty()
+    action SetInteger(integer value)
+        integerValue = value
+        type = INTEGER
+    end
+
+    action SetNumber(number value)
+        numberValue = value
+        type = NUMBER
+    end
+
+    action SetObject
+        type = OBJECT
+    end
+
+    action SetParent
+        type = PARENT
+    end
+
+    action SetPrettyPrint(boolean print)
+        prettyPrint = print
+    end
+
+    action SetKey(text key)
+        me:key = key
+    end
+
+    action SetText(text value)
+        textValue = value
+        type = TEXT
+    end
+
+    action SetUndefined
+        type = UNDEFINED
+    end
+
+    action SetArray
+        type = ARRAY
     end
 
     private action GetSpaces(integer level) returns text
@@ -253,6 +308,10 @@ class JavaScriptObjectNotation
             space = space + " "
         end
         return space
+    end
+
+    action ToText returns text
+        return ToText(0)
     end
 
     private action ToText(integer level) returns text
@@ -269,17 +328,23 @@ class JavaScriptObjectNotation
             result = result + space + dq + key + dq + ": " 
         end
 
+        if IsParent() and level = 0
+            if IsPrettyPrint()
+                result = result + "{" + line
+            else
+                result = result + "{"
+            end
+        end
+
         if IsObject()
             if level > 0
-                result = result + line + space + "{" + line
+                result = result + space + "{" + line
             else
                 result = result + "{" + line
             end
         elseif IsArray() 
             result = result + "["
-        end
-            
-        if IsText()
+        elseif IsText()
             result = result + dq + textValue + dq
         elseif IsBoolean()
             result = result + booleanValue
@@ -287,9 +352,8 @@ class JavaScriptObjectNotation
             result = result + numberValue
         elseif IsInteger()
             result = result + integerValue
-        elseif IsObject()
-            objectValue:SetPrettyPrint(IsPrettyPrint())
-            result = result + objectValue:ToText(level)
+        elseif IsUndefined()
+            result = result + "null"
         end
         
         //get all children
@@ -298,6 +362,8 @@ class JavaScriptObjectNotation
             JavaScriptObjectNotation value = array:Get(i)
             value:SetPrettyPrint(IsPrettyPrint())
             if IsArray()
+                result = result + value:ToText(level)
+            elseif IsObject()
                 result = result + value:ToText(level)
             else
                 result = result + value:ToText(level + 1)
@@ -319,17 +385,15 @@ class JavaScriptObjectNotation
             result = result + "]"
         end
 
+        if IsParent() and level = 0
+            if IsPrettyPrint()
+                result = result + line + "}"
+            else
+                result = result + "}"
+            end
+        end
+
         return result
     end
 
-    action ToText returns text
-        text result = ""
-        text line = result:GetCarriageReturn()
-        if IsPrettyPrint()
-            result = "{" + line + ToText(0) + line + "}"
-        else
-            result = "{" + ToText(0) + "}"
-        end
-        return result
-    end
 end

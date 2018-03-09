@@ -30,16 +30,17 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
 
     action EnterObject
         JavaScriptObjectNotation newObject
-        newObject:SetObject()
         //this is the root, which is a special object
         if object = undefined
+            newObject:SetParent()
             object = newObject
             
         //this is a new object being pushed on. This object is the 
         //value of another JSON element, so make the "parent" the object
         else 
             JavaScriptObjectNotation value = objects:Peek()
-            //value:SetObject()
+            value:SetObject()
+            newObject:SetParent()
             value:Add(newObject)
         end
 
@@ -137,6 +138,30 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
                 obj:Add(newObject)
             else
                 obj:SetNumber(val)
+            end
+        end
+    end
+
+    action VisitInteger(JavaScriptObjectNotationTerminal terminal)
+        integer op = opStack:Peek()
+        JavaScriptObjectNotation obj = objects:Peek()
+        JavaScriptObjectNotationToken token = terminal:GetToken()
+        if op = inPair
+            obj:SetKey(token:value)
+        elseif op = inValue
+            //check if there is a token behind the peek 
+            //and further check if this is an array
+            integer peek = opStack:Pop()
+            integer peekBehind = opStack:Peek()
+            opStack:Push(peek)
+            number numeric = cast(number, token:value)
+            integer val = cast(integer, numeric)
+            if peekBehind = inArray
+                JavaScriptObjectNotation newObject
+                newObject:SetInteger(val)
+                obj:Add(newObject)
+            else
+                obj:SetInteger(val)
             end
         end
     end
