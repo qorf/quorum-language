@@ -7,6 +7,7 @@ use Libraries.Interface.Events.all
 use Libraries.Containers.Array
 use Libraries.Containers.List
 use Libraries.Containers.Iterator
+use Libraries.Compute.BitwiseOperations
 use Libraries.Interface.Item
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.KeyboardListener
@@ -40,6 +41,7 @@ class DesktopInput is GameInput
 
     Array<KeyboardListener> keyboardListeners
     InputSet keyboardModifiers
+    InputSet mouseButtons
 
     Array<MouseListener> mouseListeners
     Array<MouseMovementListener> mouseMovementListeners
@@ -49,11 +51,13 @@ class DesktopInput is GameInput
 
     GameStateManager manager
 
+    BitwiseOperations bits
+
     /*
     The source of the last Mouse event. Certain kinds of InputSets are satisfied
     when this changes, e.g. an InputSet concerned with mouse movement enters its
     "end" state when the mouse moves off of the lastMouseSource onto a different
-    item (thus making the new item the lastMouseSource).
+    item (thus making the new item the new lastMouseSource).
     */
     Item lastMouseSource = undefined
 
@@ -83,11 +87,20 @@ class DesktopInput is GameInput
             if mouseEvent:eventType = mouseEvent:MOVED_MOUSE or mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE
                 set:SetInputType(set:MOUSE_MOVEMENT_INPUT)
                 anySet:SetInputType(set:MOUSE_MOVEMENT_INPUT)
+                set:SetInputType(set:CONTINUE)
+                anySet:SetInputType(set:CONTINUE)
             elseif mouseEvent:eventType = mouseEvent:CLICKED_MOUSE
-                // No further changes to the set need to be made in this case.
+                set:SetInputTrigger(set:BEGIN)
+                anySet:SetInputTrigger(set:BEGIN)
+
+                MouseButtonsChanged(mouseEvent)
+
             elseif mouseEvent:eventType = mouseEvent:RELEASED_MOUSE
-                set:SetInputTrigger(set:RELEASE)
-                anySet:SetInputTrigger(set:RELEASE)
+                set:SetInputTrigger(set:FINISH)
+                anySet:SetInputTrigger(set:FINISH)
+
+                MouseButtonsChanged(mouseEvent)
+
             elseif mouseEvent:eventType = mouseEvent:SCROLLED_MOUSE
                 set:SetInputType(set:MOUSE_WHEEL_INPUT)
                 anySet:SetInputType(set:MOUSE_WHEEL_INPUT)
@@ -96,26 +109,33 @@ class DesktopInput is GameInput
             BehaviorEvent behaviorEvent
             behaviorEvent:SetMouseEvent(mouseEvent)
 
+            boolean movementResolved = true
+            if mouseEvent:eventType = mouseEvent:MOVED_MOUSE or mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE
+                movementResolved = false
+            end
+
             integer counter = layers:GetSize()
             repeat while counter > 0 and not mouseEvent:WasEventHandled()
                 counter = counter - 1
                 Item temp = layers:Get(counter):ProcessMouseEvent(mouseEvent)
 
                 if lastMouseSource not= mouseEvent:GetSource()
-                    text last = ""
-                    if lastMouseSource not= undefined
-                        last = lastMouseSource:GetName()
-                    else
-                        last = "UNDEF"
-                    end
+//                    text last = ""
+//                    if lastMouseSource not= undefined
+//                        last = lastMouseSource:GetName()
+//                    else
+//                        last = "UNDEF"
+//                    end
+
+
                     lastMouseSource = mouseEvent:GetSource()
-                    text new = ""
-                    if lastMouseSource not= undefined
-                        new = lastMouseSource:GetName()
-                    else
-                        new = "UNDEF"
-                    end
-                    text quote = last:GetDoubleQuote()
+//                    text new = ""
+//                    if lastMouseSource not= undefined
+//                        new = lastMouseSource:GetName()
+//                    else
+//                        new = "UNDEF"
+//                    end
+//                    text quote = last:GetDoubleQuote()
 //                    output "Changed source from " + quote + last + quote + " to " + quote + new + quote
                 end
 
@@ -232,8 +252,8 @@ class DesktopInput is GameInput
             anySet:SetKeyboardInput(currentEvent:ANY_KEY)
 
             if currentEvent:eventType = currentEvent:RELEASED_KEY
-                set:SetInputTrigger(set:RELEASE)
-                anySet:SetInputTrigger(anySet:RELEASE)
+                set:SetInputTrigger(set:FINISH)
+                anySet:SetInputTrigger(anySet:FINISH)
             end
             
             BehaviorEvent behaviorEvent
@@ -354,6 +374,69 @@ class DesktopInput is GameInput
             end
             
         end
+    end
+
+    private action MouseButtonsChanged(MouseEvent event)
+        
+        integer newButtons = mouseButtons:GetInputValue()
+
+        if event:eventType = event:CLICKED_MOUSE
+            newButtons = bits:Or(newButtons, event:mouseButton)
+        elseif event:eventType = event:RELEASED_MOUSE
+            newButtons = bits:ExclusiveOr(newButtons, event:mouseButton)
+        else
+            alert("Only CLICKED_MOUSE or RELEASE_MOUSE events can be used to change the mouse buttons. The event type was " + event:eventType)
+        end
+
+        if lastMouseSource not= undefined
+
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetMouseEvent(event)
+            behaviorEvent:SetItem(lastMouseSource)
+
+            InputSet set
+            InputSet anySet
+            InputSet newSet
+
+            set:SetMouseMovementInput(mouseButtons:GetInputValue())
+            set:SetInputTrigger(set:FINISH)
+
+            anySet:SetMouseMovementInput(event:ANY)
+
+            if newButtons = event:NONE
+                anySet:SetInputTrigger(set:FINISH)
+            else
+                anySet:SetInputTrigger(set:CONTINUE)
+            end
+
+            newSet:SetMouseMovementInput(newButtons)
+            newSet:SetInputTrigger(set:BEGIN)
+
+            InputTable table = GetInputTable(lastMouseSource:GetInputGroup())
+
+            // Separately process the new event from the finishing/continuing ones.
+            boolean processed = (table not= undefined)
+            if processed
+                processed = table:ProcessInput(set, behaviorEvent)
+                processed = table:ProcessInput(anySet, behaviorEvent) or processed
+            end
+
+            if not processed
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+                GetDefaultInputTable():ProcessInput(anySet, behaviorEvent)
+            end
+
+            processed = (table not= undefined)
+            if processed
+                processed = table:ProcessInput(newSet, behaviorEvent)
+            end
+
+            if not processed
+                GetDefaultInputTable():ProcessInput(newSet, behaviorEvent)
+            end
+        end
+
+        mouseButtons:SetMouseInput(newButtons)
     end
 
     /*

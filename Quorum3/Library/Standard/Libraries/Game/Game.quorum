@@ -285,22 +285,22 @@ class Game
 
         InputSet releaseLeftArrow
         releaseLeftArrow:SetKeyboardInput(keys:LEFT)
-        releaseLeftArrow:SetInputTrigger(releaseLeftArrow:RELEASE)
+        releaseLeftArrow:SetInputTrigger(releaseLeftArrow:FINISH)
         textBoxTable:Add(releaseLeftArrow, cancelBehavior)
 
         InputSet releaseRightArrow
         releaseRightArrow:SetKeyboardInput(keys:RIGHT)
-        releaseRightArrow:SetInputTrigger(releaseRightArrow:RELEASE)
+        releaseRightArrow:SetInputTrigger(releaseRightArrow:FINISH)
         textBoxTable:Add(releaseRightArrow, cancelBehavior)
 
         InputSet releaseDownArrow
         releaseDownArrow:SetKeyboardInput(keys:DOWN)
-        releaseDownArrow:SetInputTrigger(releaseDownArrow:RELEASE)
+        releaseDownArrow:SetInputTrigger(releaseDownArrow:FINISH)
         textBoxTable:Add(releaseDownArrow, cancelBehavior)
 
         InputSet releaseUpArrow
         releaseUpArrow:SetKeyboardInput(keys:UP)
-        releaseUpArrow:SetInputTrigger(releaseUpArrow:RELEASE)
+        releaseUpArrow:SetInputTrigger(releaseUpArrow:FINISH)
         textBoxTable:Add(releaseUpArrow, cancelBehavior)
 
         InputSet backspace
@@ -317,12 +317,12 @@ class Game
 
         InputSet releaseBackspace
         releaseBackspace:SetKeyboardInput(keys:BACKSPACE)
-        releaseBackspace:SetInputTrigger(releaseBackspace:RELEASE)
+        releaseBackspace:SetInputTrigger(releaseBackspace:FINISH)
         textBoxTable:Add(releaseBackspace, cancelBehavior)
 
         InputSet releaseDelete
         releaseDelete:SetKeyboardInput(keys:FORWARD_DELETE)
-        releaseDelete:SetInputTrigger(releaseDelete:RELEASE)
+        releaseDelete:SetInputTrigger(releaseDelete:FINISH)
         textBoxTable:Add(releaseDelete, cancelBehavior)
 
         InputSet enter
@@ -347,7 +347,7 @@ class Game
 
         InputSet clickUp
         clickUp:SetMouseInput(mouse:ANY)
-        clickUp:SetInputTrigger(clickUp:RELEASE)
+        clickUp:SetInputTrigger(clickUp:FINISH)
         ClickUpBehavior upBehavior
         buttonTable:Add(clickUp, upBehavior)
 

@@ -28,6 +28,9 @@ class MouseEvent
     /* A code used for mouseButton to indicate any mouse button. */
     public constant integer ANY = 255
 
+    /* A code used for mouseButton to indicate no mouse buttons are clicked. */
+    public constant integer NONE = 0
+
     /* A code used for mouseButton to indicate the left mouse button. */
     public constant integer LEFT = 1
 
@@ -664,6 +667,9 @@ class MouseEvent
     end
     */
     action IsButtonEvent(integer button) returns boolean
+        if button = NONE
+            return mouseButton = NONE
+        end
         return bits:And(button, mouseButton) not= 0
     end
 
