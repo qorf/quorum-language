@@ -1,0 +1,185 @@
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+
+class Skynet is NetworkRequestListener
+    text AccountKey = ""
+    text name = ""
+    text type = ""
+    text rightAscension = ""
+    text declination = ""
+    integer maxSun = 0
+    number minElevation = 0.0
+    Array<text> telescopes
+    Array<text> filters
+    integer expNum = 0
+    number expLength = 0.0
+    integer timeAccount = 0
+
+    // default parameters
+    integer priority = 1
+    integer mode = 0
+    integer binningRequested = 2
+    boolean isToo = false
+    integer ownerId = 6
+
+    text resource = ""
+    text method = ""
+    text server = "http://api.skynet.unc.edu/2.0/"
+
+    // retrieved from skynet
+    integer observationID = 0
+
+    action AddTelescope(text telescope)
+        text pmd = "CTIO-1.0m"
+        text idata = "Prompt3"
+        me:telescopes:Add(telescope)
+    end
+
+    action AddFilter(text filter)
+        me:filters:Add(filter)
+    end
+
+    action SetAccountKey(text AccountKey)
+        me:AccountKey = AccountKey
+    end
+
+    action SetBinning(integer binningRequested)
+        me:binningRequested = binningRequested
+    end
+
+    action SetDeclination(text declination)
+        me:declination = declination
+    end
+
+    action SetExposureLength(number expLength)
+        me:expLength = expLength
+    end
+
+    action SetIsToo(boolean value)
+        me:isToo = value
+    end
+
+    action SetMaxSun(integer maxSun)
+        me:maxSun = maxSun
+    end
+
+    action SetMinElevation(number minElevation)
+        me:minElevation = minElevation
+    end
+
+    action SetMode(text name)
+        me:mode = mode
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action SetNumberOfExposures(integer expNum)
+        me:expNum = expNum
+    end
+
+    action SetPriority(integer priority)
+        me:priority = priority
+    end
+
+    action SetAstronomicalType(text type)
+        // This can be (’sidereal’,’planet’,’asteroids’,’comet’) or nothing
+        me:type = type
+    end
+
+    action SetRightAscension(text rightAscension)
+        me:rightAscension = rightAscension
+    end
+
+    action SetTimeAccount(integer timeAccount)
+        me:timeAccount = timeAccount
+    end
+
+    action SubmitObservationByName
+        //requires type and name
+    end
+
+    action SubmitObservationByCoordinates
+        //requires RA, Dec, name
+        NetworkRequest request
+        me:resource = "obs"
+        request:SetNetworkRequestTypeToPOST()
+        request:SetWebAddress(me:server + me:resource)
+        request:SetHeaders(GetSkynetHeaders())
+        request:SetBodyAsFormEncodedData(GetObservationParameters())
+        NetworkConnection http
+        http:SendRequest(request)
+    end
+
+    action GetExposureParameters returns JavaScriptObjectNotation
+        JavaScriptObjectNotation params
+        params:Add("obs", me:observationID)
+        params:Add("expLength", me:expLength)
+        params:Add("filterRequested", me:GetFilterList())
+        params:Add("telescope", me:maxSun)
+        params:Add("binningRequested", me:minElevation)
+        return params
+    end
+
+    action GetObservationParameters returns JavaScriptObjectNotation
+        JavaScriptObjectNotation params
+        params:Add("name", me:name)
+        params:Add("raHours", me:rightAscension)
+        params:Add("decDegs", me:declination)
+        params:Add("maxSun", me:maxSun)
+        params:Add("minEl", me:minElevation)
+        params:Add("mode", me:mode)
+        params:Add("timeAccountId", me:timeAccount)
+        params:Add("priority", me:priority)
+        params:Add("teleOwnerId", me:ownerId)
+        params:Add("isToo", me:isToo)
+        return params
+    end
+    
+    action GetSkynetHeaders returns HashTable<text, text>
+        HashTable<text, text> headers
+        headers:Add("Authentication-Token", me:AccountKey)
+        headers:Add("Content-Type", "application/x-www-form-urlencoded")
+        headers:Add("Connection", "keep-alive")
+        headers:Add("Accept-Encoding", "gzip, deflate")
+        headers:Add("Accept", "*/*")
+        headers:Add("User-Agent", "Quorum Java client")
+        return headers
+    end
+
+    action GetFilterList returns text
+        text filterList = ""
+        Iterator<text> it = filters:GetIterator()
+        repeat while it:HasNext()
+            if filterList = ""
+                filterList = it:Next()
+            else
+                filterList = filterList + " " + it:Next()
+            end
+        end
+        return filterList
+    end
+
+    action GetTelescopeList returns text
+        text telescopeList = ""
+        Iterator<text> it = telescopes:GetIterator()
+        repeat while it:HasNext()
+            if telescopeList = ""
+                telescopeList = it:Next()
+            else
+                telescopeList = telescopeList + " " + it:Next()
+            end
+        end
+        return telescopeList
+    end
+
+    action ResponseReceived(NetworkResponseEvent response)
+        // get time account
+        // get ownerID
+        // get observationID
+        // submit
+    end
+
+end
