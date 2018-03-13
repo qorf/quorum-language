@@ -60,6 +60,8 @@ class DesktopInput is GameInput
     */
     Item lastMouseMoveTarget = undefined
 
+    Array<InputSet> pressedKeys
+
     /*
     This action will identify all input events that have occurred and notify
     all relevant event listeners. For certain kinds of input, e.g. mouse or
@@ -296,8 +298,8 @@ class DesktopInput is GameInput
         // Begin processing other event types.
         keyboardProcessor:Update()
         
-        if keyboardProcessor:HasEvents()
-            ProcessKeyboardEvent(keyboardProcessor:GetEvents())
+        if keyboardProcessor:HasEvents() or (not pressedKeys:IsEmpty())
+            ProcessKeyboardEvents(keyboardProcessor:GetEvents())
         end
 
         textInputProcessor:Update()
@@ -329,7 +331,8 @@ class DesktopInput is GameInput
 
     end
 
-    private action ProcessKeyboardEvent(List<KeyboardEvent> events)
+    private action ProcessKeyboardEvents(List<KeyboardEvent> events)
+
         KeyboardEvent currentEvent = undefined
         KeyboardListener currentListener = undefined
         Iterator<KeyboardListener> listenIterator = keyboardListeners:GetIterator()
@@ -343,28 +346,6 @@ class DesktopInput is GameInput
         repeat while not events:IsEmpty()
             currentEvent = events:RemoveFromFront()
 
-            if currentEvent:eventType = currentEvent:PRESSED_KEY
-                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
-                    keyboardModifiers:AddModifier(keyboardModifiers:SHIFT)
-                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
-                    keyboardModifiers:AddModifier(keyboardModifiers:ALT)
-                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
-                    keyboardModifiers:AddModifier(keyboardModifiers:CONTROL)
-                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
-                    keyboardModifiers:AddModifier(keyboardModifiers:META)
-                end
-            else
-                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
-                    keyboardModifiers:RemoveModifier(keyboardModifiers:SHIFT)
-                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
-                    keyboardModifiers:RemoveModifier(keyboardModifiers:ALT)
-                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
-                    keyboardModifiers:RemoveModifier(keyboardModifiers:CONTROL)
-                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
-                    keyboardModifiers:RemoveModifier(keyboardModifiers:META)
-                end
-            end
-
             InputSet set = keyboardModifiers:Copy()
             set:SetKeyboardInput(currentEvent:keyCode)
 
@@ -375,7 +356,39 @@ class DesktopInput is GameInput
                 set:SetInputTrigger(set:FINISH)
                 anySet:SetInputTrigger(anySet:FINISH)
             end
-            
+
+            if currentEvent:eventType = currentEvent:PRESSED_KEY
+                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
+                    keyboardModifiers:AddModifier(keyboardModifiers:SHIFT)
+                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
+                    keyboardModifiers:AddModifier(keyboardModifiers:ALT)
+                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
+                    keyboardModifiers:AddModifier(keyboardModifiers:CONTROL)
+                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
+                    keyboardModifiers:AddModifier(keyboardModifiers:META)
+                end
+
+                InputSet pressedSet
+                pressedSet:SetKeyboardInput(currentEvent:keyCode)
+                pressedSet:SetInputTrigger(pressedSet:CONTINUE)
+                pressedKeys:Add(pressedSet)
+            else
+                if currentEvent:keyCode = currentEvent:SHIFT_LEFT or currentEvent:keyCode = currentEvent:SHIFT_RIGHT
+                    keyboardModifiers:RemoveModifier(keyboardModifiers:SHIFT)
+                elseif currentEvent:keyCode = currentEvent:ALT_LEFT or currentEvent:keyCode = currentEvent:ALT_RIGHT
+                    keyboardModifiers:RemoveModifier(keyboardModifiers:ALT)
+                elseif currentEvent:keyCode = currentEvent:CONTROL_LEFT or currentEvent:keyCode = currentEvent:CONTROL_RIGHT
+                    keyboardModifiers:RemoveModifier(keyboardModifiers:CONTROL)
+                elseif currentEvent:keyCode = currentEvent:META_LEFT or currentEvent:keyCode = currentEvent:META_RIGHT
+                    keyboardModifiers:RemoveModifier(keyboardModifiers:META)
+                end
+
+                InputSet pressedSet
+                pressedSet:SetKeyboardInput(currentEvent:keyCode)
+                pressedSet:SetInputTrigger(pressedSet:CONTINUE)
+                pressedKeys:Remove(pressedSet)
+            end
+
             BehaviorEvent behaviorEvent
             behaviorEvent:SetItem(focusedItem)
             behaviorEvent:SetKeyboardEvent(currentEvent)
@@ -409,6 +422,61 @@ class DesktopInput is GameInput
             end
 
             listenIterator:Rewind()
+        end
+
+        integer counter = 0
+
+        repeat while counter < pressedKeys:GetSize()
+            InputSet set = pressedKeys:Get(counter)
+
+            KeyboardEvent event
+            event:keyCode = set:GetInputValue()
+
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetItem(focusedItem)
+            behaviorEvent:SetKeyboardEvent(event)
+
+            InputTable table = GetInputTable(inputGroup)
+
+            /*
+            If the table exists, attempt to trigger behaviors that use that
+            specific input or that trigger on any input of that type. Once both
+            are tested, if neither were successful, try to trigger behaviors
+            from the default input table instead.
+            */
+            boolean processed = (table not= undefined)
+            if processed
+                processed = table:ProcessInput(set, behaviorEvent)
+            end
+
+            if not processed
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+            end
+
+            counter = counter + 1
+        end
+
+        if (not pressedKeys:IsEmpty())
+            KeyboardEvent event
+
+            InputSet set
+            set:SetKeyboardInput(event:ANY_KEY)
+            set:SetInputTrigger(set:CONTINUE)
+
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetItem(focusedItem)
+            behaviorEvent:SetKeyboardEvent(event)
+
+            InputTable table = GetInputTable(inputGroup)
+
+            boolean processed = (table not= undefined)
+            if processed
+                processed = table:ProcessInput(set, behaviorEvent)
+            end
+
+            if not processed
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+            end
         end
     end
 

@@ -17,6 +17,33 @@ class InputSet
     public constant integer ALT = CONTROL + 1
     public constant integer META = ALT + 1
 
+    /*
+    KEYBOARD_INPUT:
+        BEGIN: When the key is first pressed down.
+        CONTINUE: Each frame that the key is held down.
+        FINISH: When the key is released.
+
+    MOUSE_INPUT:
+        BEGIN: When the mouse button is first clicked.
+        CONTINUE: Each frame that the button is held down.
+        FINISH: When the button is released.
+
+    MOUSE_WHEEL_INPUT:
+        BEGIN: When the mouse wheel moves. (Wheel movement is non-continuous - each movement is registered, but there's typically no "smooth transition" as in begin/finish)
+        CONTINUE: N/A
+        FINISH: N/A
+
+    MOUSE_MOVEMENT_INPUT:
+        BEGIN: When the mouse first moves onto an Item.
+        CONTINUE: Each mouse movement, whether on the same Item or not.
+        FINISH: When the mouse moves off of an Item.
+
+    TOUCH_INPUT:
+        BEGIN: When a finger first presses down.
+        CONTINUE: Each frame a finger is touching the screen.
+        FINISH: When the finger is removed from the screen.
+    */
+
     public constant integer KEYBOARD_INPUT = 0
     public constant integer MOUSE_INPUT = 1
     public constant integer MOUSE_WHEEL_INPUT = 2

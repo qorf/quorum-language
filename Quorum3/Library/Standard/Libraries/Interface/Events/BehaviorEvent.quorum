@@ -1,12 +1,19 @@
 package Libraries.Interface.Events
 
 use Libraries.Interface.Item
+use Libraries.Game.GameStateManager
 
 class BehaviorEvent 
     Item item = undefined
     KeyboardEvent keyboardEvent = undefined
     MouseEvent mouseEvent = undefined
     TextInputEvent textInputEvent = undefined
+    number seconds = 0
+
+    on create
+        GameStateManager manager
+        seconds = manager:GetGameDisplay():GetSecondsBetweenFrames()
+    end
 
     action GetItem returns Item
         return item
@@ -38,6 +45,14 @@ class BehaviorEvent
 
     action SetTextInputEvent(TextInputEvent event)
         textInputEvent = event
+    end
+
+    action SetSecondsSinceLastFrame(number seconds)
+        me:seconds = seconds
+    end
+
+    action GetSecondsSinceLastFrame returns number
+        return seconds
     end
 
 end
