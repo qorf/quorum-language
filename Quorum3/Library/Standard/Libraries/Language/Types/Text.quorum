@@ -127,7 +127,7 @@ class Text is Object
         added to a text variable without using the literal value.
 
         Attribute: Parameter twosCompliment the twos compliments value associated with each unicode symbol.
-        Attribute: Returns The unicode symbols text value.
+        Attribute: Returns The unicode symbol's text value.
 
         Attribute: Example
         text a = "hello world"
@@ -135,6 +135,19 @@ class Text is Object
         output a
     */
     system action GetUnicodeValue(integer twosCompliment) returns text
+
+    /*
+        This action gets a unicode symbol integer value. This allows any unicode symbol
+        to be converted from text to the actual integer.
+
+        Attribute: Parameter the index we would like converted
+        Attribute: Returns The unicode symbol's integer value
+
+        Attribute: Example
+        text a = "hello world”
+        output  "h as a unicode integer value is: " + a:GetUnicodeInteger(0)
+    */
+    system action GetUnicodeInteger(integer index) returns integer
 
     /*
         This action returns true if the Text value contains the text from the parameter

@@ -50,6 +50,9 @@ function plugins_quorum_Libraries_Language_Types_Text_(optional) {
     this.GetUnicodeValue$quorum_integer = function (value) {
         return this.text.GetUnicodeValue$quorum_integer(value);
     };
+    this.GetUnicodeInteger$quorum_integer = function (value) {
+        return this.text.GetUnicodeInteger$quorum_integer(value);
+    };
     //private system action ContainsNative(text lhv, text rhv) returns boolean
     this.ContainsNative$quorum_text$quorum_text = function(left, right) {
         return this.text.ContainsNative$quorum_text$quorum_text(left, right);
@@ -166,6 +169,9 @@ String.prototype.GetDoubleQuote = function() {
 //system action GetUnicodeValue(integer twosCompliment) returns text
 String.prototype.GetUnicodeValue$quorum_integer = function(value) {
     return String.fromCharCode(value);
+};
+String.prototype.GetUnicodeInteger$quorum_integer = function(value) {
+    return this.valueOf().charCodeAt(value);
 };
 //private system action ContainsNative(text lhv, text rhv) returns boolean
 String.prototype.ContainsNative$quorum_text$quorum_text = function(left, searchString) {
