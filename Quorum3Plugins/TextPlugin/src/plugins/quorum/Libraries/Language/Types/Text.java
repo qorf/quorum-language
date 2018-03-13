@@ -185,6 +185,16 @@ public class Text {
     public String GetUnicodeValue(int unicode){
         return Character.toString((char)unicode);
     }
+    
+    public int GetUnicodeInteger(int index){
+        char value = text.charAt(index);
+        return (int) value;
+    }
+    
+    public static int PrimitiveGetUnicodeInteger(String self, int index){
+        char value = self.charAt(index);
+        return (int) value;
+    }
 
     /**
      * If the value is valid, return its hashcode. Otherwise, return the 
