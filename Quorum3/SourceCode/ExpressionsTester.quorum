@@ -99,6 +99,7 @@ class ExpressionsTester
         OutputBoolean()
         OutputDouble()
         OutputInt()
+        OutputUnicodeValue()
         OutputText()
         PrimitiveGetMaximumValueInteger()
         PrimitiveGetMinimumValueInteger()
@@ -1121,6 +1122,19 @@ class ExpressionsTester
         main:SetPath(path + "OutputInt.quorum")
         files:Add(main)
         results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action OutputUnicodeValue
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "OutputUnicodeValue.quorum")
+        files:Add(main)
+        results:Add(0, "h")
+        results:Add(1, "104")
+        results:Add(2, "104")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end
