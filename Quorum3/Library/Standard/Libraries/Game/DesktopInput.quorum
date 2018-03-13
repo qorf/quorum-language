@@ -115,26 +115,6 @@ class DesktopInput is GameInput
                 counter = counter - 1
                 Item temp = layers:Get(counter):ProcessMouseEvent(mouseEvent)
 
-//                if lastMouseSource not= mouseEvent:GetSource()
-//                    text last = ""
-//                    if lastMouseSource not= undefined
-//                        last = lastMouseSource:GetName()
-//                    else
-//                        last = "UNDEF"
-//                    end
-
-
-//                    lastMouseSource = mouseEvent:GetSource()
-//                    text new = ""
-//                    if lastMouseSource not= undefined
-//                        new = lastMouseSource:GetName()
-//                    else
-//                        new = "UNDEF"
-//                    end
-//                    text quote = last:GetDoubleQuote()
-//                    output "Changed source from " + quote + last + quote + " to " + quote + new + quote
-//                end
-
                 if mouseEvent:GetSource() not= undefined
                     Item seeker = mouseEvent:GetSource()
 
@@ -148,6 +128,11 @@ class DesktopInput is GameInput
                     InputSet finishSet = set:Copy()
                     finishSet:SetInputTrigger(finishSet:FINISH)
 
+                    InputSet beginAnySet = anySet:Copy()
+                    beginAnySet:SetInputTrigger(beginAnySet:BEGIN)
+                    InputSet finishAnySet = anySet:Copy()
+                    finishAnySet:SetInputTrigger(finishAnySet:FINISH)
+
                     repeat while seeker not= undefined and (useDefaultTable = true or noMoveTarget)
                         InputTable table = GetInputTable(seeker:GetInputGroup())
 
@@ -160,9 +145,16 @@ class DesktopInput is GameInput
                         end
 
                         if noMoveTarget
-                            if table not= undefined and (table:HasKey(set) or table:HasKey(beginSet) or table:HasKey(finishSet))
-                                noMoveTarget = false
-                                mouseMoveTarget = seeker
+                            if table not= undefined
+                                boolean valid = table:HasKey(set) or table:HasKey(beginSet) or table:HasKey(finishSet)
+                                if (not valid) and mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE
+                                    valid = table:HasKey(beginAnySet) or table:HasKey(anySet) or table:HasKey(finishAnySet)
+                                end
+
+                                if valid
+                                    noMoveTarget = false
+                                    mouseMoveTarget = seeker
+                                end
                             end
                         end
 
@@ -177,20 +169,6 @@ class DesktopInput is GameInput
                         end
                     end
 
-//                    /*
-//                    If the table exists, attempt to trigger behaviors that use 
-//                    that specific input or that trigger on any input of that 
-//                    type. If either are successful, consider the MouseEvent to
-//                    be handled.
-//                    */
-//                    if table not= undefined
-//                        boolean success = table:ProcessInput(set, behaviorEvent)
-//                        success = table:ProcessInput(anySet, behaviorEvent) or success
-//                        if success
-//                            mouseEvent:SetEventHandled(true)
-//                        end
-//                        hadInputTable = true
-//                    end
                 end
             end
 
@@ -202,93 +180,107 @@ class DesktopInput is GameInput
             InputTable table = undefined
 
             if mouseEvent:eventType = mouseEvent:MOVED_MOUSE or mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE
-//                if lastMouseMoveTarget not= mouseMoveTarget
-//                    BehaviorEvent lastTargetEvent
-//                    lastTargetEvent:SetItem(undefined)
-//                    lastTargetEvent:SetMouseEvent(mouseEvent)
-//
-//                    boolean useAnySet = mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE
-//
-//                    InputSet finishSet = set:Copy()
-//                    finishSet:SetInputTrigger(set:FINISH)
-//                    InputSet finishAnySet = anySet:Copy()
-//                    finishAnySet:SetInputTrigger(set:FINISH)
-//
-//                    Item lastTarget = lastMouseMoveTarget
-//
-//                    repeat while lastTarget not= undefined
-//                        InputTable moveTable = GetInputTable(lastTarget:GetInputGroup())
-//
-//                        if moveTable not= undefined and (moveTable:HasKey(finishSet) or (useAnySet and moveTable:HasKey(finishAnySet)))
-//                            lastTarget = undefined
-//                            lastTargetEvent:SetItem(lastTarget)
-//                        else
-//                            if target is Item2D
-//                                Item2D target2D = cast(Item2D, lastTarget)
-//                                lastTarget = target2D:GetParent()
-//                            elseif target is Item3D
-//                                Item3D target3D = cast(Item3D, lastTarget)
-//                                lastTarget = target3D:GetParent()
-//                            else
-//                                lastTarget = undefined
-//                            end
-//                        end
-//                    end
-//
-//                    if lastTargetEvent:GetItem() = undefined
-//                        table = GetDefaultInputTable()
-//                    else
-//                        table = GetInputTable(lastTargetEvent:GetItem():GetInputGroup())
-//                    end
-//
-//                    table:ProcessInput(finishSet, lastTargetEvent)
-//                    if useAnySet
-//                        table:ProcessInput(finishAnySet, lastTargetEvent)
-//                    end
-//
-//                    BehaviorEvent newTargetEvent
-//                    newTargetEvent:SetItem(undefined)
-//                    newTargetEvent:SetMouseEvent(mouseEvent)
-//
-//                    InputSet beginSet = set:Copy()
-//                    beginSet:SetInputTrigger(set:BEGIN)
-//                    InputSet beginAnySet = anySet:Copy()
-//                    beginAnySet:SetInputTrigger(set:BEGIN)
-//
-//                    Item newTarget = mouseMoveTarget
-//
-//                    repeat while newTarget not= undefined
-//                        InputTable moveTable = GetInputTable(newTarget:GetInputGroup())
-//
-//                        if moveTable not= undefined and (moveTable:HasKey(beginSet) or (useAnySet and moveTable:HasKey(finishAnySet)))
-//                            newTarget = undefined
-//                            newTargetEvent:SetItem(newTarget)
-//                        else
-//                            if target is Item2D
-//                                Item2D target2D = cast(Item2D, newTarget)
-//                                newTarget = target2D:GetParent()
-//                            elseif target is Item3D
-//                                Item3D target3D = cast(Item3D, newTarget)
-//                                newTarget = target3D:GetParent()
-//                            else
-//                                newTarget = undefined
-//                            end
-//                        end
-//                    end
-//
-//                    table = undefined
-//
-//                    if newTargetEvent:GetItem() = undefined
-//                        table = GetDefaultInputTable()
-//                    else
-//                        table = GetInputTable(newTargetEvent:GetItem():GetInputGroup())
-//                    end
-//
-//                    table:ProcessInput(beginSet, newTargetEvent)
-//                    if useAnySet
-//                        table:ProcessInput(beginAnySet, newTargetEvent)
-//                    end
-//                end
+                if lastMouseMoveTarget not= mouseMoveTarget
+                    BehaviorEvent lastTargetEvent
+                    lastTargetEvent:SetItem(undefined)
+                    lastTargetEvent:SetMouseEvent(mouseEvent)
+
+                    boolean useAnySet = mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE
+
+                    InputSet finishSet = set:Copy()
+                    finishSet:SetInputTrigger(set:FINISH)
+                    InputSet finishAnySet = anySet:Copy()
+                    finishAnySet:SetInputTrigger(set:FINISH)
+
+                    Item lastTarget = lastMouseMoveTarget
+
+                    repeat while lastTarget not= undefined
+                        InputTable moveTable = GetInputTable(lastTarget:GetInputGroup())
+
+                        boolean valid = false
+                        if moveTable not= undefined
+                            valid = moveTable:HasKey(finishSet) or (useAnySet and moveTable:HasKey(finishAnySet))
+                        end
+
+                        if valid
+                            lastTargetEvent:SetItem(lastTarget)
+                            lastTarget = undefined
+                        else
+                            if target is Item2D
+                                Item2D target2D = cast(Item2D, lastTarget)
+                                lastTarget = target2D:GetParent()
+                            elseif target is Item3D
+                                Item3D target3D = cast(Item3D, lastTarget)
+                                lastTarget = target3D:GetParent()
+                            else
+                                lastTarget = undefined
+                            end
+                        end
+                    end
+
+                    if lastTargetEvent:GetItem() = undefined
+                        table = GetDefaultInputTable()
+                    else
+                        table = GetInputTable(lastTargetEvent:GetItem():GetInputGroup())
+                    end
+
+                    boolean tableProcessResult = table:ProcessInput(finishSet, lastTargetEvent)
+                    if useAnySet
+                        tableProcessResult = table:ProcessInput(finishAnySet, lastTargetEvent)
+                    end
+
+                    BehaviorEvent newTargetEvent
+                    newTargetEvent:SetItem(undefined)
+                    newTargetEvent:SetMouseEvent(mouseEvent)
+
+                    InputSet beginSet = set:Copy()
+                    beginSet:SetInputTrigger(set:BEGIN)
+                    InputSet beginAnySet = anySet:Copy()
+                    beginAnySet:SetInputTrigger(set:BEGIN)
+
+                    Item newTarget = mouseMoveTarget
+
+                    repeat while newTarget not= undefined
+                        InputTable moveTable = GetInputTable(newTarget:GetInputGroup())
+
+                        // Calculate boolean over multiple steps - necessary to
+                        // circumvent compiler bug.
+                        boolean valid = false
+                        if moveTable not= undefined
+                            valid = moveTable:HasKey(beginSet) or (useAnySet and moveTable:HasKey(beginAnySet))
+                        end
+
+                        if valid
+                            newTargetEvent:SetItem(newTarget)
+                            newTarget = undefined
+                        else
+                            if newTarget is Item2D
+                                Item2D target2D = cast(Item2D, newTarget)
+                                newTarget = target2D:GetParent()
+                            elseif newTarget is Item3D
+                                Item3D target3D = cast(Item3D, newTarget)
+                                newTarget = target3D:GetParent()
+                            else
+                                newTarget = undefined
+                            end
+                        end
+                    end
+
+                    table = undefined
+
+                    if newTargetEvent:GetItem() = undefined
+                        table = GetDefaultInputTable()
+                    else
+                        table = GetInputTable(newTargetEvent:GetItem():GetInputGroup())
+                    end
+
+                    table:ProcessInput(beginSet, newTargetEvent)
+                    if useAnySet
+                        table:ProcessInput(beginAnySet, newTargetEvent)
+                    end
+
+                    lastMouseMoveTarget = mouseMoveTarget
+                end
             end
 
             if useDefaultTable
