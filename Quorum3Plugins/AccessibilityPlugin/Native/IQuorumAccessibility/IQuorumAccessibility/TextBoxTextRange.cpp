@@ -8,7 +8,7 @@
 
 TextBoxTextRange::TextBoxTextRange(_In_ HWND hwnd, _In_ TextBoxControl *control, _In_ Range range) : m_refCount(1), m_TextBoxControlHWND(hwnd), m_pTextBoxControl(control), m_range(range)
 {
-	std::cout << "Native caret.Line: " << m_range.begin.line << std::endl << "Native caret.Character: " << m_range.begin.character << std::endl;
+	
 }
 
 TextBoxTextRange::~TextBoxTextRange()
@@ -36,11 +36,11 @@ IFACEMETHODIMP TextBoxTextRange::QueryInterface(_In_ REFIID riid, _Outptr_ void 
 {
 	if (riid == __uuidof(IUnknown))
 	{
-		*ppInterface = (IUnknown*)((ITextRangeProvider*)this);
+		*ppInterface = static_cast<ITextRangeProvider*>(this);
 	}
 	else if (riid == __uuidof(ITextRangeProvider))
 	{
-		*ppInterface = (ITextRangeProvider*)this;
+		*ppInterface = static_cast<ITextRangeProvider*>(this);
 	}
 	else if (riid == __uuidof(TextBoxTextRange))
 	{
@@ -52,7 +52,7 @@ IFACEMETHODIMP TextBoxTextRange::QueryInterface(_In_ REFIID riid, _Outptr_ void 
 		return E_NOINTERFACE;
 	}
 
-	((IUnknown*)(*ppInterface))->AddRef();
+	(static_cast<IUnknown*>(*ppInterface))->AddRef();
 	return S_OK;
 }
 
@@ -379,7 +379,7 @@ IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVa
 		// Ensure the string is null-terminated
 		textBuilder[writePos] = '\0';
 
-		*pRetVal = SysAllocString(L"No!");
+		*pRetVal = SysAllocString(L"Say something");
 		if (*pRetVal == NULL)
 		{
 			hr = E_OUTOFMEMORY;
@@ -648,7 +648,7 @@ EndPoint TextBoxTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ Tex
 		EndPoint checkNext;
 		if (!m_pTextBoxControl->StepCharacter(current, forward, &checkNext))
 		{
-			// If we're at the beginning or end... so stop now and return
+			// We're at the beginning or end so stop now and return
 			break;
 		}
 

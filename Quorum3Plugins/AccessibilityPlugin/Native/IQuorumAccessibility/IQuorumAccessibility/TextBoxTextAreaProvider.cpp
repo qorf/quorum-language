@@ -10,29 +10,29 @@
 void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 {
 	TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(hwnd, control);
-	if (eventControl == NULL)
-	{
-		// This is an error. Should probably be dealt with somehow.
-	}
-	else
+	if (eventControl != NULL)
 	{
 		UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
 		UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
 		eventControl->Release();
+	}
+	else
+	{
+		// This is an error. Should probably be dealt with somehow.
 	}
 }
 
 void NotifyFocusGained(_In_ HWND hwnd, _In_ TextBoxControl *control)
 {
 	TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(hwnd, control);
-	if (eventControl == NULL)
-	{
-		// This is an error. Should probably be dealt with somehow.
-	}
-	else
+	if (eventControl != NULL)
 	{
 		UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
 		eventControl->Release();
+	}
+	else
+	{
+		// This is an error. Should probably be dealt with somehow.
 	}
 }
 
@@ -94,7 +94,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::QueryInterface(_In_ REFIID riid, _Outptr
 
 IFACEMETHODIMP TextBoxTextAreaProvider::get_ProviderOptions(_Out_ ProviderOptions *pRetVal)
 {
-	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
+	*pRetVal = ProviderOptions_ServerSideProvider /*| ProviderOptions_UseComThreading*/;
 	return S_OK;
 }
 
@@ -205,7 +205,9 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPropertyValue(PROPERTYID propertyId, 
 
 IFACEMETHODIMP TextBoxTextAreaProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
-	return UiaHostProviderFromHwnd(m_TextBoxControlHWND, pRetVal);
+
+	*pRetVal = NULL;
+	return S_OK;
 }
 
 // =========== IRawElementProviderFragment implementation

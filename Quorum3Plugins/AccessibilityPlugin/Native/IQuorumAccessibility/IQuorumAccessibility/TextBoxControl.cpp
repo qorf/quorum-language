@@ -457,17 +457,17 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case CUSTOM_SETFOCUS:
 	{
-		lResult = SetFocus();
+		SetFocus();
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		lResult = KillFocus();
+		KillFocus();
 		break;
 	}
 	case CUSTOM_UPDATECARET:
 	{
-		lResult = UpdateCaret((EndPoint*)lParam);
+		UpdateCaret((EndPoint*)lParam);
 		break;
 	}
 	case CUSTOM_SETNAME:
@@ -488,22 +488,19 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	return lResult;
 }
 
-LRESULT TextBoxControl::SetFocus()
+void TextBoxControl::SetFocus()
 {
 	NotifyFocusGained(this->m_TextboxHWND, this);
 	isActive = true;
-	return 0;
 }
 
-LRESULT TextBoxControl::KillFocus()
+void TextBoxControl::KillFocus()
 {
 	isActive = false;
-	return 0;
 }
 
-LRESULT TextBoxControl::UpdateCaret( _In_ EndPoint* caretPosition)
+void TextBoxControl::UpdateCaret( _In_ EndPoint* caretPosition)
 {
 	m_caretPosition = *caretPosition;
 	NotifyCaretPositionChanged(this->m_TextboxHWND, this);
-	return 0;
 }
