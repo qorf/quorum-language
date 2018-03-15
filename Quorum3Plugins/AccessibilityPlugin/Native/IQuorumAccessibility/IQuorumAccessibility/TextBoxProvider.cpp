@@ -81,7 +81,7 @@ IFACEMETHODIMP TextBoxProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void**
 IFACEMETHODIMP TextBoxProvider::get_ProviderOptions(_Out_ ProviderOptions * pRetVal)
 {
 
-	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
+	*pRetVal = ProviderOptions_ServerSideProvider /*| ProviderOptions_UseComThreading*/;
 	return S_OK;
 }
 
