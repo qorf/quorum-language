@@ -1,6 +1,11 @@
 use Libraries.Containers.HashTable
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Network.NetworkConnection
+use Libraries.Network.NetworkRequest
+use Libraries.Network.NetworkRequestListener
+use Libraries.Network.NetworkResponseEvent
 
 class Skynet is NetworkRequestListener
     text AccountKey = ""
