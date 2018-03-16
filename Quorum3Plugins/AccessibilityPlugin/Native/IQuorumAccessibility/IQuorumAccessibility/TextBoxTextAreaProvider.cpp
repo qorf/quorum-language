@@ -12,6 +12,17 @@ void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 	TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(hwnd, control);
 	if (eventControl != NULL)
 	{
+		// TODO: Debug. Remove this section
+		/*PCWSTR sampleText;
+		sampleText = L"NotifyCaretPositionChanged method entered.";
+
+		TextLine* textline = control->GetLine(0);
+		std::wcout << "WCOUT: " << sampleText << std::endl;
+		std::wcout << "Textline->Text: " << textline->text[0] << std::endl;
+		std::cout << "Size of the text line: " << control->GetLineLength(0) << std::endl;
+		fflush(stdout);*/
+		//=====
+
 		UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
 		UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
 		eventControl->Release();
@@ -271,8 +282,21 @@ IFACEMETHODIMP TextBoxTextAreaProvider::get_FragmentRoot(_Outptr_result_maybenul
 
 // =========== ITextProvider implementation
 
+// get_SupportedTextSelection: Retrieves a value that specifies the type of text selection that is supported by the control.
+IFACEMETHODIMP TextBoxTextAreaProvider::get_SupportedTextSelection(_Out_ SupportedTextSelection * pRetVal)
+{
+	if (!IsWindow(m_TextBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	*pRetVal = SupportedTextSelection_Single;
+	return S_OK;
+}
+
 // GetSelection: Retrieves a collection of text ranges that represents the currently selected text in a text-based control.
-//				 For this control the selection will either be a single text range or a degenerate text range.
+//				 For this control, the selection will either be a single text range or a degenerate text range.
+//				 Note: A degenerate text range is an empty text range. Which means its EndPoint begin and end are equal.
 IFACEMETHODIMP TextBoxTextAreaProvider::GetSelection(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
 {
 	if (!IsWindow(m_TextBoxControlHWND))
@@ -349,14 +373,3 @@ IFACEMETHODIMP TextBoxTextAreaProvider::get_DocumentRange(_Outptr_result_maybenu
 	return S_OK;
 }
 
-// get_SupportedTextSelection: Retrieves a value that specifies the type of text selection that is supported by the control.
-IFACEMETHODIMP TextBoxTextAreaProvider::get_SupportedTextSelection(_Out_ SupportedTextSelection * pRetVal)
-{
-	if (!IsWindow(m_TextBoxControlHWND))
-	{
-		return UIA_E_ELEMENTNOTAVAILABLE;
-	}
-
-	*pRetVal = SupportedTextSelection_Single;
-	return S_OK;
-}

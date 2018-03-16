@@ -52,8 +52,7 @@ bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-
-HWND TextBoxControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_reads_(lineCount) TextLine * lines, _In_ int lineCount, _In_ EndPoint caret)
+HWND TextBoxControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, TextLine quorumLines[], _In_ EndPoint caret)
 {
 
 	if (!Initialized)
@@ -63,20 +62,32 @@ HWND TextBoxControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHA
 
 	if (Initialized)
 	{
-		TextBoxControl * control = new TextBoxControl(lines, lineCount, caret);
+		TextBoxControl * control = new TextBoxControl(quorumLines, _ARRAYSIZE(quorumLines), caret);
+
+		// TODO: Debug. Remove this section
+		PCWSTR sampleText;
+		sampleText = L"Create method entered.";
+
+		TextLine* textline = control->GetLine(0);
+		std::wcout << "WCOUT: " << sampleText << std::endl;
+		std::wcout << "Textline->Text: " << textline->text << std::endl;
+		std::cout << "Size of the text line: " << control->GetLineLength(0) << std::endl;
+		std::cout << "Number of lines: " << _ARRAYSIZE(quorumLines) << std::endl;
+		// =====
 
 		control->m_TextboxHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
-			L"QUORUM_TEXTBOX",
-			textboxName,
-			WS_VISIBLE | WS_CHILD,
-			-1,
-			-1,
-			1,
-			1,
-			parent, // Parent window
-			NULL,
-			instance,
-			static_cast<PVOID>(control));
+												 L"QUORUM_TEXTBOX",
+												 textboxName,
+												 WS_VISIBLE | WS_CHILD,
+												 -1,
+												 -1,
+												 1,
+												 1,
+												 parent, // Parent window
+												 NULL,
+												 instance,
+												 static_cast<PVOID>(control)
+												 );
 
 		if (control->m_TextboxHWND == 0)
 		{
@@ -134,7 +145,7 @@ int TextBoxControl::GetLineCount()
 	return lineCount;
 }
 
-EndPoint TextBoxControl::GetEnd()
+EndPoint TextBoxControl::GetEndOfText()
 {
 	EndPoint endOfText = { lineCount - 1, 0 };
 	endOfText.character = GetLineLength(endOfText.line);
@@ -444,15 +455,15 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	case WM_GETOBJECT:
 	{
 		// If the lParam matches the RootObjectId, send back the RawElementProvider
-		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
-		{
+		//if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
+		//{
 			IRawElementProviderSimple * provider = new TextBoxProvider(hwnd, this);
 			if (provider != NULL)
 			{
 				lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
 				provider->Release();
 			}
-		}
+		//}
 		break;
 	}
 	case CUSTOM_SETFOCUS:
@@ -467,6 +478,16 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case CUSTOM_UPDATECARET:
 	{
+		// TODO: Debug. Remove this section
+		PCWSTR sampleText = L"CUSTOM_UPDATECARET message being responded to.";
+
+		TextLine* textline = this->GetLine(0);
+		std::wcout << "WCOUT: " << sampleText << std::endl;
+		std::wcout << "Textline->Text: " << textline->text << std::endl;
+		std::cout << "Size of the text line: " << this->GetLineLength(0) << std::endl;
+		fflush(stdout);
+		//=====
+
 		UpdateCaret((EndPoint*)lParam);
 		break;
 	}
@@ -477,7 +498,10 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case CUSTOM_SETTEXT:
 	{
-		this->lines->text = (WCHAR*)lParam;
+		// Set the text for the current text line.
+		// Currently the textbox only maintains one textline at a time but
+		// can and likely will need to be able to hold multiple lines.
+		//this->lines->text = (WCHAR*)lParam;
 		break;
 	}
 	default:
@@ -501,6 +525,18 @@ void TextBoxControl::KillFocus()
 
 void TextBoxControl::UpdateCaret( _In_ EndPoint* caretPosition)
 {
+
+	// TODO: Debug. Remove this section
+	/*PCWSTR sampleText;
+	sampleText = L"UpdateCaret method entered.";
+
+	TextLine* textline = this->GetLine(0);
+	std::wcout << "WCOUT: " << sampleText << std::endl;
+	std::wcout << "Textline->Text: " << textline->text << std::endl;
+	std::cout << "Size of the text line: " << this->GetLineLength(0) << std::endl;
+	fflush(stdout);*/
+	//=====
+
 	m_caretPosition = *caretPosition;
 	NotifyCaretPositionChanged(this->m_TextboxHWND, this);
 }

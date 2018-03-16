@@ -83,8 +83,8 @@ IFACEMETHODIMP TextBoxTextRange::Compare(_In_opt_ ITextRangeProvider * range, _O
 		if (SUCCEEDED(range->QueryInterface(IID_PPV_ARGS(&rangeInternal))))
 		{
 			if (m_TextBoxControlHWND == rangeInternal->m_TextBoxControlHWND &&
-				QuickCompareEndpoints(rangeInternal->m_range.begin, m_range.begin) == 0 &&
-				QuickCompareEndpoints(rangeInternal->m_range.end, m_range.end) == 0)
+				CompareEndpointPair(rangeInternal->m_range.begin, m_range.begin) == 0 &&
+				CompareEndpointPair(rangeInternal->m_range.end, m_range.end) == 0)
 			{
 				*pRetVal = TRUE;
 			}
@@ -121,7 +121,7 @@ IFACEMETHODIMP TextBoxTextRange::CompareEndpoints(TextPatternRangeEndpoint endpo
 		EndPoint thisEnd = (endpoint == TextPatternRangeEndpoint_Start) ? m_range.begin : m_range.end;
 		EndPoint targetEnd = (targetEndpoint == TextPatternRangeEndpoint_Start) ? target.begin : target.end;
 
-		*pRetVal = QuickCompareEndpoints(thisEnd, targetEnd);
+		*pRetVal = CompareEndpointPair(thisEnd, targetEnd);
 	}
 	rangeInternal->Release();
 
@@ -176,7 +176,7 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 	{
 		m_range.begin.character = 0;
 		m_range.begin.line = 0;
-		m_range.end = m_pTextBoxControl->GetEnd();
+		m_range.end = m_pTextBoxControl->GetEndOfText();
 	}
 	else
 	{
@@ -197,7 +197,7 @@ IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttribut
 	EndPoint current = start;
 
 	// This will loop until 'current' passes or is equal to the end
-	while (QuickCompareEndpoints(searchBackward ? finish : current, searchBackward ? current : finish) < 0)
+	while (CompareEndpointPair(searchBackward ? finish : current, searchBackward ? current : finish) < 0)
 	{
 		int walked;
 		EndPoint next = Walk(current, !searchBackward, TextUnit_Format, textAttributeId, 1, &walked);
@@ -211,7 +211,7 @@ IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttribut
 			found.begin = searchBackward ? next : current;
 
 			// If next is past the end of the current range, end at the end of the current range instead
-			if (QuickCompareEndpoints(searchBackward ? finish : next, searchBackward ? next : finish) > 0)
+			if (CompareEndpointPair(searchBackward ? finish : next, searchBackward ? next : finish) > 0)
 			{
 				found.end = finish;
 			}
@@ -260,7 +260,7 @@ IFACEMETHODIMP TextBoxTextRange::GetAttributeValue(_In_ TEXTATTRIBUTEID textAttr
 	int walked;
 	EndPoint endOfAttribute = Walk(m_range.begin, true, TextUnit_Format, textAttributeId, 1, &walked);
 
-	if (QuickCompareEndpoints(endOfAttribute, m_range.end) < 0)
+	if (CompareEndpointPair(endOfAttribute, m_range.end) < 0)
 	{
 		hr = UiaGetReservedMixedAttributeValue(&pRetVal->punkVal);
 		if (SUCCEEDED(hr))
@@ -303,89 +303,100 @@ IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVa
 	}
 
 	HRESULT hr = S_OK;
-	int builderSize;
-	PWSTR textBuilder;
+
+	
+	// This is the text that will be read by the screen reader.
+	PWSTR outputText;
+	int outputTextSize;
+
 	if (maxLength >= 0)
 	{
-		builderSize = maxLength + 1;
+		outputTextSize = maxLength + 1;
 	}
 	else
 	{
-		builderSize = 0;
+		outputTextSize = 0;
 		EndPoint current = m_range.begin;
-		while (QuickCompareEndpoints(current, m_range.end) < 0)
+
+		while (CompareEndpointPair(current, m_range.end) < 0)
 		{
 			if (current.line < m_range.end.line)
 			{
 				int length = m_pTextBoxControl->GetLineLength(current.line);
 				// Add 1 for the implied newline
-				builderSize += length - current.character + 1;
+				outputTextSize += length - current.character + 1;
 				current.line++;
 				current.character = 0;
 			}
 			else
 			{
-				builderSize += m_range.end.character - current.character;
+				outputTextSize += m_range.end.character - current.character;
 				current.character = m_range.end.character;
 			}
 		}
 	}
 
-	textBuilder = new WCHAR[builderSize];
+	outputText = new WCHAR[outputTextSize];
 
-	if (textBuilder != NULL)
+	if (outputText != NULL)
 	{
-		int writePos = 0;
-		EndPoint current = m_range.begin;
+		int characterWritePosition = 0;
+		EndPoint currentEndPoint = m_range.begin;
 
-		while (QuickCompareEndpoints(current, m_range.end) < 0 && writePos < (builderSize - 1))
+		while (CompareEndpointPair(currentEndPoint, m_range.end) < 0 && characterWritePosition < (outputTextSize - 1))
 		{
 			int copyLength = 0;
-			EndPoint next;
+			EndPoint nextEndPoint;
 			bool trailingNewline = false;
 
-			if (current.line < m_range.end.line)
+			if (currentEndPoint.line < m_range.end.line)
 			{
-				int length = m_pTextBoxControl->GetLineLength(current.line);
+				int length = m_pTextBoxControl->GetLineLength(currentEndPoint.line);
 				// Add 1 for the implied newline
-				copyLength = length - current.character;
+				copyLength = length - currentEndPoint.character;
 				trailingNewline = true;
-				next.line = current.line + 1;
-				next.character = 0;
+				
+				// The next EndPoint starts at the lefthand side of the next line.
+				nextEndPoint.line = currentEndPoint.line + 1;
+				nextEndPoint.character = 0;
 			}
 			else
 			{
-				copyLength = m_range.end.character - current.character;
-				next.line = current.line;
-				next.character = m_range.end.character;
+				copyLength = m_range.end.character - currentEndPoint.character;
+				nextEndPoint.line = currentEndPoint.line;
+				nextEndPoint.character = m_range.end.character;
 			}
 
-			if (writePos + copyLength >= (builderSize - 1))
+			if (characterWritePosition + copyLength >= (outputTextSize - 1))
 			{
-				copyLength = (builderSize - 1) - writePos;
+				copyLength = (outputTextSize - 1) - characterWritePosition;
 			}
 
-			TextLine *textLine = m_pTextBoxControl->GetLine(current.line);
-			StringCchCopyN(&textBuilder[writePos], copyLength + 1, &textLine->text[current.character], copyLength);
-			writePos += copyLength;
-			current = next;
+			TextLine *textLine = m_pTextBoxControl->GetLine(currentEndPoint.line);
+			StringCchCopyN(&outputText[characterWritePosition], copyLength + 1, &textLine->text[currentEndPoint.character], copyLength);
+			characterWritePosition += copyLength;
+			currentEndPoint = nextEndPoint;
 
-			if (trailingNewline && writePos < (builderSize - 1))
+			if (trailingNewline && characterWritePosition < (outputTextSize - 1))
 			{
-				textBuilder[writePos++] = '\n';
+				outputText[characterWritePosition++] = '\n';
 			}
 		}
 
 		// Ensure the string is null-terminated
-		textBuilder[writePos] = '\0';
+		outputText[characterWritePosition] = '\0';
 
+		// Whatever string is passed to this function will be what the screen reader reads aloud.
 		*pRetVal = SysAllocString(L"Say something");
 		if (*pRetVal == NULL)
 		{
 			hr = E_OUTOFMEMORY;
 		}
 
-		delete[] textBuilder;
+		// TODO: With NVDA turned on, this eventually causes Heap Corruption. Fix it!
+		// Note: This only occured during testing with the native sample but I'm handling my implementation
+		//       the same way so it's worth investigating.
+		delete[] outputText;
 	}
 	else
 	{
@@ -404,7 +415,7 @@ HRESULT STDMETHODCALLTYPE TextBoxTextRange::Move(_In_ TextUnit unit, _In_ int co
 
 	*pRetVal = 0;
 
-	bool isDegenerate = (QuickCompareEndpoints(m_range.begin, m_range.end) == 0);
+	bool isDegenerate = (CompareEndpointPair(m_range.begin, m_range.end) == 0);
 
 	int walked;
 	EndPoint back = Walk(m_range.begin, false, unit, 0, 0, &walked);
@@ -436,7 +447,7 @@ HRESULT STDMETHODCALLTYPE TextBoxTextRange::MoveEndpointByUnit(_In_ TextPatternR
 	{
 		m_range.begin = Walk(m_range.begin, count > 0, unit, 0, abs(count), pRetVal);
 
-		if (QuickCompareEndpoints(m_range.begin, m_range.end) > 0)
+		if (CompareEndpointPair(m_range.begin, m_range.end) > 0)
 		{
 			m_range.end = m_range.begin;
 		}
@@ -445,7 +456,7 @@ HRESULT STDMETHODCALLTYPE TextBoxTextRange::MoveEndpointByUnit(_In_ TextPatternR
 	{
 		m_range.end = Walk(m_range.end, count > 0, unit, 0, abs(count), pRetVal);
 
-		if (QuickCompareEndpoints(m_range.begin, m_range.end) > 0)
+		if (CompareEndpointPair(m_range.begin, m_range.end) > 0)
 		{
 			m_range.begin = m_range.end;
 		}
@@ -494,7 +505,7 @@ HRESULT STDMETHODCALLTYPE TextBoxTextRange::MoveEndpointByRange(_In_ TextPattern
 		if (endpoint == TextPatternRangeEndpoint_Start)
 		{
 			m_range.begin = src;
-			if (QuickCompareEndpoints(m_range.begin, m_range.end) > 0)
+			if (CompareEndpointPair(m_range.begin, m_range.end) > 0)
 			{
 				m_range.end = m_range.begin;
 			}
@@ -502,7 +513,7 @@ HRESULT STDMETHODCALLTYPE TextBoxTextRange::MoveEndpointByRange(_In_ TextPattern
 		else
 		{
 			m_range.end = src;
-			if (QuickCompareEndpoints(m_range.begin, m_range.end) > 0)
+			if (CompareEndpointPair(m_range.begin, m_range.end) > 0)
 			{
 				m_range.begin = m_range.end;
 			}
@@ -674,7 +685,7 @@ EndPoint TextBoxTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ Tex
 			{
 				if (forward)
 				{
-					current = m_pTextBoxControl->GetEnd();
+					current = m_pTextBoxControl->GetEndOfText();
 				}
 				else
 				{
