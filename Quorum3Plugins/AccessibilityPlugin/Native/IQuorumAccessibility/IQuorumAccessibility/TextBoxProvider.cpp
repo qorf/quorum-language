@@ -218,7 +218,8 @@ IFACEMETHODIMP TextBoxProvider::ElementProviderFromPoint(double x, double y, _Ou
 
 IFACEMETHODIMP TextBoxProvider::GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal)
 {
-
+	// The pane shouldn't be able to receive focus. 
+	// It doesn't exist as far as the UI is concerned.
 	*pRetVal = NULL;
 	return S_OK;
 }
