@@ -30,6 +30,7 @@ class ExpressionsTester
         AddTextText()
         AndBooleanBoolean()
         AssignUndefinedToText()
+        BooleanAndOrAnd()
         CastTest()
         CompareTextTextField()
         ComplexExpression()
@@ -1089,6 +1090,17 @@ class ExpressionsTester
         results:Add(1, "true")
         results:Add(2, "true")
         results:Add(3, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action BooleanAndOrAnd
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "BooleanAndOrAnd.quorum")
+        files:Add(main)
+        results:Add(0, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
     end

@@ -117,7 +117,7 @@ class BinaryAndOrOpcode is QuorumOpcode
                             QuorumOpcode parentParent = opcodeParent:opcodeParent
                             if parentParent is BinaryAndOrOpcode
                                 BinaryAndOrOpcode bop = cast(BinaryAndOrOpcode, opcodeParent:opcodeParent)
-                                jumpLabel = bop:GetRightHandSideLabel()
+                                jumpLabel = bop:GetJumpLabel()
                             else
                                 jumpLabel = falseLabel
                             end
@@ -202,6 +202,10 @@ class BinaryAndOrOpcode is QuorumOpcode
             rightHandSideLabel = f
         end
         return rightHandSideLabel
+    end
+
+    action GetJumpLabel returns JavaBytecodeLabel
+        return jumpLabel
     end
 
     action GetLeftHandSideLabel returns JavaBytecodeLabel
