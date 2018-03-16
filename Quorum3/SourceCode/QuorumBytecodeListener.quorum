@@ -269,7 +269,19 @@ class QuorumBytecodeListener is QuorumSourceListener
                         text returnKey = returnType:GetStaticKey()
                         SymbolTable table = GetSymbolTable()
                         Class clazz = table:GetClass(returnKey)
-                        clazz:AddUseLocation(returnLocation:CreateLocationCopy())
+                        if clazz not= undefined
+                            clazz:AddUseLocation(returnLocation:CreateLocationCopy())
+                        else 
+                            CompilerError e
+                            e:SetErrorMessage("I could not find the class  " + returnKey +
+                                " named in the return statement.")
+                            CompilerErrorType t
+                            t:SetCurrentType(t:MISSING_CLASS)
+                            e:SetCompilerErrorType(t)
+                            e:SetLocation(context:GetLocation())
+                            CompilerErrorManager manager = GetCompilerErrorManager()
+                            manager:Add(e)
+                        end
                     end
                 end
             end

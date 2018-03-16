@@ -1,0 +1,13 @@
+class Main
+    text v = Test()
+    action Main
+        if v = "text"
+            output "passed"
+        end
+    end
+
+    action Test() returns text
+        text var = "text"
+        return var
+    end
+end

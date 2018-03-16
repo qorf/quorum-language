@@ -1,0 +1,12 @@
+class Main
+    action Main
+        Integer v
+        v:SetValue(Test())
+    end
+
+    action Test() returns Integer
+        Text var
+        var:SetValue("text")
+        return var
+    end
+end
