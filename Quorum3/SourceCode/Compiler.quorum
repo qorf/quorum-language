@@ -382,7 +382,7 @@ class Compiler
         return result
     end
 
-    private action ParseSandbox(text source, QuorumSourceListener listener, SymbolTable table, CompilerErrorManager errors,
+    action ParseSandbox(text source, QuorumSourceListener listener, SymbolTable table, CompilerErrorManager errors,
         TypeChecker types, File loc)
         listener:SetSymbolTable(table)
         listener:SetCompilerErrorManager(errors)
