@@ -1,0 +1,463 @@
+package Libraries.Language.Compile
+
+use Libraries.System.File
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parser
+use Libraries.Language.Compile.Translate.ClassOpcode
+use Libraries.Language.Compile.QuorumBytecodeListener
+use Libraries.Language.Compile.Symbol.SymbolTable
+use Libraries.Language.Compile.CompilerErrorManager
+use Libraries.Language.Compile.Symbol.TypeChecker
+use Libraries.Language.Compile.Compiler
+use Libraries.Containers.HashTable
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Translate.JarGenerator
+use Libraries.Containers.Iterator
+
+class Library 
+    File location = undefined
+    File outputFolder = undefined
+    File buildFolder
+    File runJar
+    File pluginJar
+    File nativeFolder
+    File graphicsFolder
+    File robotsFolder
+    constant text STANDARD_LIBRARY_JAR = "QuorumStandardLibrary.jar"
+    constant text STANDARD_PLUGINS_JAR = "QuorumStandardPlugins.jar"
+    constant text NATIVE_FOLDER = "jni"
+    constant text GRAPHICS_FOLDER = "Graphics"
+    constant text ROBOTS_FOLDER = "Robots"
+
+    boolean hasScannedStandardLibrary = false
+    SymbolTable librarySymbolTable
+    HashTable<text, ClassOpcode> opcodes
+    boolean cacheOpcodes = false
+
+    action Empty
+        opcodes:Empty()
+    end
+
+    action IsCachingLibraryOpcodes returns boolean
+        return cacheOpcodes
+    end
+
+    action SetCachingLibraryOpcodes(boolean cache)
+        cacheOpcodes = cache
+    end
+
+    action GetSymbolTable returns SymbolTable
+        return librarySymbolTable
+    end
+
+    action GetLocation returns File
+        return location
+    end
+
+    action SetLocation(File file)
+        location = file
+    end
+
+    action GetOutputFolder returns File
+        return outputFolder
+    end
+
+    action SetOutputFolder(File file)
+        outputFolder = file
+    end
+
+    action Scan
+        hasScannedStandardLibrary = false
+        
+        if outputFolder not= undefined
+            buildFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
+            runJar:SetWorkingDirectory(outputFolder:GetAbsolutePath())
+            pluginJar:SetWorkingDirectory(outputFolder:GetAbsolutePath())
+            nativeFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
+            graphicsFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
+            robotsFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
+
+            buildFolder:SetPath("/Build")
+            runJar:SetPath("/Run/Standard/" + STANDARD_LIBRARY_JAR)
+            pluginJar:SetPath("/Run/Standard/" + STANDARD_PLUGINS_JAR)
+            nativeFolder:SetPath("/Run/" + NATIVE_FOLDER)
+            graphicsFolder:SetPath("/Run/" + GRAPHICS_FOLDER)
+            robotsFolder:SetPath("/Run/" + ROBOTS_FOLDER)
+        end
+
+        CompilerErrorManager sandboxCompilerErrorManager
+        TypeChecker sandboxTypeChecker
+
+        Compiler compiler
+        Array<File> lib = CollectQuorumFiles()
+        integer i = 0
+        repeat lib:GetSize() times
+            File file = lib:Get(i)
+            Parser listener
+            compiler:ParseSandbox(undefined, listener, librarySymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+            i = i + 1
+        end
+
+        compiler:TypeResolution(librarySymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
+
+        Array<ClassOpcode> classOpcodes
+        if sandboxCompilerErrorManager:IsCompilationErrorFree()
+            i = 0
+            repeat while i < lib:GetSize()
+                File file = lib:Get(i)
+                QuorumBytecodeListener listener
+                compiler:ParseSandbox(undefined, listener, librarySymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+
+                if cacheOpcodes
+                    ClassOpcode op = listener:GetClassOpcode()
+                    op:SetBuild(buildFolder)
+                    Class clazz = op:GetClass()
+                    opcodes:Add(clazz:GetStaticKey(), op)
+                end
+                i = i + 1
+            end
+        end
+
+        hasScannedStandardLibrary = true
+    end
+
+    action Write
+        if hasScannedStandardLibrary
+            WriteStandardLibrary()
+            WriteStandardPlugins()
+            CopyStandardFiles()
+        else
+            alert ("I have not yet scanned the standard library. This must be completed before I can write it to disk.")
+        end
+    end
+
+    private action CopyStandardFiles
+        File speechNative
+        speechNative:SetWorkingDirectory(location:GetAbsolutePath() + "/Native/")
+        speechNative:SetPath("Libraries.Sound.Speech")
+
+        File gameNative
+        gameNative:SetWorkingDirectory(location:GetAbsolutePath() + "/Native/")
+        gameNative:SetPath("Libraries.Game")
+
+        File interfaceNative
+        interfaceNative:SetWorkingDirectory(location:GetAbsolutePath() + "/Native/")
+        interfaceNative:SetPath("Libraries.Interface")
+
+
+        File lwjglFolder
+        lwjglFolder:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+        lwjglFolder:SetPath("LWJGL")
+
+        File dbus
+        File ev3
+        dbus:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+        dbus:SetPath("dbusjava.jar")
+
+        ev3:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+        ev3:SetPath("ev3classes.jar")
+
+        speechNative:Copy(nativeFolder, true)
+        gameNative:Copy(nativeFolder, true)
+        interfaceNative:Copy(nativeFolder, true)
+        lwjglFolder:Copy(graphicsFolder, true)
+
+
+        File copier
+        copier:SetWorkingDirectory(robotsFolder:GetAbsolutePath())
+        copier:SetPath("dbusjava.jar")
+        if not copier:GetParentDirectory():Exists()
+            copier:GetParentDirectory():CreateDirectories()
+        end
+
+        dbus:Copy(copier, true)
+
+        copier:SetPath("ev3classes.jar")
+        ev3:Copy(copier, true)
+    end
+
+    action WriteStandardLibrary
+        JarGenerator generator
+        text value = GetStandardLibraryManifest(generator)
+        generator:SetManifest(value)
+
+        if runJar:Exists()
+            runJar:GetParentDirectory():CreateDirectories()
+        end
+        generator:Open(runJar)
+
+        Iterator<ClassOpcode> codes = opcodes:GetValueIterator()
+        repeat while codes:HasNext()
+            ClassOpcode code = codes:Next()
+            code:Write()
+
+            File build = code:GetBuildFile()
+            File buildInterface = code:GetBuildInterfaceFile()
+
+            text key = code:GetStaticKey()
+            if build not= undefined
+                generator:Add(build)
+            end
+
+            if buildInterface not= undefined
+                generator:Add(buildInterface)
+            end
+        end
+
+        generator:Close()
+    end
+
+    action WriteStandardPlugins
+        JarGenerator generator
+        text value = GetStandardPluginsManifest(generator)
+        generator:SetManifest(value)
+
+        if pluginJar:Exists()
+            pluginJar:GetParentDirectory():CreateDirectories()
+        end
+        generator:Open(pluginJar)
+        AddCompilerDependencies(generator)
+        AddSoundDependencies(generator)
+        AddGameDependencies(generator)
+        AddLegoDependencies(generator)
+        AddSpeechDependencies(generator)
+
+        generator:Close()
+    end
+
+    private action AddCompilerDependencies(JarGenerator generator)
+        File to
+        to:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/")
+        to:SetPath("org")
+
+        File antlr
+        antlr:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/")
+        antlr:SetPath("org/antlr")
+        AddToJar(generator, antlr, to)
+
+        File abego
+        abego:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/")
+        abego:SetPath("org/abego")
+        AddToJar(generator, abego, to)
+
+        File objectWeb
+        objectWeb:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/")
+        objectWeb:SetPath("org/objectweb")
+        AddToJar(generator, objectWeb, to)
+    end
+
+    private action AddSoundDependencies(JarGenerator generator)
+        File to
+        to:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/sound/")
+        to:SetPath("")
+
+        File soundPlugins
+        soundPlugins:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/sound")
+        soundPlugins:SetPath("plugins")
+        AddToJar(generator, soundPlugins, to)
+    end
+
+    private action AddGameDependencies(JarGenerator generator)
+        File to
+        to:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/game/")
+        to:SetPath("")
+
+        File gamePlugins
+        gamePlugins:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/game/")
+        gamePlugins:SetPath("plugins")
+        AddToJar(generator, gamePlugins, to)
+    end
+
+    private action AddLegoDependencies(JarGenerator generator)
+        File to
+        to:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/robot/")
+        to:SetPath("")
+
+        File robotPlugins
+        robotPlugins:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/robot/")
+        robotPlugins:SetPath("plugins")
+        AddToJar(generator, robotPlugins, to)
+    end
+
+    private action AddSpeechDependencies(JarGenerator generator)
+        File to
+        to:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/")
+        to:SetPath("org")
+
+        File sapi
+        sapi:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/")
+        sapi:SetPath("org/sapi")
+        AddToJar(generator, sapi, to)
+
+        File speech
+        speech:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/")
+        speech:SetPath("org/sodbeans")
+        AddToJar(generator, speech, to)
+    end
+
+    private action AddToJar(JarGenerator generator, File file, File originalLocation)
+        if file:IsDirectory()
+            Array<File> files = file:GetDirectoryListing()
+            Iterator<File> it = files:GetIterator()
+
+            repeat while it:HasNext()
+                File f = it:Next()
+                WritePlugins(generator, f, originalLocation)
+            end
+        else
+            text pluginPath = originalLocation:GetWorkingDirectory()
+            text path = file:GetAbsolutePath()
+            path = path:GetSubtext(pluginPath:GetSize())
+            text wd = file:GetAbsolutePath()
+            wd = wd:GetSubtext(0, pluginPath:GetSize() - 1)
+
+            File f
+            f:SetWorkingDirectory(wd)
+            f:SetPath(path)
+            
+            //TODO: Optimize this to reduce the amount of copying that goes on
+            generator:Add(f)
+        end
+    end
+
+    private action WritePlugins(JarGenerator generator, File file, File originalLocation)
+        if file:IsDirectory()
+            Array<File> files = file:GetDirectoryListing()
+            Iterator<File> it = files:GetIterator()
+
+            repeat while it:HasNext()
+                File f = it:Next()
+                if not f:IsHidden() and not (f:GetFileExtension() = "DS_Store")
+                    WritePlugins(generator, f, originalLocation)
+                end
+            end
+        else
+            text pluginPath = originalLocation:GetWorkingDirectory()
+            text path = file:GetAbsolutePath()
+            path = path:GetSubtext(pluginPath:GetSize())
+            text wd = file:GetAbsolutePath()
+            boolean finished = true
+
+            //if there's a slash at the end of the path, ignore it.
+            if pluginPath:GetCharacter(pluginPath:GetSize() - 1) = "/"
+                wd = wd:GetSubtext(0, pluginPath:GetSize() - 1)
+                finished = false
+            end
+
+            if finished
+                wd = wd:GetSubtext(0, pluginPath:GetSize())
+            end
+
+            File f
+            f:SetWorkingDirectory(wd)
+            f:SetPath(path)
+            generator:Add(f)
+        end
+    end
+
+    private action GetStandardLibraryManifest(JarGenerator jar) returns text
+        text version = jar:GetManifestVersion() + ": 1.0"
+        line = version:GetCarriageReturn() + version:GetLineFeed()
+        version = version + line
+        
+        Compiler compiler
+        text created = "Created-By: " + compiler:GetVersion()
+        created = created + line
+        text main = ""
+
+        //now write any jar dependencies into the manifest
+        text classpath = GetStandardLibraryClasspath()
+        classpath = classpath + line + "  " + STANDARD_PLUGINS_JAR
+
+        total = version + created + classpath + line
+        return total
+    end
+
+    private action GetStandardLibraryClasspath returns text
+        text line = ""
+        line = line:GetCarriageReturn() + line:GetLineFeed()
+        text classpath = "Class-Path: "
+        text libraries = "../Graphics"//JAR_DEPENDENCY_FOLDER
+        boolean isFirst = true
+        File lwjglFolder
+        lwjglFolder:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+        lwjglFolder:SetPath("LWJGL")
+        Array<File> lwjglFiles = lwjglFolder:GetDirectoryListing()
+        integer counter = 0
+        repeat while counter < lwjglFiles:GetSize()
+            File file = lwjglFiles:Get(counter)
+
+            if file:GetFileName() not= ".DS_Store"
+                if isFirst
+                    classpath = classpath + libraries + "/" + file:GetFileName()
+                    isFirst = false
+                else
+                    classpath = classpath + line + "  " + libraries + "/" + file:GetFileName()
+                end
+            end
+
+            counter = counter + 1
+        end
+
+        text robots = "../Robots"
+        File dbus
+        File ev3
+        dbus:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+        dbus:SetPath("dbusjava.jar")
+            classpath = classpath + line + "  " + robots + "/" + dbus:GetFileName()
+
+        ev3:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+        ev3:SetPath("ev3classes.jar")
+        classpath = classpath + line + "  " + robots + "/" + ev3:GetFileName()
+        return classpath
+    end
+
+    private action GetStandardPluginsManifest(JarGenerator jar) returns text
+        text version = jar:GetManifestVersion() + ": 1.0"
+        line = version:GetCarriageReturn() + version:GetLineFeed()
+        version = version + line
+        
+        Compiler compiler
+        text created = "Created-By: " + compiler:GetVersion()
+        created = created + line
+        text main = ""
+
+        //now write any jar dependencies into the manifest
+        text classpath = GetStandardLibraryClasspath()
+        classpath = classpath + line + "  " + STANDARD_LIBRARY_JAR
+
+        total = version + created + classpath + line
+        return total
+    end
+
+    private action CollectQuorumFiles returns Array<File>
+        Array<File> files
+        File standardLibraryFolder = GetLocation()
+        File f1
+        f1:SetWorkingDirectory(standardLibraryFolder:GetWorkingDirectory())
+        f1:SetPath(standardLibraryFolder:GetPath() + "/Libraries")
+        standardLibraryFolder = f1
+
+        Array<File> folders
+        folders:Add(standardLibraryFolder)
+        integer folderIndex = 0
+        done = false
+        repeat while folderIndex < folders:GetSize()
+            File folder = folders:Get(folderIndex)
+            Array<File> listing = folder:GetDirectoryListing()
+            i = 0
+            repeat listing:GetSize() times
+                File file = listing:Get(i)
+                if file:IsDirectory()
+                    folders:Add(file)
+                else
+                    files:Add(file)
+                end
+                i = i + 1
+            end
+            folderIndex = folderIndex + 1
+        end
+
+        return files
+    end
+end

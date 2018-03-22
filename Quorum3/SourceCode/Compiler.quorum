@@ -2,6 +2,7 @@ package Libraries.Language.Compile
 
 use Libraries.System.File
 use Libraries.Language.Compile.Symbol.all
+use Libraries.Language.Compile.Library
 use Libraries.Containers.HashTable
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -33,7 +34,7 @@ use Libraries.Web.Page.HeaderLink
 use Libraries.Web.Page.OrderedList
 
 class Compiler
-    public constant number VERSION = 5.0
+    public constant number VERSION = 6.0
     File main = undefined
     File outputFolder = undefined
     File pluginFolder = undefined
@@ -78,6 +79,16 @@ class Compiler
     constant text PACKAGE = "package"
     HashTable<text, Class> lastGoodCompileHash
     boolean writeJavaScriptToDisk = false
+
+    Library standardLibrary
+
+    action GetStandardLibrary returns Library
+        return standardLibrary
+    end
+
+    action SetStandardLibrary(Library library) 
+        standardLibrary = library
+    end
 
     action IsWritingJavaScriptToDisk returns boolean
         return writeJavaScriptToDisk
@@ -150,68 +161,14 @@ class Compiler
         This action scans the system classes available and parses them appropriately.
     */
     action ScanStandardLibrary
-        Array<File> lib = CollectStandardLibrary()
-        integer i = 0
-        repeat lib:GetSize() times
-            File file = lib:Get(i)
-            Parser listener
-            ParseSandbox(undefined, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
-            i = i + 1
-        end
-
-        TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
-
-        Array<ClassOpcode> classOpcodes
-        if compilerErrorManager:IsCompilationErrorFree()
-            i = 0
-            repeat while i < lib:GetSize()
-                File file = lib:Get(i)
-                QuorumBytecodeListener listener
-                ParseSandbox(undefined, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
-                ClassOpcode op = listener:GetClassOpcode()
-                op:SetBuild(buildFolder)
-                classOpcodes:Add(op)
-                i = i + 1
-            end
-        end
-
-        //the sandbox has been created, so let the compiler know this.
-        hasScannedStandardLibrary = true
-    end
-
-    /*
-        This action collects all files in the standard library and places them 
-        into an array for indexing or other purposes.
-    */
-    private action CollectStandardLibrary returns Array<File>
-        Array<File> files
+        Library library
         File standardLibraryFolder = GetStandardLibraryFolder()
-        File f1
-        f1:SetWorkingDirectory(standardLibraryFolder:GetWorkingDirectory())
-        f1:SetPath(standardLibraryFolder:GetPath() + "/Libraries")
-        standardLibraryFolder = f1
+        output standardLibraryFolder:GetAbsolutePath()
 
-        Array<File> folders
-        folders:Add(standardLibraryFolder)
-        integer folderIndex = 0
-        done = false
-        repeat while folderIndex < folders:GetSize()
-            File folder = folders:Get(folderIndex)
-            Array<File> listing = folder:GetDirectoryListing()
-            i = 0
-            repeat listing:GetSize() times
-                File file = listing:Get(i)
-                if file:IsDirectory()
-                    folders:Add(file)
-                else
-                    files:Add(file)
-                end
-                i = i + 1
-            end
-            folderIndex = folderIndex + 1
-        end
 
-        return files
+        library:SetLocation(standardLibraryFolder)
+        library:Scan()
+        standardLibrary = library
     end
 
     /*
@@ -1102,17 +1059,6 @@ class Compiler
         end
     end
 
-
-    private action IsWhiteSpace(text value) returns boolean
-        i = 0
-        repeat while i < value:GetSize()
-            text val = value:GetCharacter(i)
-
-            return true
-        end
-
-        return true
-    end
     /*
         This action compiles the array of files to Java Bytecode, which
         it writes to disk. By default, it generates a .jar file into the 
@@ -1153,7 +1099,7 @@ class Compiler
         end
 
         if hasScannedStandardLibrary
-            symbolTable:SetStandardLibraryCache(sandboxSymbolTable)
+            symbolTable:SetStandardLibraryCache(standardLibrary:GetSymbolTable())
         end
 
         i = 0
