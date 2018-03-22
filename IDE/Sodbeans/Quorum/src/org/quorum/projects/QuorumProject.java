@@ -108,6 +108,7 @@ public class QuorumProject implements Project {
     private MainFileProvider mainFileProvider = new MainFileProvider(this);
     private quorum.Libraries.Language.Compile.CompilerResult_ sandboxResult = null;
     private ArrayList<quorum.Libraries.System.File> extraSourceFiles = new ArrayList<quorum.Libraries.System.File>();
+    private static quorum.Libraries.Language.Compile.Library_ quorumStandardLibrary = null;
     
     public QuorumProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
@@ -139,7 +140,14 @@ public class QuorumProject implements Project {
         run = new Run(this);
         
         //now index the standard library
-        compiler.ScanStandardLibrary();
+        //ask the compiler for a copy of its standard library
+        //if it's not been scanned, scan it. Otherwise, use a pre-scanned one.
+        if(quorumStandardLibrary == null) {
+            compiler.ScanStandardLibrary();
+            quorumStandardLibrary = compiler.GetStandardLibrary();
+        } else {
+            compiler.SetStandardLibrary(quorumStandardLibrary);
+        }
     }
 
     public QuorumProjectType getProjectType() {
