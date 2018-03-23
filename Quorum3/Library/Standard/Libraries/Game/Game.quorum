@@ -47,6 +47,13 @@ use Libraries.Game.Behaviors.TextBoxInsertBehavior
 use Libraries.Game.Behaviors.CancelBehavior
 use Libraries.Game.Behaviors.GraphicUserInterfaces.ClickDownBehavior
 use Libraries.Game.Behaviors.GraphicUserInterfaces.ClickUpBehavior
+use Libraries.Game.Behaviors.GraphicUserInterfaces.MouseOnBehavior
+use Libraries.Game.Behaviors.GraphicUserInterfaces.MouseOffBehavior
+use Libraries.Game.Behaviors.MenuBarDownBehavior
+use Libraries.Game.Behaviors.MenuBarLeftBehavior
+use Libraries.Game.Behaviors.MenuBarRightBehavior
+use Libraries.Game.Behaviors.MenuBarRunBehavior
+use Libraries.Game.Behaviors.MenuBarUpBehavior
 use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -351,7 +358,50 @@ class Game
         ClickUpBehavior upBehavior
         buttonTable:Add(clickUp, upBehavior)
 
+        InputSet mouseOn
+        mouseOn:SetInputType(mouseOn:MOUSE_MOVEMENT_INPUT)
+        mouseOn:SetInputTrigger(mouseOn:BEGIN)
+        MouseOnBehavior onBehavior
+        buttonTable:Add(mouseOn, onBehavior)
+
+        InputSet mouseOff
+        mouseOff:SetInputType(mouseOff:MOUSE_MOVEMENT_INPUT)
+        mouseOff:SetInputTrigger(mouseOff:FINISH)
+        MouseOffBehavior offBehavior
+        buttonTable:Add(mouseOff, offBehavior)
+
         gameInput:AddInputTable(buttonTable)
+
+        InputTable menuItemTable
+        menuItemTable:SetIdentifier("MenuItem")
+
+        menuItemTable:Add(clickDown, downBehavior)
+        menuItemTable:Add(clickUp, upBehavior)
+        menuItemTable:Add(mouseOn, onBehavior)
+
+        gameInput:AddInputTable(menuItemTable)
+
+        InputTable menuBarTable
+        menuBarTable:SetIdentifier("MenuBar")
+
+        MenuBarDownBehavior menuDownBehavior
+        MenuBarUpBehavior menuUpBehavior
+        MenuBarLeftBehavior menuLeftBehavior
+        MenuBarRightBehavior menuRightBehavior
+        MenuBarRunBehavior menuRunBehavior
+
+        menuBarTable:Add(downArrow, menuDownBehavior)
+        menuBarTable:Add(upArrow, menuUpBehavior)
+        menuBarTable:Add(leftArrow, menuLeftBehavior)
+        menuBarTable:Add(rightArrow, menuRightBehavior)
+
+        InputSet spaceBar
+        spaceBar:SetKeyboardInput(keys:SPACE)
+
+        menuBarTable:Add(spaceBar, menuRunBehavior)
+        menuBarTable:Add(enter, menuRunBehavior)
+
+        gameInput:AddInputTable(menuBarTable)
     end
 
     /*
