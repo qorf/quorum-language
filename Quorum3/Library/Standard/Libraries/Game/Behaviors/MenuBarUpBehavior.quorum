@@ -1,0 +1,14 @@
+package Libraries.Game.Behaviors
+
+use Libraries.Game.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.MenuBar
+
+class MenuBarUpBehavior is Behavior
+    action Run(BehaviorEvent event)
+        if event:GetItem() is MenuBar
+            MenuBar bar = cast(MenuBar, event:GetItem())
+            bar:MoveSelectionUp()
+        end
+    end
+end

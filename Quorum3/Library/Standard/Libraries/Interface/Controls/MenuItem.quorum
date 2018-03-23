@@ -1,0 +1,619 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.GraphicUserInterface
+use Libraries.Interface.GraphicUserInterfaceContent
+use Libraries.Interface.VisualContent2D
+use Libraries.Containers.Array
+use Libraries.Interface.LabelBoxContent
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Gradient
+use Libraries.Game.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Selectable
+use Libraries.Interface.Selection
+use Libraries.Containers.Support.Pair
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.VerticalMenuLayout
+use Libraries.Interface.Controls.GraphicUserInterfaceSelection
+
+class MenuItem is GraphicUserInterface, Selectable
+    
+    /*
+    A panel which contains all of the submenu options for this MenuItem, if this
+    MenuItem is a menu.
+    */
+    Item2D panel
+    Layout panelLayout = undefined
+
+    MenuItem parentMenu = undefined
+
+    public constant integer LEFT = 0
+    public constant integer RIGHT = 1
+    public constant integer DOWN = 2
+    public constant integer UP = 3
+
+    // The default appearance of MenuItems which are elements of this menu.
+    GraphicUserInterfaceContent submenuContent = undefined
+
+    // The default appearance of menu panels for this MenuItem and any submenus.
+    VisualContent2D panelContent = undefined
+
+    text shortcut = ""
+    boolean open = false
+    integer selectionIndex = 0
+
+    Behavior activationBehavior = undefined
+
+    on create
+        SetInputGroup("MenuItem")
+        panel:SetName("Menu Panel")
+    end
+
+    action Initialize(text name)
+        SetName(name)
+        InitializePanel()
+    end
+
+    action Initialize(text name, text shortcut)
+        SetName(name)
+        SetShortcut(shortcut)
+        InitializePanel()
+    end
+
+    action Initialize(text name, Array<MenuItem> items)
+        Initialize(name)
+        InitializePanel()
+
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            AddMenuItem(items:Get(counter))
+            counter = counter + 1
+        end
+
+        InitializeMenuAppearance()
+    end
+
+    private action InitializePanel
+        panel:SetName(GetName() + " Menu Panel")
+
+        Color color
+
+        LabelBoxContent content
+        content:SetBorderThickness(1)
+
+        content:Initialize(color:CustomColor(0.9, 0.9, 0.9, 1), color:Black())
+        panelContent = content
+
+        VerticalMenuLayout layout
+        panelLayout = layout
+        panel:AddLayout(layout)
+        panel:SetVisualContent(panelContent)
+    end
+
+    private action InitializeMenuAppearance
+        MenuBar bar = GetMenuBar()
+        MenuItemContent menuContent = undefined
+        if bar not= undefined
+            menuContent = bar:GetDefaultMenuItemView()
+        end
+
+        SetMenuAppearance(menuContent)
+    end
+
+    action AddMenuItem(MenuItem item)
+
+        MenuBar bar = GetMenuBar()
+        MenuItemContent menuContent = undefined
+        if bar not= undefined
+            menuContent = bar:GetDefaultMenuItemView()
+        end
+
+        if menuContent not= undefined
+            MenuItemContent copy = cast(MenuItemContent, menuContent:Copy())
+            item:SetAppearance(copy)
+        end
+
+        if panel:GetChildren():IsEmpty() and GetParentMenu() not= undefined
+            if GetVisualContent() is MenuItemContent
+                MenuItemContent content = cast(MenuItemContent, GetVisualContent())
+                content:EnableMenuArrow(true)
+                SetSize(content:GetContentWidth(), content:GetContentHeight())
+                GetParentMenu():Resize()
+            end
+        end
+
+        item:SetParentMenu(me)
+        panel:Add(item)
+    end
+
+    action RemoveMenuItem(MenuItem item)
+        panel:Remove(item)
+    end
+
+    action SetMenuDirection(integer direction)
+        if panelLayout = undefined
+            VerticalMenuLayout layout
+            panelLayout = layout
+        end
+
+        if direction = LEFT
+            panelLayout:SetPercentageOriginX(1)
+            panelLayout:SetPercentageX(0)
+            panelLayout:SetPercentageY(1)
+        elseif direction = RIGHT
+            panelLayout:SetPercentageOriginX(0)
+            panelLayout:SetPercentageX(1)
+            panelLayout:SetPercentageY(1)
+        elseif direction = DOWN
+            // TO-DO
+        elseif direction = UP
+            // TO-DO
+        end
+    end
+
+    action Open
+        if not open and (not panel:GetChildren():IsEmpty())
+            open = true
+            Add(panel)
+            panel:Resize()
+        end
+    end
+
+    action Close
+        if open
+            integer counter = 0
+            Array<Item2D> children = panel:GetChildren()
+
+            repeat while counter < children:GetSize()
+                Item2D item = children:Get(counter)
+                if item is MenuItem
+                    MenuItem menuItem = cast(MenuItem, item)
+                    menuItem:Close()
+                end
+
+                counter = counter +  1
+            end
+
+            open = false
+            Remove(panel)
+        end
+        LostSelection()
+        selectionIndex = 0
+    end
+
+    action SetShortcut(text shortcut)
+        me:shortcut = shortcut
+    end
+    
+    action GetShortcut returns text
+        return shortcut
+    end
+
+    action SetAppearance(MenuItemContent content)
+        content:SetText(GetName())
+        content:SetShortcut(GetShortcut())
+        if not (panel:GetChildren():IsEmpty()) and GetParentMenu() not= undefined
+            content:EnableMenuArrow(true)
+            GetParentMenu():Resize()
+        else
+            content:EnableMenuArrow(false)
+        end
+
+        SetVisualContent(content)
+        SetSize(content:GetContentWidth(), content:GetContentHeight())
+    end
+
+    action SetMenuAppearance(MenuItemContent menuContent)
+
+        if menuContent = undefined
+            return now
+        end
+
+        Array<Item2D> items = panel:GetChildren()
+
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            Item2D i = items:Get(counter)
+            
+            if i is MenuItem
+                MenuItem item = cast(MenuItem, i)
+                MenuItemContent copy = cast(MenuItemContent, menuContent:Copy())
+                item:SetAppearance(copy)
+            end
+            counter = counter + 1
+        end
+    end
+
+    action GetMenuBar returns MenuBar
+        Item2D item = me
+        repeat while item not= undefined and not (item is MenuBar)
+            if item is MenuItem
+                MenuItem menuItem = cast(MenuItem, item)
+                if menuItem:GetParentMenu() not= undefined
+                    item = menuItem:GetParentMenu()
+                else
+                    item = item:GetParent()
+                end
+            else
+                item = item:GetParent()
+            end
+        end
+
+        // The returned value is either a MenuBar or undefined.
+        return cast(MenuBar, item)
+    end
+
+    action GetParentMenu returns MenuItem
+        return parentMenu
+    end
+
+    action SetParentMenu(MenuItem menu)
+        parentMenu = menu
+    end
+
+    action SetBehavior(Behavior behavior)
+        activationBehavior = behavior
+    end
+
+    action GetBehavior returns Behavior
+        return activationBehavior
+    end
+
+    action RunBehavior
+        BehaviorEvent event
+        event:SetItem(me)
+        RunBehavior(event)
+    end
+
+    action RunBehavior(BehaviorEvent event)
+        if activationBehavior not= undefined
+            activationBehavior:Run(event)
+        end
+    end
+
+    action ClickedMouse
+        parent:GraphicUserInterface:ClickedMouse()
+
+        MenuBar bar = GetMenuBar()
+        if bar not= undefined
+            if bar:IsSelecting()
+                RunBehavior()
+                MenuBar menuBar = GetMenuBar()
+                if menuBar not= undefined
+                    menuBar:Close()
+                end
+            else
+                SelectIndex(0)
+            end
+        else
+            RunBehavior()
+        end
+    end
+
+    action BeginMouseOver
+        MenuBar bar = GetMenuBar()
+        if bar not= undefined and bar:IsSelecting()
+            SelectIndex(0)
+        end
+    end
+
+    action GainedSelection
+        parent:GraphicUserInterface:GainedSelection()
+        MenuBar menuBar = GetMenuBar()
+        if menuBar not= undefined
+            menuBar:SetSelectingState(true)
+        end
+        if not open
+            Open()
+        end
+        MenuItem parentMenu = GetParentMenu()
+        if parentMenu not= undefined
+            parentMenu:UpdateSelection(me)
+            parentMenu:GainedSelection()
+        end
+    end
+
+    action LostSelection
+        parent:GraphicUserInterface:LostSelection()
+        if open
+            Close()
+        end
+    end
+
+    action SelectIndex(integer index)
+        DeselectIndex(selectionIndex)
+
+        selectionIndex = index
+        UpdateParentSelection()
+
+        parent:Selectable:SelectIndex(index)
+        Selection selection = GetSingleSelection(index)
+        if selection is GraphicUserInterfaceSelection
+            GraphicUserInterfaceSelection guiSelection = cast(GraphicUserInterfaceSelection, selection)
+            if guiSelection:GetElement() is MenuItem
+                MenuItem item = cast(MenuItem, guiSelection:GetElement())
+                item:GainedSelection()
+            end
+        end
+    end
+
+    action DeselectIndex(integer index)
+        parent:Selectable:DeselectIndex(index)
+
+        Selection selection = GetSingleSelection(index)
+        if selection is GraphicUserInterfaceSelection
+            GraphicUserInterfaceSelection guiSelection = cast(GraphicUserInterfaceSelection, selection)
+            if guiSelection:GetElement() is MenuItem
+                MenuItem item = cast(MenuItem, guiSelection:GetElement())
+                item:LostSelection()
+            end
+        end
+    end
+
+    action GetIconWidth returns number
+        if GetVisualContent() is MenuItemContent
+            MenuItemContent content = cast(MenuItemContent, GetVisualContent())
+            return content:GetIconWidth()
+        else
+            return 0
+        end
+    end
+
+    action GetNameWidth returns number
+        if GetVisualContent() is MenuItemContent
+            MenuItemContent content = cast(MenuItemContent, GetVisualContent())
+            return content:GetNameWidth()
+        else
+            return 0
+        end
+    end
+
+    action GetShortcutWidth returns number
+        if GetVisualContent() is MenuItemContent
+            MenuItemContent content = cast(MenuItemContent, GetVisualContent())
+            return content:GetShortcutWidth()
+        else
+            return 0
+        end
+    end
+
+    action GetSubmenuIconWidth returns number
+        if GetVisualContent() is MenuItemContent
+            MenuItemContent content = cast(MenuItemContent, GetVisualContent())
+            return content:GetSubmenuIconWidth()
+        else
+            return 0
+        end
+    end
+
+    action GetSingleSelection(integer index) returns Selection
+        Array<Item2D> items = panel:GetChildren()
+        if index = 0
+            GraphicUserInterfaceSelection selection
+            selection:SetElement(me)
+            selection:SetDisplayName(GetName())
+            return selection
+        else
+            integer i = index - 1
+            integer counter = 0
+            repeat while counter < items:GetSize()
+                Item2D item = items:Get(counter)
+                if item is MenuItem
+                    MenuItem menuItem = cast(MenuItem, item)
+                    if i < menuItem:GetSelectableSize()
+                        Selection selection = menuItem:GetSingleSelection(i)
+                        return selection
+                    else
+                        i = i - menuItem:GetSelectableSize()
+                    end
+                else
+                    if i = 0
+                        Selection selection
+                        selection:SetDisplayName(item:GetName())
+                        return selection
+                    else
+                        i = i - 1
+                    end
+                end
+
+                counter = counter + 1
+            end
+
+            return undefined
+        end
+        
+    end
+
+    action GetRangeSelection(Pair<integer> range) returns Array<Selection>
+        Array<Selection> array
+        integer index = range:GetLeastValue()
+        Selection selection = GetSingleSelection(index)
+        array:Add(selection)
+        return array
+    end
+
+    action GetMultipleSelection(Array<Pair<integer>> ranges) returns Array<Selection>
+        Array<Selection> array
+        
+        if ranges:IsEmpty()
+            Selection selection
+            selection:SetDisplayName(GetName())
+            array:Add(selection)
+            return array
+        end
+
+        integer index = ranges:Get(0):GetLeastValue()
+        Selection selection = GetSingleSelection(index)
+        array:Add(selection)
+        return array
+    end
+
+    action GetSelectableSize returns integer
+        integer counter = 0
+        Array<Item2D> children = panel:GetChildren()
+        integer size = 0
+        repeat while counter < children:GetSize()
+            if children:Get(counter) is MenuItem
+                MenuItem item = cast(MenuItem, children:Get(counter))
+                size = size + item:GetSelectableSize()
+            end
+            counter = counter + 1
+        end
+
+        return size + 1
+    end
+
+    action GetCurrentSelection returns Array<Selection>
+        Selection selection = GetSingleSelection(selectionIndex)
+        Array<Selection> array
+        array:Add(selection)
+        return array
+    end
+
+    action GetSelectionIndex returns integer
+        return selectionIndex
+    end
+
+    action SetSelection(integer index)
+        if index = selectionIndex
+            return now
+        end
+
+        DeselectIndex(selectionIndex)
+        selectionIndex = index
+        SelectIndex(selectionIndex)
+    end
+
+    private action UpdateParentSelection
+        MenuItem menu = GetParentMenu()
+        MenuItem toUpdate = me
+        repeat while menu not= undefined
+            menu:UpdateSelection(toUpdate)
+            toUpdate = menu
+            menu = menu:GetParentMenu()
+        end
+
+        MenuBar bar = GetMenuBar()
+        if bar not= undefined
+            bar:UpdateSelection(toUpdate)
+        end
+    end
+
+    private action UpdateSelection(MenuItem newSelection)
+        if newSelection = me
+            selectionIndex = 0
+        else
+            Array<Item2D> items = panel:GetChildren()
+            integer counter = 0
+            integer newIndex = 1
+            repeat while counter < items:GetSize()
+                Item2D item = items:Get(counter)
+                if item:Equals(newSelection)
+                    MenuItem menuItem = cast(MenuItem, item)
+                    selectionIndex = newIndex + newSelection:GetSelectionIndex()
+                elseif item is MenuItem
+                    MenuItem menuItem = cast(MenuItem, item)
+                    // Deselect any previously selected menus if they're not
+                    // providing the current selection.
+                    menuItem:LostSelection()
+                    newIndex = newIndex + menuItem:GetSelectableSize()
+                else
+                    newIndex = newIndex + 1
+                end
+                counter = counter + 1
+            end
+        end
+    end
+
+    private action Deselect
+        DeselectIndex(selectionIndex)
+        selectionIndex = 0
+    end
+
+    action IsMenu returns boolean
+        return not panel:GetChildren():IsEmpty()
+    end
+
+    action MenuSelectionDown
+
+        integer i = selectionIndex - 1
+        integer counter = 0
+        Array<Item2D> items = panel:GetChildren()
+
+        if selectionIndex = 0
+            if not items:IsEmpty() and items:Get(0) is MenuItem
+                MenuItem menuItem = cast(MenuItem, items:Get(0))
+                menuItem:SelectIndex(0)
+            end
+            return now
+        end
+
+        repeat while counter < items:GetSize()
+            Item2D item = items:Get(counter)
+            if item is MenuItem
+                MenuItem menuItem = cast(MenuItem, item)
+                if i < menuItem:GetSelectableSize()
+                    if menuItem:IsMenu() and i not= 0
+                        menuItem:MenuSelectionDown()
+                    else
+                        if (counter + 1 < items:GetSize()) and (items:Get(counter + 1) is MenuItem)
+                            MenuItem newSelection = cast(MenuItem, items:Get(counter + 1))
+                            newSelection:SelectIndex(0)
+                        end
+                    end
+                    return now
+                else
+                    i = i - menuItem:GetSelectableSize()
+                end
+            else
+                if i = 0
+                    return now
+                else
+                    i = i - 1
+                end
+            end
+
+            counter = counter + 1
+        end
+    end
+
+    action MenuSelectionUp
+
+        integer i = selectionIndex - 1
+        integer counter = 0
+        Array<Item2D> items = panel:GetChildren()
+
+        if selectionIndex = 0
+            return now
+        end
+
+        repeat while counter < items:GetSize()
+            Item2D item = items:Get(counter)
+            if item is MenuItem
+                MenuItem menuItem = cast(MenuItem, item)
+                if i < menuItem:GetSelectableSize()
+                    if menuItem:IsMenu() and i not= 0
+                        menuItem:MenuSelectionUp()
+                    else
+                        if (counter - 1 >= 0) and (items:Get(counter - 1) is MenuItem)
+                            MenuItem newSelection = cast(MenuItem, items:Get(counter - 1))
+                            newSelection:SelectIndex(0)
+                        end
+                    end
+                    return now
+                else
+                    i = i - menuItem:GetSelectableSize()
+                end
+            else
+                if i = 0
+                    return now
+                else
+                    i = i - 1
+                end
+            end
+
+            counter = counter + 1
+        end
+    end
+end

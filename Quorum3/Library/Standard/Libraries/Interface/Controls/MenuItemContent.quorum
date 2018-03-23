@@ -1,0 +1,31 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.GraphicUserInterfaceContent
+
+class MenuItemContent is GraphicUserInterfaceContent
+    
+    blueprint action Initialize(text name)
+
+    blueprint action Initialize(text name, text shortcut)
+
+    blueprint action SetShortcut(text shortcut)
+
+    blueprint action GetShortcut returns text
+
+    blueprint action GetContentWidth returns number
+
+    blueprint action GetContentHeight returns number
+
+    blueprint action GetIconWidth returns number
+
+    blueprint action GetNameWidth returns number
+
+    blueprint action GetShortcutWidth returns number
+
+    blueprint action GetSubmenuIconWidth returns number
+
+    blueprint action EnableMenuArrow(boolean enable)
+
+    blueprint action PadWidth(number iconWidth, number nameWidth, number shortcutWidth, number submenuIconWidth)
+
+end
