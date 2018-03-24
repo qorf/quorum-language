@@ -5,6 +5,8 @@ use Libraries.Containers.Array
 
 class FlowLayout is Layout
     
+    boolean wrapping = true
+
     action Layout(Item2D item)
         number x = 0
         number y = 0
@@ -15,7 +17,7 @@ class FlowLayout is Layout
         repeat while i < kids:GetSize()
             Item2D kid = kids:Get(i)
 
-            if x + kid:GetWidth() > item:GetWidth()
+            if x + kid:GetWidth() > item:GetWidth() and wrapping
                 y = y - tallestHeight
                 x = 0
                 tallestHeight = 0
@@ -30,9 +32,21 @@ class FlowLayout is Layout
             i = i + 1
         end
 
+        if not wrapping
+            item:SetWidth(x)
+        end
+        
         number oldHeight = item:GetHeight()
         item:SetHeight(tallestHeight - y)
         item:MoveY(oldHeight - (tallestHeight - y))
+    end
+
+    action EnableWrapping(boolean wrap)
+        wrapping = wrap
+    end
+
+    action WrappingEnabled returns boolean
+        return wrapping
     end
 
 end
