@@ -67,6 +67,7 @@ HWND TextBoxControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHA
 		// TODO: Debug. Remove this section
 		PCWSTR sampleText;
 		sampleText = L"Create method entered.";
+		sampleText = L"Create method WAS entered.";
 
 		TextLine* textline = control->GetLine(0);
 		std::wcout << "WCOUT: " << sampleText << std::endl;
@@ -128,6 +129,15 @@ TextLine * TextBoxControl::GetLine(_In_ int line)
 		return NULL;
 	}
 	return &lines[line];
+}
+
+void TextBoxControl::SetLineText(_In_ int line, _In_ PCWSTR newText)
+{
+	if (line >= 0 || line < lineCount)
+	{
+		lines[line].text = newText;
+	}
+	
 }
 
 int TextBoxControl::GetLineLength(_In_ int line)
@@ -200,8 +210,10 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIB
 	}
 	else if (attribute == UIA_IsReadOnlyAttributeId)
 	{
+		// TODO: This should change depending on if the text from quorum is read-only.
 		retval.vt = VT_BOOL;
-		retval.boolVal = VARIANT_TRUE;
+		retval.boolVal = VARIANT_FALSE;
+		//retval.boolVal = VARIANT_TRUE;
 	}
 	else if (attribute == UIA_IsSubscriptAttributeId)
 	{
@@ -480,9 +492,14 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	{
 		// TODO: Debug. Remove this section
 		PCWSTR sampleText = L"CUSTOM_UPDATECARET message being responded to.";
-
-		TextLine* textline = this->GetLine(0);
 		std::wcout << "WCOUT: " << sampleText << std::endl;
+		PCWSTR hello = L"Hello World!";
+		std::cout << "calling SetLineText" << std::endl;
+		//this->SetLineText(0, hello);
+		TextLine line[] = { { L"Hello world!" } };
+		this->lines = line;
+		std::cout << "calling GetLine" << std::endl;
+		TextLine* textline = this->GetLine(0);
 		std::wcout << "Textline->Text: " << textline->text << std::endl;
 		std::cout << "Size of the text line: " << this->GetLineLength(0) << std::endl;
 		fflush(stdout);

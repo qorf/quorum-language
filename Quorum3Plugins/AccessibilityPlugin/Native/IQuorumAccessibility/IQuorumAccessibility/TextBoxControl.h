@@ -76,6 +76,7 @@ class TextBoxControl
 		static HWND Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, TextLine lines[], _In_ EndPoint caret);
 
 		TextLine* GetLine(_In_ int line);
+		void SetLineText(_In_ int line, _In_ PCWSTR newText);
 		int GetLineLength(_In_ int line);
 		int GetLineCount();
 		EndPoint GetEndOfText();

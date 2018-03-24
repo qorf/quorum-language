@@ -13,18 +13,18 @@ void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 	if (eventControl != NULL)
 	{
 		// TODO: Debug. Remove this section
-		/*PCWSTR sampleText;
+		PCWSTR sampleText;
 		sampleText = L"NotifyCaretPositionChanged method entered.";
 
 		TextLine* textline = control->GetLine(0);
 		std::wcout << "WCOUT: " << sampleText << std::endl;
-		std::wcout << "Textline->Text: " << textline->text[0] << std::endl;
+		std::wcout << "Textline->Text: " << textline->text << std::endl;
 		std::cout << "Size of the text line: " << control->GetLineLength(0) << std::endl;
-		fflush(stdout);*/
+		fflush(stdout);
 		//=====
 
-		UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
 		UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
+		UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
 		eventControl->Release();
 	}
 	else
@@ -105,12 +105,22 @@ IFACEMETHODIMP TextBoxTextAreaProvider::QueryInterface(_In_ REFIID riid, _Outptr
 
 IFACEMETHODIMP TextBoxTextAreaProvider::get_ProviderOptions(_Out_ ProviderOptions *pRetVal)
 {
-	*pRetVal = ProviderOptions_ServerSideProvider /*| ProviderOptions_UseComThreading*/;
+	if (!IsWindow(m_TextBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
 	return S_OK;
 }
 
 IFACEMETHODIMP TextBoxTextAreaProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown ** pRetVal)
 {
+	if (!IsWindow(m_TextBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	*pRetVal = NULL;
 
 	if (patternId == UIA_TextPatternId)
@@ -124,25 +134,29 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPatternProvider(PATTERNID patternId, 
 
 IFACEMETHODIMP TextBoxTextAreaProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT * pRetVal)
 {
-	
+	if (!IsWindow(m_TextBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"Text Box");
+		pRetVal->bstrVal = SysAllocString(L"AreaProvider");
 	}
 	else if (propertyId == UIA_AutomationIdPropertyId)
 	{
-		pRetVal->bstrVal = SysAllocString(L"Text Box");
+		pRetVal->bstrVal = SysAllocString(L"AreaProvider");
 		if (pRetVal->bstrVal != NULL)
 		{
 			pRetVal->vt = VT_BSTR;
 		}
 	}
-	else if (propertyId == UIA_HelpTextPropertyId)
+	/*else if (propertyId == UIA_HelpTextPropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(L" What do you want from me?");
-	}
+	}*/
 	else if (propertyId == UIA_NamePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
@@ -216,6 +230,10 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPropertyValue(PROPERTYID propertyId, 
 
 IFACEMETHODIMP TextBoxTextAreaProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
+	if (!IsWindow(m_TextBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
 
 	*pRetVal = NULL;
 	return S_OK;
@@ -225,6 +243,11 @@ IFACEMETHODIMP TextBoxTextAreaProvider::get_HostRawElementProvider(_Outptr_resul
 
 IFACEMETHODIMP TextBoxTextAreaProvider::Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal)
 {
+	if (!IsWindow(m_TextBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	*pRetVal = NULL;
 
 	HRESULT hr = S_OK;
@@ -243,6 +266,11 @@ IFACEMETHODIMP TextBoxTextAreaProvider::Navigate(NavigateDirection direction, _O
 
 IFACEMETHODIMP TextBoxTextAreaProvider::GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
 {
+	if (!IsWindow(m_TextBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	// AppendRuntimeId is a magic Number that tells UIAutomation to Append its own Runtime ID(From the HWND)
 	int rId[] = { UiaAppendRuntimeId, -1 };
 
@@ -258,23 +286,43 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetRuntimeId(_Outptr_result_maybenull_ S
 
 IFACEMETHODIMP TextBoxTextAreaProvider::get_BoundingRectangle(_Out_ UiaRect * pRetVal)
 {
-	
+	if (!IsWindow(m_TextBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	UNREFERENCED_PARAMETER(pRetVal);
 	return S_OK;
 }
 
 IFACEMETHODIMP TextBoxTextAreaProvider::GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
 {
+	if (!IsWindow(m_TextBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	*pRetVal = NULL;
 	return S_OK;
 }
 
 IFACEMETHODIMP TextBoxTextAreaProvider::SetFocus()
 {
+	if (!IsWindow(m_TextBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	return S_OK;
 }
 
 IFACEMETHODIMP TextBoxTextAreaProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal)
 {
+	if (!IsWindow(m_TextBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	*pRetVal = new TextBoxProvider(m_TextBoxControlHWND, m_pTextBoxControl);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 }
@@ -338,6 +386,11 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetSelection(_Outptr_result_maybenull_ S
 // GetVisibleRanges: Retrieves an array of disjoint text ranges from a text-based control where each text range represents a contiguous span of visible text.
 IFACEMETHODIMP TextBoxTextAreaProvider::GetVisibleRanges(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
 {
+	if (!IsWindow(m_TextBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	// Not Implemented yet.
 	*pRetVal = NULL;
 	return S_OK;
@@ -360,16 +413,50 @@ IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromChild(_In_opt_ IRawElementProvi
 // RangeFromPoint: Returns the degenerate (empty) text range nearest to the specified screen coordinates.
 IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromPoint(UiaPoint point, _Outptr_result_maybenull_ ITextRangeProvider ** pRetVal)
 {
+	if (!IsWindow(m_TextBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	/*
+		This implementation will always report the closest range from a given screen coordinate point is just after the
+		first character on the first line of text. This will stop narrator from saying "No item in view" instead of
+		the textbox's actual name. However, this comes with the trade off that a mouse click at any arbitrary location
+		within the textbox won't ever result in the character to the right of the caret being read aloud.
+
+		If we wanted to get rid of that trade off then that'd be a fairly tricky implementation because we'd need to solve
+		the problem that this function is supposed to solve in Quorum, pass that down along with a mouse click event, and then
+		this function would look for it in the textbox control down here instead of solving the problem itself.
+	*/
+	UNREFERENCED_PARAMETER(point);
+	Range closestRange = { { 0, 1 },{ 0, 1 } };
+	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, closestRange);
+	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
+
 	// Not Implemented yet.
-	*pRetVal = NULL;
-	return S_OK;
+	/**pRetVal = NULL;
+	return S_OK;*/
 }
 
 // get_DocumentRange: Retrieves a text range that encloses the main text of a document.
+//		NOTE: When this function is implemented it is the reason that a screen reader will automatically
+//			  read all text contained within the textbox. 
 IFACEMETHODIMP TextBoxTextAreaProvider::get_DocumentRange(_Outptr_result_maybenull_ ITextRangeProvider ** pRetVal)
 {
+	if (!IsWindow(m_TextBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+	// Get the full text range that encompasses the document. From the first character on the first line
+	// all the way to the last character on the last line.
+	Range fullDocumentRange = { { 0, 0 }, m_pTextBoxControl->GetEndOfText() };
+	
+	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, fullDocumentRange);
+	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
+
 	// Not Implemented yet.
-	*pRetVal = NULL;
-	return S_OK;
+	/**pRetVal = NULL;
+	return S_OK;*/
 }
 

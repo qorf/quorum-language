@@ -108,11 +108,11 @@ IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 			pRetVal->vt = VT_BSTR;
 		}
 	}
-	else if (propertyId == UIA_NamePropertyId)
+	/*else if (propertyId == UIA_NamePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(L"TextBox Provider");
-	}
+	}*/
 	else if (propertyId == UIA_IsControlElementPropertyId)
 	{
 		pRetVal->vt = VT_BOOL;

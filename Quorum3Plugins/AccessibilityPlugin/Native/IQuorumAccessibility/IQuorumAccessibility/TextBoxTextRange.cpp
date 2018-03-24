@@ -306,103 +306,108 @@ IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVa
 
 	
 	// This is the text that will be read by the screen reader.
-	PWSTR outputText;
-	int outputTextSize;
+	//PWSTR outputText;
+	//int outputTextSize;
 
-	if (maxLength >= 0)
-	{
-		outputTextSize = maxLength + 1;
-	}
-	else
-	{
-		outputTextSize = 0;
-		EndPoint current = m_range.begin;
+	//if (maxLength >= 0)
+	//{
+	//	outputTextSize = maxLength + 1;
+	//}
+	//else
+	//{
+	//	outputTextSize = 0;
+	//	EndPoint current = m_range.begin;
 
-		while (CompareEndpointPair(current, m_range.end) < 0)
-		{
-			if (current.line < m_range.end.line)
-			{
-				int length = m_pTextBoxControl->GetLineLength(current.line);
-				// Add 1 for the implied newline
-				outputTextSize += length - current.character + 1;
-				current.line++;
-				current.character = 0;
-			}
-			else
-			{
-				outputTextSize += m_range.end.character - current.character;
-				current.character = m_range.end.character;
-			}
-		}
-	}
+	//	while (CompareEndpointPair(current, m_range.end) < 0)
+	//	{
+	//		if (current.line < m_range.end.line)
+	//		{
+	//			int length = m_pTextBoxControl->GetLineLength(current.line);
+	//			// Add 1 for the implied newline
+	//			outputTextSize += length - current.character + 1;
+	//			current.line++;
+	//			current.character = 0;
+	//		}
+	//		else
+	//		{
+	//			outputTextSize += m_range.end.character - current.character;
+	//			current.character = m_range.end.character;
+	//		}
+	//	}
+	//}
 
-	outputText = new WCHAR[outputTextSize];
+	//outputText = new WCHAR[outputTextSize];
 
-	if (outputText != NULL)
-	{
-		int characterWritePosition = 0;
-		EndPoint currentEndPoint = m_range.begin;
+	//if (outputText != NULL)
+	//{
+	//	int characterWritePosition = 0;
+	//	EndPoint currentEndPoint = m_range.begin;
 
-		while (CompareEndpointPair(currentEndPoint, m_range.end) < 0 && characterWritePosition < (outputTextSize - 1))
-		{
-			int copyLength = 0;
-			EndPoint nextEndPoint;
-			bool trailingNewline = false;
+	//	while (CompareEndpointPair(currentEndPoint, m_range.end) < 0 && characterWritePosition < (outputTextSize - 1))
+	//	{
+	//		int copyLength = 0;
+	//		EndPoint nextEndPoint;
+	//		bool trailingNewline = false;
 
-			if (currentEndPoint.line < m_range.end.line)
-			{
-				int length = m_pTextBoxControl->GetLineLength(currentEndPoint.line);
-				// Add 1 for the implied newline
-				copyLength = length - currentEndPoint.character;
-				trailingNewline = true;
-				
-				// The next EndPoint starts at the lefthand side of the next line.
-				nextEndPoint.line = currentEndPoint.line + 1;
-				nextEndPoint.character = 0;
-			}
-			else
-			{
-				copyLength = m_range.end.character - currentEndPoint.character;
-				nextEndPoint.line = currentEndPoint.line;
-				nextEndPoint.character = m_range.end.character;
-			}
+	//		if (currentEndPoint.line < m_range.end.line)
+	//		{
+	//			int length = m_pTextBoxControl->GetLineLength(currentEndPoint.line);
+	//			// Add 1 for the implied newline
+	//			copyLength = length - currentEndPoint.character;
+	//			trailingNewline = true;
+	//			
+	//			// The next EndPoint starts at the lefthand side of the next line.
+	//			nextEndPoint.line = currentEndPoint.line + 1;
+	//			nextEndPoint.character = 0;
+	//		}
+	//		else
+	//		{
+	//			copyLength = m_range.end.character - currentEndPoint.character;
+	//			nextEndPoint.line = currentEndPoint.line;
+	//			nextEndPoint.character = m_range.end.character;
+	//		}
 
-			if (characterWritePosition + copyLength >= (outputTextSize - 1))
-			{
-				copyLength = (outputTextSize - 1) - characterWritePosition;
-			}
+	//		if (characterWritePosition + copyLength >= (outputTextSize - 1))
+	//		{
+	//			copyLength = (outputTextSize - 1) - characterWritePosition;
+	//		}
 
-			TextLine *textLine = m_pTextBoxControl->GetLine(currentEndPoint.line);
-			StringCchCopyN(&outputText[characterWritePosition], copyLength + 1, &textLine->text[currentEndPoint.character], copyLength);
-			characterWritePosition += copyLength;
-			currentEndPoint = nextEndPoint;
+	//		TextLine *textLine = m_pTextBoxControl->GetLine(currentEndPoint.line);
+	//		StringCchCopyN(&outputText[characterWritePosition], copyLength + 1, &textLine->text[currentEndPoint.character], copyLength);
+	//		characterWritePosition += copyLength;
+	//		currentEndPoint = nextEndPoint;
 
-			if (trailingNewline && characterWritePosition < (outputTextSize - 1))
-			{
-				outputText[characterWritePosition++] = '\n';
-			}
-		}
+	//		if (trailingNewline && characterWritePosition < (outputTextSize - 1))
+	//		{
+	//			outputText[characterWritePosition++] = '\n';
+	//		}
+	//	}
 
-		// Ensure the string is null-terminated
-		outputText[characterWritePosition] = '\0';
+	//	// Ensure the string is null-terminated
+	//	outputText[characterWritePosition] = '\0';
 
-		// Whatever string is passed to this function will be what the screen reader reads aloud.
-		*pRetVal = SysAllocString(L"Say something");
-		if (*pRetVal == NULL)
-		{
-			hr = E_OUTOFMEMORY;
-		}
+	//	// Whatever string is passed to this function will be what the screen reader reads aloud.
+	//	*pRetVal = SysAllocString(L"Hey! Listen!");
+	//	if (*pRetVal == NULL)
+	//	{
+	//		hr = E_OUTOFMEMORY;
+	//	}
 
-		// TODO: With NVDA turned on, this eventually causes Heap Corruption. Fix it!
-		// Note: This only occured during testing with the native sample but I'm handling my implementation
-		//       the same way so it's worth investigating.
-		delete[] outputText;
-	}
-	else
+	//	// TODO: With NVDA turned on, this eventually causes Heap Corruption. Fix it!
+	//	// Note: This only occured during testing with the native sample but I'm handling my implementation
+	//	//       the same way so it's worth investigating.
+	//	delete[] outputText;
+	//}
+	//else
+	//{
+	//	hr = E_OUTOFMEMORY;
+	//}
+	// Whatever string is passed to this function will be what the screen reader reads aloud.
+	*pRetVal = SysAllocString(L"Listen!");
+	if (*pRetVal == NULL)
 	{
 		hr = E_OUTOFMEMORY;
 	}
-
 	return hr;
 }
 
