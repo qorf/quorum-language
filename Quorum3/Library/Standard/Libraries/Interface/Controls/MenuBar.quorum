@@ -30,6 +30,7 @@ class MenuBar is Item2D, Selectable
 
     on create
         FlowLayout layout
+        layout:SetWrapping(true)
         defaultLayout = layout
         defaultLayout:SetPercentageWidth(1)
         defaultLayout:SetWidthOffset(2)
