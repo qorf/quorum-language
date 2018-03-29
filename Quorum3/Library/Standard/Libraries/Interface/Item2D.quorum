@@ -293,6 +293,11 @@ class Item2D is Item
         myItem:SetWidth(50)
     */
     action SetWidth(number newWidth)
+        if dimensions:GetX() not= 0
+            number originPercentage = origin:GetX() / dimensions:GetX()
+            SetOrigin(originPercentage * newWidth, origin:GetY())
+        end
+
         dimensions:SetX(newWidth)
         widthSet = true
 
@@ -309,6 +314,8 @@ class Item2D is Item
         if visualContent not= undefined
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
+
+        SetOriginCenter()
 
         if verticesChanged = false
             if rotation not= 0 or scale:GetX() not= 1
@@ -353,6 +360,8 @@ class Item2D is Item
         if visualContent not= undefined
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
+
+        SetOriginCenter()
 
         if verticesChanged = false
             if rotation not= 0 or scale:GetY() not= 1
@@ -699,6 +708,8 @@ class Item2D is Item
         if visualContent not= undefined
             visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
+
+        SetOriginCenter()
 
         if verticesChanged = false
             if rotation not= 0 or scale:GetX() not= 1 or scale:GetY() not= 1
