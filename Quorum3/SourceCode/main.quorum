@@ -26,6 +26,7 @@ class Main is WebResponder
     public constant text WEB_FLAG = "-web"
     public constant text JAVASCRIPT_FLAG = "-javascript"
     public constant text LIBRARY_FLAG = "-library"
+    public constant text REGENERATE_STANDARD_LIBRARY = "-setup"
     public constant text TEST_FLAG = "-test"
     public constant text HELP_FLAG = "-help"
     HashTable<text, Array<text>> flagValues
@@ -486,6 +487,19 @@ class Main is WebResponder
             end
         end
 
+        if flagValues:HasKey(REGENERATE_STANDARD_LIBRARY)
+            Array<text> names = flagValues:GetValue(REGENERATE_STANDARD_LIBRARY)
+            if names:GetSize() not= 1
+                output "I noticed a -setup flag was issued, but this flag requires a path to where to rebuild the standard library."
+                return now
+            else
+                text compilePath = names:Get(0)
+                File libraryPath
+                libraryPath:SetWorkingDirectory(compilePath)
+                CompileStandardLibrary(libraryPath)
+            end
+        end
+
         text name = "Default"
         if flagValues:HasKey(NAME_FLAG)
             Array<text> names = flagValues:GetValue(NAME_FLAG)
@@ -550,6 +564,45 @@ class Main is WebResponder
             Compile(name, names, true)
             return now
         end
+    end
+
+    private action CompileStandardLibrary(File compilePath)
+        Compiler compiler
+        text version = compiler:GetVersion()
+        Library library
+        library:SetOutputFolder(compilePath)
+
+        if flagValues:HasKey(LIBRARY_FLAG)
+            Array<text> names = flagValues:GetValue(LIBRARY_FLAG)
+            if names:GetSize() not= 1
+                output "I noticed the library flag was used, but it does not have exactly 1 value."
+                return now
+            else
+                path = names:Get(0)
+                File libraryPath
+                libraryPath:SetWorkingDirectory(path)
+                libraryPath:SetPath("Standard")
+                library:SetLocation(libraryPath)
+            end
+        else 
+            File standardLibraryFolder = compiler:GetStandardLibraryFolder()
+            library:SetLocation(standardLibraryFolder)
+        end
+
+        DateTime time
+        number start = time:GetEpochTime()
+        output version + " Standard Library Setup"
+        library:SetCachingLibraryOpcodes(true)
+
+        output "Scanning Standard Library. Please wait..."
+        library:Scan()
+
+        output "Writing to disk at: " + compilePath:GetAbsolutePath()
+        library:Write()
+
+        number finish = time:GetEpochTime()
+        number seconds = (finish - start) / 1000.0
+        output "Complete in " + seconds + " seconds." 
     end
 
     private action Compile(text name, Array<text> fileNames, boolean isWebApplication)
