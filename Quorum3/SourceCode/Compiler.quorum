@@ -1059,6 +1059,184 @@ class Compiler
         end
     end
 
+    action Compile(Array<File> files, Library standardLibrary) returns CompilerResult
+        CompilerResult result
+        text convertedJavaScript = ""
+        DateTime time
+        boolean containsSpeechCommandInCompile = false
+        boolean outputSpeechCommands = false
+
+        //setup sandboxed values for compilation. 
+        CompilerProfiler profiler
+        TypeChecker checker
+        SymbolTable table
+        CompilerErrorManager errors
+        SymbolTable standardLibraryTable = undefined
+        profiler:Empty()
+        profiler:Add(time:GetEpochTime())
+
+        //setup the compiler result to store everything that was done
+        result:compilerErrorManager = errors
+        result:symbolTable = table
+        result:typeChecker = checker
+        result:standardLibrary = standardLibrary
+        result:profiler = profiler
+
+
+        //check if the standard library is here and that the files are valid
+        boolean isInvalidCompile = false
+        //if the standard library is defined, set it up. Otherwise bail
+        if standardLibrary = undefined
+            output "I attempted to compile code without a standard library. Please report this to the development team as a bug."
+            return result
+        end
+
+        if files = undefined
+            isInvalidCompile = true
+        elseif files:IsEmpty()
+            isInvalidCompile = true
+        end
+
+        if isInvalidCompile
+            CompilerError error
+            text message = ""
+            if files = undefined
+                message = "I cannot compile an array of files that is passed to me undefined"
+            elseif files:IsEmpty()
+                message = "I cannot compile an arry of files that is empty. Please specify which files you would like compiled."
+            end
+            error:SetErrorMessage(message)
+            CompilerErrorType t
+            t:SetCurrentType(t:MISSING_FILE)
+            error:SetCompilerErrorType(t)
+            error:SetLineNumber(1)
+            error:SetLineNumberEnd(1)
+            error:SetColumnNumber(1)
+            error:SetColumnNumberEnd(1)
+            errors:Add(error)
+            return result
+        end
+
+        //parse all of the files for the first time
+        i = 0
+        repeat while i < files:GetSize()
+            File file = files:Get(i)
+            Parser listener
+            ParseSandbox(undefined, listener, table, errors, checker, file)
+            i = i + 1
+        end
+        profiler:Add(time:GetEpochTime())
+
+        //This array will contain all files that must be built, 
+        //including potentially some from the standard library
+        //in order to build the requested files
+//        Array<File> allFiles = undefined
+//        if errors:IsCompilationErrorFree()
+//            allFiles = GetAllRequiredFiles(table, checker, errors)
+//        else 
+//            return result
+//        end
+        profiler:Add(time:GetEpochTime())
+
+        if errors:IsCompilationErrorFree()
+            TypeResolution(table, checker, errors)
+        else 
+            return result
+        end
+        profiler:Add(time:GetEpochTime())
+
+        Array<ClassOpcode> classOpcodes
+        if errors:IsCompilationErrorFree()
+            i = 0
+            repeat while i < files:GetSize()
+                File file = files:Get(i)
+                QuorumBytecodeListener listener
+                if not outputSpeechCommands
+                    listener:SetOutputSpeech(outputSpeechCommands)
+                end
+
+                ParseSandbox(undefined, listener, table, errors, checker, file)
+
+                if listener:HasSayStatementInClass()
+                    containsSpeechCommandInCompile = true
+                end
+                ClassOpcode op = listener:GetClassOpcode()
+                op:SetBuild(buildFolder)
+                classOpcodes:Add(op)
+                i = i + 1
+            end
+        else 
+            return result
+        end
+        profiler:Add(time:GetEpochTime())
+
+        File starter = files:Get(0)
+        CheckMain(starter)
+        
+        //at this point, if the build is compilation free, it 
+        //is guaranteed to not have compile errors, as no errors
+        //can be issues in the bytecode writing stage.
+        //if an error is issued, it is a bug in the compiler and not
+        //an intentional design decision.
+        if errors:IsCompilationErrorFree()
+            if currentOutputType = JAVA_BYTECODE
+                //open up and begin filling the Jar
+                JarGenerator generator
+                text manifest = GetManifest(generator)
+                File jar = GetDistributionFile()
+                generator:SetManifest(manifest)
+                generator:Open(jar)
+
+                //iterate over all the class opcodes and write them to disk
+                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+                repeat while codes:HasNext()
+                    ClassOpcode code = codes:Next()
+                    code:Write()
+
+                    File build = code:GetBuildFile()
+                    File buildInterface = code:GetBuildInterfaceFile()
+
+                    text key = code:GetStaticKey()
+                    if build not= undefined
+                        if IsWebApplication()
+                            text path = WEB_DIRECTORY + "/" + build:GetPath()
+                            generator:Add(build, path)
+                        else 
+                            generator:Add(build)
+                        end
+                    end
+
+                    if buildInterface not= undefined
+                        if IsWebApplication()
+                            text path = WEB_DIRECTORY + "/" + buildInterface:GetPath()
+                            generator:Add(buildInterface, path)
+                        else 
+                            generator:Add(buildInterface)
+                        end
+                    end
+                end
+                profiler:Add(time:GetEpochTime())
+
+                //ok all of the classes are written in the jar. Now fill it up
+                //with any dependencies that are necessary.
+                WriteDependencies(generator)
+                generator:Close()
+                profiler:Add(time:GetEpochTime())
+                
+            elseif currentOutputType = JAVASCRIPT
+                convertedJavaScript = CompileToJavaScript(classOpcodes)
+                if IsWritingJavaScriptToDisk()
+                    WriteJavaScript(convertedJavaScript)
+                end
+                
+            elseif currentOutputType = DOCUMENT
+                CreateDocumentation(classOpcodes)
+            end
+        end
+        
+        return result
+    end
+
     /*
         This action compiles the array of files to Java Bytecode, which
         it writes to disk. By default, it generates a .jar file into the 
@@ -1203,7 +1381,7 @@ class Compiler
 
                 //ok all of the classes are written in the jar. Now fill it up
                 //with any dependencies that are necessary.
-                WriteDependencies(generator)
+                //WriteDependencies(generator)
                 generator:Close()
                 profiler:Add(time:GetEpochTime())
                 
@@ -1925,6 +2103,96 @@ class Compiler
                 generator:Add(f)
             end
         end
+    end
+
+    private action GetManifest(JarGenerator jar, Library standardLibrary) returns text
+        text version = jar:GetManifestVersion() + ": 1.0"
+        line = version:GetCarriageReturn() + version:GetLineFeed()
+        version = version + line
+        
+        
+        text created = "Created-By: " + me:GetVersion()
+        created = created + line
+
+        text main = jar:GetManifestMainClass()
+
+        File mainFile = me:GetMain()
+        Class mainClass = me:GetMainClass()
+        text classKey = "quorum." + mainClass:GetStaticKey()
+        main = main + ": " + classKey
+        main = main + line
+
+        boolean usesLWJGL = symbolTable:HasClass("Libraries.Sound.Audio") or symbolTable:HasClass("Libraries.Game.Game")
+
+        Iterator<Class> tempIterator = symbolTable:GetClassesInPackage("Libraries.Robots.Lego")
+        boolean hasRobots = false
+        if tempIterator not= undefined
+            hasRobots = tempIterator:HasNext()
+        end
+
+        //now write any jar dependencies into the manifest
+        //if not additionalJarFiles:IsEmpty() or usesLWJGL or hasRobots
+        Iterator<File> jars = additionalJarFiles:GetIterator()
+        text classpath = "Class-Path: "
+        text libraries = JAR_DEPENDENCY_FOLDER
+
+        classpath = classpath + "Standard/QuorumStandardLibrary.jar"
+        classpath = classpath + " Standard/QuorumStandardPlugins.jar"
+
+        boolean isFirst = true
+        if not additionalJarFiles:IsEmpty()
+            repeat while jars:HasNext()
+                File file = jars:Next()
+                if isFirst
+                    classpath = classpath + libraries + "/" + file:GetFileName()
+                else
+                    classpath = classpath + " " + libraries + "/" + file:GetFileName()
+                end
+                isFirst = false
+            end
+        end
+
+//        if usesLWJGL
+//            File lwjglFolder
+//            lwjglFolder:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+//            lwjglFolder:SetPath("LWJGL")
+//            Array<File> lwjglFiles = lwjglFolder:GetDirectoryListing()
+//            integer counter = 0
+//            repeat while counter < lwjglFiles:GetSize()
+//                File file = lwjglFiles:Get(counter)
+//
+//                if isFirst
+//                    classpath = classpath + libraries + "/" + file:GetFileName()
+//                    isFirst = false
+//                else
+//                    classpath = classpath + line + "  " + libraries + "/" + file:GetFileName()
+//                end
+//
+//                counter = counter + 1
+//            end
+//        end
+
+//        if hasRobots
+//            File dbus
+//            File ev3
+//            dbus:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+//            dbus:SetPath("dbusjava.jar")
+//            if isFirst
+//                classpath = classpath + libraries + "/" + dbus:GetFileName()
+//            else
+//                classpath = classpath + " " + libraries + "/" + dbus:GetFileName()
+//            end
+//
+//            ev3:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+//            ev3:SetPath("ev3classes.jar")
+//            classpath = classpath + " " + libraries + "/" + ev3:GetFileName()
+//        end
+
+        main = main + classpath + line
+        //end
+
+        total = version + created + main + line
+        return total
     end
 
     /*

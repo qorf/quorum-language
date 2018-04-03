@@ -1,10 +1,15 @@
 package Libraries.Language.Compile
 
 use Libraries.Language.Compile.Symbol.SymbolTable
+use Libraries.Language.Compile.Symbol.TypeChecker
 
 class CompilerResult
     public CompilerErrorManager compilerErrorManager = undefined
     public SymbolTable symbolTable = undefined
+    public Library standardLibrary = undefined
+    public TypeChecker typeChecker = undefined
+    public CompilerProfiler profiler = undefined
+    public text convertedJavaScript = ""
     public number time = 0.0
 
 end

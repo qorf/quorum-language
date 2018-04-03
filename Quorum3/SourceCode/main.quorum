@@ -32,23 +32,10 @@ class Main is WebResponder
     HashTable<text, Array<text>> flagValues
 
     action Main
-        ProcessConsoleFlags()
+        //ProcessConsoleFlags()
         //GenerateDocumentation()
-        //CompileRepeatTest()
-        //CompileCodeCompletionTest()
-        //ProfileTest()
-        //ProfileWeb()
         //CompileHardcodedFile()
-        //CompileCompiler()
-        //CompileSingleTest()
-        //CompileGameEngine()
-        //TestWebCompilerErrors()
-    end
-
-    action TestWebCompilerErrors
-        WebRequest request
-        request:AddParameter("code", ";")
-        output Respond(request):GetPageText()
+        CompileTest()
     end
 
     action GenerateDocumentation
@@ -67,286 +54,6 @@ class Main is WebResponder
         compiler:SetMain(main)
         compiler:Compile(files)
 
-        if compiler:IsCompilationErrorFree()
-            output "Build Successful"
-            if compiler:GetOutputType() = compiler:JAVASCRIPT
-                output compiler:GetCompiledJavaScript()
-            end
-        else
-            output compiler:GetCompilerErrorsAsText()
-        end
-    end
-
-    action CompileCodeCompletionTest
-        Compiler compiler
-        output compiler:GetVersion() + ", Code completion test."
-        File main
-        main:SetPath("SourceCode")
-
-        File root
-        root:SetPath("Output")
-        compiler:SetOutputFolder(root)
-        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
-        compiler:SetStandardLibraryFolder(standardLibraryFolder)
-        Array<File> files = main:GetDirectoryListing()
-
-        File actualMain
-        actualMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication")
-        actualMain:SetPath("/SourceCode/main.quorum")
-
-        File mygame
-        //mygame:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication")
-        //mygame:SetPath("/SourceCode/Test.quorum")
-        //actualMain:SetPath("Library/Tests/CodeCompletion/Pass/GrabAllContainers.quorum")
-        compiler:SetMain(actualMain)
-
-        File failMain
-        failMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication")
-        failMain:SetPath("/Fails/main.quorum")
-        text failSource = failMain:Read()
-
-        ProjectInformation info
-        info:projectFiles = files
-        //Array<File> pro
-        files:Add(actualMain)
-        //files:Add(mygame)
-        //info:projectFiles = pro
-        info:sourceLocation = actualMain
-        info:source = actualMain:Read()
-        
-        CodeCompletionRequest cc
-        cc:caretLocation = 50
-        cc:fileKey = actualMain:GetAbsolutePath()
-        cc:source = actualMain:Read()
-
-        CompilerResult result = compiler:ParseRepeat(info)
-
-        info:source = failSource
-        text out = failSource:GetSubtext(0, cc:caretLocation)
-        //output out
-        result = compiler:ParseRepeat(info)
-
-        check
-            cc:source = failSource
-            CodeCompletionResult ccr2 = compiler:Request(cc)
-            Iterator<CodeCompletionItem> it = ccr2:GetIterator()
-            repeat while it:HasNext()
-                CodeCompletionItem item = it:Next()
-                output item:displayText + " " + item:rightDisplayText
-            end
-        detect e
-            e:OutputStackTrace()
-        end
-    end
-
-    action CompileRepeatTest
-        Compiler compiler
-        output compiler:GetVersion() + ", Compile Many times."
-        File main
-        main:SetPath("SourceCode")
-
-        File root
-        root:SetPath("Output")
-        compiler:SetOutputFolder(root)
-        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
-        compiler:SetStandardLibraryFolder(standardLibraryFolder)
-        compiler:ScanStandardLibrary()
-        Array<File> files// = main:GetDirectoryListing()
-
-        File actualMain
-        actualMain:SetWorkingDirectory("/Users/stefika/NetBeansProjects/QUOR270")
-        //actualMain:SetPath("Library/Tests/Expressions/Fail/RedLine1.quorum")
-        actualMain:SetPath("SourceCode/main.quorum")
-        compiler:SetMain(actualMain)
-
-        files:Add(actualMain)
-        
-        ProjectInformation info
-        info:projectFiles = files
-        info:sourceLocation = actualMain
-        text good = actualMain:Read()
-        info:source = good
-
-        File redFail
-        redFail:SetWorkingDirectory("/Users/stefika/NetBeansProjects/QUOR270")
-        redFail:SetPath("versions/main2.quorum")
-        
-
-        CompilerResult result = compiler:ParseRepeat(info)
-        text bad = redFail:Read()
-        info:source = bad
-        SystemHelper help
-        Array<number> items
-        pass = 1
-        flip = true
-        repeat 1000 times
-            help:RequestGarbageCollection()
-//            if flip
-//                info:source = good
-//            else
-//                info:source = bad
-//            end
-
-//            flip = not flip
-            result = compiler:ParseRepeat(info)
-
-//            SymbolTable newTable = result:symbolTable
-//            Class newClass = newTable:GetClass("Libraries.Web.WebPage")
-//            Action test = newClass:GetAction("Generate")
-//            Iterator<Location> locations = test:GetCallLocationIterator(actualMain)
-//            output "Pass: " + pass
-//            
-//            size = 0
-//            repeat while locations not= undefined and locations:HasNext()
-//                Location value = locations:Next()
-//                output value:GetIndex() + ", " + value:GetIndexEnd()
-//                size = size + 1
-//            end
-//            output "Size: " + size
-//            output ""
-//            pass = pass + 1
-
-
-            CompilerErrorManager manager = result:compilerErrorManager
-            if manager:IsCompilationErrorFree()
-//                text time = "" + result:time
-//                text freeMemory = "" + help:GetFreeMemory()
-//                text totalMemory = "" + help:GetTotalMemory()
-//                text maxMemory = "" + help:GetMaximumMemory()
-//                //output "Time: " + result:time + " Free: " + freeMemory + 
-//                //    " Total: " + totalMemory + " Max: " + maxMemory
-//
-//                output freeMemory
-                items:Add(result:time)
-                if compiler:GetOutputType() = compiler:JAVASCRIPT
-                    output compiler:GetCompiledJavaScript()
-                end
-            else
-                output "Compiler Error Found in " + result:time + " seconds."
-                text EOL = ""
-                EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-                CompilerErrorManager man = result:compilerErrorManager
-                Iterator<CompilerError> errors =  man:GetIterator()
-                text value =  "This program did not compile. I have compiled a list of errors for you below:" + EOL
-                repeat while errors:HasNext()
-                    CompilerError error = errors:Next()
-                    text t = error:GetDisplayName()
-                    value = value + EOL + t
-                end
-                output value
-            end
-        end
-
-        i = 0
-        number average = 0
-        repeat items:GetSize() times
-            number time = items:Get(i)
-            average = average + time
-        end
-        output "Average: " + average / items:GetSize()
-    end
-
-    action CompileGameEngine
-        Compiler compiler
-        output compiler:GetVersion() + ", Compile the Game Engine."
-        
-
-        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
-        compiler:SetStandardLibraryFolder(standardLibraryFolder)
-
-        File root
-        root:SetPath("Output")
-        compiler:SetOutputFolder(root)
-
-        //write in the jar file
-        File opengl
-        opengl:SetWorkingDirectory("/Users/stefika/Repositories/quorum-libgdx")
-        opengl:SetPath("LibGDXPlugins/libs/lwjgl.jar")
-        compiler:AddJar(opengl)
-
-        //write in the extra plugin directory
-        File extraPlugins
-        extraPlugins:SetWorkingDirectory("/Users/stefika/Repositories/quorum-libgdx/LibGDXPlugins/build/classes/")
-        extraPlugins:SetPath("plugins")
-        compiler:AddPluginFolder(extraPlugins)
-
-        File main
-        main:SetWorkingDirectory("/Users/stefika/Repositories/quorum-libgdx/QuorumRainDrop")
-        main:SetPath("SourceCode")
-        Array<File> files = main:GetDirectoryListing()
-
-        File actualMain
-        actualMain:SetWorkingDirectory("/Users/stefika/Repositories/quorum-libgdx/QuorumRainDrop/SourceCode")
-        actualMain:SetPath("Main.quorum")
-        compiler:SetMain(actualMain)
-        compiler:Compile(files)
-        if compiler:IsCompilationErrorFree()
-            output "Build Successful"
-            if compiler:GetOutputType() = compiler:JAVASCRIPT
-                output compiler:GetCompiledJavaScript()
-            end
-        else
-            output compiler:GetCompilerErrorsAsText()
-        end
-    end
-
-    private action CompileSingleTest
-        Compiler compiler
-        output compiler:GetVersion()
-
-        File fake
-        fake:SetPath("FakeFile.quorum")
-        compiler:ParseSingle("output 5", fake)
-
-        if compiler:IsCompilationErrorFree()
-            output "Build Successful"
-            if compiler:GetOutputType() = compiler:JAVASCRIPT
-                output compiler:GetCompiledJavaScript()
-            end
-        else
-            output compiler:GetCompilerErrorsAsText()
-        end
-    end
-
-    private action StartTime
-        DateTime time
-        startTime = time:GetEpochTime()
-    end
-
-    private action CompileCompiler
-        Compiler compiler
-        output compiler:GetVersion() + ", Compile the compiler."
-        //compiler:ScanStandardLibrary()
-        File main
-        main:SetPath("SourceCode")
-
-        File root
-        root:SetPath("Output")
-        compiler:SetOutputFolder(root)
-        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
-        compiler:SetStandardLibraryFolder(standardLibraryFolder)
-        Array<File> files = main:GetDirectoryListing()
-
-        File actualMain
-        actualMain:SetPath("SourceCode/main.quorum")
-        compiler:SetMain(actualMain)
-
-        ProjectInformation info
-        info:projectFiles = files
-        info:sourceLocation = actualMain
-        info:source = actualMain:Read()
-        CompilerProfiler summaryProfiler
-        i = 1
-        repeat 10 times
-            output "Compile: " + i
-            compiler:Compile(files)
-            CompilerProfiler profiler = compiler:GetCompilerProfiler()
-            summaryProfiler:Add(profiler)
-            compiler:Empty()
-            i = i + 1
-        end
-        
-        summaryProfiler:OutputTabTimeAverages()
         if compiler:IsCompilationErrorFree()
             output "Build Successful"
             if compiler:GetOutputType() = compiler:JAVASCRIPT
@@ -418,6 +125,74 @@ class Main is WebResponder
         else
             output compiler:GetCompilerErrorsAsText()
         end
+    end
+
+    private action CompileTest
+        Compiler compiler
+
+        DateTime time
+        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
+        compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        output compiler:GetVersion() + "Compile Test"
+
+        output "Scanning"
+        number start = time:GetEpochTime()
+        compiler:ScanStandardLibrary()
+        output ""
+        number finish = time:GetEpochTime()
+        output "Time: " + ((finish - start) / 1000.0) + " seconds"
+
+        output "Compiling"
+        start = time:GetEpochTime()
+        File root
+        root:SetPath("Output")
+        compiler:SetOutputFolder(root)
+        File main
+        //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
+        //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/QUOR455/SourceCode/")
+        //main:SetPath("Library/Tests/Expressions/Pass/OrAndBooleanBoolean.quorum") //CallMethodCallingBlueprint
+        main:SetPath("Library/Tests/Use/Pass/GenerateAllClasses.quorum")
+
+        File class2
+        //class2:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
+        class2:SetPath("Library/Tests/Inheritance/Pass/LandVehicle.quorum")
+        
+        File class3
+        class3:SetPath("Library/Tests/Inheritance/Pass/GasPoweredVehicle.quorum")
+
+        File class4
+        class4:SetPath("Library/Tests/Inheritance/Pass/Truck.quorum")
+
+        File class5
+        class5:SetPath("Library/Tests/Inheritance/Pass/GrandChildWithMultiple.quorum")
+        Array<File> files
+
+        files:Add(main)
+        //files:Add(class2)
+        //files:Add(class3)
+        //files:Add(class4)
+        //files:Add(class5)
+
+        //compiler:SetOutputSpeech(false) //don't speak while in test mode
+        //compiler:SetIsWebApplication(true)
+        //compiler:SetOutputType(compiler:JAVASCRIPT)
+        compiler:SetMain(main)
+        CompilerResult result = compiler:Compile(files, compiler:GetStandardLibrary())
+        finish = time:GetEpochTime()
+        output "Time: " + ((finish - start) / 1000.0) + " seconds"
+
+//        if compiler:IsCompilationErrorFree()
+//            output "Build Successful"
+//            if compiler:GetOutputType() = compiler:JAVASCRIPT
+//                File myOutput
+//                myOutput:SetWorkingDirectory("/Users/alleew/Desktop/WebGLTester/public_html")
+//                myOutput:SetPath("TestQuorum.js")
+//                myOutput:Write(compiler:GetCompiledJavaScript())
+//                output "File written."
+//            end
+//        else
+//            output compiler:GetCompilerErrorsAsText()
+//        end
     end
 
     private action ProcessConsoleFlags
@@ -703,6 +478,7 @@ What this means is that you can pass a flag to Quorum combined with any number o
     -javascript This flag converts the source code to JavaScript, so it can be run in a browser.
     -test This flag tells Quorum to run its test suite on itself.
     -library If a file path is passed to this flag, we can tell Quorum we have placed its standard library in a different folder.
+    -setup If a file path is passed to this flag, it tells Quorum to recompile its standard library. Generally, unless you have modified the standard library, this flag should not be used.
     -help This flag tells Quorum to output this help screen. 
 
 
@@ -725,64 +501,6 @@ Here are a few examples of how you can use this program:
 
 For more information on writing programs in Quorum, visit www.quorumlanguage.com."     
         return help
-    end
-
-    private action ProfileWeb
-        number total = 0
-        integer amount = 1000
-        output "Starting Compiler Profiler: Web mode"
-        repeat amount times
-            DateTime time
-            start = time:GetEpochTime()
-            WebRequest request
-            request:AddParameter("code", "  class HelloWorld 
-                                    action Main
-                                        output 5
-                                    end
-                                end")
-            WebResponse response = Respond(request)
-            DateTime endTime
-            theEnd = endTime:GetEpochTime()
-
-            runtime = theEnd - start
-
-            total = total + runtime
-        end
-        
-        output "We ran the compiler " + amount + " times."
-        output "The total running time was " + (total / 1000.0) + " seconds."
-        output "The average running time was " + ((total / 1000.0) / amount) + " seconds."
-        number compilesPerSecond = (1.0 / ((total / 1000.0) / amount))
-        output "The total throughput of the compiler is " + compilesPerSecond + " compiles per second."
-    end
-
-    private action ProfileTest
-        number total = 0
-        integer amount = 1000
-        output "Starting Compiler Profiler: Desktop mode"
-        repeat amount times
-            DateTime time
-            start = time:GetEpochTime()
-            Compiler compiler
-            compiler:SetOutputType(compiler:JAVASCRIPT)
-            compiler:CompileSingle("  class HelloWorld 
-                                    action Main
-                                        output 5
-                                    end
-                                end")
-            DateTime endTime
-            theEnd = endTime:GetEpochTime()
-
-            runtime = theEnd - start
-
-            total = total + runtime
-        end
-        
-        output "We ran the compiler " + amount + " times."
-        output "The total running time was " + (total / 1000.0) + " seconds."
-        output "The average running time was " + ((total / 1000.0) / amount) + " seconds."
-        number compilesPerSecond = (1.0 / ((total / 1000.0) / amount))
-        output "The total throughput of the compiler is " + compilesPerSecond + " compiles per second."
     end
 
     action Respond(WebRequest request) returns WebResponse
