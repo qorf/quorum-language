@@ -1138,8 +1138,12 @@ class Compiler
 //        end
         profiler:Add(time:GetEpochTime())
 
+        
+        SymbolTable originalTable = table:Copy()
+        LinkToStandardLibrary(table, checker, errors, standardLibrary)
+
         if errors:IsCompilationErrorFree()
-            TypeResolution(table, checker, errors)
+            TypeResolution(originalTable, checker, errors, table)
         else 
             return result
         end
@@ -1182,7 +1186,7 @@ class Compiler
             if currentOutputType = JAVA_BYTECODE
                 //open up and begin filling the Jar
                 JarGenerator generator
-                text manifest = GetManifest(generator)
+                text manifest = GetManifest(generator, table)
                 File jar = GetDistributionFile()
                 generator:SetManifest(manifest)
                 generator:Open(jar)
@@ -1219,7 +1223,7 @@ class Compiler
 
                 //ok all of the classes are written in the jar. Now fill it up
                 //with any dependencies that are necessary.
-                WriteDependencies(generator)
+                //WriteDependencies(generator)
                 generator:Close()
                 profiler:Add(time:GetEpochTime())
                 
@@ -1235,6 +1239,33 @@ class Compiler
         end
         
         return result
+    end
+
+    action TypeResolution(SymbolTable table, TypeChecker types, CompilerErrorManager errors, SymbolTable fullCompilation)
+        Iterator<Class> classes = table:GetClasses()
+        repeat while classes:HasNext()
+            Class next = classes:Next()
+            next:ResolveUseStatements(fullCompilation, errors)
+        end
+
+        classes = table:GetClasses()
+        repeat while classes:HasNext()
+            Class next = classes:Next()
+
+            //because of the way the parent flattening algorithm works,
+            //classes may already be resolved
+            if not next:IsResolved()
+                next:ResolveAllTypes(fullCompilation, errors)
+            end
+        end
+
+        classes = table:GetClasses()
+        repeat while classes:HasNext()
+            Class next = classes:Next()
+            next:ComputeVirtualActionTable(errors)
+            next:ComputeGenericsTables(errors)
+            types:Add(next)
+        end
     end
 
     /*
@@ -2105,7 +2136,7 @@ class Compiler
         end
     end
 
-    private action GetManifest(JarGenerator jar, Library standardLibrary) returns text
+    private action GetManifest(JarGenerator jar, SymbolTable table) returns text
         text version = jar:GetManifestVersion() + ": 1.0"
         line = version:GetCarriageReturn() + version:GetLineFeed()
         version = version + line
@@ -2117,7 +2148,7 @@ class Compiler
         text main = jar:GetManifestMainClass()
 
         File mainFile = me:GetMain()
-        Class mainClass = me:GetMainClass()
+        Class mainClass = me:GetMainClass(table)
         text classKey = "quorum." + mainClass:GetStaticKey()
         main = main + ": " + classKey
         main = main + line
@@ -2600,6 +2631,146 @@ class Compiler
         return division:Generate()
     end
 
+    
+
+    private action LinkToStandardLibrary(SymbolTable table, TypeChecker types, CompilerErrorManager errors, Library library)
+        Iterator<Class> classes = table:GetClasses()
+            //gather up all the classes on the system and check their
+            //use statements for classes we don't know about
+            //if there are some, mark them as unparsed
+        HashTable<text, text> resolvedPackages
+
+        repeat while classes:HasNext()
+            Class clazz = classes:Next()
+            File classFile = clazz:GetFile()
+            text path = classFile:GetAbsolutePath()
+            //if not parsed:HasKey(path)
+            //    parsed:Add(path, clazz:GetFile())
+            //end
+            Iterator<QualifiedName> names = clazz:GetUnresolvedUseStatements()
+            repeat while names:HasNext()
+                QualifiedName qn = names:Next()
+                if qn:IsAll()
+                    ResolveAllClassesInContainer(table, qn, library, resolvedPackages, errors)
+                else
+                    text key = qn:GetStaticKey()
+                    ResolveClass(table, key, clazz, library, errors)
+                end
+            end
+
+            ResolveQualifiedNames(table, names, clazz, library, resolvedPackages, errors)
+
+            Iterator<QualifiedName> parents = clazz:GetUnresolvedParents()
+            ResolveParents(table, parents, clazz, library, errors)
+
+            ResolveBlocks(table, clazz, library, errors)
+        end
+    end
+
+    private action ResolveBlocks(SymbolTable table, Class clazz, Library library, CompilerErrorManager errors)
+        
+        Iterator<Action> actions = clazz:GetActions()
+        repeat while actions:HasNext()
+            Action act = actions:Next()
+            //resolve parameters first
+            Iterator<Variable> parameters = act:GetParameterIterator()
+            repeat while parameters:HasNext()
+                Variable parameter = parameters:Next()
+                Type type = parameter:GetType()
+                ResolveClass(table, type:GetStaticKey(), clazz, library, errors)
+            end
+        end
+    end
+
+    private action ResolveParents(SymbolTable table, Iterator<QualifiedName> names, 
+            Class clazz, Library library, CompilerErrorManager errors)
+        repeat while names:HasNext()
+            QualifiedName qn = names:Next()
+            text key = qn:GetStaticKey()
+            ResolveClass(table, key, clazz, library, errors)
+        end
+    end
+
+    private action ResolveQualifiedNames(SymbolTable table, Iterator<QualifiedName> names, 
+        Class clazz, Library library, HashTable<text, text> resolvedPackages, CompilerErrorManager errors)
+        repeat while names:HasNext()
+            QualifiedName qn = names:Next()
+            if qn:IsAll()
+                ResolveAllClassesInContainer(table, qn, library, resolvedPackages, errors)
+            else
+                text key = qn:GetStaticKey()
+                ResolveClass(table, key, clazz, library, errors)
+            end
+        end
+    end
+
+    private action ResolveAllClassesInContainer(SymbolTable table,
+            QualifiedName name, Library library, HashTable<text, text> resolvedPackages, CompilerErrorManager errors)
+        //Get the container name without the "all" at the end
+        text value = name:GetStaticKeyNoAll()
+        if resolvedPackages:HasKey(value) //already resolved, so skip it
+            return now
+        else
+            resolvedPackages:Add(value, value)
+        end
+
+
+        SymbolTable standardLibrary = library:GetSymbolTable()
+        Iterator<Class> iterator = standardLibrary:GetClassesInPackage(value)
+        if iterator = undefined
+            CompilerError error
+            error:SetErrorMessage("I noticed a package named " + value + 
+                " was referenced, but I cannot find any record of it.")
+            error:SetLocation(name)
+            CompilerErrorType t
+            t:SetCurrentType(t:MISSING_CLASS)
+            error:SetCompilerErrorType(t)
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+        repeat while iterator:HasNext()
+            Class clazz = iterator:Next()
+            if not table:HasClass(clazz:GetStaticKey())
+                table:Add(clazz)
+            end
+        end
+    end
+
+    private action ResolveClass(SymbolTable table, text key, Class clazz, Library library, CompilerErrorManager errors)
+        if table:HasClass(key)
+            return now
+        end
+
+        boolean done = false
+        Class c = undefined
+
+        Type typeCheck
+        typeCheck:SetToObject(key)
+        //is this really just a primitive, pretending to be a class?
+        if typeCheck:IsPrimitive()
+            return now
+        end
+
+
+        //first check if it's already valid by looking at the symbol
+        //table
+        c = table:GetClass(key)
+
+        //if it isn't there, check our use table
+        if c = undefined
+            c = clazz:GetValidUseName(key)
+        end
+
+//        //if it isn't there, check the standard library
+        SymbolTable standardLibrary = library:GetSymbolTable()
+        c = standardLibrary:GetClass(key)
+
+        if c not= undefined
+            table:Add(c) //this was already checked to ensure it wasn't in the table.
+        end
+    end
+
     /*
         This action is called after the parsing phase, returning an array
         of all files were required for building the project.
@@ -2899,6 +3070,16 @@ class Compiler
 
     action GetMain returns File
         return main
+    end
+
+    action GetMainClass(SymbolTable table) returns Class
+        if main not= undefined and table not= undefined
+            text path = main:GetAbsolutePath()
+            Class c = table:GetClassInFile(path)
+            return c
+        end
+        
+        return undefined
     end
 
     action GetMainClass returns Class

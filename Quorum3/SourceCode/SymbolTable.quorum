@@ -113,6 +113,20 @@ class SymbolTable
         return undefined
     end
 
+    /*
+        This action returns a copy of the symbol table. Each class object 
+        inside of the table is a shallow copy of the original.
+    */
+    action Copy returns SymbolTable
+        SymbolTable table
+        Iterator<Class> iterator = GetClasses()
+        repeat while iterator:HasNext()
+            Class clazz = iterator:Next()
+            table:Add(clazz)
+        end
+        return table
+    end
+
     action GetClasses returns Iterator<Class>
         return classes:GetValueIterator()
     end
