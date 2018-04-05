@@ -253,6 +253,19 @@ JNIEXPORT void Java_plugins_quorum_Libraries_Interface_AccessibilityManager_Nati
 	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
 }
 
+// NativeWin32UpdateCaretPosition:
+JNIEXPORT void Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32UpdateCaretPosition(JNIEnv *env, jobject obj, jlong textboxHWND, jstring adjacentCharacter)
+{
+	const char *nativeAdjacentCharacter = env->GetStringUTFChars(adjacentCharacter, 0);
+	std::wstring wAdjacentCharacter = CreateWideStringFromUTF8Win32(nativeAdjacentCharacter);
+
+
+	SendMessage((HWND)textboxHWND, CUSTOM_UPDATECARET, 0, (LPARAM)&wAdjacentCharacter);
+	//SendMessage((HWND)textboxHWND, CUSTOM_UPDATECARET, 0, (LPARAM)&caret);
+
+	env->ReleaseStringUTFChars(adjacentCharacter, nativeAdjacentCharacter);
+}
+
 // NativeWin32InvokeButton: 
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InvokeButton(JNIEnv *env, jobject obj, jlong jlongHWND)
 {

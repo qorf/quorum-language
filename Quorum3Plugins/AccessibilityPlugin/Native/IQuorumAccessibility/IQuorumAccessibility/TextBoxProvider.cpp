@@ -80,14 +80,22 @@ IFACEMETHODIMP TextBoxProvider::QueryInterface(_In_ REFIID riid, _Outptr_ void**
 
 IFACEMETHODIMP TextBoxProvider::get_ProviderOptions(_Out_ ProviderOptions * pRetVal)
 {
+	if (!IsWindow(m_textBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
 
-	*pRetVal = ProviderOptions_ServerSideProvider /*| ProviderOptions_UseComThreading*/;
+	*pRetVal = ProviderOptions_ServerSideProvider | ProviderOptions_UseComThreading;
 	return S_OK;
 }
 
 IFACEMETHODIMP TextBoxProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown ** pRetVal)
 {
 	UNREFERENCED_PARAMETER(patternId);
+	if (!IsWindow(m_textBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
 
 	*pRetVal = NULL;
 	return S_OK;
@@ -95,6 +103,11 @@ IFACEMETHODIMP TextBoxProvider::GetPatternProvider(PATTERNID patternId, _Outptr_
 
 IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIANT * pRetVal)
 {
+	if (!IsWindow(m_textBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	if (propertyId == UIA_ControlTypePropertyId)
 	{
 		pRetVal->vt = VT_I4;
@@ -143,6 +156,11 @@ IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 
 IFACEMETHODIMP TextBoxProvider::get_HostRawElementProvider(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
+	if (!IsWindow(m_textBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	return UiaHostProviderFromHwnd(m_textBoxControlHWND, pRetVal);
 }
 
@@ -152,6 +170,10 @@ IFACEMETHODIMP TextBoxProvider::get_HostRawElementProvider(_Outptr_result_mayben
 
 IFACEMETHODIMP TextBoxProvider::Navigate(NavigateDirection direction, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal)
 {
+	if (!IsWindow(m_textBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
 
 	*pRetVal = NULL;
 
@@ -172,6 +194,11 @@ IFACEMETHODIMP TextBoxProvider::Navigate(NavigateDirection direction, _Outptr_re
 
 IFACEMETHODIMP TextBoxProvider::GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
 {
+	if (!IsWindow(m_textBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	// This is the top level element. So return NULL
 	*pRetVal = NULL;
 	return S_OK;
@@ -179,12 +206,21 @@ IFACEMETHODIMP TextBoxProvider::GetRuntimeId(_Outptr_result_maybenull_ SAFEARRAY
 
 IFACEMETHODIMP TextBoxProvider::get_BoundingRectangle(_Out_ UiaRect * pRetVal)
 {
+	if (!IsWindow(m_textBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	// Not implemented.
 	return S_OK;
 }
 
 IFACEMETHODIMP TextBoxProvider::GetEmbeddedFragmentRoots(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
 {
+	if (!IsWindow(m_textBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
 
 	*pRetVal = NULL;
 	return S_OK;
@@ -192,13 +228,22 @@ IFACEMETHODIMP TextBoxProvider::GetEmbeddedFragmentRoots(_Outptr_result_maybenul
 
 IFACEMETHODIMP TextBoxProvider::SetFocus()
 {
+	if (!IsWindow(m_textBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
 
 	return S_OK;
 }
 
 IFACEMETHODIMP TextBoxProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal)
 {
-	
+	if (!IsWindow(m_textBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
+
 	*pRetVal = this;
 	AddRef();
 	return S_OK;
@@ -210,6 +255,11 @@ IFACEMETHODIMP TextBoxProvider::ElementProviderFromPoint(double x, double y, _Ou
 {
 	UNREFERENCED_PARAMETER(x);
 	UNREFERENCED_PARAMETER(y);
+	if (!IsWindow(m_textBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 
 	// Not Implemented
 	*pRetVal = NULL;
@@ -218,6 +268,11 @@ IFACEMETHODIMP TextBoxProvider::ElementProviderFromPoint(double x, double y, _Ou
 
 IFACEMETHODIMP TextBoxProvider::GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal)
 {
+	if (!IsWindow(m_textBoxControlHWND))
+	{
+		return UIA_E_ELEMENTNOTAVAILABLE;
+	}
+
 	// The pane shouldn't be able to receive focus. 
 	// It doesn't exist as far as the UI is concerned.
 	*pRetVal = NULL;

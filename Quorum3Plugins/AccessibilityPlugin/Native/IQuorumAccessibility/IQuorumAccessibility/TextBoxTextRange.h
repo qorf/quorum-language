@@ -7,7 +7,7 @@ TextBoxTextRange: public ITextRangeProvider
 {
 public:
 
-	TextBoxTextRange(_In_ HWND hwnd, _In_ TextBoxControl *control, _In_ Range range);
+	TextBoxTextRange(_In_ HWND hwnd, _In_ TextBoxControl *control, _In_ Range range, _In_ std::wstring text);
 	virtual ~TextBoxTextRange();
 
 	// IUnknown methods
@@ -48,4 +48,5 @@ private:
 	HWND m_TextBoxControlHWND;				// The HWND for this object
 	TextBoxControl* m_pTextBoxControl;		// The control object that this UIA object is referring to
 	Range m_range;							// The range for this instance of TextAreaTextRange
+	std::wstring m_Text;					// The text that is encompassed by this text range.
 };
