@@ -43,7 +43,12 @@ import org.quorum.windows.CompilerErrorTopComponent;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerErrorManager_;
+import quorum.Libraries.Language.Compile.CompilerRequest;
+import quorum.Libraries.Language.Compile.CompilerRequest_;
+import quorum.Libraries.Language.Compile.CompilerResult_;
+import quorum.Libraries.Language.Compile.Library_;
 import quorum.Libraries.Language.Object_;
+import quorum.Libraries.System.File_;
 
 /**
  *
@@ -168,8 +173,16 @@ public abstract class QuorumAction implements Action {
             listing.Add(next);
         }
         
+        final CompilerResult_ result;
         try {
-            compiler.Compile(listing);
+            //get the standard library
+            File_ main = project.GetMain();
+            CompilerRequest_ request = new CompilerRequest();
+            Library_ library = project.GetStandardLibrary();
+            request.Set_Libraries_Language_Compile_CompilerRequest__files_(listing);
+            request.Set_Libraries_Language_Compile_CompilerRequest__library_(library);
+            request.Set_Libraries_Language_Compile_CompilerRequest__main_(main);
+            result = compiler.Compile(request);
         } catch (final Exception e) {
             if(logExceptionsToConsoleOutput) {
                 SwingUtilities.invokeLater(new Runnable() {
@@ -222,26 +235,30 @@ public abstract class QuorumAction implements Action {
             @Override
             public void run() {
                 CompilerErrorTopComponent errors = (CompilerErrorTopComponent) WindowManager.getDefault().findTopComponent("CompilerErrorTopComponent");
-                if (!compiler.IsCompilationErrorFree()) {
-                    CompilerErrorManager_ manager = compiler.GetCompilerErrorManager();
-                    errors.resetErrors(manager);
+                
+                if(result != null) {
+                    CompilerErrorManager_ manager = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
+                    if (!manager.IsCompilationErrorFree()) {
+                        errors.resetErrors(manager);
 
-                    boolean open = errors.isOpened();
-                    if (open) {
-                        errors.requestActive();
+                        boolean open = errors.isOpened();
+                        if (open) {
+                            errors.requestActive();
+                        } else {
+                            errors.open();
+                            errors.requestActive();
+                        }
                     } else {
-                        errors.open();
-                        errors.requestActive();
+                        errors.clear();
+                        io.select();
+
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+                        Date date = new Date();
+
+                        io.getOut().println("Build Successful at " + dateFormat.format(date) + " in " + total + " seconds.");
                     }
-                } else {
-                    errors.clear();
-                    io.select();
-
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-                    Date date = new Date();
-
-                    io.getOut().println("Build Successful at " + dateFormat.format(date) + " in " + total + " seconds.");
                 }
+                
             }
         });
         

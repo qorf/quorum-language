@@ -47,6 +47,7 @@ import org.quorum.actions.SendToIPhoneApplication;
 import org.quorum.actions.SendToIPhoneSimulator;
 import org.quorum.support.Utility;
 import quorum.Libraries.System.File_;
+import quorum.Libraries.Language.Compile.Library_;
 
 /**
  *
@@ -109,6 +110,7 @@ public class QuorumProject implements Project {
     private quorum.Libraries.Language.Compile.CompilerResult_ sandboxResult = null;
     private ArrayList<quorum.Libraries.System.File> extraSourceFiles = new ArrayList<quorum.Libraries.System.File>();
     private static quorum.Libraries.Language.Compile.Library_ quorumStandardLibrary = null;
+    private Library_ myProjectsLibrary = null;
     
     public QuorumProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
@@ -143,13 +145,26 @@ public class QuorumProject implements Project {
         //ask the compiler for a copy of its standard library
         //if it's not been scanned, scan it. Otherwise, use a pre-scanned one.
         if(quorumStandardLibrary == null) {
-            compiler.ScanStandardLibrary();
-            quorumStandardLibrary = compiler.GetStandardLibrary();
+            //compiler.ScanStandardLibrary();
+            quorumStandardLibrary = new quorum.Libraries.Language.Compile.Library();
+            quorumStandardLibrary.SetCachingLibraryOpcodes(true);
+            quorumStandardLibrary.SetLocation(standardLibrary);
+            
+            quorum.Libraries.System.File outputLocation = new quorum.Libraries.System.File();
+            outputLocation.SetWorkingDirectory(standardInNB.getAbsolutePath());
+            outputLocation.SetPath("Compiled");
+            quorumStandardLibrary.SetOutputFolder(outputLocation);
+            quorumStandardLibrary.Scan();
+            myProjectsLibrary = quorumStandardLibrary;
         } else {
-            compiler.SetStandardLibrary(quorumStandardLibrary);
+            myProjectsLibrary = quorumStandardLibrary;
         }
     }
 
+    public Library_ GetStandardLibrary() {
+        return myProjectsLibrary;
+    }
+    
     public QuorumProjectType getProjectType() {
         return projectType;
     }
@@ -288,6 +303,10 @@ public class QuorumProject implements Project {
     
     public Iterator<quorum.Libraries.System.File> getExtraSourceFiles() {
         return extraSourceFiles.iterator();
+    }
+    
+    public File_ GetMain() {
+        return Utility.toQuorumFile(mainFileProvider.getMainFile());
     }
     
     public void resetSources(String sources) {
