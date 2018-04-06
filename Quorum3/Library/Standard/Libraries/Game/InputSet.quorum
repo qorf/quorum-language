@@ -12,7 +12,8 @@ class InputSet
     constant integer VALUE_SIZE = 8
     constant integer TYPE_SIZE = 3
     constant integer TRIGGER_SIZE = 2
-    public constant integer SHIFT = VALUE_SIZE + TYPE_SIZE + TRIGGER_SIZE
+    constant integer EVENT_COUNT_SIZE = 2
+    public constant integer SHIFT = VALUE_SIZE + TYPE_SIZE + TRIGGER_SIZE + EVENT_COUNT_SIZE
     public constant integer CONTROL = SHIFT + 1
     public constant integer ALT = CONTROL + 1
     public constant integer META = ALT + 1
@@ -69,10 +70,11 @@ class InputSet
         1st to 8th bits: Integer value of the key or mouse input.
         9th to 11th bits: What kind of input this is. Corresponds to one of the input constants.
         12th to 13th bits: How the input is triggered. Can represent an input event beginning, finishing, or continuing.
-        14th bit: Shift key modifier - 1 if required, 0 otherwise.
-        15th bit: Control key modifier - 1 if required, 0 otherwise.
-        16th bit: Alt key modifier - 1 if required, 0 otherwise.
-        17th bit: Meta key modifier - 1 if required, 0 otherwise.
+        14th to 15th bits: How many previous events should be registered before triggering this one.
+        16th bit: Shift key modifier - 1 if required, 0 otherwise.
+        17th bit: Control key modifier - 1 if required, 0 otherwise.
+        18th bit: Alt key modifier - 1 if required, 0 otherwise.
+        19th bit: Meta key modifier - 1 if required, 0 otherwise.
     */
     integer bitmask = 0
 
@@ -121,12 +123,22 @@ class InputSet
     end
 
     action SetInputTrigger(integer type)
-//        if type = 0
-//            bitmask = bits:And(bitmask, bits:ShiftLeft(-1, VALUE_SIZE + TYPE_SIZE + TRIGGER_SIZE + 1))
-//        elseif type = 1
-//            bitmask = bits:Or(bitmask, bits:ShiftLeft(1, VALUE_SIZE + TYPE_SIZE))
-//        end
         SetBits(type, TRIGGER_SIZE, VALUE_SIZE + TYPE_SIZE)
+    end
+
+    action SetEventCount(integer count)
+        // Reduce the value by 1 (effectively, convert a value where counting
+        // begins at 1 into a value where counting starts at 0), and bound it
+        // between 0 and 3.
+        if count < 1
+            count = 0
+        elseif count > 4
+            count = 3
+        else
+            count = count - 1
+        end
+
+        SetBits(count, EVENT_COUNT_SIZE, VALUE_SIZE + TYPE_SIZE + TRIGGER_SIZE)
     end
 
     action GetInputTrigger returns integer

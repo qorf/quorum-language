@@ -55,4 +55,18 @@ class DesktopConfiguration is ApplicationConfiguration
     */
     public ScreenResolution defaultResolution = undefined
 
+    /*
+    The maximum number of seconds allowed between each mouse click before the
+    click is no longer considered related to the previous click. This is used
+    for things such as double-click input.
+    */
+    public number multipleClickTimer = 0.5
+
+    /*
+    The maximum number of seconds allowed between each key press before the
+    press is no longer considered related to the previous key press. This is
+    used for things like capturing double-taps on keys.
+    */
+    public number multipleKeyPressTimer = 0.5
+
 end
