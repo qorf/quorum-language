@@ -155,7 +155,7 @@ int TextBoxControl::GetLineCount()
 	return lineCount;
 }
 
-EndPoint TextBoxControl::GetEndOfText()
+EndPoint TextBoxControl::GetTextboxEndpoint()
 {
 	EndPoint endOfText = { lineCount - 1, 0 };
 	endOfText.character = GetLineLength(endOfText.line);
@@ -433,6 +433,11 @@ void TextBoxControl::SetName(_In_ WCHAR* name)
 	m_pTextboxName = name;
 }
 
+std::wstring TextBoxControl::GetText()
+{
+	return m_Text;
+}
+
 LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 
@@ -491,21 +496,25 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	case CUSTOM_UPDATECARET:
 	{
 		// TODO: Debug. Remove this section
-		PCWSTR sampleText = L"CUSTOM_UPDATECARET message being responded to.";
-		std::wcout << "WCOUT: " << sampleText << std::endl;
-		PCWSTR hello = L"Hello World!";
-		std::cout << "calling SetLineText" << std::endl;
-		//this->SetLineText(0, hello);
-		TextLine line[] = { { L"Hello world!" } };
-		this->lines = line;
-		std::cout << "calling GetLine" << std::endl;
-		TextLine* textline = this->GetLine(0);
-		std::wcout << "Textline->Text: " << textline->text << std::endl;
-		std::cout << "Size of the text line: " << this->GetLineLength(0) << std::endl;
-		fflush(stdout);
+		//PCWSTR sampleText = L"CUSTOM_UPDATECARET message being responded to.";
+		//std::wcout << "WCOUT: " << sampleText << std::endl;
+		//PCWSTR hello = L"Hello World!";
+		//std::cout << "calling SetLineText" << std::endl;
+		////this->SetLineText(0, hello);
+		//TextLine line[] = { { L"Hello world!" } };
+		//this->lines = line;
+		//std::cout << "calling GetLine" << std::endl;
+		//TextLine* textline = this->GetLine(0);
+		//std::wcout << "Textline->Text: " << textline->text << std::endl;
+		//std::cout << "Size of the text line: " << this->GetLineLength(0) << std::endl;
+		//fflush(stdout);
 		//=====
 
-		UpdateCaret((EndPoint*)lParam);
+		// IQuorumAccessiblity passes the wstring by reference. So we cast lParam to a pointer to a wstring and then dereference it to assign it to the Textboxes m_Text wstring.
+		m_Text = *(std::wstring*)(lParam);
+		//std::wcout << "m_Text: " << m_Text << std::endl;
+
+		UpdateCaret(/*(EndPoint*)lParam*/);
 		break;
 	}
 	case CUSTOM_SETNAME:
@@ -540,7 +549,7 @@ void TextBoxControl::KillFocus()
 	isActive = false;
 }
 
-void TextBoxControl::UpdateCaret( _In_ EndPoint* caretPosition)
+void TextBoxControl::UpdateCaret(/* _In_ EndPoint* caretPosition*/)
 {
 
 	// TODO: Debug. Remove this section
@@ -554,6 +563,6 @@ void TextBoxControl::UpdateCaret( _In_ EndPoint* caretPosition)
 	fflush(stdout);*/
 	//=====
 
-	m_caretPosition = *caretPosition;
+	//m_caretPosition = *caretPosition;
 	NotifyCaretPositionChanged(this->m_TextboxHWND, this);
 }

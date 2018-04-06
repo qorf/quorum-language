@@ -1,5 +1,6 @@
 #include <UIAutomation.h>
 #include "CustomMessages.h"
+#include <string>
 
 #ifndef TextBoxControl_HEADER
 #define TextBoxControl_HEADER
@@ -79,7 +80,7 @@ class TextBoxControl
 		void SetLineText(_In_ int line, _In_ PCWSTR newText);
 		int GetLineLength(_In_ int line);
 		int GetLineCount();
-		EndPoint GetEndOfText();
+		EndPoint GetTextboxEndpoint();
 
 		TextBoxTextAreaProvider* GetTextBoxProvider();
 		WCHAR* GetName();
@@ -89,6 +90,7 @@ class TextBoxControl
 		bool StepLine(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
 		bool IsActive();
 		EndPoint GetCaretPosition();
+		std::wstring GetText();
 
 	private:
 		static LRESULT CALLBACK StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
@@ -100,7 +102,7 @@ class TextBoxControl
 		
 		void SetFocus();
 		void KillFocus();
-		void UpdateCaret(_In_ EndPoint* caretPositions);
+		void UpdateCaret(/*_In_ EndPoint* caretPosition*/);
 
 		HWND m_TextboxHWND;
 		EndPoint m_caretPosition;
@@ -108,6 +110,7 @@ class TextBoxControl
 		TextLine *lines;
 		int lineCount;
 		WCHAR* m_pTextboxName;
+		std::wstring m_Text; // The text to be spoken aloud by the screen reader.
 		TextBoxTextAreaProvider* m_pTextBoxProvider;
 
 

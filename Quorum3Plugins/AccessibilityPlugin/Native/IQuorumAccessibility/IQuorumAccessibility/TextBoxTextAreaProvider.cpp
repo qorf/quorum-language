@@ -13,14 +13,14 @@ void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 	if (eventControl != NULL)
 	{
 		// TODO: Debug. Remove this section
-		PCWSTR sampleText;
+		/*PCWSTR sampleText;
 		sampleText = L"NotifyCaretPositionChanged method entered.";
 
 		TextLine* textline = control->GetLine(0);
 		std::wcout << "WCOUT: " << sampleText << std::endl;
 		std::wcout << "Textline->Text: " << textline->text << std::endl;
 		std::cout << "Size of the text line: " << control->GetLineLength(0) << std::endl;
-		fflush(stdout);
+		fflush(stdout);*/
 		//=====
 
 		UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
@@ -427,15 +427,14 @@ IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromPoint(UiaPoint point, _Outptr_r
 		If we wanted to get rid of that trade off then that'd be a fairly tricky implementation because we'd need to solve
 		the problem that this function is supposed to solve in Quorum, pass that down along with a mouse click event, and then
 		this function would look for it in the textbox control down here instead of solving the problem itself.
+		
+		TODO: Implement this in Quorum and pass down the required info when mouse clicking is implemented in the Quorum Textbox.
 	*/
-	UNREFERENCED_PARAMETER(point);
+	UNREFERENCED_PARAMETER(point); // This will never be used. Instead we get the point from Quorum.
 	Range closestRange = { { 0, 1 },{ 0, 1 } };
 	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, closestRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 
-	// Not Implemented yet.
-	/**pRetVal = NULL;
-	return S_OK;*/
 }
 
 // get_DocumentRange: Retrieves a text range that encloses the main text of a document.
@@ -450,13 +449,10 @@ IFACEMETHODIMP TextBoxTextAreaProvider::get_DocumentRange(_Outptr_result_maybenu
 
 	// Get the full text range that encompasses the document. From the first character on the first line
 	// all the way to the last character on the last line.
-	Range fullDocumentRange = { { 0, 0 }, m_pTextBoxControl->GetEndOfText() };
+	Range fullDocumentRange = { { 0, 0 }, m_pTextBoxControl->GetTextboxEndpoint() };
 	
 	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, fullDocumentRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 
-	// Not Implemented yet.
-	/**pRetVal = NULL;
-	return S_OK;*/
 }
 
