@@ -1133,14 +1133,13 @@ class Compiler
 
         SymbolTable originalTable = table:Copy()
         LinkToStandardLibrary(table, checker, errors, library)
-
+        
         if errors:IsCompilationErrorFree()
             TypeResolution(originalTable, checker, errors, table)
         else 
             return result
         end
         profiler:Add(time:GetEpochTime())
-
         Array<ClassOpcode> classOpcodes
         if errors:IsCompilationErrorFree()
             i = 0
@@ -1150,7 +1149,6 @@ class Compiler
                 if not outputSpeechCommands
                     listener:SetOutputSpeech(outputSpeechCommands)
                 end
-
                 ParseSandbox(undefined, listener, table, errors, checker, file)
 
                 if listener:HasSayStatementInClass()
@@ -1166,8 +1164,6 @@ class Compiler
         end
         profiler:Add(time:GetEpochTime())
 
-        //File starter = files:Get(0)
-        //custom check main
         Class m = GetMainClass(myMain, table)
         if m = undefined //no class that had a main method was selected, throw an error
             AddMainError(myMain, table, errors)
@@ -1176,7 +1172,6 @@ class Compiler
         else
             m:SetIsProgramStartingClass(true)
         end
-        //CheckMain(starter)
         
         //at this point, if the build is compilation free, it 
         //is guaranteed to not have compile errors, as no errors
@@ -1248,7 +1243,7 @@ class Compiler
             Class next = classes:Next()
             next:ResolveUseStatements(fullCompilation, errors)
         end
-
+        
         classes = table:GetClasses()
         repeat while classes:HasNext()
             Class next = classes:Next()

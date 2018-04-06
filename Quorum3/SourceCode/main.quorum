@@ -181,8 +181,6 @@ class Main is WebResponder
         request:main = main
 
         CompilerResult result = compiler:Compile(request)
-        CompilerProfiler profiler = result:profiler
-        profiler:OutputTimes()
 
         finish = time:GetEpochTime()
         output "Time: " + ((finish - start) / 1000.0) + " seconds"
