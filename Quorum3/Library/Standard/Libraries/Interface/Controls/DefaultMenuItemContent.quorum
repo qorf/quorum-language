@@ -48,7 +48,7 @@ class DefaultMenuItemContent is Item2D, MenuItemContent
         nameLayout:SetOffsetX(imageSpace)
         
         shortcutLayout:SetPercentageX(1)
-        shortcutLayout:SetOffsetX(-arrowSpace - shortcutLabel:GetTextWidth())
+        shortcutLayout:SetOffsetX(-arrowSpace - shortcutLabel:GetWidth())
 
         nameLabel:AddLayout(nameLayout)
         shortcutLabel:AddLayout(shortcutLayout)
@@ -150,7 +150,7 @@ class DefaultMenuItemContent is Item2D, MenuItemContent
             arrowSpace = 10
         end
 
-        shortcutLayout:SetOffsetX(-arrowSpace - shortcutLabel:GetTextWidth())
+        shortcutLayout:SetOffsetX(-arrowSpace - shortcutLabel:GetWidth())
     end
 
     action SetText(text value)
@@ -163,7 +163,7 @@ class DefaultMenuItemContent is Item2D, MenuItemContent
 
     action SetShortcut(text shortcut)
         shortcutLabel:SetText(shortcut)
-        shortcutLayout:SetOffsetX(-arrowSpace - shortcutLabel:GetTextWidth())
+        shortcutLayout:SetOffsetX(-arrowSpace - shortcutLabel:GetWidth())
     end
 
     action GetShortcut returns text
@@ -172,14 +172,14 @@ class DefaultMenuItemContent is Item2D, MenuItemContent
 
     action GetContentWidth returns number
         if shortcutLabel:GetText() = ""
-            return imageSpace + nameLabel:GetTextWidth() + arrowSpace
+            return imageSpace + nameLabel:GetWidth() + arrowSpace
         else
-            return imageSpace + nameLabel:GetTextWidth() + labelPadding + shortcutLabel:GetTextWidth() + arrowSpace
+            return imageSpace + nameLabel:GetWidth() + labelPadding + shortcutLabel:GetWidth() + arrowSpace
         end
     end
 
     action GetContentHeight returns number
-        return nameLabel:GetTextHeight() * heightFactor
+        return nameLabel:GetHeight() * heightFactor
     end
 
     action GetIconWidth returns number
@@ -187,11 +187,11 @@ class DefaultMenuItemContent is Item2D, MenuItemContent
     end
 
     action GetNameWidth returns number
-        return nameLabel:GetTextWidth()
+        return nameLabel:GetWidth()
     end
 
     action GetShortcutWidth returns number
-        return shortcutLabel:GetTextWidth()
+        return shortcutLabel:GetWidth()
     end
 
     action GetSubmenuIconWidth returns number
