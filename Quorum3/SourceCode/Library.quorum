@@ -78,8 +78,8 @@ class Library
             robotsFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
 
             buildFolder:SetPath("/Build")
-            runJar:SetPath("/Run/Standard/" + STANDARD_LIBRARY_JAR)
-            pluginJar:SetPath("/Run/Standard/" + STANDARD_PLUGINS_JAR)
+            runJar:SetPath("/Run/" + STANDARD_LIBRARY_JAR)
+            pluginJar:SetPath("/Run/" + STANDARD_PLUGINS_JAR)
             nativeFolder:SetPath("/Run/" + NATIVE_FOLDER)
             graphicsFolder:SetPath("/Run/" + GRAPHICS_FOLDER)
             robotsFolder:SetPath("/Run/" + ROBOTS_FOLDER)
@@ -384,11 +384,11 @@ class Library
         return total
     end
 
-    private action GetStandardLibraryClasspath returns text
+    action GetStandardLibraryClasspathValuesOnly(boolean addSpacing) returns text
         text line = ""
         line = line:GetCarriageReturn() + line:GetLineFeed()
-        text classpath = "Class-Path: "
-        text libraries = "../Graphics"//JAR_DEPENDENCY_FOLDER
+        text classpath = ""
+        text libraries = GRAPHICS_FOLDER
         boolean isFirst = true
         File lwjglFolder
         lwjglFolder:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
@@ -399,7 +399,7 @@ class Library
             File file = lwjglFiles:Get(counter)
 
             if file:GetFileName() not= ".DS_Store"
-                if isFirst
+                if isFirst and addSpacing
                     classpath = classpath + libraries + "/" + file:GetFileName()
                     isFirst = false
                 else
@@ -410,7 +410,7 @@ class Library
             counter = counter + 1
         end
 
-        text robots = "../Robots"
+        text robots = ROBOTS_FOLDER
         File dbus
         File ev3
         dbus:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
@@ -420,6 +420,48 @@ class Library
         ev3:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
         ev3:SetPath("ev3classes.jar")
         classpath = classpath + line + "  " + robots + "/" + ev3:GetFileName()
+        return classpath
+    end
+
+    private action GetStandardLibraryClasspath returns text
+        text line = ""
+        line = line:GetCarriageReturn() + line:GetLineFeed()
+        text classpath = "Class-Path: "
+        classpath = classpath + GetStandardLibraryClasspathValuesOnly(true)
+
+
+//        text libraries = "Graphics"//JAR_DEPENDENCY_FOLDER
+//        boolean isFirst = true
+//        File lwjglFolder
+//        lwjglFolder:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+//        lwjglFolder:SetPath("LWJGL")
+//        Array<File> lwjglFiles = lwjglFolder:GetDirectoryListing()
+//        integer counter = 0
+//        repeat while counter < lwjglFiles:GetSize()
+//            File file = lwjglFiles:Get(counter)
+//
+//            if file:GetFileName() not= ".DS_Store"
+//                if isFirst
+//                    classpath = classpath + libraries + "/" + file:GetFileName()
+//                    isFirst = false
+//                else
+//                    classpath = classpath + line + "  " + libraries + "/" + file:GetFileName()
+//                end
+//            end
+//
+//            counter = counter + 1
+//        end
+//
+//        text robots = "Robots"
+//        File dbus
+//        File ev3
+//        dbus:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+//        dbus:SetPath("dbusjava.jar")
+//            classpath = classpath + line + "  " + robots + "/" + dbus:GetFileName()
+//
+//        ev3:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+//        ev3:SetPath("ev3classes.jar")
+//        classpath = classpath + line + "  " + robots + "/" + ev3:GetFileName()
         return classpath
     end
 

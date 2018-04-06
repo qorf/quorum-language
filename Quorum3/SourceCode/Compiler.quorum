@@ -1186,7 +1186,7 @@ class Compiler
             if currentOutputType = JAVA_BYTECODE
                 //open up and begin filling the Jar
                 JarGenerator generator
-                text manifest = GetManifest(generator, table)
+                text manifest = GetManifest(generator, table, standardLibrary)
                 File jar = GetDistributionFile()
                 generator:SetManifest(manifest)
                 generator:Open(jar)
@@ -2193,7 +2193,7 @@ class Compiler
         end
     end
 
-    private action GetManifest(JarGenerator jar, SymbolTable table) returns text
+    private action GetManifest(JarGenerator jar, SymbolTable table, Library library) returns text
         text version = jar:GetManifestVersion() + ": 1.0"
         line = version:GetCarriageReturn() + version:GetLineFeed()
         version = version + line
@@ -2224,8 +2224,8 @@ class Compiler
         text classpath = "Class-Path: "
         text libraries = JAR_DEPENDENCY_FOLDER
 
-        classpath = classpath + "Standard/QuorumStandardLibrary.jar"
-        classpath = classpath + " Standard/QuorumStandardPlugins.jar"
+        classpath = classpath + "QuorumStandardLibrary.jar"
+        classpath = classpath + " QuorumStandardPlugins.jar"
 
         boolean isFirst = true
         if not additionalJarFiles:IsEmpty()
@@ -2239,45 +2239,7 @@ class Compiler
                 isFirst = false
             end
         end
-
-//        if usesLWJGL
-//            File lwjglFolder
-//            lwjglFolder:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-//            lwjglFolder:SetPath("LWJGL")
-//            Array<File> lwjglFiles = lwjglFolder:GetDirectoryListing()
-//            integer counter = 0
-//            repeat while counter < lwjglFiles:GetSize()
-//                File file = lwjglFiles:Get(counter)
-//
-//                if isFirst
-//                    classpath = classpath + libraries + "/" + file:GetFileName()
-//                    isFirst = false
-//                else
-//                    classpath = classpath + line + "  " + libraries + "/" + file:GetFileName()
-//                end
-//
-//                counter = counter + 1
-//            end
-//        end
-
-//        if hasRobots
-//            File dbus
-//            File ev3
-//            dbus:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-//            dbus:SetPath("dbusjava.jar")
-//            if isFirst
-//                classpath = classpath + libraries + "/" + dbus:GetFileName()
-//            else
-//                classpath = classpath + " " + libraries + "/" + dbus:GetFileName()
-//            end
-//
-//            ev3:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-//            ev3:SetPath("ev3classes.jar")
-//            classpath = classpath + " " + libraries + "/" + ev3:GetFileName()
-//        end
-
         main = main + classpath + line
-        //end
 
         total = version + created + main + line
         return total
@@ -2721,6 +2683,13 @@ class Compiler
             ResolveParents(table, parents, clazz, library, errors)
 
             ResolveBlocks(table, clazz, library, errors)
+        end
+
+        //now that we have the table, we need to add everything to the type checker
+        Iterator<Class> iterator = table:GetClasses()
+        repeat while iterator:HasNext()
+            Class clazz = iterator:Next()
+            types:Add(clazz)
         end
     end
 
