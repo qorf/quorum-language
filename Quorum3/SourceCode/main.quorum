@@ -133,14 +133,30 @@ class Main is WebResponder
         DateTime time
         File standardLibraryFolder = compiler:GetStandardLibraryFolder()
         compiler:SetStandardLibraryFolder(standardLibraryFolder)
-        output compiler:GetVersion() + "Compile Test"
+        output compiler:GetVersion() + " Compile Test"
 
+
+        File outputLocation
+        outputLocation:SetPath("Library/Compiled")
         output "Scanning"
         number start = time:GetEpochTime()
-        compiler:ScanStandardLibrary()
+        Library library
+        library:SetCachingLibraryOpcodes(true)
+        library:SetLocation(standardLibraryFolder)
+        library:SetOutputFolder(outputLocation)
+        library:Scan()
         output ""
         number finish = time:GetEpochTime()
         output "Time: " + ((finish - start) / 1000.0) + " seconds"
+
+        output "Writing Standard Library"
+        start = time:GetEpochTime()
+        library:Write()
+        finish = time:GetEpochTime()
+        output "Time: " + ((finish - start) / 1000.0) + " seconds"
+
+        compiler:SetStandardLibrary(library)
+        
 
         output "Compiling"
         start = time:GetEpochTime()
@@ -148,51 +164,35 @@ class Main is WebResponder
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
-        //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
-        //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/QUOR455/SourceCode/")
-        //main:SetPath("Library/Tests/Expressions/Pass/OrAndBooleanBoolean.quorum") //CallMethodCallingBlueprint
-        main:SetPath("Library/Tests/Use/Pass/GenerateAllClasses.quorum")
+        //main:SetPath("Library/Tests/Use/Pass/GenerateAllClasses.quorum")
+        main:SetPath("Library/Tests/Game/Pass/LoadCylinders.quorum")
 
-        File class2
-        //class2:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
-        class2:SetPath("Library/Tests/Inheritance/Pass/LandVehicle.quorum")
-        
-        File class3
-        class3:SetPath("Library/Tests/Inheritance/Pass/GasPoweredVehicle.quorum")
-
-        File class4
-        class4:SetPath("Library/Tests/Inheritance/Pass/Truck.quorum")
-
-        File class5
-        class5:SetPath("Library/Tests/Inheritance/Pass/GrandChildWithMultiple.quorum")
         Array<File> files
-
         files:Add(main)
-        //files:Add(class2)
-        //files:Add(class3)
-        //files:Add(class4)
-        //files:Add(class5)
-
-        //compiler:SetOutputSpeech(false) //don't speak while in test mode
-        //compiler:SetIsWebApplication(true)
-        //compiler:SetOutputType(compiler:JAVASCRIPT)
         compiler:SetMain(main)
+
         CompilerResult result = compiler:Compile(files, compiler:GetStandardLibrary())
         finish = time:GetEpochTime()
         output "Time: " + ((finish - start) / 1000.0) + " seconds"
 
-//        if compiler:IsCompilationErrorFree()
-//            output "Build Successful"
-//            if compiler:GetOutputType() = compiler:JAVASCRIPT
-//                File myOutput
-//                myOutput:SetWorkingDirectory("/Users/alleew/Desktop/WebGLTester/public_html")
-//                myOutput:SetPath("TestQuorum.js")
-//                myOutput:Write(compiler:GetCompiledJavaScript())
-//                output "File written."
-//            end
-//        else
-//            output compiler:GetCompilerErrorsAsText()
-//        end
+        CompilerErrorManager errors = result:compilerErrorManager
+        if errors:IsCompilationErrorFree()
+            output "Build Successful"
+            if compiler:GetOutputType() = compiler:JAVASCRIPT
+                File myOutput
+                myOutput:SetWorkingDirectory("/Users/alleew/Desktop/WebGLTester/public_html")
+                myOutput:SetPath("TestQuorum.js")
+                myOutput:Write(compiler:GetCompiledJavaScript())
+                output "File written."
+            end
+        else
+            Iterator<CompilerError> iterator = errors:GetIterator()
+            repeat while iterator:HasNext()
+                CompilerError error = iterator:Next()
+                output error:GetErrorMessage()
+            end
+            //output errors:G
+        end
     end
 
     private action ProcessConsoleFlags

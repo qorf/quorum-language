@@ -177,6 +177,9 @@ class Library
     end
 
     action WriteStandardLibrary
+        if not cacheOpcodes
+            alert("I cannot write the standard library to disk unless I am set to cache opcodes. Please re-rerun after turning this feature on.")
+        end
         JarGenerator generator
         text value = GetStandardLibraryManifest(generator)
         generator:SetManifest(value)
@@ -216,6 +219,7 @@ class Library
             pluginJar:GetParentDirectory():CreateDirectories()
         end
         generator:Open(pluginJar)
+        AddStandardPlugins(generator)
         AddCompilerDependencies(generator)
         AddSoundDependencies(generator)
         AddGameDependencies(generator)
@@ -223,6 +227,13 @@ class Library
         AddSpeechDependencies(generator)
 
         generator:Close()
+    end
+
+    private action AddStandardPlugins(JarGenerator generator)
+        File plugins
+        plugins:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/")
+        plugins:SetPath("plugins")
+        AddToJar(generator, plugins, plugins)
     end
 
     private action AddCompilerDependencies(JarGenerator generator)

@@ -1223,7 +1223,7 @@ class Compiler
 
                 //ok all of the classes are written in the jar. Now fill it up
                 //with any dependencies that are necessary.
-                //WriteDependencies(generator)
+                WriteDependencies(generator, standardLibrary)
                 generator:Close()
                 profiler:Add(time:GetEpochTime())
                 
@@ -1412,7 +1412,7 @@ class Compiler
 
                 //ok all of the classes are written in the jar. Now fill it up
                 //with any dependencies that are necessary.
-                //WriteDependencies(generator)
+                WriteDependencies(generator)
                 generator:Close()
                 profiler:Add(time:GetEpochTime())
                 
@@ -1770,6 +1770,63 @@ class Compiler
         if not copyLocation:Exists()
             file:Copy(copyLocation)
         end
+    end
+
+    private action WriteDependencies(JarGenerator generator, Library library)
+        File libraryLocation = library:GetLocation()
+        if not additionalPluginFolders:IsEmpty()
+            Iterator<File> it = additionalPluginFolders:GetIterator()
+            repeat while it:HasNext()
+                File folder = it:Next()
+                WritePlugins(generator, folder, folder)
+            end
+        end
+
+        //copy any jar files that are dependencies to disk
+        if not additionalJarFiles:IsEmpty()
+            Iterator<File> jars = additionalJarFiles:GetIterator()
+            repeat while jars:HasNext()
+                File file = jars:Next()
+                WriteJarToDisk(file)
+            end
+        end
+
+        if IsWebApplication()
+            File servlet
+            servlet:SetWorkingDirectory(libraryLocation:GetAbsolutePath() + "/Plugins/web/")
+            servlet:SetPath("WEB-INF/classes/web/servlet/Processor.class")
+            generator:Add(servlet)
+
+            File glassfish
+            glassfish:SetWorkingDirectory(libraryLocation:GetAbsolutePath() + "/Plugins/web/")
+            glassfish:SetPath("WEB-INF/glassfish-web.xml")
+            generator:Add(glassfish)
+
+            File web
+            web:SetWorkingDirectory(libraryLocation:GetAbsolutePath() + "/Plugins/web/")
+            web:SetPath("WEB-INF/web.xml")
+            generator:Add(web)
+
+            File context
+            context:SetWorkingDirectory(libraryLocation:GetAbsolutePath() + "/Plugins/web/")
+            context:SetPath("META-INF/context.xml")
+            generator:Add(context)
+        end
+
+        File compiledStandardLibraryFolder
+        compiledStandardLibraryFolder:SetWorkingDirectory(libraryLocation:GetParentDirectory():GetAbsolutePath() + "/Compiled/")
+        compiledStandardLibraryFolder:SetPath("Run")
+
+        CopyMissingFiles(compiledStandardLibraryFolder, runFolder)
+
+
+//        Array<File> lwjglFiles = compiledStandardLibraryFolder:GetDirectoryListing()
+//        integer counter = 0
+//        repeat while counter < lwjglFiles:GetSize()
+//            File file = lwjglFiles:Get(counter)
+//            WriteJarToDisk(file)
+//            counter = counter + 1
+//        end
     end
 
     private action WriteDependencies(JarGenerator generator)
