@@ -1059,7 +1059,11 @@ class Compiler
         end
     end
 
-    action Compile(Array<File> files, Library standardLibrary) returns CompilerResult
+    action Compile(CompilerRequest request) returns CompilerResult
+        Array<File> files = request:files
+        Library library = request:library
+        File myMain = request:main
+
         CompilerResult result
         text convertedJavaScript = ""
         DateTime time
@@ -1079,14 +1083,14 @@ class Compiler
         result:compilerErrorManager = errors
         result:symbolTable = table
         result:typeChecker = checker
-        result:standardLibrary = standardLibrary
+        result:standardLibrary = library
         result:profiler = profiler
 
 
         //check if the standard library is here and that the files are valid
         boolean isInvalidCompile = false
         //if the standard library is defined, set it up. Otherwise bail
-        if standardLibrary = undefined
+        if library = undefined
             output "I attempted to compile code without a standard library. Please report this to the development team as a bug."
             return result
         end
@@ -1127,20 +1131,8 @@ class Compiler
         end
         profiler:Add(time:GetEpochTime())
 
-        //This array will contain all files that must be built, 
-        //including potentially some from the standard library
-        //in order to build the requested files
-//        Array<File> allFiles = undefined
-//        if errors:IsCompilationErrorFree()
-//            allFiles = GetAllRequiredFiles(table, checker, errors)
-//        else 
-//            return result
-//        end
-        profiler:Add(time:GetEpochTime())
-
-        
         SymbolTable originalTable = table:Copy()
-        LinkToStandardLibrary(table, checker, errors, standardLibrary)
+        LinkToStandardLibrary(table, checker, errors, library)
 
         if errors:IsCompilationErrorFree()
             TypeResolution(originalTable, checker, errors, table)
@@ -1174,8 +1166,17 @@ class Compiler
         end
         profiler:Add(time:GetEpochTime())
 
-        File starter = files:Get(0)
-        CheckMain(starter)
+        //File starter = files:Get(0)
+        //custom check main
+        Class m = GetMainClass(myMain, table)
+        if m = undefined //no class that had a main method was selected, throw an error
+            AddMainError(myMain, table, errors)
+        elseif m not= undefined and m:HasMainAction() = false
+            AddMainError(myMain, table, errors)
+        else
+            m:SetIsProgramStartingClass(true)
+        end
+        //CheckMain(starter)
         
         //at this point, if the build is compilation free, it 
         //is guaranteed to not have compile errors, as no errors
@@ -1186,7 +1187,7 @@ class Compiler
             if currentOutputType = JAVA_BYTECODE
                 //open up and begin filling the Jar
                 JarGenerator generator
-                text manifest = GetManifest(generator, table, standardLibrary)
+                text manifest = GetManifest(request, generator, table)
                 File jar = GetDistributionFile()
                 generator:SetManifest(manifest)
                 generator:Open(jar)
@@ -1223,7 +1224,7 @@ class Compiler
 
                 //ok all of the classes are written in the jar. Now fill it up
                 //with any dependencies that are necessary.
-                WriteDependencies(generator, standardLibrary)
+                WriteDependencies(generator, library)
                 generator:Close()
                 profiler:Add(time:GetEpochTime())
                 
@@ -2193,7 +2194,7 @@ class Compiler
         end
     end
 
-    private action GetManifest(JarGenerator jar, SymbolTable table, Library library) returns text
+    private action GetManifest(CompilerRequest request, JarGenerator jar, SymbolTable table) returns text
         text version = jar:GetManifestVersion() + ": 1.0"
         line = version:GetCarriageReturn() + version:GetLineFeed()
         version = version + line
@@ -2204,8 +2205,8 @@ class Compiler
 
         text main = jar:GetManifestMainClass()
 
-        File mainFile = me:GetMain()
-        Class mainClass = me:GetMainClass(table)
+        File mainFile = request:main
+        Class mainClass = me:GetMainClass(mainFile, table)
         text classKey = "quorum." + mainClass:GetStaticKey()
         main = main + ": " + classKey
         main = main + line
@@ -2369,6 +2370,32 @@ class Compiler
         error:SetColumnNumber(1)
         error:SetColumnNumberEnd(1)
         compilerErrorManager:Add(error)
+    end
+
+    private action AddMainError(File starter, SymbolTable table, CompilerErrorManager errors)
+        CompilerError error
+        text message = "I noticed that the class " + starter:GetPath() 
+            +   " was specified as the starting point for this program, " 
+            + "but it does not have an action named Main. " 
+
+        Class clazz = table:GetClassInFile(starter:GetAbsolutePath())
+        if clazz not= undefined
+            if clazz:GetAction("main") not= undefined
+                message = message + "This class does have an action named "
+                    + "main, with a lower case m, did you mean for it to be "
+                    + "capitalized?"
+            end
+        end
+        error:SetErrorMessage(message)
+        CompilerErrorType t
+        t:SetCurrentType(t:MISSING_MAIN)
+        error:SetCompilerErrorType(t)
+        error:SetFile(starter)
+        error:SetLineNumber(1)
+        error:SetLineNumberEnd(1)
+        error:SetColumnNumber(1)
+        error:SetColumnNumberEnd(1)
+        errors:Add(error)
     end
 
     /*
@@ -3101,6 +3128,16 @@ class Compiler
     action GetMainClass(SymbolTable table) returns Class
         if main not= undefined and table not= undefined
             text path = main:GetAbsolutePath()
+            Class c = table:GetClassInFile(path)
+            return c
+        end
+        
+        return undefined
+    end
+
+    action GetMainClass(File theMain, SymbolTable table) returns Class
+        if theMain not= undefined and table not= undefined
+            text path = theMain:GetAbsolutePath()
             Class c = table:GetClassInFile(path)
             return c
         end

@@ -32,10 +32,10 @@ class Main is WebResponder
     HashTable<text, Array<text>> flagValues
 
     action Main
-        ProcessConsoleFlags()
+        //ProcessConsoleFlags()
         //GenerateDocumentation()
         //CompileHardcodedFile()
-        //CompileTest()
+        CompileTest()
     end
 
     action GenerateDocumentation
@@ -164,14 +164,26 @@ class Main is WebResponder
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
+        main:SetWorkingDirectory("/Users/stefika/Repositories/quorum-support/QuorumWebsite/SourceCode/")
         //main:SetPath("Library/Tests/Use/Pass/GenerateAllClasses.quorum")
-        main:SetPath("Library/Tests/Game/Pass/LoadCylinders.quorum")
-
+        //main:SetPath("Library/Tests/Game/Pass/LoadCylinders.quorum")
+        main:SetPath("main.quorum")
         Array<File> files
-        files:Add(main)
-        compiler:SetMain(main)
+        //files:Add(main)
+        //compiler:SetMain(main)
 
-        CompilerResult result = compiler:Compile(files, compiler:GetStandardLibrary())
+        files = main:GetParentDirectory():GetDirectoryListing()
+        
+
+        CompilerRequest request
+        request:files = files
+        request:library = compiler:GetStandardLibrary()
+        request:main = main
+
+        CompilerResult result = compiler:Compile(request)
+        CompilerProfiler profiler = result:profiler
+        profiler:OutputTimes()
+
         finish = time:GetEpochTime()
         output "Time: " + ((finish - start) / 1000.0) + " seconds"
 
