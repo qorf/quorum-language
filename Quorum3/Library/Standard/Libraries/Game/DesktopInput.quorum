@@ -63,6 +63,20 @@ class DesktopInput is GameInput
     Array<InputSet> pressedKeys
 
     /*
+    An array containing "recent" mouse clicks. Clicks are considered recent if
+    they happened within a certain number of seconds, defined by the
+    "multipleClickTimer" value from DesktopConfiguration.
+    */
+    Array<RecentInputTimer> recentClicks
+
+    /*
+    An array containing "recent" key presses. Presses are consideered recent if
+    they happened within a certain number of seconds, defined by the
+    "multipleKeyPressTimer" value from DesktopConfiguration.
+    */
+    Array<RecentInputTimer> recentKeyPresses
+
+    /*
     This action will identify all input events that have occurred and notify
     all relevant event listeners. For certain kinds of input, e.g. mouse or
     touch input, only listeners that were added to the active panel will be
@@ -70,12 +84,18 @@ class DesktopInput is GameInput
     users will never need to use this action directly.
     */
     action ProcessInputEvents
+
+        UpdateRecentInputTimers()
+
         Array<Layer> layers = parent:GameInput:layers
         List<MouseEvent> mouseEvents = mouseProcessor:GetCurrentEvents()
         MouseEvent mouseEvent = undefined
 
         InputSet set = keyboardModifiers:Copy()
+        InputSet multiSet = undefined
         InputSet anySet = keyboardModifiers:Copy()
+
+        RecentInputTimer recentInput = undefined
 
         Item target = undefined
         Item mouseMoveTarget = undefined
@@ -94,7 +114,10 @@ class DesktopInput is GameInput
                 set:SetInputTrigger(set:BEGIN)
                 anySet:SetInputTrigger(set:BEGIN)
 
+                recentInput = GetRecentMouseInput(mouseEvent)
                 MouseButtonsChanged(mouseEvent)
+
+                multiSet = set:Copy()
 
             elseif mouseEvent:eventType = mouseEvent:RELEASED_MOUSE
                 set:SetInputTrigger(set:FINISH)
@@ -111,7 +134,7 @@ class DesktopInput is GameInput
             behaviorEvent:SetMouseEvent(mouseEvent)
 
             boolean useDefaultTable = true
-
+            
             integer counter = layers:GetSize()
             repeat while not mouseEvent:WasEventHandled() and counter > 0
                 counter = counter - 1
@@ -139,10 +162,34 @@ class DesktopInput is GameInput
                         InputTable table = GetInputTable(seeker:GetInputGroup())
 
                         if useDefaultTable
-                            if table not= undefined and (table:HasKey(set) or table:HasKey(anySet))
-                                useDefaultTable = false
-                                mouseEvent:SetEventHandled(true)
-                                target = seeker
+                            if table not= undefined
+                                if recentInput not= undefined
+                                    if ItemsAreRelated(seeker, recentInput:item)
+                                        multiSet:SetEventCount(recentInput:count + 1)
+                                    else
+                                        multiSet:SetEventCount(1)
+                                    end
+                                    if table:HasKey(multiSet)
+                                        set = multiSet
+                                    end
+                                end
+                                if table:HasKey(set) or table:HasKey(anySet)
+                                    if recentInput not= undefined
+                                        recentInput:timer = 0
+                                        if recentInput:item not= seeker
+                                            recentInput:item = seeker
+                                            recentInput:count = 1
+                                            mouseEvent:clickCount = 1
+                                        else
+                                            recentInput:count = recentInput:count + 1
+                                            mouseEvent:clickCount = recentInput:count
+                                        end
+                                    end
+
+                                    useDefaultTable = false
+                                    mouseEvent:SetEventHandled(true)
+                                    target = seeker
+                                end
                             end
                         end
 
@@ -160,10 +207,10 @@ class DesktopInput is GameInput
                             end
                         end
 
-                        if target is Item2D
+                        if seeker is Item2D
                             Item2D target2D = cast(Item2D, seeker)
                             seeker = target2D:GetParent()
-                        elseif target is Item3D
+                        elseif seeker is Item3D
                             Item3D target3D = cast(Item3D, seeker)
                             seeker = target3D:GetParent()
                         else
@@ -287,6 +334,39 @@ class DesktopInput is GameInput
 
             if useDefaultTable
                 table = GetDefaultInputTable()
+
+                if recentInput not= undefined
+//                    if recentInput:item not= mouseEvent:GetSource()
+//                        recentInput:item = mouseEvent:GetSource()
+//                        recentInput:timer = 0
+//                        recentInput:count = 1
+//                        mouseEvent:clickCount = 1
+//                    else
+//                        multiSet:SetEventCount(recentInput:count + 1)
+//                        recentInput:timer = 0
+//                        recentInput:count = recentInput:count + 1
+//                        mouseEvent:clickCount = recentInput:count
+//                        if table:HasKey(multiSet)
+//                            set = multiSet
+//                        end
+//                    end
+
+                    if ItemsAreRelated(recentInput:item, mouseEvent:GetSource())
+                        multiSet:SetEventCount(recentInput:count + 1)
+                        recentInput:timer = 0
+                        recentInput:count = recentInput:count + 1
+                        mouseEvent:clickCount = recentInput:count
+                        if table:HasKey(multiSet)
+                            set = multiSet
+                        end
+                    else
+                        recentInput:timer = 0
+                        recentInput:count = 1
+                        mouseEvent:clickCount = 1
+                    end
+
+                    recentInput:item = mouseEvent:GetSource()
+                end
             else
                 table = GetInputTable(target:GetInputGroup())
             end
@@ -329,6 +409,91 @@ class DesktopInput is GameInput
             end
         end
 
+    end
+
+    private action UpdateRecentInputTimers
+        number seconds = manager:GetGameDisplay():GetSecondsBetweenFrames()
+        DesktopConfiguration config = manager:GetGame():GetDesktopConfiguration()
+        number clickLimit = config:multipleClickTimer
+        number keyPressLimit = config:multipleKeyPressTimer
+
+        integer recentCounter = recentClicks:GetSize()
+        repeat while recentCounter > 0
+            recentCounter = recentCounter - 1
+            RecentInputTimer value = recentClicks:Get(recentCounter)
+            value:timer = value:timer + seconds
+            if value:timer > clickLimit
+                recentClicks:RemoveAt(recentCounter)
+                recentCounter = recentCounter - 1
+            end
+        end
+
+        recentCounter = recentKeyPresses:GetSize()
+        repeat while recentCounter > 0
+            recentCounter = recentCounter - 1
+            RecentInputTimer value = recentKeyPresses:Get(recentCounter)
+            value:timer = value:timer + seconds
+            if value:timer > keyPressLimit
+                recentKeyPresses:RemoveAt(recentCounter)
+                recentCounter = recentCounter - 1
+            end
+        end
+    end
+
+    private action GetRecentMouseInput(MouseEvent event) returns RecentInputTimer
+        integer counter = 0
+        integer button = event:mouseButton
+        repeat while counter < recentClicks:GetSize()
+            RecentInputTimer timer = recentClicks:Get(counter)
+            if timer:inputValue = button
+//                timer:timer = 0
+//                timer:count = timer:count + 1 
+//                event:clickCount = timer:count
+                return timer
+            end
+
+            counter = counter + 1
+        end
+
+        RecentInputTimer timer
+        timer:inputValue = button
+        timer:count = 0
+        recentClicks:Add(timer)
+
+//        event:clickCount = 1
+        return timer
+    end
+
+    private action ItemsAreRelated(Item elder, Item younger) returns boolean
+        // If both are undefined, return true, otherwise return false.
+        if elder = undefined
+            if younger = undefined
+                return true
+            end
+            return false
+        elseif younger = undefined
+            return false
+        end
+
+        if elder is Item2D
+            Item2D item = cast(Item2D, younger)
+            repeat while item not= undefined
+                if item:Equals(elder)
+                    return true
+                end
+                item = item:GetParent()
+            end
+        else // Assume that both items are Item3D
+            Item3D item = cast(Item3D, younger)
+            repeat while item not= undefined
+                if item:Equals(elder)
+                    return true
+                end
+                item = item:GetParent()
+            end
+        end
+
+        return false
     end
 
     private action ProcessKeyboardEvents(List<KeyboardEvent> events)

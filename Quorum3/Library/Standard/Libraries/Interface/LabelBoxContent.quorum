@@ -122,8 +122,8 @@ class LabelBoxContent is Item2D, GraphicUserInterfaceContent
     action SetText(text newText)
         label:SetText(newText)
         
-        number labelWidth = label:GetTextWidth()
-        number labelHeight = label:GetTextHeight()
+        number labelWidth = label:GetWidth()
+        number labelHeight = label:GetHeight()
 
         // Adjust the label upwards if it takes multiple lines.
         number yOffset = labelHeight - label:GetLineHeight()
@@ -183,7 +183,7 @@ class LabelBoxContent is Item2D, GraphicUserInterfaceContent
         mouseOverEffect:SetPosition(borderThickness, borderThickness)
         mouseOverEffect:SetScale(backgroundWidth / texture:GetWidth(), backgroundHeight / texture:GetHeight())
 
-        label:SetWidth(background:GetWidth() * background:GetScaleX())
+        label:SetMaximumWidth(background:GetWidth() * background:GetScaleX())
         // Force the label to readjust to its new size.
         SetText(label:GetText())
     end

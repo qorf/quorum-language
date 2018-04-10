@@ -2,6 +2,7 @@ package Libraries.Interface.Layouts
 
 use Libraries.Interface.Item2D
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.Label
 
 class FlowLayout is Layout
     
@@ -35,11 +36,11 @@ class FlowLayout is Layout
 
         if not wrapping
             item:SetWidth(x)
+        else
+            number oldHeight = item:GetHeight()
+            item:SetHeight(tallestHeight - y)
+            item:MoveY(oldHeight - (tallestHeight - y))
         end
-        
-        number oldHeight = item:GetHeight()
-        item:SetHeight(tallestHeight - y)
-        item:MoveY(oldHeight - (tallestHeight - y))
     end
 
     action SetWrapping(boolean wrap)
