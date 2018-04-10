@@ -351,10 +351,10 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetSelection(_Outptr_result_maybenull_ S
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
-
+	
 	// For now, selection is hardcoded to be the degenerate text range.
 	Range caretRange = { m_pTextBoxControl->GetCaretPosition(), m_pTextBoxControl->GetCaretPosition() };
-	ITextRangeProvider *selectionRangeProvider = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, caretRange);
+	ITextRangeProvider *selectionRangeProvider = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, caretRange, m_pTextBoxControl->GetText());
 	HRESULT hr = S_OK;
 	if (selectionRangeProvider == NULL)
 	{
@@ -432,7 +432,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromPoint(UiaPoint point, _Outptr_r
 	*/
 	UNREFERENCED_PARAMETER(point); // This will never be used. Instead we get the point from Quorum.
 	Range closestRange = { { 0, 1 },{ 0, 1 } };
-	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, closestRange);
+	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, closestRange, m_pTextBoxControl->GetText());
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 
 }
@@ -451,7 +451,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::get_DocumentRange(_Outptr_result_maybenu
 	// all the way to the last character on the last line.
 	Range fullDocumentRange = { { 0, 0 }, m_pTextBoxControl->GetTextboxEndpoint() };
 	
-	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, fullDocumentRange);
+	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, fullDocumentRange, m_pTextBoxControl->GetText());
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 
 }

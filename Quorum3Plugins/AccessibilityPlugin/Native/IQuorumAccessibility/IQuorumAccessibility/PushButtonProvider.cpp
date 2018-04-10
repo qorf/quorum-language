@@ -123,6 +123,7 @@ IFACEMETHODIMP PushButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_
 		// UIA_HasKeyboardFocusPropertyId is responsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
+
 	}
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
 	{
@@ -130,6 +131,7 @@ IFACEMETHODIMP PushButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_
 		// but by lying and having every instance of this control report that it has keyboard focus then we don't have to mantain what has focus on the native level.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
+
 	}
 	else
 	{

@@ -104,6 +104,8 @@ class TextBoxControl
 		void KillFocus();
 		void UpdateCaret(/*_In_ EndPoint* caretPosition*/);
 
+		LRESULT OnKeyDown(WPARAM wParam, LPARAM lParam);
+
 		HWND m_TextboxHWND;
 		EndPoint m_caretPosition;
 		bool isActive;

@@ -131,6 +131,7 @@ IFACEMETHODIMP RadioButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out
 		// UIA_HasKeyboardFocusPropertyId is respondsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
+
 	}
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
 	{
@@ -138,6 +139,7 @@ IFACEMETHODIMP RadioButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out
 		// but by lying and having every instance of this control report that it has keyboard focus then we don't have to mantain what has focus on the native level.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
+
 	}
 	else
 	{

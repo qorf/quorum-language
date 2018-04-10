@@ -64,18 +64,6 @@ HWND TextBoxControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHA
 	{
 		TextBoxControl * control = new TextBoxControl(quorumLines, _ARRAYSIZE(quorumLines), caret);
 
-		// TODO: Debug. Remove this section
-		PCWSTR sampleText;
-		sampleText = L"Create method entered.";
-		sampleText = L"Create method WAS entered.";
-
-		TextLine* textline = control->GetLine(0);
-		std::wcout << "WCOUT: " << sampleText << std::endl;
-		std::wcout << "Textline->Text: " << textline->text << std::endl;
-		std::cout << "Size of the text line: " << control->GetLineLength(0) << std::endl;
-		std::cout << "Number of lines: " << _ARRAYSIZE(quorumLines) << std::endl;
-		// =====
-
 		control->m_TextboxHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
 												 L"QUORUM_TEXTBOX",
 												 textboxName,
@@ -495,26 +483,16 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	}
 	case CUSTOM_UPDATECARET:
 	{
-		// TODO: Debug. Remove this section
-		//PCWSTR sampleText = L"CUSTOM_UPDATECARET message being responded to.";
-		//std::wcout << "WCOUT: " << sampleText << std::endl;
-		//PCWSTR hello = L"Hello World!";
-		//std::cout << "calling SetLineText" << std::endl;
-		////this->SetLineText(0, hello);
-		//TextLine line[] = { { L"Hello world!" } };
-		//this->lines = line;
-		//std::cout << "calling GetLine" << std::endl;
-		//TextLine* textline = this->GetLine(0);
-		//std::wcout << "Textline->Text: " << textline->text << std::endl;
-		//std::cout << "Size of the text line: " << this->GetLineLength(0) << std::endl;
-		//fflush(stdout);
-		//=====
 
 		// IQuorumAccessiblity passes the wstring by reference. So we cast lParam to a pointer to a wstring and then dereference it to assign it to the Textboxes m_Text wstring.
 		m_Text = *(std::wstring*)(lParam);
-		//std::wcout << "m_Text: " << m_Text << std::endl;
 
 		UpdateCaret(/*(EndPoint*)lParam*/);
+		break;
+	}
+	case WM_KEYDOWN:
+	{
+		lResult = OnKeyDown(wParam, lParam);
 		break;
 	}
 	case CUSTOM_SETNAME:
@@ -551,18 +529,30 @@ void TextBoxControl::KillFocus()
 
 void TextBoxControl::UpdateCaret(/* _In_ EndPoint* caretPosition*/)
 {
-
-	// TODO: Debug. Remove this section
-	/*PCWSTR sampleText;
-	sampleText = L"UpdateCaret method entered.";
-
-	TextLine* textline = this->GetLine(0);
-	std::wcout << "WCOUT: " << sampleText << std::endl;
-	std::wcout << "Textline->Text: " << textline->text << std::endl;
-	std::cout << "Size of the text line: " << this->GetLineLength(0) << std::endl;
-	fflush(stdout);*/
-	//=====
-
 	//m_caretPosition = *caretPosition;
 	NotifyCaretPositionChanged(this->m_TextboxHWND, this);
+}
+
+LRESULT TextBoxControl::OnKeyDown(_In_ WPARAM wParam, _In_ LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(lParam);
+
+
+
+	switch (wParam)
+	{
+	
+	case VK_LEFT:       // Left arrow 
+		std::cout << "Native code got left arrow." << std::endl;
+		break;
+
+	case VK_RIGHT:      // Right arrow 
+		std::cout << "Native code got right arrow." << std::endl;
+		break;
+
+	default:
+		break;
+	}
+
+	return 0;
 }

@@ -29,7 +29,7 @@ public:
 	IFACEMETHODIMP SetFocus();
 	IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal);
 
-	// IRawElementProviderFragmenRoot methods
+	// IRawElementProviderFragmentRoot methods
 	IFACEMETHODIMP ElementProviderFromPoint(double x, double y, _Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal);
 	IFACEMETHODIMP GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal);
 
