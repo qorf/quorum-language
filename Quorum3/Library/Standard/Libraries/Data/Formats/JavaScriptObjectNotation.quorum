@@ -8,6 +8,42 @@ use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
 use Libraries.Data.Formats.JavaScriptObjectNotationLexer
 use Libraries.Data.Formats.JavaScriptObjectNotationParser
 
+/*
+This class can read in JavaScriptObjectNotation (JSON) formatted data from text values or 
+from disk. When it reads them in, the data is stored inside this object. Alternatively, this 
+class allows the programmer to set a listener object that can receive information about how 
+the JSON file is being parsed as it occurs. 
+
+Attribute: Example
+
+use Libraries.Data.Formats.JavaScriptObjectNotation
+
+class Main
+   action Main
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+        text myValue = "{" + dq + "data" + dq + ": [21.5, 22.7, 23.9]}"
+        JavaScriptObjectNotation json
+        json:ReadToObject(myValue)
+        i = 0
+        repeat while i < json:GetSize()
+            JavaScriptObjectNotation next = json:Get(i)
+            if next:GetKey() = "data"
+                output "data"
+                JavaScriptObjectNotation array = next:Get(0)
+                j = 0
+                repeat while j < array:GetSize()
+                    JavaScriptObjectNotation item = array:Get(j)
+                    output item:GetNumber()
+                    j = j + 1
+                end
+            end
+            i = i + 1
+        end
+   end
+end
+*/
+
 class JavaScriptObjectNotation
     Array<JavaScriptObjectNotation> array
     text textValue = ""
@@ -33,6 +69,30 @@ class JavaScriptObjectNotation
         array:Add(object)
     end
 
+    /*
+    Use this method to add a nested JavaScriptObjectNotation object with a key.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation data
+            data:Add("item1" : "a")
+            data:Add("item2" : "b")
+            data:Add("item3" : "c")
+
+            JavaScriptObjectNotation json
+            json:Add("data1" : "A")
+            json:Add("data2" : "B")
+            json:Add("detail" : data)
+
+            output json:ToText()
+       end
+    end
+    */
+
     action Add(text key, JavaScriptObjectNotation value)
         JavaScriptObjectNotation object
         object:SetPrettyPrint(IsPrettyPrint())
@@ -40,6 +100,23 @@ class JavaScriptObjectNotation
         object:SetKey(key)
         array:Add(object)
     end
+
+    /*
+    Use this method to add a boolean item to a JavaScriptObjectNotation object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1" : true)
+            json:Add("item2" : false)
+            output json:ToText()
+       end
+    end
+    */
 
     action Add(text key, boolean value) 
         JavaScriptObjectNotation object
@@ -49,6 +126,23 @@ class JavaScriptObjectNotation
         array:Add(object)
     end
 
+    /*
+    Use this method to add an integer item to a JavaScriptObjectNotation object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1" : 1)
+            json:Add("item2" : 2)
+            output json:ToText()
+       end
+    end
+    */
+
     action Add(text key, integer value) 
         JavaScriptObjectNotation object
         object:SetPrettyPrint(IsPrettyPrint())
@@ -56,6 +150,23 @@ class JavaScriptObjectNotation
         object:SetKey(key)
         array:Add(object)
     end
+
+    /*
+    Use this method to add a number item to a JavaScriptObjectNotation object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1" : 1.1)
+            json:Add("item2" : 2.2)
+            output json:ToText()
+       end
+    end
+    */
 
     action Add(text key, number value) 
         JavaScriptObjectNotation object
@@ -65,6 +176,23 @@ class JavaScriptObjectNotation
         array:Add(object)
     end
 
+    /*
+    Use this method to add a text item to a JavaScriptObjectNotation object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1" : "First Name")
+            json:Add("item2" : "Last Name")
+            output json:ToText()
+       end
+    end
+    */
+
     action Add(text key, text value) 
         JavaScriptObjectNotation object
         object:SetPrettyPrint(IsPrettyPrint())
@@ -73,18 +201,99 @@ class JavaScriptObjectNotation
         array:Add(object)
     end
 
+    /*
+    Use this method to return one of the items in the json object by it's index number
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1" : true)
+            json:Add("item2" : 5)
+
+            JavaScriptObjectNotation item = json:Get(0)
+            if item:GetBoolean() = true
+                output "Item 1 was true"
+            else
+                output "Item 1 was false"
+            end
+       end
+    end
+    */
+
     action Get(integer index) returns JavaScriptObjectNotation
         JavaScriptObjectNotation value = array:Get(index)
         return value
     end
 
+    /*
+    Use this method to get the boolean value of a JavaScriptObjectNotation object
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1" : true)
+
+            JavaScriptObjectNotation item = json:Get(0)
+            output item:GetBoolean()
+       end
+    end
+    */
+
     action GetBoolean returns boolean
         return booleanValue
     end
 
+    /*
+    Use this method to get the key (or name) of a JavaScriptObjectNotation object
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1" : true)
+
+            JavaScriptObjectNotation item = json:Get(0)
+            output item:GetKey()
+       end
+    end
+    */
+
     action GetKey returns text
         return key
     end
+
+    /*
+    This method to an array of the key names inside a JavaScriptObjectNotation object
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1" : 1)
+            json:Add("item2" : 2)
+            json:Add("item3" : 3)
+
+            Array<text> keys = json:GetKeys()
+            output keys:Get(0)
+            output keys:Get(1)
+            output keys:Get(2)
+       end
+    end
+    */
 
     action GetKeys() returns Array<text>
         Array<text> result
