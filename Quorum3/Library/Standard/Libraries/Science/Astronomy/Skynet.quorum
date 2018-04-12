@@ -1,3 +1,5 @@
+package Libraries.Science.Astronomy
+
 use Libraries.Containers.HashTable
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -221,7 +223,6 @@ class Skynet is NetworkRequestListener
     action ResponseReceived(NetworkResponseEvent response)
         JavaScriptObjectNotation json
         json:Read(response:GetResponseText())
-
         if status = STATUS_WAITING_FOR_OBSERVATIONID
             observationID = cast(integer, json:GetValue("id"))
             status = STATUS_OBSERVATIONID_RECEIVED

@@ -79,14 +79,14 @@ class JavaScriptObjectNotation
     class Main
        action Main
             JavaScriptObjectNotation data
-            data:Add("item1" : "a")
-            data:Add("item2" : "b")
-            data:Add("item3" : "c")
+            data:Add("item1", "a")
+            data:Add("item2", "b")
+            data:Add("item3", "c")
 
             JavaScriptObjectNotation json
-            json:Add("data1" : "A")
-            json:Add("data2" : "B")
-            json:Add("detail" : data)
+            json:Add("data1", "A")
+            json:Add("data2", "B")
+            json:Add("detail", data)
 
             output json:ToText()
        end
@@ -111,8 +111,8 @@ class JavaScriptObjectNotation
     class Main
        action Main
             JavaScriptObjectNotation json
-            json:Add("item1" : true)
-            json:Add("item2" : false)
+            json:Add("item1", true)
+            json:Add("item2", false)
             output json:ToText()
        end
     end
@@ -136,8 +136,8 @@ class JavaScriptObjectNotation
     class Main
        action Main
             JavaScriptObjectNotation json
-            json:Add("item1" : 1)
-            json:Add("item2" : 2)
+            json:Add("item1", 1)
+            json:Add("item2", 2)
             output json:ToText()
        end
     end
@@ -161,8 +161,8 @@ class JavaScriptObjectNotation
     class Main
        action Main
             JavaScriptObjectNotation json
-            json:Add("item1" : 1.1)
-            json:Add("item2" : 2.2)
+            json:Add("item1", 1.1)
+            json:Add("item2", 2.2)
             output json:ToText()
        end
     end
@@ -186,8 +186,8 @@ class JavaScriptObjectNotation
     class Main
        action Main
             JavaScriptObjectNotation json
-            json:Add("item1" : "First Name")
-            json:Add("item2" : "Last Name")
+            json:Add("item1", "First Name")
+            json:Add("item2", "Last Name")
             output json:ToText()
        end
     end
@@ -211,8 +211,8 @@ class JavaScriptObjectNotation
     class Main
        action Main
             JavaScriptObjectNotation json
-            json:Add("item1" : true)
-            json:Add("item2" : 5)
+            json:Add("item1", true)
+            json:Add("item2", 5)
 
             JavaScriptObjectNotation item = json:Get(0)
             if item:GetBoolean() = true
@@ -239,7 +239,7 @@ class JavaScriptObjectNotation
     class Main
        action Main
             JavaScriptObjectNotation json
-            json:Add("item1" : true)
+            json:Add("item1", true)
 
             JavaScriptObjectNotation item = json:Get(0)
             output item:GetBoolean()
@@ -261,7 +261,7 @@ class JavaScriptObjectNotation
     class Main
        action Main
             JavaScriptObjectNotation json
-            json:Add("item1" : true)
+            json:Add("item1", true)
 
             JavaScriptObjectNotation item = json:Get(0)
             output item:GetKey()
@@ -274,25 +274,26 @@ class JavaScriptObjectNotation
     end
 
     /*
-    This method to an array of the key names inside a JavaScriptObjectNotation object
+    This method returns an array of the key names inside a JavaScriptObjectNotation object
 
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Containers.Array
 
     class Main
        action Main
             JavaScriptObjectNotation json
-            json:Add("item1" : 1)
-            json:Add("item2" : 2)
-            json:Add("item3" : 3)
+            json:Add("item1", 1)
+            json:Add("item2", 2)
+            json:Add("item3", 3)
 
             Array<text> keys = json:GetKeys()
             i = 0
             repeat keys:GetSize() times
-                output keys:Get(0)
-                output keys:Get(1)
-                output keys:Get(2)
+                key = keys:Get(i)
+                output key + " => " + json:GetValue(key)
+                i = i + 1
             end
        end
     end
@@ -307,6 +308,31 @@ class JavaScriptObjectNotation
         end
         return result
     end
+
+    /*
+    This method returns an integer value of a JavaScriptObjectNotation object containing an integer type
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2)
+            json:Add("item3", 3)
+
+            sum = 0
+            i = 0
+            repeat json:GetSize() times
+                sum = sum + json:Get(i):GetInteger()
+                i = i + 1
+            end
+            output sum
+       end
+    end
+    */
 
     action GetInteger returns integer
         return integerValue
