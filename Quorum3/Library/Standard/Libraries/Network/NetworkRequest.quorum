@@ -11,17 +11,16 @@ use Libraries.Network.NetworkRequestType
  */
 
 class NetworkRequest 
-
-    NetworkRequestType type
-    text webAddress = ""
-    integer millisecondsToReadTimeout = 0
-    integer millisecondsToConnectTimeout  = 0
-    HashTable<text, text> headers
-    boolean doInput = true
-    boolean doOutput = true
-    text body = ""
-    boolean fixedLengthStreamingMode = true
-    integer chunkLength = 1000
+    private NetworkRequestType type
+    private text webAddress = ""
+    private integer millisecondsToReadTimeout = 0
+    private integer millisecondsToConnectTimeout  = 0
+    private HashTable<text, text> headers
+    private boolean doInput = true
+    private boolean doOutput = true
+    private text body = ""
+    private boolean fixedLengthStreamingMode = true
+    private integer chunkLength = 1000
 
     private Iterator<text> headerIterator = undefined
     private text nextHeader = ""

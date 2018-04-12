@@ -13,9 +13,9 @@ use Libraries.Network.NetworkResponseEvent
  */
 
 class NetworkConnection
-    List<NetworkRequestListener> listeners
-    NetworkRequest request = undefined
-    NetworkResponseEvent response = undefined
+    private List<NetworkRequestListener> listeners
+    private NetworkRequest request = undefined
+    private NetworkResponseEvent response = undefined
 
     private system action Request()
 

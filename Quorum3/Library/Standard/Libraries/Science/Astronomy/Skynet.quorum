@@ -1,43 +1,62 @@
 use Libraries.Containers.HashTable
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
-use Libraries.Data.Formats.JavaScriptObjectNotation
 use Libraries.Network.NetworkConnection
 use Libraries.Network.NetworkRequest
 use Libraries.Network.NetworkRequestListener
 use Libraries.Network.NetworkResponseEvent
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Containers.List
+use Libraries.System.SystemHelper
 
 class Skynet is NetworkRequestListener
-    text AccountKey = ""
-    text name = ""
-    text type = ""
-    text rightAscension = ""
-    text declination = ""
-    integer maxSun = 0
-    number minElevation = 0.0
-    Array<text> telescopes
-    Array<text> filters
-    integer expNum = 0
-    number expLength = 0.0
-    integer timeAccount = 0
+    private List<SkynetListener> listeners
+    private text AccountKey = ""
+    private text name = ""
+    private text type = ""
+    private text rightAscension = ""
+    private text declination = ""
+    private integer maxSun = 0
+    private number minElevation = 0.0
+    private Array<text> telescopes
+    private Array<text> filters
+    private integer expNum = 0
+    private number expLength = 0.0
+    private integer timeAccount = 0
 
     // default parameters
-    integer priority = 1
-    integer mode = 0
-    integer binningRequested = 2
-    boolean isToo = false
-    integer ownerId = 6
+    private integer priority = 1
+    private integer mode = 0
+    private integer binningRequested = 2
+    private boolean isToo = false
+    private integer ownerId = 6
 
-    text resource = ""
-    text method = ""
-    text server = "http://api.skynet.unc.edu/2.0/"
+    private text resource = ""
+    private text method = ""
+    private text server = "http://api.skynet.unc.edu/2.0/"
+
+
+    private integer STATUS_NO_REQUEST_MADE = 0
+    private integer STATUS_WAITING_FOR_OBSERVATIONID = 1
+    private integer STATUS_OBSERVATIONID_RECEIVED = 2
+    private integer status = STATUS_NO_REQUEST_MADE
 
     // retrieved from skynet
-    integer observationID = 0
+    private integer observationID = 0
+
+    action AddListener(SkynetListener listener)
+        listeners:Add(listener)
+    end
+
+    action RemoveListener(SkynetListener listener)
+        listeners:Remove(listener)
+    end
+
+    action GetListenerIterator() returns Iterator<NetworkRequestListener>
+        return listeners:GetIterator()
+    end
 
     action AddTelescope(text telescope)
-        text pmd = "CTIO-1.0m"
-        text idata = "Prompt3"
         me:telescopes:Add(telescope)
     end
 
@@ -110,11 +129,30 @@ class Skynet is NetworkRequestListener
         //requires RA, Dec, name
         NetworkRequest request
         me:resource = "obs"
-        request:SetNetworkRequestTypeToPOST()
+        request:SetRequestTypeToPOST()
         request:SetWebAddress(me:server + me:resource)
         request:SetHeaders(GetSkynetHeaders())
         request:SetBodyAsFormEncodedData(GetObservationParameters())
         NetworkConnection http
+        http:AddListener(me)
+        repeat while status not= STATUS_NO_REQUEST_MADE
+            output "waiting for previous request"
+            SystemHelper sys
+            sys:Sleep(1000)
+        end
+        status = STATUS_WAITING_FOR_OBSERVATIONID
+        http:SendRequest(request)
+    end
+
+    action SubmitExposureRequest
+        NetworkRequest request
+        me:resource = "exps"
+        request:SetRequestTypeToPOST()
+        request:SetWebAddress(me:server + me:resource)
+        request:SetHeaders(GetSkynetHeaders())
+        request:SetBodyAsFormEncodedData(GetExposureParameters())
+        NetworkConnection http
+        http:AddListener(me)
         http:SendRequest(request)
     end
 
@@ -123,8 +161,8 @@ class Skynet is NetworkRequestListener
         params:Add("obs", me:observationID)
         params:Add("expLength", me:expLength)
         params:Add("filterRequested", me:GetFilterList())
-        params:Add("telescope", me:maxSun)
-        params:Add("binningRequested", me:minElevation)
+        params:Add("telescope", me:GetTelescopeList())
+        params:Add("binningRequested", me:binningRequested)
         return params
     end
 
@@ -181,10 +219,26 @@ class Skynet is NetworkRequestListener
     end
 
     action ResponseReceived(NetworkResponseEvent response)
-        // get time account
-        // get ownerID
-        // get observationID
-        // submit
+        JavaScriptObjectNotation json
+        json:Read(response:GetResponseText())
+
+        if status = STATUS_WAITING_FOR_OBSERVATIONID
+            observationID = cast(integer, json:GetValue("id"))
+            status = STATUS_OBSERVATIONID_RECEIVED
+            SubmitExposureRequest()
+        elseif status = STATUS_OBSERVATIONID_RECEIVED
+            status = STATUS_NO_REQUEST_MADE
+            Notify(response)
+        end
+
+    end
+
+    action Notify(NetworkResponseEvent response)
+        Iterator<SkynetListener> iterator = listeners:GetIterator()
+        repeat while iterator:HasNext()
+            SkynetListener listener = iterator:Next()
+            listener:ResponseReceived(response)
+        end
     end
 
 end

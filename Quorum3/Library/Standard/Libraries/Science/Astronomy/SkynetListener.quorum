@@ -1,3 +1,5 @@
+use Libraries.Network.NetworkResponseEvent
+
 class SkynetListener 
-    blueprint action ResponseReceived(text response)
+    blueprint action ResponseReceived(NetworkResponseEvent response)
 end

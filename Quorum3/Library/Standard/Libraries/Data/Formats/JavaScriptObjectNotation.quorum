@@ -45,24 +45,24 @@ end
 */
 
 class JavaScriptObjectNotation
-    Array<JavaScriptObjectNotation> array
-    text textValue = ""
-    number numberValue = 0.0
-    integer integerValue = 0
-    boolean booleanValue = false
-    integer type = 0
-    constant integer INTEGER = 1
-    constant integer NUMBER = 2
-    constant integer TEXT = 3
-    constant integer BOOLEAN = 4
-    constant integer UNDEFINED = 5
-    constant integer ARRAY = 6
-    constant integer OBJECT = 7
-    constant integer PARENT = 8
-    text key = ""
-    boolean object = false
-    integer spaces = 4
-    boolean prettyPrint = true
+    private Array<JavaScriptObjectNotation> array
+    private text textValue = ""
+    private number numberValue = 0.0
+    private integer integerValue = 0
+    private boolean booleanValue = false
+    private integer type = 0
+    private constant integer INTEGER = 1
+    private constant integer NUMBER = 2
+    private constant integer TEXT = 3
+    private constant integer BOOLEAN = 4
+    private constant integer UNDEFINED = 5
+    private constant integer ARRAY = 6
+    private constant integer OBJECT = 7
+    private constant integer PARENT = 8
+    private text key = ""
+    private boolean object = false
+    private integer spaces = 4
+    private boolean prettyPrint = true
 
     action Add(JavaScriptObjectNotation object)
         object:SetPrettyPrint(IsPrettyPrint())
@@ -288,9 +288,12 @@ class JavaScriptObjectNotation
             json:Add("item3" : 3)
 
             Array<text> keys = json:GetKeys()
-            output keys:Get(0)
-            output keys:Get(1)
-            output keys:Get(2)
+            i = 0
+            repeat keys:GetSize() times
+                output keys:Get(0)
+                output keys:Get(1)
+                output keys:Get(2)
+            end
        end
     end
     */
