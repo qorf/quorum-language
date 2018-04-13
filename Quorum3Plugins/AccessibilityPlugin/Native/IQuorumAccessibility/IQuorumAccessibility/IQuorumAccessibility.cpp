@@ -51,7 +51,7 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 //									   CoUninitialize must be called the same number of times as CoInitialize.
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility(JNIEnv *env, jobject obj)
 {
-	HRESULT hr = CoInitialize(NULL);
+	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 }
 
 // NativeWin32ShutdownAccessibility: Closes the COM library gracefully.
@@ -240,17 +240,17 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 // TODO: Update the currentLineText from what is given by Quorum. That way the line down here can stay in sync with Quorum.
 JNIEXPORT void Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextBoxTextSelectionChanged(JNIEnv *env, jobject obj, jlong textboxHWND, jstring currentLineText, jint caretLine, jint caretCharacter)
 {
-	const char *nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
+	/*const char *nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
 	WCHAR* wCurrentLineText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
 
 	EndPoint caret;
 	caret.line = (int)caretLine;
 	caret.character = (int)caretCharacter;
 
-	//SendMessage((HWND)textboxHWND, CUSTOM_SETTEXT, 0, (LPARAM)wCurrentLineText);
 	SendMessage((HWND)textboxHWND, CUSTOM_UPDATECARET, 0, (LPARAM)&caret);
 
-	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
+	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);*/
+	std::cout << "NativeWin32TextBoxTextSelectionChanged is being reworked. Use NativeWin32UpdateCaretPosition instead." << std::endl;
 }
 
 // NativeWin32UpdateCaretPosition:
@@ -259,9 +259,7 @@ JNIEXPORT void Java_plugins_quorum_Libraries_Interface_AccessibilityManager_Nati
 	const char *nativeAdjacentCharacter = env->GetStringUTFChars(adjacentCharacter, 0);
 	std::wstring wAdjacentCharacter = CreateWideStringFromUTF8Win32(nativeAdjacentCharacter);
 
-
 	SendMessage((HWND)textboxHWND, CUSTOM_UPDATECARET, 0, (LPARAM)&wAdjacentCharacter);
-	//SendMessage((HWND)textboxHWND, CUSTOM_UPDATECARET, 0, (LPARAM)&caret);
 
 	env->ReleaseStringUTFChars(adjacentCharacter, nativeAdjacentCharacter);
 }

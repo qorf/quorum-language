@@ -490,11 +490,6 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		UpdateCaret(/*(EndPoint*)lParam*/);
 		break;
 	}
-	case WM_KEYDOWN:
-	{
-		lResult = OnKeyDown(wParam, lParam);
-		break;
-	}
 	case CUSTOM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
@@ -531,28 +526,4 @@ void TextBoxControl::UpdateCaret(/* _In_ EndPoint* caretPosition*/)
 {
 	//m_caretPosition = *caretPosition;
 	NotifyCaretPositionChanged(this->m_TextboxHWND, this);
-}
-
-LRESULT TextBoxControl::OnKeyDown(_In_ WPARAM wParam, _In_ LPARAM lParam)
-{
-	UNREFERENCED_PARAMETER(lParam);
-
-
-
-	switch (wParam)
-	{
-	
-	case VK_LEFT:       // Left arrow 
-		std::cout << "Native code got left arrow." << std::endl;
-		break;
-
-	case VK_RIGHT:      // Right arrow 
-		std::cout << "Native code got right arrow." << std::endl;
-		break;
-
-	default:
-		break;
-	}
-
-	return 0;
 }
