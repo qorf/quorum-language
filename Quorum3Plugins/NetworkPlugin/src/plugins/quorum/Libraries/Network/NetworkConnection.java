@@ -79,7 +79,6 @@ public class NetworkConnection {
             System.out.println(ex.toString());
             System.out.println(ex.getMessage());
         }
-        
     }
     
     private void SetResponses(HttpURLConnection http, String responseText) {

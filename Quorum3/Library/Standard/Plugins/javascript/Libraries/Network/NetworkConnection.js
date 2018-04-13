@@ -19,15 +19,34 @@ function plugins_quorum_Libraries_Network_NetworkConnection_(quorumConnection) {
     };
     
     function Post(request) {
-        ReturnResponse("Post Response: " + request.GetRequestType());
         var http = new XMLHttpRequest();
+//        var url = request.GetWebAddress();
+//        http.timeout(request.GetReadTimeout());
+//        http.open(request.GetRequestType(), url, true);
+//        http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         
-        request.ResetHeaderIterator();
-        while (request.HasNextHeader()) {
-            var key = request.GetNextHeaderKey();
-            var value = request.GetNextHeaderValue(key);
-            http.setRequestHeader(key, value);
+//        request.ResetHeaderIterator();
+//        while (request.HasNextHeader()) {
+//          var key = request.GetNextHeaderKey();
+//          var value = request.GetNextHeaderValue(key);
+//          http.setRequestHeader(key, value);
+//        }
+//        http.onreadystatechange = function() {
+//          if (http.readyState == 4 && http.status == 200) {
+//            ReturnResponse(http);
+//          }
+//        }
+//        http.send(request.GetBody());
+        
+        var url = "http://kitana.ddns.net/POSTtest.php";
+        http.onreadystatechange = function () {
+          if (http.readyState == 4 && http.status == 200) {
+            ReturnResponse(http);
+          }
         }
+        http.open("POST", url, true)
+        http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        http.send("last=Flintstone&first=Fred");
     };
     
     function Get(request) {
@@ -45,15 +64,16 @@ function plugins_quorum_Libraries_Network_NetworkConnection_(quorumConnection) {
     function Put(request) {
     };
     
-    function ReturnResponse(responseText) {
+    function ReturnResponse(http) {
         response = connection.GetNewResponseEvent();
-        response.SetWebAddress$quorum_text("url");
-        response.SetStatusCode$quorum_integer(200);
-        response.SetStatusText$quorum_text("OK");
-        response.SetEncoding$quorum_text("encoding type");
-        response.SetContentType$quorum_text("content type");
+        response.SetWebAddress$quorum_text(http.responseURL);
+        response.SetStatusCode$quorum_integer(http.status);
+        response.SetStatusText$quorum_text(http.statusText);
+        response.SetEncoding$quorum_text(http.encoding);
+        response.SetContentType$quorum_text(http.responseType);
         response.SetResponseMessage$quorum_text("response message");
-        response.SetResponseText$quorum_text(responseText);
+        response.SetResponseText$quorum_text("http.response");
+//        response.SetResponseText$quorum_text(http.responseText);
         connection.SetResponse$quorum_Libraries_Network_NetworkResponseEvent(response);
         
     }
