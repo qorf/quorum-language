@@ -1132,8 +1132,15 @@ class Compiler
         profiler:Add(time:GetEpochTime())
 
         SymbolTable originalTable = table:Copy()
-        LinkToStandardLibrary(table, checker, errors, library)
-        
+
+        //if the standard library has already been scanned, just link stuff in
+        //if not, then we need to crawl the transitive dependencies
+        if library:IsScanned()
+            LinkToStandardLibrary(table, checker, errors, library)
+        else 
+            //start here. 
+        end
+
         if errors:IsCompilationErrorFree()
             TypeResolution(originalTable, checker, errors, table)
         else 
@@ -2817,6 +2824,65 @@ class Compiler
         if c not= undefined
             table:Add(c) //this was already checked to ensure it wasn't in the table.
         end
+    end
+
+    /*
+        This action is called after the parsing phase, returning an array
+        of all files were required for building the project.
+    */
+    action GetAllRequiredFiles(SymbolTable table, TypeChecker types, 
+        CompilerErrorManager errors, Library library) returns Array<File>
+        Array<File> files
+
+        HashTable<text, File> parsed
+        HashTable<text, File> unparsed
+
+        Iterator<Class> classes = table:GetClasses()
+        repeat while classes:HasNext()
+            //gather up all the classes on the system and check their
+            //use statements for classes we don't know about
+            //if there are some, mark them as unparsed
+            repeat while classes:HasNext()
+                Class clazz = classes:Next()
+                File classFile = clazz:GetFile()
+                text path = classFile:GetAbsolutePath()
+                if not parsed:HasKey(path)
+                    parsed:Add(path, clazz:GetFile())
+                end
+                Iterator<QualifiedName> names = clazz:GetUnresolvedUseStatements()
+                ResolveQualifiedNames(table, names, parsed, unparsed, clazz)
+
+                Iterator<QualifiedName> parents = clazz:GetUnresolvedParents()
+                ResolveParents(table, parents, parsed, unparsed, clazz)
+
+                ResolveBlocks(table, parsed, unparsed, clazz)
+            end
+
+            //make list of any new classes that need to be analyzed
+            //that have not previously been parsed. If there are some
+            //send them back through the loop
+            List<Class> newClasses
+            Iterator<File> mustParse = unparsed:GetValueIterator()
+            repeat while mustParse:HasNext()
+                File next = mustParse:Next()
+                Parser listener
+                text null = undefined
+                ParseSandbox(null, listener, table, errors, types, next)
+                parsed:Add(next:GetAbsolutePath(), next)
+
+                Iterator<Class> parsedClasses = listener:GetClassesIterator()
+                repeat while parsedClasses:HasNext()
+                    Class clazz = parsedClasses:Next()
+                    newClasses:Add(clazz)
+                    if not symbolTable:HasClass(clazz:GetStaticKey())
+                        symbolTable:Add(clazz)
+                    end
+                end
+            end
+            classes = newClasses:GetIterator()
+            unparsed:Empty()
+        end
+        return parsed:CopyToValueArray()
     end
 
     /*

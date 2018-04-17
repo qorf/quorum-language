@@ -4,6 +4,27 @@ use Libraries.System.File
 
 class CompilerRequest 
     public Array<File> files = undefined
+    public boolean isWebRequest = false
     public File main = undefined
     public Library library = undefined
+    public constant integer JAVA_BYTECODE = 0
+    public constant integer JAVASCRIPT = 1
+    public constant integer DOCUMENT = 2
+
+    integer currentOutputType = 0
+
+    action GetOutputType returns integer
+        return currentOutputType
+    end
+
+    /*
+        This action tells the compiler what kind of output to emit.
+    */
+    action SetOutputType(integer type)
+        if type >= JAVA_BYTECODE and type <= DOCUMENT
+            currentOutputType = type
+        else
+            currentOutputType = 0
+        end
+    end
 end

@@ -407,6 +407,17 @@ class Main is WebResponder
         root:SetPath("")
         compiler:SetOutputFolder(root)
 
+        //create a standard library for Quorum. It needs 
+        File outputLocation
+        outputLocation:SetPath("Library/Compiled")
+        Library library
+        //by default, don't keep track of the extra build information
+        //that is required
+        library:SetCachingLibraryOpcodes(false)
+        library:SetOutputFolder(outputLocation)
+        library:Scan()
+
+
         if flagValues:HasKey(LIBRARY_FLAG)
             Array<text> names = flagValues:GetValue(LIBRARY_FLAG)
             if names:GetSize() not= 1
@@ -418,29 +429,38 @@ class Main is WebResponder
                 libraryPath:SetWorkingDirectory(path)
                 libraryPath:SetPath("Standard")
                 compiler:SetStandardLibraryFolder(libraryPath)
+                library:SetLocation(libraryPath)
             end
         else 
             File standardLibraryFolder = compiler:GetStandardLibraryFolder()
             compiler:SetStandardLibraryFolder(standardLibraryFolder)
+            library:SetLocation(standardLibraryFolder)
         end
 
+        CompilerRequest request
         boolean javascript = false
         if flagValues:HasKey(JAVASCRIPT_FLAG)
             compiler:SetOutputType(compiler:JAVASCRIPT)
             compiler:SetWritingJavaScriptToDisk(true)
+            request:SetOutputType(request:JAVASCRIPT)
         end
         
         output compiler:GetVersion()
 
         File main = files:Get(0)
-        compiler:SetMain(main)
-        compiler:SetIsWebApplication(isWebApplication)
-        compiler:Compile(files)
 
+        request:main = main
+        request:isWebRequest = isWebApplication
+        request:library = library
+
+        //compiler:SetMain(main)
+        //compiler:SetIsWebApplication(isWebApplication)
+        CompilerResult result = compiler:Compile(request)
+        
         if compiler:IsCompilationErrorFree()
             output "Build Successful"
         else
-            output compiler:GetCompilerErrorsAsText()
+            output result:compilerErrorManager:GetCompilerErrorsAsText()
         end
     end
 

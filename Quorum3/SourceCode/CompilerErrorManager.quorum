@@ -121,4 +121,17 @@ class CompilerErrorManager
         numberOfHints = 0
         hintsPerFile:Empty()
     end
+
+    action GetCompilerErrorsAsText returns text
+        text EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        text result =  "This program did not compile. I have compiled a list of errors for you below:" + EOL
+        Iterator<CompilerError> errors = GetIterator()
+        repeat while errors:HasNext()
+            CompilerError error = errors:Next()
+            text t = error:GetDisplayName()
+            result = result + EOL + t
+        end
+        return result
+    end
 end

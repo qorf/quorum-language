@@ -66,9 +66,15 @@ class Library
         outputFolder = file
     end
 
+    /*
+        This action states whether the library has been scanned.
+    */
+    action IsScanned returns boolean
+        return hasScannedStandardLibrary
+    end
+
     action Scan
         hasScannedStandardLibrary = false
-        
         if outputFolder not= undefined
             buildFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             runJar:SetWorkingDirectory(outputFolder:GetAbsolutePath())
