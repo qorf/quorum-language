@@ -20,33 +20,24 @@ function plugins_quorum_Libraries_Network_NetworkConnection_(quorumConnection) {
     
     function Post(request) {
         var http = new XMLHttpRequest();
-//        var url = request.GetWebAddress();
-//        http.timeout(request.GetReadTimeout());
-//        http.open(request.GetRequestType(), url, true);
+        var url = request.GetWebAddress();
+        http.timeout(request.GetReadTimeout());
+        http.open(request.GetRequestType(), url, true);
 //        http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         
-//        request.ResetHeaderIterator();
-//        while (request.HasNextHeader()) {
-//          var key = request.GetNextHeaderKey();
-//          var value = request.GetNextHeaderValue(key);
-//          http.setRequestHeader(key, value);
-//        }
-//        http.onreadystatechange = function() {
-//          if (http.readyState == 4 && http.status == 200) {
-//            ReturnResponse(http);
-//          }
-//        }
-//        http.send(request.GetBody());
+        request.ResetHeaderIterator();
+        while (request.HasNextHeader()) {
+          var key = request.GetNextHeaderKey();
+          var value = request.GetNextHeaderValue(key);
+          http.setRequestHeader(key, value);
+        }
         
-        var url = "http://kitana.ddns.net/POSTtest.php";
         http.onreadystatechange = function () {
           if (http.readyState == 4 && http.status == 200) {
             ReturnResponse(http);
           }
         }
-        http.open("POST", url, true)
-        http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        http.send("last=Flintstone&first=Fred");
+        http.send(request.GetBody());
     };
     
     function Get(request) {
