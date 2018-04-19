@@ -392,11 +392,12 @@ bool TextBoxControl::StepLine( _In_ EndPoint start, _In_ bool forward, _Out_ End
 	return true;
 }
 
-TextBoxTextAreaProvider* TextBoxControl::GetTextBoxProvider()
+TextBoxProvider* TextBoxControl::GetTextBoxProvider()
 {
 	if (m_pTextBoxProvider == NULL)
 	{
-		m_pTextBoxProvider = new TextBoxTextAreaProvider(this->m_TextboxHWND, this);
+		m_pTextBoxProvider = new TextBoxProvider(this->m_TextboxHWND, this);
+		UiaRaiseAutomationEvent(m_pTextBoxProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_pTextBoxProvider;
 }
@@ -454,24 +455,26 @@ LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT me
 LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 	LRESULT lResult = 0;
+
 	switch (message)
 	{
-	// Register with UI Automation.
 	case WM_GETOBJECT:
 	{
 		// If the lParam matches the RootObjectId, send back the RawElementProvider
-		//if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
-		//{
-			IRawElementProviderSimple * provider = new TextBoxProvider(hwnd, this);
+		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
+		{
+			// Register with UI Automation.
+			IRawElementProviderSimple * provider = this->GetTextBoxProvider();
 			if (provider != NULL)
 			{
 				lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
 				provider->Release();
 			}
-		//}
+		}
 		break;
 	}
-	case CUSTOM_SETFOCUS:
+	case QUORUM_SETFOCUS:
+	case WM_SETFOCUS:
 	{
 		SetFocus();
 		break;
@@ -481,7 +484,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		KillFocus();
 		break;
 	}
-	case CUSTOM_UPDATECARET:
+	case QUORUM_UPDATECARET:
 	{
 
 		// IQuorumAccessiblity passes the wstring by reference. So we cast lParam to a pointer to a wstring and then dereference it to assign it to the Textboxes m_Text wstring.
@@ -490,12 +493,12 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		UpdateCaret(/*(EndPoint*)lParam*/);
 		break;
 	}
-	case CUSTOM_SETNAME:
+	case QUORUM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
 		break;
 	}
-	case CUSTOM_SETTEXT:
+	case QUORUM_SETTEXT:
 	{
 		// Set the text for the current text line.
 		// Currently the textbox only maintains one textline at a time but
@@ -504,7 +507,8 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		break;
 	}
 	default:
-		lResult = DefWindowProc(hwnd, message, wParam, lParam);
+		// Forward the event to the main GLFW window so it can handle the message.
+		lResult = SendMessage(GetMainWindowHandle(), message, wParam, lParam);
 		break;
 	}
 

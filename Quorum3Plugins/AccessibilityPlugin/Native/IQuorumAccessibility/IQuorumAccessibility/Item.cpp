@@ -27,6 +27,7 @@ ItemProvider* Item::GetItemProvider(_In_ HWND hwnd)
 	if (m_pItemProvider == NULL)
 	{
 		m_pItemProvider = new ItemProvider(hwnd, this);
+		UiaRaiseAutomationEvent(m_pItemProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_pItemProvider;
 }
@@ -165,12 +166,12 @@ LRESULT CALLBACK Item::ItemControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In
 		}
 		return 0;
 	}
-	case CUSTOM_SETFOCUS:
+	case QUORUM_SETFOCUS:
 	{
 		this->m_pItemProvider->NotifyFocusGained();
 		return 0;
 	}
-	case CUSTOM_SETNAME:
+	case QUORUM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
 		return 0;

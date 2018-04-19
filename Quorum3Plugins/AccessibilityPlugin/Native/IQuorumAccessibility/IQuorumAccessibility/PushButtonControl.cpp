@@ -1,5 +1,5 @@
 #include <string>
-#include <windowsx.h>
+#include <windows.h>
 #include <iostream>
 
 #include "PushButtonControl.h"
@@ -31,6 +31,7 @@ PushButtonProvider* PushButtonControl::GetButtonProvider(_In_ HWND hwnd)
 	if (m_buttonProvider == NULL)
 	{
 		m_buttonProvider = new PushButtonProvider(hwnd, this);
+		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
 }
@@ -183,6 +184,7 @@ LRESULT CALLBACK PushButtonControl::StaticButtonControlWndProc(_In_ HWND hwnd, _
 // Control window procedure.
 LRESULT CALLBACK PushButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
+	LRESULT lResult = 0;
 
 	switch (message)
 	{
@@ -194,25 +196,33 @@ LRESULT CALLBACK PushButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UI
 			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
 		}
 
-		return 0;
+		break;
 	}
-	case CUSTOM_SETFOCUS:
+	case WM_SETFOCUS:
+	case QUORUM_SETFOCUS:
 	{
 		this->SetFocus();
-		return 0;
+		break;
 	}
-	case CUSTOM_INVOKEBUTTON:
+	case WM_KILLFOCUS:
+	{
+		//KillFocus();
+		break;
+	}
+	case QUORUM_INVOKEBUTTON:
 	{
 		this->InvokeButton(hwnd);
-		return 0;
+		break;
 	}
-	case CUSTOM_SETNAME:
+	case QUORUM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
+		break;
 	}
-
-	break;
+	default:
+		// Forward the event to the main GLFW window so it can handle the message.
+		lResult = SendMessage(GetMainWindowHandle(), message, wParam, lParam);
 	}  // switch (message)
 
-	return DefWindowProc(hwnd, message, wParam, lParam);
+	return lResult;
 }

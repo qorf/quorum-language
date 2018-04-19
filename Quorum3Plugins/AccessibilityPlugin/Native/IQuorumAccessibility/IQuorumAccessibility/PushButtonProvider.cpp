@@ -155,7 +155,7 @@ IFACEMETHODIMP PushButtonProvider::get_HostRawElementProvider(_Outptr_result_may
 // Invoke
 IFACEMETHODIMP PushButtonProvider::Invoke()
 {
-	PostMessage(m_buttonControlHWnd, CUSTOM_INVOKEBUTTON, NULL, NULL);
+	PostMessage(m_buttonControlHWnd, QUORUM_INVOKEBUTTON, NULL, NULL);
 	return S_OK;
 }
 

@@ -29,6 +29,7 @@ TextBoxProvider::TextBoxProvider(_In_ HWND hwnd, _In_ TextBoxControl *control) :
 
 TextBoxProvider::~TextBoxProvider()
 {
+	// TODO: Raise a UIA event that the window has closed.
 }
 
 // =========== IUnknown implementation.

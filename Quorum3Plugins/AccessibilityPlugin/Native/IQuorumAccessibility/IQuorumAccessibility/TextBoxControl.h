@@ -1,6 +1,6 @@
 #include <UIAutomation.h>
-#include "CustomMessages.h"
 #include <string>
+#include "CustomMessages.h"
 
 #ifndef TextBoxControl_HEADER
 #define TextBoxControl_HEADER
@@ -67,7 +67,7 @@ inline int CompareEndpointPair(_In_ EndPoint endpoint1, _In_ EndPoint endpoint2)
 	}
 }
 
-class TextBoxTextAreaProvider;
+class TextBoxProvider;
 
 class TextBoxControl
 {
@@ -82,7 +82,7 @@ class TextBoxControl
 		int GetLineCount();
 		EndPoint GetTextboxEndpoint();
 
-		TextBoxTextAreaProvider* GetTextBoxProvider();
+		TextBoxProvider* GetTextBoxProvider();
 		WCHAR* GetName();
 		void SetName(_In_ WCHAR* name);
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
@@ -110,7 +110,7 @@ class TextBoxControl
 		int lineCount;
 		WCHAR* m_pTextboxName;
 		std::wstring m_Text; // The text to be spoken aloud by the screen reader.
-		TextBoxTextAreaProvider* m_pTextBoxProvider;
+		TextBoxProvider* m_pTextBoxProvider;
 
 
 };

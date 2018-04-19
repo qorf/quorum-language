@@ -22,7 +22,6 @@ void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 		std::cout << "Size of the text line: " << control->GetLineLength(0) << std::endl;
 		fflush(stdout);*/
 		//=====
-
 		UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
 		UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
 		eventControl->Release();
