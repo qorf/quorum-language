@@ -30,10 +30,23 @@ class Layout
     number originPercentageX = 0
     number originPercentageY = 0
 
+    boolean setX = false
+    boolean setY = false
+    boolean setWidth = false
+    boolean setHeight = false
+
     action Apply(Item2D item, number containerWidth, number containerHeight)
 
-        number width = containerWidth * GetPercentageWidth() + GetWidthOffset() 
-        number height = containerHeight * GetPercentageHeight() + GetHeightOffset()
+        number width = item:GetWidth()
+        number height = item:GetHeight()
+
+        if setWidth
+            width = containerWidth * GetPercentageWidth() + GetWidthOffset() 
+        end
+
+        if setHeight
+            height = containerHeight * GetPercentageHeight() + GetHeightOffset()
+        end
 
         if width < GetMinimumWidth()
             width = GetMinimumWidth()
@@ -47,8 +60,25 @@ class Layout
             height = GetMaximumHeight()
         end
 
-        item:SetPosition(containerWidth * GetPercentageX() + GetOffsetX() - width * originPercentageX, containerHeight * GetPercentageY() + GetOffsetY() - height * originPercentageY)
-        item:SetSize(width, height)
+        if setX
+            if setY
+                item:SetPosition(containerWidth * GetPercentageX() + GetOffsetX() - width * originPercentageX, containerHeight * GetPercentageY() + GetOffsetY() - height * originPercentageY)
+            else
+                item:SetX(containerWidth * GetPercentageX() + GetOffsetX() - width * originPercentageX)
+            end
+        elseif setY
+            item:SetY(containerHeight * GetPercentageY() + GetOffsetY() - height * originPercentageY)
+        end
+
+        if setWidth
+            if setHeight
+                item:SetSize(width, height)
+            else
+                item:SetWidth(width)
+            end
+        elseif setHeight
+            item:SetHeight(height)
+        end
 
         Layout(item)
 
@@ -66,6 +96,7 @@ class Layout
 
     action SetPercentageX(number x)
         xPercentage = x
+        setX = true
     end
 
     action GetPercentageX returns number
@@ -74,6 +105,7 @@ class Layout
 
     action SetPercentageY(number y)
         yPercentage = y
+        setY = true
     end
 
     action GetPercentageY returns number
@@ -82,6 +114,7 @@ class Layout
 
     action SetOffsetX(number x)
         offsetX = x
+        setX = true
     end
 
     action GetOffsetX returns number
@@ -90,6 +123,7 @@ class Layout
 
     action SetOffsetY(number y)
         offsetY = y
+        setY = true
     end
 
     action GetOffsetY returns number
@@ -98,6 +132,7 @@ class Layout
 
     action SetPercentageWidth(number width)
         widthPercentage = width
+        setWidth = true
     end
 
     action GetPercentageWidth returns number
@@ -106,6 +141,7 @@ class Layout
 
     action SetPercentageHeight(number height)
         heightPercentage = height
+        setHeight = true
     end
 
     action GetPercentageHeight returns number
@@ -114,6 +150,7 @@ class Layout
 
     action SetWidthOffset(number width)
         widthOffset = width
+        setWidth = true
     end
 
     action GetWidthOffset returns number
@@ -122,6 +159,7 @@ class Layout
 
     action SetHeightOffset(number height)
         heightOffset = height
+        setHeight = true
     end
 
     action GetHeightOffset returns number
@@ -178,6 +216,7 @@ class Layout
 
     action SetPercentageOriginX(number x)
         originPercentageX = x
+        setX = true
     end
 
     action GetPercentageOriginX returns number
@@ -186,10 +225,43 @@ class Layout
 
     action SetPercentageOriginY(number y)
         originPercentageY = y
+        setY = true
     end
 
     action GetPercentageOriginY returns number
         return originPercentageY
+    end
+
+    action IsPositioningInX returns boolean
+        return setX
+    end
+
+    action IsPositioningInY returns boolean
+        return setY
+    end
+
+    action IsSettingWidth returns boolean
+        return setWidth
+    end
+
+    action IsSettingHeight returns boolean
+        return setHeight
+    end
+
+    action SetPositioningInX(boolean enable)
+        setX = enable
+    end
+
+    action SetPositioningInY(boolean enable)
+        setY = enable
+    end
+
+    action SetWidthSetting(boolean enable)
+        setWidth = enable
+    end
+
+    action SetHeightSetting(boolean enable)
+        setHeight = enable
     end
 
     action Compare(Object object) returns CompareResult
