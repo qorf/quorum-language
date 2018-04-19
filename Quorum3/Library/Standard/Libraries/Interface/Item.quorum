@@ -521,6 +521,7 @@ class Item
     */
     action UpdateAll(number secondsSinceUpdate)
         Update(secondsSinceUpdate)
+        UpdateBehaviors(secondsSinceUpdate)
 
         integer counter = 0
         repeat GetItemCount() times
