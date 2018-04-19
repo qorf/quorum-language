@@ -1,14 +1,6 @@
 #include <windows.h>
-#include <windowsx.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <new>
-
-#include <ole2.h>
 #include <UIAutomation.h>
 #include "CustomMessages.h"
-
-
 
 class PushButtonProvider;
 

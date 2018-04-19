@@ -21,7 +21,6 @@ public:
 	ToggleButtonProvider* GetButtonProvider(_In_ HWND hwnd);
 	HWND GetHWND();
 
-
 	void InvokeButton(_In_ HWND hwnd);
 	
 	WCHAR* GetName();

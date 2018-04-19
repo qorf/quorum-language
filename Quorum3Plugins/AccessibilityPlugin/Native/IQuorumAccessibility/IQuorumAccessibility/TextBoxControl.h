@@ -1,6 +1,6 @@
 #include <UIAutomation.h>
-#include "CustomMessages.h"
 #include <string>
+#include "CustomMessages.h"
 
 #ifndef TextBoxControl_HEADER
 #define TextBoxControl_HEADER
@@ -104,7 +104,6 @@ class TextBoxControl
 		void UpdateCaret(/*_In_ EndPoint* caretPosition*/);
 
 		HWND m_TextboxHWND;
-		HWND m_parentHWND;
 		EndPoint m_caretPosition;
 		bool isActive;
 		TextLine *lines;

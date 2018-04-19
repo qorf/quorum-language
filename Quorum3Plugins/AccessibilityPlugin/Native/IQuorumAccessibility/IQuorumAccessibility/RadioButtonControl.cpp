@@ -31,6 +31,7 @@ RadioButtonProvider* RadioButtonControl::GetButtonProvider(_In_ HWND hwnd)
 	if (m_buttonProvider == NULL)
 	{
 		m_buttonProvider = new (std::nothrow) RadioButtonProvider(hwnd, this);
+		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
 }
@@ -214,12 +215,12 @@ LRESULT CALLBACK RadioButtonControl::RadioButtonControlWndProc(_In_ HWND hwnd, _
 
 		return 0;
 	}
-	case CUSTOM_SETFOCUS:
+	case QUORUM_SETFOCUS:
 	{
 		this->SetFocus();
 		return 0;
 	}
-	case CUSTOM_INVOKEBUTTON:
+	case QUORUM_INVOKEBUTTON:
 	{
 		this->InvokeButton(hwnd);
 
@@ -229,7 +230,7 @@ LRESULT CALLBACK RadioButtonControl::RadioButtonControlWndProc(_In_ HWND hwnd, _
 
 		return 0;
 	}
-	case CUSTOM_SETNAME:
+	case QUORUM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
 	}

@@ -63,7 +63,6 @@ HWND TextBoxControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHA
 	if (Initialized)
 	{
 		TextBoxControl * control = new TextBoxControl(quorumLines, _ARRAYSIZE(quorumLines), caret);
-		control->m_parentHWND = parent;
 
 		control->m_TextboxHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
 												 L"QUORUM_TEXTBOX",
@@ -457,17 +456,14 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 {
 	LRESULT lResult = 0;
 
-	if (message != WM_SETFOCUS || message != WM_KILLFOCUS)
-		SendMessage(this->m_parentHWND, message, wParam, lParam);
-
 	switch (message)
 	{
-	// Register with UI Automation.
 	case WM_GETOBJECT:
 	{
 		// If the lParam matches the RootObjectId, send back the RawElementProvider
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
+			// Register with UI Automation.
 			IRawElementProviderSimple * provider = this->GetTextBoxProvider();
 			if (provider != NULL)
 			{
@@ -477,7 +473,8 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		}
 		break;
 	}
-	case CUSTOM_SETFOCUS:
+	case QUORUM_SETFOCUS:
+	case WM_SETFOCUS:
 	{
 		SetFocus();
 		break;
@@ -487,7 +484,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		KillFocus();
 		break;
 	}
-	case CUSTOM_UPDATECARET:
+	case QUORUM_UPDATECARET:
 	{
 
 		// IQuorumAccessiblity passes the wstring by reference. So we cast lParam to a pointer to a wstring and then dereference it to assign it to the Textboxes m_Text wstring.
@@ -496,12 +493,12 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		UpdateCaret(/*(EndPoint*)lParam*/);
 		break;
 	}
-	case CUSTOM_SETNAME:
+	case QUORUM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
 		break;
 	}
-	case CUSTOM_SETTEXT:
+	case QUORUM_SETTEXT:
 	{
 		// Set the text for the current text line.
 		// Currently the textbox only maintains one textline at a time but
@@ -510,7 +507,8 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		break;
 	}
 	default:
-		lResult = DefWindowProc(hwnd, message, wParam, lParam);
+		// Forward the event to the main GLFW window so it can handle the message.
+		lResult = SendMessage(GetMainWindowHandle(), message, wParam, lParam);
 		break;
 	}
 

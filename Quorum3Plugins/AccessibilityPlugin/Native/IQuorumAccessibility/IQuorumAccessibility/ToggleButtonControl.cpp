@@ -31,6 +31,7 @@ ToggleButtonProvider* ToggleButtonControl::GetButtonProvider(_In_ HWND hwnd)
 	if (m_buttonProvider == NULL)
 	{
 		m_buttonProvider = new ToggleButtonProvider(hwnd, this);
+		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
 }
@@ -213,12 +214,12 @@ LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd,
 
 		return 0;
 	}
-	case CUSTOM_SETFOCUS:
+	case QUORUM_SETFOCUS:
 	{
 		this->SetFocus();
 		return 0;
 	}
-	case CUSTOM_INVOKEBUTTON:
+	case QUORUM_INVOKEBUTTON:
 	{
 		this->InvokeButton(hwnd);
 
@@ -235,7 +236,7 @@ LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd,
 		
 		return 0;
 	}
-	case CUSTOM_SETNAME:
+	case QUORUM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
 	}
