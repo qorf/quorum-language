@@ -10,6 +10,7 @@ use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.FocusListener
 use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Layouts.Layout
 use Libraries.Containers.Array
 use Libraries.Containers.MultipleLineText
 use Libraries.System.File
@@ -102,6 +103,12 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     Drawable horizontalControl
     Drawable verticalBar
     Drawable verticalControl
+
+    Layout backgroundLayout
+    Layout horizontalBarLayout
+    Layout horizontalControlLayout
+    Layout verticalBarLayout
+    Layout verticalControlLayout
     
     number scrollDistance = 3
     integer barThickness = 20
@@ -157,27 +164,30 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
     end
 
-    action Initialize(number width, number height, Color backgroundColor)
+    action Initialize(number width, number height, Color backgroundColor, text value)
+        textValue:Initialize(value)
+
         if backgroundColor not= undefined
             background:LoadFilledRectangle(cast(integer, width), cast(integer, height), backgroundColor)
         end
 
-        SetWidth(width)
-        SetHeight(height)
+        SetSize(width, height)
 
         CreateScrollBars()
-
-        verticalBar:SetName("Vertical Scroll Track")
-        verticalControl:SetName("Vertical Scroll Control")
 
         InitializeCaret()
         caret:Hide()
         caretActive = false
+
+        GetLineDrawables()
     end
 
-    action Initialize(number width, number height, Color backgroundColor, text value)
-        textValue:Initialize(value)
-        Initialize(width, height, backgroundColor)
+    action Initialize(number width, number height, Color backgroundColor)
+        Initialize(width, height, backgroundColor, "")
+    end
+
+    action Resize
+        parent:Item2D:Resize()
         GetLineDrawables()
     end
 
@@ -394,9 +404,18 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         number x = 0
         
         repeat while counter < character
-            Glyph glyph = font:GetGlyph(lineCharacters:GetCharacter(counter))
-            x = x + glyph:horizontalAdvance
-            counter = counter + 1
+            // This section has been sometimes crashing the program. The check/detect
+            // block here is used in case of error to gather additional info.
+            check
+                Glyph glyph = font:GetGlyph(lineCharacters:GetCharacter(counter))
+                x = x + glyph:horizontalAdvance
+                counter = counter + 1
+            detect Error
+                output "lineCharacters = " + lineCharacters
+                output "counter = " + counter
+                output "lineCharacters size = " + lineCharacters:GetSize()
+                alert ("Crashed while retrieving character for rendering.")
+            end
         end
 
 
@@ -546,7 +565,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
 
         if shouldResize
-            CreateScrollBars()
+            ResizeScrollBars()
         end
 
         FitCharacterOnScreen(caretLine, caretCharacter)
@@ -594,7 +613,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             caretCharacter = characters
 
             // Resize the scroll region height and resize bars.
-            CreateScrollBars()
+            ResizeScrollBars()
 
             number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
             if caretLine > (firstLine + visibleLines - 1)
@@ -607,7 +626,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             // Increase scroll region width and resize bars.
             // Setting the scroll region width to -1 forces recalculation.
             scrollRegionWidth = -1
-            CreateScrollBars()
+            ResizeScrollBars()
         end
 
         FitCharacterOnScreen(caretLine, caretCharacter)
@@ -618,16 +637,92 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     action SetWidth(integer newWidth)
         parent:Libraries.Interface.Item2D:SetWidth(newWidth)
+        background:SetWidth(newWidth)
         horizontalBar:SetWidth(newWidth)
     end
 
     action SetHeight(integer newHeight)
         parent:Libraries.Interface.Item2D:SetHeight(newHeight)
+        background:SetHeight(newHeight)
         verticalBar:SetHeight(newHeight)
+    end
+
+    action SetSize(number width, number height)
+        parent:Libraries.Interface.Item2D:SetSize(width, height)
+        background:SetSize(width, height)
+        horizontalBar:SetWidth(width)
+        verticalBar:SetHeight(height)
     end
 
     private action CreateScrollBars
         Color color
+        verticalBar:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
+        horizontalBar:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
+        verticalControl:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
+        horizontalControl:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
+
+        verticalBar:SetName("Vertical Scroll Track")
+        verticalControl:SetName("Vertical Scroll Control")
+        horizontalBar:SetName("Horizontal Scroll Track")
+        horizontalControl:SetName("Horizontal Scroll Control")
+
+        /*
+        By default, the vertical bar has width equal to the bar thickness, has a
+        height equal to the height of its container, and has its top right 
+        corner touching the top right corner of the container.
+        */
+        verticalBarLayout:SetPercentageX(1)
+        verticalBarLayout:SetPercentageOriginX(1)
+        verticalBarLayout:SetPercentageY(1)
+        verticalBarLayout:SetPercentageOriginY(1)
+        verticalBarLayout:SetPercentageHeight(1)
+        verticalBarLayout:SetWidthOffset(barThickness)
+
+        verticalBar:AddLayout(verticalBarLayout)
+
+        /*
+        The horizontal bar has width equal to its container's width, height
+        equal to the bar thickness, and lies along the bottom of the text box.
+        */
+        horizontalBarLayout:SetPercentageX(0)
+        horizontalBarLayout:SetPercentageY(0)
+        horizontalBarLayout:SetPercentageWidth(1)
+        horizontalBarLayout:SetHeightOffset(barThickness)
+
+        horizontalBar:AddLayout(horizontalBarLayout)
+
+        /*
+        The vertical control begins at the top of the bar, and its width fully
+        fills the bar. Its height is not set here, instead being set during
+        ResizeScrollBars().
+        */
+        verticalControlLayout:SetPercentageOriginY(1)
+        verticalControlLayout:SetPercentageY(1)
+        verticalControlLayout:SetPercentageX(0)
+        verticalControlLayout:SetPercentageWidth(1)
+
+        verticalControl:AddLayout(verticalControlLayout)
+
+        /*
+        The horizontal control begins at the left of the bar, and its height
+        fully fills the bar. Its width is not set here, instead being set during
+        ResizeScrollBars().
+        */
+        horizontalControlLayout:SetPercentageX(0)
+        horizontalControlLayout:SetPercentageY(0)
+        horizontalControlLayout:SetPercentageHeight(1)
+
+        horizontalControl:AddLayout(horizontalControlLayout)
+
+        Add(verticalBar)
+        Add(horizontalBar)
+        verticalBar:Add(verticalControl)
+        horizontalBar:Add(horizontalControl)
+
+        ResizeScrollBars()
+    end
+
+    private action ResizeScrollBars
         number height = GetHeight()
         number width = GetWidth()
 //        number verticalRatio = height / scrollAnchor:GetHeight()
@@ -638,47 +733,81 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         number barHeight = height
         number barWidth = width
 
-        if verticalBar:IsLoaded()
-            verticalBar:Dispose()
-        end
-        if horizontalBar:IsLoaded()
-            horizontalBar:Dispose()
-        end
-        if verticalControl:IsLoaded()
-            verticalControl:Dispose()
-        end
-        if horizontalControl:IsLoaded()
-            horizontalControl:Dispose()
-        end
+//        if verticalBar:IsLoaded()
+//            verticalBar:Dispose()
+//        end
+//        if horizontalBar:IsLoaded()
+//            horizontalBar:Dispose()
+//        end
+//        if verticalControl:IsLoaded()
+//            verticalControl:Dispose()
+//        end
+//        if horizontalControl:IsLoaded()
+//            horizontalControl:Dispose()
+//        end
+
+//        if verticalVisible and horizontalVisible
+//            barHeight = height - barThickness
+//            barWidth = width - barThickness
+//            verticalRatio = barHeight / GetScrollRegionHeight()
+//            horizontalRatio = barWidth / GetScrollRegionWidth()
+//            verticalBar:SetY(barThickness)
+//        end
 
         if verticalVisible and horizontalVisible
+            verticalBarLayout:SetHeightOffset(-barThickness)
+            horizontalBarLayout:SetWidthOffset(-barThickness)
             barHeight = height - barThickness
             barWidth = width - barThickness
             verticalRatio = barHeight / GetScrollRegionHeight()
             horizontalRatio = barWidth / GetScrollRegionWidth()
-            verticalBar:SetY(barThickness)
+        else
+            verticalBarLayout:SetHeightOffset(0)
+            horizontalBarLayout:SetWidthOffset(0)
         end
 
-        if verticalVisible
-            verticalBar:LoadFilledRectangle(barThickness, cast(integer, barHeight), color:CustomColor(0.9, 0.9, 0.9, 1))
-            verticalBar:SetX(width - barThickness)
-            parent:Item2D:Add(verticalBar)
+        if verticalRatio > 1.0
+            verticalRatio = 1.0
+        end
 
-            verticalControl:LoadFilledRectangle(barThickness, cast(integer, verticalRatio * barHeight), color:CustomColor(0.75, 0.75, 0.75, 1))
-            verticalControl:SetY(height - verticalRatio * height - (height - barHeight))
-            verticalBar:Add(verticalControl)
+        if horizontalRatio > 1.0
+            horizontalRatio = 1.0
+        end
+
+//        if verticalVisible
+//            verticalBar:LoadFilledRectangle(barThickness, cast(integer, barHeight), color:CustomColor(0.9, 0.9, 0.9, 1))
+//            verticalBar:SetX(width - barThickness)
+//            parent:Item2D:Add(verticalBar)
+//
+//            verticalControl:LoadFilledRectangle(barThickness, cast(integer, verticalRatio * barHeight), color:CustomColor(0.75, 0.75, 0.75, 1))
+//            verticalControl:SetY(height - verticalRatio * height - (height - barHeight))
+//            verticalBar:Add(verticalControl)
+//            verticalBar:Show()
+//        else
+//            verticalBar:Hide()
+//        end
+
+        if verticalVisible
+            verticalControlLayout:SetPercentageHeight(verticalRatio)
             verticalBar:Show()
         else
             verticalBar:Hide()
         end
 
-        if horizontalVisible
-            horizontalBar:LoadFilledRectangle(cast(integer, barWidth), barThickness, color:CustomColor(0.9, 0.9, 0.9, 1))
-            parent:Item2D:Add(horizontalBar)
+//        if horizontalVisible
+//            horizontalBar:LoadFilledRectangle(cast(integer, barWidth), barThickness, color:CustomColor(0.9, 0.9, 0.9, 1))
+//            parent:Item2D:Add(horizontalBar)
+//
+//            horizontalControl:LoadFilledRectangle(cast(integer, horizontalRatio * width), barThickness, color:CustomColor(0.75, 0.75, 0.75, 1))
+////            horizontalControl:SetY(height - ratio * height)
+//            horizontalBar:Add(horizontalControl)
+//            horizontalBar:Show()
+//        else
+//            horizontalBar:Hide()
+//        end
 
-            horizontalControl:LoadFilledRectangle(cast(integer, horizontalRatio * width), barThickness, color:CustomColor(0.75, 0.75, 0.75, 1))
-//            horizontalControl:SetY(height - ratio * height)
-            horizontalBar:Add(horizontalControl)
+        if horizontalVisible
+            horizontalControlLayout:SetPercentageWidth(horizontalRatio)
             horizontalBar:Show()
         else
             horizontalBar:Hide()
@@ -813,11 +942,16 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         number sharedSpaceOffset = GetSharedSpaceOffset()
 
-        number adjustedHeight = GetHeight() - verticalControl:GetHeight() - sharedSpaceOffset
-        verticalControl:SetY(adjustedHeight * vertical)
+        verticalControlLayout:SetPercentageY(vertical)
+        verticalControlLayout:SetOffsetY(((1 - vertical) * ((GetHeight() + verticalBarLayout:GetHeightOffset()) * verticalControlLayout:GetPercentageHeight())))
+        horizontalControlLayout:SetPercentageX(horizontal)
+        horizontalControlLayout:SetOffsetX(-(horizontal * ((GetWidth() + horizontalBarLayout:GetWidthOffset()) * horizontalControlLayout:GetPercentageWidth())))
 
-        number adjustedWidth = GetWidth() - horizontalControl:GetWidth() - sharedSpaceOffset
-        horizontalControl:SetX(adjustedWidth * horizontal)
+//        number adjustedHeight = GetHeight() - verticalControl:GetHeight() - sharedSpaceOffset
+//        verticalControl:SetY(adjustedHeight * vertical)
+//
+//        number adjustedWidth = GetWidth() - horizontalControl:GetWidth() - sharedSpaceOffset
+//        horizontalControl:SetX(adjustedWidth * horizontal)
 
         number adjustedScrollWidth = GetScrollRegionWidth() - GetWidth()
         number adjustedScrollHeight = GetScrollRegionHeight() - GetHeight()
@@ -833,7 +967,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         me:vertical = vertical
         me:horizontal = horizontal
 
-        GetLineDrawables()
+        Resize()
     end
 
     private action GetSharedSpaceOffset returns number

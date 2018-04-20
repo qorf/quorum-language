@@ -2432,7 +2432,7 @@ class Item2D is Item
                     return now
                 end
 
-                painter:SetClipCoordinates(left, right, bottom, top)
+                painter:SetClipCoordinates(left, bottom, right, top)
 
                 if visualContent not= undefined
                     visualContent:Draw(painter)
@@ -2444,7 +2444,7 @@ class Item2D is Item
                     counter = counter + 1
                 end
 
-                painter:SetClipCoordinates(startLeft, startRight, startBottom, startTop)
+                painter:SetClipCoordinates(startLeft, startBottom, startRight, startTop)
             else
                 painter:SetClipDimensions(GetGlobalX(), GetGlobalY(), GetWidth(), GetHeight())
                 painter:SetClipping(true)

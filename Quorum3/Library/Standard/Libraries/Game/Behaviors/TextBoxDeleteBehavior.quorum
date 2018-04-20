@@ -28,7 +28,7 @@ class TextBoxDeleteBehavior is TimedBehavior
         end
 
         textBox = cast(TextBox, item)
-
+        
         if direction = BACKWARD
             textBox:DeleteBackward()
         elseif direction = FORWARD
@@ -36,7 +36,7 @@ class TextBoxDeleteBehavior is TimedBehavior
         end
     end
 
-    action Dispose(Item item)
+    action Dispose
         if textBox = undefined
             return now
         end
