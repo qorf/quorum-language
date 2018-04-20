@@ -42,7 +42,7 @@ use Libraries.Game.Behaviors.FocusNextBehavior
 use Libraries.Game.Behaviors.FocusPreviousBehavior
 use Libraries.Game.Behaviors.TextBoxCaretStartMoveBehavior
 use Libraries.Game.Behaviors.TextBoxStartDeleteBehavior
-use Libraries.Game.Behaviors.TextBoxNewLineBehavior
+use Libraries.Game.Behaviors.TextBoxStartNewLineBehavior
 use Libraries.Game.Behaviors.TextBoxInsertBehavior
 use Libraries.Game.Behaviors.CancelBehavior
 use Libraries.Game.Behaviors.GraphicUserInterfaces.ClickDownBehavior
@@ -334,8 +334,13 @@ class Game
 
         InputSet enter
         enter:SetKeyboardInput(keys:ENTER)
-        TextBoxNewLineBehavior newLineBehavior
+        TextBoxStartNewLineBehavior newLineBehavior
         textBoxTable:Add(enter, newLineBehavior)
+
+        InputSet releaseEnter
+        releaseEnter:SetKeyboardInput(keys:ENTER)
+        releaseEnter:SetInputTrigger(releaseEnter:FINISH)
+        textBoxTable:Add(releaseEnter, cancelBehavior)
 
         InputSet textInputSet
         textInputSet:SetInputType(textInputSet:TEXT_INPUT)

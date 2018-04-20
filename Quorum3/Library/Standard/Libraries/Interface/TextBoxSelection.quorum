@@ -1,0 +1,50 @@
+package Libraries.Interface
+
+class TextBoxSelection 
+
+    TextBox textBox = undefined
+    integer selectionStart = 0
+    integer selectionEnd = 0
+    integer selectedLine = 0
+    text selectedText = ""
+
+    action SetTextBox(TextBox box)
+        textBox = box
+    end
+
+    action GetTextBox returns TextBox
+        return textBox
+    end
+
+    action SetSelectionStart(integer start)
+        selectionStart = start
+    end
+
+    action GetSelectionStart returns integer
+        return selectionStart
+    end
+
+    action SetSelectionEnd(integer end)
+        selectionEnd = end
+    end
+
+    action GetSelectionEnd returns integer
+        return selectionEnd
+    end
+
+    action SetSelectedLine(integer line)
+        selectedLine = line
+    end
+
+    action GetSelectedLine returns integer
+        return selectedLine
+    end
+
+    action SetSelectedText(text selected)
+        selectedText = selected
+    end
+
+    action GetSelectedText returns text
+        return selectedText
+    end
+end
