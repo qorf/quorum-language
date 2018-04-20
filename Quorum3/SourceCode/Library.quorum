@@ -332,7 +332,6 @@ class Library
             f:SetWorkingDirectory(wd)
             f:SetPath(path)
             
-            //TODO: Optimize this to reduce the amount of copying that goes on
             generator:Add(f)
         end
     end
@@ -434,40 +433,6 @@ class Library
         line = line:GetCarriageReturn() + line:GetLineFeed()
         text classpath = "Class-Path: "
         classpath = classpath + GetStandardLibraryClasspathValuesOnly(true)
-
-
-//        text libraries = "Graphics"//JAR_DEPENDENCY_FOLDER
-//        boolean isFirst = true
-//        File lwjglFolder
-//        lwjglFolder:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
-//        lwjglFolder:SetPath("LWJGL")
-//        Array<File> lwjglFiles = lwjglFolder:GetDirectoryListing()
-//        integer counter = 0
-//        repeat while counter < lwjglFiles:GetSize()
-//            File file = lwjglFiles:Get(counter)
-//
-//            if file:GetFileName() not= ".DS_Store"
-//                if isFirst
-//                    classpath = classpath + libraries + "/" + file:GetFileName()
-//                    isFirst = false
-//                else
-//                    classpath = classpath + line + "  " + libraries + "/" + file:GetFileName()
-//                end
-//            end
-//
-//            counter = counter + 1
-//        end
-//
-//        text robots = "Robots"
-//        File dbus
-//        File ev3
-//        dbus:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
-//        dbus:SetPath("dbusjava.jar")
-//            classpath = classpath + line + "  " + robots + "/" + dbus:GetFileName()
-//
-//        ev3:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
-//        ev3:SetPath("ev3classes.jar")
-//        classpath = classpath + line + "  " + robots + "/" + ev3:GetFileName()
         return classpath
     end
 

@@ -1061,6 +1061,17 @@ class Compiler
 
     action Compile(CompilerRequest request) returns CompilerResult
         Array<File> files = request:files
+        HashTable<text, File> originalFileHash
+        //this is only used if the standard library is not pre-scanned
+        HashTable<text, File> standardLibraryFileHash
+        i = 0
+        repeat while i < files:GetSize()
+            File next = files:Get(i)
+            originalFileHash:Add(next:GetAbsolutePath(), next)
+            i = i + 1
+        end
+
+
         Library library = request:library
         File myMain = request:main
 
@@ -1138,7 +1149,45 @@ class Compiler
         if library:IsScanned()
             LinkToStandardLibrary(table, checker, errors, library)
         else 
-            //start here. 
+            //If we haven't scanned the standard library, we need to separately compile
+            //all of those files
+            HashTable<text, File> allFiles = GetAllRequiredFiles(table, checker, errors, library)
+            Array<File> f = allFiles:CopyToValueArray()
+            //because of the standard library, do a separate mini-pass of the files
+            //to compile the standard library ones and to separate the tables.
+            
+            SymbolTable standardLibrarySymbolTable
+            i = 0
+            repeat while i < f:GetSize()
+                File next = f:Get(i)
+                //if it's not in the original hash, it's in the standard library
+                if not originalFileHash:HasKey(next:GetAbsolutePath())
+                    standardLibraryFileHash:Add(next:GetAbsolutePath(), next)
+                    Class clazz = table:GetClassInFile(next:GetAbsolutePath())
+                    if clazz not= undefined
+                        standardLibrarySymbolTable:Add(clazz)
+                    end
+                end
+                i = i + 1
+            end
+
+            if errors:IsCompilationErrorFree()
+                TypeResolution(standardLibrarySymbolTable, checker, errors)
+            else 
+                return result
+            end
+
+            Array<File> standardLibraryFiles = standardLibraryFileHash:CopyToValueArray()
+            Array<ClassOpcode> classOpcodes
+            if errors:IsCompilationErrorFree()
+                i = 0
+                repeat while i < standardLibraryFiles:GetSize()
+                    File file = standardLibraryFiles:Get(i)
+                    QuorumBytecodeListener listener
+                    ParseSandbox(undefined, listener, standardLibrarySymbolTable, errors, checker, file)
+                    i = i + 1
+                end
+            end
         end
 
         if errors:IsCompilationErrorFree()
@@ -1163,7 +1212,14 @@ class Compiler
                 end
                 ClassOpcode op = listener:GetClassOpcode()
                 op:SetBuild(buildFolder)
-                classOpcodes:Add(op)
+
+                //we only want to add it if it is in the original list, 
+                //but not if it is in the standard library
+                //Location location = op:GetLocation()
+                //File fileLocation = location:GetFile()
+                //if originalFileHash:HasKey(fileLocation:GetAbsolutePath())
+                    classOpcodes:Add(op)
+                //end
                 i = i + 1
             end
         else 
@@ -2831,7 +2887,7 @@ class Compiler
         of all files were required for building the project.
     */
     action GetAllRequiredFiles(SymbolTable table, TypeChecker types, 
-        CompilerErrorManager errors, Library library) returns Array<File>
+        CompilerErrorManager errors, Library library) returns HashTable<text, File>
         Array<File> files
 
         HashTable<text, File> parsed
@@ -2874,15 +2930,15 @@ class Compiler
                 repeat while parsedClasses:HasNext()
                     Class clazz = parsedClasses:Next()
                     newClasses:Add(clazz)
-                    if not symbolTable:HasClass(clazz:GetStaticKey())
-                        symbolTable:Add(clazz)
+                    if not table:HasClass(clazz:GetStaticKey())
+                        table:Add(clazz)
                     end
                 end
             end
             classes = newClasses:GetIterator()
             unparsed:Empty()
         end
-        return parsed:CopyToValueArray()
+        return parsed
     end
 
     /*

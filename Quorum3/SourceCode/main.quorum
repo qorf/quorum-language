@@ -415,7 +415,7 @@ class Main is WebResponder
         //that is required
         library:SetCachingLibraryOpcodes(false)
         library:SetOutputFolder(outputLocation)
-        library:Scan()
+        //library:Scan()
 
 
         if flagValues:HasKey(LIBRARY_FLAG)
@@ -452,6 +452,7 @@ class Main is WebResponder
         request:main = main
         request:isWebRequest = isWebApplication
         request:library = library
+        request:files = files
 
         //compiler:SetMain(main)
         //compiler:SetIsWebApplication(isWebApplication)
