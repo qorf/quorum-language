@@ -111,6 +111,7 @@ public class QuorumProject implements Project {
     private ArrayList<quorum.Libraries.System.File> extraSourceFiles = new ArrayList<quorum.Libraries.System.File>();
     private static quorum.Libraries.Language.Compile.Library_ quorumStandardLibrary = null;
     private Library_ myProjectsLibrary = null;
+    private File_ mainFile = null;
     
     public QuorumProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
@@ -306,7 +307,11 @@ public class QuorumProject implements Project {
     }
     
     public File_ GetMain() {
-        return Utility.toQuorumFile(mainFileProvider.getMainFile());
+        return mainFile;
+    }
+    
+    public void SetMain(File_ main) {
+        mainFile = main;
     }
     
     public void resetSources(String sources) {

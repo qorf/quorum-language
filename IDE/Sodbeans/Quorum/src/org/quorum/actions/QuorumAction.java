@@ -313,7 +313,12 @@ public abstract class QuorumAction implements Action {
                 io.getOut().close();
             }
         });
-        return compiler.IsCompilationErrorFree();
+        
+        if(result != null) {
+            CompilerErrorManager_ manager = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
+            return manager.IsCompilationErrorFree();
+        }
+        return false;
     }
 
     @Override
