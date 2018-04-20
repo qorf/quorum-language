@@ -1213,13 +1213,7 @@ class Compiler
                 ClassOpcode op = listener:GetClassOpcode()
                 op:SetBuild(buildFolder)
 
-                //we only want to add it if it is in the original list, 
-                //but not if it is in the standard library
-                //Location location = op:GetLocation()
-                //File fileLocation = location:GetFile()
-                //if originalFileHash:HasKey(fileLocation:GetAbsolutePath())
-                    classOpcodes:Add(op)
-                //end
+                classOpcodes:Add(op)
                 i = i + 1
             end
         else 
@@ -1242,7 +1236,7 @@ class Compiler
         //if an error is issued, it is a bug in the compiler and not
         //an intentional design decision.
         if errors:IsCompilationErrorFree()
-            if currentOutputType = JAVA_BYTECODE
+            if request:GetOutputType() = JAVA_BYTECODE
                 //open up and begin filling the Jar
                 JarGenerator generator
                 text manifest = GetManifest(request, generator, table)
@@ -1286,13 +1280,23 @@ class Compiler
                 generator:Close()
                 profiler:Add(time:GetEpochTime())
                 
-            elseif currentOutputType = JAVASCRIPT
-                convertedJavaScript = CompileToJavaScript(classOpcodes)
+            elseif request:GetOutputType() = JAVASCRIPT
+                //first copy all of the standard library opcodes into the array
+                Iterator<Class> iterator = table:GetClasses()
+                repeat while iterator:HasNext()
+                    Class value = iterator:Next()
+                    ClassOpcode op = library:GetOpcode(value:GetStaticKey())
+                    if op not= undefined
+                        classOpcodes:Add(op)
+                    end
+                end
+                convertedJavaScript = CompileToJavaScript(classOpcodes, request, m)
+                result:convertedJavaScript = convertedJavaScript
                 if IsWritingJavaScriptToDisk()
                     WriteJavaScript(convertedJavaScript)
                 end
                 
-            elseif currentOutputType = DOCUMENT
+            elseif request:GetOutputType() = DOCUMENT
                 CreateDocumentation(classOpcodes)
             end
         end
@@ -2558,6 +2562,53 @@ class Compiler
                 convertedJavaScript = CompileToJavaScript(classOpcodes)
             end
         end
+    end
+
+    private action CompileToJavaScript(Array<ClassOpcode> classOpcodes, CompilerRequest request, Class mainClass) returns text
+        text result = ""
+        text plugins = ""
+        text main = ""
+        Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+        repeat while codes:HasNext()
+            ClassOpcode code = codes:Next()
+            Class clazz = code:GetClass()
+
+            //Class mainClazz = mainClass
+            text mainClazzName = mainClass:GetStaticKey()
+            text clazzName = clazz:GetStaticKey()
+            if mainClass:GetStaticKey() = clazzName
+                main = code:WriteJavaScript()
+            else
+                result = result + code:WriteJavaScript()
+            end
+
+            //check if this class has a plugin. If it does, include it.
+            if clazz:HasSystemAction()
+                File folder = GetStandardLibraryFolder() 
+                path = folder:GetPath() + "/Plugins/javascript/"
+
+                key = clazz:GetStaticKey()
+                Array<text> keys = key:Split("\.")
+                i = 0
+                repeat keys:GetSize() times
+                    newKey = keys:Get(i)
+                    if i = keys:GetSize() - 1
+                        path = path + newKey + ".js"
+                    else
+                        path = path + newKey + "/"
+                    end
+                    i = i + 1
+                end
+                File location
+                location:SetWorkingDirectory(folder:GetWorkingDirectory())
+                location:SetPath(path)
+                if location:Exists() 
+                    value = location:Read()
+                    plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
+                end
+            end
+        end
+        return plugins + result + main
     end
 
     /*

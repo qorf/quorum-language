@@ -11,7 +11,8 @@ class CompilerRequest
     public constant integer JAVASCRIPT = 1
     public constant integer DOCUMENT = 2
 
-    integer currentOutputType = 0
+    //by default, output Java Bytecode
+    integer currentOutputType = JAVA_BYTECODE
 
     action GetOutputType returns integer
         return currentOutputType
