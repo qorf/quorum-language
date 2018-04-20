@@ -97,7 +97,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	HWND itemControlHandle;
 
-	itemControlHandle = Item::Create(GLFWParentWindow, GetModuleHandle(NULL), wItemName, wDescription);
+	itemControlHandle = Item::Create(GetModuleHandle(NULL), wItemName, wDescription);
 
 	env->ReleaseStringUTFChars(itemName, nativeItemName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -120,7 +120,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	HWND pushbuttonControlHandle;
 
-	pushbuttonControlHandle = PushButtonControl::Create(GLFWParentWindow, GetModuleHandle(NULL), wButtonName, wDescription);
+	pushbuttonControlHandle = PushButtonControl::Create(GetModuleHandle(NULL), wButtonName, wDescription);
 
 	env->ReleaseStringUTFChars(buttonName, nativeButtonName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -141,7 +141,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	HWND togglebuttonControlHandle;
 
-	togglebuttonControlHandle = ToggleButtonControl::Create(GLFWParentWindow, GetModuleHandle(NULL), wTogglebuttonName, wDescription);
+	togglebuttonControlHandle = ToggleButtonControl::Create(GetModuleHandle(NULL), wTogglebuttonName, wDescription);
 
 	env->ReleaseStringUTFChars(togglebuttonName, nativeTogglebuttonName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -162,7 +162,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 	HWND radiobuttonControlHandle;
 
-	radiobuttonControlHandle = RadioButtonControl::Create(GLFWParentWindow, GetModuleHandle(NULL), wRadiobuttonName, wDescription);
+	radiobuttonControlHandle = RadioButtonControl::Create(GetModuleHandle(NULL), wRadiobuttonName, wDescription);
 
 	env->ReleaseStringUTFChars(itemName, nativeItemName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -191,7 +191,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	//TextLine line[] = { wCurrentLineText };
 	TextLine line[] = { { L"Hello world!" }, };
 
-	textboxControlHandle = TextBoxControl::Create(GLFWParentWindow, GetModuleHandle(NULL), wTextboxName, wDescription, line, caret);
+	textboxControlHandle = TextBoxControl::Create(GetModuleHandle(NULL), wTextboxName, wDescription, line, caret);
 
 	env->ReleaseStringUTFChars(textboxName, nativeTextboxName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -219,13 +219,9 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 {
 	HWND control = (HWND)jlongHWND;
 
-	// The send message parameters are:
-	//	GLFW_HWND: The HWND of the control that we want to send a message to
-	//	QUORUM_SETFOCUS: The message to that control's window procedure which it will respond to. Custom messages are allowed and are kept in the CustomMessages.h file for consistency throughout the library.
-	//	The last two parameters wParam and lParam are basically arbitrary and in no way need to be the values chosen here. By convention wParam is used to send integers and lParam is used to send pointers.
-	//SendMessage(control, QUORUM_SETFOCUS, 0, 0);
-
+	// Sends the appropriate messages to all windows.
 	SetFocus(control);
+
 
 	return PtrToLong(control);
 }

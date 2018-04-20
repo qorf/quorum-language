@@ -16,14 +16,13 @@ HWND GetMainWindowHandle();
 
 // General messages
 #define QUORUM_SETNAME WM_USER + 1
-#define QUORUM_SETFOCUS WM_USER + 2
 
 // Button messages
-#define QUORUM_INVOKEBUTTON WM_USER + 3
+#define QUORUM_INVOKEBUTTON WM_USER + 2
 
 // Textbox messages
-#define QUORUM_UPDATECARET WM_USER + 4
-#define QUORUM_SETTEXT WM_USER + 5
+#define QUORUM_UPDATECARET WM_USER + 3
+#define QUORUM_SETTEXT WM_USER + 4
 
 
 #endif
