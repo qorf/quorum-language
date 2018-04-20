@@ -74,7 +74,7 @@ class TextBoxControl
 	public:
 		TextBoxControl(_In_reads_(lineCount) TextLine *lines, _In_ int lineCount, _In_ EndPoint caret);
 		
-		static HWND Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, TextLine lines[], _In_ EndPoint caret);
+		static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, TextLine lines[], _In_ EndPoint caret);
 
 		TextLine* GetLine(_In_ int line);
 		void SetLineText(_In_ int line, _In_ PCWSTR newText);
@@ -88,9 +88,10 @@ class TextBoxControl
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
 		bool StepLine(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
-		bool IsActive();
 		EndPoint GetCaretPosition();
 		std::wstring GetText();
+
+		bool HasFocus();
 
 	private:
 		static LRESULT CALLBACK StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
@@ -99,13 +100,13 @@ class TextBoxControl
 		static bool Initialize(_In_ HINSTANCE hInstance);
 		static bool Initialized;
 		
-		void SetFocus();
-		void KillFocus();
+		void SetControlFocus();
+		void KillControlFocus();
 		void UpdateCaret(/*_In_ EndPoint* caretPosition*/);
 
 		HWND m_TextboxHWND;
 		EndPoint m_caretPosition;
-		bool isActive;
+		bool m_focused;
 		TextLine *lines;
 		int lineCount;
 		WCHAR* m_pTextboxName;

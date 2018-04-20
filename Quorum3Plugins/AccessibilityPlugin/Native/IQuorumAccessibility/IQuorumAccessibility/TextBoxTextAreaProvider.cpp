@@ -12,16 +12,6 @@ void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 	TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(hwnd, control);
 	if (eventControl != NULL)
 	{
-		// TODO: Debug. Remove this section
-		/*PCWSTR sampleText;
-		sampleText = L"NotifyCaretPositionChanged method entered.";
-
-		TextLine* textline = control->GetLine(0);
-		std::wcout << "WCOUT: " << sampleText << std::endl;
-		std::wcout << "Textline->Text: " << textline->text << std::endl;
-		std::cout << "Size of the text line: " << control->GetLineLength(0) << std::endl;
-		fflush(stdout);*/
-		//=====
 		UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
 		UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
 		eventControl->Release();
@@ -184,10 +174,8 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPropertyValue(PROPERTYID propertyId, 
 	}
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
 	{
-		// This tells the screen reader whether or not this control has Keyboard focus. Normally, only one control/window is allowed to have keyboard focus at a time
-		// but by lying and having every instance of this control report that it has keyboard focus then we don't have to mantain what has focus on the native level.
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_TRUE;
+		pRetVal->boolVal = m_pTextBoxControl->HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 	else if (propertyId == UIA_IsPasswordPropertyId)
 	{
@@ -423,11 +411,12 @@ IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromPoint(UiaPoint point, _Outptr_r
 		the textbox's actual name. However, this comes with the trade off that a mouse click at any arbitrary location
 		within the textbox won't ever result in the character to the right of the caret being read aloud.
 
-		If we wanted to get rid of that trade off then that'd be a fairly tricky implementation because we'd need to solve
-		the problem that this function is supposed to solve in Quorum, pass that down along with a mouse click event, and then
-		this function would look for it in the textbox control down here instead of solving the problem itself.
+		If we wanted to get rid of that trade off then we'd need to solve the problem that this function is supposed to
+		solve in Quorum, pass that down along with a mouse click event, and then this function would look for it in the 
+		textbox control down here instead of solving the problem itself.
 		
 		TODO: Implement this in Quorum and pass down the required info when mouse clicking is implemented in the Quorum Textbox.
+		Note: It's possible that this function could get out of sync with Quorum if it's called more often than Quorum updates it.
 	*/
 	UNREFERENCED_PARAMETER(point); // This will never be used. Instead we get the point from Quorum.
 	Range closestRange = { { 0, 1 },{ 0, 1 } };

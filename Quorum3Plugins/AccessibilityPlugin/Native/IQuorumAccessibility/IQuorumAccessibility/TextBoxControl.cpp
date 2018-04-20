@@ -14,7 +14,7 @@ TextBoxControl::TextBoxControl(_In_reads_(lineCount) TextLine * lines, _In_ int 
 	TextBoxControl::lineCount = lineCount;
 	m_caretPosition.line = caret.line;
 	m_caretPosition.character = caret.character;
-	isActive = false;
+	m_focused = false;
 }
 
 // RegisterButtonControl: Registers the TextControl with Windows API so that it can used and later be registered with UI Automation
@@ -52,7 +52,7 @@ bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND TextBoxControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, TextLine quorumLines[], _In_ EndPoint caret)
+HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, TextLine quorumLines[], _In_ EndPoint caret)
 {
 
 	if (!Initialized)
@@ -72,7 +72,7 @@ HWND TextBoxControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHA
 												 -1,
 												 1,
 												 1,
-												 parent, // Parent window
+												 GetMainWindowHandle(), // Parent window
 												 NULL,
 												 instance,
 												 static_cast<PVOID>(control)
@@ -274,7 +274,7 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIB
 	else if (attribute == UIA_IsActiveAttributeId)
 	{
 		retval.vt = VT_BOOL;
-		retval.boolVal = isActive ? VARIANT_TRUE : VARIANT_FALSE;
+		retval.boolVal = m_focused ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 	else if (attribute == UIA_SelectionActiveEndAttributeId)
 	{
@@ -402,9 +402,9 @@ TextBoxProvider* TextBoxControl::GetTextBoxProvider()
 	return m_pTextBoxProvider;
 }
 
-bool TextBoxControl::IsActive()
+bool TextBoxControl::HasFocus()
 {
-	return isActive;
+	return m_focused;
 }
 
 EndPoint TextBoxControl::GetCaretPosition()
@@ -464,7 +464,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			IRawElementProviderSimple * provider = this->GetTextBoxProvider();
+			IRawElementProviderSimple * provider = new TextBoxProvider(this->m_TextboxHWND, this); //this->GetTextBoxProvider();
 			if (provider != NULL)
 			{
 				lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
@@ -473,15 +473,14 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		}
 		break;
 	}
-	case QUORUM_SETFOCUS:
 	case WM_SETFOCUS:
 	{
-		SetFocus();
+		SetControlFocus();
 		break;
 	}
 	case WM_KILLFOCUS:
 	{
-		KillFocus();
+		KillControlFocus();
 		break;
 	}
 	case QUORUM_UPDATECARET:
@@ -506,24 +505,60 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		//this->lines->text = (WCHAR*)lParam;
 		break;
 	}
-	default:
-		// Forward the event to the main GLFW window so it can handle the message.
+	// These are the messages the GLFW Window handles that we should be forwarding to it.
+	// TODO: Investigate which of these messages should not be forwarded.
+	case WM_DEVICECHANGE:
+	case WM_SYSCOMMAND:
+	case WM_CLOSE:
+	case WM_CHAR:
+	case WM_SYSCHAR:
+	case WM_UNICHAR:
+	case WM_KEYDOWN:
+	case WM_SYSKEYDOWN:
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+	case WM_LBUTTONDOWN:
+	case WM_RBUTTONDOWN:
+	case WM_MBUTTONDOWN:
+	case WM_XBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONUP:
+	case WM_MBUTTONUP:
+	case WM_XBUTTONUP:
+	case WM_MOUSEMOVE:
+	case WM_MOUSELEAVE:
+	case WM_MOUSEWHEEL:
+	case WM_MOUSEHWHEEL:
+	case WM_ENTERSIZEMOVE:
+	case WM_ENTERMENULOOP:
+	case WM_EXITSIZEMOVE:
+	case WM_EXITMENULOOP:
+	case WM_SIZE:
+	case WM_MOVE:
+	case WM_SIZING:
+	case WM_GETMINMAXINFO:
+	case WM_ERASEBKGND:
+	case WM_SETCURSOR:
+	case WM_DPICHANGED:
+	case WM_DROPFILES:
+		// Forward the message to the main GLFW window
 		lResult = SendMessage(GetMainWindowHandle(), message, wParam, lParam);
-		break;
+	default:
+		lResult = DefWindowProc(hwnd, message, wParam, lParam);
 	}
 
 	return lResult;
 }
 
-void TextBoxControl::SetFocus()
+void TextBoxControl::SetControlFocus()
 {
 	NotifyFocusGained(this->m_TextboxHWND, this);
-	isActive = true;
+	m_focused = true;
 }
 
-void TextBoxControl::KillFocus()
+void TextBoxControl::KillControlFocus()
 {
-	isActive = false;
+	m_focused = false;
 }
 
 void TextBoxControl::UpdateCaret(/* _In_ EndPoint* caretPosition*/)

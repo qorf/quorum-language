@@ -10,7 +10,7 @@ public:
 	PushButtonControl();
 	virtual ~PushButtonControl();
 
-	static HWND Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
+	static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription);
 
 	PushButtonProvider* GetButtonProvider(_In_ HWND hwnd);
 	HWND GetHWND();
@@ -19,7 +19,8 @@ public:
 	void InvokeButton(_In_ HWND hwnd);
 	WCHAR* GetName();
 	void SetName(_In_ WCHAR* name);
-	void SetFocus();
+	bool HasFocus();
+
 
 private:
 	static LRESULT CALLBACK StaticButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam);
@@ -29,8 +30,10 @@ private:
 	static bool Initialize(_In_ HINSTANCE hInstance);
 	static bool Initialized;
 
+	void SetControlFocus();
+	void KillControlFocus();
 
-	bool m_isFocused;
+	bool m_focused;
 	WCHAR* m_buttonName;
 	HWND m_buttonControlHWND;
 	PushButtonProvider* m_buttonProvider;

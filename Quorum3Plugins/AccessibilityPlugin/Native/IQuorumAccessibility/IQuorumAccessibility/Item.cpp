@@ -66,7 +66,7 @@ bool Item::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND Item::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription)
+HWND Item::Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription)
 {
 
 	if (!Initialized)
@@ -86,7 +86,7 @@ HWND Item::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* itemNam
 			-1,
 			1,
 			1,
-			parent, // Parent window
+			GetMainWindowHandle(), // Parent window
 			NULL,
 			instance,
 			static_cast<PVOID>(control));
@@ -127,6 +127,22 @@ void Item::SetName(_In_ WCHAR* name)
 	m_pItemName = name;
 }
 
+void Item::SetControlFocus()
+{
+	m_focused = true;
+	this->m_pItemProvider->NotifyFocusGained();
+}
+
+void Item::KillControlFocus()
+{
+	m_focused = false;
+}
+
+bool Item::HasFocus()
+{
+	return m_focused;
+}
+
 LRESULT Item::StaticItemControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 	Item * pThis = reinterpret_cast<Item*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
@@ -154,6 +170,8 @@ LRESULT Item::StaticItemControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ W
 // Control window procedure.
 LRESULT CALLBACK Item::ItemControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
+	LRESULT lResult = 0;
+
 	switch (message)
 	{
 	// Register with UI Automation.
@@ -162,23 +180,66 @@ LRESULT CALLBACK Item::ItemControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In
 		// If the lParam matches the RootObjectId, send back the RawElementProvider
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetItemProvider(this->m_ItemHWND));
+			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetItemProvider(this->m_ItemHWND));
 		}
-		return 0;
+		break;
 	}
-	case QUORUM_SETFOCUS:
+	case WM_SETFOCUS:
 	{
-		this->m_pItemProvider->NotifyFocusGained();
-		return 0;
+		this->SetControlFocus();
+		break;
+	}
+	case WM_KILLFOCUS:
+	{
+		this->KillControlFocus();
+		break;
 	}
 	case QUORUM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
-		return 0;
+		break;
 	}
-
-	break;
+	// These are the messages the GLFW Window handles that we should be forwarding to it.
+	// TODO: Investigate which of these messages should not be forwarded.
+	case WM_DEVICECHANGE:
+	case WM_SYSCOMMAND:
+	case WM_CLOSE:
+	case WM_CHAR:
+	case WM_SYSCHAR:
+	case WM_UNICHAR:
+	case WM_KEYDOWN:
+	case WM_SYSKEYDOWN:
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+	case WM_LBUTTONDOWN:
+	case WM_RBUTTONDOWN:
+	case WM_MBUTTONDOWN:
+	case WM_XBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONUP:
+	case WM_MBUTTONUP:
+	case WM_XBUTTONUP:
+	case WM_MOUSEMOVE:
+	case WM_MOUSELEAVE:
+	case WM_MOUSEWHEEL:
+	case WM_MOUSEHWHEEL:
+	case WM_ENTERSIZEMOVE:
+	case WM_ENTERMENULOOP:
+	case WM_EXITSIZEMOVE:
+	case WM_EXITMENULOOP:
+	case WM_SIZE:
+	case WM_MOVE:
+	case WM_SIZING:
+	case WM_GETMINMAXINFO:
+	case WM_ERASEBKGND:
+	case WM_SETCURSOR:
+	case WM_DPICHANGED:
+	case WM_DROPFILES:
+		// Forward the message to the main GLFW window
+		lResult = SendMessage(GetMainWindowHandle(), message, wParam, lParam);
+	default:
+		lResult = DefWindowProc(hwnd, message, wParam, lParam);
 	}  // switch (message)
 
-	return DefWindowProc(hwnd, message, wParam, lParam);
+	return lResult;
 }

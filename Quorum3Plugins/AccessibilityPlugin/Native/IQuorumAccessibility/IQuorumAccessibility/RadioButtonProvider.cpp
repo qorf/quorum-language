@@ -127,19 +127,15 @@ IFACEMETHODIMP RadioButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out
 	else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
 	{
 		// Tells the screen reader that this control is capable of getting keyboard focus.
-		// This isn't enough for the screen reader to announce the control's existence to the user when it gains focus in Quorum.
-		// UIA_HasKeyboardFocusPropertyId is respondsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
 
 	}
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
 	{
-		// This tells the screen reader whether or not this control has Keyboard focus. Normally, only one control/window is allowed to have keyboard focus at a time
-		// but by lying and having every instance of this control report that it has keyboard focus then we don't have to mantain what has focus on the native level.
+		// UIA_HasKeyboardFocusPropertyId is responsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_TRUE;
-
+		pRetVal->boolVal = m_pButtonControl->HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 	else
 	{

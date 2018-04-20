@@ -1,5 +1,4 @@
 #include <string>
-#include <windowsx.h>
 #include <iostream>
 
 #include "ToggleButtonControl.h"
@@ -96,7 +95,7 @@ bool ToggleButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND ToggleButtonControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+HWND ToggleButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
 
 	if (!Initialized)
@@ -116,7 +115,7 @@ HWND ToggleButtonControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_
 			-1,
 			1,
 			1,
-			parent, // Parent window
+			GetMainWindowHandle(), // Parent window
 			NULL,
 			instance,
 			static_cast<PVOID>(control));
@@ -157,9 +156,20 @@ void ToggleButtonControl::SetName(_In_ WCHAR* name)
 	m_buttonName = name;
 }
 
-void ToggleButtonControl::SetFocus()
+void ToggleButtonControl::SetControlFocus()
 {
+	m_focused = true;
 	m_buttonProvider->NotifyFocusGained();
+}
+
+void ToggleButtonControl::KillControlFocus()
+{
+	m_focused = false;
+}
+
+bool ToggleButtonControl::HasFocus()
+{
+	return m_focused;
 }
 
 void ToggleButtonControl::SetState(_In_ ToggleState controlState)
@@ -200,6 +210,7 @@ LRESULT ToggleButtonControl::StaticToggleButtonControlWndProc(_In_ HWND hwnd, _I
 // Control window procedure.
 LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd, _In_  UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
+	LRESULT lResult = 0;
 
 	switch (message)
 	{
@@ -209,15 +220,20 @@ LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd,
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
+			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
 		}
 
-		return 0;
+		break;
 	}
-	case QUORUM_SETFOCUS:
+	case WM_SETFOCUS:
 	{
-		this->SetFocus();
-		return 0;
+		this->SetControlFocus();
+		break;
+	}
+	case WM_KILLFOCUS:
+	{
+		this->KillControlFocus();
+		break;
 	}
 	case QUORUM_INVOKEBUTTON:
 	{
@@ -234,15 +250,53 @@ LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd,
 			this->SetState(ToggleState_Off);
 		}
 		
-		return 0;
+		break;
 	}
 	case QUORUM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
 	}
-
-	break;
+	// These are the messages the GLFW Window handles that we should be forwarding to it.
+	// TODO: Investigate which of these messages should not be forwarded.
+	case WM_DEVICECHANGE:
+	case WM_SYSCOMMAND:
+	case WM_CLOSE:
+	case WM_CHAR:
+	case WM_SYSCHAR:
+	case WM_UNICHAR:
+	case WM_KEYDOWN:
+	case WM_SYSKEYDOWN:
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+	case WM_LBUTTONDOWN:
+	case WM_RBUTTONDOWN:
+	case WM_MBUTTONDOWN:
+	case WM_XBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONUP:
+	case WM_MBUTTONUP:
+	case WM_XBUTTONUP:
+	case WM_MOUSEMOVE:
+	case WM_MOUSELEAVE:
+	case WM_MOUSEWHEEL:
+	case WM_MOUSEHWHEEL:
+	case WM_ENTERSIZEMOVE:
+	case WM_ENTERMENULOOP:
+	case WM_EXITSIZEMOVE:
+	case WM_EXITMENULOOP:
+	case WM_SIZE:
+	case WM_MOVE:
+	case WM_SIZING:
+	case WM_GETMINMAXINFO:
+	case WM_ERASEBKGND:
+	case WM_SETCURSOR:
+	case WM_DPICHANGED:
+	case WM_DROPFILES:
+		// Forward the message to the main GLFW window
+		lResult = SendMessage(GetMainWindowHandle(), message, wParam, lParam);
+	default:
+		lResult = DefWindowProc(hwnd, message, wParam, lParam);
 	}  // switch (message)
 
-	return DefWindowProc(hwnd, message, wParam, lParam);
+	return lResult;
 }

@@ -1,10 +1,4 @@
-#define INITGUID
 #include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-
-#include <ole2.h>
 #include <UIAutomation.h>
 
 #include "ItemProvider.h"
@@ -63,16 +57,11 @@ IFACEMETHODIMP ItemProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 	return S_OK;
 }
 
-// Get the object that supports IInvokePattern.
+
 IFACEMETHODIMP ItemProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
+	// Item doesn't implement any control patterns so NULL is correct.
 	*pRetVal = NULL;
-	if (patternId == UIA_InvokePatternId)
-	{
-		*pRetVal = static_cast<IRawElementProviderSimple*>(this);
-		AddRef();
-	}
-
 	return S_OK;
 }
 
@@ -102,18 +91,14 @@ IFACEMETHODIMP ItemProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VARIA
 	else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
 	{
 		// Tells the screen reader that this control is capable of getting keyboard focus.
-		// This isn't enough for the screen reader to announce the control's existence to the user when it gains focus in Quorum.
-		// UIA_HasKeyboardFocusPropertyId is respondsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
 	}
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
 	{
-		// This tells the screen reader whether or not this control has Keyboard focus. Normally, only one control/window is allowed to have keyboard focus at a time
-		// but by lying and having every instance of this control report that it has keyboard focus then we don't have to mantain what has focus on the native level.
+		// UIA_HasKeyboardFocusPropertyId is respondsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_TRUE;
-		//pRetVal->boolVal = m_pItem->GetFocus() ? VARIANT_TRUE : VARIANT_FALSE;
+		pRetVal->boolVal = m_pItem->HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 	else if (propertyId == UIA_NamePropertyId)
 	{
