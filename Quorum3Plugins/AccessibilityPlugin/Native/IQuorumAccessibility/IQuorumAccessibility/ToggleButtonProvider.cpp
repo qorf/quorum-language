@@ -1,10 +1,5 @@
 #define INITGUID
 #include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-
-#include <ole2.h>
 #include <UIAutomation.h>
 
 #include "ToggleButtonProvider.h"
@@ -180,7 +175,6 @@ IFACEMETHODIMP ToggleButtonProvider::Toggle()
 	// Raise a UI Automation Event
 	if (UiaClientsAreListening())
 	{
-
 		UiaRaiseAutomationEvent(this, UIA_AutomationPropertyChangedEventId);
 	}
 

@@ -9,23 +9,23 @@
 
 void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 {
-	TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(hwnd, control);
-	if (eventControl != NULL)
-	{
-		UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
-		UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
-		eventControl->Release();
-	}
-	else
-	{
-		// This is an error. Should probably be dealt with somehow.
-	}
+	//TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(hwnd, control);
+	//if (eventControl != NULL && UiaClientsAreListening())
+	//{
+	//	UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
+	//	UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
+	//	eventControl->Release();
+	//}
+	//else
+	//{
+	//	// This is an error. Should probably be dealt with somehow.
+	//}
 }
 
 void NotifyFocusGained(_In_ HWND hwnd, _In_ TextBoxControl *control)
 {
 	TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(hwnd, control);
-	if (eventControl != NULL)
+	if (eventControl != NULL && UiaClientsAreListening())
 	{
 		UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
 		eventControl->Release();
@@ -128,34 +128,16 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPropertyValue(PROPERTYID propertyId, 
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	if (propertyId == UIA_LocalizedControlTypePropertyId)
-	{
-		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"AreaProvider");
-	}
-	else if (propertyId == UIA_AutomationIdPropertyId)
-	{
-		pRetVal->bstrVal = SysAllocString(L"AreaProvider");
-		if (pRetVal->bstrVal != NULL)
-		{
-			pRetVal->vt = VT_BSTR;
-		}
-	}
-	/*else if (propertyId == UIA_HelpTextPropertyId)
-	{
-		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L" What do you want from me?");
-	}*/
-	else if (propertyId == UIA_NamePropertyId)
-	{
-		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(m_pTextBoxControl->GetName());
-	}
-	else if (propertyId == UIA_ControlTypePropertyId)
+	if (propertyId == UIA_ControlTypePropertyId)
 	{
 		pRetVal->vt = VT_I4;
 		pRetVal->lVal = UIA_EditControlTypeId;
 		//pRetVal->lVal = UIA_DocumentControlTypeId;
+	}
+	else if (propertyId == UIA_NamePropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(m_pTextBoxControl->GetName());
 	}
 	else if (propertyId == UIA_IsEnabledPropertyId)
 	{
@@ -167,13 +149,12 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPropertyValue(PROPERTYID propertyId, 
 	else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
 	{
 		// Tells the screen reader that this control is capable of getting keyboard focus.
-		// This isn't enough for the screen reader to announce the control's existence to the user when it gains focus in Quorum.
-		// UIA_HasKeyboardFocusPropertyId is responsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
 	}
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
 	{
+		// UIA_HasKeyboardFocusPropertyId is responsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = m_pTextBoxControl->HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
 	}
@@ -240,7 +221,9 @@ IFACEMETHODIMP TextBoxTextAreaProvider::Navigate(NavigateDirection direction, _O
 	HRESULT hr = S_OK;
 	if (direction == NavigateDirection_Parent)
 	{
-		*pRetVal = new TextBoxProvider(m_TextBoxControlHWND, m_pTextBoxControl);
+		*pRetVal = m_pTextBoxControl->GetTextBoxProvider();
+		(*pRetVal)->AddRef();
+
 		if (*pRetVal == NULL)
 		{
 			hr = E_OUTOFMEMORY;
@@ -310,7 +293,9 @@ IFACEMETHODIMP TextBoxTextAreaProvider::get_FragmentRoot(_Outptr_result_maybenul
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	*pRetVal = new TextBoxProvider(m_TextBoxControlHWND, m_pTextBoxControl);
+	*pRetVal = m_pTextBoxControl->GetTextBoxProvider();
+	(*pRetVal)->AddRef();
+
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 }
 
@@ -341,9 +326,9 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetSelection(_Outptr_result_maybenull_ S
 	
 	// For now, selection is hardcoded to be the degenerate text range.
 	Range caretRange = { m_pTextBoxControl->GetCaretPosition(), m_pTextBoxControl->GetCaretPosition() };
-	ITextRangeProvider *selectionRangeProvider = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, caretRange, m_pTextBoxControl->GetText());
+	//ITextRangeProvider *selectionRangeProvider = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, caretRange, m_pTextBoxControl->GetText());
 	HRESULT hr = S_OK;
-	if (selectionRangeProvider == NULL)
+	/*if (selectionRangeProvider == NULL)
 	{
 		hr = E_OUTOFMEMORY;
 	}
@@ -365,7 +350,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetSelection(_Outptr_result_maybenull_ S
 			}
 		}
 		selectionRangeProvider->Release();
-	}
+	}*/
 
 	return hr;
 }
@@ -420,7 +405,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromPoint(UiaPoint point, _Outptr_r
 	*/
 	UNREFERENCED_PARAMETER(point); // This will never be used. Instead we get the point from Quorum.
 	Range closestRange = { { 0, 1 },{ 0, 1 } };
-	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, closestRange, m_pTextBoxControl->GetText());
+	//*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, closestRange, m_pTextBoxControl->GetText());
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 
 }
@@ -439,7 +424,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::get_DocumentRange(_Outptr_result_maybenu
 	// all the way to the last character on the last line.
 	Range fullDocumentRange = { { 0, 0 }, m_pTextBoxControl->GetTextboxEndpoint() };
 	
-	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, fullDocumentRange, m_pTextBoxControl->GetText());
+	//*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, fullDocumentRange, m_pTextBoxControl->GetText());
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 
 }

@@ -51,8 +51,8 @@ void ToggleButtonControl::InvokeButton(_In_ HWND hwnd)
 		{
 			m_buttonProvider = GetButtonProvider(hwnd);
 		}
-	
-		m_buttonProvider->Toggle();
+			
+		//m_buttonProvider->Toggle();
 
 		// Raise an event.
 		UiaRaiseAutomationEvent(GetButtonProvider(hwnd), UIA_Invoke_InvokedEventId);
@@ -225,6 +225,10 @@ LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd,
 
 		break;
 	}
+	case WM_DESTROY:
+	{
+		lResult = UiaReturnRawElementProvider(hwnd, 0, 0, NULL);
+	}
 	case WM_SETFOCUS:
 	{
 		this->SetControlFocus();
@@ -237,9 +241,11 @@ LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd,
 	}
 	case QUORUM_INVOKEBUTTON:
 	{
-		this->InvokeButton(hwnd);
-
+		// TODO:  This message should notify the user that the button was checked. It does not do that.
+		//		  Maybe the provider doesn't implement the correct interface
 		bool state = static_cast<bool>(wParam);
+
+		this->InvokeButton(hwnd);
 
 		if (state)
 		{
@@ -249,53 +255,16 @@ LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd,
 		{
 			this->SetState(ToggleState_Off);
 		}
-		
+
 		break;
 	}
 	case QUORUM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
 	}
-	// These are the messages the GLFW Window handles that we should be forwarding to it.
-	// TODO: Investigate which of these messages should not be forwarded.
-	case WM_DEVICECHANGE:
-	case WM_SYSCOMMAND:
-	case WM_CLOSE:
-	case WM_CHAR:
-	case WM_SYSCHAR:
-	case WM_UNICHAR:
-	case WM_KEYDOWN:
-	case WM_SYSKEYDOWN:
-	case WM_KEYUP:
-	case WM_SYSKEYUP:
-	case WM_LBUTTONDOWN:
-	case WM_RBUTTONDOWN:
-	case WM_MBUTTONDOWN:
-	case WM_XBUTTONDOWN:
-	case WM_LBUTTONUP:
-	case WM_RBUTTONUP:
-	case WM_MBUTTONUP:
-	case WM_XBUTTONUP:
-	case WM_MOUSEMOVE:
-	case WM_MOUSELEAVE:
-	case WM_MOUSEWHEEL:
-	case WM_MOUSEHWHEEL:
-	case WM_ENTERSIZEMOVE:
-	case WM_ENTERMENULOOP:
-	case WM_EXITSIZEMOVE:
-	case WM_EXITMENULOOP:
-	case WM_SIZE:
-	case WM_MOVE:
-	case WM_SIZING:
-	case WM_GETMINMAXINFO:
-	case WM_ERASEBKGND:
-	case WM_SETCURSOR:
-	case WM_DPICHANGED:
-	case WM_DROPFILES:
-		// Forward the message to the main GLFW window
-		lResult = SendMessage(GetMainWindowHandle(), message, wParam, lParam);
 	default:
-		lResult = DefWindowProc(hwnd, message, wParam, lParam);
+		lResult = ForwardMessage(hwnd, message, wParam, lParam);
+		break;
 	}  // switch (message)
 
 	return lResult;

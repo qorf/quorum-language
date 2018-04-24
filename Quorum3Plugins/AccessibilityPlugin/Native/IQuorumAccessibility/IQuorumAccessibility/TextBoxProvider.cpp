@@ -114,19 +114,19 @@ IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 		pRetVal->vt = VT_I4;
 		pRetVal->lVal = UIA_PaneControlTypeId;
 	}
+	else if (propertyId == UIA_NamePropertyId)
+	{
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(L"");
+	}
 	else if (propertyId == UIA_AutomationIdPropertyId)
 	{
-		pRetVal->bstrVal = SysAllocString(L"TextBox Provider");
+		pRetVal->bstrVal = SysAllocString(L"");
 		if (pRetVal->bstrVal != NULL)
 		{
 			pRetVal->vt = VT_BSTR;
 		}
 	}
-	/*else if (propertyId == UIA_NamePropertyId)
-	{
-		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"TextBox Provider");
-	}*/
 	else if (propertyId == UIA_IsControlElementPropertyId)
 	{
 		pRetVal->vt = VT_BOOL;
@@ -246,7 +246,8 @@ IFACEMETHODIMP TextBoxProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawE
 
 
 	*pRetVal = this;
-	AddRef();
+	(*pRetVal)->AddRef();
+
 	return S_OK;
 }
 

@@ -307,8 +307,10 @@ IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVa
 	HRESULT hr = S_OK;
 
 	
-	std::wstring wStr = m_pTextBoxControl->GetText();
-	*pRetVal = SysAllocStringLen(wStr.data(), wStr.size());
+	//std::wstring wStr = m_pTextBoxControl->GetText();
+	//*pRetVal = SysAllocStringLen(wStr.data(), wStr.size());
+	*pRetVal = L"press";
+
 	if (*pRetVal == NULL)
 	{
 		hr = E_OUTOFMEMORY;

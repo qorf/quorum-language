@@ -38,8 +38,8 @@ class TextBoxTextAreaProvider : public ITextProvider,
 
 
 	private:
-		ULONG m_refCount;
 
+		ULONG m_refCount;
 		HWND m_TextBoxControlHWND;
 		TextBoxControl* m_pTextBoxControl;
 };

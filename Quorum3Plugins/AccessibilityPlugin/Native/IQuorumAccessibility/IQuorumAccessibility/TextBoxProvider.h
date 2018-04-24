@@ -34,9 +34,9 @@ public:
 	IFACEMETHODIMP GetFocus(_Outptr_result_maybenull_ IRawElementProviderFragment ** pRetVal);
 
 private:
+	
 	// Ref Counter for this COM object
 	ULONG m_refCount;
-		
 	HWND m_textBoxControlHWND; // The HWND for the TextBox Control associated with this provider
 	TextBoxControl* m_pTextBoxControl; // A pointer to the TextBox Control associated with this provider
 };

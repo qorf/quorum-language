@@ -7,12 +7,16 @@
 
 struct EndPoint
 {
+	EndPoint() {};
+	EndPoint(int l, int c) : line(l), character(c) {};
 	int line;
 	int character;
 };
 
 struct Range
 {
+	Range() {};
+	Range(EndPoint b, EndPoint e) : begin(b), end(e) {};
 	EndPoint begin;
 	EndPoint end;
 };
@@ -73,7 +77,8 @@ class TextBoxControl
 {
 	public:
 		TextBoxControl(_In_reads_(lineCount) TextLine *lines, _In_ int lineCount, _In_ EndPoint caret);
-		
+		~TextBoxControl();
+
 		static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, TextLine lines[], _In_ EndPoint caret);
 
 		TextLine* GetLine(_In_ int line);
@@ -107,8 +112,8 @@ class TextBoxControl
 		HWND m_TextboxHWND;
 		EndPoint m_caretPosition;
 		bool m_focused;
-		TextLine *lines;
-		int lineCount;
+		TextLine* m_pLines;
+		int m_lineCount;
 		WCHAR* m_pTextboxName;
 		std::wstring m_Text; // The text to be spoken aloud by the screen reader.
 		TextBoxProvider* m_pTextBoxProvider;
