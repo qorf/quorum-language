@@ -25,8 +25,35 @@ class Math
     public number pi = 3.14159265358979323846
     public number e = 2.71828182845904523536
 
-    private system action Floor(number value) returns number
-    private system action Ceiling(number value) returns number
+    /*
+    This action calculates the floor of a number (it rounds it down).
+
+    Attribute: Parameter value The number to take the floor of.
+
+    Attribute: Returns Returns the floor of a number.
+
+    Attribute: Example
+    use Libraries.Compute.Math
+    Math math
+    number result = math:Floor(11.9)
+    output result
+    */
+    system action Floor(number value) returns number
+
+    /*
+    This action calculates the ceiling of a number (it rounds it up).
+
+    Attribute: Parameter value The number to take the ceiling of.
+
+    Attribute: Returns Returns the ceiling of a number.
+
+    Attribute: Example
+    use Libraries.Compute.Math
+    Math math
+    number result = math:Ceiling(11.9)
+    output result
+    */
+    system action Ceiling(number value) returns number
 
     /*
     This action calculates the sine of a number in radians and returns the result.
