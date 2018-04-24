@@ -2795,18 +2795,15 @@ class Compiler
         Iterator<Class> classes = table:GetClasses()
 
         
-            //gather up all the classes on the system and check their
-            //use statements for classes we don't know about
-            //if there are some, mark them as unparsed
+        //gather up all the classes on the system and check their
+        //use statements for classes we don't know about
+        //if there are some, mark them as unparsed
         HashTable<text, text> resolvedPackages
 
         repeat while classes:HasNext()
             Class clazz = classes:Next()
             File classFile = clazz:GetFile()
             text path = classFile:GetAbsolutePath()
-            //if not parsed:HasKey(path)
-            //    parsed:Add(path, clazz:GetFile())
-            //end
             Iterator<QualifiedName> names = clazz:GetUnresolvedUseStatements()
             repeat while names:HasNext()
                 QualifiedName qn = names:Next()
@@ -2817,6 +2814,11 @@ class Compiler
                     ResolveClass(table, key, clazz, library, errors)
                 end
             end
+
+            //now check the package we are in to see if there's anything
+            //in this package we need to include
+            QualifiedName pack = clazz:GetPackage()
+            ResolveAllClassesInContainer(table, pack, library, resolvedPackages, errors)
 
             ResolveQualifiedNames(table, names, clazz, library, resolvedPackages, errors)
 
@@ -2874,7 +2876,12 @@ class Compiler
     private action ResolveAllClassesInContainer(SymbolTable table,
             QualifiedName name, Library library, HashTable<text, text> resolvedPackages, CompilerErrorManager errors)
         //Get the container name without the "all" at the end
-        text value = name:GetStaticKeyNoAll()
+        text value = ""
+
+        if not name:IsEmpty()
+            value = name:GetStaticKeyNoAll()
+        end
+
         if resolvedPackages:HasKey(value) //already resolved, so skip it
             return now
         else
