@@ -4,6 +4,7 @@ use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Texture
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
@@ -98,6 +99,18 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     integer caretCharacter = 0
     number caretX = 0
 
+    TextBoxSelection selection
+
+    /*
+    The color of the selection highlight.
+    */
+    Color selectionColor
+
+    /*
+    The texture used for the selection higlight. Initialized as a 1x1 white texture.
+    */
+    Texture selectionTexture
+
     Drawable background
     Drawable horizontalBar
     Drawable horizontalControl
@@ -162,9 +175,15 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
                 font:LoadFont(availableFontFiles:Get(0))
             end
         end
+
+        selection:SetTextBox(me)
+
+        selectionColor:SetColor(0.75, 0.75, 1, 1)
     end
 
     action Initialize(number width, number height, Color backgroundColor, text value)
+        selectionTexture:LoadFilledRectangle(1, 1)
+
         textValue:Initialize(value)
 
         if backgroundColor not= undefined
@@ -221,6 +240,49 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             repeat size times
                 Glyph glyph = font:GetGlyph(line:GetCharacter(characterCounter))
                 Drawable draw = glyph:drawable
+
+                // For testing purposes only:
+                boolean highlighted = false
+
+                // If we're on the first line that's selected.
+                if counter = selection:GetFirstLine()
+                    // If we're also on the last line selected, the selection is limited to this line.
+                    if counter = selection:GetLastLine()
+                        if characterCounter >= selection:GetFirstLineIndex() and characterCounter < selection:GetLastLineIndex()
+                            highlighted = true
+                        end
+
+                    // The selection continues past this line. Select all characters after the start index.
+                    else
+                        if characterCounter >= selection:GetFirstLineIndex()
+                            highlighted = true
+                        end
+                    end
+                // If we satisfy this condition, there's more than one line selected,
+                // and we're on the last one. Select everything before the end index.
+                elseif counter = selection:GetLastLine()
+                    if characterCounter < selection:GetLastLineIndex()
+                        highlighted = true
+                    end
+
+                // If we satisfy this condition, we're in a line in between the first
+                // and last lines, and thus the whole line is selected.
+                elseif counter > selection:GetFirstLine() and counter < selection:GetLastLine()
+                    highlighted = true
+                end
+
+                if highlighted
+                    Drawable highlight
+                    highlight:Load(selectionTexture)
+                    highlight:SetSize(glyph:horizontalAdvance, lineHeight)
+                    highlight:SetColor(selectionColor)
+
+//                    Color color
+//                    highlight:LoadFilledRectangle(glyph:horizontalAdvance, lineHeight, color:CustomColor(0.75, 0.75, 1, 1))
+                    highlight:SetPosition(x, yPosition - lineHeight / 4.0)
+                    background:Add(highlight)
+                end
+
                 if draw not= undefined
                     draw:SetPosition(x + glyph:lengthToGlyph, yPosition + glyph:heightFromBaseLine - draw:GetHeight())
                     drawables:Add(draw)
@@ -283,6 +345,142 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         UpdatePaneView(horizontal, newVertical)
     end
 
+    private action EmptySelectionEvent
+        selection:SetText("")
+        selection:SetLines(caretLine, caretLine)
+        selection:SetLineIndices(caretCharacter, caretCharacter)
+        integer characterIndex = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+        selection:SetIndices(characterIndex, characterIndex)
+        selection:SetCaretAtEnd(true)
+
+        // Report the new selection here.
+        ReportSelection()
+    end
+
+    private action SelectionMoveLeft
+
+        integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+        if (caretLine < selection:GetFirstLine() or caretCharacter < selection:GetFirstLineIndex())
+            selection:SetFirstLine(caretLine)
+            selection:SetFirstLineIndex(caretCharacter)
+
+            selection:SetStartIndex(index)
+            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
+            selection:SetCaretAtEnd(index = selection:GetEndIndex())
+        else
+            selection:SetLastLine(caretLine)
+            selection:SetLastLineIndex(caretCharacter)
+
+            selection:SetEndIndex(index)
+            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
+            selection:SetCaretAtEnd(true)
+        end
+
+        // Report the new selection here.
+        ReportSelection()
+    end
+
+    private action SelectionMoveRight
+
+        integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+
+        if (caretLine > selection:GetLastLine() or caretCharacter > selection:GetLastLineIndex())
+            selection:SetLastLine(caretLine)
+            selection:SetLastLineIndex(caretCharacter)
+
+            selection:SetEndIndex(index)
+            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
+            selection:SetCaretAtEnd(true)
+        else
+            selection:SetFirstLine(caretLine)
+            selection:SetFirstLineIndex(caretCharacter)
+
+            selection:SetStartIndex(index)
+            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
+            selection:SetCaretAtEnd(index = selection:GetEndIndex())
+        end
+
+        // Report the new selection here.
+        ReportSelection()
+    end
+
+    private action SelectionMoveUp
+        integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+
+        if (caretLine < selection:GetFirstLine() or index < selection:GetStartIndex())
+
+            if index < selection:GetStartIndex() and selection:IsCaretAtEnd()
+                selection:SetEndIndex(selection:GetStartIndex())
+                selection:SetLastLineIndex(selection:GetFirstLineIndex())
+                selection:SetLastLine(selection:GetFirstLine())
+            end
+
+            selection:SetFirstLine(caretLine)
+            selection:SetFirstLineIndex(caretCharacter)
+
+            selection:SetStartIndex(index)
+            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
+
+            selection:SetCaretAtEnd(false)
+        else
+            selection:SetLastLine(caretLine)
+            selection:SetLastLineIndex(caretCharacter)
+
+            selection:SetEndIndex(index)
+            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
+
+            selection:SetCaretAtEnd(true)
+        end
+
+        // Report the new selection here.
+        ReportSelection()
+    end
+
+    private action SelectionMoveDown
+        integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+
+        if (caretLine > selection:GetLastLine())
+            if index > selection:GetEndIndex() and (not selection:IsCaretAtEnd())
+                selection:SetStartIndex(selection:GetEndIndex())
+                selection:SetFirstLineIndex(selection:GetLastLineIndex())
+            end
+
+            selection:SetLastLine(caretLine)
+            selection:SetLastLineIndex(caretCharacter)
+
+            selection:SetEndIndex(index)
+            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
+
+            selection:SetCaretAtEnd(true)
+        else
+            selection:SetFirstLine(caretLine)
+            selection:SetFirstLineIndex(caretCharacter)
+
+            selection:SetStartIndex(index)
+            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
+            
+            selection:SetCaretAtEnd(false)
+        end
+
+        // Report the new selection here.
+        ReportSelection()
+    end
+
+    /*
+    For testing purposes only.
+    */
+    private action ReportSelection
+        GetLineDrawables()
+//        output ""
+//        output "Selection:"
+//        output "Lines: " + selection:GetFirstLine() + ", " + selection:GetLastLine()
+//        output "Line indices: " + selection:GetFirstLineIndex() + ", " + selection:GetLastLineIndex()
+//        output "Indices: " + selection:GetStartIndex() + ", " + selection:GetEndIndex()
+//        output "Text: " + selection:GetText()
+//        output "Caret at end = " + selection:IsCaretAtEnd()
+        // Forward the selection along via events from here.
+    end
+
     /*
     For testing purposes.
     */
@@ -290,9 +488,11 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretLine = line
         caretCharacter = index
         caretX = PositionCaret()
+
+        EmptySelectionEvent()
     end
 
-    action MoveCaretLeft
+    action MoveCaretLeft(boolean selecting)
         if not caretActive
             return now
         end
@@ -301,6 +501,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         if caretCharacter = 0
             if caretLine = 0
+                if (not selecting) and (not selection:IsEmpty())
+                    EmptySelectionEvent()
+                end
+
                 return now
             else
                 caretLine = caretLine - 1
@@ -321,11 +525,17 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretX = PositionCaret()
         ShowCaret()
 
-        DeselectIndex(oldIndex)
-        SelectIndex(GetCaretIndex())
+        if selecting
+            SelectionMoveLeft()
+        else
+            EmptySelectionEvent()
+        end
+
+//        DeselectIndex(oldIndex)
+//        SelectIndex(GetCaretIndex())
     end
 
-    action MoveCaretRight
+    action MoveCaretRight(boolean selecting)
         if not caretActive
             return now
         end
@@ -339,6 +549,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
         if caretCharacter >= size
             if caretLine + 1 = textValue:GetLineCount()
+                if (not selecting) and (not selection:IsEmpty())
+                    EmptySelectionEvent()
+                end
+
                 return now
             end
             caretLine = caretLine + 1
@@ -355,8 +569,13 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretX = PositionCaret()
         ShowCaret()
 
-        DeselectIndex(oldIndex)
-        SelectIndex(GetCaretIndex())
+        if selecting
+            SelectionMoveRight()
+        else
+            EmptySelectionEvent()
+        end
+//        DeselectIndex(oldIndex)
+//        SelectIndex(GetCaretIndex())
     end
 
     /*
@@ -411,9 +630,31 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
                 x = x + glyph:horizontalAdvance
                 counter = counter + 1
             detect Error
+                integer errorCounter = 0
+                Array<MultipleLineText> lines = lastText:GetLines()
+                text quote = ""
+                quote = quote:GetDoubleQuote()
+
                 output "lineCharacters = " + lineCharacters
                 output "counter = " + counter
+                output "character = " + character
                 output "lineCharacters size = " + lineCharacters:GetSize()
+                output "lastInsertion = " + quote + lastInsertion + quote
+
+                output "Previous text: "
+                repeat while errorCounter < lines:GetSize()
+                    output errorCounter + quote + lines:Get(errorCounter):GetText() + quote
+                    errorCounter = errorCounter + 1
+                end
+
+                errorCounter = 0
+                lines = textValue:GetLines()
+                output "New text: "
+                repeat while errorCounter < lines:GetSize()
+                    output errorCounter + quote + lines:Get(errorCounter):GetText() + quote
+                    errorCounter = errorCounter + 1
+                end
+
                 alert ("Crashed while retrieving character for rendering.")
             end
         end
@@ -433,7 +674,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
     end
 
-    action MoveCaretDown
+    action MoveCaretDown(boolean selecting)
         if not caretActive
             return now
         end
@@ -458,11 +699,16 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         PositionCaret()
         ShowCaret()
 
-        DeselectIndex(oldIndex)
-        SelectIndex(GetCaretIndex())
+        if selecting
+            SelectionMoveDown()
+        else
+            EmptySelectionEvent()
+        end
+//        DeselectIndex(oldIndex)
+//        SelectIndex(GetCaretIndex())
     end
 
-    action MoveCaretUp
+    action MoveCaretUp(boolean selecting)
         if not caretActive
             return now
         end
@@ -486,8 +732,14 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         PositionCaret()
         ShowCaret()
 
-        DeselectIndex(oldIndex)
-        SelectIndex(GetCaretIndex())
+        if selecting
+            SelectionMoveUp()
+        else
+            EmptySelectionEvent()
+        end
+        
+//        DeselectIndex(oldIndex)
+//        SelectIndex(GetCaretIndex())
     end
 
     /*
@@ -537,6 +789,11 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     MultipleLineText lastText = undefined
 
     action DeleteBackward
+        if (not selection:IsEmpty())
+            DeleteSelection()
+            return now
+        end
+
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
         if index = 0
             return now
@@ -572,9 +829,16 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         GetLineDrawables()
         caretX = PositionCaret()
         ShowCaret()
+
+        EmptySelectionEvent()
     end
 
     action DeleteForward
+        if (not selection:IsEmpty())
+            DeleteSelection()
+            return now
+        end
+
         if caretLine = textValue:GetLineCount() - 1
             text line = GetCurrentLineText()
             if caretCharacter = line:GetSize()
@@ -584,12 +848,48 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
         textValue = textValue:Delete(index, index + 1)
+
+        // Force a recalculation of the width by setting its value to -1.
+        scrollRegionWidth = -1
+        ResizeScrollBars()
+
         GetLineDrawables()
         PositionCaret()
         ShowCaret()
     end
 
+    action DeleteSelection
+        if selection:IsEmpty()
+            return now
+        end
+
+        caretLine = selection:GetFirstLine()
+        caretCharacter = selection:GetFirstLineIndex()
+
+        textValue = textValue:Delete(selection:GetStartIndex(), selection:GetEndIndex())
+
+        // Force a recalculation of the width by setting its value to -1.
+        scrollRegionWidth = -1
+        ResizeScrollBars()
+        FitCharacterOnScreen(caretLine, caretCharacter)
+
+        GetLineDrawables()
+        PositionCaret()
+        ShowCaret()
+
+        EmptySelectionEvent()
+    end
+
+    // For debugging purposes only.
+    text lastInsertion = ""
+
     action Insert(text value)
+        lastInsertion = value
+
+        if (not selection:IsEmpty())
+            DeleteSelection()
+        end
+
         textValue = textValue:Insert(GetCaretIndex(), value)
         
         // Determine how many new lines are produced from the insert so that we
@@ -633,6 +933,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         GetLineDrawables()
         caretX = PositionCaret()
         ShowCaret()
+
+        EmptySelectionEvent()
     end
 
     action SetWidth(integer newWidth)

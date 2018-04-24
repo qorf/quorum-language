@@ -13,6 +13,7 @@ class TextBoxCaretStartMoveBehavior is Behavior
     public constant integer UP = 4
  
     integer direction = 0
+    boolean selecting = false
 
     action SetDirection(integer direction)
         me:direction = direction
@@ -20,6 +21,14 @@ class TextBoxCaretStartMoveBehavior is Behavior
 
     action GetDirection returns integer
         return direction
+    end
+
+    action SetSelecting(boolean select)
+        selecting = select
+    end
+
+    action GetSelecting returns boolean
+        return selecting
     end
 
     action Run(BehaviorEvent event)
@@ -31,6 +40,7 @@ class TextBoxCaretStartMoveBehavior is Behavior
         TextBox box = cast(TextBox, item)
 
         TextBoxCaretMoveBehavior behavior
+        behavior:SetSelecting(selecting)
         behavior:SetTimer(box:GetCaretIdleTime())
 
         /*
