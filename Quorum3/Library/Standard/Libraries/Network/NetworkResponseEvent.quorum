@@ -14,12 +14,11 @@ class NetworkResponseEvent
     private integer statusCode = 0
     private text statusText = ""
     private text encoding = ""
+    private integer contentLength = 0
     private text contentType = ""
     private text responseText = ""
-    private text responseMessage = ""
-
+    private HashTable<text, text> headers
 //    text apparentEncoding = ""
-//    text headers = ""
 //    List<text> headerLinks
 //    List<NetworkResponseEvent> history
 //    boolean isPermanentRedirect = false
@@ -32,36 +31,52 @@ class NetworkResponseEvent
     //iter_content    // Iterator for response data
     //iter_lines      // Iterator for response data
 
-    action GetContentType() returns text
+    action GetContentLength returns integer
+        return contentLength
+    end
+
+    action GetContentType returns text
         return contentType
     end
 
-    action GetEncoding() returns text
+    action GetEncoding returns text
         return encoding
     end
 
-    action GetResponseText() returns text
+    action GetHeader(text key) returns text
+        return headers:GetValue(key)
+    end
+
+    action GetHeaders returns HashTable<text, text>
+        return headers
+    end
+
+    action GetResponseText returns text
         return responseText
     end
 
-    action GetResponseMessage() returns text
-        return responseMessage
-    end
-
-    action GetStatusText() returns text
+    action GetStatusText returns text
         return statusText
     end
 
-    action GetStatusCode() returns integer
+    action GetStatusCode returns integer
         return statusCode
     end
 
-    action GetWebAddress() returns text
+    action GetWebAddress returns text
         return webAddress
     end
 
-    action SetContentType(text value)
-        me:contentType = value
+    action AddHeader(text name, text value)
+        headers:Add(name, value)
+    end
+
+    action SetContentLength(integer length)
+        me:contentLength = length
+    end
+
+    action SetContentType(text contentType)
+        me:contentType = contentType
     end
 
     action SetEncoding(text encoding)
@@ -70,10 +85,6 @@ class NetworkResponseEvent
 
     action SetResponseText(text responseText)
         me:responseText = responseText
-    end
-
-    action SetResponseMessage(text responseMessage)
-        me:responseMessage = responseMessage
     end
 
     action SetStatusText(text statusText)
@@ -88,7 +99,7 @@ class NetworkResponseEvent
         me:webAddress = webAddress
     end
 
-    action IsOk() returns boolean
+    action IsOk returns boolean
         if statusCode < 400
             return true
         else
@@ -98,10 +109,6 @@ class NetworkResponseEvent
 
 //    action GetApparentEncoding() returns text
 //        return apparentEncoding
-//    end
-
-//    action GetHeaders() returns text
-//        return headers
 //    end
 
 //    action GetHeaderLinks() returns List<text>
@@ -124,7 +131,6 @@ class NetworkResponseEvent
 //    action GetResponseRaw() returns text
 //        return responseRaw
 //    end
-
 
 //    action GetSavedLocalData() returns text
 //        return savedLocalData

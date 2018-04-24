@@ -21,19 +21,23 @@ function plugins_quorum_Libraries_Network_NetworkConnection_(quorumConnection) {
     function Post(request) {
         var http = new XMLHttpRequest();
         var url = request.GetWebAddress();
-        http.timeout(request.GetReadTimeout());
+        http.timeout = request.GetReadTimeout();
         http.open(request.GetRequestType(), url, true);
-//        http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        
         request.ResetHeaderIterator();
         while (request.HasNextHeader()) {
           var key = request.GetNextHeaderKey();
-          var value = request.GetNextHeaderValue(key);
-          http.setRequestHeader(key, value);
+          var value = request.GetHeaderValue$quorum_text(key);
+          if (key == "Accept-Encoding" || key == "User-Agent" || key == "Connection") {
+            console.log("Skipping Header " + key + " : " + value);
+          } else {
+            http.setRequestHeader(key, value);
+            console.log("Adding Header: " + key + " : " + value);
+          }
         }
         
         http.onreadystatechange = function () {
-          if (http.readyState == 4 && http.status == 200) {
+//          if (http.readyState === 4 && http.status === 200) {
+          if (http.readyState === 4) {
             ReturnResponse(http);
           }
         }
@@ -60,12 +64,21 @@ function plugins_quorum_Libraries_Network_NetworkConnection_(quorumConnection) {
         response.SetWebAddress$quorum_text(http.responseURL);
         response.SetStatusCode$quorum_integer(http.status);
         response.SetStatusText$quorum_text(http.statusText);
-        response.SetEncoding$quorum_text(http.encoding);
-        response.SetContentType$quorum_text(http.responseType);
-        response.SetResponseMessage$quorum_text("response message");
-        response.SetResponseText$quorum_text("http.response");
-//        response.SetResponseText$quorum_text(http.responseText);
-        connection.SetResponse$quorum_Libraries_Network_NetworkResponseEvent(response);
+        response.SetEncoding$quorum_text(http.getResponseHeader('content-encoding'));
+        response.SetContentLength$quorum_integer(http.getResponseHeader('content-length'));
+        response.SetContentType$quorum_text(http.getResponseHeader('content-type'));
+        response.SetResponseText$quorum_text(http.responseText);
+        
+        var headers = http.getAllResponseHeaders();
+        var headersArray = headers.trim().split(/[\r\n]+/);
+        headersArray.forEach(function (headerLine) {
+          var line = headerLine.split(': ');
+          var key = line.shift();
+          var value = line.join(': ');
+          response.AddHeader$quorum_text$quorum_text(key, value);
+        });
+
+      connection.SetResponse$quorum_Libraries_Network_NetworkResponseEvent(response);
         
     }
 }

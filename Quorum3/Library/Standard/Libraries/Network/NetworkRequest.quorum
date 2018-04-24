@@ -155,10 +155,12 @@ class NetworkRequest
     end
 
     action SetBodyAsFormEncodedData(HashTable<text, text> data)
+        AddHeader("Content-type", "application/x-www-form-urlencoded")
         me:body = FormEncodeData(data)
     end
 
     action SetBodyAsFormEncodedData(JavaScriptObjectNotation data)
+        AddHeader("Content-type", "application/x-www-form-urlencoded")
         me:body = FormEncodeData(data)
     end
 
@@ -174,6 +176,10 @@ class NetworkRequest
     
     action SetHeaders(HashTable<text, text> headers)
         me:headers = headers
+    end
+
+    action AddHeader(text key, text value)
+        headers:Add(key, value)
     end
 
 //    action SetAdditionalData(JavaScriptObjectNotation data)
