@@ -184,6 +184,10 @@ LRESULT CALLBACK Item::ItemControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In
 		}
 		break;
 	}
+	case WM_DESTROY:
+	{
+		lResult = UiaReturnRawElementProvider(hwnd, 0, 0, NULL);
+	}
 	case WM_SETFOCUS:
 	{
 		this->SetControlFocus();

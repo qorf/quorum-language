@@ -209,6 +209,10 @@ LRESULT CALLBACK PushButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UI
 
 		break;
 	}
+	case WM_DESTROY:
+	{
+		lResult = UiaReturnRawElementProvider(hwnd, 0, 0, NULL);
+	}
 	case WM_SETFOCUS:
 	{
 		this->SetControlFocus();

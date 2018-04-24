@@ -51,8 +51,8 @@ void ToggleButtonControl::InvokeButton(_In_ HWND hwnd)
 		{
 			m_buttonProvider = GetButtonProvider(hwnd);
 		}
-	
-		m_buttonProvider->Toggle();
+			
+		//m_buttonProvider->Toggle();
 
 		// Raise an event.
 		UiaRaiseAutomationEvent(GetButtonProvider(hwnd), UIA_Invoke_InvokedEventId);
@@ -225,6 +225,10 @@ LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd,
 
 		break;
 	}
+	case WM_DESTROY:
+	{
+		lResult = UiaReturnRawElementProvider(hwnd, 0, 0, NULL);
+	}
 	case WM_SETFOCUS:
 	{
 		this->SetControlFocus();
@@ -241,6 +245,8 @@ LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd,
 		//		  Maybe the provider doesn't implement the correct interface
 		bool state = static_cast<bool>(wParam);
 
+		this->InvokeButton(hwnd);
+
 		if (state)
 		{
 			this->SetState(ToggleState_On);
@@ -249,8 +255,6 @@ LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd,
 		{
 			this->SetState(ToggleState_Off);
 		}
-		
-		this->InvokeButton(hwnd);
 
 		break;
 	}

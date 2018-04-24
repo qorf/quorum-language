@@ -225,6 +225,10 @@ LRESULT CALLBACK RadioButtonControl::RadioButtonControlWndProc(_In_ HWND hwnd, _
 
 		break;
 	}
+	case WM_DESTROY:
+	{
+		lResult = UiaReturnRawElementProvider(hwnd, 0, 0, NULL);
+	}
 	case WM_SETFOCUS:
 	{
 		this->SetControlFocus();

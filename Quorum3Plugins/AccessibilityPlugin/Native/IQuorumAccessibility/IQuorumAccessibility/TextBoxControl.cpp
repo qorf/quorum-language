@@ -8,13 +8,19 @@
 
 bool TextBoxControl::Initialized = false;
 
-TextBoxControl::TextBoxControl(_In_reads_(lineCount) TextLine * lines, _In_ int lineCount, _In_ EndPoint caret)
+TextBoxControl::TextBoxControl(_In_reads_(lineCount) TextLine * lines, _In_ int lineCount, _In_ EndPoint caret) 
+	: m_TextboxHWND(NULL), m_caretPosition(caret.line, caret.character), m_focused(false), m_lineCount(lineCount), m_pTextboxName(L"Textbox"), m_Text(L""), m_pTextBoxProvider(NULL)
 {
-	TextBoxControl::lines = lines;
-	TextBoxControl::lineCount = lineCount;
-	m_caretPosition.line = caret.line;
-	m_caretPosition.character = caret.character;
-	m_focused = false;
+	// Nothing to do here.
+}
+
+TextBoxControl::~TextBoxControl()
+{
+	/*if (m_pTextBoxProvider != NULL)
+	{
+		m_pTextBoxProvider->Release();
+		m_pTextBoxProvider = NULL;
+	}*/
 }
 
 // RegisterButtonControl: Registers the TextControl with Windows API so that it can used and later be registered with UI Automation
@@ -112,18 +118,18 @@ HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _I
 
 TextLine * TextBoxControl::GetLine(_In_ int line)
 {
-	if (line < 0 || line >= lineCount)
+	if (line < 0 || line >= m_lineCount)
 	{
 		return NULL;
 	}
-	return &lines[line];
+	return &m_pLines[line];
 }
 
 void TextBoxControl::SetLineText(_In_ int line, _In_ PCWSTR newText)
 {
-	if (line >= 0 || line < lineCount)
+	if (line >= 0 || line < m_lineCount)
 	{
-		lines[line].text = newText;
+		m_pLines[line].text = newText;
 	}
 	
 }
@@ -131,7 +137,7 @@ void TextBoxControl::SetLineText(_In_ int line, _In_ PCWSTR newText)
 int TextBoxControl::GetLineLength(_In_ int line)
 {
 	size_t strLength;
-	if (FAILED(StringCchLength(lines[line].text, 10000, &strLength)))
+	if (FAILED(StringCchLength(m_pLines[line].text, 10000, &strLength)))
 	{
 		strLength = 0;
 	}
@@ -140,12 +146,12 @@ int TextBoxControl::GetLineLength(_In_ int line)
 
 int TextBoxControl::GetLineCount()
 {
-	return lineCount;
+	return m_lineCount;
 }
 
 EndPoint TextBoxControl::GetTextboxEndpoint()
 {
-	EndPoint endOfText = { lineCount - 1, 0 };
+	EndPoint endOfText = { m_lineCount - 1, 0 };
 	endOfText.character = GetLineLength(endOfText.line);
 	return endOfText;
 }
@@ -464,13 +470,19 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			IRawElementProviderSimple * provider = new TextBoxProvider(hwnd, this); //this->GetTextBoxProvider();
-			if (provider != NULL)
-			{
-				lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
-			}
+			//IRawElementProviderSimple * provider = new TextBoxProvider(hwnd, this); //this->GetTextBoxProvider();
+			//if (provider != NULL)
+			//{
+			//	lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
+			//}
+
+			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetTextBoxProvider());
 		}
 		break;
+	}
+	case WM_DESTROY:
+	{
+		lResult = UiaReturnRawElementProvider(hwnd, 0, 0, NULL);
 	}
 	case WM_SETFOCUS:
 	{
@@ -501,7 +513,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		// Set the text for the current text line.
 		// Currently the textbox only maintains one textline at a time but
 		// can and likely will need to be able to hold multiple lines.
-		//this->lines->text = (WCHAR*)lParam;
+		//this->m_pLines->text = (WCHAR*)lParam;
 		break;
 	}
 	default:
