@@ -199,46 +199,9 @@ LRESULT CALLBACK Item::ItemControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In
 		this->SetName((WCHAR*)lParam);
 		break;
 	}
-	// These are the messages the GLFW Window handles that we should be forwarding to it.
-	// TODO: Investigate which of these messages should not be forwarded.
-	case WM_DEVICECHANGE:
-	case WM_SYSCOMMAND:
-	case WM_CLOSE:
-	case WM_CHAR:
-	case WM_SYSCHAR:
-	case WM_UNICHAR:
-	case WM_KEYDOWN:
-	case WM_SYSKEYDOWN:
-	case WM_KEYUP:
-	case WM_SYSKEYUP:
-	case WM_LBUTTONDOWN:
-	case WM_RBUTTONDOWN:
-	case WM_MBUTTONDOWN:
-	case WM_XBUTTONDOWN:
-	case WM_LBUTTONUP:
-	case WM_RBUTTONUP:
-	case WM_MBUTTONUP:
-	case WM_XBUTTONUP:
-	case WM_MOUSEMOVE:
-	case WM_MOUSELEAVE:
-	case WM_MOUSEWHEEL:
-	case WM_MOUSEHWHEEL:
-	case WM_ENTERSIZEMOVE:
-	case WM_ENTERMENULOOP:
-	case WM_EXITSIZEMOVE:
-	case WM_EXITMENULOOP:
-	case WM_SIZE:
-	case WM_MOVE:
-	case WM_SIZING:
-	case WM_GETMINMAXINFO:
-	case WM_ERASEBKGND:
-	case WM_SETCURSOR:
-	case WM_DPICHANGED:
-	case WM_DROPFILES:
-		// Forward the message to the main GLFW window
-		lResult = SendMessage(GetMainWindowHandle(), message, wParam, lParam);
 	default:
-		lResult = DefWindowProc(hwnd, message, wParam, lParam);
+		lResult = ForwardMessage(hwnd, message, wParam, lParam);
+		break;
 	}  // switch (message)
 
 	return lResult;
