@@ -2828,8 +2828,39 @@ class Compiler
             ResolveBlocks(table, clazz, library, errors)
         end
 
-        //now that we have the table, we need to add everything to the type checker
+        //now get any transitive dependencies in the standard library. There is no need
+        //to resolve them here, we just need to know what they are.
+        Array<Class> dependencies
         Iterator<Class> iterator = table:GetClasses()
+        repeat while iterator:HasNext()
+            Class clazz = iterator:Next()
+            dependencies:Add(clazz)
+        end
+
+        i = 0
+        repeat while i < dependencies:GetSize()
+            Class clazz = dependencies:Get(i)
+            text key = clazz:GetStaticKey()
+            if not table:HasClass(key)
+                table:Add(clazz)
+            end
+
+            //now get all the valid uses and add them
+            Iterator<Class> uses = clazz:GetValidUses()
+            repeat while uses:HasNext()
+                Class next = uses:Next()
+                text nextKey = next:GetStaticKey()
+                if not table:HasClass(nextKey)
+                    table:Add(next)
+                    //this wasn't in the list, so check its dependencies as well
+                    dependencies:Add(next)
+                end
+            end
+            i = i + 1
+        end
+
+        //now that we have the table, we need to add everything to the type checker
+        iterator = table:GetClasses()
         repeat while iterator:HasNext()
             Class clazz = iterator:Next()
             types:Add(clazz)

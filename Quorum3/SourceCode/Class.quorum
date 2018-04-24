@@ -1626,6 +1626,13 @@ class Class is Symbol
         return undefined
     end
 
+    /*
+        This returns all classes that have valid use statements in the class. 
+    */
+    action GetValidUses returns Iterator<Class>
+        return validUsesFullyQualified:GetValueIterator()
+    end
+
     action Add(Variable variable) returns CompilerError
         if fields:HasKey(variable:GetStaticKey())
             CompilerError error
