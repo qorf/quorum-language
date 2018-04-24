@@ -1196,6 +1196,9 @@ class Compiler
             return result
         end
         profiler:Add(time:GetEpochTime())
+
+        //tell the type checker to use the merged symbol table on this pass
+        checker:SetSymbolTable(table)
         Array<ClassOpcode> classOpcodes
         if errors:IsCompilationErrorFree()
             i = 0
@@ -2790,6 +2793,8 @@ class Compiler
 
     private action LinkToStandardLibrary(SymbolTable table, TypeChecker types, CompilerErrorManager errors, Library library)
         Iterator<Class> classes = table:GetClasses()
+
+        
             //gather up all the classes on the system and check their
             //use statements for classes we don't know about
             //if there are some, mark them as unparsed
