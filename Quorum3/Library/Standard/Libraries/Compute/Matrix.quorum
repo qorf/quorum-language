@@ -80,7 +80,15 @@ class Matrix
         return table:GetMaxNumberOfRows()
     end
 
+    /* Change this to return a matrix.*/
     action GetRow(integer row) returns Array<number>
+        if row < 0 or row > GetRows() - 1
+            alert("Index value: " + row + " out of range")
+        end
+        return table:GetRow(row)
+    end
+
+    action GetRowArray(integer row) returns Array<number>
         if row < 0 or row > GetRows() - 1
             alert("Index value: " + row + " out of range")
         end
@@ -115,7 +123,21 @@ class Matrix
         return newArray
     end
 
+    /* Return a matrix from this. */
     action GetColumn(integer column) returns Array<number>
+        if column < 0 or column > GetColumns() - 1
+            alert("Index value: " + column + " out of range")
+        end
+        Array<number> newArray
+        row = 0
+        repeat table:GetNumberOfRows() times
+            newArray:Add(table:Get(row, column))
+            row = row + 1
+        end
+        return newArray
+    end
+
+    action GetColumnArray(integer column) returns Array<number>
         if column < 0 or column > GetColumns() - 1
             alert("Index value: " + column + " out of range")
         end
@@ -142,6 +164,20 @@ class Matrix
         end
     end
 
+    action SetRow(integer index, Matrix row)
+//        if row:GetSize() not= GetColumns()
+//            alert("Rows have " + GetColumns() + " elements in this matrix. The array you supplied has " + row:GetSize() + ". They must match.")
+//        end
+//        if index < 0 or index > GetRows() - 1
+//            alert("Index value: " + index + " out of range")
+//        end
+//        col = 0
+//        repeat GetColumns() times
+//            Set(index, col, row:Get(col))
+//            col = col + 1
+//        end
+    end
+
     action SetRow(integer index, number value)
         if index < 0 or index > GetRows() - 1
             alert("Index value: " + index + " out of range")
@@ -165,6 +201,21 @@ class Matrix
             Set(row, index, column:Get(row))
             row = row + 1
         end
+    end
+
+    /* Implement this */
+    action SetColumn(integer index, Matrix matrix)
+//        if column:GetSize() not= GetRows()
+//            alert("Columns have " + GetRows() + " elements in this matrix. The array you supplied has " + column:GetSize() + ". They must match.")
+//        end
+//        if index < 0 or index > GetColumns() - 1
+//            alert("Index value: " + index + " out of range")
+//        end
+//        row = 0
+//        repeat GetRows() times
+//            Set(row, index, column:Get(row))
+//            row = row + 1
+//        end
     end
 
     action SetColumn(integer index, number value)
@@ -351,7 +402,7 @@ class Matrix
         return flip:Transform(me)
     end
 
-    action GetSubmatrix(integer offsetRow, integer offsetColumn, integer rows, integer columns) returns Matrix
+    action GetSubMatrix(integer offsetRow, integer offsetColumn, integer rows, integer columns) returns Matrix
         if columns > GetColumns() - offsetColumn
             alert("I cannot set the columns of a subframe outside the original matrix dimensions")
         elseif rows > GetRows() - offsetRow
@@ -403,7 +454,7 @@ class Matrix
     end
 
     /* STATISTICAL METHODS */
-    action GetMax() returns number
+    action GetMaximum returns number
         result = 0.0
         row = 0
         result = result:GetMinimumValue()
@@ -421,7 +472,7 @@ class Matrix
         return result
     end
 
-    action GetMin() returns number
+    action GetMinimum returns number
         result = 0.0
         row = 0
         result = result:GetMaximumValue()
@@ -439,7 +490,7 @@ class Matrix
         return result
     end
 
-    action GetTotal() returns number
+    action GetTotal returns number
         result = 0.0
         row = 0
         repeat while row < GetRows()
@@ -453,13 +504,13 @@ class Matrix
         return result
     end
 
-    action GetMean() returns number
+    action GetMean returns number
         number total = GetTotal()
         elements = GetSize()
         return total / elements
     end
 
-    action GetModes() returns Array<number>
+    action GetModes returns Array<number>
         Array<number> values
         row = 0
         repeat while row < GetRows()
@@ -496,7 +547,8 @@ class Matrix
         return modes
     end
 
-    action GetModesText() returns text
+    /* Do we actually need this?*/
+    action GetModesText returns text
         out = ""
         Array<number> modes = GetModes()
         i = 0
@@ -510,7 +562,7 @@ class Matrix
         return out
     end
 
-    action GetMedian() returns number
+    action GetMedian returns number
         Array<number> values
         row = 0
         repeat while row < GetRows()
@@ -529,12 +581,12 @@ class Matrix
         return (values:Get(midpoint) + values:Get(midpoint-1))/2
     end
 
-    action GetStandardDeviation() returns number
+    action GetStandardDeviation returns number
         Math math
         return math:SquareRoot(GetVariance())
     end
     
-    action GetVariance() returns number
+    action GetVariance returns number
         number mean = GetMean()
         number total = 0.0
         row = 0
@@ -581,7 +633,7 @@ class Matrix
 
     /* OUTPUT METHODS */
 
-    action GetTextTable returns text
+    action ToText returns text
         text out = ""
         row = 0
         repeat while row < GetRows()
@@ -604,101 +656,53 @@ class Matrix
         return out
     end
 
-    action GetTextArrays returns text
-        text out = "["
-        row = 0
-        repeat while row < GetRows()
-            col = 0
-            out = out + "["
-            repeat while col < GetColumns()
-                out = out + Get(row, col)
-                if col = GetColumns() - 1
-                    out = out + "]"
-                else
-                    out = out + ", "
-                end
-                col = col + 1
-            end
-            if row < GetRows() - 1
-                out = out + "," + out:GetCarriageReturn()
-            end
-            row = row + 1
-        end
-        out = out + "]"
-        return out
-    end
-
-    action GetTextItems returns text
-        text out = ""
-        cr = out:GetCarriageReturn()
-        row = 0
-        repeat while row < GetRows()
-            col = 0
-            repeat while col < GetColumns()
-                out = out + "row " + row + " col " + col + " = " + Get(row, col) + cr
-                col = col + 1
-            end
-            row = row + 1
-        end
-        return out
-    end
+//    action GetTextItems returns text
+//        text out = ""
+//        cr = out:GetCarriageReturn()
+//        row = 0
+//        repeat while row < GetRows()
+//            col = 0
+//            repeat while col < GetColumns()
+//                out = out + "row " + row + " col " + col + " = " + Get(row, col) + cr
+//                col = col + 1
+//            end
+//            row = row + 1
+//        end
+//        return out
+//    end
 
 //    action ToWebTable returns WebTable
 //        
 //    end
-    action GetWebTable() returns WebTable
-        WebTable table
-        TableBody body
-        row = 0
-        repeat while row < GetRows()
-            col = 0
-            TableRow tr
-            repeat while col < GetColumns()
-                TableData data
-                data:AddText("" + Get(row, col))
-                tr:Add(data)
-                col = col + 1
-            end
-            body:Add(tr)
-            row = row + 1
-        end
-        table:Add(body)
-        return table
-    end
-
-    action GetStats() returns text
-        text out = ""
-        out = out + "Max      : " + GetMax()
-        out = out +  "Min      : " + GetMin()
-        out = out +  "Total    : " + GetTotal()
-        out = out +  "Mean     : " + GetMean()
-        out = out +  "Mode(s)  : " + GetModesText()
-        out = out +  "Median   : " + GetMedian()
-        out = out +  "STD      : " + GetStandardDeviation()
-        out = out +  "Variance : " + GetVariance()
-        return out
-    end
+//    action GetWebTable() returns WebTable
+//        WebTable table
+//        TableBody body
+//        row = 0
+//        repeat while row < GetRows()
+//            col = 0
+//            TableRow tr
+//            repeat while col < GetColumns()
+//                TableData data
+//                data:AddText("" + Get(row, col))
+//                tr:Add(data)
+//                col = col + 1
+//            end
+//            body:Add(tr)
+//            row = row + 1
+//        end
+//        table:Add(body)
+//        return table
+//    end
+//    action GetStats() returns text
+//        text out = ""
+//        out = out + "Max      : " + GetMax()
+//        out = out +  "Min      : " + GetMin()
+//        out = out +  "Total    : " + GetTotal()
+//        out = out +  "Mean     : " + GetMean()
+//        out = out +  "Mode(s)  : " + GetModesText()
+//        out = out +  "Median   : " + GetMedian()
+//        out = out +  "STD      : " + GetStandardDeviation()
+//        out = out +  "Variance : " + GetVariance()
+//        return out
+//    end
 end
-
-/*
-Add(number)
-Substract(number)
-Multiply(number) 
-Divide(number)
-
-AddElements(Matrix)
-SubtractElements(Matrix)
-MultiplyElements(Matrix)
-DivideElements(Matrix)
-
-
-Multiply(Matrix) normal matrix multiplication
-
-
-
-Identity
-Inverse
-Transpose
-//other basics
-
-*/

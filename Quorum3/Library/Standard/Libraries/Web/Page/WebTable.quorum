@@ -3,9 +3,7 @@ package Libraries.Web.Page
 use Libraries.Web.Page.WebTag
 use Libraries.Containers.List
 use Libraries.Containers.Iterator
-//use Libraries.Web.Page.Attribute
-//use Libraries.Web.Page.Attributes
-//use Libraries.Web.Page.ColumnGroup
+use Libraries.Compute.Matrix
 
 /*
 The WebTable class represents HTML's (Hypertext Markup Language) table tag which 
@@ -30,6 +28,24 @@ end
 class WebTable is WebTag
     constant text border = "border"
 //    ColumnGroup columnGroup
+
+    action Add(Matrix matrix)
+        TableBody body
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            TableRow tr
+            repeat while col < GetColumns()
+                TableData data
+                data:AddText("" + Get(row, col))
+                tr:Add(data)
+                col = col + 1
+            end
+            body:Add(tr)
+            row = row + 1
+        end
+        me:Add(body)
+    end
 
     /*
         This action gets the border attribute of the web table and returns true
