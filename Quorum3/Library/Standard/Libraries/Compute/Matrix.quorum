@@ -1,0 +1,704 @@
+package Libraries.Compute
+
+use Libraries.Compute.MatrixTransform.AddScalar
+use Libraries.Compute.MatrixTransform.DivideScalar
+use Libraries.Compute.MatrixTransform.Flip
+use Libraries.Compute.MatrixTransform.Identity
+use Libraries.Compute.MatrixTransform.MatrixCalculation
+use Libraries.Compute.MatrixTransform.MatrixTransform
+use Libraries.Compute.MatrixTransform.Multiply
+use Libraries.Compute.MatrixTransform.MultiplyScalar
+use Libraries.Compute.MatrixTransform.Reshape
+use Libraries.Compute.MatrixTransform.Rotation
+use Libraries.Compute.MatrixTransform.SubtractScalar
+use Libraries.Compute.MatrixTransform.Transpose
+use Libraries.Containers.Table
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.Web.Page.WebTable
+use Libraries.Web.Page.TableBody
+use Libraries.Web.Page.TableRow
+use Libraries.Web.Page.TableData
+
+class Matrix 
+    private Table<number> table
+
+    private action CheckReference(integer row, integer column)
+        if column < 0
+            alert("The column index must be a positive number. It is currently " + column)
+        end
+        if row < 0
+            alert("The row index must be a positive number. It is currently " + row)
+        end
+        if  column >= GetColumns() 
+            alert("I cannot reference column " + column + " the maximum column index is " + (GetColumns()-1) + ".")
+        end
+        if  row >= GetRows() 
+            alert("I cannot reference row " + row + " the maximum row index is " + (GetRows()-1) + ".")
+        end
+    end
+
+    private action CheckSameDimensions(Matrix matrix)
+        if matrix:GetRows() not= GetRows()
+            alert("Matrix dimensions must match. There are " + matrix:GetRows() + " rows in the value matrix compared to " + GetRows())
+        end
+        if matrix:GetColumns() not= GetColumns()
+            alert("Matrix dimensions must match. There are " + matrix:GetColumns() + " columns in the value matrix compared to " + GetColumns())
+        end
+    end
+
+    /* BASIC OPERATIONS */
+    action Get(integer row, integer column) returns number
+        CheckReference(row, column)
+        return table:Get(row, column)
+    end 
+
+    action Set(integer row, integer column, number value)
+        CheckReference(row, column)
+        table:Set(row, column, value)
+    end
+
+    action SetSize(integer rows, integer columns)
+        table:SetSize(rows, columns)
+        table:SetMaxSize(rows, columns)
+    end
+
+    action SetSize(Matrix matrix)
+        table:SetSize(matrix:GetRows(), matrix:GetColumns())
+        table:SetMaxSize(matrix:GetRows(), matrix:GetColumns())
+    end
+
+    action GetSize returns integer
+        return GetColumns() * GetRows()
+    end
+
+    action GetColumns returns integer
+        return table:GetMaxNumberOfColumns()
+    end
+
+    action GetRows returns integer
+        return table:GetMaxNumberOfRows()
+    end
+
+    action GetRow(integer row) returns Array<number>
+        if row < 0 or row > GetRows() - 1
+            alert("Index value: " + row + " out of range")
+        end
+        return table:GetRow(row)
+    end
+
+    action GetRowMajorArray returns Array<number>
+        Array<number> newArray
+        row = 0
+        repeat GetRows() times
+            col = 0
+            repeat GetColumns() times
+                newArray:Add(Get(row, col))
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return newArray
+    end
+
+    action GetColumnMajorArray returns Array<number>
+        Array<number> newArray
+        col = 0
+        repeat GetColumns() times
+            row = 0
+            repeat GetRows() times
+                newArray:Add(Get(row, col))
+                row = row + 1
+            end
+            col = col + 1
+        end
+        return newArray
+    end
+
+    action GetColumn(integer column) returns Array<number>
+        if column < 0 or column > GetColumns() - 1
+            alert("Index value: " + column + " out of range")
+        end
+        Array<number> newArray
+        row = 0
+        repeat table:GetNumberOfRows() times
+            newArray:Add(table:Get(row, column))
+            row = row + 1
+        end
+        return newArray
+    end
+
+    action SetRow(integer index, Array<number> row)
+        if row:GetSize() not= GetColumns()
+            alert("Rows have " + GetColumns() + " elements in this matrix. The array you supplied has " + row:GetSize() + ". They must match.")
+        end
+        if index < 0 or index > GetRows() - 1
+            alert("Index value: " + index + " out of range")
+        end
+        col = 0
+        repeat GetColumns() times
+            Set(index, col, row:Get(col))
+            col = col + 1
+        end
+    end
+
+    action SetRow(integer index, number value)
+        if index < 0 or index > GetRows() - 1
+            alert("Index value: " + index + " out of range")
+        end
+        col = 0
+        repeat GetColumns() times
+            Set(index, col, value)
+            col = col + 1
+        end
+    end
+
+    action SetColumn(integer index, Array<number> column)
+        if column:GetSize() not= GetRows()
+            alert("Columns have " + GetRows() + " elements in this matrix. The array you supplied has " + column:GetSize() + ". They must match.")
+        end
+        if index < 0 or index > GetColumns() - 1
+            alert("Index value: " + index + " out of range")
+        end
+        row = 0
+        repeat GetRows() times
+            Set(row, index, column:Get(row))
+            row = row + 1
+        end
+    end
+
+    action SetColumn(integer index, number value)
+        if index < 0 or index > GetColumns() - 1
+            alert("Index value: " + index + " out of range")
+        end
+        row = 0
+        repeat GetRows() times
+            Set(row, index, value)
+            row = row + 1
+        end
+    end
+
+    /* SCALAR OPERTIONS */
+    action Add(number value) returns Matrix
+        AddScalar scalar
+        scalar:SetValue(me, value)
+        return scalar:Transform(me)
+    end
+
+    action Subtract(number value) returns Matrix
+        SubtractScalar scalar
+        scalar:SetValue(me, value)
+        return scalar:Transform(me)
+    end
+
+    action Multiply(number value) returns Matrix
+        MultiplyScalar scalar
+        scalar:SetValue(me, value)
+        return scalar:Transform(me)
+    end
+
+    action Divide(number value) returns Matrix
+        DivideScalar scalar
+        scalar:SetValue(me, value)
+        return scalar:Transform(me)
+    end
+
+    action AddElements(Matrix values) returns Matrix
+        CheckSameDimensions(values)
+        AddScalar scalar
+        scalar:SetValue(values)
+        return scalar:Transform(me)
+    end
+
+    action SubtractElements(Matrix values) returns Matrix
+        CheckSameDimensions(values)
+        SubtractScalar scalar
+        scalar:SetValue(values)
+        return scalar:Transform(me)
+    end
+
+    action MultiplyElements(Matrix values) returns Matrix
+        CheckSameDimensions(values)
+        MultiplyScalar scalar
+        scalar:SetValue(values)
+        return scalar:Transform(me)
+    end
+
+    action DivideElements(Matrix values) returns Matrix
+        CheckSameDimensions(values)
+        DivideScalar scalar
+        scalar:SetValue(values)
+        return scalar:Transform(me)
+    end
+
+    action Multiply(Matrix values) returns Matrix
+        if GetColumns() not= values:GetRows()
+            alert("Incompatible dimensions: " + GetColumns() + " columns in this matrix must match " + values:GetRows() + " rows in value matrix.")
+        end
+        Multiply multiply
+        multiply:SetValue(values)
+        return multiply:Transform(me)
+    end
+
+    /* FILL OPERATIONS */
+    action Copy() returns Matrix
+        Matrix newMatrix
+        newMatrix:SetSize(me)
+        row = 0
+        repeat GetRows() times
+            col = 0
+            repeat GetColumns() times
+                newMatrix:Set(row, col, Get(row, col))
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return newMatrix
+    end
+
+    action Fill(integer columns, integer rows, number value)
+        Table<number> tab
+        tab:SetMaxSize(rows, columns)
+        tab:SetSize(rows, columns)
+        row = 0
+        repeat while row < rows
+            col = 0
+            repeat while col < columns
+                tab:Set(row, col, value)
+                col = col + 1
+            end
+            row = row + 1
+        end
+        table = tab
+    end
+
+    action FillByRow(integer rows, Array<number> row)
+        Table<number> tab
+        repeat rows times
+            tab:AddRow(row)
+        end
+        tab:SetMaxSize(rows, row:GetSize())
+        table = tab
+    end
+
+    action FillByColumn(integer columns, Array<number> column)
+        Table<number> tab
+        tab:SetSize(column:GetSize(), columns)
+        tab:SetMaxSize(column:GetSize(), columns)
+        row = 0
+        col = 0
+        repeat columns times
+            row = 0
+            repeat while row < column:GetSize()
+                tab:Set(row, col, column:Get(row))
+                row = row + 1
+            end
+            col = col + 1
+        end
+        table = tab
+    end
+
+    action SetLowerThreshold(number cutoffValue, number fillValue) returns Matrix
+        Matrix resultMatrix
+        resultMatrix:SetSize(GetColumns(), GetRows())
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            repeat while col < GetColumns()
+                number element = Get(row, col)
+                if element < cutoffValue
+                    resultMatrix:Set(row, col, fillValue) 
+                else
+                    resultMatrix:Set(row, col, element) 
+                end
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return resultMatrix
+    end
+
+    action SetUpperThreshold(number cutoffValue, number fillValue) returns Matrix
+        Matrix resultMatrix
+        resultMatrix:SetSize(GetColumns(), GetRows())
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            repeat while col < GetColumns()
+                number element = Get(row, col)
+                if element > cutoffValue
+                    resultMatrix:Set(row, col, fillValue)
+                else
+                    resultMatrix:Set(row, col, element) 
+                end
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return resultMatrix
+    end
+
+    /* TRANSFORM OPERATIONS */
+    action FlipVertical() returns Matrix
+        Flip flip
+        flip:FlipVertical()
+        return flip:Transform(me)
+    end
+
+    action FlipHorizontal() returns Matrix
+        Flip flip
+        flip:FlipHorizontal()
+        return flip:Transform(me)
+    end
+
+    action GetSubmatrix(integer offsetRow, integer offsetColumn, integer rows, integer columns) returns Matrix
+        if columns > GetColumns() - offsetColumn
+            alert("I cannot set the columns of a subframe outside the original matrix dimensions")
+        elseif rows > GetRows() - offsetRow
+            alert("I cannot set the rows of a subframe outside the original matrix dimensions")
+        elseif offsetColumn < 0 or offsetRow < 0
+            alert("offsetColumn and y must be inside the dimensions of the original matrix")
+        else
+            Reshape reshape
+            reshape:SetValues(-offsetRow, -offsetColumn, rows, columns, 0.0)
+            return reshape:Transform(me)
+        end
+    end
+
+    action Identity returns Matrix
+        if GetRows() not= GetColumns()
+            alert("Identity only valid for square matrices.")
+        end
+        Identity identity
+        return identity:Transform(me)
+    end
+
+    action Reshape(integer offsetRow, integer offsetColumn, integer rows, integer columns, number fillValue) returns Matrix
+        Reshape reshape
+        reshape:SetValues(offsetRow, offsetColumn, columns, rows, fillValue)
+        return reshape:Transform(me)
+    end
+
+    action RotateLeft() returns Matrix
+        Rotation rotation
+        rotation:Left()
+        return rotation:Transform(me)
+    end
+
+    action RotateRight() returns Matrix
+        Rotation rotation
+        rotation:Right()
+        return rotation:Transform(me)
+    end
+
+    action Shift(integer offsetRow, integer offsetColumn, number fillValue) returns Matrix
+        Reshape reshape
+        reshape:SetValues(offsetRow, offsetColumn, GetColumns(), GetRows(), fillValue)
+        return reshape:Transform(me)
+    end
+
+    action Transpose returns Matrix
+        Transpose transpose
+        return transpose:Transform(me)
+    end
+
+    /* STATISTICAL METHODS */
+    action GetMax() returns number
+        result = 0.0
+        row = 0
+        result = result:GetMinimumValue()
+        repeat while row < GetRows()
+            col = 0
+            repeat while col < GetColumns()
+                number element = Get(row, col)
+                if element > result
+                    result = element
+                end
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return result
+    end
+
+    action GetMin() returns number
+        result = 0.0
+        row = 0
+        result = result:GetMaximumValue()
+        repeat while row < GetRows()
+            col = 0
+            repeat while col < GetColumns()
+                element = Get(row, col)
+                if element < result
+                    result = element
+                end
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return result
+    end
+
+    action GetTotal() returns number
+        result = 0.0
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            repeat while col < GetColumns()
+                result = result + Get(row, col)
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return result
+    end
+
+    action GetMean() returns number
+        number total = GetTotal()
+        elements = GetSize()
+        return total / elements
+    end
+
+    action GetModes() returns Array<number>
+        Array<number> values
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            repeat while col < GetColumns()
+                values:Add(Get(row, col))
+                col = col + 1
+            end
+            row = row + 1
+        end
+        values:Sort()
+        Array<number> modes
+        i = 1
+        count = 1
+        most = 1
+        last = values:Get(0)
+        modes:Add(last)
+        repeat while i < values:GetSize()
+            if values:Get(i) = last
+                count = count + 1
+            else
+                count = 1
+                last = values:Get(i)
+            end
+            if count = most
+                modes:Add(values:Get(i))
+            elseif count > most
+                most = count
+                modes:Empty()
+                modes:Add(values:Get(i))
+            end
+            i = i + 1
+        end
+        return modes
+    end
+
+    action GetModesText() returns text
+        out = ""
+        Array<number> modes = GetModes()
+        i = 0
+        repeat while i < modes:GetSize()
+            out = out + modes:Get(i)
+            if i < modes:GetSize()-1
+                out = out + ", "
+            end
+            i = i + 1
+        end
+        return out
+    end
+
+    action GetMedian() returns number
+        Array<number> values
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            repeat while col < GetColumns()
+                values:Add(Get(row, col))
+                col = col + 1
+            end
+            row = row + 1
+        end
+        values:Sort()
+        if values:GetSize() mod 2 = 1
+            return values:Get((values:GetSize() - 1) / 2)
+        end
+        integer midpoint = values:GetSize() / 2
+        return (values:Get(midpoint) + values:Get(midpoint-1))/2
+    end
+
+    action GetStandardDeviation() returns number
+        Math math
+        return math:SquareRoot(GetVariance())
+    end
+    
+    action GetVariance() returns number
+        number mean = GetMean()
+        number total = 0.0
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            repeat while col < GetColumns()
+                number diff = Get(row, col) - mean
+                total = total + (diff * diff)
+                col = col + 1
+            end
+            row = row + 1
+        end
+        number elements = GetSize()
+        return total / elements
+    end
+    
+    action GetPercentile(number rank) returns number
+        Array<number> values
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            repeat while col < GetColumns()
+                values:Add(Get(row, col))
+                col = col + 1
+            end
+            row = row + 1
+        end
+        values:Sort()
+        if values:GetSize() mod 2 = 1
+            return values:Get((values:GetSize() - 1) / 2)
+        end
+        integer index = cast(integer, GetSize() * rank)
+        return values:Get(index)
+    end
+
+    /* ADD IN METHODS */
+    action Transform(MatrixTransform transform) returns Matrix
+        return transform:Transform(me)
+    end
+
+    action Calculate(MatrixCalculation calculate) returns number
+        return calculate:Calculate(me)
+    end
+
+    /* OUTPUT METHODS */
+
+    action GetTextTable returns text
+        text out = ""
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            out = out + "|"
+            repeat while col < GetColumns()
+                out = out + Get(row, col)
+                if col = GetColumns() - 1
+                    out = out + "|"
+                else
+                    out = out + ", "
+                end
+                col = col + 1
+            end
+            if row < GetRows() - 1
+                out = out + out:GetCarriageReturn()
+            end
+            row = row + 1
+        end
+        return out
+    end
+
+    action GetTextArrays returns text
+        text out = "["
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            out = out + "["
+            repeat while col < GetColumns()
+                out = out + Get(row, col)
+                if col = GetColumns() - 1
+                    out = out + "]"
+                else
+                    out = out + ", "
+                end
+                col = col + 1
+            end
+            if row < GetRows() - 1
+                out = out + "," + out:GetCarriageReturn()
+            end
+            row = row + 1
+        end
+        out = out + "]"
+        return out
+    end
+
+    action GetTextItems returns text
+        text out = ""
+        cr = out:GetCarriageReturn()
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            repeat while col < GetColumns()
+                out = out + "row " + row + " col " + col + " = " + Get(row, col) + cr
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return out
+    end
+
+//    action ToWebTable returns WebTable
+//        
+//    end
+    action GetWebTable() returns WebTable
+        WebTable table
+        TableBody body
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            TableRow tr
+            repeat while col < GetColumns()
+                TableData data
+                data:AddText("" + Get(row, col))
+                tr:Add(data)
+                col = col + 1
+            end
+            body:Add(tr)
+            row = row + 1
+        end
+        table:Add(body)
+        return table
+    end
+
+    action GetStats() returns text
+        text out = ""
+        out = out + "Max      : " + GetMax()
+        out = out +  "Min      : " + GetMin()
+        out = out +  "Total    : " + GetTotal()
+        out = out +  "Mean     : " + GetMean()
+        out = out +  "Mode(s)  : " + GetModesText()
+        out = out +  "Median   : " + GetMedian()
+        out = out +  "STD      : " + GetStandardDeviation()
+        out = out +  "Variance : " + GetVariance()
+        return out
+    end
+end
+
+/*
+Add(number)
+Substract(number)
+Multiply(number) 
+Divide(number)
+
+AddElements(Matrix)
+SubtractElements(Matrix)
+MultiplyElements(Matrix)
+DivideElements(Matrix)
+
+
+Multiply(Matrix) normal matrix multiplication
+
+
+
+Identity
+Inverse
+Transpose
+//other basics
+
+*/
