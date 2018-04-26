@@ -20,11 +20,6 @@ java -jar Default.jar -name Quorum -compile main.quorum Library.quorum CompilerR
 
 echo "Copying Quorum Next"
 cp -R ./Run/ ./
-#cp Run/Quorum.jar ./Quorum.jar
-#
-#echo "Copying Standard Library for Quorum Next"
-#cp Run/QuorumStandardLibrary.jar ./QuorumStandardLibrary.jar
-#cp Run/QuorumStandardPlugins.jar ./QuorumStandardPlugins.jar
 
 
 echo "Recompiling Quorum Next in Quorum Next"

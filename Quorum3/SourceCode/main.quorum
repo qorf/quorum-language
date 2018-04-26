@@ -18,7 +18,7 @@ use Libraries.System.SystemHelper
 use Libraries.Language.Compile.Symbol.SymbolTable
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Symbol.Action
-use Libraries.Game.all
+//use Libraries.Game.all
 
 class Main is WebResponder
     public constant text NAME_FLAG = "-name"
@@ -32,10 +32,10 @@ class Main is WebResponder
     HashTable<text, Array<text>> flagValues
 
     action Main
-        ProcessConsoleFlags()
+        //ProcessConsoleFlags()
         //GenerateDocumentation()
         //CompileHardcodedFile()
-        //CompileTest()
+        CompileTest()
     end
 
     action GenerateDocumentation
@@ -164,10 +164,11 @@ class Main is WebResponder
         root:SetPath("Output")
         compiler:SetOutputFolder(root)
         File main
-        //main:SetWorkingDirectory("/Users/stefika/Repositories/quorum-support/QuorumWebsite/SourceCode/")
+        main:SetWorkingDirectory("/Users/stefika/Repositories/quorum-language/Quorum3/SourceCode")
         //main:SetPath("Library/Tests/Use/Pass/GenerateAllClasses.quorum")
         //main:SetPath("Library/Tests/Game/Pass/LoadCylinders.quorum")
-        main:SetPath("Library/Tests/Templating/Fail/DoubleTest.quorum")
+        //main:SetPath("Library/Tests/Templating/Fail/DoubleTest.quorum")
+        main:SetPath("main.quorum")
         Array<File> files
         //files:Add(main)
         //compiler:SetMain(main)
@@ -180,8 +181,27 @@ class Main is WebResponder
         request:library = compiler:GetStandardLibrary()
         request:main = main
 
+        start = time:GetEpochTime()
         CompilerResult result = compiler:Compile(request)
+        finish = time:GetEpochTime()
+        output "Time: " + ((finish - start) / 1000.0) + " seconds"
 
+        request:previousCompile = result:symbolTable
+        output "Compile again:"
+        start = time:GetEpochTime()
+        result = compiler:Compile(request)
+        finish = time:GetEpochTime()
+        output "Time: " + ((finish - start) / 1000.0) + " seconds"
+
+
+        //Compile just one file after reading it in
+        request:previousCompile = result:symbolTable
+        output "Compile just one file:"
+        request:recompile = main
+        request:recompileValue = main:Read()
+
+        start = time:GetEpochTime()
+        result = compiler:Compile(request)
         finish = time:GetEpochTime()
         output "Time: " + ((finish - start) / 1000.0) + " seconds"
 

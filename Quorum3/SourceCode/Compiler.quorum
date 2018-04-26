@@ -179,165 +179,165 @@ class Compiler
         of this text is the location on disk, but its current contents may
         not be written, so this should be used as a key, not a store.
     */
-    action ParseRepeat(ProjectInformation information) returns CompilerResult
-        CompilerProfiler sandboxedProfiler
-        CompilerResult result
-        result:compilerErrorManager = sandboxCompilerErrorManager
-        sandboxCompilerErrorManager:Empty()
-        sandboxCompilerErrorManager:EmptyHints()
-        result:symbolTable = sandboxSymbolTable
-        sandboxTypeChecker:SetSymbolTable(sandboxSymbolTable)
-        DateTime time
-        start = time:GetEpochTime()
-        sandboxedProfiler:Add(time:GetEpochTime())
-
-        text source = information:source
-        File loc = information:sourceLocation
-        text locPath = loc:GetAbsolutePath()
-
-        //Check if this class is already in there. If so, remove it
-        boolean isSandBoxEmpty = true
-        Class inFile = sandboxSymbolTable:GetClassInFile(locPath)
-        if inFile not= undefined
-            sandboxSymbolTable:RemoveClass(inFile:GetStaticKey())
-            //remove all of the location tables from this class
-            inFile:RemoveUseLocations(loc)
-            inFile:RemoveCallLocationsFromActions(loc)
-            inFile:RemoveCallLocationsFromDependencies(loc)
-        else //the file isn't in there. Check if the symbol table has other classes
-            isSandBoxEmpty = sandboxSymbolTable:IsEmpty()
-        end
-        
-        Array<File> files = information:projectFiles
-
-        boolean isInvalidCompile = false
-        if files = undefined
-            isInvalidCompile = true
-        elseif files:IsEmpty()
-            isInvalidCompile = true
-        end
-
-        if isInvalidCompile
-            CompilerError error
-            text message = ""
-            if files = undefined
-                message = "I cannot compile an array of files that is passed to me undefined"
-            elseif files:IsEmpty()
-                message = "I cannot compile an arry of files that is empty. Please specify which files you would like compiled."
-            end
-            error:SetErrorMessage(message)
-            CompilerErrorType t
-            t:SetCurrentType(t:MISSING_FILE)
-            error:SetCompilerErrorType(t)
-            error:SetLineNumber(1)
-            error:SetLineNumberEnd(1)
-            error:SetColumnNumber(1)
-            error:SetColumnNumberEnd(1)
-            compilerErrorManager:Add(error)
-            return result
-        end
-
-        text null = undefined
-
-        HashTable<text, File> newValues
-        if inFile = undefined
-            i = 0
-            repeat while i < files:GetSize()
-                File file = files:Get(i)
-                Parser listener
-                text path = file:GetAbsolutePath()
-                if path = locPath
-                    ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
-                else 
-                    if sandboxSymbolTable:GetClassInFile(path) = undefined
-                        newValues:Add(path, file)
-                        ParseSandbox(null, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
-                    end
-                end
-                i = i + 1
-            end
-        else
-            Parser listener
-            ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, loc)
-        end
-        sandboxedProfiler:Add(time:GetEpochTime())
-
-        //This array will contain all files that must be built, 
-        //including potentially some from the standard library
-        //in order to build the requested files
-        Array<File> allFiles = undefined
-        allFiles = GetAllRequiredFiles(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
-        sandboxedProfiler:Add(time:GetEpochTime())
-        if inFile = undefined and isSandBoxEmpty
-            TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
-        else
-
-            Array<Class> justTheseClasses
-            Class newParse = sandboxSymbolTable:GetClassInFile(locPath)
-            if newParse not= undefined
-                justTheseClasses:Add(newParse)
-            end
-
-            //now check all of the files in the newValues hash and resolve them
-            //the same way
-            Iterator<text> it = newValues:GetKeyIterator()
-            repeat while it:HasNext()
-                text path = it:Next()
-                newParse = sandboxSymbolTable:GetClassInFile(path)
-                if newParse not= undefined
-                    justTheseClasses:Add(newParse)
-                end
-            end
-            TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager, justTheseClasses)
-        end
-
-        sandboxedProfiler:Add(time:GetEpochTime())
-
-        Array<ClassOpcode> classOpcodes
-        if sandboxCompilerErrorManager:IsCompilationErrorFree()
-            if inFile = undefined
-                i = 0
-                repeat while i < allFiles:GetSize()
-                    File file = allFiles:Get(i)
-                    QuorumBytecodeListener listener
-                    text path = file:GetAbsolutePath()
-                    
-                    if path = locPath
-                        integer errors = sandboxCompilerErrorManager:GetErrorAmount()
-                        ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
-                        integer errors2 = sandboxCompilerErrorManager:GetErrorAmount()
-                        if errors = errors2 //there were no errors during the parse of this file, so cache it
-                            lastGoodCompileHash:Add(locPath, sandboxSymbolTable:GetClassInFile(locPath))
-                        end
-                    else 
-                        //check to see if this is already in the cache. If it is, 
-                        //then we don't need to redo this
-                        if sandboxSymbolTable:GetClassInFile(path) = undefined or newValues:HasKey(path)
-                            ParseSandbox(null, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
-                        end
-                    end
-                    i = i + 1
-                end
-            else
-                QuorumBytecodeListener listener
-                integer errors = sandboxCompilerErrorManager:GetErrorAmount()
-                ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, loc)
-                integer errors2 = sandboxCompilerErrorManager:GetErrorAmount()
-                if errors = errors2 //there were no errors during the parse of this file, so cache it
-                    lastGoodCompileHash:Add(locPath, sandboxSymbolTable:GetClassInFile(locPath))
-                end
-            end
-        else 
-            return result
-        end
-        sandboxedProfiler:Add(time:GetEpochTime()) 
-        
-        DateTime time2
-        //integer finish = cast(integer, time2:GetEpochTime())
-        //integer total = cast(integer, (finish - start) / 1000.0)
-        result:time = (time2:GetEpochTime() - start) / 1000.0//total
-        return result
-    end
+//    action ParseRepeat(ProjectInformation information) returns CompilerResult
+//        CompilerProfiler sandboxedProfiler
+//        CompilerResult result
+//        result:compilerErrorManager = sandboxCompilerErrorManager
+//        sandboxCompilerErrorManager:Empty()
+//        sandboxCompilerErrorManager:EmptyHints()
+//        result:symbolTable = sandboxSymbolTable
+//        sandboxTypeChecker:SetSymbolTable(sandboxSymbolTable)
+//        DateTime time
+//        start = time:GetEpochTime()
+//        sandboxedProfiler:Add(time:GetEpochTime())
+//
+//        text source = information:source
+//        File loc = information:sourceLocation
+//        text locPath = loc:GetAbsolutePath()
+//
+//        //Check if this class is already in there. If so, remove it
+//        boolean isSandBoxEmpty = true
+//        Class inFile = sandboxSymbolTable:GetClassInFile(locPath)
+//        if inFile not= undefined
+//            sandboxSymbolTable:RemoveClass(inFile:GetStaticKey())
+//            //remove all of the location tables from this class
+//            inFile:RemoveUseLocations(loc)
+//            inFile:RemoveCallLocationsFromActions(loc)
+//            inFile:RemoveCallLocationsFromDependencies(loc)
+//        else //the file isn't in there. Check if the symbol table has other classes
+//            isSandBoxEmpty = sandboxSymbolTable:IsEmpty()
+//        end
+//        
+//        Array<File> files = information:projectFiles
+//
+//        boolean isInvalidCompile = false
+//        if files = undefined
+//            isInvalidCompile = true
+//        elseif files:IsEmpty()
+//            isInvalidCompile = true
+//        end
+//
+//        if isInvalidCompile
+//            CompilerError error
+//            text message = ""
+//            if files = undefined
+//                message = "I cannot compile an array of files that is passed to me undefined"
+//            elseif files:IsEmpty()
+//                message = "I cannot compile an arry of files that is empty. Please specify which files you would like compiled."
+//            end
+//            error:SetErrorMessage(message)
+//            CompilerErrorType t
+//            t:SetCurrentType(t:MISSING_FILE)
+//            error:SetCompilerErrorType(t)
+//            error:SetLineNumber(1)
+//            error:SetLineNumberEnd(1)
+//            error:SetColumnNumber(1)
+//            error:SetColumnNumberEnd(1)
+//            compilerErrorManager:Add(error)
+//            return result
+//        end
+//
+//        text null = undefined
+//
+//        HashTable<text, File> newValues
+//        if inFile = undefined
+//            i = 0
+//            repeat while i < files:GetSize()
+//                File file = files:Get(i)
+//                Parser listener
+//                text path = file:GetAbsolutePath()
+//                if path = locPath
+//                    ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+//                else 
+//                    if sandboxSymbolTable:GetClassInFile(path) = undefined
+//                        newValues:Add(path, file)
+//                        ParseSandbox(null, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+//                    end
+//                end
+//                i = i + 1
+//            end
+//        else
+//            Parser listener
+//            ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, loc)
+//        end
+//        sandboxedProfiler:Add(time:GetEpochTime())
+//
+//        //This array will contain all files that must be built, 
+//        //including potentially some from the standard library
+//        //in order to build the requested files
+//        Array<File> allFiles = undefined
+//        allFiles = GetAllRequiredFiles(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
+//        sandboxedProfiler:Add(time:GetEpochTime())
+//        if inFile = undefined and isSandBoxEmpty
+//            TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager)
+//        else
+//
+//            Array<Class> justTheseClasses
+//            Class newParse = sandboxSymbolTable:GetClassInFile(locPath)
+//            if newParse not= undefined
+//                justTheseClasses:Add(newParse)
+//            end
+//
+//            //now check all of the files in the newValues hash and resolve them
+//            //the same way
+//            Iterator<text> it = newValues:GetKeyIterator()
+//            repeat while it:HasNext()
+//                text path = it:Next()
+//                newParse = sandboxSymbolTable:GetClassInFile(path)
+//                if newParse not= undefined
+//                    justTheseClasses:Add(newParse)
+//                end
+//            end
+//            TypeResolution(sandboxSymbolTable, sandboxTypeChecker, sandboxCompilerErrorManager, justTheseClasses)
+//        end
+//
+//        sandboxedProfiler:Add(time:GetEpochTime())
+//
+//        Array<ClassOpcode> classOpcodes
+//        if sandboxCompilerErrorManager:IsCompilationErrorFree()
+//            if inFile = undefined
+//                i = 0
+//                repeat while i < allFiles:GetSize()
+//                    File file = allFiles:Get(i)
+//                    QuorumBytecodeListener listener
+//                    text path = file:GetAbsolutePath()
+//                    
+//                    if path = locPath
+//                        integer errors = sandboxCompilerErrorManager:GetErrorAmount()
+//                        ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+//                        integer errors2 = sandboxCompilerErrorManager:GetErrorAmount()
+//                        if errors = errors2 //there were no errors during the parse of this file, so cache it
+//                            lastGoodCompileHash:Add(locPath, sandboxSymbolTable:GetClassInFile(locPath))
+//                        end
+//                    else 
+//                        //check to see if this is already in the cache. If it is, 
+//                        //then we don't need to redo this
+//                        if sandboxSymbolTable:GetClassInFile(path) = undefined or newValues:HasKey(path)
+//                            ParseSandbox(null, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, file)
+//                        end
+//                    end
+//                    i = i + 1
+//                end
+//            else
+//                QuorumBytecodeListener listener
+//                integer errors = sandboxCompilerErrorManager:GetErrorAmount()
+//                ParseSandbox(source, listener, sandboxSymbolTable, sandboxCompilerErrorManager, sandboxTypeChecker, loc)
+//                integer errors2 = sandboxCompilerErrorManager:GetErrorAmount()
+//                if errors = errors2 //there were no errors during the parse of this file, so cache it
+//                    lastGoodCompileHash:Add(locPath, sandboxSymbolTable:GetClassInFile(locPath))
+//                end
+//            end
+//        else 
+//            return result
+//        end
+//        sandboxedProfiler:Add(time:GetEpochTime()) 
+//        
+//        DateTime time2
+//        //integer finish = cast(integer, time2:GetEpochTime())
+//        //integer total = cast(integer, (finish - start) / 1000.0)
+//        result:time = (time2:GetEpochTime() - start) / 1000.0//total
+//        return result
+//    end
 
     action ParseSandbox(text source, QuorumSourceListener listener, SymbolTable table, CompilerErrorManager errors,
         TypeChecker types, File loc)
@@ -1059,7 +1059,7 @@ class Compiler
         end
     end
 
-    action Compile(CompilerRequest request) returns CompilerResult
+    private action Compile(CompilerRequest request, boolean fast) returns CompilerResult
         Array<File> files = request:files
         HashTable<text, File> originalFileHash
         //this is only used if the standard library is not pre-scanned
@@ -1085,6 +1085,12 @@ class Compiler
         CompilerProfiler profiler
         TypeChecker checker
         SymbolTable table
+
+        SymbolTable previousCompile = request:previousCompile
+        if previousCompile not= undefined
+
+        end
+
         CompilerErrorManager errors
         SymbolTable standardLibraryTable = undefined
         profiler:Empty()
@@ -1132,14 +1138,21 @@ class Compiler
             return result
         end
 
-        //parse all of the files for the first time
+
+        //parse all of the files for the first time, if they weren't already 
+        //taken care of on a previous compile
         i = 0
         repeat while i < files:GetSize()
             File file = files:Get(i)
             Parser listener
-            ParseSandbox(undefined, listener, table, errors, checker, file)
+            if file:GetAbsolutePath() = request:recompile:GetAbsolutePath()
+                ParseSandbox(request:recompileValue, listener, table, errors, checker, file)
+            elseif not table:HasFile(file:GetAbsolutePath())
+                ParseSandbox(undefined, listener, table, errors, checker, file)
+            end //otherwise ignore it
             i = i + 1
         end
+
         profiler:Add(time:GetEpochTime())
 
         SymbolTable originalTable = table:Copy()
@@ -1233,6 +1246,305 @@ class Compiler
             m:SetIsProgramStartingClass(true)
         end
         
+        //at this point, if the build is compilation free, it 
+        //is guaranteed to not have compile errors, as no errors
+        //can be issues in the bytecode writing stage.
+        //if an error is issued, it is a bug in the compiler and not
+        //an intentional design decision.
+        if errors:IsCompilationErrorFree()
+            if request:GetOutputType() = JAVA_BYTECODE
+                //open up and begin filling the Jar
+                JarGenerator generator
+                text manifest = GetManifest(request, generator, table)
+                File jar = GetDistributionFile()
+                generator:SetManifest(manifest)
+                generator:Open(jar)
+
+                //iterate over all the class opcodes and write them to disk
+                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+                repeat while codes:HasNext()
+                    ClassOpcode code = codes:Next()
+                    code:Write()
+
+                    File build = code:GetBuildFile()
+                    File buildInterface = code:GetBuildInterfaceFile()
+
+                    text key = code:GetStaticKey()
+                    if build not= undefined
+                        if IsWebApplication()
+                            text path = WEB_DIRECTORY + "/" + build:GetPath()
+                            generator:Add(build, path)
+                        else 
+                            generator:Add(build)
+                        end
+                    end
+
+                    if buildInterface not= undefined
+                        if IsWebApplication()
+                            text path = WEB_DIRECTORY + "/" + buildInterface:GetPath()
+                            generator:Add(buildInterface, path)
+                        else 
+                            generator:Add(buildInterface)
+                        end
+                    end
+                end
+                profiler:Add(time:GetEpochTime())
+
+                //ok all of the classes are written in the jar. Now fill it up
+                //with any dependencies that are necessary.
+                WriteDependencies(generator, library)
+                generator:Close()
+                profiler:Add(time:GetEpochTime())
+                
+            elseif request:GetOutputType() = JAVASCRIPT
+                //first copy all of the standard library opcodes into the array
+                Iterator<Class> iterator = table:GetClasses()
+                repeat while iterator:HasNext()
+                    Class value = iterator:Next()
+                    ClassOpcode op = library:GetOpcode(value:GetStaticKey())
+                    if op not= undefined
+                        classOpcodes:Add(op)
+                    end
+                end
+                convertedJavaScript = CompileToJavaScript(classOpcodes, request, m)
+                result:convertedJavaScript = convertedJavaScript
+                if IsWritingJavaScriptToDisk()
+                    WriteJavaScript(convertedJavaScript)
+                end
+                
+            elseif request:GetOutputType() = DOCUMENT
+                CreateDocumentation(classOpcodes)
+            end
+        end
+        
+        return result
+    end
+
+    action Compile(CompilerRequest request) returns CompilerResult
+        Array<File> files = request:files
+        HashTable<text, File> originalFileHash
+        //this is only used if the standard library is not pre-scanned
+        HashTable<text, File> standardLibraryFileHash
+        i = 0
+        repeat while i < files:GetSize()
+            File next = files:Get(i)
+            originalFileHash:Add(next:GetAbsolutePath(), next)
+            i = i + 1
+        end
+
+        Library library = request:library
+        File myMain = request:main
+
+        CompilerResult result
+        text convertedJavaScript = ""
+        DateTime time
+        boolean containsSpeechCommandInCompile = false
+        boolean outputSpeechCommands = false
+
+        //setup sandboxed values for compilation. 
+        CompilerProfiler profiler
+        TypeChecker checker
+        SymbolTable table
+
+        SymbolTable previousCompile = request:previousCompile
+        if previousCompile not= undefined
+            table:SetTo(previousCompile)
+        end
+
+        CompilerErrorManager errors
+        SymbolTable standardLibraryTable = undefined
+        profiler:Empty()
+        profiler:Add(time:GetEpochTime())
+
+        //setup the compiler result to store everything that was done
+        result:compilerErrorManager = errors
+        result:symbolTable = table
+        result:typeChecker = checker
+        result:standardLibrary = library
+        result:profiler = profiler
+
+        //check if the standard library is here and that the files are valid
+        boolean isInvalidCompile = false
+        //if the standard library is defined, set it up. Otherwise bail
+        if library = undefined
+            output "I attempted to compile code without a standard library. Please report this to the development team as a bug."
+            return result
+        end
+
+        if files = undefined
+            isInvalidCompile = true
+        elseif files:IsEmpty()
+            isInvalidCompile = true
+        end
+
+        if isInvalidCompile
+            CompilerError error
+            text message = ""
+            if files = undefined
+                message = "I cannot compile an array of files that is passed to me undefined"
+            elseif files:IsEmpty()
+                message = "I cannot compile an arry of files that is empty. Please specify which files you would like compiled."
+            end
+            error:SetErrorMessage(message)
+            CompilerErrorType t
+            t:SetCurrentType(t:MISSING_FILE)
+            error:SetCompilerErrorType(t)
+            error:SetLineNumber(1)
+            error:SetLineNumberEnd(1)
+            error:SetColumnNumber(1)
+            error:SetColumnNumberEnd(1)
+            errors:Add(error)
+            return result
+        end
+
+        //if these values are both defined, then the user is requesting
+        //that one source file, from text, be compiled
+        if request:recompile not= undefined and request:recompileValue not= undefined
+            table:RemoveFile(request:recompile:GetAbsolutePath())
+        end
+
+        HashTable<text, boolean> needsCompilationSet
+        //parse all of the files for the first time
+        i = 0
+        repeat while i < files:GetSize()
+            File file = files:Get(i)
+            Parser listener
+            if request:recompile not= undefined and request:recompileValue not= undefined and file:GetAbsolutePath() = request:recompile:GetAbsolutePath()
+                ParseSandbox(request:recompileValue, listener, table, errors, checker, file)
+                needsCompilationSet:Add(file:GetAbsolutePath(), true)
+            elseif not table:HasFile(file:GetAbsolutePath())
+                ParseSandbox(undefined, listener, table, errors, checker, file)
+                needsCompilationSet:Add(file:GetAbsolutePath(), true)
+            end //otherwise ignore it
+            i = i + 1
+        end
+        profiler:Add(time:GetEpochTime())
+        //if the needs compilation set is null, just return because nothing 
+        //needs to be done
+        if needsCompilationSet:IsEmpty()
+            result:symbolTable = request:previousCompile
+            return result
+        end
+
+        SymbolTable originalTable = table:Copy()
+
+        //if the standard library has already been scanned, just link stuff in
+        //if not, then we need to crawl the transitive dependencies
+        if library:IsScanned()
+            LinkToStandardLibrary(table, checker, errors, library)
+        else 
+            //If we haven't scanned the standard library, we need to separately compile
+            //all of those files
+            HashTable<text, File> allFiles = GetAllRequiredFiles(table, checker, errors, library)
+            Array<File> f = allFiles:CopyToValueArray()
+            //because of the standard library, do a separate mini-pass of the files
+            //to compile the standard library ones and to separate the tables.
+            
+            SymbolTable standardLibrarySymbolTable
+            i = 0
+            repeat while i < f:GetSize()
+                File next = f:Get(i)
+                //if it's not in the original hash, it's in the standard library
+                if not originalFileHash:HasKey(next:GetAbsolutePath())
+                    standardLibraryFileHash:Add(next:GetAbsolutePath(), next)
+                    Class clazz = table:GetClassInFile(next:GetAbsolutePath())
+                    if clazz not= undefined
+                        standardLibrarySymbolTable:Add(clazz)
+                    end
+                end
+                i = i + 1
+            end
+
+            if errors:IsCompilationErrorFree()
+                TypeResolution(standardLibrarySymbolTable, checker, errors)
+            else 
+                return result
+            end
+
+            Array<File> standardLibraryFiles = standardLibraryFileHash:CopyToValueArray()
+            Array<ClassOpcode> classOpcodes
+            if errors:IsCompilationErrorFree()
+                i = 0
+                repeat while i < standardLibraryFiles:GetSize()
+                    File file = standardLibraryFiles:Get(i)
+                    QuorumBytecodeListener listener
+                    ParseSandbox(undefined, listener, standardLibrarySymbolTable, errors, checker, file)
+                    i = i + 1
+                end
+            end
+        end
+
+        if errors:IsCompilationErrorFree()
+            SymbolTable needsTable
+            //check that any of the files in the original set actually need parsing
+            Iterator<text> iterator = needsCompilationSet:GetKeyIterator()
+            repeat while iterator:HasNext()
+                text value = iterator:Next()
+                if originalTable:HasFile(value)
+                    needsTable:Add(originalTable:GetClassInFile(value))
+                end
+            end
+
+            TypeResolution(needsTable, checker, errors, table)
+        else 
+            return result
+        end
+        profiler:Add(time:GetEpochTime())
+
+        //tell the type checker to use the merged symbol table on this pass
+        checker:SetSymbolTable(table)
+        Array<ClassOpcode> classOpcodes
+        if errors:IsCompilationErrorFree()
+            i = 0
+            repeat while i < files:GetSize()
+                File file = files:Get(i)
+                QuorumBytecodeListener listener
+                if not outputSpeechCommands
+                    listener:SetOutputSpeech(outputSpeechCommands)
+                end
+                if request:recompile not= undefined and request:recompileValue not= undefined and file:GetAbsolutePath() = request:recompile:GetAbsolutePath()
+                    ParseSandbox(request:recompileValue, listener, table, errors, checker, file)
+                    if listener:HasSayStatementInClass()
+                        containsSpeechCommandInCompile = true
+                    end
+                    ClassOpcode op = listener:GetClassOpcode()
+                    op:SetBuild(buildFolder)
+
+                    classOpcodes:Add(op)
+                elseif needsCompilationSet:HasKey(file:GetAbsolutePath())
+                    ParseSandbox(undefined, listener, table, errors, checker, file)
+                    if listener:HasSayStatementInClass()
+                        containsSpeechCommandInCompile = true
+                    end
+                    ClassOpcode op = listener:GetClassOpcode()
+                    op:SetBuild(buildFolder)
+
+                    classOpcodes:Add(op)
+                end //otherwise ignore it
+                
+                i = i + 1
+            end
+        else 
+            return result
+        end
+        profiler:Add(time:GetEpochTime())
+
+        Class m = GetMainClass(myMain, table)
+        if m = undefined //no class that had a main method was selected, throw an error
+            AddMainError(myMain, table, errors)
+        elseif m not= undefined and m:HasMainAction() = false
+            AddMainError(myMain, table, errors)
+        else
+            m:SetIsProgramStartingClass(true)
+        end
+        
+        //if this is a fast compile, we return at this stage, because the user
+        //is requesting a parse, not a compile to disk.
+        if request:isFastCompileRequest
+            return result
+        end
+
+
         //at this point, if the build is compilation free, it 
         //is guaranteed to not have compile errors, as no errors
         //can be issues in the bytecode writing stage.

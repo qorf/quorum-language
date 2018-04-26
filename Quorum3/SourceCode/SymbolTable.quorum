@@ -23,6 +23,28 @@ class SymbolTable
     HashTable<text, HashTable<text, Class>> packages
     Library library = undefined
     SymbolTable standardLibraryCache = undefined
+    
+    /*
+        This action gathers all of the classes from the table variable and puts
+        them into this symbol table, clearing out the table before starting. This
+        action only copies the classes.
+    */
+    action SetTo(SymbolTable table)
+        Empty()
+        Iterator<Class> iterator = table:GetClasses()
+        repeat while iterator:HasNext()
+            Class clazz = iterator:Next()
+            Add(clazz)
+        end
+    end
+
+    action Empty
+        files:Empty()
+        classes:Empty()
+        packages:Empty()
+        library = undefined
+        standardLibraryCache = undefined
+    end
 
     /*
         This stores the standard library cache. It contains any classes 

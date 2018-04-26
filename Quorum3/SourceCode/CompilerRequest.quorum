@@ -1,10 +1,20 @@
 package Libraries.Language.Compile
 use Libraries.Containers.Array
 use Libraries.System.File
+use Libraries.Containers.HashTable
+use Libraries.Language.Compile.Translate.ClassOpcode
+use Libraries.Language.Compile.Symbol.SymbolTable
 
 class CompilerRequest 
     public Array<File> files = undefined
+    public HashTable<text, ClassOpcode> opcodes
+    public SymbolTable previousCompile = undefined
+    public File recompile = undefined
+    public text recompileValue = undefined
+
+
     public boolean isWebRequest = false
+    public boolean isFastCompileRequest = false
     public File main = undefined
     public Library library = undefined
     public constant integer JAVA_BYTECODE = 0
