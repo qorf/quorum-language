@@ -155,7 +155,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         AddMouseListener(me)
         AddMouseMovementListener(me)
 
-        SetSelectionType(parent:Selectable:RANGE_SELECTION)
+//        SetSelectionType(parent:Selectable:RANGE_SELECTION)
 
         Add(background)
 
@@ -176,7 +176,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             end
         end
 
-        selection:SetTextBox(me)
+        selection:Initialize(me, "")
 
         selectionColor:SetColor(0.75, 0.75, 1, 1)
     end
@@ -346,12 +346,16 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     private action EmptySelectionEvent
-        selection:SetText("")
-        selection:SetLines(caretLine, caretLine)
-        selection:SetLineIndices(caretCharacter, caretCharacter)
-        integer characterIndex = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
-        selection:SetIndices(characterIndex, characterIndex)
-        selection:SetCaretAtEnd(true)
+//        selection:SetText("")
+//        selection:SetLines(caretLine, caretLine)
+//        selection:SetLineIndices(caretCharacter, caretCharacter)
+//        integer characterIndex = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+//        selection:SetIndices(characterIndex, characterIndex)
+//        selection:SetCaretAtEnd(true)
+
+        integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+
+        selection:Set(index, index, true)
 
         // Report the new selection here.
         ReportSelection()
@@ -360,20 +364,27 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     private action SelectionMoveLeft
 
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+
         if (caretLine < selection:GetFirstLine() or caretCharacter < selection:GetFirstLineIndex())
-            selection:SetFirstLine(caretLine)
-            selection:SetFirstLineIndex(caretCharacter)
+//            selection:SetFirstLine(caretLine)
+//            selection:SetFirstLineIndex(caretCharacter)
+//
+//            selection:SetStartIndex(index)
+//            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
+//            selection:SetCaretAtEnd(index = selection:GetEndIndex())
 
-            selection:SetStartIndex(index)
-            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
-            selection:SetCaretAtEnd(index = selection:GetEndIndex())
+            integer endIndex = selection:GetEndIndex()
+            selection:Set(index, endIndex, (index = endIndex))
         else
-            selection:SetLastLine(caretLine)
-            selection:SetLastLineIndex(caretCharacter)
+//            selection:SetLastLine(caretLine)
+//            selection:SetLastLineIndex(caretCharacter)
+//
+//            selection:SetEndIndex(index)
+//            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
+//            selection:SetCaretAtEnd(true)
 
-            selection:SetEndIndex(index)
-            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
-            selection:SetCaretAtEnd(true)
+            integer startIndex = selection:GetStartIndex()
+            selection:Set(startIndex, index, true)
         end
 
         // Report the new selection here.
@@ -385,19 +396,25 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
 
         if (caretLine > selection:GetLastLine() or caretCharacter > selection:GetLastLineIndex())
-            selection:SetLastLine(caretLine)
-            selection:SetLastLineIndex(caretCharacter)
+//            selection:SetLastLine(caretLine)
+//            selection:SetLastLineIndex(caretCharacter)
+//
+//            selection:SetEndIndex(index)
+//            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
+//            selection:SetCaretAtEnd(true)
 
-            selection:SetEndIndex(index)
-            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
-            selection:SetCaretAtEnd(true)
+            integer startIndex = selection:GetStartIndex()
+            selection:Set(startIndex, index, true)
         else
-            selection:SetFirstLine(caretLine)
-            selection:SetFirstLineIndex(caretCharacter)
+//            selection:SetFirstLine(caretLine)
+//            selection:SetFirstLineIndex(caretCharacter)
+//
+//            selection:SetStartIndex(index)
+//            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
+//            selection:SetCaretAtEnd(index = selection:GetEndIndex())
 
-            selection:SetStartIndex(index)
-            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
-            selection:SetCaretAtEnd(index = selection:GetEndIndex())
+            integer endIndex = selection:GetEndIndex()
+            selection:Set(index, endIndex, (index = endIndex))
         end
 
         // Report the new selection here.
@@ -405,31 +422,39 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     private action SelectionMoveUp
+
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
 
         if (caretLine < selection:GetFirstLine() or index < selection:GetStartIndex())
 
+            integer endIndex = selection:GetEndIndex()
+
             if index < selection:GetStartIndex() and selection:IsCaretAtEnd()
-                selection:SetEndIndex(selection:GetStartIndex())
-                selection:SetLastLineIndex(selection:GetFirstLineIndex())
-                selection:SetLastLine(selection:GetFirstLine())
+//                selection:SetEndIndex(selection:GetStartIndex())
+//                selection:SetLastLineIndex(selection:GetFirstLineIndex())
+//                selection:SetLastLine(selection:GetFirstLine())
+                endIndex = selection:GetStartIndex()
             end
 
-            selection:SetFirstLine(caretLine)
-            selection:SetFirstLineIndex(caretCharacter)
+//            selection:SetFirstLine(caretLine)
+//            selection:SetFirstLineIndex(caretCharacter)
+//
+//            selection:SetStartIndex(index)
+//            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
+//
+//            selection:SetCaretAtEnd(false)
 
-            selection:SetStartIndex(index)
-            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
-
-            selection:SetCaretAtEnd(false)
+            selection:Set(index, endIndex, false)
         else
-            selection:SetLastLine(caretLine)
-            selection:SetLastLineIndex(caretCharacter)
+//            selection:SetLastLine(caretLine)
+//            selection:SetLastLineIndex(caretCharacter)
+//
+//            selection:SetEndIndex(index)
+//            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
+//
+//            selection:SetCaretAtEnd(true)
 
-            selection:SetEndIndex(index)
-            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
-
-            selection:SetCaretAtEnd(true)
+            selection:Set(selection:GetStartIndex(), index, true)
         end
 
         // Report the new selection here.
@@ -437,29 +462,39 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     private action SelectionMoveDown
+
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
 
         if (caretLine > selection:GetLastLine())
+
+            integer startIndex = selection:GetStartIndex()
+
             if index > selection:GetEndIndex() and (not selection:IsCaretAtEnd())
-                selection:SetStartIndex(selection:GetEndIndex())
-                selection:SetFirstLineIndex(selection:GetLastLineIndex())
+//                selection:SetStartIndex(selection:GetEndIndex())
+//                selection:SetFirstLineIndex(selection:GetLastLineIndex())
+
+                startIndex = selection:GetEndIndex()
             end
 
-            selection:SetLastLine(caretLine)
-            selection:SetLastLineIndex(caretCharacter)
+//            selection:SetLastLine(caretLine)
+//            selection:SetLastLineIndex(caretCharacter)
+//
+//            selection:SetEndIndex(index)
+//            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
+//
+//            selection:SetCaretAtEnd(true)
 
-            selection:SetEndIndex(index)
-            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
-
-            selection:SetCaretAtEnd(true)
+            selection:Set(startIndex, index, true)
         else
-            selection:SetFirstLine(caretLine)
-            selection:SetFirstLineIndex(caretCharacter)
+//            selection:SetFirstLine(caretLine)
+//            selection:SetFirstLineIndex(caretCharacter)
+//
+//            selection:SetStartIndex(index)
+//            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
+//            
+//            selection:SetCaretAtEnd(false)
 
-            selection:SetStartIndex(index)
-            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
-            
-            selection:SetCaretAtEnd(false)
+            selection:Set(index, selection:GetEndIndex(), false)
         end
 
         // Report the new selection here.
@@ -478,7 +513,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 //        output "Indices: " + selection:GetStartIndex() + ", " + selection:GetEndIndex()
 //        output "Text: " + selection:GetText()
 //        output "Caret at end = " + selection:IsCaretAtEnd()
-        // Forward the selection along via events from here.
     end
 
     /*
@@ -1417,41 +1451,41 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         return textValue:GetText()
     end
 
-    action GetSingleSelection(integer index) returns Selection
-        Selection selection
-        selection:SetDisplayName("")
-        return selection
-    end
-
-    action GetRangeSelection(Pair<integer> range) returns Array<Selection>
-        Array<Selection> array
-        Selection selection
-        text selectedText = textValue:GetText():GetSubtext(range:GetLeastValue(), range:GetGreatestValue())
-        selection:SetDisplayName(selectedText)
-        array:Add(selection)
-        return array
-    end
-
-    action GetMultipleSelection(Array<Pair<integer>> ranges) returns Array<Selection>
-        if ranges:GetSize() = 1
-            return GetRangeSelection(ranges:Get(0))
-        end
-
-        alert("Multiple selection is not supported for TextBox yet. Use GetRangeSelection() instead.")
-    end
-
-    action GetSelectableSize returns integer
-        // The caret can be placed anywhere between 0 and the length of the
-        // text (including after the last character), resulting in length + 1.
-        return textValue:GetLength() + 1
-    end
-
-    action GetCurrentSelection returns Array<Selection>
-        // When selection is fully supported, this will be replaced with the
-        // actual start and end indices of the selection.
-        integer caretIndex = GetCaretIndex()
-        return GetRangeSelection(caretIndex, caretIndex)
-    end
+//    action GetSingleSelection(integer index) returns Selection
+//        Selection selection
+//        selection:SetDisplayName("")
+//        return selection
+//    end
+//
+//    action GetRangeSelection(Pair<integer> range) returns Array<Selection>
+//        Array<Selection> array
+//        Selection selection
+//        text selectedText = textValue:GetText():GetSubtext(range:GetLeastValue(), range:GetGreatestValue())
+//        selection:SetDisplayName(selectedText)
+//        array:Add(selection)
+//        return array
+//    end
+//
+//    action GetMultipleSelection(Array<Pair<integer>> ranges) returns Array<Selection>
+//        if ranges:GetSize() = 1
+//            return GetRangeSelection(ranges:Get(0))
+//        end
+//
+//        alert("Multiple selection is not supported for TextBox yet. Use GetRangeSelection() instead.")
+//    end
+//
+//    action GetSelectableSize returns integer
+//        // The caret can be placed anywhere between 0 and the length of the
+//        // text (including after the last character), resulting in length + 1.
+//        return textValue:GetLength() + 1
+//    end
+//
+//    action GetCurrentSelection returns Array<Selection>
+//        // When selection is fully supported, this will be replaced with the
+//        // actual start and end indices of the selection.
+//        integer caretIndex = GetCaretIndex()
+//        return GetRangeSelection(caretIndex, caretIndex)
+//    end
 
     action GetCurrentLineText() returns text
         return textValue:GetLine(caretLine):GetText()

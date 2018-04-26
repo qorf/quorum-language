@@ -1,0 +1,32 @@
+package Libraries.Interface
+
+use Libraries.Containers.Array
+
+class TextPathSelection is Selection
+    
+    Array<text> path
+
+    action Initialize(Item item)
+        Initialize(item, "")
+        path:Add("")
+    end
+
+    action Set(Array<text> array)
+        path:Empty()
+        if array:IsEmpty()
+            path:Add("")
+        else
+            integer counter = 0
+            repeat while counter < array:GetSize()
+                path:Add(array:Get(counter))
+                counter = counter + 1
+            end
+        end
+
+        SetDisplayName(path:GetFromEnd())
+    end
+
+    action GetPath returns Array<text>
+        return path:CopyToArray()
+    end
+end
