@@ -27,8 +27,10 @@ import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerErrorManager_;
 import quorum.Libraries.Language.Compile.CompilerError_;
+import quorum.Libraries.Language.Compile.CompilerRequest;
 import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.Language.Compile.Hints.Hint_;
+import quorum.Libraries.Language.Compile.Library_;
 /**
  *
  * @author stefika
@@ -89,18 +91,35 @@ public class QuorumParser extends Parser{
                         listing.Add(next);
                     }
                     
-                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__source_(string);
-                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__sourceLocation_(quorumFile);
-                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__projectFiles_(listing);
-                    CompilerResult_ result = compiler.ParseRepeat(getInfo());                 
+                    Library_ library = ((QuorumProject) project).GetStandardLibrary();
+                    CompilerRequest request = new CompilerRequest();
+                    CompilerResult_ previousCompile = ((QuorumProject) project).getLastCompileResult();
+                    
+                    if(previousCompile != null) {
+                        request.previousCompile = previousCompile.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
+                    }
+                    request.library = library;
+                    request.files = listing;
+                    request.isFastCompileRequest = true;
+                    request.main = ((QuorumProject) project).GetMain();
+                    request.recompile = quorumFile;
+                    request.recompileValue = string;
+                    CompilerResult_ result = compiler.Compile(request);
+                    ((QuorumProject) project).setLastCompileResult(result);
                     recentResult = result;
                     
-                    CompilerErrorManager_ errors = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
+//                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__source_(string);
+//                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__sourceLocation_(quorumFile);
+//                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__projectFiles_(listing);
+//                    CompilerResult_ result = compiler.ParseRepeat(getInfo());                 
+                    //recentResult = result;
+                    
+                    CompilerErrorManager_ manager = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
                     
                     //regardless of compiler errors, we could have hints. Handle that
-                    handleHints(errors);
+                    handleHints(manager);
                     
-                    if(errors.IsCompilationErrorFree()) {
+                    if(manager.IsCompilationErrorFree()) {
                         fileErrors.clear();
                         if(result != null && project instanceof QuorumProject) {
                             QuorumProject qp = (QuorumProject) project;
@@ -108,7 +127,7 @@ public class QuorumParser extends Parser{
                         }
                     } else {
                         fileErrors.clear();
-                        Iterator_ it = errors.GetIterator();
+                        Iterator_ it = manager.GetIterator();
                         while(it.HasNext()) {
                             CompilerError_ next = (CompilerError_) it.Next();
                             String displayName = next.GetDisplayName();

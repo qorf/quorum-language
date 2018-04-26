@@ -177,7 +177,11 @@ public abstract class QuorumAction implements Action {
         try {
             //get the standard library
             File_ main = project.GetMain();
-            CompilerRequest_ request = new CompilerRequest();
+            CompilerRequest request = new CompilerRequest();
+            CompilerResult_ previousCompile = project.getLastCompileResult();
+            if(previousCompile != null) {
+                request.previousCompile = previousCompile.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
+            }
             Library_ library = project.GetStandardLibrary();
             request.Set_Libraries_Language_Compile_CompilerRequest__files_(listing);
             request.Set_Libraries_Language_Compile_CompilerRequest__library_(library);

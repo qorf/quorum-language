@@ -46,6 +46,7 @@ import org.quorum.actions.Run;
 import org.quorum.actions.SendToIPhoneApplication;
 import org.quorum.actions.SendToIPhoneSimulator;
 import org.quorum.support.Utility;
+import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.System.File_;
 import quorum.Libraries.Language.Compile.Library_;
 
@@ -112,6 +113,7 @@ public class QuorumProject implements Project {
     private static quorum.Libraries.Language.Compile.Library_ quorumStandardLibrary = null;
     private Library_ myProjectsLibrary = null;
     private File_ mainFile = null;
+    private CompilerResult_ lastCompileResult;
     
     public QuorumProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
@@ -796,5 +798,19 @@ public class QuorumProject implements Project {
         public Project getProject() {
             return QuorumProject.this;
         }
+    }
+
+    /**
+     * @return the lastCompileResult
+     */
+    public CompilerResult_ getLastCompileResult() {
+        return lastCompileResult;
+    }
+
+    /**
+     * @param lastCompileResult the lastCompileResult to set
+     */
+    public void setLastCompileResult(CompilerResult_ lastCompileResult) {
+        this.lastCompileResult = lastCompileResult;
     }
 }
