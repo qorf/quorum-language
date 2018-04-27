@@ -1421,10 +1421,9 @@ class Compiler
         profiler:Add(time:GetEpochTime())
         //if the needs compilation set is null, just return because nothing 
         //needs to be done
-        if needsCompilationSet:IsEmpty() and request:isFastCompileRequest
+        if needsCompilationSet:IsEmpty()
             result:symbolTable = request:symbolTable
             result:opcodes = request:opcodes
-            return result
         end
 
         SymbolTable originalTable = table:Copy()
@@ -1548,11 +1547,7 @@ class Compiler
             m:SetIsProgramStartingClass(true)
         end
         
-        //if this is a fast compile, we return at this stage, because the user
-        //is requesting a parse, not a compile to disk.
-        if request:isFastCompileRequest
-            return result
-        end
+        
 
 
         //at this point, if the build is compilation free, it 
@@ -1580,7 +1575,7 @@ class Compiler
                     Class clazz = code:GetClass()
                     File filePath = clazz:GetFile()
                     text needsPath = filePath:GetAbsolutePath()
-                    if needsCompilationSet:HasKey(needsPath)
+                    if needsCompilationSet:HasKey(needsPath) and not library:GetSymbolTable():HasClass(clazz:GetStaticKey())
                         code:Write()
                     end
                     
@@ -1588,21 +1583,26 @@ class Compiler
                     File buildInterface = code:GetBuildInterfaceFile()
 
                     text key = code:GetStaticKey()
-                    if build not= undefined
-                        if IsWebApplication()
-                            text path = WEB_DIRECTORY + "/" + build:GetPath()
-                            generator:Add(build, path)
-                        else 
-                            generator:Add(build)
-                        end
-                    end
 
-                    if buildInterface not= undefined
-                        if IsWebApplication()
-                            text path = WEB_DIRECTORY + "/" + buildInterface:GetPath()
-                            generator:Add(buildInterface, path)
-                        else 
-                            generator:Add(buildInterface)
+                    //if the file is not part of the standard library, 
+                    //generate it
+                    if not library:GetSymbolTable():HasClass(clazz:GetStaticKey())
+                        if build not= undefined
+                            if IsWebApplication()
+                                text path = WEB_DIRECTORY + "/" + build:GetPath()
+                                generator:Add(build, path)
+                            else 
+                                generator:Add(build)
+                            end
+                        end
+
+                        if buildInterface not= undefined
+                            if IsWebApplication()
+                                text path = WEB_DIRECTORY + "/" + buildInterface:GetPath()
+                                generator:Add(buildInterface, path)
+                            else 
+                                generator:Add(buildInterface)
+                            end
                         end
                     end
                 end
@@ -1610,8 +1610,11 @@ class Compiler
 
                 //ok all of the classes are written in the jar. Now fill it up
                 //with any dependencies that are necessary.
-                WriteDependencies(generator, library)
-                generator:Close()
+                //only go through this if not a fast compile
+                if not request:isFastCompileRequest
+                    WriteDependencies(generator, library)
+                    generator:Close()
+                end
                 profiler:Add(time:GetEpochTime())
                 
             elseif request:GetOutputType() = JAVASCRIPT
