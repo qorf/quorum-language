@@ -150,7 +150,7 @@ public abstract class QuorumAction implements Action {
             }
         }
         long start = System.currentTimeMillis();
-        compiler.Empty();
+        //compiler.Empty();
         final QuorumProjectType type = project.getProjectType();
         //A web server (war file) to be used in Tomcat or Glassfish
         if(type == QuorumProjectType.WEB) {
@@ -175,10 +175,11 @@ public abstract class QuorumAction implements Action {
         }
         
         final CompilerResult_ result;
+        CompilerErrorManager_ manager;
+        final CompilerRequest request = new CompilerRequest();
         try {
             //get the standard library
             File_ main = project.GetMain();
-            CompilerRequest request = new CompilerRequest();
             CompilerResult_ previousCompile = project.getLastCompileResult();
             if(previousCompile != null) {
                 request.symbolTable = previousCompile.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
@@ -189,6 +190,7 @@ public abstract class QuorumAction implements Action {
             request.Set_Libraries_Language_Compile_CompilerRequest__library_(library);
             request.Set_Libraries_Language_Compile_CompilerRequest__main_(main);
             result = compiler.Compile(request);
+            manager = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
             project.setLastCompileResult(result);
         } catch (final Exception e) {
             if(logExceptionsToConsoleOutput) {
@@ -200,7 +202,7 @@ public abstract class QuorumAction implements Action {
                         Date date = new Date();
                         String format = dateFormat.format(date);
 
-                        if(compiler.GetMainClass() == null) {
+                        if(request.main == null) {
                             String stringDate = dateFormat.format(date);
                             io.getOut().println("I noticed that there is no main file set, which means "
                                     + "I cannot determine where to start your program. "
@@ -271,8 +273,8 @@ public abstract class QuorumAction implements Action {
         
         //if it's a JavaScript project, we need to get the source and write the 
         //file manually
-        if(type == QuorumProjectType.WEB_BROWSER && compiler.IsCompilationErrorFree()) {
-            String text = compiler.GetCompiledJavaScript();
+        if(type == QuorumProjectType.WEB_BROWSER && result != null && manager.IsCompilationErrorFree()) {
+            String text = result.Get_Libraries_Language_Compile_CompilerResult__convertedJavaScript_();
             File toFile = new File(directory.getAbsolutePath() + "/" + QuorumProject.DISTRIBUTION_DIRECTORY);
             if(!toFile.exists()) {
                 toFile.mkdir();
@@ -284,7 +286,7 @@ public abstract class QuorumAction implements Action {
             writer.Write(text);
         }
         boolean legos = false;
-        if(type == QuorumProjectType.LEGO && compiler.IsCompilationErrorFree()) {
+        if(type == QuorumProjectType.LEGO && result != null && manager.IsCompilationErrorFree()) {
             QuorumToLegoAdapter adapter = new QuorumToLegoAdapter();
             String loc = project.getExecutableLocation();
             File f = new File(loc);
@@ -297,7 +299,7 @@ public abstract class QuorumAction implements Action {
             legos = adapter.Send(f);
         }
         final boolean legoFound = legos;
-        if(type == QuorumProjectType.LEGO && compiler.IsCompilationErrorFree()) {
+        if(type == QuorumProjectType.LEGO && result != null && manager.IsCompilationErrorFree()) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
@@ -322,7 +324,6 @@ public abstract class QuorumAction implements Action {
         });
         
         if(result != null) {
-            CompilerErrorManager_ manager = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
             return manager.IsCompilationErrorFree();
         }
         return false;
