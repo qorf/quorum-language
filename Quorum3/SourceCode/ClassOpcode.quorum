@@ -964,6 +964,45 @@ class ClassOpcode is QuorumOpcode
         parentActionWriter:VisitEnd()
     end
 
+    /* 
+        This action sets the build paths, but does not actually write
+        the files to disk.
+    */
+    action SetBuildPaths
+        File classFile
+        text path = buildFolder:GetPath()
+        if not buildFolder:Exists()
+            buildFolder:CreateDirectories()
+        end
+
+        classFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+        if not packageValue:IsEmpty()
+            packagePath = packageValue:GetPath() 
+            path = QUORUM + "/" + packagePath
+        else
+            path = QUORUM 
+        end
+        
+        classFile:SetPath(path)
+        classFile:CreateDirectories()
+        classFile:SetPath(path + "/" + clazz:GetName() + ".class")
+        buildFile = classFile
+
+        if not clazz:IsError()
+            File interfaceFile
+            interfaceFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+            if not packageValue:IsEmpty()
+                packagePath = packageValue:GetPath() 
+                path = QUORUM + "/" + packagePath
+            else
+                path = QUORUM 
+            end
+
+            interfaceFile:SetPath(path + "/" + clazz:GetInterfaceName() + ".class")
+            buildInterfaceFile = interfaceFile
+        end
+    end
+
     private action WriteBytecodeToDisk 
         File classFile
         text path = buildFolder:GetPath()
