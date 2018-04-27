@@ -2,6 +2,8 @@ package Libraries.Language.Compile
 
 use Libraries.Language.Compile.Symbol.SymbolTable
 use Libraries.Language.Compile.Symbol.TypeChecker
+use Libraries.Containers.HashTable
+use Libraries.Language.Compile.Translate.ClassOpcode
 
 class CompilerResult
     public CompilerErrorManager compilerErrorManager = undefined
@@ -11,5 +13,5 @@ class CompilerResult
     public CompilerProfiler profiler = undefined
     public text convertedJavaScript = ""
     public number time = 0.0
-
+    public HashTable<text, ClassOpcode> opcodes = undefined
 end

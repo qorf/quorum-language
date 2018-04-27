@@ -35,7 +35,7 @@ class Main is WebResponder
         //ProcessConsoleFlags()
         //GenerateDocumentation()
         //CompileHardcodedFile()
-        CompileTest()
+        CompileTest() 
     end
 
     action GenerateDocumentation
@@ -183,27 +183,42 @@ class Main is WebResponder
 
         start = time:GetEpochTime()
         CompilerResult result = compiler:Compile(request)
+        output "    Error Free: " + result:compilerErrorManager:IsCompilationErrorFree()
         finish = time:GetEpochTime()
-        output "Time: " + ((finish - start) / 1000.0) + " seconds"
+        output "    Time: " + ((finish - start) / 1000.0) + " seconds"
 
-        request:previousCompile = result:symbolTable
-        output "Compile again:"
+        request:symbolTable = result:symbolTable
+        request:opcodes = result:opcodes
+        output "Compile again, but notice nothing needs to be built:"
         start = time:GetEpochTime()
         result = compiler:Compile(request)
+        output "    Error Free: " + result:compilerErrorManager:IsCompilationErrorFree()
         finish = time:GetEpochTime()
-        output "Time: " + ((finish - start) / 1000.0) + " seconds"
+        output "    Time: " + ((finish - start) / 1000.0) + " seconds"
 
-
-        //Compile just one file after reading it in
-        request:previousCompile = result:symbolTable
-        output "Compile just one file:"
+        request:symbolTable = result:symbolTable
+        request:opcodes = result:opcodes
         request:recompile = main
         request:recompileValue = main:Read()
+        output "Compile again, but notice one file needs to be rebuilt, so flush to disk:"
+        start = time:GetEpochTime()
+        result = compiler:Compile(request)
+        output "    Error Free: " + result:compilerErrorManager:IsCompilationErrorFree()
+        finish = time:GetEpochTime()
+        output "    Time: " + ((finish - start) / 1000.0) + " seconds"
+
+        //Compile just one file after reading it in
+        request:symbolTable = result:symbolTable
+        output "Compile just one file and do not write to disk:"
+        request:recompile = main
+        request:recompileValue = main:Read()
+        request:isFastCompileRequest = true
 
         start = time:GetEpochTime()
         result = compiler:Compile(request)
+        output "    Error Free: " + result:compilerErrorManager:IsCompilationErrorFree()
         finish = time:GetEpochTime()
-        output "Time: " + ((finish - start) / 1000.0) + " seconds"
+        output "    Time: " + ((finish - start) / 1000.0) + " seconds"
 
         CompilerErrorManager errors = result:compilerErrorManager
         if errors:IsCompilationErrorFree()

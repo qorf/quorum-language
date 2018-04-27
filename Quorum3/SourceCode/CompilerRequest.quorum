@@ -7,12 +7,10 @@ use Libraries.Language.Compile.Symbol.SymbolTable
 
 class CompilerRequest 
     public Array<File> files = undefined
-    public HashTable<text, ClassOpcode> opcodes
-    public SymbolTable previousCompile = undefined
+    public HashTable<text, ClassOpcode> opcodes = undefined
+    public SymbolTable symbolTable = undefined
     public File recompile = undefined
     public text recompileValue = undefined
-
-
     public boolean isWebRequest = false
     public boolean isFastCompileRequest = false
     public File main = undefined
