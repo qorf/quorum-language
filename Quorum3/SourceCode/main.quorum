@@ -50,9 +50,16 @@ class Main is WebResponder
         main:SetPath("Library/Tests/Use/Pass/GenerateAllClasses.quorum")
         Array<File> files
         files:Add(main)
-        compiler:SetOutputType(compiler:DOCUMENT)
-        compiler:SetMain(main)
-        compiler:Compile(files)
+        //compiler:SetOutputType(compiler:DOCUMENT)
+        //compiler:SetMain(main)
+
+
+        CompilerRequest request
+        request:files = files
+        request:library = compiler:GetStandardLibrary()
+        request:main = main
+        request:SetOutputType(request:DOCUMENT)
+        compiler:Compile(request)
 
         if compiler:IsCompilationErrorFree()
             output "Build Successful"
@@ -102,8 +109,13 @@ class Main is WebResponder
         //compiler:SetOutputSpeech(false) //don't speak while in test mode
         //compiler:SetIsWebApplication(true)
         //compiler:SetOutputType(compiler:JAVASCRIPT)
-        compiler:SetMain(main)
-        compiler:Compile(files)
+        //compiler:SetMain(main)
+
+        CompilerRequest compileRequest
+        compileRequest:files = files
+        compileRequest:library = compiler:GetStandardLibrary()
+        compileRequest:main = main
+        compiler:Compile(compileRequest)
 
         CodeCompletionRequest request
         request:line = "use Libraries.Containers.all"

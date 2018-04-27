@@ -465,15 +465,22 @@ class CompilerTestSuite
         
         File file
         file:SetPath(source)
-        compiler:SetMain(file)
 
         Array<File> files
         files:Add(file)
-        compiler:Compile(files)
+        CompilerRequest request
+        request:main = files:Get(0)
+        request:isWebRequest = false
+        request:library = library
+        request:files = files
+
+        CompilerResult compilerResult = compiler:Compile(request)
+        CompilerErrorManager manager = compilerResult:compilerErrorManager
+
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
         
-        if compiler:IsCompilationErrorFree()
+        if manager:IsCompilationErrorFree()
             File jar = compiler:GetDistributionFile()
             result = RunClassFile(jar)
         else
@@ -622,12 +629,20 @@ class CompilerTestSuite
         Array<File> files
         files:Add(file)
 
-        compiler:SetOutputType(compiler:JAVASCRIPT)
-        compiler:Compile(files)
+        CompilerRequest request
+        request:main = files:Get(0)
+        request:isWebRequest = false
+        request:SetOutputType(request:JAVASCRIPT)
+        request:library = library
+        request:files = files
+
+        CompilerResult compilerResult = compiler:Compile(request)
+        CompilerErrorManager manager = compilerResult:compilerErrorManager
+
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
 
-        if compiler:IsCompilationErrorFree() //run the program
+        if manager:IsCompilationErrorFree() //run the program
             text convertedJavaScript = compiler:GetCompiledJavaScript()
             result = RunJavaScript(convertedJavaScript)
         else
