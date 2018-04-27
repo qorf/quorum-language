@@ -26,7 +26,6 @@ class MenuBar is Item2D
 
     boolean isSelecting = false
 
-//    integer menuIndex = 0
     TextPathSelection selection
 
     on create
@@ -114,9 +113,6 @@ class MenuBar is Item2D
         if item:GetVisualContent() = undefined
             MenuItemContent content = cast(MenuItemContent, defaultMenuAppearance:Copy())
             item:SetAppearance(content)
-//                content:SetText(menu:GetName())
-//                menu:SetVisualContent(content)
-//                menu:SetSize(content:GetContentWidth(), content:GetContentHeight())
         end
 
         menus:Add(item)
@@ -133,16 +129,6 @@ class MenuBar is Item2D
             counter = counter + 1
         end
         SetSelectingState(false)
-    end
-
-    action DEBUG_GetPathText(Array<text> path) returns text
-        text debug = ""
-        integer debugCounter = 0
-        repeat while debugCounter < path:GetSize()
-            debug = debug + path:Get(debugCounter)
-            debugCounter = debugCounter + 1
-        end
-        return debug
     end
 
     action Select(Array<text> path)
@@ -171,7 +157,6 @@ class MenuBar is Item2D
 
         // Set our selection object with the new path, triggering a selection
         // event.
-//        selection:Set(path)
         selection:Set(pathCopy)
     end
 
@@ -215,26 +200,6 @@ class MenuBar is Item2D
         return undefined
     end
 
-//    action UpdateSelection(MenuItem menuItem)
-//        integer counter = 0
-//        integer index = 0
-//
-//        repeat while counter < menus:GetSize()
-//            MenuItem item = menus:Get(counter)
-//            if item:Equals(menuItem)
-//                if menuIndex not= counter
-//                    menus:Get(menuIndex):Close()
-//                end
-//
-//                menuIndex = counter
-//
-//                // Set the counter to the maximum size to end the loop early.
-//                counter = menus:GetSize()
-//            end
-//            counter = counter + 1
-//        end
-//    end
-
     action GetDefaultMenuHeaderView returns MenuItemContent
         return defaultMenuAppearance
     end
@@ -248,37 +213,11 @@ class MenuBar is Item2D
     end
 
     action SetSelectingState(boolean selecting)
+        if selecting = false
+            selection:Empty()
+        end
         isSelecting = selecting
     end
-
-//    action MoveSelectionLeft
-//        MenuItem item = menus:Get(menuIndex)
-//        if item:GetSelectionIndex() = 0
-//            integer index = menuIndex - 1
-//            if index < 0
-//                index = menus:GetSize() - 1
-//            end
-//            MenuItem newSelection = menus:Get(index)
-//            newSelection:SelectIndex(0)
-//        else
-//            Selection selection = item:GetSingleSelection(item:GetSelectionIndex())
-//            if selection not= undefined and selection is GraphicUserInterfaceSelection
-//                GraphicUserInterfaceSelection gui = cast(GraphicUserInterfaceSelection, selection)
-//                MenuItem selectedItem = cast(MenuItem, gui:GetElement())
-//                MenuItem selectedParent = selectedItem:GetParentMenu()
-//                if selectedParent not= undefined and selectedParent not= item
-//                    selectedParent:SelectIndex(0)
-//                else
-//                    integer index = menuIndex - 1
-//                    if index < 0
-//                        index = menus:GetSize() - 1
-//                    end
-//                    MenuItem newSelection = menus:Get(index)
-//                    newSelection:SelectIndex(0)
-//                end
-//            end
-//        end
-//    end
 
     action MoveSelectionLeft
         // Do a copy so modifying it here doesn't have side effects on the
@@ -334,7 +273,8 @@ class MenuBar is Item2D
                     Item2D menu = menus:Get(counter)
                     if menu:GetName() = name
                         integer index = (counter + 1) mod menus:GetSize()
-                        path:Set(0, menus:Get(index):GetName())
+                        path:Empty()
+                        path:Add(menus:Get(index):GetName())
                         Select(path)
                         return now
                     end
@@ -344,120 +284,18 @@ class MenuBar is Item2D
         end
     end
 
-//    action MoveSelectionRight
-//        MenuItem item = menus:Get(menuIndex)
-//        if item:GetSelectionIndex() = 0
-//            integer index = (menuIndex + 1) mod menus:GetSize()
-//            MenuItem newSelection = menus:Get(index)
-//            newSelection:SelectIndex(0)
-//        else
-//            Selection selection = item:GetSingleSelection(item:GetSelectionIndex())
-//            if selection not= undefined and selection is GraphicUserInterfaceSelection
-//                GraphicUserInterfaceSelection gui = cast(GraphicUserInterfaceSelection, selection)
-//                MenuItem selectedItem = cast(MenuItem, gui:GetElement())
-//                if selectedItem:IsMenu()
-//                    item:SelectIndex(item:GetSelectionIndex() + 1)
-//                else
-//                    integer index = (menuIndex + 1) mod menus:GetSize()
-//                    MenuItem newSelection = menus:Get(index)
-//                    newSelection:SelectIndex(0)
-//                end
-//            end
-//        end
-//    end
-    
     action MoveSelectionDown
-//        MenuItem item = menus:Get(menuIndex)
-//        item:MenuSelectionDown()
         MenuItem item = GetMenuItem(selection:GetPath())
         item:MenuSelectionDown()
     end
 
     action MoveSelectionUp
-//        MenuItem item = menus:Get(menuIndex)
-//        item:MenuSelectionUp()
         MenuItem item = GetMenuItem(selection:GetPath())
         item:MenuSelectionUp()
     end
 
-//    action GetSingleSelection(integer index) returns Selection
-//        integer i = index
-//        integer counter = 0
-//
-//        repeat while counter < menus:GetSize()
-//            MenuItem item = menus:Get(counter)
-//            if i < item:GetSelectableSize()
-//                return item:GetSingleSelection(i)
-//            end
-//
-//            i = i - item:GetSelectableSize()
-//            counter = counter + 1
-//        end
-//
-//        Selection selection
-//        selection:SetDisplayName("Menu Bar")
-//        return selection
-//    end
-//
-//    action GetRangeSelection(Pair<integer> range) returns Array<Selection>
-//        Array<Selection> array
-//        integer index = range:GetLeastValue()
-//        Selection selection = GetSingleSelection(index)
-//        array:Add(selection)
-//        return array
-//    end
-//
-//    action GetMultipleSelection(Array<Pair<integer>> ranges) returns Array<Selection>
-//        Array<Selection> array
-//        
-//        if ranges:IsEmpty()
-//            Selection selection
-//            selection:SetDisplayName(GetName())
-//            array:Add(selection)
-//            return array
-//        end
-//
-//        integer index = ranges:Get(0):GetLeastValue()
-//        Selection selection = GetSingleSelection(index)
-//        array:Add(selection)
-//        return array
-//    end
-//
-//    action GetSelectableSize returns integer
-//        integer counter = 0
-//        integer size = 0
-//        repeat while counter < menus:GetSize()
-//            size = menus:Get(counter):GetSelectableSize()
-//            counter = counter + 1
-//        end
-//
-//        return size
-//    end
-//
-//    action GetCurrentSelection returns Array<Selection>
-//        if menuIndex < menus:GetSize()
-//            return menus:Get(menuIndex):GetCurrentSelection()
-//        else
-//            // Return empty array (no selection).
-//            Array<Selection> array
-//            return array
-//        end
-//    end
-//
     action RunSelection
         if IsSelecting()
-//            MenuItem menu = menus:Get(menuIndex)
-//            Selection selection = menu:GetSingleSelection(menu:GetSelectionIndex())
-//            if selection is GraphicUserInterfaceSelection
-//                GraphicUserInterfaceSelection gui = cast(GraphicUserInterfaceSelection, selection)
-//                MenuItem selectedItem = cast(MenuItem, gui:GetElement())
-//                if selectedItem:IsMenu()
-//                    selectedItem:Open()
-//                else
-//                    selectedItem:RunBehavior()
-//                    Close()
-//                end
-//            end
             MenuItem item = GetMenuItem(selection:GetPath())
             if item:IsMenu()
                 item:Open()

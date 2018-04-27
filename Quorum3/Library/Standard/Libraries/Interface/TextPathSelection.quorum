@@ -26,6 +26,12 @@ class TextPathSelection is Selection
         SetDisplayName(path:GetFromEnd())
     end
 
+    action Empty
+        path:Empty()
+        path:Add("")
+        parent:Selection:displayName = ""
+    end
+
     action GetPath returns Array<text>
         return path:CopyToArray()
     end

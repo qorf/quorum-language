@@ -49,7 +49,6 @@ class MenuItem is GraphicUserInterface, Selectable
 
     text shortcut = ""
     boolean open = false
-//    integer selectionIndex = 0
 
     Behavior activationBehavior = undefined
 
@@ -230,22 +229,6 @@ class MenuItem is GraphicUserInterface, Selectable
     end
 
     action GetMenuBar returns MenuBar
-//        Item2D item = me
-//        repeat while item not= undefined and not (item is MenuBar)
-//            if item is MenuItem
-//                MenuItem menuItem = cast(MenuItem, item)
-//                if menuItem:GetParentMenu() not= undefined
-//                    item = menuItem:GetParentMenu()
-//                else
-//                    item = item:GetParent()
-//                end
-//            else
-//                item = item:GetParent()
-//            end
-//        end
-//
-//        // The returned value is either a MenuBar or undefined.
-//        return cast(MenuBar, item)
         return menuBar
     end
 
@@ -323,11 +306,6 @@ class MenuItem is GraphicUserInterface, Selectable
         if not open
             Open()
         end
-//        MenuItem parentMenu = GetParentMenu()
-//        if parentMenu not= undefined
-//            parentMenu:UpdateSelection(me)
-//            parentMenu:GainedSelection()
-//        end
     end
 
     action LostSelection
@@ -386,67 +364,6 @@ class MenuItem is GraphicUserInterface, Selectable
     action GetMenuItems returns Array<MenuItem>
         return menuItems
     end
-
-//    action UpdateSelection(text oldPath, text newPath)
-//
-//        // Trim trailing slashes before processing.
-//        repeat while (not oldPath:IsEmpty()) and oldPath:EndsWith("/")
-//            oldPath = oldPath:Subtext(0, oldPath:GetSize() - 1)
-//        end
-//        repeat while (not newPath:IsEmpty()) and newPath:EndsWith("/")
-//            newPath = newPath:Subtext(0, newPath:GetSize() - 1)
-//        end
-//
-//        integer oldPathIndex = oldPath:IndexOf("/")
-//        integer newPathIndex = newPath:IndexOf("/")
-//        
-//        text oldPathSubtext = ""
-//        if newPathSubtext = ""
-//
-//        if oldPathIndex = -1
-//            oldPathSubtext = oldPath
-//        else
-//            oldPathSubtext = oldPath:GetSubtext(0, oldPathIndex)
-//        end
-//
-//        if newPathIndex = -1
-//            newPathSubtext = newPath
-//        else
-//            newPathSubtext = newPath:GetSubtext(0, newPathIndex)
-//        end
-//
-//        if oldPathSubtext = newPathSubtext
-//            if oldPathSubtext:IsEmpty() 
-//                return now
-//            end
-//
-//            MenuItem oldItem = GetMenuItem(oldPathSubtext)
-//            if oldItem not= undefined
-//                text remainingOldPath = oldPath:GetSubtext(oldPathIndex + 1)
-//                text remainingNewPath = newPath:GetSubtext(newPathIndex + 1)
-//
-//                oldItem:UpdateSelection(remainingOldPath, remainingNewPath)
-//            end
-//        else
-//            if not oldPathSubtext:IsEmpty()
-//                MenuItem oldItem = GetMenuItem(oldPathSubtext)
-//                if oldItem not= undefined
-//                    text remainingOldPath = oldPath:GetSubtext(oldPathIndex + 1)
-//
-//                    oldItem:RecursiveDeselect(remainingOldPath)
-//                end
-//            end
-//
-//            if not newPathSubtext:IsEmpty()
-//                MenuItem newItem = GetMenuItem(newPathSubtext)
-//                if newItem not= undefined
-//                    text remainingNewPath = newPath:GetSubtext(newPathIndex + 1)
-//
-//                    newItem:RecursiveSelect(remainingNewPath)
-//                end
-//            end
-//        end
-//    end
 
     action UpdateSelection(Array<text> oldPath, Array<text> newPath)
 
@@ -508,36 +425,6 @@ class MenuItem is GraphicUserInterface, Selectable
         LostSelection()
     end
 
-//    action SelectIndex(integer index)
-//        DeselectIndex(selectionIndex)
-//
-//        selectionIndex = index
-//        UpdateParentSelection()
-//
-////        parent:Selectable:SelectIndex(index)
-//        Selection selection = GetSingleSelection(index)
-//        if selection is GraphicUserInterfaceSelection
-//            GraphicUserInterfaceSelection guiSelection = cast(GraphicUserInterfaceSelection, selection)
-//            if guiSelection:GetElement() is MenuItem
-//                MenuItem item = cast(MenuItem, guiSelection:GetElement())
-//                item:GainedSelection()
-//            end
-//        end
-//    end
-//
-//    action DeselectIndex(integer index)
-////        parent:Selectable:DeselectIndex(index)
-//
-//        Selection selection = GetSingleSelection(index)
-//        if selection is GraphicUserInterfaceSelection
-//            GraphicUserInterfaceSelection guiSelection = cast(GraphicUserInterfaceSelection, selection)
-//            if guiSelection:GetElement() is MenuItem
-//                MenuItem item = cast(MenuItem, guiSelection:GetElement())
-//                item:LostSelection()
-//            end
-//        end
-//    end
-
     action GetIconWidth returns number
         if GetVisualContent() is MenuItemContent
             MenuItemContent content = cast(MenuItemContent, GetVisualContent())
@@ -574,200 +461,15 @@ class MenuItem is GraphicUserInterface, Selectable
         end
     end
 
-//    action GetSingleSelection(integer index) returns Selection
-//        Array<Item2D> items = panel:GetChildren()
-//        if index = 0
-//            GraphicUserInterfaceSelection selection
-//            selection:SetElement(me)
-//            selection:SetDisplayName(GetName())
-//            return selection
-//        else
-//            integer i = index - 1
-//            integer counter = 0
-//            repeat while counter < items:GetSize()
-//                Item2D item = items:Get(counter)
-//                if item is MenuItem
-//                    MenuItem menuItem = cast(MenuItem, item)
-//                    if i < menuItem:GetSelectableSize()
-//                        Selection selection = menuItem:GetSingleSelection(i)
-//                        return selection
-//                    else
-//                        i = i - menuItem:GetSelectableSize()
-//                    end
-//                else
-//                    if i = 0
-//                        Selection selection
-//                        selection:SetDisplayName(item:GetName())
-//                        return selection
-//                    else
-//                        i = i - 1
-//                    end
-//                end
-//
-//                counter = counter + 1
-//            end
-//
-//            return undefined
-//        end
-//        
-//    end
-//
-//    action GetRangeSelection(Pair<integer> range) returns Array<Selection>
-//        Array<Selection> array
-//        integer index = range:GetLeastValue()
-//        Selection selection = GetSingleSelection(index)
-//        array:Add(selection)
-//        return array
-//    end
-//
-//    action GetMultipleSelection(Array<Pair<integer>> ranges) returns Array<Selection>
-//        Array<Selection> array
-//        
-//        if ranges:IsEmpty()
-//            Selection selection
-//            selection:SetDisplayName(GetName())
-//            array:Add(selection)
-//            return array
-//        end
-//
-//        integer index = ranges:Get(0):GetLeastValue()
-//        Selection selection = GetSingleSelection(index)
-//        array:Add(selection)
-//        return array
-//    end
-//
-//    action GetSelectableSize returns integer
-//        integer counter = 0
-//        Array<Item2D> children = panel:GetChildren()
-//        integer size = 0
-//        repeat while counter < children:GetSize()
-//            if children:Get(counter) is MenuItem
-//                MenuItem item = cast(MenuItem, children:Get(counter))
-//                size = size + item:GetSelectableSize()
-//            end
-//            counter = counter + 1
-//        end
-//
-//        return size + 1
-//    end
-//
-//    action GetCurrentSelection returns Array<Selection>
-//        Selection selection = GetSingleSelection(selectionIndex)
-//        Array<Selection> array
-//        array:Add(selection)
-//        return array
-//    end
-//
-//    action GetSelectionIndex returns integer
-//        return selectionIndex
-//    end
-//
-//    action SetSelection(integer index)
-//        if index = selectionIndex
-//            return now
-//        end
-//
-//        DeselectIndex(selectionIndex)
-//        selectionIndex = index
-//        SelectIndex(selectionIndex)
-//    end
-//
-//    private action UpdateParentSelection
-//        MenuItem menu = GetParentMenu()
-//        MenuItem toUpdate = me
-//        repeat while menu not= undefined
-//            menu:UpdateSelection(toUpdate)
-//            toUpdate = menu
-//            menu = menu:GetParentMenu()
-//        end
-//
-//        MenuBar bar = GetMenuBar()
-//        if bar not= undefined
-//            bar:UpdateSelection(toUpdate)
-//        end
-//    end
-//
-//    private action UpdateSelection(MenuItem newSelection)
-//        if newSelection = me
-//            selectionIndex = 0
-//        else
-//            Array<Item2D> items = panel:GetChildren()
-//            integer counter = 0
-//            integer newIndex = 1
-//            repeat while counter < items:GetSize()
-//                Item2D item = items:Get(counter)
-//                if item:Equals(newSelection)
-//                    MenuItem menuItem = cast(MenuItem, item)
-//                    selectionIndex = newIndex + newSelection:GetSelectionIndex()
-//                elseif item is MenuItem
-//                    MenuItem menuItem = cast(MenuItem, item)
-//                    // Deselect any previously selected menus if they're not
-//                    // providing the current selection.
-//                    menuItem:LostSelection()
-//                    newIndex = newIndex + menuItem:GetSelectableSize()
-//                else
-//                    newIndex = newIndex + 1
-//                end
-//                counter = counter + 1
-//            end
-//        end
-//    end
-
-//    private action Deselect
-//        DeselectIndex(selectionIndex)
-//        selectionIndex = 0
-//    end
-
     action IsMenu returns boolean
         return not menuItems:IsEmpty()
     end
 
-//    action MenuSelectionDown
-//
-//        integer i = selectionIndex - 1
-//        integer counter = 0
-//        Array<Item2D> items = panel:GetChildren()
-//
-//        if selectionIndex = 0
-//            if not items:IsEmpty() and items:Get(0) is MenuItem
-//                MenuItem menuItem = cast(MenuItem, items:Get(0))
-//                menuItem:SelectIndex(0)
-//            end
-//            return now
-//        end
-//
-//        repeat while counter < items:GetSize()
-//            Item2D item = items:Get(counter)
-//            if item is MenuItem
-//                MenuItem menuItem = cast(MenuItem, item)
-//                if i < menuItem:GetSelectableSize()
-//                    if menuItem:IsMenu() and i not= 0
-//                        menuItem:MenuSelectionDown()
-//                    else
-//                        if (counter + 1 < items:GetSize()) and (items:Get(counter + 1) is MenuItem)
-//                            MenuItem newSelection = cast(MenuItem, items:Get(counter + 1))
-//                            newSelection:SelectIndex(0)
-//                        end
-//                    end
-//                    return now
-//                else
-//                    i = i - menuItem:GetSelectableSize()
-//                end
-//            else
-//                if i = 0
-//                    return now
-//                else
-//                    i = i - 1
-//                end
-//            end
-//
-//            counter = counter + 1
-//        end
-//    end
-
     action MenuSelectionDown
         if GetParentMenu() not= undefined
             GetParentMenu():MenuSelectionDown(GetName())
+        elseif menuItems:GetSize() > 0
+            menuItems:Get(0):Select()
         end
     end
 
@@ -788,48 +490,11 @@ class MenuItem is GraphicUserInterface, Selectable
         end
     end
 
-//    action MenuSelectionUp
-//
-//        integer i = selectionIndex - 1
-//        integer counter = 0
-//        Array<Item2D> items = panel:GetChildren()
-//
-//        if selectionIndex = 0
-//            return now
-//        end
-//
-//        repeat while counter < items:GetSize()
-//            Item2D item = items:Get(counter)
-//            if item is MenuItem
-//                MenuItem menuItem = cast(MenuItem, item)
-//                if i < menuItem:GetSelectableSize()
-//                    if menuItem:IsMenu() and i not= 0
-//                        menuItem:MenuSelectionUp()
-//                    else
-//                        if (counter - 1 >= 0) and (items:Get(counter - 1) is MenuItem)
-//                            MenuItem newSelection = cast(MenuItem, items:Get(counter - 1))
-//                            newSelection:SelectIndex(0)
-//                        end
-//                    end
-//                    return now
-//                else
-//                    i = i - menuItem:GetSelectableSize()
-//                end
-//            else
-//                if i = 0
-//                    return now
-//                else
-//                    i = i - 1
-//                end
-//            end
-//
-//            counter = counter + 1
-//        end
-//    end
-
     action MenuSelectionUp
         if GetParentMenu() not= undefined
             GetParentMenu():MenuSelectionUp(GetName())
+        elseif menuItems:GetSize() > 0
+            menuItems:Get(menuItems:GetSize() - 1):Select()
         end
     end
 
@@ -854,7 +519,6 @@ class MenuItem is GraphicUserInterface, Selectable
         Array<text> path
         path:Add(GetName())
         if parentMenu not= undefined
-//            return parentMenu:GetMenuPath(path)
             Array<text> a = parentMenu:GetMenuPath(path)
             return a
         end
@@ -870,13 +534,4 @@ class MenuItem is GraphicUserInterface, Selectable
         return array
     end
 
-    action DEBUG_GetPathText(Array<text> path) returns text
-        text debug = ""
-        integer debugCounter = 0
-        repeat while debugCounter < path:GetSize()
-            debug = debug + path:Get(debugCounter)
-            debugCounter = debugCounter + 1
-        end
-        return debug
-    end
 end
