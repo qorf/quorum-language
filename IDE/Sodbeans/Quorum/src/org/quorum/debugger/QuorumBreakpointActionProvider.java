@@ -32,8 +32,6 @@ public class QuorumBreakpointActionProvider extends ActionsProviderSupport  {
     public static void removeListener(BreakpointListener listener) {
         listeners.remove(listener);
     }
-    
-//    private TextToSpeech speech = TextToSpeechFactory.getDefaultTextToSpeech();
 
     public QuorumBreakpointActionProvider() {
         setEnabled(ActionsManager.ACTION_TOGGLE_BREAKPOINT, true);
@@ -62,9 +60,6 @@ public class QuorumBreakpointActionProvider extends ActionsProviderSupport  {
                             && ((QuorumBreakpoint) breakpoints[i]).getLine().equals(line)) {
                         
                         QuorumBreakpoint bp = (QuorumBreakpoint)breakpoints[i];
-//                            if (TextToSpeechOptions.isScreenReading()) {
-//                                speech.speak("Removed breakpoint at line " + (line.getLineNumber() + 1) + " in " + fo.getNameExt(), SpeechPriority.MEDIUM);
-//                            }
                         DebuggerManager.getDebuggerManager().removeBreakpoint(bp);
                         Iterator<BreakpointListener> iterator = listeners.iterator();
                         while(iterator.hasNext()) {
@@ -78,9 +73,6 @@ public class QuorumBreakpointActionProvider extends ActionsProviderSupport  {
                 //if we need to, add a breakpoint
                 if (i == k) { //add a breakpoint
                     QuorumBreakpoint bp = DebuggerUtils.getBreakpointAtLine();
-//                        if (TextToSpeechOptions.isScreenReading()) {
-//                            speech.speak("Added Breakpoint at line " + (line.getLineNumber() + 1) + " in " + fo.getNameExt(), SpeechPriority.MEDIUM);
-//                        }
                     DebuggerManager.getDebuggerManager().addBreakpoint(bp);
                     Iterator<BreakpointListener> iterator = listeners.iterator();
                     while(iterator.hasNext()) {
@@ -90,7 +82,6 @@ public class QuorumBreakpointActionProvider extends ActionsProviderSupport  {
                 }
             }
         });
-
     }
 
     @Override

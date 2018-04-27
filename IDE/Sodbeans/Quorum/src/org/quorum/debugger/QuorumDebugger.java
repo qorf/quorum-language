@@ -12,6 +12,8 @@ import java.util.logging.Logger;
 import javax.swing.JEditorPane;
 import javax.swing.SwingUtilities;
 import org.debugger.Debugger;
+import org.netbeans.api.debugger.Breakpoint;
+import org.netbeans.api.debugger.DebuggerManager;
 import org.netbeans.modules.editor.NbEditorUtilities;
 import org.netbeans.spi.debugger.ActionsProviderSupport;
 import org.netbeans.spi.debugger.ContextProvider;
@@ -140,7 +142,8 @@ public class QuorumDebugger extends ActionsProviderSupport implements Breakpoint
         cancel.debugger = this;
         
         support.setDebugger(debugger);
-        support.setCompiler(project.getLookup().lookup(quorum.Libraries.Language.Compile.Compiler.class));
+        //support.setCompiler(project.getLookup().lookup(quorum.Libraries.Language.Compile.Compiler.class));
+        support.setProject(project);
         
         engineProvider = (QuorumDebuggerEngineProvider) contextProvider.lookupFirst(null, DebuggerEngineProvider.class);
         for (Iterator it = actions.iterator(); it.hasNext();) {
@@ -148,13 +151,14 @@ public class QuorumDebugger extends ActionsProviderSupport implements Breakpoint
         }
         QuorumDebuggerListener listener = new QuorumDebuggerListener();
         listener.setEngine(engineProvider);
-        listener.getSupport().setCompiler(project.getLookup().lookup(quorum.Libraries.Language.Compile.Compiler.class));
+        listener.getSupport().setProject(project);//.setCompiler(project.getLookup().lookup(quorum.Libraries.Language.Compile.Compiler.class));
         //listener.setCompiler(project.getLookup().lookup(quorum.Libraries.Language.Compile.Compiler.class));
         listener.setDebugger(debugger);
         listener.setCancel(cancel);
         listener.setAnnotationUpdater(annotationProvider);
         listener.setQuorumDebugger(this);
         debugger.add(listener);
+        //support.refreshBreakpoints();
         QuorumBreakpointActionProvider.addListener(this);
     }
     
