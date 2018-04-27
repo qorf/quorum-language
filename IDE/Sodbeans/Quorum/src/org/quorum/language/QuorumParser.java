@@ -96,7 +96,8 @@ public class QuorumParser extends Parser{
                     CompilerResult_ previousCompile = ((QuorumProject) project).getLastCompileResult();
                     
                     if(previousCompile != null) {
-                        request.previousCompile = previousCompile.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
+                        request.symbolTable = previousCompile.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
+                        request.opcodes = previousCompile.Get_Libraries_Language_Compile_CompilerResult__opcodes_();
                     }
                     request.library = library;
                     request.files = listing;

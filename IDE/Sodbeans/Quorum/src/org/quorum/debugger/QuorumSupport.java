@@ -258,10 +258,13 @@ public class QuorumSupport {
         String key = DotNameToStaticKey(staticKey);
         SymbolTable_ table = getCompiler().Get_Libraries_Language_Compile_Compiler__symbolTable_();
         Class_ clazz = table.GetClass(key);
-        File_ f = clazz.GetFile();
-        String path = f.GetAbsolutePath();
-        File file = new File(path);
-        return FileUtil.toFileObject(file);
+        if(clazz != null) {
+            File_ f = clazz.GetFile();
+            String path = f.GetAbsolutePath();
+            File file = new File(path);
+            return FileUtil.toFileObject(file);
+        }
+        return null;
     }
 
     /**

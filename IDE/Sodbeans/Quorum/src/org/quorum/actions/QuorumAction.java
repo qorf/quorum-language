@@ -74,6 +74,7 @@ public abstract class QuorumAction implements Action {
         FileObject build = projectDirectory.getFileObject(QuorumProject.BUILD_DIRECTORY);
         FileObject run = projectDirectory.getFileObject(QuorumProject.DISTRIBUTION_DIRECTORY);
 
+        project.setLastCompileResult(null);
         try {
             if (build != null && build.isValid()) {
                 build.delete();
@@ -180,13 +181,15 @@ public abstract class QuorumAction implements Action {
             CompilerRequest request = new CompilerRequest();
             CompilerResult_ previousCompile = project.getLastCompileResult();
             if(previousCompile != null) {
-                request.previousCompile = previousCompile.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
+                request.symbolTable = previousCompile.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
+                request.opcodes = previousCompile.Get_Libraries_Language_Compile_CompilerResult__opcodes_();
             }
             Library_ library = project.GetStandardLibrary();
             request.Set_Libraries_Language_Compile_CompilerRequest__files_(listing);
             request.Set_Libraries_Language_Compile_CompilerRequest__library_(library);
             request.Set_Libraries_Language_Compile_CompilerRequest__main_(main);
             result = compiler.Compile(request);
+            project.setLastCompileResult(result);
         } catch (final Exception e) {
             if(logExceptionsToConsoleOutput) {
                 SwingUtilities.invokeLater(new Runnable() {
