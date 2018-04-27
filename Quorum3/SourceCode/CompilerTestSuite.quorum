@@ -624,7 +624,6 @@ class CompilerTestSuite
         
         File file
         file:SetPath(source)
-        compiler:SetMain(file)
 
         Array<File> files
         files:Add(file)
@@ -643,7 +642,7 @@ class CompilerTestSuite
         summaryProfiler:Add(profiler)
 
         if manager:IsCompilationErrorFree() //run the program
-            text convertedJavaScript = compiler:GetCompiledJavaScript()
+            text convertedJavaScript = compilerResult:convertedJavaScript
             result = RunJavaScript(convertedJavaScript)
         else
             CompilerTestResult result2

@@ -59,15 +59,16 @@ class Main is WebResponder
         request:library = compiler:GetStandardLibrary()
         request:main = main
         request:SetOutputType(request:DOCUMENT)
-        compiler:Compile(request)
-
-        if compiler:IsCompilationErrorFree()
+        CompilerResult result = compiler:Compile(request)
+        CompilerErrorManager manager = result:compilerErrorManager
+        
+        if manager:IsCompilationErrorFree()
             output "Build Successful"
             if compiler:GetOutputType() = compiler:JAVASCRIPT
-                output compiler:GetCompiledJavaScript()
+                output result:convertedJavaScript
             end
         else
-            output compiler:GetCompilerErrorsAsText()
+            output manager:GetCompilerErrorsAsText()
         end
     end
 
@@ -115,27 +116,27 @@ class Main is WebResponder
         compileRequest:files = files
         compileRequest:library = compiler:GetStandardLibrary()
         compileRequest:main = main
-        compiler:Compile(compileRequest)
+        CompilerResult result = compiler:Compile(compileRequest)
+        CompilerErrorManager manager = result:compilerErrorManager
 
-        CodeCompletionRequest request
-        request:line = "use Libraries.Containers.all"
-        request:lineNumber = 1
-        request:fileKey = main:GetAbsolutePath()
-        request:startOffset = 5
-        CodeCompletionResult result = compiler:Request(request)
+//        CodeCompletionRequest request
+//        request:line = "use Libraries.Containers.all"
+//        request:lineNumber = 1
+//        request:fileKey = main:GetAbsolutePath()
+//        request:startOffset = 5
+//        CodeCompletionResult result = compiler:Request(request)
 
-
-        if compiler:IsCompilationErrorFree()
+        if manager:IsCompilationErrorFree()
             output "Build Successful"
             if compiler:GetOutputType() = compiler:JAVASCRIPT
                 File myOutput
                 myOutput:SetWorkingDirectory("/Users/alleew/Desktop/WebGLTester/public_html")
                 myOutput:SetPath("TestQuorum.js")
-                myOutput:Write(compiler:GetCompiledJavaScript())
+                myOutput:Write(result:convertedJavaScript)
                 output "File written."
             end
         else
-            output compiler:GetCompilerErrorsAsText()
+            output manager:GetCompilerErrorsAsText()
         end
     end
 
@@ -238,7 +239,7 @@ class Main is WebResponder
                 File myOutput
                 myOutput:SetWorkingDirectory("/Users/alleew/Desktop/WebGLTester/public_html")
                 myOutput:SetPath("TestQuorum.js")
-                myOutput:Write(compiler:GetCompiledJavaScript())
+                myOutput:Write(result:convertedJavaScript)
                 output "File written."
             end
         else
@@ -500,11 +501,10 @@ class Main is WebResponder
         request:library = library
         request:files = files
 
-        //compiler:SetMain(main)
-        //compiler:SetIsWebApplication(isWebApplication)
         CompilerResult result = compiler:Compile(request)
-        
-        if compiler:IsCompilationErrorFree()
+        CompilerErrorManager manager = result:compilerErrorManager
+
+        if manager:IsCompilationErrorFree()
             output "Build Successful"
         else
             output result:compilerErrorManager:GetCompilerErrorsAsText()
@@ -609,12 +609,24 @@ For more information on writing programs in Quorum, visit www.quorumlanguage.com
 
         text source = request:GetParameter("code")
         compiler:SetOutputType(compiler:JAVASCRIPT)
-        compiler:CompileSingle(source)
+        
+        CompilerRequest compilerRequest
+        
+        output compiler:GetVersion()
 
-        if compiler:IsCompilationErrorFree()
-            response:SetPageText(compiler:GetCompiledJavaScript())
+        compilerRequest:main = undefined
+        compilerRequest:library = undefined//library
+        compilerRequest:files = undefined //files
+        
+        CompilerResult compilerResult = compiler:Compile(compilerRequest)
+        CompilerErrorManager manager = compilerResult:compilerErrorManager
+
+        //compiler:CompileSingle(source)
+
+        if manager:IsCompilationErrorFree()
+            response:SetPageText(compilerResult:convertedJavaScript)
         else
-            response:SetPageText(compiler:GetCompilerErrorsAsHTML())
+            response:SetPageText(manager:GetCompilerErrorsAsHTML())
         end
         return response
     end

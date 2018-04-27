@@ -54,15 +54,15 @@ class Compiler
     text name = "Default"
     text convertedJavaScript = ""
     //Support classes
-    SymbolTable symbolTable
-    CompilerErrorManager compilerErrorManager
-    TypeChecker checker
+    //SymbolTable symbolTable
+    //CompilerErrorManager compilerErrorManager
+    //TypeChecker checker
     
 
     //Sandbox classes for the parser
-    SymbolTable sandboxSymbolTable
-    CompilerErrorManager sandboxCompilerErrorManager
-    TypeChecker sandboxTypeChecker
+    //SymbolTable sandboxSymbolTable
+    //CompilerErrorManager sandboxCompilerErrorManager
+    //TypeChecker sandboxTypeChecker
     public constant integer JAVA_BYTECODE = 0
     public constant integer JAVASCRIPT = 1
     public constant integer DOCUMENT = 2
@@ -106,18 +106,18 @@ class Compiler
         default it removes only parse information, but does not alter
         any parameters (e.g., project directory).
     */
-    action Empty
-        SymbolTable symbolTable2
-        CompilerErrorManager compilerErrorManager2
-        TypeChecker checker2
-        CompilerProfiler profiler2
-
-        symbolTable = symbolTable2
-        compilerErrorManager = compilerErrorManager2
-        checker = checker2
-        checker:SetSymbolTable(symbolTable)
-        profiler = profiler2
-    end
+//    action Empty
+//        SymbolTable symbolTable2
+//        CompilerErrorManager compilerErrorManager2
+//        TypeChecker checker2
+//        CompilerProfiler profiler2
+//
+//        symbolTable = symbolTable2
+//        compilerErrorManager = compilerErrorManager2
+//        checker = checker2
+//        checker:SetSymbolTable(symbolTable)
+//        profiler = profiler2
+//    end
 
     action SetOutputSpeech(boolean doSay)
         outputSpeechCommands = doSay
@@ -536,165 +536,6 @@ class Compiler
         end
     end
 
-    /*
-        This action compiles the array of files to Java Bytecode, which
-        it writes to disk. By default, it generates a .jar file into the 
-        folder named Run and the class files into the folder labeled
-        Build.
-    */
-//    action Compile(Array<File> files)
-//        hasBeenCompiled = true
-//        DateTime time
-//        profiler:Empty()
-//        profiler:Add(time:GetEpochTime())
-//        boolean isInvalidCompile = false
-//        checker:SetSymbolTable(symbolTable)
-//        if files = undefined
-//            isInvalidCompile = true
-//        elseif files:IsEmpty()
-//            isInvalidCompile = true
-//        end
-//
-//        if isInvalidCompile
-//            CompilerError error
-//            text message = ""
-//            if files = undefined
-//                message = "I cannot compile an array of files that is passed to me undefined"
-//            elseif files:IsEmpty()
-//                message = "I cannot compile an arry of files that is empty. Please specify which files you would like compiled."
-//            end
-//            error:SetErrorMessage(message)
-//            CompilerErrorType t
-//            t:SetCurrentType(t:MISSING_FILE)
-//            error:SetCompilerErrorType(t)
-//            error:SetLineNumber(1)
-//            error:SetLineNumberEnd(1)
-//            error:SetColumnNumber(1)
-//            error:SetColumnNumberEnd(1)
-//            compilerErrorManager:Add(error)
-//            return now
-//        end
-//
-//        if hasScannedStandardLibrary
-//            symbolTable:SetStandardLibraryCache(standardLibrary:GetSymbolTable())
-//        end
-//
-//        i = 0
-//        repeat while i < files:GetSize()
-//            File file = files:Get(i)
-//            Parser listener
-//            Parse(file, listener)
-//            i = i + 1
-//        end
-//        profiler:Add(time:GetEpochTime())
-//
-//        //This array will contain all files that must be built, 
-//        //including potentially some from the standard library
-//        //in order to build the requested files
-//        Array<File> allFiles = undefined
-//        if compilerErrorManager:IsCompilationErrorFree()
-//            allFiles = GetAllRequiredFiles(symbolTable, checker, compilerErrorManager)
-//        else 
-//            return now
-//        end
-//        profiler:Add(time:GetEpochTime())
-//
-//        if compilerErrorManager:IsCompilationErrorFree()
-//            TypeResolution(symbolTable, checker, compilerErrorManager)
-//        else 
-//            return now
-//        end
-//        profiler:Add(time:GetEpochTime())
-//
-//        Array<ClassOpcode> classOpcodes
-//        if compilerErrorManager:IsCompilationErrorFree()
-//            i = 0
-//            repeat while i < allFiles:GetSize()
-//                File file = allFiles:Get(i)
-//                QuorumBytecodeListener listener
-//                if not outputSpeechCommands
-//                    listener:SetOutputSpeech(outputSpeechCommands)
-//                end
-//
-//                Parse(file, listener)
-//
-//                if listener:HasSayStatementInClass()
-//                    containsSpeechCommandInCompile = true
-//                end
-//                ClassOpcode op = listener:GetClassOpcode()
-//                op:SetBuild(buildFolder)
-//                classOpcodes:Add(op)
-//                i = i + 1
-//            end
-//        else 
-//            return now
-//        end
-//        profiler:Add(time:GetEpochTime())
-//
-//        File starter = files:Get(0)
-//        CheckMain(starter)
-//        
-//        //at this point, if the build is compilation free, it 
-//        //is guaranteed to not have compile errors, as no errors
-//        //can be issues in the bytecode writing stage.
-//        //if an error is issued, it is a bug in the compiler and not
-//        //an intentional design decision.
-//        if compilerErrorManager:IsCompilationErrorFree()
-//            if currentOutputType = JAVA_BYTECODE
-//                //open up and begin filling the Jar
-//                JarGenerator generator
-//                text manifest = GetManifest(generator)
-//                File jar = GetDistributionFile()
-//                generator:SetManifest(manifest)
-//                generator:Open(jar)
-//
-//                //iterate over all the class opcodes and write them to disk
-//                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
-//                repeat while codes:HasNext()
-//                    ClassOpcode code = codes:Next()
-//                    code:Write()
-//
-//                    File build = code:GetBuildFile()
-//                    File buildInterface = code:GetBuildInterfaceFile()
-//
-//                    text key = code:GetStaticKey()
-//                    if build not= undefined
-//                        if IsWebApplication()
-//                            text path = WEB_DIRECTORY + "/" + build:GetPath()
-//                            generator:Add(build, path)
-//                        else 
-//                            generator:Add(build)
-//                        end
-//                    end
-//
-//                    if buildInterface not= undefined
-//                        if IsWebApplication()
-//                            text path = WEB_DIRECTORY + "/" + buildInterface:GetPath()
-//                            generator:Add(buildInterface, path)
-//                        else 
-//                            generator:Add(buildInterface)
-//                        end
-//                    end
-//                end
-//                profiler:Add(time:GetEpochTime())
-//
-//                //ok all of the classes are written in the jar. Now fill it up
-//                //with any dependencies that are necessary.
-//                WriteDependencies(generator)
-//                generator:Close()
-//                profiler:Add(time:GetEpochTime())
-//                
-//            elseif currentOutputType = JAVASCRIPT
-//                convertedJavaScript = CompileToJavaScript(classOpcodes)
-//                if IsWritingJavaScriptToDisk()
-//                    WriteJavaScript(convertedJavaScript)
-//                end
-//                
-//            elseif currentOutputType = DOCUMENT
-//                //CreateDocumentation(classOpcodes)
-//            end
-//        end
-//    end
 
     private action WriteJavaScript(text value)
         //check if the run folder is there.
@@ -1089,198 +930,198 @@ class Compiler
         CopyMissingFiles(compiledStandardLibraryFolder, runFolder)
     end
 
-    private action WriteDependencies(JarGenerator generator)
-        WritePlugins(generator, pluginFolder, pluginFolder)
-
-        if not additionalPluginFolders:IsEmpty()
-            Iterator<File> it = additionalPluginFolders:GetIterator()
-            repeat while it:HasNext()
-                File folder = it:Next()
-                WritePlugins(generator, folder, folder)
-            end
-        end
-
-        //copy any jar files that are dependencies to disk
-        if not additionalJarFiles:IsEmpty()
-            Iterator<File> jars = additionalJarFiles:GetIterator()
-            repeat while jars:HasNext()
-                File file = jars:Next()
-                WriteJarToDisk(file)
-            end
-        end
-        
-        // Booleans added for the game/sound plugins.
-        boolean hasGame = symbolTable:HasClass("Libraries.Game.Game")
-        boolean hasAudio = symbolTable:HasClass("Libraries.Sound.Audio") or
-            symbolTable:HasClass("Libraries.Sound.AudioSamples") or symbolTable:HasClass("Libraries.Sound.Microphone")
-
-        Iterator<Class> tempIterator = symbolTable:GetClassesInPackage("Libraries.Robots.Lego")
-        boolean hasRobots = false
-        if tempIterator not= undefined
-            hasRobots = tempIterator:HasNext()
-        end
-
-        if hasGame or hasAudio
-            File lwjglFolder
-            lwjglFolder:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-            lwjglFolder:SetPath("LWJGL")
-            Array<File> lwjglFiles = lwjglFolder:GetDirectoryListing()
-            integer counter = 0
-            repeat while counter < lwjglFiles:GetSize()
-                File file = lwjglFiles:Get(counter)
-                WriteJarToDisk(file)
-                counter = counter + 1
-            end
-        end
-
-        if hasRobots
-            File file1
-            File file2
-            file1:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-            file2:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-            file1:SetPath("dbusjava.jar")
-            file2:SetPath("ev3classes.jar")
-            WriteJarToDisk(file1)
-            WriteJarToDisk(file2)
-        end
-
-        //check the symbol table to see if the user generated any code
-        //used in the compiler
-        boolean hasCompiler = symbolTable:HasClass("Libraries.Language.Compile.Compiler")
-        boolean hasTester = symbolTable:HasClass("Libraries.Language.Compile.Test.CompilerTestSuite")
-        boolean hasClassWriter = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeClassWriter")
-        boolean hasMethodWriter = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter")
-        boolean hasfieldWriter = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeFieldWriter")
-        boolean hasLabel = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeLabel")
-        boolean hasSpeech = symbolTable:HasClass("Libraries.Sound.Speech")
-
-        if hasCompiler or hasTester or hasClassWriter or hasMethodWriter or hasfieldWriter
-            or hasLabel
-            File to
-            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            to:SetPath("org")
-
-            File antlr
-            antlr:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            antlr:SetPath("org/antlr")
-            WriteCompilerDependency(generator, antlr, to)
-
-            File abego
-            abego:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            abego:SetPath("org/abego")
-            WriteCompilerDependency(generator, abego, to)
-
-            File objectWeb
-            objectWeb:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            objectWeb:SetPath("org/objectweb")
-            WriteCompilerDependency(generator, objectWeb, to)
-        end
-
-        if hasAudio
-            File to
-            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/sound/")
-            to:SetPath("")
-
-            File soundPlugins
-            soundPlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/sound")
-            soundPlugins:SetPath("plugins")
-            WriteCompilerDependency(generator, soundPlugins, to)
-        end
-
-        // If statement added for the game engine.
-        if hasGame
-            /*  From what I can tell, WriteCompilerDependency only uses the
-                working directory of to, so setting the path is unnecessary. */
-            File to
-            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/game/")
-            to:SetPath("")
-
-            File gamePlugins
-            gamePlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/game/")
-            gamePlugins:SetPath("plugins")
-            WriteCompilerDependency(generator, gamePlugins, to)
-        end
-
-        if hasRobots
-            File to
-            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/robot/")
-            to:SetPath("")
-
-            File robotPlugins
-            robotPlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/robot/")
-            robotPlugins:SetPath("plugins")
-            WriteCompilerDependency(generator, robotPlugins, to)
-        end
-
-        if hasAudio or hasGame
-            File gameNative
-            gameNative:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Native/")
-            gameNative:SetPath("Libraries.Game")
-
-            File nativeCopy
-            File run = GetRunFolder()
-            nativeCopy:SetWorkingDirectory(run:GetAbsolutePath())
-            nativeCopy:SetPath("jni")
-
-            CopyMissingFiles(gameNative, nativeCopy)
-
-            File interfaceNative
-            interfaceNative:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Native/")
-            interfaceNative:SetPath("Libraries.Interface")
-
-            CopyMissingFiles(interfaceNative, nativeCopy)
-        end
-
-        if IsWebApplication()
-            File servlet
-            servlet:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
-            servlet:SetPath("WEB-INF/classes/web/servlet/Processor.class")
-            generator:Add(servlet)
-
-            File glassfish
-            glassfish:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
-            glassfish:SetPath("WEB-INF/glassfish-web.xml")
-            generator:Add(glassfish)
-
-            File web
-            web:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
-            web:SetPath("WEB-INF/web.xml")
-            generator:Add(web)
-
-            File context
-            context:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
-            context:SetPath("META-INF/context.xml")
-            generator:Add(context)
-        end
-
-        if hasSpeech or HasSpeechCallInCompile()
-            File to
-            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            to:SetPath("org")
-
-            File sapi
-            sapi:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            sapi:SetPath("org/sapi")
-            WriteCompilerDependency(generator, sapi, to)
-
-            File speech
-            speech:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
-            speech:SetPath("org/sodbeans")
-            WriteCompilerDependency(generator, speech, to)
-
-            File speechNative
-            speechNative:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Native/")
-            speechNative:SetPath("Libraries.Sound.Speech")
-
-            //copy this to the distribution directory
-            File nativeCopy
-            File run = GetRunFolder()
-            nativeCopy:SetWorkingDirectory(run:GetAbsolutePath())
-            nativeCopy:SetPath("jni")
-
-            CopyMissingFiles(speechNative, nativeCopy)
-        end
-    end
+//    private action WriteDependencies(JarGenerator generator)
+//        WritePlugins(generator, pluginFolder, pluginFolder)
+//
+//        if not additionalPluginFolders:IsEmpty()
+//            Iterator<File> it = additionalPluginFolders:GetIterator()
+//            repeat while it:HasNext()
+//                File folder = it:Next()
+//                WritePlugins(generator, folder, folder)
+//            end
+//        end
+//
+//        //copy any jar files that are dependencies to disk
+//        if not additionalJarFiles:IsEmpty()
+//            Iterator<File> jars = additionalJarFiles:GetIterator()
+//            repeat while jars:HasNext()
+//                File file = jars:Next()
+//                WriteJarToDisk(file)
+//            end
+//        end
+//        
+//        // Booleans added for the game/sound plugins.
+//        boolean hasGame = symbolTable:HasClass("Libraries.Game.Game")
+//        boolean hasAudio = symbolTable:HasClass("Libraries.Sound.Audio") or
+//            symbolTable:HasClass("Libraries.Sound.AudioSamples") or symbolTable:HasClass("Libraries.Sound.Microphone")
+//
+//        Iterator<Class> tempIterator = symbolTable:GetClassesInPackage("Libraries.Robots.Lego")
+//        boolean hasRobots = false
+//        if tempIterator not= undefined
+//            hasRobots = tempIterator:HasNext()
+//        end
+//
+//        if hasGame or hasAudio
+//            File lwjglFolder
+//            lwjglFolder:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+//            lwjglFolder:SetPath("LWJGL")
+//            Array<File> lwjglFiles = lwjglFolder:GetDirectoryListing()
+//            integer counter = 0
+//            repeat while counter < lwjglFiles:GetSize()
+//                File file = lwjglFiles:Get(counter)
+//                WriteJarToDisk(file)
+//                counter = counter + 1
+//            end
+//        end
+//
+//        if hasRobots
+//            File file1
+//            File file2
+//            file1:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+//            file2:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+//            file1:SetPath("dbusjava.jar")
+//            file2:SetPath("ev3classes.jar")
+//            WriteJarToDisk(file1)
+//            WriteJarToDisk(file2)
+//        end
+//
+//        //check the symbol table to see if the user generated any code
+//        //used in the compiler
+//        boolean hasCompiler = symbolTable:HasClass("Libraries.Language.Compile.Compiler")
+//        boolean hasTester = symbolTable:HasClass("Libraries.Language.Compile.Test.CompilerTestSuite")
+//        boolean hasClassWriter = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeClassWriter")
+//        boolean hasMethodWriter = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeMethodWriter")
+//        boolean hasfieldWriter = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeFieldWriter")
+//        boolean hasLabel = symbolTable:HasClass("Libraries.Language.Compile.Translate.JavaBytecodeLabel")
+//        boolean hasSpeech = symbolTable:HasClass("Libraries.Sound.Speech")
+//
+//        if hasCompiler or hasTester or hasClassWriter or hasMethodWriter or hasfieldWriter
+//            or hasLabel
+//            File to
+//            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+//            to:SetPath("org")
+//
+//            File antlr
+//            antlr:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+//            antlr:SetPath("org/antlr")
+//            WriteCompilerDependency(generator, antlr, to)
+//
+//            File abego
+//            abego:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+//            abego:SetPath("org/abego")
+//            WriteCompilerDependency(generator, abego, to)
+//
+//            File objectWeb
+//            objectWeb:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+//            objectWeb:SetPath("org/objectweb")
+//            WriteCompilerDependency(generator, objectWeb, to)
+//        end
+//
+//        if hasAudio
+//            File to
+//            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/sound/")
+//            to:SetPath("")
+//
+//            File soundPlugins
+//            soundPlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/sound")
+//            soundPlugins:SetPath("plugins")
+//            WriteCompilerDependency(generator, soundPlugins, to)
+//        end
+//
+//        // If statement added for the game engine.
+//        if hasGame
+//            /*  From what I can tell, WriteCompilerDependency only uses the
+//                working directory of to, so setting the path is unnecessary. */
+//            File to
+//            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/game/")
+//            to:SetPath("")
+//
+//            File gamePlugins
+//            gamePlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/game/")
+//            gamePlugins:SetPath("plugins")
+//            WriteCompilerDependency(generator, gamePlugins, to)
+//        end
+//
+//        if hasRobots
+//            File to
+//            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/robot/")
+//            to:SetPath("")
+//
+//            File robotPlugins
+//            robotPlugins:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/robot/")
+//            robotPlugins:SetPath("plugins")
+//            WriteCompilerDependency(generator, robotPlugins, to)
+//        end
+//
+//        if hasAudio or hasGame
+//            File gameNative
+//            gameNative:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Native/")
+//            gameNative:SetPath("Libraries.Game")
+//
+//            File nativeCopy
+//            File run = GetRunFolder()
+//            nativeCopy:SetWorkingDirectory(run:GetAbsolutePath())
+//            nativeCopy:SetPath("jni")
+//
+//            CopyMissingFiles(gameNative, nativeCopy)
+//
+//            File interfaceNative
+//            interfaceNative:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Native/")
+//            interfaceNative:SetPath("Libraries.Interface")
+//
+//            CopyMissingFiles(interfaceNative, nativeCopy)
+//        end
+//
+//        if IsWebApplication()
+//            File servlet
+//            servlet:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+//            servlet:SetPath("WEB-INF/classes/web/servlet/Processor.class")
+//            generator:Add(servlet)
+//
+//            File glassfish
+//            glassfish:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+//            glassfish:SetPath("WEB-INF/glassfish-web.xml")
+//            generator:Add(glassfish)
+//
+//            File web
+//            web:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+//            web:SetPath("WEB-INF/web.xml")
+//            generator:Add(web)
+//
+//            File context
+//            context:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/web/")
+//            context:SetPath("META-INF/context.xml")
+//            generator:Add(context)
+//        end
+//
+//        if hasSpeech or HasSpeechCallInCompile()
+//            File to
+//            to:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+//            to:SetPath("org")
+//
+//            File sapi
+//            sapi:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+//            sapi:SetPath("org/sapi")
+//            WriteCompilerDependency(generator, sapi, to)
+//
+//            File speech
+//            speech:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
+//            speech:SetPath("org/sodbeans")
+//            WriteCompilerDependency(generator, speech, to)
+//
+//            File speechNative
+//            speechNative:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Native/")
+//            speechNative:SetPath("Libraries.Sound.Speech")
+//
+//            //copy this to the distribution directory
+//            File nativeCopy
+//            File run = GetRunFolder()
+//            nativeCopy:SetWorkingDirectory(run:GetAbsolutePath())
+//            nativeCopy:SetPath("jni")
+//
+//            CopyMissingFiles(speechNative, nativeCopy)
+//        end
+//    end
 
     /*
     Copy all files from the first directory into the second directory. If the
@@ -1435,6 +1276,7 @@ class Compiler
         main = main + ": " + classKey
         main = main + line
 
+        SymbolTable symbolTable = table
         boolean usesLWJGL = symbolTable:HasClass("Libraries.Sound.Audio") or symbolTable:HasClass("Libraries.Game.Game")
 
         Iterator<Class> tempIterator = symbolTable:GetClassesInPackage("Libraries.Robots.Lego")
@@ -1475,126 +1317,126 @@ class Compiler
         we are in bytecode format. This separates the logic from the jar 
         writer.
     */
-    private action GetManifest(JarGenerator jar) returns text
-        text version = jar:GetManifestVersion() + ": 1.0"
-        line = version:GetCarriageReturn() + version:GetLineFeed()
-        version = version + line
-        
-        
-        text created = "Created-By: " + me:GetVersion()
-        created = created + line
+//    private action GetManifest(JarGenerator jar) returns text
+//        text version = jar:GetManifestVersion() + ": 1.0"
+//        line = version:GetCarriageReturn() + version:GetLineFeed()
+//        version = version + line
+//        
+//        
+//        text created = "Created-By: " + me:GetVersion()
+//        created = created + line
+//
+//        text main = jar:GetManifestMainClass()
+//
+//        File mainFile = me:GetMain()
+//        Class mainClass = me:GetMainClass()
+//        text classKey = "quorum." + mainClass:GetStaticKey()
+//        main = main + ": " + classKey
+//        main = main + line
+//
+//        boolean usesLWJGL = symbolTable:HasClass("Libraries.Sound.Audio") or symbolTable:HasClass("Libraries.Game.Game")
+//
+//        Iterator<Class> tempIterator = symbolTable:GetClassesInPackage("Libraries.Robots.Lego")
+//        boolean hasRobots = false
+//        if tempIterator not= undefined
+//            hasRobots = tempIterator:HasNext()
+//        end
+//
+//        //now write any jar dependencies into the manifest
+//        if not additionalJarFiles:IsEmpty() or usesLWJGL or hasRobots
+//            Iterator<File> jars = additionalJarFiles:GetIterator()
+//            text classpath = "Class-Path: "
+//            text libraries = JAR_DEPENDENCY_FOLDER
+//            boolean isFirst = true
+//            repeat while jars:HasNext()
+//                File file = jars:Next()
+//                if isFirst
+//                    classpath = classpath + libraries + "/" + file:GetFileName()
+//                else
+//                    classpath = classpath + " " + libraries + "/" + file:GetFileName()
+//                end
+//                isFirst = false
+//            end
+//
+//            if usesLWJGL
+//                File lwjglFolder
+//                lwjglFolder:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+//                lwjglFolder:SetPath("LWJGL")
+//                Array<File> lwjglFiles = lwjglFolder:GetDirectoryListing()
+//                integer counter = 0
+//                repeat while counter < lwjglFiles:GetSize()
+//                    File file = lwjglFiles:Get(counter)
+//                    
+//                    if isFirst
+//                        classpath = classpath + libraries + "/" + file:GetFileName()
+//                        isFirst = false
+//                    else
+//                        classpath = classpath + line + "  " + libraries + "/" + file:GetFileName()
+//                    end
+//
+//                    counter = counter + 1
+//                end
+//            end
+//
+//            if hasRobots
+//                File dbus
+//                File ev3
+//                dbus:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+//                dbus:SetPath("dbusjava.jar")
+//                if isFirst
+//                    classpath = classpath + libraries + "/" + dbus:GetFileName()
+//                else
+//                    classpath = classpath + " " + libraries + "/" + dbus:GetFileName()
+//                end
+//
+//                ev3:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
+//                ev3:SetPath("ev3classes.jar")
+//                classpath = classpath + " " + libraries + "/" + ev3:GetFileName()
+//            end
+//
+//            main = main + classpath + line
+//        end
+//
+//        total = version + created + main + line
+//        return total
+//    end
 
-        text main = jar:GetManifestMainClass()
+//    private action CheckMain(File starter)
+//        Class m = GetMainClass()
+//        if m = undefined //no class that had a main method was selected, throw an error
+//            AddMainError(starter)
+//        elseif m not= undefined and m:HasMainAction() = false
+//            AddMainError(starter)
+//        else
+//            m:SetIsProgramStartingClass(true)
+//        end
+//    end
 
-        File mainFile = me:GetMain()
-        Class mainClass = me:GetMainClass()
-        text classKey = "quorum." + mainClass:GetStaticKey()
-        main = main + ": " + classKey
-        main = main + line
-
-        boolean usesLWJGL = symbolTable:HasClass("Libraries.Sound.Audio") or symbolTable:HasClass("Libraries.Game.Game")
-
-        Iterator<Class> tempIterator = symbolTable:GetClassesInPackage("Libraries.Robots.Lego")
-        boolean hasRobots = false
-        if tempIterator not= undefined
-            hasRobots = tempIterator:HasNext()
-        end
-
-        //now write any jar dependencies into the manifest
-        if not additionalJarFiles:IsEmpty() or usesLWJGL or hasRobots
-            Iterator<File> jars = additionalJarFiles:GetIterator()
-            text classpath = "Class-Path: "
-            text libraries = JAR_DEPENDENCY_FOLDER
-            boolean isFirst = true
-            repeat while jars:HasNext()
-                File file = jars:Next()
-                if isFirst
-                    classpath = classpath + libraries + "/" + file:GetFileName()
-                else
-                    classpath = classpath + " " + libraries + "/" + file:GetFileName()
-                end
-                isFirst = false
-            end
-
-            if usesLWJGL
-                File lwjglFolder
-                lwjglFolder:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-                lwjglFolder:SetPath("LWJGL")
-                Array<File> lwjglFiles = lwjglFolder:GetDirectoryListing()
-                integer counter = 0
-                repeat while counter < lwjglFiles:GetSize()
-                    File file = lwjglFiles:Get(counter)
-                    
-                    if isFirst
-                        classpath = classpath + libraries + "/" + file:GetFileName()
-                        isFirst = false
-                    else
-                        classpath = classpath + line + "  " + libraries + "/" + file:GetFileName()
-                    end
-
-                    counter = counter + 1
-                end
-            end
-
-            if hasRobots
-                File dbus
-                File ev3
-                dbus:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-                dbus:SetPath("dbusjava.jar")
-                if isFirst
-                    classpath = classpath + libraries + "/" + dbus:GetFileName()
-                else
-                    classpath = classpath + " " + libraries + "/" + dbus:GetFileName()
-                end
-
-                ev3:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/AdditionalJars/")
-                ev3:SetPath("ev3classes.jar")
-                classpath = classpath + " " + libraries + "/" + ev3:GetFileName()
-            end
-
-            main = main + classpath + line
-        end
-
-        total = version + created + main + line
-        return total
-    end
-
-    private action CheckMain(File starter)
-        Class m = GetMainClass()
-        if m = undefined //no class that had a main method was selected, throw an error
-            AddMainError(starter)
-        elseif m not= undefined and m:HasMainAction() = false
-            AddMainError(starter)
-        else
-            m:SetIsProgramStartingClass(true)
-        end
-    end
-
-    private action AddMainError(File starter)
-        CompilerError error
-        text message = "I noticed that the class " + starter:GetPath() 
-            +   " was specified as the starting point for this program, " 
-            + "but it does not have an action named Main. " 
-
-        Class clazz = symbolTable:GetClassInFile(starter:GetAbsolutePath())
-        if clazz not= undefined
-            if clazz:GetAction("main") not= undefined
-                message = message + "This class does have an action named "
-                    + "main, with a lower case m, did you mean for it to be "
-                    + "capitalized?"
-            end
-        end
-        error:SetErrorMessage(message)
-        CompilerErrorType t
-        t:SetCurrentType(t:MISSING_MAIN)
-        error:SetCompilerErrorType(t)
-        error:SetFile(starter)
-        error:SetLineNumber(1)
-        error:SetLineNumberEnd(1)
-        error:SetColumnNumber(1)
-        error:SetColumnNumberEnd(1)
-        compilerErrorManager:Add(error)
-    end
+//    private action AddMainError(File starter)
+//        CompilerError error
+//        text message = "I noticed that the class " + starter:GetPath() 
+//            +   " was specified as the starting point for this program, " 
+//            + "but it does not have an action named Main. " 
+//
+//        Class clazz = symbolTable:GetClassInFile(starter:GetAbsolutePath())
+//        if clazz not= undefined
+//            if clazz:GetAction("main") not= undefined
+//                message = message + "This class does have an action named "
+//                    + "main, with a lower case m, did you mean for it to be "
+//                    + "capitalized?"
+//            end
+//        end
+//        error:SetErrorMessage(message)
+//        CompilerErrorType t
+//        t:SetCurrentType(t:MISSING_MAIN)
+//        error:SetCompilerErrorType(t)
+//        error:SetFile(starter)
+//        error:SetLineNumber(1)
+//        error:SetLineNumberEnd(1)
+//        error:SetColumnNumber(1)
+//        error:SetColumnNumberEnd(1)
+//        compilerErrorManager:Add(error)
+//    end
 
     private action AddMainError(File starter, SymbolTable table, CompilerErrorManager errors)
         CompilerError error
@@ -1625,106 +1467,106 @@ class Compiler
     /*
         This action parses a single source file at a particular location
     */ 
-    action ParseSingle(text source, File file)
-        Parser parser
-        parser:SetFile(file)
-        compilerErrorManager:RemoveErrorsAtKey(file:GetAbsolutePath())
-        Parse(source, parser)
-        
-        //This array will contain all files that must be built, 
-        //including potentially some from the standard library
-        //in order to build the requested files
-        Array<File> allFiles = undefined
-        if compilerErrorManager:IsCompilationErrorFree()
-            allFiles = GetAllRequiredFiles(symbolTable, checker, compilerErrorManager)
-        else 
-            return now
-        end
+//    action ParseSingle(text source, File file)
+//        Parser parser
+//        parser:SetFile(file)
+//        compilerErrorManager:RemoveErrorsAtKey(file:GetAbsolutePath())
+//        Parse(source, parser)
+//        
+//        //This array will contain all files that must be built, 
+//        //including potentially some from the standard library
+//        //in order to build the requested files
+//        Array<File> allFiles = undefined
+//        if compilerErrorManager:IsCompilationErrorFree()
+//            allFiles = GetAllRequiredFiles(symbolTable, checker, compilerErrorManager)
+//        else 
+//            return now
+//        end
+//
+//        if compilerErrorManager:IsCompilationErrorFree()
+//            TypeResolution(symbolTable, checker, compilerErrorManager)
+//        else 
+//            return now
+//        end
+//    end
 
-        if compilerErrorManager:IsCompilationErrorFree()
-            TypeResolution(symbolTable, checker, compilerErrorManager)
-        else 
-            return now
-        end
-    end
-
-    action CompileSingle(text source)
-        Parser parser
-        File fakeLocation //set a default. It doesn't matter what it is.
-        text fakePath = "SingleFileCompile.quorum"
-        fakeLocation:SetPath(fakePath)
-        me:SetMain(fakeLocation)
-        parser:SetFile(fakeLocation)
-        Parse(source, parser)
-        
-        //This array will contain all files that must be built, 
-        //including potentially some from the standard library
-        //in order to build the requested files
-        Array<File> allFiles = undefined
-        if compilerErrorManager:IsCompilationErrorFree()
-            allFiles = GetAllRequiredFiles(symbolTable, checker, compilerErrorManager)
-        else 
-            return now
-        end
-
-        if compilerErrorManager:IsCompilationErrorFree()
-            TypeResolution(symbolTable, checker, compilerErrorManager)
-        else 
-            return now
-        end
-
-        CheckMain(fakeLocation)
-
-        Array<ClassOpcode> classOpcodes
-        if compilerErrorManager:IsCompilationErrorFree()
-            i = 0
-            repeat while i < allFiles:GetSize()
-                File file = allFiles:Get(i)
-                QuorumBytecodeListener listener
-
-                if listener:HasSayStatementInClass()
-                    containsSpeechCommandInCompile = true
-                end
-
-                if not outputSpeechCommands
-                    listener:SetOutputSpeech(outputSpeechCommands)
-                end
-
-                if file:GetPath() = fakePath
-                    listener:SetFile(file)
-                    Parse(source, listener)
-                else
-                    Parse(file, listener)
-                end
-                ClassOpcode op = listener:GetClassOpcode()
-                classOpcodes:Add(op)
-                i = i + 1
-            end
-        else 
-            return now
-        end
-
-        if compilerErrorManager:IsCompilationErrorFree()
-
-            if currentOutputType = JAVA_BYTECODE
-                //iterate over all the class opcodes and write them to disk
-                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
-                repeat while codes:HasNext()
-                    ClassOpcode code = codes:Next()
-                    code:Write()
-                end
-
-                if compilerErrorManager:IsCompilationErrorFree()
-                    JarGenerator generator
-                    File jar = GetDistributionFile()
-                    //generator:SetCompiler(me)
-                    //generator:Write()
-                end
-            elseif currentOutputType = JAVASCRIPT
-                convertedJavaScript = CompileToJavaScript(classOpcodes)
-            end
-        end
-    end
+//    action CompileSingle(text source)
+//        Parser parser
+//        File fakeLocation //set a default. It doesn't matter what it is.
+//        text fakePath = "SingleFileCompile.quorum"
+//        fakeLocation:SetPath(fakePath)
+//        me:SetMain(fakeLocation)
+//        parser:SetFile(fakeLocation)
+//        Parse(source, parser)
+//        
+//        //This array will contain all files that must be built, 
+//        //including potentially some from the standard library
+//        //in order to build the requested files
+//        Array<File> allFiles = undefined
+//        if compilerErrorManager:IsCompilationErrorFree()
+//            allFiles = GetAllRequiredFiles(symbolTable, checker, compilerErrorManager)
+//        else 
+//            return now
+//        end
+//
+//        if compilerErrorManager:IsCompilationErrorFree()
+//            TypeResolution(symbolTable, checker, compilerErrorManager)
+//        else 
+//            return now
+//        end
+//
+//        CheckMain(fakeLocation)
+//
+//        Array<ClassOpcode> classOpcodes
+//        if compilerErrorManager:IsCompilationErrorFree()
+//            i = 0
+//            repeat while i < allFiles:GetSize()
+//                File file = allFiles:Get(i)
+//                QuorumBytecodeListener listener
+//
+//                if listener:HasSayStatementInClass()
+//                    containsSpeechCommandInCompile = true
+//                end
+//
+//                if not outputSpeechCommands
+//                    listener:SetOutputSpeech(outputSpeechCommands)
+//                end
+//
+//                if file:GetPath() = fakePath
+//                    listener:SetFile(file)
+//                    Parse(source, listener)
+//                else
+//                    Parse(file, listener)
+//                end
+//                ClassOpcode op = listener:GetClassOpcode()
+//                classOpcodes:Add(op)
+//                i = i + 1
+//            end
+//        else 
+//            return now
+//        end
+//
+//        if compilerErrorManager:IsCompilationErrorFree()
+//
+//            if currentOutputType = JAVA_BYTECODE
+//                //iterate over all the class opcodes and write them to disk
+//                Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+//                repeat while codes:HasNext()
+//                    ClassOpcode code = codes:Next()
+//                    code:Write()
+//                end
+//
+//                if compilerErrorManager:IsCompilationErrorFree()
+//                    JarGenerator generator
+//                    File jar = GetDistributionFile()
+//                    //generator:SetCompiler(me)
+//                    //generator:Write()
+//                end
+//            elseif currentOutputType = JAVASCRIPT
+//                convertedJavaScript = CompileToJavaScript(classOpcodes)
+//            end
+//        end
+//    end
 
     private action CompileToJavaScript(Array<ClassOpcode> classOpcodes, CompilerRequest request, Class mainClass) returns text
         text result = ""
@@ -1776,56 +1618,56 @@ class Compiler
     /*
         This is a helper action to compile to JavaScript
     */
-    private action CompileToJavaScript(Array<ClassOpcode> classOpcodes) returns text
-        text result = ""
-        text plugins = ""
-        text main = ""
-        Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
-        repeat while codes:HasNext()
-            ClassOpcode code = codes:Next()
-            Class clazz = code:GetClass()
+//    private action CompileToJavaScript(Array<ClassOpcode> classOpcodes) returns text
+//        text result = ""
+//        text plugins = ""
+//        text main = ""
+//        Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+//        repeat while codes:HasNext()
+//            ClassOpcode code = codes:Next()
+//            Class clazz = code:GetClass()
+//
+//            Class mainClazz = me:GetMainClass()
+//            text mainClazzName = mainClazz:GetStaticKey()
+//            text clazzName = clazz:GetStaticKey()
+//            if mainClazz:GetStaticKey() = clazzName
+//                main = code:WriteJavaScript()
+//            else
+//                result = result + code:WriteJavaScript()
+//            end
+//
+//            //check if this class has a plugin. If it does, include it.
+//            if clazz:HasSystemAction()
+//                File folder = GetStandardLibraryFolder() 
+//                path = folder:GetPath() + "/Plugins/javascript/"
+//
+//                key = clazz:GetStaticKey()
+//                Array<text> keys = key:Split("\.")
+//                i = 0
+//                repeat keys:GetSize() times
+//                    newKey = keys:Get(i)
+//                    if i = keys:GetSize() - 1
+//                        path = path + newKey + ".js"
+//                    else
+//                        path = path + newKey + "/"
+//                    end
+//                    i = i + 1
+//                end
+//                File location
+//                location:SetWorkingDirectory(folder:GetWorkingDirectory())
+//                location:SetPath(path)
+//                if location:Exists() 
+//                    value = location:Read()
+//                    plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
+//                end
+//            end
+//        end
+//        return plugins + result + main
+//    end
 
-            Class mainClazz = me:GetMainClass()
-            text mainClazzName = mainClazz:GetStaticKey()
-            text clazzName = clazz:GetStaticKey()
-            if mainClazz:GetStaticKey() = clazzName
-                main = code:WriteJavaScript()
-            else
-                result = result + code:WriteJavaScript()
-            end
-
-            //check if this class has a plugin. If it does, include it.
-            if clazz:HasSystemAction()
-                File folder = GetStandardLibraryFolder() 
-                path = folder:GetPath() + "/Plugins/javascript/"
-
-                key = clazz:GetStaticKey()
-                Array<text> keys = key:Split("\.")
-                i = 0
-                repeat keys:GetSize() times
-                    newKey = keys:Get(i)
-                    if i = keys:GetSize() - 1
-                        path = path + newKey + ".js"
-                    else
-                        path = path + newKey + "/"
-                    end
-                    i = i + 1
-                end
-                File location
-                location:SetWorkingDirectory(folder:GetWorkingDirectory())
-                location:SetPath(path)
-                if location:Exists() 
-                    value = location:Read()
-                    plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
-                end
-            end
-        end
-        return plugins + result + main
-    end
-
-    action GetCompiledJavaScript returns text
-        return convertedJavaScript
-    end
+//    action GetCompiledJavaScript returns text
+//        return convertedJavaScript
+//    end
 
     action TypeResolution(SymbolTable table, TypeChecker types, CompilerErrorManager errors)
         Iterator<Class> classes = table:GetClasses()
@@ -1881,56 +1723,56 @@ class Compiler
         end
     end
 
-    action IsCompilationErrorFree returns boolean
-        return compilerErrorManager:IsCompilationErrorFree()
-    end
-
-    action GetCompilerErrorManager returns CompilerErrorManager
-        return compilerErrorManager
-    end
-
-    action GetCompilerErrorsAsText returns text
-        text EOL = ""
-        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-        text result =  "This program did not compile. I have compiled a list of errors for you below:" + EOL
-        Iterator<CompilerError> errors = compilerErrorManager:GetIterator()
-        repeat while errors:HasNext()
-            CompilerError error = errors:Next()
-            text t = error:GetDisplayName()
-            result = result + EOL + t
-        end
-        return result
-    end
-
-    action GetCompilerErrorsAsShortText returns text
-        text EOL = ""
-        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-        text result =  "I found problems:" + EOL
-        Iterator<CompilerError> errors = compilerErrorManager:GetIterator()
-        repeat while errors:HasNext()
-            CompilerError error = errors:Next()
-            text t = error:GetShortDisplayName()
-            result = result + EOL + t
-        end
-        return result
-    end
-
-    action GetCompilerErrorsAsHTML returns text
-        text EOL = ""
-        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
-        Iterator<CompilerError> errors = compilerErrorManager:GetIterator()
-        Division division
-        division:SetClassAttribute("compilerErrorList")
-        division:AddParagraph("I did not understand:")
-        OrderedList list
-        repeat while errors:HasNext()
-            CompilerError error = errors:Next()
-            text t = error:GetShortDisplayName()
-            list:AddListItem(t)
-        end
-        division:Add(list)
-        return division:Generate()
-    end
+//    action IsCompilationErrorFree returns boolean
+//        return compilerErrorManager:IsCompilationErrorFree()
+//    end
+//
+//    action GetCompilerErrorManager returns CompilerErrorManager
+//        return compilerErrorManager
+//    end
+//
+//    action GetCompilerErrorsAsText returns text
+//        text EOL = ""
+//        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+//        text result =  "This program did not compile. I have compiled a list of errors for you below:" + EOL
+//        Iterator<CompilerError> errors = compilerErrorManager:GetIterator()
+//        repeat while errors:HasNext()
+//            CompilerError error = errors:Next()
+//            text t = error:GetDisplayName()
+//            result = result + EOL + t
+//        end
+//        return result
+//    end
+//
+//    action GetCompilerErrorsAsShortText returns text
+//        text EOL = ""
+//        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+//        text result =  "I found problems:" + EOL
+//        Iterator<CompilerError> errors = compilerErrorManager:GetIterator()
+//        repeat while errors:HasNext()
+//            CompilerError error = errors:Next()
+//            text t = error:GetShortDisplayName()
+//            result = result + EOL + t
+//        end
+//        return result
+//    end
+//
+//    action GetCompilerErrorsAsHTML returns text
+//        text EOL = ""
+//        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+//        Iterator<CompilerError> errors = compilerErrorManager:GetIterator()
+//        Division division
+//        division:SetClassAttribute("compilerErrorList")
+//        division:AddParagraph("I did not understand:")
+//        OrderedList list
+//        repeat while errors:HasNext()
+//            CompilerError error = errors:Next()
+//            text t = error:GetShortDisplayName()
+//            list:AddListItem(t)
+//        end
+//        division:Add(list)
+//        return division:Generate()
+//    end
 
     
 
@@ -2064,7 +1906,12 @@ class Compiler
 
 
         SymbolTable standardLibrary = library:GetSymbolTable()
-        Iterator<Class> iterator = standardLibrary:GetClassesInPackage(value)
+        Iterator<Class> iterator = table:GetClassesInPackage(value)
+
+        if iterator = undefined
+            //check the standard library
+            iterator = standardLibrary:GetClassesInPackage(value)
+        end
         if iterator = undefined
             CompilerError error
             error:SetErrorMessage("I noticed a package named " + value + 
@@ -2073,8 +1920,7 @@ class Compiler
             CompilerErrorType t
             t:SetCurrentType(t:MISSING_CLASS)
             error:SetCompilerErrorType(t)
-            CompilerErrorManager manager = GetCompilerErrorManager()
-            manager:Add(error)
+            errors:Add(error)
             return now
         end
         repeat while iterator:HasNext()
@@ -2182,59 +2028,59 @@ class Compiler
         This action is called after the parsing phase, returning an array
         of all files were required for building the project.
     */
-    action GetAllRequiredFiles(SymbolTable table, TypeChecker types, CompilerErrorManager errors) returns Array<File>
-        Array<File> files
-
-        HashTable<text, File> parsed
-        HashTable<text, File> unparsed
-
-        Iterator<Class> classes = table:GetClasses()
-        repeat while classes:HasNext()
-            //gather up all the classes on the system and check their
-            //use statements for classes we don't know about
-            //if there are some, mark them as unparsed
-            repeat while classes:HasNext()
-                Class clazz = classes:Next()
-                File classFile = clazz:GetFile()
-                text path = classFile:GetAbsolutePath()
-                if not parsed:HasKey(path)
-                    parsed:Add(path, clazz:GetFile())
-                end
-                Iterator<QualifiedName> names = clazz:GetUnresolvedUseStatements()
-                ResolveQualifiedNames(table, names, parsed, unparsed, clazz)
-
-                Iterator<QualifiedName> parents = clazz:GetUnresolvedParents()
-                ResolveParents(table, parents, parsed, unparsed, clazz)
-
-                ResolveBlocks(table, parsed, unparsed, clazz)
-            end
-
-            //make list of any new classes that need to be analyzed
-            //that have not previously been parsed. If there are some
-            //send them back through the loop
-            List<Class> newClasses
-            Iterator<File> mustParse = unparsed:GetValueIterator()
-            repeat while mustParse:HasNext()
-                File next = mustParse:Next()
-                Parser listener
-                text null = undefined
-                ParseSandbox(null, listener, table, errors, types, next)
-                parsed:Add(next:GetAbsolutePath(), next)
-
-                Iterator<Class> parsedClasses = listener:GetClassesIterator()
-                repeat while parsedClasses:HasNext()
-                    Class clazz = parsedClasses:Next()
-                    newClasses:Add(clazz)
-                    if not symbolTable:HasClass(clazz:GetStaticKey())
-                        symbolTable:Add(clazz)
-                    end
-                end
-            end
-            classes = newClasses:GetIterator()
-            unparsed:Empty()
-        end
-        return parsed:CopyToValueArray()
-    end
+//    action GetAllRequiredFiles(SymbolTable table, TypeChecker types, CompilerErrorManager errors) returns Array<File>
+//        Array<File> files
+//
+//        HashTable<text, File> parsed
+//        HashTable<text, File> unparsed
+//
+//        Iterator<Class> classes = table:GetClasses()
+//        repeat while classes:HasNext()
+//            //gather up all the classes on the system and check their
+//            //use statements for classes we don't know about
+//            //if there are some, mark them as unparsed
+//            repeat while classes:HasNext()
+//                Class clazz = classes:Next()
+//                File classFile = clazz:GetFile()
+//                text path = classFile:GetAbsolutePath()
+//                if not parsed:HasKey(path)
+//                    parsed:Add(path, clazz:GetFile())
+//                end
+//                Iterator<QualifiedName> names = clazz:GetUnresolvedUseStatements()
+//                ResolveQualifiedNames(table, names, parsed, unparsed, clazz)
+//
+//                Iterator<QualifiedName> parents = clazz:GetUnresolvedParents()
+//                ResolveParents(table, parents, parsed, unparsed, clazz)
+//
+//                ResolveBlocks(table, parsed, unparsed, clazz)
+//            end
+//
+//            //make list of any new classes that need to be analyzed
+//            //that have not previously been parsed. If there are some
+//            //send them back through the loop
+//            List<Class> newClasses
+//            Iterator<File> mustParse = unparsed:GetValueIterator()
+//            repeat while mustParse:HasNext()
+//                File next = mustParse:Next()
+//                Parser listener
+//                text null = undefined
+//                ParseSandbox(null, listener, table, errors, types, next)
+//                parsed:Add(next:GetAbsolutePath(), next)
+//
+//                Iterator<Class> parsedClasses = listener:GetClassesIterator()
+//                repeat while parsedClasses:HasNext()
+//                    Class clazz = parsedClasses:Next()
+//                    newClasses:Add(clazz)
+//                    if not symbolTable:HasClass(clazz:GetStaticKey())
+//                        symbolTable:Add(clazz)
+//                    end
+//                end
+//            end
+//            classes = newClasses:GetIterator()
+//            unparsed:Empty()
+//        end
+//        return parsed:CopyToValueArray()
+//    end
 
     private action ResolveBlocks(SymbolTable table, HashTable<text, File> parsed,
         HashTable<text, File> unparsed, Class clazz)
@@ -2435,23 +2281,23 @@ class Compiler
         return undefined
     end
 
-    action Parse(File file, QuorumSourceListener listener)
-        listener:SetSymbolTable(symbolTable)
-        listener:SetCompilerErrorManager(compilerErrorManager)
-        listener:SetFile(file)
-        listener:SetTypeChecker(checker)
-        ParseNative(file, listener)
-    end
+//    action Parse(File file, QuorumSourceListener listener)
+//        listener:SetSymbolTable(symbolTable)
+//        listener:SetCompilerErrorManager(compilerErrorManager)
+//        listener:SetFile(file)
+//        listener:SetTypeChecker(checker)
+//        ParseNative(file, listener)
+//    end
 
     private system action ParseNative(File file, QuorumSourceListener listener)
 
 
-    action Parse(text source, QuorumSourceListener listener)
-        listener:SetSymbolTable(symbolTable)
-        listener:SetCompilerErrorManager(compilerErrorManager)
-        listener:SetTypeChecker(checker)
-        ParseNative(source, listener)
-    end
+//    action Parse(text source, QuorumSourceListener listener)
+//        listener:SetSymbolTable(symbolTable)
+//        listener:SetCompilerErrorManager(compilerErrorManager)
+//        listener:SetTypeChecker(checker)
+//        ParseNative(source, listener)
+//    end
 
     private system action ParseNative(text source, QuorumSourceListener listener)
 
@@ -2499,19 +2345,19 @@ class Compiler
         return undefined
     end
 
-    action GetMainClass returns Class
-        if main not= undefined and symbolTable not= undefined
-            text path = main:GetAbsolutePath()
-            Class c = symbolTable:GetClassInFile(path)
-            return c
-        end
-        
-        return undefined
-    end
+//    action GetMainClass returns Class
+//        if main not= undefined and symbolTable not= undefined
+//            text path = main:GetAbsolutePath()
+//            Class c = symbolTable:GetClassInFile(path)
+//            return c
+//        end
+//        
+//        return undefined
+//    end
 
-    action SetMain(File file)
-        main = file
-    end
+//    action SetMain(File file)
+//        main = file
+//    end
 
     action GetVersion returns text
         return "Quorum " + VERSION
