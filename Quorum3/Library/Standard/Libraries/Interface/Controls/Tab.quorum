@@ -1,0 +1,258 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Item2D
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Label
+use Libraries.Containers.Array
+use Libraries.Interface.LabelBoxContent
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Gradient
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Behaviors.GraphicUserInterfaces.TabCloseBehavior
+
+class Tab is ToggleButton
+    
+    Item2D relatedItem = undefined
+    Layout layout = undefined
+    Layout iconLayout = undefined
+    Layout labelLayout = undefined
+    Layout buttonLayout = undefined
+
+    Drawable icon
+    Label label
+    Button closeButton
+
+    boolean displayIcon = true
+    boolean displayLabel = true
+    boolean displayClose = true
+
+    on create
+        AllowToggleOff(false)
+
+        FlowLayout flow
+        layout = flow
+        flow:SetHeightOffset(label:GetLineHeight() * 1.4)
+        flow:SetPadding(label:GetLineHeight() / 2)
+        flow:SetFrontPadding(true)
+        flow:SetIgnoreHidden(true)
+        AddLayout(flow)
+    end
+
+    action Initialize(text name, Item2D item)
+        DisplayName(true)
+        DisplayIcon(false)
+        DisplayCloseButton(false)
+
+        InitializeDefaults(name, item)
+    end
+
+    action Initialize(text name, Item2D item, Drawable icon)
+        me:icon = icon
+
+        DisplayName(true)
+        DisplayIcon(true)
+        DisplayCloseButton(false)
+
+        InitializeDefaults(name, item)
+    end
+
+    action Initialize(text name, Item2D item, Texture iconTexture)
+        icon:Load(iconTexture)
+
+        DisplayName(true)
+        DisplayIcon(true)
+        DisplayCloseButton(false)
+
+        InitializeDefaults(name, item)
+    end
+
+    action Initialize(text name, Item2D item, boolean hasClose)
+        DisplayName(true)
+        DisplayIcon(false)
+        DisplayCloseButton(hasClose)
+
+        InitializeDefaults(name, item)
+    end
+
+    action Initialize(text name, Item2D item, Drawable icon, boolean hasClose)
+        me:icon = icon
+
+        DisplayName(true)
+        DisplayIcon(true)
+        DisplayCloseButton(hasClose)
+
+        InitializeDefaults(name, item)
+    end
+
+    action Initialize(text name, Item2D item, Texture iconTexture, boolean hasClose)
+        icon:Load(iconTexture)
+
+        DisplayName(true)
+        DisplayIcon(true)
+        DisplayCloseButton(hasClose)
+
+        InitializeDefaults(name, item)
+    end
+
+    private action InitializeDefaults(text name, Item2D item)
+        LabelBoxToggleContent content
+        Color color
+        Gradient gradient
+        Gradient selectionGradient
+        
+        Color gray = color:LightGray()
+        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+
+        gradient:Set(gray, gray, lightGray, lightGray)
+        selectionGradient:Set(lightGray, lightGray, color:White(), color:White())
+        content:SetBorderThickness(1)
+        content:Initialize(gradient, color:Black(), selectionGradient, color:Black())
+
+        SetVisualContent(content)
+
+        integer buttonHeight = cast(integer, label:GetLineHeight())
+        closeButton:Initialize(buttonHeight, buttonHeight)
+        TabCloseBehavior behavior
+        behavior:SetTab(me)
+        closeButton:SetBehavior(behavior)
+
+        if icon:GetWidth() not= 0 and icon:GetHeight() not= 0
+            number aspectRatio = icon:GetWidth() / icon:GetHeight()
+            integer height = label:GetLineHeight()
+            icon:SetSize(aspectRatio * height, height)
+        else
+            icon:SetSize(0, label:GetLineHeight())
+        end
+
+        Layout iconLayout
+        iconLayout:SetPercentageY(0.5)
+        iconLayout:SetPercentageOriginY(0.5)
+        me:iconLayout = iconLayout
+
+        Layout labelLayout
+        labelLayout:SetPercentageY(1)
+        labelLayout:SetPercentageOriginY(1)
+        me:labelLayout = labelLayout
+        label:AddLayout(labelLayout)
+
+        Layout buttonLayout
+        buttonLayout:SetPercentageY(0.5)
+        buttonLayout:SetPercentageOriginY(0.5)
+        me:buttonLayout = buttonLayout
+        closeButton:AddLayout(buttonLayout)
+
+        SetName(name)
+        SetRelatedItem(item)
+        SetIcon(icon)
+
+        Add(label)
+        Add(closeButton)
+
+        Resize()
+    end
+
+    action SetRelatedItem(Item2D item)
+        relatedItem = item
+    end
+
+    action GetRelatedItem returns Item2D
+        return relatedItem
+    end
+
+    action SetIcon(Drawable drawable)
+        Array<Item2D> children = GetChildren()
+
+        if children:Has(drawable)
+            integer index = children:GetFirstLocation(icon)
+            Item2D item = Remove(index)
+            item:RemoveLayout(iconLayout)
+            Add(index, drawable)
+            icon = drawable
+        else
+            icon = drawable
+            icon:AddLayout(iconLayout)
+            Add(0, drawable)
+        end
+
+        if drawable:GetName() = "Unnamed"
+            drawable:SetName(GetName() + " Icon")
+        end
+    end
+
+    action SetName(text name)
+        label:SetText(name)
+        parent:Item2D:SetName(name)
+        Resize()
+    end
+
+    action ReleasedMouse
+        boolean state = GetToggleState()
+        if state = false
+            SetToggleState(true)
+        end
+        parent:GraphicUserInterface:ReleasedMouse()
+    end
+
+    action DisplayName(boolean display)
+        displayLabel = display
+        if display
+            label:Show()
+        else
+            label:Hide()
+        end
+    end
+
+    action IsDisplayingName returns boolean
+        return displayLabel
+    end
+
+    action DisplayIcon(boolean display)
+        displayIcon = display
+        if display
+            icon:Show()
+        else
+            icon:Hide()
+        end
+    end
+
+    action IsDisplayingIcon returns boolean
+        return displayIcon
+    end
+
+    action DisplayCloseButton(boolean display)
+        displayClose = display
+        if display
+            closeButton:Show()
+        else
+            closeButton:Hide()
+        end
+    end
+
+    action IsDisplayingCloseButton returns boolean
+        return displayClose
+    end
+
+    action OnToggleOn
+        if GetButtonGroup() is TabBar
+            TabBar bar = cast(TabBar, GetButtonGroup())
+            TabPane pane = bar:GetTabPane()
+            if pane not= undefined
+                pane:SetCurrentItem(relatedItem)
+            end
+
+            bar:FitTab(me)
+        end
+    end
+
+    action OnToggleOff
+        if GetButtonGroup() is TabBar
+            TabBar bar = cast(TabBar, GetButtonGroup())
+            TabPane pane = bar:GetTabPane()
+            if pane not= undefined
+                pane:SetCurrentItem(undefined)
+            end
+        end
+    end
+end

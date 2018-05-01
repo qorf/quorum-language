@@ -1,0 +1,200 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Item2D
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.TextPathSelection
+use Libraries.Containers.Array
+use Libraries.Interface.Layouts.TreeLayout
+
+class Tree is Item2D
+
+    Item2D panel
+    Layout panelLayout = undefined
+    TextPathSelection selection
+    Array<TreeItem> treeItems
+
+    on create
+        SetFocusable(true)
+        SetInputGroup("Tree")
+        TreeLayout flow
+        
+        // Hardcoded value sufficient for basic cases. Should be replaced with
+        // something more responsive to design in the future.
+        flow:SetPadding(2)
+
+        panelLayout = flow
+        panel:AddLayout(flow)
+
+        Add(panel)
+
+        selection:Initialize(me)
+    end
+
+    action AddTreeItem(TreeItem item)
+        panel:Add(item)
+        treeItems:Add(item)
+        item:SetTree(me)
+    end
+
+    action RemoveTreeItem(TreeItem item)
+        panel:Remove(item)
+        treeItems:Remove(item)
+        item:SetTree(undefined)
+    end
+
+    action GetTreeItem(Array<text> path) returns TreeItem
+        text first = path:RemoveFromFront()
+
+        TreeItem item = GetTreeItem(first)
+
+        if item not= undefined
+            item = item:GetTreeItem(path)
+        end
+
+        // Add the removed portion back to the path to undo our side effects.
+        path:AddToFront(first)
+
+        return item
+    end
+
+    private action GetTreeItem(text path) returns TreeItem
+        integer counter = 0
+        repeat while counter < treeItems:GetSize()
+            if treeItems:Get(counter):GetName() = path
+                return treeItems:Get(counter)
+            end
+            counter = counter + 1
+        end
+
+        return undefined
+    end
+
+    action Select(Array<text> path)
+        
+        Array<text> pathCopy = path:CopyToArray()
+        text first = path:RemoveFromFront()
+
+        Array<text> selectionPath = selection:GetPath()
+        text oldFirst = selectionPath:RemoveFromFront()
+
+        TreeItem item = GetTreeItem(first)
+        TreeItem oldItem = GetTreeItem(oldFirst)
+        if item not= undefined
+            if item = oldItem
+                item:UpdateSelection(selectionPath, path)
+            else
+                if oldItem not= undefined
+                    oldItem:RecursiveDeselect(selectionPath)
+                end
+                item:RecursiveSelect(path)
+            end
+        end
+
+        // Add the removed portion back to the path to undo our side effects.
+        path:AddToFront(first)
+
+        // Set our selection object with the new path, triggering a selection
+        // event.
+        selection:Set(pathCopy)
+    end
+
+    action Deselect(Array<text> path)
+        text first = path:RemoveFromFront()
+
+        TreeItem item = GetTreeItem(first)
+
+        if item not= undefined
+            item:RecursiveDeselect(path)
+        end
+
+        // Add the removed portion back to the path to undo our side effects.
+        path:AddToFront(first)
+    end
+
+    action SelectionRight
+        TreeItem item = GetTreeItem(selection:GetPath())
+        if item not= undefined and item:IsSubtree() and not item:IsOpen()
+            item:Open()
+        end
+    end
+
+    action SelectionLeft
+        Array<text> path = selection:GetPath()
+        TreeItem item = GetTreeItem(path)
+        if item not= undefined
+            if item:IsSubtree() and item:IsOpen()
+                item:Close()
+            elseif path:GetSize() > 1
+                path:RemoveFromEnd()
+                Select(path)
+            end
+        end
+    end
+
+    action SelectionDown
+        TreeItem item = GetTreeItem(selection:GetPath())
+        if item not= undefined
+            item:SelectionDown()
+        end
+    end
+
+    action SelectionUp
+        TreeItem item = GetTreeItem(selection:GetPath())
+        if item not= undefined
+            item:SelectionUp()
+        end
+    end
+
+    action SelectionSkipForward
+        Array<text> path = selection:GetPath()
+        if path:IsEmpty()
+            if not treeItems:IsEmpty()
+                treeItems:Get(0):Select()
+            end
+        else
+            integer counter = 0
+            text name = path:GetFromFront()
+            repeat while counter < treeItems:GetSize()
+                if treeItems:Get(counter):GetName() = name
+                    integer select = counter + 1
+
+                    if select >= treeItems:GetSize()
+                        return now
+                    end
+
+                    name = treeItems:Get(select):GetName()
+                    path:Empty()
+                    path:Add(name)
+                    Select(path)
+                    return now
+                end
+                counter = counter + 1
+            end
+        end
+    end
+
+    action SelectionSkipBackward
+        Array<text> path = selection:GetPath()
+        if path:IsEmpty()
+            if not treeItems:IsEmpty()
+                treeItems:Get(0):Select()
+            end
+        else
+            integer counter = 0
+            text name = path:GetFromFront()
+            repeat while counter < treeItems:GetSize()
+                if treeItems:Get(counter):GetName() = name
+                    integer select = counter - 1
+
+                    if select < 0
+                        return now
+                    end
+
+                    treeItems:Get(select):SelectLastElement()
+                    return now
+                end
+                counter = counter + 1
+            end
+        end
+    end
+end

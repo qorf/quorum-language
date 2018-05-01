@@ -21,6 +21,12 @@ class KeyboardEvent
     */
     public integer eventType = 0
 
+    /*
+    How many key presses have occurred in a short period of time, including this
+    event (if it is a PRESSED_KEY event).
+    */
+    public integer pressCount = 0
+
     public constant integer ANY_KEY = 1
     public constant integer NUM_0 = 7
     public constant integer NUM_1 = 8
@@ -282,4 +288,20 @@ class KeyboardEvent
     private system action ToTextNative(integer keycode) returns text
 
     private system action ToTextShiftNative(integer keycode) returns text
+
+    /*
+    This action returns how many times the key described by this event has been 
+    recently pressed. The time considered to be "recent" is defined by the
+    ApplicationConfiguration (if keyboard input is relevant to the application
+    type). The value returned includes the key being pressed as part of this
+    event, if the event is a PRESSED_KEY event - e.g., if a key is pressed
+    exactly once, the value returned is 1. If a key is pressed twice in rapid
+    succession, the value returned will be 2.
+
+    Attribute: Returns How many times the key has been recently pressed.
+    */
+    action GetPressCount returns integer
+        return pressCount
+    end
+
 end

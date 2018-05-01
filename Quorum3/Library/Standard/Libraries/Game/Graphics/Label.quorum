@@ -78,8 +78,7 @@ class Label is Item2D
     private text targetText = "TEXT"
     private boolean textChanged = true
 
-    private number textWidth = 0
-    private number textHeight = 0
+    private number maxWidth = 0
 
     /*
     Sets the horizontal margins for this label. When the label's text is drawn,
@@ -584,6 +583,8 @@ class Label is Item2D
     */
     private action LoadDrawables
 
+        textChanged = false
+
         if font:IsLoaded()
             /* 
             The size and angle are set before drawing to ensure that FreeType is
@@ -614,8 +615,7 @@ class Label is Item2D
                 endsWithSpace = targetText:GetCharacter(targetText:GetSize() - 1):Equals(" ")
             end
 
-            number availableWidth = GetWidth() - horizontalMargins
-            number availableHeight = GetHeight() - verticalMargins
+            number availableWidth = maxWidth - horizontalMargins
 
             Array<text> lines = Split(targetText, targetText:GetLineFeed())
             Array<text> words = undefined
@@ -714,10 +714,12 @@ class Label is Item2D
                 originY = y
             end
 
-            textWidth = maxLineWidth
-            textHeight = startingOriginY - originY
             
-            textChanged = false
+//            textWidth = maxLineWidth
+//            textHeight = startingOriginY - originY
+            parent:Item2D:SetSize(maxLineWidth, startingOriginY - originY)
+            
+//            textChanged = false
         end
 
     end
@@ -805,7 +807,12 @@ class Label is Item2D
     end*/
 
     /*
-    Returns the width of the longest line of text in the label.
+    Returns the width of the longest line of text in the label. This is set
+    automatically when the label's text is added or modified. If the value of
+    GetMaximumWidth() is greater than 0, the value returned by this action will
+    be less than the maximum width, if possible.
+
+    Attribute: Returns The width of the longest line of text in the Label.
 
     Attribute: Example
 
@@ -821,24 +828,27 @@ class Label is Item2D
             action CreateGame
                 Label label
                 label:SetPosition(200, 200)
-                label:SetWidth(100)
+                label:SetMaximumWidth(100)
                 label:SetText("This is a lot of text!")
                 Add(label)
-                output "The text width is " + label:GetTextWidth()
+                output "The text width is " + label:GetWidth()
             end
 
         end
     */
-    action GetTextWidth returns number
+    action GetWidth returns number
         if textChanged
             LoadDrawables()
         end
-        return textWidth
+        return parent:Item2D:GetWidth()
     end
 
     /*
     Returns the height of all of the text in the label, as it is drawn on the
-    screen.
+    screen. This is set automatically when the label's text is added or
+    modified.
+
+    Attribute: Returns The height of the longest line of text in the Label.
 
     Attribute: Example
 
@@ -854,19 +864,75 @@ class Label is Item2D
             action CreateGame
                 Label label
                 label:SetPosition(200, 200)
-                label:SetWidth(100)
+                label:SetMaximumWidth(100)
                 label:SetText("This is a lot of text!")
                 Add(label)
-                output "The text height is " + label:GetTextHeight()
+                output "The text height is " + label:GetHeight()
             end
 
         end
     */
-    action GetTextHeight returns number
+    action GetHeight returns number
         if textChanged
             LoadDrawables()
         end
-        return textHeight
+        return parent:Item2D:GetHeight()
+    end
+
+    /*
+    The SetWidth action typically sets the width of an Item2D, but the Label
+    automatically sets its own width when the text is modified. As a result,
+    this action has no effect on the Label unless the given value is larger than
+    the maximum width set on the Label, in which case it will set the maximum
+    width, and then the Label will rearrange its characters.
+    */
+    action SetWidth(number width)
+        if width > maxWidth
+            SetMaximumWidth(width)
+        end
+    end
+
+    /*
+    The SetHeight action typically sets the height of an Item2D, but the Label
+    automatically sets its own height when the text is modified. As a result,
+    this action has no effect on a Label.
+    */
+    action SetHeight(number height)
+        /*
+        Do nothing. We only allow the height to be adjusted by the private
+        LoadDrawables() action.
+        */
+    end
+
+    /*
+    The SetSize action typically sets the width and height of an Item2D, but the
+    Label automatically sets its own dimensions when the text is modified. If
+    the width is larger than the Label's maximum width, the maximum width will
+    be set to the given width value. Otherwise, this action has no effect.
+    */
+    action SetSize(number width, number height)
+        SetWidth(width)
+    end
+
+    /*
+    This action sets the maximum width that the label can expand up to when
+    arranging characters.
+
+    Attribute: Parameter width The maximum width that the Label should be able to expand up to.
+    */
+    action SetMaximumWidth(number width)
+        maxWidth = width
+        textChanged = true
+    end
+
+    /*
+    This action returns the maximum width that the label can expand up to when
+    arranging characters.
+
+    Attribute: Returns The maximum width that the Label should be able to expand up to.
+    */
+    action GetMaximumWidth returns number
+        return maxWidth
     end
 
     /*
@@ -888,7 +954,7 @@ class Label is Item2D
             action CreateGame
                 Label label
                 label:SetPosition(200, 200)
-                label:SetWidth(100)
+                label:SetMaximumWidth(100)
                 label:SetText("This is a lot of text!")
                 Add(label)
                 output "The line height is " + label:GetLineHeight()

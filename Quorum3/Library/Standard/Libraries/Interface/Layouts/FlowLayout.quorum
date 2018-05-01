@@ -2,12 +2,22 @@ package Libraries.Interface.Layouts
 
 use Libraries.Interface.Item2D
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.Label
 
 class FlowLayout is Layout
     
+    boolean wrapping = false
+    boolean padFront = false
+    boolean ignoreHidden = false
+    number padding = 0
+
     action Layout(Item2D item)
         number x = 0
         number y = 0
+
+        if padFront
+            x = padding
+        end
 
         number tallestHeight = 0
         Array<Item2D> kids = item:GetChildren()
@@ -15,24 +25,61 @@ class FlowLayout is Layout
         repeat while i < kids:GetSize()
             Item2D kid = kids:Get(i)
 
-            if x + kid:GetWidth() > item:GetWidth()
-                y = y - tallestHeight
-                x = 0
-                tallestHeight = 0
-            end
+            if (not ignoreHidden) or kid:IsShowing()
+                if x + kid:GetWidth() > item:GetWidth() and wrapping
+                    y = y - tallestHeight
+                    x = 0
+                    tallestHeight = 0
+                end
 
-            if kid:GetHeight() > tallestHeight
-                tallestHeight = kid:GetHeight()
-            end
+                if kid:GetHeight() > tallestHeight
+                    tallestHeight = kid:GetHeight()
+                end
 
-            kid:SetPosition(x, y)
-            x = x + kid:GetWidth()
+                kid:SetPosition(x, y)
+                x = x + kid:GetWidth() + padding
+            end
             i = i + 1
         end
 
-        number oldHeight = item:GetHeight()
-        item:SetHeight(tallestHeight - y)
-        item:MoveY(oldHeight - (tallestHeight - y))
+        if not wrapping
+            item:SetWidth(x)
+        else
+            number oldHeight = item:GetHeight()
+            item:SetHeight(tallestHeight - y)
+            item:MoveY(oldHeight - (tallestHeight - y))
+        end
     end
 
+    action SetWrapping(boolean wrap)
+        wrapping = wrap
+    end
+
+    action WrappingEnabled returns boolean
+        return wrapping
+    end
+
+    action SetPadding(number value)
+        padding = value
+    end
+
+    action GetPadding returns number
+        return padding
+    end
+
+    action SetFrontPadding(boolean pad)
+        padFront = pad
+    end
+
+    action IsFrontPadding returns boolean
+        return padFront
+    end
+
+    action SetIgnoreHidden(boolean ignore)
+        ignoreHidden = ignore
+    end
+
+    action IsIgnoringHidden returns boolean
+        return ignoreHidden
+    end
 end

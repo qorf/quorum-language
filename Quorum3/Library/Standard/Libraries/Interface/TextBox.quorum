@@ -4,12 +4,14 @@ use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Texture
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.FocusListener
 use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Layouts.Layout
 use Libraries.Containers.Array
 use Libraries.Containers.MultipleLineText
 use Libraries.System.File
@@ -84,7 +86,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     number caretIdleTime = 1.0
     number caretBlinkTime = 0.35
-    number caretMoveTime = 0.1
+    number caretMoveTime = 0.05
     number caretTimer = 0
 
     /*
@@ -97,11 +99,29 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     integer caretCharacter = 0
     number caretX = 0
 
+    TextBoxSelection selection
+
+    /*
+    The color of the selection highlight.
+    */
+    Color selectionColor
+
+    /*
+    The texture used for the selection higlight. Initialized as a 1x1 white texture.
+    */
+    Texture selectionTexture
+
     Drawable background
     Drawable horizontalBar
     Drawable horizontalControl
     Drawable verticalBar
     Drawable verticalControl
+
+    Layout backgroundLayout
+    Layout horizontalBarLayout
+    Layout horizontalControlLayout
+    Layout verticalBarLayout
+    Layout verticalControlLayout
     
     number scrollDistance = 3
     integer barThickness = 20
@@ -135,7 +155,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         AddMouseListener(me)
         AddMouseMovementListener(me)
 
-        SetSelectionType(parent:Selectable:RANGE_SELECTION)
+//        SetSelectionType(parent:Selectable:RANGE_SELECTION)
 
         Add(background)
 
@@ -155,29 +175,38 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
                 font:LoadFont(availableFontFiles:Get(0))
             end
         end
+
+        selection:Initialize(me, "")
+
+        selectionColor:SetColor(0.75, 0.75, 1, 1)
     end
 
-    action Initialize(number width, number height, Color backgroundColor)
+    action Initialize(number width, number height, Color backgroundColor, text value)
+        selectionTexture:LoadFilledRectangle(1, 1)
+
+        textValue:Initialize(value)
+
         if backgroundColor not= undefined
             background:LoadFilledRectangle(cast(integer, width), cast(integer, height), backgroundColor)
         end
 
-        SetWidth(width)
-        SetHeight(height)
+        SetSize(width, height)
 
         CreateScrollBars()
-
-        verticalBar:SetName("Vertical Scroll Track")
-        verticalControl:SetName("Vertical Scroll Control")
 
         InitializeCaret()
         caret:Hide()
         caretActive = false
+
+        GetLineDrawables()
     end
 
-    action Initialize(number width, number height, Color backgroundColor, text value)
-        textValue:Initialize(value)
-        Initialize(width, height, backgroundColor)
+    action Initialize(number width, number height, Color backgroundColor)
+        Initialize(width, height, backgroundColor, "")
+    end
+
+    action Resize
+        parent:Item2D:Resize()
         GetLineDrawables()
     end
 
@@ -211,6 +240,49 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             repeat size times
                 Glyph glyph = font:GetGlyph(line:GetCharacter(characterCounter))
                 Drawable draw = glyph:drawable
+
+                // For testing purposes only:
+                boolean highlighted = false
+
+                // If we're on the first line that's selected.
+                if counter = selection:GetFirstLine()
+                    // If we're also on the last line selected, the selection is limited to this line.
+                    if counter = selection:GetLastLine()
+                        if characterCounter >= selection:GetFirstLineIndex() and characterCounter < selection:GetLastLineIndex()
+                            highlighted = true
+                        end
+
+                    // The selection continues past this line. Select all characters after the start index.
+                    else
+                        if characterCounter >= selection:GetFirstLineIndex()
+                            highlighted = true
+                        end
+                    end
+                // If we satisfy this condition, there's more than one line selected,
+                // and we're on the last one. Select everything before the end index.
+                elseif counter = selection:GetLastLine()
+                    if characterCounter < selection:GetLastLineIndex()
+                        highlighted = true
+                    end
+
+                // If we satisfy this condition, we're in a line in between the first
+                // and last lines, and thus the whole line is selected.
+                elseif counter > selection:GetFirstLine() and counter < selection:GetLastLine()
+                    highlighted = true
+                end
+
+                if highlighted
+                    Drawable highlight
+                    highlight:Load(selectionTexture)
+                    highlight:SetSize(glyph:horizontalAdvance, lineHeight)
+                    highlight:SetColor(selectionColor)
+
+//                    Color color
+//                    highlight:LoadFilledRectangle(glyph:horizontalAdvance, lineHeight, color:CustomColor(0.75, 0.75, 1, 1))
+                    highlight:SetPosition(x, yPosition - lineHeight / 4.0)
+                    background:Add(highlight)
+                end
+
                 if draw not= undefined
                     draw:SetPosition(x + glyph:lengthToGlyph, yPosition + glyph:heightFromBaseLine - draw:GetHeight())
                     drawables:Add(draw)
@@ -273,6 +345,176 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         UpdatePaneView(horizontal, newVertical)
     end
 
+    private action EmptySelectionEvent
+//        selection:SetText("")
+//        selection:SetLines(caretLine, caretLine)
+//        selection:SetLineIndices(caretCharacter, caretCharacter)
+//        integer characterIndex = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+//        selection:SetIndices(characterIndex, characterIndex)
+//        selection:SetCaretAtEnd(true)
+
+        integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+
+        selection:Set(index, index, true)
+
+        // Report the new selection here.
+        ReportSelection()
+    end
+
+    private action SelectionMoveLeft
+
+        integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+
+        if (caretLine < selection:GetFirstLine() or caretCharacter < selection:GetFirstLineIndex())
+//            selection:SetFirstLine(caretLine)
+//            selection:SetFirstLineIndex(caretCharacter)
+//
+//            selection:SetStartIndex(index)
+//            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
+//            selection:SetCaretAtEnd(index = selection:GetEndIndex())
+
+            integer endIndex = selection:GetEndIndex()
+            selection:Set(index, endIndex, (index = endIndex))
+        else
+//            selection:SetLastLine(caretLine)
+//            selection:SetLastLineIndex(caretCharacter)
+//
+//            selection:SetEndIndex(index)
+//            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
+//            selection:SetCaretAtEnd(true)
+
+            integer startIndex = selection:GetStartIndex()
+            selection:Set(startIndex, index, true)
+        end
+
+        // Report the new selection here.
+        ReportSelection()
+    end
+
+    private action SelectionMoveRight
+
+        integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+
+        if (caretLine > selection:GetLastLine() or caretCharacter > selection:GetLastLineIndex())
+//            selection:SetLastLine(caretLine)
+//            selection:SetLastLineIndex(caretCharacter)
+//
+//            selection:SetEndIndex(index)
+//            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
+//            selection:SetCaretAtEnd(true)
+
+            integer startIndex = selection:GetStartIndex()
+            selection:Set(startIndex, index, true)
+        else
+//            selection:SetFirstLine(caretLine)
+//            selection:SetFirstLineIndex(caretCharacter)
+//
+//            selection:SetStartIndex(index)
+//            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
+//            selection:SetCaretAtEnd(index = selection:GetEndIndex())
+
+            integer endIndex = selection:GetEndIndex()
+            selection:Set(index, endIndex, (index = endIndex))
+        end
+
+        // Report the new selection here.
+        ReportSelection()
+    end
+
+    private action SelectionMoveUp
+
+        integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+
+        if (caretLine < selection:GetFirstLine() or index < selection:GetStartIndex())
+
+            integer endIndex = selection:GetEndIndex()
+
+            if index < selection:GetStartIndex() and selection:IsCaretAtEnd()
+//                selection:SetEndIndex(selection:GetStartIndex())
+//                selection:SetLastLineIndex(selection:GetFirstLineIndex())
+//                selection:SetLastLine(selection:GetFirstLine())
+                endIndex = selection:GetStartIndex()
+            end
+
+//            selection:SetFirstLine(caretLine)
+//            selection:SetFirstLineIndex(caretCharacter)
+//
+//            selection:SetStartIndex(index)
+//            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
+//
+//            selection:SetCaretAtEnd(false)
+
+            selection:Set(index, endIndex, false)
+        else
+//            selection:SetLastLine(caretLine)
+//            selection:SetLastLineIndex(caretCharacter)
+//
+//            selection:SetEndIndex(index)
+//            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
+//
+//            selection:SetCaretAtEnd(true)
+
+            selection:Set(selection:GetStartIndex(), index, true)
+        end
+
+        // Report the new selection here.
+        ReportSelection()
+    end
+
+    private action SelectionMoveDown
+
+        integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+
+        if (caretLine > selection:GetLastLine())
+
+            integer startIndex = selection:GetStartIndex()
+
+            if index > selection:GetEndIndex() and (not selection:IsCaretAtEnd())
+//                selection:SetStartIndex(selection:GetEndIndex())
+//                selection:SetFirstLineIndex(selection:GetLastLineIndex())
+
+                startIndex = selection:GetEndIndex()
+            end
+
+//            selection:SetLastLine(caretLine)
+//            selection:SetLastLineIndex(caretCharacter)
+//
+//            selection:SetEndIndex(index)
+//            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
+//
+//            selection:SetCaretAtEnd(true)
+
+            selection:Set(startIndex, index, true)
+        else
+//            selection:SetFirstLine(caretLine)
+//            selection:SetFirstLineIndex(caretCharacter)
+//
+//            selection:SetStartIndex(index)
+//            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
+//            
+//            selection:SetCaretAtEnd(false)
+
+            selection:Set(index, selection:GetEndIndex(), false)
+        end
+
+        // Report the new selection here.
+        ReportSelection()
+    end
+
+    /*
+    For testing purposes only.
+    */
+    private action ReportSelection
+        GetLineDrawables()
+//        output ""
+//        output "Selection:"
+//        output "Lines: " + selection:GetFirstLine() + ", " + selection:GetLastLine()
+//        output "Line indices: " + selection:GetFirstLineIndex() + ", " + selection:GetLastLineIndex()
+//        output "Indices: " + selection:GetStartIndex() + ", " + selection:GetEndIndex()
+//        output "Text: " + selection:GetText()
+//        output "Caret at end = " + selection:IsCaretAtEnd()
+    end
+
     /*
     For testing purposes.
     */
@@ -280,9 +522,11 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretLine = line
         caretCharacter = index
         caretX = PositionCaret()
+
+        EmptySelectionEvent()
     end
 
-    action MoveCaretLeft
+    action MoveCaretLeft(boolean selecting)
         if not caretActive
             return now
         end
@@ -291,6 +535,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         if caretCharacter = 0
             if caretLine = 0
+                if (not selecting) and (not selection:IsEmpty())
+                    EmptySelectionEvent()
+                end
+
                 return now
             else
                 caretLine = caretLine - 1
@@ -311,11 +559,17 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretX = PositionCaret()
         ShowCaret()
 
-        DeselectIndex(oldIndex)
-        SelectIndex(GetCaretIndex())
+        if selecting
+            SelectionMoveLeft()
+        else
+            EmptySelectionEvent()
+        end
+
+//        DeselectIndex(oldIndex)
+//        SelectIndex(GetCaretIndex())
     end
 
-    action MoveCaretRight
+    action MoveCaretRight(boolean selecting)
         if not caretActive
             return now
         end
@@ -329,6 +583,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
         if caretCharacter >= size
             if caretLine + 1 = textValue:GetLineCount()
+                if (not selecting) and (not selection:IsEmpty())
+                    EmptySelectionEvent()
+                end
+
                 return now
             end
             caretLine = caretLine + 1
@@ -345,8 +603,13 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         caretX = PositionCaret()
         ShowCaret()
 
-        DeselectIndex(oldIndex)
-        SelectIndex(GetCaretIndex())
+        if selecting
+            SelectionMoveRight()
+        else
+            EmptySelectionEvent()
+        end
+//        DeselectIndex(oldIndex)
+//        SelectIndex(GetCaretIndex())
     end
 
     /*
@@ -394,9 +657,40 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         number x = 0
         
         repeat while counter < character
-            Glyph glyph = font:GetGlyph(lineCharacters:GetCharacter(counter))
-            x = x + glyph:horizontalAdvance
-            counter = counter + 1
+            // This section has been sometimes crashing the program. The check/detect
+            // block here is used in case of error to gather additional info.
+            check
+                Glyph glyph = font:GetGlyph(lineCharacters:GetCharacter(counter))
+                x = x + glyph:horizontalAdvance
+                counter = counter + 1
+            detect Error
+                integer errorCounter = 0
+                Array<MultipleLineText> lines = lastText:GetLines()
+                text quote = ""
+                quote = quote:GetDoubleQuote()
+
+                output "lineCharacters = " + lineCharacters
+                output "counter = " + counter
+                output "character = " + character
+                output "lineCharacters size = " + lineCharacters:GetSize()
+                output "lastInsertion = " + quote + lastInsertion + quote
+
+                output "Previous text: "
+                repeat while errorCounter < lines:GetSize()
+                    output errorCounter + quote + lines:Get(errorCounter):GetText() + quote
+                    errorCounter = errorCounter + 1
+                end
+
+                errorCounter = 0
+                lines = textValue:GetLines()
+                output "New text: "
+                repeat while errorCounter < lines:GetSize()
+                    output errorCounter + quote + lines:Get(errorCounter):GetText() + quote
+                    errorCounter = errorCounter + 1
+                end
+
+                alert ("Crashed while retrieving character for rendering.")
+            end
         end
 
 
@@ -414,7 +708,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
     end
 
-    action MoveCaretDown
+    action MoveCaretDown(boolean selecting)
         if not caretActive
             return now
         end
@@ -439,11 +733,16 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         PositionCaret()
         ShowCaret()
 
-        DeselectIndex(oldIndex)
-        SelectIndex(GetCaretIndex())
+        if selecting
+            SelectionMoveDown()
+        else
+            EmptySelectionEvent()
+        end
+//        DeselectIndex(oldIndex)
+//        SelectIndex(GetCaretIndex())
     end
 
-    action MoveCaretUp
+    action MoveCaretUp(boolean selecting)
         if not caretActive
             return now
         end
@@ -467,8 +766,14 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         PositionCaret()
         ShowCaret()
 
-        DeselectIndex(oldIndex)
-        SelectIndex(GetCaretIndex())
+        if selecting
+            SelectionMoveUp()
+        else
+            EmptySelectionEvent()
+        end
+        
+//        DeselectIndex(oldIndex)
+//        SelectIndex(GetCaretIndex())
     end
 
     /*
@@ -518,6 +823,11 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     MultipleLineText lastText = undefined
 
     action DeleteBackward
+        if (not selection:IsEmpty())
+            DeleteSelection()
+            return now
+        end
+
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
         if index = 0
             return now
@@ -546,16 +856,23 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
 
         if shouldResize
-            CreateScrollBars()
+            ResizeScrollBars()
         end
 
         FitCharacterOnScreen(caretLine, caretCharacter)
         GetLineDrawables()
         caretX = PositionCaret()
         ShowCaret()
+
+        EmptySelectionEvent()
     end
 
     action DeleteForward
+        if (not selection:IsEmpty())
+            DeleteSelection()
+            return now
+        end
+
         if caretLine = textValue:GetLineCount() - 1
             text line = GetCurrentLineText()
             if caretCharacter = line:GetSize()
@@ -565,12 +882,48 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
         textValue = textValue:Delete(index, index + 1)
+
+        // Force a recalculation of the width by setting its value to -1.
+        scrollRegionWidth = -1
+        ResizeScrollBars()
+
         GetLineDrawables()
         PositionCaret()
         ShowCaret()
     end
 
+    action DeleteSelection
+        if selection:IsEmpty()
+            return now
+        end
+
+        caretLine = selection:GetFirstLine()
+        caretCharacter = selection:GetFirstLineIndex()
+
+        textValue = textValue:Delete(selection:GetStartIndex(), selection:GetEndIndex())
+
+        // Force a recalculation of the width by setting its value to -1.
+        scrollRegionWidth = -1
+        ResizeScrollBars()
+        FitCharacterOnScreen(caretLine, caretCharacter)
+
+        GetLineDrawables()
+        PositionCaret()
+        ShowCaret()
+
+        EmptySelectionEvent()
+    end
+
+    // For debugging purposes only.
+    text lastInsertion = ""
+
     action Insert(text value)
+        lastInsertion = value
+
+        if (not selection:IsEmpty())
+            DeleteSelection()
+        end
+
         textValue = textValue:Insert(GetCaretIndex(), value)
         
         // Determine how many new lines are produced from the insert so that we
@@ -594,7 +947,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             caretCharacter = characters
 
             // Resize the scroll region height and resize bars.
-            CreateScrollBars()
+            ResizeScrollBars()
 
             number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
             if caretLine > (firstLine + visibleLines - 1)
@@ -607,27 +960,105 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             // Increase scroll region width and resize bars.
             // Setting the scroll region width to -1 forces recalculation.
             scrollRegionWidth = -1
-            CreateScrollBars()
+            ResizeScrollBars()
         end
 
         FitCharacterOnScreen(caretLine, caretCharacter)
         GetLineDrawables()
         caretX = PositionCaret()
         ShowCaret()
+
+        EmptySelectionEvent()
     end
 
     action SetWidth(integer newWidth)
         parent:Libraries.Interface.Item2D:SetWidth(newWidth)
+        background:SetWidth(newWidth)
         horizontalBar:SetWidth(newWidth)
     end
 
     action SetHeight(integer newHeight)
         parent:Libraries.Interface.Item2D:SetHeight(newHeight)
+        background:SetHeight(newHeight)
         verticalBar:SetHeight(newHeight)
+    end
+
+    action SetSize(number width, number height)
+        parent:Libraries.Interface.Item2D:SetSize(width, height)
+        background:SetSize(width, height)
+        horizontalBar:SetWidth(width)
+        verticalBar:SetHeight(height)
     end
 
     private action CreateScrollBars
         Color color
+        verticalBar:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
+        horizontalBar:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
+        verticalControl:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
+        horizontalControl:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
+
+        verticalBar:SetName("Vertical Scroll Track")
+        verticalControl:SetName("Vertical Scroll Control")
+        horizontalBar:SetName("Horizontal Scroll Track")
+        horizontalControl:SetName("Horizontal Scroll Control")
+
+        /*
+        By default, the vertical bar has width equal to the bar thickness, has a
+        height equal to the height of its container, and has its top right 
+        corner touching the top right corner of the container.
+        */
+        verticalBarLayout:SetPercentageX(1)
+        verticalBarLayout:SetPercentageOriginX(1)
+        verticalBarLayout:SetPercentageY(1)
+        verticalBarLayout:SetPercentageOriginY(1)
+        verticalBarLayout:SetPercentageHeight(1)
+        verticalBarLayout:SetWidthOffset(barThickness)
+
+        verticalBar:AddLayout(verticalBarLayout)
+
+        /*
+        The horizontal bar has width equal to its container's width, height
+        equal to the bar thickness, and lies along the bottom of the text box.
+        */
+        horizontalBarLayout:SetPercentageX(0)
+        horizontalBarLayout:SetPercentageY(0)
+        horizontalBarLayout:SetPercentageWidth(1)
+        horizontalBarLayout:SetHeightOffset(barThickness)
+
+        horizontalBar:AddLayout(horizontalBarLayout)
+
+        /*
+        The vertical control begins at the top of the bar, and its width fully
+        fills the bar. Its height is not set here, instead being set during
+        ResizeScrollBars().
+        */
+        verticalControlLayout:SetPercentageOriginY(1)
+        verticalControlLayout:SetPercentageY(1)
+        verticalControlLayout:SetPercentageX(0)
+        verticalControlLayout:SetPercentageWidth(1)
+
+        verticalControl:AddLayout(verticalControlLayout)
+
+        /*
+        The horizontal control begins at the left of the bar, and its height
+        fully fills the bar. Its width is not set here, instead being set during
+        ResizeScrollBars().
+        */
+        horizontalControlLayout:SetPercentageX(0)
+        horizontalControlLayout:SetPercentageY(0)
+        horizontalControlLayout:SetPercentageHeight(1)
+
+        horizontalControl:AddLayout(horizontalControlLayout)
+
+        Add(verticalBar)
+        Add(horizontalBar)
+        verticalBar:Add(verticalControl)
+        horizontalBar:Add(horizontalControl)
+
+        ResizeScrollBars()
+    end
+
+    private action ResizeScrollBars
         number height = GetHeight()
         number width = GetWidth()
 //        number verticalRatio = height / scrollAnchor:GetHeight()
@@ -638,47 +1069,81 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         number barHeight = height
         number barWidth = width
 
-        if verticalBar:IsLoaded()
-            verticalBar:Dispose()
-        end
-        if horizontalBar:IsLoaded()
-            horizontalBar:Dispose()
-        end
-        if verticalControl:IsLoaded()
-            verticalControl:Dispose()
-        end
-        if horizontalControl:IsLoaded()
-            horizontalControl:Dispose()
-        end
+//        if verticalBar:IsLoaded()
+//            verticalBar:Dispose()
+//        end
+//        if horizontalBar:IsLoaded()
+//            horizontalBar:Dispose()
+//        end
+//        if verticalControl:IsLoaded()
+//            verticalControl:Dispose()
+//        end
+//        if horizontalControl:IsLoaded()
+//            horizontalControl:Dispose()
+//        end
+
+//        if verticalVisible and horizontalVisible
+//            barHeight = height - barThickness
+//            barWidth = width - barThickness
+//            verticalRatio = barHeight / GetScrollRegionHeight()
+//            horizontalRatio = barWidth / GetScrollRegionWidth()
+//            verticalBar:SetY(barThickness)
+//        end
 
         if verticalVisible and horizontalVisible
+            verticalBarLayout:SetHeightOffset(-barThickness)
+            horizontalBarLayout:SetWidthOffset(-barThickness)
             barHeight = height - barThickness
             barWidth = width - barThickness
             verticalRatio = barHeight / GetScrollRegionHeight()
             horizontalRatio = barWidth / GetScrollRegionWidth()
-            verticalBar:SetY(barThickness)
+        else
+            verticalBarLayout:SetHeightOffset(0)
+            horizontalBarLayout:SetWidthOffset(0)
         end
 
-        if verticalVisible
-            verticalBar:LoadFilledRectangle(barThickness, cast(integer, barHeight), color:CustomColor(0.9, 0.9, 0.9, 1))
-            verticalBar:SetX(width - barThickness)
-            parent:Item2D:Add(verticalBar)
+        if verticalRatio > 1.0
+            verticalRatio = 1.0
+        end
 
-            verticalControl:LoadFilledRectangle(barThickness, cast(integer, verticalRatio * barHeight), color:CustomColor(0.75, 0.75, 0.75, 1))
-            verticalControl:SetY(height - verticalRatio * height - (height - barHeight))
-            verticalBar:Add(verticalControl)
+        if horizontalRatio > 1.0
+            horizontalRatio = 1.0
+        end
+
+//        if verticalVisible
+//            verticalBar:LoadFilledRectangle(barThickness, cast(integer, barHeight), color:CustomColor(0.9, 0.9, 0.9, 1))
+//            verticalBar:SetX(width - barThickness)
+//            parent:Item2D:Add(verticalBar)
+//
+//            verticalControl:LoadFilledRectangle(barThickness, cast(integer, verticalRatio * barHeight), color:CustomColor(0.75, 0.75, 0.75, 1))
+//            verticalControl:SetY(height - verticalRatio * height - (height - barHeight))
+//            verticalBar:Add(verticalControl)
+//            verticalBar:Show()
+//        else
+//            verticalBar:Hide()
+//        end
+
+        if verticalVisible
+            verticalControlLayout:SetPercentageHeight(verticalRatio)
             verticalBar:Show()
         else
             verticalBar:Hide()
         end
 
-        if horizontalVisible
-            horizontalBar:LoadFilledRectangle(cast(integer, barWidth), barThickness, color:CustomColor(0.9, 0.9, 0.9, 1))
-            parent:Item2D:Add(horizontalBar)
+//        if horizontalVisible
+//            horizontalBar:LoadFilledRectangle(cast(integer, barWidth), barThickness, color:CustomColor(0.9, 0.9, 0.9, 1))
+//            parent:Item2D:Add(horizontalBar)
+//
+//            horizontalControl:LoadFilledRectangle(cast(integer, horizontalRatio * width), barThickness, color:CustomColor(0.75, 0.75, 0.75, 1))
+////            horizontalControl:SetY(height - ratio * height)
+//            horizontalBar:Add(horizontalControl)
+//            horizontalBar:Show()
+//        else
+//            horizontalBar:Hide()
+//        end
 
-            horizontalControl:LoadFilledRectangle(cast(integer, horizontalRatio * width), barThickness, color:CustomColor(0.75, 0.75, 0.75, 1))
-//            horizontalControl:SetY(height - ratio * height)
-            horizontalBar:Add(horizontalControl)
+        if horizontalVisible
+            horizontalControlLayout:SetPercentageWidth(horizontalRatio)
             horizontalBar:Show()
         else
             horizontalBar:Hide()
@@ -813,11 +1278,16 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         number sharedSpaceOffset = GetSharedSpaceOffset()
 
-        number adjustedHeight = GetHeight() - verticalControl:GetHeight() - sharedSpaceOffset
-        verticalControl:SetY(adjustedHeight * vertical)
+        verticalControlLayout:SetPercentageY(vertical)
+        verticalControlLayout:SetOffsetY(((1 - vertical) * ((GetHeight() + verticalBarLayout:GetHeightOffset()) * verticalControlLayout:GetPercentageHeight())))
+        horizontalControlLayout:SetPercentageX(horizontal)
+        horizontalControlLayout:SetOffsetX(-(horizontal * ((GetWidth() + horizontalBarLayout:GetWidthOffset()) * horizontalControlLayout:GetPercentageWidth())))
 
-        number adjustedWidth = GetWidth() - horizontalControl:GetWidth() - sharedSpaceOffset
-        horizontalControl:SetX(adjustedWidth * horizontal)
+//        number adjustedHeight = GetHeight() - verticalControl:GetHeight() - sharedSpaceOffset
+//        verticalControl:SetY(adjustedHeight * vertical)
+//
+//        number adjustedWidth = GetWidth() - horizontalControl:GetWidth() - sharedSpaceOffset
+//        horizontalControl:SetX(adjustedWidth * horizontal)
 
         number adjustedScrollWidth = GetScrollRegionWidth() - GetWidth()
         number adjustedScrollHeight = GetScrollRegionHeight() - GetHeight()
@@ -833,7 +1303,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         me:vertical = vertical
         me:horizontal = horizontal
 
-        GetLineDrawables()
+        Resize()
     end
 
     private action GetSharedSpaceOffset returns number
@@ -981,41 +1451,41 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         return textValue:GetText()
     end
 
-    action GetSingleSelection(integer index) returns Selection
-        Selection selection
-        selection:SetDisplayName("")
-        return selection
-    end
-
-    action GetRangeSelection(Pair<integer> range) returns Array<Selection>
-        Array<Selection> array
-        Selection selection
-        text selectedText = textValue:GetText():GetSubtext(range:GetLeastValue(), range:GetGreatestValue())
-        selection:SetDisplayName(selectedText)
-        array:Add(selection)
-        return array
-    end
-
-    action GetMultipleSelection(Array<Pair<integer>> ranges) returns Array<Selection>
-        if ranges:GetSize() = 1
-            return GetRangeSelection(ranges:Get(0))
-        end
-
-        alert("Multiple selection is not supported for TextBox yet. Use GetRangeSelection() instead.")
-    end
-
-    action GetSelectableSize returns integer
-        // The caret can be placed anywhere between 0 and the length of the
-        // text (including after the last character), resulting in length + 1.
-        return textValue:GetLength() + 1
-    end
-
-    action GetCurrentSelection returns Array<Selection>
-        // When selection is fully supported, this will be replaced with the
-        // actual start and end indices of the selection.
-        integer caretIndex = GetCaretIndex()
-        return GetRangeSelection(caretIndex, caretIndex)
-    end
+//    action GetSingleSelection(integer index) returns Selection
+//        Selection selection
+//        selection:SetDisplayName("")
+//        return selection
+//    end
+//
+//    action GetRangeSelection(Pair<integer> range) returns Array<Selection>
+//        Array<Selection> array
+//        Selection selection
+//        text selectedText = textValue:GetText():GetSubtext(range:GetLeastValue(), range:GetGreatestValue())
+//        selection:SetDisplayName(selectedText)
+//        array:Add(selection)
+//        return array
+//    end
+//
+//    action GetMultipleSelection(Array<Pair<integer>> ranges) returns Array<Selection>
+//        if ranges:GetSize() = 1
+//            return GetRangeSelection(ranges:Get(0))
+//        end
+//
+//        alert("Multiple selection is not supported for TextBox yet. Use GetRangeSelection() instead.")
+//    end
+//
+//    action GetSelectableSize returns integer
+//        // The caret can be placed anywhere between 0 and the length of the
+//        // text (including after the last character), resulting in length + 1.
+//        return textValue:GetLength() + 1
+//    end
+//
+//    action GetCurrentSelection returns Array<Selection>
+//        // When selection is fully supported, this will be replaced with the
+//        // actual start and end indices of the selection.
+//        integer caretIndex = GetCaretIndex()
+//        return GetRangeSelection(caretIndex, caretIndex)
+//    end
 
     action GetCurrentLineText() returns text
         return textValue:GetLine(caretLine):GetText()

@@ -4,7 +4,10 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Item
 use Libraries.Interface.TextBox
 
-class TextBoxNewLineBehavior is Behavior
+class TextBoxNewLineBehavior is TimedBehavior
+
+    TextBox textBox = undefined
+
     action Run(BehaviorEvent event)
         Item item = event:GetItem()
         if not (item is TextBox)
@@ -14,7 +17,16 @@ class TextBoxNewLineBehavior is Behavior
         text lineFeed = ""
         lineFeed = lineFeed:GetLineFeed()
 
-        TextBox box = cast(TextBox, item)
-        box:Insert(lineFeed)
+        textBox = cast(TextBox, item)
+        textBox:Insert(lineFeed)
+    end
+
+    action Dispose
+        if textBox = undefined
+            return now
+        end
+
+        SetTimer(textBox:GetCaretMoveTime())
+        textBox:AddBehavior(me)
     end
 end

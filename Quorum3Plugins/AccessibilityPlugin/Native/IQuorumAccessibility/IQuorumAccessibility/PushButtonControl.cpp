@@ -1,5 +1,5 @@
 #include <string>
-#include <windowsx.h>
+#include <windows.h>
 #include <iostream>
 
 #include "PushButtonControl.h"
@@ -31,6 +31,7 @@ PushButtonProvider* PushButtonControl::GetButtonProvider(_In_ HWND hwnd)
 	if (m_buttonProvider == NULL)
 	{
 		m_buttonProvider = new PushButtonProvider(hwnd, this);
+		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
 }
@@ -88,7 +89,7 @@ bool PushButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND PushButtonControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+HWND PushButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
 
 	if (!Initialized)
@@ -108,7 +109,7 @@ HWND PushButtonControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ W
 			-1,
 			1,
 			1,
-			parent, // Parent window
+			GetMainWindowHandle(), // Parent window
 			NULL,
 			instance,
 			static_cast<PVOID>(control));
@@ -151,9 +152,20 @@ void PushButtonControl::SetName(_In_ WCHAR* name)
 	m_buttonName = name;
 }
 
-void PushButtonControl::SetFocus()
+void PushButtonControl::SetControlFocus()
 {
+	m_focused = true;
 	m_buttonProvider->NotifyFocusGained();
+}
+
+void PushButtonControl::KillControlFocus()
+{
+	m_focused = false;
+}
+
+bool PushButtonControl::HasFocus()
+{
+	return m_focused;
 }
 
 LRESULT CALLBACK PushButtonControl::StaticButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
@@ -183,6 +195,7 @@ LRESULT CALLBACK PushButtonControl::StaticButtonControlWndProc(_In_ HWND hwnd, _
 // Control window procedure.
 LRESULT CALLBACK PushButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
+	LRESULT lResult = 0;
 
 	switch (message)
 	{
@@ -194,25 +207,36 @@ LRESULT CALLBACK PushButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UI
 			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
 		}
 
-		return 0;
+		break;
 	}
-	case CUSTOM_SETFOCUS:
+	case WM_DESTROY:
 	{
-		this->SetFocus();
-		return 0;
+		lResult = UiaReturnRawElementProvider(hwnd, 0, 0, NULL);
 	}
-	case CUSTOM_INVOKEBUTTON:
+	case WM_SETFOCUS:
+	{
+		this->SetControlFocus();
+		break;
+	}
+	case WM_KILLFOCUS:
+	{
+		this->KillControlFocus();
+		break;
+	}
+	case QUORUM_INVOKEBUTTON:
 	{
 		this->InvokeButton(hwnd);
-		return 0;
+		break;
 	}
-	case CUSTOM_SETNAME:
+	case QUORUM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
+		break;
 	}
-
-	break;
+	default:
+		lResult = ForwardMessage(hwnd, message, wParam, lParam);
+		break;
 	}  // switch (message)
 
-	return DefWindowProc(hwnd, message, wParam, lParam);
+	return lResult;
 }

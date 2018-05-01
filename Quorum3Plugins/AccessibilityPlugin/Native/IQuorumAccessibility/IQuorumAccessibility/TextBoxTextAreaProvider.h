@@ -28,7 +28,7 @@ class TextBoxTextAreaProvider : public ITextProvider,
 		IFACEMETHODIMP SetFocus();
 		IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot ** pRetVal);
 
-		// TextProvider methods
+		// ITextProvider methods
 		IFACEMETHODIMP GetSelection(_Outptr_result_maybenull_ SAFEARRAY** retVal);
 		IFACEMETHODIMP GetVisibleRanges(_Outptr_result_maybenull_ SAFEARRAY ** retVal);
 		IFACEMETHODIMP RangeFromChild(_In_opt_ IRawElementProviderSimple * childElement, _Outptr_result_maybenull_ ITextRangeProvider ** retVal);
@@ -38,8 +38,8 @@ class TextBoxTextAreaProvider : public ITextProvider,
 
 
 	private:
-		ULONG m_refCount;
 
+		ULONG m_refCount;
 		HWND m_TextBoxControlHWND;
 		TextBoxControl* m_pTextBoxControl;
 };

@@ -279,7 +279,16 @@ class MultipleLineText
 
         integer toFill = CharactersToBackfill(refillText, providingText)
         if toFill = 0
-            return me
+            // If the providing text was empty somehow, delete the empty line and
+            // continue. Most likely this occurs because the last line was empty
+            // (without text wrapping, it's the only line legally allowed to be
+            // empty).
+            if providingText:IsEmpty()
+                MultipleLineText result = RemoveFromLine(lineIndex + 1, 0)
+                return result:RefillLine(lineIndex + 1)
+            else
+                return me
+            end
         end
 
         integer startIndex = CharacterIndexFromLineIndex(lineIndex) + refillText:GetSize()
@@ -319,11 +328,12 @@ class MultipleLineText
 
     /*
     Remove the specified number of characters from the beginning of the line.
+    Doesn't preserve empty lines at the end of the MultipleLineText.
     */
     private action RemoveFromLine(integer lineIndex, integer count) returns MultipleLineText
         integer weight = GetLeafWeight()
         if IsLeaf()
-            return RecursiveDelete(0, count)
+            return RecursiveDelete(0, count, false)
         elseif lineIndex >= weight
             MultipleLineText newRoot
             MultipleLineText newRight = right:RemoveFromLine(lineIndex - weight, count)
@@ -801,7 +811,7 @@ class MultipleLineText
             alert("I couldn't delete the text from this MultipleLineText because I was asked to remove more text than was available. I was asked to delete between indices "  
                 + startIndex + " and " + endIndex + ", but there are only " + GetLength() + " characters available.")
         end
-        MultipleLineText newTree = RecursiveDelete(startIndex, endIndex)
+        MultipleLineText newTree = RecursiveDelete(startIndex, endIndex, true)
         if newTree = undefined
             MultipleLineText emptyTree
             emptyTree:Initialize("", maxLeafSize, fibonacciArray, false)
@@ -819,8 +829,15 @@ class MultipleLineText
     Recursive call that handles deletion. Separated out from the "original"
     delete call so that the recursive call does not handle certain one-time
     checks (i.e. bound checking, tree balancing).
+
+    The "rightTraversal" boolean indicates that the call stack for a particular
+    given delete call only contains calls that traveled to the right. In other
+    words, if a leaf receives this call and the boolean is true, it must be the
+    last leaf in the tree (and therefore has special consideration that it must
+    not declare the tree to be undefined if it is empty - an empty last line
+    is considered valid).
     */
-    private action RecursiveDelete(integer startIndex, integer endIndex) returns MultipleLineText
+    private action RecursiveDelete(integer startIndex, integer endIndex, boolean rightTraversal) returns MultipleLineText
         MultipleLineText newTree
 
         if not IsLeaf()
@@ -828,12 +845,12 @@ class MultipleLineText
             MultipleLineText rightChild = undefined
 
             if left not= undefined and startIndex < weight
-                leftChild = left:RecursiveDelete(startIndex, endIndex)
+                leftChild = left:RecursiveDelete(startIndex, endIndex, false)
             else
                 leftChild = left
             end
             if right not= undefined and endIndex > weight
-                rightChild = right:RecursiveDelete(startIndex - weight, endIndex - weight)
+                rightChild = right:RecursiveDelete(startIndex - weight, endIndex - weight, rightTraversal)
             else
                 rightChild = right
             end
@@ -846,12 +863,21 @@ class MultipleLineText
         else
             integer characterSize = characters:GetSize()
             if startIndex <= 0 and endIndex >= characterSize
-                /*
-                If all characters are deleted, don't return a new MultipleLineText, just
-                return undefined (there should no longer be a leaf at this
-                position in the tree).
-                */
-                return undefined
+                if not rightTraversal
+                    /*
+                    If all characters are deleted, don't return a new MultipleLineText, just
+                    return undefined (there should no longer be a leaf at this
+                    position in the tree).
+                    */
+                    return undefined
+                else
+                    /*
+                    If this is a leaf and rightTraversal = true, then this is
+                    the last leaf in the tree. The last leaf in the tree is
+                    allowed to be empty.
+                    */
+                    newTree:Initialize("", maxLeafSize, fibonacciArray, false)
+                end
             else
                 text newText = ""
                 if startIndex > 0
@@ -1060,7 +1086,7 @@ class MultipleLineText
         // TO-DO:
         // Change leaves if necessary, if not return me
         // Changing the leaf size / wrapping style means recreating nodes
-        // (can't reuse any ndoes because they all share the same values)
+        // (can't reuse any nodes because they all share the same values)
         return me
     end
 

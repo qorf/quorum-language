@@ -6,7 +6,7 @@
 //For debugging
 #include <iostream>
 
-TextBoxTextRange::TextBoxTextRange(_In_ HWND hwnd, _In_ TextBoxControl *control, _In_ Range range) : m_refCount(1), m_TextBoxControlHWND(hwnd), m_pTextBoxControl(control), m_range(range)
+TextBoxTextRange::TextBoxTextRange(_In_ HWND hwnd, _In_ TextBoxControl *control, _In_ Range range, _In_ std::wstring text) : m_refCount(1), m_TextBoxControlHWND(hwnd), m_pTextBoxControl(control), m_range(range), m_Text(text)
 {
 	
 }
@@ -63,7 +63,7 @@ IFACEMETHODIMP TextBoxTextRange::Clone(_Outptr_result_maybenull_ ITextRangeProvi
 {
 	HRESULT hr = S_OK;
 
-	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, m_range);
+	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, m_range, m_Text);
 
 	if (*pRetVal == NULL)
 	{
@@ -176,7 +176,7 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 	{
 		m_range.begin.character = 0;
 		m_range.begin.line = 0;
-		m_range.end = m_pTextBoxControl->GetEndOfText();
+		m_range.end = m_pTextBoxControl->GetTextboxEndpoint();
 	}
 	else
 	{
@@ -219,7 +219,8 @@ IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttribut
 			{
 				found.end = searchBackward ? current : next;
 			}
-			*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, found);
+			// TODO: m_Text is not accurate. Fix it.
+			*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, found, m_Text);
 
 			if (*pRetVal == NULL)
 			{
@@ -282,7 +283,8 @@ IFACEMETHODIMP TextBoxTextRange::GetBoundingRectangles(_Outptr_result_maybenull_
 	return E_NOTIMPL;
 }
 
-// GetEnclosingElement: Returns the innermost element that encloses the text range.
+// GetEnclosingElement: Returns the innermost element that encloses the text range. The enclosing element is typically the text provider that supplies the text range.
+//						However, if the text provider supports child elements such as tables or hyperlinks, the enclosing element could be a descendant of the text provider.
 IFACEMETHODIMP TextBoxTextRange::GetEnclosingElement(_Outptr_result_maybenull_ IRawElementProviderSimple ** pRetVal)
 {
 	if (!IsWindow(m_TextBoxControlHWND))
@@ -305,104 +307,14 @@ IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVa
 	HRESULT hr = S_OK;
 
 	
-	// This is the text that will be read by the screen reader.
-	PWSTR outputText;
-	int outputTextSize;
+	//std::wstring wStr = m_pTextBoxControl->GetText();
+	//*pRetVal = SysAllocStringLen(wStr.data(), wStr.size());
+	*pRetVal = L"press";
 
-	if (maxLength >= 0)
-	{
-		outputTextSize = maxLength + 1;
-	}
-	else
-	{
-		outputTextSize = 0;
-		EndPoint current = m_range.begin;
-
-		while (CompareEndpointPair(current, m_range.end) < 0)
-		{
-			if (current.line < m_range.end.line)
-			{
-				int length = m_pTextBoxControl->GetLineLength(current.line);
-				// Add 1 for the implied newline
-				outputTextSize += length - current.character + 1;
-				current.line++;
-				current.character = 0;
-			}
-			else
-			{
-				outputTextSize += m_range.end.character - current.character;
-				current.character = m_range.end.character;
-			}
-		}
-	}
-
-	outputText = new WCHAR[outputTextSize];
-
-	if (outputText != NULL)
-	{
-		int characterWritePosition = 0;
-		EndPoint currentEndPoint = m_range.begin;
-
-		while (CompareEndpointPair(currentEndPoint, m_range.end) < 0 && characterWritePosition < (outputTextSize - 1))
-		{
-			int copyLength = 0;
-			EndPoint nextEndPoint;
-			bool trailingNewline = false;
-
-			if (currentEndPoint.line < m_range.end.line)
-			{
-				int length = m_pTextBoxControl->GetLineLength(currentEndPoint.line);
-				// Add 1 for the implied newline
-				copyLength = length - currentEndPoint.character;
-				trailingNewline = true;
-				
-				// The next EndPoint starts at the lefthand side of the next line.
-				nextEndPoint.line = currentEndPoint.line + 1;
-				nextEndPoint.character = 0;
-			}
-			else
-			{
-				copyLength = m_range.end.character - currentEndPoint.character;
-				nextEndPoint.line = currentEndPoint.line;
-				nextEndPoint.character = m_range.end.character;
-			}
-
-			if (characterWritePosition + copyLength >= (outputTextSize - 1))
-			{
-				copyLength = (outputTextSize - 1) - characterWritePosition;
-			}
-
-			TextLine *textLine = m_pTextBoxControl->GetLine(currentEndPoint.line);
-			StringCchCopyN(&outputText[characterWritePosition], copyLength + 1, &textLine->text[currentEndPoint.character], copyLength);
-			characterWritePosition += copyLength;
-			currentEndPoint = nextEndPoint;
-
-			if (trailingNewline && characterWritePosition < (outputTextSize - 1))
-			{
-				outputText[characterWritePosition++] = '\n';
-			}
-		}
-
-		// Ensure the string is null-terminated
-		outputText[characterWritePosition] = '\0';
-
-		// Whatever string is passed to this function will be what the screen reader reads aloud.
-		*pRetVal = SysAllocString(L"Say something");
-		if (*pRetVal == NULL)
-		{
-			hr = E_OUTOFMEMORY;
-		}
-
-		// TODO: With NVDA turned on, this eventually causes Heap Corruption. Fix it!
-		// Note: This only occured during testing with the native sample but I'm handling my implementation
-		//       the same way so it's worth investigating.
-		delete[] outputText;
-	}
-	else
+	if (*pRetVal == NULL)
 	{
 		hr = E_OUTOFMEMORY;
 	}
-
 	return hr;
 }
 
@@ -685,7 +597,7 @@ EndPoint TextBoxTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ Tex
 			{
 				if (forward)
 				{
-					current = m_pTextBoxControl->GetEndOfText();
+					current = m_pTextBoxControl->GetTextboxEndpoint();
 				}
 				else
 				{

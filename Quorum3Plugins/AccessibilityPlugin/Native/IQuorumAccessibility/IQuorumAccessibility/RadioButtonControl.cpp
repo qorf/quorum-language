@@ -31,6 +31,7 @@ RadioButtonProvider* RadioButtonControl::GetButtonProvider(_In_ HWND hwnd)
 	if (m_buttonProvider == NULL)
 	{
 		m_buttonProvider = new (std::nothrow) RadioButtonProvider(hwnd, this);
+		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
 }
@@ -88,7 +89,7 @@ bool RadioButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND RadioButtonControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+HWND RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
 
 	if (!Initialized)
@@ -108,7 +109,7 @@ HWND RadioButtonControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ 
 			-1,
 			1,
 			1,
-			parent, // Parent window
+			GetMainWindowHandle(), // Parent window
 			NULL,
 			instance,
 			static_cast<PVOID>(control));
@@ -149,11 +150,6 @@ void RadioButtonControl::SetName(_In_ WCHAR* name)
 	m_buttonName = name;
 }
 
-void RadioButtonControl::SetFocus()
-{
-	m_buttonProvider->NotifyFocusGained();
-}
-
 void RadioButtonControl::SetState(_In_ bool controlState)
 {
 	m_isOn = controlState;
@@ -171,7 +167,21 @@ bool RadioButtonControl::GetState()
 	return m_isOn;
 }
 
+void RadioButtonControl::SetControlFocus()
+{
+	m_focused = true;
+	m_buttonProvider->NotifyFocusGained();
+}
 
+void RadioButtonControl::KillControlFocus()
+{
+	m_focused = false;
+}
+
+bool RadioButtonControl::HasFocus()
+{
+	return m_focused;
+}
 
 
 LRESULT RadioButtonControl::StaticRadioButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
@@ -201,6 +211,7 @@ LRESULT RadioButtonControl::StaticRadioButtonControlWndProc(_In_ HWND hwnd, _In_
 // Control window procedure.
 LRESULT CALLBACK RadioButtonControl::RadioButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
+	LRESULT lResult = 0;
 
 	switch (message)
 	{
@@ -209,33 +220,46 @@ LRESULT CALLBACK RadioButtonControl::RadioButtonControlWndProc(_In_ HWND hwnd, _
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
+			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
 		}
 
-		return 0;
+		break;
 	}
-	case CUSTOM_SETFOCUS:
+	case WM_DESTROY:
 	{
-		this->SetFocus();
-		return 0;
+		lResult = UiaReturnRawElementProvider(hwnd, 0, 0, NULL);
 	}
-	case CUSTOM_INVOKEBUTTON:
+	case WM_SETFOCUS:
 	{
-		this->InvokeButton(hwnd);
-
+		this->SetControlFocus();
+		break;
+	}
+	case WM_KILLFOCUS:
+	{
+		this->KillControlFocus();
+		break;
+	}
+	case QUORUM_INVOKEBUTTON:
+	{
 		bool state = static_cast<bool>(wParam);
 
+		// Update the state of the radio button
 		this->SetState(state);
 
-		return 0;
+		// Raise UIA Event
+		this->InvokeButton(hwnd);
+
+		break;
 	}
-	case CUSTOM_SETNAME:
+	case QUORUM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
+		break;
 	}
-
-	break;
+	default:
+		lResult = ForwardMessage(hwnd, message, wParam, lParam);
+		break;
 	}  // switch (message)
 
-	return DefWindowProc(hwnd, message, wParam, lParam);
+	return lResult;
 }

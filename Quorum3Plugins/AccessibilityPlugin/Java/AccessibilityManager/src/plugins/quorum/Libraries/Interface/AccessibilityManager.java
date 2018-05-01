@@ -55,7 +55,7 @@ public class AccessibilityManager
     // ====== Native Windows API (Win32) Function Declarations
     
     
-    private native void NativeWin32InitializeAccessibility();
+    private native void NativeWin32InitializeAccessibility(long GLFW_WindowHandle);
     
     private native void NativeWin32ShutdownAccessibility();
     
@@ -64,19 +64,19 @@ public class AccessibilityManager
     
     // NativeWin32CreateItem: Creates a custom control with the most basic accessibility information in UI Automation.
     //      Returns: null on failure, otherwise itemHWND associated with item
-    private native long NativeWin32CreateItem(long parentWindow, String name, String description);
+    private native long NativeWin32CreateItem(String name, String description);
     
     // NativeWin32CreatePushButton: Creates a button control in UI Automation.
     //      Returns: null on failure, otherwise itemHWND associated with item
-    private native long NativeWin32CreatePushButton(long parentWindow, String name, String description);
+    private native long NativeWin32CreatePushButton(String name, String description);
     
     // NativeWin32CreateToggleButton: Creates a checkbox control in UI Automation.
     //      Returns: null on failure, otherwise itemHWND associated with item
-    private native long NativeWin32CreateToggleButton(long parentWindow, String name, String description);
+    private native long NativeWin32CreateToggleButton(String name, String description);
     
     // NativeWin32CreateRadioButton: Creates a radio button control in UI Automation.
     //      Returns: null on failure, otherwise itemHWND associated with item
-    private native long NativeWin32CreateRadioButton(long parentWindow, String name, String description);
+    private native long NativeWin32CreateRadioButton(String name, String description);
     
     // NativeWin32InvokeButton: Calls the native method that will raise a UI Automation that tells the screen reader that the button was iteracted with.
     private native boolean NativeWin32InvokeButton(long itemHWND);
@@ -87,12 +87,15 @@ public class AccessibilityManager
 
     // NativeWin32CreateTextBox: Creates an edit control in UI Automation.
     //      Returns: null on failure, otherwise itemHWND associated with item
-    private native long NativeWin32CreateTextBox(long parentWindow, String name, String description, String currentLineText, int caretLine, int caretCharacter);
+    private native long NativeWin32CreateTextBox(String name, String description, String currentLineText, int caretLine, int caretCharacter);
 
-    // NativeWin32TextBoxTextSelectionChanged: Calls the native method that will raise a UI Automation event for Text being changed.
-    // TODO: Figure out what parameters are necessary to accomplish this.
+    // NativeWin32TextBoxTextSelectionChanged:
+    // TODO: Figure out the parameters required
     private native boolean NativeWin32TextBoxTextSelectionChanged(long itemHWND, String TextValue, int caretLine, int caretCharacter);
     
+    // NativeWin32UpdateCaretPosition: Will speak the given string adjacentCharacter.
+    //
+    private native boolean NativeWin32UpdateCaretPosition(long itemHWND, String adjacentCharacter);
     
     // NativeWin32SetFocus: Sets the keyboard focus onto the given item with UI Automation.
     //      Returns: null on failure, otherwise itemHWND of previously focused item.
@@ -109,7 +112,7 @@ public class AccessibilityManager
     public void Initialize()
     {
         mainWindow = glfwGetWin32Window(DesktopDisplay.window);
-        NativeWin32InitializeAccessibility();
+        NativeWin32InitializeAccessibility(mainWindow);
     }
     
     // Shutdown: Closes the COM library on the native level.
@@ -125,27 +128,27 @@ public class AccessibilityManager
         switch(item.GetAccessibilityCode())
         {
             case 0: // Item
-                itemHWND = NativeWin32CreateItem(mainWindow, item.GetName(), item.GetDescription());
+                itemHWND = NativeWin32CreateItem(item.GetName(), item.GetDescription());
                 break;
             case 1: // Custom
                 // Not implemented yet. Create as Item for now.
-                itemHWND = NativeWin32CreateItem(mainWindow, item.GetName(), item.GetDescription());
+                itemHWND = NativeWin32CreateItem(item.GetName(), item.GetDescription());
                 break;
             case 2: // ToggleButton
-                itemHWND = NativeWin32CreateToggleButton(mainWindow, item.GetName(), item.GetDescription());
+                itemHWND = NativeWin32CreateToggleButton(item.GetName(), item.GetDescription());
                 break;
             case 3: // RadioButton
-                itemHWND = NativeWin32CreateRadioButton(mainWindow, item.GetName(), item.GetDescription());
+                itemHWND = NativeWin32CreateRadioButton(item.GetName(), item.GetDescription());
                 break;
             case 4: // PushButton
-                itemHWND = NativeWin32CreatePushButton(mainWindow, item.GetName(), item.GetDescription());
+                itemHWND = NativeWin32CreatePushButton(item.GetName(), item.GetDescription());
                 break;
             case 5: // TextBox
                 TextBox_ textbox = (TextBox_)item;
-                itemHWND = NativeWin32CreateTextBox(mainWindow, textbox.GetName(), textbox.GetDescription(), textbox.GetCurrentLineText(), textbox.GetCaretLine(), textbox.GetCaretLineIndex());
+                itemHWND = NativeWin32CreateTextBox(textbox.GetName(), textbox.GetDescription(), textbox.GetCurrentLineText(), textbox.GetCaretLine(), textbox.GetCaretLineIndex());
                 break;
             default: // Assume Item
-                itemHWND = NativeWin32CreateItem(mainWindow, item.GetName(), item.GetDescription());
+                itemHWND = NativeWin32CreateItem(item.GetName(), item.GetDescription());
                 break;
         }
         
@@ -173,25 +176,23 @@ public class AccessibilityManager
     {
         // Retreive HWND for given object
         long itemHWND = itemMap.get(item);
-//        long prevousFocusedItem;
+        long previousFocusedItem; // Could be used for something later.
+
         if (itemHWND != 0)
         {
-//            prevousFocusedItem = NativeWin32SetFocus(itemHWND);
-            
-            if(NativeWin32SetFocus(itemHWND) != 0)
-            {
-                // TODO: Decide whether or not to capture return value of NativeWin32SetFocus and store it for something.
-                
-                // Update focesedItem to the new focused item.
-                focusedItem = item;
-                //NativeWin32SetFocus(mainWindow);
+            // TODO: The main GLFW window could come out of this function call.
+            // So we want to make sure that Quorum users don't get access to it.
+            previousFocusedItem = NativeWin32SetFocus(itemHWND);
+
+            if (previousFocusedItem != 0)
                 return true;
-            }
             else
                 return false;
         }
         else
+        {
             return false;
+        }
     }
     
     // InvokeButton: Invoke a button through UI Automation
@@ -203,9 +204,7 @@ public class AccessibilityManager
         
         if (itemHWND != 0)
         {
-            boolean bool = NativeWin32InvokeButton(itemHWND);
-            
-            return bool;
+            return NativeWin32InvokeButton(itemHWND);
         }
         else
             return false;
@@ -222,14 +221,13 @@ public class AccessibilityManager
         
         if (itemHWND != 0)
         {
-            boolean bool = NativeWin32UpdateToggleStatus(itemHWND, selected);
-            
-            return bool;
+            return NativeWin32UpdateToggleStatus(itemHWND, selected);
         }
         else            
             return false;
     }
     
+    // TODO: Fix this method so that it behaves. Otherwise, only ever use CaretPositionChanged
     public void TextSelectionChanged(Item_ textbox)
     {
         long itemHWND = itemMap.get(textbox);
@@ -237,6 +235,13 @@ public class AccessibilityManager
         TextBox_ text = (TextBox_)textbox;
         
         NativeWin32TextBoxTextSelectionChanged(itemHWND, text.GetCurrentLineText(), text.GetCaretLine(), text.GetCaretLineIndex());
+    }
+    
+    public void CaretPositionChanged(Item_ textbox, Text_ adjacentCharacter)
+    {
+        long itemHWND = itemMap.get(textbox);
+        
+        NativeWin32UpdateCaretPosition(itemHWND, adjacentCharacter.GetValue());
     }
     
 }

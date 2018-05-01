@@ -1,0 +1,56 @@
+package Libraries.Interface.Controls
+
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.LabelBoxContent
+use Libraries.Game.Graphics.Color
+
+class TabPane is Item2D
+    
+    TabBar bar = undefined
+    Item2D currentItem = undefined
+    Item2D viewArea
+
+    on create
+        SetName("Tab Pane")
+        viewArea:SetName("Tab View Area")
+    end
+
+    action Initialize(number width, number height, Array<Tab> tabs)
+        LabelBoxContent testContent
+        Color color
+        testContent:Initialize(color:White(), color:Black())
+//        SetVisualContent(testContent)
+
+        TabBar tabBar
+        bar = tabBar
+        bar:SetTabPane(me)
+        bar:Initialize(tabs)
+        
+        viewArea:SetSize(width, height - bar:GetHeight())
+        viewArea:SetClipping(true)
+
+        Add(viewArea)
+        Add(bar)
+
+        SetSize(width, height)
+
+        if tabs:GetSize() > 0
+            tabs:Get(0):SetToggleState(true)
+        end
+    end
+
+    action SetCurrentItem(Item2D item)
+        if currentItem not= undefined
+            viewArea:Remove(currentItem)
+        end
+        if item not= undefined
+            viewArea:Add(item)
+        end
+        currentItem = item
+    end
+
+    action GetCurrentItem returns Item2D
+        return currentItem
+    end
+end

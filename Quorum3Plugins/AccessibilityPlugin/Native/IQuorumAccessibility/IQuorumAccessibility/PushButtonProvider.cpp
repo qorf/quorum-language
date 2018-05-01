@@ -1,10 +1,5 @@
 #define INITGUID
 #include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-
-#include <ole2.h>
 #include <UIAutomation.h>
 
 #include "PushButtonProvider.h"
@@ -119,17 +114,15 @@ IFACEMETHODIMP PushButtonProvider::GetPropertyValue(PROPERTYID propertyId, _Out_
 	else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
 	{
 		// Tells the screen reader that this control is capable of getting keyboard focus.
-		// This isn't enough for the screen reader to announce the control's existence to the user when it gains focus in Quorum.
-		// UIA_HasKeyboardFocusPropertyId is responsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
+
 	}
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
 	{
-		// This tells the screen reader whether or not this control has Keyboard focus. Normally, only one control/window is allowed to have keyboard focus at a time
-		// but by lying and having every instance of this control report that it has keyboard focus then we don't have to mantain what has focus on the native level.
+		// UIA_HasKeyboardFocusPropertyId is responsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = VARIANT_TRUE;
+		pRetVal->boolVal = m_pButtonControl->HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
 	}
 	else
 	{
@@ -153,7 +146,7 @@ IFACEMETHODIMP PushButtonProvider::get_HostRawElementProvider(_Outptr_result_may
 // Invoke
 IFACEMETHODIMP PushButtonProvider::Invoke()
 {
-	PostMessage(m_buttonControlHWnd, CUSTOM_INVOKEBUTTON, NULL, NULL);
+	PostMessage(m_buttonControlHWnd, QUORUM_INVOKEBUTTON, NULL, NULL);
 	return S_OK;
 }
 

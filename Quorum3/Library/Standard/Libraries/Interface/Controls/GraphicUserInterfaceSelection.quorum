@@ -1,0 +1,17 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Selection
+use Libraries.Interface.GraphicUserInterface
+
+class GraphicUserInterfaceSelection is Selection
+
+    GraphicUserInterface gui = undefined
+
+    action SetElement(GraphicUserInterface element)
+        gui = element
+    end
+
+    action GetElement returns GraphicUserInterface
+        return gui
+    end
+end

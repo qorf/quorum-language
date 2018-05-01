@@ -1,0 +1,211 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Item2D
+use Libraries.Interface.GraphicUserInterfaceContent
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Painter2D
+use Libraries.Interface.Layouts.Layout
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+
+class DefaultMenuItemContent is Item2D, MenuItemContent
+    
+    Label nameLabel
+    Label shortcutLabel
+
+    Layout nameLayout
+    Layout shortcutLayout
+    Layout arrowLayout
+
+    Drawable arrow
+    Drawable selectionHighlight
+
+    number imageSpace = 10
+    number labelPadding = 10
+    number arrowSpace = 10
+
+    number heightFactor = 1.4
+
+    action Initialize(text name)
+        Initialize(name, "")
+    end
+
+    action Initialize(text name, text shortcut)
+        Color color
+        selectionHighlight:LoadFilledRectangle(1, 1, color:CustomColor(0.25, 0.25, 1, 1))
+        selectionHighlight:Hide()
+        Add(selectionHighlight)
+
+        Layout highlightLayout
+        highlightLayout:SetPercentageWidth(1.0)
+        highlightLayout:SetPercentageHeight(1.0)
+        selectionHighlight:AddLayout(highlightLayout)
+
+        nameLabel:SetText(name)
+        shortcutLabel:SetText(shortcut)
+
+        nameLayout:SetOffsetX(imageSpace)
+        
+        shortcutLayout:SetPercentageX(1)
+        shortcutLayout:SetOffsetX(-arrowSpace - shortcutLabel:GetWidth())
+
+        nameLabel:AddLayout(nameLayout)
+        shortcutLabel:AddLayout(shortcutLayout)
+
+        Add(nameLabel)
+        Add(shortcutLabel)
+
+        arrowLayout:SetPercentageX(1)
+        arrow:AddLayout(arrowLayout)
+    end
+
+    action Draw(Painter2D painter)
+        parent:Item2D:Draw(painter)
+    end
+
+    action UpdateSize(number width, number height)
+        number lineY = (1 - nameLabel:GetLineHeight() / height) / 2.0
+
+        if lineY < 0
+            lineY = 0
+        elseif lineY > 1
+            lineY = 1
+        end
+
+        nameLayout:SetPercentageY(lineY)
+        shortcutLayout:SetPercentageY(lineY)
+
+        SetSize(width, height)
+//        Resize()
+    end
+
+    action UpdatePosition(number x, number y)
+        SetPosition(x, y)
+    end
+
+    action UpdateRotation(number angle)
+        SetRotation(angle)
+    end
+
+    action UpdateFlipping(boolean flipX, boolean flipY)
+        SetFlipX(flipX)
+        SetFlipY(flipY)
+    end
+
+    action BeginMouseOver
+
+    end
+
+    action EndMouseOver
+
+    end
+
+    action ClickedMouse
+
+    end
+
+    action ReleasedMouse
+
+    end
+
+    action GainedSelection
+        selectionHighlight:Show()
+        Color color
+        nameLabel:SetColor(color:White())
+        shortcutLabel:SetColor(color:White())
+        arrow:SetColor(color:White())
+    end
+
+    action LostSelection
+        selectionHighlight:Hide()
+        Color color
+        nameLabel:SetColor(color:Black())
+        shortcutLabel:SetColor(color:Black())
+        arrow:SetColor(color:Black())
+    end
+
+    action EnableMenuArrow(boolean enable)
+        if enable
+            number contentHeight = GetContentHeight()
+            arrowSpace = 10 + contentHeight
+            integer height = cast(integer, contentHeight / 2.25)
+            if arrow:IsLoaded()
+                arrow:Dispose()
+            end
+
+            Color color
+
+            arrowLayout:SetOffsetX(-contentHeight)
+            //arrowLayout:SetOffsetY(contentHeight - height)
+            arrowLayout:SetPercentageY(0.4)
+            arrowLayout:SetPercentageOriginY(0.5)
+            arrowLayout:SetWidthOffset(height)
+            arrowLayout:SetHeightOffset(height)
+            arrow:LoadFilledTriangle(0, 0, 0, 100 + height, 100 + height, (100 + height) / 2, color:Black())
+            Add(arrow)
+            Resize()
+        else
+            Remove(arrow)
+            arrowSpace = 10
+        end
+
+        shortcutLayout:SetOffsetX(-arrowSpace - shortcutLabel:GetWidth())
+    end
+
+    action SetText(text value)
+        nameLabel:SetText(value)
+    end
+
+    action GetText returns text
+        return nameLabel:GetText()
+    end
+
+    action SetShortcut(text shortcut)
+        shortcutLabel:SetText(shortcut)
+        shortcutLayout:SetOffsetX(-arrowSpace - shortcutLabel:GetWidth())
+    end
+
+    action GetShortcut returns text
+        return shortcutLabel:GetText()
+    end
+
+    action GetContentWidth returns number
+        if shortcutLabel:GetText() = ""
+            return imageSpace + nameLabel:GetWidth() + arrowSpace
+        else
+            return imageSpace + nameLabel:GetWidth() + labelPadding + shortcutLabel:GetWidth() + arrowSpace
+        end
+    end
+
+    action GetContentHeight returns number
+        return nameLabel:GetHeight() * heightFactor
+    end
+
+    action GetIconWidth returns number
+        return 0
+    end
+
+    action GetNameWidth returns number
+        return nameLabel:GetWidth()
+    end
+
+    action GetShortcutWidth returns number
+        return shortcutLabel:GetWidth()
+    end
+
+    action GetSubmenuIconWidth returns number
+        return arrowSpace
+    end
+
+    action PadWidth(number iconWidth, number nameWidth, number shortcutWidth, number submenuIconWidth)
+        
+    end
+
+    action Copy returns GraphicUserInterfaceContent
+        DefaultMenuItemContent content
+        content:Initialize(GetText(), GetShortcut())
+        content:UpdateSize(parent:Item2D:GetWidth(), parent:Item2D:GetHeight())
+        return content
+    end
+end

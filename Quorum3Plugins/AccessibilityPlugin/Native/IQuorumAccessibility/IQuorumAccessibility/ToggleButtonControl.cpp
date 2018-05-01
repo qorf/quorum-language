@@ -1,5 +1,4 @@
 #include <string>
-#include <windowsx.h>
 #include <iostream>
 
 #include "ToggleButtonControl.h"
@@ -31,6 +30,7 @@ ToggleButtonProvider* ToggleButtonControl::GetButtonProvider(_In_ HWND hwnd)
 	if (m_buttonProvider == NULL)
 	{
 		m_buttonProvider = new ToggleButtonProvider(hwnd, this);
+		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
 }
@@ -51,8 +51,8 @@ void ToggleButtonControl::InvokeButton(_In_ HWND hwnd)
 		{
 			m_buttonProvider = GetButtonProvider(hwnd);
 		}
-	
-		m_buttonProvider->Toggle();
+			
+		//m_buttonProvider->Toggle();
 
 		// Raise an event.
 		UiaRaiseAutomationEvent(GetButtonProvider(hwnd), UIA_Invoke_InvokedEventId);
@@ -95,7 +95,7 @@ bool ToggleButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND ToggleButtonControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+HWND ToggleButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
 
 	if (!Initialized)
@@ -115,7 +115,7 @@ HWND ToggleButtonControl::Create(_In_ HWND parent, _In_ HINSTANCE instance, _In_
 			-1,
 			1,
 			1,
-			parent, // Parent window
+			GetMainWindowHandle(), // Parent window
 			NULL,
 			instance,
 			static_cast<PVOID>(control));
@@ -156,9 +156,20 @@ void ToggleButtonControl::SetName(_In_ WCHAR* name)
 	m_buttonName = name;
 }
 
-void ToggleButtonControl::SetFocus()
+void ToggleButtonControl::SetControlFocus()
 {
+	m_focused = true;
 	m_buttonProvider->NotifyFocusGained();
+}
+
+void ToggleButtonControl::KillControlFocus()
+{
+	m_focused = false;
+}
+
+bool ToggleButtonControl::HasFocus()
+{
+	return m_focused;
 }
 
 void ToggleButtonControl::SetState(_In_ ToggleState controlState)
@@ -199,6 +210,7 @@ LRESULT ToggleButtonControl::StaticToggleButtonControlWndProc(_In_ HWND hwnd, _I
 // Control window procedure.
 LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd, _In_  UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
+	LRESULT lResult = 0;
 
 	switch (message)
 	{
@@ -208,21 +220,32 @@ LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd,
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			return UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
+			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetButtonProvider(this->m_buttonControlHWND));
 		}
 
-		return 0;
+		break;
 	}
-	case CUSTOM_SETFOCUS:
+	case WM_DESTROY:
 	{
-		this->SetFocus();
-		return 0;
+		lResult = UiaReturnRawElementProvider(hwnd, 0, 0, NULL);
 	}
-	case CUSTOM_INVOKEBUTTON:
+	case WM_SETFOCUS:
 	{
-		this->InvokeButton(hwnd);
-
+		this->SetControlFocus();
+		break;
+	}
+	case WM_KILLFOCUS:
+	{
+		this->KillControlFocus();
+		break;
+	}
+	case QUORUM_INVOKEBUTTON:
+	{
+		// TODO:  This message should notify the user that the button was checked. It does not do that.
+		//		  Maybe the provider doesn't implement the correct interface
 		bool state = static_cast<bool>(wParam);
+
+		this->InvokeButton(hwnd);
 
 		if (state)
 		{
@@ -232,16 +255,17 @@ LRESULT CALLBACK ToggleButtonControl::ToggleButtonControlWndProc(_In_ HWND hwnd,
 		{
 			this->SetState(ToggleState_Off);
 		}
-		
-		return 0;
+
+		break;
 	}
-	case CUSTOM_SETNAME:
+	case QUORUM_SETNAME:
 	{
 		this->SetName((WCHAR*)lParam);
 	}
-
-	break;
+	default:
+		lResult = ForwardMessage(hwnd, message, wParam, lParam);
+		break;
 	}  // switch (message)
 
-	return DefWindowProc(hwnd, message, wParam, lParam);
+	return lResult;
 }
