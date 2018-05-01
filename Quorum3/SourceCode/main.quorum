@@ -89,21 +89,21 @@ class Main is WebResponder
 
         File class2
         //class2:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
-        class2:SetPath("Library/Tests/Inheritance/Pass/LandVehicle.quorum")
+        class2:SetPath("Library/Tests/Inheritance/Pass/B6.quorum")
         
         File class3
-        class3:SetPath("Library/Tests/Inheritance/Pass/GasPoweredVehicle.quorum")
+        class3:SetPath("Library/Tests/Inheritance/Pass/C6.quorum")
 
         File class4
-        class4:SetPath("Library/Tests/Inheritance/Pass/Truck.quorum")
+        class4:SetPath("Library/Tests/Inheritance/Fail/F.quorum")
 
         File class5
         class5:SetPath("Library/Tests/Inheritance/Pass/GrandChildWithMultiple.quorum")
         Array<File> files
 
         files:Add(main)
-        //files:Add(class2)
-        //files:Add(class3)
+        files:Add(class2)
+        files:Add(class3)
         //files:Add(class4)
         //files:Add(class5)
 
