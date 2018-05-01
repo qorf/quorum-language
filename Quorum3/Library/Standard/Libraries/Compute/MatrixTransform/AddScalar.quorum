@@ -1,0 +1,41 @@
+package Libraries.Compute.MatrixTransform
+
+use Libraries.Compute.MatrixTransform.MatrixTransform
+use Libraries.Compute.Matrix
+
+class AddScalar is MatrixTransform
+    private number value = 0
+    private Matrix scalarMatrix
+
+    action SetValue(Matrix matrix, number value)
+        scalarMatrix:Fill(matrix:GetColumns(), matrix:GetRows(), value)
+        me:value = value
+    end
+
+    action SetValue(Matrix matrix)
+        scalarMatrix = matrix
+    end
+
+    action GetValue returns number
+        return value
+    end
+
+    action GetValueMatrix returns Matrix
+        return scalarMatrix
+    end
+
+    action Transform(Matrix matrix) returns Matrix
+        Matrix newMatrix
+        newMatrix:SetSize(matrix:GetColumns(), matrix:GetRows())
+        row = 0
+        repeat while row < matrix:GetRows()
+            col = 0
+            repeat while col < matrix:GetColumns()
+                newMatrix:Set(row, col, matrix:Get(row, col) + scalarMatrix:Get(row, col))
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return newMatrix
+    end
+end

@@ -1,0 +1,639 @@
+package Libraries.Data.Formats
+
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.System.File
+use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+use Libraries.Data.Formats.JavaScriptObjectNotationParser
+
+/*
+This class can read in JavaScriptObjectNotation (JSON) formatted data from text values or 
+from disk. When it reads them in, the data is stored inside this object. Alternatively, this 
+class allows the programmer to set a listener object that can receive information about how 
+the JSON file is being parsed as it occurs. 
+
+Attribute: Example
+
+use Libraries.Data.Formats.JavaScriptObjectNotation
+
+class Main
+   action Main
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+        text myValue = "{" + dq + "data" + dq + ": [21.5, 22.7, 23.9]}"
+        JavaScriptObjectNotation json
+        json:ReadToObject(myValue)
+        i = 0
+        repeat while i < json:GetSize()
+            JavaScriptObjectNotation next = json:Get(i)
+            if next:GetKey() = "data"
+                output "data"
+                JavaScriptObjectNotation array = next:Get(0)
+                j = 0
+                repeat while j < array:GetSize()
+                    JavaScriptObjectNotation item = array:Get(j)
+                    output item:GetNumber()
+                    j = j + 1
+                end
+            end
+            i = i + 1
+        end
+   end
+end
+*/
+
+class JavaScriptObjectNotation
+    private Array<JavaScriptObjectNotation> array
+    private text textValue = ""
+    private number numberValue = 0.0
+    private integer integerValue = 0
+    private boolean booleanValue = false
+    private integer type = 0
+    private constant integer INTEGER = 1
+    private constant integer NUMBER = 2
+    private constant integer TEXT = 3
+    private constant integer BOOLEAN = 4
+    private constant integer UNDEFINED = 5
+    private constant integer ARRAY = 6
+    private constant integer OBJECT = 7
+    private constant integer PARENT = 8
+    private text key = ""
+    private boolean object = false
+    private integer spaces = 4
+    private boolean prettyPrint = true
+
+    action Add(JavaScriptObjectNotation object)
+        object:SetPrettyPrint(IsPrettyPrint())
+        array:Add(object)
+    end
+
+    /*
+    Use this method to add a nested JavaScriptObjectNotation object with a key.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation data
+            data:Add("item1", "a")
+            data:Add("item2", "b")
+            data:Add("item3", "c")
+
+            JavaScriptObjectNotation json
+            json:Add("data1", "A")
+            json:Add("data2", "B")
+            json:Add("detail", data)
+
+            output json:ToText()
+       end
+    end
+    */
+
+    action Add(text key, JavaScriptObjectNotation value)
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:Add(value)
+        object:SetKey(key)
+        array:Add(object)
+    end
+
+    /*
+    Use this method to add a boolean item to a JavaScriptObjectNotation object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", true)
+            json:Add("item2", false)
+            output json:ToText()
+       end
+    end
+    */
+
+    action Add(text key, boolean value) 
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetBoolean(value)
+        object:SetKey(key)
+        array:Add(object)
+    end
+
+    /*
+    Use this method to add an integer item to a JavaScriptObjectNotation object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2)
+            output json:ToText()
+       end
+    end
+    */
+
+    action Add(text key, integer value) 
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetInteger(value)
+        object:SetKey(key)
+        array:Add(object)
+    end
+
+    /*
+    Use this method to add a number item to a JavaScriptObjectNotation object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1.1)
+            json:Add("item2", 2.2)
+            output json:ToText()
+       end
+    end
+    */
+
+    action Add(text key, number value) 
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetNumber(value)
+        object:SetKey(key)
+        array:Add(object)
+    end
+
+    /*
+    Use this method to add a text item to a JavaScriptObjectNotation object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", "First Name")
+            json:Add("item2", "Last Name")
+            output json:ToText()
+       end
+    end
+    */
+
+    action Add(text key, text value) 
+        JavaScriptObjectNotation object
+        object:SetPrettyPrint(IsPrettyPrint())
+        object:SetText(value)
+        object:SetKey(key)
+        array:Add(object)
+    end
+
+    /*
+    Use this method to return one of the items in the json object by it's index number
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", true)
+            json:Add("item2", 5)
+
+            JavaScriptObjectNotation item = json:Get(0)
+            if item:GetBoolean() = true
+                output "Item 1 was true"
+            else
+                output "Item 1 was false"
+            end
+       end
+    end
+    */
+
+    action Get(integer index) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation value = array:Get(index)
+        return value
+    end
+
+    /*
+    Use this method to get the boolean value of a JavaScriptObjectNotation object
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", true)
+
+            JavaScriptObjectNotation item = json:Get(0)
+            output item:GetBoolean()
+       end
+    end
+    */
+
+    action GetBoolean returns boolean
+        return booleanValue
+    end
+
+    /*
+    Use this method to get the key (or name) of a JavaScriptObjectNotation object
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", true)
+
+            JavaScriptObjectNotation item = json:Get(0)
+            output item:GetKey()
+       end
+    end
+    */
+
+    action GetKey returns text
+        return key
+    end
+
+    /*
+    This method returns an array of the key names inside a JavaScriptObjectNotation object
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Containers.Array
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2)
+            json:Add("item3", 3)
+
+            Array<text> keys = json:GetKeys()
+            i = 0
+            repeat keys:GetSize() times
+                key = keys:Get(i)
+                output key + " => " + json:GetValue(key)
+                i = i + 1
+            end
+       end
+    end
+    */
+
+    action GetKeys() returns Array<text>
+        Array<text> result
+        Iterator<JavaScriptObjectNotation> it = me:GetIterator()
+        repeat while it:HasNext()
+            JavaScriptObjectNotation child = it:Next()
+            result:Add(child:GetKey())
+        end
+        return result
+    end
+
+    /*
+    This method returns an integer value of a JavaScriptObjectNotation object containing an integer type
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2)
+            json:Add("item3", 3)
+
+            sum = 0
+            i = 0
+            repeat json:GetSize() times
+                sum = sum + json:Get(i):GetInteger()
+                i = i + 1
+            end
+            output sum
+       end
+    end
+    */
+
+    action GetInteger returns integer
+        return integerValue
+    end
+
+    action GetIterator() returns Iterator<JavaScriptObjectNotation>
+        return array:GetIterator()
+    end
+
+    action GetNumber returns number
+        return numberValue
+    end
+
+    action GetSize returns integer
+        return array:GetSize()
+    end
+
+    action GetText returns text
+        return textValue
+    end
+
+    action GetType returns integer
+        return type
+    end
+
+    action GetValue(text key) returns text
+        Iterator<JavaScriptObjectNotation> it = me:GetIterator()
+        repeat while it:HasNext()
+            JavaScriptObjectNotation child = it:Next()
+            if child:GetKey() = key
+                return child:GetValue()
+            end
+        end
+        return "No item called " + key + " found"
+    end
+
+    action GetValue() returns text
+        if IsText()
+            return textValue
+        elseif IsNumber()
+            return cast(text, numberValue)
+        elseif IsInteger()
+            return cast(text, integerValue)
+        elseif IsBoolean()
+            return cast(text, booleanValue)
+        elseif IsObject()
+            return me:array:Get(0):ToText()
+        elseif IsArray()
+            return me:array:Get(0):ToText()
+        elseif IsUndefined()
+            return "null"
+        elseif type = 0
+            return me:array:Get(0):ToText()
+        end
+        return ""
+    end
+
+    action IsArray returns boolean
+        if type = ARRAY
+           return true
+        end
+        return false
+    end
+
+    action IsBoolean returns boolean
+        if type = BOOLEAN
+           return true
+        end
+        return false
+    end
+
+    action IsEmpty returns boolean
+        return array:IsEmpty()
+    end
+
+    action IsInteger returns boolean
+        if type = INTEGER
+           return true
+        end
+        return false
+    end
+
+    action IsNumber returns boolean
+        if type = NUMBER
+           return true
+        end
+        return false
+    end
+
+    action IsObject returns boolean
+        return type = OBJECT
+    end
+
+    action IsParent returns boolean
+        return type = PARENT
+    end
+
+    action IsPrettyPrint returns boolean
+        return prettyPrint
+    end
+
+    action IsText returns boolean
+        if type = TEXT
+           return true
+        end
+        return false
+    end
+
+    action IsUndefined returns boolean
+        if type = UNDEFINED
+           return true
+        end
+        return false
+    end
+
+    action Read(File file)
+        if file not= undefined and file:Exists() and file:IsFile()
+            text value = file:Read()
+            Read(value)
+        else
+            output "File: " + file:GetFileName() + " is not found"
+        end
+    end
+
+    action Read(text data)
+        // load object with JSON formatted text data 
+        JavaScriptObjectNotation json = ReadToObject(data)
+        me:type = PARENT
+        Iterator<JavaScriptObjectNotation> it = json:GetIterator()
+        repeat while it:HasNext()
+            JavaScriptObjectNotation object = it:Next()
+            Add(object)
+        end
+    end
+
+    action Read(HashTable<text, text> data)
+        // load object with HashTable data
+        me:type = PARENT
+        Iterator<text> it = data:GetKeyIterator()
+        repeat while it:HasNext()
+            text key = it:Next()
+            text value = data:GetValue(key)
+            Add(key, value)
+        end
+    end
+
+    private action ReadToObject(text value) returns JavaScriptObjectNotation
+        if value = undefined
+            return undefined
+        end
+        JavaScriptObjectNotationDefaultListener listen
+        JavaScriptObjectNotationLexer lex
+        JavaScriptObjectNotationParser parse
+
+        lex:SetListener(listen)
+        parse:SetListener(listen)
+        lex:Read(value)
+        parse:Parse(lex)
+        return listen:GetObject()
+    end
+
+    action Remove(integer index)
+        array:RemoveAt(index)
+    end
+
+    action SetBoolean(boolean value)
+        booleanValue = value
+        type = BOOLEAN
+    end
+
+    action SetInteger(integer value)
+        integerValue = value
+        type = INTEGER
+    end
+
+    action SetNumber(number value)
+        numberValue = value
+        type = NUMBER
+    end
+
+    action SetObject
+        type = OBJECT
+    end
+
+    action SetParent
+        type = PARENT
+    end
+
+    action SetPrettyPrint(boolean print)
+        prettyPrint = print
+    end
+
+    action SetKey(text key)
+        me:key = key
+    end
+
+    action SetText(text value)
+        textValue = value
+        type = TEXT
+    end
+
+    action SetUndefined
+        type = UNDEFINED
+    end
+
+    action SetArray
+        type = ARRAY
+    end
+
+    private action GetSpaces(integer level) returns text
+        text space = ""
+        repeat spaces * level times
+            space = space + " "
+        end
+        return space
+    end
+
+    action ToText returns text
+        return ToText(0)
+    end
+
+    private action ToText(integer level) returns text
+        text result = ""
+        text dq = result:GetDoubleQuote()
+        text line = ""
+        text space = ""
+        if IsPrettyPrint()
+            space = GetSpaces(level)
+            line = result:GetCarriageReturn()
+        end
+        
+        if key not= undefined and not key:IsEmpty()
+            result = result + space + dq + key + dq + ": " 
+        end
+
+        if IsParent() and level = 0
+            if IsPrettyPrint()
+                result = result + "{" + line
+            else
+                result = result + "{"
+            end
+        end
+
+        if IsObject()
+            if level > 0
+                result = result + space + "{" + line
+            else
+                result = result + "{" + line
+            end
+        elseif IsArray() 
+            result = result + "["
+        elseif IsText()
+            result = result + dq + textValue + dq
+        elseif IsBoolean()
+            result = result + booleanValue
+        elseif IsNumber()
+            result = result + numberValue
+        elseif IsInteger()
+            result = result + integerValue
+        elseif IsUndefined()
+            result = result + "null"
+        end
+        
+        //get all children
+        i = 0
+        repeat while i < array:GetSize()
+            JavaScriptObjectNotation value = array:Get(i)
+            value:SetPrettyPrint(IsPrettyPrint())
+            if IsArray()
+                result = result + value:ToText(level)
+            elseif IsObject()
+                result = result + value:ToText(level)
+            else
+                result = result + value:ToText(level + 1)
+            end
+
+            if i not= array:GetSize() - 1
+                text isNext = ", "
+                if not IsArray()
+                    isNext = isNext + line
+                end
+                result = result + isNext
+            end
+            i = i + 1
+        end
+
+        if IsObject()
+            result = result + line + space + "}"
+        elseif IsArray() 
+            result = result + "]"
+        end
+
+        if IsParent() and level = 0
+            if IsPrettyPrint()
+                result = result + line + "}"
+            else
+                result = result + "}"
+            end
+        end
+
+        return result
+    end
+
+end

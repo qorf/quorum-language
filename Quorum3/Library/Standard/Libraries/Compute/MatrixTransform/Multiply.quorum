@@ -1,0 +1,40 @@
+package Libraries.Compute.MatrixTransform
+
+use Libraries.Compute.MatrixTransform.MatrixTransform
+use Libraries.Compute.Matrix
+use Libraries.Containers.Array
+
+class Multiply is MatrixTransform
+    private Matrix values
+
+    action SetValue(Matrix values)
+        me:values = values
+    end
+
+    action GetValueMatrix returns Matrix
+        return values
+    end
+
+    action Transform(Matrix matrix) returns Matrix
+        Matrix newMatrix
+        newMatrix:SetSize(matrix:GetRows(), values:GetColumns())
+        row = 0
+        repeat matrix:GetRows() times
+            col = 0
+            repeat values:GetColumns() times
+                Array<number> r = matrix:GetRow(row)
+                Array<number> c = values:GetColumn(col)
+                number sum = 0.0
+                i = 0
+                repeat r:GetSize() times
+                    sum = sum + r:Get(i) * c:Get(i)
+                    i = i + 1
+                end
+                newMatrix:Set(row, col, sum)
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return newMatrix
+    end
+end

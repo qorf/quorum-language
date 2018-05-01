@@ -1,0 +1,23 @@
+package Libraries.Compute.MatrixTransform
+
+use Libraries.Compute.MatrixTransform.MatrixTransform
+use Libraries.Compute.Matrix
+use Libraries.Containers.Array
+
+class Transpose is MatrixTransform
+    action Transform(Matrix matrix) returns Matrix
+        Matrix newMatrix
+        newMatrix:SetSize(matrix:GetColumns(), matrix:GetRows())
+
+        row = 0
+        repeat newMatrix:GetRows() times
+            col = 0
+            repeat newMatrix:GetColumns() times
+                newMatrix:Set(row, col, matrix:Get(col, row))
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return newMatrix
+    end
+end

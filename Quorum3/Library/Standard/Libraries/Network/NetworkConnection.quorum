@@ -1,0 +1,61 @@
+package Libraries.Network
+
+use Libraries.Containers.List
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Network.NetworkRequest
+use Libraries.Network.NetworkRequestListener
+use Libraries.Network.NetworkResponseEvent
+/**
+ *
+ * @author Patrick Daleiden
+ */
+
+class NetworkConnection
+    private List<NetworkRequestListener> listeners
+    private NetworkRequest request = undefined
+    private NetworkResponseEvent response = undefined
+
+    private system action Request()
+
+    action SendRequest(NetworkRequest request)
+        me:request = request
+        Request()
+    end
+
+    action GetNetworkRequest() returns NetworkRequest
+        return request
+    end
+
+    action AddListener(NetworkRequestListener listener)
+        listeners:Add(listener)
+    end
+
+    action RemoveListener(NetworkRequestListener listener)
+        listeners:Remove(listener)
+    end
+
+    action GetListenerIterator() returns Iterator<NetworkRequestListener>
+        return listeners:GetIterator()
+    end
+    
+    action GetNewResponseEvent() returns NetworkResponseEvent
+        NetworkResponseEvent response
+        return response
+    end
+
+    action SetResponse(NetworkResponseEvent response)
+        me:response = response
+        Notify(response)
+    end
+
+    action Notify(NetworkResponseEvent response)
+        Iterator<NetworkRequestListener> iterator = listeners:GetIterator()
+        repeat while iterator:HasNext()
+            NetworkRequestListener listener = iterator:Next()
+            listener:ResponseReceived(response)
+        end
+    end
+
+end

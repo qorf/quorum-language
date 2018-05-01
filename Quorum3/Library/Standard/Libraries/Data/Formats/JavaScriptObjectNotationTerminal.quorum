@@ -1,0 +1,14 @@
+package Libraries.Data.Formats
+
+use Libraries.Data.Formats.JavaScriptObjectNotationToken
+
+class JavaScriptObjectNotationTerminal 
+    JavaScriptObjectNotationToken token = undefined
+    action GetToken returns JavaScriptObjectNotationToken
+        return token
+    end
+
+    action SetToken(JavaScriptObjectNotationToken token)
+        me:token = token
+    end
+end

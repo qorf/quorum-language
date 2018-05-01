@@ -11,6 +11,8 @@ use Libraries.System.StackTraceItem
 use Libraries.Compute.Math
 use Libraries.System.DateTime
 
+use Libraries.Language.Compile.Test.MatrixTester
+
 class CompilerTestSuite
     integer total = 0
     integer totalBytecode = 0
@@ -51,6 +53,7 @@ class CompilerTestSuite
     RandomTester randomChecks
     TableTester tableChecks
     BitwiseTester bitwiseChecks
+    MatrixTester matrixChecks
 
     on create
         expressions:SetCompilerTestSuite(me)
@@ -77,6 +80,7 @@ class CompilerTestSuite
         randomChecks:SetCompilerTestSuite(me)
         tableChecks:SetCompilerTestSuite(me)
         bitwiseChecks:SetCompilerTestSuite(me)
+        matrixChecks:SetCompilerTestSuite(me)
 
         File outputLocation
         outputLocation:SetPath("Library/Compiled")
@@ -166,6 +170,8 @@ class CompilerTestSuite
         output ""
         output bitwiseChecks:GetName()
         bitwiseChecks:Test()
+        output matrixChecks:GetName()
+        matrixChecks:Test()
         output ""
 
         text EOL = ""

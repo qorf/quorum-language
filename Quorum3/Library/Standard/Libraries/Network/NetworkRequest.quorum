@@ -1,106 +1,397 @@
 package Libraries.Network
 
-use Libraries.Containers.List
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Network.NetworkRequestType
+
+/**
+ *
+ * @author Patrick Daleiden
+ */
 
 class NetworkRequest 
-//    List<NetworkRequestListener> listeners
-//    NetworkRequestParameters parameters
-//
-//    on create
-//        // set required defaults
-//    end
-//
-//    action SendRequest(NetworkRequestParameters parameters)
-//        me:parameters = parameters
-//    end
-//
-//    action SendRequest(text webAddress)
-//        parameters:SetWebAddress(webAddress)
-//    end
-//
-//    action SendRequest(text webAddress, NetworkRequestType type)
-//        parameters:SetWebAddress(webAddress)
-//        parameters:SetNetworkRequestType(type)
-//    end
-//
-//    action SendRequest(text webAddress, NetworkRequestParameters parameters)
-//        me:parameters = parameters
-//        me:parameters:SetWebAddress(webAddress)
-//
-//    end
-//
-//    action SendRequest(text webAddress, text data)
-//        parameters:SetWebAddress(webAddress)
-//        parameters:SetData(data)
-//    end
-//
-//    action SendRequest(text webAddress, text data, NetworkRequestType type)
-//        parameters:SetWebAddress(webAddress)
-//        parameters:SetData(data)
-//        parameters:SetNetworkRequestType(type)
-//    end
-//
-//    action SendRequest(text webAddress, text data, NetworkRequestParameters parameters)
-//        me:parameters = parameters
-//        parameters:SetWebAddress(webAddress)
-//        parameters:SetData(data)
-//    end
-//
-//    action SendRequest(text webAddress, JavaScriptObjectNotation data)
-//        parameters:SetWebAddress(webAddress)
-//        parameters:SetData(data)
-//    end
-//
-//    action SendRequest(text webAddress, JavaScriptObjectNotation data, NetworkRequestType type)
-//        parameters:SetWebAddress(webAddress)
-//        parameters:SetData(data)
-//        parameters:SetNetworkRequestType(type)
-//    end
-//
-//    action SendRequest(text webAddress, JavaScriptObjectNotation data, NetworkRequestParameters parameters)
-//        me:parameters = parameters
-//        parameters:SetWebAddress(webAddress)
-//        parameters:SetData(data)
-//    end
-//
-//    action SendRequest(text webAddress, HashTable<text, text> data)
-//        parameters:SetWebAddress(webAddress)
-//        parameters:SetData(data)
-//    end
-//
-//    action SendRequest(text webAddress, HashTable<text, text> data, NetworkRequestType type)
-//        parameters:SetWebAddress(webAddress)
-//        parameters:SetData(data)
-//        parameters:SetNetworkRequestType(type)
-//    end
-//
-//    action SendRequest(text webAddress, HashTable<text, text> data, NetworkRequestParameters parameters)
-//        me:parameters = parameters
-//        parameters:SetWebAddress(webAddress)
-//        parameters:SetData(data)
-//    end
-//
-//    action AddListener(NetworkRequestListener listener)
-//        listeners:Add(listener)
-//    end
-//
-//    action RemoveListener(NetworkRequestListener listener)
-//        listeners:Remove(listener)
-//    end
-//
-//    action GetListenerIterator() returns Iterator<NetworkRequestListener>
-//        return listeners:GetIterator()
-//    end
-//
-//    action Notify(NetworkResponseEvent response)
-//        Iterator<NetworkRequestListener> iterator = listeners:GetIterator()
-//        repeat while iterator:HasNext()
-//            NetworkRequestListener listener = iterator:Next()
-//            listener:ResponseReceived(response)
-//        end
-//    end
-//
+    private NetworkRequestType type
+    private text webAddress = ""
+    private integer millisecondsToReadTimeout = 0
+    private integer millisecondsToConnectTimeout  = 0
+    private HashTable<text, text> headers
+    private boolean doInput = true
+    private boolean doOutput = true
+    private text body = ""
+    private boolean fixedLengthStreamingMode = true
+    private integer chunkLength = 1000
 
+    private Iterator<text> headerIterator = undefined
+    private text nextHeader = ""
+
+
+//  Future implementation
+//    HashTable<text, text> parameters
+//    private Iterator<text> parameterIterator = undefined
+//    private text nextParameter = ""
+
+//    JavaScriptObjectNotation jsonData
+//    HashTable<text, text> savedLocalData
+//    HashTable<text, text> files
+//    text authUser  = ""
+//    text authPassword  = ""
+//    boolean allowRedirects  = false
+//    HashTable<text, text> proxyMap
+//    boolean verify  = false
+//    text verifyPath  = ""
+//    boolean streamResponse  = false
+//    text securityCertificatePath  = ""
+//    text securityCertificate  = ""
+//    text securityKey  = ""
+
+    action SetRequestType(NetworkRequestType type)
+        me:type = type
+    end
+
+    action SetRequestTypeToHEAD
+        me:type:SetToHEAD()
+    end
+
+    action SetRequestTypeToGET
+        me:type:SetToGET()
+    end
+
+    action SetRequestTypeToPOST
+        me:type:SetToPOST()
+    end
+
+    action SetRequestTypeToPUT
+        me:type:SetToPUT()
+    end
+
+    action SetRequestTypeToPATCH
+        me:type:SetToPATCH()
+    end
+
+    action SetRequestTypeToDELETE
+        me:type:SetToDELETE()
+    end
+
+    action GetReadTimeout returns integer
+        return me:millisecondsToReadTimeout
+    end
+
+    action SetReadTimeout(integer milliseconds)
+        me:millisecondsToReadTimeout = milliseconds
+    end
+
+    action SetFixedLengthSreamingMode(boolean value)
+        me:fixedLengthStreamingMode = value
+    end
+
+    action SetChunkedSreamingMode(boolean value)
+        me:fixedLengthStreamingMode = not value
+    end
+
+    action IsFixedLengthStreamingMode returns boolean
+        return me:fixedLengthStreamingMode
+    end
+
+    action IsChunkedStreamingMode returns boolean
+        return not me:fixedLengthStreamingMode
+    end
+
+    action SetChunkLength(integer chunkLength)
+        fixedLengthStreamMode = false
+        me:chunkLength = chunkLength
+    end
+
+    action GetChunkLength returns integer
+        return me:chunkLength
+    end
+
+    action GetConnectTimeout returns integer
+        return me:millisecondsToConnectTimeout
+    end
+
+    action SetConnectTimeout(integer milliseconds)
+        me:millisecondsToConnectTimeout = milliseconds
+    end
+
+    action GetDoInput returns boolean
+        return me:doInput
+    end
+
+    action SetDoInput(boolean value)
+        me:doInput = value
+    end
+
+    action GetDoOutput returns boolean
+        return me:doOutput
+    end
+
+    action SetDoOutput(boolean value)
+        me:doOutput = value
+    end
+
+    action SetWebAddress(text webAddress)
+        me:webAddress = webAddress
+    end
+
+//    action SetParameters(HashTable<text, text> parameters)
+//        me:parameters = parameters
+//    end
+//
+//    action SetParameters(JavaScriptObjectNotation parameters)
+//        HashTable<text, text> reformattedParameters
+//        // format to HashTable
+//        me:parameters = reformattedParameters
+//    end
+//    
+//    action SetParameters(text data)
+//        HashTable<text, text> reformattedParameters
+//        // format to HashTable
+//        me:parameters = reformattedParameters
+//    end
+
+    action SetBody(text data)
+        me:body = data
+    end
+
+    action SetBodyAsFormEncodedData(HashTable<text, text> data)
+        AddHeader("Content-type", "application/x-www-form-urlencoded")
+        me:body = FormEncodeData(data)
+    end
+
+    action SetBodyAsFormEncodedData(JavaScriptObjectNotation data)
+        AddHeader("Content-type", "application/x-www-form-urlencoded")
+        me:body = FormEncodeData(data)
+    end
+
+    action SetBodyAsJavaScriptObjectNotation(HashTable<text, text> data)
+        JavaScriptObjectNotation json
+        json:Read(data)
+        me:body = json:ToText()
+    end
+
+    action SetBodyAsJavaScriptObjectNotation(JavaScriptObjectNotation data)
+        me:body = data:ToText()
+    end
+    
+    action SetHeaders(HashTable<text, text> headers)
+        me:headers = headers
+    end
+
+    action AddHeader(text key, text value)
+        headers:Add(key, value)
+    end
+
+//    action SetAdditionalData(JavaScriptObjectNotation data)
+//        me:jsonData = data
+//    end
+
+    action GetBody() returns text
+        return body
+    end
+
+    action GetHeaders() returns HashTable<text, text>
+        return headers
+    end
+
+    action GetRequestType() returns text
+        return type:ToText()
+    end
+
+//    action GetParameters() returns HashTable<text, text>
+//        return parameters
+//    end
+
+    action GetWebAddress() returns text
+        return webAddress
+    end
+
+    private action ResetHeaderIterator
+        headerIterator = headers:GetKeyIterator()
+    end
+
+    private action GetHeaderSize returns integer
+        return headers:GetSize()
+    end
+
+    private action HasNextHeader() returns boolean
+        return headerIterator:HasNext()
+    end
+
+    private action GetNextHeaderKey() returns text
+        return headerIterator:Next()
+    end
+
+    private action GetHeaderValue(text key) returns text
+        return headers:GetValue(key)
+    end
+
+//    private action ResetParameterIterator
+//        parameterIterator = parameters:GetKeyIterator()
+//    end
+//
+//    private action GetParameterSize returns integer
+//        return parameters:GetSize()
+//    end
+//
+//    private action HasNextParameter() returns boolean
+//        return parameterIterator:HasNext()
+//    end
+//
+//    private action GetNextParameterKey() returns text
+//        return parameterIterator:Next()
+//    end
+//
+//    private action GetParameterValue(text key) returns text
+//        return parameters:GetValue(key)
+//    end
+
+    action FormEncodeData(HashTable<text, text> data) returns text
+        text result = ""
+        Iterator<text> it = data:GetKeyIterator()
+        repeat while it:HasNext()
+            key = it:Next()
+            result = result + key + "=" + data:GetValue(key) + "&"
+        end
+        result = result:GetSubtext(0, result:GetSize() - 1)
+        return ApplyCharacterFormatting(result)
+    end
+
+    action FormEncodeData(JavaScriptObjectNotation data) returns text
+        text result = ""
+        Iterator<JavaScriptObjectNotation> it = data:GetIterator()
+        repeat while it:HasNext()
+            JavaScriptObjectNotation obj
+            obj = it:Next()
+            text key = obj:GetKey()
+            result = result + key + "=" + obj:GetValue() + "&"
+        end
+        result = result:GetSubtext(0, result:GetSize() - 1)
+        return ApplyCharacterFormatting(result)
+    end
+
+    action ApplyCharacterFormatting(text value) returns text
+        text t = ""
+        text dq = t:GetDoubleQuote()
+        text cr = t:GetCarriageReturn()
+        text lf = t:GetLineFeed()
+        text tab = t:GetTab()
+
+        // characters not in this list are dropped
+        HashTable<text, text> conversionTable
+
+        // these characters are substituted
+        conversionTable:Add(dq,"%22")
+        conversionTable:Add(cr,"%0D")
+        conversionTable:Add(lf,"%0A")
+        conversionTable:Add(tab,"%09")
+        conversionTable:Add(" ", "+")
+        conversionTable:Add("!","%21")
+        conversionTable:Add("#","%23")
+        conversionTable:Add("$","%24")
+        conversionTable:Add("%","%25")
+        conversionTable:Add("'","%27")
+        conversionTable:Add("(","%28")
+        conversionTable:Add(")","%29")
+        conversionTable:Add("+","%2B")
+        conversionTable:Add(",","%2C")
+        conversionTable:Add("/","%2F")
+        conversionTable:Add(":","%3A")
+        conversionTable:Add(";","%3B")
+        conversionTable:Add("<","%3C")
+        conversionTable:Add(">","%3E")
+        conversionTable:Add("?","%3F")
+        conversionTable:Add("@","%40")
+        conversionTable:Add("[","%5B")
+        conversionTable:Add("\","%5C")
+        conversionTable:Add("]","%5D")
+        conversionTable:Add("^","%5E")
+        conversionTable:Add("`","%60")
+        conversionTable:Add("{","%7B")
+        conversionTable:Add("|","%7C")
+        conversionTable:Add("}","%7D")
+        conversionTable:Add("~","%7E")
+        conversionTable:Add("`","%60")
+
+        // these characters are legal
+        conversionTable:Add("*","*")
+        conversionTable:Add("&","&")
+        conversionTable:Add("-","-")
+        conversionTable:Add(".",".")
+        conversionTable:Add("0","0")
+        conversionTable:Add("1","1")
+        conversionTable:Add("2","2")
+        conversionTable:Add("3","3")
+        conversionTable:Add("4","4")
+        conversionTable:Add("5","5")
+        conversionTable:Add("6","6")
+        conversionTable:Add("7","7")
+        conversionTable:Add("8","8")
+        conversionTable:Add("9","9")
+        conversionTable:Add("=","=")
+        conversionTable:Add("A","A")
+        conversionTable:Add("B","B")
+        conversionTable:Add("C","C")
+        conversionTable:Add("D","D")
+        conversionTable:Add("E","E")
+        conversionTable:Add("F","F")
+        conversionTable:Add("G","G")
+        conversionTable:Add("H","H")
+        conversionTable:Add("I","I")
+        conversionTable:Add("J","J")
+        conversionTable:Add("K","K")
+        conversionTable:Add("L","L")
+        conversionTable:Add("M","M")
+        conversionTable:Add("N","N")
+        conversionTable:Add("O","O")
+        conversionTable:Add("P","P")
+        conversionTable:Add("Q","Q")
+        conversionTable:Add("R","R")
+        conversionTable:Add("S","S")
+        conversionTable:Add("T","T")
+        conversionTable:Add("U","U")
+        conversionTable:Add("V","V")
+        conversionTable:Add("W","W")
+        conversionTable:Add("X","X")
+        conversionTable:Add("Y","Y")
+        conversionTable:Add("Z","Z")
+        conversionTable:Add("_","_")
+        conversionTable:Add("a","a")
+        conversionTable:Add("b","b")
+        conversionTable:Add("c","c")
+        conversionTable:Add("d","d")
+        conversionTable:Add("e","e")
+        conversionTable:Add("f","f")
+        conversionTable:Add("g","g")
+        conversionTable:Add("h","h")
+        conversionTable:Add("i","i")
+        conversionTable:Add("j","j")
+        conversionTable:Add("k","k")
+        conversionTable:Add("l","l")
+        conversionTable:Add("m","m")
+        conversionTable:Add("n","n")
+        conversionTable:Add("o","o")
+        conversionTable:Add("p","p")
+        conversionTable:Add("q","q")
+        conversionTable:Add("r","r")
+        conversionTable:Add("s","s")
+        conversionTable:Add("t","t")
+        conversionTable:Add("u","u")
+        conversionTable:Add("v","v")
+        conversionTable:Add("w","w")
+        conversionTable:Add("x","x")
+        conversionTable:Add("y","y")
+        conversionTable:Add("z","z")
+
+        integer counter = 0
+        text result = ""
+        repeat value:GetSize() times
+            text character = value:GetCharacter(counter)
+            if conversionTable:HasKey(character)
+                result = result + conversionTable:GetValue(character)
+            end
+            counter = counter + 1
+        end
+        return result
+    end
 end

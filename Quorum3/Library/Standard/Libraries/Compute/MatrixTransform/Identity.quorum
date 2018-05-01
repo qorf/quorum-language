@@ -1,0 +1,18 @@
+package Libraries.Compute.MatrixTransform
+
+use Libraries.Compute.MatrixTransform.MatrixTransform
+use Libraries.Compute.Matrix
+use Libraries.Containers.Array
+
+class Identity is MatrixTransform
+    action Transform(Matrix matrix) returns Matrix
+        Matrix newMatrix
+        newMatrix:Fill(matrix:GetRows(), matrix:GetColumns(), 0)
+        i = 0
+        repeat newMatrix:GetRows() times
+            newMatrix:Set(i, i, 1.0)
+            i = i + 1
+        end
+        return newMatrix
+    end
+end

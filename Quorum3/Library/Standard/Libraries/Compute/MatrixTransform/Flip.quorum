@@ -1,0 +1,38 @@
+package Libraries.Compute.MatrixTransform
+
+use Libraries.Compute.MatrixTransform.MatrixTransform
+use Libraries.Compute.Matrix
+
+class Flip is MatrixTransform
+    private constant integer VERTICAL = 1
+    private constant integer HORIZONTAL = -1
+    private integer direction = 0
+
+    action FlipVertical()
+        direction = VERTICAL
+    end
+
+    action FlipHorizontal()
+        direction = HORIZONTAL
+    end
+
+
+    action Transform(Matrix matrix) returns Matrix
+        Matrix newMatrix
+        newMatrix:SetSize(matrix)
+        row = 0
+        repeat while row < matrix:GetRows()
+            col = 0
+            repeat while col < matrix:GetColumns()
+                if direction = HORIZONTAL
+                    newMatrix:Set(row, col, matrix:Get(row, matrix:GetColumns()-col-1))
+                else
+                    newMatrix:Set(row, col, matrix:Get(matrix:GetRows()-row-1, col))
+                end
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return newMatrix
+    end
+end

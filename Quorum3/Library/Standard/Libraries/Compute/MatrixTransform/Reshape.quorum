@@ -1,0 +1,95 @@
+package Libraries.Compute.MatrixTransform
+
+use Libraries.Compute.MatrixTransform.MatrixTransform
+use Libraries.Compute.Matrix
+
+class Reshape is MatrixTransform
+    private integer offsetColumn = 0
+    private integer offsetRow = 0
+    private integer columns = 0
+    private integer rows = 0
+    private number fillValue = 0.0
+
+    action SetValues(integer offsetRow, integer offsetColumn, integer rows, integer columns, number fillValue)
+        me:offsetRow = offsetRow
+        me:offsetColumn = offsetColumn
+        me:columns = columns
+        me:rows = rows
+        me:fillValue = fillValue
+    end
+
+    action SetOffsetColumn(integer offsetColumn)
+        me:offsetColumn = offsetColumn
+    end
+
+    action SetOffsetRow(integer offsetRow)
+        me:offsetRow = offsetRow
+    end
+
+    action SetWidth(integer columns)
+        me:columns = columns
+    end
+
+    action SetRows(integer rows)
+        me:rows = rows
+    end
+
+    action SetFillValue(number fillValue)
+        me:fillValue = fillValue
+    end
+
+    action GetOffsetColumn() returns integer
+        return me:offsetColumn
+    end
+
+    action GetoffsetRow() returns integer
+        return me:offsetRow
+    end
+
+    action GetColumns() returns integer
+        return me:columns
+    end
+
+    action GetRows() returns integer
+        return me:rows
+    end
+
+    action GetFillValue() returns number
+        return me:fillValue
+    end
+
+    action Transform(Matrix matrix) returns Matrix
+        Matrix resultMatrix
+        resultMatrix:Fill(rows, columns, fillValue)
+
+        integer startColumn = 0
+        integer startRow = 0
+        if offsetColumn > 0
+            startColumn = offsetColumn
+        end
+        if offsetRow > 0
+            startRow = offsetRow
+        end
+
+        integer endColumn = columns
+        integer endRow = rows
+        if endColumn > matrix:GetColumns() + offsetColumn
+            endColumn = matrix:GetColumns() + offsetColumn
+        end
+        if endRow > matrix:GetRows() + offsetRow
+            endRow = matrix:GetRows() + offsetRow
+        end
+
+        integer col = startColumn
+        integer row = startRow
+        repeat while row < endRow
+            col = startColumn
+            repeat while col < endColumn
+                resultMatrix:Set(row, col, matrix:Get(row - offsetRow, col - offsetColumn))
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return resultMatrix
+    end
+end
