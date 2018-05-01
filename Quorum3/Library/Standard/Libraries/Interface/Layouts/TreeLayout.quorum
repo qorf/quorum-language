@@ -1,0 +1,72 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Item2D
+use Libraries.Containers.Array
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Controls.TreeItem
+
+class TreeLayout is Layout
+    
+    boolean wrapping = false
+    number padding = 0
+
+    action Layout(Item2D item)
+        number x = 0
+        number y = 0
+
+        number longestWidth = 0
+        Array<Item2D> kids = item:GetChildren()
+        i = kids:GetSize()
+        repeat while i > 0
+            i = i - 1
+            Item2D kid = kids:Get(i)
+
+            number height = 0
+            if kid is TreeItem
+                TreeItem treeItem = cast(TreeItem, kid)
+                height = treeItem:GetTreeHeight()
+            else
+                height = kid:GetHeight()
+            end
+
+            if y + height > item:GetHeight() and wrapping
+                y = 0
+                x = x + longestWidth
+                longestWidth = 0
+            end
+
+            if kid:GetWidth() > longestWidth
+                longestWidth = kid:GetWidth()
+            end
+
+            kid:SetPosition(x, y + height - kid:GetHeight())
+
+            y = y + height + padding
+        end
+
+        item:SetWidth(longestWidth + x)
+        if not wrapping
+            number oldHeight = item:GetHeight()
+            item:SetHeight(y)
+            item:SetY(-y)
+        else
+            item:MoveY(item:GetHeight() - y)
+        end
+    end
+
+    action SetWrapping(boolean wrap)
+        wrapping = wrap
+    end
+
+    action WrappingEnabled returns boolean
+        return wrapping
+    end
+
+    action SetPadding(number value)
+        padding = value
+    end
+
+    action GetPadding returns number
+        return padding
+    end
+end

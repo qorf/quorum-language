@@ -1,0 +1,28 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.GraphicUserInterface
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.VisualContent2D
+
+class GraphicUserInterfaceLabel is Label, GraphicUserInterface
+    
+    Color color
+
+    action Initialize
+        SelectionHighlightContent content
+        content:Initialize(color:CustomColor(0, 0, 1, 1))
+        SetVisualContent(content)
+    end
+
+    action GainedSelection
+        SetColor(color:White())
+        parent:GraphicUserInterface:GainedSelection()
+    end
+
+    action LostSelection
+        SetColor(color:Black())
+        parent:GraphicUserInterface:LostSelection()
+    end
+
+end

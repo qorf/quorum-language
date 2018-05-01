@@ -1,0 +1,28 @@
+package Libraries.Game.Behaviors.GraphicUserInterfaces
+
+use Libraries.Game.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Tab
+use Libraries.Interface.Controls.TabBar
+
+class TabCloseBehavior is Behavior
+
+    Tab tab = undefined
+
+    action SetTab(Tab t)
+        tab = t
+    end
+
+    action GetTab returns Tab
+        return tab
+    end
+
+    action Run(BehaviorEvent event)
+        if tab not= undefined
+            if tab:GetButtonGroup() is TabBar
+                TabBar bar = cast(TabBar, tab:GetButtonGroup())
+                bar:Remove(tab)
+            end
+        end
+    end
+end
