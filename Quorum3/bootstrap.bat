@@ -29,6 +29,8 @@ java -jar Quorum.jar -name Quorum -compile main.quorum MatrixTester.quorum Docum
 echo "Copying to NetBeans Installation"
 REM rm ../../IDE/Sodbeans/Quorum/release/modules/ext/Quorum.jar
 copy Run\Quorum.jar ..\..\IDE\Sodbeans\Quorum\release\modules\ext\Quorum.jar
+copy Library\Compiled\Run\QuorumStandardLibrary.jar ..\..\IDE\Sodbeans\Quorum\release\modules\ext\QuorumStandardLibrary.jar
+copy Library\Compiled\Run\QuorumStandardPlugins.jar ..\..\IDE\Sodbeans\Quorum\release\modules\ext\QuorumStandardPlugins.jar
 
 REM By default, get rid of the library package and put it back in.
 rm -r ..\..\IDE\Sodbeans\Quorum\release\modules\Library

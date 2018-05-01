@@ -30,6 +30,8 @@ java -jar Quorum.jar -name Quorum -compile main.quorum MatrixTester.quorum Docum
 echo "Copying to NetBeans Installation"
 #rm ../../IDE/Sodbeans/Quorum/release/modules/ext/Quorum.jar
 cp Run/Quorum.jar ../../IDE/Sodbeans/Quorum/release/modules/ext/Quorum.jar
+cp Library/Compiled/Run/QuorumStandardLibrary.jar ../../IDE/Sodbeans/Quorum/release/modules/ext/QuorumStandardLibrary.jar
+cp Library/Compiled/Run/QuorumStandardPlugins.jar ../../IDE/Sodbeans/Quorum/release/modules/ext/QuorumStandardPlugins.jar
 
 #chmod -R +rw ../../IDE/Sodbeans/Quorum/release/modules/Library/Standard/Libraries/
 
