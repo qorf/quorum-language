@@ -426,6 +426,7 @@ class Compiler
                     //if the file is not part of the standard library, 
                     //generate it
                     if not library:GetSymbolTable():HasClass(clazz:GetStaticKey())
+                        and build not= undefined and build:Exists() and buildInterface not= undefined and buildInterface:Exists()
                         if build not= undefined
                             if IsWebApplication()
                                 text path = WEB_DIRECTORY + "/" + build:GetPath()
