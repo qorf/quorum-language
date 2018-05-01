@@ -69,6 +69,29 @@ class Library
     action SetOutputFolder(File file)
         outputFolder = file
     end
+    
+    /* This main will regenerate the standard library from its current state
+    */
+    action Main
+        Compiler compiler
+
+        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
+        compiler:SetStandardLibraryFolder(standardLibraryFolder)
+        output compiler:GetVersion() + ": Compiling Standard Library"
+
+        File outputLocation
+        outputLocation:SetPath("Library/Compiled")
+        output "Scanning"
+        Library library
+        library:SetCachingLibraryOpcodes(true)
+        library:SetLocation(standardLibraryFolder)
+        library:SetOutputFolder(outputLocation)
+        library:Scan()
+
+        output "Writing Standard Library"
+        library:Write()
+        output "Finished"
+    end
 
     /*
         This action states whether the library has been scanned.
