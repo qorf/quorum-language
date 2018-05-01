@@ -70,6 +70,7 @@ use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.FocusListener
 use Libraries.Interface.Events.TextInputListener
 use Libraries.Interface.Events.ResizeListener
+use Libraries.Interface.Events.SelectionListener
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
@@ -270,11 +271,27 @@ class Game
         textBoxLeftBehavior:SetDirection(textBoxLeftBehavior:LEFT)
         textBoxTable:Add(leftArrow, textBoxLeftBehavior)
 
+        InputSet shiftLeftArrow
+        shiftLeftArrow:SetKeyboardInput(keys:LEFT)
+        shiftLeftArrow:AddModifier(shiftLeftArrow:SHIFT)
+        TextBoxCaretStartMoveBehavior textBoxShiftLeftBehavior
+        textBoxShiftLeftBehavior:SetSelecting(true)
+        textBoxShiftLeftBehavior:SetDirection(textBoxShiftLeftBehavior:LEFT)
+        textBoxTable:Add(shiftLeftArrow, textBoxShiftLeftBehavior)
+
         InputSet rightArrow
         rightArrow:SetKeyboardInput(keys:RIGHT)
         TextBoxCaretStartMoveBehavior textBoxRightBehavior
         textBoxRightBehavior:SetDirection(textBoxRightBehavior:RIGHT)
         textBoxTable:Add(rightArrow, textBoxRightBehavior)
+
+        InputSet shiftRightArrow
+        shiftRightArrow:SetKeyboardInput(keys:RIGHT)
+        shiftRightArrow:AddModifier(shiftRightArrow:SHIFT)
+        TextBoxCaretStartMoveBehavior textBoxShiftRightBehavior
+        textBoxShiftRightBehavior:SetSelecting(true)
+        textBoxShiftRightBehavior:SetDirection(textBoxShiftRightBehavior:RIGHT)
+        textBoxTable:Add(shiftRightArrow, textBoxShiftRightBehavior)
 
         InputSet downArrow
         downArrow:SetKeyboardInput(keys:DOWN)
@@ -282,11 +299,27 @@ class Game
         textBoxDownBehavior:SetDirection(textBoxDownBehavior:DOWN)
         textBoxTable:Add(downArrow, textBoxDownBehavior)
 
+        InputSet shiftDownArrow
+        shiftDownArrow:SetKeyboardInput(keys:DOWN)
+        shiftDownArrow:AddModifier(shiftDownArrow:SHIFT)
+        TextBoxCaretStartMoveBehavior textBoxShiftDownBehavior
+        textBoxShiftDownBehavior:SetSelecting(true)
+        textBoxShiftDownBehavior:SetDirection(textBoxShiftDownBehavior:DOWN)
+        textBoxTable:Add(shiftDownArrow, textBoxShiftDownBehavior)
+
         InputSet upArrow
         upArrow:SetKeyboardInput(keys:UP)
         TextBoxCaretStartMoveBehavior textBoxUpBehavior
         textBoxUpBehavior:SetDirection(textBoxUpBehavior:UP)
         textBoxTable:Add(upArrow, textBoxUpBehavior)
+
+        InputSet shiftUpArrow
+        shiftUpArrow:SetKeyboardInput(keys:UP)
+        shiftUpArrow:AddModifier(shiftUpArrow:SHIFT)
+        TextBoxCaretStartMoveBehavior textBoxShiftUpBehavior
+        textBoxShiftUpBehavior:SetSelecting(true)
+        textBoxShiftUpBehavior:SetDirection(textBoxShiftUpBehavior:UP)
+        textBoxTable:Add(shiftUpArrow, textBoxShiftUpBehavior)
 
         CancelBehavior cancelBehavior
 
@@ -295,20 +328,44 @@ class Game
         releaseLeftArrow:SetInputTrigger(releaseLeftArrow:FINISH)
         textBoxTable:Add(releaseLeftArrow, cancelBehavior)
 
+        InputSet releaseShiftLeftArrow
+        releaseShiftLeftArrow:SetKeyboardInput(keys:LEFT)
+        releaseShiftLeftArrow:AddModifier(releaseShiftLeftArrow:SHIFT)
+        releaseShiftLeftArrow:SetInputTrigger(releaseShiftLeftArrow:FINISH)
+        textBoxTable:Add(releaseShiftLeftArrow, cancelBehavior)
+
         InputSet releaseRightArrow
         releaseRightArrow:SetKeyboardInput(keys:RIGHT)
         releaseRightArrow:SetInputTrigger(releaseRightArrow:FINISH)
         textBoxTable:Add(releaseRightArrow, cancelBehavior)
+
+        InputSet releaseShiftRightArrow
+        releaseShiftRightArrow:SetKeyboardInput(keys:RIGHT)
+        releaseShiftRightArrow:AddModifier(releaseShiftRightArrow:SHIFT)
+        releaseShiftRightArrow:SetInputTrigger(releaseShiftRightArrow:FINISH)
+        textBoxTable:Add(releaseShiftRightArrow, cancelBehavior)
 
         InputSet releaseDownArrow
         releaseDownArrow:SetKeyboardInput(keys:DOWN)
         releaseDownArrow:SetInputTrigger(releaseDownArrow:FINISH)
         textBoxTable:Add(releaseDownArrow, cancelBehavior)
 
+        InputSet releaseShiftDownArrow
+        releaseShiftDownArrow:SetKeyboardInput(keys:DOWN)
+        releaseShiftDownArrow:AddModifier(releaseShiftDownArrow:SHIFT)
+        releaseShiftDownArrow:SetInputTrigger(releaseShiftDownArrow:FINISH)
+        textBoxTable:Add(releaseShiftDownArrow, cancelBehavior)
+
         InputSet releaseUpArrow
         releaseUpArrow:SetKeyboardInput(keys:UP)
         releaseUpArrow:SetInputTrigger(releaseUpArrow:FINISH)
         textBoxTable:Add(releaseUpArrow, cancelBehavior)
+
+        InputSet releaseShiftUpArrow
+        releaseShiftUpArrow:SetKeyboardInput(keys:UP)
+        releaseShiftUpArrow:AddModifier(releaseShiftUpArrow:SHIFT)
+        releaseShiftUpArrow:SetInputTrigger(releaseShiftUpArrow:FINISH)
+        textBoxTable:Add(releaseShiftUpArrow, cancelBehavior)
 
         InputSet backspace
         backspace:SetKeyboardInput(keys:BACKSPACE)
@@ -3303,6 +3360,20 @@ class Game
     */
     action RemoveFocusListener(FocusListener listener)
         focusManager:Remove(listener)
+    end
+
+    /*
+
+    */
+    action AddSelectionListener(SelectionListener listener)
+        gameInput:AddSelectionListener(listener)
+    end
+
+    /*
+
+    */
+    action RemoveSelectionListener(SelectionListener listener)
+        gameInput:RemoveSelectionListener(listener)
     end
 
     /*

@@ -9,6 +9,8 @@ use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.TextInputListener
 use Libraries.Interface.Events.ResizeListener
+use Libraries.Interface.Events.SelectionListener
+use Libraries.Interface.Selection
 
 /*
 This class is the base interface for how the Game will automatically handle
@@ -21,6 +23,8 @@ class GameInput
     Array<Layer> layers = undefined
     HashTable<text, InputTable> inputTables
     InputTable defaultTable
+
+    Array<SelectionListener> selectionListeners
 
     /*
     This action sets a reference to the layers stored in the Game class that the
@@ -191,5 +195,33 @@ class GameInput
     ResizeEvents. 
     */
     blueprint action RemoveResizeListener(ResizeListener listener)
+
+    /*
+    This action will add a SelectionListener to the GameInput. The GameInput
+    will notify the SelectionListener whenever a selection changes.
+    */
+    action AddSelectionListener(SelectionListener listener)
+        selectionListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a SelectionListener from the GameInput. The
+    GameInput will no longer notify the given SelectionListener of selection
+    changes.
+    */
+    action RemoveSelectionListener(SelectionListener listener)
+        selectionListeners:Remove(listener)
+    end
+
+    /*
+
+    */
+    action NotifySelectionListeners(Selection selection)
+        integer counter = 0
+        repeat while counter < selectionListeners:GetSize()
+            selectionListeners:Get(counter):SelectionChanged(selection)
+            counter = counter + 1
+        end
+    end
     
 end

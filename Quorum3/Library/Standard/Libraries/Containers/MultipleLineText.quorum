@@ -279,13 +279,22 @@ class MultipleLineText
 
         integer toFill = CharactersToBackfill(refillText, providingText)
         if toFill = 0
-            return me
+            // If the providing text was empty somehow, delete the empty line and
+            // continue. Most likely this occurs because the last line was empty
+            // (without text wrapping, it's the only line legally allowed to be
+            // empty).
+            if providingText:IsEmpty()
+                MultipleLineText result = RemoveFromLine(lineIndex + 1, 0)
+                return result:RefillLine(lineIndex + 1)
+            else
+                return me
+            end
         end
 
         integer startIndex = CharacterIndexFromLineIndex(lineIndex) + refillText:GetSize()
 
         MultipleLineText result = AppendToLine(lineIndex, providingText:GetSubtext(0, toFill))
-        result = result:RemoveFromLine(lineIndex + 1, toFill, true)
+        result = result:RemoveFromLine(lineIndex + 1, toFill)
 
         // Use an insertion to place it at the end of the correct leaf, then
         // remove the duplicate entry in the next leaf.
@@ -319,19 +328,20 @@ class MultipleLineText
 
     /*
     Remove the specified number of characters from the beginning of the line.
+    Doesn't preserve empty lines at the end of the MultipleLineText.
     */
-    private action RemoveFromLine(integer lineIndex, integer count, boolean rightTraversal) returns MultipleLineText
+    private action RemoveFromLine(integer lineIndex, integer count) returns MultipleLineText
         integer weight = GetLeafWeight()
         if IsLeaf()
-            return RecursiveDelete(0, count, rightTraversal)
+            return RecursiveDelete(0, count, false)
         elseif lineIndex >= weight
             MultipleLineText newRoot
-            MultipleLineText newRight = right:RemoveFromLine(lineIndex - weight, count, rightTraversal)
+            MultipleLineText newRight = right:RemoveFromLine(lineIndex - weight, count)
             newRoot:SetChildren(left, newRight)
             return newRoot
         else
             MultipleLineText newRoot
-            MultipleLineText newLeft = left:RemoveFromLine(lineIndex, count, false)
+            MultipleLineText newLeft = left:RemoveFromLine(lineIndex, count)
             newRoot:SetChildren(newLeft, right)
             return newRoot
         end

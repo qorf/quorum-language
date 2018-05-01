@@ -9,21 +9,21 @@
  !define env_hkcu 'HKCU "Environment"'
 ;--------------------------------
 ; The name of the installer
-!define MYNAME "Sodbeans 6.0"
+!define MYNAME "Sodbeans 7.0"
 Name "${MYNAME}"
 
 ; The file to write
 ; This has been changed from "Sodbeans.exe" to "SodbeansInstaller.exe" so that it does not conflict with the actual
 ; name of the real sodbeans executable. This is important, because if JAWS/NVDA scripts are installed for Sodbeans,
 ; it will unintentionally silence the installer. 
-OutFile "Sodbeans 6.0.exe"
+OutFile "Sodbeans 7.0.exe"
 
-InstallDir "$PROGRAMFILES64\Sodbeans 6.0"
+InstallDir "$PROGRAMFILES64\Sodbeans 7.0"
 
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\Sodbeans 6.0" "Install_Dir"
+InstallDirRegKey HKLM "Software\Sodbeans 7.0" "Install_Dir"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
@@ -36,15 +36,15 @@ RequestExecutionLevel admin
   !define MUI_HEADERIMAGE_BITMAP "Header.bmp" ; optional
   !define MUI_ABORTWARNING
   !define MUI_FINISHPAGE_RUN
-  !define MUI_FINISHPAGE_RUN_TEXT "Start Sodbeans 6.0"
+  !define MUI_FINISHPAGE_RUN_TEXT "Start Sodbeans 7.0"
   !define MUI_FINISHPAGE_RUN_FUNCTION "LaunchSodbeans"
   
  ;------------------------------
 ; Bundling configuration
 !define NETInstaller "dotNetFx35setup.exe" ; .NET 3.5.
-!define JDKInstaller "jdk-8u91-windows-i586.exe" ; JDK 8 update 91, 32-bit.
+!define JDKInstaller "jdk-8u131-windows-i586.exe" ; JDK 8 update 131, 32-bit.
 ;!define CPPInstaller "vcredist_x86.exe" ; VS 2010 redistributable 32-bit.
-!define JDKInstaller64 "jdk-8u91-windows-x64.exe" ; JDK 8 update 91, 64-bit.
+!define JDKInstaller64 "jdk-8u131-windows-x64.exe" ; JDK 8 update 131, 64-bit.
 ;!define CPPInstaller64 "vcredist_x64.exe" ; VS 2010 redistributable 64-bit.
 
 ; Macros
@@ -158,17 +158,17 @@ End32Bitvs64BitCheck:
   File /nonfatal /r "sodbeans\*.*"
   
   ; Write the installation path into the registry
-  WriteRegStr HKLM "SOFTWARE\Sodbeans 6.0" "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM "SOFTWARE\Sodbeans 7.0" "Install_Dir" "$INSTDIR"
 
   ; Write additional installation information into the registry.
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 6.0" "Publisher" "Quorum Language Project"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 7.0" "Publisher" "Quorum Language Project"
   
   
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 6.0" "DisplayName" "Sodbeans 6.0"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 6.0" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 6.0" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 6.0" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 7.0" "DisplayName" "Sodbeans 7.0"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 7.0" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 7.0" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 7.0" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
   
   ; Now we need to update the Sodbeans.conf file to have the proper jdk_home.
@@ -199,10 +199,10 @@ SectionEnd
 ;--------------------------------
 ; Optional section (can be disabled by the user)
 Section "Start Menu Shortcuts" StartMenu_Sec
-  CreateDirectory "$SMPROGRAMS\Sodbeans 6.0"
-  CreateShortCut "$SMPROGRAMS\Sodbeans 6.0\Uninstall Sodbeans 6.0.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\Sodbeans 6.0\Sodbeans 6.0.lnk" "$INSTDIR\bin\sodbeans.exe" "" "$INSTDIR\bin\sodbeans.exe" 0
-  CreateShortCut "$DESKTOP\Sodbeans 6.0.lnk" "$INSTDIR\bin\sodbeans.exe" "" "$INSTDIR\bin\sodbeans.exe" 0
+  CreateDirectory "$SMPROGRAMS\Sodbeans 7.0"
+  CreateShortCut "$SMPROGRAMS\Sodbeans 7.0\Uninstall Sodbeans 7.0.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
+  CreateShortCut "$SMPROGRAMS\Sodbeans 7.0\Sodbeans 7.0.lnk" "$INSTDIR\bin\sodbeans.exe" "" "$INSTDIR\bin\sodbeans.exe" 0
+  CreateShortCut "$DESKTOP\Sodbeans 7.0.lnk" "$INSTDIR\bin\sodbeans.exe" "" "$INSTDIR\bin\sodbeans.exe" 0
 
 SectionEnd
 
@@ -247,6 +247,9 @@ Section "Jaws and NVDA Scripts" Scripts_Sec
     SetOutPath "$APPDATA\Freedom Scientific\JAWS\17.0\Settings\enu"
     File /nonfatal "sodbeans.jcf"
 
+    SetOutPath "$APPDATA\Freedom Scientific\JAWS\18.0\Settings\enu"
+    File /nonfatal "sodbeans.jcf"
+
     ; NVDA Script
     SetOutPath "$APPDATA\nvda\appModules"
     File /nonfatal "sodbeans.py"
@@ -276,18 +279,18 @@ LangString DESC_Section4 ${LANG_ENGLISH} "Deletes any old information left over 
 ; Uninstaller
 Section "Uninstall"
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 6.0"
-  DeleteRegKey HKLM "SOFTWARE\Sodbeans 6.0"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Sodbeans 7.0"
+  DeleteRegKey HKLM "SOFTWARE\Sodbeans 7.0"
 
   ; Remove files and uninstaller
   Delete $INSTDIR\*.*
 
   ; Remove shortcuts, if any
-  Delete "$SMPROGRAMS\Sodbeans 6.0\*.*"
-  Delete "$DESKTOP\Sodbeans 6.0.lnk"
+  Delete "$SMPROGRAMS\Sodbeans 7.0\*.*"
+  Delete "$DESKTOP\Sodbeans 7.0.lnk"
 
   ; Remove directories used
-  RMDir "$SMPROGRAMS\Sodbeans 6.0"
+  RMDir "$SMPROGRAMS\Sodbeans 7.0"
   RMDir /r "$INSTDIR"
    
   ; Delete JAWS and NVDA scripts.
@@ -300,6 +303,7 @@ Section "Uninstall"
   Delete "$APPDATA\Freedom Scientific\JAWS\15h.0\Settings\enu\sodbeans.jcf" ; JAWS 15
   Delete "$APPDATA\Freedom Scientific\JAWS\16h.0\Settings\enu\sodbeans.jcf" ; JAWS 16
   Delete "$APPDATA\Freedom Scientific\JAWS\17h.0\Settings\enu\sodbeans.jcf" ; JAWS 17
+  Delete "$APPDATA\Freedom Scientific\JAWS\18h.0\Settings\enu\sodbeans.jcf" ; JAWS 18
   Delete "$APPDATA\nvda\appModules\sodbeans.py" ; NVDA
 
   ; Delete old app data.

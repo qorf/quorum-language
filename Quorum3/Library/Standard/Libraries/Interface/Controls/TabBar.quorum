@@ -1,0 +1,157 @@
+package Libraries.Interface.Controls
+
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.LabelBoxContent
+use Libraries.Interface.Layouts.TabFlowLayout
+use Libraries.Game.Graphics.Color
+
+class TabBar is Item2D, ButtonGroup
+    
+    Array<Tab> tabs
+    TabFlowLayout layout
+    TabPane pane = undefined
+
+    on create
+        layout:SetPercentageWidth(1.0)
+        layout:SetPercentageOriginY(1.0)
+        layout:SetPercentageY(1.0)
+        AddLayout(layout)
+
+        SetClipping(true)
+        SetName("Tab Bar")
+    end
+
+    action Initialize(Array<Tab> array)
+        LabelBoxContent content
+        Color color
+        content:Initialize(color:DarkGray(), color:Black())
+        SetVisualContent(content)
+
+        Add(array)
+    end
+
+    action Add(Array<Tab> array)
+        integer counter = 0
+        repeat while counter < array:GetSize()
+            Tab tab = array:Get(counter)
+            tabs:Add(tab)
+            parent:Item2D:Add(tab)
+            parent:ButtonGroup:AddButton(tab)
+            counter = counter + 1
+        end
+
+        Resize()
+    end
+
+    action Add(Tab tab)
+        tabs:Add(tab)
+        parent:Item2D:Add(tab)
+        parent:ButtonGroup:AddButton(tab)
+        Resize()
+    end
+
+    action Remove(Tab tab)
+        if tab = undefined
+            return now
+        end
+
+        boolean reselect = (pane:GetCurrentItem() = tab:GetRelatedItem())
+
+        tabs:Remove(tab)
+        parent:Item2D:Remove(tab)
+        parent:ButtonGroup:RemoveButton(tab)
+
+        if reselect
+            if tabs:GetSize() > 0
+                tabs:Get(0):SetToggleState(true)
+            else
+                pane:SetCurrentItem(undefined)
+            end
+        end
+
+        Resize()
+    end
+
+    action SetTabPane(TabPane tabPane)
+        pane = tabPane
+    end
+
+    action GetTabPane returns TabPane
+        return pane
+    end
+
+    action FitTab(Tab tab)
+        integer index = GetChildren():GetFirstLocation(tab)
+        if index = -1
+            return now
+        end
+        
+        if tab:GetX() <= 0
+            LeftFitTab(index - 1.15)
+        elseif tab:GetX() + tab:GetWidth() >= GetWidth()
+            RightFitTab(index + 1.15)
+        end
+    end
+
+    action LeftFitTab(number index)
+        Array<Item2D> children = GetChildren()
+        if index < 0
+            index = 0
+        elseif index >= children:GetSize()
+            index = children:GetSize() - 1
+        end
+
+        integer counter = 0
+        number offset = 0
+        integer intIndex = cast(integer, index)
+        repeat while counter < intIndex
+            Item2D item = children:Get(counter)
+            offset = offset + item:GetWidth()
+            counter = counter + 1
+        end
+
+        // Include a percentage of the width of the next item, if we have any remainder.
+        if counter < children:GetSize()
+            offset = offset + (index - intIndex) * children:Get(counter):GetWidth()
+        // If there's no next item, offset it by the last item, if there is one.
+        elseif counter - 1 < children:GetSize()
+            offset = offset + (index - intIndex) * children:Get(counter - 1):GetWidth()
+        end
+
+        layout:SetOffset(offset)
+        Resize()
+    end
+
+    action RightFitTab(number index)
+        Array<Item2D> children = GetChildren()
+        if index < 0
+            index = 0
+        elseif index >= children:GetSize()
+            index = children:GetSize() - 1
+        end
+
+        integer counter = 0
+        number offset = 0
+        integer intIndex = cast(integer, index)
+        repeat while counter <= intIndex
+            Item2D item = children:Get(counter)
+            offset = offset + item:GetWidth()
+            counter = counter + 1
+        end
+
+        // Include a percentage of the width of the next item, if we have any remainder.
+        if counter < children:GetSize()
+            offset = offset + (index - intIndex) * children:Get(counter):GetWidth()
+        // If there's no next item, offset it by the last item, if there is one.
+        elseif counter - 1 < children:GetSize()
+            offset = offset + (index - intIndex) * children:Get(counter - 1):GetWidth()
+        end
+
+        layout:SetOffset(offset - GetWidth())
+        Resize()
+    end
+
+end

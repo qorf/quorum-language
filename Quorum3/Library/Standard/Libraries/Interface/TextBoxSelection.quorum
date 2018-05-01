@@ -1,50 +1,141 @@
 package Libraries.Interface
 
-class TextBoxSelection 
+use Libraries.Containers.Support.Pair
+use Libraries.Containers.MultipleLineText
 
-    TextBox textBox = undefined
-    integer selectionStart = 0
-    integer selectionEnd = 0
-    integer selectedLine = 0
-    text selectedText = ""
+class TextBoxSelection is Selection
 
-    action SetTextBox(TextBox box)
-        textBox = box
+    Pair<integer> indices
+    Pair<integer> lines
+    Pair<integer> lineIndices
+    boolean caretAtEnd = true
+
+    on create
+        lines:Set(0, 0)
+        indices:Set(0, 0)
+        lineIndices:Set(0, 0)
     end
+
+    action Set(integer startIndex, integer endIndex, boolean caretAtEnd)
+        TextBox textBox = GetTextBox()
+        if textBox not= undefined
+            MultipleLineText multi = textBox:GetLines()
+            integer startLine = multi:LineIndexFromCharacterIndex(startIndex)
+            integer startLinePosition = startIndex - multi:CharacterIndexFromLineIndex(startLine)
+
+            integer endLine = multi:LineIndexFromCharacterIndex(endIndex)
+            integer endLinePosition = endIndex - multi:CharacterIndexFromLineIndex(endLine)
+
+            indices:Set(startIndex, endIndex)
+            lines:Set(startLine, endLine)
+            lineIndices:Set(startLinePosition, endLinePosition)
+
+            me:caretAtEnd = caretAtEnd
+
+            SetDisplayName(multi:GetText(startIndex, endIndex))
+        end
+    end
+
+//    action SetTextBox(TextBox box)
+//        textBox = box
+//    end
 
     action GetTextBox returns TextBox
-        return textBox
+        if GetItem() is TextBox
+            TextBox textBox = cast(TextBox, GetItem())
+            return textBox
+        end
+        return undefined
     end
 
-    action SetSelectionStart(integer start)
-        selectionStart = start
+//    action SetText(text selected)
+//        value = selected
+//    end
+
+//    action GetText returns text
+//        return value
+//    end
+
+//    action SetIndices(integer startIndex, integer endIndex)
+//        indices:Set(startIndex, endIndex)
+//    end
+
+//    action SetLines(integer startLine, integer endLine)
+//        lines:Set(startLine, endLine)
+//    end
+
+//    action SetLineIndices(integer firstLineIndex, integer lastLineIndex)
+//        lineIndices:Set(firstLineIndex, lastLineIndex)
+//    end
+
+//    action SetStartIndex(integer index)
+//        indices:Set(index, indices:GetSecondValue())
+//    end
+
+    action GetStartIndex returns integer
+        return indices:GetFirstValue()
     end
 
-    action GetSelectionStart returns integer
-        return selectionStart
+//    action SetEndIndex(integer index)
+//        indices:Set(indices:GetFirstValue(), index)
+//    end
+
+    action GetEndIndex returns integer
+        return indices:GetSecondValue()
     end
 
-    action SetSelectionEnd(integer endValue)
-        selectionEnd = endValue
+//    action SetFirstLine(integer index)
+//        lines:Set(index, lines:GetSecondValue())
+//    end
+
+    action GetFirstLine returns integer
+        return lines:GetFirstValue()
     end
 
-    action GetSelectionEnd returns integer
-        return selectionEnd
+//    action SetLastLine(integer index)
+//        lines:Set(lines:GetFirstValue(), index)
+//    end
+
+    action GetLastLine returns integer
+        return lines:GetSecondValue()
     end
 
-    action SetSelectedLine(integer line)
-        selectedLine = line
+//    action SetFirstLineIndex(integer index)
+//        lineIndices:Set(index, lineIndices:GetSecondValue())
+//    end
+
+    action GetFirstLineIndex returns integer
+        return lineIndices:GetFirstValue()
     end
 
-    action GetSelectedLine returns integer
-        return selectedLine
+//    action SetLastLineIndex(integer index)
+//        lineIndices:Set(lineIndices:GetFirstValue(), index)
+//    end
+
+    action GetLastLineIndex returns integer
+        return lineIndices:GetSecondValue()
     end
 
-    action SetSelectedText(text selected)
-        selectedText = selected
+//    action SetCaretAtEnd(boolean atEnd)
+//        caretAtEnd = atEnd
+//    end
+
+    action IsCaretAtEnd returns boolean
+        return caretAtEnd
     end
 
-    action GetSelectedText returns text
-        return selectedText
+    action IsEmpty returns boolean
+        return indices:GetFirstValue() = indices:GetSecondValue()
     end
+
+//    action Copy returns TextBoxSelection
+//        TextBoxSelection selection
+//        selection:SetTextBox(textBox)
+//        selection:SetText(value)
+//        selection:SetIndices(indices:GetFirstValue(), indices:GetSecondValue())
+//        selection:SetLines(lines:GetFirstValue(), lines:GetSecondValue())
+//        selection:SetLineIndices(lineIndices:GetFirstValue(), lineIndices:GetSecondValue())
+//        selection:SetCaretAtEnd(caretAtEnd)
+//        return selection
+//    end
 end
