@@ -319,14 +319,18 @@ class MenuItem is GraphicUserInterface, Selectable
         // Don't actually select here! Go to MenuBar and ask it to select us.
         // We do this to allow the MenuBar to fully update its information,
         // deselect the previous selection, and prevent infinite loops.
-        menuBar:Select(GetMenuPath())
+        if menuBar not= undefined
+            menuBar:Select(GetMenuPath())
+        end
     end
 
     action Deselect
         // Don't actually select here! Go to MenuBar and ask it to deselect us.
         // We do this to allow the MenuBar to fully update its information,
         // deselect this, and prevent infinite loops.
-        menuBar:Deselect(GetMenuPath())
+        if menuBar not= undefined
+            menuBar:Deselect(GetMenuPath())
+        end
     end
 
     action GetMenuItem(text name) returns MenuItem
@@ -419,7 +423,7 @@ class MenuItem is GraphicUserInterface, Selectable
             text subPath = path:RemoveFromFront()
             MenuItem item = GetMenuItem(subPath)
             if item not= undefined
-                item:RecursiveSelect(path)
+                item:RecursiveDeselect(path)
             end
         end
         LostSelection()
