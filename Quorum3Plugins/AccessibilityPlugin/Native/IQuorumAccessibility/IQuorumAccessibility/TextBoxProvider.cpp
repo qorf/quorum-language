@@ -5,7 +5,7 @@
 SAFEARRAY* BuildIntSafeArray(_In_reads_(length) const int * data, _In_ int length)
 {
 	SAFEARRAY *intSafeArray = SafeArrayCreateVector(VT_I4, 0, length);
-	
+
 	if (intSafeArray == NULL)
 		return NULL;
 
@@ -24,12 +24,11 @@ SAFEARRAY* BuildIntSafeArray(_In_reads_(length) const int * data, _In_ int lengt
 
 TextBoxProvider::TextBoxProvider(_In_ HWND hwnd, _In_ TextBoxControl *control) : m_refCount(1), m_pTextBoxControl(control), m_textBoxControlHWND(hwnd)
 {
-	
+
 }
 
 TextBoxProvider::~TextBoxProvider()
 {
-	// TODO: Raise a UIA event that the window has closed.
 }
 
 // =========== IUnknown implementation.
@@ -114,19 +113,19 @@ IFACEMETHODIMP TextBoxProvider::GetPropertyValue(PROPERTYID propertyId, _Out_ VA
 		pRetVal->vt = VT_I4;
 		pRetVal->lVal = UIA_PaneControlTypeId;
 	}
-	else if (propertyId == UIA_NamePropertyId)
-	{
-		pRetVal->vt = VT_BSTR;
-		pRetVal->bstrVal = SysAllocString(L"");
-	}
 	else if (propertyId == UIA_AutomationIdPropertyId)
 	{
-		pRetVal->bstrVal = SysAllocString(L"");
+		pRetVal->bstrVal = SysAllocString(L"TextBox Provider");
 		if (pRetVal->bstrVal != NULL)
 		{
 			pRetVal->vt = VT_BSTR;
 		}
 	}
+	/*else if (propertyId == UIA_NamePropertyId)
+	{
+	pRetVal->vt = VT_BSTR;
+	pRetVal->bstrVal = SysAllocString(L"TextBox Provider");
+	}*/
 	else if (propertyId == UIA_IsControlElementPropertyId)
 	{
 		pRetVal->vt = VT_BOOL;
@@ -186,7 +185,7 @@ IFACEMETHODIMP TextBoxProvider::Navigate(NavigateDirection direction, _Outptr_re
 			return E_OUTOFMEMORY;
 		}
 	}
-	
+
 	// For the other directions (parent, next, previous) the default of NULL is correct
 	// However, in the future if a textbox is embedded into something else, like a tab, then
 	// parent will likely need to be implemented.
@@ -246,8 +245,7 @@ IFACEMETHODIMP TextBoxProvider::get_FragmentRoot(_Outptr_result_maybenull_ IRawE
 
 
 	*pRetVal = this;
-	(*pRetVal)->AddRef();
-
+	AddRef();
 	return S_OK;
 }
 

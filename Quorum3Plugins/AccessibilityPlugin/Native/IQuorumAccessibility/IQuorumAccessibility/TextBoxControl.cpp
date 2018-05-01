@@ -9,21 +9,11 @@
 bool TextBoxControl::Initialized = false;
 
 TextBoxControl::TextBoxControl(_In_reads_(lineCount) TextLine * lines, _In_ int lineCount, _In_ EndPoint caret) 
-	: m_TextboxHWND(NULL), m_caretPosition(caret.line, caret.character), m_focused(false), m_lineCount(lineCount), m_pTextboxName(L"Textbox"), m_Text(L""), m_pTextBoxProvider(NULL)
+	: m_TextboxHWND(NULL), m_caretPosition(caret.line, caret.character), m_focused(false), m_pLines(lines), m_lineCount(lineCount), m_pTextboxName(L"Textbox")/*, m_Text(L"")*/, m_pTextBoxProvider(NULL)
 {
 	// Nothing to do here.
 }
 
-TextBoxControl::~TextBoxControl()
-{
-	/*if (m_pTextBoxProvider != NULL)
-	{
-		m_pTextBoxProvider->Release();
-		m_pTextBoxProvider = NULL;
-	}*/
-}
-
-// RegisterButtonControl: Registers the TextControl with Windows API so that it can used and later be registered with UI Automation
 bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 {
 	WNDCLASSEXW wc;
@@ -58,7 +48,7 @@ bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, TextLine quorumLines[], _In_ EndPoint caret)
+HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, TextLine* quorumLines, _In_ EndPoint caret)
 {
 
 	if (!Initialized)
@@ -71,18 +61,18 @@ HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _I
 		TextBoxControl * control = new TextBoxControl(quorumLines, _ARRAYSIZE(quorumLines), caret);
 
 		control->m_TextboxHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
-												 L"QUORUM_TEXTBOX",
-												 textboxName,
-												 WS_VISIBLE | WS_CHILD,
-												 -1,
-												 -1,
-												 1,
-												 1,
-												 GetMainWindowHandle(), // Parent window
-												 NULL,
-												 instance,
-												 static_cast<PVOID>(control)
-												 );
+			L"QUORUM_TEXTBOX",
+			textboxName,
+			WS_VISIBLE | WS_CHILD,
+			-1,
+			-1,
+			1,
+			1,
+			GetMainWindowHandle(), // Parent window
+			NULL,
+			instance,
+			static_cast<PVOID>(control)
+		);
 
 		if (control->m_TextboxHWND == 0)
 		{
@@ -116,32 +106,34 @@ HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _I
 
 }
 
-TextLine * TextBoxControl::GetLine(_In_ int line)
+TextLine* TextBoxControl::GetLine(_In_ int line)
 {
 	if (line < 0 || line >= m_lineCount)
 	{
 		return NULL;
 	}
+
 	return &m_pLines[line];
 }
 
-void TextBoxControl::SetLineText(_In_ int line, _In_ PCWSTR newText)
-{
-	if (line >= 0 || line < m_lineCount)
-	{
-		m_pLines[line].text = newText;
-	}
-	
-}
+//void TextBoxControl::SetLineText(_In_ int line, _In_ PCWSTR newText)
+//{
+//	if (line >= 0 || line < m_lineCount)
+//	{
+//		m_pLines[line].text = newText;
+//	}
+//
+//}
 
 int TextBoxControl::GetLineLength(_In_ int line)
 {
-	size_t strLength;
-	if (FAILED(StringCchLength(m_pLines[line].text, 10000, &strLength)))
+	/*size_t strLength;
+	if (FAILED(StringCchLengthW(m_pLines[line].text, 10000, &strLength)))
 	{
 		strLength = 0;
 	}
-	return static_cast<int>(strLength);
+	return static_cast<int>(strLength);*/
+	return m_pLines[line].length;
 }
 
 int TextBoxControl::GetLineCount()
@@ -360,7 +352,7 @@ bool TextBoxControl::StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_
 
 // This is done so whether we walk forward or backwards, there is a consistent
 // span given, from the end of one line, to the end of the next
-bool TextBoxControl::StepLine( _In_ EndPoint start, _In_ bool forward, _Out_ EndPoint * end)
+bool TextBoxControl::StepLine(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint * end)
 {
 	*end = start;
 	if (forward)
@@ -403,7 +395,6 @@ TextBoxProvider* TextBoxControl::GetTextBoxProvider()
 	if (m_pTextBoxProvider == NULL)
 	{
 		m_pTextBoxProvider = new TextBoxProvider(this->m_TextboxHWND, this);
-		UiaRaiseAutomationEvent(m_pTextBoxProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_pTextBoxProvider;
 }
@@ -428,10 +419,10 @@ void TextBoxControl::SetName(_In_ WCHAR* name)
 	m_pTextboxName = name;
 }
 
-std::wstring TextBoxControl::GetText()
-{
-	return m_Text;
-}
+//std::wstring TextBoxControl::GetText()
+//{
+//	return m_Text;
+//}
 
 LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
@@ -458,6 +449,7 @@ LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT me
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
+
 LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 	LRESULT lResult = 0;
@@ -470,13 +462,14 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			//IRawElementProviderSimple * provider = new TextBoxProvider(hwnd, this); //this->GetTextBoxProvider();
-			//if (provider != NULL)
-			//{
-			//	lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
-			//}
+			IRawElementProviderSimple* provider = new TextBoxProvider(hwnd, this);
+			if (provider != NULL)
+			{
+				lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
+				provider->Release();
+			}
 
-			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetTextBoxProvider());
+			//lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetTextBoxProvider());
 		}
 		break;
 	}
@@ -498,7 +491,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	{
 
 		// IQuorumAccessiblity passes the wstring by reference. So we cast lParam to a pointer to a wstring and then dereference it to assign it to the Textboxes m_Text wstring.
-		m_Text = *(std::wstring*)(lParam);
+		//m_Text = *(std::wstring*)(lParam);
 
 		UpdateCaret(/*(EndPoint*)lParam*/);
 		break;

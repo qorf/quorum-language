@@ -25,7 +25,10 @@ struct Range
 // expanded to hold the text format, line number, and other important IDE info to be exposed to screen readers.
 struct TextLine
 {
+	TextLine() : text(L"Default"), length(7) {}
+	TextLine(PCWSTR t, int l) : text(t), length(l) {}
 	PCWSTR text;
+	int length;
 };
 
 /* CompareEndpointPair: Compares two Endpoints to determine whether or not one is less than, equal to, or greater than another.
@@ -77,24 +80,26 @@ class TextBoxControl
 {
 	public:
 		TextBoxControl(_In_reads_(lineCount) TextLine *lines, _In_ int lineCount, _In_ EndPoint caret);
-		~TextBoxControl();
 
-		static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, TextLine lines[], _In_ EndPoint caret);
+		static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, TextLine* lines, _In_ EndPoint caret);
 
-		TextLine* GetLine(_In_ int line);
-		void SetLineText(_In_ int line, _In_ PCWSTR newText);
+		//void SetLineText(_In_ int line, _In_ PCWSTR newText);
 		int GetLineLength(_In_ int line);
+		TextLine* GetLine(_In_ int line);
+
+
 		int GetLineCount();
 		EndPoint GetTextboxEndpoint();
 
 		TextBoxProvider* GetTextBoxProvider();
 		WCHAR* GetName();
 		void SetName(_In_ WCHAR* name);
+		EndPoint GetCaretPosition();
+
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
 		bool StepLine(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
-		EndPoint GetCaretPosition();
-		std::wstring GetText();
+
 
 		bool HasFocus();
 
@@ -115,7 +120,7 @@ class TextBoxControl
 		TextLine* m_pLines;
 		int m_lineCount;
 		WCHAR* m_pTextboxName;
-		std::wstring m_Text; // The text to be spoken aloud by the screen reader.
+		//std::wstring m_Text; // The text to be spoken aloud by the screen reader.
 		TextBoxProvider* m_pTextBoxProvider;
 
 

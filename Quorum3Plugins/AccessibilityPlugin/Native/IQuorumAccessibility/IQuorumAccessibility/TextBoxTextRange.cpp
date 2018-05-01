@@ -6,9 +6,9 @@
 //For debugging
 #include <iostream>
 
-TextBoxTextRange::TextBoxTextRange(_In_ HWND hwnd, _In_ TextBoxControl *control, _In_ Range range, _In_ std::wstring text) : m_refCount(1), m_TextBoxControlHWND(hwnd), m_pTextBoxControl(control), m_range(range), m_Text(text)
+TextBoxTextRange::TextBoxTextRange(_In_ HWND hwnd, _In_ TextBoxControl *control, _In_ Range range/*, _In_ std::wstring text*/) : m_refCount(1), m_TextBoxControlHWND(hwnd), m_pTextBoxControl(control), m_range(range)/*, m_Text(text)*/
 {
-	
+
 }
 
 TextBoxTextRange::~TextBoxTextRange()
@@ -63,7 +63,7 @@ IFACEMETHODIMP TextBoxTextRange::Clone(_Outptr_result_maybenull_ ITextRangeProvi
 {
 	HRESULT hr = S_OK;
 
-	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, m_range, m_Text);
+	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, m_range/*, m_Text*/);
 
 	if (*pRetVal == NULL)
 	{
@@ -220,7 +220,7 @@ IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttribut
 				found.end = searchBackward ? current : next;
 			}
 			// TODO: m_Text is not accurate. Fix it.
-			*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, found, m_Text);
+			*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, found/*, m_Text*/);
 
 			if (*pRetVal == NULL)
 			{
@@ -306,10 +306,9 @@ IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVa
 
 	HRESULT hr = S_OK;
 
-	
-	//std::wstring wStr = m_pTextBoxControl->GetText();
-	//*pRetVal = SysAllocStringLen(wStr.data(), wStr.size());
-	*pRetVal = L"press";
+
+	// TODO: Until the implementation of speaking text from the textbox is sorted out, dont say anything!
+	*pRetVal = SysAllocString(L"");
 
 	if (*pRetVal == NULL)
 	{
