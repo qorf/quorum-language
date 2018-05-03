@@ -143,6 +143,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     boolean verticalChanging = true
     number clickPointOffset = 0
 
+    boolean resizingScrollBars = false
+
     Math math
 
     on create
@@ -186,6 +188,11 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         textValue:Initialize(value)
 
+        Layout backgroundLayout
+        backgroundLayout:SetPercentageWidth(1)
+        backgroundLayout:SetPercentageHeight(1)
+        background:AddLayout(backgroundLayout)
+
         if backgroundColor not= undefined
             background:LoadFilledRectangle(cast(integer, width), cast(integer, height), backgroundColor)
         end
@@ -206,6 +213,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     action Resize
+        ResizeScrollBars()
+    end
+
+    private action ResizeLineDrawables
         parent:Item2D:Resize()
         GetLineDrawables()
     end
@@ -346,13 +357,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     private action EmptySelectionEvent
-//        selection:SetText("")
-//        selection:SetLines(caretLine, caretLine)
-//        selection:SetLineIndices(caretCharacter, caretCharacter)
-//        integer characterIndex = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
-//        selection:SetIndices(characterIndex, characterIndex)
-//        selection:SetCaretAtEnd(true)
-
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
 
         selection:Set(index, index, true)
@@ -366,23 +370,9 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
 
         if (caretLine < selection:GetFirstLine() or caretCharacter < selection:GetFirstLineIndex())
-//            selection:SetFirstLine(caretLine)
-//            selection:SetFirstLineIndex(caretCharacter)
-//
-//            selection:SetStartIndex(index)
-//            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
-//            selection:SetCaretAtEnd(index = selection:GetEndIndex())
-
             integer endIndex = selection:GetEndIndex()
             selection:Set(index, endIndex, (index = endIndex))
         else
-//            selection:SetLastLine(caretLine)
-//            selection:SetLastLineIndex(caretCharacter)
-//
-//            selection:SetEndIndex(index)
-//            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
-//            selection:SetCaretAtEnd(true)
-
             integer startIndex = selection:GetStartIndex()
             selection:Set(startIndex, index, true)
         end
@@ -396,23 +386,9 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
 
         if (caretLine > selection:GetLastLine() or caretCharacter > selection:GetLastLineIndex())
-//            selection:SetLastLine(caretLine)
-//            selection:SetLastLineIndex(caretCharacter)
-//
-//            selection:SetEndIndex(index)
-//            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
-//            selection:SetCaretAtEnd(true)
-
             integer startIndex = selection:GetStartIndex()
             selection:Set(startIndex, index, true)
         else
-//            selection:SetFirstLine(caretLine)
-//            selection:SetFirstLineIndex(caretCharacter)
-//
-//            selection:SetStartIndex(index)
-//            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
-//            selection:SetCaretAtEnd(index = selection:GetEndIndex())
-
             integer endIndex = selection:GetEndIndex()
             selection:Set(index, endIndex, (index = endIndex))
         end
@@ -430,30 +406,11 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             integer endIndex = selection:GetEndIndex()
 
             if index < selection:GetStartIndex() and selection:IsCaretAtEnd()
-//                selection:SetEndIndex(selection:GetStartIndex())
-//                selection:SetLastLineIndex(selection:GetFirstLineIndex())
-//                selection:SetLastLine(selection:GetFirstLine())
                 endIndex = selection:GetStartIndex()
             end
 
-//            selection:SetFirstLine(caretLine)
-//            selection:SetFirstLineIndex(caretCharacter)
-//
-//            selection:SetStartIndex(index)
-//            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
-//
-//            selection:SetCaretAtEnd(false)
-
             selection:Set(index, endIndex, false)
         else
-//            selection:SetLastLine(caretLine)
-//            selection:SetLastLineIndex(caretCharacter)
-//
-//            selection:SetEndIndex(index)
-//            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
-//
-//            selection:SetCaretAtEnd(true)
-
             selection:Set(selection:GetStartIndex(), index, true)
         end
 
@@ -470,30 +427,11 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             integer startIndex = selection:GetStartIndex()
 
             if index > selection:GetEndIndex() and (not selection:IsCaretAtEnd())
-//                selection:SetStartIndex(selection:GetEndIndex())
-//                selection:SetFirstLineIndex(selection:GetLastLineIndex())
-
                 startIndex = selection:GetEndIndex()
             end
 
-//            selection:SetLastLine(caretLine)
-//            selection:SetLastLineIndex(caretCharacter)
-//
-//            selection:SetEndIndex(index)
-//            selection:SetText(textValue:GetText(selection:GetStartIndex(), index))
-//
-//            selection:SetCaretAtEnd(true)
-
             selection:Set(startIndex, index, true)
         else
-//            selection:SetFirstLine(caretLine)
-//            selection:SetFirstLineIndex(caretCharacter)
-//
-//            selection:SetStartIndex(index)
-//            selection:SetText(textValue:GetText(index, selection:GetEndIndex()))
-//            
-//            selection:SetCaretAtEnd(false)
-
             selection:Set(index, selection:GetEndIndex(), false)
         end
 
@@ -506,13 +444,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     */
     private action ReportSelection
         GetLineDrawables()
-//        output ""
-//        output "Selection:"
-//        output "Lines: " + selection:GetFirstLine() + ", " + selection:GetLastLine()
-//        output "Line indices: " + selection:GetFirstLineIndex() + ", " + selection:GetLastLineIndex()
-//        output "Indices: " + selection:GetStartIndex() + ", " + selection:GetEndIndex()
-//        output "Text: " + selection:GetText()
-//        output "Caret at end = " + selection:IsCaretAtEnd()
     end
 
     /*
@@ -564,9 +495,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         else
             EmptySelectionEvent()
         end
-
-//        DeselectIndex(oldIndex)
-//        SelectIndex(GetCaretIndex())
     end
 
     action MoveCaretRight(boolean selecting)
@@ -608,8 +536,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         else
             EmptySelectionEvent()
         end
-//        DeselectIndex(oldIndex)
-//        SelectIndex(GetCaretIndex())
     end
 
     /*
@@ -738,8 +664,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         else
             EmptySelectionEvent()
         end
-//        DeselectIndex(oldIndex)
-//        SelectIndex(GetCaretIndex())
     end
 
     action MoveCaretUp(boolean selecting)
@@ -771,9 +695,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         else
             EmptySelectionEvent()
         end
-        
-//        DeselectIndex(oldIndex)
-//        SelectIndex(GetCaretIndex())
     end
 
     /*
@@ -1069,27 +990,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         number barHeight = height
         number barWidth = width
 
-//        if verticalBar:IsLoaded()
-//            verticalBar:Dispose()
-//        end
-//        if horizontalBar:IsLoaded()
-//            horizontalBar:Dispose()
-//        end
-//        if verticalControl:IsLoaded()
-//            verticalControl:Dispose()
-//        end
-//        if horizontalControl:IsLoaded()
-//            horizontalControl:Dispose()
-//        end
-
-//        if verticalVisible and horizontalVisible
-//            barHeight = height - barThickness
-//            barWidth = width - barThickness
-//            verticalRatio = barHeight / GetScrollRegionHeight()
-//            horizontalRatio = barWidth / GetScrollRegionWidth()
-//            verticalBar:SetY(barThickness)
-//        end
-
         if verticalVisible and horizontalVisible
             verticalBarLayout:SetHeightOffset(-barThickness)
             horizontalBarLayout:SetWidthOffset(-barThickness)
@@ -1110,37 +1010,12 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             horizontalRatio = 1.0
         end
 
-//        if verticalVisible
-//            verticalBar:LoadFilledRectangle(barThickness, cast(integer, barHeight), color:CustomColor(0.9, 0.9, 0.9, 1))
-//            verticalBar:SetX(width - barThickness)
-//            parent:Item2D:Add(verticalBar)
-//
-//            verticalControl:LoadFilledRectangle(barThickness, cast(integer, verticalRatio * barHeight), color:CustomColor(0.75, 0.75, 0.75, 1))
-//            verticalControl:SetY(height - verticalRatio * height - (height - barHeight))
-//            verticalBar:Add(verticalControl)
-//            verticalBar:Show()
-//        else
-//            verticalBar:Hide()
-//        end
-
         if verticalVisible
             verticalControlLayout:SetPercentageHeight(verticalRatio)
             verticalBar:Show()
         else
             verticalBar:Hide()
         end
-
-//        if horizontalVisible
-//            horizontalBar:LoadFilledRectangle(cast(integer, barWidth), barThickness, color:CustomColor(0.9, 0.9, 0.9, 1))
-//            parent:Item2D:Add(horizontalBar)
-//
-//            horizontalControl:LoadFilledRectangle(cast(integer, horizontalRatio * width), barThickness, color:CustomColor(0.75, 0.75, 0.75, 1))
-////            horizontalControl:SetY(height - ratio * height)
-//            horizontalBar:Add(horizontalControl)
-//            horizontalBar:Show()
-//        else
-//            horizontalBar:Hide()
-//        end
 
         if horizontalVisible
             horizontalControlLayout:SetPercentageWidth(horizontalRatio)
@@ -1207,42 +1082,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         HideCaret()
     end
 
-//    action SetRegionSize(number width, number height)
-//        scrollAnchor:SetWidth(width)
-//        scrollAnchor:SetHeight(height)
-//        CreateScrollBars()
-//    end
-//
-//    action FitRegionToContents
-//        Number width
-//        width:SetValue(0)
-//        Number height
-//        height:SetValue(0)
-//        FindDimensions(scrollAnchor:GetChildren(), width, height)
-//        SetRegionSize(width:GetValue() - scrollAnchor:GetGlobalX(), height:GetValue() - scrollAnchor:GetGlobalY())
-//    end
-//
-//    private action FindDimensions(Array<Item2D> items, Number width, Number height)
-//        integer counter = 0
-//        repeat while counter < items:GetSize()
-//            Item2D item = items:Get(counter)
-//
-//            if item:GetGlobalX() + item:GetWidth() > width:GetValue()
-//                width:SetValue(item:GetGlobalX() + item:GetWidth())
-//            end
-//
-//            if item:GetGlobalY() + item:GetHeight() > height:GetValue()
-//                height:SetValue(item:GetGlobalY() + item:GetHeight())
-//            end
-//
-//            if not item:IsClipping()
-//                FindDimensions(item:GetChildren(), width, height)
-//            end
-//
-//            counter = counter + 1
-//        end
-//    end
-
     /*
     Takes values between 0.0 and 1.0 as percentage-style positions for the
     vertical and horizontal scroll bars and view area.
@@ -1283,17 +1122,9 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         horizontalControlLayout:SetPercentageX(horizontal)
         horizontalControlLayout:SetOffsetX(-(horizontal * ((GetWidth() + horizontalBarLayout:GetWidthOffset()) * horizontalControlLayout:GetPercentageWidth())))
 
-//        number adjustedHeight = GetHeight() - verticalControl:GetHeight() - sharedSpaceOffset
-//        verticalControl:SetY(adjustedHeight * vertical)
-//
-//        number adjustedWidth = GetWidth() - horizontalControl:GetWidth() - sharedSpaceOffset
-//        horizontalControl:SetX(adjustedWidth * horizontal)
-
         number adjustedScrollWidth = GetScrollRegionWidth() - GetWidth()
         number adjustedScrollHeight = GetScrollRegionHeight() - GetHeight()
         
-//        scrollAnchor:SetPosition(-adjustedScrollWidth * horizontal, -adjustedScrollHeight * vertical)
-
         if verticalBar:IsShowing()
             verticalViewPercentage = (verticalControl:GetHeight() + verticalControl:GetY()) / verticalBar:GetHeight()
         else
@@ -1303,7 +1134,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         me:vertical = vertical
         me:horizontal = horizontal
 
-        Resize()
+        ResizeLineDrawables()
     end
 
     private action GetSharedSpaceOffset returns number
@@ -1450,42 +1281,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     action GetText returns text
         return textValue:GetText()
     end
-
-//    action GetSingleSelection(integer index) returns Selection
-//        Selection selection
-//        selection:SetDisplayName("")
-//        return selection
-//    end
-//
-//    action GetRangeSelection(Pair<integer> range) returns Array<Selection>
-//        Array<Selection> array
-//        Selection selection
-//        text selectedText = textValue:GetText():GetSubtext(range:GetLeastValue(), range:GetGreatestValue())
-//        selection:SetDisplayName(selectedText)
-//        array:Add(selection)
-//        return array
-//    end
-//
-//    action GetMultipleSelection(Array<Pair<integer>> ranges) returns Array<Selection>
-//        if ranges:GetSize() = 1
-//            return GetRangeSelection(ranges:Get(0))
-//        end
-//
-//        alert("Multiple selection is not supported for TextBox yet. Use GetRangeSelection() instead.")
-//    end
-//
-//    action GetSelectableSize returns integer
-//        // The caret can be placed anywhere between 0 and the length of the
-//        // text (including after the last character), resulting in length + 1.
-//        return textValue:GetLength() + 1
-//    end
-//
-//    action GetCurrentSelection returns Array<Selection>
-//        // When selection is fully supported, this will be replaced with the
-//        // actual start and end indices of the selection.
-//        integer caretIndex = GetCaretIndex()
-//        return GetRangeSelection(caretIndex, caretIndex)
-//    end
 
     action GetCurrentLineText() returns text
         return textValue:GetLine(caretLine):GetText()
