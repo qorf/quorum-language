@@ -46,8 +46,12 @@ class AccessibilityManager
 
     // ===== actions for Textbox
 
-    // TextSelectionChanged: This action will be called whenever the caret position has changed,
-    //                       and text on the textline has been delete or added.
+    // TextSelectionChanged: This action will be called whenever the text selection has changed.
+    //                       For example, a word or character has been added to the selection.
     system action TextSelectionChanged(Item Textbox)
+
+    // CaretPositionChanged: This action will be called whenever the caret moves or when text has
+    //                       been added or removed.
+    system action CaretPositionChanged(Item TextBox, Text adjacentCharacter)
 
 end
