@@ -12,17 +12,6 @@ void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 	TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(hwnd, control);
 	if (eventControl != NULL)
 	{
-		// TODO: Debug. Remove this section
-		/*PCWSTR sampleText;
-		sampleText = L"NotifyCaretPositionChanged method entered.";
-
-		TextLine* textline = control->GetLine(0);
-		std::wcout << "WCOUT: " << sampleText << std::endl;
-		std::wcout << "Textline->Text: " << textline->text << std::endl;
-		std::cout << "Size of the text line: " << control->GetLineLength(0) << std::endl;
-		fflush(stdout);*/
-		//=====
-
 		UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
 		UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
 		eventControl->Release();

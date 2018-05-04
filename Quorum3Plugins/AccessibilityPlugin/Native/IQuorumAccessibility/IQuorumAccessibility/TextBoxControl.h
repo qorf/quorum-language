@@ -79,13 +79,14 @@ class TextBoxProvider;
 class TextBoxControl
 {
 	public:
-		TextBoxControl(_In_reads_(lineCount) TextLine *lines, _In_ int lineCount, _In_ EndPoint caret);
+		TextBoxControl(_In_ char* lines, _In_ int caretIndex);
 
-		static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, TextLine* lines, _In_ EndPoint caret);
+		static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ char* lines, _In_ int caretIndex);
 
 		//void SetLineText(_In_ int line, _In_ PCWSTR newText);
 		int GetLineLength(_In_ int line);
-		TextLine* GetLine(_In_ int line);
+		//TextLine* GetLine(_In_ int line);
+		char* GetLine();
 
 
 		int GetLineCount();
@@ -112,13 +113,22 @@ class TextBoxControl
 		
 		void SetControlFocus();
 		void KillControlFocus();
-		void UpdateCaret(/*_In_ EndPoint* caretPosition*/);
+		void UpdateCaret(_In_ EndPoint caretPosition);
 
 		HWND m_TextboxHWND;
 		EndPoint m_caretPosition;
 		bool m_focused;
-		TextLine* m_pLines;
-		int m_lineCount;
+		//TextLine* m_pLines;
+
+		//char * m_fullText;
+
+		/* With the current approach to handling text from the textbox we are holding a
+		 * string that contains the entire contents of the textbox instead of using the TextLine struct.
+		 * So, m_lineCount should always be 1 since as far as the rest of the control is concerned there is
+		 * only one line.
+		 */
+		const int m_lineCount = 1;
+		
 		WCHAR* m_pTextboxName;
 		//std::wstring m_Text; // The text to be spoken aloud by the screen reader.
 		TextBoxProvider* m_pTextBoxProvider;

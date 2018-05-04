@@ -59,11 +59,16 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 //									   CoUninitialize must be called the same number of times as CoInitialize.
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility(JNIEnv *env, jobject obj, jlong parentWindowHWND)
 {
-	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED
+	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
 	GLFWParentWindow = (HWND)parentWindowHWND;
+
+	//DWORD threadID = GetCurrentThreadId();
+
+	//std::cout << "NativeWin32InitializeAccessibility Thread ID: " << threadID << std::endl;
 }
 
 // NativeWin32ShutdownAccessibility: Closes the COM library gracefully.
+// TODO: More work needs to be done in this function to ensure clean shutdown of the library.
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32ShutdownAccessibility(JNIEnv *env, jobject obj)
 {
 	CoUninitialize();
@@ -172,30 +177,31 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 }
 
 // NativeWin32CreateTextBox: 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTextBox(JNIEnv *env, jobject obj, jstring textboxName, jstring description, jstring currentLineText, jint caretLine, jint caretCharacter)
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTextBox(JNIEnv *env, jobject obj, jstring textboxName, jstring description, jstring fullText, jint caretIndex)
 {
 
-	const char *nativeTextboxName = env->GetStringUTFChars(textboxName, 0);
-	const char *nativeDescription = env->GetStringUTFChars(description, 0);
-	const char *nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
+	const char* nativeTextboxName = env->GetStringUTFChars(textboxName, 0);
+	const char* nativeDescription = env->GetStringUTFChars(description, 0);
+	const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
 
 	WCHAR* wTextboxName = CreateWideStringFromUTF8Win32(nativeTextboxName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
-	WCHAR* wCurrentLineText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
+	//WCHAR* wCurrentLineText = CreateWideStringFromUTF8Win32(nativeFullText);
 
-	HWND textboxControlHandle;
-
-	EndPoint caret;
-	caret.character = (int)caretCharacter;
-	caret.line = (int)caretLine;
+	//EndPoint caret = EndPoint(caretLine, caretCharacter);
+	
 	//TextLine line[] = { wCurrentLineText };
-	TextLine line[] = { { L"Hello world!" }, };
+	//TextLine line[] = { { L"Hello world!", 12 }, };
 
-	textboxControlHandle = TextBoxControl::Create(GetModuleHandle(NULL), wTextboxName, wDescription, line, caret);
+	//DWORD threadID = GetCurrentThreadId();
+
+	//std::cout << "NativeWin32CreateTextBox Thread ID: " << threadID << std::endl;
+
+	HWND textboxControlHandle = TextBoxControl::Create(GetModuleHandle(NULL), wTextboxName, wDescription, nativeFullText, (int)caretIndex);
 
 	env->ReleaseStringUTFChars(textboxName, nativeTextboxName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
-	env->ReleaseStringUTFChars(currentLineText, nativeCurrentLineText);
+	env->ReleaseStringUTFChars(fullText, nativeFullText);
 
 	return PtrToLong(textboxControlHandle);
 
@@ -218,6 +224,11 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32SetFocus(JNIEnv *env, jobject obj, jlong jlongHWND)
 {
 	HWND control = (HWND)jlongHWND;
+
+
+	//DWORD threadID = GetCurrentThreadId();
+
+	//std::cout << "NativeWin32SetFocus Thread ID: " << threadID << std::endl;
 
 	// Sends the appropriate messages to all windows.
 	SetFocus(control);
@@ -244,16 +255,15 @@ JNIEXPORT void Java_plugins_quorum_Libraries_Interface_AccessibilityManager_Nati
 }
 
 // NativeWin32UpdateCaretPosition:
-JNIEXPORT void Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32UpdateCaretPosition(JNIEnv *env, jobject obj, jlong textboxHWND, jstring adjacentCharacter)
+JNIEXPORT void Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32UpdateCaretPosition(JNIEnv *env, jobject obj, jlong textboxHWND, jstring fullText, jint caretIndex)
 {
 	HWND control = (HWND)textboxHWND;
 
-	const char *nativeAdjacentCharacter = env->GetStringUTFChars(adjacentCharacter, 0);
-	std::wstring wAdjacentCharacter = CreateWideStringFromUTF8Win32(nativeAdjacentCharacter);
+	const char *nativeFullText = env->GetStringUTFChars(fullText, 0);
 
-	SendMessage(control, QUORUM_UPDATECARET, 0, (LPARAM)&wAdjacentCharacter);
+	SendMessage(control, QUORUM_UPDATECARET, (int)caretIndex, (LPARAM)nativeFullText);
 
-	env->ReleaseStringUTFChars(adjacentCharacter, nativeAdjacentCharacter);
+	env->ReleaseStringUTFChars(fullText, nativeFullText);
 }
 
 // NativeWin32InvokeButton: 
@@ -291,3 +301,72 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 #pragma endregion
 
 
+// ==============================
+// TODO: Remove this section after debugging is finished
+// This section is used to test the accessibility system
+// in C++ with an empty GLFW window to rule out any issues that
+// might arise from having it plugged into Quorum.
+// ==============================
+#pragma region Native DLL Exports
+
+#define DLLEXPORT extern "C" __declspec(dllexport) 
+
+DLLEXPORT HWND NativeWin32CreateTextBox(const char* nativeTextboxName, const char* nativeDescription, const char* fullText, int caretIndex)
+{
+
+	WCHAR* wTextboxName = CreateWideStringFromUTF8Win32(nativeTextboxName);
+	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+
+	//EndPoint caret = EndPoint(caretLine, caretCharacter);
+	//caret.character = caretCharacter;
+	//caret.line = (int)caretLine;
+	//TextLine line[] = { { L"Hello world!", 12 }, };
+
+	HWND textboxControlHandle = TextBoxControl::Create(GetModuleHandle(NULL), wTextboxName, wDescription, fullText, caretIndex);
+
+	return textboxControlHandle;
+
+}
+
+DLLEXPORT void NativeWin32SetFocus(HWND controlHWND)
+{
+	// Let windows handle focus changes.
+	SetFocus(controlHWND);
+}
+
+DLLEXPORT void NativeWin32UpdateCaretPosition(HWND textboxHWND, const char * adjacentCharacter)
+{
+	std::wstring wAdjacentCharacter = CreateWideStringFromUTF8Win32(adjacentCharacter);
+
+	// Just send a string for the screen reader to speak.
+	SendMessage(textboxHWND, QUORUM_UPDATECARET, 0, (LPARAM)&wAdjacentCharacter);
+
+	std::wcout << wAdjacentCharacter << std::endl;
+}
+
+DLLEXPORT HWND NativeWin32CreatePushButton(const char * nativeButtonName, const char * nativeDescription)
+{
+
+	WCHAR* wButtonName = CreateWideStringFromUTF8Win32(nativeButtonName);
+	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+
+	HWND pushbuttonControlHandle;
+
+	pushbuttonControlHandle = PushButtonControl::Create(GetModuleHandle(NULL), wButtonName, wDescription);
+
+	return pushbuttonControlHandle;
+
+}
+
+DLLEXPORT void NativeWin32InitializeAccessibility(HWND parentWindow)
+{
+	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
+	GLFWParentWindow = parentWindow;
+
+	/*DWORD threadID = GetCurrentThreadId();
+
+	std::cout << "NativeWin32InitializeAccessibility Thread ID: " << threadID << std::endl;*/
+}
+
+
+#pragma endregion

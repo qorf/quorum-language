@@ -8,8 +8,8 @@
 
 bool TextBoxControl::Initialized = false;
 
-TextBoxControl::TextBoxControl(_In_reads_(lineCount) TextLine * lines, _In_ int lineCount, _In_ EndPoint caret) 
-	: m_TextboxHWND(NULL), m_caretPosition(caret.line, caret.character), m_focused(false), m_pLines(lines), m_lineCount(lineCount), m_pTextboxName(L"Textbox")/*, m_Text(L"")*/, m_pTextBoxProvider(NULL)
+TextBoxControl::TextBoxControl(_In_ char* lines, _In_ int caretIndex) 
+	: m_TextboxHWND(NULL), m_caretPosition(0, caretIndex), m_focused(false), m_fullText(lines), m_pTextboxName(L"Textbox")/*, m_Text(L"")*/, m_pTextBoxProvider(NULL)
 {
 	// Nothing to do here.
 }
@@ -48,7 +48,7 @@ bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, TextLine* quorumLines, _In_ EndPoint caret)
+HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ char* fullText, _In_ int caretIndex)
 {
 
 	if (!Initialized)
@@ -58,7 +58,7 @@ HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _I
 
 	if (Initialized)
 	{
-		TextBoxControl * control = new TextBoxControl(quorumLines, _ARRAYSIZE(quorumLines), caret);
+		TextBoxControl * control = new TextBoxControl(fullText, caretIndex);
 
 		control->m_TextboxHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
 			L"QUORUM_TEXTBOX",
@@ -106,14 +106,19 @@ HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _I
 
 }
 
-TextLine* TextBoxControl::GetLine(_In_ int line)
-{
-	if (line < 0 || line >= m_lineCount)
-	{
-		return NULL;
-	}
+//TextLine* TextBoxControl::GetLine(_In_ int line)
+//{
+//	if (line < 0 || line >= m_lineCount)
+//	{
+//		return NULL;
+//	}
+//
+//	return &m_pLines[line];
+//}
 
-	return &m_pLines[line];
+char* TextBoxControl::GetLine()
+{
+	return m_fullText;
 }
 
 //void TextBoxControl::SetLineText(_In_ int line, _In_ PCWSTR newText)
@@ -133,7 +138,8 @@ int TextBoxControl::GetLineLength(_In_ int line)
 		strLength = 0;
 	}
 	return static_cast<int>(strLength);*/
-	return m_pLines[line].length;
+	//return m_pLines[line].length;
+	return static_cast<int>(strlen(m_fullText));
 }
 
 int TextBoxControl::GetLineCount()
@@ -490,10 +496,10 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	case QUORUM_UPDATECARET:
 	{
 
-		// IQuorumAccessiblity passes the wstring by reference. So we cast lParam to a pointer to a wstring and then dereference it to assign it to the Textboxes m_Text wstring.
-		//m_Text = *(std::wstring*)(lParam);
+		const char* fullText = (const char*)(lParam);
+		EndPoint caretPosition = EndPoint(0, wParam);
+		UpdateCaret(caretPosition);
 
-		UpdateCaret(/*(EndPoint*)lParam*/);
 		break;
 	}
 	case QUORUM_SETNAME:
@@ -528,8 +534,8 @@ void TextBoxControl::KillControlFocus()
 	m_focused = false;
 }
 
-void TextBoxControl::UpdateCaret(/* _In_ EndPoint* caretPosition*/)
+void TextBoxControl::UpdateCaret(_In_ EndPoint caretPosition)
 {
-	//m_caretPosition = *caretPosition;
+	m_caretPosition = caretPosition;
 	NotifyCaretPositionChanged(this->m_TextboxHWND, this);
 }

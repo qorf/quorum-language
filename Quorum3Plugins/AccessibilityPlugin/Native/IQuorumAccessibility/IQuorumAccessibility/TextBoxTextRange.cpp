@@ -306,9 +306,20 @@ IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVa
 
 	HRESULT hr = S_OK;
 
+	// Hardcoded adjacent character speech code. Needs to be generalized for a range.
+	EndPoint caret = m_pTextBoxControl->GetCaretPosition();
+	char* text = &m_pTextBoxControl->GetLine()[caret.character];
+	
+	size_t newsize = strlen(text) + 1;
+
+	WCHAR* spokenText = new wchar_t[newsize];
+
+	// Convert char* string to a wchar_t* string.  
+	size_t convertedChars = 0;
+	mbstowcs_s(&convertedChars, spokenText, newsize, text, _TRUNCATE);
 
 	// TODO: Until the implementation of speaking text from the textbox is sorted out, dont say anything!
-	*pRetVal = SysAllocString(L"");
+	*pRetVal = SysAllocString(spokenText);
 
 	if (*pRetVal == NULL)
 	{
@@ -624,9 +635,12 @@ bool TextBoxTextRange::IsWhiteSpace(_In_ EndPoint check)
 		return true;
 	}
 
-	TextLine *line = m_pTextBoxControl->GetLine(check.line);
+	//TextLine *line = m_pTextBoxControl->GetLine(check.line);
 
-	int isSpace = iswspace(line->text[check.character]);
+	//int isSpace = iswspace(line->text[check.character]);
+	std::string line = m_pTextBoxControl->GetLine();
+	
+	int isSpace = iswspace(line[check.character]);
 	return isSpace != 0;
 }
 
