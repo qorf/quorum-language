@@ -261,7 +261,8 @@ public class QuorumProject implements Project {
             try {
                 properties.load(fob.getInputStream());
             } catch (Exception e) {
-                Exceptions.printStackTrace(e);
+                //this seems to throw an error on various kinds of loads. Just ignore it.
+                //Exceptions.printStackTrace(e);
             }
         }
         

@@ -63,7 +63,7 @@ public class QuorumParser extends Parser{
             
             Project project = FileOwnerQuery.getOwner(fo);
             
-            if(project != null) {
+            if(project != null && project instanceof QuorumProject) {
                 Lookup lookup = project.getLookup();
                 quorum.Libraries.Language.Compile.Compiler compiler = lookup.lookup(quorum.Libraries.Language.Compile.Compiler.class);
 
