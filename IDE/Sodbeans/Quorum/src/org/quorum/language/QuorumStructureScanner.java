@@ -19,14 +19,11 @@ import org.netbeans.modules.parsing.api.Source;
 import org.quorum.language.structure.QuorumClassStructureItem;
 import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
-import quorum.Libraries.Language.Compile.ProjectInformation;
 import quorum.Libraries.Language.Compile.QualifiedName_;
 import quorum.Libraries.Language.Compile.Symbol.Action_;
 import quorum.Libraries.Language.Compile.Symbol.Class_;
 import quorum.Libraries.Language.Compile.Symbol.Documentation_;
 import quorum.Libraries.Language.Compile.Symbol.SymbolTable_;
-import quorum.Libraries.Language.Compile.Symbol.Variable_;
-import quorum.Libraries.Language.Object_;
 import quorum.Libraries.System.File_;
 
 /**
@@ -39,13 +36,23 @@ public class QuorumStructureScanner implements StructureScanner{
     public List<? extends StructureItem> scan(ParserResult result) {
         QuorumParserResult parserResult = (QuorumParserResult) result;
         CompilerResult_ quorumResult = parserResult.getRecentResult();
-        ProjectInformation info = parserResult.getInfo();
-        String source = info.Get_Libraries_Language_Compile_ProjectInformation__source_();
-        File_ loc = info.Get_Libraries_Language_Compile_ProjectInformation__sourceLocation_();
+        
+        
+//        ProjectInformation info = parserResult.getInfo();
+//        String source = info.Get_Libraries_Language_Compile_ProjectInformation__source_();
+//        File_ loc = info.Get_Libraries_Language_Compile_ProjectInformation__sourceLocation_();
         
         if(quorumResult == null) {
             return Collections.EMPTY_LIST;
         }
+        
+        String source = quorumResult.Get_Libraries_Language_Compile_CompilerResult__source_();
+        File_ loc = quorumResult.Get_Libraries_Language_Compile_CompilerResult__sourceLocation_();
+        
+        if(loc == null || source == null) {
+            return Collections.EMPTY_LIST;
+        }
+        
         SymbolTable_ table = quorumResult.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
         Class_ clazz = table.GetClassInFile(loc.GetAbsolutePath());
         if(clazz == null) {
@@ -63,9 +70,13 @@ public class QuorumStructureScanner implements StructureScanner{
     public Map<String, List<OffsetRange>> folds(ParserResult result) {
         QuorumParserResult parserResult = (QuorumParserResult) result;
         CompilerResult_ quorumResult = parserResult.getRecentResult();
-        ProjectInformation info = parserResult.getInfo();
-        String source = info.Get_Libraries_Language_Compile_ProjectInformation__source_();
-        File_ loc = info.Get_Libraries_Language_Compile_ProjectInformation__sourceLocation_();
+        
+        String source = quorumResult.Get_Libraries_Language_Compile_CompilerResult__source_();
+        File_ loc = quorumResult.Get_Libraries_Language_Compile_CompilerResult__sourceLocation_();
+        
+//        ProjectInformation info = parserResult.getInfo();
+//        String source = info.Get_Libraries_Language_Compile_ProjectInformation__source_();
+//        File_ loc = info.Get_Libraries_Language_Compile_ProjectInformation__sourceLocation_();
         
         if(quorumResult == null) {
             return Collections.EMPTY_MAP;

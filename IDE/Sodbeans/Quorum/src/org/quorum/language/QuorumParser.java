@@ -41,7 +41,6 @@ public class QuorumParser extends Parser{
     SourceModificationEvent sme;
     private ArrayList<QuorumError> fileErrors = new ArrayList<QuorumError>();
     private ArrayList<Hint_> fileHints = new ArrayList<Hint_>();
-    private quorum.Libraries.Language.Compile.ProjectInformation info = new quorum.Libraries.Language.Compile.ProjectInformation();
     private static final Logger logger = Logger.getLogger(QuorumParser.class.getName());
     CompilerResult_ recentResult = null;
     
@@ -109,11 +108,9 @@ public class QuorumParser extends Parser{
                     ((QuorumProject) project).setLastCompileResult(result);
                     recentResult = result;
                     
-//                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__source_(string);
-//                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__sourceLocation_(quorumFile);
-//                    getInfo().Set_Libraries_Language_Compile_ProjectInformation__projectFiles_(listing);
-//                    CompilerResult_ result = compiler.ParseRepeat(getInfo());                 
-                    //recentResult = result;
+                    result.Set_Libraries_Language_Compile_CompilerResult__source_(string);
+                    result.Set_Libraries_Language_Compile_CompilerResult__sourceLocation_(quorumFile);
+                    result.Set_Libraries_Language_Compile_CompilerResult__projectFiles_(listing);
                     
                     CompilerErrorManager_ manager = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
                     
@@ -165,7 +162,27 @@ public class QuorumParser extends Parser{
     
     @Override
     public Result getResult(Task task) throws ParseException {
-        return new QuorumParserResult(snapshot, this);
+        FileObject fo = snapshot.getSource().getFileObject();
+            if(fo == null) {
+                return null;
+            }
+            String extension = fo.getExt();
+            
+            if(extension.compareTo("quorum") != 0) {
+                return null;
+            }
+            
+            Project project = FileOwnerQuery.getOwner(fo);
+            
+            if(project != null) {
+                QuorumProject qp = (QuorumProject) project;
+                CompilerResult_ lastCompileResult = qp.getLastCompileResult();
+                QuorumParserResult pr = new QuorumParserResult(snapshot, this);
+                pr.SetRecentResult(lastCompileResult);
+                return pr;
+            }
+        
+        return null;
     }
 
     @Override
@@ -189,12 +206,5 @@ public class QuorumParser extends Parser{
     
     public ArrayList<Hint_> getFileHints() {
         return fileHints;
-    }
-
-    /**
-     * @return the info
-     */
-    public quorum.Libraries.Language.Compile.ProjectInformation getInfo() {
-        return info;
     }
 }
