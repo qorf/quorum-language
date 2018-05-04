@@ -60,6 +60,7 @@ IFACEMETHODIMP ItemProvider::get_ProviderOptions(_Out_ ProviderOptions* pRetVal)
 
 IFACEMETHODIMP ItemProvider::GetPatternProvider(PATTERNID patternId, _Outptr_result_maybenull_ IUnknown** pRetVal)
 {
+	UNREFERENCED_PARAMETER(patternId);
 	// Item doesn't implement any control patterns so NULL is correct.
 	*pRetVal = NULL;
 	return S_OK;

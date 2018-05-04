@@ -46,6 +46,9 @@ WCHAR* CreateWideStringFromUTF8Win32(const char* source)
 // DllMain: Entry point for dll. Nothing to do here.
 BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
+	UNREFERENCED_PARAMETER(instance);
+	UNREFERENCED_PARAMETER(reason);
+	UNREFERENCED_PARAMETER(reserved);
 	return TRUE;
 }
 
@@ -59,7 +62,9 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 //									   CoUninitialize must be called the same number of times as CoInitialize.
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InitializeAccessibility(JNIEnv *env, jobject obj, jlong parentWindowHWND)
 {
-	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
+	UNREFERENCED_PARAMETER(env);
+	UNREFERENCED_PARAMETER(obj);
+	CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
 	GLFWParentWindow = (HWND)parentWindowHWND;
 
 	//DWORD threadID = GetCurrentThreadId();
@@ -71,6 +76,8 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 // TODO: More work needs to be done in this function to ensure clean shutdown of the library.
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32ShutdownAccessibility(JNIEnv *env, jobject obj)
 {
+	UNREFERENCED_PARAMETER(env);
+	UNREFERENCED_PARAMETER(obj);
 	CoUninitialize();
 }
 
@@ -78,8 +85,9 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 // NativePrint: Solely used to test whether a call from Java or Quorum can make it down to C++.
 JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativePrint(JNIEnv *env, jobject obj)
 {
+	UNREFERENCED_PARAMETER(env);
+	UNREFERENCED_PARAMETER(obj);
 	std::cout << "Native C++ Print" << std::endl;
-
 }
 
 /* ==============================
@@ -93,7 +101,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 // NativeWin32CreateItem: This is the most generic accessible object that can be created. It only contains a name and a description.
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateItem(JNIEnv *env, jobject obj, jstring itemName, jstring description)
 {
-
+	UNREFERENCED_PARAMETER(obj);
 	const char *nativeItemName = env->GetStringUTFChars(itemName, 0);
 	const char *nativeDescription = env->GetStringUTFChars(description, 0);
 
@@ -115,7 +123,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 //		Returns: jlong which is the HWND for the window. This is used to further interact with the button after creation. i.e., to rename the button later should the name be changed. Also, used to keep track of it in java.
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreatePushButton(JNIEnv *env, jobject obj, jstring buttonName, jstring description)
 {
-
+	UNREFERENCED_PARAMETER(obj);
 	const char *nativeButtonName = env->GetStringUTFChars(buttonName, 0);
 	const char *nativeDescription = env->GetStringUTFChars(description, 0);
 
@@ -137,7 +145,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 // NativeWin32CreateToggleButton: 
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateToggleButton(JNIEnv *env, jobject obj, jstring togglebuttonName, jstring description)
 {
-
+	UNREFERENCED_PARAMETER(obj);
 	const char *nativeTogglebuttonName = env->GetStringUTFChars(togglebuttonName, 0);
 	const char *nativeDescription = env->GetStringUTFChars(description, 0);
 
@@ -158,7 +166,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 // NativeWin32CreateRadioButton: 
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateRadioButton(JNIEnv *env, jobject obj, jstring itemName, jstring description)
 {
-
+	UNREFERENCED_PARAMETER(obj);
 	const char *nativeItemName = env->GetStringUTFChars(itemName, 0);
 	const char *nativeDescription = env->GetStringUTFChars(description, 0);
 
@@ -179,7 +187,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 // NativeWin32CreateTextBox: 
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateTextBox(JNIEnv *env, jobject obj, jstring textboxName, jstring description, jstring fullText, jint caretIndex)
 {
-
+	UNREFERENCED_PARAMETER(obj);
 	const char* nativeTextboxName = env->GetStringUTFChars(textboxName, 0);
 	const char* nativeDescription = env->GetStringUTFChars(description, 0);
 	const char* nativeFullText = env->GetStringUTFChars(fullText, 0);
@@ -223,6 +231,9 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 //						then it will take keyboard control away from the main GLFW window that Quorum uses to get keyboard events from. There is no known way to give it back to the main GLFW window once the keyboard focus has been moved from it.
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32SetFocus(JNIEnv *env, jobject obj, jlong jlongHWND)
 {
+	UNREFERENCED_PARAMETER(env);
+	UNREFERENCED_PARAMETER(obj);
+
 	HWND control = (HWND)jlongHWND;
 
 
@@ -239,8 +250,14 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 // NativeWin32TextBoxTextSelectionChanged: This method will fire the appropriate UIA Event for when the text selection has changed. The selection can change as a result of the caret moving or text being added to the currentLineText.
 // TODO: Update the currentLineText from what is given by Quorum. That way the line down here can stay in sync with Quorum.
-JNIEXPORT void Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextBoxTextSelectionChanged(JNIEnv *env, jobject obj, jlong textboxHWND, jstring currentLineText, jint caretLine, jint caretCharacter)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32TextBoxTextSelectionChanged(JNIEnv *env, jobject obj, jlong textboxHWND, jstring currentLineText, jint caretLine, jint caretCharacter)
 {
+	UNREFERENCED_PARAMETER(env);
+	UNREFERENCED_PARAMETER(obj);
+	UNREFERENCED_PARAMETER(textboxHWND);
+	UNREFERENCED_PARAMETER(currentLineText);
+	UNREFERENCED_PARAMETER(caretLine);
+	UNREFERENCED_PARAMETER(caretCharacter);
 	/*const char *nativeCurrentLineText = env->GetStringUTFChars(currentLineText, 0);
 	WCHAR* wCurrentLineText = CreateWideStringFromUTF8Win32(nativeCurrentLineText);
 
@@ -255,8 +272,13 @@ JNIEXPORT void Java_plugins_quorum_Libraries_Interface_AccessibilityManager_Nati
 }
 
 // NativeWin32UpdateCaretPosition:
-JNIEXPORT void Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32UpdateCaretPosition(JNIEnv *env, jobject obj, jlong textboxHWND, jstring fullText, jint caretIndex)
+JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32UpdateCaretPosition(JNIEnv *env, jobject obj, jlong textboxHWND, jstring fullText, jint caretIndex)
 {
+	UNREFERENCED_PARAMETER(obj);
+	UNREFERENCED_PARAMETER(textboxHWND);
+	UNREFERENCED_PARAMETER(fullText);
+	UNREFERENCED_PARAMETER(caretIndex);
+
 	HWND control = (HWND)textboxHWND;
 
 	const char *nativeFullText = env->GetStringUTFChars(fullText, 0);
@@ -269,6 +291,8 @@ JNIEXPORT void Java_plugins_quorum_Libraries_Interface_AccessibilityManager_Nati
 // NativeWin32InvokeButton: 
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32InvokeButton(JNIEnv *env, jobject obj, jlong jlongHWND)
 {
+	UNREFERENCED_PARAMETER(env);
+	UNREFERENCED_PARAMETER(obj);
 	HWND control = (HWND)jlongHWND;
 
 	SendMessage(control, QUORUM_INVOKEBUTTON, 0, 0);
@@ -279,6 +303,9 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 // NativeWin32UpdateToggleStatus: 
 JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32UpdateToggleStatus(JNIEnv *env, jobject obj, jlong jlongHWND, jboolean selected)
 {
+	UNREFERENCED_PARAMETER(env);
+	UNREFERENCED_PARAMETER(obj);
+
 	HWND control = (HWND)jlongHWND;
 
 	bool nativeSelected = (bool)selected;
@@ -294,79 +321,6 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 		return true;
 	}
 
-	return true;
-
 }
-
-#pragma endregion
-
-
-// ==============================
-// TODO: Remove this section after debugging is finished
-// This section is used to test the accessibility system
-// in C++ with an empty GLFW window to rule out any issues that
-// might arise from having it plugged into Quorum.
-// ==============================
-#pragma region Native DLL Exports
-
-#define DLLEXPORT extern "C" __declspec(dllexport) 
-
-DLLEXPORT HWND NativeWin32CreateTextBox(const char* nativeTextboxName, const char* nativeDescription, const char* fullText, int caretIndex)
-{
-
-	WCHAR* wTextboxName = CreateWideStringFromUTF8Win32(nativeTextboxName);
-	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
-
-	//EndPoint caret = EndPoint(caretLine, caretCharacter);
-	//caret.character = caretCharacter;
-	//caret.line = (int)caretLine;
-	//TextLine line[] = { { L"Hello world!", 12 }, };
-
-	HWND textboxControlHandle = TextBoxControl::Create(GetModuleHandle(NULL), wTextboxName, wDescription, fullText, caretIndex);
-
-	return textboxControlHandle;
-
-}
-
-DLLEXPORT void NativeWin32SetFocus(HWND controlHWND)
-{
-	// Let windows handle focus changes.
-	SetFocus(controlHWND);
-}
-
-DLLEXPORT void NativeWin32UpdateCaretPosition(HWND textboxHWND, const char * adjacentCharacter)
-{
-	std::wstring wAdjacentCharacter = CreateWideStringFromUTF8Win32(adjacentCharacter);
-
-	// Just send a string for the screen reader to speak.
-	SendMessage(textboxHWND, QUORUM_UPDATECARET, 0, (LPARAM)&wAdjacentCharacter);
-
-	std::wcout << wAdjacentCharacter << std::endl;
-}
-
-DLLEXPORT HWND NativeWin32CreatePushButton(const char * nativeButtonName, const char * nativeDescription)
-{
-
-	WCHAR* wButtonName = CreateWideStringFromUTF8Win32(nativeButtonName);
-	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
-
-	HWND pushbuttonControlHandle;
-
-	pushbuttonControlHandle = PushButtonControl::Create(GetModuleHandle(NULL), wButtonName, wDescription);
-
-	return pushbuttonControlHandle;
-
-}
-
-DLLEXPORT void NativeWin32InitializeAccessibility(HWND parentWindow)
-{
-	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED); // COINIT_APARTMENTTHREADED COINIT_MULTITHREADED
-	GLFWParentWindow = parentWindow;
-
-	/*DWORD threadID = GetCurrentThreadId();
-
-	std::cout << "NativeWin32InitializeAccessibility Thread ID: " << threadID << std::endl;*/
-}
-
 
 #pragma endregion

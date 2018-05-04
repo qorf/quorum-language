@@ -79,14 +79,14 @@ class TextBoxProvider;
 class TextBoxControl
 {
 	public:
-		TextBoxControl(_In_ char* lines, _In_ int caretIndex);
+		TextBoxControl(_In_ const char* lines, _In_ int caretIndex);
 
-		static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ char* lines, _In_ int caretIndex);
+		static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* lines, _In_ int caretIndex);
 
 		//void SetLineText(_In_ int line, _In_ PCWSTR newText);
 		int GetLineLength(_In_ int line);
 		//TextLine* GetLine(_In_ int line);
-		char* GetLine();
+		const char* GetLine();
 
 
 		int GetLineCount();
@@ -120,7 +120,7 @@ class TextBoxControl
 		bool m_focused;
 		//TextLine* m_pLines;
 
-		//char * m_fullText;
+		const char * m_fullText;
 
 		/* With the current approach to handling text from the textbox we are holding a
 		 * string that contains the entire contents of the textbox instead of using the TextLine struct.

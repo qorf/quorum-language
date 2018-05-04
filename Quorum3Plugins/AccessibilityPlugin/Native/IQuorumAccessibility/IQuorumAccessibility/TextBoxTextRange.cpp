@@ -280,6 +280,7 @@ IFACEMETHODIMP TextBoxTextRange::GetAttributeValue(_In_ TEXTATTRIBUTEID textAttr
 // GetBoundingRectangles: Retrieves a collection of bounding rectangles for each fully or partially visible line of text in a text range.
 IFACEMETHODIMP TextBoxTextRange::GetBoundingRectangles(_Outptr_result_maybenull_ SAFEARRAY ** pRetVal)
 {
+	UNREFERENCED_PARAMETER(pRetVal);
 	return E_NOTIMPL;
 }
 
@@ -299,6 +300,8 @@ IFACEMETHODIMP TextBoxTextRange::GetEnclosingElement(_Outptr_result_maybenull_ I
 // GetText: Retrieves the plain text of the range. That text is then given to the screen reader to be read aloud.
 IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVal)
 {
+	UNREFERENCED_PARAMETER(maxLength);
+
 	if (!IsWindow(m_TextBoxControlHWND))
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
@@ -307,19 +310,20 @@ IFACEMETHODIMP TextBoxTextRange::GetText(_In_ int maxLength, _Out_ BSTR * pRetVa
 	HRESULT hr = S_OK;
 
 	// Hardcoded adjacent character speech code. Needs to be generalized for a range.
-	EndPoint caret = m_pTextBoxControl->GetCaretPosition();
+	/*EndPoint caret = m_pTextBoxControl->GetCaretPosition();
 	char* text = &m_pTextBoxControl->GetLine()[caret.character];
 	
 	size_t newsize = strlen(text) + 1;
 
-	WCHAR* spokenText = new wchar_t[newsize];
+	WCHAR* spokenText = new wchar_t[newsize];*/
 
 	// Convert char* string to a wchar_t* string.  
-	size_t convertedChars = 0;
-	mbstowcs_s(&convertedChars, spokenText, newsize, text, _TRUNCATE);
+	//size_t convertedChars = 0;
+	//mbstowcs_s(&convertedChars, spokenText, newsize, text, _TRUNCATE);
 
 	// TODO: Until the implementation of speaking text from the textbox is sorted out, dont say anything!
-	*pRetVal = SysAllocString(spokenText);
+	*pRetVal = SysAllocString(L"");
+	//*pRetVal = SysAllocString(spokenText);
 
 	if (*pRetVal == NULL)
 	{
@@ -493,6 +497,8 @@ HRESULT STDMETHODCALLTYPE TextBoxTextRange::GetChildren(_Outptr_result_maybenull
 
 bool TextBoxTextRange::CheckEndPointIsUnitEndpoint(_In_ EndPoint check, _In_ TextUnit unit, _In_ TEXTATTRIBUTEID specificAttribute)
 {
+	UNREFERENCED_PARAMETER(specificAttribute);
+
 	if (unit == TextUnit_Character)
 	{
 		return true;

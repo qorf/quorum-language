@@ -280,7 +280,13 @@ IFACEMETHODIMP TextBoxTextAreaProvider::get_BoundingRectangle(_Out_ UiaRect * pR
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	UNREFERENCED_PARAMETER(pRetVal);
+	// For now we aren't painting a rectangle for the provider
+	// In the future this could be implemented so the screen reader cursor follows along
+	// with what is being said.
+	pRetVal->left = 0;
+	pRetVal->top = 0;
+	pRetVal->width = 0;
+	pRetVal->height = 0;
 	return S_OK;
 }
 

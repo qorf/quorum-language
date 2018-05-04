@@ -8,7 +8,7 @@
 
 bool TextBoxControl::Initialized = false;
 
-TextBoxControl::TextBoxControl(_In_ char* lines, _In_ int caretIndex) 
+TextBoxControl::TextBoxControl(_In_ const char* lines, _In_ int caretIndex) 
 	: m_TextboxHWND(NULL), m_caretPosition(0, caretIndex), m_focused(false), m_fullText(lines), m_pTextboxName(L"Textbox")/*, m_Text(L"")*/, m_pTextBoxProvider(NULL)
 {
 	// Nothing to do here.
@@ -48,8 +48,9 @@ bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ char* fullText, _In_ int caretIndex)
+HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* fullText, _In_ int caretIndex)
 {
+	UNREFERENCED_PARAMETER(textboxDescription);
 
 	if (!Initialized)
 	{
@@ -116,7 +117,7 @@ HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _I
 //	return &m_pLines[line];
 //}
 
-char* TextBoxControl::GetLine()
+const char* TextBoxControl::GetLine()
 {
 	return m_fullText;
 }
@@ -132,6 +133,8 @@ char* TextBoxControl::GetLine()
 
 int TextBoxControl::GetLineLength(_In_ int line)
 {
+	UNREFERENCED_PARAMETER(line);
+
 	/*size_t strLength;
 	if (FAILED(StringCchLengthW(m_pLines[line].text, 10000, &strLength)))
 	{
@@ -156,6 +159,7 @@ EndPoint TextBoxControl::GetTextboxEndpoint()
 
 VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute)
 {
+	UNREFERENCED_PARAMETER(start);
 	VARIANT retval;
 	VariantInit(&retval);
 
@@ -496,7 +500,7 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	case QUORUM_UPDATECARET:
 	{
 
-		const char* fullText = (const char*)(lParam);
+		//const char* fullText = (const char*)(lParam);
 		EndPoint caretPosition = EndPoint(0, wParam);
 		UpdateCaret(caretPosition);
 

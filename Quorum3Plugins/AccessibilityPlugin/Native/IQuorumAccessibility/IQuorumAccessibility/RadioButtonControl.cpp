@@ -91,6 +91,7 @@ bool RadioButtonControl::Initialize(_In_ HINSTANCE hInstance)
 
 HWND RadioButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
+	UNREFERENCED_PARAMETER(buttonDescription);
 
 	if (!Initialized)
 	{
