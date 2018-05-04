@@ -4,6 +4,8 @@ use Libraries.Language.Compile.Symbol.SymbolTable
 use Libraries.Language.Compile.Symbol.TypeChecker
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Translate.ClassOpcode
+use Libraries.System.File
+use Libraries.Containers.Array
 
 class CompilerResult
     public CompilerErrorManager compilerErrorManager = undefined
@@ -14,4 +16,7 @@ class CompilerResult
     public text convertedJavaScript = ""
     public number time = 0.0
     public HashTable<text, ClassOpcode> opcodes = undefined
+    public text source = ""
+    public File sourceLocation = undefined
+    public Array<File> projectFiles = undefined
 end
