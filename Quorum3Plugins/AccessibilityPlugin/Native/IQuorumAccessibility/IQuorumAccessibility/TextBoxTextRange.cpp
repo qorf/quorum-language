@@ -6,7 +6,7 @@
 //For debugging
 #include <iostream>
 
-TextBoxTextRange::TextBoxTextRange(_In_ HWND hwnd, _In_ TextBoxControl *control, _In_ Range range/*, _In_ std::wstring text*/) : m_refCount(1), m_TextBoxControlHWND(hwnd), m_pTextBoxControl(control), m_range(range)/*, m_Text(text)*/
+TextBoxTextRange::TextBoxTextRange(_In_ HWND hwnd, _In_ TextBoxControl *control, _In_ Range range) : m_refCount(1), m_TextBoxControlHWND(hwnd), m_pTextBoxControl(control), m_range(range)
 {
 
 }
@@ -63,7 +63,7 @@ IFACEMETHODIMP TextBoxTextRange::Clone(_Outptr_result_maybenull_ ITextRangeProvi
 {
 	HRESULT hr = S_OK;
 
-	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, m_range/*, m_Text*/);
+	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, m_range);
 
 	if (*pRetVal == NULL)
 	{
@@ -141,18 +141,9 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 		m_range.end = m_range.begin;
 		m_range.end.character++;
 
-		if (m_range.end.character > m_pTextBoxControl->GetLineLength(m_range.begin.line))
+		if (m_range.end.character > m_pTextBoxControl->GetLineLength())
 		{
-			if (m_range.end.line + 1 >= m_pTextBoxControl->GetLineCount())
-			{
-				m_range.end = m_range.begin;
-				m_range.begin.character--;
-			}
-			else
-			{
-				m_range.end.line = m_range.begin.line + 1;
-				m_range.end.character = 0;
-			}
+			m_range.end.character = m_pTextBoxControl->GetLineLength();
 		}
 	}
 	else if (unit == TextUnit_Format || unit == TextUnit_Word)
@@ -169,13 +160,11 @@ IFACEMETHODIMP TextBoxTextRange::ExpandToEnclosingUnit(_In_ TextUnit unit)
 	else if (unit == TextUnit_Line || unit == TextUnit_Paragraph)
 	{
 		m_range.begin.character = 0;
-		m_range.end.line = m_range.begin.line;
-		m_range.end.character = m_pTextBoxControl->GetLineLength(m_range.end.line);
+		m_range.end.character = m_pTextBoxControl->GetLineLength();
 	}
 	else if (unit == TextUnit_Page || unit == TextUnit_Document)
 	{
 		m_range.begin.character = 0;
-		m_range.begin.line = 0;
 		m_range.end = m_pTextBoxControl->GetTextboxEndpoint();
 	}
 	else
@@ -219,8 +208,8 @@ IFACEMETHODIMP TextBoxTextRange::FindAttribute(_In_ TEXTATTRIBUTEID textAttribut
 			{
 				found.end = searchBackward ? current : next;
 			}
-			// TODO: m_Text is not accurate. Fix it.
-			*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, found/*, m_Text*/);
+
+			*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, found);
 
 			if (*pRetVal == NULL)
 			{
@@ -525,7 +514,7 @@ bool TextBoxTextRange::CheckEndPointIsUnitEndpoint(_In_ EndPoint check, _In_ Tex
 
 	else if (unit == TextUnit_Line || unit == TextUnit_Paragraph)
 	{
-		return check.line != next.line;
+		return true;
 	}
 
 	// TextUnit_Page and TextUnit_Document are covered by the initial beginning/end check
@@ -603,11 +592,7 @@ EndPoint TextBoxTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ Tex
 			}
 			else if (walkUnit == TextUnit_Paragraph)
 			{
-				EndPoint next;
-				if (m_pTextBoxControl->StepLine(current, forward, &next))
-				{
-					current = next;
-				}
+				// TODO: Implement this
 			}
 			else if (walkUnit == TextUnit_Document)
 			{
@@ -617,7 +602,6 @@ EndPoint TextBoxTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ Tex
 				}
 				else
 				{
-					current.line = 0;
 					current.character = 0;
 				}
 			}
@@ -636,14 +620,11 @@ EndPoint TextBoxTextRange::Walk(_In_ EndPoint start, _In_ bool forward, _In_ Tex
 
 bool TextBoxTextRange::IsWhiteSpace(_In_ EndPoint check)
 {
-	if (check.character >= m_pTextBoxControl->GetLineLength(check.line))
+	if (check.character >= m_pTextBoxControl->GetLineLength())
 	{
 		return true;
 	}
 
-	//TextLine *line = m_pTextBoxControl->GetLine(check.line);
-
-	//int isSpace = iswspace(line->text[check.character]);
 	std::string line = m_pTextBoxControl->GetLine();
 	
 	int isSpace = iswspace(line[check.character]);

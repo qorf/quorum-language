@@ -5,30 +5,30 @@
 #ifndef TextBoxControl_HEADER
 #define TextBoxControl_HEADER
 
+/* The EndPoint structure where the caret is in terms of line and character.
+*  For now, the line will not be included since we are storing the full
+*  text as a string instead of breaking it into lines.
+*  Note: This implementation is not tested and so it may be necessary to implement
+*        a multi-line solution.
+*/
 struct EndPoint
 {
-	EndPoint() {};
-	EndPoint(int l, int c) : line(l), character(c) {};
-	int line;
+	EndPoint() : character(0) {};
+	EndPoint(int c) : character(c) {};
 	int character;
 };
 
+/* This structure stores the range that the caret encompasses in the text.
+*  If the caret doesn't have a range, meaning it is only an insertion point for text,
+*  then for the purposes of accessibility this is called the degenerate text range.
+*  A degenerate text range is a range the begins and ends at the same EndPoint.
+*/
 struct Range
 {
 	Range() {};
 	Range(EndPoint b, EndPoint e) : begin(b), end(e) {};
 	EndPoint begin;
 	EndPoint end;
-};
-
-// The TextLine struct contains the contents of the Textline. Currently it's only a pointer to a wide string but could be 
-// expanded to hold the text format, line number, and other important IDE info to be exposed to screen readers.
-struct TextLine
-{
-	TextLine() : text(L"Default"), length(7) {}
-	TextLine(PCWSTR t, int l) : text(t), length(l) {}
-	PCWSTR text;
-	int length;
 };
 
 /* CompareEndpointPair: Compares two Endpoints to determine whether or not one is less than, equal to, or greater than another.
@@ -40,37 +40,22 @@ struct TextLine
 */
 inline int CompareEndpointPair(_In_ EndPoint endpoint1, _In_ EndPoint endpoint2)
 {
-	// First check if the two EndPoints are on the same line.
-	if (endpoint1.line < endpoint2.line)
+	// Since the EndPoint will always reside on line zero we only need to compare whether the lefthand
+	// EndPoint's character position is to the left, right, or same as the righthand side.
+	if (endpoint1.character < endpoint2.character)
 	{
-		// The first EndPoint is on a line above the second EndPoint.
-		// Return -2 to indicate that the lefthand EndPoint is a line above the righthand side.
-		return -2;
+		// Lefthand EndPoint character position is to the left of the righthand side.
+		return -1;
 	}
-	else if (endpoint1.line > endpoint2.line)
+	else if (endpoint1.character > endpoint2.character)
 	{
-		// The first EndPoint is on a line below the second EndPoint.
-		// Return 2 to indicate that the lefthand EndPoint is a line below the righthand side.
-		return 2;
+		// Lefthand EndPoint character position is to the right of the righthand side.
+		return 1;
 	}
 	else
 	{
-		// Both EndPoints are on the same line. Now, compare whether the lefthand EndPoint's character position is to the left, right, or same as the righthand side.
-		if (endpoint1.character < endpoint2.character)
-		{
-			// Lefthand EndPoint character position is to the left of the righthand side.
-			return -1;
-		}
-		else if (endpoint1.character > endpoint2.character)
-		{
-			// Lefthand EndPoint character position is to the right of the righthand side.
-			return 1;
-		}
-		else
-		{
-			// The EndPoint's are equal to one another, return 0 to indicate this.
-			return 0;
-		}
+		// The EndPoint's are equal to one another, return 0 to indicate this.
+		return 0;
 	}
 }
 
@@ -83,9 +68,8 @@ class TextBoxControl
 
 		static HWND Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* lines, _In_ int caretIndex);
 
-		//void SetLineText(_In_ int line, _In_ PCWSTR newText);
-		int GetLineLength(_In_ int line);
-		//TextLine* GetLine(_In_ int line);
+		int GetLineLength();
+
 		const char* GetLine();
 
 
@@ -99,7 +83,6 @@ class TextBoxControl
 
 		VARIANT GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute);
 		bool StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
-		bool StepLine(_In_ EndPoint start, _In_ bool forward, _Out_ EndPoint *end);
 
 
 		bool HasFocus();
@@ -118,8 +101,10 @@ class TextBoxControl
 		HWND m_TextboxHWND;
 		EndPoint m_caretPosition;
 		bool m_focused;
-		//TextLine* m_pLines;
 
+		/* This is the text of the entire Textbox control. From this we will pull out the information
+		*  we need to report to the screen readers using Ranges and Endpoints.
+		*/
 		const char * m_fullText;
 
 		/* With the current approach to handling text from the textbox we are holding a
@@ -130,7 +115,6 @@ class TextBoxControl
 		const int m_lineCount = 1;
 		
 		WCHAR* m_pTextboxName;
-		//std::wstring m_Text; // The text to be spoken aloud by the screen reader.
 		TextBoxProvider* m_pTextBoxProvider;
 
 

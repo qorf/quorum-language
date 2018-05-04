@@ -426,7 +426,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromPoint(UiaPoint point, _Outptr_r
 	TODO: Implement this in Quorum and pass down the required info when mouse clicking is implemented in the Quorum Textbox.
 	*/
 	UNREFERENCED_PARAMETER(point); // This will never be used. Instead we get the point from Quorum.
-	Range closestRange = { { 0, 1 },{ 0, 1 } };
+	Range closestRange = { { 1 },{ 1 } };
 	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, closestRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 
@@ -444,7 +444,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::get_DocumentRange(_Outptr_result_maybenu
 
 	// Get the full text range that encompasses the document. From the first character on the first line
 	// all the way to the last character on the last line.
-	Range fullDocumentRange = { { 0, 0 }, m_pTextBoxControl->GetTextboxEndpoint() };
+	Range fullDocumentRange = { { 0 }, m_pTextBoxControl->GetTextboxEndpoint() };
 
 	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, fullDocumentRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
