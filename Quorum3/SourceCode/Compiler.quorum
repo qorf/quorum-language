@@ -10,28 +10,6 @@ use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.Containers.List
 use Libraries.Language.Compile.Translate.ClassOpcode
 use Libraries.System.DateTime
-use Libraries.Web.Page.WebPage
-use Libraries.Web.Page.MetaData
-use Libraries.Web.Page.MainContent
-use Libraries.Web.Page.Header
-use Libraries.Web.Page.WebTable
-use Libraries.Web.Page.TableRow
-use Libraries.Web.Page.TableHeaderCell
-use Libraries.Web.Page.TableData
-use Libraries.Web.Page.Division
-use Libraries.Web.Page.Link
-use Libraries.Web.Page.LineBreak
-use Libraries.Web.Page.ListItem
-use Libraries.Web.Page.UnorderedList
-use Libraries.Web.Page.Input
-use Libraries.Web.Page.Form
-use Libraries.Web.Page.NavigationDivision
-use Libraries.Web.Page.Footer
-use Libraries.Web.Page.SmallText
-use Libraries.Web.Page.StrongText
-use Libraries.Web.Page.WebPageHeader
-use Libraries.Web.Page.HeaderLink
-use Libraries.Web.Page.OrderedList
 
 class Compiler
     public constant number VERSION = 6.0
@@ -387,6 +365,7 @@ class Compiler
             m:SetIsProgramStartingClass(true)
         end
         
+        boolean isMissingBuildFile = false
         //at this point, if the build is compilation free, it 
         //is guaranteed to not have compile errors, as no errors
         //can be issues in the bytecode writing stage.
@@ -422,6 +401,22 @@ class Compiler
                     File buildInterface = code:GetBuildInterfaceFile()
 
                     text key = code:GetStaticKey()
+
+                    //in this case, the build is missing files, which means
+                    //the user may have manually deleted them. We need to tell them
+                    //to issue a clean and build. This error should only be issued once
+                    if  (build not= undefined and not build:Exists()) or
+                        (buildInterface not= undefined and not buildInterface:Exists())
+                        and not isMissingBuildFile
+
+                        CompilerError error
+                        CompilerErrorType t
+                        t:SetCurrentType(t:MISSING_FILE)
+                        error:SetCompilerErrorType(t)
+                        error:SetErrorMessage("The file " + build:GetAbsolutePath() + " was missing, which means it may have been deleted manually. Please do a clean and build.")
+                        error:SetLocation(clazz)
+                        errors:Add(error)
+                    end
 
                     //if the file is not part of the standard library, 
                     //generate it
