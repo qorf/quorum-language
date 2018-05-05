@@ -213,7 +213,51 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     action Resize
-        ResizeScrollBars()
+        number height = GetHeight()
+        number width = GetWidth()
+//        number verticalRatio = height / scrollAnchor:GetHeight()
+        number verticalRatio = height / GetScrollRegionHeight()
+        number horizontalRatio = width / GetScrollRegionWidth()
+        boolean verticalVisible = (verticalMode = ALWAYS_VISIBLE or (verticalMode = VISIBLE_IF_NEEDED and verticalRatio < 1.0))
+        boolean horizontalVisible = (horizontalMode = ALWAYS_VISIBLE or (horizontalMode = VISIBLE_IF_NEEDED and horizontalRatio < 1.0))
+        number barHeight = height
+        number barWidth = width
+
+        if verticalVisible and horizontalVisible
+            verticalBarLayout:SetHeightOffset(-barThickness)
+            horizontalBarLayout:SetWidthOffset(-barThickness)
+            barHeight = height - barThickness
+            barWidth = width - barThickness
+            verticalRatio = barHeight / GetScrollRegionHeight()
+            horizontalRatio = barWidth / GetScrollRegionWidth()
+        else
+            verticalBarLayout:SetHeightOffset(0)
+            horizontalBarLayout:SetWidthOffset(0)
+        end
+
+        if verticalRatio > 1.0
+            verticalRatio = 1.0
+        end
+
+        if horizontalRatio > 1.0
+            horizontalRatio = 1.0
+        end
+
+        if verticalVisible
+            verticalControlLayout:SetPercentageHeight(verticalRatio)
+            verticalBar:Show()
+        else
+            verticalBar:Hide()
+        end
+
+        if horizontalVisible
+            horizontalControlLayout:SetPercentageWidth(horizontalRatio)
+            horizontalBar:Show()
+        else
+            horizontalBar:Hide()
+        end
+
+        UpdatePaneView(horizontal, vertical)
     end
 
     private action ResizeLineDrawables
@@ -777,7 +821,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
 
         if shouldResize
-            ResizeScrollBars()
+            Resize()
         end
 
         FitCharacterOnScreen(caretLine, caretCharacter)
@@ -806,7 +850,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         // Force a recalculation of the width by setting its value to -1.
         scrollRegionWidth = -1
-        ResizeScrollBars()
+        Resize()
 
         GetLineDrawables()
         PositionCaret()
@@ -825,7 +869,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
         // Force a recalculation of the width by setting its value to -1.
         scrollRegionWidth = -1
-        ResizeScrollBars()
+        Resize()
         FitCharacterOnScreen(caretLine, caretCharacter)
 
         GetLineDrawables()
@@ -868,7 +912,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             caretCharacter = characters
 
             // Resize the scroll region height and resize bars.
-            ResizeScrollBars()
+            Resize()
 
             number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
             if caretLine > (firstLine + visibleLines - 1)
@@ -881,7 +925,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             // Increase scroll region width and resize bars.
             // Setting the scroll region width to -1 forces recalculation.
             scrollRegionWidth = -1
-            ResizeScrollBars()
+            Resize()
         end
 
         FitCharacterOnScreen(caretLine, caretCharacter)
@@ -951,7 +995,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         /*
         The vertical control begins at the top of the bar, and its width fully
         fills the bar. Its height is not set here, instead being set during
-        ResizeScrollBars().
+        Resize().
         */
         verticalControlLayout:SetPercentageOriginY(1)
         verticalControlLayout:SetPercentageY(1)
@@ -963,7 +1007,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         /*
         The horizontal control begins at the left of the bar, and its height
         fully fills the bar. Its width is not set here, instead being set during
-        ResizeScrollBars().
+        Resize().
         */
         horizontalControlLayout:SetPercentageX(0)
         horizontalControlLayout:SetPercentageY(0)
@@ -976,55 +1020,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         verticalBar:Add(verticalControl)
         horizontalBar:Add(horizontalControl)
 
-        ResizeScrollBars()
-    end
-
-    private action ResizeScrollBars
-        number height = GetHeight()
-        number width = GetWidth()
-//        number verticalRatio = height / scrollAnchor:GetHeight()
-        number verticalRatio = height / GetScrollRegionHeight()
-        number horizontalRatio = width / GetScrollRegionWidth()
-        boolean verticalVisible = (verticalMode = ALWAYS_VISIBLE or (verticalMode = VISIBLE_IF_NEEDED and verticalRatio < 1.0))
-        boolean horizontalVisible = (horizontalMode = ALWAYS_VISIBLE or (horizontalMode = VISIBLE_IF_NEEDED and horizontalRatio < 1.0))
-        number barHeight = height
-        number barWidth = width
-
-        if verticalVisible and horizontalVisible
-            verticalBarLayout:SetHeightOffset(-barThickness)
-            horizontalBarLayout:SetWidthOffset(-barThickness)
-            barHeight = height - barThickness
-            barWidth = width - barThickness
-            verticalRatio = barHeight / GetScrollRegionHeight()
-            horizontalRatio = barWidth / GetScrollRegionWidth()
-        else
-            verticalBarLayout:SetHeightOffset(0)
-            horizontalBarLayout:SetWidthOffset(0)
-        end
-
-        if verticalRatio > 1.0
-            verticalRatio = 1.0
-        end
-
-        if horizontalRatio > 1.0
-            horizontalRatio = 1.0
-        end
-
-        if verticalVisible
-            verticalControlLayout:SetPercentageHeight(verticalRatio)
-            verticalBar:Show()
-        else
-            verticalBar:Hide()
-        end
-
-        if horizontalVisible
-            horizontalControlLayout:SetPercentageWidth(horizontalRatio)
-            horizontalBar:Show()
-        else
-            horizontalBar:Hide()
-        end
-
-        UpdatePaneView(horizontal, vertical)
+        Resize()
     end
 
     action SetScrollDistance(number distance)

@@ -3,6 +3,7 @@ package Libraries.Interface.Controls
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.LabelBoxContent
+use Libraries.Interface.Layouts.Layout
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Controls.Tab
 use Libraries.Interface.Controls.TabBar
@@ -29,6 +30,13 @@ class TabPane is Item2D
         bar:SetTabPane(me)
         bar:Initialize(tabs)
         
+//        Layout viewLayout
+//        viewLayout:SetPercentageX(0)
+//        viewLayout:SetPercentageY(0)
+//        viewLayout:SetPercentageWidth(1)
+//        viewLayout:SetPercentageHeight(1)
+//        viewLayout:SetHeightOffset(-bar:GetHeight())
+
         viewArea:SetSize(width, height - bar:GetHeight())
         viewArea:SetClipping(true)
 
@@ -54,5 +62,17 @@ class TabPane is Item2D
 
     action GetCurrentItem returns Item2D
         return currentItem
+    end
+
+    action Add(Array<Tab> array)
+        bar:Add(array)
+    end
+
+    action Add(Tab tab)
+        bar:Add(tab)
+    end
+
+    action Remove(Tab tab)
+        bar:Remove(tab)
     end
 end
