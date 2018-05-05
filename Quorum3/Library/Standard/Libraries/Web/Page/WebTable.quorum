@@ -12,16 +12,18 @@ of rows that have been added to the table.
 
 Attribute: Example
 
-use Libraries.Web.Page.all
+use Libraries.Compute.Matrix
+use Libraries.Web.Page.WebTable
+
 class Main
-   action main
-      //make a web page
-      WebPage page
-      WebTable table
-      //add a TableRow
-      TableRow row
-      table:AddRow(row)
-      page:AddToBody(table)
+    action main
+        Matrix matrix
+        matrix:Fill(3, 3, 1.0)
+
+        WebTable table
+        table:Add(matrix)
+
+        output table:Generate()
    end
 end
 */
@@ -32,12 +34,12 @@ class WebTable is WebTag
     action Add(Matrix matrix)
         TableBody body
         row = 0
-        repeat while row < GetRows()
+        repeat while row < matrix:GetRows()
             col = 0
             TableRow tr
-            repeat while col < GetColumns()
+            repeat while col < matrix:GetColumns()
                 TableData data
-                data:AddText("" + Get(row, col))
+                data:AddText("" + matrix:Get(row, col))
                 tr:Add(data)
                 col = col + 1
             end
