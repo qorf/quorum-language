@@ -15,8 +15,8 @@ class Main
         text answer = "<table ><tbody ><tr ><td >1.1</td><td >1.1</td><td >1.1</td></tr><tr ><td >1.1</td><td >1.1</td><td >1.1</td></tr><tr ><td >1.1</td><td >1.1</td><td >1.1</td></tr></tbody></table>"
         text lf = answer:GetLineFeed()
         text cr = answer:GetCarriageReturn()
-        answer = answer:Replace(lf, cr)
-        result = result:Replace(lf, cr)
+        answer = answer:Replace(cr, lf)
+        result = result:Replace(cr, lf)
         if answer = result
             output "pass"
         else

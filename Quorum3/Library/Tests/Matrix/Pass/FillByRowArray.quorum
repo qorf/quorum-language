@@ -1,16 +1,21 @@
 use Libraries.Compute.Matrix
+use Libraries.Containers.Array
 
 class Main 
     action Main
-        Matrix before3x3
-        before3x3:Fill(3, 3, 1.1)
-        CheckResult(before3x3:ToText())
+        Matrix matrix
+        Array<number> array
+        array:Add(1.0)
+        array:Add(2.0)
+        array:Add(3.0)
+        matrix:FillByRow(3, array)
+        CheckResult(matrix:ToText())
     end
 
     action CheckResult(text result)
-        text answer = "|1.1, 1.1, 1.1|
-|1.1, 1.1, 1.1|
-|1.1, 1.1, 1.1|"
+        text answer = "|1.0, 2.0, 3.0|
+|1.0, 2.0, 3.0|
+|1.0, 2.0, 3.0|"
         text lf = answer:GetLineFeed()
         text cr = answer:GetCarriageReturn()
         answer = answer:Replace(cr, lf)

@@ -22,8 +22,8 @@ class Multiply is MatrixTransform
         repeat matrix:GetRows() times
             col = 0
             repeat values:GetColumns() times
-                Array<number> r = matrix:GetRow(row)
-                Array<number> c = values:GetColumn(col)
+                Array<number> r = matrix:GetRowArray(row)
+                Array<number> c = values:GetColumnArray(col)
                 number sum = 0.0
                 i = 0
                 repeat r:GetSize() times

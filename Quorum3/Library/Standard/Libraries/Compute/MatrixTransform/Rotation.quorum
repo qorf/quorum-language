@@ -26,7 +26,7 @@ class Rotation is MatrixTransform
             col = matrix:GetRows() - 1
             row = 0
             repeat matrix:GetRows() times
-                newMatrix:SetColumn(col, matrix:GetRow(row))
+                newMatrix:SetColumn(col, matrix:GetRowArray(row))
                 col = col - 1
                 row = row + 1
             end
@@ -34,7 +34,7 @@ class Rotation is MatrixTransform
             col = 0
             row = 0
             repeat matrix:GetRows() times
-                newMatrix:SetColumn(col, Reverse(matrix:GetRow(row)))
+                newMatrix:SetColumn(col, Reverse(matrix:GetRowArray(row)))
                 col = col + 1
                 row = row + 1
             end

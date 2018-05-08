@@ -8,7 +8,7 @@ class AddScalar is MatrixTransform
     private Matrix scalarMatrix
 
     action SetValue(Matrix matrix, number value)
-        scalarMatrix:Fill(matrix:GetColumns(), matrix:GetRows(), value)
+        scalarMatrix:Fill(matrix:GetRows(), matrix:GetColumns(), value)
         me:value = value
     end
 
@@ -26,11 +26,11 @@ class AddScalar is MatrixTransform
 
     action Transform(Matrix matrix) returns Matrix
         Matrix newMatrix
-        newMatrix:SetSize(matrix:GetColumns(), matrix:GetRows())
+        newMatrix:SetSize(matrix)
         row = 0
-        repeat while row < matrix:GetRows()
+        repeat matrix:GetRows() times
             col = 0
-            repeat while col < matrix:GetColumns()
+            repeat matrix:GetColumns() times
                 newMatrix:Set(row, col, matrix:Get(row, col) + scalarMatrix:Get(row, col))
                 col = col + 1
             end
