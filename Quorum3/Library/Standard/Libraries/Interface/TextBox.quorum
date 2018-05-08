@@ -213,6 +213,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     action Resize
+//        output "Pre-Resize: " + caret:GetGlobalX() + ", " + caret:GetGlobalY()
+
         number height = GetHeight()
         number width = GetWidth()
 //        number verticalRatio = height / scrollAnchor:GetHeight()
@@ -258,6 +260,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
 
         UpdatePaneView(horizontal, vertical)
+
+//        output "Post-Resize: " + caret:GetGlobalX() + ", " + caret:GetGlobalY()
     end
 
     private action ResizeLineDrawables
@@ -356,6 +360,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     private action InitializeCaret
+//        output "Pre-InitializeCaret: " + caret:GetGlobalX() + ", " + caret:GetGlobalY()
         if caret:IsLoaded()
             if caret:GetWidth() not= caretThickness or caret:GetHeight() not= font:GetLineHeight()
                 caret:Dispose()
@@ -364,6 +369,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             end
         end
         caret:LoadFilledRectangle(caretThickness, font:GetLineHeight(), caretColor)
+//        output "Post-InitializeCaret: " + caret:GetGlobalX() + ", " + caret:GetGlobalY()
     end
 
     /*
@@ -387,7 +393,11 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             counter = counter + 1
         end
 
+//        output "Pre: " + caret:GetGlobalX() + ", " + caret:GetGlobalY()
+//        output "Height = " + GetHeight() + ", lineOffset = " + lineOffset + ", fontLineHeight/4 = " + font:GetLineHeight() / 4
+//        output "Offset = " + caret:GetOffsetX() + ", " + caret:GetOffsetY() + " -- resultY = " + (caret:GetOffsetY() + (GetHeight() - lineOffset - font:GetLineHeight() / 4))
         caret:SetPosition(x + horizontalOffset, GetHeight() - lineOffset - font:GetLineHeight() / 4)
+//        output "Post: " + caret:GetX() + ", " + caret:GetY() + " -- " + caret:GetGlobalX() + ", " + caret:GetGlobalY()
         return x
     end
 

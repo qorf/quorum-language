@@ -20,18 +20,7 @@ class FocusManager is KeyboardListener
     GameStateManager manager
     InputMonitor monitor
 
-    /*
-    Accepted keyboard controls for navigating the focus or selection.
-    Each valid combination of keys is stored in an array of integers, e.g.,
-    a default key combination for focusing on the previous item is stored as
-    an array containing KeyboardEvent:SHIFT_LEFT and KeyboardEvent:TAB.
-    */
-//    Array<Array<integer>> focusNextKeys
-//    Array<Array<integer>> focusPreviousKeys
-//
-//    on create
-//        SetDefaultFocusKeys()
-//    end
+    Item focused = undefined
 
     action SetItems(Array<Item> array)
         items = array
@@ -118,7 +107,7 @@ class FocusManager is KeyboardListener
         elseif i >= items:GetSize()
             i = i mod items:GetSize()
         end
-        Item oldFocus = manager:GetFocus()
+        Item oldFocus = focused
         Item item = items:Get(i)
 
         if oldFocus = item
@@ -129,7 +118,7 @@ class FocusManager is KeyboardListener
         event:Initialize(oldFocus, item)
         
         index = i
-        manager:SetFocus(item)
+        focused = item
         
         if oldFocus not= undefined
             Iterator<FocusListener> iterator = oldFocus:GetFocusListeners()
@@ -172,7 +161,7 @@ class FocusManager is KeyboardListener
     end
 
     action GetFocus returns Item
-        return manager:GetFocus()
+        return focused
     end
 
     action SelectionChanged(SelectionEvent event)

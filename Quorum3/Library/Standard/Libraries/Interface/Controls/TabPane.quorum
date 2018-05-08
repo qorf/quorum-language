@@ -13,6 +13,7 @@ class TabPane is Item2D
     TabBar bar = undefined
     Item2D currentItem = undefined
     Item2D viewArea
+    Layout viewLayout
 
     on create
         SetName("Tab Pane")
@@ -30,14 +31,13 @@ class TabPane is Item2D
         bar:SetTabPane(me)
         bar:Initialize(tabs)
         
-//        Layout viewLayout
-//        viewLayout:SetPercentageX(0)
-//        viewLayout:SetPercentageY(0)
-//        viewLayout:SetPercentageWidth(1)
-//        viewLayout:SetPercentageHeight(1)
-//        viewLayout:SetHeightOffset(-bar:GetHeight())
+        viewLayout:SetPercentageX(0)
+        viewLayout:SetPercentageY(0)
+        viewLayout:SetPercentageWidth(1)
+        viewLayout:SetPercentageHeight(1)
+        viewLayout:SetHeightOffset(-bar:GetHeight())
+        viewArea:AddLayout(viewLayout)
 
-        viewArea:SetSize(width, height - bar:GetHeight())
         viewArea:SetClipping(true)
 
         Add(viewArea)
@@ -58,6 +58,9 @@ class TabPane is Item2D
             viewArea:Add(item)
         end
         currentItem = item
+
+        viewLayout:SetHeightOffset(-bar:GetHeight())
+        viewArea:Resize()
     end
 
     action GetCurrentItem returns Item2D
