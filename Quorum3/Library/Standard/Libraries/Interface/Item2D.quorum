@@ -185,7 +185,20 @@ class Item2D is Item
         myItem:SetX(35.0)
     */
     action SetX(number setX)
-        MoveX(setX - position:GetX())
+//        MoveX(setX - position:GetX())
+
+        verticesChanged = true
+        hasMoved = true
+        position:SetX(setX)
+        SetOffsetX(offset:GetX())
+
+        if visualContent not= undefined
+            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
+
+        if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
+            Simulate(true)
+        end
     end
 
     /*
@@ -198,7 +211,20 @@ class Item2D is Item
         myItem:SetY(210.0)
     */
     action SetY(number setY)
-        MoveY(setY - position:GetY())
+//        MoveY(setY - position:GetY())
+
+        verticesChanged = true
+        hasMoved = true
+        position:SetY(setY)
+        SetOffsetY(offset:GetY())
+
+        if visualContent not= undefined
+            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
+
+        if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
+            Simulate(true)
+        end
     end
 
     /*
@@ -266,7 +292,21 @@ class Item2D is Item
         myItem:SetPosition(30, 70)
     */
     action SetPosition(number setX, number setY)
-        Move(setX - GetX(), setY - GetY())
+//        Move(setX - GetX(), setY - GetY())
+
+        verticesChanged = true
+        hasMoved = true
+        position:SetX(setX)
+        position:SetY(setY)
+        SetOffset(offset:GetX(), offset:GetY())
+
+        if visualContent not= undefined
+            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
+
+        if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
+            Simulate(true)
+        end
     end
 
     /*
@@ -280,7 +320,7 @@ class Item2D is Item
         myItem:SetPosition(30, 70, 3)
     */
     action SetPosition(number setX, number setY, number setZ)
-        Move(setX - GetX(), setY - GetY())
+        SetPosition(setX, setY)
         SetZ(setZ)
     end
 

@@ -117,7 +117,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     Drawable verticalBar
     Drawable verticalControl
 
-    Layout backgroundLayout
     Layout horizontalBarLayout
     Layout horizontalControlLayout
     Layout verticalBarLayout
@@ -213,11 +212,8 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     action Resize
-//        output "Pre-Resize: " + caret:GetGlobalX() + ", " + caret:GetGlobalY()
-
         number height = GetHeight()
         number width = GetWidth()
-//        number verticalRatio = height / scrollAnchor:GetHeight()
         number verticalRatio = height / GetScrollRegionHeight()
         number horizontalRatio = width / GetScrollRegionWidth()
         boolean verticalVisible = (verticalMode = ALWAYS_VISIBLE or (verticalMode = VISIBLE_IF_NEEDED and verticalRatio < 1.0))
@@ -260,8 +256,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
 
         UpdatePaneView(horizontal, vertical)
-
-//        output "Post-Resize: " + caret:GetGlobalX() + ", " + caret:GetGlobalY()
     end
 
     private action ResizeLineDrawables
@@ -360,7 +354,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     private action InitializeCaret
-//        output "Pre-InitializeCaret: " + caret:GetGlobalX() + ", " + caret:GetGlobalY()
         if caret:IsLoaded()
             if caret:GetWidth() not= caretThickness or caret:GetHeight() not= font:GetLineHeight()
                 caret:Dispose()
@@ -369,7 +362,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             end
         end
         caret:LoadFilledRectangle(caretThickness, font:GetLineHeight(), caretColor)
-//        output "Post-InitializeCaret: " + caret:GetGlobalX() + ", " + caret:GetGlobalY()
+        caret:SetName("TextBox Caret")
     end
 
     /*
@@ -393,11 +386,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             counter = counter + 1
         end
 
-//        output "Pre: " + caret:GetGlobalX() + ", " + caret:GetGlobalY()
-//        output "Height = " + GetHeight() + ", lineOffset = " + lineOffset + ", fontLineHeight/4 = " + font:GetLineHeight() / 4
-//        output "Offset = " + caret:GetOffsetX() + ", " + caret:GetOffsetY() + " -- resultY = " + (caret:GetOffsetY() + (GetHeight() - lineOffset - font:GetLineHeight() / 4))
         caret:SetPosition(x + horizontalOffset, GetHeight() - lineOffset - font:GetLineHeight() / 4)
-//        output "Post: " + caret:GetX() + ", " + caret:GetY() + " -- " + caret:GetGlobalX() + ", " + caret:GetGlobalY()
         return x
     end
 
@@ -946,25 +935,6 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         EmptySelectionEvent()
     end
 
-    action SetWidth(integer newWidth)
-        parent:Libraries.Interface.Item2D:SetWidth(newWidth)
-        background:SetWidth(newWidth)
-        horizontalBar:SetWidth(newWidth)
-    end
-
-    action SetHeight(integer newHeight)
-        parent:Libraries.Interface.Item2D:SetHeight(newHeight)
-        background:SetHeight(newHeight)
-        verticalBar:SetHeight(newHeight)
-    end
-
-    action SetSize(number width, number height)
-        parent:Libraries.Interface.Item2D:SetSize(width, height)
-        background:SetSize(width, height)
-        horizontalBar:SetWidth(width)
-        verticalBar:SetHeight(height)
-    end
-
     private action CreateScrollBars
         Color color
         verticalBar:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
@@ -1131,7 +1101,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         number adjustedScrollWidth = GetScrollRegionWidth() - GetWidth()
         number adjustedScrollHeight = GetScrollRegionHeight() - GetHeight()
         
-        if verticalBar:IsShowing()
+        if verticalBar:IsShowing() and verticalBar:GetHeight() > 0
             verticalViewPercentage = (verticalControl:GetHeight() + verticalControl:GetY()) / verticalBar:GetHeight()
         else
             verticalViewPercentage = 1.0
