@@ -174,7 +174,7 @@ public class QuorumParser extends Parser{
             
             Project project = FileOwnerQuery.getOwner(fo);
             
-            if(project != null) {
+            if(project != null && project instanceof QuorumProject) {
                 QuorumProject qp = (QuorumProject) project;
                 CompilerResult_ lastCompileResult = qp.getLastCompileResult();
                 QuorumParserResult pr = new QuorumParserResult(snapshot, this);
