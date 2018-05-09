@@ -17,11 +17,9 @@ class Rotation is MatrixTransform
         direction = LEFT
     end
 
-
     action Transform(Matrix matrix) returns Matrix
         Matrix newMatrix
         newMatrix:SetSize(matrix:GetColumns(), matrix:GetRows())
-
         if direction = RIGHT
             col = matrix:GetRows() - 1
             row = 0
@@ -31,23 +29,14 @@ class Rotation is MatrixTransform
                 row = row + 1
             end
         else
-            col = 0
+            col = matrix:GetColumns() - 1
             row = 0
-            repeat matrix:GetRows() times
-                newMatrix:SetColumn(col, Reverse(matrix:GetRowArray(row)))
-                col = col + 1
+            repeat matrix:GetColumns() times
+                newMatrix:SetRow(row, matrix:GetColumnArray(col))
+                col = col - 1
                 row = row + 1
             end
         end
-
         return newMatrix
-    end
-
-    private action Reverse(Array<number> array) returns Array<number>
-        Array<number> reversedArray
-        repeat array:GetSize() times
-            reversedArray:AddToFront(array:RemoveFromFront())
-        end
-        return reversedArray
     end
 end
