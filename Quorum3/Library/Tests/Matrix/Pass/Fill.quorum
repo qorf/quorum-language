@@ -2,19 +2,15 @@ use Libraries.Compute.Matrix
 
 class Main 
     action Main
-        Matrix before3x3
-        before3x3:Fill(3, 3, 1.1)
-        CheckResult(before3x3:ToText())
+        Matrix matrix
+        matrix:Fill(3, 3, 1.1)
+        CheckResult(matrix:ToText())
     end
 
     action CheckResult(text result)
-        text answer = "|1.1, 1.1, 1.1|
-|1.1, 1.1, 1.1|
-|1.1, 1.1, 1.1|"
-        text lf = answer:GetLineFeed()
+        text answer = ""
         text cr = answer:GetCarriageReturn()
-        answer = answer:Replace(cr, lf)
-        result = result:Replace(cr, lf)
+        answer = "|1.1, 1.1, 1.1|"+cr+"|1.1, 1.1, 1.1|"+cr+"|1.1, 1.1, 1.1|"
         if answer = result
             output "pass"
         else

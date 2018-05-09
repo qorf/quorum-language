@@ -13,13 +13,9 @@ class Main
     end
 
     action CheckResult(text result)
-        text answer = "|1.0, 2.0, 3.0|
-|1.0, 2.0, 3.0|
-|1.0, 2.0, 3.0|"
-        text lf = answer:GetLineFeed()
+        text answer = ""
         text cr = answer:GetCarriageReturn()
-        answer = answer:Replace(cr, lf)
-        result = result:Replace(cr, lf)
+        answer = "|1.0, 2.0, 3.0|"+cr+"|1.0, 2.0, 3.0|"+cr+"|1.0, 2.0, 3.0|"
         if answer = result
             output "pass"
         else
