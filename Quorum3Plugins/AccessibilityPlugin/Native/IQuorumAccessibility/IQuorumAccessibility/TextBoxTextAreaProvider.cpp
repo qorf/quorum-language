@@ -9,23 +9,23 @@
 
 void NotifyCaretPositionChanged(_In_ HWND hwnd, _In_ TextBoxControl *control)
 {
-	//TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(hwnd, control);
-	//if (eventControl != NULL && UiaClientsAreListening())
-	//{
-	//	UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
-	//	UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
-	//	eventControl->Release();
-	//}
-	//else
-	//{
-	//	// This is an error. Should probably be dealt with somehow.
-	//}
+	TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(hwnd, control);
+	if (eventControl != NULL)
+	{
+		UiaRaiseAutomationEvent(eventControl, UIA_Text_TextSelectionChangedEventId);
+		UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
+		eventControl->Release();
+	}
+	else
+	{
+		// This is an error. Should probably be dealt with somehow.
+	}
 }
 
 void NotifyFocusGained(_In_ HWND hwnd, _In_ TextBoxControl *control)
 {
 	TextBoxTextAreaProvider *eventControl = new TextBoxTextAreaProvider(hwnd, control);
-	if (eventControl != NULL && UiaClientsAreListening())
+	if (eventControl != NULL)
 	{
 		UiaRaiseAutomationEvent(eventControl, UIA_AutomationFocusChangedEventId);
 		eventControl->Release();
@@ -128,16 +128,34 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPropertyValue(PROPERTYID propertyId, 
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	if (propertyId == UIA_ControlTypePropertyId)
+	if (propertyId == UIA_LocalizedControlTypePropertyId)
 	{
-		pRetVal->vt = VT_I4;
-		pRetVal->lVal = UIA_EditControlTypeId;
-		//pRetVal->lVal = UIA_DocumentControlTypeId;
+		pRetVal->vt = VT_BSTR;
+		pRetVal->bstrVal = SysAllocString(L"AreaProvider");
 	}
+	else if (propertyId == UIA_AutomationIdPropertyId)
+	{
+		pRetVal->bstrVal = SysAllocString(L"AreaProvider");
+		if (pRetVal->bstrVal != NULL)
+		{
+			pRetVal->vt = VT_BSTR;
+		}
+	}
+	/*else if (propertyId == UIA_HelpTextPropertyId)
+	{
+	pRetVal->vt = VT_BSTR;
+	pRetVal->bstrVal = SysAllocString(L" What do you want from me?");
+	}*/
 	else if (propertyId == UIA_NamePropertyId)
 	{
 		pRetVal->vt = VT_BSTR;
 		pRetVal->bstrVal = SysAllocString(m_pTextBoxControl->GetName());
+	}
+	else if (propertyId == UIA_ControlTypePropertyId)
+	{
+		pRetVal->vt = VT_I4;
+		pRetVal->lVal = UIA_EditControlTypeId;
+		//pRetVal->lVal = UIA_DocumentControlTypeId;
 	}
 	else if (propertyId == UIA_IsEnabledPropertyId)
 	{
@@ -149,28 +167,31 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPropertyValue(PROPERTYID propertyId, 
 	else if (propertyId == UIA_IsKeyboardFocusablePropertyId)
 	{
 		// Tells the screen reader that this control is capable of getting keyboard focus.
+		// This isn't enough for the screen reader to announce the control's existence to the user when it gains focus in Quorum.
+		// UIA_HasKeyboardFocusPropertyId is responsible for whether or not the screen reader announces that this control gained focus.
 		pRetVal->vt = VT_BOOL;
 		pRetVal->boolVal = VARIANT_TRUE;
 	}
 	else if (propertyId == UIA_HasKeyboardFocusPropertyId)
 	{
-		// UIA_HasKeyboardFocusPropertyId is responsible for whether or not the screen reader announces that this control gained focus.
+		// This tells the screen reader whether or not this control has Keyboard focus. Normally, only one control/window is allowed to have keyboard focus at a time
+		// but by lying and having every instance of this control report that it has keyboard focus then we don't have to mantain what has focus on the native level.
 		pRetVal->vt = VT_BOOL;
-		pRetVal->boolVal = m_pTextBoxControl->HasFocus() ? VARIANT_TRUE : VARIANT_FALSE;
+		pRetVal->boolVal = VARIANT_TRUE;
 	}
 	else if (propertyId == UIA_IsPasswordPropertyId)
 	{
 		/*
-			Identifies the IsPassword property, which is a Boolean value that indicates whether 
-			the automation element contains protected content or a password.
+		Identifies the IsPassword property, which is a Boolean value that indicates whether
+		the automation element contains protected content or a password.
 
-			When the IsPassword property is TRUE and the element has the keyboard focus, a client 
-			application should disable keyboard echoing or keyboard input feedback that may expose 
-			the user's protected information. Attempting to access the Value property of the protected 
-			element (edit control) may cause an error to occur.
+		When the IsPassword property is TRUE and the element has the keyboard focus, a client
+		application should disable keyboard echoing or keyboard input feedback that may expose
+		the user's protected information. Attempting to access the Value property of the protected
+		element (edit control) may cause an error to occur.
 
-			For now, this will be hardcoded as FALSE but in the future this can be maintained in Quorum and
-			updated down here when textboxes contain protected info.
+		For now, this will be hardcoded as FALSE but in the future this can be maintained in Quorum and
+		updated down here when textboxes contain protected info.
 		*/
 
 		pRetVal->vt = VT_BOOL;
@@ -178,11 +199,11 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetPropertyValue(PROPERTYID propertyId, 
 	}
 	//else if (propertyId == UIA_LabeledByPropertyId)
 	//{
-		/*
-			If there is a static text label associated with this control, then this property must expose 
-			a reference to this control. If the TextBox is a subcomponent of another control,
-			it will not have a LabeledBy property set. E.g., it's contained within a tab.
-		*/
+	/*
+	If there is a static text label associated with this control, then this property must expose
+	a reference to this control. If the TextBox is a subcomponent of another control,
+	it will not have a LabeledBy property set. E.g., it's contained within a tab.
+	*/
 
 	//}
 	else
@@ -221,9 +242,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::Navigate(NavigateDirection direction, _O
 	HRESULT hr = S_OK;
 	if (direction == NavigateDirection_Parent)
 	{
-		*pRetVal = m_pTextBoxControl->GetTextBoxProvider();
-		(*pRetVal)->AddRef();
-
+		*pRetVal = new TextBoxProvider(m_TextBoxControlHWND, m_pTextBoxControl);
 		if (*pRetVal == NULL)
 		{
 			hr = E_OUTOFMEMORY;
@@ -261,7 +280,13 @@ IFACEMETHODIMP TextBoxTextAreaProvider::get_BoundingRectangle(_Out_ UiaRect * pR
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	UNREFERENCED_PARAMETER(pRetVal);
+	// For now we aren't painting a rectangle for the provider
+	// In the future this could be implemented so the screen reader cursor follows along
+	// with what is being said.
+	pRetVal->left = 0;
+	pRetVal->top = 0;
+	pRetVal->width = 0;
+	pRetVal->height = 0;
 	return S_OK;
 }
 
@@ -293,9 +318,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::get_FragmentRoot(_Outptr_result_maybenul
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
 
-	*pRetVal = m_pTextBoxControl->GetTextBoxProvider();
-	(*pRetVal)->AddRef();
-
+	*pRetVal = new TextBoxProvider(m_TextBoxControlHWND, m_pTextBoxControl);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 }
 
@@ -323,12 +346,12 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetSelection(_Outptr_result_maybenull_ S
 	{
 		return UIA_E_ELEMENTNOTAVAILABLE;
 	}
-	
+
 	// For now, selection is hardcoded to be the degenerate text range.
 	Range caretRange = { m_pTextBoxControl->GetCaretPosition(), m_pTextBoxControl->GetCaretPosition() };
-	//ITextRangeProvider *selectionRangeProvider = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, caretRange, m_pTextBoxControl->GetText());
+	ITextRangeProvider *selectionRangeProvider = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, caretRange);
 	HRESULT hr = S_OK;
-	/*if (selectionRangeProvider == NULL)
+	if (selectionRangeProvider == NULL)
 	{
 		hr = E_OUTOFMEMORY;
 	}
@@ -350,7 +373,7 @@ IFACEMETHODIMP TextBoxTextAreaProvider::GetSelection(_Outptr_result_maybenull_ S
 			}
 		}
 		selectionRangeProvider->Release();
-	}*/
+	}
 
 	return hr;
 }
@@ -391,21 +414,20 @@ IFACEMETHODIMP TextBoxTextAreaProvider::RangeFromPoint(UiaPoint point, _Outptr_r
 	}
 
 	/*
-		This implementation will always report the closest range from a given screen coordinate point is just after the
-		first character on the first line of text. This will stop narrator from saying "No item in view" instead of
-		the textbox's actual name. However, this comes with the trade off that a mouse click at any arbitrary location
-		within the textbox won't ever result in the character to the right of the caret being read aloud.
+	This implementation will always report the closest range from a given screen coordinate point is just after the
+	first character on the first line of text. This will stop narrator from saying "No item in view" instead of
+	the textbox's actual name. However, this comes with the trade off that a mouse click at any arbitrary location
+	within the textbox won't ever result in the character to the right of the caret being read aloud.
 
-		If we wanted to get rid of that trade off then we'd need to solve the problem that this function is supposed to
-		solve in Quorum, pass that down along with a mouse click event, and then this function would look for it in the 
-		textbox control down here instead of solving the problem itself.
-		
-		TODO: Implement this in Quorum and pass down the required info when mouse clicking is implemented in the Quorum Textbox.
-		Note: It's possible that this function could get out of sync with Quorum if it's called more often than Quorum updates it.
+	If we wanted to get rid of that trade off then that'd be a fairly tricky implementation because we'd need to solve
+	the problem that this function is supposed to solve in Quorum, pass that down along with a mouse click event, and then
+	this function would look for it in the textbox control down here instead of solving the problem itself.
+
+	TODO: Implement this in Quorum and pass down the required info when mouse clicking is implemented in the Quorum Textbox.
 	*/
 	UNREFERENCED_PARAMETER(point); // This will never be used. Instead we get the point from Quorum.
-	Range closestRange = { { 0, 1 },{ 0, 1 } };
-	//*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, closestRange, m_pTextBoxControl->GetText());
+	Range closestRange = { { 1 },{ 1 } };
+	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, closestRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 
 }
@@ -422,9 +444,9 @@ IFACEMETHODIMP TextBoxTextAreaProvider::get_DocumentRange(_Outptr_result_maybenu
 
 	// Get the full text range that encompasses the document. From the first character on the first line
 	// all the way to the last character on the last line.
-	Range fullDocumentRange = { { 0, 0 }, m_pTextBoxControl->GetTextboxEndpoint() };
-	
-	//*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, fullDocumentRange, m_pTextBoxControl->GetText());
+	Range fullDocumentRange = { { 0 }, m_pTextBoxControl->GetTextboxEndpoint() };
+
+	*pRetVal = new TextBoxTextRange(m_TextBoxControlHWND, m_pTextBoxControl, fullDocumentRange);
 	return (*pRetVal == NULL) ? E_OUTOFMEMORY : S_OK;
 
 }

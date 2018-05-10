@@ -28,6 +28,7 @@ use Libraries.Game.Physics.Joints.JointEdge2D
 use Libraries.Game.GameStateManager
 use Libraries.Game.Application
 use Libraries.Game.WebApplication
+use Libraries.Game.FocusManager
 
 /*
     The Item2D class represents any object that has a position in 2D space.
@@ -184,7 +185,20 @@ class Item2D is Item
         myItem:SetX(35.0)
     */
     action SetX(number setX)
-        MoveX(setX - position:GetX())
+//        MoveX(setX - position:GetX())
+
+        verticesChanged = true
+        hasMoved = true
+        position:SetX(setX)
+        SetOffsetX(offset:GetX())
+
+        if visualContent not= undefined
+            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
+
+        if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
+            Simulate(true)
+        end
     end
 
     /*
@@ -197,7 +211,20 @@ class Item2D is Item
         myItem:SetY(210.0)
     */
     action SetY(number setY)
-        MoveY(setY - position:GetY())
+//        MoveY(setY - position:GetY())
+
+        verticesChanged = true
+        hasMoved = true
+        position:SetY(setY)
+        SetOffsetY(offset:GetY())
+
+        if visualContent not= undefined
+            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
+
+        if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
+            Simulate(true)
+        end
     end
 
     /*
@@ -265,7 +292,21 @@ class Item2D is Item
         myItem:SetPosition(30, 70)
     */
     action SetPosition(number setX, number setY)
-        Move(setX - GetX(), setY - GetY())
+//        Move(setX - GetX(), setY - GetY())
+
+        verticesChanged = true
+        hasMoved = true
+        position:SetX(setX)
+        position:SetY(setY)
+        SetOffset(offset:GetX(), offset:GetY())
+
+        if visualContent not= undefined
+            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        end
+
+        if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
+            Simulate(true)
+        end
     end
 
     /*
@@ -279,7 +320,7 @@ class Item2D is Item
         myItem:SetPosition(30, 70, 3)
     */
     action SetPosition(number setX, number setY, number setZ)
-        Move(setX - GetX(), setY - GetY())
+        SetPosition(setX, setY)
         SetZ(setZ)
     end
 
@@ -1026,6 +1067,13 @@ class Item2D is Item
         if layer not= undefined
             layer:SetNewItemAdded(true)
         end
+
+        GameStateManager manager
+        FocusManager focusManager = manager:GetFocusManager()
+        if focusManager not= undefined
+            focusManager:Add(newItem)
+        end
+
     end
 
     /*  
@@ -1050,6 +1098,13 @@ class Item2D is Item
         if layer not= undefined
             layer:SetNewItemAdded(true)
         end
+
+        GameStateManager manager
+        FocusManager focusManager = manager:GetFocusManager()
+        if focusManager not= undefined
+            focusManager:Add(newItem)
+        end
+
     end
 
     /*  
@@ -1087,6 +1142,12 @@ class Item2D is Item
         removed:SetParent(undefined)
         removed:SetLayer(undefined)
 
+        GameStateManager manager
+        FocusManager focusManager = manager:GetFocusManager()
+        if focusManager not= undefined
+            focusManager:Remove(removed)
+        end
+
         return success
     end
 
@@ -1122,6 +1183,12 @@ class Item2D is Item
 
         temp:SetParent(undefined)
         temp:SetLayer(undefined)
+
+        GameStateManager manager
+        FocusManager focusManager = manager:GetFocusManager()
+        if focusManager not= undefined
+            focusManager:Remove(temp)
+        end
 
         return temp
     end

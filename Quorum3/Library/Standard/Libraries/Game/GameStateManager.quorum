@@ -69,6 +69,29 @@ class GameStateManager
     system action SetInput(GameInput gameInput)
 
     /*
+    This action sets the FocusManager to be used across the Game.
+    */
+    action SetFocusManager(FocusManager manager)
+//        if GetGame() = undefined
+//            return now
+//        end
+
+        GetGame():SetFocusManager(manager)
+    end
+
+    /*
+    This action returns the FocusManager which is being used across the Game.
+    */
+    action GetFocusManager returns FocusManager
+        Game game = GetGame()
+        if game not= undefined
+            return game:GetFocusManager()
+        else
+            return undefined
+        end
+    end
+
+    /*
     This action sets a path to the native file used to load the engine's C
     plugins. After setting the path, the engine will load the native file.
     */
@@ -94,11 +117,15 @@ class GameStateManager
     /*
     This action sets the focus on the given item.
     */
-    system action SetFocus(Item item)
+    action SetFocus(Item item)
+        GetFocusManager():SetFocus(item)
+    end
 
     /*
     This action returns the current Item that is focused.
     */
-    system action GetFocus returns Item
+    action GetFocus returns Item
+        return GetFocusManager():GetFocus()
+    end
 
 end

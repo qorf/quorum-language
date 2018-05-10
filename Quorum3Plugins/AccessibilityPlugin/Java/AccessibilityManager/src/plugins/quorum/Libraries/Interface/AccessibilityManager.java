@@ -87,7 +87,7 @@ public class AccessibilityManager
 
     // NativeWin32CreateTextBox: Creates an edit control in UI Automation.
     //      Returns: null on failure, otherwise itemHWND associated with item
-    private native long NativeWin32CreateTextBox(String name, String description, String currentLineText, int caretLine, int caretCharacter);
+    private native long NativeWin32CreateTextBox(String name, String description, String fullText, int caretIndex);
 
     // NativeWin32TextBoxTextSelectionChanged:
     // TODO: Figure out the parameters required
@@ -95,7 +95,7 @@ public class AccessibilityManager
     
     // NativeWin32UpdateCaretPosition: Will speak the given string adjacentCharacter.
     //
-    private native boolean NativeWin32UpdateCaretPosition(long itemHWND, String adjacentCharacter);
+    private native boolean NativeWin32UpdateCaretPosition(long itemHWND, String fullText, int caretIndex);
     
     // NativeWin32SetFocus: Sets the keyboard focus onto the given item with UI Automation.
     //      Returns: null on failure, otherwise itemHWND of previously focused item.
@@ -145,7 +145,7 @@ public class AccessibilityManager
                 break;
             case 5: // TextBox
                 TextBox_ textbox = (TextBox_)item;
-                itemHWND = NativeWin32CreateTextBox(textbox.GetName(), textbox.GetDescription(), textbox.GetCurrentLineText(), textbox.GetCaretLine(), textbox.GetCaretLineIndex());
+                itemHWND = NativeWin32CreateTextBox(textbox.GetName(), textbox.GetDescription(), textbox.GetText(), textbox.GetCaretIndex());
                 break;
             default: // Assume Item
                 itemHWND = NativeWin32CreateItem(item.GetName(), item.GetDescription());
@@ -230,18 +230,20 @@ public class AccessibilityManager
     // TODO: Fix this method so that it behaves. Otherwise, only ever use CaretPositionChanged
     public void TextSelectionChanged(Item_ textbox)
     {
-        long itemHWND = itemMap.get(textbox);
-        
-        TextBox_ text = (TextBox_)textbox;
-        
-        NativeWin32TextBoxTextSelectionChanged(itemHWND, text.GetCurrentLineText(), text.GetCaretLine(), text.GetCaretLineIndex());
+//        long itemHWND = itemMap.get(textbox);
+//        
+//        TextBox_ text = (TextBox_)textbox;
+//        
+//        NativeWin32TextBoxTextSelectionChanged(itemHWND, text.GetCurrentLineText(), text.GetCaretLine(), text.GetCaretLineIndex());
+        System.out.println("This method needs to be reworked. Use CaretPositionChanged.");
     }
     
-    public void CaretPositionChanged(Item_ textbox, Text_ adjacentCharacter)
+    public void CaretPositionChanged(Item_ item, Text_ fullText)
     {
-        long itemHWND = itemMap.get(textbox);
+        long itemHWND = itemMap.get(item);
+        TextBox_ textbox = (TextBox_)item;
         
-        NativeWin32UpdateCaretPosition(itemHWND, adjacentCharacter.GetValue());
+        NativeWin32UpdateCaretPosition(itemHWND, textbox.GetText(), textbox.GetCaretIndex());
     }
     
 }

@@ -155,6 +155,6 @@ void PushButtonProvider::NotifyFocusGained()
 {
 	if (UiaClientsAreListening())
 	{
-		UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
+		//UiaRaiseAutomationEvent(this, UIA_AutomationFocusChangedEventId);
 	}
 }

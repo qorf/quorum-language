@@ -68,7 +68,7 @@ bool Item::Initialize(_In_ HINSTANCE hInstance)
 
 HWND Item::Create(_In_ HINSTANCE instance, _In_ WCHAR* itemName, _In_ WCHAR* itemDescription)
 {
-
+	UNREFERENCED_PARAMETER(itemDescription);
 	if (!Initialized)
 	{
 		Initialized = Initialize(instance);

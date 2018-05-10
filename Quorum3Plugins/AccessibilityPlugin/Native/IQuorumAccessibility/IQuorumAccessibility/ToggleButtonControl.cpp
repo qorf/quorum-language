@@ -97,7 +97,7 @@ bool ToggleButtonControl::Initialize(_In_ HINSTANCE hInstance)
 
 HWND ToggleButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
-
+	UNREFERENCED_PARAMETER(buttonDescription);
 	if (!Initialized)
 	{
 		Initialized = Initialize(instance);

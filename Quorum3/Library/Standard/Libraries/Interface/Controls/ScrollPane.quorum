@@ -1,0 +1,402 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Item2D
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseWheelListener
+use Libraries.Interface.Layouts.Layout
+use Libraries.Containers.Array
+
+class ScrollPane is Item2D, MouseListener, MouseMovementListener, MouseWheelListener
+
+    /*
+    All items added to the scroll pane are actually added to the "anchor"
+    instead. This means the anchor can be moved to adjust the relative positions
+    of all added content within the viewable area of the scroll pane without
+    moving the pane itself, or moving items individually.
+    */
+    Drawable scrollAnchor
+
+    Drawable horizontalBar
+    Drawable horizontalControl
+    Drawable verticalBar
+    Drawable verticalControl
+
+    number scrollDistance = 3
+    integer barThickness = 20
+
+    number scrollRegionWidth = 200
+    number scrollRegionHeight = 1000
+    number vertical = 1.0
+    number horizontal = 0
+
+    public constant integer VISIBLE_IF_NEEDED = 1
+    public constant integer ALWAYS_VISIBLE = 2
+    public constant integer NEVER_VISIBLE = 3
+
+    integer verticalMode = VISIBLE_IF_NEEDED
+    integer horizontalMode = VISIBLE_IF_NEEDED
+
+    /*
+    Values used for when the control is dragged along the scroll track.
+    */
+    boolean isClicked = false
+    boolean verticalChanging = true
+    number clickPointOffset = 0
+
+    Layout scrollAnchorLayout
+    Layout horizontalBarLayout
+    Layout horizontalControlLayout
+    Layout verticalBarLayout
+    Layout verticalControlLayout
+
+    boolean automaticRegionSizing = true
+
+    on create
+        scrollAnchorLayout:SetPercentageX(0)
+        scrollAnchorLayout:SetPercentageY(1)
+        scrollAnchorLayout:SetPercentageOriginY(1)
+
+        scrollAnchor:SetWidth(scrollRegionWidth)
+        scrollAnchor:SetHeight(scrollRegionHeight)
+        scrollAnchor:AddLayout(scrollAnchorLayout)
+        parent:Item2D:Add(scrollAnchor)
+        SetClipping(true)
+        AddMouseWheelListener(me)
+        AddMouseListener(me)
+        AddMouseMovementListener(me)
+    end
+
+    action Initialize(number width, number height, Color backgroundColor)
+        if backgroundColor not= undefined
+            Drawable background
+            background:SetName("Background")
+            background:LoadFilledRectangle(1, 1, backgroundColor)
+
+            Layout backgroundLayout
+            backgroundLayout:SetPercentageX(0)
+            backgroundLayout:SetPercentageY(0)
+            backgroundLayout:SetPercentageWidth(1)
+            backgroundLayout:SetPercentageHeight(1)
+            background:AddLayout(backgroundLayout)
+
+            parent:Item2D:Add(0, background)
+        end
+
+        SetWidth(width)
+        SetHeight(height)
+
+        CreateScrollBars()
+
+        verticalBar:SetName("Vertical Scroll Track")
+        verticalControl:SetName("Vertical Scroll Control")
+    end
+
+    private action CreateScrollBars
+        Color color
+        verticalBar:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
+        horizontalBar:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
+        verticalControl:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
+        horizontalControl:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
+
+        verticalBar:SetName("Vertical Scroll Track")
+        verticalControl:SetName("Vertical Scroll Control")
+        horizontalBar:SetName("Horizontal Scroll Track")
+        horizontalControl:SetName("Horizontal Scroll Control")
+
+        /*
+        By default, the vertical bar has width equal to the bar thickness, has a
+        height equal to the height of its container, and has its top right 
+        corner touching the top right corner of the container.
+        */
+        verticalBarLayout:SetPercentageX(1)
+        verticalBarLayout:SetPercentageOriginX(1)
+        verticalBarLayout:SetPercentageY(1)
+        verticalBarLayout:SetPercentageOriginY(1)
+        verticalBarLayout:SetPercentageHeight(1)
+        verticalBarLayout:SetWidthOffset(barThickness)
+
+        verticalBar:AddLayout(verticalBarLayout)
+
+        /*
+        The horizontal bar has width equal to its container's width, height
+        equal to the bar thickness, and lies along the bottom of the text box.
+        */
+        horizontalBarLayout:SetPercentageX(0)
+        horizontalBarLayout:SetPercentageY(0)
+        horizontalBarLayout:SetPercentageWidth(1)
+        horizontalBarLayout:SetHeightOffset(barThickness)
+
+        horizontalBar:AddLayout(horizontalBarLayout)
+
+        /*
+        The vertical control begins at the top of the bar, and its width fully
+        fills the bar. Its height is not set here, instead being set during
+        Resize().
+        */
+        verticalControlLayout:SetPercentageOriginY(1)
+        verticalControlLayout:SetPercentageY(1)
+        verticalControlLayout:SetPercentageX(0)
+        verticalControlLayout:SetPercentageWidth(1)
+
+        verticalControl:AddLayout(verticalControlLayout)
+
+        /*
+        The horizontal control begins at the left of the bar, and its height
+        fully fills the bar. Its width is not set here, instead being set during
+        Resize().
+        */
+        horizontalControlLayout:SetPercentageX(0)
+        horizontalControlLayout:SetPercentageY(0)
+        horizontalControlLayout:SetPercentageHeight(1)
+
+        horizontalControl:AddLayout(horizontalControlLayout)
+
+        parent:Item2D:Add(verticalBar)
+        parent:Item2D:Add(horizontalBar)
+        verticalBar:Add(verticalControl)
+        horizontalBar:Add(horizontalControl)
+
+        Resize()
+    end
+
+    action Resize
+        number height = GetHeight()
+        number width = GetWidth()
+        number verticalRatio = height / GetScrollRegionHeight()
+        number horizontalRatio = width / GetScrollRegionWidth()
+        boolean verticalVisible = (verticalMode = ALWAYS_VISIBLE or (verticalMode = VISIBLE_IF_NEEDED and verticalRatio < 1.0))
+        boolean horizontalVisible = (horizontalMode = ALWAYS_VISIBLE or (horizontalMode = VISIBLE_IF_NEEDED and horizontalRatio < 1.0))
+        number barHeight = height
+        number barWidth = width
+
+        if verticalVisible and horizontalVisible
+            verticalBarLayout:SetHeightOffset(-barThickness)
+            horizontalBarLayout:SetWidthOffset(-barThickness)
+            barHeight = height - barThickness
+            barWidth = width - barThickness
+            verticalRatio = barHeight / GetScrollRegionHeight()
+            horizontalRatio = barWidth / GetScrollRegionWidth()
+        else
+            verticalBarLayout:SetHeightOffset(0)
+            horizontalBarLayout:SetWidthOffset(0)
+        end
+
+        if verticalRatio > 1.0
+            verticalRatio = 1.0
+        end
+
+        if horizontalRatio > 1.0
+            horizontalRatio = 1.0
+        end
+
+        if verticalVisible
+            verticalControlLayout:SetPercentageHeight(verticalRatio)
+            verticalBar:Show()
+        else
+            verticalBar:Hide()
+        end
+
+        if horizontalVisible
+            horizontalControlLayout:SetPercentageWidth(horizontalRatio)
+            horizontalBar:Show()
+        else
+            horizontalBar:Hide()
+        end
+
+        UpdatePaneView(horizontal, vertical)
+    end
+
+    action Add(Item2D item)
+        scrollAnchor:Add(item)
+        Resize()
+    end
+
+    action Add(integer index, Item2D item)
+        scrollAnchor:Add(index, item)
+    end
+
+    action Remove(Item2D item) returns boolean
+        return scrollAnchor:Remove(item)
+    end
+
+    action Remove(integer index) returns Item2D
+        return scrollAnchor:Remove(index)
+    end
+
+    action SetScrollDistance(number distance)
+        scrollDistance = distance
+    end
+
+    action GetScrollDistance returns number
+        return scrollDistance
+    end
+
+    action ScrolledMouse(MouseEvent event)
+        number y = GetVerticalTrackPercentage(verticalControl:GetY() + event:scrollAmount * scrollDistance * 10)
+        UpdatePaneView(horizontal, y)
+    end
+
+    action DraggedMouse(MouseEvent event)
+        if isClicked
+            // Determine if we are updating the vertical or horizontal bar.
+            if verticalChanging
+                number y = GetVerticalTrackPercentage(event:GetY() - verticalBar:GetGlobalY()) - clickPointOffset
+                UpdatePaneView(horizontal, y)
+            else
+                number x = GetHorizontalTrackPercentage(event:GetX() - horizontalBar:GetGlobalX()) - clickPointOffset
+                UpdatePaneView(x, vertical)
+            end
+        end
+    end
+
+    action ClickedMouse(MouseEvent event)
+        if event:GetSource() not= undefined and event:GetSource() is Item2D
+            Item2D source = cast(Item2D, event:GetSource())
+            if source:Equals(verticalControl)
+                isClicked = true
+                verticalChanging = true
+                clickPointOffset = GetVerticalTrackPercentage(event:GetY() - verticalBar:GetGlobalY()) - vertical
+            elseif source:Equals(horizontalControl)
+                isClicked = true
+                verticalChanging = false
+                clickPointOffset = GetHorizontalTrackPercentage(event:GetX() - horizontalBar:GetGlobalX()) - horizontal
+            else
+                isClicked = false
+            end
+        end
+    end
+
+    action ReleasedMouse(MouseEvent event)
+        isClicked = false
+    end
+
+    action SetRegionSize(number width, number height)
+        scrollRegionWidth = width
+        scrollRegionHeight = height
+        scrollAnchor:SetWidth(width)
+        scrollAnchor:SetHeight(height)
+        Resize()
+    end
+
+    action SetAutomaticRegionSizing(boolean sizing)
+        automaticRegionSizing = sizing
+    end
+
+    action FitRegionToContents
+        Number width
+        width:SetValue(0)
+        Number height
+        height:SetValue(0)
+        FindDimensions(scrollAnchor:GetChildren(), width, height)
+        SetRegionSize(width:GetValue() - scrollAnchor:GetGlobalX(), height:GetValue() - scrollAnchor:GetGlobalY())
+    end
+
+    private action FindDimensions(Array<Item2D> items, Number width, Number height)
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            Item2D item = items:Get(counter)
+
+            if item:GetGlobalX() + item:GetWidth() > width:GetValue()
+                width:SetValue(item:GetGlobalX() + item:GetWidth())
+            end
+
+            if item:GetGlobalY() + item:GetHeight() > height:GetValue()
+                height:SetValue(item:GetGlobalY() + item:GetHeight())
+            end
+
+            if not item:IsClipping()
+                FindDimensions(item:GetChildren(), width, height)
+            end
+
+            counter = counter + 1
+        end
+    end
+
+    /*
+    Takes values between 0.0 and 1.0 as percentage-style positions for the
+    vertical and horizontal scroll bars and view area.
+    */
+    action UpdatePaneView(number horizontal, number vertical)
+        if vertical > 1.0
+            if me:vertical = 1.0
+                return now
+            else
+                vertical = 1.0
+            end
+        elseif vertical < 0.0
+            if me:vertical = 0.0
+                return now
+            else
+                vertical = 0.0
+            end
+        end
+
+        if horizontal > 1.0
+            if me:horizontal = 1.0
+                return now
+            else
+                horizontal = 1.0
+            end
+        elseif horizontal < 0.0
+            if me:horizontal = 0.0
+                return now
+            else
+                horizontal = 0.0
+            end
+        end
+
+        number sharedSpaceOffset = GetSharedSpaceOffset()
+
+        verticalControlLayout:SetPercentageY(vertical)
+        verticalControlLayout:SetOffsetY((1 - vertical) * ((GetHeight() + verticalBarLayout:GetHeightOffset()) * verticalControlLayout:GetPercentageHeight()))
+        horizontalControlLayout:SetPercentageX(horizontal)
+        horizontalControlLayout:SetOffsetX(-(horizontal * ((GetWidth() + horizontalBarLayout:GetWidthOffset()) * horizontalControlLayout:GetPercentageWidth())))
+
+        scrollAnchorLayout:SetOffsetY((1 - vertical) * (scrollRegionHeight - (GetHeight() - GetSharedSpaceOffset())))
+        scrollAnchorLayout:SetOffsetX(-horizontal * (scrollRegionWidth - (GetWidth() - GetSharedSpaceOffset())))
+
+        if verticalBar:IsShowing() and verticalBar:GetHeight() > 0
+            verticalViewPercentage = (verticalControl:GetHeight() + verticalControl:GetY()) / verticalBar:GetHeight()
+        else
+            verticalViewPercentage = 1.0
+        end
+
+        me:vertical = vertical
+        me:horizontal = horizontal
+
+        parent:Item2D:Resize()
+    end
+
+    action GetScrollRegionWidth returns number
+        if scrollRegionWidth < GetWidth()
+            return GetWidth()
+        end
+        return scrollRegionWidth
+    end
+
+    action GetScrollRegionHeight returns number
+        if scrollRegionHeight < GetHeight()
+            return GetHeight()
+        end
+        return scrollRegionHeight
+    end
+
+    private action GetSharedSpaceOffset returns number
+        if horizontalBar:IsShowing() and verticalBar:IsShowing()
+            return barThickness
+        end
+        return 0
+    end
+
+    private action GetVerticalTrackPercentage(number y) returns number
+        return y / (GetHeight() - verticalControl:GetHeight())
+    end
+
+    private action GetHorizontalTrackPercentage(number x) returns number
+        return x / (GetWidth() - horizontalControl:GetWidth())
+    end
+end

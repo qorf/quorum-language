@@ -8,22 +8,12 @@
 
 bool TextBoxControl::Initialized = false;
 
-TextBoxControl::TextBoxControl(_In_reads_(lineCount) TextLine * lines, _In_ int lineCount, _In_ EndPoint caret) 
-	: m_TextboxHWND(NULL), m_caretPosition(caret.line, caret.character), m_focused(false), m_lineCount(lineCount), m_pTextboxName(L"Textbox"), m_Text(L""), m_pTextBoxProvider(NULL)
+TextBoxControl::TextBoxControl(_In_ const char* lines, _In_ int caretIndex) 
+	: m_TextboxHWND(NULL), m_focused(false), m_fullText(lines), m_pTextboxName(L"Textbox"), m_pTextBoxProvider(NULL)
 {
-	// Nothing to do here.
+	m_caretPosition.character = caretIndex;
 }
 
-TextBoxControl::~TextBoxControl()
-{
-	/*if (m_pTextBoxProvider != NULL)
-	{
-		m_pTextBoxProvider->Release();
-		m_pTextBoxProvider = NULL;
-	}*/
-}
-
-// RegisterButtonControl: Registers the TextControl with Windows API so that it can used and later be registered with UI Automation
 bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 {
 	WNDCLASSEXW wc;
@@ -58,8 +48,9 @@ bool TextBoxControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, TextLine quorumLines[], _In_ EndPoint caret)
+HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _In_ WCHAR* textboxDescription, _In_ const char* fullText, _In_ int caretIndex)
 {
+	UNREFERENCED_PARAMETER(textboxDescription);
 
 	if (!Initialized)
 	{
@@ -68,21 +59,21 @@ HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _I
 
 	if (Initialized)
 	{
-		TextBoxControl * control = new TextBoxControl(quorumLines, _ARRAYSIZE(quorumLines), caret);
+		TextBoxControl * control = new TextBoxControl(fullText, caretIndex);
 
 		control->m_TextboxHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
-												 L"QUORUM_TEXTBOX",
-												 textboxName,
-												 WS_VISIBLE | WS_CHILD,
-												 -1,
-												 -1,
-												 1,
-												 1,
-												 GetMainWindowHandle(), // Parent window
-												 NULL,
-												 instance,
-												 static_cast<PVOID>(control)
-												 );
+			L"QUORUM_TEXTBOX",
+			textboxName,
+			WS_VISIBLE | WS_CHILD,
+			-1,
+			-1,
+			1,
+			1,
+			GetMainWindowHandle(), // Parent window
+			NULL,
+			instance,
+			static_cast<PVOID>(control)
+		);
 
 		if (control->m_TextboxHWND == 0)
 		{
@@ -116,32 +107,14 @@ HWND TextBoxControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* textboxName, _I
 
 }
 
-TextLine * TextBoxControl::GetLine(_In_ int line)
+const char* TextBoxControl::GetLine()
 {
-	if (line < 0 || line >= m_lineCount)
-	{
-		return NULL;
-	}
-	return &m_pLines[line];
+	return m_fullText;
 }
 
-void TextBoxControl::SetLineText(_In_ int line, _In_ PCWSTR newText)
+int TextBoxControl::GetLineLength()
 {
-	if (line >= 0 || line < m_lineCount)
-	{
-		m_pLines[line].text = newText;
-	}
-	
-}
-
-int TextBoxControl::GetLineLength(_In_ int line)
-{
-	size_t strLength;
-	if (FAILED(StringCchLength(m_pLines[line].text, 10000, &strLength)))
-	{
-		strLength = 0;
-	}
-	return static_cast<int>(strLength);
+	return static_cast<int>(strlen(m_fullText));
 }
 
 int TextBoxControl::GetLineCount()
@@ -151,13 +124,14 @@ int TextBoxControl::GetLineCount()
 
 EndPoint TextBoxControl::GetTextboxEndpoint()
 {
-	EndPoint endOfText = { m_lineCount - 1, 0 };
-	endOfText.character = GetLineLength(endOfText.line);
+	EndPoint endOfText;
+	endOfText.character = GetLineLength();
 	return endOfText;
 }
 
 VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIBUTEID attribute)
 {
+	UNREFERENCED_PARAMETER(start);
 	VARIANT retval;
 	VariantInit(&retval);
 
@@ -207,7 +181,6 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIB
 		// TODO: This should change depending on if the text from quorum is read-only.
 		retval.vt = VT_BOOL;
 		retval.boolVal = VARIANT_FALSE;
-		//retval.boolVal = VARIANT_TRUE;
 	}
 	else if (attribute == UIA_IsSubscriptAttributeId)
 	{
@@ -294,7 +267,7 @@ VARIANT TextBoxControl::GetAttributeAtPoint(_In_ EndPoint start, _In_ TEXTATTRIB
 		{
 			retval.lVal = CaretPosition_BeginningOfLine;
 		}
-		else if (m_caretPosition.character == GetLineLength(m_caretPosition.line))
+		else if (m_caretPosition.character == GetLineLength())
 		{
 			retval.lVal = CaretPosition_EndOfLine;
 		}
@@ -317,82 +290,17 @@ bool TextBoxControl::StepCharacter(_In_ EndPoint start, _In_ bool forward, _Out_
 	*end = start;
 	if (forward)
 	{
-		if (end->character >= GetLineLength(end->line))
-		{
-			if (end->line + 1 >= GetLineCount())
-			{
-				return false;
-			}
-			end->line++;
-			end->character = 0;
-		}
-		else
-		{
 			end->character++;
-		}
 	}
 	else
 	{
 		if (end->character <= 0)
 		{
-			if (end->line <= 0)
-			{
-				return false;
-			}
-			end->line--;
-			end->character = GetLineLength(end->line);
+			return false;
 		}
 		else
 		{
 			end->character--;
-		}
-	}
-	return true;
-}
-
-// This moves forward or backward by line. It targets the end of lines, so if
-// in the middle of a line, it moves to the end, and if it's at the end of a line
-// it moves to the end of the next line.
-
-// When moving backwards it still targets the end of the line, moving to the end of
-// the previous line, except when on the first line, where it will move to the
-// beginning of the line, as there isn't a previous line.
-
-// This is done so whether we walk forward or backwards, there is a consistent
-// span given, from the end of one line, to the end of the next
-bool TextBoxControl::StepLine( _In_ EndPoint start, _In_ bool forward, _Out_ EndPoint * end)
-{
-	*end = start;
-	if (forward)
-	{
-		if (end->character >= GetLineLength(end->line))
-		{
-			if (end->line + 1 >= GetLineCount())
-			{
-				return false;
-			}
-			end->line++;
-			end->character = GetLineLength(end->line);
-		}
-		else
-		{
-			end->character = GetLineLength(end->line);
-		}
-	}
-	else
-	{
-		if (end->line <= 0)
-		{
-			if (end->character <= 0)
-			{
-				return false;
-			}
-			end->character = 0;
-		}
-		else
-		{
-			end->line--;
-			end->character = GetLineLength(end->line);
 		}
 	}
 	return true;
@@ -403,7 +311,6 @@ TextBoxProvider* TextBoxControl::GetTextBoxProvider()
 	if (m_pTextBoxProvider == NULL)
 	{
 		m_pTextBoxProvider = new TextBoxProvider(this->m_TextboxHWND, this);
-		UiaRaiseAutomationEvent(m_pTextBoxProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_pTextBoxProvider;
 }
@@ -426,11 +333,6 @@ WCHAR* TextBoxControl::GetName()
 void TextBoxControl::SetName(_In_ WCHAR* name)
 {
 	m_pTextboxName = name;
-}
-
-std::wstring TextBoxControl::GetText()
-{
-	return m_Text;
 }
 
 LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
@@ -458,6 +360,7 @@ LRESULT TextBoxControl::StaticTextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT me
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
+
 LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 	LRESULT lResult = 0;
@@ -470,13 +373,14 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 		if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId))
 		{
 			// Register with UI Automation.
-			//IRawElementProviderSimple * provider = new TextBoxProvider(hwnd, this); //this->GetTextBoxProvider();
-			//if (provider != NULL)
-			//{
-			//	lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
-			//}
+			IRawElementProviderSimple* provider = new TextBoxProvider(hwnd, this);
+			if (provider != NULL)
+			{
+				lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, provider);
+				provider->Release();
+			}
 
-			lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetTextBoxProvider());
+			//lResult = UiaReturnRawElementProvider(hwnd, wParam, lParam, this->GetTextBoxProvider());
 		}
 		break;
 	}
@@ -497,10 +401,10 @@ LRESULT CALLBACK TextBoxControl::TextBoxControlWndProc(_In_ HWND hwnd, _In_ UINT
 	case QUORUM_UPDATECARET:
 	{
 
-		// IQuorumAccessiblity passes the wstring by reference. So we cast lParam to a pointer to a wstring and then dereference it to assign it to the Textboxes m_Text wstring.
-		m_Text = *(std::wstring*)(lParam);
+		//const char* fullText = (const char*)(lParam);
+		EndPoint caretPosition =  EndPoint(wParam);
+		UpdateCaret(caretPosition);
 
-		UpdateCaret(/*(EndPoint*)lParam*/);
 		break;
 	}
 	case QUORUM_SETNAME:
@@ -535,8 +439,8 @@ void TextBoxControl::KillControlFocus()
 	m_focused = false;
 }
 
-void TextBoxControl::UpdateCaret(/* _In_ EndPoint* caretPosition*/)
+void TextBoxControl::UpdateCaret(_In_ EndPoint caretPosition)
 {
-	//m_caretPosition = *caretPosition;
+	m_caretPosition = caretPosition;
 	NotifyCaretPositionChanged(this->m_TextboxHWND, this);
 }
