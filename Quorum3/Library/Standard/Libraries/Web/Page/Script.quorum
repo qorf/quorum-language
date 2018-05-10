@@ -258,7 +258,7 @@ class Script is WebTag, FlowContent
         result = result + attributeText + " type=" + code:GetDoubleQuote() + "text/javascript" + code:GetDoubleQuote() + ">"
         result = result + me:GenerateNestedTags()
         result = result + code
-        result = result + "</script>"
+        result = result + "<" + "/" + "script" + ">"
         return result
     end
 
