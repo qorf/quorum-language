@@ -31,6 +31,24 @@ class WebTable is WebTag
     constant text border = "border"
 //    ColumnGroup columnGroup
 
+use Libraries.Compute.Matrix
+use Libraries.Web.Page.WebTable
+
+    /*
+        This action creates a WebTable object from a two dimensional matrix created with the Matrix class.
+
+        Attribute: Example
+
+        class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 1.1)
+
+            WebTable table
+            table:Add(matrix)
+            output table:Generate()
+        end
+    */
     action Add(Matrix matrix)
         TableBody body
         row = 0
