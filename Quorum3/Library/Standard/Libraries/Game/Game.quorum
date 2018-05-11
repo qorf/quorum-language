@@ -54,6 +54,11 @@ use Libraries.Game.Behaviors.MenuBarLeftBehavior
 use Libraries.Game.Behaviors.MenuBarRightBehavior
 use Libraries.Game.Behaviors.MenuBarRunBehavior
 use Libraries.Game.Behaviors.MenuBarUpBehavior
+use Libraries.Game.Behaviors.GraphicUserInterfaces.TreeDoubleClickBehavior
+use Libraries.Game.Behaviors.GraphicUserInterfaces.TreeLeftBehavior
+use Libraries.Game.Behaviors.GraphicUserInterfaces.TreeRightBehavior
+use Libraries.Game.Behaviors.GraphicUserInterfaces.TreeDownBehavior
+use Libraries.Game.Behaviors.GraphicUserInterfaces.TreeUpBehavior
 use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -464,6 +469,38 @@ class Game
         menuBarTable:Add(enter, menuRunBehavior)
 
         gameInput:AddInputTable(menuBarTable)
+
+        InputTable treeItemTable
+        treeItemTable:SetIdentifier("TreeItem")
+        InputSet doubleClickSet
+        doubleClickSet:SetMouseInput(1)
+        doubleClickSet:SetEventCount(2)
+        TreeDoubleClickBehavior doubleClickBehavior
+        treeItemTable:Add(doubleClickSet, doubleClickBehavior)
+
+        InputSet clickSet
+        clickSet:SetMouseInput(1)
+        ClickDownBehavior clickDownBehavior
+        treeItemTable:Add(clickSet, clickDownBehavior)
+
+        AddInputTable(treeItemTable)
+
+        InputTable treeTable
+        treeTable:SetIdentifier("Tree")
+
+        TreeLeftBehavior treeLeftBehavior
+        treeTable:Add(leftArrow, treeLeftBehavior)
+        
+        TreeRightBehavior treeRightBehavior
+        treeTable:Add(rightArrow, treeRightBehavior)
+
+        TreeDownBehavior treeDownBehavior
+        treeTable:Add(downArrow, treeDownBehavior)
+
+        TreeUpBehavior treeUpBehavior
+        treeTable:Add(upArrow, treeUpBehavior)
+
+        AddInputTable(treeTable)
     end
 
     /*
