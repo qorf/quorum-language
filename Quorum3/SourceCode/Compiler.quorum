@@ -152,6 +152,20 @@ class Compiler
             i = i + 1
         end
 
+        if request:recompile not= undefined
+            text value = request:recompile:GetAbsolutePath()
+            SymbolTable table = request:symbolTable
+            if table not= undefined
+                Class clazz = table:GetClassInFile(value)
+                table:RemoveFile(value)
+
+                if clazz not= undefined
+                    clazz:RemoveCallLocationsFromDependencies(request:recompile)
+                end
+
+            end
+        end
+
         Library library = request:library
         CompilerResult result
         HashTable<text, ClassOpcode> theOpcodes = undefined

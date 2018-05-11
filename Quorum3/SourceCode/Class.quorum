@@ -2078,10 +2078,6 @@ class Class is Symbol
             Location nameLocation = call:nameLocation
             if nameLocation not= undefined
                 resolution:nameLocation = nameLocation:CreateLocationCopy()
-                if final:GetName() = "Evaluate"
-                    a = 5
-                end
-
                 final:AddCallLocation(resolution:nameLocation)
             end
 
