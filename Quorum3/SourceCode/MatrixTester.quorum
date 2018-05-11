@@ -14,14 +14,10 @@ class MatrixTester
     text path = "Library/Tests/Matrix/"
     text passPath = path + "Pass/"
     text failPath = path + "Fail/"
+
     action Test
-        path = passPath
-        IfConst()
-
-//FAIL TESTS
-        path = failPath
-
-        ElseIfBadVariable()
+        PassTests(passPath)
+        FailTests(failPath)
     end
 
     action GetName returns text
@@ -36,25 +32,43 @@ class MatrixTester
         me:suite = suite
     end
 
-    action IfConst
-        Array<File> files
-        Array<text> results
-        File main
-        main:SetPath(path + "IfConst.quorum")
-        files:Add(main)
-        results:Add(0, "false")
-        suite:Test(files, results)
-        suite:TestJavaScript(files, results)
+    action PassTests(text path)
+        File f
+        f:SetPath(path)
+        if f:Exists()
+            Array<File> array = f:GetDirectoryListing()
+            Iterator<File> it = array:GetIterator()
+            repeat while it:HasNext()
+                File next = it:Next()
+                File main
+                main:SetPath(path + next:GetFileName():Replace("Pass",""))
+                Array<File> files
+                Array<text> results
+                files:Add(main)
+                results:Add(0, "pass")
+                suite:Test(files, results)
+                suite:TestJavaScript(files, results)
+            end
+        end
     end
 
-//FAIL TESTS
-    action ElseIfBadVariable
-        Array<File> files
-        File main
-        main:SetPath(path + "ElseIfBadVariable.quorum")
-        files:Add(main)
-        suite:TestFail(files)
-        suite:TestJavaScriptFail(files)
+    action FailTests(text path)
+        File f
+        f:SetPath(path)
+        if f:Exists()
+            Array<File> array = f:GetDirectoryListing()
+            Iterator<File> it = array:GetIterator()
+            repeat while it:HasNext()
+                File next = it:Next()
+                File main
+                main:SetPath(path + next:GetFileName():Replace("Fail",""))
+                Array<File> files
+                Array<text> results
+                files:Add(main)
+                suite:TestFail(files)
+                suite:TestJavaScriptFail(files)
+            end
+        end
     end
 
 end

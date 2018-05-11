@@ -10,18 +10,22 @@ The WebTable class represents HTML's (Hypertext Markup Language) table tag which
 is a class that builds a table. This table contains any number
 of rows that have been added to the table. 
 
+Attribute: Parameter matrix This is the matrix we are converting to HTML on the web
+
 Attribute: Example
 
-use Libraries.Web.Page.all
+use Libraries.Compute.Matrix
+use Libraries.Web.Page.WebTable
+
 class Main
-   action main
-      //make a web page
-      WebPage page
-      WebTable table
-      //add a TableRow
-      TableRow row
-      table:AddRow(row)
-      page:AddToBody(table)
+    action main
+        Matrix matrix
+        matrix:Fill(3, 3, 1.0)
+
+        WebTable table
+        table:Add(matrix)
+
+        output table:Generate()
    end
 end
 */
@@ -29,6 +33,24 @@ class WebTable is WebTag
     constant text border = "border"
 //    ColumnGroup columnGroup
 
+use Libraries.Compute.Matrix
+use Libraries.Web.Page.WebTable
+
+    /*
+        This action creates a WebTable object from a two dimensional matrix created with the Matrix class.
+
+        Attribute: Example
+
+        class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 1.1)
+
+            WebTable table
+            table:Add(matrix)
+            output table:Generate()
+        end
+    */
     action Add(Matrix matrix)
         TableBody body
         row = 0

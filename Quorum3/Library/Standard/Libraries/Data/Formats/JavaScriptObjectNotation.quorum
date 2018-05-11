@@ -24,7 +24,7 @@ class Main
         dq = dq:GetDoubleQuote()
         text myValue = "{" + dq + "data" + dq + ": [21.5, 22.7, 23.9]}"
         JavaScriptObjectNotation json
-        json:ReadToObject(myValue)
+        json:Read(myValue)
         i = 0
         repeat while i < json:GetSize()
             JavaScriptObjectNotation next = json:Get(i)
@@ -299,7 +299,7 @@ class JavaScriptObjectNotation
     end
     */
 
-    action GetKeys() returns Array<text>
+    action GetKeys returns Array<text>
         Array<text> result
         Iterator<JavaScriptObjectNotation> it = me:GetIterator()
         repeat while it:HasNext()
@@ -338,25 +338,170 @@ class JavaScriptObjectNotation
         return integerValue
     end
 
-    action GetIterator() returns Iterator<JavaScriptObjectNotation>
+    /*
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Containers.Iterator
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1.1)
+            json:Add("item2", 2.2)
+            json:Add("item3", 3.3)
+
+            number sum = 0
+            i = 0
+            Iterator<JavaScriptObjectNotation> myIterator = json:GetIterator()
+
+            repeat while myIterator:HasNext()
+                JavaScriptObjectNotation nextItem = myIterator:Next()
+                sum = sum + nextItem:GetNumber()
+                i = i + 1
+            end
+            output sum
+       end
+    end
+    */
+
+    action GetIterator returns Iterator<JavaScriptObjectNotation>
         return array:GetIterator()
     end
+
+    /*
+    This method returns a number value of a JavaScriptObjectNotation object containing a number type
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1.1)
+            json:Add("item2", 2.2)
+            json:Add("item3", 3.3)
+
+            number sum = 0
+            i = 0
+            repeat json:GetSize() times
+                sum = sum + json:Get(i):GetNumber()
+                i = i + 1
+            end
+            output sum
+       end
+    end
+    */
 
     action GetNumber returns number
         return numberValue
     end
 
+/*
+    This method returns a number of children in a JavaScriptObjectNotation object
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1.1)
+            json:Add("item2", 2.2)
+            json:Add("item3", 3.3)
+
+            output json:GetSize()
+       end
+    end
+    */
+
     action GetSize returns integer
         return array:GetSize()
     end
+
+    /*
+    This method returns a text value of a JavaScriptObjectNotation object containing a text type
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", "one")
+            json:Add("item2", "two")
+            json:Add("item3", "three")
+
+            i = 0
+            repeat json:GetSize() times
+                output json:Get(i):GetText()
+                i = i + 1
+            end
+       end
+    end
+    */
 
     action GetText returns text
         return textValue
     end
 
+    /*
+    This method returns a type of a JavaScriptObjectNotation object.
+    INTEGER = 1
+    NUMBER = 2
+    TEXT = 3
+    BOOLEAN = 4
+    UNDEFINED = 5
+    ARRAY = 6
+    OBJECT = 7
+    PARENT = 8
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", "one")
+            json:Add("item2", 1)
+            json:Add("item3", 1.1)
+            json:Add("item4", true)
+
+            i = 0
+            repeat json:GetSize() times
+                output json:Get(i):GetType()
+                i = i + 1
+            end
+       end
+    end
+    */
+
     action GetType returns integer
         return type
     end
+
+    /*
+    This method returns the value of a JavaScriptObjectNotation object by the key name in text format
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+
+            output json:GetValue("item1")
+            output json:GetValue("item2")
+            output json:GetValue("item3")
+       end
+    end
+    */
 
     action GetValue(text key) returns text
         Iterator<JavaScriptObjectNotation> it = me:GetIterator()
@@ -369,7 +514,28 @@ class JavaScriptObjectNotation
         return "No item called " + key + " found"
     end
 
-    action GetValue() returns text
+    /*
+    This method returns the value of a JavaScriptObjectNotation object by the key name in text format
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+       action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+
+            output json:GetValue("item1")
+            output json:GetValue("item2")
+            output json:GetValue("item3")
+       end
+    end
+    */
+
+    action GetValue returns text
         if IsText()
             return textValue
         elseif IsNumber()
@@ -390,41 +556,179 @@ class JavaScriptObjectNotation
         return ""
     end
 
-    action IsArray returns boolean
-        if type = ARRAY
-           return true
-        end
-        return false
+    /*
+    This method returns true if a JavaScriptObjectNotation object is an array or false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+
+            i = 0
+            repeat json:GetSize() times
+                output json:Get(i):IsArray()
+                i = i + 1
+            end
+       end
     end
+    */
+
+    action IsArray returns boolean
+        return type = ARRAY
+    end
+
+    /*
+    This method returns true if a JavaScriptObjectNotation object is a boolean value or false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", true)
+            json:Add("item3", "three")
+
+            i = 0
+            repeat json:GetSize() times
+                output json:Get(i):IsBoolean()
+                i = i + 1
+            end
+       end
+    end
+    */
 
     action IsBoolean returns boolean
-        if type = BOOLEAN
-           return true
-        end
-        return false
+        return type = BOOLEAN
     end
 
+    /*
+    This method returns true if a JavaScriptObjectNotation object contains values or false otherwise
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            output json:IsEmpty()
+            json:Add("item1", 1)
+            output json:IsEmpty()
+       end
+    end
+    */
     action IsEmpty returns boolean
         return array:IsEmpty()
     end
 
+    /*
+    This method returns true if a JavaScriptObjectNotation object is an integer value or false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", true)
+            json:Add("item3", "three")
+
+            i = 0
+            repeat json:GetSize() times
+                output json:Get(i):IsInteger()
+                i = i + 1
+            end
+       end
+    end
+    */
+
     action IsInteger returns boolean
-        if type = INTEGER
-           return true
-        end
-        return false
+        return type = INTEGER
     end
 
-    action IsNumber returns boolean
-        if type = NUMBER
-           return true
-        end
-        return false
+    /*
+    This method returns true if a JavaScriptObjectNotation object is an integer value or false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+
+            i = 0
+            repeat json:GetSize() times
+                output json:Get(i):IsNumber()
+                i = i + 1
+            end
+       end
     end
+    */
+
+    action IsNumber returns boolean
+        return type = NUMBER
+    end
+
+    /*
+    This method returns true if a JavaScriptObjectNotation object is an object or false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+
+            i = 0
+            repeat json:GetSize() times
+                output json:Get(i):IsObject()
+                i = i + 1
+            end
+       end
+    end
+    */
 
     action IsObject returns boolean
         return type = OBJECT
     end
+
+    /*
+    This method returns true if a JavaScriptObjectNotation object is the parent or false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+
+            i = 0
+            repeat json:GetSize() times
+                output json:Get(i):IsObject()
+                i = i + 1
+            end
+       end
+    end
+    */
 
     action IsParent returns boolean
         return type = PARENT
@@ -434,19 +738,76 @@ class JavaScriptObjectNotation
         return prettyPrint
     end
 
+    /*
+    This method returns true if a JavaScriptObjectNotation object is a text or false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+
+            i = 0
+            repeat json:GetSize() times
+                output json:Get(i):IsText()
+                i = i + 1
+            end
+       end
+    end
+    */
+
     action IsText returns boolean
-        if type = TEXT
-           return true
-        end
-        return false
+        return type = TEXT
     end
 
-    action IsUndefined returns boolean
-        if type = UNDEFINED
-           return true
-        end
-        return false
+    /*
+    This method returns true if a JavaScriptObjectNotation object is a text or false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+
+            i = 0
+            repeat json:GetSize() times
+                output json:Get(i):IsUndefined()
+                i = i + 1
+            end
+       end
     end
+    */
+
+    action IsUndefined returns boolean
+        return type = UNDEFINED
+    end
+
+    /*
+    This method will read in the contents of a file to a JavaScriptObjectNotation object.
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.System.File
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            File myFile
+            myFile:SetPath("response.json")
+            json:Read(myFile)
+            output json:ToText()
+       end
+    end
+    */
 
     action Read(File file)
         if file not= undefined and file:Exists() and file:IsFile()
@@ -456,6 +817,23 @@ class JavaScriptObjectNotation
             output "File: " + file:GetFileName() + " is not found"
         end
     end
+
+    /*
+    This method will read a text value to a JavaScriptObjectNotation object.
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+        text myValue = "{" + dq + "item1" + dq + ": 1," + dq + "item2" + dq + ": 2}"
+        JavaScriptObjectNotation json
+        json:Read(myValue)
+        output json:ToText()
+       end
+    end
+    */
 
     action Read(text data)
         // load object with JSON formatted text data 
@@ -467,6 +845,25 @@ class JavaScriptObjectNotation
             Add(object)
         end
     end
+
+    /*
+    This method will read a hash table to a JavaScriptObjectNotation object.
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Containers.HashTable
+
+    class Main
+        action Main
+        JavaScriptObjectNotation json
+        HashTable<text, text> table
+        table:Add("1", "one")
+        table:Add("2", "two ")
+        table:Add("3", "three")
+        json:Read(table)
+        output json:ToText()
+       end
+    end
+    */
 
     action Read(HashTable<text, text> data)
         // load object with HashTable data
@@ -494,28 +891,134 @@ class JavaScriptObjectNotation
         return listen:GetObject()
     end
 
+    /*
+    This method removes an item from a JavaScriptObjectNotation object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+            json:Remove(1)
+            output json:ToText()
+       end
+    end
+    */
+
     action Remove(integer index)
         array:RemoveAt(index)
     end
+
+    /*
+    This method sets a JavaScriptObjectNotation object to boolean type with a specified value
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+            json:Get(1):SetBoolean(false)
+            output json:ToText()
+       end
+    end
+    */
 
     action SetBoolean(boolean value)
         booleanValue = value
         type = BOOLEAN
     end
 
+    /*
+    This method sets a JavaScriptObjectNotation object to integer type with a specified value
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+            json:Get(1):SetBoolean(false)
+            output json:ToText()
+       end
+    end
+    */
+
     action SetInteger(integer value)
         integerValue = value
         type = INTEGER
     end
+
+    /*
+    This method sets a JavaScriptObjectNotation object to number type with a specified value
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+            json:Get(1):SetNumber(10.0)
+            output json:ToText()
+       end
+    end
+    */
 
     action SetNumber(number value)
         numberValue = value
         type = NUMBER
     end
 
+    /*
+    This method sets a JavaScriptObjectNotation object to object type
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:SetObject()
+       end
+    end
+    */
+
     action SetObject
         type = OBJECT
     end
+
+    /*
+    This method sets a JavaScriptObjectNotation object to parent type
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:SetParent()
+       end
+    end
+    */
 
     action SetParent
         type = PARENT
@@ -525,18 +1028,86 @@ class JavaScriptObjectNotation
         prettyPrint = print
     end
 
+    /*
+    This method sets the name of a key of a JavaScriptObjectNotation object
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+            json:Get(1):SetKey("number2")
+            output json:ToText()
+       end
+    end
+    */
+
     action SetKey(text key)
         me:key = key
     end
+
+    /*
+    This method sets a JavaScriptObjectNotation object to text type with a specified value
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+            json:Get(1):SetText("two")
+            output json:ToText()
+       end
+    end
+    */
 
     action SetText(text value)
         textValue = value
         type = TEXT
     end
 
+    /*
+    This method sets a JavaScriptObjectNotation object to undefined type
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:SetUndefined()
+       end
+    end
+    */
+
     action SetUndefined
         type = UNDEFINED
     end
+
+    /*
+    This method sets a JavaScriptObjectNotation object to array type
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:SetArray()
+       end
+    end
+    */
 
     action SetArray
         type = ARRAY
@@ -549,6 +1120,25 @@ class JavaScriptObjectNotation
         end
         return space
     end
+
+    /*
+    This method prints a JavaScriptObjectNotation object in text format
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+            json:Get(1):SetText("two")
+            output json:ToText()
+       end
+    end
+    */
 
     action ToText returns text
         return ToText(0)

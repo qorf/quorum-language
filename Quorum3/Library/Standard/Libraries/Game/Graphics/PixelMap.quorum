@@ -7,6 +7,7 @@ use Libraries.Game.Graphics.Filter
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Drawable
 use Libraries.System.File
+use Libraries.Compute.Matrix
 
 /*
     The PixelMap class represents an image as a collection of individual pixels.
@@ -18,14 +19,6 @@ class PixelMap is Disposable
     
     Color color
     Format format
-
-    on create
-        //blending:SetValue(blending:SOURCE_OVER)
-        //colorCode = 0
-    end
-    
-    // FOR DEBUGGING PURPOSES ONLY
-    //system action GetDisposed returns boolean
 
     /*
     This action takes a different PixelMap and draws it on top of this PixelMap
@@ -41,14 +34,6 @@ class PixelMap is Disposable
     of sourceX, sourceY.
     */
     system action DrawPixelMap(PixelMap pixmap, integer sourceX, integer sourceY, integer destX, integer destY, integer sourceWidth, integer sourceHeight)
-
-    // Sets the type of Blending to be used for all operations.
-    // Default is Blending:SOURCE_OVER
-    // NOTE: NOT FULLY IMPLEMENTED
-    /*public action SetBlending (Blending newBlend)
-        blending:SetValue(newBlend:GetValue())
-        //Gdx2DPixmap.setBlend(blending == Blending.None ? 0 : 1);
-    end*/
 
     /*
     Returns the Format that is used by this PixelMap.
@@ -113,6 +98,96 @@ class PixelMap is Disposable
     This action will load a PixelMap using an image file.
     */
     system action LoadPixelMap(File file)
+
+    /*
+    This action will load a matrix into the PixelMap to create a monochrome
+    (black and white) image. Each value is assumed to be between 0 and 1, 
+    where 0 represents a black pixel and 1 represents a white pixel.
+
+    Attribute: Parameter matrix The matrix representing the pixels to load.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.PixelMap
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Game.Graphics.Texture
+    use Libraries.Compute.Matrix
+
+    class Main is Game
+
+        PixelMap pixelMap
+        Texture texture
+        Drawable drawable
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Matrix matrix
+
+            // 7x7 square that is black at edges and lightens as it goes towards the center.
+            matrix:Fill(7, 7, 0)
+            matrix:Set(1, 1, 0.33)
+            matrix:Set(2, 1, 0.33)
+            matrix:Set(3, 1, 0.33)
+            matrix:Set(4, 1, 0.33)
+            matrix:Set(5, 1, 0.33)
+            matrix:Set(5, 2, 0.33)
+            matrix:Set(5, 3, 0.33)
+            matrix:Set(5, 4, 0.33)
+            matrix:Set(5, 5, 0.33)
+            matrix:Set(4, 5, 0.33)
+            matrix:Set(3, 5, 0.33)
+            matrix:Set(2, 5, 0.33)
+            matrix:Set(1, 5, 0.33)
+            matrix:Set(1, 4, 0.33)
+            matrix:Set(1, 3, 0.33)
+            matrix:Set(1, 2, 0.33)
+
+            matrix:Set(2, 2, 0.66)
+            matrix:Set(3, 2, 0.66)
+            matrix:Set(4, 2, 0.66)
+            matrix:Set(4, 3, 0.66)
+            matrix:Set(4, 4, 0.66)
+            matrix:Set(3, 4, 0.66)
+            matrix:Set(2, 4, 0.66)
+            matrix:Set(2, 3, 0.66)
+
+            matrix:Set(3, 3, 1)
+
+            pixelMap:LoadMatrix(matrix)
+
+            // Loading the PixelMap and blowing up the size of the Drawable to make it easier to see.
+            texture:LoadFromPixelMap(pixelMap)
+            drawable:Load(texture)
+            Add(drawable)
+
+            drawable:SetPosition(200, 200)
+            drawable:SetSize(100, 100)
+        end
+    end
+    */
+    action LoadMatrix(Matrix matrix)
+        Format format
+        format:SetValue(format:RGBA8888)
+
+        CreatePixelMap(matrix:GetColumns(), matrix:GetRows(), format)
+        
+        Color color
+        integer x = 0
+        repeat while x < matrix:GetColumns()
+            integer y = 0
+            repeat while y < matrix:GetRows()
+                number value = matrix:Get(x, y)
+                color:SetColor(value, value, value, 1)
+                SetPixel(x, y, color)
+                y = y + 1
+            end
+            x = x + 1
+        end
+    end
 
     /*
     This action will asynchronously load the PixelMap (that is, it will be

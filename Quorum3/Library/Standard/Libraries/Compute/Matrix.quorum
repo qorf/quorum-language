@@ -15,12 +15,23 @@ use Libraries.Compute.MatrixTransform.Transpose
 use Libraries.Containers.Table
 use Libraries.Containers.Array
 use Libraries.Compute.Math
-use Libraries.Web.Page.WebTable
-use Libraries.Web.Page.TableBody
-use Libraries.Web.Page.TableRow
-use Libraries.Web.Page.TableData
 
-class Matrix 
+class Matrix
+    /*
+    This class is a two dimensional matrix of number variables.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 1.1)
+            output matrix:ToText()
+        end
+    end
+    */
     private Table<number> table
 
     private action CheckReference(integer row, integer column)
@@ -47,68 +58,221 @@ class Matrix
         end
     end
 
-    /* BASIC OPERATIONS */
+    /*
+    This method is used to get the value in a specified location in the matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 1.1)
+            output matrix:Get(1, 1)
+        end
+    end
+    */
     action Get(integer row, integer column) returns number
         CheckReference(row, column)
         return table:Get(row, column)
     end 
 
+    /*
+    This method is used to set the value in a specified location in the matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 1.1)
+            matrix:Set(1, 1, 2.2)
+            output matrix:Get(1, 1)
+        end
+    end
+    */
     action Set(integer row, integer column, number value)
         CheckReference(row, column)
         table:Set(row, column, value)
     end
 
+    /*
+    This method is used to set the dimensions of a matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:SetSize(2, 3)
+            output matrix:GetSize()
+        end
+    end
+    */
     action SetSize(integer rows, integer columns)
         table:SetSize(rows, columns)
         table:SetMaxSize(rows, columns)
     end
 
+    /*
+    This method is used to set the dimensions of a matrix to match a different matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix1
+            matrix:SetSize(2, 3)
+            output matrix:GetSize()
+        end
+    end
+    */
     action SetSize(Matrix matrix)
         table:SetSize(matrix:GetRows(), matrix:GetColumns())
         table:SetMaxSize(matrix:GetRows(), matrix:GetColumns())
     end
 
+    /*
+    This method is used to get the number of elements in a matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:SetSize(2, 3)
+            output matrix:GetSize()
+        end
+    end
+    */
     action GetSize returns integer
         return GetColumns() * GetRows()
     end
 
+    /*
+    This method is used to get the number of columns in a matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:SetSize(2, 3)
+            output matrix:GetColumns()
+        end
+    end
+    */
     action GetColumns returns integer
         return table:GetMaxNumberOfColumns()
     end
 
+    /*
+    This method is used to get the number of columns in a matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:SetSize(2, 3)
+            output matrix:GetRows()
+        end
+    end
+    */
     action GetRows returns integer
         return table:GetMaxNumberOfRows()
     end
 
-    /* Change this to return a matrix.*/
-    action GetRow(integer row) returns Array<number>
-        if row < 0 or row > GetRows() - 1
-            alert("Index value: " + row + " out of range")
-        end
-        return table:GetRow(row)
-    end
+    /*
+    This method is used to get a column of a Matrix returned as a new matrix
 
-    action GetRowArray(integer row) returns Array<number>
-        if row < 0 or row > GetRows() - 1
-            alert("Index value: " + row + " out of range")
-        end
-        return table:GetRow(row)
-    end
+    Attribute: Example
 
-    action GetRowMajorArray returns Array<number>
-        Array<number> newArray
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 1.1)
+            Matrix col1 = matrix:GetColumn(0)
+            output col1:ToText()
+        end
+    end
+    */
+    action GetColumn(integer column) returns Matrix
+        if column < 0 or column > GetColumns() - 1
+            alert("Index value: " + column + " out of range")
+        end
+        Matrix result
+        result:SetSize(GetRows(), 1)
         row = 0
         repeat GetRows() times
-            col = 0
-            repeat GetColumns() times
-                newArray:Add(Get(row, col))
-                col = col + 1
-            end
+            result:Set(row, 0, table:Get(row, column))
+            row = row + 1
+        end
+        return result
+    end
+
+    /*
+    This method is used to get a column of a Matrix returned as an array of numbers
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Containers.Array
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 1.1)
+            Array<number> col1 = matrix:GetColumnArray(0)
+            output col1:GetSize()
+        end
+    end
+    */
+    action GetColumnArray(integer column) returns Array<number>
+        if column < 0 or column > GetColumns() - 1
+            alert("Index value: " + column + " out of range")
+        end
+        Array<number> newArray
+        row = 0
+        repeat table:GetNumberOfRows() times
+            newArray:Add(table:Get(row, column))
             row = row + 1
         end
         return newArray
     end
 
+    /*
+    This method is used to get a list of all the elements in a Matrix ordered by column returned as an array of numbers
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Containers.Array
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 1.1)
+            Array<number> col1 = matrix:GetColumnMajorArray()
+            output col1:GetSize()
+        end
+    end
+    */
     action GetColumnMajorArray returns Array<number>
         Array<number> newArray
         col = 0
@@ -123,61 +287,177 @@ class Matrix
         return newArray
     end
 
-    /* Return a matrix from this. */
-    action GetColumn(integer column) returns Array<number>
-        if column < 0 or column > GetColumns() - 1
-            alert("Index value: " + column + " out of range")
+    /*
+    This method is used to get a row of a Matrix returned as a new matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 1.1)
+            Matrix row1 = matrix:GetRow(0)
+            output row1:ToText()
         end
+    end
+    */
+    action GetRow(integer row) returns Matrix
+        if row < 0 or row > GetRows() - 1
+            alert("Index value: " + row + " out of range")
+        end
+        Matrix result
+        result:SetSize(1, GetColumns())
+        col = 0
+        repeat GetColumns() times
+            result:Set(0, col, table:Get(row, col))
+            col = col + 1
+        end
+        return result
+    end
+
+    /*
+    This method is used to get a row of a Matrix returned as an array of numbers
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Containers.Array
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 1.1)
+            Array<number> row1 = matrix:GetRowArray(0)
+            output row1:GetSize()
+        end
+    end
+    */
+    action GetRowArray(integer row) returns Array<number>
+        if row < 0 or row > GetRows() - 1
+            alert("Index value: " + row + " out of range")
+        end
+        return table:GetRow(row)
+    end
+
+    /*
+    This method is used to get a list of all the elements in a Matrix ordered by row returned as an array of numbers
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Containers.Array
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 1.1)
+            Array<number> row1 = matrix:GetRowMajorArray()
+            output row1:GetSize()
+        end
+    end
+    */
+    action GetRowMajorArray returns Array<number>
         Array<number> newArray
         row = 0
-        repeat table:GetNumberOfRows() times
-            newArray:Add(table:Get(row, column))
+        repeat GetRows() times
+            col = 0
+            repeat GetColumns() times
+                newArray:Add(Get(row, col))
+                col = col + 1
+            end
             row = row + 1
         end
         return newArray
     end
 
-    action GetColumnArray(integer column) returns Array<number>
-        if column < 0 or column > GetColumns() - 1
-            alert("Index value: " + column + " out of range")
-        end
-        Array<number> newArray
-        row = 0
-        repeat table:GetNumberOfRows() times
-            newArray:Add(table:Get(row, column))
-            row = row + 1
-        end
-        return newArray
-    end
+    /*
+    This method is used to set the elements in a row of a Matrix with a list of numbers in an array. The length of the array must match the width of the Matrix.
 
-    action SetRow(integer index, Array<number> row)
-        if row:GetSize() not= GetColumns()
-            alert("Rows have " + GetColumns() + " elements in this matrix. The array you supplied has " + row:GetSize() + ". They must match.")
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Containers.Array
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 0.0)
+            Array<number> array
+            array:Add(1.1)
+            array:Add(2.1)
+            array:Add(3.1)
+            matrix:SetRow(0, array)
+            output matrix:ToText()
         end
-        if index < 0 or index > GetRows() - 1
-            alert("Index value: " + index + " out of range")
+    end
+    */
+    action SetRow(integer row, Array<number> array)
+        if array:GetSize() not= GetColumns()
+            alert("Rows have " + GetColumns() + " elements in this matrix. The array you supplied has " + array:GetSize() + ". They must match.")
+        end
+        if row < 0 or row > GetRows() - 1
+            alert("Index value: " + row + " out of range")
         end
         col = 0
         repeat GetColumns() times
-            Set(index, col, row:Get(col))
+            Set(row, col, array:Get(col))
             col = col + 1
         end
     end
 
-    action SetRow(integer index, Matrix row)
-//        if row:GetSize() not= GetColumns()
-//            alert("Rows have " + GetColumns() + " elements in this matrix. The array you supplied has " + row:GetSize() + ". They must match.")
-//        end
-//        if index < 0 or index > GetRows() - 1
-//            alert("Index value: " + index + " out of range")
-//        end
-//        col = 0
-//        repeat GetColumns() times
-//            Set(index, col, row:Get(col))
-//            col = col + 1
-//        end
+    /*
+    This method is used to set the elements in a row of a Matrix with a single row matrix. The widths of the matrices must match.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 0.0)
+            Matrix matrix2
+            matrix2:Fill(1, 3, 1.0)
+            matrix:SetRow(0, matrix2)
+            output matrix:ToText()
+        end
+    end
+    */
+    action SetRow(integer row, Matrix matrix)
+        if matrix:GetColumns() not= GetColumns()
+            alert("Rows have " + GetColumns() + " elements in this matrix. The matrix you supplied has " + matrix:GetColumns() + ". They must match.")
+        end
+        if matrix:GetRows() > 1
+            alert("This operation works for matrices with one row. The matrix you supplied has " + matrix:GetRows() + ".")
+        end
+        if row < 0 or row > GetRows() - 1
+            alert("Index value: " + row + " out of range")
+        end
+        col = 0
+        repeat GetColumns() times
+            Set(row, col, matrix:Get(0, col))
+            col = col + 1
+        end
     end
 
+    /*
+    This method is used to set all the elements in a row of a Matrix to a single value.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 0.0)
+            matrix:SetRow(0, 1.0)
+            output matrix:ToText()
+        end
+    end
+    */
     action SetRow(integer index, number value)
         if index < 0 or index > GetRows() - 1
             alert("Index value: " + index + " out of range")
@@ -189,6 +469,26 @@ class Matrix
         end
     end
 
+    /*
+    This method is used to set the elements in a column of a Matrix with a list of numbers in an array. The length of the array must match the height of the Matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Containers.Array
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 0.0)
+            Array<number> array
+            array:Add(1.1)
+            array:Add(2.1)
+            matrix:SetColumn(0, array)
+            output matrix:ToText()
+        end
+    end
+    */
     action SetColumn(integer index, Array<number> column)
         if column:GetSize() not= GetRows()
             alert("Columns have " + GetRows() + " elements in this matrix. The array you supplied has " + column:GetSize() + ". They must match.")
@@ -203,21 +503,57 @@ class Matrix
         end
     end
 
-    /* Implement this */
-    action SetColumn(integer index, Matrix matrix)
-//        if column:GetSize() not= GetRows()
-//            alert("Columns have " + GetRows() + " elements in this matrix. The array you supplied has " + column:GetSize() + ". They must match.")
-//        end
-//        if index < 0 or index > GetColumns() - 1
-//            alert("Index value: " + index + " out of range")
-//        end
-//        row = 0
-//        repeat GetRows() times
-//            Set(row, index, column:Get(row))
-//            row = row + 1
-//        end
+    /*
+    This method is used to set the elements in a column of a Matrix with a single column matrix. The heights of the matrices must match.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 0.0)
+            Matrix matrix2
+            matrix2:Fill(2, 1, 1.0)
+            matrix:SetColumn(0, matrix2)
+            output matrix:ToText()
+        end
+    end
+    */
+    action SetColumn(integer column, Matrix matrix)
+        if matrix:GetRows() not= GetRows()
+            alert("Columns have " + GetRows() + " elements in this matrix. The array you supplied has " + matrix:GetRows() + ". They must match.")
+        end
+        if matrix:GetColumns() > 1
+            alert("This operation works for matrices with one column. The matrix you supplied has " + matrix:GetColumns() + ".")
+        end
+        if column < 0 or column > GetColumns() - 1
+            alert("Index value: " + column + " out of range")
+        end
+        row = 0
+        repeat GetRows() times
+            Set(row, column, matrix:Get(row, 0))
+            row = row + 1
+        end
     end
 
+    /*
+    This method is used to set all the elements in a column of a Matrix to a single value.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 0.0)
+            matrix:SetColumn(0, 1.0)
+            output matrix:ToText()
+        end
+    end
+    */
     action SetColumn(integer index, number value)
         if index < 0 or index > GetColumns() - 1
             alert("Index value: " + index + " out of range")
@@ -229,31 +565,112 @@ class Matrix
         end
     end
 
-    /* SCALAR OPERTIONS */
+    /*
+    This method is used to add a value to all the elements in a Matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 10.0)
+            matrix = matrix:Add(1.0)
+            output matrix:ToText()
+        end
+    end
+    */
     action Add(number value) returns Matrix
         AddScalar scalar
         scalar:SetValue(me, value)
         return scalar:Transform(me)
     end
 
+    /*
+    This method is used to subtract a value from all the elements in a Matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 10.0)
+            matrix = matrix:Subtract(1.0)
+            output matrix:ToText()
+        end
+    end
+    */
     action Subtract(number value) returns Matrix
         SubtractScalar scalar
         scalar:SetValue(me, value)
         return scalar:Transform(me)
     end
 
+    /*
+    This method is used to multiply all the elements in a Matrix by a value.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 10.0)
+            matrix = matrix:Multiply(2.0)
+            output matrix:ToText()
+        end
+    end
+    */
     action Multiply(number value) returns Matrix
         MultiplyScalar scalar
         scalar:SetValue(me, value)
         return scalar:Transform(me)
     end
 
+    /*
+    This method is used to divide all the elements in a Matrix by a value.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 10.0)
+            matrix = matrix:Divide(2.0)
+            output matrix:ToText()
+        end
+    end
+    */
     action Divide(number value) returns Matrix
         DivideScalar scalar
         scalar:SetValue(me, value)
         return scalar:Transform(me)
     end
 
+    /*
+    This method is used to add all the elements in a Matrix by the values in another Matrix. The dimensions of the matrices must be the same.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 10.0)
+            Matrix matrix2
+            matrix2:Fill(2, 3, 2.0)
+            matrix = matrix:AddElements(matrix2)
+            output matrix:ToText()
+        end
+    end
+    */
     action AddElements(Matrix values) returns Matrix
         CheckSameDimensions(values)
         AddScalar scalar
@@ -261,6 +678,24 @@ class Matrix
         return scalar:Transform(me)
     end
 
+    /*
+    This method is used to subtract all the elements in a Matrix from the values in another Matrix. The dimensions of the matrices must be the same.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 10.0)
+            Matrix matrix2
+            matrix2:Fill(2, 3, 2.0)
+            matrix = matrix:SubtractElements(matrix2)
+            output matrix:ToText()
+        end
+    end
+    */
     action SubtractElements(Matrix values) returns Matrix
         CheckSameDimensions(values)
         SubtractScalar scalar
@@ -268,6 +703,24 @@ class Matrix
         return scalar:Transform(me)
     end
 
+    /*
+    This method is used to multiply all the elements in a Matrix by the values in another Matrix. The dimensions of the matrices must be the same.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 10.0)
+            Matrix matrix2
+            matrix2:Fill(2, 3, 2.0)
+            matrix = matrix:MultiplyElements(matrix2)
+            output matrix:ToText()
+        end
+    end
+    */
     action MultiplyElements(Matrix values) returns Matrix
         CheckSameDimensions(values)
         MultiplyScalar scalar
@@ -275,6 +728,24 @@ class Matrix
         return scalar:Transform(me)
     end
 
+    /*
+    This method is used to divide all the elements in a Matrix by the values in another Matrix. The dimensions of the matrices must be the same.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 10.0)
+            Matrix matrix2
+            matrix2:Fill(2, 3, 2.0)
+            matrix = matrix:DivideElements(matrix2)
+            output matrix:ToText()
+        end
+    end
+    */
     action DivideElements(Matrix values) returns Matrix
         CheckSameDimensions(values)
         DivideScalar scalar
@@ -282,6 +753,24 @@ class Matrix
         return scalar:Transform(me)
     end
 
+    /*
+    This method performs a multiplication operation on two matrices. The dimensions of the matrices must be compatible so that the columns in the first matrix are equal to the rows in the second matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 10.0)
+            Matrix matrix2
+            matrix2:Fill(3, 2, 2.0)
+            matrix = matrix:Multiply(matrix2)
+            output matrix:ToText()
+        end
+    end
+    */
     action Multiply(Matrix values) returns Matrix
         if GetColumns() not= values:GetRows()
             alert("Incompatible dimensions: " + GetColumns() + " columns in this matrix must match " + values:GetRows() + " rows in value matrix.")
@@ -291,7 +780,22 @@ class Matrix
         return multiply:Transform(me)
     end
 
-    /* FILL OPERATIONS */
+    /*
+    This method returns a copy of a Matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 10.0)
+            Matrix matrix2 = matrix:Copy()
+            output matrix2:ToText()
+        end
+    end
+    */
     action Copy() returns Matrix
         Matrix newMatrix
         newMatrix:SetSize(me)
@@ -307,7 +811,23 @@ class Matrix
         return newMatrix
     end
 
-    action Fill(integer columns, integer rows, number value)
+    /*
+    This method fills a matrix with a specified number of rows and columns with the same value.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 10.0)
+            Matrix matrix2 = matrix:Copy()
+            output matrix2:ToText()
+        end
+    end
+    */
+    action Fill(integer rows, integer columns, number value)
         Table<number> tab
         tab:SetMaxSize(rows, columns)
         tab:SetSize(rows, columns)
@@ -323,6 +843,26 @@ class Matrix
         table = tab
     end
 
+    /*
+    This method fills a matrix from the values in an array of numbers for a specified number of rows.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Containers.Array
+
+    class Main 
+        action Main
+            Matrix matrix
+            Array<number> array
+            array:Add(1.0)
+            array:Add(2.0)
+            array:Add(3.0)
+            matrix:FillByRow(3, array)
+            output matrix:ToText()
+        end
+    end
+    */
     action FillByRow(integer rows, Array<number> row)
         Table<number> tab
         repeat rows times
@@ -332,6 +872,53 @@ class Matrix
         table = tab
     end
 
+    /*
+    This method fills a matrix from the values of a single row matrix for a specified number of rows.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            Matrix matrix2
+            matrix2:Fill(1, 3, 1.1)
+            matrix:FillByRow(3, matrix2)
+            output matrix:ToText()
+        end
+    end
+    */
+    action FillByRow(integer rows, Matrix matrix)
+        Table<number> tab
+        Array<number> row = matrix:GetRowArray(0)
+        repeat rows times
+            tab:AddRow(row)
+        end
+        tab:SetMaxSize(rows, row:GetSize())
+        table = tab
+    end
+
+    /*
+    This method fills a matrix from the values in an array of numbers for a specified number of columns.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Containers.Array
+
+    class Main 
+        action Main
+            Matrix matrix
+            Array<number> array
+            array:Add(1.0)
+            array:Add(2.0)
+            array:Add(3.0)
+            matrix:FillByColumn(3, array)
+            output matrix:ToText()
+        end
+    end
+    */
     action FillByColumn(integer columns, Array<number> column)
         Table<number> tab
         tab:SetSize(column:GetSize(), columns)
@@ -349,13 +936,63 @@ class Matrix
         table = tab
     end
 
+    /*
+    This method fills a matrix from the values of a single column matrix for a specified number of columns.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            Matrix matrix2
+            matrix2:Fill(1, 3, 1.1)
+            matrix:FillByColumn(3, matrix2)
+            output matrix:ToText()
+        end
+    end
+    */
+    action FillByColumn(integer columns, Matrix matrix)
+        Table<number> tab
+        tab:SetSize(matrix:GetRows(), columns)
+        tab:SetMaxSize(matrix:GetRows(), columns)
+        row = 0
+        col = 0
+        repeat columns times
+            row = 0
+            repeat while row < matrix:GetRows()
+                tab:Set(row, col, matrix:Get(row, 0))
+                row = row + 1
+            end
+            col = col + 1
+        end
+        table = tab
+    end
+
+    /*
+    This method compares each element in a matrix to a lower threshold value and if the element is lower, it sets that element to a fill value.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(1, 3, 1.1)
+            matrix:SetLowerThreshold(2.0, 3.0)
+            output matrix:ToText()
+        end
+    end
+    */
     action SetLowerThreshold(number cutoffValue, number fillValue) returns Matrix
         Matrix resultMatrix
-        resultMatrix:SetSize(GetColumns(), GetRows())
+        resultMatrix:SetSize(GetRows(), GetColumns())
         row = 0
-        repeat while row < GetRows()
+        repeat GetRows() times
             col = 0
-            repeat while col < GetColumns()
+            repeat GetColumns() times
                 number element = Get(row, col)
                 if element < cutoffValue
                     resultMatrix:Set(row, col, fillValue) 
@@ -369,13 +1006,29 @@ class Matrix
         return resultMatrix
     end
 
+    /*
+    This method compares each element in a matrix to an upper threshold value and if the element is higher, it sets that element to a fill value.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(1, 3, 1.1)
+            matrix:SetUpperThreshold(1.0, 0.5)
+            output matrix:ToText()
+        end
+    end
+    */
     action SetUpperThreshold(number cutoffValue, number fillValue) returns Matrix
         Matrix resultMatrix
-        resultMatrix:SetSize(GetColumns(), GetRows())
+        resultMatrix:SetSize(GetRows(), GetColumns())
         row = 0
-        repeat while row < GetRows()
+        repeat GetRows() times
             col = 0
-            repeat while col < GetColumns()
+            repeat GetColumns() times
                 number element = Get(row, col)
                 if element > cutoffValue
                     resultMatrix:Set(row, col, fillValue)
@@ -389,19 +1042,76 @@ class Matrix
         return resultMatrix
     end
 
-    /* TRANSFORM OPERATIONS */
+    /*
+    This method flips the array vertically, from top to bottom
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetRow(0, 1.1)
+            matrix:SetRow(1, 2.1)
+            matrix:SetRow(2, 3.1)
+            matrix = matrix:FlipVertical()
+            output matrix:ToText()
+        end
+    end
+    */
     action FlipVertical() returns Matrix
         Flip flip
         flip:FlipVertical()
         return flip:Transform(me)
     end
 
+    /*
+    This method flips the array vertically, from top to bottom
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            matrix = matrix:FlipHorizontal()
+            output matrix:ToText()
+        end
+    end
+    */
     action FlipHorizontal() returns Matrix
         Flip flip
         flip:FlipHorizontal()
         return flip:Transform(me)
     end
 
+    /*
+    This method extracts a sub matrix from within a matrix, starting at the offsetRow and offsetColumn (relative to 0,0 in the upper right corner). The sub matrix will have the number of rows and columns specified by those parameters
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            matrix:SetColumn(3, 4.1)
+            matrix = matrix:GetSubMatrix(1, 1, 2, 2)
+            output matrix:ToText()
+        end
+    end
+    */
     action GetSubMatrix(integer offsetRow, integer offsetColumn, integer rows, integer columns) returns Matrix
         if columns > GetColumns() - offsetColumn
             alert("I cannot set the columns of a subframe outside the original matrix dimensions")
@@ -416,6 +1126,22 @@ class Matrix
         end
     end
 
+    /*
+    This method returns the identity matrix for a square matrix. An identity matrix with ones along the main diagonal from top left to bottom right and zeroes everywhere else.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 0.0)
+            matrix = matrix:Identity()
+            output matrix:ToText()
+        end
+    end
+    */
     action Identity returns Matrix
         if GetRows() not= GetColumns()
             alert("Identity only valid for square matrices.")
@@ -424,36 +1150,151 @@ class Matrix
         return identity:Transform(me)
     end
 
+    /*
+    This method shifts a matrix a given number of offsetRows and offsetColumns (relative to 0,0 in the upper right corner). The new matrix will have the number of rows and columns specified by those parameters and any empty values in the new matrix will be filled with fillValue.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            matrix:SetColumn(3, 4.1)
+            matrix = matrix:Reshape(1, 1, 6, 6, 0.0)
+            output matrix:ToText()
+        end
+    end
+    */
     action Reshape(integer offsetRow, integer offsetColumn, integer rows, integer columns, number fillValue) returns Matrix
         Reshape reshape
         reshape:SetValues(offsetRow, offsetColumn, columns, rows, fillValue)
         return reshape:Transform(me)
     end
 
+    /*
+    This method rotates a Matrix to the left
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            matrix = matrix:RotateLeft()
+            output matrix:ToText()
+        end
+    end
+    */
     action RotateLeft() returns Matrix
         Rotation rotation
         rotation:Left()
         return rotation:Transform(me)
     end
 
+    /*
+    This method rotates a Matrix to the right
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            matrix = matrix:RotateRight()
+            output matrix:ToText()
+        end
+    end
+    */
     action RotateRight() returns Matrix
         Rotation rotation
         rotation:Right()
         return rotation:Transform(me)
     end
 
+    /*
+    This method shifts a matrix a given number of offsetRows and offsetColumns (relative to 0,0 in the upper right corner). The new matrix is the same size and any empty values in the new matrix will be filled with fillValue.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            matrix:SetColumn(3, 4.1)
+            matrix = matrix:Shift(1, 1, 0.0)
+            output matrix:ToText()
+        end
+    end
+    */
     action Shift(integer offsetRow, integer offsetColumn, number fillValue) returns Matrix
         Reshape reshape
         reshape:SetValues(offsetRow, offsetColumn, GetColumns(), GetRows(), fillValue)
         return reshape:Transform(me)
     end
 
+    /*
+    This method returns the transpose of a matrix where all the rows of the matrix are turned into columns in a new matrix and vice versa.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            matrix:SetColumn(3, 4.1)
+            matrix = matrix:Transpose()
+            output matrix:ToText()
+        end
+    end
+    */
     action Transpose returns Matrix
         Transpose transpose
         return transpose:Transform(me)
     end
 
-    /* STATISTICAL METHODS */
+    /*
+    This method returns the value of the maximum element in a Matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetMaximum()
+        end
+    end
+    */
     action GetMaximum returns number
         result = 0.0
         row = 0
@@ -472,6 +1313,24 @@ class Matrix
         return result
     end
 
+    /*
+    This method returns the value of the minimum element in a Matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetMinimum()
+        end
+    end
+    */
     action GetMinimum returns number
         result = 0.0
         row = 0
@@ -490,6 +1349,24 @@ class Matrix
         return result
     end
 
+    /*
+    This method returns the sum of all the elements in a Matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetTotal()
+        end
+    end
+    */
     action GetTotal returns number
         result = 0.0
         row = 0
@@ -504,12 +1381,50 @@ class Matrix
         return result
     end
 
+    /*
+    This method returns the mean (average) of all the elements in a Matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetMean()
+        end
+    end
+    */
     action GetMean returns number
         number total = GetTotal()
         elements = GetSize()
         return total / elements
     end
 
+    /*
+    This method returns an array of all the modes (most common value) of a Matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Containers.Array
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            Array<number> modes = matrix:GetModes()
+            output modes:Get(0)
+        end
+    end
+    */
     action GetModes returns Array<number>
         Array<number> values
         row = 0
@@ -547,8 +1462,26 @@ class Matrix
         return modes
     end
 
-    /* Do we actually need this?*/
-    action GetModesText returns text
+    /*
+    This method returns an comma separated value of all the modes (most common value) of a Matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Containers.Array
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetModesAsText()
+        end
+    end
+    */
+    action GetModesAsText returns text
         out = ""
         Array<number> modes = GetModes()
         i = 0
@@ -562,6 +1495,24 @@ class Matrix
         return out
     end
 
+    /*
+    This method returns the median (middle value) of all the elements in a Matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetMedian()
+        end
+    end
+    */
     action GetMedian returns number
         Array<number> values
         row = 0
@@ -581,11 +1532,47 @@ class Matrix
         return (values:Get(midpoint) + values:Get(midpoint-1))/2
     end
 
+    /*
+    This method returns the standard deviation of all the elements in a Matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetStandardDeviation()
+        end
+    end
+    */
     action GetStandardDeviation returns number
         Math math
         return math:SquareRoot(GetVariance())
     end
-    
+
+    /*
+    This method returns the variance of all the elements in a Matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetVariance()
+        end
+    end
+    */
     action GetVariance returns number
         number mean = GetMean()
         number total = 0.0
@@ -603,6 +1590,24 @@ class Matrix
         return total / elements
     end
     
+    /*
+    This method returns the value at a given percentile rank of a Matrix, assuming the elements in the Matrix are all sorted.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetPercentile(0.40)
+        end
+    end
+    */
     action GetPercentile(number rank) returns number
         Array<number> values
         row = 0
@@ -622,17 +1627,77 @@ class Matrix
         return values:Get(index)
     end
 
-    /* ADD IN METHODS */
+    /*
+    This is a blueprint method for creating a Matrix Transform class.
+
+    Attribute: Example
+
+    use Libraries.Compute.MatrixTransform.MatrixTransform
+    use Libraries.Compute.Matrix
+
+    class AddScalar is MatrixTransform
+        action Transform(Matrix matrix) returns Matrix
+            Matrix newMatrix
+            newMatrix:SetSize(matrix)
+            row = 0
+            repeat matrix:GetRows() times
+                col = 0
+                repeat matrix:GetColumns() times
+                    newMatrix:Set(row, col, matrix:Get(row, col) + 2)                    col = col + 1
+                end
+                row = row + 1
+            end
+            return newMatrix
+        end
+    end
+    */
     action Transform(MatrixTransform transform) returns Matrix
         return transform:Transform(me)
     end
 
+    /*
+    This is a blueprint method for creating a Matrix Calculation class.
+
+    Attribute: Example
+
+    use Libraries.Compute.MatrixTransform.MatrixTransform
+    use Libraries.Compute.Matrix
+
+    class Add is MatrixCalculation
+        action Calculate(Matrix matrix) returns Matrix
+            Matrix newMatrix
+            newMatrix:SetSize(matrix)
+            row = 0
+            repeat matrix:GetRows() times
+                col = 0
+                repeat matrix:GetColumns() times
+                    newMatrix:Set(row, col, matrix:Get(row, col) + 3)                    col = col + 1
+                end
+                row = row + 1
+            end
+            return newMatrix
+        end
+    end
+    */
     action Calculate(MatrixCalculation calculate) returns number
         return calculate:Calculate(me)
     end
 
-    /* OUTPUT METHODS */
+    /*
+    This method prints a matrix in text format for easy viewing.
 
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 1.0)
+            output matrix:ToText()
+        end
+    end
+    */
     action ToText returns text
         text out = ""
         row = 0
@@ -655,54 +1720,4 @@ class Matrix
         end
         return out
     end
-
-//    action GetTextItems returns text
-//        text out = ""
-//        cr = out:GetCarriageReturn()
-//        row = 0
-//        repeat while row < GetRows()
-//            col = 0
-//            repeat while col < GetColumns()
-//                out = out + "row " + row + " col " + col + " = " + Get(row, col) + cr
-//                col = col + 1
-//            end
-//            row = row + 1
-//        end
-//        return out
-//    end
-
-//    action ToWebTable returns WebTable
-//        
-//    end
-//    action GetWebTable() returns WebTable
-//        WebTable table
-//        TableBody body
-//        row = 0
-//        repeat while row < GetRows()
-//            col = 0
-//            TableRow tr
-//            repeat while col < GetColumns()
-//                TableData data
-//                data:AddText("" + Get(row, col))
-//                tr:Add(data)
-//                col = col + 1
-//            end
-//            body:Add(tr)
-//            row = row + 1
-//        end
-//        table:Add(body)
-//        return table
-//    end
-//    action GetStats() returns text
-//        text out = ""
-//        out = out + "Max      : " + GetMax()
-//        out = out +  "Min      : " + GetMin()
-//        out = out +  "Total    : " + GetTotal()
-//        out = out +  "Mean     : " + GetMean()
-//        out = out +  "Mode(s)  : " + GetModesText()
-//        out = out +  "Median   : " + GetMedian()
-//        out = out +  "STD      : " + GetStandardDeviation()
-//        out = out +  "Variance : " + GetVariance()
-//        return out
-//    end
 end

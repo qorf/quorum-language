@@ -21,9 +21,9 @@ class Flip is MatrixTransform
         Matrix newMatrix
         newMatrix:SetSize(matrix)
         row = 0
-        repeat while row < matrix:GetRows()
+        repeat matrix:GetRows() times
             col = 0
-            repeat while col < matrix:GetColumns()
+            repeat matrix:GetColumns() times
                 if direction = HORIZONTAL
                     newMatrix:Set(row, col, matrix:Get(row, matrix:GetColumns()-col-1))
                 else
