@@ -131,6 +131,8 @@ public class QuorumOccurrencesFinder extends OccurrencesFinder<QuorumParserResul
                                 Iterator_ callLocations = resolved.GetCallLocationIterator(clazz.GetFile());
                                 while(callLocations != null && callLocations.HasNext()) {
                                     Location_ callLoc = (Location_) callLocations.Next();
+//                                    String ToText = callLoc.ToText();
+//                                    System.out.println(ToText);
                                     OffsetRange callRange = new OffsetRange(callLoc.GetIndex(), callLoc.GetIndexEnd() + 1);
                                     addRange(callRange, ColoringAttributes.MARK_OCCURRENCES);
                                 }

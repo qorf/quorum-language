@@ -46,6 +46,9 @@ public class QuorumSemanticAnalyzer extends SemanticAnalyzer<QuorumParserResult>
         }
         
         CompilerResult_ quorumResult = parserResult.getRecentResult();
+        if(quorumResult == null) {
+            return;
+        }
         //ProjectInformation info = parserResult.getInfo();
         String source = quorumResult.Get_Libraries_Language_Compile_CompilerResult__source_();//info.Get_Libraries_Language_Compile_ProjectInformation__source_();
         File_ loc = quorumResult.Get_Libraries_Language_Compile_CompilerResult__sourceLocation_();//info.Get_Libraries_Language_Compile_ProjectInformation__sourceLocation_();

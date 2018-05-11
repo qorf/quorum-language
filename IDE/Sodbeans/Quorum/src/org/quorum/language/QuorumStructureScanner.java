@@ -71,6 +71,9 @@ public class QuorumStructureScanner implements StructureScanner{
         QuorumParserResult parserResult = (QuorumParserResult) result;
         CompilerResult_ quorumResult = parserResult.getRecentResult();
         
+        if(quorumResult == null) {
+            return Collections.EMPTY_MAP;
+        }
         String source = quorumResult.Get_Libraries_Language_Compile_CompilerResult__source_();
         File_ loc = quorumResult.Get_Libraries_Language_Compile_CompilerResult__sourceLocation_();
         
