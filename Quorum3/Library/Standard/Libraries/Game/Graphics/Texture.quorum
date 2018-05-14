@@ -536,6 +536,21 @@ class Texture is Disposable
     end
 
     /*
+    Used to reload a Texture that's already been loaded. This is used internally
+    to ensure a Texture is automatically regained if the information is lost due
+    to a context loss (e.g., minimizing the application on an Android device).
+    Users will most likely never need to call this action directly.
+    */
+    action Reload
+        if data not= undefined
+            SetGL20Info(gl20:GL_TEXTURE_2D, CreateGLHandle())
+            Load(data)
+        else
+            alert("I couldn't reload this Texture because it had never been loaded before.")
+        end
+    end
+
+    /*
     This action returns the width of a loaded Texture.
 
     Attribute: Example
