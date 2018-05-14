@@ -10,6 +10,7 @@ use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.Containers.List
 use Libraries.Language.Compile.Translate.ClassOpcode
 use Libraries.System.DateTime
+use Libraries.Language.Compile.Documentation.DocumentationGenerator
 
 class Compiler
     public constant number VERSION = 6.0
@@ -483,12 +484,17 @@ class Compiler
                     WriteJavaScript(convertedJavaScript)
                 end
                 
-            elseif request:GetOutputType() = DOCUMENT
-                CreateDocumentation(table, theOpcodes)
+            elseif request:GetOutputType() = request:DOCUMENT
+                CreateDocumentation(library, theOpcodes)
             end
         end
         
         return result
+    end
+
+    private action CreateDocumentation(Library library, HashTable<text, ClassOpcode> opcodes)
+        documentationGenerator:SetRunFolder(runFolder)
+        documentationGenerator:Write(library, opcodes, false)
     end
 
     action TypeResolution(SymbolTable table, TypeChecker types, CompilerErrorManager errors, SymbolTable fullCompilation)
@@ -531,10 +537,6 @@ class Compiler
             jsFile:SetPath(GetName() + ".js")
             jsFile:Write(value)
         end
-    end
-
-    private action CreateDocumentation(SymbolTable symbolTable, HashTable<text, ClassOpcode> opcodes)
-        documentationGenerator:WriteDocumentation(symbolTable, opcodes)
     end
 
     /*

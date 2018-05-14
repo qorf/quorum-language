@@ -34,6 +34,10 @@ class Library
     HashTable<text, ClassOpcode> opcodes
     boolean cacheOpcodes = false
 
+    action GetOpcodes returns Iterator<ClassOpcode>
+        return opcodes:GetValueIterator()
+    end
+
     action GetOpcode(text staticKey) returns ClassOpcode
         return opcodes:GetValue(staticKey)
     end

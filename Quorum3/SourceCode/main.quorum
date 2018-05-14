@@ -18,11 +18,16 @@ use Libraries.System.SystemHelper
 use Libraries.Language.Compile.Symbol.SymbolTable
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Symbol.Action
+use Libraries.Language.Compile.Documentation.DocumentationGenerator
+use Libraries.Language.Compile.Translate.QuorumOpcode
+use Libraries.Language.Compile.Translate.ClassOpcode
 //use Libraries.Game.all
 
 class Main is WebResponder
     public constant text NAME_FLAG = "-name"
     public constant text COMPILE_FLAG = "-compile"
+    public constant text DOCUMENT_FLAG = "-document"
+    public constant text DOCUMENT_LIBRARY = "-documentLibrary"
     public constant text WEB_FLAG = "-web"
     public constant text JAVASCRIPT_FLAG = "-javascript"
     public constant text LIBRARY_FLAG = "-library"
@@ -33,111 +38,134 @@ class Main is WebResponder
 
     action Main
         ProcessConsoleFlags()
-        //GenerateDocumentation()
-        //CompileHardcodedFile()
-        //CompileTest()
     end
 
-    action GenerateDocumentation
+    action GenerateDocumentation(Array<text> fileNames)
         Compiler compiler
-        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
-        compiler:SetStandardLibraryFolder(standardLibraryFolder)
-        output compiler:GetVersion()
         File root
-        root:SetPath("Output")
+        root:SetPath("")
         compiler:SetOutputFolder(root)
-        File main
-        main:SetPath("Library/Tests/Use/Pass/GenerateAllClasses.quorum")
+
+        DateTime time
+        File standardLibraryFolder = undefined //compiler:GetStandardLibraryFolder()
+        output compiler:GetVersion() + " Compile Test"
+        Library library
+
+        if flagValues:HasKey(LIBRARY_FLAG)
+            Array<text> names = flagValues:GetValue(LIBRARY_FLAG)
+            if names:GetSize() not= 1
+                output "I noticed the library flag was used, but it does not have exactly 1 value."
+                return now
+            else
+                path = names:Get(0)
+                File libraryPath
+                libraryPath:SetWorkingDirectory(path)
+                libraryPath:SetPath("Standard")
+                compiler:SetStandardLibraryFolder(libraryPath)
+                library:SetLocation(libraryPath)
+            end
+        else 
+            standardLibraryFolder = compiler:GetStandardLibraryFolder()
+            compiler:SetStandardLibraryFolder(standardLibraryFolder)
+            library:SetLocation(standardLibraryFolder)
+        end
+
+        File outputLocation
+        outputLocation:SetPath("Library/Compiled")
+        output "Scanning"
+        number start = time:GetEpochTime()
+        
+        library:SetCachingLibraryOpcodes(true)
+        library:SetLocation(standardLibraryFolder)
+        library:SetOutputFolder(outputLocation)
+        library:Scan()
+        output ""
+
         Array<File> files
-        files:Add(main)
-        //compiler:SetOutputType(compiler:DOCUMENT)
-        //compiler:SetMain(main)
+        i = 0
+        repeat fileNames:GetSize() times
+            text fileName = fileNames:Get(i)
+            File file
+            file:SetPath(fileName)
+            files:Add(file)
+            i = i + 1
+        end
+        
+        File main = files:Get(0)
 
-
+        output "Compiling Project"
         CompilerRequest request
         request:files = files
-        request:library = compiler:GetStandardLibrary()
+        request:library = library
         request:main = main
-        request:SetOutputType(request:DOCUMENT)
+        //request:SetOutputType(request:DOCUMENT)
         CompilerResult result = compiler:Compile(request)
         CompilerErrorManager manager = result:compilerErrorManager
         
         if manager:IsCompilationErrorFree()
             output "Build Successful"
-            if compiler:GetOutputType() = compiler:JAVASCRIPT
-                output result:convertedJavaScript
-            end
         else
             output manager:GetCompilerErrorsAsText()
+            return now
         end
+
+        output "Writing Standard Library to HTML"
+        HashTable<text, ClassOpcode> opcodes = result:opcodes
+        DocumentationGenerator generator
+        generator:SetRunFolder(compiler:GetRunFolder())
+        generator:Write(library, opcodes, false)
+
+        number finish = time:GetEpochTime()
+        output "Time: " + ((finish - start) / 1000.0) + " seconds"
     end
 
-    private action CompileHardcodedFile
+    action GenerateDocumentation
         Compiler compiler
-        File standardLibraryFolder = compiler:GetStandardLibraryFolder()
-        compiler:SetStandardLibraryFolder(standardLibraryFolder)
-        output compiler:GetVersion()
-        compiler:ScanStandardLibrary()
         File root
-        root:SetPath("Output")
+        root:SetPath("")
         compiler:SetOutputFolder(root)
-        File main
-        //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
-        //main:SetWorkingDirectory("/Users/stefika/NetBeansProjects/QUOR455/SourceCode/")
-        //main:SetPath("Library/Tests/Expressions/Pass/OrAndBooleanBoolean.quorum") //CallMethodCallingBlueprint
-        main:SetPath("Library/Tests/Expressions/Pass/BooleanAndOrAnd.quorum")
 
-        File class2
-        //class2:SetWorkingDirectory("/Users/stefika/NetBeansProjects/BlankQuorumApplication/SourceCode/")
-        class2:SetPath("Library/Tests/Inheritance/Pass/B6.quorum")
-        
-        File class3
-        class3:SetPath("Library/Tests/Inheritance/Pass/C6.quorum")
+        DateTime time
+        File standardLibraryFolder = undefined //compiler:GetStandardLibraryFolder()
+        output compiler:GetVersion() + " Compile Test"
+        Library library
 
-        File class4
-        class4:SetPath("Library/Tests/Inheritance/Fail/F.quorum")
-
-        File class5
-        class5:SetPath("Library/Tests/Inheritance/Pass/GrandChildWithMultiple.quorum")
-        Array<File> files
-
-        files:Add(main)
-        files:Add(class2)
-        files:Add(class3)
-        //files:Add(class4)
-        //files:Add(class5)
-
-        //compiler:SetOutputSpeech(false) //don't speak while in test mode
-        //compiler:SetIsWebApplication(true)
-        //compiler:SetOutputType(compiler:JAVASCRIPT)
-        //compiler:SetMain(main)
-
-        CompilerRequest compileRequest
-        compileRequest:files = files
-        compileRequest:library = compiler:GetStandardLibrary()
-        compileRequest:main = main
-        CompilerResult result = compiler:Compile(compileRequest)
-        CompilerErrorManager manager = result:compilerErrorManager
-
-//        CodeCompletionRequest request
-//        request:line = "use Libraries.Containers.all"
-//        request:lineNumber = 1
-//        request:fileKey = main:GetAbsolutePath()
-//        request:startOffset = 5
-//        CodeCompletionResult result = compiler:Request(request)
-
-        if manager:IsCompilationErrorFree()
-            output "Build Successful"
-            if compiler:GetOutputType() = compiler:JAVASCRIPT
-                File myOutput
-                myOutput:SetWorkingDirectory("/Users/alleew/Desktop/WebGLTester/public_html")
-                myOutput:SetPath("TestQuorum.js")
-                myOutput:Write(result:convertedJavaScript)
-                output "File written."
+        if flagValues:HasKey(LIBRARY_FLAG)
+            Array<text> names = flagValues:GetValue(LIBRARY_FLAG)
+            if names:GetSize() not= 1
+                output "I noticed the library flag was used, but it does not have exactly 1 value."
+                return now
+            else
+                path = names:Get(0)
+                File libraryPath
+                libraryPath:SetWorkingDirectory(path)
+                libraryPath:SetPath("Standard")
+                compiler:SetStandardLibraryFolder(libraryPath)
+                library:SetLocation(libraryPath)
             end
-        else
-            output manager:GetCompilerErrorsAsText()
+        else 
+            standardLibraryFolder = compiler:GetStandardLibraryFolder()
+            compiler:SetStandardLibraryFolder(standardLibraryFolder)
+            library:SetLocation(standardLibraryFolder)
         end
+
+        File outputLocation
+        outputLocation:SetPath("Library/Compiled")
+        output "Scanning"
+        number start = time:GetEpochTime()
+        
+        library:SetCachingLibraryOpcodes(true)
+        library:SetLocation(standardLibraryFolder)
+        library:SetOutputFolder(outputLocation)
+        library:Scan()
+        output ""
+        output "Writing Standard Library to HTML"
+        DocumentationGenerator generator
+        generator:SetRunFolder(compiler:GetRunFolder())
+        generator:Write(library)
+
+        number finish = time:GetEpochTime()
+        output "Time: " + ((finish - start) / 1000.0) + " seconds"
     end
 
     private action CompileTest
@@ -343,6 +371,33 @@ class Main is WebResponder
             end
         end
 
+        if flagValues:HasKey(DOCUMENT_LIBRARY)
+            if flagValues:HasKey(WEB_FLAG)
+                output "I noticed the compile flag and the web flag were both used. Only one can be passed, otherwise I cannot determine how to package the program."
+                return now
+            end
+
+            GenerateDocumentation()
+            return now
+        end
+
+        //
+        if flagValues:HasKey(DOCUMENT_LIBRARY)
+            if flagValues:HasKey(WEB_FLAG)
+                output "I noticed the compile flag and the web flag were both used. Only one can be passed, otherwise I cannot determine how to package the program."
+                return now
+            end
+            Array<text> names = flagValues:GetValue(COMPILE_FLAG)
+            if names:IsEmpty()
+                output "I noticed you asked for a program to be compiled, but that no files were passed."
+                output GetHelpText()
+                return now
+            end
+
+            GenerateDocumentation(names)
+            return now
+        end
+
         if flagValues:HasKey(COMPILE_FLAG)
             if flagValues:HasKey(WEB_FLAG)
                 output "I noticed the compile flag and the web flag were both used. Only one can be passed, otherwise I cannot determine how to package the program."
@@ -462,7 +517,6 @@ class Main is WebResponder
         //that is required
         library:SetCachingLibraryOpcodes(false)
         library:SetOutputFolder(outputLocation)
-        //library:Scan()
 
 
         if flagValues:HasKey(LIBRARY_FLAG)
@@ -538,8 +592,7 @@ class Main is WebResponder
 
     private action GetHelpText returns text
         Compiler compiler
-        text help = 
-"Quorum " + compiler:GetVersion() + "
+        text help = compiler:GetVersion() + "
 
 Quorum is a computer programming language, which you can use either " +
 "from the console using flags (the program you just ran) or from a development environment (like NetBeans). " +

@@ -1,4 +1,5 @@
-package Libraries.Language.Compile.Symbol
+package Libraries.Language.Compile.Documentation
+
 use Libraries.Containers.Array
 use Libraries.Language.Compile.Translate.ClassOpcode
 use Libraries.Web.Page.NavigationDivision
@@ -26,29 +27,81 @@ use Libraries.Web.Page.ListItem
 use Libraries.Web.Page.UnorderedList
 use Libraries.Language.Compile.CompilerResult
 use Libraries.Containers.HashTable
+use Libraries.Language.Compile.Symbol.SymbolTable
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.Documentation
+use Libraries.Language.Compile.Library
 
 class DocumentationGenerator 
-    File buildFolder = undefined
+    File runFolder = undefined
     constant text DOCUMENTATION_FOLDER = "Documents/"
+    boolean isBuildingStandardLibrary = false
+    boolean isBuildingSourceFiles = true
 
-    action GetBuildFolder returns File
-        return buildFolder
+    action GetRunFolder returns File
+        return runFolder
     end
 
-    action SetBuildFolder(File file)
-        buildFolder = file
+    action SetRunFolder(File file)
+        runFolder = file
     end
 
-    action WriteDocumentation(SymbolTable symbolTable, HashTable<text, ClassOpcode> opcodes)
-        NavigationDivision navigation = AddDefaultHeaders()
+    action Write(Library library, HashTable<text, ClassOpcode> opcodeHash, boolean includeStandardLibrary)
+        NavigationBar navigation
+        navigation:Setup()
         Footer footer = GetFooter()
-        text result = ""
-        Iterator<ClassOpcode> codes = opcodes:GetValueIterator()
-        repeat while codes:HasNext()
-            ClassOpcode code = codes:Next()
-            Class clazz = code:GetClass()
 
-            WebPage page = code:WriteToWebPage(navigation, footer)
+        Iterator<ClassOpcode> opcodes = opcodeHash:GetValueIterator()
+        SymbolTable standardLibrarySymbolTable = library:GetSymbolTable()
+        SymbolTable finished
+        repeat while opcodes:HasNext()
+            ClassOpcode opcode = opcodes:Next()
+            Class clazz = opcode:GetClass()
+
+            boolean isInStandardLibrary = standardLibrarySymbolTable:HasClass(clazz:GetStaticKey())
+            if not isInStandardLibrary or (isInStandardLibrary and includeStandardLibrary)
+                finished:Add(clazz)
+                WebPage page = opcode:WriteToWebPage(me)
+                text web = page:Generate()
+                text key = clazz:GetStaticKey()
+                text parentKey = ""
+                Array<text> split = key:Split("\.")
+                i = 0
+                repeat split:GetSize() - 1 times
+                    parentKey = parentKey + split:Get(i) + "/"
+                    i = i + 1
+                end
+                key = "/" + key:Replace(".", "/") + ".html"
+
+
+                runFolder:CreateDirectories()
+                File mom
+                mom:SetWorkingDirectory(runFolder:GetAbsolutePath())
+                mom:SetPath(DOCUMENTATION_FOLDER + "/" + parentKey)
+                mom:CreateDirectories()
+
+                File documentationFile
+                documentationFile:SetWorkingDirectory(runFolder:GetAbsolutePath())
+                documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + key)
+                documentationFile:Write(web)
+            end
+        end
+
+       WriteIndexPage(finished)
+    end
+
+    action Write(Library library)
+        NavigationBar navigation
+        navigation:Setup()
+        Footer footer = GetFooter()
+
+        Iterator<ClassOpcode> opcodes = library:GetOpcodes()
+        SymbolTable table = library:GetSymbolTable()
+        repeat while opcodes:HasNext()
+            ClassOpcode opcode = opcodes:Next()
+            Class clazz = opcode:GetClass()
+
+            WebPage page = opcode:WriteToWebPage(me)//navigation, footer)
             text web = page:Generate()//code:WriteToWeb()
             text key = clazz:GetStaticKey()
             text parentKey = ""
@@ -61,28 +114,24 @@ class DocumentationGenerator
             key = "/" + key:Replace(".", "/") + ".html"
 
 
-            buildFolder:CreateDirectories()
+            runFolder:CreateDirectories()
             File mom
-            mom:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+            mom:SetWorkingDirectory(runFolder:GetAbsolutePath())
             mom:SetPath(DOCUMENTATION_FOLDER + "/" + parentKey)
             mom:CreateDirectories()
 
             File documentationFile
-            documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+            documentationFile:SetWorkingDirectory(runFolder:GetAbsolutePath())
             documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + key)
             documentationFile:Write(web)
         end
 
+        WriteIndexPage(library:GetSymbolTable())
+    end
+
+    action WriteIndexPage(SymbolTable symbolTable)
         WebPage page
-        //add language headers
-        page:AddAttribute("xml:lang", "en")
-        page:SetLanguage("en")
-
-        //add the meta-data character set
-        MetaData charset
-        charset:SetCharacterSet("UTF-8")
-        page:AddMetaData(charset)
-
+        AddDefaultHeaders(page)
         //auto-generate some sensible keywords
         MetaData keywords
         text keywordText = "programming for beginners, computer programming,
@@ -91,38 +140,19 @@ class DocumentationGenerator
         keywords:AddAttribute("content", keywordText)
         page:AddMetaData(keywords)
 
-        MetaData viewport
-        viewport:SetContent("width=device-width, initial-scale=1")
-        viewport:SetName("viewport")
-        page:AddMetaData(viewport)
-
-        page:AddScript("/script/jquery-1.8.3.min.js")
-        page:AddScript("/script/script.js")
-        
-        //add style sheet tags
-        page:AddStylesheet("/style/style.css")
-        page:AddStylesheet("/style/google.css")
-        page:AddIcon("/media/favicon.ico")
-
-        //Add Responsive Stylesheets
-        WebPageHeader webHeader = page:GetWebPageHeader()
-        webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
-        webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
-        webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
-
         MetaData metaDataDescription
         metaDataDescription:SetContent("Read more about the Quorum programming language's standard library.")
         metaDataDescription:SetName("description")
         page:AddMetaData(metaDataDescription)
 
-        page:SetWebPageTitle("Standard Library Index - Quorum Programming Language")
-        page:Add(navigation)
+        page:SetWebPageTitle("Standard Library Index - Quorum 6.0")
+        //page:Add(navigation)
         MainContent mainRegion
         mainRegion:AddAttribute("role","main")
 
         Header headDiv
         headDiv:SetClassAttribute("pageHeader outermostContainer")
-        headDiv:AddHeading("Quorum Standard Library", 1)
+        headDiv:AddHeading("Quorum 6.0 Standard Library", 1)
         page:Add(headDiv)
 
         Division bodyDiv
@@ -179,79 +209,287 @@ class DocumentationGenerator
 
         mainRegion:Add(bodyDiv)
         page:Add(mainRegion)
-        page:Add(footer)
+        page:Add(GetFooter())
 
         File documentationFile
-        documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+        documentationFile:SetWorkingDirectory(runFolder:GetAbsolutePath())
         documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + "libraries.html")
         documentationFile:Write(page:Generate())
     end
 
-    private action AddDefaultHeaders returns NavigationDivision
-        NavigationDivision division
-        UnorderedList list
-        division:SetClassAttribute("headerNavBar outermostContainer")
+//    action WriteDocumentation(SymbolTable symbolTable, HashTable<text, ClassOpcode> opcodes)
+//        //NavigationDivision navigation = AddDefaultHeaders()
+//        Footer footer = GetFooter()
+//        text result = ""
+//        Iterator<ClassOpcode> codes = opcodes:GetValueIterator()
+//        repeat while codes:HasNext()
+//            ClassOpcode code = codes:Next()
+//            Class clazz = code:GetClass()
+//
+//            WebPage page = code:WriteToWebPage(me)//navigation, footer)
+//            text web = page:Generate()//code:WriteToWeb()
+//            text key = clazz:GetStaticKey()
+//            text parentKey = ""
+//            Array<text> split = key:Split("\.")
+//            i = 0
+//            repeat split:GetSize() - 1 times
+//                parentKey = parentKey + split:Get(i) + "/"
+//                i = i + 1
+//            end
+//            key = "/" + key:Replace(".", "/") + ".html"
+//
+//
+//            buildFolder:CreateDirectories()
+//            File mom
+//            mom:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+//            mom:SetPath(DOCUMENTATION_FOLDER + "/" + parentKey)
+//            mom:CreateDirectories()
+//
+//            File documentationFile
+//            documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+//            documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + key)
+//            documentationFile:Write(web)
+//        end
+//
+//        WebPage page
+//        //add language headers
+//        page:AddAttribute("xml:lang", "en")
+//        page:SetLanguage("en")
+//
+//        //add the meta-data character set
+//        MetaData charset
+//        charset:SetCharacterSet("UTF-8")
+//        page:AddMetaData(charset)
+//
+//        //auto-generate some sensible keywords
+//        MetaData keywords
+//        text keywordText = "programming for beginners, computer programming,
+//        Quorum programming language, Standard Library"
+//        keywords:AddAttribute("name", "keywords")
+//        keywords:AddAttribute("content", keywordText)
+//        page:AddMetaData(keywords)
+//
+//        MetaData viewport
+//        viewport:SetContent("width=device-width, initial-scale=1")
+//        viewport:SetName("viewport")
+//        page:AddMetaData(viewport)
+//
+//        page:AddScript("/script/jquery-1.8.3.min.js")
+//        page:AddScript("/script/script.js")
+//        
+//        //add style sheet tags
+//        page:AddStylesheet("/style/style.css")
+//        page:AddStylesheet("/style/google.css")
+//        page:AddIcon("/media/favicon.ico")
+//
+//        //Add Responsive Stylesheets
+//        WebPageHeader webHeader = page:GetWebPageHeader()
+//        webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
+//        webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
+//        webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
+//
+//        MetaData metaDataDescription
+//        metaDataDescription:SetContent("Read more about the Quorum programming language's standard library.")
+//        metaDataDescription:SetName("description")
+//        page:AddMetaData(metaDataDescription)
+//
+//        page:SetWebPageTitle("Standard Library Index - Quorum Programming Language")
+//        //page:Add(navigation)
+//        MainContent mainRegion
+//        mainRegion:AddAttribute("role","main")
+//
+//        Header headDiv
+//        headDiv:SetClassAttribute("pageHeader outermostContainer")
+//        headDiv:AddHeading("Quorum Standard Library", 1)
+//        page:Add(headDiv)
+//
+//        Division bodyDiv
+//        bodyDiv:SetClassAttribute("bodyContainer")
+//        bodyDiv:AddHeading("Quorum's Built-in Packages and Classes", 2)
+//        bodyDiv:AddParagraph("Quorum includes library classes like: 1) computer 
+//            games, 2) text-to-speech and audio playback, 3) Lego robots, and 
+//            4) support classes (e.g., arrays, lists, hash tables, math, console, 
+//            system). The standard library is expanded in each release.")
+//
+//        Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
+//        repeat while packages:HasNext()
+//            text key = packages:Next()
+//            if not key:IsEmpty() //ignore the default package
+//                WebTable table
+//                table:SetBorder(true)
+//
+//                TableRow headerRow
+//                TableHeaderCell packageNameHeaderCell
+//                packageNameHeaderCell:AddText(key)
+//                headerRow:Add(packageNameHeaderCell)
+//                table:Add(headerRow)
+//
+//                Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
+//                integer i2 = 0
+//                repeat classes:GetSize() times
+//                    Class clazz = classes:Get(i2)
+//                    TableRow row
+//
+//                    TableData data
+//                    data:Add(GetWebLinkForClassFromIndex(clazz, true))
+//                    row:Add(data)
+//
+//                    Documentation doc = clazz:GetDocumentation()
+//                    if doc not= undefined
+//                        constant integer DOC_SIZE = 120
+//                        text description = doc:GetDescription()
+//                        if description = undefined
+//                            description = ""
+//                        end
+//                        if description:GetSize() > DOC_SIZE
+//                            description = description:GetSubtext(0, DOC_SIZE) + " ..."
+//                        end
+//                        data:AddText(": " + description)
+//                    end
+//                    table:Add(row)
+//                    i2 = i2 + 1
+//                end
+//                bodyDiv:Add(table)
+//                LineBreak break
+//                bodyDiv:Add(break)
+//            end
+//        end
+//
+//        mainRegion:Add(bodyDiv)
+//        page:Add(mainRegion)
+//        page:Add(footer)
+//
+//        File documentationFile
+//        documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
+//        documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + "libraries.html")
+//        documentationFile:Write(page:Generate())
+//    end
 
-        Division skipDivision
-        skipDivision:SetClassAttribute("skiptocontent")
+    action AddDefaultHeaders(WebPage page)
+        //add language headers
+        page:AddAttribute("xml:lang", "en")
+        page:SetLanguage("en")
 
-        Link skipLink
-        skipLink:AddText("skip to main content")
-        skipLink:SetAddress("#main")
+        //add the meta-data character set
+        MetaData charset
+        charset:SetCharacterSet("UTF-8")
+        page:AddMetaData(charset)
 
-        skipDivision:Add(skipLink)
-        division:Add(skipDivision)
+        MetaData viewport
+        viewport:SetContent("width=device-width, initial-scale=1")
+        viewport:SetName("viewport")
+        page:AddMetaData(viewport)
 
-        Link logoLink
-        logoLink:SetIdentifier("homePageLink")
-        logoLink:AddImage("/media/QuorumLogoWhite.png", "Home")
-        logoLink:SetAddress("https://www.quorumlanguage.com/")
-        logoLink:AddText("Quorum")
+        text metaDescriptionContent = GetMetaDescription()
+        if metaDescriptionContent not= undefined
+            MetaData description
+            description:SetContent(metaDescriptionContent)
+            description:SetName("description")
+            page:AddMetaData(description)
+        end
 
-        ListItem item
-        item:Add(logoLink)
-        list:Add(item)
-
-        text extension = ".html"
-        list:AddListItemLink("Learn", "/learn" + extension)
-        list:AddListItemLink("Hour of Code", "/hourofcode/part1" + extension)
-        list:AddListItemLink("Reference", "/reference" + extension)
-        list:AddListItemLink("Libraries", "/libraries" + extension)
-        list:AddListItemLink("Download", "/download" + extension)
-        list:AddListItemLink("Bugs", "https://quorum.atlassian.net")
-        division:Add(list)
+        //page:GetHeader()
         
-        //search bar
-        Form form
-        form:SetFormAction("/search.php")
-        form:AddAttribute("role", "search")
-        form:SetIdentifier("searchForm")
-        form:SetPost(true)
+        page:AddMetaData(GenerateKeywords())
+        page:AddScript("/script/jquery-1.8.3.min.js")
+        page:AddScript("/script/script.js")
+        
+        //add style sheet tags
+        page:AddStylesheet("/style/style.css")
+        page:AddStylesheet("/style/google.css")
+        page:AddIcon("/media/favicon.ico")
 
-        Input searchInput
-        searchInput:SetTitle("Search Input")
-        searchInput:SetIdentifier("searchFormInput")
-        searchInput:SetPlaceHolder("How do I create an array?")
-        searchInput:SetType("text")
-        searchInput:SetName("search-query")
-        form:Add(searchInput)
+        //Add Responsive Stylesheets
+        WebPageHeader webHeader = page:GetWebPageHeader()
+        webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
+        webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
+        webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
 
-        Input searchButton
-        searchButton:SetIdentifier("searchFormButton")
-        searchButton:SetDefaultValue("Search")
-        searchButton:SetType("submit")
-        searchButton:SetTitle("Submit Button")
-        form:Add(searchButton)
-        division:Add(form)
-        return division
+        //Add the navigation bar
+        NavigationBar navigation
+        page:Add(navigation)
     end
 
-    private action GetFooter returns Footer
+    action GetMetaDescription returns text
+        return "This page includes documentation for part of the Quorum programming language."
+    end
+
+    action GenerateKeywords returns MetaData
+        MetaData keywords
+        keywords:AddAttribute("name", "keywords")
+        keywords:AddAttribute("content", "programming for beginners, game programming, 
+        lego programming, computer courses, programming 3D, programming,
+        animation, graphics, multimedia, games, accessibility, computer science for all,
+        computer science, computer languages, Quorum programming language, robot programming,
+        online programming")
+        return keywords
+    end
+
+//    private action AddDefaultHeaders returns NavigationDivision
+//        NavigationDivision division
+//        UnorderedList list
+//        division:SetClassAttribute("headerNavBar outermostContainer")
+//
+//        Division skipDivision
+//        skipDivision:SetClassAttribute("skiptocontent")
+//
+//        Link skipLink
+//        skipLink:AddText("skip to main content")
+//        skipLink:SetAddress("#main")
+//
+//        skipDivision:Add(skipLink)
+//        division:Add(skipDivision)
+//
+//        Link logoLink
+//        logoLink:SetIdentifier("homePageLink")
+//        logoLink:AddImage("/media/QuorumLogoWhite.png", "Home")
+//        logoLink:SetAddress("https://www.quorumlanguage.com/")
+//        logoLink:AddText("Quorum")
+//
+//        ListItem item
+//        item:Add(logoLink)
+//        list:Add(item)
+//
+//        text extension = ".html"
+//        list:AddListItemLink("Learn", "/learn" + extension)
+//        list:AddListItemLink("Hour of Code", "/hourofcode/part1" + extension)
+//        list:AddListItemLink("Reference", "/reference" + extension)
+//        list:AddListItemLink("Libraries", "/libraries" + extension)
+//        list:AddListItemLink("Download", "/download" + extension)
+//        list:AddListItemLink("Bugs", "https://quorum.atlassian.net")
+//        division:Add(list)
+//        
+//        //search bar
+//        Form form
+//        form:SetFormAction("/search.php")
+//        form:AddAttribute("role", "search")
+//        form:SetIdentifier("searchForm")
+//        form:SetPost(true)
+//
+//        Input searchInput
+//        searchInput:SetTitle("Search Input")
+//        searchInput:SetIdentifier("searchFormInput")
+//        searchInput:SetPlaceHolder("How do I create an array?")
+//        searchInput:SetType("text")
+//        searchInput:SetName("search-query")
+//        form:Add(searchInput)
+//
+//        Input searchButton
+//        searchButton:SetIdentifier("searchFormButton")
+//        searchButton:SetDefaultValue("Search")
+//        searchButton:SetType("submit")
+//        searchButton:SetTitle("Submit Button")
+//        form:Add(searchButton)
+//        division:Add(form)
+//        return division
+//    end
+
+    action GetFooter returns Footer
         Footer footer
         footer:AddText("The Quorum Programming Language")
         footer:SetIdentifier("footer")
         SmallText small
-        small:AddText("Copyright &copy; 2014-2017. Art and Design by 
+        small:AddText("Copyright &copy; 2014-2018. Art and Design by 
             Andreas Stefik, Melissa Stefik, and Evan Pierzina")
         footer:Add(small)
         return footer
