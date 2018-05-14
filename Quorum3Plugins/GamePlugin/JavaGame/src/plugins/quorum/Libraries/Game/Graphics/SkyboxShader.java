@@ -35,6 +35,9 @@ public class SkyboxShader
         "}";
     
     public static final String fragmentShader = 
+        "#ifdef GL_ES\n" +
+        "precision mediump float;\n" +
+        "#endif\n" +
         "varying vec3 textureCoordinates;\n" +
         "uniform samplerCube skybox;\n" +
         "uniform float inverter;\n" +

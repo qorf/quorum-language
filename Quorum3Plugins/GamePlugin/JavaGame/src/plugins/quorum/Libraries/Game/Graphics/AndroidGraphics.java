@@ -10,6 +10,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import android.opengl.GLES20;
+import android.util.Log;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
@@ -452,7 +453,7 @@ public class AndroidGraphics implements GraphicsManager
 	if (type instanceof IntBuffer) ((IntBuffer)type).put(typeTmp.get(1));
 	return name;
         */
-        return null;
+        return GLES20.glGetActiveUniform(program, index, size, (IntBuffer)type);
     }
     
     public String glGetActiveAttrib (int program, int index, IntBuffer size, Buffer type) 
@@ -465,7 +466,7 @@ public class AndroidGraphics implements GraphicsManager
 	if (type instanceof IntBuffer) ((IntBuffer)type).put(typeTmp.get(1));
 	return name;
         */
-        return null;
+        return GLES20.glGetActiveAttrib(program, index, size, (IntBuffer)type);
     }
     
     public void glDrawElements (int mode, int count, int type, int indices) 
@@ -475,6 +476,7 @@ public class AndroidGraphics implements GraphicsManager
     
     public void glDrawElements (int mode, int count, int type, Buffer indices) 
     {
+        GLES20.glDrawElements(mode, count, type, indices);
         /*
 	if (indices instanceof ShortBuffer && type == GL_UNSIGNED_SHORT)
             GL11.glDrawElements(mode, (ShortBuffer)indices);

@@ -23,26 +23,26 @@ import plugins.quorum.Libraries.Game.GameStateManager;
  */
 public class Texture
 {
-  public java.lang.Object me_ = null;
+    public java.lang.Object me_ = null;
   
-  public int glTarget; //The target, such as GL_TEXTURE_2D
-  protected int glHandle;
-  
-  private GraphicsManager gl20 = GameStateManager.nativeGraphics; 
-  
-  /*
-  The color that should be used to render this texture by the Painter2D when
-  using the font shader. If the color is null, then the font shader will not be
-  used.
-  */
-  public Color_ fontColor = null;
-                            
-  TextureData data;
-  
-  // This array holds all textures which are managed by an application, i.e., 
-  // textures that will be automatically reloaded whenever an application has
-  // regained context after losing it.
-  final static Map<quorum.Libraries.Game.Application_, Array<Texture>> managedTextures = new HashMap<quorum.Libraries.Game.Application_, Array<Texture>>();
+    public int glTarget; //The target, such as GL_TEXTURE_2D
+    protected int glHandle;
+
+    private GraphicsManager gl20 = GameStateManager.nativeGraphics; 
+
+    /*
+    The color that should be used to render this texture by the Painter2D when
+    using the font shader. If the color is null, then the font shader will not be
+    used.
+    */
+    public Color_ fontColor = null;
+
+    TextureData data;
+
+    // This array holds all textures which are managed by an application, i.e., 
+    // textures that will be automatically reloaded whenever an application has
+    // regained context after losing it.
+    final static Map<quorum.Libraries.Game.Application_, Array<Texture>> managedTextures = new HashMap<quorum.Libraries.Game.Application_, Array<Texture>>();
 
     public void Bind() 
     {
