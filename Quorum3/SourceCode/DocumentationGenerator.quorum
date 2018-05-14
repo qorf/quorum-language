@@ -158,10 +158,17 @@ class DocumentationGenerator
         Division bodyDiv
         bodyDiv:SetClassAttribute("bodyContainer")
         bodyDiv:AddHeading("Quorum's Built-in Packages and Classes", 2)
-        bodyDiv:AddParagraph("Quorum includes library classes like: 1) computer 
-            games, 2) text-to-speech and audio playback, 3) Lego robots, and 
-            4) support classes (e.g., arrays, lists, hash tables, math, console, 
-            system). The standard library is expanded in each release.")
+        bodyDiv:AddParagraph("This page shows the full list of classes Quorum 
+supports in the current version of the standard library. These classes are 
+placed into packages organized by their subject area. For example, math related 
+classes are in Libraries.Compute, general data structures are in 
+Libraries.Containers, user interfaces (e.g., buttons, text boxes) are in 
+Libraries.Interface. Besides these, there are many more packages that are 
+used for a variety of purposes (e.g., networking, robots, games, graphics, 
+sound, digital signal processing, mobile applications). The purpose of this 
+index page is to help users find information about specific packages or 
+classes. Thus, this page is structured as a reference and is not intended as a 
+tutorial.")
 
         Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
         repeat while packages:HasNext()
@@ -216,154 +223,6 @@ class DocumentationGenerator
         documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + "libraries.html")
         documentationFile:Write(page:Generate())
     end
-
-//    action WriteDocumentation(SymbolTable symbolTable, HashTable<text, ClassOpcode> opcodes)
-//        //NavigationDivision navigation = AddDefaultHeaders()
-//        Footer footer = GetFooter()
-//        text result = ""
-//        Iterator<ClassOpcode> codes = opcodes:GetValueIterator()
-//        repeat while codes:HasNext()
-//            ClassOpcode code = codes:Next()
-//            Class clazz = code:GetClass()
-//
-//            WebPage page = code:WriteToWebPage(me)//navigation, footer)
-//            text web = page:Generate()//code:WriteToWeb()
-//            text key = clazz:GetStaticKey()
-//            text parentKey = ""
-//            Array<text> split = key:Split("\.")
-//            i = 0
-//            repeat split:GetSize() - 1 times
-//                parentKey = parentKey + split:Get(i) + "/"
-//                i = i + 1
-//            end
-//            key = "/" + key:Replace(".", "/") + ".html"
-//
-//
-//            buildFolder:CreateDirectories()
-//            File mom
-//            mom:SetWorkingDirectory(buildFolder:GetAbsolutePath())
-//            mom:SetPath(DOCUMENTATION_FOLDER + "/" + parentKey)
-//            mom:CreateDirectories()
-//
-//            File documentationFile
-//            documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
-//            documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + key)
-//            documentationFile:Write(web)
-//        end
-//
-//        WebPage page
-//        //add language headers
-//        page:AddAttribute("xml:lang", "en")
-//        page:SetLanguage("en")
-//
-//        //add the meta-data character set
-//        MetaData charset
-//        charset:SetCharacterSet("UTF-8")
-//        page:AddMetaData(charset)
-//
-//        //auto-generate some sensible keywords
-//        MetaData keywords
-//        text keywordText = "programming for beginners, computer programming,
-//        Quorum programming language, Standard Library"
-//        keywords:AddAttribute("name", "keywords")
-//        keywords:AddAttribute("content", keywordText)
-//        page:AddMetaData(keywords)
-//
-//        MetaData viewport
-//        viewport:SetContent("width=device-width, initial-scale=1")
-//        viewport:SetName("viewport")
-//        page:AddMetaData(viewport)
-//
-//        page:AddScript("/script/jquery-1.8.3.min.js")
-//        page:AddScript("/script/script.js")
-//        
-//        //add style sheet tags
-//        page:AddStylesheet("/style/style.css")
-//        page:AddStylesheet("/style/google.css")
-//        page:AddIcon("/media/favicon.ico")
-//
-//        //Add Responsive Stylesheets
-//        WebPageHeader webHeader = page:GetWebPageHeader()
-//        webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
-//        webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
-//        webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
-//
-//        MetaData metaDataDescription
-//        metaDataDescription:SetContent("Read more about the Quorum programming language's standard library.")
-//        metaDataDescription:SetName("description")
-//        page:AddMetaData(metaDataDescription)
-//
-//        page:SetWebPageTitle("Standard Library Index - Quorum Programming Language")
-//        //page:Add(navigation)
-//        MainContent mainRegion
-//        mainRegion:AddAttribute("role","main")
-//
-//        Header headDiv
-//        headDiv:SetClassAttribute("pageHeader outermostContainer")
-//        headDiv:AddHeading("Quorum Standard Library", 1)
-//        page:Add(headDiv)
-//
-//        Division bodyDiv
-//        bodyDiv:SetClassAttribute("bodyContainer")
-//        bodyDiv:AddHeading("Quorum's Built-in Packages and Classes", 2)
-//        bodyDiv:AddParagraph("Quorum includes library classes like: 1) computer 
-//            games, 2) text-to-speech and audio playback, 3) Lego robots, and 
-//            4) support classes (e.g., arrays, lists, hash tables, math, console, 
-//            system). The standard library is expanded in each release.")
-//
-//        Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
-//        repeat while packages:HasNext()
-//            text key = packages:Next()
-//            if not key:IsEmpty() //ignore the default package
-//                WebTable table
-//                table:SetBorder(true)
-//
-//                TableRow headerRow
-//                TableHeaderCell packageNameHeaderCell
-//                packageNameHeaderCell:AddText(key)
-//                headerRow:Add(packageNameHeaderCell)
-//                table:Add(headerRow)
-//
-//                Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
-//                integer i2 = 0
-//                repeat classes:GetSize() times
-//                    Class clazz = classes:Get(i2)
-//                    TableRow row
-//
-//                    TableData data
-//                    data:Add(GetWebLinkForClassFromIndex(clazz, true))
-//                    row:Add(data)
-//
-//                    Documentation doc = clazz:GetDocumentation()
-//                    if doc not= undefined
-//                        constant integer DOC_SIZE = 120
-//                        text description = doc:GetDescription()
-//                        if description = undefined
-//                            description = ""
-//                        end
-//                        if description:GetSize() > DOC_SIZE
-//                            description = description:GetSubtext(0, DOC_SIZE) + " ..."
-//                        end
-//                        data:AddText(": " + description)
-//                    end
-//                    table:Add(row)
-//                    i2 = i2 + 1
-//                end
-//                bodyDiv:Add(table)
-//                LineBreak break
-//                bodyDiv:Add(break)
-//            end
-//        end
-//
-//        mainRegion:Add(bodyDiv)
-//        page:Add(mainRegion)
-//        page:Add(footer)
-//
-//        File documentationFile
-//        documentationFile:SetWorkingDirectory(buildFolder:GetAbsolutePath())
-//        documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + "libraries.html")
-//        documentationFile:Write(page:Generate())
-//    end
 
     action AddDefaultHeaders(WebPage page)
         //add language headers

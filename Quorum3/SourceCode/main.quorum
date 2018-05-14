@@ -79,7 +79,6 @@ class Main is WebResponder
         library:SetLocation(standardLibraryFolder)
         library:SetOutputFolder(outputLocation)
         library:Scan()
-        output ""
 
         Array<File> files
         i = 0
@@ -98,7 +97,6 @@ class Main is WebResponder
         request:files = files
         request:library = library
         request:main = main
-        //request:SetOutputType(request:DOCUMENT)
         CompilerResult result = compiler:Compile(request)
         CompilerErrorManager manager = result:compilerErrorManager
         
@@ -127,7 +125,7 @@ class Main is WebResponder
 
         DateTime time
         File standardLibraryFolder = undefined //compiler:GetStandardLibraryFolder()
-        output compiler:GetVersion() + " Compile Test"
+        output compiler:GetVersion() + " Standard Library Documentation Generator"
         Library library
 
         if flagValues:HasKey(LIBRARY_FLAG)
@@ -158,7 +156,6 @@ class Main is WebResponder
         library:SetLocation(standardLibraryFolder)
         library:SetOutputFolder(outputLocation)
         library:Scan()
-        output ""
         output "Writing Standard Library to HTML"
         DocumentationGenerator generator
         generator:SetRunFolder(compiler:GetRunFolder())
