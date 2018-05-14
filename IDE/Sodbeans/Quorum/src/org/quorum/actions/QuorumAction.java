@@ -46,6 +46,7 @@ import quorum.Libraries.Language.Compile.CompilerErrorManager_;
 import quorum.Libraries.Language.Compile.CompilerRequest;
 import quorum.Libraries.Language.Compile.CompilerRequest_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
+import quorum.Libraries.Language.Compile.Documentation.DocumentationGenerator;
 import quorum.Libraries.Language.Compile.Library_;
 import quorum.Libraries.Language.Object_;
 import quorum.Libraries.System.File_;
@@ -62,7 +63,9 @@ public abstract class QuorumAction implements Action {
     private Process process = null;
     InputOutput io;
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(QuorumAction.class.getName());
-
+    protected boolean buildDocumentation = false;
+    protected boolean buildLibrary = false;
+    
     QuorumAction(QuorumProject project) {
         this.project = project;
         values.put("popupText", getDisplayName());
@@ -149,23 +152,58 @@ public abstract class QuorumAction implements Action {
                 }
             }
         }
+        final CompilerRequest request = new CompilerRequest();
         long start = System.currentTimeMillis();
         //compiler.Empty();
         final QuorumProjectType type = project.getProjectType();
-        //A web server (war file) to be used in Tomcat or Glassfish
-        if(type == QuorumProjectType.WEB) {
-            compiler.SetIsWebApplication(true);
-            compiler.SetOutputType(compiler.JAVA_BYTECODE);
-        //A JavaScript application to be run in a web browser
-        } else if(type == QuorumProjectType.WEB_BROWSER) {
-            //tell the compiler it is not compiling to a web server
-            compiler.SetIsWebApplication(false);
-            //then tell it to compile to JavaScript
-            compiler.SetOutputType(compiler.JAVASCRIPT);
-        //A normal console application to be run on Desktop
+        if(!buildDocumentation && !buildLibrary) {
+            //A web server (war file) to be used in Tomcat or Glassfish
+            if(type == QuorumProjectType.WEB) {
+                compiler.SetIsWebApplication(true);
+                request.SetOutputType(request.JAVA_BYTECODE);
+            //A JavaScript application to be run in a web browser
+            } else if(type == QuorumProjectType.WEB_BROWSER) {
+                //tell the compiler it is not compiling to a web server
+                compiler.SetIsWebApplication(false);
+                //then tell it to compile to JavaScript
+                request.SetOutputType(request.JAVASCRIPT);
+            //A normal console application to be run on Desktop
+            } else {
+                compiler.SetIsWebApplication(false);
+                request.SetOutputType(request.JAVA_BYTECODE);
+            }
         } else {
-            compiler.SetIsWebApplication(false);
-            compiler.SetOutputType(compiler.JAVA_BYTECODE);
+            if(buildLibrary) {
+                //we don't even need to compile. Just get the standard library 
+                //from the folder and write it
+                
+                DocumentationGenerator generator = new DocumentationGenerator();
+                Library_ library = project.GetStandardLibrary();
+                generator.SetRunFolder(compiler.GetRunFolder());
+                generator.Write(library);
+                long finish = System.currentTimeMillis();
+                double value = (finish - start);
+                value = value / 1000.0;
+                final double total = value;
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        CompilerErrorTopComponent errors = (CompilerErrorTopComponent) WindowManager.getDefault().findTopComponent("CompilerErrorTopComponent");
+                        if(errors != null) {
+                            errors.clear();
+                        }
+                        io.select();
+
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+                        Date date = new Date();
+
+                        io.getOut().println("Documentation Generated at " + dateFormat.format(date) + " in " + total + " seconds.");
+                    }
+                });
+                return true;
+            } else {
+                request.SetOutputType(request.DOCUMENT);
+            }
         }
         
         Iterator<quorum.Libraries.System.File> extras = project.getExtraSourceFiles();
@@ -176,7 +214,7 @@ public abstract class QuorumAction implements Action {
         
         final CompilerResult_ result;
         CompilerErrorManager_ manager;
-        final CompilerRequest request = new CompilerRequest();
+        
         try {
             //get the standard library
             File_ main = project.GetMain();
@@ -188,7 +226,7 @@ public abstract class QuorumAction implements Action {
             Library_ library = project.GetStandardLibrary();
             request.Set_Libraries_Language_Compile_CompilerRequest__files_(listing);
             request.Set_Libraries_Language_Compile_CompilerRequest__library_(library);
-            request.Set_Libraries_Language_Compile_CompilerRequest__main_(main);
+            request.Set_Libraries_Language_Compile_CompilerRequest__main_(main);            
             result = compiler.Compile(request);
             manager = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
             project.setLastCompileResult(result);
@@ -233,8 +271,6 @@ public abstract class QuorumAction implements Action {
         if(run.exists()) {
             run.setExecutable(true);
         }
-        
-        
                         
         long finish = System.currentTimeMillis();
         double value = (finish - start);
@@ -258,13 +294,19 @@ public abstract class QuorumAction implements Action {
                             errors.requestActive();
                         }
                     } else {
-                        errors.clear();
+                        if(errors != null) {
+                            errors.clear();
+                        }
                         io.select();
 
                         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
                         Date date = new Date();
 
-                        io.getOut().println("Build Successful at " + dateFormat.format(date) + " in " + total + " seconds.");
+                        if(request.GetOutputType() == request.DOCUMENT) {
+                            io.getOut().println("Documentation Generated at " + dateFormat.format(date) + " in " + total + " seconds.");
+                        } else {
+                            io.getOut().println("Build Successful at " + dateFormat.format(date) + " in " + total + " seconds.");
+                        }
                     }
                 }
                 
