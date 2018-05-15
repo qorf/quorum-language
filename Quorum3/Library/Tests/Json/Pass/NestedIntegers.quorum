@@ -1,0 +1,30 @@
+use Libraries.Data.Formats.JavaScriptObjectNotation
+
+class Main 
+    action Main
+        JavaScriptObjectNotation data
+        data:Add("item1", 1)
+        data:Add("item2", 2)
+        data:Add("item3", 3)
+
+        JavaScriptObjectNotation json
+        json:Add("data1", 10)
+        json:Add("data2", 11)
+        json:Add("detail", data)
+
+        CheckResult(json:ToText())
+    end
+
+    action CheckResult(text result)
+        text answer = ""
+        text cr = answer:GetCarriageReturn()
+        text dq = answer:GetDoubleQuote()
+        answer = "{"+cr+"    "+dq+"data1"+dq+": 10, "+cr+"    "+dq+"data2"+dq+": 11, "+cr+"    "+dq+"detail"+dq+":     {"+cr+"        "+dq+"item1"+dq+": 1, "+cr+"        "+dq+"item2"+dq+": 2, "+cr+"        "+dq+"item3"+dq+": 3"+cr+"    }"+cr+"}"
+        if answer = result
+            output "pass"
+        else
+            output "fail"
+        end
+    end
+
+end

@@ -1,0 +1,39 @@
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Containers.Iterator
+use Libraries.Containers.HashTable
+
+class Main 
+    action Main
+        HashTable<integer, text> projects
+        projects:Add(1, "project1")
+        projects:Add(2, "project2")
+        JavaScriptObjectNotation array
+        array:SetArray()
+        Iterator<text> iterator = projects:GetValueIterator()
+        repeat while iterator:HasNext()
+            text value = iterator:Next()
+            JavaScriptObjectNotation item
+            item:SetText(value)
+            array:Add(item)
+        end
+
+        JavaScriptObjectNotation json
+        json:Add("data1", 10)
+        json:Add("data2", 11)
+        json:Add("detail", array)
+        CheckResult(json:ToText())
+    end
+
+    action CheckResult(text result)
+        text answer = ""
+        text cr = answer:GetCarriageReturn()
+        text dq = answer:GetDoubleQuote()
+        answer = "{"+cr+"    "+dq+"data1"+dq+": 10, "+cr+"    "+dq+"data2"+dq+": 11, "+cr+"    "+dq+"detail"+dq+": ["+dq+"project1"+dq+", "+dq+"project2"+dq+"]"+cr+"}"
+        if answer = result
+            output "pass"
+        else
+            output "fail"
+        end
+    end
+
+end
