@@ -96,6 +96,7 @@ class JavaScriptObjectNotation
     action Add(text key, JavaScriptObjectNotation value)
         JavaScriptObjectNotation object
         object:SetPrettyPrint(IsPrettyPrint())
+        object:SetObject()
         object:Add(value)
         object:SetKey(key)
         array:Add(object)
@@ -1158,7 +1159,7 @@ class JavaScriptObjectNotation
             result = result + space + dq + key + dq + ": " 
         end
 
-        if IsParent() and level = 0
+        if IsParent() or level = 0
             if IsPrettyPrint()
                 result = result + "{" + line
             else
@@ -1167,10 +1168,14 @@ class JavaScriptObjectNotation
         end
 
         if IsObject()
-            if level > 0
-                result = result + space + "{" + line
+            if array:GetSize() = 1 and array:Get(0):IsArray()
+                // do nothing, nested JSON object is an array
             else
-                result = result + "{" + line
+                if level > 0
+                    result = result + space + "{" + line
+                else
+                    result = result + "{" + line
+                end
             end
         elseif IsArray() 
             result = result + "["
@@ -1210,12 +1215,16 @@ class JavaScriptObjectNotation
         end
 
         if IsObject()
-            result = result + line + space + "}"
+            if array:GetSize() = 1 and array:Get(0):IsArray()
+                // do nothing, nested JSON object is an array
+            else
+                result = result + line + space + "}"
+            end
         elseif IsArray() 
             result = result + "]"
         end
 
-        if IsParent() and level = 0
+        if IsParent() or level = 0
             if IsPrettyPrint()
                 result = result + line + "}"
             else
