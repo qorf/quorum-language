@@ -34,10 +34,14 @@ class Main is WebResponder
     public constant text REGENERATE_STANDARD_LIBRARY = "-setup"
     public constant text TEST_FLAG = "-test"
     public constant text HELP_FLAG = "-help"
+    private boolean isWebSetup = false
     HashTable<text, Array<text>> flagValues
+    Library sharedLibrary = undefined
 
     action Main
         ProcessConsoleFlags()
+        //CompileTest()
+        //WebRequestTest()
     end
 
     action GenerateDocumentation(Array<text> fileNames)
@@ -217,6 +221,7 @@ class Main is WebResponder
         request:files = files
         request:library = compiler:GetStandardLibrary()
         request:main = main
+        request:isWebRequest = true
 
         start = time:GetEpochTime()
         CompilerResult result = compiler:Compile(request)
@@ -224,38 +229,38 @@ class Main is WebResponder
         finish = time:GetEpochTime()
         output "    Time: " + ((finish - start) / 1000.0) + " seconds"
 
-        request:symbolTable = result:symbolTable
-        request:opcodes = result:opcodes
-        output "Compile again, but notice nothing needs to be built:"
-        start = time:GetEpochTime()
-        result = compiler:Compile(request)
-        output "    Error Free: " + result:compilerErrorManager:IsCompilationErrorFree()
-        finish = time:GetEpochTime()
-        output "    Time: " + ((finish - start) / 1000.0) + " seconds"
+//        request:symbolTable = result:symbolTable
+//        request:opcodes = result:opcodes
+//        output "Compile again, but notice nothing needs to be built:"
+//        start = time:GetEpochTime()
+//        result = compiler:Compile(request)
+//        output "    Error Free: " + result:compilerErrorManager:IsCompilationErrorFree()
+//        finish = time:GetEpochTime()
+//        output "    Time: " + ((finish - start) / 1000.0) + " seconds"
 
-        request:symbolTable = result:symbolTable
-        request:opcodes = result:opcodes
-        request:recompile = main
-        request:recompileValue = main:Read()
-        output "Compile again, but notice one file needs to be rebuilt, so flush to disk:"
-        start = time:GetEpochTime()
-        result = compiler:Compile(request)
-        output "    Error Free: " + result:compilerErrorManager:IsCompilationErrorFree()
-        finish = time:GetEpochTime()
-        output "    Time: " + ((finish - start) / 1000.0) + " seconds"
-
-        //Compile just one file after reading it in
-        request:symbolTable = result:symbolTable
-        output "Compile just one file and do not write to disk:"
-        request:recompile = main
-        request:recompileValue = main:Read()
-        request:isFastCompileRequest = true
-
-        start = time:GetEpochTime()
-        result = compiler:Compile(request)
-        output "    Error Free: " + result:compilerErrorManager:IsCompilationErrorFree()
-        finish = time:GetEpochTime()
-        output "    Time: " + ((finish - start) / 1000.0) + " seconds"
+//        request:symbolTable = result:symbolTable
+//        request:opcodes = result:opcodes
+//        request:recompile = main
+//        request:recompileValue = main:Read()
+//        output "Compile again, but notice one file needs to be rebuilt, so flush to disk:"
+//        start = time:GetEpochTime()
+//        result = compiler:Compile(request)
+//        output "    Error Free: " + result:compilerErrorManager:IsCompilationErrorFree()
+//        finish = time:GetEpochTime()
+//        output "    Time: " + ((finish - start) / 1000.0) + " seconds"
+//
+//        //Compile just one file after reading it in
+//        request:symbolTable = result:symbolTable
+//        output "Compile just one file and do not write to disk:"
+//        request:recompile = main
+//        request:recompileValue = main:Read()
+//        request:isFastCompileRequest = true
+//
+//        start = time:GetEpochTime()
+//        result = compiler:Compile(request)
+//        output "    Error Free: " + result:compilerErrorManager:IsCompilationErrorFree()
+//        finish = time:GetEpochTime()
+//        output "    Time: " + ((finish - start) / 1000.0) + " seconds"
 
         CompilerErrorManager errors = result:compilerErrorManager
         if errors:IsCompilationErrorFree()
@@ -630,25 +635,43 @@ For more information on writing programs in Quorum, visit www.quorumlanguage.com
         return help
     end
 
+//    action WebRequestTest
+//        WebRequest request
+//        request:AddParameter("code", "output 5")
+//        WebResponse response = Respond(request)
+//        text value = response:GetPageText()
+//        output value
+//    end
+
     action Respond(WebRequest request) returns WebResponse
         text result = ""
         WebResponse response
         constant text CODE_REQUEST = "code"
         Compiler compiler
-        
+        File main
 
-        File library
+        File libraryLocation
+        response:SetPageText(libraryLocation:GetAbsolutePath())
+        //return response
         //To deploy to a particular server, change this line to the 
         //parent directory for where the standard library is housed.
-        library:SetWorkingDirectory("/usr/share/tomcat")
-        //library:SetPath("Library/Standard")
-        //library:SetWorkingDirectory("/Users/stefika/Repositories/quorum-language/Quorum3")
-        library:SetPath("Library/Standard")
+        libraryLocation:SetWorkingDirectory("/usr/share/tomcat")
+        //libraryLocation:SetWorkingDirectory("/Users/stefika/Repositories/quorum-language/Quorum3")
+        libraryLocation:SetPath("Library/Standard")
         //output library:GetAbsolutePath()
 
-        compiler:SetStandardLibraryFolder(library)
+        //if this is the first time the compiler is called, scan the standard library
+        if not isWebSetup
+
+            Library library
+            sharedLibrary = library
+            library:SetCachingLibraryOpcodes(true)
+            library:SetLocation(libraryLocation)
+            library:Scan()
+            isWebSetup = true
+        end
         
-        text directory = library:GetWorkingDirectory()
+        text directory = libraryLocation:GetWorkingDirectory()
         //if there is no code tag, then just ignore the request
         if not request:HasParameter(CODE_REQUEST)
             
@@ -663,15 +686,18 @@ For more information on writing programs in Quorum, visit www.quorumlanguage.com
         CompilerRequest compilerRequest
         
         output compiler:GetVersion()
+        Array<File> files
+        files:Add(main)
 
-        compilerRequest:main = undefined
-        compilerRequest:library = undefined//library
-        compilerRequest:files = undefined //files
+        compilerRequest:recompile = main
+        compilerRequest:recompileValue = source
+        compilerRequest:SetOutputType(compilerRequest:JAVASCRIPT)
+        compilerRequest:main = main
+//        compilerRequest:library = sharedLibrary
+        compilerRequest:files = files
         
         CompilerResult compilerResult = compiler:Compile(compilerRequest)
         CompilerErrorManager manager = compilerResult:compilerErrorManager
-
-        //compiler:CompileSingle(source)
 
         if manager:IsCompilationErrorFree()
             response:SetPageText(compilerResult:convertedJavaScript)

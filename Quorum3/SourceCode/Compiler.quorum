@@ -391,7 +391,8 @@ class Compiler
                 //open up and begin filling the Jar
                 JarGenerator generator
                 text manifest = GetManifest(request, generator, table)
-                File jar = GetDistributionFile()
+                text compiledName = request:GetName(name)
+                File jar = GetDistributionFile(compiledName)
                 generator:SetManifest(manifest)
                 generator:Open(jar)
 
@@ -438,7 +439,7 @@ class Compiler
                     if not library:GetSymbolTable():HasClass(clazz:GetStaticKey())
                         and build not= undefined and build:Exists() and buildInterface not= undefined and buildInterface:Exists()
                         if build not= undefined
-                            if IsWebApplication()
+                            if request:isWebRequest
                                 text path = WEB_DIRECTORY + "/" + build:GetPath()
                                 generator:Add(build, path)
                             else 
@@ -447,7 +448,7 @@ class Compiler
                         end
 
                         if buildInterface not= undefined
-                            if IsWebApplication()
+                            if request:isWebRequest
                                 text path = WEB_DIRECTORY + "/" + buildInterface:GetPath()
                                 generator:Add(buildInterface, path)
                             else 
@@ -462,7 +463,7 @@ class Compiler
                 //with any dependencies that are necessary.
                 //only go through this if not a fast compile
                 if not request:isFastCompileRequest
-                    WriteDependencies(generator, library)
+                    WriteDependencies(generator, library, request)
                     generator:Close()
                 end
                 profiler:Add(time:GetEpochTime())
@@ -593,7 +594,7 @@ class Compiler
         end
     end
 
-    private action WriteDependencies(JarGenerator generator, Library library)
+    private action WriteDependencies(JarGenerator generator, Library library, CompilerRequest request)
         File libraryLocation = library:GetLocation()
         if not additionalPluginFolders:IsEmpty()
             Iterator<File> it = additionalPluginFolders:GetIterator()
@@ -612,7 +613,11 @@ class Compiler
             end
         end
 
-        if IsWebApplication()
+        File compiledStandardLibraryFolder
+        compiledStandardLibraryFolder:SetWorkingDirectory(libraryLocation:GetParentDirectory():GetAbsolutePath() + "/Compiled/")
+        compiledStandardLibraryFolder:SetPath("Run")
+        
+        if request:isWebRequest
             File servlet
             servlet:SetWorkingDirectory(libraryLocation:GetAbsolutePath() + "/Plugins/web/")
             servlet:SetPath("WEB-INF/classes/web/servlet/Processor.class")
@@ -632,11 +637,17 @@ class Compiler
             context:SetWorkingDirectory(libraryLocation:GetAbsolutePath() + "/Plugins/web/")
             context:SetPath("META-INF/context.xml")
             generator:Add(context)
-        end
 
-        File compiledStandardLibraryFolder
-        compiledStandardLibraryFolder:SetWorkingDirectory(libraryLocation:GetParentDirectory():GetAbsolutePath() + "/Compiled/")
-        compiledStandardLibraryFolder:SetPath("Run")
+            File stdlib
+            stdlib:SetWorkingDirectory(libraryLocation:GetParentDirectory():GetAbsolutePath() + "/Compiled/Run/")
+            stdlib:SetPath("QuorumStandardLibrary.jar")
+            generator:Add(stdlib, "WEB-INF/lib/QuorumStandardLibrary.jar")
+
+            File stdplug
+            stdplug:SetWorkingDirectory(libraryLocation:GetParentDirectory():GetAbsolutePath() + "/Compiled/Run/")
+            stdplug:SetPath("QuorumStandardPlugins.jar")
+            generator:Add(stdplug, "WEB-INF/lib/QuorumStandardPlugins.jar")
+        end
 
         CopyMissingFiles(compiledStandardLibraryFolder, runFolder)
     end
@@ -1495,6 +1506,15 @@ class Compiler
         f2:SetWorkingDirectory(standardLibraryFolder:GetAbsolutePath() + "/Plugins/")
         f2:SetPath("org")
         dependencyFolder = f2
+    end
+
+    action GetDistributionFile(text name) returns File
+        File run = GetRunFolder()
+        text path = run:GetPath() + "/"
+        File newRun
+        newRun:SetWorkingDirectory(run:GetWorkingDirectory())
+        newRun:SetPath(name)
+        return newRun
     end
 
     action GetDistributionFile returns File

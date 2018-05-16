@@ -36,4 +36,16 @@ class CompilerRequest
             currentOutputType = 0
         end
     end
+
+    /*
+        This action returns the name of a compiled version of the source code, 
+        whether it is a jar file (standard mode) or a war file (web server mode).
+    */
+    action GetName(text name) returns text
+        if isWebRequest
+            return name + ".war"
+        else
+            return name + ".jar"
+        end
+    end
 end
