@@ -11,7 +11,7 @@ class CompilerRequest
     public SymbolTable symbolTable = undefined
     public File recompile = undefined
     public text recompileValue = undefined
-    public boolean isWebRequest = false
+    private boolean isWebRequest = false
     public boolean isFastCompileRequest = false
     public File main = undefined
     public Library library = undefined
@@ -37,6 +37,9 @@ class CompilerRequest
         end
     end
 
+    action IsWebRequest returns boolean
+        return isWebRequest
+    end
     /*
         This action returns the name of a compiled version of the source code, 
         whether it is a jar file (standard mode) or a war file (web server mode).

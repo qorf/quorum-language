@@ -391,8 +391,8 @@ class Compiler
                 //open up and begin filling the Jar
                 JarGenerator generator
                 text manifest = GetManifest(request, generator, table)
-                text compiledName = request:GetName(name)
-                File jar = GetDistributionFile(compiledName)
+                //text compiledName = request:GetName(name)
+                File jar = GetExecutable(request)
                 generator:SetManifest(manifest)
                 generator:Open(jar)
 
@@ -439,7 +439,7 @@ class Compiler
                     if not library:GetSymbolTable():HasClass(clazz:GetStaticKey())
                         and build not= undefined and build:Exists() and buildInterface not= undefined and buildInterface:Exists()
                         if build not= undefined
-                            if request:isWebRequest
+                            if request:IsWebRequest()
                                 text path = WEB_DIRECTORY + "/" + build:GetPath()
                                 generator:Add(build, path)
                             else 
@@ -448,7 +448,7 @@ class Compiler
                         end
 
                         if buildInterface not= undefined
-                            if request:isWebRequest
+                            if request:IsWebRequest()
                                 text path = WEB_DIRECTORY + "/" + buildInterface:GetPath()
                                 generator:Add(buildInterface, path)
                             else 
@@ -617,7 +617,7 @@ class Compiler
         compiledStandardLibraryFolder:SetWorkingDirectory(libraryLocation:GetParentDirectory():GetAbsolutePath() + "/Compiled/")
         compiledStandardLibraryFolder:SetPath("Run")
         
-        if request:isWebRequest
+        if request:IsWebRequest()
             File servlet
             servlet:SetWorkingDirectory(libraryLocation:GetAbsolutePath() + "/Plugins/web/")
             servlet:SetPath("WEB-INF/classes/web/servlet/Processor.class")
@@ -1508,12 +1508,13 @@ class Compiler
         dependencyFolder = f2
     end
 
-    action GetDistributionFile(text name) returns File
+    action GetExecutable(CompilerRequest request) returns File
         File run = GetRunFolder()
         text path = run:GetPath() + "/"
         File newRun
         newRun:SetWorkingDirectory(run:GetWorkingDirectory())
-        newRun:SetPath(name)
+        text value = request:GetName(name)
+        newRun:SetPath(path + value)
         return newRun
     end
 
