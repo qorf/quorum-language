@@ -500,7 +500,7 @@ class Texture is Disposable
     private action LoadFromTextureData(TextureData data)
         SetGL20Info(gl20:GL_TEXTURE_2D, CreateGLHandle())
         Load(data)
-        AddManagedTexture()
+        AddReloadableTexture()
     end
 
     /*
@@ -610,9 +610,11 @@ class Texture is Disposable
         return 0
     end
 
-    // This currently takes no parameters, unlike in libGDX. This may have to
-    // change, but for now it should suffice.
-    private system action AddManagedTexture
+    /*
+    This action indicates that the texture should be reloaded after a context
+    loss occurs.
+    */
+    private system action AddReloadableTexture
 
     /*
     This action activates this texture and binds the texture image to the
