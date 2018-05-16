@@ -651,8 +651,6 @@ For more information on writing programs in Quorum, visit www.quorumlanguage.com
         File main
 
         File libraryLocation
-        response:SetPageText(libraryLocation:GetAbsolutePath())
-        //return response
         //To deploy to a particular server, change this line to the 
         //parent directory for where the standard library is housed.
         libraryLocation:SetWorkingDirectory("/usr/share/tomcat")
@@ -693,7 +691,7 @@ For more information on writing programs in Quorum, visit www.quorumlanguage.com
         compilerRequest:recompileValue = source
         compilerRequest:SetOutputType(compilerRequest:JAVASCRIPT)
         compilerRequest:main = main
-//        compilerRequest:library = sharedLibrary
+        compilerRequest:library = sharedLibrary
         compilerRequest:files = files
         
         CompilerResult compilerResult = compiler:Compile(compilerRequest)
