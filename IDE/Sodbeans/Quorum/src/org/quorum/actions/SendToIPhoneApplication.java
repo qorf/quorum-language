@@ -45,7 +45,8 @@ public class SendToIPhoneApplication extends QuorumAction implements ActionListe
             final ProgressHandle progress = ProgressHandleFactory.createHandle(taskName, cancel);
             cancel.progress = progress;
             progress.start();
-            boolean success = build();
+            BuildInformation info = build();
+            boolean success = info.success;
             if(!success) {
                 progress.finish();
                 return;
@@ -64,7 +65,7 @@ public class SendToIPhoneApplication extends QuorumAction implements ActionListe
             //executable name and path
             // Compute the location of the project's root directory.
             File runDirectory = project.getRunDirectory();
-            String runName = runDirectory.getName() + "/" + project.getExecutableName();
+            String runName = runDirectory.getName() + "/" + project.getExecutableName(info.request);
             
             
             //location of where robovm is
@@ -111,11 +112,11 @@ public class SendToIPhoneApplication extends QuorumAction implements ActionListe
             resources = FileUtil.toFile(project.getProjectDirectory()).getAbsolutePath() + File.separator + resources;
             //signing = "'" + signing + "'"; 
             
-            String newName = project.getExecutableName();
+            String newName = project.getExecutableName(info.request);
             newName = newName.substring(0, newName.length() - 3);
             newName = newName + "ipa";
             
-            String runFullPath = runDirectory.getAbsolutePath() + "/" + project.getExecutableName();
+            String runFullPath = runDirectory.getAbsolutePath() + "/" + project.getExecutableName(info.request);
             ProcessBuilder builder = new ProcessBuilder(robovmCommand, "-os", "ios", 
                 "-libs", "libfreetype.a:libGameEngineCPlugins.a:libObjectAL.a",
                 "-classpath", "robovm-cocoatouch-1.8.0.jar:robovm-rt-1.8.0.jar:robovm-objc-1.8.0.jar",

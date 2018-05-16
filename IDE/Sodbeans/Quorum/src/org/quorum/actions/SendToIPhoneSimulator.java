@@ -45,7 +45,8 @@ public class SendToIPhoneSimulator extends QuorumAction implements ActionListene
             final ProgressHandle progress = ProgressHandleFactory.createHandle(taskName, cancel);
             cancel.progress = progress;
             progress.start();
-            boolean success = build();
+            BuildInformation info = build();
+            boolean success = info.success;
             if(!success) {
                 progress.finish();
                 return;
@@ -64,7 +65,7 @@ public class SendToIPhoneSimulator extends QuorumAction implements ActionListene
             //executable name and path
             // Compute the location of the project's root directory.
             File runDirectory = project.getRunDirectory();
-            String runName = runDirectory.getName() + "/" + project.getExecutableName();
+            String runName = runDirectory.getName() + "/" + project.getExecutableName(info.request);
             
             
             //location of where robovm is
@@ -111,7 +112,7 @@ public class SendToIPhoneSimulator extends QuorumAction implements ActionListene
             resources = FileUtil.toFile(project.getProjectDirectory()).getAbsolutePath() + File.separator + resources;
             signing = "'" + signing + "'";
             
-            String runFullPath = runDirectory.getAbsolutePath() + "/" + project.getExecutableName();
+            String runFullPath = runDirectory.getAbsolutePath() + "/" + project.getExecutableName(info.request);
             
             ProcessBuilder builder = new ProcessBuilder(robovmCommand,
                 "-os", "ios",

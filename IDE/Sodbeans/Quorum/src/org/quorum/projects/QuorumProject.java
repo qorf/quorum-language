@@ -46,6 +46,8 @@ import org.quorum.actions.Run;
 import org.quorum.actions.SendToIPhoneApplication;
 import org.quorum.actions.SendToIPhoneSimulator;
 import org.quorum.support.Utility;
+import quorum.Libraries.Language.Compile.CompilerRequest;
+import quorum.Libraries.Language.Compile.CompilerRequest_;
 import quorum.Libraries.Language.Compile.CompilerResult_;
 import quorum.Libraries.System.File_;
 import quorum.Libraries.Language.Compile.Library_;
@@ -224,15 +226,15 @@ public class QuorumProject implements Project {
         return lookup;
     }
 
-    public String getExecutableLocation() {
+    public String getExecutableLocation(CompilerRequest_ request) {
         File_ output = getCompiler().GetRunFolder();
         String path = output.GetAbsolutePath();
         
-        return path + "/" + getCompiler().GetName() + getCompiler().GetFileExtension();
+        return path + "/" + getExecutableName(request);
     }
     
-    public String getExecutableName() {
-        return getCompiler().GetName() + getCompiler().GetFileExtension();
+    public String getExecutableName(CompilerRequest_ request) {
+        return request.GetName(getCompiler().GetName());
     }
     
     public String getExecutableNameNoExtension() {

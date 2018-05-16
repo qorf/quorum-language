@@ -96,7 +96,7 @@ public abstract class QuorumAction implements Action {
      *
      * @return
      */
-    public synchronized boolean build() {
+    public synchronized BuildInformation build() {
         Lookup lookup = project.getLookup();
         final quorum.Libraries.Language.Compile.Compiler compiler = lookup.lookup(quorum.Libraries.Language.Compile.Compiler.class);
         FileObject projectDirectory = project.getProjectDirectory();
@@ -152,24 +152,26 @@ public abstract class QuorumAction implements Action {
                 }
             }
         }
+        BuildInformation info = new BuildInformation();
         final CompilerRequest request = new CompilerRequest();
+        info.request = request;
         long start = System.currentTimeMillis();
         //compiler.Empty();
         final QuorumProjectType type = project.getProjectType();
         if(!buildDocumentation && !buildLibrary) {
             //A web server (war file) to be used in Tomcat or Glassfish
             if(type == QuorumProjectType.WEB) {
-                compiler.SetIsWebApplication(true);
+                request.isWebRequest = true;
                 request.SetOutputType(request.JAVA_BYTECODE);
             //A JavaScript application to be run in a web browser
             } else if(type == QuorumProjectType.WEB_BROWSER) {
                 //tell the compiler it is not compiling to a web server
-                compiler.SetIsWebApplication(false);
+                request.isWebRequest = false;
                 //then tell it to compile to JavaScript
                 request.SetOutputType(request.JAVASCRIPT);
             //A normal console application to be run on Desktop
             } else {
-                compiler.SetIsWebApplication(false);
+                request.isWebRequest = false;
                 request.SetOutputType(request.JAVA_BYTECODE);
             }
         } else {
@@ -200,7 +202,8 @@ public abstract class QuorumAction implements Action {
                         io.getOut().println("Documentation Generated at " + dateFormat.format(date) + " in " + total + " seconds.");
                     }
                 });
-                return true;
+                info.success = true;
+                return info;
             } else {
                 request.SetOutputType(request.DOCUMENT);
             }
@@ -228,6 +231,7 @@ public abstract class QuorumAction implements Action {
             request.Set_Libraries_Language_Compile_CompilerRequest__library_(library);
             request.Set_Libraries_Language_Compile_CompilerRequest__main_(main);            
             result = compiler.Compile(request);
+            info.result = result;
             manager = result.Get_Libraries_Language_Compile_CompilerResult__compilerErrorManager_();
             project.setLastCompileResult(result);
         } catch (final Exception e) {
@@ -260,7 +264,8 @@ public abstract class QuorumAction implements Action {
                     }
                 });
             }
-            return false;
+            info.success = false;
+            return info;
         }
         
         //NetBeans HACK: The NetBeans platform seems to strip away file permissions
@@ -330,7 +335,7 @@ public abstract class QuorumAction implements Action {
         boolean legos = false;
         if(type == QuorumProjectType.LEGO && result != null && manager.IsCompilationErrorFree()) {
             QuorumToLegoAdapter adapter = new QuorumToLegoAdapter();
-            String loc = project.getExecutableLocation();
+            String loc = project.getExecutableLocation(request);
             File f = new File(loc);
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
@@ -347,7 +352,7 @@ public abstract class QuorumAction implements Action {
                 public void run() {
                     if(type == QuorumProjectType.LEGO) {
                         if(legoFound) {
-                            io.getOut().println("Successfully output " + project.getExecutableName() + " to your lego robot.");
+                            io.getOut().println("Successfully output " + project.getExecutableName(request) + " to your lego robot.");
                         } else {
                             io.getOut().println("I could not connect to a lego device. Is it plugged in?");
                         }
@@ -366,9 +371,11 @@ public abstract class QuorumAction implements Action {
         });
         
         if(result != null) {
-            return manager.IsCompilationErrorFree();
+            info.success = manager.IsCompilationErrorFree();
+            return info;
         }
-        return false;
+        info.success = false;
+        return info;
     }
 
     @Override
