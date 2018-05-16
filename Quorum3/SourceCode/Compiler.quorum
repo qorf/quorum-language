@@ -600,7 +600,7 @@ class Compiler
             Iterator<File> it = additionalPluginFolders:GetIterator()
             repeat while it:HasNext()
                 File folder = it:Next()
-                WritePlugins(generator, folder, folder)
+                WritePlugins(generator, folder, folder, request)
             end
         end
 
@@ -724,32 +724,7 @@ class Compiler
         end
     end
 
-    private action WriteCompilerDependency(JarGenerator generator, File file, File originalLocation)
-        if file:IsDirectory()
-            Array<File> files = file:GetDirectoryListing()
-            Iterator<File> it = files:GetIterator()
-
-            repeat while it:HasNext()
-                File f = it:Next()
-                WritePlugins(generator, f, originalLocation)
-            end
-        else
-            text pluginPath = originalLocation:GetWorkingDirectory()
-            text path = file:GetAbsolutePath()
-            path = path:GetSubtext(pluginPath:GetSize())
-            text wd = file:GetAbsolutePath()
-            wd = wd:GetSubtext(0, pluginPath:GetSize() - 1)
-
-            File f
-            f:SetWorkingDirectory(wd)
-            f:SetPath(path)
-            
-            //TODO: Optimize this to reduce the amount of copying that goes on
-            generator:Add(f)
-        end
-    end
-
-    private action WritePlugins(JarGenerator generator, File file, File originalLocation)
+    private action WritePlugins(JarGenerator generator, File file, File originalLocation, CompilerRequest request)
         if file:IsDirectory()
             Array<File> files = file:GetDirectoryListing()
             Iterator<File> it = files:GetIterator()
@@ -757,7 +732,7 @@ class Compiler
             repeat while it:HasNext()
                 File f = it:Next()
                 if not f:IsHidden() and not (f:GetFileExtension() = "DS_Store")
-                    WritePlugins(generator, f, originalLocation)
+                    WritePlugins(generator, f, originalLocation, request)
                 end
             end
         else
@@ -780,7 +755,7 @@ class Compiler
             File f
             f:SetWorkingDirectory(wd)
             f:SetPath(path)
-            if IsWebApplication()
+            if request:IsWebRequest()
                 text newPath = WEB_DIRECTORY + "/" + f:GetPath()
                 generator:Add(f, newPath)
             else 
@@ -1424,20 +1399,8 @@ class Compiler
         return name
     end
 
-    action GetNameWithExtension returns text
-        return name + GetFileExtension()
-    end
-
     action SetName(text name)
         me:name = name
-    end
-
-    action GetFileExtension returns text
-        if IsWebApplication()
-            return ".war"
-        else
-            return ".jar"
-        end
     end
 
     action GetMainClass(File theMain, SymbolTable table) returns Class
@@ -1518,24 +1481,7 @@ class Compiler
         return newRun
     end
 
-    action GetDistributionFile returns File
-        File run = GetRunFolder()
-        text path = run:GetPath() + "/"
-        File newRun
-        newRun:SetWorkingDirectory(run:GetWorkingDirectory())
-        newRun:SetPath(path + GetNameWithExtension())
-        return newRun
-    end
-
     action GetRunFolder returns File
         return runFolder
-    end
-
-    action IsWebApplication returns boolean
-        return isWebApplication
-    end
-
-    action SetIsWebApplication(boolean web)
-        isWebApplication = web
     end
 end
