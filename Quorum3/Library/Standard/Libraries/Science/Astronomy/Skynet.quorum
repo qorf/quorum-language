@@ -186,7 +186,6 @@ class Skynet is NetworkRequestListener
     action GetSkynetHeaders returns HashTable<text, text>
         HashTable<text, text> headers
         headers:Add("Authentication-Token", me:AccountKey)
-        headers:Add("Content-Type", "application/x-www-form-urlencoded")
         headers:Add("Connection", "keep-alive")
         headers:Add("Accept-Encoding", "gzip, deflate")
         headers:Add("Accept", "*/*")

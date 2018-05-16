@@ -25,26 +25,6 @@ class NetworkRequest
     private Iterator<text> headerIterator = undefined
     private text nextHeader = ""
 
-
-//  Future implementation
-//    HashTable<text, text> parameters
-//    private Iterator<text> parameterIterator = undefined
-//    private text nextParameter = ""
-
-//    JavaScriptObjectNotation jsonData
-//    HashTable<text, text> savedLocalData
-//    HashTable<text, text> files
-//    text authUser  = ""
-//    text authPassword  = ""
-//    boolean allowRedirects  = false
-//    HashTable<text, text> proxyMap
-//    boolean verify  = false
-//    text verifyPath  = ""
-//    boolean streamResponse  = false
-//    text securityCertificatePath  = ""
-//    text securityCertificate  = ""
-//    text securityKey  = ""
-
     action SetRequestType(NetworkRequestType type)
         me:type = type
     end
@@ -134,22 +114,6 @@ class NetworkRequest
         me:webAddress = webAddress
     end
 
-//    action SetParameters(HashTable<text, text> parameters)
-//        me:parameters = parameters
-//    end
-//
-//    action SetParameters(JavaScriptObjectNotation parameters)
-//        HashTable<text, text> reformattedParameters
-//        // format to HashTable
-//        me:parameters = reformattedParameters
-//    end
-//    
-//    action SetParameters(text data)
-//        HashTable<text, text> reformattedParameters
-//        // format to HashTable
-//        me:parameters = reformattedParameters
-//    end
-
     action SetBody(text data)
         me:body = data
     end
@@ -182,10 +146,6 @@ class NetworkRequest
         headers:Add(key, value)
     end
 
-//    action SetAdditionalData(JavaScriptObjectNotation data)
-//        me:jsonData = data
-//    end
-
     action GetBody() returns text
         return body
     end
@@ -197,10 +157,6 @@ class NetworkRequest
     action GetRequestType() returns text
         return type:ToText()
     end
-
-//    action GetParameters() returns HashTable<text, text>
-//        return parameters
-//    end
 
     action GetWebAddress() returns text
         return webAddress
@@ -225,26 +181,6 @@ class NetworkRequest
     private action GetHeaderValue(text key) returns text
         return headers:GetValue(key)
     end
-
-//    private action ResetParameterIterator
-//        parameterIterator = parameters:GetKeyIterator()
-//    end
-//
-//    private action GetParameterSize returns integer
-//        return parameters:GetSize()
-//    end
-//
-//    private action HasNextParameter() returns boolean
-//        return parameterIterator:HasNext()
-//    end
-//
-//    private action GetNextParameterKey() returns text
-//        return parameterIterator:Next()
-//    end
-//
-//    private action GetParameterValue(text key) returns text
-//        return parameters:GetValue(key)
-//    end
 
     action FormEncodeData(HashTable<text, text> data) returns text
         text result = ""
