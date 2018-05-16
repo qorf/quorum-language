@@ -18,6 +18,9 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
+import plugins.quorum.Libraries.Game.Graphics.Mesh;
+import plugins.quorum.Libraries.Game.Graphics.ShaderProgram;
+import plugins.quorum.Libraries.Game.Graphics.Texture;
 import plugins.quorum.Libraries.Game.libGDX.GdxEglConfigChooser;
 
 import plugins.quorum.Libraries.Game.libGDX.WindowedMean;
@@ -256,6 +259,10 @@ public class AndroidDisplay implements Renderer
         //logConfig(config);
         UpdatePPI();
 
+        Mesh.ReloadMeshes();
+        Texture.ReloadTextures();
+        ShaderProgram.ReloadShaders();
+        
         /*
         Mesh.invalidateAllMeshes(app);
         Texture.invalidateAllTextures(app);

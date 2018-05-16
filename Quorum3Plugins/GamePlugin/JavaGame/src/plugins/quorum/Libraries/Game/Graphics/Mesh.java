@@ -9,6 +9,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
+import plugins.quorum.Libraries.Game.libGDX.Array;
 //import plugins.quorum.Libraries.Game.libGDX.ShaderProgram;
 import quorum.Libraries.Compute.Matrix4_;
 import quorum.Libraries.Compute.Vector3;
@@ -28,6 +29,8 @@ public class Mesh
     
     // Static vector used during calculations.
     private static Vector3 calcVector = new Vector3();
+    
+    final static Array<Mesh_> RELOADABLE_MESHES = new Array<>();
     
     /*
     An action used by the Quorum mesh class during creation. This will ensure
@@ -260,4 +263,21 @@ public class Mesh
         return box;
     }
     
+    public void AddReloadableMesh()
+    {
+        RELOADABLE_MESHES.add(quorumMesh);
+    }
+    
+    public void RemoveReloadableMesh()
+    {
+        RELOADABLE_MESHES.removeValue(quorumMesh, true);
+    }
+    
+    public static void ReloadMeshes()
+    {
+        for (Mesh_ mesh : RELOADABLE_MESHES)
+        {
+            mesh.Reload();
+        }
+    }
 }

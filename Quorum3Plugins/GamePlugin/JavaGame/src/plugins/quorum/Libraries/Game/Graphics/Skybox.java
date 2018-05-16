@@ -30,6 +30,9 @@ public class Skybox
         graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_WRAP_S, GraphicsManager.GL_CLAMP_TO_EDGE);
         graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_WRAP_T, GraphicsManager.GL_CLAMP_TO_EDGE);
         graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_WRAP_R, GraphicsManager.GL_CLAMP_TO_EDGE);  
+        
+        // Make sure the texture will be reloaded after a context loss.
+        texturePlugin.AddReloadableTexture();
     }
     
     public void LoadSide(File_ file, Texture_ texture, int side)
@@ -39,6 +42,7 @@ public class Skybox
         
         texture.Bind();
         map.Define2DImage(side, 0, 0);
+        map.Dispose();
         
         switch(side)
         {
@@ -61,10 +65,5 @@ public class Skybox
                 ((quorum.Libraries.Game.Graphics.Skybox)me_).frontLoaded = true;
                 break;
         }
-    }
-    
-    public void DisposeNative()
-    {
-        // Do nothing. There are no plugin-dependent resources to handle on desktop.
     }
 }
