@@ -1,43 +1,35 @@
-package Libraries.Interface.Events
+package Libraries.Interface
 
-use Libraries.Interface.Selectable
-use Libraries.Containers.Array
+use Libraries.Game.GameStateManager
 
-class SelectionEvent 
-    public constant integer SINGLE = 1
-    public constant integer RANGE = 2
-    public constant integer MULTIPLE = 3
+class SelectionEvent
+    text displayName = "Unnamed Selection"
+    Item item = undefined
 
-    integer selectableType = 0
-
-    public constant integer SELECTED = 4
-    public constant integer DESELECTED = 5
+    action Initialize(Item item, text displayName)
+        me:item = item
+        me:displayName = displayName
+    end
     
-    integer eventType = 0
-
-    Selectable selectable = undefined
-    Array<integer> modified = undefined
-    
-    action Initialize(integer selectableType, integer eventType, Selectable selectable, Array<integer> modified)
-        me:selectableType = selectableType
-        me:eventType = eventType
-        me:selectable = selectable
-        me:modified = modified
+    action SetDisplayName(text name)
+        displayName = name
+        NotifySelectionListeners()
     end
 
-    action GetSelectableType returns integer
-        return selectableType
+    action GetDisplayName returns text
+        return displayName
     end
 
-    action GetEventType returns integer
-        return eventType
+    /* This action returns the item that contains the selection.
+
+    */
+    action GetContainerItem returns Item
+        return item
     end
 
-    action GetSelectable returns Selectable
-        return selectable
-    end
-
-    action GetModifiedIndices returns Array<integer>
-        return modified
+    action NotifySelectionListeners
+        GameStateManager manager
+//        SelectionEvent event
+        manager:GetInput():NotifySelectionListeners(me)
     end
 end

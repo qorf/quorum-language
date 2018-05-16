@@ -1,0 +1,33 @@
+package Libraries.Interface
+
+use Libraries.Containers.Array
+
+class MenuSelection is Selection
+    Array<MenuItem> menuItems
+
+    action Initialize(Item item)
+        Initialize(item, "")
+        path:Add("")
+    end
+
+    action Set(Array<MenuItem> items)
+        menuItems:Empty()
+
+        counter = 0
+        repeat while counter < items:GetSize()
+            menuItems:Add(items:Get(counter))
+            counter = counter + 1
+        end
+
+        SetDisplayName(menuItems:GetFromEnd())
+    end
+
+    action Empty
+        items:Empty()
+        parent:Selection:displayName = ""
+    end
+
+    action GetPath returns Array<MenuItem>
+        return menuItems:CopyToArray()
+    end
+end

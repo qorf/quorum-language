@@ -1,0 +1,33 @@
+package Libraries.Interface
+
+use Libraries.Containers.Array
+
+class TreeSelection is Selection
+    Array<TreeItem> treeItems
+
+    action Initialize(Item item)
+        Initialize(item, "")
+        path:Add("")
+    end
+
+    action Set(Array<TreeItem> items)
+        treeItems:Empty()
+
+        counter = 0
+        repeat while counter < items:GetSize()
+            treeItems:Add(items:Get(counter))
+            counter = counter + 1
+        end
+
+        SetDisplayName(treeItems:GetFromEnd())
+    end
+
+    action Empty
+        items:Empty()
+        parent:Selection:displayName = ""
+    end
+
+    action GetPath returns Array<TreeItem>
+        return treeItems:CopyToArray()
+    end
+end

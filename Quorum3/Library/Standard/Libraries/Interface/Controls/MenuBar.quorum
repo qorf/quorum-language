@@ -11,7 +11,7 @@ use Libraries.Interface.DrawableContent
 use Libraries.Interface.GraphicUserInterfaceContent
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Selection
-use Libraries.Interface.TextPathSelection
+use Libraries.Interface.PathSelection
 use Libraries.Containers.Support.Pair
 use Libraries.Interface.Controls.DefaultMenuItemContent
 use Libraries.Interface.Controls.GraphicUserInterfaceSelection
@@ -26,7 +26,7 @@ class MenuBar is Item2D
 
     boolean isSelecting = false
 
-    TextPathSelection selection
+    PathSelection selection
 
     on create
         FlowLayout layout
@@ -122,6 +122,18 @@ class MenuBar is Item2D
         item:SetMenuAppearance(defaultItemAppearance)
     end
 
+    action GetSelection returns MenuSelection
+        return selection
+    end
+
+    action GetMultipleSelection returns Array<MenuSelection>
+        return undefined
+    end
+
+    action HasMultipleSelection returns boolean
+        return false
+    end
+
     action Close
         integer counter = 0
         repeat while counter < menus:GetSize()
@@ -132,7 +144,6 @@ class MenuBar is Item2D
     end
 
     action Select(Array<text> path)
-        
         Array<text> pathCopy = path:CopyToArray()
         text first = path:RemoveFromFront()
 

@@ -2,7 +2,7 @@ package Libraries.Interface.Controls
 
 use Libraries.Interface.Item2D
 use Libraries.Interface.Layouts.Layout
-use Libraries.Interface.TextPathSelection
+use Libraries.Interface.PathSelection
 use Libraries.Containers.Array
 use Libraries.Interface.Layouts.TreeLayout
 
@@ -10,7 +10,7 @@ class Tree is Item2D
 
     Item2D panel
     Layout panelLayout = undefined
-    TextPathSelection selection
+    TreeSelection selection
     Array<TreeItem> treeItems
 
     on create
@@ -69,12 +69,23 @@ class Tree is Item2D
         return undefined
     end
 
-    action Select(Array<text> path)
-        
-        Array<text> pathCopy = path:CopyToArray()
+    action GetSelection returns TreeSelection
+        return selection
+    end
+
+    action GetMultipleSelection returns Array<TreeSelection>
+        return undefined
+    end
+
+    action HasMultipleSelection returns boolean
+        return false
+    end
+
+    action Select(Array<TreeItem> path)
+        Array<TreeItem> pathCopy = path:CopyToArray()
         text first = path:RemoveFromFront()
 
-        Array<text> selectionPath = selection:GetPath()
+        Array<TreeItem> selectionPath = selection:GetPath()
         text oldFirst = selectionPath:RemoveFromFront()
 
         TreeItem item = GetTreeItem(first)
