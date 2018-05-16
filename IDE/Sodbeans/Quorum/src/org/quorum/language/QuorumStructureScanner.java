@@ -85,7 +85,7 @@ public class QuorumStructureScanner implements StructureScanner{
             return Collections.EMPTY_MAP;
         }
         SymbolTable_ table = quorumResult.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
-        if(table == null) {
+        if(table == null || loc == null) {
             return Collections.EMPTY_MAP;
         }
         Class_ clazz = table.GetClassInFile(loc.GetAbsolutePath());
