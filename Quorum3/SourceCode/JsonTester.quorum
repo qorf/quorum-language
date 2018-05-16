@@ -9,9 +9,9 @@ use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.System.StackTraceItem
 
-class MatrixTester 
+class JsonTester 
     CompilerTestSuite suite = undefined
-    text path = "Library/Tests/Matrix/"
+    text path = "Library/Tests/Json/"
     text passPath = path + "Pass"
     text failPath = path + "Fail"
 
@@ -21,7 +21,7 @@ class MatrixTester
     end
 
     action GetName returns text
-        return "Matrix Tests"
+        return "JSON Tests"
     end
 
     action GetCompilerTestSuite returns CompilerTestSuite

@@ -54,6 +54,7 @@ class CompilerTestSuite
     TableTester tableChecks
     BitwiseTester bitwiseChecks
     MatrixTester matrixChecks
+    JsonTester jsonChecks
 
     on create
         expressions:SetCompilerTestSuite(me)
@@ -81,7 +82,7 @@ class CompilerTestSuite
         tableChecks:SetCompilerTestSuite(me)
         bitwiseChecks:SetCompilerTestSuite(me)
         matrixChecks:SetCompilerTestSuite(me)
-
+        jsonChecks:SetCompilerTestSuite(me)
         File outputLocation
         outputLocation:SetPath("Library/Compiled")
         Compiler compiler
@@ -170,8 +171,12 @@ class CompilerTestSuite
         output ""
         output bitwiseChecks:GetName()
         bitwiseChecks:Test()
+        output ""
         output matrixChecks:GetName()
         matrixChecks:Test()
+        output ""
+        output jsonChecks:GetName()
+        jsonChecks:Test()
         output ""
 
         text EOL = ""
