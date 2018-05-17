@@ -11,7 +11,7 @@ use Libraries.Interface.DrawableContent
 use Libraries.Interface.GraphicUserInterfaceContent
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Selection
-use Libraries.Interface.PathSelection
+use Libraries.Interface.MenuSelection
 use Libraries.Containers.Support.Pair
 use Libraries.Interface.Controls.DefaultMenuItemContent
 use Libraries.Interface.Controls.GraphicUserInterfaceSelection
@@ -26,7 +26,7 @@ class MenuBar is Item2D
 
     boolean isSelecting = false
 
-    PathSelection selection
+    MenuSelection selection
 
     on create
         FlowLayout layout

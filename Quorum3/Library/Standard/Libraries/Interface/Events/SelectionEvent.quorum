@@ -1,35 +1,25 @@
 package Libraries.Interface
 
-use Libraries.Game.GameStateManager
+use Libraries.Interface.Selection
 
 class SelectionEvent
-    text displayName = "Unnamed Selection"
-    Item item = undefined
-
-    action Initialize(Item item, text displayName)
-        me:item = item
-        me:displayName = displayName
-    end
     
-    action SetDisplayName(text name)
-        displayName = name
-        NotifySelectionListeners()
+    Selection selection = undefined
+
+    action SetSelection(Selection select)
+        selection = select
+    end
+
+    action GetSelection returns Selection
+        return selection
     end
 
     action GetDisplayName returns text
-        return displayName
+        return selection:GetDisplayName()
     end
 
-    /* This action returns the item that contains the selection.
-
-    */
-    action GetContainerItem returns Item
-        return item
+    action GetItem returns Item
+        return selection:GetItem()
     end
 
-    action NotifySelectionListeners
-        GameStateManager manager
-//        SelectionEvent event
-        manager:GetInput():NotifySelectionListeners(me)
-    end
 end
