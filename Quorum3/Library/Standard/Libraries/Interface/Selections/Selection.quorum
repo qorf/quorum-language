@@ -1,4 +1,4 @@
-package Libraries.Interface
+package Libraries.Interface.Selections
 
 use Libraries.Game.GameStateManager
 
@@ -29,7 +29,8 @@ class Selection
 
     action NotifySelectionListeners
         GameStateManager manager
-//        SelectionEvent event
-        manager:GetInput():NotifySelectionListeners(me)
+        SelectionEvent event
+        event:SetSelection(me)
+        manager:GetInput():NotifySelectionListeners(event)
     end
 end
