@@ -155,6 +155,17 @@ class Library
             end
         end
 
+        if not sandboxCompilerErrorManager:IsCompilationErrorFree()
+            output "I cannot compile the standard library until the following errors are fixed:"
+            i = 1
+            Iterator<CompilerError> iterator = sandboxCompilerErrorManager:GetIterator()
+            repeat while iterator:HasNext()
+                CompilerError error = iterator:Next()
+                output i + ": " + error:GetFile():GetFileName() + " " + error:GetLineNumber() + ":" + error:GetColumnNumber() + " " + error:GetErrorMessage()
+                i = i + 1
+            end
+        end
+
         hasScannedStandardLibrary = true
     end
 
