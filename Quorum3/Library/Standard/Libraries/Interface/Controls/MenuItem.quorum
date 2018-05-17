@@ -12,6 +12,7 @@ use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.MenuItemView
 use Libraries.Containers.Array
+use Libraries.Containers.Iterator
 use Libraries.Containers.Support.Pair
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
@@ -332,95 +333,54 @@ class MenuItem is Control
         end
     end
 
-    action GetMenuItem(text name) returns MenuItem
-        integer counter = 0
-        repeat while counter < menuItems:GetSize()
-            MenuItem item = menuItems:Get(counter)
-            if item:GetName() = name
-                return item
-            end
-            counter = counter + 1
-        end
-
-        return undefined
+    action GetMenuItems returns Iterator<MenuItem>
+        return menuItems:GetIterator()
     end
 
-    action GetMenuItem(Array<text> path) returns MenuItem
-        if path:IsEmpty()
-            return me
-        end
+    action UpdateSelection(Array<MenuItem> oldPath, Array<MenuItem> newPath)
 
-        text next = path:RemoveFromFront()
-        
-        // Get the next item in the chain.
-        MenuItem item = GetMenuItem(next)
-
-        // Recursively fetch the last item in the chain from the next item.
-        item = item:GetMenuItem(path)
-
-        // Add the removed section back onto the array to undo our side effects.
-        path:AddToFront(next)
-
-        return item
-    end
-
-    action GetMenuItems returns Array<MenuItem>
-        return menuItems
-    end
-
-    action UpdateSelection(Array<text> oldPath, Array<text> newPath)
-
-        text oldText = ""
-        text newText = ""
+        MenuItem oldItem = undefined
+        MenuItem newItem = undefined
 
         if not oldPath:IsEmpty()
-            oldText = oldPath:RemoveFromFront()
+            oldItem = oldPath:RemoveFromFront()
         end
 
         if not newPath:IsEmpty()
-            newText = newPath:RemoveFromFront()
+            newItem = newPath:RemoveFromFront()
         end
 
-        if oldText = newText
-            if oldText = ""
+        if oldItem = oldItem
+            if oldItem = undefined
                 return now
             else
-                MenuItem item = GetMenuItem(oldText)
-                if item not= undefined
-                    item:UpdateSelection(oldPath, newPath)
+                if oldItem not= undefined
+                    oldItem:UpdateSelection(oldPath, newPath)
                 end
             end
         else
-            if oldText not= ""
-                MenuItem item = GetMenuItem(oldText)
-                if item not= undefined
-                    item:RecursiveDeselect(oldPath)
-                end
+            if oldItem not= undefined
+                oldItem:RecursiveDeselect(oldPath)
             end
-            if newText not= ""
-                MenuItem item = GetMenuItem(newText)
-                if item not= undefined
-                    item:RecursiveSelect(newPath)
-                end
+            if newItem not= undefined
+                newItem:RecursiveSelect(newPath)
             end
         end
     end
 
-    action RecursiveSelect(Array<text> path)
+    action RecursiveSelect(Array<MenuItem> path)
         GainedSelection()
         if not path:IsEmpty()
-            text subPath = path:RemoveFromFront()
-            MenuItem item = GetMenuItem(subPath)
+            MenuItem item = path:RemoveFromFront()
             if item not= undefined
                 item:RecursiveSelect(path)
             end
         end
     end
 
-    action RecursiveDeselect(Array<text> path)
+    action RecursiveDeselect(Array<MenuItem> path)
         if not path:IsEmpty()
-            text subPath = path:RemoveFromFront()
-            MenuItem item = GetMenuItem(subPath)
+            MenuItem item = path:RemoveFromFront()
             if item not= undefined
                 item:RecursiveDeselect(path)
             end
@@ -470,17 +430,17 @@ class MenuItem is Control
 
     action MenuSelectionDown
         if GetParentMenu() not= undefined
-            GetParentMenu():MenuSelectionDown(GetName())
+            GetParentMenu():MenuSelectionDown(me)
         elseif menuItems:GetSize() > 0
             menuItems:Get(0):Select()
         end
     end
 
-    private action MenuSelectionDown(text name)
+    private action MenuSelectionDown(MenuItem previous)
         integer counter = 0
         repeat while counter < menuItems:GetSize()
             Item2D item = menuItems:Get(counter)
-            if item:GetName() = name
+            if item:Equals(previous)
 
                 // Select next item in the list, if there is one.
                 if counter + 1 < menuItems:GetSize()
@@ -495,17 +455,17 @@ class MenuItem is Control
 
     action MenuSelectionUp
         if GetParentMenu() not= undefined
-            GetParentMenu():MenuSelectionUp(GetName())
+            GetParentMenu():MenuSelectionUp(me)
         elseif menuItems:GetSize() > 0
             menuItems:Get(menuItems:GetSize() - 1):Select()
         end
     end
 
-    private action MenuSelectionUp(text name)
+    private action MenuSelectionUp(MenuItem previous)
         integer counter = 0
         repeat while counter < menuItems:GetSize()
             Item2D item = menuItems:Get(counter)
-            if item:GetName() = name
+            if item:Equals(previous)
 
                 // Select the previous element in the menu, if there is one.
                 if counter - 1 >= 0
@@ -518,18 +478,18 @@ class MenuItem is Control
         end
     end
 
-    action GetMenuPath returns Array<text>
-        Array<text> path
-        path:Add(GetName())
+    action GetMenuPath returns Array<MenuItem>
+        Array<MenuItem> path
+        path:Add(me)
         if parentMenu not= undefined
-            Array<text> a = parentMenu:GetMenuPath(path)
+            Array<MenuItem> a = parentMenu:GetMenuPath(path)
             return a
         end
         return path
     end
 
-    private action GetMenuPath(Array<text> array) returns Array<text>
-        array:AddToFront(GetName())
+    private action GetMenuPath(Array<MenuItem> array) returns Array<MenuItem>
+        array:AddToFront(me)
         if parentMenu not= undefined
             return parentMenu:GetMenuPath(array)
         end
