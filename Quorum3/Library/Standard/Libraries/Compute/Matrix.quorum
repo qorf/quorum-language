@@ -16,22 +16,22 @@ use Libraries.Containers.Table
 use Libraries.Containers.Array
 use Libraries.Compute.Math
 
-class Matrix
-    /*
-    This class is a two dimensional matrix of number variables.
+/*
+This class is a two dimensional matrix of number variables.
 
-    Attribute: Example
+Attribute: Example
 
-    use Libraries.Compute.Matrix
+use Libraries.Compute.Matrix
 
-    class Main 
-        action Main
-            Matrix matrix
-            matrix:Fill(3, 3, 1.1)
-            output matrix:ToText()
-        end
+class Main 
+    action Main
+        Matrix matrix
+        matrix:Fill(3, 3, 1.1)
+        output matrix:ToText()
     end
-    */
+end
+*/
+class Matrix
     private Table<number> table
 
     private action CheckReference(integer row, integer column)
@@ -61,6 +61,11 @@ class Matrix
     /*
     This method is used to get the value in a specified location in the matrix.
 
+    Attribute: Parameter row The row number of the item.
+    Attribute: Parameter column The column number of the item.
+
+    Attribute: Returns The value of the item in the matrix.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -83,6 +88,10 @@ class Matrix
 
     Attribute: Example
 
+    Attribute: Parameter row The row number of the item.
+    Attribute: Parameter column The column number of the item.
+    Attribute: Parameter value The value to set.
+
     use Libraries.Compute.Matrix
 
     class Main 
@@ -100,7 +109,10 @@ class Matrix
     end
 
     /*
-    This method is used to set the dimensions of a matrix
+    This method is used to set the dimensions of a matrix.
+
+    Attribute: Parameter rows The number of rows in the matrix.
+    Attribute: Parameter columns The number of columns in the matrix.
 
     Attribute: Example
 
@@ -120,7 +132,9 @@ class Matrix
     end
 
     /*
-    This method is used to set the dimensions of a matrix to match a different matrix
+    This method is used to set the dimensions of a matrix to match a different matrix..
+
+    Attribute: Parameter matrix The matrix from which to copy the dimensions.
 
     Attribute: Example
 
@@ -140,7 +154,9 @@ class Matrix
     end
 
     /*
-    This method is used to get the number of elements in a matrix
+    This method is used to get the number of elements in a matrix.
+
+    Attribute: Returns The total number of elements in the matrix.
 
     Attribute: Example
 
@@ -159,7 +175,9 @@ class Matrix
     end
 
     /*
-    This method is used to get the number of columns in a matrix
+    This method is used to get the number of columns in a matrix.
+
+    Attribute: Returns The number of columns in the matrix.
 
     Attribute: Example
 
@@ -178,7 +196,9 @@ class Matrix
     end
 
     /*
-    This method is used to get the number of columns in a matrix
+    This method is used to get the number of columns in a matrix.
+
+    Attribute: Returns The number of rows in the matrix.
 
     Attribute: Example
 
@@ -197,7 +217,11 @@ class Matrix
     end
 
     /*
-    This method is used to get a column of a Matrix returned as a new matrix
+    This method is used to get a column of a Matrix returned as a new matrix.
+
+    Attribute: Parameter column The column number of the matrix to return.
+
+    Attribute: Returns A matrix containing only the specified column.
 
     Attribute: Example
 
@@ -227,7 +251,11 @@ class Matrix
     end
 
     /*
-    This method is used to get a column of a Matrix returned as an array of numbers
+    This method is used to get a column of a Matrix returned as an array of numbers.
+
+    Attribute: Parameter column The column number of the matrix to return.
+
+    Attribute: Returns An array containing only the specified row.
 
     Attribute: Example
 
@@ -257,7 +285,9 @@ class Matrix
     end
 
     /*
-    This method is used to get a list of all the elements in a Matrix ordered by column returned as an array of numbers
+    This method is used to get a list of all the elements in a Matrix ordered by column returned as an array of numbers.
+
+    Attribute: Returns An array containing all the elements in matrix in order by column.
 
     Attribute: Example
 
@@ -288,7 +318,11 @@ class Matrix
     end
 
     /*
-    This method is used to get a row of a Matrix returned as a new matrix
+    This method is used to get a row of a Matrix returned as a new matrix.
+
+    Attribute: Parameter row The row number of the matrix to return.
+
+    Attribute: Returns A matrix containing only the specified row.
 
     Attribute: Example
 
@@ -318,7 +352,11 @@ class Matrix
     end
 
     /*
-    This method is used to get a row of a Matrix returned as an array of numbers
+    This method is used to get a row of a Matrix returned as an array of numbers.
+
+    Attribute: Parameter row The row number of the matrix to return.
+
+    Attribute: Returns An array containing only the specified row.
 
     Attribute: Example
 
@@ -342,7 +380,9 @@ class Matrix
     end
 
     /*
-    This method is used to get a list of all the elements in a Matrix ordered by row returned as an array of numbers
+    This method is used to get a list of all the elements in a Matrix ordered by row returned as an array of numbers.
+   
+    Attribute: Returns An array containing all the elements in the matrix ordered by row .
 
     Attribute: Example
 
@@ -374,6 +414,9 @@ class Matrix
 
     /*
     This method is used to set the elements in a row of a Matrix with a list of numbers in an array. The length of the array must match the width of the Matrix.
+
+    Attribute parameter row The row number of the array to set.
+    Attribute parameter array The array of values to set.
 
     Attribute: Example
 
@@ -410,6 +453,9 @@ class Matrix
     /*
     This method is used to set the elements in a row of a Matrix with a single row matrix. The widths of the matrices must match.
 
+    Attribute parameter row The row number of the array to set.
+    Attribute parameter matrix The matrix of values to set.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -445,6 +491,9 @@ class Matrix
     /*
     This method is used to set all the elements in a row of a Matrix to a single value.
 
+    Attribute parameter row The row number of the array to set.
+    Attribute parameter value The value to set in each element of a row.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -458,19 +507,22 @@ class Matrix
         end
     end
     */
-    action SetRow(integer index, number value)
-        if index < 0 or index > GetRows() - 1
-            alert("Index value: " + index + " out of range")
+    action SetRow(integer row, number value)
+        if row < 0 or row > GetRows() - 1
+            alert("Index value: " + row + " out of range")
         end
         col = 0
         repeat GetColumns() times
-            Set(index, col, value)
+            Set(row, col, value)
             col = col + 1
         end
     end
 
     /*
     This method is used to set the elements in a column of a Matrix with a list of numbers in an array. The length of the array must match the height of the Matrix.
+
+    Attribute parameter column The column number of the array to set.
+    Attribute parameter array The array of values to set.
 
     Attribute: Example
 
@@ -489,22 +541,25 @@ class Matrix
         end
     end
     */
-    action SetColumn(integer index, Array<number> column)
-        if column:GetSize() not= GetRows()
-            alert("Columns have " + GetRows() + " elements in this matrix. The array you supplied has " + column:GetSize() + ". They must match.")
+    action SetColumn(integer column, Array<number> array)
+        if array:GetSize() not= GetRows()
+            alert("Columns have " + GetRows() + " elements in this matrix. The array you supplied has " + array:GetSize() + ". They must match.")
         end
-        if index < 0 or index > GetColumns() - 1
-            alert("Index value: " + index + " out of range")
+        if column < 0 or column > GetColumns() - 1
+            alert("Index value: " + column + " out of range")
         end
         row = 0
         repeat GetRows() times
-            Set(row, index, column:Get(row))
+            Set(row, column, array:Get(row))
             row = row + 1
         end
     end
 
     /*
     This method is used to set the elements in a column of a Matrix with a single column matrix. The heights of the matrices must match.
+
+    Attribute parameter column The column number of the array to set.
+    Attribute parameter matrix The matrix of values to set.
 
     Attribute: Example
 
@@ -540,6 +595,9 @@ class Matrix
 
     /*
     This method is used to set all the elements in a column of a Matrix to a single value.
+    
+    Attribute parameter column The column number of the array to set.
+    Attribute parameter value The value to set in each element of a column.
 
     Attribute: Example
 
@@ -554,19 +612,23 @@ class Matrix
         end
     end
     */
-    action SetColumn(integer index, number value)
-        if index < 0 or index > GetColumns() - 1
-            alert("Index value: " + index + " out of range")
+    action SetColumn(integer column, number value)
+        if column < 0 or column > GetColumns() - 1
+            alert("Index value: " + column + " out of range")
         end
         row = 0
         repeat GetRows() times
-            Set(row, index, value)
+            Set(row, column, value)
             row = row + 1
         end
     end
 
     /*
     This method is used to add a value to all the elements in a Matrix.
+
+    Attribute Parameter value The value to be added to the matrix elements.
+
+    Attribute Returns A new matrix after the operation is performed.
 
     Attribute: Example
 
@@ -590,6 +652,10 @@ class Matrix
     /*
     This method is used to subtract a value from all the elements in a Matrix.
 
+    Attribute Parameter value The value to be subtracted from the matrix elements.
+
+    Attribute Returns A new matrix after the operation is performed.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -611,6 +677,10 @@ class Matrix
 
     /*
     This method is used to multiply all the elements in a Matrix by a value.
+
+    Attribute Parameter value The value to multiply the matrix elements by.
+
+    Attribute Returns A new matrix after the operation is performed.
 
     Attribute: Example
 
@@ -634,6 +704,10 @@ class Matrix
     /*
     This method is used to divide all the elements in a Matrix by a value.
 
+    Attribute Parameter value The value to divide the matrix elements by.
+
+    Attribute Returns A new matrix after the operation is performed.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -656,6 +730,10 @@ class Matrix
     /*
     This method is used to add all the elements in a Matrix by the values in another Matrix. The dimensions of the matrices must be the same.
 
+    Attribute Parameter matrix The matrix to add to the current matrix.
+
+    Attribute Returns A new matrix after the operation is performed.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -671,15 +749,19 @@ class Matrix
         end
     end
     */
-    action AddElements(Matrix values) returns Matrix
-        CheckSameDimensions(values)
+    action AddElements(Matrix matrix) returns Matrix
+        CheckSameDimensions(matrix)
         AddScalar scalar
-        scalar:SetValue(values)
+        scalar:SetValue(matrix)
         return scalar:Transform(me)
     end
 
     /*
     This method is used to subtract all the elements in a Matrix from the values in another Matrix. The dimensions of the matrices must be the same.
+
+    Attribute Parameter matrix The matrix to subtract from the current matrix.
+
+    Attribute Returns A new matrix after the operation is performed.
 
     Attribute: Example
 
@@ -696,15 +778,19 @@ class Matrix
         end
     end
     */
-    action SubtractElements(Matrix values) returns Matrix
-        CheckSameDimensions(values)
+    action SubtractElements(Matrix matrix) returns Matrix
+        CheckSameDimensions(matrix)
         SubtractScalar scalar
-        scalar:SetValue(values)
+        scalar:SetValue(matrix)
         return scalar:Transform(me)
     end
 
     /*
     This method is used to multiply all the elements in a Matrix by the values in another Matrix. The dimensions of the matrices must be the same.
+
+    Attribute Parameter matrix The matrix of values to multiply by the current matrix values.
+
+    Attribute Returns A new matrix after the operation is performed.
 
     Attribute: Example
 
@@ -721,15 +807,19 @@ class Matrix
         end
     end
     */
-    action MultiplyElements(Matrix values) returns Matrix
-        CheckSameDimensions(values)
+    action MultiplyElements(Matrix matrix) returns Matrix
+        CheckSameDimensions(matrix)
         MultiplyScalar scalar
-        scalar:SetValue(values)
+        scalar:SetValue(matrix)
         return scalar:Transform(me)
     end
 
     /*
     This method is used to divide all the elements in a Matrix by the values in another Matrix. The dimensions of the matrices must be the same.
+
+    Attribute Parameter matrix The matrix of values to divide by the current matrix values.
+
+    Attribute Returns A new matrix after the operation is performed.
 
     Attribute: Example
 
@@ -746,10 +836,10 @@ class Matrix
         end
     end
     */
-    action DivideElements(Matrix values) returns Matrix
-        CheckSameDimensions(values)
+    action DivideElements(Matrix matrix) returns Matrix
+        CheckSameDimensions(matrix)
         DivideScalar scalar
-        scalar:SetValue(values)
+        scalar:SetValue(matrix)
         return scalar:Transform(me)
     end
 
@@ -757,6 +847,10 @@ class Matrix
     This method performs a multiplication operation on two matrices. The dimensions of the matrices must be compatible so that the columns in the first matrix are equal to the rows in the second matrix.
 
     Attribute: Example
+
+    Attribute Parameter matrix The matrix to multiply by the current matrix.
+
+    Attribute Returns A new matrix after the operation is performed.
 
     use Libraries.Compute.Matrix
 
@@ -771,17 +865,19 @@ class Matrix
         end
     end
     */
-    action Multiply(Matrix values) returns Matrix
-        if GetColumns() not= values:GetRows()
-            alert("Incompatible dimensions: " + GetColumns() + " columns in this matrix must match " + values:GetRows() + " rows in value matrix.")
+    action Multiply(Matrix matrix) returns Matrix
+        if GetColumns() not= matrix:GetRows()
+            alert("Incompatible dimensions: " + GetColumns() + " columns in this matrix must match " + matrix:GetRows() + " rows in value matrix.")
         end
         Multiply multiply
-        multiply:SetValue(values)
+        multiply:SetValue(matrix)
         return multiply:Transform(me)
     end
 
     /*
     This method returns a copy of a Matrix.
+
+    Attribute Returns A new copied matrix.
 
     Attribute: Example
 
@@ -813,6 +909,12 @@ class Matrix
 
     /*
     This method fills a matrix with a specified number of rows and columns with the same value.
+
+    Attribute Parameter rows The number of rows for the matrix.
+    Attribute Parameter columns The number of columns for the matrix.
+    Attribute Parameter value The value to place in each element in the matrix.
+
+    Attribute Returns A new matrix after the operation is performed.
 
     Attribute: Example
 
@@ -846,6 +948,9 @@ class Matrix
     /*
     This method fills a matrix from the values in an array of numbers for a specified number of rows.
 
+    Attribute Parameter rows The number of rows to fill.
+    Attribute Parameter array The set of values for each row.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -863,17 +968,20 @@ class Matrix
         end
     end
     */
-    action FillByRow(integer rows, Array<number> row)
+    action FillByRow(integer rows, Array<number> array)
         Table<number> tab
         repeat rows times
-            tab:AddRow(row)
+            tab:AddRow(array)
         end
-        tab:SetMaxSize(rows, row:GetSize())
+        tab:SetMaxSize(rows, array:GetSize())
         table = tab
     end
 
     /*
     This method fills a matrix from the values of a single row matrix for a specified number of rows.
+
+    Attribute Parameter rows The number of rows to fill.
+    Attribute Parameter matrix The set of values for each row.
 
     Attribute: Example
 
@@ -902,6 +1010,9 @@ class Matrix
     /*
     This method fills a matrix from the values in an array of numbers for a specified number of columns.
 
+    Attribute Parameter columns The number of columns to fill.
+    Attribute Parameter array The set of values for each column.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -919,16 +1030,16 @@ class Matrix
         end
     end
     */
-    action FillByColumn(integer columns, Array<number> column)
+    action FillByColumn(integer columns, Array<number> array)
         Table<number> tab
-        tab:SetSize(column:GetSize(), columns)
-        tab:SetMaxSize(column:GetSize(), columns)
+        tab:SetSize(array:GetSize(), columns)
+        tab:SetMaxSize(array:GetSize(), columns)
         row = 0
         col = 0
         repeat columns times
             row = 0
-            repeat while row < column:GetSize()
-                tab:Set(row, col, column:Get(row))
+            repeat while row < array:GetSize()
+                tab:Set(row, col, array:Get(row))
                 row = row + 1
             end
             col = col + 1
@@ -938,6 +1049,9 @@ class Matrix
 
     /*
     This method fills a matrix from the values of a single column matrix for a specified number of columns.
+
+    Attribute Parameter columns The number of columns to fill.
+    Attribute Parameter matrix The set of values for each column.
 
     Attribute: Example
 
@@ -972,6 +1086,11 @@ class Matrix
 
     /*
     This method compares each element in a matrix to a lower threshold value and if the element is lower, it sets that element to a fill value.
+
+    Attribute Parameter cutoffValue The lower threshold value.
+    Attribute Parameter fillValue The value to fill if the element is below the threshold.
+
+    Attribute Returns A new matrix after the operation is performed.
 
     Attribute: Example
 
@@ -1008,6 +1127,12 @@ class Matrix
 
     /*
     This method compares each element in a matrix to an upper threshold value and if the element is higher, it sets that element to a fill value.
+    
+    Attribute Parameter cutoffValue The upper threshold value.
+
+    Attribute Parameter fillValue The value to fill if the element is above the threshold.
+
+    Attribute Returns A new matrix after the operation is performed.
 
     Attribute: Example
 
@@ -1045,6 +1170,8 @@ class Matrix
     /*
     This method flips the array vertically, from top to bottom
 
+    Attribute Returns A new matrix after the operation is performed.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -1070,6 +1197,8 @@ class Matrix
     /*
     This method flips the array vertically, from top to bottom
 
+    Attribute Returns A new matrix after the operation is performed.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -1094,6 +1223,13 @@ class Matrix
 
     /*
     This method extracts a sub matrix from within a matrix, starting at the offsetRow and offsetColumn (relative to 0,0 in the upper right corner). The sub matrix will have the number of rows and columns specified by those parameters
+
+    Attribute Parameter offsetRow The row offset for the first element in the new matrix.
+    Attribute Parameter offsetColumn The column offset for the first element in the new matrix.
+    Attribute Parameter rows The number of rows to extract.
+    Attribute Parameter columns The number of columns to extract.
+
+    Attribute Returns A new matrix after the operation is performed.
 
     Attribute: Example
 
@@ -1129,6 +1265,8 @@ class Matrix
     /*
     This method returns the identity matrix for a square matrix. An identity matrix with ones along the main diagonal from top left to bottom right and zeroes everywhere else.
 
+    Attribute Returns A new identity matrix.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -1152,6 +1290,14 @@ class Matrix
 
     /*
     This method shifts a matrix a given number of offsetRows and offsetColumns (relative to 0,0 in the upper right corner). The new matrix will have the number of rows and columns specified by those parameters and any empty values in the new matrix will be filled with fillValue.
+
+    Attribute Parameter offsetRow The row offset for the first element in the new matrix.
+    Attribute Parameter offsetColumn The column offset for the first element in the new matrix.
+    Attribute Parameter rows The number of rows to extract.
+    Attribute Parameter columns The number of columns to extract.
+    Attribute Parameter fillValue The value to fill in any undefined cells in the new matrix..
+
+    Attribute Returns A new matrix after the operation is performed.
 
     Attribute: Example
 
@@ -1179,6 +1325,8 @@ class Matrix
     /*
     This method rotates a Matrix to the left
 
+    Attribute Returns A new matrix after the operation is performed.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -1204,6 +1352,8 @@ class Matrix
     /*
     This method rotates a Matrix to the right
 
+    Attribute Returns A new matrix after the operation is performed.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -1227,7 +1377,13 @@ class Matrix
     end
 
     /*
-    This method shifts a matrix a given number of offsetRows and offsetColumns (relative to 0,0 in the upper right corner). The new matrix is the same size and any empty values in the new matrix will be filled with fillValue.
+    This method shifts a matrix a given number of offsetRows and offsetColumns (relative to 0,0 in the upper left corner). The new matrix is the same size and any empty values in the new matrix will be filled with fillValue.
+
+    Attribute Parameter offsetRow The row offset for the first element in the new matrix.
+    Attribute Parameter offsetColumn The column offset for the first element in the new matrix.
+    Attribute Parameter fillValue The value to fill in any undefined cells in the new matrix.
+
+    Attribute Returns A new matrix after the operation is performed.
 
     Attribute: Example
 
@@ -1255,6 +1411,8 @@ class Matrix
     /*
     This method returns the transpose of a matrix where all the rows of the matrix are turned into columns in a new matrix and vice versa.
 
+    Attribute Returns A new matrix after the operation is performed.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -1279,6 +1437,8 @@ class Matrix
 
     /*
     This method returns the value of the maximum element in a Matrix
+
+    Attribute Returns The value of the largest element in the matrix.
 
     Attribute: Example
 
@@ -1316,6 +1476,8 @@ class Matrix
     /*
     This method returns the value of the minimum element in a Matrix
 
+    Attribute Returns The value of the smallest element in the matrix.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -1352,6 +1514,8 @@ class Matrix
     /*
     This method returns the sum of all the elements in a Matrix
 
+    Attribute Returns The sum of all the elements in the matrix.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -1383,6 +1547,8 @@ class Matrix
 
     /*
     This method returns the mean (average) of all the elements in a Matrix
+    
+    Attribute Returns The mean of all the elements in the matrix.
 
     Attribute: Example
 
@@ -1407,6 +1573,8 @@ class Matrix
 
     /*
     This method returns an array of all the modes (most common value) of a Matrix
+
+    Attribute Returns An array of the modes of all the elements in the matrix.
 
     Attribute: Example
 
@@ -1465,6 +1633,8 @@ class Matrix
     /*
     This method returns an comma separated value of all the modes (most common value) of a Matrix
 
+    Attribute Returns An comma separated list of the modes of all the elements in the matrix.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -1497,6 +1667,8 @@ class Matrix
 
     /*
     This method returns the median (middle value) of all the elements in a Matrix
+
+    Attribute Returns The median of all the elements in the matrix.
 
     Attribute: Example
 
@@ -1535,6 +1707,8 @@ class Matrix
     /*
     This method returns the standard deviation of all the elements in a Matrix
 
+    Attribute Returns The standard deviation of all the elements in the matrix.
+
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -1557,6 +1731,8 @@ class Matrix
 
     /*
     This method returns the variance of all the elements in a Matrix
+
+    Attribute Returns The variance of all the elements in the matrix.
 
     Attribute: Example
 
@@ -1593,6 +1769,7 @@ class Matrix
     /*
     This method returns the value at a given percentile rank of a Matrix, assuming the elements in the Matrix are all sorted.
 
+    Attribute: Returns The value at a given percentile rank of a Matrix.
     Attribute: Example
 
     use Libraries.Compute.Matrix
@@ -1630,6 +1807,10 @@ class Matrix
     /*
     This is a blueprint method for creating a Matrix Transform class.
 
+    Attribute: Parameter transform A MatrixTransform class to perform a matrix transform.
+
+    Attribute: Returns A new matrix after the operation is performed.
+
     Attribute: Example
 
     use Libraries.Compute.MatrixTransform.MatrixTransform
@@ -1658,6 +1839,10 @@ class Matrix
     /*
     This is a blueprint method for creating a Matrix Calculation class.
 
+    Attribute: Parameter calculate A MatrixCalculation class to perform a matrix calculation.
+
+    Attribute: Returns A new matrix after the operation is performed.
+
     Attribute: Example
 
     use Libraries.Compute.MatrixTransform.MatrixTransform
@@ -1685,6 +1870,8 @@ class Matrix
 
     /*
     This method prints a matrix in text format for easy viewing.
+
+    Attribute: Returns A text value representation of the matrix.
 
     Attribute: Example
 
