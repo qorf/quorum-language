@@ -4,7 +4,7 @@ use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Texture
 
-class DrawableContent is Drawable, VisualContent2D
+class DrawableView is Drawable, View2D
     
     action Draw(Painter2D painter)
         parent:Drawable:Draw(painter)

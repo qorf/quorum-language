@@ -6,12 +6,12 @@ use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Label
 use Libraries.Containers.Array
-use Libraries.Interface.LabelBoxContent
-use Libraries.Interface.Controls.LabelBoxToggleContent
+use Libraries.Interface.LabelBoxView
+use Libraries.Interface.Controls.LabelBoxToggleView
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Texture
-use Libraries.Game.Behaviors.GraphicUserInterfaces.TabCloseBehavior
+use Libraries.Interface.Behaviors.Controls.TabCloseBehavior
 
 class Tab is ToggleButton
     
@@ -98,7 +98,7 @@ class Tab is ToggleButton
     end
 
     private action InitializeDefaults(text name, Item2D item)
-        LabelBoxToggleContent content
+        LabelBoxToggleView content
         Color color
         Gradient gradient
         Gradient selectionGradient
@@ -111,7 +111,7 @@ class Tab is ToggleButton
         content:SetBorderThickness(1)
         content:Initialize(gradient, color:Black(), selectionGradient, color:Black())
 
-        SetVisualContent(content)
+        SetView2D(content)
 
         integer buttonHeight = cast(integer, label:GetLineHeight())
         closeButton:Initialize(buttonHeight, buttonHeight)
@@ -193,7 +193,7 @@ class Tab is ToggleButton
         if state = false
             SetToggleState(true)
         end
-        parent:GraphicUserInterface:ReleasedMouse()
+        parent:Control:ReleasedMouse()
     end
 
     action DisplayName(boolean display)

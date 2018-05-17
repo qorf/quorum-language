@@ -2,26 +2,26 @@ package Libraries.Interface.Controls
 
 use Libraries.Interface.Item2D
 use Libraries.Interface.Layouts.Layout
-use Libraries.Interface.VisualContent2D
-use Libraries.Interface.LabelBoxContent
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.LabelBoxView
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Color
 use Libraries.Containers.Array
-use Libraries.Interface.DrawableContent
-use Libraries.Interface.GraphicUserInterfaceContent
+use Libraries.Interface.Views.DrawableView
+use Libraries.Interface.Views.ControlView
 use Libraries.Interface.Layouts.FlowLayout
-use Libraries.Interface.Selection
-use Libraries.Interface.MenuSelection
+use Libraries.Interface.Selections.Selection
+use Libraries.Interface.Selections.MenuSelection
 use Libraries.Containers.Support.Pair
-use Libraries.Interface.Controls.DefaultMenuItemContent
-use Libraries.Interface.Controls.GraphicUserInterfaceSelection
+use Libraries.Interface.Controls.DefaultMenuItemView
+use Libraries.Interface.Controls.ControlSelection
 
 class MenuBar is Item2D
     
     Layout defaultLayout = undefined
-    MenuItemContent defaultMenuAppearance = undefined
-    MenuItemContent defaultItemAppearance = undefined
-    VisualContent2D panelAppearance = undefined
+    MenuItemView defaultMenuAppearance = undefined
+    MenuItemView defaultItemAppearance = undefined
+    View2D panelAppearance = undefined
     Array<MenuItem> menus
 
     boolean isSelecting = false
@@ -49,7 +49,7 @@ class MenuBar is Item2D
     end
 
     action Initialize
-        LabelBoxContent defaultBar
+        LabelBoxView defaultBar
         defaultBar:SetBorderThickness(1)
         defaultBar:SetText("")
         Color color
@@ -61,21 +61,21 @@ class MenuBar is Item2D
         gradient:Set(gray, gray, lightGray, lightGray)
         defaultBar:Initialize(gradient, color:Black())
 
-        SetVisualContent(defaultBar)
+        SetView2D(defaultBar)
         Resize()
 
-        DefaultMenuItemContent menuContent
-        menuContent:Initialize("Unnamed")
-        defaultMenuAppearance = menuContent
+        DefaultMenuItemView menuView
+        menuView:Initialize("Unnamed")
+        defaultMenuAppearance = menuView
 
-        LabelBoxContent panelContent
-        panelContent:Initialize(color:CustomColor(0.9, 0.9, 0.9, 1), color:Gray())
-        panelContent:SetBorderThickness(1)
-        panelAppearance = panelContent
+        LabelBoxView panelView
+        panelView:Initialize(color:CustomColor(0.9, 0.9, 0.9, 1), color:Gray())
+        panelView:SetBorderThickness(1)
+        panelAppearance = panelView
 
-        DefaultMenuItemContent itemContent
-        itemContent:Initialize("Unnamed")
-        defaultItemAppearance = itemContent
+        DefaultMenuItemView itemView
+        itemView:Initialize("Unnamed")
+        defaultItemAppearance = itemView
     end
 
     action Initialize(Array<MenuItem> menuHeaders)
@@ -93,8 +93,8 @@ class MenuBar is Item2D
         Resize()
     end
 
-    action Initialize(VisualContent2D bar, MenuItemContent menus, VisualContent2D panels, MenuItemContent items)
-        SetVisualContent(bar)
+    action Initialize(View2D bar, MenuItemView menus, View2D panels, MenuItemView items)
+        SetView2D(bar)
         defaultMenuAppearance = menus
         defaultItemAppearance = items
         panelAppearance = panels
@@ -110,8 +110,8 @@ class MenuBar is Item2D
     end
 
     action AddMenuItem(MenuItem item)
-        if item:GetVisualContent() = undefined
-            MenuItemContent content = cast(MenuItemContent, defaultMenuAppearance:Copy())
+        if item:GetView2D() = undefined
+            MenuItemView content = cast(MenuItemView, defaultMenuAppearance:Copy())
             item:SetAppearance(content)
         end
 
@@ -211,11 +211,11 @@ class MenuBar is Item2D
         return undefined
     end
 
-    action GetDefaultMenuHeaderView returns MenuItemContent
+    action GetDefaultMenuHeaderView returns MenuItemView
         return defaultMenuAppearance
     end
 
-    action GetDefaultMenuItemView returns MenuItemContent
+    action GetDefaultMenuItemView returns MenuItemView
         return defaultItemAppearance
     end
 

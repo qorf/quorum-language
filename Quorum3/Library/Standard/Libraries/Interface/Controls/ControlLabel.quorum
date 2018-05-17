@@ -1,0 +1,29 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Control
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Controls.SelectionHighlightView
+
+class ControlLabel is Label, Control
+    
+    Color color
+
+    action Initialize
+        SelectionHighlightView content
+        content:Initialize(color:CustomColor(0, 0, 1, 1))
+        SetView2D(content)
+    end
+
+    action GainedSelection
+        SetColor(color:White())
+        parent:Control:GainedSelection()
+    end
+
+    action LostSelection
+        SetColor(color:Black())
+        parent:Control:LostSelection()
+    end
+
+end

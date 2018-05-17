@@ -1,0 +1,46 @@
+package Libraries.Interface.Controls
+
+class Control is Item2D
+
+    action ClickedMouse
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:ClickedMouse()
+        end
+    end
+
+    action ReleasedMouse
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:ReleasedMouse()
+        end
+    end
+
+    action BeginMouseOver
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:BeginMouseOver()
+        end
+    end
+
+    action EndMouseOver
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:EndMouseOver()
+        end
+    end
+
+    action GainedSelection
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:GainedSelection()
+        end
+    end
+
+    action LostSelection
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:LostSelection()
+        end
+    end
+end

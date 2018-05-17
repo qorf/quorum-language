@@ -1,8 +1,8 @@
-package Libraries.Interface.Controls
+package Libraries.Interface.Views
 
-use Libraries.Interface.GraphicUserInterfaceContent
+use Libraries.Interface.Views.ControlView
 
-class MenuItemContent is GraphicUserInterfaceContent
+class MenuItemView is ControlView
     
     blueprint action Initialize(text name)
 
@@ -12,9 +12,9 @@ class MenuItemContent is GraphicUserInterfaceContent
 
     blueprint action GetShortcut returns text
 
-    blueprint action GetContentWidth returns number
+    blueprint action GetViewWidth returns number
 
-    blueprint action GetContentHeight returns number
+    blueprint action GetViewHeight returns number
 
     blueprint action GetIconWidth returns number
 

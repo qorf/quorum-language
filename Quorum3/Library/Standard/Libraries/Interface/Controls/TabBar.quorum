@@ -4,7 +4,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.FlowLayout
-use Libraries.Interface.LabelBoxContent
+use Libraries.Interface.LabelBoxView
 use Libraries.Interface.Layouts.TabFlowLayout
 use Libraries.Game.Graphics.Color
 
@@ -25,10 +25,10 @@ class TabBar is Item2D, ButtonGroup
     end
 
     action Initialize(Array<Tab> array)
-        LabelBoxContent content
+        LabelBoxView content
         Color color
         content:Initialize(color:DarkGray(), color:Black())
-        SetVisualContent(content)
+        SetView2D(content)
 
         Add(array)
     end

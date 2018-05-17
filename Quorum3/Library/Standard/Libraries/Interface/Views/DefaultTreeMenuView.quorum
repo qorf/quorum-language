@@ -1,6 +1,6 @@
-package Libraries.Interface.Controls
+package Libraries.Interface.Views
 
-use Libraries.Interface.GraphicUserInterfaceContent
+use Libraries.Interface.Views.ControlView
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Texture
@@ -10,12 +10,12 @@ use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
 use Libraries.Game.Graphics.FileTextureData
 
-class DefaultTreeMenuContent is Drawable, ToggleContent
+class DefaultTreeMenuView is Drawable, ToggleView
 
     boolean open = false
 
     action Initialize(integer width, integer height)
-        SetName("DefaultTreeMenuContent")
+        SetName("DefaultTreeMenuView")
 
         integer longestSide = width
         if width < height
@@ -85,10 +85,10 @@ class DefaultTreeMenuContent is Drawable, ToggleContent
         SetFlipY(flipY)
     end
 
-    action Copy returns GraphicUserInterfaceContent
-        DefaultTreeMenuContent newContent
-        newContent:Load(GetTexture())
-        return newContent
+    action Copy returns ControlView
+        DefaultTreeMenuView newView
+        newView:Load(GetTexture())
+        return newView
     end
 
     action SetToggleState(boolean openState)

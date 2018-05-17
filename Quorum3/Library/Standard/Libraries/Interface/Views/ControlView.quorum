@@ -1,6 +1,6 @@
-package Libraries.Interface
+package Libraries.Interface.Views
 
-class GraphicUserInterfaceContent is VisualContent2D
+class ControlView is View2D
 
     action BeginMouseOver
 
@@ -34,6 +34,6 @@ class GraphicUserInterfaceContent is VisualContent2D
         return ""
     end
 
-    blueprint action Copy returns GraphicUserInterfaceContent
+    blueprint action Copy returns ControlView
 
 end

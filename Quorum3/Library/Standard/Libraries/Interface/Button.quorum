@@ -1,6 +1,6 @@
 package Libraries.Interface
 
-use Libraries.Game.Behaviors.Behavior
+use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
@@ -9,7 +9,7 @@ use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.TextureRegion
 use Libraries.System.File
 
-class Button is GraphicUserInterface
+class Button is Control
 
     Behavior activationBehavior = undefined
 
@@ -41,7 +41,7 @@ class Button is GraphicUserInterface
         end
     */
     action Initialize(number width, number height)
-        LabelBoxContent content
+        LabelBoxView content
         Color color
         Gradient gradient
         
@@ -52,7 +52,7 @@ class Button is GraphicUserInterface
         content:SetBorderThickness(2)
         content:Initialize(gradient, color:Black())
 
-        SetVisualContent(content)
+        SetView2D(content)
         SetSize(width, height)
     end
 
@@ -80,7 +80,7 @@ class Button is GraphicUserInterface
         end
     */
     action Initialize(number width, number height, text label)
-        LabelBoxContent content
+        LabelBoxView content
         Color color
         Gradient gradient
         
@@ -91,54 +91,54 @@ class Button is GraphicUserInterface
         content:SetBorderThickness(2)
         content:Initialize(gradient, color:Black())
 
-        SetVisualContent(content)
+        SetView2D(content)
         SetSize(width, height)
 
         SetName(label)
     end
 
     action Initialize(Drawable drawable)
-        ImageInterfaceContent content
+        ImageControlView content
         content:Initialize(drawable)
         
-        SetVisualContent(content)
+        SetView2D(content)
         SetSize(drawable:GetWidth(), drawable:GetHeight())
     end
 
     action Initialize(Texture texture)
-        ImageInterfaceContent content
+        ImageControlView content
         content:Load(texture)
         
-        SetVisualContent(content)
+        SetView2D(content)
         SetSize(texture:GetWidth(), texture:GetHeight())
     end
 
     action Initialize(TextureRegion region)
-        ImageInterfaceContent content
+        ImageControlView content
         content:Load(region)
 
-        SetVisualContent(content)
+        SetView2D(content)
         SetSize(region:GetRegionWidth(), region:GetRegionHeight())
     end
 
     action Initialize(File file)
-        ImageInterfaceContent content
+        ImageControlView content
         content:Load(file)
 
-        SetVisualContent(content)
+        SetView2D(content)
         SetSize(content:GetWidth(), content:GetHeight())
     end
 
     action Initialize(text filePath)
-        ImageInterfaceContent content
+        ImageControlView content
         content:Load(filePath)
 
-        SetVisualContent(content)
+        SetView2D(content)
         SetSize(content:GetWidth(), content:GetHeight())
     end
 
-    action Initialize(number width, number height, GraphicUserInterfaceContent content)
-        SetVisualContent(content)
+    action Initialize(number width, number height, ControlView content)
+        SetView2D(content)
         SetSize(width, height)
     end
 
@@ -163,14 +163,14 @@ class Button is GraphicUserInterface
     end
 
     action ReleasedMouse
-        parent:GraphicUserInterface:ReleasedMouse()
+        parent:Control:ReleasedMouse()
         RunBehavior()
     end
 
     action SetName(text name)
         parent:Item2D:SetName(name)
-        if GetVisualContent() is GraphicUserInterfaceContent
-            GraphicUserInterfaceContent content = cast(GraphicUserInterfaceContent, GetVisualContent())
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
             content:SetText(name)
         end
     end

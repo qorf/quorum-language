@@ -141,7 +141,7 @@ class Item2D is Item
     to Draw(Painter2D), but isn't added to the Game in the same way children
     are, and thus isn't eligible for things like events.
     */
-    VisualContent2D visualContent = undefined
+    View2D visualView = undefined
 
     /*
     Layout objects are used to reactively set the position and dimensions of
@@ -192,8 +192,8 @@ class Item2D is Item
         position:SetX(setX)
         SetOffsetX(offset:GetX())
 
-        if visualContent not= undefined
-            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
         end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
@@ -218,8 +218,8 @@ class Item2D is Item
         position:SetY(setY)
         SetOffsetY(offset:GetY())
 
-        if visualContent not= undefined
-            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
         end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
@@ -300,8 +300,8 @@ class Item2D is Item
         position:SetY(setY)
         SetOffset(offset:GetX(), offset:GetY())
 
-        if visualContent not= undefined
-            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
         end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
@@ -352,8 +352,8 @@ class Item2D is Item
             UpdateTransformX()
         end
 
-        if visualContent not= undefined
-            visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        if visualView not= undefined
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
         SetOriginCenter()
@@ -398,8 +398,8 @@ class Item2D is Item
             UpdateTransformY()
         end
 
-        if visualContent not= undefined
-            visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        if visualView not= undefined
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
         SetOriginCenter()
@@ -548,8 +548,8 @@ class Item2D is Item
             UpdateTransformX()
         end
 
-        if visualContent not= undefined
-            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
         end
 
         integer counter = 0
@@ -587,8 +587,8 @@ class Item2D is Item
             UpdateTransformY()
         end
 
-        if visualContent not= undefined
-            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
         end
 
         integer counter = 0
@@ -667,8 +667,8 @@ class Item2D is Item
             UpdateTransformY()
         end
 
-        if visualContent not= undefined
-            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
         end
 
         integer counter = 0
@@ -746,8 +746,8 @@ class Item2D is Item
             UpdateTransformY()
         end
 
-        if visualContent not= undefined
-            visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        if visualView not= undefined
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
         SetOriginCenter()
@@ -801,8 +801,8 @@ class Item2D is Item
         position:SetX(position:GetX() + xAmount)
         SetOffsetX(offset:GetX())
 
-        if visualContent not= undefined
-            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
         end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
@@ -833,8 +833,8 @@ class Item2D is Item
         position:SetY(position:GetY() + yAmount)
         SetOffsetY(offset:GetY())
 
-        if visualContent not= undefined
-            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
         end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
@@ -891,8 +891,8 @@ class Item2D is Item
         position:SetY(position:GetY() + yAmount)
         SetOffset(offset:GetX(), offset:GetY())
 
-        if visualContent not= undefined
-            visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
+        if visualView not= undefined
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
         end
 
         if physicsEnabled and not IsSimulated() and shouldTriggerSimulation
@@ -950,8 +950,8 @@ class Item2D is Item
     action FlipX
         flipX = not flipX
 
-        if visualContent not= undefined
-            visualContent:UpdateFlipping(flipX, flipY)
+        if visualView not= undefined
+            visualView:UpdateFlipping(flipX, flipY)
         end
 
         integer counter = 0
@@ -975,8 +975,8 @@ class Item2D is Item
     action FlipY
         flipY = not flipY
 
-        if visualContent not= undefined
-            visualContent:UpdateFlipping(flipX, flipY)
+        if visualView not= undefined
+            visualView:UpdateFlipping(flipX, flipY)
         end
 
         integer counter = 0
@@ -1770,8 +1770,8 @@ class Item2D is Item
             UpdateTransformY()
         end
         
-        if visualContent not= undefined
-            visualContent:UpdateRotation(rotation)
+        if visualView not= undefined
+            visualView:UpdateRotation(rotation)
         end
 
         if children:GetSize() > 0
@@ -1862,8 +1862,8 @@ class Item2D is Item
             UpdateTransformY()
         end
 
-        if visualContent not= undefined
-            visualContent:UpdateRotation(rotation)
+        if visualView not= undefined
+            visualView:UpdateRotation(rotation)
         end
 
         if children:GetSize() > 0
@@ -1927,8 +1927,8 @@ class Item2D is Item
             UpdateTransformY()
         end
 
-        if visualContent not= undefined
-            visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        if visualView not= undefined
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
         Resize()
@@ -1985,8 +1985,8 @@ class Item2D is Item
             UpdateTransformY()
         end
 
-        if visualContent not= undefined
-            visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        if visualView not= undefined
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
         Resize()
@@ -2082,8 +2082,8 @@ class Item2D is Item
             UpdateTransformY()
         end
 
-        if visualContent not= undefined
-            visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        if visualView not= undefined
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
         Resize()
@@ -2165,8 +2165,8 @@ class Item2D is Item
             UpdateTransformY()
         end
 
-        if visualContent not= undefined
-            visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        if visualView not= undefined
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
         end
 
         Resize()
@@ -2501,8 +2501,8 @@ class Item2D is Item
 
                 painter:SetClipCoordinates(left, bottom, right, top)
 
-                if visualContent not= undefined
-                    visualContent:Draw(painter)
+                if visualView not= undefined
+                    visualView:Draw(painter)
                 end
 
                 integer counter = 0
@@ -2516,8 +2516,8 @@ class Item2D is Item
                 painter:SetClipDimensions(GetGlobalX(), GetGlobalY(), GetWidth(), GetHeight())
                 painter:SetClipping(true)
 
-                if visualContent not= undefined
-                    visualContent:Draw(painter)
+                if visualView not= undefined
+                    visualView:Draw(painter)
                 end
 
                 integer counter = 0
@@ -2530,8 +2530,8 @@ class Item2D is Item
             end
         else
 
-            if visualContent not= undefined
-                visualContent:Draw(painter)
+            if visualView not= undefined
+                visualView:Draw(painter)
             end
 
             integer counter = 0
@@ -4367,17 +4367,17 @@ class Item2D is Item
         return clipPixels
     end
 
-    action SetVisualContent(VisualContent2D content)
-        visualContent = content
-        visualContent:SetItem(me)
-        visualContent:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
-        visualContent:UpdatePosition(GetGlobalX(), GetGlobalY())
-        visualContent:UpdateFlipping(flipX, flipY)
-        visualContent:UpdateRotation(GetRotation())
+    action SetView2D(View2D content)
+        visualView = content
+        visualView:SetItem(me)
+        visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+        visualView:UpdatePosition(GetGlobalX(), GetGlobalY())
+        visualView:UpdateFlipping(flipX, flipY)
+        visualView:UpdateRotation(GetRotation())
     end
 
-    action GetVisualContent returns VisualContent2D
-        return visualContent
+    action GetView2D returns View2D
+        return visualView
     end
 
     action AddLayout(Layout layout)

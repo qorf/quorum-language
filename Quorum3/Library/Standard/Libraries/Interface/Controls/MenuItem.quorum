@@ -1,23 +1,22 @@
 package Libraries.Interface.Controls
 
-use Libraries.Interface.GraphicUserInterface
-use Libraries.Interface.GraphicUserInterfaceContent
-use Libraries.Interface.VisualContent2D
+use Libraries.Interface.Control
+use Libraries.Interface.Views.ControlView
+use Libraries.Interface.Views.View2D
 use Libraries.Containers.Array
-use Libraries.Interface.LabelBoxContent
+use Libraries.Interface.LabelBoxView
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
-use Libraries.Game.Behaviors.Behavior
+use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Selectable
-use Libraries.Interface.Selection
+use Libraries.Interface.Selections.Selection
 use Libraries.Containers.Support.Pair
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.VerticalMenuLayout
-use Libraries.Interface.Controls.GraphicUserInterfaceSelection
 
-class MenuItem is GraphicUserInterface, Selectable
+class MenuItem is Control, Selectable
     
     /*
     A panel which contains all of the submenu options for this MenuItem, if this
@@ -42,10 +41,10 @@ class MenuItem is GraphicUserInterface, Selectable
     public constant integer UP = 3
 
     // The default appearance of MenuItems which are elements of this menu.
-    GraphicUserInterfaceContent submenuContent = undefined
+    ControlView submenuView = undefined
 
     // The default appearance of menu panels for this MenuItem and any submenus.
-    VisualContent2D panelContent = undefined
+    View2D panelView = undefined
 
     text shortcut = ""
     boolean open = false
@@ -86,46 +85,46 @@ class MenuItem is GraphicUserInterface, Selectable
 
         Color color
 
-        LabelBoxContent content
+        LabelBoxView content
         content:SetBorderThickness(1)
 
         content:Initialize(color:CustomColor(0.9, 0.9, 0.9, 1), color:Black())
-        panelContent = content
+        panelView = content
 
         VerticalMenuLayout layout
         panelLayout = layout
         panel:AddLayout(layout)
-        panel:SetVisualContent(panelContent)
+        panel:SetView2D(panelView)
     end
 
     private action InitializeMenuAppearance
         MenuBar bar = GetMenuBar()
-        MenuItemContent menuContent = undefined
+        MenuItemView menuView = undefined
         if bar not= undefined
-            menuContent = bar:GetDefaultMenuItemView()
+            menuView = bar:GetDefaultMenuItemView()
         end
 
-        SetMenuAppearance(menuContent)
+        SetMenuAppearance(menuView)
     end
 
     action AddMenuItem(MenuItem item)
 
         MenuBar bar = GetMenuBar()
-        MenuItemContent menuContent = undefined
+        MenuItemView menuView = undefined
         if bar not= undefined
-            menuContent = bar:GetDefaultMenuItemView()
+            menuView = bar:GetDefaultMenuItemView()
         end
 
-        if menuContent not= undefined
-            MenuItemContent copy = cast(MenuItemContent, menuContent:Copy())
+        if menuView not= undefined
+            MenuItemView copy = cast(MenuItemView, menuView:Copy())
             item:SetAppearance(copy)
         end
 
         if menuItems:IsEmpty() and GetMenuBar() not= undefined
-            if GetVisualContent() is MenuItemContent
-                MenuItemContent content = cast(MenuItemContent, GetVisualContent())
+            if GetView2D() is MenuItemView
+                MenuItemView content = cast(MenuItemView, GetView2D())
                 content:EnableMenuArrow(true)
-                SetSize(content:GetContentWidth(), content:GetContentHeight())
+                SetSize(content:GetViewWidth(), content:GetViewHeight())
                 GetMenuBar():Resize()
             end
         end
@@ -195,7 +194,7 @@ class MenuItem is GraphicUserInterface, Selectable
         return shortcut
     end
 
-    action SetAppearance(MenuItemContent content)
+    action SetAppearance(MenuItemView content)
         content:SetText(GetName())
         content:SetShortcut(GetShortcut())
         if not (menuItems:IsEmpty()) and GetMenuBar() not= undefined
@@ -205,13 +204,13 @@ class MenuItem is GraphicUserInterface, Selectable
             content:EnableMenuArrow(false)
         end
 
-        SetVisualContent(content)
-        SetSize(content:GetContentWidth(), content:GetContentHeight())
+        SetView2D(content)
+        SetSize(content:GetViewWidth(), content:GetViewHeight())
     end
 
-    action SetMenuAppearance(MenuItemContent menuContent)
+    action SetMenuAppearance(MenuItemView menuView)
 
-        if menuContent = undefined
+        if menuView = undefined
             return now
         end
 
@@ -221,7 +220,7 @@ class MenuItem is GraphicUserInterface, Selectable
             
             if i is MenuItem
                 MenuItem item = cast(MenuItem, i)
-                MenuItemContent copy = cast(MenuItemContent, menuContent:Copy())
+                MenuItemView copy = cast(MenuItemView, menuView:Copy())
                 item:SetAppearance(copy)
             end
             counter = counter + 1
@@ -272,7 +271,7 @@ class MenuItem is GraphicUserInterface, Selectable
     end
 
     action ClickedMouse
-        parent:GraphicUserInterface:ClickedMouse()
+        parent:Control:ClickedMouse()
 
         MenuBar bar = GetMenuBar()
         if bar not= undefined
@@ -298,7 +297,7 @@ class MenuItem is GraphicUserInterface, Selectable
     end
 
     action GainedSelection
-        parent:GraphicUserInterface:GainedSelection()
+        parent:Control:GainedSelection()
         MenuBar menuBar = GetMenuBar()
         if menuBar not= undefined
             menuBar:SetSelectingState(true)
@@ -309,7 +308,7 @@ class MenuItem is GraphicUserInterface, Selectable
     end
 
     action LostSelection
-        parent:GraphicUserInterface:LostSelection()
+        parent:Control:LostSelection()
         if open
             Close()
         end
@@ -430,8 +429,8 @@ class MenuItem is GraphicUserInterface, Selectable
     end
 
     action GetIconWidth returns number
-        if GetVisualContent() is MenuItemContent
-            MenuItemContent content = cast(MenuItemContent, GetVisualContent())
+        if GetView2D() is MenuItemView
+            MenuItemView content = cast(MenuItemView, GetView2D())
             return content:GetIconWidth()
         else
             return 0
@@ -439,8 +438,8 @@ class MenuItem is GraphicUserInterface, Selectable
     end
 
     action GetNameWidth returns number
-        if GetVisualContent() is MenuItemContent
-            MenuItemContent content = cast(MenuItemContent, GetVisualContent())
+        if GetView2D() is MenuItemView
+            MenuItemView content = cast(MenuItemView, GetView2D())
             return content:GetNameWidth()
         else
             return 0
@@ -448,8 +447,8 @@ class MenuItem is GraphicUserInterface, Selectable
     end
 
     action GetShortcutWidth returns number
-        if GetVisualContent() is MenuItemContent
-            MenuItemContent content = cast(MenuItemContent, GetVisualContent())
+        if GetView2D() is MenuItemView
+            MenuItemView content = cast(MenuItemView, GetView2D())
             return content:GetShortcutWidth()
         else
             return 0
@@ -457,8 +456,8 @@ class MenuItem is GraphicUserInterface, Selectable
     end
 
     action GetSubmenuIconWidth returns number
-        if GetVisualContent() is MenuItemContent
-            MenuItemContent content = cast(MenuItemContent, GetVisualContent())
+        if GetView2D() is MenuItemView
+            MenuItemView content = cast(MenuItemView, GetView2D())
             return content:GetSubmenuIconWidth()
         else
             return 0

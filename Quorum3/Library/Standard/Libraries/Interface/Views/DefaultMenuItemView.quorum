@@ -1,7 +1,7 @@
-package Libraries.Interface.Controls
+package Libraries.Interface.Views
 
 use Libraries.Interface.Item2D
-use Libraries.Interface.GraphicUserInterfaceContent
+use Libraries.Interface.Views.ControlView
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Interface.Layouts.Layout
@@ -9,7 +9,7 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
 
-class DefaultMenuItemContent is Item2D, MenuItemContent
+class DefaultMenuItemView is Item2D, MenuItemView
     
     Label nameLabel
     Label shortcutLabel
@@ -127,7 +127,7 @@ class DefaultMenuItemContent is Item2D, MenuItemContent
 
     action EnableMenuArrow(boolean enable)
         if enable
-            number contentHeight = GetContentHeight()
+            number contentHeight = GetViewHeight()
             arrowSpace = 10 + contentHeight
             integer height = cast(integer, contentHeight / 2.25)
             if arrow:IsLoaded()
@@ -170,7 +170,7 @@ class DefaultMenuItemContent is Item2D, MenuItemContent
         return shortcutLabel:GetText()
     end
 
-    action GetContentWidth returns number
+    action GetViewWidth returns number
         if shortcutLabel:GetText() = ""
             return imageSpace + nameLabel:GetWidth() + arrowSpace
         else
@@ -178,7 +178,7 @@ class DefaultMenuItemContent is Item2D, MenuItemContent
         end
     end
 
-    action GetContentHeight returns number
+    action GetViewHeight returns number
         return nameLabel:GetHeight() * heightFactor
     end
 
@@ -202,8 +202,8 @@ class DefaultMenuItemContent is Item2D, MenuItemContent
         
     end
 
-    action Copy returns GraphicUserInterfaceContent
-        DefaultMenuItemContent content
+    action Copy returns ControlView
+        DefaultMenuItemView content
         content:Initialize(GetText(), GetShortcut())
         content:UpdateSize(parent:Item2D:GetWidth(), parent:Item2D:GetHeight())
         return content

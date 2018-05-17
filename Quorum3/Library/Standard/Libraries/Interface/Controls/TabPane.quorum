@@ -2,9 +2,8 @@ package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
-use Libraries.Interface.LabelBoxContent
+use Libraries.Interface.LabelBoxView
 use Libraries.Interface.Layouts.Layout
-use Libraries.Game.Graphics.Color
 use Libraries.Interface.Controls.Tab
 use Libraries.Interface.Controls.TabBar
 
@@ -21,11 +20,6 @@ class TabPane is Item2D
     end
 
     action Initialize(number width, number height, Array<Tab> tabs)
-        LabelBoxContent testContent
-        Color color
-        testContent:Initialize(color:White(), color:Black())
-//        SetVisualContent(testContent)
-
         TabBar tabBar
         bar = tabBar
         bar:SetTabPane(me)
