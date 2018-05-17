@@ -1,22 +1,22 @@
 package Libraries.Interface.Controls
 
-use Libraries.Interface.Control
-use Libraries.Interface.Views.ControlView
-use Libraries.Interface.Views.View2D
-use Libraries.Containers.Array
-use Libraries.Interface.LabelBoxView
-use Libraries.Game.Graphics.Color
-use Libraries.Game.Graphics.Gradient
+use Libraries.Interface.Item2D
 use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Selections.Selection
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.MouseListener
-use Libraries.Interface.Selectable
-use Libraries.Interface.Selections.Selection
-use Libraries.Containers.Support.Pair
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.VerticalMenuLayout
+use Libraries.Interface.Views.ControlView
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Views.MenuItemView
+use Libraries.Containers.Array
+use Libraries.Containers.Support.Pair
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Gradient
 
-class MenuItem is Control, Selectable
+class MenuItem is Control
     
     /*
     A panel which contains all of the submenu options for this MenuItem, if this

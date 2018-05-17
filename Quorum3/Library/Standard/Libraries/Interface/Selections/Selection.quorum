@@ -1,5 +1,7 @@
-package Libraries.Interface
+package Libraries.Interface.Selections
 
+use Libraries.Interface.Item
+use Libraries.Interface.Events.SelectionEvent
 use Libraries.Game.GameStateManager
 
 /*
@@ -44,14 +46,12 @@ class Selection
     end
 
     /*
-        /*
         This action gets the name that would be shown to the user.
         Attribute: Example
 
         action SelectionChanged(Selection selection)
             output selection:GetDisplayName()
         end
-    */
     */
     action GetDisplayName returns text
         return displayName

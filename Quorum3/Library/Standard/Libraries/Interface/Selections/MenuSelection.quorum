@@ -2,6 +2,7 @@ package Libraries.Interface.Selections
 
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.MenuItem
+use Libraries.Interface.Item
 
 /*
     In the case of MenuSelection, this returns a path of Menu Items, which can 
@@ -16,7 +17,6 @@ class MenuSelection is Selection
 
     action Initialize(Item item)
         Initialize(item, "")
-        path:Add("")
     end
 
     /* This action is used internally to set the path on the Selection.
@@ -35,7 +35,7 @@ class MenuSelection is Selection
 
     /* This action empties the selection path. */
     action Empty
-        items:Empty()
+        menuItems:Empty()
         parent:Selection:displayName = ""
     end
 

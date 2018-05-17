@@ -64,7 +64,6 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.System.File
 use Libraries.System.Properties
-use Libraries.Interface.Panel
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.KeyboardListener
 use Libraries.Interface.Events.MouseListener
@@ -122,10 +121,9 @@ class Game
 
     public boolean exitRequested = false
 
-    // Variables used for Panels and the event system.
+    // An instance of a GameInput, e.g. DesktopInput, WebInput, etc. Handles the
+    // input for the game.
     private GameInput gameInput = undefined
-    private List<Item2D> collisionList
-    private List<CollisionEvent> currentCollisions
 
     // Variables for the Layer system.
     private Array<Layer> layers
@@ -1069,10 +1067,8 @@ class Game
     end
 
     /*
-    This action updates the active Panel and all of the Items that have been
-    added to the active Panel. This is called automatically by the Game class 
-    as part of the main loop, so most users will never need to use this action
-    directly.
+    This action updates each of the Layers in the Game. This is called 
+    automatically by the Game class as part of the main loop (see ContinueGame).
     */
     private action UpdateAll
         integer counter = 0
