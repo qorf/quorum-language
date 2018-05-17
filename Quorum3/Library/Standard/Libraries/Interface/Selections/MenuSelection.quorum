@@ -36,7 +36,7 @@ class MenuSelection is Selection
             counter = counter + 1
         end
 
-        SetDisplayName(menuItems:GetFromEnd())
+        SetDisplayName(menuItems:GetFromEnd():GetName())
     end
 
     /* This action empties the selection path. */
