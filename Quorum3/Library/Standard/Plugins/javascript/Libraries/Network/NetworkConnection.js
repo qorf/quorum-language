@@ -23,6 +23,7 @@ function plugins_quorum_Libraries_Network_NetworkConnection_(quorumConnection) {
         var url = request.GetWebAddress();
         http.timeout = request.GetReadTimeout();
         http.open(request.GetRequestType(), url, true);
+        http.withCredentials = true;
         request.ResetHeaderIterator();
         while (request.HasNextHeader()) {
           var key = request.GetNextHeaderKey();
@@ -30,8 +31,8 @@ function plugins_quorum_Libraries_Network_NetworkConnection_(quorumConnection) {
           if (key == "Accept-Encoding" || key == "User-Agent" || key == "Connection") {
             console.log("Skipping Header " + key + " : " + value);
           } else {
-            http.setRequestHeader(key, value);
             console.log("Adding Header: " + key + " : " + value);
+            http.setRequestHeader(key, value);
           }
         }
         
@@ -64,8 +65,8 @@ function plugins_quorum_Libraries_Network_NetworkConnection_(quorumConnection) {
         response.SetWebAddress$quorum_text(http.responseURL);
         response.SetStatusCode$quorum_integer(http.status);
         response.SetStatusText$quorum_text(http.statusText);
-        response.SetEncoding$quorum_text(http.getResponseHeader('content-encoding'));
-        response.SetContentLength$quorum_integer(http.getResponseHeader('content-length'));
+//        response.SetEncoding$quorum_text(http.getResponseHeader('content-encoding'));
+//        response.SetContentLength$quorum_integer(http.getResponseHeader('content-length'));
         response.SetContentType$quorum_text(http.getResponseHeader('content-type'));
         response.SetResponseText$quorum_text(http.responseText);
         
