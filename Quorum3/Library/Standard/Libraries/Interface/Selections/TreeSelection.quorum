@@ -2,6 +2,7 @@ package Libraries.Interface.Selections
 
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.TreeItem
+use Libraries.Interface.Item
 
 /*
     A selection represents what would be interacted with if the parent is used. The 
@@ -27,7 +28,6 @@ class TreeSelection is Selection
     */
     action Initialize(Item item)
         Initialize(item, "")
-        path:Add("")
     end
 
     /* 
@@ -50,7 +50,7 @@ class TreeSelection is Selection
         This action empties the selection path. 
     */
     action Empty
-        items:Empty()
+        treeItems:Empty()
         parent:Selection:displayName = ""
     end
 
