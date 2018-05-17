@@ -147,7 +147,7 @@ class Tree is Item2D
                 SelectFirst()
             end
         else
-            TreeItem = path:GetFromEnd()
+            TreeItem item = path:GetFromEnd()
             if item not= undefined
                 if item:IsSubtree() and item:IsOpen()
                     item:Close()
@@ -166,7 +166,7 @@ class Tree is Item2D
                 SelectFirst()
             end
         else
-            item = path:GetFromEnd()
+            TreeItem item = path:GetFromEnd()
             if item not= undefined
                 item:SelectionDown()
             end

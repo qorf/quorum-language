@@ -43,7 +43,11 @@ class TreeSelection is Selection
             counter = counter + 1
         end
 
-        SetDisplayName(treeItems:GetFromEnd())
+        if treeItems:IsEmpty()
+            SetDisplayName("")
+        else
+            SetDisplayName(treeItems:GetFromEnd():GetName())
+        end
     end
 
     /* 
