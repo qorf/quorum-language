@@ -52,7 +52,7 @@ public class QuorumSemanticAnalyzer extends SemanticAnalyzer<QuorumParserResult>
         //ProjectInformation info = parserResult.getInfo();
         String source = quorumResult.Get_Libraries_Language_Compile_CompilerResult__source_();//info.Get_Libraries_Language_Compile_ProjectInformation__source_();
         File_ loc = quorumResult.Get_Libraries_Language_Compile_CompilerResult__sourceLocation_();//info.Get_Libraries_Language_Compile_ProjectInformation__sourceLocation_();
-        if(quorumResult == null) {
+        if(quorumResult == null || loc == null) {
             return;
         }
         SymbolTable_ table = quorumResult.Get_Libraries_Language_Compile_CompilerResult__symbolTable_();
