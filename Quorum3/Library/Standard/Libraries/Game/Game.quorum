@@ -182,11 +182,9 @@ class Game
             display:SetupDisplay()
         elseif application is AndroidApplication
             
-            gl20 = manager:GetGameGraphics()
-
-            // AndroidInput newInput
-            // gameInput = newInput
-            // manager:SetInput(gameInput)
+            AndroidInput newInput
+            gameInput = newInput
+            manager:SetInput(gameInput)
 
             AndroidDisplay display
             manager:SetGameDisplay(display)
@@ -194,6 +192,7 @@ class Game
 
             AndroidGraphics graphics
             manager:SetGameGraphics(graphics)
+            gl20 = graphics
             
         elseif application is IOSApplication
 

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package plugins.quorum.Libraries.Game;
 
 import android.annotation.TargetApi;
@@ -32,11 +27,13 @@ import java.lang.reflect.Method;
  *
  * @author alleew
  */
-public class AndroidApplication extends Activity
+public class AndroidApplication
 {
     public java.lang.Object me_ = null;
     
     static final int MINIMUM_SDK = 8;
+    
+    private static Activity androidActivity = null;
     
     public AndroidApplication_ quorumApp;
     
@@ -61,7 +58,6 @@ public class AndroidApplication extends Activity
     public void SetupNative(Game_ game, ApplicationConfiguration_ configuration)
     {
         AndroidConfiguration config = (AndroidConfiguration)configuration;
-        
         /* 
         SetupNative is only called as part of Setup in the Quorum 
         AndroidApplication, which sets itself in the GameStateManager right
@@ -73,7 +69,7 @@ public class AndroidApplication extends Activity
         
         if (GetVersion() < MINIMUM_SDK) 
         {
-            throw new GameRuntimeError("Android API level " + GetVersion() + "was detected, but " + MINIMUM_SDK + " or later is required.");
+            throw new GameRuntimeError("Android API level " + GetVersion() + " was detected, but " + MINIMUM_SDK + " or later is required.");
         }
         
         ((quorum.Libraries.Game.AndroidDisplay)display).plugin_.Initialize(this, config);
@@ -118,14 +114,15 @@ public class AndroidApplication extends Activity
         //if (!isForView) {
         try 
         {
-            requestWindowFeature(Window.FEATURE_NO_TITLE);
+            androidActivity.requestWindowFeature(Window.FEATURE_NO_TITLE);
         } catch (Exception ex) 
         {
             //log("AndroidApplication", "Content already displayed, cannot request FEATURE_NO_TITLE", ex);
         }
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+        androidActivity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        androidActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
         //setContentView(graphics.getView(), createLayoutParams());
+        androidActivity.setContentView(((quorum.Libraries.Game.AndroidDisplay)GameStateManager.display).plugin_.GetView());
         //}
 
         CreateWakeLock(config.preventScreenDimming);
@@ -149,7 +146,7 @@ public class AndroidApplication extends Activity
     {
         if (lock)
         {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            androidActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
     }
     
@@ -157,7 +154,7 @@ public class AndroidApplication extends Activity
     {
         if (!hide || GetVersion() < 11)
             return;
-        View rootView = getWindow().getDecorView();
+        View rootView = androidActivity.getWindow().getDecorView();
         
         try
         {
@@ -172,10 +169,8 @@ public class AndroidApplication extends Activity
         }
     }
     
-    @Override
     public void onWindowFocusChanged(boolean hasFocus)
     {
-        super.onWindowFocusChanged(hasFocus);
         UseImmersiveMode(this.useImmersiveMode);
         HideStatusBar(this.hideStatusBar);
         if (hasFocus)
@@ -193,13 +188,12 @@ public class AndroidApplication extends Activity
         }
     }
     
-    @TargetApi(19)
     public void UseImmersiveMode(boolean mode)
     {
         if (!mode || GetVersion() < Build.VERSION_CODES.KITKAT)
             return;
         
-        View view = getWindow().getDecorView();
+        View view = androidActivity.getWindow().getDecorView();
         try
         {
             Method m = View.class.getMethod("setSystemUiVisibility", int.class);
@@ -214,8 +208,7 @@ public class AndroidApplication extends Activity
         }
     }
     
-    @Override
-    protected void onPause()
+    public void onPause()
     {
         //boolean isContinuous = graphics.isContinuousRendering();
         //boolean isContinuousEnforced = AndroidGraphics.enforceContinuousRendering;
@@ -230,7 +223,7 @@ public class AndroidApplication extends Activity
         
         //input.onPause();
         
-        if (isFinishing())
+        if (androidActivity.isFinishing())
         {
             //graphics.clearManagedCaches();
             //graphics.destroy();
@@ -240,12 +233,9 @@ public class AndroidApplication extends Activity
         //graphics.setContinuousRendering(isContinuous);
         
         //graphics.onPauseGLSurfaceView();
-        
-        super.onPause();
     }
     
-    @Override
-    protected void onResume()
+    public void onResume()
     {
         GameStateManager.application = quorumApp;
         //Gdx.input = this.getInput();
@@ -273,13 +263,11 @@ public class AndroidApplication extends Activity
             //this.audio.resume();
             this.isWaitingForAudio = false;
         }
-        super.onResume();
     }
     
-    @Override
-    protected void onDestroy()
+    public void onDestroy()
     {
-        super.onDestroy();
+
     }
     
     public Game_ GetGame()
@@ -320,18 +308,41 @@ public class AndroidApplication extends Activity
             @Override
             public void run()
             {
-                AndroidApplication.this.finish();
+                AndroidApplication.androidActivity.finish();
             }
         });
     }
     
     public Context GetContext()
     {
-        return this;
+        return androidActivity;
     }
     
     public Handler GetHandler()
     {
         return this.handler;
+    }
+    
+    public static void SetActivity(Activity activity)
+    {
+        if (androidActivity != null)
+            throw new GameRuntimeError("The activity has already been set for this game and can't be changed.");
+        
+        androidActivity = activity;
+    }
+    
+    public static Activity GetActivity()
+    {
+        return androidActivity;
+    }
+    
+    public void Log(String header, String text)
+    {
+        Log.d(header, text);
+    }
+    
+    public void Log(String text)
+    {
+        Log.d("Quorum Game Application", text);
     }
 }

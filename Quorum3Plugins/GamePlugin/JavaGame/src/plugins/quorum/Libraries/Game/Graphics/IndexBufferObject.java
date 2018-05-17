@@ -163,4 +163,10 @@ public class IndexBufferObject extends IndexData
         buffer.position(position);
     }
     
+    @Override
+    public void Reload()
+    {
+        bufferHandle = GameStateManager.nativeGraphics.glGenBuffer();
+        isDirty = true;
+    }
 }

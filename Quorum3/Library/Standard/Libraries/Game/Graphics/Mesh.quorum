@@ -14,9 +14,6 @@ use Libraries.Game.Graphics.VertexArray
 
 class Mesh is Disposable
 
-    // JAVA: Is this necessary?
-    // static final Map<Application, Array<Mesh>> meshes = new HashMap<Application, Array<Mesh>>();
-
     VertexData vertices = undefined
     IndexData indices = undefined
     boolean autoBind = true
@@ -31,7 +28,7 @@ class Mesh is Disposable
         me:indices = indices
         me:isVertexArray = isVertexArray
 
-        // addManagedMesh(...)
+        AddReloadableMesh()
     end
 
     action Load(boolean isStatic, integer maxVertices, integer maxIndices, VertexAttributes attributes)
@@ -41,7 +38,7 @@ class Mesh is Disposable
         indices = index
         isVertexArray = false
 
-        // addManagedMesh(...)
+        AddReloadableMesh()
     end
 
     action Load(boolean isStatic, integer maxVertices, integer maxIndices, VertexAttributes attributes, boolean isArray)
@@ -111,6 +108,7 @@ class Mesh is Disposable
     action Dispose
         vertices:Dispose()
         indices:Dispose()
+        RemoveReloadableMesh()
     end
 
     action GetVertexData returns VertexData
@@ -155,9 +153,31 @@ class Mesh is Disposable
     end
 
     /*
+    This action forcibly reloads the Mesh's IndexData and VertexData. This is
+    necessary after the OpenGL context is lost. This is automatically performed
+    by the engine, so it shouldn't be necessary for users to call this directly.
+    */
+    action Reload
+        indices:Reload()
+        vertices:Reload()
+    end
+
+    /*
     This action is used during creation to pass a reference of this object down
     to the corresponding plugin class.
     */
     private system action SetQuorumReference(Mesh mesh)
+
+    /*
+    Adds this mesh to the static collection of meshes in the plugins, which are
+    maintained so that they can be reloaded in case of context loss.
+    */
+    private system action AddReloadableMesh
+
+    /*
+    Removes this mesh from the static collection of meshes in the plugins, which
+    are maintained so that they can be reloaded in case of context loss.
+    */
+    private system action RemoveReloadableMesh
 
 end

@@ -2,6 +2,29 @@ package Libraries.Containers
 
 use Libraries.Containers.Array
 
+/*
+The MultipleLineText class is used to distribute text across multiple lines.
+This is done for both efficiency and to make certain kinds of operations easier.
+For example, inserting or deleting characters into very large strings of text
+will be much more efficient in a MultipleLineText than in the base text type.
+
+Attribute: Example
+
+use Libraries.Containers.MultipleLineText
+
+MultipleLineText multiLineText
+multiLineText:Initialize("Hello world! ")
+
+text extraText = "This is extra text."
+multiLineText = multiLineText:Concatenate(extraText)
+
+extraText = extraText:GetLineFeed() + "This text is on a second line."
+multiLineText = multiLineText:Concatenate(extraText)
+
+output multiLineText:GetText()
+output "The text contains " + multiLineText:GetLineCount() + " lines."
+
+*/
 class MultipleLineText 
 
     // The children nodes.

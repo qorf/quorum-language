@@ -25,18 +25,26 @@ class Tree is Item2D
         panelLayout = flow
         panel:AddLayout(flow)
 
-        Add(panel)
+        parent:Item2D:Add(panel)
 
         selection:Initialize(me)
     end
 
-    action AddTreeItem(TreeItem item)
+//    action Add(Item2D item)
+//        if item is TreeItem
+//            Add(cast(TreeItem, item))
+//        else
+//            parent:Item2D:Add(item)
+//        end
+//    end
+
+    action Add(TreeItem item)
         panel:Add(item)
         treeItems:Add(item)
         item:SetTree(me)
     end
 
-    action RemoveTreeItem(TreeItem item)
+    action Remove(TreeItem item)
         panel:Remove(item)
         treeItems:Remove(item)
         item:SetTree(undefined)

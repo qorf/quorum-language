@@ -5,10 +5,12 @@
  */
 package plugins.quorum.Libraries.Game;
 
+import android.app.Activity;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import android.util.Log;
 //import org.robovm.apple.foundation.Foundation;
 //import org.robovm.apple.foundation.NSString;
 //import org.robovm.apple.uikit.UIDevice;
@@ -19,21 +21,35 @@ import java.util.logging.Logger;
 */
 public class Game 
 {
+    public java.lang.Object me_ = null;
+    
     static
     {
         try 
         {
             String os = System.getProperty("os.name");
-
+            
             String nativeFile;
             if (os.contains("Mac OS X") || os.contains("Linux"))
             {
-                java.io.File file = new java.io.File(Game.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-                String runLocation = file.getParentFile().getAbsolutePath();
-                String lwjgl = runLocation + "/jni";
-                System.setProperty("org.lwjgl.librarypath", lwjgl);
+                if (os.contains("Linux") && System.getProperty("java.runtime.name").contains("Android Runtime"))
+                {
+                    Log.d("Quorum Game Application", "Loading C libraries...");
+                    Log.d("Quorum Game Application", "Java version is " + System.getProperty("java.version"));
+                    nativeFile = null;
+                    GameStateManager.operatingSystem = "Linux (Android) : TEST-CODE-MCX";
+                    System.loadLibrary("GameEngineCPlugins");
+                    Log.d("Quorum Game Application", "Finished loading C libraries.");
+                }
+                else
+                {
+                    java.io.File file = new java.io.File(Game.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                    String runLocation = file.getParentFile().getAbsolutePath();
+                    String lwjgl = runLocation + "/jni";
+                    System.setProperty("org.lwjgl.librarypath", lwjgl);
                 
-                nativeFile = runLocation + "/jni/libGameEngineCPlugins.so";
+                    nativeFile = runLocation + "/jni/libGameEngineCPlugins.so";
+                }
             }
             else if (os.contains("Windows"))
             {
@@ -84,8 +100,6 @@ public class Game
             Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    public java.lang.Object me_ = null;
     
     public int SelectApplicationTypeNative()
     {

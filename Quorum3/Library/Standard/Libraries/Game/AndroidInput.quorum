@@ -1,0 +1,279 @@
+package Libraries.Game
+
+use Libraries.Containers.Array
+use Libraries.Containers.List
+use Libraries.Interface.Events.KeyboardListener
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseWheelListener
+use Libraries.Interface.Events.TouchListener
+use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.TextInputListener
+use Libraries.Interface.Events.TextInputProcessor
+use Libraries.Interface.Events.TextInputEvent
+use Libraries.Interface.Events.ResizeListener
+use Libraries.Containers.Iterator
+use Libraries.Interface.Item
+use Libraries.Interface.Events.BehaviorEvent
+
+/*
+This class automatically handles input and notifies event listeners for Games
+running on Android platforms. Most users shouldn't need access to this class.
+For users who want to test input themselves at specific times, use an
+InputMonitor instead.
+*/
+class AndroidInput is GameInput
+
+    Array<TouchListener> touchListeners
+    Array<TextInputListener> textInputListeners
+    Array<ResizeListener> resizeListeners
+
+    List<TouchEvent> touchEvents
+    private TextInputProcessor textInputProcessor
+    GameStateManager manager
+
+    on create
+        InitializePlugin(touchEvents)
+    end
+
+    /*
+    This action will identify all input events that have occurred and notify
+    all relevant event listeners. For certain kinds of input, e.g. mouse or
+    touch input, only listeners that were added to the active panel will be
+    notified. This action is called automatically by the Game class, so most
+    users will never need to use this action directly.
+    */
+    action ProcessInputEvents
+        // Note: touchEvents is automatically filled with events in plugins.
+        if touchEvents:IsEmpty() = false
+            Array<Layer> layers = parent:GameInput:layers
+            TouchEvent touchEvent = undefined
+
+            repeat touchEvents:GetSize() times
+                touchEvent = touchEvents:RemoveFromFront()
+
+                integer counter = layers:GetSize()
+                repeat while counter > 0 and not touchEvent:WasEventHandled()
+                    counter = counter - 1
+                    layers:Get(counter):ProcessTouchEvent(touchEvent)
+                end
+
+                if not touchEvent:WasEventHandled()
+                    NotifyTouchListeners(touchEvent)
+                end        
+            end
+        end
+
+
+        textInputProcessor:Update()
+        
+        AndroidApplication application = cast(AndroidApplication, manager:GetApplication())
+        if textInputProcessor:HasEvents()
+            ProcessTextInputEvent(textInputProcessor:GetEvents())
+        end
+    end  
+
+    private action ProcessTextInputEvent(List<TextInputEvent> events)
+        TextInputEvent currentEvent = undefined
+        TextInputListener currentListener = undefined
+        Iterator<TextInputListener> listenIterator = textInputListeners:GetIterator()
+
+        text inputGroup = ""
+        Item focusedItem = manager:GetFocus()
+        if focusedItem not= undefined
+            inputGroup = focusedItem:GetInputGroup()
+        end
+
+        repeat while not events:IsEmpty()
+            currentEvent = events:RemoveFromFront()
+
+            InputSet set
+            set:SetInputType(set:TEXT_INPUT)
+
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetItem(focusedItem)
+            behaviorEvent:SetTextInputEvent(currentEvent)
+
+            InputTable table = GetInputTable(inputGroup)
+
+            /*
+            Using boolean short-circuit evaluation. If the table is defined,
+            the input is processed - if the input set wasn't found in the table,
+            it returns false. Thus the default table is referenced if there was
+            no table with an identifier matching the input group, or if such a
+            table existed but didn't handle this InputSet.
+            */
+            if table = undefined or table:ProcessInput(set, behaviorEvent) = false
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+            end
+
+            repeat while listenIterator:HasNext()
+                currentListener = listenIterator:Next()
+                currentListener:TextInput(currentEvent)
+            end
+
+            listenIterator:Rewind()
+        end
+    end
+
+    /*
+    This action will forward a touch event to all of the TouchListeners that
+    have been added directly to the AndroidInput.
+    */
+    private action NotifyTouchListeners(TouchEvent event)
+        integer counter = 0
+
+        if event:eventType = event:MOVED or event:eventType = event:STATIONARY
+            repeat touchListeners:GetSize() times
+                touchListeners:Get(counter):ContinuedTouch(event)
+                counter = counter + 1
+            end
+
+        elseif event:eventType = event:ENDED or event:eventType = event:CANCELLED
+            repeat touchListeners:GetSize() times
+                touchListeners:Get(counter):EndedTouch(event)
+                counter = counter + 1
+            end
+
+        elseif event:eventType = event:BEGAN
+            repeat touchListeners:GetSize() times
+                touchListeners:Get(counter):BeganTouch(event)
+                counter = counter + 1
+            end
+
+        end
+    end
+
+    /*
+    This action will add a KeyboardListener to the GameInput. The GameInput will
+    notify the KeyboardListener if keys are pressed on the keyboard. This action
+    is automatically called by the Game class when needed.
+    */
+    action AddKeyboardListener(KeyboardListener listener)
+         // Do nothing - Keyboard isn't supported on Android currently.
+    end
+
+    /*
+    This action will remove a KeyboardListener from the GameInput. The GameInput
+    will no longer notify the given KeyboardListener of KeyboardEvents. This 
+    action is automatically called by the Game class when needed.
+    */
+    action RemoveKeyboardListener(KeyboardListener listener)
+        // Do nothing - Keyboard isn't supported on Android currently.
+    end
+
+    /*
+    This action adds a MouseListener directly to the GameInput. When the
+    GameInput receives a mouse event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    MouseListeners which are added directly to the GameInput will receive the
+    event.
+    */
+    action AddMouseListener(MouseListener listener)
+        // Do nothing - Mouse isn't supported on Android.
+    end
+
+    /*
+    This action adds a MouseMovementListener directly to the GameInput. When the
+    GameInput receives a mouse event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    MouseMovementListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    action AddMouseMovementListener(MouseMovementListener listener)
+        // Do nothing - Mouse isn't supported on Android.
+    end
+
+    /*
+    This action adds a MouseWheelListener directly to the GameInput. When the
+    GameInput receives a mouse event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    MouseWheelListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    action AddMouseWheelListener(MouseWheelListener listener)
+        // Do nothing - Mouse isn't supported on Android.
+    end
+
+    /*
+    This action adds a TouchListener directly to the GameInput. When the
+    GameInput receives a touch event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    TouchListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    action AddTouchListener(TouchListener listener)
+        touchListeners:Add(listener)
+    end
+
+    /*
+    This action removes a MouseListener from the GameInput. It will no longer
+    receive mouse events directly from the GameInput.
+    */
+    action RemoveMouseListener(MouseListener listener)
+        // Do nothing - Mouse isn't supported on Android.
+    end
+
+    /*
+    This action removes a MouseMovementListener from the GameInput. The listener
+    will no longer receive events from the GameInput.
+    */
+    action RemoveMouseMovementListener(MouseMovementListener listener)
+        // Do nothing - Mouse isn't supported on Android.
+    end
+
+    /*
+    This action removes a MouseWheelListener from the GameInput. The listener
+    will no longer receive events from the GameInput.
+    */
+    action RemoveMouseWheelListener(MouseWheelListener listener)
+        // Do nothing - Mouse isn't supported on Android.
+    end
+
+    /*
+    This action removes a TouchListener from the GameInput. The listener will
+    no longer receive events from the GameInput.
+    */
+    action RemoveTouchListener(TouchListener listener)
+        touchListeners:Remove(listener)
+    end
+
+    /*
+    This action will add a TextInputListener to the DesktopInput. The 
+    DesktopInput will notify the TextInputListener when the user provides text
+    input to the game via the keyboard.
+    */
+    action AddTextInputListener(TextInputListener listener)
+        textInputListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a TextInputListener from the DesktopInput. The
+    DesktopInput will no longer notify the given TextInputListener of 
+    TextInputEvents. 
+    */
+    action RemoveTextInputListener(TextInputListener listener)
+        textInputListeners:Remove(listener)
+    end
+
+    /*
+    This action will add a ResizeListener to the GameInput. The 
+    GameInput will notify the ResizeListener when the size of the game space
+    changes, e.g. the window changes size or goes fullscreen.
+    */
+    action AddResizeListener(ResizeListener listener)
+        resizeListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a ResizeListener from the GameInput. The
+    GameInput will no longer notify the given ResizeListener of 
+    ResizeEvents. 
+    */
+    action RemoveResizeListener(ResizeListener listener)
+        resizeListeners:Remove(listener)
+    end
+
+    private system action InitializePlugin(List<TouchEvent> list)
+
+end
