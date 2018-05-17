@@ -90,11 +90,23 @@ class Library
         library:SetCachingLibraryOpcodes(true)
         library:SetLocation(standardLibraryFolder)
         library:SetOutputFolder(outputLocation)
-        library:Scan()
+        CompilerErrorManager errors = library:Scan()
 
         output "Writing Standard Library"
-        library:Write()
-        output "Finished"
+
+        if errors:IsCompilationErrorFree()
+            library:Write()
+            output "Finished"
+        else 
+            output "I cannot compile the standard library until the following errors are fixed:"
+            i = 1
+            Iterator<CompilerError> iterator = errors:GetIterator()
+            repeat while iterator:HasNext()
+                CompilerError error = iterator:Next()
+                output i + ": " + error:GetFile():GetFileName() + " " + error:GetLineNumber() + ":" + error:GetColumnNumber() + " " + error:GetErrorMessage()
+                i = i + 1
+            end
+        end
     end
 
     /*
@@ -104,7 +116,7 @@ class Library
         return hasScannedStandardLibrary
     end
 
-    action Scan
+    action Scan returns CompilerErrorManager
         hasScannedStandardLibrary = false
         if outputFolder not= undefined
             buildFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
@@ -155,18 +167,8 @@ class Library
             end
         end
 
-        if not sandboxCompilerErrorManager:IsCompilationErrorFree()
-            output "I cannot compile the standard library until the following errors are fixed:"
-            i = 1
-            Iterator<CompilerError> iterator = sandboxCompilerErrorManager:GetIterator()
-            repeat while iterator:HasNext()
-                CompilerError error = iterator:Next()
-                output i + ": " + error:GetFile():GetFileName() + " " + error:GetLineNumber() + ":" + error:GetColumnNumber() + " " + error:GetErrorMessage()
-                i = i + 1
-            end
-        end
-
         hasScannedStandardLibrary = true
+        return sandboxCompilerErrorManager
     end
 
     action Write
