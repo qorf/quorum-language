@@ -3,19 +3,38 @@ package Libraries.Interface.Selections
 use Libraries.Containers.Support.Pair
 use Libraries.Containers.MultipleLineText
 
-class TextBoxSelection is Selection
+/*
+    A selection represents what would be interacted with if the parent is used. The 
+    general idea of selection is common across user interface elements. For example, 
+    trees have a selection,  which represents the item in the tree that the user is 
+    interacting with if the tree itself has a focus. Similarly, text boxes have a 
+    very different kind of selection, which represents which region of the text is 
+    being interacted with. Selection represents a generic way to get the name of the 
+    selection. 
 
+    In the case of TextBoxSelection, this selection is very different from the 
+    Tree or Menu Selections. Instead, this selection allows us to obtain 
+    information about the location of the Caret or, If multiple characters are 
+    selected, the begin and end of the selection region. 
+*/
+class TextBoxSelection is Selection
     Pair<integer> indices
     Pair<integer> lines
     Pair<integer> lineIndices
     boolean caretAtEnd = true
 
+    /* A default constructor for the object. */
     on create
         lines:Set(0, 0)
         indices:Set(0, 0)
         lineIndices:Set(0, 0)
     end
 
+    /* 
+        This action is used internally to set the path on the Selection. It 
+        should generally not needed by a programmer not working in Quorum’s 
+        standard library.
+    */
     action Set(integer startIndex, integer endIndex, boolean caretAtEnd)
         TextBox textBox = GetTextBox()
         if textBox not= undefined
@@ -36,6 +55,7 @@ class TextBoxSelection is Selection
         end
     end
 
+    /* This action is a helper to obtain the text box without casting. */
     action GetTextBox returns TextBox
         if GetItem() is TextBox
             TextBox textBox = cast(TextBox, GetItem())
@@ -44,35 +64,76 @@ class TextBoxSelection is Selection
         return undefined
     end
 
+    /* 
+        This action obtains the starting index of the selection, which may 
+        cross multiple lines. 
+    */
     action GetStartIndex returns integer
         return indices:GetFirstValue()
     end
-
+    
+    /* 
+        This action obtains the ending index of the selection, which may 
+        cross multiple lines. 
+    */
     action GetEndIndex returns integer
         return indices:GetSecondValue()
     end
 
+    /* 
+        The GetFirstLine action returns the first line that the selection 
+        starts at. For example, if the selection started at index 5 on line 2 
+        and ended on index 10 on line 3, this action would return 2.
+    */
     action GetFirstLine returns integer
         return lines:GetFirstValue()
     end
 
+    /* 
+        The GetLastLine action returns the first line that the selection 
+        starts at. For example, if the selection started at index 5 on line 2 
+        and ended on index 10 on line 3, this action would return 3.
+    */
     action GetLastLine returns integer
         return lines:GetSecondValue()
     end
 
+    /* 
+        The GetFirstLineIndex action returns the first index that the selection 
+        starts at on the line (not globally). For example, if the selection started at index 5 on line 2 
+        and ended on index 10 on line 3, this action would return 5.
+    */
     action GetFirstLineIndex returns integer
         return lineIndices:GetFirstValue()
     end
 
+    /* 
+        The GetFirstLineIndex action returns the first index that the selection 
+        starts at on the line (not globally). For example, if the selection started at index 5 on line 2 
+        and ended on index 10 on line 3, this action would return 10.
+    */
     action GetLastLineIndex returns integer
         return lineIndices:GetSecondValue()
     end
 
+    /* This action returns true if the caret is at the end of the text value. */
     action IsCaretAtEnd returns boolean
         return caretAtEnd
     end
 
+    /* 
+        This action returns true if the selection is empty.
+    */
     action IsEmpty returns boolean
         return indices:GetFirstValue() = indices:GetSecondValue()
+    end
+
+    /* 
+        This action empties the selection.
+    */
+    action Empty
+        lines:Set(0, 0)
+        indices:Set(0, 0)
+        lineIndices:Set(0, 0)
     end
 end
