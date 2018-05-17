@@ -4,6 +4,21 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.TreeItem
 use Libraries.Interface.Item
 
+/*
+    A selection represents what would be interacted with if the parent is used. The 
+general idea of selection is common across user interface elements. For example, 
+trees have a selection,  which represents the item in the tree that the user is 
+interacting with if the tree itself has a focus. Similarly, text boxes have a 
+very different kind of selection, which represents which region of the text is 
+being interacted with. Selection represents a generic way to get the name of the 
+selection. 
+
+In the case of TreeSelection, this returns a path of TreeItem objects, which can 
+be traversed to learn the specific and unique path to the current tree selection. 
+This path should be interpreted from high level to low level. For example, if 
+we were selected on Game -> Player 1, then the TreeItem objects in the path 
+would be Game first and Player 1 second.
+*/
 class TreeSelection is Selection
     Array<TreeItem> treeItems
 
@@ -11,6 +26,8 @@ class TreeSelection is Selection
         Initialize(item, "")
     end
 
+    /* This action is used internally to set the path on the Selection.
+    */
     action Set(Array<TreeItem> items)
         treeItems:Empty()
 
@@ -23,11 +40,18 @@ class TreeSelection is Selection
         SetDisplayName(treeItems:GetFromEnd())
     end
 
+    /* This action empties the selection path. */
     action Empty
         treeItems:Empty()
         parent:Selection:displayName = ""
     end
 
+    /* 
+        This action gets the Path of the selection. This path should be 
+        interpreted from high level to low level. For example, if we were 
+        selected on Game -> Player 1, then the TreeItem objects in the path 
+        would be Game first and Player 1 second.
+    */
     action GetPath returns Array<TreeItem>
         return treeItems:CopyToArray()
     end
