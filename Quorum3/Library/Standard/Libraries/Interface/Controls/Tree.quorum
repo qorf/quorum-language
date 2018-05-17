@@ -42,32 +42,36 @@ class Tree is Item2D
         item:SetTree(undefined)
     end
 
-    action GetTreeItem(Array<text> path) returns TreeItem
-        text first = path:RemoveFromFront()
+//    action GetTreeItem(Array<TreeItem> path) returns TreeItem
+//        if path = undefined or path:IsEmpty()
+//            return undefined
+//        end
+//
+//        text first = path:RemoveFromFront()
+//
+//        TreeItem item = GetTreeItem(first)
+//
+//        if item not= undefined
+//            item = item:GetTreeItem(path)
+//        end
+//
+//        // Add the removed portion back to the path to undo our side effects.
+//        path:AddToFront(first)
+//
+//        return item
+//    end
 
-        TreeItem item = GetTreeItem(first)
-
-        if item not= undefined
-            item = item:GetTreeItem(path)
-        end
-
-        // Add the removed portion back to the path to undo our side effects.
-        path:AddToFront(first)
-
-        return item
-    end
-
-    private action GetTreeItem(text path) returns TreeItem
-        integer counter = 0
-        repeat while counter < treeItems:GetSize()
-            if treeItems:Get(counter):GetName() = path
-                return treeItems:Get(counter)
-            end
-            counter = counter + 1
-        end
-
-        return undefined
-    end
+//    private action GetTreeItem(text path) returns TreeItem
+//        integer counter = 0
+//        repeat while counter < treeItems:GetSize()
+//            if treeItems:Get(counter):GetName() = path
+//                return treeItems:Get(counter)
+//            end
+//            counter = counter + 1
+//        end
+//
+//        return undefined
+//    end
 
     action GetSelection returns TreeSelection
         return selection
@@ -83,99 +87,116 @@ class Tree is Item2D
 
     action Select(Array<TreeItem> path)
         Array<TreeItem> pathCopy = path:CopyToArray()
-        text first = path:RemoveFromFront()
+        TreeItem first = pathCopy:RemoveFromFront()
 
         Array<TreeItem> selectionPath = selection:GetPath()
-        text oldFirst = selectionPath:RemoveFromFront()
+        TreeItem oldFirst = selectionPath:RemoveFromFront()
 
-        TreeItem item = GetTreeItem(first)
-        TreeItem oldItem = GetTreeItem(oldFirst)
-        if item not= undefined
-            if item = oldItem
-                item:UpdateSelection(selectionPath, path)
+        if first not= undefined
+            if first = oldFirst
+                first:UpdateSelection(selectionPath, pathCopy)
             else
-                if oldItem not= undefined
-                    oldItem:RecursiveDeselect(selectionPath)
+                if oldFirst not= undefined
+                    oldFirst:RecursiveDeselect(selectionPath)
                 end
-                item:RecursiveSelect(path)
+                first:RecursiveSelect(pathCopy)
             end
         end
 
-        // Add the removed portion back to the path to undo our side effects.
-        path:AddToFront(first)
-
         // Set our selection object with the new path, triggering a selection
         // event.
-        selection:Set(pathCopy)
+        selection:Set(path)
     end
 
-    action Deselect(Array<text> path)
-        text first = path:RemoveFromFront()
+    action Deselect(Array<TreeItem> path)
+        Array<TreeItem> pathCopy = path:CopyToArray()
+        TreeItem first = pathCopy:RemoveFromFront()
 
-        TreeItem item = GetTreeItem(first)
-
-        if item not= undefined
-            item:RecursiveDeselect(path)
+        if first not= undefined
+            first:RecursiveDeselect(pathCopy)
         end
-
-        // Add the removed portion back to the path to undo our side effects.
-        path:AddToFront(first)
     end
 
     action SelectionRight
-        TreeItem item = GetTreeItem(selection:GetPath())
-        if item not= undefined and item:IsSubtree() and not item:IsOpen()
-            item:Open()
+        if selection:GetPath():IsEmpty()
+            if not treeItems:IsEmpty()
+                Array<TreeItem> array
+                array:Add(treeItems:Get(0))
+                Select(array)
+            end
+        else
+            TreeItem item = selection:GetPath():GetFromEnd()
+            if item not= undefined and item:IsSubtree() and not item:IsOpen()
+                item:Open()
+            end
         end
     end
 
     action SelectionLeft
-        Array<text> path = selection:GetPath()
-        TreeItem item = GetTreeItem(path)
-        if item not= undefined
-            if item:IsSubtree() and item:IsOpen()
-                item:Close()
-            elseif path:GetSize() > 1
-                path:RemoveFromEnd()
-                Select(path)
+        Array<TreeItem> path = selection:GetPath()
+        if path:IsEmpty()
+            if not treeItems:IsEmpty()
+                SelectFirst()
+            end
+        else
+            TreeItem = path:GetFromEnd()
+            if item not= undefined
+                if item:IsSubtree() and item:IsOpen()
+                    item:Close()
+                elseif path:GetSize() > 1
+                    path:RemoveFromEnd()
+                    Select(path)
+                end
             end
         end
     end
 
     action SelectionDown
-        TreeItem item = GetTreeItem(selection:GetPath())
-        if item not= undefined
-            item:SelectionDown()
+        Array<TreeItem> path = selection:GetPath()
+        if path:IsEmpty()
+            if not treeItems:IsEmpty()
+                SelectFirst()
+            end
+        else
+            item = path:GetFromEnd()
+            if item not= undefined
+                item:SelectionDown()
+            end
         end
     end
 
     action SelectionUp
-        TreeItem item = GetTreeItem(selection:GetPath())
-        if item not= undefined
-            item:SelectionUp()
+        Array<TreeItem> path = selection:GetPath()
+        if path:IsEmpty()
+            if not treeItems:IsEmpty()
+                SelectFirst()
+            end
+        else
+            TreeItem item = path:GetFromEnd()
+            if item not= undefined
+                item:SelectionUp()
+            end
         end
     end
 
     action SelectionSkipForward
-        Array<text> path = selection:GetPath()
+        Array<TreeItem> path = selection:GetPath()
         if path:IsEmpty()
-            if not treeItems:IsEmpty()
-                treeItems:Get(0):Select()
-            end
+            SelectFirst()
         else
             integer counter = 0
-            text name = path:GetFromFront()
+            TreeItem first = path:GetFromFront()
             repeat while counter < treeItems:GetSize()
-                if treeItems:Get(counter):GetName() = name
+                if treeItems:Get(counter):Equals(first)
                     integer select = counter + 1
 
                     if select >= treeItems:GetSize()
                         return now
                     end
 
-                    name = treeItems:Get(select):GetName()
+                    first = treeItems:Get(select)
                     path:Empty()
-                    path:Add(name)
+                    path:Add(first)
                     Select(path)
                     return now
                 end
@@ -185,16 +206,14 @@ class Tree is Item2D
     end
 
     action SelectionSkipBackward
-        Array<text> path = selection:GetPath()
+        Array<TreeItem> path = selection:GetPath()
         if path:IsEmpty()
-            if not treeItems:IsEmpty()
-                treeItems:Get(0):Select()
-            end
+            SelectFirst()
         else
             integer counter = 0
-            text name = path:GetFromFront()
+            TreeItem first = path:GetFromFront()
             repeat while counter < treeItems:GetSize()
-                if treeItems:Get(counter):GetName() = name
+                if treeItems:Get(counter):Equals(first)
                     integer select = counter - 1
 
                     if select < 0
@@ -206,6 +225,14 @@ class Tree is Item2D
                 end
                 counter = counter + 1
             end
+        end
+    end
+
+    private action SelectFirst
+        if not treeItems:IsEmpty()
+            Array<TreeItem> array
+            array:Add(treeItems:Get(0))
+            Select(array)
         end
     end
 end
