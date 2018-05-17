@@ -1,13 +1,13 @@
-package Libraries.Interface.Controls
+package Libraries.Interface.Views
 
-use Libraries.Interface.GraphicUserInterfaceContent
+use Libraries.Interface.Views.ControlView
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Painter2D
 
-class SelectionHighlightContent is GraphicUserInterfaceContent, Drawable
+class SelectionHighlightView is ControlView, Drawable
 
     Color color = undefined
     Gradient gradient = undefined
@@ -62,8 +62,8 @@ class SelectionHighlightContent is GraphicUserInterfaceContent, Drawable
         SetColor(unselected)
     end
 
-    action Copy returns GraphicUserInterfaceContent
-        SelectionHighlightContent content
+    action Copy returns ControlView
+        SelectionHighlightView content
         if color not= undefined
             content:Initialize(color)
         elseif gradient not= undefined

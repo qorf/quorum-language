@@ -1,23 +1,23 @@
 package Libraries.Interface.Controls
 
 use Libraries.Interface.Item2D
-use Libraries.Interface.GraphicUserInterface
+use Libraries.Interface.Control
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.Array
-use Libraries.Game.Behaviors.Behavior
+use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
-use Libraries.Interface.LabelBoxContent
+use Libraries.Interface.LabelBoxView
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Layouts.TreeLayout
-use Libraries.Game.Behaviors.GraphicUserInterfaces.ToggleTreeViewBehavior
-use Libraries.Interface.Controls.DefaultTreeMenuContent
-use Libraries.Interface.Controls.GraphicUserInterfaceLabel
+use Libraries.Interface.Behaviors.Controls.ToggleTreeViewBehavior
+use Libraries.Interface.Controls.DefaultTreeMenuView
+use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.ToggleButton
 
-class TreeItem is GraphicUserInterface
+class TreeItem is Control
 
     Item2D panel
     Item2D itemStructure
@@ -32,7 +32,7 @@ class TreeItem is GraphicUserInterface
     ToggleButton expandButton
     Drawable icon
     // Replace with something that's a GUI visual content.
-    GraphicUserInterfaceLabel label
+    ControlLabel label
 
     Behavior doubleClickBehavior = undefined
 
@@ -68,11 +68,10 @@ class TreeItem is GraphicUserInterface
         number aspectRatio = icon:GetWidth() / icon:GetHeight()
         icon:SetSize(aspectRatio * height, height)
 
-        DefaultTreeMenuContent content
+        DefaultTreeMenuView content
         content:Initialize(height, height * 2)
 
         expandButton:Initialize(height, height, content)
-//        expandButton:Initialize(height / 3, 2 * height / 3, content)
         ToggleTreeViewBehavior buttonBehavior
         buttonBehavior:SetTreeItem(me)
         expandButton:SetBehavior(buttonBehavior)
@@ -91,11 +90,6 @@ class TreeItem is GraphicUserInterface
             flow:SetPadding(2)
             flow:SetOffsetX(height/2 * 3)
         end
-
-//        LabelBoxContent testContent
-//        Color color
-//        testContent:Initialize(color:White(), color:Black())
-//        SetVisualContent(testContent)
 
         itemStructure:Add(expandButton)
         itemStructure:Add(icon)
@@ -356,17 +350,17 @@ class TreeItem is GraphicUserInterface
     end
 
     action ClickedMouse
-        parent:GraphicUserInterface:ClickedMouse()
+        parent:Control:ClickedMouse()
         Select()
     end
 
     action GainedSelection
-        parent:GraphicUserInterface:GainedSelection()
+        parent:Control:GainedSelection()
         label:GainedSelection()
     end
 
     action LostSelection
-        parent:GraphicUserInterface:LostSelection()
+        parent:Control:LostSelection()
         label:LostSelection()
     end
 

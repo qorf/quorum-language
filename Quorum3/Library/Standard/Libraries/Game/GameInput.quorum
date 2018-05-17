@@ -10,7 +10,7 @@ use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.TextInputListener
 use Libraries.Interface.Events.ResizeListener
 use Libraries.Interface.Events.SelectionListener
-use Libraries.Interface.Selection
+use Libraries.Interface.Selections.Selection
 
 /*
 This class is the base interface for how the Game will automatically handle
@@ -216,10 +216,10 @@ class GameInput
     /*
 
     */
-    action NotifySelectionListeners(Selection selection)
+    action NotifySelectionListeners(SelectionEvent event)
         integer counter = 0
         repeat while counter < selectionListeners:GetSize()
-            selectionListeners:Get(counter):SelectionChanged(selection)
+            selectionListeners:Get(counter):SelectionChanged(event)
             counter = counter + 1
         end
     end

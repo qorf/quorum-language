@@ -1,7 +1,7 @@
 package Libraries.Interface.Controls
 
 use Libraries.Interface.Button
-use Libraries.Game.Behaviors.Behavior
+use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 
 class ToggleButton is Button
@@ -20,8 +20,8 @@ class ToggleButton is Button
         end
 
         toggled = toggleState
-        if GetVisualContent() is ToggleContent
-            ToggleContent content = cast(ToggleContent, GetVisualContent())
+        if GetView2D() is ToggleView
+            ToggleView content = cast(ToggleView, GetView2D())
             content:SetToggleState(toggleState)
         end
 
@@ -62,7 +62,7 @@ class ToggleButton is Button
         else
             SetToggleState(true)
         end
-        parent:GraphicUserInterface:ReleasedMouse()
+        parent:Control:ReleasedMouse()
     end
 
     action SetButtonGroup(ButtonGroup buttonGroup)

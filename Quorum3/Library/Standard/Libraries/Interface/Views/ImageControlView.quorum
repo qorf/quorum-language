@@ -6,7 +6,7 @@ use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
 
-class ImageInterfaceContent is Drawable, GraphicUserInterfaceContent
+class ImageControlView is Drawable, ControlView
     
     boolean resizing = true
     Color previousColor = undefined
@@ -147,8 +147,8 @@ class ImageInterfaceContent is Drawable, GraphicUserInterfaceContent
         // TO DO
     end
 
-    action Copy returns GraphicUserInterfaceContent
-        ImageInterfaceContent content
+    action Copy returns ControlView
+        ImageControlView content
         content:Initialize(me)
         return content
     end
