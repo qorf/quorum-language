@@ -67,8 +67,8 @@ public class VertexData
         throw new GameRuntimeError("This action hasn't been implemented for this class!");
     }
 
-    /** Invalidates the VertexData if applicable. Use this in case of a context loss. */
-    public void Invalidate()
+    /** Manually reloads the VertexData. Use this in case of a context loss. */
+    public void Reload()
     {
         throw new GameRuntimeError("This action hasn't been implemented for this class!");
     }

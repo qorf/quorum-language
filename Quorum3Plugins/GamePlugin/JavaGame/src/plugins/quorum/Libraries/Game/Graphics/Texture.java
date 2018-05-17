@@ -9,11 +9,7 @@ package plugins.quorum.Libraries.Game.Graphics;
 
 import quorum.Libraries.Game.Graphics.Color_;
 
-import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.libGDX.Array;
-
-import java.util.HashMap;
-import java.util.Map;
 import plugins.quorum.Libraries.Game.GameStateManager;
 
 /**
@@ -23,26 +19,27 @@ import plugins.quorum.Libraries.Game.GameStateManager;
  */
 public class Texture
 {
-  public java.lang.Object me_ = null;
+    public java.lang.Object me_ = null;
   
-  public int glTarget; //The target, such as GL_TEXTURE_2D
-  protected int glHandle;
-  
-  private GraphicsManager gl20 = GameStateManager.nativeGraphics; 
-  
-  /*
-  The color that should be used to render this texture by the Painter2D when
-  using the font shader. If the color is null, then the font shader will not be
-  used.
-  */
-  public Color_ fontColor = null;
-                            
-  TextureData data;
-  
-  // This array holds all textures which are managed by an application, i.e., 
-  // textures that will be automatically reloaded whenever an application has
-  // regained context after losing it.
-  final static Map<quorum.Libraries.Game.Application_, Array<Texture>> managedTextures = new HashMap<quorum.Libraries.Game.Application_, Array<Texture>>();
+    public int glTarget; //The target, such as GL_TEXTURE_2D
+    protected int glHandle;
+
+    private GraphicsManager gl20 = GameStateManager.nativeGraphics; 
+
+    /*
+    The color that should be used to render this texture by the Painter2D when
+    using the font shader. If the color is null, then the font shader will not be
+    used.
+    */
+    public Color_ fontColor = null;
+
+    TextureData data;
+
+    /*
+    This array holds onto all of the textures which need to be reloaded after a
+    context loss.
+    */
+    final static Array<Texture> RELOADABLE_TEXTURES = new Array<Texture>();
 
     public void Bind() 
     {
@@ -81,14 +78,15 @@ public class Texture
         return glHandle;
     }
   
-    public void AddManagedTexture()
+    public void AddReloadableTexture()
     {
-        Array<Texture> managedTextureArray = managedTextures.get(GameStateManager.application);
-	if (managedTextureArray == null) 
-            managedTextureArray = new Array<Texture>();
-	managedTextureArray.add(this);
-	managedTextures.put(GameStateManager.application, managedTextureArray);
+	RELOADABLE_TEXTURES.add(this);
     }
+    
+    public void RemoveReloadableTexture()
+    {
+        RELOADABLE_TEXTURES.removeValue(this, true);
+    }        
     
     public void Dispose()
     {
@@ -96,6 +94,7 @@ public class Texture
         {
             GameStateManager.nativeGraphics.glDeleteTexture(glHandle);
             glHandle = 0;
+            RemoveReloadableTexture();
         }
     }
     
@@ -115,5 +114,13 @@ public class Texture
     public Color_ GetFontColor()
     {
         return fontColor;
+    }
+    
+    public static void ReloadTextures()
+    {
+        for (Texture texture : RELOADABLE_TEXTURES)
+        {
+            ((quorum.Libraries.Game.Graphics.Texture_)texture.me_).Reload();
+        }
     }
 }

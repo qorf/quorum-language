@@ -94,7 +94,7 @@ class TreeItem is Control
         itemStructure:Add(expandButton)
         itemStructure:Add(icon)
         itemStructure:Add(label)
-        Add(itemStructure)
+        parent:Item2D:Add(itemStructure)
 
         SetName(name)
         SetSize(itemStructure:GetWidth(), height)
@@ -105,7 +105,7 @@ class TreeItem is Control
         
         integer counter = 0
         repeat while counter < treeItems:GetSize()
-            AddTreeItem(treeItems:Get(counter))
+            Add(treeItems:Get(counter))
             counter = counter + 1
         end
     end
@@ -116,7 +116,15 @@ class TreeItem is Control
         Resize()
     end
 
-    action AddTreeItem(TreeItem item)
+//    action Add(Item2D item)
+//        if item is TreeItem
+//            Add(cast(TreeItem, item))
+//        else
+//            parent:Item2D:Add(item)
+//        end
+//    end
+
+    action Add(TreeItem item)
         if panel:GetChildren():IsEmpty()
             expandButton:Show()
         end
@@ -127,7 +135,7 @@ class TreeItem is Control
         item:SetParentTreeItem(me)
     end
 
-    action RemoveTreeItem(TreeItem item)
+    action Remove(TreeItem item)
         panel:Remove(item)
 
         if panel:GetChildren():IsEmpty()
@@ -141,7 +149,7 @@ class TreeItem is Control
 
     action Open
         if not open
-            Add(panel)
+            parent:Item2D:Add(panel)
             open = true
             
             expandButton:SetToggleState(true)
@@ -155,7 +163,7 @@ class TreeItem is Control
 
     action Close
         if open
-            Remove(panel)
+            parent:Item2D:Remove(panel)
             open = false
 
             expandButton:SetToggleState(false)

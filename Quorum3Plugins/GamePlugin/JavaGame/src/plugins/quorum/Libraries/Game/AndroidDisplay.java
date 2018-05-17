@@ -15,8 +15,12 @@ import android.opengl.GLSurfaceView;
 import android.opengl.GLSurfaceView.EGLConfigChooser;
 import android.opengl.GLSurfaceView.Renderer;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
+import plugins.quorum.Libraries.Game.Graphics.Mesh;
+import plugins.quorum.Libraries.Game.Graphics.ShaderProgram;
+import plugins.quorum.Libraries.Game.Graphics.Texture;
 import plugins.quorum.Libraries.Game.libGDX.GdxEglConfigChooser;
 
 import plugins.quorum.Libraries.Game.libGDX.WindowedMean;
@@ -28,7 +32,7 @@ import quorum.Libraries.Game.AndroidConfiguration;
  */
 public class AndroidDisplay implements Renderer
 {
-    java.lang.Object me_ = null;
+    public java.lang.Object me_ = null;
     
     /** When {@link AndroidFragmentApplication#onPause()} or {@link AndroidApplication#onPause()} call
 	 * {@link AndroidGraphics#pause()} they <b>MUST</b> enforce continuous rendering. If not, {@link #onDrawFrame(GL10)} will not
@@ -79,7 +83,6 @@ public class AndroidDisplay implements Renderer
         app = application;
         view = CreateGLSurfaceView(application);
         
-        // focusableView from libGDX is assumed true.
         view.setFocusable(true);
         view.setFocusableInTouchMode(true);
     }
@@ -104,8 +107,10 @@ public class AndroidDisplay implements Renderer
     protected View CreateGLSurfaceView (AndroidApplication application) 
     {
         if (!CheckGL20())
-            throw new GameRuntimeError("Libgdx requires OpenGL ES 2.0");
+            throw new GameRuntimeError("This application requires OpenGL ES 2.0 or higher.");
 
+        Log.d("Android Application - Android Display", "Found support for OpenGL ES 2.0 or higher.");
+        
         EGLConfigChooser configChooser = getEglConfigChooser();
         int sdkVersion = android.os.Build.VERSION.SDK_INT;
         /*
@@ -122,6 +127,11 @@ public class AndroidDisplay implements Renderer
         */
         //else ...
         {
+            boolean nullContext = application.GetContext() == null;
+            Log.d("Android Display", "Application context null? " + nullContext);
+            Log.d("Android Display", "Attempting to get resources...");
+            application.GetActivity().getResources();
+            Log.d("Android Display", "Got resources.");
             GLSurfaceView20 view = new GLSurfaceView20(application.GetContext(), config);
 
             view.setEGLConfigChooser(configChooser);
@@ -162,7 +172,7 @@ public class AndroidDisplay implements Renderer
     private void UpdatePPI() 
     {
         DisplayMetrics metrics = new DisplayMetrics();
-        app.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        app.GetActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
         ppiX = metrics.xdpi;
         ppiY = metrics.ydpi;
@@ -173,6 +183,7 @@ public class AndroidDisplay implements Renderer
 
     protected boolean CheckGL20() 
     {
+        Log.d("Android Application - Android Display", "Checking GL20...");
         EGL10 egl = (EGL10)EGLContext.getEGL();
         EGLDisplay display = egl.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
 
@@ -220,12 +231,14 @@ public class AndroidDisplay implements Renderer
     @Override
     public void onSurfaceChanged (javax.microedition.khronos.opengles.GL10 gl, int width, int height) 
     {
+        Log.d("Android Application - Android Display", "Beginning onSurfaceChanged");
         this.width = width;
         this.height = height;
         UpdatePPI();
         gl.glViewport(0, 0, this.width, this.height);
         if (created == false) 
         {
+            app.GetGame().InitializeLayers();
             app.GetGame().CreateGame();
             created = true;
             synchronized (this) 
@@ -234,16 +247,22 @@ public class AndroidDisplay implements Renderer
             }
         }
         //app.getApplicationListener().resize(width, height);
+        Log.d("Android Application - Android Display", "Finishing onSurfaceChanged");
     }
     
     @Override
     public void onSurfaceCreated (javax.microedition.khronos.opengles.GL10 gl, EGLConfig config) 
     {
+        Log.d("Android Application - Android Display", "Beginning onSurfaceCreated");
         eglContext = ((EGL10)EGLContext.getEGL()).eglGetCurrentContext();
         SetupGL(gl);
         //logConfig(config);
         UpdatePPI();
 
+        Mesh.ReloadMeshes();
+        Texture.ReloadTextures();
+        ShaderProgram.ReloadShaders();
+        
         /*
         Mesh.invalidateAllMeshes(app);
         Texture.invalidateAllTextures(app);
@@ -254,13 +273,14 @@ public class AndroidDisplay implements Renderer
         logManagedCachesStatus();
         */
         
-        Display display = app.getWindowManager().getDefaultDisplay();
+        Display display = app.GetActivity().getWindowManager().getDefaultDisplay();
         this.width = display.getWidth();
         this.height = display.getHeight();
         this.mean = new WindowedMean(5);
         this.lastFrameTime = System.nanoTime();
 
         gl.glViewport(0, 0, this.width, this.height);
+        Log.d("Android Application - Android Display", "Finishing onSurfaceCreated");
     }
 
     private void logConfig (EGLConfig config) 
@@ -441,7 +461,7 @@ public class AndroidDisplay implements Renderer
             */
             //app.getInput().processEvents();
             frameId++;
-            app.GetGame().Update(GetDeltaTime());
+            app.GetGame().ContinueGame();
         }
         
         if (lpause)
@@ -486,7 +506,7 @@ public class AndroidDisplay implements Renderer
             return frameId;
     }
 
-    public double GetDeltaTime() 
+    public double GetSecondsBetweenFrames() 
     {
         return mean.getMean() == 0 ? deltaTime : mean.getMean();
     }
