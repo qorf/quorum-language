@@ -5,6 +5,7 @@ use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Selections.TreeSelection
 use Libraries.Containers.Array
 use Libraries.Interface.Layouts.TreeLayout
+use Libraries.Containers.Iterator
 
 class Tree is Item2D
 
@@ -41,6 +42,10 @@ class Tree is Item2D
         treeItems:Remove(item)
         item:SetTree(undefined)
     end
+
+    action GetTreeItems returns Iterator<TreeItem>
+        return treeItems:GetIterator()
+    end    
 
     action GetSelection returns TreeSelection
         return selection

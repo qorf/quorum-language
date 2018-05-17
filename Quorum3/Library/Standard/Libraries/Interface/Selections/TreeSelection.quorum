@@ -50,6 +50,14 @@ class TreeSelection is Selection
         end
     end
 
+    /*
+        This action returns true if there is no selection.
+        Attribute: Returns True if there is no selection.
+    */
+    action IsEmpty returns boolean
+        return treeItems:IsEmpty()
+    end
+
     /* 
         This action empties the selection path. 
     */

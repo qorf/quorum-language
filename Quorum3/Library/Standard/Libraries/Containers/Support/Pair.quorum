@@ -58,4 +58,13 @@ class Pair <Type>
             return second
         end
     end
+
+    /* 
+        This action asks if the two items have an equal value. 
+
+        Attribute: Returns True if the items are equal.
+    */
+    action AreValuesEqual returns boolean
+        return first:Equals(second)
+    end
 end

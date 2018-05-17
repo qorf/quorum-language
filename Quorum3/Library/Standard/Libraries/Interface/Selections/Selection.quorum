@@ -76,6 +76,12 @@ class Selection
     end
 
     /*
+        This action returns true if there is no selection.
+        Attribute: Returns True if there is no selection.
+    */
+    blueprint action IsEmpty returns boolean
+
+    /*
         This action sends information that the selection was changed to all listeners.
     */
     action NotifySelectionListeners
