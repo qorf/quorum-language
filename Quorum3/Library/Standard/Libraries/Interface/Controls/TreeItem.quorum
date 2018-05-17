@@ -116,14 +116,6 @@ class TreeItem is Control
         Resize()
     end
 
-//    action Add(Item2D item)
-//        if item is TreeItem
-//            Add(cast(TreeItem, item))
-//        else
-//            parent:Item2D:Add(item)
-//        end
-//    end
-
     action Add(TreeItem item)
         if panel:GetChildren():IsEmpty()
             expandButton:Show()

@@ -30,14 +30,6 @@ class Tree is Item2D
         selection:Initialize(me)
     end
 
-//    action Add(Item2D item)
-//        if item is TreeItem
-//            Add(cast(TreeItem, item))
-//        else
-//            parent:Item2D:Add(item)
-//        end
-//    end
-
     action Add(TreeItem item)
         panel:Add(item)
         treeItems:Add(item)
@@ -49,37 +41,6 @@ class Tree is Item2D
         treeItems:Remove(item)
         item:SetTree(undefined)
     end
-
-//    action GetTreeItem(Array<TreeItem> path) returns TreeItem
-//        if path = undefined or path:IsEmpty()
-//            return undefined
-//        end
-//
-//        text first = path:RemoveFromFront()
-//
-//        TreeItem item = GetTreeItem(first)
-//
-//        if item not= undefined
-//            item = item:GetTreeItem(path)
-//        end
-//
-//        // Add the removed portion back to the path to undo our side effects.
-//        path:AddToFront(first)
-//
-//        return item
-//    end
-
-//    private action GetTreeItem(text path) returns TreeItem
-//        integer counter = 0
-//        repeat while counter < treeItems:GetSize()
-//            if treeItems:Get(counter):GetName() = path
-//                return treeItems:Get(counter)
-//            end
-//            counter = counter + 1
-//        end
-//
-//        return undefined
-//    end
 
     action GetSelection returns TreeSelection
         return selection
