@@ -21,12 +21,18 @@ would be Game first and Player 1 second.
 class TreeSelection is Selection
     Array<TreeItem> treeItems
 
+    /* 
+        This action is used internally to set the selection owner.
+        Attribute: Parameter The selection owner.
+    */
     action Initialize(Item item)
         Initialize(item, "")
         path:Add("")
     end
 
-    /* This action is used internally to set the path on the Selection.
+    /* 
+        This action is used internally to set the path on the Selection.
+        Attribute: Parameter The items in the selection. 
     */
     action Set(Array<TreeItem> items)
         treeItems:Empty()
@@ -40,7 +46,9 @@ class TreeSelection is Selection
         SetDisplayName(treeItems:GetFromEnd())
     end
 
-    /* This action empties the selection path. */
+    /* 
+        This action empties the selection path. 
+    */
     action Empty
         items:Empty()
         parent:Selection:displayName = ""
@@ -51,6 +59,8 @@ class TreeSelection is Selection
         interpreted from high level to low level. For example, if we were 
         selected on Game -> Player 1, then the TreeItem objects in the path 
         would be Game first and Player 1 second.
+
+        Attribute: Returns The items in the selection. 
     */
     action GetPath returns Array<TreeItem>
         return treeItems:CopyToArray()

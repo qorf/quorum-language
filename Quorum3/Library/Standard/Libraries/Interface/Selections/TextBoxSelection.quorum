@@ -34,6 +34,9 @@ class TextBoxSelection is Selection
         This action is used internally to set the path on the Selection. It 
         should generally not needed by a programmer not working in Quorum’s 
         standard library.
+        Attribute: Parameter startIndex The start index
+        Attribute: Parameter endIndex The end index
+        Attribute: Parameter caretAtEnd Whether the caret is at the end of the text value.
     */
     action Set(integer startIndex, integer endIndex, boolean caretAtEnd)
         TextBox textBox = GetTextBox()
@@ -55,7 +58,9 @@ class TextBoxSelection is Selection
         end
     end
 
-    /* This action is a helper to obtain the text box without casting. */
+    /* This action is a helper to obtain the text box without casting. 
+        Attribute: Returns The text box
+    */
     action GetTextBox returns TextBox
         if GetItem() is TextBox
             TextBox textBox = cast(TextBox, GetItem())
@@ -67,6 +72,7 @@ class TextBoxSelection is Selection
     /* 
         This action obtains the starting index of the selection, which may 
         cross multiple lines. 
+        Attribute: Returns The index
     */
     action GetStartIndex returns integer
         return indices:GetFirstValue()
@@ -75,6 +81,7 @@ class TextBoxSelection is Selection
     /* 
         This action obtains the ending index of the selection, which may 
         cross multiple lines. 
+        Attribute: Returns The index
     */
     action GetEndIndex returns integer
         return indices:GetSecondValue()
@@ -84,6 +91,7 @@ class TextBoxSelection is Selection
         The GetFirstLine action returns the first line that the selection 
         starts at. For example, if the selection started at index 5 on line 2 
         and ended on index 10 on line 3, this action would return 2.
+        Attribute: Returns The first line
     */
     action GetFirstLine returns integer
         return lines:GetFirstValue()
@@ -93,6 +101,7 @@ class TextBoxSelection is Selection
         The GetLastLine action returns the first line that the selection 
         starts at. For example, if the selection started at index 5 on line 2 
         and ended on index 10 on line 3, this action would return 3.
+        Attribute: Returns The last line.
     */
     action GetLastLine returns integer
         return lines:GetSecondValue()
@@ -102,6 +111,7 @@ class TextBoxSelection is Selection
         The GetFirstLineIndex action returns the first index that the selection 
         starts at on the line (not globally). For example, if the selection started at index 5 on line 2 
         and ended on index 10 on line 3, this action would return 5.
+        Attribute: Returns The first index
     */
     action GetFirstLineIndex returns integer
         return lineIndices:GetFirstValue()
@@ -111,18 +121,23 @@ class TextBoxSelection is Selection
         The GetFirstLineIndex action returns the first index that the selection 
         starts at on the line (not globally). For example, if the selection started at index 5 on line 2 
         and ended on index 10 on line 3, this action would return 10.
+        Attribute: Returns The last index.
     */
     action GetLastLineIndex returns integer
         return lineIndices:GetSecondValue()
     end
 
-    /* This action returns true if the caret is at the end of the text value. */
+    /* 
+        This action returns true if the caret is at the end of the text value. 
+        Attribute: Returns Attribute: Returns Whether the caret is at the end.
+    */
     action IsCaretAtEnd returns boolean
         return caretAtEnd
     end
 
     /* 
         This action returns true if the selection is empty.
+        Attribute: Returns Whether or not the selection is empty.
     */
     action IsEmpty returns boolean
         return indices:GetFirstValue() = indices:GetSecondValue()

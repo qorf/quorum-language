@@ -25,6 +25,8 @@ class Selection
 
     /*
         This action sets up the component with default attributes.
+        Attribute: Parameter item The parent item in the selection.
+        Attribute: Parameter displayName The name of the selected item.
     */
     action Initialize(Item item, text displayName)
         me:item = item
@@ -33,6 +35,8 @@ class Selection
     
     /*
         This action sets the name that would be shown to the user.
+
+        Attribute: Parameter name The name to display.
         Attribute: Example
         action SelectionChanged(Selection selection)
             selection:SetDisplayName("A new name I want to change to")
@@ -46,6 +50,7 @@ class Selection
     /*
         /*
         This action gets the name that would be shown to the user.
+        Attribute: Returns The display name to be given to the user.
         Attribute: Example
 
         action SelectionChanged(Selection selection)
@@ -59,7 +64,9 @@ class Selection
 
     /* 
         This action returns the item that contains the selection. It is not the selection itself.
+        Attribute: Parameter The parent item containing the selection.
 
+        Attribute: Example
         action SelectionChanged(Selection selection)
             Item theParentItem = selection:GetItem()
         end

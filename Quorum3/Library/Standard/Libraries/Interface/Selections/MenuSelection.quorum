@@ -14,12 +14,18 @@ use Libraries.Interface.Controls.MenuItem
 class MenuSelection is Selection
     Array<MenuItem> menuItems
 
+    /* 
+        This action is used internally to set the selection owner.
+        Attribute: Parameter The selection owner.
+    */
     action Initialize(Item item)
         Initialize(item, "")
         path:Add("")
     end
 
-    /* This action is used internally to set the path on the Selection.
+    /* 
+        This action is used internally to set the path on the Selection.
+        Attribute: Parameter The items in the selection. 
     */
     action Set(Array<MenuItem> items)
         menuItems:Empty()
@@ -45,6 +51,8 @@ class MenuSelection is Selection
         selected on File -> Exit, then the MenuItem objects in the path would 
         be File first and Exit second. Menus can only select one MenuItem at a 
         time, which is a single selection.
+
+        Attribute: Returns The items in the selection. 
     */
     action GetPath returns Array<MenuItem>
         return menuItems:CopyToArray()
