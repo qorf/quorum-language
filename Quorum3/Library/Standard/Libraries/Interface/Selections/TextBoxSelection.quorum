@@ -31,6 +31,16 @@ class TextBoxSelection is Selection
         lineIndices:Set(0, 0)
     end
 
+    /*
+        This action returns true if there is no selection. In the case of the
+        textbox, there is considered to be no selection if the indices are the same.
+
+        Attribute: Returns True if there is no selection.
+    */
+    action IsEmpty returns boolean
+        return indices:AreValuesEqual()
+    end
+
     /* 
         This action is used internally to set the path on the Selection. It 
         should generally not needed by a programmer not working in Quorum’s 
@@ -134,14 +144,6 @@ class TextBoxSelection is Selection
     */
     action IsCaretAtEnd returns boolean
         return caretAtEnd
-    end
-
-    /* 
-        This action returns true if the selection is empty.
-        Attribute: Returns Whether or not the selection is empty.
-    */
-    action IsEmpty returns boolean
-        return indices:GetFirstValue() = indices:GetSecondValue()
     end
 
     /* 

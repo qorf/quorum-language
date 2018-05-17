@@ -23,6 +23,14 @@ class MenuSelection is Selection
         Initialize(item, "")
     end
 
+    /*
+        This action returns true if there is no selection.
+        Attribute: Returns True if there is no selection.
+    */
+    action IsEmpty returns boolean
+        return menuItems:IsEmpty()
+    end
+
     /* 
         This action is used internally to set the path on the Selection.
         Attribute: Parameter The items in the selection. 
