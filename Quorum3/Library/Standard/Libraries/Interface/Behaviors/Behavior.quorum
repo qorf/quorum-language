@@ -1,0 +1,23 @@
+package Libraries.Interface.Behaviors
+
+use Libraries.Interface.Events.BehaviorEvent
+
+class Behavior 
+
+    action Run(BehaviorEvent event)
+
+    end
+
+    action Update(number seconds)
+
+    end
+
+    action Dispose
+        
+    end
+
+    action IsFinished returns boolean
+        return false
+    end
+
+end
