@@ -61,10 +61,18 @@ class Tree is Item2D
 
     action Select(Array<TreeItem> path)
         Array<TreeItem> pathCopy = path:CopyToArray()
-        TreeItem first = pathCopy:RemoveFromFront()
+        TreeItem first = undefined
+
+        if not path:IsEmpty()
+            first = pathCopy:RemoveFromFront()
+        end
 
         Array<TreeItem> selectionPath = selection:GetPath()
-        TreeItem oldFirst = selectionPath:RemoveFromFront()
+        TreeItem oldFirst = undefined
+
+        if not selectionPath:IsEmpty()
+            oldFirst = selectionPath:RemoveFromFront()
+        end
 
         if first not= undefined
             if first = oldFirst
@@ -83,12 +91,17 @@ class Tree is Item2D
     end
 
     action Deselect(Array<TreeItem> path)
-        Array<TreeItem> pathCopy = path:CopyToArray()
-        TreeItem first = pathCopy:RemoveFromFront()
-
-        if first not= undefined
-            first:RecursiveDeselect(pathCopy)
+        TreeItem item = undefined
+        if not path:IsEmpty()
+            item = path:RemoveFromFront()
         end
+
+        if item not= undefined
+            item:RecursiveDeselect(path)
+        end
+
+        // Add the removed portion back to the path to undo our side effects.
+        path:AddToFront(item)
     end
 
     action SelectionRight

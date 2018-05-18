@@ -193,7 +193,7 @@ class MenuBar is Item2D
 
     private action GetMenuItem(Array<MenuItem> path) returns MenuItem
         if not path:IsEmpty()
-            return path:Get(0)
+            return path:GetFromEnd()
         end
         return undefined
     end
@@ -261,7 +261,7 @@ class MenuBar is Item2D
         else
             MenuItem item = GetMenuItem(path)
             if item:IsMenu()
-                item:GetMenuItems():GetCurrent():Select()
+                item:GetMenuItems():Next():Select()
             else
                 MenuItem name = path:Get(0)
                 integer counter = 0

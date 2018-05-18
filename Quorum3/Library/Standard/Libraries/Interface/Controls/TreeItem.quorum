@@ -4,18 +4,19 @@ use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.FlowLayout
-use Libraries.Game.Graphics.Texture
-use Libraries.Game.Graphics.Drawable
-use Libraries.Containers.Array
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Views.LabelBoxView
-use Libraries.Game.Graphics.Color
 use Libraries.Interface.Layouts.TreeLayout
 use Libraries.Interface.Behaviors.Controls.ToggleTreeViewBehavior
 use Libraries.Interface.Views.DefaultTreeMenuView
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.ToggleButton
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
 
 class TreeItem is Control
 
@@ -193,88 +194,54 @@ class TreeItem is Control
         return parentTree
     end
 
-    action GetTreeItem(text name) returns TreeItem
-        integer counter = 0
-        repeat while counter < treeItems:GetSize()
-            TreeItem item = treeItems:Get(counter)
-            if item:GetName() = name
-                return item
-            end
-            counter = counter + 1
-        end
-
-        return undefined
-    end
-
-    action GetTreeItem(Array<text> path) returns TreeItem
+    private action GetTreeItem(Array<TreeItem> path) returns TreeItem
         if path:IsEmpty()
-            return me
+            return undefined
         end
 
-        text next = path:RemoveFromFront()
-        
-        // Get the next item in the chain.
-        TreeItem item = GetTreeItem(next)
-
-        // Recursively fetch the last item in the chain from the next item.
-        item = item:GetTreeItem(path)
-
-        // Add the removed section back onto the array to undo our side effects.
-        path:AddToFront(next)
-
-        return item
+        return path:GetFromEnd()
     end
 
-    action GetTreeItems returns Array<TreeItem>
-        return treeItems
+    action GetTreeItems returns Iterator<TreeItem>
+        return treeItems:GetIterator()
     end
 
-    action UpdateSelection(Array<text> oldPath, Array<text> newPath)
+    action UpdateSelection(Array<TreeItem> oldPath, Array<TreeItem> newPath)
 
-        text oldText = ""
-        text newText = ""
+        TreeItem oldItem = undefined
+        TreeItem newItem = undefined
 
         if not oldPath:IsEmpty()
-            oldText = oldPath:RemoveFromFront()
+            oldItem = oldPath:RemoveFromFront()
         end
 
         if not newPath:IsEmpty()
-            newText = newPath:RemoveFromFront()
+            newItem = newPath:RemoveFromFront()
         end
 
-        if oldText = newText
-            if oldText = ""
+        if oldItem = newItem
+            if oldItem = undefined
                 return now
             else
-                TreeItem item = GetTreeItem(oldText)
-                if item not= undefined
-                    item:UpdateSelection(oldPath, newPath)
-                end
+                oldItem:UpdateSelection(oldPath, newPath)
             end
         else
-            if oldText not= ""
-                TreeItem item = GetTreeItem(oldText)
-                if item not= undefined
-                    item:RecursiveDeselect(oldPath)
-                end
+            if oldItem not= undefined
+                oldItem:RecursiveDeselect(oldPath)
             else
                 LostSelection()
             end
-            if newText not= ""
-                TreeItem item = GetTreeItem(newText)
-                if item not= undefined
-                    item:RecursiveSelect(newPath)
-                end
+            if newItem not= undefined
+                newItem:RecursiveSelect(newPath)
             else
                 GainedSelection()
             end
         end
     end
 
-    action RecursiveSelect(Array<text> path)
+    action RecursiveSelect(Array<TreeItem> path)
         if not path:IsEmpty()
-            text subPath = path:RemoveFromFront()
-            TreeItem item = GetTreeItem(subPath)
+            TreeItem item = path:RemoveFromFront()
             if item not= undefined
                 item:RecursiveSelect(path)
             end
@@ -283,10 +250,9 @@ class TreeItem is Control
         end
     end
 
-    action RecursiveDeselect(Array<text> path)
+    action RecursiveDeselect(Array<TreeItem> path)
         if not path:IsEmpty()
-            text subPath = path:RemoveFromFront()
-            TreeItem item = GetTreeItem(subPath)
+            TreeItem item = path:RemoveFromFront()
             if item not= undefined
                 item:RecursiveDeselect(path)
             end
@@ -386,18 +352,18 @@ class TreeItem is Control
         return not treeItems:IsEmpty()
     end
 
-    action GetTreePath returns Array<text>
-        Array<text> path
-        path:Add(GetName())
+    action GetTreePath returns Array<TreeItem>
+        Array<TreeItem> path
+        path:Add(me)
         if parentTreeItem not= undefined
-            Array<text> a = parentTreeItem:GetTreePath(path)
+            Array<TreeItem> a = parentTreeItem:GetTreePath(path)
             return a
         end
         return path
     end
 
-    private action GetTreePath(Array<text> array) returns Array<text>
-        array:AddToFront(GetName())
+    private action GetTreePath(Array<TreeItem> array) returns Array<TreeItem>
+        array:AddToFront(me)
         if parentTreeItem not= undefined
             return parentTreeItem:GetTreePath(array)
         end
