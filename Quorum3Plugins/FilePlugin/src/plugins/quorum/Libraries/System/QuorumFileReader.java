@@ -47,8 +47,9 @@ public class QuorumFileReader {
     }
 
     public String ReadNative() throws IOException {
-        if (atEOF)
-            throw new EOFException();
+        if (atEOF) {
+            return "";
+        }
         
         // Read all remaining file contents.
         StringBuilder stringBuff = new StringBuilder();
@@ -71,6 +72,9 @@ public class QuorumFileReader {
             atEOF = true;
             readSoFar = fileSize;
             return stringBuff.toString();
+        }
+        else if (totalRead == 0) {
+            return "";
         }
         else
         {
