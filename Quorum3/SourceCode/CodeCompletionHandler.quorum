@@ -13,7 +13,7 @@ use Libraries.Containers.HashTable
 class CodeCompletionHandler 
     constant text USE = "use"
     constant text PACKAGE = "package"
-    HashTable<text, Class> lastGoodCompileHash
+    //HashTable<text, Class> lastGoodCompileHash
 
     private action AddUseResults(CodeCompletionRequest request, CodeCompletionResult result, boolean isUse)
         text trim = request:line
@@ -123,25 +123,27 @@ class CodeCompletionHandler
         //then check the cache. If there is no cached version of the class,
         //then likely this class hasn't compiled in a while and there may
         //be little we can do to detect what the user is doing.
-        Class clazzCached = lastGoodCompileHash:GetValue(file)
+        Class clazzCached = sandboxSymbolTable:GetClassInFile(file)
         boolean classNotFound = false
         if clazz = undefined and clazzCached not= undefined
             clazz = clazzCached
             classNotFound = true
         end
 
-        boolean lastCompileFailed = false
-        if clazz not= undefined and clazzCached not= undefined
-            hash1 = clazz:GetHashCode()
-            hash2 = clazzCached:GetHashCode()
+        CompilerResult compilerResult = request:result
 
-            //if these don't match, the most recent parse did not compile
-            //for this file. Let the code completion library know we
-            //are in an intermediate state.
-            if hash1 not= hash2
-                lastCompileFailed = true
-            end
-        end
+        boolean lastCompileFailed = not compilerResult:compilerErrorManager:IsCompilationErrorFree()
+//        if clazz not= undefined and clazzCached not= undefined
+//            hash1 = clazz:GetHashCode()
+//            hash2 = clazzCached:GetHashCode()
+//
+//            //if these don't match, the most recent parse did not compile
+//            //for this file. Let the code completion library know we
+//            //are in an intermediate state.
+//            if hash1 not= hash2
+//                lastCompileFailed = true
+//            end
+//        end
         
         //now we have checked the cache. If this is still undefined, bail
         if clazz not= undefined
