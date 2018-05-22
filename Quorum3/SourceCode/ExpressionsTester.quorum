@@ -135,7 +135,7 @@ class ExpressionsTester
         NotIsObject()
         NoVariable()
         NoVariable2()
-        SetInitialize()
+        SelfInitialize()
         VariableNamedAsKeyword()
         WeirdText()
     end
@@ -1509,10 +1509,10 @@ class ExpressionsTester
         suite:TestJavaScriptFail(files)
     end
 
-    action SetInitialize
+    action SelfInitialize
         Array<File> files
         File main
-        main:SetPath(path + "SetInitialize.quorum")
+        main:SetPath(path + "SelfInitialize.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

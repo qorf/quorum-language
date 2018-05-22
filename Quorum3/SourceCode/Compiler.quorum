@@ -258,7 +258,7 @@ class Compiler
                 ParseSandbox(request:recompileValue, listener, table, errors, checker, file)
                 needsCompilationSet:Add(file:GetAbsolutePath(), true)
             elseif not table:HasFile(file:GetAbsolutePath())
-                ParseSandbox(undefined, listener, table, errors, checker, file)
+                ParseSandbox(file:Read(), listener, table, errors, checker, file)
                 needsCompilationSet:Add(file:GetAbsolutePath(), true)
             end //otherwise ignore it
             i = i + 1
