@@ -211,6 +211,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         Initialize(width, height, backgroundColor, "")
     end
 
+    action GetBackground returns Drawable
+        return background
+    end
+
     action Resize
         number height = GetHeight()
         number width = GetWidth()
