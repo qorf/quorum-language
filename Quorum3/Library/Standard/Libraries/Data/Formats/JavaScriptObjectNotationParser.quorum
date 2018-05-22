@@ -10,20 +10,109 @@ use Libraries.Data.Formats.JavaScriptObjectNotationListener
 use Libraries.Data.Formats.JavaScriptObjectNotationTerminal
 use Libraries.Data.Formats.JavaScriptObjectNotationToken
 
+/*
+This class is used by the JavaScriptObjectNotation object to read in JavaScriptObjectNotation (JSON) 
+formatted data from text values or from disk. It can be used directly by an advanced user who wants
+to perform custom parsing.
+
+Attribute: Example
+
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+use Libraries.Data.Formats.JavaScriptObjectNotationParser
+
+private action ReadToObject(text value) returns JavaScriptObjectNotation
+    if value = undefined
+        return undefined
+    end
+    JavaScriptObjectNotationDefaultListener listen
+    JavaScriptObjectNotationLexer lex
+    JavaScriptObjectNotationParser parse
+
+    lex:SetListener(listen)
+    parse:SetListener(listen)
+    lex:Read(value)
+    parse:Parse(lex)
+    return listen:GetObject()
+end
+*/
 class JavaScriptObjectNotationParser
     constant integer OBJECT_STATE = 0
     integer currentToken = -1
     JavaScriptObjectNotationLexer lexer = undefined
     JavaScriptObjectNotationListener listener
 
+    /*
+    This method is used to get the JavaScriptObjectNotationListener object used by the parser.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationParser
+
+    action GetParserListener(JavaScriptObjectNotationParser parse) returns JavaScriptObjectNotationListener
+        return parse:GetListener()
+    end
+    */
     action GetListener returns JavaScriptObjectNotationListener
         return listener
     end
 
+    /*
+    This method is used to set the JavaScriptObjectNotationListener object used by the parser.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+    use Libraries.Data.Formats.JavaScriptObjectNotationParser
+
+    private action ReadToObject(text value) returns JavaScriptObjectNotation
+        if value = undefined
+            return undefined
+        end
+        JavaScriptObjectNotationDefaultListener listen
+        JavaScriptObjectNotationLexer lex
+        JavaScriptObjectNotationParser parse
+
+        lex:SetListener(listen)
+        parse:SetListener(listen)
+        lex:Read(value)
+        parse:Parse(lex)
+        return listen:GetObject()
+    end
+    */
     action SetListener(JavaScriptObjectNotationListener listener)
         me:listener = listener
     end
     
+    /*
+    This method is used to start the JavaScriptObjectNotation parser.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+    use Libraries.Data.Formats.JavaScriptObjectNotationParser
+
+    private action ReadToObject(text value) returns JavaScriptObjectNotation
+        if value = undefined
+            return undefined
+        end
+        JavaScriptObjectNotationDefaultListener listen
+        JavaScriptObjectNotationLexer lex
+        JavaScriptObjectNotationParser parse
+
+        lex:SetListener(listen)
+        parse:SetListener(listen)
+        lex:Read(value)
+        parse:Parse(lex)
+        return listen:GetObject()
+    end
+    */
     action Parse(JavaScriptObjectNotationLexer lexerLocal)
         lexer = lexerLocal
         if lexer:IsEmpty()
