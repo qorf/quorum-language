@@ -8,8 +8,31 @@ use Libraries.Data.Formats.JavaScriptObjectNotationListener
 use Libraries.Data.Formats.JavaScriptObjectNotationToken
 
 /*
-    Provides a basic lexer for JavaScript Object Notation formatted text values
-    or files (JSON). 
+This class is used by the JavaScriptObjectNotation object to read in JavaScriptObjectNotation (JSON) 
+formatted data from text values or from disk. It can be used directly by an advanced user who wants
+to perform custom reading of token data from a file.
+
+Attribute: Example
+
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+use Libraries.Data.Formats.JavaScriptObjectNotationParser
+
+private action ReadToObject(text value) returns JavaScriptObjectNotation
+    if value = undefined
+        return undefined
+    end
+    JavaScriptObjectNotationDefaultListener listen
+    JavaScriptObjectNotationLexer lex
+    JavaScriptObjectNotationParser parse
+
+    lex:SetListener(listen)
+    parse:SetListener(listen)
+    lex:Read(value)
+    parse:Parse(lex)
+    return listen:GetObject()
+end
 */
 class JavaScriptObjectNotationLexer 
     public constant integer STRING = 0
@@ -31,37 +54,190 @@ class JavaScriptObjectNotationLexer
     /* An optional listener that can be set to listen to events while lexing. */
     JavaScriptObjectNotationListener listener = undefined
 
-    /* Returns the listener on the lex. */
+    /*
+    This method is used to get the JavaScriptObjectNotationListener object used by the lexer.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+
+    action GetParserListener(JavaScriptObjectNotationLexer lex) returns JavaScriptObjectNotationListener
+        return lex:GetListener()
+    end
+    */
     action GetListener returns JavaScriptObjectNotationListener
         return listener
     end
 
-    /* Sets the listener on the lex. */
+    /*
+    This method is used to set the JavaScriptObjectNotationListener object used by the lexer.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+    use Libraries.Data.Formats.JavaScriptObjectNotationParser
+
+    private action ReadToObject(text value) returns JavaScriptObjectNotation
+        if value = undefined
+            return undefined
+        end
+        JavaScriptObjectNotationDefaultListener listen
+        JavaScriptObjectNotationLexer lex
+        JavaScriptObjectNotationParser parse
+
+        lex:SetListener(listen)
+        parse:SetListener(listen)
+        lex:Read(value)
+        parse:Parse(lex)
+        return listen:GetObject()
+    end
+    */
     action SetListener(JavaScriptObjectNotationListener listener)
         me:listener = listener
     end
 
-    /* Returns a token at a particular position in the lex. */
+    /*
+    This method returns a token at a particular position in the lex.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+    use Libraries.Data.Formats.JavaScriptObjectNotationToken
+
+    JavaScriptObjectNotationDefaultListener listener
+
+    action Start
+        listener:EnterStart()
+        currentToken = 0
+        JavaScriptObjectNotationToken token = lexer:GetToken(currentToken)
+        if token:tokenID = lexer:LEFT_BRACKET
+            ParseObject()
+        else 
+            ThrowError(token, undefined, "I can only begin reading files that start with a left bracket")
+        end
+        listener:ExitStart()
+    end
+    */
     action GetToken(integer i) returns JavaScriptObjectNotationToken
         return tokens:Get(i)
     end
 
-    /* Returns the number of tokens in the token stream. */
+    /*
+    This method returns the number of tokens in the token stream.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+    use Libraries.Data.Formats.JavaScriptObjectNotationToken
+
+    private action GetNumberOfTokens(text value) returns integer
+        if value = undefined
+            return undefined
+        end
+        JavaScriptObjectNotationDefaultListener listen
+        JavaScriptObjectNotationLexer lex
+        JavaScriptObjectNotationParser parse
+
+        lex:SetListener(listen)
+        parse:SetListener(listen)
+        lex:Read(value)
+        return lex:GetSize()
+    */
     action GetSize returns integer
         return tokens:GetSize()
     end
 
-    /* Empties the list of tokens. */
+    /*
+    This method empties the list of tokens.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+    use Libraries.Data.Formats.JavaScriptObjectNotationToken
+
+    private action EmptyTokens(text value)
+        if value = undefined
+            return undefined
+        end
+        JavaScriptObjectNotationDefaultListener listen
+        JavaScriptObjectNotationLexer lex
+        JavaScriptObjectNotationParser parse
+
+        lex:SetListener(listen)
+        parse:SetListener(listen)
+        lex:Read(value)
+        lex:Empty()
+    */
     action Empty
         tokens:Empty()
     end
 
-    /* Returns whether or not there are tokens in the token stream. */
+    /*
+    This method Returns whether or not there are tokens in the token stream
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+    use Libraries.Data.Formats.JavaScriptObjectNotationToken
+
+    private action ReadToObject(text value)
+        if value = undefined
+            return undefined
+        end
+        JavaScriptObjectNotationDefaultListener listen
+        JavaScriptObjectNotationLexer lex
+        JavaScriptObjectNotationParser parse
+
+        lex:SetListener(listen)
+        parse:SetListener(listen)
+        lex:Read(value)
+        if lex:IsEmpty()
+            output "No tokens"
+        else
+            parse:Parse(lex)
+        end
+    end
+    */
     action IsEmpty returns boolean
         return tokens:IsEmpty()
     end
 
-    /* Reads a text value and converts into a token stream. */
+    /*
+    This method is used to read a text value and converts it into a token strea.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+    use Libraries.Data.Formats.JavaScriptObjectNotationParser
+
+    private action ReadToObject(text value) returns JavaScriptObjectNotation
+        if value = undefined
+            return undefined
+        end
+        JavaScriptObjectNotationDefaultListener listen
+        JavaScriptObjectNotationLexer lex
+        JavaScriptObjectNotationParser parse
+
+        lex:SetListener(listen)
+        parse:SetListener(listen)
+        lex:Read(value)
+        parse:Parse(lex)
+        return listen:GetObject()
+    end
+    */
     action Read(text value)
         text quote = value:GetDoubleQuote()
         text line = value:GetCarriageReturn() + value:GetLineFeed()
@@ -309,7 +485,28 @@ class JavaScriptObjectNotationLexer
         end
     end
 
-    /* Reads a file and converts it into a token stream. */
+    /*
+    This method is used to read a text file and converts it into a token strea.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+    use Libraries.Data.Formats.JavaScriptObjectNotationParser
+
+    private action ReadToObject(File file) returns JavaScriptObjectNotation
+        JavaScriptObjectNotationDefaultListener listen
+        JavaScriptObjectNotationLexer lex
+        JavaScriptObjectNotationParser parse
+
+        lex:SetListener(listen)
+        parse:SetListener(listen)
+        lex:Read(file)
+        parse:Parse(lex)
+        return listen:GetObject()
+    end
+    */
     action Read(File file)
         text value = file:Read()
         Read(value)
@@ -324,7 +521,31 @@ class JavaScriptObjectNotationLexer
         return false
     end
 
-    /* An action that handles error message throwing if something goes wrong. */
+    /* 
+    This methos handles error message throwing if something goes wrong.
+
+    Attribute: Example
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+    use Libraries.Data.Formats.JavaScriptObjectNotationParser
+
+    JavaScriptObjectNotationDefaultListener listen
+
+    private action Start
+        listener:EnterStart()
+        currentToken = 0
+        JavaScriptObjectNotationToken token = lexer:GetToken(currentToken)
+        if token:tokenID = lexer:LEFT_BRACKET
+            ParseObject()
+        elseif token:tokenID = lexer:LEFT_BRACE
+            ParseArray()
+        else 
+            ThrowError(token, undefined, "I can only begin reading files that start with a left bracket ({) or a left brace {[), but I found a, " + token:value)
+        end
+        listener:ExitStart()
+    end
+    */
     action ThrowError(integer line, integer column, integer index, text message)
         if listener not= undefined
             JavaScriptObjectNotationError error

@@ -9,6 +9,34 @@ use Libraries.Data.Formats.JavaScriptObjectNotationListener
 use Libraries.Data.Formats.JavaScriptObjectNotationTerminal
 use Libraries.Data.Formats.JavaScriptObjectNotationToken
 
+/*
+This class is an implementation of the JavaScriptObjectNotationListener blueprint class used by the
+parser to perform actions when certain parse events occur.
+
+Attribute: Example
+
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+use Libraries.Data.Formats.JavaScriptObjectNotationParser
+
+class Main
+    action Main()
+        Parse("")
+    end
+
+    action Parse(text value) returns JavaScriptObjectNotation
+         JavaScriptObjectNotationDefaultListener listen
+         JavaScriptObjectNotationLexer lex
+         JavaScriptObjectNotationParser parse
+         lex:SetListener(listen)
+         parse:SetListener(listen)
+         lex:Read(value)
+         parse:Parse(lex)
+         return listen:GetObject()
+    end
+end
+*/
 class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListener
     JavaScriptObjectNotation object = undefined
     Stack<JavaScriptObjectNotation> objects
@@ -18,16 +46,80 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
     constant integer inPair = 2
     constant integer inValue = 3
 
+    /*
+    This method returns the JavaScriptObjectNotation object created from the parse string.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+    use Libraries.Data.Formats.JavaScriptObjectNotationParser
+
+    class Main
+        action Main()
+            Parse("")
+        end
+
+        action Parse(text value) returns JavaScriptObjectNotation
+             JavaScriptObjectNotationDefaultListener listen
+             JavaScriptObjectNotationLexer lex
+             JavaScriptObjectNotationParser parse
+             lex:SetListener(listen)
+             parse:SetListener(listen)
+             lex:Read(value)
+             parse:Parse(lex)
+             return listen:GetObject()
+        end
+    end
+    */
     action GetObject returns JavaScriptObjectNotation
         return object
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser on an EnterStart event.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+
+    private action EnterStart
+        JavaScriptObjectNotationListener listener
+        listener:EnterStart()
+    end
+    */
     action EnterStart
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser on an ExitStart event.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+
+    private action ExitStart
+        JavaScriptObjectNotationListener listener
+        listener:ExitStart()
+    end
+    */
     action ExitStart
     end
 
+
+    /*
+    This method is called by the JavaScriptObjectNotationParser on an EnterObject event.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+
+    private action EnterObject
+        JavaScriptObjectNotationListener listener
+        listener:EnterObject()
+    end
+    */
     action EnterObject
         JavaScriptObjectNotation newObject
         //this is the root, which is a special object
@@ -48,11 +140,35 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
         opStack:Push(inObject)
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser on an ExitObject event.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+
+    private action ExitObject
+        JavaScriptObjectNotationListener listener
+        listener:ExitObject()
+    end
+    */
     action ExitObject
         objects:Pop()
         opStack:Pop()
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser on an EnterArray event.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+
+    private action EnterArray
+        JavaScriptObjectNotationListener listener
+        listener:EnterArray()
+    end
+    */
     action EnterArray
         JavaScriptObjectNotation newObject
         newObject:SetArray()
@@ -71,11 +187,35 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
         opStack:Push(inArray)
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser on an ExitArray event.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+
+    private action ExitArray
+        JavaScriptObjectNotationListener listener
+        listener:ExitArray()
+    end
+    */
     action ExitArray
         objects:Pop()
         opStack:Pop()
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser on an ExitStart event.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+
+    private action Object
+        JavaScriptObjectNotationListener listener
+        listener:ExitArray()
+    end
+    */
     action EnterPair
         JavaScriptObjectNotation newObject
         JavaScriptObjectNotation peek = objects:Peek()
@@ -84,19 +224,76 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
         peek:Add(newObject)
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser on an ExitPair event.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+
+    private action ExitPair
+        JavaScriptObjectNotationListener listener
+        listener:ExitPair()
+    end
+    */
     action ExitPair
         opStack:Pop()
         objects:Pop()
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser on an EnterValue event.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+
+    private action EnterValue
+        JavaScriptObjectNotationListener listener
+        listener:EnterValue()
+    end
+    */
     action EnterValue
         opStack:Push(inValue)
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser on an ExitValue event.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+
+    private action ExitValue
+        JavaScriptObjectNotationListener listener
+        listener:ExitValue()
+    end
+    */
     action ExitValue
         opStack:Pop()
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser to visit a text object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationTerminal
+    use Libraries.Data.Formats.JavaScriptObjectNotationToken
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+
+    private action ParseValue
+        JavaScriptObjectNotationListener listener
+        JavaScriptObjectNotationLexer lexer
+        JavaScriptObjectNotationToken token = lexer:GetToken(1)
+        JavaScriptObjectNotationTerminal terminal
+        terminal:SetToken(lexer:GetToken(currentToken))
+        if token:tokenID = lexer:TEXT
+            listener:VisitText(terminal)
+        end
+    end
+    */
     action VisitText(JavaScriptObjectNotationTerminal terminal)
         integer op = opStack:Peek()
         JavaScriptObjectNotation obj = objects:Peek()
@@ -119,6 +316,27 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
         end
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser to visit a text object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationTerminal
+    use Libraries.Data.Formats.JavaScriptObjectNotationToken
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+
+    private action ParseValue
+        JavaScriptObjectNotationListener listener
+        JavaScriptObjectNotationLexer lexer
+        JavaScriptObjectNotationToken token = lexer:GetToken(1)
+        JavaScriptObjectNotationTerminal terminal
+        terminal:SetToken(lexer:GetToken(currentToken))
+        if token:tokenID = lexer:NUMBER
+            listener:VisitNumber(terminal)
+        end
+    end
+    */
     action VisitNumber(JavaScriptObjectNotationTerminal terminal)
         integer op = opStack:Peek()
         JavaScriptObjectNotation obj = objects:Peek()
@@ -142,6 +360,27 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
         end
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser to visit a text object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationTerminal
+    use Libraries.Data.Formats.JavaScriptObjectNotationToken
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+
+    private action ParseValue
+        JavaScriptObjectNotationListener listener
+        JavaScriptObjectNotationLexer lexer
+        JavaScriptObjectNotationToken token = lexer:GetToken(1)
+        JavaScriptObjectNotationTerminal terminal
+        terminal:SetToken(lexer:GetToken(currentToken))
+        if token:tokenID = lexer:INTEGER
+            listener:VisitInteger(terminal)
+        end
+    end
+    */
     action VisitInteger(JavaScriptObjectNotationTerminal terminal)
         integer op = opStack:Peek()
         JavaScriptObjectNotation obj = objects:Peek()
@@ -166,6 +405,27 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
         end
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser to visit a text object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationTerminal
+    use Libraries.Data.Formats.JavaScriptObjectNotationToken
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+
+    private action ParseValue
+        JavaScriptObjectNotationListener listener
+        JavaScriptObjectNotationLexer lexer
+        JavaScriptObjectNotationToken token = lexer:GetToken(1)
+        JavaScriptObjectNotationTerminal terminal
+        terminal:SetToken(lexer:GetToken(currentToken))
+        if token:tokenID = lexer:TRUE
+            listener:VisitTrue(terminal)
+        end
+    end
+    */
     action VisitTrue(JavaScriptObjectNotationTerminal terminal)
         integer op = opStack:Peek()
         JavaScriptObjectNotation obj = objects:Peek()
@@ -188,6 +448,27 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
         end
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser to visit a text object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationTerminal
+    use Libraries.Data.Formats.JavaScriptObjectNotationToken
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+
+    private action ParseValue
+        JavaScriptObjectNotationListener listener
+        JavaScriptObjectNotationLexer lexer
+        JavaScriptObjectNotationToken token = lexer:GetToken(1)
+        JavaScriptObjectNotationTerminal terminal
+        terminal:SetToken(lexer:GetToken(currentToken))
+        if token:tokenID = lexer:FALSE
+            listener:VisitFalse(terminal)
+        end
+    end
+    */
     action VisitFalse(JavaScriptObjectNotationTerminal terminal)
         integer op = opStack:Peek()
         JavaScriptObjectNotation obj = objects:Peek()
@@ -210,6 +491,27 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
         end
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser to visit a text object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationTerminal
+    use Libraries.Data.Formats.JavaScriptObjectNotationToken
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+
+    private action ParseValue
+        JavaScriptObjectNotationListener listener
+        JavaScriptObjectNotationLexer lexer
+        JavaScriptObjectNotationToken token = lexer:GetToken(1)
+        JavaScriptObjectNotationTerminal terminal
+        terminal:SetToken(lexer:GetToken(currentToken))
+        if token:tokenID = lexer:NULL
+            listener:VisitUndefined(terminal)
+        end
+    end
+    */
     action VisitUndefined(JavaScriptObjectNotationTerminal terminal)
         integer op = opStack:Peek()
         JavaScriptObjectNotation obj = objects:Peek()
@@ -232,6 +534,25 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
         end
     end
 
+    /*
+    This method is called by the JavaScriptObjectNotationParser to visit a text object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationListener
+    use Libraries.Data.Formats.JavaScriptObjectNotationTerminal
+    use Libraries.Data.Formats.JavaScriptObjectNotationToken
+    use Libraries.Data.Formats.JavaScriptObjectNotationLexer
+
+    private action ThrowError(JavaScriptObjectNotationToken start, text message, JavaScriptObjectNotationListener listener)
+        JavaScriptObjectNotationError error
+        error:SetLineNumber(start:startLine)
+        error:SetColumnNumber(start:startColumn)
+        error:SetIndex(start:startIndex)
+        error:SetErrorMessage(message)
+        listener:VisitError(error)
+    end
+    */
     action VisitError(JavaScriptObjectNotationError error)
     end
 end
