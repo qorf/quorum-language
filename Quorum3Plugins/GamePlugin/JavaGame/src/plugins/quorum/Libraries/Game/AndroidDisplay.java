@@ -35,47 +35,47 @@ public class AndroidDisplay implements Renderer
     public java.lang.Object me_ = null;
     
     /** When {@link AndroidFragmentApplication#onPause()} or {@link AndroidApplication#onPause()} call
-	 * {@link AndroidGraphics#pause()} they <b>MUST</b> enforce continuous rendering. If not, {@link #onDrawFrame(GL10)} will not
-	 * be called in the GLThread while {@link #pause()} is sleeping in the Android UI Thread which will cause the
-	 * {@link AndroidGraphics#pause} variable never be set to false. As a result, the {@link AndroidGraphics#pause()} method will
-	 * kill the current process to avoid ANR */
-	static volatile boolean enforceContinuousRendering = false;
+        * {@link AndroidGraphics#pause()} they <b>MUST</b> enforce continuous rendering. If not, {@link #onDrawFrame(GL10)} will not
+        * be called in the GLThread while {@link #pause()} is sleeping in the Android UI Thread which will cause the
+        * {@link AndroidGraphics#pause} variable never be set to false. As a result, the {@link AndroidGraphics#pause()} method will
+        * kill the current process to avoid ANR */
+       static volatile boolean enforceContinuousRendering = false;
 
-	protected View view;
-	protected int width;
-	protected int height;
-	AndroidApplication app;
-	//GL20 gl20;
-	//GL30 gl30;
-	EGLContext eglContext;
-	String extensions;
+       protected View view;
+       protected int width;
+       protected int height;
+       AndroidApplication app;
+       //GL20 gl20;
+       //GL30 gl30;
+       EGLContext eglContext;
+       String extensions;
 
-	protected long lastFrameTime = System.nanoTime();
-	protected float deltaTime = 0;
-	protected long frameStart = System.nanoTime();
-	protected long frameId = -1;
-	protected int frames = 0;
-	protected int fps;
-	protected WindowedMean mean = new WindowedMean(5);
+       protected long lastFrameTime = System.nanoTime();
+       protected float deltaTime = 0;
+       protected long frameStart = System.nanoTime();
+       protected long frameId = -1;
+       protected int frames = 0;
+       protected int fps;
+       protected WindowedMean mean = new WindowedMean(5);
 
-	volatile boolean created = false;
-	volatile boolean running = false;
-	volatile boolean pause = false;
-	volatile boolean resume = false;
-	volatile boolean destroy = false;
+       volatile boolean created = false;
+       volatile boolean running = false;
+       volatile boolean pause = false;
+       volatile boolean resume = false;
+       volatile boolean destroy = false;
 
-	private float ppiX = 0;
-	private float ppiY = 0;
-	private float ppcX = 0;
-	private float ppcY = 0;
-	private float density = 1;
+       private float ppiX = 0;
+       private float ppiY = 0;
+       private float ppcX = 0;
+       private float ppcY = 0;
+       private float density = 1;
 
-	protected AndroidConfiguration config;
-	//private BufferFormat bufferFormat = new BufferFormat(5, 6, 5, 0, 16, 0, 0, false);
-	private boolean isContinuous = true;
-        
-        private int[] value = new int[1];
-        private Object synch = new Object();
+       protected AndroidConfiguration config;
+       //private BufferFormat bufferFormat = new BufferFormat(5, 6, 5, 0, 16, 0, 0, false);
+       private boolean isContinuous = true;
+
+       private int[] value = new int[1];
+       private Object synch = new Object();
     
     public void Initialize(AndroidApplication application, AndroidConfiguration configuration)
     {
@@ -189,6 +189,7 @@ public class AndroidDisplay implements Renderer
 
         int[] version = new int[2];
         egl.eglInitialize(display, version);
+        Log.d("Android Display", "Initialized EGL in AndroidDisplay.");
 
         int EGL_OPENGL_ES2_BIT = 4;
         int[] configAttribs = {EGL10.EGL_RED_SIZE, 4, EGL10.EGL_GREEN_SIZE, 4, EGL10.EGL_BLUE_SIZE, 4, EGL10.EGL_RENDERABLE_TYPE,
@@ -238,6 +239,7 @@ public class AndroidDisplay implements Renderer
         gl.glViewport(0, 0, this.width, this.height);
         if (created == false) 
         {
+            GameStateManager.nativeGraphics.ClearScreenColor(0.85, 0.85, 0.85, 1);
             app.GetGame().InitializeLayers();
             app.GetGame().CreateGame();
             created = true;

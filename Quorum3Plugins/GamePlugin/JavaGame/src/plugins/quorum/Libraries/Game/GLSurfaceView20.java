@@ -29,13 +29,8 @@ import android.view.KeyEvent;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
-
 import quorum.Libraries.Game.AndroidConfiguration;
 
-/**
- *
- * @author alleew
- */
 public class GLSurfaceView20 extends GLSurfaceView
 {
     static String TAG = "GL2JNIView";

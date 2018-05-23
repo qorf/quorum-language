@@ -1,27 +1,22 @@
 package plugins.quorum.Libraries.Game;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Build;
-import android.os.Debug;
 import android.os.Handler;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
-
 import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.ApplicationConfiguration_;
 import quorum.Libraries.Game.AndroidConfiguration;
 import quorum.Libraries.Game.AndroidApplication_;
 import quorum.Libraries.Game.AndroidDisplay_;
-
 import java.lang.reflect.Method;
+import quorum.Libraries.Game.AndroidConfiguration_;
 
 /**
  *
@@ -31,9 +26,10 @@ public class AndroidApplication
 {
     public java.lang.Object me_ = null;
     
-    static final int MINIMUM_SDK = 8;
+    static final int MINIMUM_SDK = 21;
     
     private static Activity androidActivity = null;
+    private static boolean initialized = false;
     
     public AndroidApplication_ quorumApp;
     
@@ -54,9 +50,12 @@ public class AndroidApplication
     protected boolean hideStatusBar = false;
     private int wasFocusChanged = -1;
     private boolean isWaitingForAudio = false;
+    private boolean hasBeenOriented = false;
     
     public void SetupNative(Game_ game, ApplicationConfiguration_ configuration)
     {
+        initialized = true;
+        
         AndroidConfiguration config = (AndroidConfiguration)configuration;
         /* 
         SetupNative is only called as part of Setup in the Quorum 
@@ -117,7 +116,7 @@ public class AndroidApplication
             androidActivity.requestWindowFeature(Window.FEATURE_NO_TITLE);
         } catch (Exception ex) 
         {
-            //log("AndroidApplication", "Content already displayed, cannot request FEATURE_NO_TITLE", ex);
+            Log.d("AndroidApplication", "Content already displayed, cannot request FEATURE_NO_TITLE", ex);
         }
         androidActivity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         androidActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
@@ -140,6 +139,51 @@ public class AndroidApplication
                 }
         }
         */
+    }
+    
+    public boolean RequiresOrientationChange(AndroidConfiguration_ config)
+    {
+        boolean required = true;
+        
+        if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__LANDSCAPE_())
+        {
+            if (androidActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
+            {
+                required = false;
+            }
+        }
+        else if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__PORTRAIT_())
+            if (androidActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
+            {
+                required = false;
+            }        
+        
+        /* 
+        If the AndroidApplication hasn't been oriented yet, orient it once to 
+        prevent it from changing orientation. We only do this if the orientation 
+        is currently correct (if it is currently incorrect, the Game will 
+        already manually reset the orientation itself).
+        */
+        if (hasBeenOriented == false && required == false)
+        {
+            ResetOrientationToDefault(config);
+        }
+        
+        return required;
+    }
+    
+    public void ResetOrientationToDefault(AndroidConfiguration_ config)
+    {
+        if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__LANDSCAPE_())
+        {
+            androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+        else if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__PORTRAIT_())
+        {
+            androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
+        
+        hasBeenOriented = true;
     }
     
     public void CreateWakeLock(boolean lock)
@@ -325,15 +369,17 @@ public class AndroidApplication
     
     public static void SetActivity(Activity activity)
     {
-        if (androidActivity != null)
-            throw new GameRuntimeError("The activity has already been set for this game and can't be changed.");
-        
         androidActivity = activity;
     }
     
     public static Activity GetActivity()
     {
         return androidActivity;
+    }
+    
+    public static boolean IsInitialized()
+    {
+        return initialized;
     }
     
     public void Log(String header, String text)
