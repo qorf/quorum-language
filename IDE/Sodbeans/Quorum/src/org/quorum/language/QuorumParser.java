@@ -21,6 +21,7 @@ import org.netbeans.modules.parsing.spi.SourceModificationEvent;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
+import org.quorum.actions.QuorumAction;
 import org.quorum.projects.QuorumProject;
 import org.quorum.support.Utility;
 import quorum.Libraries.Containers.Array_;
@@ -82,8 +83,13 @@ public class QuorumParser extends Parser{
                     FileObject projectDirectory = project.getProjectDirectory();
                     File directory = FileUtil.toFile(projectDirectory);
                     File file = new File(directory.getAbsolutePath() + "/" + QuorumProject.SOURCES_DIR);
-                    quorum.Libraries.System.File sourceFolder = Utility.toQuorumFile(file);
-                    Array_ listing = sourceFolder.GetDirectoryListing();
+                    //quorum.Libraries.System.File sourceFolder = Utility.toQuorumFile(file);
+                    Array_ listing = new quorum.Libraries.Containers.Array();
+                    QuorumAction.GetSourceFiles(file, listing);
+                    //Array_ listing = sourceFolder.GetDirectoryListing();
+                    
+                    
+                    
                     Iterator<quorum.Libraries.System.File> extras = ((QuorumProject) project).getExtraSourceFiles();
                     while(extras.hasNext()) {
                         quorum.Libraries.System.File next = extras.next();
