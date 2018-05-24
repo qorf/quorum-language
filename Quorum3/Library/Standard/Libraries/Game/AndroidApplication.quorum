@@ -13,6 +13,10 @@ class AndroidApplication is Application
 
     private system action SetupNative(Game game, ApplicationConfiguration config)
 
+    system action RequiresOrientationChange(AndroidConfiguration config) returns boolean 
+
+    system action ResetOrientationToDefault(AndroidConfiguration config)
+
     system action Exit
 
     system action Log(text value)

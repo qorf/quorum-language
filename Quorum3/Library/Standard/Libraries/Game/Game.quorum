@@ -181,19 +181,10 @@ class Game
             display:SetConfiguration(desktopConfig)
             display:SetupDisplay()
         elseif application is AndroidApplication
-            
-            AndroidInput newInput
-            gameInput = newInput
-            manager:SetInput(gameInput)
+            manager:SetApplication(application)
+            StartAndroidGame()
+            return now
 
-            AndroidDisplay display
-            manager:SetGameDisplay(display)
-            display:SetConfiguration(androidConfig)
-
-            AndroidGraphics graphics
-            manager:SetGameGraphics(graphics)
-            gl20 = graphics
-            
         elseif application is IOSApplication
 
             gl20 = manager:GetGameGraphics()
@@ -229,6 +220,15 @@ class Game
             gl20 = webGraphics
         end
 
+        CompleteInitialSetup(application)
+    end
+
+    /*
+    Complete game set up and begin the main loop. Used from StartGame, as well
+    as other places that "act like" StartGame for platforms with special timing
+    considerations (e.g., StartAndroidGame).
+    */
+    private action CompleteInitialSetup(Application application)
         /*
         We pass a reference to the layers array to the GameInput. This will 
         allow it to properly test input on items in the game. Because it is an
@@ -241,6 +241,39 @@ class Game
         SetFocusManager(focusManager)
         CreateDefaultInputTables()
         application:Setup(me)
+    end
+
+    /*
+    Attempts to start an Android game. If the screen orientation doesn't match
+    the requested one, this instead sets the screen orientation and awaits the
+    driver Android activity to call it again once the orientation has changed.
+
+    This is due to an issue where changing the screen orientation forcibly
+    restarts the activity. If we didn't do it this way but instead just launched
+    the game directly, we'd initialize and run the game twice due to being in
+    the wrong screen orientation.
+    */
+    private action StartAndroidGame
+        AndroidApplication androidApp = cast(AndroidApplication, manager:GetApplication())
+        
+        if androidApp:RequiresOrientationChange(androidConfig)
+            androidApp:ResetOrientationToDefault(androidConfig)
+            return now
+        end
+
+        AndroidInput newInput
+        gameInput = newInput
+        manager:SetInput(gameInput)
+
+        AndroidDisplay display
+        manager:SetGameDisplay(display)
+        display:SetConfiguration(androidConfig)
+
+        AndroidGraphics graphics
+        manager:SetGameGraphics(graphics)
+        gl20 = graphics
+
+        CompleteInitialSetup(androidApp)
     end
 
     /*
@@ -819,6 +852,61 @@ class Game
     */
     action GetWebConfiguration returns WebConfiguration
         return webConfig
+    end
+
+    /*
+    This action will set the game configuration when run on an Android device.
+    The configuration contains data that affect many technical details of the
+    game, such as whether the device should use portrait or landscape
+    orientation while running the game. This should be set before calling 
+    StartGame().
+
+    Attribute: Parameter config The AndroidConfiguration to use.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.AndroidConfiguration
+
+    class Main is Game
+
+        action Main
+            AndroidConfiguration configuration
+            configuration:defaultOrientation = configuration:PORTRAIT
+            SetConfiguration(configuration)
+            StartGame()
+        end
+
+    end
+
+    */
+    action SetConfiguration(AndroidConfiguration config)
+        androidConfig = config
+    end
+
+    /*
+    This action will return the game's configuration for Android devices.
+
+    Attribute: Returns The current AndroidConfiguration.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.AndroidConfiguration
+
+    class Main is Game
+
+        action Main
+            AndroidConfiguration configuration = GetAndroidConfiguration()
+            configuration:defaultOrientation = configuration:PORTRAIT
+            StartGame()
+        end
+
+    end
+
+    */
+    action GetAndroidConfiguration returns AndroidConfiguration
+        return androidConfig
     end
 
     /*

@@ -2,6 +2,16 @@ package Libraries.Game
 
 class AndroidConfiguration is ApplicationConfiguration
 
+    public constant integer LANDSCAPE = 1
+    public constant integer PORTRAIT = 2
+
+    /*
+    What orientation the phone should be in by default when running a Game.
+    This should be one of either the LANDSCAPE or PORTRAIT constants. The 
+    default value is LANDSCAPE.
+    */
+    public integer defaultOrientation = LANDSCAPE
+
     /*
     Number of samples to use for CSAA/MSAA. 2 is a good value.
     */
