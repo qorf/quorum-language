@@ -97,7 +97,7 @@ public abstract class QuorumAction implements Action {
             @Override
             public boolean accept(File name) {
                 String sub = name.getName().substring(name.getName().lastIndexOf(".") + 1);
-                if(sub.equals("quorum")) {
+                if(sub.equals("quorum") || name.isDirectory()) {
                     return true;
                 } else {
                     return false;
@@ -108,9 +108,9 @@ public abstract class QuorumAction implements Action {
         for(int i = 0; i < list.length; i++) {
             File f = list[i];
             if(f.isDirectory()) {
-                GetSourceFiles(file, files);
+                GetSourceFiles(f, files);
             } else {
-                quorum.Libraries.System.File quorumFile = getQuorumFile(list[i]);
+                quorum.Libraries.System.File quorumFile = getQuorumFile(f);
                 files.Add(quorumFile); 
             }
         }
