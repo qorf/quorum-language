@@ -11,6 +11,7 @@ import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -90,6 +91,31 @@ public abstract class QuorumAction implements Action {
         }
     }
 
+    public static void GetSourceFiles(File file, Array_ files) {
+        FileFilter filter;
+        filter = new FileFilter() {
+            @Override
+            public boolean accept(File name) {
+                String sub = name.getName().substring(name.getName().lastIndexOf(".") + 1);
+                if(sub.equals("quorum")) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        };
+        File[] list = file.listFiles(filter);
+        for(int i = 0; i < list.length; i++) {
+            File f = list[i];
+            if(f.isDirectory()) {
+                GetSourceFiles(file, files);
+            } else {
+                quorum.Libraries.System.File quorumFile = getQuorumFile(list[i]);
+                files.Add(quorumFile); 
+            }
+        }
+    }
+    
     /**
      * This method builds a program. It returns true if the build was
      * successful.
@@ -125,9 +151,11 @@ public abstract class QuorumAction implements Action {
         }
         File directory = FileUtil.toFile(projectDirectory);
 
+        Array_ listing = new quorum.Libraries.Containers.Array();
         File file = new File(directory.getAbsolutePath() + "/" + QuorumProject.SOURCES_DIR);
-        quorum.Libraries.System.File quorumFile = getQuorumFile(file);
-        Array_ listing = quorumFile.GetDirectoryListing();
+        GetSourceFiles(file, listing);
+        //quorum.Libraries.System.File quorumFile = getQuorumFile(file);
+        //Array_ listing = quorumFile.GetDirectoryListing();
         
         
         Iterator_ it = listing.GetIterator();
@@ -412,7 +440,7 @@ public abstract class QuorumAction implements Action {
     public void actionPerformed(ActionEvent e) {
     }
 
-    public quorum.Libraries.System.File getQuorumFile(File file) {
+    public static quorum.Libraries.System.File getQuorumFile(File file) {
         quorum.Libraries.System.File quorumFile = new quorum.Libraries.System.File();
         quorumFile.SetWorkingDirectory(file.getParent());
         quorumFile.SetPath(file.getName());
