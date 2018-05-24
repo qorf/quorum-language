@@ -4,6 +4,7 @@ use Libraries.Language.Errors.InvalidLocationError
 use Libraries.Containers.Iterator
 use Libraries.Containers.Support.ArrayIterator
 use Libraries.Language.Support.CompareResult
+use Libraries.Containers.Support.Comparison
 
 /*
 The Array class is a data structure that stores items in contiguous memory. An
@@ -604,6 +605,44 @@ class Array <Type>
         MergeSort(me, temp, 0, me:GetSize() - 1)
     end
 
+    /*
+        This action sorts the values of the array using a merge sort algorithm.
+        It is guaranteed to execute in O(n log n). The example uses a support 
+        class called IntegerComparison, which duplicates the default sorting 
+        for integers. 
+
+        Attribute: Example
+
+        use Libraries.Containers.Support.Comparison
+        class IntegerComparison is Comparison
+            action Compare(Object left, Object right) returns integer
+                Integer l = cast(Integer, left)
+                Integer r = cast(Integer, right)
+                if l:GetValue() < r:GetValue()
+                    return parent:Comparison:SMALLER
+                elseif l:GetValue() > r:GetValue()
+                    return parent:Comparison:LARGER
+                else
+                    return parent:Comparison:EQUAL
+                end
+            end
+        end
+
+        use Libraries.Containers.Array
+        Array<integer> myArray
+        IntegerComparison compare
+        myArray:Add(33)
+        myArray:Add(13)
+        myArray:Add(43)
+        myArray:Sort(compare)
+    */
+    action Sort(Comparison comparison)
+        Array<Type> temp
+        temp:SetMaxSize(me:GetSize())
+        temp:SetSize(me:GetSize())
+        MergeSort(me, temp, 0, me:GetSize() - 1, comparison)
+    end
+
     private action MergeSort(Array<Type> original, Array<Type> temp,
         integer left, integer right)
 
@@ -612,6 +651,17 @@ class Array <Type>
            MergeSort(original, temp, left, center)
            MergeSort(original, temp, center + 1, right)
            Merge(original, temp, left, center + 1, right)
+        end
+    end
+
+    private action MergeSort(Array<Type> original, Array<Type> temp,
+        integer left, integer right, Comparison comparison)
+
+        if left < right 
+           center = (left + right) / 2
+           MergeSort(original, temp, left, center, comparison)
+           MergeSort(original, temp, center + 1, right, comparison)
+           Merge(original, temp, left, center + 1, right, comparison)
         end
     end
     
@@ -657,6 +707,47 @@ class Array <Type>
         end
     end
     
+    private action Merge(Array<Type> original, Array<Type> temp,
+        integer left, integer center, integer right, Comparison comparison)
+        leftEnd = center - 1
+        leftTemp = left
+        rightTemp = right
+        centerTemp = center
+        position = left
+
+        repeat while leftTemp <= leftEnd and centerTemp <= right 
+            Type l = original:Get(leftTemp)
+            Type r = original:Get(centerTemp)
+            integer value = comparison:Compare(l, r)
+            if  value = comparison:SMALLER or value = comparison:EQUAL
+                temp:Set(position, original:Get(leftTemp))
+                leftTemp = leftTemp + 1
+            else 
+                temp:Set(position, original:Get(centerTemp))
+                centerTemp = centerTemp + 1
+            end
+            position = position + 1
+        end
+
+        repeat while leftTemp <= leftEnd
+            temp:Set(position, original:Get(leftTemp))
+            leftTemp = leftTemp + 1
+            position = position + 1
+        end
+
+        repeat while centerTemp <= right
+            temp:Set(position, original:Get(centerTemp))
+            centerTemp = centerTemp + 1
+            position = position + 1
+        end
+
+        size = right - left + 1
+        i = left
+        repeat size times
+            original:Set(i, temp:Get(i))
+            i = i + 1
+        end
+    end
 
     /*
         This action empty's the list, clearing out all of the items contained within it. 
