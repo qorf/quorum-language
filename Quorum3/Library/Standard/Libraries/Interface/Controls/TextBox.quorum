@@ -409,7 +409,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         selection:Set(index, index, true)
 
         // Report the new selection here.
-        ReportSelection()
+        UpdateVisualSelection()
     end
 
     private action SelectionMoveLeft
@@ -425,7 +425,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
 
         // Report the new selection here.
-        ReportSelection()
+        UpdateVisualSelection()
     end
 
     private action SelectionMoveRight
@@ -441,7 +441,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
 
         // Report the new selection here.
-        ReportSelection()
+        UpdateVisualSelection()
     end
 
     private action SelectionMoveUp
@@ -462,7 +462,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
 
         // Report the new selection here.
-        ReportSelection()
+        UpdateVisualSelection()
     end
 
     private action SelectionMoveDown
@@ -483,13 +483,13 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
 
         // Report the new selection here.
-        ReportSelection()
+        UpdateVisualSelection()
     end
 
     /*
-    For testing purposes only.
+    Update the drawables to reflect the selection.
     */
-    private action ReportSelection
+    private action UpdateVisualSelection
         GetLineDrawables()
     end
 
@@ -1264,5 +1264,56 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     action GetCurrentLineText() returns text
         return textValue:GetLine(caretLine):GetText()
+    end
+
+    action Empty
+        MultipleLineText newText
+        newText:Initialize("")
+        textValue = newText
+        caretCharacter = 0
+        caretLine = 0
+
+        Resize()
+
+        FitCharacterOnScreen(caretLine, caretCharacter)
+        GetLineDrawables()
+        caretX = PositionCaret()
+        ShowCaret()
+
+        EmptySelectionEvent()
+    end
+
+    action SetText(text value)
+        MultipleLineText newText
+        newText:Initialize(value)
+        textValue = newText
+        caretCharacter = 0
+        caretLine = 0
+
+        Resize()
+
+        FitCharacterOnScreen(caretLine, caretCharacter)
+        GetLineDrawables()
+        caretX = PositionCaret()
+        ShowCaret()
+
+        EmptySelectionEvent()
+    end
+
+    action Select(integer startIndex, integer endIndex)
+        if startIndex < 0
+            startIndex = 0
+        end
+
+        if endIndex > textValue:GetSize()
+            endIndex = textValue:GetSize()
+        end
+
+        selection:Set(startIndex, endIndex, true)
+        UpdateVisualSelection()
+    end
+
+    action GetSelection returns TextBoxSelection
+        return selection
     end
 end
