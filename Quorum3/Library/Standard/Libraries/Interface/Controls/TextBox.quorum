@@ -12,6 +12,8 @@ use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.FocusListener
 use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Events.TextChangeListener
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Selections.TextBoxSelection
 use Libraries.Containers.Array
@@ -141,6 +143,12 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     boolean isClicked = false
     boolean verticalChanging = true
     number clickPointOffset = 0
+
+    /*
+    An array of listeners which are notified when the text in this TextBox
+    changes.
+    */
+    Array<TextChangeListener> textChangeListeners
 
     boolean resizingScrollBars = false
 
@@ -792,7 +800,10 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     action DeleteBackward
         if (not selection:IsEmpty())
+            TextChangeEvent changeEvent
+            changeEvent:Initialize(me, "", textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex()))
             DeleteSelection()
+            NotifyTextChangeListeners(changeEvent)
             return now
         end
 
@@ -816,6 +827,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             shouldResize = true
         end
 
+        text deletedText = textValue:GetText(index - 1, index)
         textValue = textValue:Delete(index - 1, index)
         caretCharacter = caretCharacter - 1
 
@@ -833,11 +845,19 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         ShowCaret()
 
         EmptySelectionEvent()
+
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, "", deletedText)
+
+        NotifyTextChangeListeners(changeEvent)
     end
 
     action DeleteForward
         if (not selection:IsEmpty())
+            TextChangeEvent changeEvent
+            changeEvent:Initialize(me, "", textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex()))
             DeleteSelection()
+            NotifyTextChangeListeners(changeEvent)
             return now
         end
 
@@ -849,6 +869,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         end
 
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
+        text deletedText = textValue:GetText(index, index + 1)
         textValue = textValue:Delete(index, index + 1)
 
         // Force a recalculation of the width by setting its value to -1.
@@ -858,6 +879,11 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         GetLineDrawables()
         PositionCaret()
         ShowCaret()
+
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, "", deletedText)
+
+        NotifyTextChangeListeners(changeEvent)
     end
 
     action DeleteSelection
@@ -886,9 +912,12 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     text lastInsertion = ""
 
     action Insert(text value)
+        text deletedText = ""
+
         lastInsertion = value
 
         if (not selection:IsEmpty())
+            deletedText = textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex())
             DeleteSelection()
         end
 
@@ -937,6 +966,11 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         ShowCaret()
 
         EmptySelectionEvent()
+
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, value, deletedText)
+
+        NotifyTextChangeListeners(changeEvent)
     end
 
     private action CreateScrollBars
@@ -1267,6 +1301,9 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
     end
 
     action Empty
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, "", GetText())
+
         MultipleLineText newText
         newText:Initialize("")
         textValue = newText
@@ -1281,9 +1318,13 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         ShowCaret()
 
         EmptySelectionEvent()
+        NotifyTextChangeListeners(changeEvent)
     end
 
     action SetText(text value)
+        TextChangeEvent changeEvent
+        changeEvent:Initialize(me, value, GetText())
+
         MultipleLineText newText
         newText:Initialize(value)
         textValue = newText
@@ -1298,6 +1339,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         ShowCaret()
 
         EmptySelectionEvent()
+        NotifyTextChangeListeners(changeEvent)
     end
 
     action Select(integer startIndex, integer endIndex)
@@ -1315,5 +1357,25 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
 
     action GetSelection returns TextBoxSelection
         return selection
+    end
+
+    action AddTextChangeListener(TextChangeListener listener)
+        textChangeListeners:Add(listener)
+    end
+
+    action RemoveTextChangeListener(TextChangeListener listener)
+        textChangeListeners:Remove(listener)
+    end
+
+    action GetTextChangeListeners returns Array<TextChangeListener>
+        return textChangeListeners
+    end
+
+    private action NotifyTextChangeListeners(TextChangeEvent event)
+        integer counter = 0
+        repeat while counter < textChangeListeners:GetSize()
+            textChangeListeners:Get(counter):TextChanged(event)
+            counter = counter + 1
+        end
     end
 end

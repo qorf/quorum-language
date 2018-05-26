@@ -67,11 +67,15 @@ class TabBar is Item2D, ButtonGroup
             if tabs:GetSize() > 0
                 tabs:Get(0):SetToggleState(true)
             else
-                pane:SetCurrentItem(undefined)
+                pane:UpdateSelection(undefined)
             end
         end
 
         Resize()
+    end
+
+    action Get(integer index) returns Tab
+        return tabs:Get(index)
     end
 
     action SetTabPane(TabPane tabPane)
@@ -151,6 +155,10 @@ class TabBar is Item2D, ButtonGroup
 
         layout:SetOffset(offset - GetWidth())
         Resize()
+    end
+
+    action GetSize returns integer
+        return tabs:GetSize()
     end
 
 end
