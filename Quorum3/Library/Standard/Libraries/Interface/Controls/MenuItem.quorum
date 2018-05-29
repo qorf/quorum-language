@@ -16,6 +16,10 @@ use Libraries.Containers.Iterator
 use Libraries.Containers.Support.Pair
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
+use Libraries.Game.InputSet
+use Libraries.Game.GameStateManager
+use Libraries.Game.InputTable
+use Libraries.Interface.Behaviors.Controls.PassthroughBehavior
 
 class MenuItem is Control
     
@@ -96,6 +100,16 @@ class MenuItem is Control
         panelLayout = layout
         panel:AddLayout(layout)
         panel:SetView2D(panelView)
+    end
+
+    action SetShortcut(InputSet set)
+        text name = set:GetDisplayName()
+        GameStateManager manager
+        InputTable table = manager:GetGame():GetDefaultInputTable()
+        PassthroughBehavior behave
+        behave:SetControl(me)
+        table:Add(set, behave)
+        SetShortcut(name)
     end
 
     private action InitializeMenuAppearance

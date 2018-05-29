@@ -2,6 +2,8 @@ package Libraries.Interface.Controls
 
 use Libraries.Interface.Item2D
 use Libraries.Interface.Views.ControlView
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
 
 class Control is Item2D
 
@@ -45,5 +47,18 @@ class Control is Item2D
             ControlView content = cast(ControlView, GetView2D())
             content:LostSelection()
         end
+    end
+
+    /*
+        This action returns a default behavior for this paricular control. Some
+        controls do nothing by default, like a TextBox that responds to different kinds
+        of input. Others, however, have default behaviors, like a Button or a MenuItem. 
+        If there is no default behavior, this action returns undefined.
+    */
+    action GetBehavior returns Behavior
+        return undefined
+    end
+
+    action RunBehavior(BehaviorEvent event)
     end
 end
