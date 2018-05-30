@@ -49,6 +49,9 @@ class Item
     Array<FocusListener> focusListeners
     Array<Behavior> behaviors
 
+    Item nextFocus = undefined
+    Item previousFocus = undefined
+
     /*
     This action is used internally to allow the Item class to pass actions to
     children.
@@ -950,4 +953,50 @@ class Item
         end
     end
 
+    /*
+    This action sets the next focus item. When this Item has the focus and the
+    user requests the focus to advance (e.g. by pressing the tab key), the focus
+    will move to the next focus item, if it is defined.
+
+    Attribute: Parameter next The next Item to receive focus after this one.
+    */
+    action SetNextFocus(Item next)
+        nextFocus = next
+    end
+
+    /*
+    This action returns the next focus item. When this Item has the focus and 
+    the user requests the focus to advance (e.g. by pressing the tab key), the
+    returned value is the next item to receive that focus, if it is defined.
+    If it isn't defined, the focus can not advance from this Item.
+
+    Attribute: Returns The next Item to receive focus after this one.
+    */
+    action GetNextFocus returns Item
+        return nextFocus
+    end
+
+    /*
+    This action sets the previous focus item. When this Item has the focus and 
+    the user requests the focus to move backwards (e.g. by pressing shift & 
+    tab), the focus will move to the previous focus item, if it is defined.
+
+    Attribute: Parameter previous The previous Item to receive focus before this one.
+    */
+    action SetPreviousFocus(Item previous)
+        previousFocus = previous
+    end
+
+    /*
+    This action returns the previous focus item. When this Item has the focus 
+    and the user requests the focus to move backwards (e.g. by pressing shift & 
+    tab), the returned value is the previous item to receive that focus, if it 
+    is defined. If it isn't defined, the focus can not move backwards from this 
+    Item.
+
+    Attribute: Returns The previous Item to receive focus before this one.
+    */
+    action GetPreviousFocus returns Item
+        return previousFocus
+    end
 end

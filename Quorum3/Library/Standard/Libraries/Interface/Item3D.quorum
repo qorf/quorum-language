@@ -979,12 +979,6 @@ class Item3D is Item
             layer:EnableItemLighting(newItem)
             layer:SetNewItemAdded(true)
         end
-
-        GameStateManager manager
-        FocusManager focusManager = manager:GetFocusManager()
-        if focusManager not= undefined
-            focusManager:Add(newItem)
-        end
     end
 
     /*  
@@ -1012,12 +1006,6 @@ class Item3D is Item
         if layer not= undefined
             layer:EnableItemLighting(newItem)
             layer:SetNewItemAdded(true)
-        end
-
-        GameStateManager manager
-        FocusManager focusManager = manager:GetFocusManager()
-        if focusManager not= undefined
-            focusManager:Add(newItem)
         end
     end
 
@@ -1059,12 +1047,6 @@ class Item3D is Item
 
         if layer not= undefined
             layer:DisableItemLighting(removed)
-        end
-
-        GameStateManager manager
-        FocusManager focusManager = manager:GetFocusManager()
-        if focusManager not= undefined
-            focusManager:Remove(removed)
         end
 
         return success
@@ -1109,12 +1091,6 @@ class Item3D is Item
 
         if layer not= undefined
             layer:DisableItemLighting(temp)
-        end
-
-        GameStateManager manager
-        FocusManager focusManager = manager:GetFocusManager()
-        if focusManager not= undefined
-            focusManager:Remove(temp)
         end
 
         return temp

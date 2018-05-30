@@ -1068,13 +1068,6 @@ class Item2D is Item
         if layer not= undefined
             layer:SetNewItemAdded(true)
         end
-
-        GameStateManager manager
-        FocusManager focusManager = manager:GetFocusManager()
-        if focusManager not= undefined
-            focusManager:Add(newItem)
-        end
-
     end
 
     /*  
@@ -1099,13 +1092,6 @@ class Item2D is Item
         if layer not= undefined
             layer:SetNewItemAdded(true)
         end
-
-        GameStateManager manager
-        FocusManager focusManager = manager:GetFocusManager()
-        if focusManager not= undefined
-            focusManager:Add(newItem)
-        end
-
     end
 
     /*  
@@ -1143,12 +1129,6 @@ class Item2D is Item
         removed:SetParent(undefined)
         removed:SetLayer(undefined)
 
-        GameStateManager manager
-        FocusManager focusManager = manager:GetFocusManager()
-        if focusManager not= undefined
-            focusManager:Remove(removed)
-        end
-
         return success
     end
 
@@ -1184,12 +1164,6 @@ class Item2D is Item
 
         temp:SetParent(undefined)
         temp:SetLayer(undefined)
-
-        GameStateManager manager
-        FocusManager focusManager = manager:GetFocusManager()
-        if focusManager not= undefined
-            focusManager:Remove(temp)
-        end
 
         return temp
     end

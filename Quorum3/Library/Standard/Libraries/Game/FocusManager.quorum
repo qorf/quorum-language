@@ -2,7 +2,6 @@ package Libraries.Game
 
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
-use Libraries.Game.InputMonitor
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
@@ -14,61 +13,10 @@ use Libraries.Interface.Events.SelectionEvent
 
 class FocusManager is KeyboardListener
 
-    Array<Item> items
     Array<FocusListener> listeners
-    integer index = 0
     GameStateManager manager
-    InputMonitor monitor
 
     Item focused = undefined
-
-    action SetItems(Array<Item> array)
-        items = array
-    end
-
-    action GetItems returns Array<Item>
-        return items
-    end
-
-    action Add(Item item)
-        if item:IsFocusable()
-            items:Add(item)
-        end
-
-        if item is Item2D
-            Item2D original = cast(Item2D, item)
-            Iterator<Item2D> children = original:GetItems()
-            repeat while children:HasNext()
-                Add(children:Next())
-            end
-        elseif item is Item3D
-            Item3D original = cast(Item3D, item)
-            Iterator<Item3D> children = original:GetItems()
-            repeat while children:HasNext()
-                Add(children:Next())
-            end
-        end
-    end
-
-    action Remove(Item item)
-        if items:Has(item)
-            items:Remove(item)
-        end
-
-        if item is Item2D
-            Item2D original = cast(Item2D, item)
-            Iterator<Item2D> children = original:GetItems()
-            repeat while children:HasNext()
-                Remove(children:Next())
-            end
-        elseif item is Item3D
-            Item3D original = cast(Item3D, item)
-            Iterator<Item3D> children = original:GetItems()
-            repeat while children:HasNext()
-                Remove(children:Next())
-            end
-        end
-    end
 
     action Add(FocusListener listener)
         listeners:Add(listener)
@@ -78,11 +26,9 @@ class FocusManager is KeyboardListener
         listeners:Remove(listener)
     end
 
-    action SetFocus(Item item)
-        integer i = items:GetFirstLocation(item)
-        if i >= 0
-            SetFocus(i)
-        else
+    action SetFocus(Item focusItem)
+        Item item = focusItem
+        if item not= undefined and item:IsFocusable() = false
             if item is Item2D
                 Item2D item2D = cast(Item2D, item)
                 if item2D:GetParent() not= undefined
@@ -94,21 +40,10 @@ class FocusManager is KeyboardListener
                     SetFocus(item3D:GetParent())
                 end
             end
-        end
-    end
-
-    private action SetFocus(integer i)
-        if items:GetSize() = 0
             return now
         end
 
-        if i < 0
-            i = i + items:GetSize()
-        elseif i >= items:GetSize()
-            i = i mod items:GetSize()
-        end
         Item oldFocus = focused
-        Item item = items:Get(i)
 
         if oldFocus = item
             return now
@@ -117,7 +52,6 @@ class FocusManager is KeyboardListener
         FocusEvent event
         event:Initialize(oldFocus, item)
         
-        index = i
         focused = item
         
         if oldFocus not= undefined
@@ -145,18 +79,14 @@ class FocusManager is KeyboardListener
     end
 
     action FocusNextItem
-        if GetFocus() = undefined
-            SetFocus(0)
-        else
-            SetFocus(index + 1)
+        if focused not= undefined and focused:GetNextFocus() not= undefined
+            SetFocus(focused:GetNextFocus())
         end
     end
 
     action FocusPreviousItem
-        if GetFocus() = undefined
-            SetFocus(items:GetSize() - 1)
-        else
-            SetFocus(index - 1)
+        if focused not= undefined and focused:GetPreviousFocus() not= undefined
+            SetFocus(focused:GetPreviousFocus())
         end
     end
 
