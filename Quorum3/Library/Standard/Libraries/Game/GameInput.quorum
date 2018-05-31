@@ -11,6 +11,8 @@ use Libraries.Interface.Events.TextInputListener
 use Libraries.Interface.Events.ResizeListener
 use Libraries.Interface.Events.SelectionListener
 use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Events.TextChangeEvent
 
 /*
 This class is the base interface for how the Game will automatically handle
@@ -25,6 +27,7 @@ class GameInput
     InputTable defaultTable
 
     Array<SelectionListener> selectionListeners
+    Array<TextChangeListener> textChangeListeners
 
     /*
     This action sets a reference to the layers stored in the Game class that the
@@ -199,6 +202,8 @@ class GameInput
     /*
     This action will add a SelectionListener to the GameInput. The GameInput
     will notify the SelectionListener whenever a selection changes.
+
+    Attribute: Parameter listener The SelectionListener to add to the GameInput.
     */
     action AddSelectionListener(SelectionListener listener)
         selectionListeners:Add(listener)
@@ -208,18 +213,59 @@ class GameInput
     This action will remove a SelectionListener from the GameInput. The
     GameInput will no longer notify the given SelectionListener of selection
     changes.
+
+    Attribute: Parameter listener The SelectionListener to remove from the GameInput.
     */
     action RemoveSelectionListener(SelectionListener listener)
         selectionListeners:Remove(listener)
     end
 
     /*
+    This action will notify all SelectionListeners which have been added to the
+    GameInput of the given SelectionEvent.
 
+    Attribute: Parameter event The SelectionEvent to send to all SelectionListeners in the GameInput.
     */
     action NotifySelectionListeners(SelectionEvent event)
         integer counter = 0
         repeat while counter < selectionListeners:GetSize()
             selectionListeners:Get(counter):SelectionChanged(event)
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action will add a TextChangeListener to the GameInput. The GameInput
+    will notify the TextChangeListener whenever text changes, such as in a
+    TextBox.
+
+    Attribute: Parameter listener The TextChangeListener to add to the GameInput.
+    */
+    action AddTextChangeListener(TextChangeListener listener)
+        textChangeListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a TextChangeListener from the GameInput. The
+    GameInput will no longer notify the given TextChangeListener of text
+    changes.
+
+    Attribute: Parameter listener The TextChangeListener to remove from the GameInput.
+    */
+    action RemoveTextChangeListener(TextChangeListener listener)
+        textChangeListeners:Remove(listener)
+    end
+
+    /*
+    This action will notify all TextChangeListeners which have been added to the
+    GameInput of the given TextChangeEvent.
+
+    Attribute: Parameter event The TextChangeEvent to send to all TextChangeListeners in the GameInput.
+    */
+    action NotifyTextChangeListeners(TextChangeEvent event)
+        integer counter = 0
+        repeat while counter < textChangeListeners:GetSize()
+            textChangeListeners:Get(counter):TextChanged(event)
             counter = counter + 1
         end
     end

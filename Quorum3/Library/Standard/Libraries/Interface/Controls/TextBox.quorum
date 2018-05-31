@@ -1,6 +1,7 @@
 package Libraries.Interface.Controls
 
 use Libraries.Interface.Item2D
+use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Font
@@ -1377,5 +1378,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
             textChangeListeners:Get(counter):TextChanged(event)
             counter = counter + 1
         end
+        GameStateManager manager
+        manager:GetInput():NotifyTextChangeListeners(event)
     end
 end
