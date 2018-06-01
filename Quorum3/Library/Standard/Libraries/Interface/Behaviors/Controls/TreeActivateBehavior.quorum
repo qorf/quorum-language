@@ -9,8 +9,10 @@ class TreeActivateBehavior is Behavior
     action Run(BehaviorEvent event)
         if event:GetItem() is Tree
             Tree tree = cast(Tree, event:GetItem())
-//            output "Running behavior on " + item:GetName()
-//            item:RunBehavior(event)
+            TreeItem item = tree:GetSelection():GetTreeItem()
+            if item not= undefined
+                item:RunBehavior(event)
+            end
         end
     end
 end

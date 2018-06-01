@@ -515,11 +515,6 @@ class Game
         ClickDownBehavior clickDownBehavior
         treeItemTable:Add(clickSet, clickDownBehavior)
 
-//        InputSet enterSet
-//        enterSet:SetKeyboardInput(keys:ENTER)
-//        TreeActivateBehavior treeItemActivateBehavior
-//        treeItemTable:Add(enterSet, treeItemActivateBehavior)
-
         AddInputTable(treeItemTable)
 
         InputTable treeTable
@@ -536,6 +531,11 @@ class Game
 
         TreeUpBehavior treeUpBehavior
         treeTable:Add(upArrow, treeUpBehavior)
+
+        InputSet enterSet
+        enterSet:SetKeyboardInput(keys:ENTER)
+        TreeActivateBehavior treeActivateBehavior
+        treeTable:Add(enterSet, treeActivateBehavior)
 
         AddInputTable(treeTable)
     end
