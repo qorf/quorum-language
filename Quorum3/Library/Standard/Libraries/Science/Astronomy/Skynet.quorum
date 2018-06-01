@@ -11,6 +11,47 @@ use Libraries.Data.Formats.JavaScriptObjectNotation
 use Libraries.Containers.List
 use Libraries.System.SystemHelper
 
+
+/*
+This class is used to send instructions to the Skynet robotic telescope network using the internet and the token from you skynet account. If you don't have an account, contact Skynet (https://skynet.unc.edu/help/contact) for information.
+
+Attribute: Example
+
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Network.NetworkResponseEvent
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Science.Astronomy.Skynet
+use Libraries.Science.Astronomy.SkynetListener
+use Libraries.System.File
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+
+class DriverCode is SkynetListener
+    text token = "your security token goes here"
+    Skynet skynet
+
+    action Main
+        skynet:AddListener(me)
+        skynet:SetRightAscension("11:12:20.1")
+        skynet:SetDeclination("-04:18:57")
+        skynet:SetName("2018 CY1")
+        skynet:SetAccountKey(token)
+        skynet:SetMaxSun(-14)
+        skynet:SetMinElevation(30.0)
+        skynet:SetTimeAccount(555)
+        skynet:AddTelescope("CTIO-1.0m")
+        skynet:AddFilter("Open")
+        skynet:SetNumberOfExposures(1)
+        skynet:SetExposureLength(1.0)
+        skynet:SubmitObservationByCoordinates()
+    end
+
+    action ResponseReceived(NetworkResponseEvent response)
+        // do something with the response
+    end
+end
+*/
+
 class Skynet is NetworkRequestListener
     private List<SkynetListener> listeners
     private text AccountKey = ""
@@ -46,87 +87,509 @@ class Skynet is NetworkRequestListener
     // retrieved from skynet
     private integer observationID = 0
 
+    /*
+    This method is used to add the listener to the Skynet object.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+        end
+    end
+    */
     action AddListener(SkynetListener listener)
         listeners:Add(listener)
     end
 
+    /*
+    This method is used to remove the listener to the Skynet object.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:RemoveListener(me)
+        end
+    end
+    */
     action RemoveListener(SkynetListener listener)
         listeners:Remove(listener)
     end
 
+    /*
+    This method is used to get an iterator to the set of listeners attached to the Skynet object.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+    use Libraries.Containers.Iterator
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            Iterator<NetworkRequestListener> iterator
+            iterator = skynet:GetListenerIterator()
+        end
+    end
+    */
     action GetListenerIterator() returns Iterator<NetworkRequestListener>
         return listeners:GetIterator()
     end
 
+    /*
+    This method is used to add the name of the telescope to your Skynet request object.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:AddTelescope("CTIO-1.0m")
+        end
+    end
+    */
     action AddTelescope(text telescope)
         me:telescopes:Add(telescope)
     end
 
+    /*
+    This method is used to add the name of the telescope to your Skynet request object.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:AddFilter("Open")
+        end
+    end
+    */
     action AddFilter(text filter)
         me:filters:Add(filter)
     end
 
+
+    /*
+    This method is used to set the security token of your Skynet request object.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetAccountKey(token)
+        end
+    end
+    */
     action SetAccountKey(text AccountKey)
         me:AccountKey = AccountKey
     end
 
+    /*
+    This method is used to set the binning value of your Skynet request object.  The default value is 2.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetBinning(2)
+        end
+    end
+    */
     action SetBinning(integer binningRequested)
         me:binningRequested = binningRequested
     end
 
+    /*
+    This method is used to set the declination value of your Skynet request object.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetDeclination("-04:18:57")
+        end
+    end
+    */
     action SetDeclination(text declination)
         me:declination = declination
     end
 
+    /*
+    This method is used to set the exposure length value of your Skynet request object.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetExposureLength(1.0)
+        end
+    end
+    */
     action SetExposureLength(number expLength)
         me:expLength = expLength
     end
 
+    /*
+    This method is used to set the isToo value of your Skynet request object.  The default value is false.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetIsToo(false)
+        end
+    end
+    */
     action SetIsToo(boolean value)
         me:isToo = value
     end
 
+    /*
+    This method is used to set the MaxSun value of your Skynet request object.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetMaxSun(-14)
+        end
+    end
+    */
     action SetMaxSun(integer maxSun)
         me:maxSun = maxSun
     end
 
+    /*
+    This method is used to set the Minimum Elevation value of your Skynet request object.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetMinElevation(30.0)
+        end
+    end
+    */
     action SetMinElevation(number minElevation)
         me:minElevation = minElevation
     end
 
-    action SetMode(text name)
+    /*
+    This method is used to set the mode value of your Skynet request object. The default value is 0.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetMode(0)
+        end
+    end
+    */
+    action SetMode(integer value)
         me:mode = mode
     end
 
+    /*
+    This method is used to set the name of your Skynet request object if you are going to request an observation by name.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetName("2018 CY1")
+        end
+    end
+    */
     action SetName(text name)
         me:name = name
     end
 
+    /*
+    This method is used to set the number of exposures for your Skynet request object.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetNumberOfExposures(1)
+        end
+    end
+    */
     action SetNumberOfExposures(integer expNum)
         me:expNum = expNum
     end
 
+    /*
+    This method is used to set the priority value your Skynet request object. The default value is 1.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetPriority(1)
+        end
+    end
+    */
     action SetPriority(integer priority)
         me:priority = priority
     end
 
+    /*
+    This method is used to set the astronomical type value your Skynet request object. Allowable values include: sidereal, planet, asteroids, comet or nothing.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetPriority(1)
+        end
+    end
+    */
     action SetAstronomicalType(text type)
         // This can be (’sidereal’,’planet’,’asteroids’,’comet’) or nothing
         me:type = type
     end
 
+    /*
+    This method is used to set the right ascension value your Skynet request object.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetRightAscension("11:12:20.1")
+        end
+    end
+    */
     action SetRightAscension(text rightAscension)
         me:rightAscension = rightAscension
     end
 
+    /*
+    This method is used to set the time account value your Skynet request object.
+
+    Attribute: Example
+
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        integer account = 555
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetTimeAccount(account)
+        end
+    end
+    */
     action SetTimeAccount(integer timeAccount)
         me:timeAccount = timeAccount
     end
 
+    /*
+    This method is used to submit the request using the names method.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Network.NetworkResponseEvent
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+    use Libraries.System.File
+    use Libraries.Containers.HashTable
+    use Libraries.Containers.Iterator
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetAstronomicalType("asteroid")
+            skynet:SetName("tylerlinder")
+            skynet:SetAccountKey(token)
+            skynet:SetMaxSun(-14)
+            skynet:SetMinElevation(30.0)
+            skynet:SetTimeAccount(555)
+            skynet:AddTelescope("CTIO-1.0m")
+            skynet:AddFilter("Open")
+            skynet:SetNumberOfExposures(1)
+            skynet:SetExposureLength(1.0)
+            skynet:skynet:SubmitObservationByName()
+        end
+
+        action ResponseReceived(NetworkResponseEvent response)
+            // do something with the response
+        end
+    end
+    */
     action SubmitObservationByName
         //requires type and name
     end
 
+    /*
+    This method is used to submit the request using the coordinates method.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Network.NetworkResponseEvent
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+    use Libraries.Science.Astronomy.Skynet
+    use Libraries.Science.Astronomy.SkynetListener
+    use Libraries.System.File
+    use Libraries.Containers.HashTable
+    use Libraries.Containers.Iterator
+
+    class DriverCode is SkynetListener
+        text token = "your security token goes here"
+        Skynet skynet
+
+        action Main
+            skynet:AddListener(me)
+            skynet:SetRightAscension("11:12:20.1")
+            skynet:SetDeclination("-04:18:57")
+            skynet:SetName("2018 CY1")
+            skynet:SetAccountKey(token)
+            skynet:SetMaxSun(-14)
+            skynet:SetMinElevation(30.0)
+            skynet:SetTimeAccount(555)
+            skynet:AddTelescope("CTIO-1.0m")
+            skynet:AddFilter("Open")
+            skynet:SetNumberOfExposures(1)
+            skynet:SetExposureLength(1.0)
+            skynet:SubmitObservationByCoordinates()
+        end
+
+        action ResponseReceived(NetworkResponseEvent response)
+            // do something with the response
+        end
+    end
+    */
     action SubmitObservationByCoordinates
         //requires RA, Dec, name
         NetworkRequest request
@@ -146,6 +609,27 @@ class Skynet is NetworkRequestListener
         http:SendRequest(request)
     end
 
+    /*
+    This method is used internally by the class to submit the exposure parameters after an observation id has been obtained.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkResponseEvent
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    action ResponseReceived(NetworkResponseEvent response)
+        JavaScriptObjectNotation json
+        json:Read(response:GetResponseText())
+        if status = STATUS_WAITING_FOR_OBSERVATIONID
+            observationID = cast(integer, json:GetValue("id"))
+            status = STATUS_OBSERVATIONID_RECEIVED
+            SubmitExposureRequest()
+        elseif status = STATUS_OBSERVATIONID_RECEIVED
+            status = STATUS_NO_REQUEST_MADE
+            Notify(response)
+        end
+    end
+    */
     action SubmitExposureRequest
         NetworkRequest request
         me:resource = "exps"
@@ -158,6 +642,19 @@ class Skynet is NetworkRequestListener
         http:SendRequest(request)
     end
 
+    /*
+    This method is used internally by the class to return the exposure parameters set in the object.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequest
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    action SubmitExposureRequest
+        NetworkRequest request
+        request:SetBodyAsFormEncodedData(GetExposureParameters())
+    end
+    */
     action GetExposureParameters returns JavaScriptObjectNotation
         JavaScriptObjectNotation params
         params:Add("obs", me:observationID)
@@ -168,6 +665,19 @@ class Skynet is NetworkRequestListener
         return params
     end
 
+    /*
+    This method is used internally by the class to return the observationd parameters set in the object.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequest
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    action SubmitObservationByCoordinates
+        NetworkRequest request
+        request:SetBodyAsFormEncodedData(GetObservationParameters())
+    end
+    */
     action GetObservationParameters returns JavaScriptObjectNotation
         JavaScriptObjectNotation params
         params:Add("name", me:name)
@@ -183,6 +693,19 @@ class Skynet is NetworkRequestListener
         return params
     end
     
+    /*
+    This method is used internally by the class to return the skynet headers set in the object.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequest
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    action SubmitObservationByCoordinates
+        NetworkRequest request
+        request:SetHeaders(GetSkynetHeaders())
+    end
+    */
     action GetSkynetHeaders returns HashTable<text, text>
         HashTable<text, text> headers
         headers:Add("Authentication-Token", me:AccountKey)
@@ -193,6 +716,20 @@ class Skynet is NetworkRequestListener
         return headers
     end
 
+    /*
+    This method is used internally by the class to return the filter list set in the object.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequest
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    action GetExposureParameters returns JavaScriptObjectNotation
+        JavaScriptObjectNotation params
+        params:Add("filterRequested", me:GetFilterList())
+        return params
+    end
+    */
     action GetFilterList returns text
         text filterList = ""
         Iterator<text> it = filters:GetIterator()
@@ -206,6 +743,20 @@ class Skynet is NetworkRequestListener
         return filterList
     end
 
+    /*
+    This method is used internally by the class to return the telescope list set in the object.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequest
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    action GetExposureParameters returns JavaScriptObjectNotation
+        JavaScriptObjectNotation params
+        params:Add("telescope", me:GetTelescopeList())
+        return params
+    end
+    */
     action GetTelescopeList returns text
         text telescopeList = ""
         Iterator<text> it = telescopes:GetIterator()
@@ -219,6 +770,30 @@ class Skynet is NetworkRequestListener
         return telescopeList
     end
 
+    /*
+    This method is the callback for the NetworkResponseEvent object.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequest
+    use Libraries.Network.NetworkConnection
+    use Libraries.Network.NetworkResponseEvent
+    use Libraries.Network.NetworkResponseListener
+
+    class Skynet is NetworkResponseListener
+        action Submit
+            NetworkRequest request
+            request:SetRequestTypeToPOST()
+            NetworkConnection http
+            http:AddListener(me)
+            http:SendRequest(request)
+        end
+
+        action ResponseReceived(NetworkResponseEvent response)
+            // do something with the response
+        end
+    end
+    */
     action ResponseReceived(NetworkResponseEvent response)
         JavaScriptObjectNotation json
         json:Read(response:GetResponseText())
@@ -230,9 +805,29 @@ class Skynet is NetworkRequestListener
             status = STATUS_NO_REQUEST_MADE
             Notify(response)
         end
-
     end
 
+    /*
+    This method notifies all the listerners that a NetworkResponseEvent has been receied by the Skynet Object.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkResponseEvent
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    action ResponseReceived(NetworkResponseEvent response)
+        JavaScriptObjectNotation json
+        json:Read(response:GetResponseText())
+        if status = STATUS_WAITING_FOR_OBSERVATIONID
+            observationID = cast(integer, json:GetValue("id"))
+            status = STATUS_OBSERVATIONID_RECEIVED
+            SubmitExposureRequest()
+        elseif status = STATUS_OBSERVATIONID_RECEIVED
+            status = STATUS_NO_REQUEST_MADE
+            Notify(response)
+        end
+    end
+    */
     action Notify(NetworkResponseEvent response)
         Iterator<SkynetListener> iterator = listeners:GetIterator()
         repeat while iterator:HasNext()
