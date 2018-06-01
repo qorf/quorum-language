@@ -85,6 +85,8 @@ use Libraries.Interface.Events.CollisionListener2D
 use Libraries.Interface.Events.CollisionListener3D
 use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
+use Libraries.Interface.Behaviors.Controls.TabPaneForwardTabBehavior
+use Libraries.Interface.Behaviors.Controls.TabPaneBackwardTabBehavior
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -442,6 +444,23 @@ class Game
         textBoxTable:Add(textInputSet, insertBehavior)
 
         gameInput:AddInputTable(textBoxTable)
+
+        InputTable tabPaneTable
+        tabPaneTable:SetIdentifier("TabPane")
+
+        InputSet forwardTab
+        forwardTab:SetKeyboardInput(keys:TAB)
+        forwardTab:AddModifier(forwardTab:CONTROL)
+        TabPaneForwardTabBehavior forward
+        tabPaneTable:Add(forwardTab, forward)
+
+        InputSet backwardTab
+        backwardTab:SetKeyboardInput(keys:TAB)
+        backwardTab:AddModifier(forwardTab:SHIFT)
+        backwardTab:AddModifier(forwardTab:CONTROL)
+        TabPaneBackwardTabBehavior backward
+        tabPaneTable:Add(backwardTab, backward)
+        gameInput:AddInputTable(tabPaneTable)
 
         InputTable buttonTable
         buttonTable:SetIdentifier("Button")
