@@ -85,6 +85,8 @@ class Skynet is NetworkRequestListener
 
     /*
     This method is used to add the listener to the Skynet object.
+    
+    Attribute parameter listener The SkynetListener object.
 
     Attribute: Example
 
@@ -107,6 +109,8 @@ class Skynet is NetworkRequestListener
     /*
     This method is used to remove the listener to the Skynet object.
 
+    Attribute parameter listener The SkynetListener object.
+
     Attribute: Example
 
     use Libraries.Science.Astronomy.Skynet
@@ -128,6 +132,8 @@ class Skynet is NetworkRequestListener
 
     /*
     This method is used to get an iterator to the set of listeners attached to the Skynet object.
+
+    Attribute: Returns An iterator of NetworkRequestListeners
 
     Attribute: Example
 
@@ -153,6 +159,8 @@ class Skynet is NetworkRequestListener
     /*
     This method is used to add the name of the telescope to your Skynet request object.
 
+    Attribute: Parameter telescope The name of the telescope.
+
     Attribute: Example
 
     use Libraries.Science.Astronomy.Skynet
@@ -173,7 +181,9 @@ class Skynet is NetworkRequestListener
     end
 
     /*
-    This method is used to add the name of the telescope to your Skynet request object.
+    This method is used to add the name of the filter to your Skynet request object.
+
+    Attribute: Parameter filter The name of the filter.
 
     Attribute: Example
 
@@ -194,9 +204,10 @@ class Skynet is NetworkRequestListener
         me:filters:Add(filter)
     end
 
-
     /*
     This method is used to set the security token of your Skynet request object.
+
+    Attribute: Parameter AccountKey The security token for your account.
 
     Attribute: Example
 
@@ -220,6 +231,8 @@ class Skynet is NetworkRequestListener
     /*
     This method is used to set the binning value of your Skynet request object.  The default value is 2.
 
+    Attribute: Parameter binningRequested The binning value for your request.
+
     Attribute: Example
 
     use Libraries.Science.Astronomy.Skynet
@@ -241,6 +254,8 @@ class Skynet is NetworkRequestListener
 
     /*
     This method is used to set the declination value of your Skynet request object.
+
+    Attribute: Parameter declination The declination value for the request.
 
     Attribute: Example
 
@@ -264,6 +279,8 @@ class Skynet is NetworkRequestListener
     /*
     This method is used to set the exposure length value of your Skynet request object.
 
+    Attribute: Parameter expLength The exposure length for your request.
+
     Attribute: Example
 
     use Libraries.Science.Astronomy.Skynet
@@ -285,6 +302,8 @@ class Skynet is NetworkRequestListener
 
     /*
     This method is used to set the isToo value of your Skynet request object.  The default value is false.
+
+    Attribute: Parameter value The boolean value of IsToo.
 
     Attribute: Example
 
@@ -308,6 +327,8 @@ class Skynet is NetworkRequestListener
     /*
     This method is used to set the MaxSun value of your Skynet request object.
 
+    Attribute: Parameter maxSun The maxSun value for you request.
+
     Attribute: Example
 
     use Libraries.Science.Astronomy.Skynet
@@ -329,6 +350,8 @@ class Skynet is NetworkRequestListener
 
     /*
     This method is used to set the Minimum Elevation value of your Skynet request object.
+
+    Attribute: Parameter minElevation The minimum elevation value for your request.
 
     Attribute: Example
 
@@ -352,6 +375,8 @@ class Skynet is NetworkRequestListener
     /*
     This method is used to set the mode value of your Skynet request object. The default value is 0.
 
+    Attribute: Parameter value The mode value for your request.
+
     Attribute: Example
 
     use Libraries.Science.Astronomy.Skynet
@@ -373,6 +398,8 @@ class Skynet is NetworkRequestListener
 
     /*
     This method is used to set the name of your Skynet request object if you are going to request an observation by name.
+
+    Attribute: Parameter name The name of the object for your request.
 
     Attribute: Example
 
@@ -396,6 +423,8 @@ class Skynet is NetworkRequestListener
     /*
     This method is used to set the number of exposures for your Skynet request object.
 
+    Attribute: Parameter expNum The number of exposures to take.
+
     Attribute: Example
 
     use Libraries.Science.Astronomy.Skynet
@@ -418,6 +447,8 @@ class Skynet is NetworkRequestListener
     /*
     This method is used to set the priority value your Skynet request object. The default value is 1.
 
+    Attribute: Parameter priority The priority for you request.
+
     Attribute: Example
 
     use Libraries.Science.Astronomy.Skynet
@@ -439,6 +470,8 @@ class Skynet is NetworkRequestListener
 
     /*
     This method is used to set the astronomical type value your Skynet request object. Allowable values include: sidereal, planet, asteroids, comet or nothing.
+
+    Attribute: Parameter type The astronomical type of the object.
 
     Attribute: Example
 
@@ -463,6 +496,8 @@ class Skynet is NetworkRequestListener
     /*
     This method is used to set the right ascension value your Skynet request object.
 
+    Attribute: Parameter rightAscention The rigth ascension value for your request.
+
     Attribute: Example
 
     use Libraries.Science.Astronomy.Skynet
@@ -484,6 +519,8 @@ class Skynet is NetworkRequestListener
 
     /*
     This method is used to set the time account value your Skynet request object.
+
+    Attribute: Parameter timeAccount The timeAccount value for your request.
 
     Attribute: Example
 
@@ -641,6 +678,8 @@ class Skynet is NetworkRequestListener
     /*
     This method is used internally by the class to return the exposure parameters set in the object.
 
+    Attribute: Returns a JavaScriptObjectNotation object with the parameters.
+
     Attribute: Example
 
     use Libraries.Network.NetworkRequest
@@ -663,6 +702,8 @@ class Skynet is NetworkRequestListener
 
     /*
     This method is used internally by the class to return the observationd parameters set in the object.
+
+    Attribute: Returns a JavaScriptObjectNotation object with the parameters.
 
     Attribute: Example
 
@@ -692,6 +733,8 @@ class Skynet is NetworkRequestListener
     /*
     This method is used internally by the class to return the skynet headers set in the object.
 
+    Attribute: Returns a HashTable object with the headers.
+
     Attribute: Example
 
     use Libraries.Network.NetworkRequest
@@ -714,6 +757,8 @@ class Skynet is NetworkRequestListener
 
     /*
     This method is used internally by the class to return the filter list set in the object.
+
+    Attribute: Returns The list of filters as text.
 
     Attribute: Example
 
@@ -742,6 +787,8 @@ class Skynet is NetworkRequestListener
     /*
     This method is used internally by the class to return the telescope list set in the object.
 
+    Attribute: Returns The list of telescopes as text.
+
     Attribute: Example
 
     use Libraries.Network.NetworkRequest
@@ -768,6 +815,8 @@ class Skynet is NetworkRequestListener
 
     /*
     This method is the callback for the NetworkResponseEvent object.
+
+    Attribute: Parameter response The NetworkResponseEvent from the server.
 
     Attribute: Example
 
@@ -805,6 +854,8 @@ class Skynet is NetworkRequestListener
 
     /*
     This method notifies all the listerners that a NetworkResponseEvent has been receied by the Skynet Object.
+
+    Attribute: Parameter response The NetworkResponseEvent from the server.
 
     Attribute: Example
 
