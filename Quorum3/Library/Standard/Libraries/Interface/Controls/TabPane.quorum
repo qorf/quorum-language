@@ -18,6 +18,7 @@ class TabPane is Item2D
         SetInputGroup("TabPane")
         SetName("Tab Pane")
         viewArea:SetName("Tab View Area")
+        SetFocusable(true)
     end
 
     action Initialize(number width, number height, Array<Tab> tabs)
@@ -53,6 +54,9 @@ class TabPane is Item2D
         end
         if item not= undefined
             viewArea:Add(item)
+            item:Focus()
+        else
+            Focus()
         end
         currentItem = item
 

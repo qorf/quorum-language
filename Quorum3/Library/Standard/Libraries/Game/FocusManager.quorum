@@ -55,6 +55,8 @@ class FocusManager is KeyboardListener
         focused = item
         
         if oldFocus not= undefined
+            oldFocus:LostFocus(event)
+
             Iterator<FocusListener> iterator = oldFocus:GetFocusListeners()
             repeat while iterator:HasNext()
                 FocusListener listener = iterator:Next()
@@ -63,6 +65,8 @@ class FocusManager is KeyboardListener
         end
 
         if item not= undefined
+            item:GainedFocus(event)
+
             Iterator<FocusListener> iterator = item:GetFocusListeners()
             repeat while iterator:HasNext()
                 FocusListener listener = iterator:Next()

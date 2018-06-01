@@ -502,12 +502,6 @@ class DesktopInput is GameInput
         KeyboardListener currentListener = undefined
         Iterator<KeyboardListener> listenIterator = keyboardListeners:GetIterator()
 
-        text inputGroup = ""
-        Item focusedItem = manager:GetFocus()
-        if focusedItem not= undefined
-            inputGroup = focusedItem:GetInputGroup()
-        end
-
         repeat while not events:IsEmpty()
             currentEvent = events:RemoveFromFront()
 
@@ -554,27 +548,45 @@ class DesktopInput is GameInput
                 pressedKeys:Remove(pressedSet)
             end
 
+            text inputGroup = ""
+            Item focusedItem = manager:GetFocus()
+            boolean processed = false
+
             BehaviorEvent behaviorEvent
-            behaviorEvent:SetItem(focusedItem)
             behaviorEvent:SetKeyboardEvent(currentEvent)
 
-            InputTable table = GetInputTable(inputGroup)
-
             /*
-            If the table exists, attempt to trigger behaviors that use that
-            specific input or that trigger on any input of that type. Once both
-            are tested, if neither were successful, try to trigger behaviors
-            from the default input table instead.
+            Attempt to trigger an InputTable on the focused item. If that fails,
+            repeat on its parent hierarchy until we've either found a valid
+            InputTable or there's no item left to test against, in which case
+            we'll go use the default InputTable instead.
             */
-            boolean processed = (table not= undefined)
-            if processed
-                processed = table:ProcessInput(set, behaviorEvent)
-                processed = table:ProcessInput(anySet, behaviorEvent) or processed
+            repeat while processed = false and focusedItem not= undefined
+                inputGroup = focusedItem:GetInputGroup()
+                behaviorEvent:SetItem(focusedItem)
+
+                InputTable table = GetInputTable(inputGroup)
+                if table not= undefined
+                    processed = table:ProcessInput(set, behaviorEvent)
+                    processed = processed or table:ProcessInput(anySet, behaviorEvent)
+                end
+
+                if focusedItem is Item2D
+                    Item2D item2D = cast(Item2D, focusedItem)
+                    focusedItem = item2D:GetParent()
+                elseif focusedItem is Item3D
+                    Item3D item3D = cast(Item3D, focusedItem)
+                    focusedItem = item3D:GetParent()
+                else
+                    focusedItem = undefined
+                end
             end
 
             if not processed
-                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
-                GetDefaultInputTable():ProcessInput(anySet, behaviorEvent)
+                focusedItem = manager:GetFocus()
+                behaviorEvent:SetItem(focusedItem)
+                processed = GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+                processed = processed or GetDefaultInputTable():ProcessInput(anySet, behaviorEvent)
             end
 
             repeat while listenIterator:HasNext()
@@ -597,6 +609,46 @@ class DesktopInput is GameInput
             KeyboardEvent event
             event:keyCode = set:GetInputValue()
 
+            text inputGroup = ""
+            Item focusedItem = manager:GetFocus()
+            boolean processed = false
+
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetKeyboardEvent(event)
+
+            /*
+            Attempt to trigger an InputTable on the focused item. If that fails,
+            repeat on its parent hierarchy until we've either found a valid
+            InputTable or there's no item left to test against, in which case
+            we'll go use the default InputTable instead.
+            */
+            repeat while processed = false and focusedItem not= undefined
+                inputGroup = focusedItem:GetInputGroup()
+                behaviorEvent:SetItem(focusedItem)
+
+                InputTable table = GetInputTable(inputGroup)
+                if table not= undefined
+                    processed = table:ProcessInput(set, behaviorEvent)
+                end
+
+                if focusedItem is Item2D
+                    Item2D item2D = cast(Item2D, focusedItem)
+                    focusedItem = item2D:GetParent()
+                elseif focusedItem is Item3D
+                    Item3D item3D = cast(Item3D, focusedItem)
+                    focusedItem = item3D:GetParent()
+                else
+                    focusedItem = undefined
+                end
+            end
+
+            if not processed
+                focusedItem = manager:GetFocus()
+                behaviorEvent:SetItem(focusedItem)
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+            end
+
+            /*
             BehaviorEvent behaviorEvent
             behaviorEvent:SetItem(focusedItem)
             behaviorEvent:SetKeyboardEvent(event)
@@ -608,7 +660,7 @@ class DesktopInput is GameInput
             specific input or that trigger on any input of that type. Once both
             are tested, if neither were successful, try to trigger behaviors
             from the default input table instead.
-            */
+            *
             boolean processed = (table not= undefined)
             if processed
                 processed = table:ProcessInput(set, behaviorEvent)
@@ -617,6 +669,7 @@ class DesktopInput is GameInput
             if not processed
                 GetDefaultInputTable():ProcessInput(set, behaviorEvent)
             end
+            */
 
             counter = counter + 1
         end
@@ -628,10 +681,13 @@ class DesktopInput is GameInput
             set:SetKeyboardInput(event:ANY_KEY)
             set:SetInputTrigger(set:CONTINUE)
 
-            BehaviorEvent behaviorEvent
-            behaviorEvent:SetItem(focusedItem)
-            behaviorEvent:SetKeyboardEvent(event)
+            text inputGroup = ""
+            Item focusedItem = manager:GetFocus()
+            boolean processed = false
 
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetKeyboardEvent(event)
+            /*
             InputTable table = GetInputTable(inputGroup)
 
             boolean processed = (table not= undefined)
@@ -640,6 +696,39 @@ class DesktopInput is GameInput
             end
 
             if not processed
+                GetDefaultInputTable():ProcessInput(set, behaviorEvent)
+            end
+            */
+
+            /*
+            Attempt to trigger an InputTable on the focused item. If that fails,
+            repeat on its parent hierarchy until we've either found a valid
+            InputTable or there's no item left to test against, in which case
+            we'll go use the default InputTable instead.
+            */
+            repeat while processed = false and focusedItem not= undefined
+                inputGroup = focusedItem:GetInputGroup()
+                behaviorEvent:SetItem(focusedItem)
+
+                InputTable table = GetInputTable(inputGroup)
+                if table not= undefined
+                    processed = table:ProcessInput(set, behaviorEvent)
+                end
+
+                if focusedItem is Item2D
+                    Item2D item2D = cast(Item2D, focusedItem)
+                    focusedItem = item2D:GetParent()
+                elseif focusedItem is Item3D
+                    Item3D item3D = cast(Item3D, focusedItem)
+                    focusedItem = item3D:GetParent()
+                else
+                    focusedItem = undefined
+                end
+            end
+
+            if not processed
+                focusedItem = manager:GetFocus()
+                behaviorEvent:SetItem(focusedItem)
                 GetDefaultInputTable():ProcessInput(set, behaviorEvent)
             end
         end
