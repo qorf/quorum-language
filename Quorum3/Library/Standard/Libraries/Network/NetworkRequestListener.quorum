@@ -3,11 +3,33 @@ package Libraries.Network
 use Libraries.Game.Graphics.Drawable
 use Libraries.Network.NetworkResponseEvent
 
-/**
- *
- * @author Patrick Daleiden
- */
+/*
+This is a blueprint class to specify the call back function from the network request.
 
+Attribute: Example
+
+Attribute: Example
+
+use Libraries.Network.NetworkConnection
+use Libraries.Network.NetworkRequest
+use Libraries.Network.NetworkResponseEvent
+use Libraries.Network.NetworkRequestListener
+
+class Main is NetworkRequestListener
+    action Main
+        NetworkRequest request
+        request:SetRequestTypeToGET()
+        request:SetWebAddress("https://quorumlanguage.com/GETtest.php")
+        NetworkConnection http
+        http:AddListener(me)
+        http:SendRequest(request)
+    end
+
+    action ResponseReceived(NetworkResponseEvent response)
+        output response:GetResponseText()
+    end
+end
+*/
 class NetworkRequestListener
     blueprint action ResponseReceived(NetworkResponseEvent response)
 end

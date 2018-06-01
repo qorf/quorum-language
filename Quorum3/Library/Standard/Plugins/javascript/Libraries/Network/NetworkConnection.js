@@ -46,6 +46,28 @@ function plugins_quorum_Libraries_Network_NetworkConnection_(quorumConnection) {
     };
     
     function Get(request) {
+        var http = new XMLHttpRequest();
+        var url = request.GetWebAddress();
+        http.timeout = request.GetReadTimeout();
+        http.open(request.GetRequestType(), url, true);
+        request.ResetHeaderIterator();
+        while (request.HasNextHeader()) {
+          var key = request.GetNextHeaderKey();
+          var value = request.GetHeaderValue$quorum_text(key);
+          if (key == "Accept-Encoding" || key == "User-Agent" || key == "Connection") {
+            console.log("Skipping Header " + key + " : " + value);
+          } else {
+            console.log("Adding Header: " + key + " : " + value);
+            http.setRequestHeader(key, value);
+          }
+        }
+        
+        http.onreadystatechange = function () {
+          if (http.readyState === 4) {
+            ReturnResponse(http);
+          }
+        }
+        http.send(request.GetBody());
     };
     
     function Head(request) {

@@ -1,9 +1,22 @@
 package Libraries.Network
 
-/**
- *
- * @author Patrick Daleiden
- */
+/*
+This class is used with the NetworkRequest class to represent the type of request to make over the internet protocol. More information on the internet protocol, called Hyper Text Transfer Protocol (HTTP) can be found at: https://www.w3.org/Protocols/, The class is primarily used internally by the NetworkRequest class.
+
+Attribute: Example
+
+use Libraries.Network.NetworkRequest
+use Libraries.Network.NetworkRequestType
+
+class main
+    action Main
+        NetworkRequest request
+        NetworkRequestType type
+        type:SetToGET()
+        request:SetRequestType(type)
+    end
+end
+*/
 
 class NetworkRequestType 
     private integer HEAD = 0
@@ -18,58 +31,274 @@ class NetworkRequestType
         type = POST
     end
 
+    /*
+    This method sets the request type to HEAD.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequestType
+
+    class main
+        action Main
+            NetworkRequestType type
+            type:SetToHEAD()
+        end
+    end
+    */
     action SetToHEAD()
         type = HEAD
     end
 
+    /*
+    This method sets the request type to HEAD.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequestType
+
+    class main
+        action Main
+            NetworkRequestType type
+            type:SetToGET()
+        end
+    end
+    */
     action SetToGET()
         type = GET
     end
 
+    /*
+    This method sets the request type to HEAD.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequestType
+
+    class main
+        action Main
+            NetworkRequestType type
+            type:SetToPOST()
+        end
+    end
+    */
     action SetToPOST()
         type = POST
     end
 
+    /*
+    This method sets the request type to HEAD.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequestType
+
+    class main
+        action Main
+            NetworkRequestType type
+            type:SetToPUT()
+        end
+    end
+    */
     action SetToPUT()
         type = PUT
     end
 
+    /*
+    This method sets the request type to HEAD.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequestType
+
+    class main
+        action Main
+            NetworkRequestType type
+            type:SetToPATCH()
+        end
+    end
+    */
     action SetToPATCH()
         type = PATCH
     end
 
+    /*
+    This method sets the request type to HEAD.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequestType
+
+    class main
+        action Main
+            NetworkRequestType type
+            type:SetToDELETE()
+        end
+    end
+    */
     action SetToDELETE()
         type = DELETE
     end
 
+    /*
+    This method returns the request type.
+
+    Attribute: Example
+
+    Attribute: Returns An integer indicating the type of the request.
+
+    use Libraries.Network.NetworkRequestType
+
+    class main
+        action Main
+            NetworkRequestType type
+            type:SetToGET()
+            output type:GetType()
+        end
+    end
+    */
     action GetType() returns integer
         return type
     end
 
+    /*
+    This method returns a boolean value true if the type of the network request is HEAD and false otherwise.
+
+    Attribute: Example
+
+    Attribute: Returns A boolean value based on the value of the type.
+
+    use Libraries.Network.NetworkRequestType
+
+    class main
+        action Main
+            NetworkRequestType type
+            type:SetToHEAD()
+            output type:IsHEAD()
+        end
+    end
+    */
     action IsHEAD() returns boolean
         return type = HEAD
     end
 
-    action IsGET() returns boolean
+    /*
+    This method returns a boolean value true if the type of the network request is GET and false otherwise.
+
+    Attribute: Example
+
+    Attribute: Returns A boolean value based on the value of the type.
+
+    use Libraries.Network.NetworkRequestType
+
+    class main
+        action Main
+            NetworkRequestType type
+            type:SetToGET()
+            output type:IsGET()
+        end
+    end
+    */    action IsGET() returns boolean
         return type = GET
     end
 
-    action IsPOST() returns boolean
+    /*
+    This method returns a boolean value true if the type of the network request is POST and false otherwise.
+
+    Attribute: Example
+
+    Attribute: Returns A boolean value based on the value of the type.
+
+    use Libraries.Network.NetworkRequestType
+
+    class main
+        action Main
+            NetworkRequestType type
+            type:SetToPOST()
+            output type:IsPOST()
+        end
+    end
+    */    action IsPOST() returns boolean
         return type = POST
     end
 
-    action IsPUT() returns boolean
+    /*
+    This method returns a boolean value true if the type of the network request is IsPUT and false otherwise.
+
+    Attribute: Example
+
+    Attribute: Returns A boolean value based on the value of the type.
+
+    use Libraries.Network.NetworkRequestType
+
+    class main
+        action Main
+            NetworkRequestType type
+            type:SetToPUT()
+            output type:IsPUT()
+        end
+    end
+    */    action IsPUT() returns boolean
         return type = PUT
     end
 
-    action IsPATCH() returns boolean
+    /*
+    This method returns a boolean value true if the type of the network request is PATCH and false otherwise.
+
+    Attribute: Example
+
+    Attribute: Returns A boolean value based on the value of the type.
+
+    use Libraries.Network.NetworkRequestType
+
+    class main
+        action Main
+            NetworkRequestType type
+            type:SetToPATCH()
+            output type:IsHEAD()
+        end
+    end
+    */    action IsPATCH() returns boolean
         return type = PATCH
     end
 
+    /*
+    This method returns a boolean value true if the type of the network request is DELETE and false otherwise.
+
+    Attribute: Example
+
+    Attribute: Returns A boolean value based on the value of the type.
+
+    use Libraries.Network.NetworkRequestType
+
+    class main
+        action Main
+            NetworkRequestType type
+            type:SetToDELETE()
+            output type:IsDELETE()
+        end
+    end
+    */
     action IsDELETE() returns boolean
         return type = DELETE
     end
 
+    /*
+    This method returns the NetworkRequestType value as text.
+
+    Attribute: Returns The NetworkRequestType value as text.
+
+    Attribute: Example
+
+    use Libraries.Network.NetworkRequestType
+
+    class main
+        action Main
+            NetworkRequestType type
+            type:SetToGET()
+            output type:ToText()
+        end
+    end
+    */
     action ToText() returns text
         if type = HEAD
             return "HEAD"
