@@ -186,7 +186,7 @@ class MenuBar is Item2D
         Deselect(selection:GetPath())
     end
 
-    action Deselect(Array<MenuItem> path)
+    private action Deselect(Array<MenuItem> path)
         MenuItem item = undefined
         if not path:IsEmpty()
             item = path:RemoveFromFront()
@@ -198,6 +198,9 @@ class MenuBar is Item2D
 
         // Add the removed portion back to the path to undo our side effects.
         path:AddToFront(item)
+
+        Array<MenuItem> newPath
+        selection:Set(newPath)
     end
 
     private action GetMenuItem(Array<MenuItem> path) returns MenuItem

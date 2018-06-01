@@ -90,7 +90,12 @@ class Tree is Item2D
         selection:Set(path)
     end
 
-    action Deselect(Array<TreeItem> path)
+    action Deselect
+        TreeSelection selection = GetSelection()
+        Deselect(selection:GetPath())
+    end
+
+    private action Deselect(Array<TreeItem> path)
         TreeItem item = undefined
         if not path:IsEmpty()
             item = path:RemoveFromFront()
@@ -102,6 +107,8 @@ class Tree is Item2D
 
         // Add the removed portion back to the path to undo our side effects.
         path:AddToFront(item)
+        Array<TreeItem> newPath
+        selection:Set(newPath)
     end
 
     action SelectionRight
