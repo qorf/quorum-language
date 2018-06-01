@@ -42,9 +42,9 @@ class NetworkConnection
     /*
     This action sends a Network request over the connection in the object.
 
-    Attribute: Example
-
     Attribute: Parameter request The NetworkRequest object to be sent
+
+    Attribute: Example
 
     use Libraries.Network.NetworkConnection
     use Libraries.Network.NetworkRequest
@@ -107,9 +107,9 @@ class NetworkConnection
     /*
     This action adds a NetworkRequestListener to the connection which will be notified when the response returns.
 
-    Attribute: Example
+    Attribute: Parameter listener The NetworkRequestListener to be added.
 
-    Attribute: Parameter request The NetworkRequest object to be sent
+    Attribute: Example
 
     use Libraries.Network.NetworkConnection
     use Libraries.Network.NetworkRequestListener
@@ -132,6 +132,8 @@ class NetworkConnection
 
     /*
     This action adds a NetworkRequestListener to the connection which will be notified when the response returns.
+
+    Attribute: Parameter listener The NetworkRequestListener to be removed.
 
     Attribute: Example
 
@@ -208,9 +210,9 @@ class NetworkConnection
     /*
     This action sets a response event in the connection object and notifies the listeners.
 
-    Attribute: Example
-
     Attribute: Parameter response The NetworkResponseEvent to forward to the listeners.
+
+    Attribute: Example
 
     use Libraries.Network.NetworkConnection
     use Libraries.Network.NetworkRequestListener
@@ -239,9 +241,9 @@ class NetworkConnection
     /*
     This action notifies the listeners with the response event.
 
-    Attribute: Example
-
     Attribute: Parameter response The NetworkResponseEvent to forward to the listeners.
+
+    Attribute: Example
 
     use Libraries.Network.NetworkConnection
     use Libraries.Network.NetworkRequestListener
@@ -269,5 +271,4 @@ class NetworkConnection
             listener:ResponseReceived(response)
         end
     end
-
 end

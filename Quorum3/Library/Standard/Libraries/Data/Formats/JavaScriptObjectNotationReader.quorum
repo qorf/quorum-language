@@ -76,7 +76,7 @@ class JavaScriptObjectNotationReader
         and use it to capture events as they are parsed. For most users, use of 
         ReadToObject(File file) is recommended over this one.
 
-        Attribute: Parameter file The file to be parsed
+        Attribute: Parameter file The file to be parsed.
 
         Attribute: Example
 
@@ -115,7 +115,7 @@ class JavaScriptObjectNotationReader
         and use it to capture events as they are parsed. For most users, use of 
         ReadToObject(File file) is recommended over this one.
 
-        Attribute: Parameter file The file to be parsed
+        Attribute: Parameter value The text value to be parsed.
 
         Attribute: Example
 
@@ -148,6 +148,8 @@ class JavaScriptObjectNotationReader
     This action can read in JavaScriptObjectNotation (JSON) files from text values. 
     When it reads them in, the object is parsed and placed into a set of 
     objects. 
+    
+    Attribute: Parameter file The file to be parsed.
 
     Attribute: Example
 
@@ -190,6 +192,8 @@ class JavaScriptObjectNotationReader
     This action can read in JavaScriptObjectNotation (JSON) files from text values. 
     When it reads them in, the object is parsed and placed into a set of 
     objects. 
+
+    Attribute: Parameter value The text value to be parsed.
 
     Attribute: Example
 
@@ -234,6 +238,4 @@ class JavaScriptObjectNotationReader
         parse:Parse(lex)
         return listen:GetObject()
     end
-
-
 end

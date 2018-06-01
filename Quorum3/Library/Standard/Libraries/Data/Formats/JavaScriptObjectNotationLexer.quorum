@@ -57,6 +57,8 @@ class JavaScriptObjectNotationLexer
     /*
     This method is used to get the JavaScriptObjectNotationListener object used by the lexer.
 
+    Attribute: Returns The JavaScriptObjectNotationListener.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotationListener
@@ -72,6 +74,8 @@ class JavaScriptObjectNotationLexer
 
     /*
     This method is used to set the JavaScriptObjectNotationListener object used by the lexer.
+
+    Attribute: Parameter listener The JavaScriptObjectNotationListener to set.
 
     Attribute: Example
 
@@ -102,6 +106,10 @@ class JavaScriptObjectNotationLexer
     /*
     This method returns a token at a particular position in the lex.
 
+    Attribute: Parameter i The index of the JavaScriptObjectNotationToken to get.
+    
+    Attribute: Returns The JavaScriptObjectNotationToken.
+    
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -129,6 +137,8 @@ class JavaScriptObjectNotationLexer
 
     /*
     This method returns the number of tokens in the token stream.
+
+    Attribute: Returns The number of tokens in the stream.
 
     Attribute: Example
 
@@ -184,6 +194,8 @@ class JavaScriptObjectNotationLexer
     /*
     This method Returns whether or not there are tokens in the token stream
 
+    Attribute: Returns A boolean value to indicate if the stream is empty.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -215,6 +227,8 @@ class JavaScriptObjectNotationLexer
 
     /*
     This method is used to read a text value and converts it into a token strea.
+
+    Attribute: Parameter value The text value to lex.
 
     Attribute: Example
 
@@ -488,6 +502,8 @@ class JavaScriptObjectNotationLexer
     /*
     This method is used to read a text file and converts it into a token strea.
 
+    Attribute: Parameter file The file to read and lex.
+
     Attribute: Example
 
     use Libraries.Data.Formats.JavaScriptObjectNotation
@@ -522,9 +538,15 @@ class JavaScriptObjectNotationLexer
     end
 
     /* 
-    This methos handles error message throwing if something goes wrong.
+    This method handles error message throwing if something goes wrong.
+
+    Attribute: Parameter line The line where the error occurred.
+    Attribute: Parameter line The column where the error occurred.
+    Attribute: Parameter line The index of where the error occurred.
+    Attribute: Parameter line The message to throw.
 
     Attribute: Example
+
     use Libraries.Data.Formats.JavaScriptObjectNotation
     use Libraries.Data.Formats.JavaScriptObjectNotationDefaultListener
     use Libraries.Data.Formats.JavaScriptObjectNotationLexer
