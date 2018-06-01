@@ -54,7 +54,7 @@ use Libraries.Interface.Behaviors.Controls.MenuBarLeftBehavior
 use Libraries.Interface.Behaviors.Controls.MenuBarRightBehavior
 use Libraries.Interface.Behaviors.Controls.MenuBarRunBehavior
 use Libraries.Interface.Behaviors.Controls.MenuBarUpBehavior
-use Libraries.Interface.Behaviors.Controls.TreeItemActivateBehavior
+use Libraries.Interface.Behaviors.Controls.TreeActivateBehavior
 use Libraries.Interface.Behaviors.Controls.TreeDoubleClickBehavior
 use Libraries.Interface.Behaviors.Controls.TreeLeftBehavior
 use Libraries.Interface.Behaviors.Controls.TreeRightBehavior
@@ -515,10 +515,10 @@ class Game
         ClickDownBehavior clickDownBehavior
         treeItemTable:Add(clickSet, clickDownBehavior)
 
-        InputSet enterSet
-        enterSet:SetKeyboardInput(keys:ENTER)
-        TreeItemActivateBehavior treeItemActivateBehavior
-        treeItemTable:Add(enterSet, treeItemActivateBehavior)
+//        InputSet enterSet
+//        enterSet:SetKeyboardInput(keys:ENTER)
+//        TreeActivateBehavior treeItemActivateBehavior
+//        treeItemTable:Add(enterSet, treeItemActivateBehavior)
 
         AddInputTable(treeItemTable)
 
