@@ -144,6 +144,10 @@ class MenuBar is Item2D
     end
 
     action Select(Array<MenuItem> path)
+        if path:IsEmpty()//if the user sent an empty path, deselect everything 
+            Deselect()
+            return now
+        end
         Array<MenuItem> pathCopy = path:CopyToArray()
         MenuItem item = undefined
 
@@ -177,10 +181,15 @@ class MenuBar is Item2D
         selection:Set(pathCopy)
     end
 
-    action Deselect(Array<MenuItem> path)
+    action Deselect
+        MenuSelection selection = GetSelection()
+        Deselect(selection:GetPath())
+    end
+
+    private action Deselect(Array<MenuItem> path)
         MenuItem item = undefined
         if not path:IsEmpty()
-            path:RemoveFromFront()
+            item = path:RemoveFromFront()
         end
 
         if item not= undefined
@@ -189,6 +198,9 @@ class MenuBar is Item2D
 
         // Add the removed portion back to the path to undo our side effects.
         path:AddToFront(item)
+
+        Array<MenuItem> newPath
+        selection:Set(newPath)
     end
 
     private action GetMenuItem(Array<MenuItem> path) returns MenuItem

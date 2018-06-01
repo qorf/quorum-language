@@ -354,7 +354,7 @@ class TreeItem is Control
         // We do this to allow the Tree to fully update its information,
         // deselect this, and prevent infinite loops.
         if parentTree not= undefined
-            parentTree:Deselect(GetTreePath())
+            parentTree:Deselect()
         end
     end
 

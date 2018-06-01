@@ -343,7 +343,7 @@ class MenuItem is Control
         // We do this to allow the MenuBar to fully update its information,
         // deselect this, and prevent infinite loops.
         if menuBar not= undefined
-            menuBar:Deselect(GetMenuPath())
+            menuBar:Deselect()
         end
     end
 
