@@ -38,6 +38,7 @@ use Libraries.Game.Graphics.PointLight
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
+use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Behaviors.FocusNextBehavior
 use Libraries.Interface.Behaviors.FocusPreviousBehavior
 use Libraries.Interface.Behaviors.Controls.TextBoxCaretStartMoveBehavior
@@ -79,6 +80,7 @@ use Libraries.Interface.Events.TextChangeListener
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
+use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Events.CollisionEvent
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.CollisionListener2D
@@ -121,6 +123,7 @@ class Game
     GraphicsManager gl20 = undefined
     GameStateManager manager
     FocusManager focusManager
+    AccessibilityManager accessibility = undefined
 
     public boolean exitRequested = false
 
@@ -3587,5 +3590,19 @@ class Game
     */
     action RemoveInputTable(text key) returns InputTable
         return gameInput:RemoveInputTable(key)
+    end
+
+    /*
+
+    */
+    action SetAccessibilityManager(AccessibilityManager accessibilityManager)
+        accessibility = accessibilityManager
+    end
+
+    /*
+
+    */
+    action GetAccessibilityManager returns AccessibilityManager
+        return accessibility
     end
 end

@@ -1,6 +1,13 @@
 package Libraries.Interface
 
 use Libraries.Interface.Item
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Selections.Selection
+use Libraries.Interface.Selections.TextBoxSelection
+use Libraries.Interface.Selections.TabPaneSelection
+use Libraries.Interface.Selections.MenuSelection
+use Libraries.Interface.Selections.TreeSelection
 
 class AccessibilityManager 
 
@@ -53,5 +60,28 @@ class AccessibilityManager
     // CaretPositionChanged: This action will be called whenever the caret moves or when text has
     //                       been added or removed.
     system action CaretPositionChanged(Item TextBox, Text adjacentCharacter)
+
+    action SelectionChanged(SelectionEvent event)
+        Selection selection = event:GetSelection()
+        if selection is TextBoxSelection
+            // Do TextBox things
+        elseif selection is TabPaneSelection
+            // Do TabPane things
+        elseif selection is MenuSelection
+            // Do Menu things
+        elseif selection is TreeSelection
+            // Do Tree things
+        else
+            // Do generic things
+        end
+
+        output "Selection changed."
+    end
+
+    action FocusChanged(FocusEvent event)
+        // Handle the focus change.
+
+        output "Focus changed."
+    end
 
 end

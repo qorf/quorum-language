@@ -270,7 +270,7 @@ class MenuBar is Item2D
                 end
                 counter = counter + 1
             end
-        else
+        elseif path:GetSize() > 1
             MenuItem item = GetMenuItem(path)
             if item:IsMenu()
                 item:GetMenuItems():Next():Select()
@@ -289,6 +289,10 @@ class MenuBar is Item2D
                     counter = counter + 1
                 end
             end
+        elseif not menus:IsEmpty()
+            Array<MenuItem> array
+            array:Add(menus:Get(0))
+            Select(array)
         end
     end
 
