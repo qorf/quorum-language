@@ -40,8 +40,9 @@ class Item
     public constant integer PANE = 9
     public constant integer TREE = 10
     public constant integer TREE_ITEM = 11
-    public constant integer TAB = 12
-    public constant integer TABPANE = 13
+    public constant integer TOOLBAR = 12
+    public constant integer TAB = 13
+    public constant integer TABPANE = 14
 
     private integer accessibilityCode = 0
 
@@ -957,6 +958,8 @@ class Item
             return "TREE"
         elseif (accessibilityCode = TREE_ITEM)
             return "TREE_ITEM"
+        elseif (accessibilityCode = TOOLBAR)
+            return "TOOLBAR"
         elseif (accessibilityCode = TAB)
             return "TAB"
         elseif (accessibilityCode = TABPANE)
