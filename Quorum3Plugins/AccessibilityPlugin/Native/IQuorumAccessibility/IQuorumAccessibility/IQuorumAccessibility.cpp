@@ -5,9 +5,9 @@
 #include <UIAutomation.h>
 
 #include "Item.h"
-#include "PushButtonControl.h"
+#include "ButtonControl.h"
 #include "RadioButtonControl.h"
-#include "ToggleButtonControl.h"
+#include "CheckBoxControl.h"
 #include "TextBoxControl.h"
 
 // For Debug Output
@@ -121,7 +121,7 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 // NativeWin32CreatePushButton: Creates a window that contains the accessible information for a PushButton that was passed into this function.
 //		Returns: jlong which is the HWND for the window. This is used to further interact with the button after creation. i.e., to rename the button later should the name be changed. Also, used to keep track of it in java.
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreatePushButton(JNIEnv *env, jobject obj, jstring buttonName, jstring description)
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateButton(JNIEnv *env, jobject obj, jstring buttonName, jstring description)
 {
 	UNREFERENCED_PARAMETER(obj);
 	const char *nativeButtonName = env->GetStringUTFChars(buttonName, 0);
@@ -131,19 +131,19 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
 
-	HWND pushbuttonControlHandle;
+	HWND buttonControlHandle;
 
-	pushbuttonControlHandle = PushButtonControl::Create(GetModuleHandle(NULL), wButtonName, wDescription);
+	buttonControlHandle = ButtonControl::Create(GetModuleHandle(NULL), wButtonName, wDescription);
 
 	env->ReleaseStringUTFChars(buttonName, nativeButtonName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
 
-	return PtrToLong(pushbuttonControlHandle);
+	return PtrToLong(buttonControlHandle);
 
 }
 
 // NativeWin32CreateToggleButton: 
-JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateToggleButton(JNIEnv *env, jobject obj, jstring togglebuttonName, jstring description)
+JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NativeWin32CreateCheckBox(JNIEnv *env, jobject obj, jstring togglebuttonName, jstring description)
 {
 	UNREFERENCED_PARAMETER(obj);
 	const char *nativeTogglebuttonName = env->GetStringUTFChars(togglebuttonName, 0);
@@ -152,14 +152,14 @@ JNIEXPORT long JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 	WCHAR* wTogglebuttonName = CreateWideStringFromUTF8Win32(nativeTogglebuttonName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	HWND togglebuttonControlHandle;
+	HWND checkBoxControlHandle;
 
-	togglebuttonControlHandle = ToggleButtonControl::Create(GetModuleHandle(NULL), wTogglebuttonName, wDescription);
+	checkBoxControlHandle = CheckBoxControl::Create(GetModuleHandle(NULL), wTogglebuttonName, wDescription);
 
 	env->ReleaseStringUTFChars(togglebuttonName, nativeTogglebuttonName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
 
-	return PtrToLong(togglebuttonControlHandle);
+	return PtrToLong(checkBoxControlHandle);
 
 }
 

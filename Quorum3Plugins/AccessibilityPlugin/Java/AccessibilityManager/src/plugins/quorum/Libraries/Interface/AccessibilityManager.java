@@ -6,7 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Language.Types.Text_;
-import quorum.Libraries.Interface.TextBox_;
+import quorum.Libraries.Interface.Controls.TextBox_;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
 import static org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window;
 
@@ -68,11 +68,11 @@ public class AccessibilityManager
     
     // NativeWin32CreatePushButton: Creates a button control in UI Automation.
     //      Returns: null on failure, otherwise itemHWND associated with item
-    private native long NativeWin32CreatePushButton(String name, String description);
+    private native long NativeWin32CreateButton(String name, String description);
     
     // NativeWin32CreateToggleButton: Creates a checkbox control in UI Automation.
     //      Returns: null on failure, otherwise itemHWND associated with item
-    private native long NativeWin32CreateToggleButton(String name, String description);
+    private native long NativeWin32CreateCheckBox(String name, String description);
     
     // NativeWin32CreateRadioButton: Creates a radio button control in UI Automation.
     //      Returns: null on failure, otherwise itemHWND associated with item
@@ -134,14 +134,14 @@ public class AccessibilityManager
                 // Not implemented yet. Create as Item for now.
                 itemHWND = NativeWin32CreateItem(item.GetName(), item.GetDescription());
                 break;
-            case 2: // ToggleButton
-                itemHWND = NativeWin32CreateToggleButton(item.GetName(), item.GetDescription());
+            case 2: // CheckBox
+                itemHWND = NativeWin32CreateCheckBox(item.GetName(), item.GetDescription());
                 break;
             case 3: // RadioButton
                 itemHWND = NativeWin32CreateRadioButton(item.GetName(), item.GetDescription());
                 break;
-            case 4: // PushButton
-                itemHWND = NativeWin32CreatePushButton(item.GetName(), item.GetDescription());
+            case 4: // Button
+                itemHWND = NativeWin32CreateButton(item.GetName(), item.GetDescription());
                 break;
             case 5: // TextBox
                 TextBox_ textbox = (TextBox_)item;
