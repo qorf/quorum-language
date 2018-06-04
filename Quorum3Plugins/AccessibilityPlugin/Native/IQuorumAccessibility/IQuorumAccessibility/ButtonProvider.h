@@ -1,11 +1,11 @@
 
-class PushButtonControl;
+class ButtonControl;
 
-class PushButtonProvider : public IRawElementProviderSimple,
+class ButtonProvider : public IRawElementProviderSimple,
 	public IInvokeProvider
 {
 public:
-	PushButtonProvider(HWND hwnd, PushButtonControl* pButtonControl);
+	ButtonProvider(HWND hwnd, ButtonControl* pButtonControl);
 
 	// IUnknown methods
 	IFACEMETHODIMP_(ULONG) AddRef();
@@ -22,13 +22,13 @@ public:
 	IFACEMETHODIMP Invoke();
 
 	// Other methods
-	void PushButtonProvider::NotifyFocusGained(); // Fires a UI Automation Event when called.
+	void ButtonProvider::NotifyFocusGained(); // Fires a UI Automation Event when called.
 
 private:
-	virtual ~PushButtonProvider();
+	virtual ~ButtonProvider();
 	// Ref Counter for this COM object
 	ULONG m_refCount;
 
-	PushButtonControl* m_pButtonControl;
+	ButtonControl* m_pButtonControl;
 	HWND m_buttonControlHWnd; // The HWND for the control.
 };

@@ -2,21 +2,21 @@
 #include <windows.h>
 #include <iostream>
 
-#include "PushButtonControl.h"
-#include "PushButtonProvider.h"
+#include "ButtonControl.h"
+#include "ButtonProvider.h"
 
-bool PushButtonControl::Initialized = false;
+bool ButtonControl::Initialized = false;
 
 /**** Button methods ***/
 
-// PushButtonControl: Constructor. Sets the default values for the button.
-PushButtonControl::PushButtonControl() : m_buttonProvider(NULL), m_buttonName(L"Button")
+// ButtonControl: Constructor. Sets the default values for the button.
+ButtonControl::ButtonControl() : m_buttonProvider(NULL), m_buttonName(L"Button")
 {
 	// Nothing to do here.
 }
 
-// ~PushButtonControl: Release the reference to the PushButtonProvider if there is one.
-PushButtonControl::~PushButtonControl()
+// ~ButtonControl: Release the reference to the ButtonProvider if there is one.
+ButtonControl::~ButtonControl()
 {
 	if (m_buttonProvider != NULL)
 	{
@@ -26,24 +26,24 @@ PushButtonControl::~PushButtonControl()
 }
 
 // GetButtonProvider: Gets the UI Automation provider for this control or creates one.
-PushButtonProvider* PushButtonControl::GetButtonProvider(_In_ HWND hwnd)
+ButtonProvider* ButtonControl::GetButtonProvider(_In_ HWND hwnd)
 {
 	if (m_buttonProvider == NULL)
 	{
-		m_buttonProvider = new PushButtonProvider(hwnd, this);
+		m_buttonProvider = new ButtonProvider(hwnd, this);
 		UiaRaiseAutomationEvent(m_buttonProvider, UIA_Window_WindowOpenedEventId);
 	}
 	return m_buttonProvider;
 }
 
 // GetHWND: Get the HWND associated with this control.
-HWND PushButtonControl::GetHWND()
+HWND ButtonControl::GetHWND()
 {
 	return m_buttonControlHWND;
 }
 
 // InvokeButton: Handle button click or invoke.
-void PushButtonControl::InvokeButton(_In_ HWND hwnd)
+void ButtonControl::InvokeButton(_In_ HWND hwnd)
 {
 
 	if (UiaClientsAreListening())
@@ -54,8 +54,8 @@ void PushButtonControl::InvokeButton(_In_ HWND hwnd)
 
 }
 
-// RegisterButtonControl: Registers the PushButtonControl with Windows API so that it can used and later be registered with UI Automation
-bool PushButtonControl::Initialize(_In_ HINSTANCE hInstance)
+// RegisterButtonControl: Registers the ButtonControl with Windows API so that it can used and later be registered with UI Automation
+bool ButtonControl::Initialize(_In_ HINSTANCE hInstance)
 {
 	WNDCLASSEXW wc;
 
@@ -65,7 +65,7 @@ bool PushButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	wc.lpfnWndProc = StaticButtonControlWndProc;
 	wc.hInstance = hInstance;
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.lpszClassName = L"QUORUM_PUSHBUTTON";
+	wc.lpszClassName = L"QUORUM_BUTTON";
 
 	if (RegisterClassExW(&wc) == 0)
 	{
@@ -89,7 +89,7 @@ bool PushButtonControl::Initialize(_In_ HINSTANCE hInstance)
 	return true;
 }
 
-HWND PushButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
+HWND ButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, _In_ WCHAR* buttonDescription)
 {
 	UNREFERENCED_PARAMETER(buttonDescription);
 	if (!Initialized)
@@ -99,10 +99,10 @@ HWND PushButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, 
 
 	if (Initialized)
 	{
-		PushButtonControl * control = new PushButtonControl();
+		ButtonControl * control = new ButtonControl();
 
 		control->m_buttonControlHWND = CreateWindowExW(WS_EX_WINDOWEDGE,
-			L"QUORUM_PUSHBUTTON",
+			L"QUORUM_BUTTON",
 			buttonName,
 			WS_VISIBLE | WS_CHILD,
 			-1,
@@ -142,39 +142,39 @@ HWND PushButtonControl::Create(_In_ HINSTANCE instance, _In_ WCHAR* buttonName, 
 
 }
 
-WCHAR* PushButtonControl::GetName()
+WCHAR* ButtonControl::GetName()
 {
 	return m_buttonName;
 }
 
-void PushButtonControl::SetName(_In_ WCHAR* name)
+void ButtonControl::SetName(_In_ WCHAR* name)
 {
 	m_buttonName = name;
 }
 
-void PushButtonControl::SetControlFocus()
+void ButtonControl::SetControlFocus()
 {
 	m_focused = true;
 	m_buttonProvider->NotifyFocusGained();
 }
 
-void PushButtonControl::KillControlFocus()
+void ButtonControl::KillControlFocus()
 {
 	m_focused = false;
 }
 
-bool PushButtonControl::HasFocus()
+bool ButtonControl::HasFocus()
 {
 	return m_focused;
 }
 
-LRESULT CALLBACK PushButtonControl::StaticButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
+LRESULT CALLBACK ButtonControl::StaticButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
-	PushButtonControl * pThis = reinterpret_cast<PushButtonControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	ButtonControl * pThis = reinterpret_cast<ButtonControl*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 	if (message == WM_NCCREATE)
 	{
 		CREATESTRUCT *createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
-		pThis = reinterpret_cast<PushButtonControl*>(createStruct->lpCreateParams);
+		pThis = reinterpret_cast<ButtonControl*>(createStruct->lpCreateParams);
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
 	}
 
@@ -193,7 +193,7 @@ LRESULT CALLBACK PushButtonControl::StaticButtonControlWndProc(_In_ HWND hwnd, _
 }
 
 // Control window procedure.
-LRESULT CALLBACK PushButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
+LRESULT CALLBACK ButtonControl::ButtonControlWndProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 	LRESULT lResult = 0;
 
