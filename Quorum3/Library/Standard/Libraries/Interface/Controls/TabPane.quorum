@@ -19,6 +19,7 @@ class TabPane is Item2D
         SetName("Tab Pane")
         viewArea:SetName("Tab View Area")
         SetFocusable(true)
+        SetAccessibilityCode(parent:Item:TABPANE)
     end
 
     action Initialize(number width, number height, Array<Tab> tabs)

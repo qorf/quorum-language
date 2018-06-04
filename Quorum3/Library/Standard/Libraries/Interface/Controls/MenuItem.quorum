@@ -59,6 +59,7 @@ class MenuItem is Control
     on create
         SetInputGroup("MenuItem")
         panel:SetName("Menu Panel")
+        SetAccessibilityCode(parent:Item:MENU_ITEM)
     end
 
     action Initialize(text name)

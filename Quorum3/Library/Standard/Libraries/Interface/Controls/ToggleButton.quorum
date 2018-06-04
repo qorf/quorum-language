@@ -10,6 +10,10 @@ class ToggleButton is Button
     boolean canToggleOff = true
     ButtonGroup group = undefined
 
+    on create
+        SetAccessibilityCode(parent:Item:TOGGLE_BUTTON)
+    end
+
     action SetToggleState(boolean toggleState)
         if toggled = toggleState
             return now

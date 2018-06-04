@@ -189,6 +189,7 @@ class TextBox is Item2D, MouseListener, MouseMovementListener, MouseWheelListene
         selection:Initialize(me, "")
 
         selectionColor:SetColor(0.75, 0.75, 1, 1)
+        SetAccessibilityCode(parent:Item:TEXTBOX)
     end
 
     action Initialize(number width, number height, Color backgroundColor, text value)

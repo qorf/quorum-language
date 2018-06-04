@@ -39,6 +39,7 @@ class Tab is ToggleButton
         flow:SetFrontPadding(true)
         flow:SetIgnoreHidden(true)
         AddLayout(flow)
+        SetAccessibilityCode(parent:Item:TAB)
     end
 
     action Initialize(text name, Item2D item)
