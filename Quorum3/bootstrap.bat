@@ -33,7 +33,7 @@ copy Library\Compiled\Run\QuorumStandardLibrary.jar ..\..\IDE\Sodbeans\Quorum\re
 copy Library\Compiled\Run\QuorumStandardPlugins.jar ..\..\IDE\Sodbeans\Quorum\release\modules\ext\QuorumStandardPlugins.jar
 
 REM By default, get rid of the library package and put it back in.
-rm -r ..\..\IDE\Sodbeans\Quorum\release\modules\Library
+deltree ..\..\IDE\Sodbeans\Quorum\release\modules\Library
 robocopy Library ..\..\IDE\Sodbeans\Quorum\release\modules\Library /s /e /NFL /NDL /NJH /NJS /nc /ns /np
 
 echo "Copying Quorum to its final form."
