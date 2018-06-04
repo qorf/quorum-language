@@ -5,6 +5,7 @@ use Libraries.System.DateTime
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Painter2D
+use Libraries.Interface.AccessibilityManager
 
 /*
 This is an internal class used by the Game class to manage several resources
@@ -25,6 +26,12 @@ class DesktopApplication is Application
         parent:Application:Setup(game)
 
         game:InitializeLayers()
+
+        GameStateManager manager
+        if manager:GetOperatingSystem():Contains("Windows")
+            AccessibilityManager accessibility
+            game:SetAccessibilityManager(accessibility)
+        end
 
         MainLoop()
         

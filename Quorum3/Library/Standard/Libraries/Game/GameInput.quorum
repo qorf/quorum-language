@@ -2,6 +2,7 @@ package Libraries.Game
 
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
+use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Events.KeyboardListener
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
@@ -28,6 +29,8 @@ class GameInput
 
     Array<SelectionListener> selectionListeners
     Array<TextChangeListener> textChangeListeners
+
+    GameStateManager manager
 
     /*
     This action sets a reference to the layers stored in the Game class that the
@@ -227,6 +230,11 @@ class GameInput
     Attribute: Parameter event The SelectionEvent to send to all SelectionListeners in the GameInput.
     */
     action NotifySelectionListeners(SelectionEvent event)
+        AccessibilityManager accessibility = manager:GetAccessibilityManager()
+        if accessibility not= undefined
+            accessibility:SelectionChanged(event)
+        end
+
         integer counter = 0
         repeat while counter < selectionListeners:GetSize()
             selectionListeners:Get(counter):SelectionChanged(event)

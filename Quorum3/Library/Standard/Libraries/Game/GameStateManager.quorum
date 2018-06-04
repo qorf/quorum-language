@@ -6,6 +6,7 @@ use Libraries.Game.GameDisplay
 use Libraries.Game.GameInput
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Interface.Item
+use Libraries.Interface.AccessibilityManager
 
 /*
     The GameStateManager is an internal class, used by the game engine to
@@ -72,10 +73,6 @@ class GameStateManager
     This action sets the FocusManager to be used across the Game.
     */
     action SetFocusManager(FocusManager manager)
-//        if GetGame() = undefined
-//            return now
-//        end
-
         GetGame():SetFocusManager(manager)
     end
 
@@ -89,6 +86,20 @@ class GameStateManager
         else
             return undefined
         end
+    end
+
+    /*
+
+    */
+    action SetAccessibilityManager(AccessibilityManager accessibility)
+        GetGame():SetAccessibilityManager(accessibility)
+    end
+
+    /*
+
+    */
+    action GetAccessibilityManager returns AccessibilityManager
+        return GetGame():GetAccessibilityManager()
     end
 
     /*
