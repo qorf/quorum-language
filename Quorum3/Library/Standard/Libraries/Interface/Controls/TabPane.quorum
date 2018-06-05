@@ -4,6 +4,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Selections.TabPaneSelection
 
 class TabPane is Item2D
@@ -148,5 +149,13 @@ class TabPane is Item2D
 
     action GetSelection returns TabPaneSelection
         return selection
+    end
+
+    action AddTabChangeListener(TabChangeListener listener)
+        bar:AddTabChangeListener(listener)
+    end
+
+    action RemoveTabChangeListener(TabChangeListener listener)
+        bar:RemoveTabChangeListener(listener)
     end
 end

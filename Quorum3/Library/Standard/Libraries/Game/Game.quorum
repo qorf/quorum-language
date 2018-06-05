@@ -77,6 +77,7 @@ use Libraries.Interface.Events.TextInputListener
 use Libraries.Interface.Events.ResizeListener
 use Libraries.Interface.Events.SelectionListener
 use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
@@ -451,18 +452,36 @@ class Game
         InputTable tabPaneTable
         tabPaneTable:SetIdentifier("TabPane")
 
-        InputSet forwardTab
-        forwardTab:SetKeyboardInput(keys:TAB)
-        forwardTab:AddModifier(forwardTab:CONTROL)
         TabPaneForwardTabBehavior forward
-        tabPaneTable:Add(forwardTab, forward)
-
-        InputSet backwardTab
-        backwardTab:SetKeyboardInput(keys:TAB)
-        backwardTab:AddModifier(forwardTab:SHIFT)
-        backwardTab:AddModifier(forwardTab:CONTROL)
         TabPaneBackwardTabBehavior backward
-        tabPaneTable:Add(backwardTab, backward)
+
+        if manager:GetOperatingSystem():Contains("OS X")
+            InputSet forwardTab
+            forwardTab:SetKeyboardInput(keys:RIGHT_BRACKET)
+            forwardTab:AddModifier(forwardTab:CONTROL)
+
+            tabPaneTable:Add(forwardTab, forward)
+
+            InputSet backwardTab
+            backwardTab:SetKeyboardInput(keys:LEFT_BRACKET)
+            backwardTab:AddModifier(forwardTab:CONTROL)
+
+            tabPaneTable:Add(backwardTab, backward)
+        else
+            InputSet forwardTab
+            forwardTab:SetKeyboardInput(keys:TAB)
+            forwardTab:AddModifier(forwardTab:CONTROL)
+
+            tabPaneTable:Add(forwardTab, forward)
+
+            InputSet backwardTab
+            backwardTab:SetKeyboardInput(keys:TAB)
+            backwardTab:AddModifier(forwardTab:SHIFT)
+            backwardTab:AddModifier(forwardTab:CONTROL)
+
+            tabPaneTable:Add(backwardTab, backward)
+        end
+        
         gameInput:AddInputTable(tabPaneTable)
 
         InputTable buttonTable
@@ -3554,6 +3573,20 @@ class Game
     /*
 
     */
+    action AddTabChangeListener(TabChangeListener listener)
+        gameInput:AddTabChangeListener(listener)
+    end
+
+    /*
+
+    */
+    action RemoveTabChangeListener(TabChangeListener listener)
+        gameInput:RemoveTabChangeListener(listener)
+    end
+
+    /*
+
+    */
     action GetDefaultInputTable returns InputTable
         return gameInput:GetDefaultInputTable()
     end
@@ -3605,4 +3638,6 @@ class Game
     action GetAccessibilityManager returns AccessibilityManager
         return accessibility
     end
+
+    
 end

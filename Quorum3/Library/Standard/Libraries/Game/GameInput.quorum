@@ -14,6 +14,8 @@ use Libraries.Interface.Events.SelectionListener
 use Libraries.Interface.Events.SelectionEvent
 use Libraries.Interface.Events.TextChangeListener
 use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Events.TabChangeListener
+use Libraries.Interface.Events.TabChangeEvent
 
 /*
 This class is the base interface for how the Game will automatically handle
@@ -29,6 +31,7 @@ class GameInput
 
     Array<SelectionListener> selectionListeners
     Array<TextChangeListener> textChangeListeners
+    Array<TabChangeListener> tabChangeListeners
 
     GameStateManager manager
 
@@ -275,6 +278,38 @@ class GameInput
         repeat while counter < textChangeListeners:GetSize()
             textChangeListeners:Get(counter):TextChanged(event)
             counter = counter + 1
+        end
+    end
+
+    /*
+
+    */
+    action AddTabChangeListener(TabChangeListener listener)
+        tabChangeListeners:Add(listener)
+    end
+
+    /*
+
+    */
+    action RemoveTabChangeListener(TabChangeListener listener)
+        tabChangeListeners:Remove(listener)
+    end
+
+    /*
+
+    */
+    action NotifyTabChangeListeners(TabChangeEvent event)
+        integer counter = 0
+        if event:GetEventType() = event:OPENED
+            repeat while counter < tabChangeListeners:GetSize()
+                tabChangeListeners:Get(counter):OpenedTab(event)
+                counter = counter + 1
+            end
+        elseif event:GetEventType() = event:CLOSED
+            repeat while counter < tabChangeListeners:GetSize()
+                tabChangeListeners:Get(counter):ClosedTab(event)
+                counter = counter + 1
+            end
         end
     end
     
