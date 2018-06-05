@@ -18,7 +18,7 @@ use Libraries.Network.NetworkRequestListener
 class Main is NetworkRequestListener
     action Main
         NetworkRequest request
-        request:SetRequestTypeToGET()
+        request:SetRequestTypeToGet()
         request:SetWebAddress("https://quorumlanguage.com/GETtest.php")
         NetworkConnection http
         http:AddListener(me)
@@ -58,7 +58,7 @@ class NetworkRequest
     class Main
         action Main
             NetworkRequestType type
-            type:SetToGET()
+            type:SetToGet()
             NetworkRequest request
             request:SetRequestType(type)
         end
@@ -78,12 +78,12 @@ class NetworkRequest
     class Main
         action Main
             NetworkRequest request
-            request:SetRequestTypeToHEAD()
+            request:SetRequestTypeToHead()
         end
     end
     */
-    action SetRequestTypeToHEAD
-        me:type:SetToHEAD()
+    action SetRequestTypeToHead
+        me:type:SetToHead()
     end
 
     /*
@@ -96,12 +96,12 @@ class NetworkRequest
     class Main
         action Main
             NetworkRequest request
-            request:SetRequestTypeToGET()
+            request:SetRequestTypeToGet()
         end
     end
     */
-    action SetRequestTypeToGET
-        me:type:SetToGET()
+    action SetRequestTypeToGet
+        me:type:SetToGet()
     end
 
     /*
@@ -114,12 +114,12 @@ class NetworkRequest
     class Main
         action Main
             NetworkRequest request
-            request:SetRequestTypeToPOST()
+            request:SetRequestTypeToPost()
         end
     end
     */
-    action SetRequestTypeToPOST
-        me:type:SetToPOST()
+    action SetRequestTypeToPost
+        me:type:SetToPost()
     end
 
     /*
@@ -132,12 +132,12 @@ class NetworkRequest
     class Main
         action Main
             NetworkRequest request
-            request:SetRequestTypeToPUT()
+            request:SetRequestTypeToPut()
         end
     end
     */
-    action SetRequestTypeToPUT
-        me:type:SetToPUT()
+    action SetRequestTypeToPut
+        me:type:SetToPut()
     end
 
     /*
@@ -150,12 +150,12 @@ class NetworkRequest
     class Main
         action Main
             NetworkRequest request
-            request:SetRequestTypeToPATCH()
+            request:SetRequestTypeToPatch()
         end
     end
     */
-    action SetRequestTypeToPATCH
-        me:type:SetToPATCH()
+    action SetRequestTypeToPatch
+        me:type:SetToPatch()
     end
 
     /*
@@ -168,12 +168,12 @@ class NetworkRequest
     class Main
         action Main
             NetworkRequest request
-            request:SetRequestTypeToDELETE()
+            request:SetRequestTypeToDelete()
         end
     end
     */
-    action SetRequestTypeToDELETE
-        me:type:SetToDELETE()
+    action SetRequestTypeToDelete
+        me:type:SetToDelete()
     end
 
     /*
@@ -761,7 +761,7 @@ class NetworkRequest
     class Main
         action Main
             NetworkRequest request
-            request:SetRequestTypeToPOST()
+            request:SetRequestTypeToPost()
             output request:GetRequestType()
         end
     end
