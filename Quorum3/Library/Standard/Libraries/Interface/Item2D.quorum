@@ -1067,6 +1067,12 @@ class Item2D is Item
         newItem:SetOffset(GetX() + GetOffsetX(), GetY() + GetOffsetY())
         if layer not= undefined
             layer:SetNewItemAdded(true)
+
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Add(newItem)
+            end
         end
     end
 
@@ -1091,6 +1097,12 @@ class Item2D is Item
         newItem:SetOffset(GetX() + GetOffsetX(), GetY() + GetOffsetY())
         if layer not= undefined
             layer:SetNewItemAdded(true)
+
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Add(newItem)
+            end
         end
     end
 
@@ -1123,6 +1135,12 @@ class Item2D is Item
 
         if layer not= undefined
             removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Remove(removed)
+            end
         end
         removed:SetCollidable(false)
 
@@ -1164,6 +1182,14 @@ class Item2D is Item
 
         temp:SetParent(undefined)
         temp:SetLayer(undefined)
+
+        if layer not= undefined
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Remove(temp)
+            end
+        end
 
         return temp
     end
@@ -1247,12 +1273,21 @@ class Item2D is Item
         parentItem:SetItem(0, child2)
     */
     action SetItem(integer index, Item2D newItem)
+        Item oldItem = children:Get(index)
+
         children:Set(index, newItem)
         newItem:SetParent(me)
         newItem:SetLayer(layer)
         newItem:SetOffset(position:GetX() + offset:GetX(), position:GetY() + offset:GetY())
         if layer not= undefined
             layer:SetNewItemAdded(true)
+
+            GameStateManager manager
+            AccessibilityManager accessibility = manager:GetAccessibilityManager()
+            if accessibility not= undefined
+                accessibility:Remove(oldItem)
+                accessibility:Add(newItem)
+            end
         end
     end
 

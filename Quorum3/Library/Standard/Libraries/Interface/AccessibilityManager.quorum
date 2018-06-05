@@ -37,10 +37,10 @@ class AccessibilityManager
     system action RegisterItem(Item item, Text className) returns boolean
     
     // Add: Registers an Item with the native accessibility code so the screen readers can access information about it.
-    system action Add(Item item) returns boolean
+//    system action Add(Item item) returns boolean
 
     // Remove: Removes an Item from the native accessibility tree so that it is no longer available to screen readers.
-    system action Remove(Item item)
+//    system action Remove(Item item)
 
 
     // ===== actions for Buttons
@@ -82,6 +82,14 @@ class AccessibilityManager
         // Handle the focus change.
 
         output "Focus changed."
+    end
+
+    action Add(Item item)
+        output "Adding item: " + item:GetName()
+    end
+
+    action Remove(Item item)
+        output "Removing item: " + item:GetName()
     end
 
 end
