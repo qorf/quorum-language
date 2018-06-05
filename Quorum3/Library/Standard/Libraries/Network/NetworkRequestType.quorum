@@ -12,7 +12,7 @@ class main
     action Main
         NetworkRequest request
         NetworkRequestType type
-        type:SetToGET()
+        type:SetToGet()
         request:SetRequestType(type)
     end
 end
@@ -41,11 +41,11 @@ class NetworkRequestType
     class main
         action Main
             NetworkRequestType type
-            type:SetToHEAD()
+            type:SetToHead()
         end
     end
     */
-    action SetToHEAD()
+    action SetToHead()
         type = HEAD
     end
 
@@ -59,11 +59,11 @@ class NetworkRequestType
     class main
         action Main
             NetworkRequestType type
-            type:SetToGET()
+            type:SetToGet()
         end
     end
     */
-    action SetToGET()
+    action SetToGet()
         type = GET
     end
 
@@ -77,11 +77,11 @@ class NetworkRequestType
     class main
         action Main
             NetworkRequestType type
-            type:SetToPOST()
+            type:SetToPost()
         end
     end
     */
-    action SetToPOST()
+    action SetToPost()
         type = POST
     end
 
@@ -95,11 +95,11 @@ class NetworkRequestType
     class main
         action Main
             NetworkRequestType type
-            type:SetToPUT()
+            type:SetToPut()
         end
     end
     */
-    action SetToPUT()
+    action SetToPut()
         type = PUT
     end
 
@@ -113,11 +113,11 @@ class NetworkRequestType
     class main
         action Main
             NetworkRequestType type
-            type:SetToPATCH()
+            type:SetToPatch()
         end
     end
     */
-    action SetToPATCH()
+    action SetToPatch()
         type = PATCH
     end
 
@@ -131,11 +131,11 @@ class NetworkRequestType
     class main
         action Main
             NetworkRequestType type
-            type:SetToDELETE()
+            type:SetToDelete()
         end
     end
     */
-    action SetToDELETE()
+    action SetToDelete()
         type = DELETE
     end
 
@@ -151,7 +151,7 @@ class NetworkRequestType
     class main
         action Main
             NetworkRequestType type
-            type:SetToGET()
+            type:SetToGet()
             output type:GetType()
         end
     end
@@ -172,12 +172,12 @@ class NetworkRequestType
     class main
         action Main
             NetworkRequestType type
-            type:SetToHEAD()
-            output type:IsHEAD()
+            type:SetToHead()
+            output type:IsHead()
         end
     end
     */
-    action IsHEAD() returns boolean
+    action IsHead() returns boolean
         return type = HEAD
     end
 
@@ -193,11 +193,11 @@ class NetworkRequestType
     class main
         action Main
             NetworkRequestType type
-            type:SetToGET()
-            output type:IsGET()
+            type:SetToGet()
+            output type:IsGet()
         end
     end
-    */    action IsGET() returns boolean
+    */    action IsGet() returns boolean
         return type = GET
     end
 
@@ -213,11 +213,11 @@ class NetworkRequestType
     class main
         action Main
             NetworkRequestType type
-            type:SetToPOST()
-            output type:IsPOST()
+            type:SetToPost()
+            output type:IsPost()
         end
     end
-    */    action IsPOST() returns boolean
+    */    action IsPost() returns boolean
         return type = POST
     end
 
@@ -233,11 +233,11 @@ class NetworkRequestType
     class main
         action Main
             NetworkRequestType type
-            type:SetToPUT()
-            output type:IsPUT()
+            type:SetToPut()
+            output type:IsPut()
         end
     end
-    */    action IsPUT() returns boolean
+    */    action IsPut() returns boolean
         return type = PUT
     end
 
@@ -253,11 +253,11 @@ class NetworkRequestType
     class main
         action Main
             NetworkRequestType type
-            type:SetToPATCH()
-            output type:IsHEAD()
+            type:SetToPatch()
+            output type:IsHead()
         end
     end
-    */    action IsPATCH() returns boolean
+    */    action IsPatch() returns boolean
         return type = PATCH
     end
 
@@ -273,12 +273,12 @@ class NetworkRequestType
     class main
         action Main
             NetworkRequestType type
-            type:SetToDELETE()
-            output type:IsDELETE()
+            type:SetToDelete()
+            output type:IsDelete()
         end
     end
     */
-    action IsDELETE() returns boolean
+    action IsDelete() returns boolean
         return type = DELETE
     end
 
@@ -294,7 +294,7 @@ class NetworkRequestType
     class main
         action Main
             NetworkRequestType type
-            type:SetToGET()
+            type:SetToGet()
             output type:ToText()
         end
     end
