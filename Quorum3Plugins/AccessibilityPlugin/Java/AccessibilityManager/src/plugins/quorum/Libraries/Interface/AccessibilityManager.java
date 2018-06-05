@@ -42,12 +42,29 @@ public class AccessibilityManager
     } 
     
     public AccessibilityManager(){};
-    
     public java.lang.Object me_ = null;
     
     // Container to associate the Quorum item with its respective HWND.
     private final HashMap<Item_, Long> itemMap = new HashMap<>();
-    private Item_ focusedItem = null;
+    
+    quorum.Libraries.Interface.Item item = new quorum.Libraries.Interface.Item();
+    
+    private final int ITEM = item.Get_Libraries_Interface_Item__ITEM_();
+    private final int CUSTOM = item.Get_Libraries_Interface_Item__CUSTOM_();
+    private final int CHECKBOX = item.Get_Libraries_Interface_Item__CHECKBOX_();
+    private final int RADIO_BUTTON = item.Get_Libraries_Interface_Item__RADIO_BUTTON_();
+    private final int BUTTON = item.Get_Libraries_Interface_Item__BUTTON_();
+    private final int TOGGLE_BUTTON = item.Get_Libraries_Interface_Item__TOGGLE_BUTTON_();
+    private final int TEXTBOX = item.Get_Libraries_Interface_Item__TEXTBOX_();
+    private final int MENU_BAR = item.Get_Libraries_Interface_Item__MENU_BAR_();
+    private final int MENU_ITEM = item.Get_Libraries_Interface_Item__MENU_ITEM_();
+    private final int PANE = item.Get_Libraries_Interface_Item__PANE_();
+    private final int TREE = item.Get_Libraries_Interface_Item__TREE_();
+    private final int TREE_ITEM = item.Get_Libraries_Interface_Item__TREE_ITEM_();
+    private final int TOOLBAR = item.Get_Libraries_Interface_Item__TOOLBAR_();
+    private final int TAB = item.Get_Libraries_Interface_Item__TAB_();
+    private final int TABPANE = item.Get_Libraries_Interface_Item__TABPANE_();
+    
     // The handle to the main game window that GLFW creates
     private long mainWindow;
 
@@ -121,7 +138,7 @@ public class AccessibilityManager
         NativeWin32ShutdownAccessibility();
     }
     
-    public boolean Add(Item_ item)
+    public boolean NativeAdd(Item_ item)
     {
         long itemHWND = 0;
         
@@ -163,10 +180,10 @@ public class AccessibilityManager
             return false;
     }
     
-    // GetFocus: Returns the current item that has focus with UI Automation.
-    public Item_ GetFocus()
+    public boolean NativeRemove(Item_ item)
     {
-        return focusedItem;
+        // TODO: Remove the item from the accessibility hierarchy.
+        return false;
     }
     
     // SetFocus: Sets the focus to the specified item in UI Automation. This will also update what item has focus within the
@@ -176,23 +193,11 @@ public class AccessibilityManager
     {
         // Retreive HWND for given object
         long itemHWND = itemMap.get(item);
-        long previousFocusedItem; // Could be used for something later.
 
         if (itemHWND != 0)
-        {
-            // TODO: The main GLFW window could come out of this function call.
-            // So we want to make sure that Quorum users don't get access to it.
-            previousFocusedItem = NativeWin32SetFocus(itemHWND);
-
-            if (previousFocusedItem != 0)
-                return true;
-            else
-                return false;
-        }
+            return NativeWin32SetFocus(itemHWND) != 0;
         else
-        {
             return false;
-        }
     }
     
     // InvokeButton: Invoke a button through UI Automation
